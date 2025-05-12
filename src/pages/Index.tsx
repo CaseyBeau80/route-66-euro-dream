@@ -1,12 +1,29 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import RouteMap from "../components/RouteMap";
+import ItinerarySection from "../components/ItinerarySection";
+import FeaturedListings from "../components/FeaturedListings";
+import TravelResources from "../components/TravelResources";
+import EmailCapture from "../components/EmailCapture";
+import Footer from "../components/Footer";
+
+type Language = "en" | "de" | "fr" | "nl";
 
 const Index = () => {
+  const [language, setLanguage] = useState<Language>("en");
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-route66-cream">
+      <Navbar language={language} setLanguage={setLanguage} />
+      <Hero language={language} />
+      <RouteMap language={language} />
+      <ItinerarySection language={language} />
+      <FeaturedListings language={language} />
+      <TravelResources language={language} />
+      <EmailCapture language={language} />
+      <Footer language={language} />
     </div>
   );
 };
