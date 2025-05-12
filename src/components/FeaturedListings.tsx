@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ArrowLeft, Bed, Utensils, Music, MapPin } from "lucide-react";
+import { ArrowRight, ArrowLeft, Bed, Utensils, Music, MapPin, History as HistoryIcon } from "lucide-react";
 
 type FeaturedListingsProps = {
   language: string;
@@ -234,7 +234,7 @@ const FeaturedListings = ({ language }: FeaturedListingsProps) => {
       case 'motel': return <Bed size={18} />;
       case 'diner': return <Utensils size={18} />;
       case 'music': return <Music size={18} />;
-      case 'museum': return <History size={18} />;
+      case 'museum': return <HistoryIcon size={18} />;
       default: return <MapPin size={18} />;
     }
   };

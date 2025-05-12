@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { MapPin, Filter, Motorcycle, CarFront, Utensils, Music, History, Bed } from "lucide-react";
+import { MapPin, Filter, CarFront, Utensils, Music, History as HistoryIcon, Bed } from "lucide-react";
 
 type RouteMapProps = {
   language: string;
@@ -144,7 +144,7 @@ const RouteMap = ({ language }: RouteMapProps) => {
             className={activeCategory === 'history' ? "bg-route66-red text-white hover:bg-route66-red/90" : "text-route66-gray"}
             onClick={() => setActiveCategory('history')}
           >
-            <History size={16} className="mr-2" />
+            <HistoryIcon size={16} className="mr-2" />
             {content.categories.history}
           </Button>
         </div>
@@ -159,7 +159,7 @@ const RouteMap = ({ language }: RouteMapProps) => {
               : 'text-route66-gray border-route66-gray/30'}`}
             onClick={() => toggleFilter('motorcycle')}
           >
-            <Motorcycle size={15} className="mr-2" />
+            <CarFront size={15} className="mr-2" />
             {content.filters.motorcycle}
           </Button>
           <Button
