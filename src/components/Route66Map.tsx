@@ -66,30 +66,27 @@ const Route66Map = () => {
               fill: "#ff0000",
             },
           },
-          onRegionTipShow: function () {
-            const mapObj = $("#map").vectorMap("get", "mapObject");
-            const pathCoords = towns.map((town) =>
-              mapObj.latLngToPoint(town.latLng[0], town.latLng[1])
-            );
+  setTimeout(() => {
+  const mapObj = $("#map").vectorMap("get", "mapObject");
 
-            const svg = mapObj.container.find("svg");
-            const linePath = pathCoords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const pathCoords = towns.map((town) =>
+    mapObj.latLngToPoint(town.latLng[0], town.latLng[1])
+  );
 
-            if (!svg.find("path.route66").length) {
-              const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
-              pathEl.setAttribute("d", linePath);
-              pathEl.setAttribute("stroke", "#ff0000");
-              pathEl.setAttribute("stroke-width", "2");
-              pathEl.setAttribute("fill", "none");
-              pathEl.setAttribute("class", "route66");
-              svg[0].appendChild(pathEl);
-            }
-          },
-        });
-      } catch (err) {
-        console.error("❌ Map loading failed:", err);
-      }
-    };
+  const svg = mapObj.container.find("svg");
+  const linePath = pathCoords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  if (!svg.find("path.route66").length) {
+    const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    pathEl.setAttribute("d", linePath);
+    pathEl.setAttribute("stroke", "#ff0000");
+    pathEl.setAttribute("stroke-width", "2");
+    pathEl.setAttribute("fill", "none");
+    pathEl.setAttribute("class", "route66");
+    svg[0].appendChild(pathEl);
+  }
+}, 300); // delay ensures map is ready
+
 
     loadScripts();
   }, []);
