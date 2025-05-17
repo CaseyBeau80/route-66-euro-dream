@@ -119,6 +119,16 @@ const Route66Map = () => {
       }
     };
   }, []);
+  
+  // Define the tooltip styles using a separate style object instead of JSX style tag
+  const tooltipStyle = `
+    .map-tooltip {
+      padding: 5px 10px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+  `;
 
   return (
     <div className="my-8 px-4">
@@ -132,14 +142,7 @@ const Route66Map = () => {
           height: "600px",
         }}
       ></div>
-      <style jsx>{`
-        .map-tooltip {
-          padding: 5px 10px;
-          background: white;
-          border-radius: 4px;
-          box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-        }
-      `}</style>
+      <style>{tooltipStyle}</style>
     </div>
   );
 };
