@@ -41,21 +41,7 @@ const Hero = ({ language }: HeroProps) => {
           alt="Route 66 landscape" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-route66-gradient">
-          {/* Interactive Map Iframe */}
-          <div className="absolute inset-0 flex items-center justify-center px-4 py-8 md:py-12">
-            <div className="w-full max-w-6xl bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-2xl">
-              <iframe 
-                src="https://genuine-taffy-ad3e9e.netlify.app" 
-                width="100%" 
-                height="500" 
-                style={{ border: "none" }}
-                title="Route 66 Interactive Map"
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-route66-gradient"></div>
       </div>
       
       {/* Content */}
