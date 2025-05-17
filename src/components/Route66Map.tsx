@@ -10,35 +10,48 @@ const Route66Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Create a static map image as fallback
-    const createStaticMap = () => {
-      if (!mapRef.current) return;
-      
-      const container = mapRef.current;
-      container.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-full bg-gray-100 rounded-lg p-8">
-          <img 
-            src="/lovable-uploads/423a5daa-de49-4355-b472-e3c4bfd86639.png" 
-            alt="Route 66 Map" 
-            class="max-w-full max-h-[500px] rounded-lg shadow-md"
-          />
-          <p class="mt-4 text-center text-gray-600">
-            Explore the historic Route 66 from Chicago to Los Angeles!
-          </p>
-        </div>
-      `;
+    // Load the US map script if not already loaded
+    const loadScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        if (window.jQuery && window.jQuery.fn.vectorMap) {
+          // jQuery and vectorMap are already available
+          console.log("jQuery and vectorMap already available");
+          resolve();
+          return;
+        }
+
+        console.log("Loading map script...");
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap-us-aea-en.js";
+        script.async = true;
+        
+        script.onload = () => {
+          console.log("Map script loaded successfully");
+          resolve();
+        };
+        
+        script.onerror = (e) => {
+          console.error("Error loading map script:", e);
+          reject(new Error("Failed to load map script"));
+        };
+        
+        document.head.appendChild(script);
+      });
     };
 
-    // Try to initialize the interactive map
+    // Function to initialize the map
     const initializeMap = () => {
-      if (!mapRef.current) return;
-      
+      if (!mapRef.current) {
+        console.error("Map container not found");
+        return;
+      }
+
       try {
-        console.log("Initializing map with jQuery...");
+        console.log("Initializing map...");
         
+        // Make sure jQuery is defined and has vectorMap function
         if (!window.jQuery || !window.jQuery.fn.vectorMap) {
-          console.error("jQuery or vectorMap not available, using static map instead");
-          createStaticMap();
+          console.error("jQuery or vectorMap not available");
           return;
         }
 
@@ -95,12 +108,23 @@ const Route66Map = () => {
         console.log("Map initialized successfully");
       } catch (error) {
         console.error("Error initializing map:", error);
-        createStaticMap();
       }
     };
 
-    // Use the static map (fallback) since jVectorMap is having issues
-    createStaticMap();
+    // Main execution
+    const setupMap = async () => {
+      try {
+        await loadScript();
+        // Short delay to ensure everything is loaded
+        setTimeout(() => {
+          initializeMap();
+        }, 500);
+      } catch (error) {
+        console.error("Failed to set up map:", error);
+      }
+    };
+
+    setupMap();
 
     // Cleanup function
     return () => {
@@ -128,7 +152,7 @@ const Route66Map = () => {
   `;
 
   return (
-    <div className="my-8 px-4" id="map">
+    <div className="my-8 px-4">
       <h2 className="text-3xl font-bold text-center text-route66-red mb-6">Explore Route 66</h2>
       <div
         ref={mapRef}
