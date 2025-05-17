@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import $ from "jquery";
 import "jvectormap-next";
-import "jvectormap-content/maps/us_aea_en";
+import "jvectormap-content/maps/us-aea-en";
+
 
 const Route66Map = () => {
   useEffect(() => {
