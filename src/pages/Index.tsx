@@ -18,7 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-route66-cream">
       <Navbar language={language} setLanguage={setLanguage} />
       <Hero language={language} />
-      <Route66Map /> {/* <-- map component */}
+      <Route66Map />
       <ItinerarySection language={language} />
       <FeaturedListings language={language} />
       <TravelResources language={language} />
