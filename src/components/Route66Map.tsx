@@ -17,6 +17,7 @@ script.onload = () => {
   initMap();
 };
 
+
             markers: [
               { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
               { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
