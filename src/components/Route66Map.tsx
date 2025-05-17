@@ -1,11 +1,11 @@
-
 import { useEffect, useRef } from "react";
 import $ from "jquery";
 
-// Explicitly import jQuery first, then the vector map
-// Need to ensure the plugin is properly loaded before use
+// Required jVectorMap imports
 import "jvectormap-next";
 import "jvectormap-next/jquery-jvectormap.css";
+import "jvectormap-content/maps/us-aea-en.js"; // ✅ add this line!
+
 
 const Route66Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
