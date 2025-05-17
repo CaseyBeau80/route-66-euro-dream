@@ -3,77 +3,84 @@ import $ from "jquery";
 
 import "jvectormap-next";
 import "jvectormap-next/jquery-jvectormap.css";
-import "jvectormap-content/maps/us-aea-en.js"; // ✅ this is the critical fix
+
+// ✅ Move this helper down here, just after imports
+const loadScript = (src: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = () => reject(`Failed to load script: ${src}`);
+    document.body.appendChild(script);
+  });
 
 
 
 const Route66Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   
-  useEffect(() => {
-    // Make sure both jQuery and the map container are available
-    if (!mapRef.current || typeof $ !== "function" || !$.fn.vectorMap) {
-      console.error("Map dependencies not loaded:", { 
-        jQueryAvailable: typeof $ === "function",
-        vectorMapAvailable: $ && $.fn && typeof $.fn.vectorMap === "function",
-        containerExists: !!mapRef.current
-      });
+ useEffect(() => {
+  if (!mapRef.current) return;
+
+  const initMap = () => {
+    if (!$.fn.vectorMap) {
+      console.error("jVectorMap not available on jQuery.");
       return;
     }
-    
-    try {
-      // Clear any existing maps first to prevent duplicates
-      $(mapRef.current).empty();
-      
-      // Initialize the map with proper error handling
-      $(mapRef.current).vectorMap({
-        map: "us_aea_en",
-        backgroundColor: "#f8f4e9", // Cream color to match site theme
-        regionStyle: {
-          initial: {
-            fill: "#cccccc",
-            "fill-opacity": 0.8,
-            stroke: "#ffffff",
-            "stroke-width": 1,
-            "stroke-opacity": 1
-          },
-          hover: {
-            fill: "#ff6666",
-            "fill-opacity": 0.8
-          }
+
+    $(mapRef.current).empty();
+
+    $(mapRef.current).vectorMap({
+      map: "us_aea_en",
+      backgroundColor: "#f8f4e9",
+      regionStyle: {
+        initial: {
+          fill: "#cccccc",
+          "fill-opacity": 0.8,
+          stroke: "#ffffff",
+          "stroke-width": 1,
+          "stroke-opacity": 1,
         },
-        // Route 66 major cities as markers
-        markers: [
-          { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-          { latLng: [38.6270, -90.1994], name: "St. Louis, MO" },
-          { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-          { latLng: [35.0844, -106.6504], name: "Albuquerque, NM" },
-          { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
-          { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" }
-        ],
-        markerStyle: {
-          initial: {
-            fill: "#ff6666",
-            stroke: "#ffffff",
-            "fill-opacity": 0.8,
-            "stroke-width": 1,
-            "stroke-opacity": 0.8,
-            r: 6
-          },
-          hover: {
-            fill: "#ff0000",
-            stroke: "#ffffff",
-            "fill-opacity": 1,
-            "stroke-width": 1,
-            "stroke-opacity": 1,
-            r: 8
-          }
-        }
-      });
-    } catch (error) {
-      console.error("Error initializing vector map:", error);
-    }
-  }, []);
+        hover: {
+          fill: "#ff6666",
+          "fill-opacity": 0.8,
+        },
+      },
+      markers: [
+        { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
+        { latLng: [38.6270, -90.1994], name: "St. Louis, MO" },
+        { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
+        { latLng: [35.0844, -106.6504], name: "Albuquerque, NM" },
+        { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
+        { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
+      ],
+      markerStyle: {
+        initial: {
+          fill: "#ff6666",
+          stroke: "#ffffff",
+          "fill-opacity": 0.8,
+          "stroke-width": 1,
+          "stroke-opacity": 0.8,
+          r: 6,
+        },
+        hover: {
+          fill: "#ff0000",
+          stroke: "#ffffff",
+          "fill-opacity": 1,
+          "stroke-width": 1,
+          "stroke-opacity": 1,
+          r: 8,
+        },
+      },
+    });
+  };
+
+  // Load US map definition dynamically from CDN
+  loadScript("https://cdn.jsdelivr.net/npm/jvectormap-content@1.2.0/maps/us-aea-en.js")
+    .then(initMap)
+    .catch((err) => console.error("Failed to load map script:", err));
+}, []);
+
 
   return (
     <div className="my-8 px-4">
