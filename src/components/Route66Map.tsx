@@ -1,5 +1,12 @@
 import { useEffect } from "react";
 
+declare global {
+  interface Window {
+    $: any;
+    jQuery: any;
+  }
+}
+
 const Route66Map = () => {
   useEffect(() => {
     const loadScript = (src: string, id: string): Promise<void> => {
@@ -20,16 +27,18 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
+        // Load jQuery first
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
-        await loadScript("https://unpkg.com/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap");
+        window.$ = window.jQuery = (window as any).$ || (window as any).jQuery;
+
+        // Load jVectorMap core and USA map script
+        await loadScript("https://cdn.jsdelivr.net/npm/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap-core");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
         console.log("✅ All scripts loaded");
 
-        // @ts-ignore
-        if ($("#map").children().length === 0) {
-          // @ts-ignore
-          $("#map").vectorMap({
+        if (window.$ && window.$("#map").children().length === 0) {
+          window.$("#map").vectorMap({
             map: "us_aea_en",
             backgroundColor: "transparent",
             regionStyle: {
