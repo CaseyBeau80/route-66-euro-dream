@@ -1,8 +1,13 @@
-import { useEffect } from "react";
-import $ from "jquery";
-import "jvectormap-next"; // ✅ this replaces the broken line
-import "jvectormap-content/maps/us-aea-en.js";
-import "jvectormap-next/jquery-jvectormap.css"; // make sure styling is loaded
+import { useState } from "react";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import Route66Map from "../components/Route66Map";
+import ItinerarySection from "../components/ItinerarySection";
+import FeaturedListings from "../components/FeaturedListings";
+import TravelResources from "../components/TravelResources";
+import EmailCapture from "../components/EmailCapture";
+import Footer from "../components/Footer";
+
 
 
 
