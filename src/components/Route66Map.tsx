@@ -25,47 +25,45 @@ const Route66Map = () => {
       });
     };
 
-    const loadScripts = async () => {
-      try {
-        // Load jQuery first
-       await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery-core");
-      await loadScript("https://cdn.jsdelivr.net/gh/bjornd/jvectormap@2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
-      await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
+const loadScripts = async () => {
+  try {
+    await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery-core");
+    window.$ = window.jQuery = (window as any).jQuery;
 
+    await loadScript("https://cdn.jsdelivr.net/gh/bjornd/jvectormap@2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
+    await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
-        console.log("✅ All scripts loaded");
+    console.log("✅ All scripts loaded");
 
-        if (window.$ && window.$("#map").children().length === 0) {
-          window.$("#map").vectorMap({
-            map: "us_aea_en",
-            backgroundColor: "transparent",
-            regionStyle: {
-              initial: { fill: "#cccccc" },
-              hover: { fill: "#ff6666" },
-            },
-            markers: [
-              { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-              { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-              { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
-            ],
-            markerStyle: {
-              initial: {
-                fill: "#ff6666",
-                stroke: "#ffffff",
-              },
-              hover: {
-                fill: "#ff0000",
-              },
-            },
-          });
-        }
-      } catch (error) {
-        console.error("❌ Error loading map scripts:", error);
-      }
-    };
+    if (window.$ && window.$("#map").children().length === 0) {
+      window.$("#map").vectorMap({
+        map: "us_aea_en",
+        backgroundColor: "transparent",
+        regionStyle: {
+          initial: { fill: "#cccccc" },
+          hover: { fill: "#ff6666" },
+        },
+        markers: [
+          { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
+          { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
+          { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
+        ],
+        markerStyle: {
+          initial: {
+            fill: "#ff6666",
+            stroke: "#ffffff",
+          },
+          hover: {
+            fill: "#ff0000",
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error loading map scripts:", error);
+  }
+};
 
-    loadScripts();
-  }, []);
 
   return (
     <div className="my-8 px-4">
