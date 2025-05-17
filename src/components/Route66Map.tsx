@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+// Ensure jQuery types are declared globally
 declare global {
   interface Window {
     $: any;
@@ -27,37 +28,64 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
-        // ✅ Working versions
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery-core");
-        await loadScript("https://cdn.jsdelivr.net/npm/jvectormap@1.2.2/jquery-jvectormap.min.js", "jvectormap-core");
+        await loadScript("https://cdn.jsdelivr.net/gh/bjornd/jvectormap@2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
         console.log("✅ All scripts loaded");
 
-        if (window.$ && window.$("#map").children().length === 0) {
-          window.$("#map").vectorMap({
-            map: "us_aea_en",
-            backgroundColor: "transparent",
-            regionStyle: {
-              initial: { fill: "#cccccc" },
-              hover: { fill: "#ff6666" },
+        window.$("#map").vectorMap({
+          map: "us_aea_en",
+          backgroundColor: "transparent",
+          regionStyle: {
+            initial: { fill: "#cccccc" },
+            hover: { fill: "#ff6666" },
+          },
+          markers: [
+            { latLng: [38.6270, -90.1994], name: "St. Louis, MO" },
+            { latLng: [38.0620, -91.4035], name: "Cuba, MO" },
+            { latLng: [37.9485, -91.7715], name: "Rolla, MO" },
+            { latLng: [37.6806, -92.6638], name: "Lebanon, MO" },
+            { latLng: [37.2089, -93.2923], name: "Springfield, MO" },
+            { latLng: [37.1906, -93.6488], name: "Halltown, MO" },
+            { latLng: [37.1917, -93.8450], name: "Paris Springs, MO" },
+            { latLng: [37.1919, -94.0114], name: "Spencer, MO" },
+            { latLng: [37.1764, -94.3108], name: "Carthage, MO" },
+            { latLng: [37.1287, -94.4766], name: "Brooklyn Heights, MO" },
+            { latLng: [37.1462, -94.4633], name: "Webb City, MO" },
+            { latLng: [37.0842, -94.5133], name: "Joplin, MO" }
+          ],
+          markerStyle: {
+            initial: {
+              fill: "#ff6666",
+              stroke: "#ffffff",
+              r: 6
             },
-            markers: [
-              { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-              { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-              { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
-            ],
-            markerStyle: {
-              initial: {
-                fill: "#ff6666",
-                stroke: "#ffffff",
-              },
-              hover: {
-                fill: "#ff0000",
-              },
-            },
-          });
-        }
+            hover: {
+              fill: "#ff0000"
+            }
+          },
+          series: {
+            markers: [{
+              attribute: 'r',
+              scale: [4, 6],
+              values: [1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 2] // Optionally adjust marker sizes
+            }]
+          },
+          lines: [
+            {
+              points: [
+                [38.6270, -90.1994], [38.0620, -91.4035], [37.9485, -91.7715],
+                [37.6806, -92.6638], [37.2089, -93.2923], [37.1906, -93.6488],
+                [37.1917, -93.8450], [37.1919, -94.0114], [37.1764, -94.3108],
+                [37.1287, -94.4766], [37.1462, -94.4633], [37.0842, -94.5133]
+              ],
+              stroke: "#ff0000",
+              strokeWidth: 2,
+              fill: "none"
+            }
+          ]
+        });
       } catch (error) {
         console.error("❌ Error loading map scripts:", error);
       }
