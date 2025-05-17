@@ -19,7 +19,6 @@ const Route66Map = () => {
         const script = document.createElement("script");
         script.id = id;
         script.src = src;
-        script.async = true;
         script.onload = () => resolve();
         script.onerror = () => reject(new Error(`Failed to load ${src}`));
         document.body.appendChild(script);
@@ -28,15 +27,12 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
-        // Load scripts in proper order
+        // ✅ Working versions
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery-core");
-        window.$ = window.jQuery = (window as any).$; // set jQuery globally
-
         await loadScript("https://cdn.jsdelivr.net/npm/jvectormap@1.2.2/jquery-jvectormap.min.js", "jvectormap-core");
-
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
-        console.log("✅ All map scripts loaded");
+        console.log("✅ All scripts loaded");
 
         if (window.$ && window.$("#map").children().length === 0) {
           window.$("#map").vectorMap({
