@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import $ from "jquery";
 import "jvectormap/jquery-jvectormap";
-import "jvectormap/tests/assets/jquery-jvectormap-us-aea-en";
+import "jvectormap-content/maps/us-aea-en.js";
+
 
 const Route66Map = () => {
   useEffect(() => {
