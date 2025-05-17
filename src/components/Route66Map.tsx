@@ -76,7 +76,10 @@ const Route66Map = () => {
   };
 
   // Load US map definition dynamically from CDN
-  loadScript("https://cdn.jsdelivr.net/npm/jvectormap-content@1.2.0/maps/us-aea-en.js")
+loadScript("https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap-us-aea-en.js")
+  .then(initMap)
+  .catch((err) => console.error("Failed to load map script:", err));
+
     .then(initMap)
     .catch((err) => console.error("Failed to load map script:", err));
 }, []);
