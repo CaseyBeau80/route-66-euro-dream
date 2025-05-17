@@ -32,7 +32,7 @@ const Route66Map = () => {
         window.$ = window.jQuery = (window as any).$ || (window as any).jQuery;
 
         // Load jVectorMap core and USA map script
-        await loadScript("https://cdn.jsdelivr.net/npm/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap-core");
+        await loadScript("https://cdn.jsdelivr.net/gh/bjornd/jvectormap@2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
         console.log("✅ All scripts loaded");
