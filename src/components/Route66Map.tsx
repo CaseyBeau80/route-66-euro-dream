@@ -1,24 +1,22 @@
 import { useEffect } from "react";
 import $ from "jquery";
-import "jvectormap-next";
-import "jvectormap-content/maps/us-aea-en";
-
+import "jvectormap/jquery-jvectormap";
+import "jvectormap/tests/assets/jquery-jvectormap-us-aea-en";
 
 const Route66Map = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Prevent multiple maps being initialized
       if ($("#map").children().length === 0) {
         $("#map").vectorMap({
           map: "us_aea_en",
           backgroundColor: "transparent",
           regionStyle: {
             initial: {
-              fill: "#cccccc"
+              fill: "#cccccc",
             },
             hover: {
-              fill: "#ff6600"
-            }
+              fill: "#ff6666",
+            },
           },
         });
       }
@@ -33,3 +31,4 @@ const Route66Map = () => {
 };
 
 export default Route66Map;
+
