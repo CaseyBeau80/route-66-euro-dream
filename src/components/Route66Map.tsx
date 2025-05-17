@@ -27,11 +27,9 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
-        // Load jQuery first
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
         window.$ = window.jQuery = window.$ || (window as any).jQuery;
 
-        // Load jVectorMap after jQuery is available
         await loadScript("https://cdn.jsdelivr.net/npm/jvectormap-next@1.0.1/jquery-jvectormap.js", "jvectormap");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
 
@@ -46,6 +44,7 @@ const Route66Map = () => {
           { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
           { latLng: [35.2226, -101.8313], name: "Amarillo, TX" },
           { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
+          { latLng: [34.1478, -118.1445], name: "Pasadena, CA" },
           { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
         ];
 
@@ -66,27 +65,30 @@ const Route66Map = () => {
               fill: "#ff0000",
             },
           },
-  setTimeout(() => {
-  const mapObj = $("#map").vectorMap("get", "mapObject");
+          onRegionTipShow: function () {
+            const mapObj = $("#map").vectorMap("get", "mapObject");
+            const pathCoords = towns.map((town) =>
+              mapObj.latLngToPoint(town.latLng[0], town.latLng[1])
+            );
 
-  const pathCoords = towns.map((town) =>
-    mapObj.latLngToPoint(town.latLng[0], town.latLng[1])
-  );
+            const svg = mapObj.container.find("svg");
+            const linePath = pathCoords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
 
-  const svg = mapObj.container.find("svg");
-  const linePath = pathCoords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-
-  if (!svg.find("path.route66").length) {
-    const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    pathEl.setAttribute("d", linePath);
-    pathEl.setAttribute("stroke", "#ff0000");
-    pathEl.setAttribute("stroke-width", "2");
-    pathEl.setAttribute("fill", "none");
-    pathEl.setAttribute("class", "route66");
-    svg[0].appendChild(pathEl);
-  }
-}, 300); // delay ensures map is ready
-
+            if (!svg.find("path.route66").length) {
+              const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+              pathEl.setAttribute("d", linePath);
+              pathEl.setAttribute("stroke", "#cc0000");
+              pathEl.setAttribute("stroke-width", "2");
+              pathEl.setAttribute("fill", "none");
+              pathEl.setAttribute("class", "route66");
+              svg[0].appendChild(pathEl);
+            }
+          },
+        });
+      } catch (err) {
+        console.error("❌ Map loading failed:", err);
+      }
+    };
 
     loadScripts();
   }, []);
