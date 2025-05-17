@@ -7,17 +7,26 @@ import "jvectormap-next/jquery-jvectormap.css";
 
 const Route66Map = () => {
   useEffect(() => {
-    // If map script not already loaded, inject it
     if (!document.getElementById("us-map-script")) {
-const script = document.createElement("script");
-script.id = "us-map-script";
-script.src = "https://rawcdn.githack.com/bjornd/jvectormap/2.0.5/jquery-jvectormap-us-aea-en.js";
-script.onload = () => {
-  console.log("Map script loaded");
-  initMap();
-};
+      const script = document.createElement("script");
+      script.id = "us-map-script";
+      script.src = "https://rawcdn.githack.com/bjornd/jvectormap/2.0.5/jquery-jvectormap-us-aea-en.js";
 
+      script.onload = () => {
+        console.log("Map script loaded");
 
+        if ($("#map").children().length === 0) {
+          $("#map").vectorMap({
+            map: "us_aea_en",
+            backgroundColor: "transparent",
+            regionStyle: {
+              initial: {
+                fill: "#cccccc",
+              },
+              hover: {
+                fill: "#ff6666",
+              },
+            },
             markers: [
               { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
               { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
