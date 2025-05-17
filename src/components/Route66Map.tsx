@@ -9,9 +9,10 @@ const Route66Map = () => {
   useEffect(() => {
     // If map script not already loaded, inject it
     if (!document.getElementById("us-map-script")) {
-      const script = document.createElement("script");
-      script.id = "us-map-script";
-      script.src = "https://cdn.jsdelivr.net/npm/jvectormap-content@1.2.0/maps/us-aea-en.js";
+    const script = document.createElement("script");
+    script.id = "us-map-script";
+    script.src = "https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap-us-aea-en.js";
+
 
       script.onload = () => {
         if ($("#map").children().length === 0) {
