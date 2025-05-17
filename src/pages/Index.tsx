@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import $ from "jquery";
-import "jvectormap-next"; // ✅ Correct version
+import "jvectormap-next"; // ✅ this replaces the broken line
 import "jvectormap-content/maps/us-aea-en.js";
-import "jvectormap-next/jquery-jvectormap.css";
+import "jvectormap-next/jquery-jvectormap.css"; // make sure styling is loaded
+
 
 
 type Language = "en" | "de" | "fr" | "nl";
