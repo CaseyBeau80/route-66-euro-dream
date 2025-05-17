@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import $ from "jquery";
-import "jvectormap/jquery-jvectormap";
-import "jvectormap-content/maps/us-aea-en.js";
+import "jvectormap/jquery-jvectormap"; // JS for jVectorMap
+import "jvectormap-content/maps/us-aea-en.js"; // US map config
+import "jvectormap/jquery-jvectormap.css"; // ✅ this is the new CSS import
+
 
 
 const Route66Map = () => {
