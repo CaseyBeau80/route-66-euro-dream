@@ -2,7 +2,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import RouteMap from "../components/RouteMap";
 import ItinerarySection from "../components/ItinerarySection";
 import FeaturedListings from "../components/FeaturedListings";
 import TravelResources from "../components/TravelResources";
@@ -18,8 +17,6 @@ const Index = () => {
     <div className="min-h-screen bg-route66-cream">
       <Navbar language={language} setLanguage={setLanguage} />
       <Hero language={language} />
-      {/* Make RouteMap the primary component */}
-      <RouteMap language={language} />
       <ItinerarySection language={language} />
       <FeaturedListings language={language} />
       <TravelResources language={language} />
