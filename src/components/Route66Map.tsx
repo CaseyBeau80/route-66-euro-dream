@@ -8,7 +8,7 @@ const Route66Map = () => {
     if (!document.getElementById("us-map-script")) {
       const script = document.createElement("script");
       script.id = "us-map-script";
-      script.src = "https://cdn.jsdelivr.net/npm/jvectormap@2.0./jquery-jvectormap-us-aea-en.js";
+    script.src = "https://cdn.jsdelivr.net/npm/jvectormap-content@1.2.0/maps/us-aea-en.js";
       script.onload = () => {
         if ($("#map").children().length === 0) {
           $("#map").vectorMap({
