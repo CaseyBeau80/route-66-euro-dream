@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import $ from "jquery";
-import "jvectormap-next";
-import "jvectormap-next/jquery-jvectormap.css";
-import "jvectormap-content/maps/us-aea-en.js";
+
 
 
 
