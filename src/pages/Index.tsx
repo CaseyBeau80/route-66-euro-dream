@@ -18,6 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-route66-cream">
       <Navbar language={language} setLanguage={setLanguage} />
       <Hero language={language} />
+      {/* Make RouteMap the primary component */}
       <RouteMap language={language} />
       <ItinerarySection language={language} />
       <FeaturedListings language={language} />

@@ -13,8 +13,8 @@ export const MapHeader = ({ content }: MapHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
       <div>
-        <h2 className="text-3xl font-route66 text-route66-red mb-2">{content.title}</h2>
-        <p className="text-route66-gray">{content.subtitle}</p>
+        <h2 className="text-4xl font-route66 text-route66-red mb-2">{content.title}</h2>
+        <p className="text-route66-gray text-lg">{content.subtitle}</p>
       </div>
       
       <div className="mt-4 md:mt-0 flex items-center">

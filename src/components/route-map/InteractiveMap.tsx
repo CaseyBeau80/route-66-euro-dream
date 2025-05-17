@@ -24,64 +24,100 @@ export const InteractiveMap = ({
 }: InteractiveMapProps) => {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <svg className="w-full h-full max-w-3xl" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+      <svg className="w-full h-full max-w-4xl mx-auto" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+        {/* Background grid */}
+        <defs>
+          <pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+            <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#f0f0f0" strokeWidth="0.5" />
+          </pattern>
+          <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+            <rect width="80" height="80" fill="url(#smallGrid)" />
+            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#e0e0e0" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+        
         {/* Route 66 line */}
         <path 
-          d="M175,130 C180,160 170,190 160,200 C150,210 155,230 175,240 C185,245 180,260 170,270 C160,285 170,310 185,320 C195,330 190,360 175,380 C160,400 140,410 110,410" 
+          d="M380,100 C390,140 375,190 360,210 C345,230 350,260 380,280 C400,290 390,320 375,340 C360,360 380,400 410,420 C430,435 420,470 380,490 C350,510 320,520 250,520" 
           stroke="#D92121" 
-          strokeWidth="6" 
+          strokeWidth="8" 
           fill="none" 
-          strokeDasharray="10,10" 
+          strokeDasharray="12,12" 
           strokeLinecap="round"
         />
         
         {/* State shapes */}
         <TooltipProvider>
-          {Object.entries(route66States).map(([stateId, state]) => (
-            <Tooltip key={stateId}>
-              <TooltipTrigger asChild>
-                <g
-                  onClick={() => handleStateClick(stateId)}
-                  onMouseEnter={() => setHoveredState(stateId)}
-                  onMouseLeave={() => setHoveredState(null)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <path 
-                    d={state.path} 
-                    fill={
-                      selectedState === stateId
-                        ? '#D92121' // Selected state
-                        : hoveredState === stateId 
-                          ? `${state.color}CC` // Hovered state (with transparency)
-                          : `${state.color}88` // Normal state (with more transparency)
-                    }
-                    stroke="#FFF" 
-                    strokeWidth="2"
-                  />
-                  <text 
-                    x={state.position.x} 
-                    y={state.position.y} 
-                    textAnchor="middle" 
-                    fill={selectedState === stateId ? "#FFF" : "#333"} 
-                    fontSize="12" 
-                    fontWeight={selectedState === stateId ? "bold" : "normal"}
+          {Object.entries(route66States).map(([stateId, state]) => {
+            // Scale the path coordinates for the larger viewBox
+            const scaledPath = state.path.replace(/\d+(\.\d+)?/g, (match) => {
+              return String(Number(match) * 2);
+            });
+            
+            // Scale the position coordinates
+            const scaledX = state.position.x * 2;
+            const scaledY = state.position.y * 2;
+            
+            return (
+              <Tooltip key={stateId}>
+                <TooltipTrigger asChild>
+                  <g
+                    onClick={() => handleStateClick(stateId)}
+                    onMouseEnter={() => setHoveredState(stateId)}
+                    onMouseLeave={() => setHoveredState(null)}
+                    style={{ cursor: 'pointer' }}
                   >
-                    {state.name}
-                  </text>
-                </g>
-              </TooltipTrigger>
-              <TooltipContent>{state.name}</TooltipContent>
-            </Tooltip>
-          ))}
+                    <path 
+                      d={scaledPath}
+                      fill={
+                        selectedState === stateId
+                          ? '#D92121' // Selected state
+                          : hoveredState === stateId 
+                            ? `${state.color}DD` // Hovered state (with transparency)
+                            : `${state.color}AA` // Normal state (with more transparency)
+                      }
+                      stroke="#FFFFFF" 
+                      strokeWidth="3"
+                    />
+                    <text 
+                      x={scaledX} 
+                      y={scaledY} 
+                      textAnchor="middle" 
+                      fill={selectedState === stateId ? "#FFFFFF" : "#333333"} 
+                      fontSize="16" 
+                      fontWeight={selectedState === stateId ? "bold" : "normal"}
+                      className="select-none pointer-events-none"
+                    >
+                      {state.name}
+                    </text>
+                  </g>
+                </TooltipTrigger>
+                <TooltipContent className="bg-white px-3 py-2 shadow-lg border-2">
+                  <div className="text-center">
+                    <p className="font-semibold">{state.name}</p>
+                    <p className="text-xs text-gray-500">Click for details</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
         </TooltipProvider>
         
         {/* Cities markers */}
-        <circle cx="175" cy="130" r="4" fill="#D92121" /> {/* Chicago */}
-        <circle cx="110" cy="410" r="4" fill="#D92121" /> {/* Santa Monica */}
+        <circle cx="380" cy="100" r="6" fill="#D92121" /> {/* Chicago */}
+        <circle cx="250" cy="520" r="6" fill="#D92121" /> {/* Santa Monica */}
         
         {/* City labels */}
-        <text x="175" y="120" textAnchor="middle" fill="#333" fontSize="10">Chicago</text>
-        <text x="110" y="425" textAnchor="middle" fill="#333" fontSize="10">Santa Monica</text>
+        <text x="380" y="85" textAnchor="middle" fill="#333" fontSize="14" fontWeight="bold">Chicago</text>
+        <text x="250" y="545" textAnchor="middle" fill="#333" fontSize="14" fontWeight="bold">Santa Monica</text>
+        
+        {/* Route 66 Shield Logo */}
+        <g transform="translate(480, 290)">
+          <circle cx="0" cy="0" r="30" fill="white" stroke="#D92121" strokeWidth="2" />
+          <circle cx="0" cy="0" r="25" fill="#D92121" />
+          <text x="0" y="5" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial">66</text>
+        </g>
       </svg>
     </div>
   );

@@ -34,51 +34,62 @@ const RouteMap = ({ language }: RouteMapProps) => {
   };
   
   return (
-    <section id="map" className="py-16 bg-white">
-      <div className="container mx-auto px-4">
+    <section id="map" className="py-0 min-h-screen flex items-center justify-center bg-white relative">
+      {/* Hero-style map background for emphasis */}
+      <div className="absolute inset-0 bg-route66-cream/20 z-0"></div>
+      
+      <div className="container mx-auto px-4 py-16 relative z-10">
         <MapHeader content={content} />
         
-        {/* Category Tabs */}
-        <MapCategories 
-          activeCategory={activeCategory} 
-          setActiveCategory={setActiveCategory} 
-          content={content} 
-        />
-        
-        {/* Filters */}
-        <MapFilters 
-          activeFilters={activeFilters} 
-          toggleFilter={toggleFilter} 
-          content={content} 
-        />
-        
-        {/* Interactive Map Container */}
-        <div className="relative border border-route66-gray/10 rounded-lg overflow-hidden bg-route66-cream/30 h-96 md:h-[500px]">
-          {/* Background map image */}
-          <img 
-            src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=1200&h=600&q=80" 
-            alt="Route 66 Map Background"
-            className="w-full h-full object-cover opacity-30 absolute inset-0"
-          />
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/4 space-y-6">
+            {/* Category Tabs */}
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4 text-route66-blue">Categories</h3>
+              <MapCategories 
+                activeCategory={activeCategory} 
+                setActiveCategory={setActiveCategory} 
+                content={content} 
+              />
+            </div>
+            
+            {/* Filters */}
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-4 text-route66-blue">Filters</h3>
+              <MapFilters 
+                activeFilters={activeFilters} 
+                toggleFilter={toggleFilter} 
+                content={content} 
+              />
+            </div>
+          </div>
           
-          {/* Interactive SVG Map */}
-          <InteractiveMap
-            route66States={route66States}
-            selectedState={selectedState}
-            hoveredState={hoveredState}
-            handleStateClick={handleStateClick}
-            setHoveredState={setHoveredState}
-          />
-          
-          {/* State Information Panel (shows when state is selected) */}
-          {selectedState && (
-            <StateInfoPanel
-              selectedState={selectedState}
-              setSelectedState={setSelectedState}
-              stateInfo={route66States[selectedState]}
-              content={content}
-            />
-          )}
+          {/* Interactive Map Container - Made larger and more prominent */}
+          <div className="w-full md:w-3/4">
+            <div className="relative border border-route66-gray/10 rounded-xl overflow-hidden bg-white shadow-xl h-[600px]">
+              {/* Map overlay patterns */}
+              <div className="absolute inset-0 bg-route66-cream/10 mix-blend-overlay z-0"></div>
+              
+              {/* Interactive SVG Map */}
+              <InteractiveMap
+                route66States={route66States}
+                selectedState={selectedState}
+                hoveredState={hoveredState}
+                handleStateClick={handleStateClick}
+                setHoveredState={setHoveredState}
+              />
+              
+              {/* State Information Panel (shows when state is selected) */}
+              {selectedState && (
+                <StateInfoPanel
+                  selectedState={selectedState}
+                  setSelectedState={setSelectedState}
+                  stateInfo={route66States[selectedState]}
+                  content={content}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
