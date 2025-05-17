@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import $ from "jquery";
 
-// Required jVectorMap imports
 import "jvectormap-next";
 import "jvectormap-next/jquery-jvectormap.css";
-import "jvectormap-content/maps/us-aea-en.js"; // ✅ add this line!
+import "jvectormap-content/maps/us-aea-en.js"; // ✅ this is the critical fix
+
 
 
 const Route66Map = () => {
