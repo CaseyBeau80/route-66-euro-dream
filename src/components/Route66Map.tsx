@@ -63,8 +63,6 @@ const loadScripts = async () => {
     console.error("❌ Error loading map scripts:", error);
   }
 };
-
-
   return (
     <div className="my-8 px-4">
       <h2 className="text-3xl font-bold text-center text-route66-red mb-6">Explore Route 66</h2>
@@ -82,3 +80,4 @@ const loadScripts = async () => {
 };
 
 export default Route66Map;
+
