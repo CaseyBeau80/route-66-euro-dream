@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
@@ -8,9 +9,6 @@ import TravelResources from "../components/TravelResources";
 import EmailCapture from "../components/EmailCapture";
 import Footer from "../components/Footer";
 
-
-
-
 type Language = "en" | "de" | "fr" | "nl";
 
 const Index = () => {
@@ -20,7 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-route66-cream">
       <Navbar language={language} setLanguage={setLanguage} />
       <Hero language={language} />
-      <Route66Map /> {/* <-- new map component */}
+      <Route66Map /> {/* <-- map component */}
       <ItinerarySection language={language} />
       <FeaturedListings language={language} />
       <TravelResources language={language} />
