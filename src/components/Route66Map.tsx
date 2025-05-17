@@ -1,8 +1,5 @@
 import { useEffect } from "react";
 
-// Core jVectorMap library CSS (keep this)
-import "jvectormap-next/jquery-jvectormap.css";
-
 const Route66Map = () => {
   useEffect(() => {
     const loadScript = (src: string, id: string): Promise<void> => {
@@ -24,11 +21,14 @@ const Route66Map = () => {
     const loadScripts = async () => {
       try {
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
-        await loadScript("/jquery-jvectormap-us-aea-en.js", "us-map-script");
+        await loadScript("https://unpkg.com/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap");
+        await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
         console.log("✅ All scripts loaded");
 
-        if (window.$ && $("#map").children().length === 0) {
+        // @ts-ignore
+        if ($("#map").children().length === 0) {
+          // @ts-ignore
           $("#map").vectorMap({
             map: "us_aea_en",
             backgroundColor: "transparent",
@@ -51,11 +51,9 @@ const Route66Map = () => {
               },
             },
           });
-        } else {
-          console.error("❌ jQuery not available or #map already initialized");
         }
       } catch (error) {
-        console.error("❌ Error loading scripts", error);
+        console.error("❌ Error loading map scripts:", error);
       }
     };
 
@@ -64,9 +62,7 @@ const Route66Map = () => {
 
   return (
     <div className="my-8 px-4">
-      <h2 className="text-3xl font-bold text-center text-route66-red mb-6">
-        Explore Route 66
-      </h2>
+      <h2 className="text-3xl font-bold text-center text-route66-red mb-6">Explore Route 66</h2>
       <div
         id="map"
         style={{
