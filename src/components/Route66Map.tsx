@@ -20,22 +20,23 @@ const Route66Map = () => {
         script.id = id;
         script.src = src;
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`❌ Failed to load ${src}`));
+        script.onerror = () => reject(new Error(`Failed to load ${src}`));
         document.body.appendChild(script);
       });
     };
 
     const loadScripts = async () => {
       try {
-        // Load jQuery and expose it globally
-        await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery-core");
-        window.$ = window.jQuery = (window as any).jQuery;
+        await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
+        window.$ = window.jQuery = window.$ || (window as any).jQuery;
 
-        // Load jVectorMap core and map
-        await loadScript("https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
+
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
 
         console.log("✅ All scripts loaded");
+
+        const $ = window.$;
 
         const towns = [
           { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
@@ -44,10 +45,9 @@ const Route66Map = () => {
           { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
           { latLng: [35.2226, -101.8313], name: "Amarillo, TX" },
           { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
+          { latLng: [34.1478, -118.1445], name: "Pasadena, CA" },
           { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
         ];
-
-        const $ = window.$;
 
         $("#map").vectorMap({
           map: "us_aea_en",
@@ -78,7 +78,7 @@ const Route66Map = () => {
             if (!svg.find("path.route66").length) {
               const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
               pathEl.setAttribute("d", linePath);
-              pathEl.setAttribute("stroke", "#ff0000");
+              pathEl.setAttribute("stroke", "#cc0000");
               pathEl.setAttribute("stroke-width", "2");
               pathEl.setAttribute("fill", "none");
               pathEl.setAttribute("class", "route66");
@@ -86,8 +86,8 @@ const Route66Map = () => {
             }
           },
         });
-      } catch (error) {
-        console.error("❌ Map failed:", error);
+      } catch (err) {
+        console.error("❌ Map loading failed:", err);
       }
     };
 
