@@ -1,4 +1,4 @@
-// Route66Map.tsx — Rebuilt and patched version using jvectormap-next
+// Route66Map.tsx — Fixed with reliable sources
 import { useEffect } from "react";
 
 declare global {
@@ -29,11 +29,9 @@ const Route66Map = () => {
       try {
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
 
-        // Ensure jQuery is globally defined
         window.jQuery = window.$ = window.jQuery || window.$;
-        if (!window.$) throw new Error("jQuery not available");
 
-        await loadScript("https://unpkg.com/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap");
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
 
         const $ = window.$;

@@ -3,19 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Route 66 Guide</title>
+    <title>Route 66 Explorer</title>
+
+    <!-- jVectorMap stylesheet -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.css"
       rel="stylesheet"
     />
+
+    <!-- Fonts (optional but helps styling match your site) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Optional social metadata -->
+    <meta name="description" content="Interactive Route 66 map with key towns from Chicago to Los Angeles." />
+    <meta property="og:title" content="Explore Route 66" />
+    <meta property="og:description" content="Discover cities and plan your road trip on the Route 66 map." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://yourdomain.com/route66-preview.png" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
+
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+
+    <!-- Your React app bundle -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
