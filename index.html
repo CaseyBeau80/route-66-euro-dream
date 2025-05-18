@@ -3,25 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Route 66 Map</title>
+    <title>Route 66 Guide - Explore the Mother Road</title>
+    <meta name="description" content="Interactive Route 66 map for travelers. Discover historic towns, plan your trip, and explore the famous road from Chicago to LA." />
+    <meta name="author" content="Route 66 Guide" />
 
-    <!-- jVectorMap stylesheet -->
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Route 66 Guide - Explore the Mother Road" />
+    <meta property="og:description" content="Interactive Route 66 map for travelers. Discover historic towns and plan your trip." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@route66guide" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Google Fonts -->
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.css"
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Fonts (optional aesthetic) -->
+    <!-- jVectorMap CSS -->
     <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.css"
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;600;700&display=swap"
     />
   </head>
 
   <body>
     <div id="root"></div>
 
-    <!-- REQUIRED for Lovable to work -->
+    <!-- GPT Engineer Engine -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
