@@ -27,15 +27,19 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
-        // ✅ Load jQuery first
+        // Load jQuery
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
+        window.$ = window.jQuery = (window as any).jQuery || (window as any).$;
 
-        // ✅ Attach jQuery to global window (required!)
-        window.$ = window.jQuery = (window as any).jQuery;
-
-        // ✅ Load jVectorMap core and map
-        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
-        await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
+        // Load jVectorMap core and US map
+        await loadScript(
+          "https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js",
+          "jvectormap-core"
+        );
+        await loadScript(
+          "https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js",
+          "jvectormap-us"
+        );
 
         console.log("✅ All scripts loaded");
 
@@ -76,7 +80,9 @@ const Route66Map = () => {
             );
 
             const svg = mapObj.container.find("svg");
-            const linePath = pathCoords.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+            const linePath = pathCoords
+              .map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`)
+              .join(" ");
 
             if (!svg.find("path.route66").length) {
               const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
