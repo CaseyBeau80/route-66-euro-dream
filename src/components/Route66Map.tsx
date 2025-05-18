@@ -1,3 +1,4 @@
+// Route66Map.tsx — Hard-coded inline jQuery & jVectorMap compatibility fix
 import { useEffect } from "react";
 
 declare global {
@@ -19,6 +20,8 @@ const Route66Map = () => {
         const script = document.createElement("script");
         script.id = id;
         script.src = src;
+        script.async = false;
+        script.defer = false;
         script.onload = () => resolve();
         script.onerror = () => reject(new Error(`Failed to load ${src}`));
         document.body.appendChild(script);
@@ -27,12 +30,18 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
+        // 1. Load jQuery
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
         window.jQuery = window.$ = window.jQuery || window.$;
 
+        // 2. Wait 100ms to avoid race condition
+        await new Promise((res) => setTimeout(res, 100));
+
+        // 3. Load jVectorMap core & US map
         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
 
+        // 4. Render map
         const $ = window.$;
 
         const towns = [
