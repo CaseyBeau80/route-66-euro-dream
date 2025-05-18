@@ -36,11 +36,7 @@ const Route66Map = () => {
 
         const towns = [
           { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-          { latLng: [39.7817, -89.6501], name: "Springfield, IL" },
-          { latLng: [37.0842, -94.5133], name: "Joplin, MO" },
           { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-          { latLng: [35.2226, -101.8313], name: "Amarillo, TX" },
-          { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
           { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
         ];
 
