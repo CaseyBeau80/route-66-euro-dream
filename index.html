@@ -5,19 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Route 66 Map</title>
 
-    <!-- jVectorMap CSS -->
+    <!-- jVectorMap stylesheet -->
     <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.css"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.css"
     />
 
-    <!-- Optional: fonts for branding -->
+    <!-- Fonts (optional aesthetic) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;600;700&display=swap"
     />
   </head>
+
   <body>
     <div id="root"></div>
+
+    <!-- REQUIRED for Lovable to work -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
