@@ -27,12 +27,15 @@ const Route66Map = () => {
 
     const loadScripts = async () => {
       try {
+        // ✅ Load jQuery first
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
-        window.$ = window.jQuery = window.$ || (window as any).jQuery;
 
+        // ✅ Attach jQuery to global window (required!)
+        window.$ = window.jQuery = (window as any).jQuery;
+
+        // ✅ Load jVectorMap core and map
         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap-core");
-
-        await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
+        await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map-script");
 
         console.log("✅ All scripts loaded");
 
