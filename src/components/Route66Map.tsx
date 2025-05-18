@@ -1,3 +1,4 @@
+// Route66Map.tsx — Rebuilt and patched version using jvectormap-next
 import { useEffect } from "react";
 
 declare global {
@@ -28,14 +29,11 @@ const Route66Map = () => {
       try {
         await loadScript("https://code.jquery.com/jquery-3.6.0.min.js", "jquery");
 
-        // Make jQuery globally available
-        window.jQuery = window.$ = (window as any).jQuery || (window as any).$;
-        if (!window.$) throw new Error("jQuery not initialized.");
+        // Ensure jQuery is globally defined
+        window.jQuery = window.$ = window.jQuery || window.$;
+        if (!window.$) throw new Error("jQuery not available");
 
-        // Wait for jQuery to be fully resolved in the window
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js", "jvectormap");
+        await loadScript("https://unpkg.com/jvectormap-next@1.0.1/jquery-jvectormap.min.js", "jvectormap");
         await loadScript("https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js", "us-map");
 
         const $ = window.$;
