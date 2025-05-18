@@ -3,38 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Route 66 Guide - Explore the Mother Road</title>
-    <meta name="description" content="Interactive Route 66 map for travelers. Discover historic towns, plan your trip, and explore the famous road from Chicago to LA." />
-    <meta name="author" content="Route 66 Guide" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:title" content="Route 66 Guide - Explore the Mother Road" />
-    <meta property="og:description" content="Interactive Route 66 map for travelers. Discover historic towns and plan your trip." />
-    <meta property="og:type" content="website" />
+    <title>Route 66 Map - European Roadtrip Guide</title>
+    <meta
+      name="description"
+      content="Explore the full path of Route 66 with towns, highlights, and a live interactive U.S. map."
+    />
+    <meta property="og:title" content="Route 66 Map Explorer" />
+    <meta
+      property="og:description"
+      content="Plan your American adventure along Route 66 with our custom interactive map."
+    />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@route66guide" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-    <!-- Google Fonts -->
+    <!-- Fonts & Styles -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;500;700&display=swap"
     />
-
-    <!-- jVectorMap CSS -->
     <link
+      rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.css"
-      rel="stylesheet"
     />
+
+    <!-- jQuery and jVectorMap Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js"></script>
+
+    <!-- Custom USA Map Script (hosted by you on GitHub Pages) -->
+    <script src="https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js"></script>
   </head>
 
   <body>
     <div id="root"></div>
-
-    <!-- GPT Engineer Engine -->
+    <!-- IMPORTANT: Required by Lovable -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
