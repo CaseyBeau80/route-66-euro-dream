@@ -1,6 +1,12 @@
 
 // src/utils/mapUtils.ts
-import { Location } from '@/types/route66';
+import { Route66Town } from '@/types/route66';
+
+// Define the structure for each location
+export interface Location {
+  latLng: [number, number];
+  name: string;
+}
 
 // Check if jQuery and jVectorMap scripts are loaded
 export function checkScriptsLoaded(): boolean {
@@ -52,7 +58,8 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       selectedColor: '#c9dfaf',
       selectedRegions: [],
       showTooltip: true,
-      onRegionClick: function(element, code, region) {
+      // Fix the onRegionClick handler type
+      onRegionClick: function(event: Event, code: string, region: string) {
         console.log('Region clicked:', region);
       },
       markerStyle: {
@@ -92,12 +99,6 @@ export function cleanupMap(mapContainer: HTMLDivElement): void {
   } catch (error) {
     console.error('Error cleaning up map:', error);
   }
-}
-
-// Define the structure for each location
-export interface Location {
-  latLng: [number, number];
-  name: string;
 }
 
 // Example array of coordinate pairs

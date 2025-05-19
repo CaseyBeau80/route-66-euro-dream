@@ -39,6 +39,6 @@ interface VectorMapOptions {
   };
   onRegionOver?: (event: Event, code: string) => void;
   onMarkerOver?: (event: Event, index: number) => void;
-  onRegionClick?: (event: Event, code: string) => void;
+  onRegionClick?: (event: Event, code: string, region: string) => void; // Updated to match implementation
   onMarkerClick?: (event: Event, index: number) => void;
 }
