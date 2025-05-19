@@ -5,25 +5,25 @@ const Route66Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Wait for DOM to be ready and jQuery to be available
-    if (typeof window === 'undefined' || !window.$ || !mapRef.current) {
-      console.error("❌ jQuery not available on window or map element not ready");
-      return;
-    }
-    
-    const $ = window.$;
-    
-    // Ensure the jVectorMap plugin is properly initialized
-    const attemptMapInit = () => {
-      // Check if vectorMap plugin is available
+    // Make sure the DOM is fully loaded before trying to initialize the map
+    const initMap = () => {
+      if (!mapRef.current || !window.jQuery) {
+        console.log("❌ DOM element or jQuery not ready, waiting...");
+        setTimeout(initMap, 100);
+        return;
+      }
+      
+      const $ = window.jQuery;
+      
+      // Check if the vectorMap plugin is properly loaded
       if (typeof $.fn.vectorMap === 'undefined') {
-        console.error("❌ jVectorMap plugin not available, retrying in 500ms");
-        setTimeout(attemptMapInit, 500); // Try again after a delay
+        console.log("❌ jVectorMap plugin not available yet, waiting...");
+        setTimeout(initMap, 100);
         return;
       }
       
       try {
-        console.log("✅ Found jVectorMap plugin, initializing map");
+        console.log("✅ jVectorMap plugin found, initializing map");
         
         // Define Route 66 towns
         const towns = [
@@ -58,25 +58,26 @@ const Route66Map = () => {
       }
     };
     
-    // Start the initialization attempt
-    attemptMapInit();
+    // Start the initialization with a delay to ensure everything is loaded
+    setTimeout(initMap, 500);
     
     return () => {
-      // Clean up if necessary
-      try {
-        if ($(mapRef.current).vectorMap) {
-          // Some vector map implementations have a destroy method
+      // Clean up if needed
+      const $ = window.jQuery;
+      if ($ && mapRef.current && $.fn.vectorMap) {
+        try {
+          // Some implementations might have a destroy method
           // $(mapRef.current).vectorMap('destroy');
+        } catch (e) {
+          console.error("Error during cleanup:", e);
         }
-      } catch (e) {
-        console.error("Error during cleanup:", e);
       }
     };
   }, []);
 
   return (
     <div className="my-8 px-4">
-      <h2 className="text-3xl font-bold text-center text-route66-red mb-6">Explore Route 66</h2>
+      <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Explore Route 66</h2>
       <div
         ref={mapRef}
         id="map"

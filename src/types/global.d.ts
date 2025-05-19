@@ -1,18 +1,19 @@
 
-interface JQuery {
-  vectorMap: (options: any) => any;
-  [key: string]: any;
+// Global type definitions
+interface Window {
+  $: JQueryStatic;
+  jQuery: JQueryStatic;
 }
 
 interface JQueryStatic {
-  (selector: string | Element): JQuery;
-  fn: {
-    vectorMap: (name: string, map: object) => void;
-    [key: string]: any;
-  };
-  [key: string]: any;
+  fn: JQueryFn;
+  (selector: string | Element | Document): JQuery;
 }
 
-interface Window {
-  $?: JQueryStatic;
+interface JQueryFn {
+  vectorMap: any;
+}
+
+interface JQuery {
+  vectorMap: (options?: any) => any;
 }

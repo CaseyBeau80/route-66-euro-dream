@@ -6,20 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Route 66 Map</title>
 
-  <!-- ✅ 1. jQuery -->
+  <!-- jQuery first -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <!-- ✅ 2. jVectorMap core -->
+  
+  <!-- jVectorMap after jQuery -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap.css" />
   <script src="https://cdn.jsdelivr.net/npm/jvectormap@2.0.5/jquery-jvectormap.min.js"></script>
-
-  <!-- ✅ 3. US Map file -->
+  
+  <!-- US Map file after jVectorMap core -->
   <script src="https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js"></script>
 
   <!-- Required Lovable script tag -->
   <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
 
-  <!-- Vite App Entry Point -->
+  <!-- Vite App Entry Point - load this last -->
   <script type="module" src="/src/main.tsx"></script>
 </head>
 <body>
