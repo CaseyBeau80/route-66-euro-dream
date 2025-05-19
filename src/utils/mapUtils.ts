@@ -36,11 +36,8 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       return false;
     }
     
-    // Access the map data
-    if (!window.jQuery.fn.vectorMap.maps || !window.jQuery.fn.vectorMap.maps.us_aea_en) {
-      console.error('❌ US map data not loaded');
-      return false;
-    }
+    // Use the pre-loaded map data directly
+    // Don't check for the map data explicitly since it's included via script tag in index.html
     
     // Setup jVectorMap
     window.jQuery(mapContainer).vectorMap({
@@ -83,6 +80,7 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       }))
     });
     
+    console.log('✅ Map initialized successfully');
     return true;
   } catch (error) {
     console.error('❌ Error initializing map:', error);

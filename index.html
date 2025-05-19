@@ -11,8 +11,30 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js"></script>
   
-  <!-- US Map file - use direct CDN path to avoid CORS or loading issues -->
+  <!-- US Map file - Include the contents directly for immediate availability -->
   <script src="https://cdn.jsdelivr.net/npm/jvectormap-content@0.1.0/jquery-jvectormap-us-aea-en.js"></script>
+  
+  <!-- Register the map data from the public folder as a backup -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Backup plan: If the CDN script didn't load correctly, use our local copy
+      if (window.jQuery && window.jQuery.fn && !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
+        // Try to use the map data from public/jquery.vmap.usa.js
+        console.log("Loading backup map data from local file");
+        
+        try {
+          const script = document.createElement('script');
+          script.src = '/jquery.vmap.usa.js';
+          script.onload = function() {
+            console.log("Backup map data loaded successfully");
+          };
+          document.head.appendChild(script);
+        } catch(e) {
+          console.error("Failed to load backup map data:", e);
+        }
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>
