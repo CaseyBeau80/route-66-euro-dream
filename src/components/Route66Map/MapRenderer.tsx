@@ -1,8 +1,13 @@
 
+import React from "react";
 import MapStates from "./MapStates";
 import MapCities from "./MapCities";
 import Route66Line from "./Route66Line";
-import { route66States } from "./mapData";
+import MapTitle from "./MapElements/MapTitle";
+import Route66Badge from "./MapElements/Route66Badge";
+import ClearSelectionButton from "./MapElements/ClearSelectionButton";
+import MapBackground from "./MapElements/MapBackground";
+import MapSvgContainer from "./MapElements/MapSvgContainer";
 
 interface MapRendererProps {
   selectedState: string | null;
@@ -38,31 +43,11 @@ const MapRenderer = ({
     const mapWrapper = document.createElement('div');
     mapWrapper.className = 'relative w-full h-full';
     
-    // Create the map background
+    // Append MapBackground (container for SVG)
     const mapBg = document.createElement('div');
     mapBg.className = 'absolute inset-0 rounded-xl bg-[#f5f5f5] overflow-hidden';
     
-    // Create the title
-    const title = document.createElement('div');
-    title.className = 'absolute top-2 right-4 bg-white px-4 py-1 rounded-full shadow-md z-10';
-    title.innerHTML = '<h3 class="text-lg font-bold">HISTORIC ROUTE 66</h3>';
-    mapWrapper.appendChild(title);
-    
-    // Create the route 66 badge
-    const badge = document.createElement('div');
-    badge.className = 'absolute top-4 left-4 z-10';
-    badge.innerHTML = `
-      <div class="bg-white rounded-full p-1 shadow-md">
-        <div class="bg-white border-2 border-black rounded-full p-2 flex flex-col items-center w-16 h-16">
-          <div class="text-xs">ROUTE</div>
-          <div class="text-xs">US</div>
-          <div class="text-xl font-black">66</div>
-        </div>
-      </div>
-    `;
-    mapWrapper.appendChild(badge);
-    
-    // Add the US map outline
+    // Create SVG for map elements
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     mapSvg.setAttribute('viewBox', '0 0 960 600');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
@@ -82,19 +67,40 @@ const MapRenderer = ({
     const markers = mapCities.createCityMarkers();
     mapSvg.appendChild(markers);
     
+    // Append SVG to map background
     mapBg.appendChild(mapSvg);
     mapWrapper.appendChild(mapBg);
     
+    // Add the title component
+    const title = document.createElement('div');
+    title.className = 'absolute top-2 right-4 bg-white px-4 py-1 rounded-full shadow-md z-10';
+    title.innerHTML = '<h3 class="text-lg font-bold">HISTORIC ROUTE 66</h3>';
+    mapWrapper.appendChild(title);
+    
+    // Add the Route 66 badge
+    const badge = document.createElement('div');
+    badge.className = 'absolute top-4 left-4 z-10';
+    badge.innerHTML = `
+      <div class="bg-white rounded-full p-1 shadow-md">
+        <div class="bg-white border-2 border-black rounded-full p-2 flex flex-col items-center w-16 h-16">
+          <div class="text-xs">ROUTE</div>
+          <div class="text-xs">US</div>
+          <div class="text-xl font-black">66</div>
+        </div>
+      </div>
+    `;
+    mapWrapper.appendChild(badge);
+    
     // Add a clear selection button if state is selected
     if (selectedState) {
-      const stateName = route66States.find(s => s.id === selectedState)?.name || '';
+      const clearButton = ClearSelectionButton({ 
+        selectedState, 
+        onClearSelection 
+      }).render();
       
-      // Add a clear selection button with improved styling
-      const clearButton = document.createElement('button');
-      clearButton.className = 'absolute top-2 left-24 bg-white px-3 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1 hover:bg-gray-100 transition-colors';
-      clearButton.innerHTML = `<span>Clear ${stateName}</span>`;
-      clearButton.addEventListener('click', onClearSelection);
-      mapWrapper.appendChild(clearButton);
+      if (clearButton) {
+        mapWrapper.appendChild(clearButton);
+      }
     }
     
     container.appendChild(mapWrapper);
