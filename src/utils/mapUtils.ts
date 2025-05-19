@@ -7,3 +7,5 @@ export { initializeJVectorMap, cleanupMap } from './mapInitUtils';
 export { ensureMapDataLoaded } from './mapDataUtils';
 export type { Location } from './mapTypes'; // Changed to 'export type'
 export { locations } from './mapTypes';
+export { createFallbackMapDisplay } from './mapFallbackRenderer';
+export { initializeVectorMap, findBestAvailableMap } from './vectorMapInitializer';
