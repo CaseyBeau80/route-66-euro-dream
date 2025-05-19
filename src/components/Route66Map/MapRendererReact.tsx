@@ -40,18 +40,19 @@ const MapRendererReact = ({
       <MapTitle />
       <Route66Badge />
       
-      {selectedState && (
-        <ClearSelectionButton 
-          selectedState={selectedState} 
-          onClearSelection={onClearSelection} 
-        />
-      )}
+      <ClearSelectionButton 
+        selectedState={selectedState} 
+        onClearSelection={onClearSelection} 
+      />
       
       <MapBackground>
         <MapSvgContainer>
-          {/* States would be rendered here */}
-          {/* Route line would be rendered here */}
-          {/* Cities would be rendered here */}
+          <MapStates 
+            selectedState={selectedState}
+            onStateClick={onStateClick}
+          />
+          <Route66Line animated={true} />
+          <MapCities cities={majorCities} />
         </MapSvgContainer>
       </MapBackground>
     </div>
