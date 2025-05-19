@@ -1,8 +1,8 @@
 
 import React from "react";
-import MapStates from "./MapStates";
-import MapCities from "./MapCities";
-import Route66Line from "./Route66Line";
+import { MapStatesComponent } from "./MapStates";
+import { MapCitiesComponent } from "./MapCities";
+import { Route66LineComponent } from "./Route66Line";
 import MapTitle from "./MapElements/MapTitle";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
@@ -47,12 +47,12 @@ const MapRendererReact = ({
       
       <MapBackground>
         <MapSvgContainer>
-          <MapStates 
+          <MapStatesComponent 
             selectedState={selectedState}
             onStateClick={onStateClick}
           />
-          <Route66Line animated={true} />
-          <MapCities cities={majorCities} />
+          <Route66LineComponent animated={true} />
+          <MapCitiesComponent cities={majorCities} />
         </MapSvgContainer>
       </MapBackground>
     </div>

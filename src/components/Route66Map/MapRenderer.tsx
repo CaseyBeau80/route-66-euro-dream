@@ -93,14 +93,13 @@ const MapRenderer = ({
     
     // Add a clear selection button if state is selected
     if (selectedState) {
-      const clearButton = ClearSelectionButton({ 
-        selectedState, 
-        onClearSelection 
-      }).render();
+      // Create button manually for DOM version
+      const clearButton = document.createElement('button');
+      clearButton.className = 'absolute top-2 left-24 bg-white px-3 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1 hover:bg-gray-100 transition-colors';
+      clearButton.innerHTML = `<span>Clear ${route66States.find(s => s.id === selectedState)?.name || ''}</span>`;
+      clearButton.addEventListener('click', onClearSelection);
       
-      if (clearButton) {
-        mapWrapper.appendChild(clearButton);
-      }
+      mapWrapper.appendChild(clearButton);
     }
     
     container.appendChild(mapWrapper);

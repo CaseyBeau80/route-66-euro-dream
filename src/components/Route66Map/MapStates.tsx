@@ -1,4 +1,5 @@
 
+import React from "react";
 import { route66States } from "./mapData";
 
 interface MapStatesProps {
@@ -6,6 +7,7 @@ interface MapStatesProps {
   onStateClick: (stateId: string, stateName: string) => void;
 }
 
+// DOM version for MapRenderer.tsx
 const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   // Helper function to calculate approximate centroids for state labels
   const getStateCentroid = (pathD: string): {x: number, y: number} | null => {
@@ -25,6 +27,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
     return count ? {x: sumX/count, y: sumY/count} : null;
   };
   
+  // DOM version for MapRenderer
   const createStatesPaths = () => {
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     statesPaths.setAttribute('fill', '#a3c1e0');
@@ -65,10 +68,53 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
     
     return statesPaths;
   };
+  
+  // React version for MapRendererReact
+  const renderReactStates = () => {
+    return (
+      <g fill="#a3c1e0" stroke="#ffffff" strokeWidth="1.5">
+        {route66States.map(state => {
+          const stateCenter = getStateCentroid(state.d);
+          return (
+            <React.Fragment key={state.id}>
+              <path
+                d={state.d}
+                id={`state-${state.id}`}
+                fill={selectedState === state.id ? '#5D7B93' : state.color}
+                data-state={state.id}
+                data-state-name={state.name}
+                className="cursor-pointer hover:fill-route66-blue transition-colors duration-200"
+                onClick={() => onStateClick(state.id, state.name)}
+              />
+              {stateCenter && (
+                <text
+                  x={stateCenter.x}
+                  y={stateCenter.y}
+                  textAnchor="middle"
+                  fontSize="12"
+                  className="font-semibold pointer-events-none"
+                  fill={selectedState === state.id ? '#ffffff' : '#444444'}
+                >
+                  {state.id}
+                </text>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </g>
+    );
+  };
 
   return {
-    createStatesPaths
+    createStatesPaths,
+    renderReactStates
   };
+};
+
+// MapStatesComponent - Used in MapRendererReact as JSX component
+export const MapStatesComponent = ({ selectedState, onStateClick }: MapStatesProps) => {
+  const mapStates = MapStates({ selectedState, onStateClick });
+  return mapStates.renderReactStates();
 };
 
 export default MapStates;

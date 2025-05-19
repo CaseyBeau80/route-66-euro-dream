@@ -1,12 +1,14 @@
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+
+interface City {
+  x: number;
+  y: number;
+  name: string;
+}
 
 interface MapCitiesProps {
-  cities: Array<{
-    x: number;
-    y: number;
-    name: string;
-  }>;
+  cities: Array<City>;
 }
 
 const MapCities = ({ cities }: MapCitiesProps) => {
@@ -82,6 +84,75 @@ const MapCities = ({ cities }: MapCitiesProps) => {
   return {
     createCityMarkers
   };
+};
+
+// React component for MapRendererReact
+export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
+  return (
+    <g>
+      {cities.map((city, index) => (
+        <React.Fragment key={`city-${index}`}>
+          {/* City label background */}
+          <rect
+            x={city.x - 35}
+            y={city.y - 22}
+            width={70}
+            height={16}
+            rx={8}
+            fill="rgba(255, 255, 255, 0.8)"
+          />
+          
+          {/* Dot group */}
+          <g>
+            {/* Outer pulse */}
+            <circle
+              cx={city.x}
+              cy={city.y}
+              r={8}
+              fill="rgba(217, 33, 33, 0.2)"
+              className="animate-pulse"
+            />
+            
+            {/* Middle pulse */}
+            <circle
+              cx={city.x}
+              cy={city.y}
+              r={6}
+              fill="rgba(217, 33, 33, 0.4)"
+            />
+            
+            {/* Main dot */}
+            <circle
+              cx={city.x}
+              cy={city.y}
+              r={4}
+              fill="#D92121"
+            />
+            
+            {/* White center */}
+            <circle
+              cx={city.x}
+              cy={city.y}
+              r={1.5}
+              fill="white"
+            />
+          </g>
+          
+          {/* City label */}
+          <text
+            x={city.x}
+            y={city.y - 10}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight="bold"
+            fill="#444444"
+          >
+            {city.name}
+          </text>
+        </React.Fragment>
+      ))}
+    </g>
+  );
 };
 
 export default MapCities;
