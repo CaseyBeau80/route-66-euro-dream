@@ -20,6 +20,12 @@ export function useRouteMap() {
     try {
       console.log(`Attempting to initialize map (attempt ${retryCount + 1})`);
       
+      // Give the scripts a moment to fully initialize
+      if (typeof window !== 'undefined' && window.jQuery && !window.jQuery.fn.vectorMap) {
+        console.log("jQuery loaded but vectorMap not available yet");
+        return false;
+      }
+      
       // Wait for scripts to be fully loaded
       if (!checkScriptsLoaded()) {
         console.log(`❌ Scripts not fully loaded yet (attempt ${retryCount + 1})`);
@@ -57,7 +63,7 @@ export function useRouteMap() {
           setRetryCount(1); // Start retry counter
         }
       }
-    }, 1000);
+    }, 1500); // Increased initial delay
     
     return () => clearTimeout(initialDelay);
   }, [initializeMap, isMapInitialized]);

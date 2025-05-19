@@ -14,9 +14,12 @@ export function checkScriptsLoaded(): boolean {
   
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
+  
+  // More permissive check for map data
   const mapDataLoaded = jVectorMapLoaded && 
                          window.jQuery.fn.vectorMap.maps && 
-                         typeof window.jQuery.fn.vectorMap.maps['us_aea_en'] !== 'undefined';
+                         (typeof window.jQuery.fn.vectorMap.maps['us_aea_en'] !== 'undefined' || 
+                          typeof window.jQuery.fn.vectorMap.maps['usa'] !== 'undefined');
   
   console.log('Checking dependencies:', {
     jQuery: jQueryLoaded ? '✅' : '❌',
@@ -37,8 +40,11 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
     
     console.log('✅ All dependencies loaded, initializing map');
     
+    // Determine which map to use based on what's available
+    const mapName = window.jQuery.fn.vectorMap.maps['us_aea_en'] ? 'us_aea_en' : 'usa';
+    
     window.jQuery(mapContainer).vectorMap({
-      map: 'us_aea_en',
+      map: mapName,
       backgroundColor: '#f7f7f7',
       borderColor: '#818181',
       borderOpacity: 0.25,

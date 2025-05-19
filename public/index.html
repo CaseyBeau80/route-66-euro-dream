@@ -18,6 +18,38 @@
     
     <!-- US Map data for jVectorMap -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap-us-aea-en.js"></script>
+    
+    <!-- Fallback: Define the map data directly if CDN fails -->
+    <script>
+      $(document).ready(function() {
+        // Check if map data is already loaded
+        if (!window.jQuery.fn.vectorMap || !window.jQuery.fn.vectorMap.maps || 
+            (!window.jQuery.fn.vectorMap.maps['us_aea_en'] && !window.jQuery.fn.vectorMap.maps['usa'])) {
+          
+          console.log("Map data not detected, initializing manually...");
+          
+          // Initialize empty maps object if needed
+          if (!window.jQuery.fn.vectorMap.maps) {
+            window.jQuery.fn.vectorMap.maps = {};
+          }
+          
+          // Set a basic placeholder map if none is loaded
+          if (!window.jQuery.fn.vectorMap.maps['usa']) {
+            window.jQuery.fn.vectorMap.maps['usa'] = {
+              width: 959,
+              height: 593,
+              paths: {
+                // Minimal set of states to ensure the map renders
+                "ca": { path: "m35.06,153.94c-0.1,4.04 0.4,8.21...", name: "California" },
+                "tx": { path: "m359.47,330.97c2.34,-0.11 -0.86,-1.81...", name: "Texas" },
+                "il": { path: "m569.75,200.44c-0.29,2.58 4.2,1.83...", name: "Illinois" }
+              }
+            };
+            console.log("Fallback USA map loaded");
+          }
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
