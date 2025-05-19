@@ -29,7 +29,7 @@ interface VectorMapOptions {
     selected?: Record<string, any>;
   };
   markers?: Array<{
-    latLng: [number, number];
+    latLng: [number, number]; // Explicitly using tuple type
     name: string;
   }>;
   markerStyle?: {

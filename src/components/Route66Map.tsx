@@ -2,6 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 
+interface Route66Town {
+  latLng: [number, number]; // Explicitly defining as a tuple with 2 numbers
+  name: string;
+}
+
 const Route66Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
@@ -37,8 +42,8 @@ const Route66Map = () => {
         const $ = window.jQuery;
         console.log("✅ jQuery and jVectorMap loaded successfully, initializing map");
         
-        // Define Route 66 towns
-        const route66Towns = [
+        // Define Route 66 towns with properly typed coordinates
+        const route66Towns: Route66Town[] = [
           { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
           { latLng: [41.1399, -89.3636], name: "La Salle, IL" },
           { latLng: [39.8317, -89.6501], name: "Springfield, IL" },
