@@ -14,7 +14,10 @@ export function checkScriptsLoaded(): boolean {
   
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
-  const mapDataLoaded = jVectorMapLoaded && 
+  
+  // Check if the map data is loaded by verifying if the US map exists in jQuery
+  const mapDataLoaded = jQueryLoaded && 
+                         jVectorMapLoaded && 
                          window.jQuery.fn.vectorMap.maps && 
                          window.jQuery.fn.vectorMap.maps['us_aea_en'];
   
@@ -35,7 +38,7 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       return false;
     }
     
-    // Force check for map data
+    // Verify map data is available
     if (!window.jQuery.fn.vectorMap.maps || !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
       console.error('❌ US map data not found');
       return false;

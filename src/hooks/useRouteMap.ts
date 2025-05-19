@@ -9,7 +9,7 @@ export function useRouteMap() {
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 5; // Reduced for faster feedback
+  const maxRetries = 5; // Number of retries before giving up
   const initAttemptRef = useRef(0);
 
   const initializeMap = useCallback((): boolean => {
@@ -75,7 +75,6 @@ export function useRouteMap() {
     
     // Only attempt initialization if not already initialized
     if (!isMapInitialized) {
-      // Add a delay before first attempt to ensure DOM is fully loaded
       timeoutId = setTimeout(attemptMapInitialization, 1000);
     }
     
