@@ -5,4 +5,5 @@
 export { checkScriptsLoaded, createFallbackMapData } from './mapDependencyUtils';
 export { initializeJVectorMap, cleanupMap } from './mapInitUtils';
 export { ensureMapDataLoaded } from './mapDataUtils';
-export { Location, locations } from './mapTypes';
+export type { Location } from './mapTypes'; // Changed to 'export type'
+export { locations } from './mapTypes';
