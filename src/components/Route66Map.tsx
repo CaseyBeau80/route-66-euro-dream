@@ -13,43 +13,53 @@ const Route66Map = () => {
     
     const $ = window.$;
     
-    // Check if vectorMap plugin is available
-    if (typeof $.fn.vectorMap === 'undefined') {
-      console.error("❌ jVectorMap plugin not available");
-      return;
-    }
-    
-    // Define Route 66 towns
-    const towns = [
-      { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-      { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-      { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
-    ];
-    
-    // Initialize the map when everything is ready
-    try {
-      $(mapRef.current).vectorMap({
-        map: "us_aea_en",
-        backgroundColor: "transparent",
-        regionStyle: {
-          initial: { fill: "#cccccc" },
-          hover: { fill: "#ff6666" },
-        },
-        markers: towns,
-        markerStyle: {
-          initial: {
-            fill: "#ff6666",
-            stroke: "#ffffff",
+    // Ensure the jVectorMap plugin is properly initialized
+    const attemptMapInit = () => {
+      // Check if vectorMap plugin is available
+      if (typeof $.fn.vectorMap === 'undefined') {
+        console.error("❌ jVectorMap plugin not available, retrying in 500ms");
+        setTimeout(attemptMapInit, 500); // Try again after a delay
+        return;
+      }
+      
+      try {
+        console.log("✅ Found jVectorMap plugin, initializing map");
+        
+        // Define Route 66 towns
+        const towns = [
+          { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
+          { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
+          { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
+        ];
+        
+        // Initialize the map
+        $(mapRef.current).vectorMap({
+          map: "us_aea_en",
+          backgroundColor: "transparent",
+          regionStyle: {
+            initial: { fill: "#cccccc" },
+            hover: { fill: "#ff6666" },
           },
-          hover: {
-            fill: "#ff0000",
+          markers: towns,
+          markerStyle: {
+            initial: {
+              fill: "#ff6666",
+              stroke: "#ffffff",
+            },
+            hover: {
+              fill: "#ff0000",
+            },
           },
-        },
-      });
-      console.log("✅ Map initialized successfully");
-    } catch (error) {
-      console.error("❌ Error initializing map:", error);
-    }
+        });
+        
+        console.log("✅ Map initialized successfully");
+      } catch (error) {
+        console.error("❌ Error initializing map:", error);
+      }
+    };
+    
+    // Start the initialization attempt
+    attemptMapInit();
     
     return () => {
       // Clean up if necessary
