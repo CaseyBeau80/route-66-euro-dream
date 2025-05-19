@@ -1,4 +1,3 @@
-
 import React from "react";
 import MapStates from "./MapStates";
 import MapCities from "./MapCities";
@@ -8,6 +7,7 @@ import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
+import { route66States } from "./mapData";
 
 interface MapRendererProps {
   selectedState: string | null;
