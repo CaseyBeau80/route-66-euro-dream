@@ -40,10 +40,12 @@ const MapRendererReact = ({
       <MapTitle />
       <Route66Badge />
       
-      <ClearSelectionButton 
-        selectedState={selectedState} 
-        onClearSelection={onClearSelection} 
-      />
+      {selectedState && (
+        <ClearSelectionButton 
+          selectedState={selectedState} 
+          onClearSelection={onClearSelection} 
+        />
+      )}
       
       <MapBackground>
         <MapSvgContainer>
@@ -55,6 +57,23 @@ const MapRendererReact = ({
           <MapCitiesComponent cities={majorCities} />
         </MapSvgContainer>
       </MapBackground>
+      
+      {/* Legend */}
+      <div className="absolute bottom-4 right-4 bg-white p-2 rounded shadow-md z-10 flex flex-col gap-2">
+        <div className="text-xs font-bold mb-1">Legend</div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-[#5D7B93]"></div>
+          <div className="text-xs">Route 66 States</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-[#d3d3d3]"></div>
+          <div className="text-xs">Other States</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-[#D92121]"></div>
+          <div className="text-xs">Route 66</div>
+        </div>
+      </div>
     </div>
   );
 };

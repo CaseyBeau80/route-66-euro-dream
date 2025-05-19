@@ -1,6 +1,6 @@
 
 import React from "react";
-import { route66States } from "./mapData";
+import { route66States, otherUSStates, allUSStates } from "./mapData";
 
 interface MapStatesProps {
   selectedState: string | null;
@@ -31,42 +31,56 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   const createStatesPaths = () => {
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     statesPaths.setAttribute('stroke', '#ffffff');
-    statesPaths.setAttribute('stroke-width', '2');
+    statesPaths.setAttribute('stroke-width', '1');
     
-    // Add states with click handlers
-    route66States.forEach(state => {
+    // Add all states (Route 66 states and other states)
+    allUSStates.forEach(state => {
+      // Determine if this is a Route 66 state
+      const isRoute66State = route66States.some(r66 => r66.id === state.id);
+      
       const statePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       statePath.setAttribute('d', state.d);
       statePath.setAttribute('id', `state-${state.id}`);
-      statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : '#a3c1e0');
+      
+      // Set fill color based on whether it's a Route 66 state, selected state, or other state
+      if (selectedState === state.id) {
+        statePath.setAttribute('fill', '#5D7B93'); // Selected state color
+      } else if (isRoute66State) {
+        statePath.setAttribute('fill', '#7D9CB3'); // Route 66 state color
+      } else {
+        statePath.setAttribute('fill', '#d3d3d3'); // Non-Route 66 state color
+      }
+      
       statePath.setAttribute('data-state', state.id);
       statePath.setAttribute('data-state-name', state.name);
-      statePath.setAttribute('class', 'cursor-pointer');
+      statePath.setAttribute('class', isRoute66State ? 'cursor-pointer' : '');
       statePath.setAttribute('opacity', '1');
       
-      // Add hover effect using event listeners
-      statePath.addEventListener('mouseover', () => {
-        if (selectedState !== state.id) {
-          statePath.setAttribute('fill', '#7D9CB3');
-        }
-        statePath.setAttribute('opacity', '0.9');
-      });
-      
-      statePath.addEventListener('mouseout', () => {
-        if (selectedState !== state.id) {
-          statePath.setAttribute('fill', '#a3c1e0');
-        }
-        statePath.setAttribute('opacity', '1');
-      });
-      
-      // Add click event
-      statePath.addEventListener('click', () => {
-        onStateClick(state.id, state.name);
-      });
+      // Add hover effect using event listeners, but only for Route 66 states
+      if (isRoute66State) {
+        statePath.addEventListener('mouseover', () => {
+          if (selectedState !== state.id) {
+            statePath.setAttribute('fill', '#5D7B93');
+          }
+          statePath.setAttribute('opacity', '0.9');
+        });
+        
+        statePath.addEventListener('mouseout', () => {
+          if (selectedState !== state.id) {
+            statePath.setAttribute('fill', '#7D9CB3');
+          }
+          statePath.setAttribute('opacity', '1');
+        });
+        
+        // Add click event only to Route 66 states
+        statePath.addEventListener('click', () => {
+          onStateClick(state.id, state.name);
+        });
+      }
       
       statesPaths.appendChild(statePath);
       
-      // Add state label
+      // Add state label for all states
       const stateCenter = getStateCentroid(state.d);
       if (stateCenter) {
         // Create a background rectangle for better visibility
@@ -101,19 +115,32 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   // React version for MapRendererReact
   const renderReactStates = () => {
     return (
-      <g stroke="#ffffff" strokeWidth="2">
-        {route66States.map(state => {
+      <g stroke="#ffffff" strokeWidth="1">
+        {allUSStates.map(state => {
+          // Determine if this is a Route 66 state
+          const isRoute66State = route66States.some(r66 => r66.id === state.id);
           const stateCenter = getStateCentroid(state.d);
+          
+          // Determine fill color based on state type and selection
+          let fillColor;
+          if (selectedState === state.id) {
+            fillColor = '#5D7B93'; // Selected state color
+          } else if (isRoute66State) {
+            fillColor = '#7D9CB3'; // Route 66 state color
+          } else {
+            fillColor = '#d3d3d3'; // Non-Route 66 state color
+          }
+          
           return (
             <React.Fragment key={state.id}>
               <path
                 d={state.d}
                 id={`state-${state.id}`}
-                fill={selectedState === state.id ? '#5D7B93' : '#a3c1e0'}
+                fill={fillColor}
                 data-state={state.id}
                 data-state-name={state.name}
-                className="cursor-pointer hover:opacity-90"
-                onClick={() => onStateClick(state.id, state.name)}
+                className={isRoute66State ? "cursor-pointer hover:opacity-90" : ""}
+                onClick={isRoute66State ? () => onStateClick(state.id, state.name) : undefined}
               />
               {stateCenter && (
                 <>

@@ -43,10 +43,9 @@ const MapRenderer = ({
     const mapBg = document.createElement('div');
     mapBg.className = 'absolute inset-0 rounded-xl bg-[#f5f5f5] overflow-hidden';
     
-    // Create SVG for map elements with proper viewBox
+    // Create SVG for map elements with proper viewBox for full US map
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    // Adjust viewBox to properly display the map - this is critical for rendering
-    mapSvg.setAttribute('viewBox', '175 225 550 300');
+    mapSvg.setAttribute('viewBox', '0 200 900 500');
     mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
     
@@ -88,6 +87,26 @@ const MapRenderer = ({
       </div>
     `;
     mapWrapper.appendChild(badge);
+    
+    // Add a legend for the map
+    const legend = document.createElement('div');
+    legend.className = 'absolute bottom-4 right-4 bg-white p-2 rounded shadow-md z-10 flex flex-col gap-2';
+    legend.innerHTML = `
+      <div class="text-xs font-bold mb-1">Legend</div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-[#5D7B93]"></div>
+        <div class="text-xs">Route 66 States</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-[#d3d3d3]"></div>
+        <div class="text-xs">Other States</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-[#D92121]"></div>
+        <div class="text-xs">Route 66</div>
+      </div>
+    `;
+    mapWrapper.appendChild(legend);
     
     // Add a clear selection button if state is selected
     if (selectedState) {
