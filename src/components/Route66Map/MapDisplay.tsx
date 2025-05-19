@@ -178,7 +178,7 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     mapBg.appendChild(mapSvg);
     mapWrapper.appendChild(mapBg);
     
-    // Add towns list
+    // Get visible towns
     const visibleTowns = getVisibleTowns();
     
     // Add a clear selection button if state is selected
@@ -195,22 +195,13 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
       mapWrapper.appendChild(clearButton);
     }
     
-    // Append the towns list
-    const townsList = document.createElement('div');
-    townsList.className = 'absolute bottom-2 left-2 right-2 bg-white/90 p-2 rounded-lg text-xs grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1';
-    
-    visibleTowns.forEach(town => {
-      const townItem = document.createElement('div');
-      townItem.className = 'flex items-center gap-1';
-      townItem.innerHTML = `
-        <span class="text-red-600"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
-        <span>${town.name}</span>
-      `;
-      townsList.appendChild(townItem);
-    });
-    
-    mapWrapper.appendChild(townsList);
     container.appendChild(mapWrapper);
+    
+    // Render the towns list as a React component outside the DOM manipulation
+    const townsList = document.createElement('div');
+    townsList.className = 'absolute bottom-4 left-4 right-4 z-10';
+    townsList.id = 'towns-list-container';
+    mapWrapper.appendChild(townsList);
   };
   
   const getVisibleTowns = () => {
@@ -222,12 +213,22 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     return route66Towns;
   };
 
+  // Get towns to show based on selected state
+  const visibleTowns = getVisibleTowns();
+
   return (
-    <div
-      ref={mapContainerRef}
-      id="route66-map-container"
-      className="w-full h-[600px] rounded-xl shadow-lg border border-gray-200"
-    ></div>
+    <div className="relative">
+      <div
+        ref={mapContainerRef}
+        id="route66-map-container"
+        className="w-full h-[400px] rounded-xl shadow-lg border border-gray-200"
+      ></div>
+      
+      {/* Towns list positioned at the bottom */}
+      <div className="mt-4">
+        <TownsList towns={visibleTowns} />
+      </div>
+    </div>
   );
 };
 
