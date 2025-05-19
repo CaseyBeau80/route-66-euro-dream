@@ -15,16 +15,16 @@ export function checkScriptsLoaded(): boolean {
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
   
-  // More permissive check for map data
+  // More flexible check for map data - accept any map data that might be available
   const mapDataLoaded = jVectorMapLoaded && 
-                         window.jQuery.fn.vectorMap.maps && 
-                         (typeof window.jQuery.fn.vectorMap.maps['us_aea_en'] !== 'undefined' || 
-                          typeof window.jQuery.fn.vectorMap.maps['usa'] !== 'undefined');
+                       window.jQuery.fn.vectorMap.maps && 
+                       Object.keys(window.jQuery.fn.vectorMap.maps).length > 0;
   
   console.log('Checking dependencies:', {
     jQuery: jQueryLoaded ? '✅' : '❌',
     jVectorMap: jVectorMapLoaded ? '✅' : '❌',
-    mapData: mapDataLoaded ? '✅' : '❌'
+    mapData: mapDataLoaded ? '✅' : '❌',
+    availableMaps: jVectorMapLoaded ? Object.keys(window.jQuery.fn.vectorMap.maps || {}) : []
   });
   
   return jQueryLoaded && jVectorMapLoaded && mapDataLoaded;
@@ -40,8 +40,19 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
     
     console.log('✅ All dependencies loaded, initializing map');
     
-    // Determine which map to use based on what's available
-    const mapName = window.jQuery.fn.vectorMap.maps['us_aea_en'] ? 'us_aea_en' : 'usa';
+    // Get the first available map
+    const availableMaps = Object.keys(window.jQuery.fn.vectorMap.maps);
+    if (availableMaps.length === 0) {
+      console.error('❌ No map data found despite checking');
+      return false;
+    }
+    
+    // Prefer 'us_aea_en' or 'usa' maps, but fall back to any available map
+    let mapName = availableMaps.find(name => name === 'us_aea_en') || 
+                  availableMaps.find(name => name === 'usa') || 
+                  availableMaps[0];
+    
+    console.log(`Using map: ${mapName}`);
     
     window.jQuery(mapContainer).vectorMap({
       map: mapName,

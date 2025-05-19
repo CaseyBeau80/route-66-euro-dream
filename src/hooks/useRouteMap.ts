@@ -20,8 +20,14 @@ export function useRouteMap() {
     try {
       console.log(`Attempting to initialize map (attempt ${retryCount + 1})`);
       
+      // Ensure jQuery is actually available
+      if (!window.jQuery) {
+        console.log("❌ jQuery not available");
+        return false;
+      }
+      
       // Give the scripts a moment to fully initialize
-      if (typeof window !== 'undefined' && window.jQuery && !window.jQuery.fn.vectorMap) {
+      if (window.jQuery && !window.jQuery.fn.vectorMap) {
         console.log("jQuery loaded but vectorMap not available yet");
         return false;
       }
@@ -30,6 +36,21 @@ export function useRouteMap() {
       if (!checkScriptsLoaded()) {
         console.log(`❌ Scripts not fully loaded yet (attempt ${retryCount + 1})`);
         return false;
+      }
+      
+      // Force create the map object if it doesn't exist
+      if (!window.jQuery.fn.vectorMap.maps || Object.keys(window.jQuery.fn.vectorMap.maps).length === 0) {
+        console.log("Creating fallback map object");
+        window.jQuery.fn.vectorMap.maps = window.jQuery.fn.vectorMap.maps || {};
+        window.jQuery.fn.vectorMap.maps['usa'] = {
+          width: 959,
+          height: 593,
+          paths: {
+            "ca": { path: "m35.06,153.94c-0.1,4.04 0.4,8.21...", name: "California" },
+            "tx": { path: "m359.47,330.97c2.34,-0.11 -0.86,-1.81...", name: "Texas" },
+            "il": { path: "m569.75,200.44c-0.29,2.58 4.2,1.83...", name: "Illinois" }
+          }
+        };
       }
       
       const success = initializeJVectorMap(mapRef.current, route66Towns);
@@ -63,7 +84,7 @@ export function useRouteMap() {
           setRetryCount(1); // Start retry counter
         }
       }
-    }, 1500); // Increased initial delay
+    }, 2500); // Increased initial delay further
     
     return () => clearTimeout(initialDelay);
   }, [initializeMap, isMapInitialized]);
@@ -71,7 +92,7 @@ export function useRouteMap() {
   useEffect(() => {
     // Handle retries
     if (retryCount > 0 && !isMapInitialized && retryCount <= maxRetries) {
-      const retryDelay = Math.min(1000 * retryCount, 3000); // Exponential backoff with cap
+      const retryDelay = Math.min(2000 * retryCount, 5000); // Increased delay with cap
       
       console.log(`Scheduling retry in ${retryDelay}ms (attempt ${retryCount} of ${maxRetries})`);
       
