@@ -28,8 +28,8 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
     console.log(`Using map: ${mapName}`);
     
     try {
-      // Ensure jvm.Map constructor exists
-      if (!window.jvm || typeof window.jvm.Map !== 'function') {
+      // Ensure jvm.Map constructor exists - use type-safe check
+      if (typeof window.jvm === 'undefined' || typeof window.jvm.Map !== 'function') {
         console.log('Creating jvm.Map constructor');
         (window as any).jvm = (window as any).jvm || {};
         (window as any).jvm.Map = function(params: any) {
