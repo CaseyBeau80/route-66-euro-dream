@@ -17,31 +17,39 @@ export function ensureMapDataLoaded(): Promise<boolean> {
       return;
     }
 
-    console.log("Attempting to load map data dynamically");
+    console.log("Attempting to create fallback map data");
+    
+    // Create fallback map data since external loading often fails
+    createFallbackMapData();
+    
+    // Check if we now have map data after creating fallback
+    if (window.jQuery?.fn?.vectorMap?.maps && Object.keys(window.jQuery.fn.vectorMap.maps).length > 0) {
+      console.log("Successfully created fallback map data");
+      resolve(true);
+      return;
+    }
 
-    // Create a script element to load the map data
+    // If still no map data, try loading from external source as last resort
+    console.log("Attempting to load map data from external source");
     const script = document.createElement('script');
-    script.src = "/jquery.vmap.usa.js"; // This is in the public folder
+    script.src = "/jquery.vmap.usa.js"; 
     script.async = true;
 
-    // Add a timeout to handle case where onload doesn't fire
     const timeout = setTimeout(() => {
       console.log("Map script load timeout reached");
       createFallbackMapData();
       resolve(true);
-    }, 5000);
+    }, 3000);
     
     script.onload = () => {
       clearTimeout(timeout);
       console.log("Map data script loaded successfully");
       
-      // Check if the script actually loaded the map data
       if (window.jQuery?.fn?.vectorMap?.maps && Object.keys(window.jQuery.fn.vectorMap.maps).length > 0) {
         console.log("Confirmed map data was loaded properly");
         resolve(true);
       } else {
         console.log("Script loaded but map data wasn't properly initialized");
-        // Create the fallback data structure
         createFallbackMapData();
         resolve(true);
       }

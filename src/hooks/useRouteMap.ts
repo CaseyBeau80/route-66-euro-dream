@@ -70,7 +70,7 @@ export function useRouteMap() {
   }, [retryCount]);
 
   useEffect(() => {
-    // Longer initial delay to ensure scripts are fully loaded
+    // Initial delay to ensure scripts have a chance to load
     const initialDelay = setTimeout(() => {
       if (!isMapInitialized) {
         initializeMap().then(success => {
@@ -79,7 +79,7 @@ export function useRouteMap() {
           }
         });
       }
-    }, 5000); // Even longer initial delay
+    }, 2000);
     
     return () => clearTimeout(initialDelay);
   }, [initializeMap, isMapInitialized]);
@@ -87,7 +87,7 @@ export function useRouteMap() {
   useEffect(() => {
     // Handle retries
     if (retryCount > 0 && !isMapInitialized && retryCount <= maxRetries) {
-      const retryDelay = Math.min(3000 * retryCount, 8000); // Longer delays with higher cap
+      const retryDelay = Math.min(2000 * retryCount, 5000);
       
       console.log(`Scheduling retry in ${retryDelay}ms (attempt ${retryCount} of ${maxRetries})`);
       

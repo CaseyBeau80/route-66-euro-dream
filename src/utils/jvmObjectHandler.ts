@@ -18,7 +18,11 @@ export function ensureJvmObjectExists(): void {
       (window as any).jvm.Map = function(params: any) {
         console.log("jvm.Map constructor called with params:", params);
         this.params = params;
+        
+        // Store the container - could be DOM element or jQuery object
         this.container = params.container;
+        
+        // Add necessary methods
         this.setBackgroundColor = function(color: string) { return this; };
         this.setSize = function() { return this; };
         this.setFocus = function() { return this; };
@@ -31,46 +35,70 @@ export function ensureJvmObjectExists(): void {
           </div>
         </div>`;
         
-        // Handle both DOM elements and jQuery objects
-        if (params.container instanceof Element) {
-          // Direct DOM element
-          params.container.innerHTML = fallbackHtml;
-        } else if (window.jQuery && params.container instanceof window.jQuery) {
-          // jQuery object
-          params.container.html(fallbackHtml);
-        } else {
-          console.error("Container is neither a DOM element nor a jQuery object", params.container);
-        }
-        
-        // Add markers if they exist in params
-        if (params.markers && params.markers.length) {
-          // Create marker elements
-          const markersEl = document.createElement('div');
-          markersEl.style.position = 'absolute';
-          markersEl.style.top = '10px';
-          markersEl.style.left = '10px';
-          markersEl.style.background = 'white';
-          markersEl.style.padding = '10px';
-          markersEl.style.borderRadius = '5px';
-          markersEl.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-          markersEl.innerHTML = '<h4 style="margin:0 0 8px 0">Route 66 Stops</h4>';
-          
-          // Add each marker to the element
-          params.markers.forEach((marker: any, index: number) => {
-            const markerItem = document.createElement('div');
-            markerItem.style.margin = '4px 0';
-            markerItem.style.fontSize = '12px';
-            markerItem.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#e74c3c;border-radius:50%;margin-right:6px;"></span> ${marker.name}`;
-            markersEl.appendChild(markerItem);
-          });
-          
-          // Append markers to container (handle both DOM and jQuery)
-          if (params.container instanceof Element) {
-            const mockMap = params.container.querySelector('.mock-map');
-            if (mockMap) mockMap.appendChild(markersEl);
-          } else if (window.jQuery && params.container instanceof window.jQuery) {
-            params.container.find('.mock-map').append(markersEl);
+        // Handle the container properly based on its type
+        try {
+          if (window.jQuery && params.container instanceof window.jQuery) {
+            // It's a jQuery object
+            params.container.html(fallbackHtml);
+            
+            // Add markers if they exist in params
+            if (params.markers && params.markers.length) {
+              // Create marker container
+              const markerList = document.createElement('div');
+              markerList.style.position = 'absolute';
+              markerList.style.top = '10px';
+              markerList.style.left = '10px';
+              markerList.style.background = 'white';
+              markerList.style.padding = '10px';
+              markerList.style.borderRadius = '5px';
+              markerList.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              markerList.innerHTML = '<h4 style="margin:0 0 8px 0">Route 66 Stops</h4>';
+              
+              // Add each marker
+              params.markers.forEach((marker: any) => {
+                const markerItem = document.createElement('div');
+                markerItem.style.margin = '4px 0';
+                markerItem.style.fontSize = '12px';
+                markerItem.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#e74c3c;border-radius:50%;margin-right:6px;"></span> ${marker.name}`;
+                markerList.appendChild(markerItem);
+              });
+              
+              params.container.find('.mock-map').append(markerList);
+            }
+          } else if (params.container instanceof Element) {
+            // It's a DOM element
+            params.container.innerHTML = fallbackHtml;
+            
+            // Add markers if they exist
+            if (params.markers && params.markers.length) {
+              // Create marker container
+              const markerList = document.createElement('div');
+              markerList.style.position = 'absolute';
+              markerList.style.top = '10px';
+              markerList.style.left = '10px';
+              markerList.style.background = 'white';
+              markerList.style.padding = '10px';
+              markerList.style.borderRadius = '5px';
+              markerList.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              markerList.innerHTML = '<h4 style="margin:0 0 8px 0">Route 66 Stops</h4>';
+              
+              // Add each marker
+              params.markers.forEach((marker: any) => {
+                const markerItem = document.createElement('div');
+                markerItem.style.margin = '4px 0';
+                markerItem.style.fontSize = '12px';
+                markerItem.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#e74c3c;border-radius:50%;margin-right:6px;"></span> ${marker.name}`;
+                markerList.appendChild(markerItem);
+              });
+              
+              const mockMap = params.container.querySelector('.mock-map');
+              if (mockMap) mockMap.appendChild(markerList);
+            }
+          } else {
+            console.error("Container is neither a DOM element nor a jQuery object:", params.container);
           }
+        } catch (e) {
+          console.error("Error creating fallback map display:", e);
         }
         
         return this;
@@ -82,10 +110,14 @@ export function ensureJvmObjectExists(): void {
         setSize: function() { return this; },
         setFocus: function() { return this; },
         remove: function() { 
-          if (this.container instanceof Element) {
-            this.container.innerHTML = '';
-          } else if (window.jQuery && this.container instanceof window.jQuery) {
-            this.container.empty();
+          try {
+            if (this.container instanceof Element) {
+              this.container.innerHTML = '';
+            } else if (window.jQuery && this.container instanceof window.jQuery) {
+              this.container.empty();
+            }
+          } catch (e) {
+            console.error("Error removing map:", e);
           }
         }
       };
