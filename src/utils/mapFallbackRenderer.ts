@@ -147,9 +147,16 @@ export function createMockJvmMap(): void {
     
     mapDiv.appendChild(markersContainer);
     
-    // Clear and append to container
-    params.container.innerHTML = '';
-    params.container.appendChild(mapDiv);
+    // Clear and append to container - handle both DOM elements and jQuery objects
+    if (params.container instanceof Element) {
+      params.container.innerHTML = '';
+      params.container.appendChild(mapDiv);
+    } else if (window.jQuery && params.container instanceof window.jQuery) {
+      params.container.empty();
+      params.container.append(mapDiv);
+    } else {
+      console.error("Container is neither a DOM element nor a jQuery object", params.container);
+    }
     
     return this;
   };
@@ -160,8 +167,10 @@ export function createMockJvmMap(): void {
     setSize: function() { return this; },
     setFocus: function() { return this; },
     remove: function() { 
-      if (this.container) {
+      if (this.container instanceof Element) {
         this.container.innerHTML = '';
+      } else if (window.jQuery && this.container instanceof window.jQuery) {
+        this.container.empty();
       }
     }
   };
