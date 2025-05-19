@@ -3,24 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-// Function to check if scripts are loaded
-const areScriptsLoaded = () => {
-  if (window.jQuery) {
-    console.log("✅ jQuery is loaded");
-    if (window.jQuery.fn.vectorMap) {
-      console.log("✅ jVectorMap is loaded");
-      return true;
-    } else {
-      console.log("❌ jVectorMap is not loaded");
-      return false;
-    }
-  } else {
-    console.log("❌ jQuery is not loaded");
-    return false;
-  }
-};
-
-// Function to initialize the app when everything is ready
+// Start the application when DOM is fully loaded
 const initApp = () => {
   const rootElement = document.getElementById("root");
   
@@ -28,9 +11,6 @@ const initApp = () => {
     console.error("❌ Could not find #root element in the DOM");
     return;
   }
-  
-  // Log script loading status
-  areScriptsLoaded();
   
   createRoot(rootElement).render(<App />);
   console.log("✅ React app initialized");
