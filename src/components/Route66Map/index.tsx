@@ -4,7 +4,12 @@ import MapDisplay from "./MapDisplay";
 import { route66Towns } from "@/types/route66";
 import { toast } from "@/components/ui/use-toast";
 import MapLoading from "./MapLoading";
+import RouteInfo from "./RouteInfo";
 
+/**
+ * Main Route 66 Map component
+ * Manages the map state and loading
+ */
 const Route66Map = () => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +74,9 @@ const Route66Map = () => {
           <MapLoading error={error} onRetry={handleRetry} />
         )}
       </div>
+      
+      {/* Route information and legend */}
+      <RouteInfo selectedState={selectedState} />
     </div>
   );
 };
