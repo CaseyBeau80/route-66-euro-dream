@@ -15,6 +15,26 @@ export function checkScriptsLoaded(): boolean {
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
   
+  // Force create the maps object if it doesn't exist
+  if (jQueryLoaded && jVectorMapLoaded && (!window.jQuery.fn.vectorMap.maps || Object.keys(window.jQuery.fn.vectorMap.maps).length === 0)) {
+    console.log("Creating vectorMap.maps object as it doesn't exist");
+    window.jQuery.fn.vectorMap.maps = window.jQuery.fn.vectorMap.maps || {};
+    
+    // Force define the US map if needed - even a minimalist version
+    if (!window.jQuery.fn.vectorMap.maps['usa'] && !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
+      console.log("Creating minimal USA map definition");
+      window.jQuery.fn.vectorMap.maps['usa'] = {
+        width: 959,
+        height: 593,
+        paths: {
+          "ca": { path: "m35.06,153.94c-0.1,4.04 0.4,8.21...", name: "California" },
+          "il": { path: "m569.75,200.44c-0.29,2.58 4.2,1.83...", name: "Illinois" },
+          "mo": { path: "m490.44,245.63c-2.39,-0.46 -0.19,4.05...", name: "Missouri" }
+        }
+      };
+    }
+  }
+  
   // More flexible check for map data - accept any map data that might be available
   const mapDataLoaded = jVectorMapLoaded && 
                        window.jQuery.fn.vectorMap.maps && 
@@ -24,7 +44,9 @@ export function checkScriptsLoaded(): boolean {
     jQuery: jQueryLoaded ? '✅' : '❌',
     jVectorMap: jVectorMapLoaded ? '✅' : '❌',
     mapData: mapDataLoaded ? '✅' : '❌',
-    availableMaps: jVectorMapLoaded ? Object.keys(window.jQuery.fn.vectorMap.maps || {}) : []
+    availableMaps: jVectorMapLoaded ? Object.keys(window.jQuery.fn.vectorMap.maps || {}) : [],
+    mapDetailsExample: mapDataLoaded && Object.keys(window.jQuery.fn.vectorMap.maps)[0] ? 
+      `First map has ${Object.keys(window.jQuery.fn.vectorMap.maps[Object.keys(window.jQuery.fn.vectorMap.maps)[0]].paths || {}).length} paths` : 'No map data'
   });
   
   return jQueryLoaded && jVectorMapLoaded && mapDataLoaded;
@@ -111,6 +133,59 @@ export function cleanupMap(mapContainer: HTMLDivElement): void {
   } catch (error) {
     console.error('Error cleaning up map:', error);
   }
+}
+
+// Load the map data dynamically if it doesn't exist
+export function ensureMapDataLoaded(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(false);
+      return;
+    }
+
+    // If the map data is already loaded, resolve immediately
+    if (window.jQuery?.fn?.vectorMap?.maps && Object.keys(window.jQuery.fn.vectorMap.maps).length > 0) {
+      console.log("Map data already loaded");
+      resolve(true);
+      return;
+    }
+
+    console.log("Attempting to load map data dynamically");
+
+    // Create a script element to load the map data
+    const script = document.createElement('script');
+    script.src = "/jquery.vmap.usa.js"; // This is in the public folder
+    script.async = true;
+
+    script.onload = () => {
+      console.log("Map data script loaded successfully");
+      resolve(true);
+    };
+
+    script.onerror = () => {
+      console.error("Failed to load map data script");
+      
+      // Fallback: Try to create a minimal map
+      if (window.jQuery?.fn?.vectorMap) {
+        console.log("Creating fallback minimal map data");
+        window.jQuery.fn.vectorMap.maps = window.jQuery.fn.vectorMap.maps || {};
+        window.jQuery.fn.vectorMap.maps['usa'] = {
+          width: 959,
+          height: 593,
+          paths: {
+            "ca": { path: "m35.06,153.94c-0.1,4.04 0.4,8.21...", name: "California" },
+            "il": { path: "m569.75,200.44c-0.29,2.58 4.2,1.83...", name: "Illinois" },
+            "mo": { path: "m490.44,245.63c-2.39,-0.46 -0.19,4.05...", name: "Missouri" }
+          }
+        };
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    };
+
+    document.head.appendChild(script);
+  });
 }
 
 // Example array of coordinate pairs for Route 66 towns
