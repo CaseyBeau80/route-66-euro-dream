@@ -5,7 +5,7 @@ interface JQuery {
 }
 
 interface JQueryStatic {
-  (selector: string): JQuery;
+  (selector: string | Element): JQuery;
   fn: {
     vectorMap: (name: string, map: object) => void;
     [key: string]: any;
@@ -14,5 +14,5 @@ interface JQueryStatic {
 }
 
 interface Window {
-  $: JQueryStatic;
+  $?: JQueryStatic;
 }
