@@ -6,17 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Route 66 Map</title>
   
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
-  <!-- jVectorMap CSS -->
+  <!-- jQuery and jVectorMap Dependencies (in correct order) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.css" />
-  
-  <!-- jVectorMap Core -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js"></script>
   
-  <!-- US Map file -->
-  <script src="https://caseybeau80.github.io/route66-map-files/jquery-jvectormap-us-aea-en.js"></script>
+  <!-- US Map file - use direct CDN path to avoid CORS or loading issues -->
+  <script src="https://cdn.jsdelivr.net/npm/jvectormap-content@0.1.0/jquery-jvectormap-us-aea-en.js"></script>
 </head>
 <body>
   <div id="root"></div>

@@ -19,7 +19,8 @@ const Route66Map = () => {
       typeof window !== "undefined" &&
       window.jQuery &&
       window.jQuery.fn &&
-      window.jQuery.fn.vectorMap
+      window.jQuery.fn.vectorMap &&
+      typeof window.jQuery.fn.vectorMap === 'function'
     );
   };
   
@@ -42,6 +43,13 @@ const Route66Map = () => {
     try {
       const $ = window.jQuery;
       console.log("✅ jQuery and jVectorMap loaded successfully");
+      
+      // Check if map file is loaded correctly
+      if (!window.jQuery.fn.vectorMap.maps['us_aea_en']) {
+        console.error("❌ US map data not loaded correctly");
+        setLoadingError("Map data not loaded. Please try refreshing the page.");
+        return false;
+      }
       
       // Define Route 66 towns with properly typed coordinates
       const route66Towns: Route66Town[] = [
@@ -79,7 +87,7 @@ const Route66Map = () => {
           hover: { fill: "#ff6666" },
           selected: { fill: "#ff0000" }
         },
-        markers: route66Towns,
+        markers: route66Towns.map(town => town.latLng),  // Ensure correct format
         markerStyle: {
           initial: {
             fill: "#ff6666",
@@ -99,10 +107,13 @@ const Route66Map = () => {
           });
         },
         onMarkerClick: function(e, code) {
-          toast({
-            title: "Town Selected",
-            description: `You clicked on ${route66Towns[code].name}`,
-          });
+          const index = parseInt(code);
+          if (!isNaN(index) && index >= 0 && index < route66Towns.length) {
+            toast({
+              title: "Town Selected",
+              description: `You clicked on ${route66Towns[index].name}`,
+            });
+          }
         }
       });
       
@@ -111,7 +122,7 @@ const Route66Map = () => {
       return true;
     } catch (error) {
       console.error("❌ Error initializing map:", error);
-      setLoadingError("Error initializing map. Please try refreshing the page.");
+      setLoadingError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   };
@@ -132,21 +143,13 @@ const Route66Map = () => {
       return () => clearTimeout(timeoutId);
     };
     
-    // Wait for DOM to be fully loaded
-    if (document.readyState === 'complete') {
+    // Small delay to ensure scripts are loaded
+    const initialDelay = setTimeout(() => {
       attemptMapInitialization();
-    } else {
-      const handleLoad = () => attemptMapInitialization();
-      window.addEventListener('load', handleLoad);
-      return () => window.removeEventListener('load', handleLoad);
-    }
+    }, 500);
     
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [retryCount]);
-  
-  // Cleanup on unmount
-  useEffect(() => {
     return () => {
+      clearTimeout(initialDelay);
       if (isMapInitialized && window.jQuery && mapRef.current) {
         try {
           const $ = window.jQuery;
@@ -156,11 +159,13 @@ const Route66Map = () => {
         }
       }
     };
-  }, [isMapInitialized]);
+  }, [retryCount]);
 
   const handleRetry = () => {
     setLoadingError(null);
     setRetryCount(0);
+    // Force a reload of the scripts
+    window.location.reload();
   };
 
   return (
