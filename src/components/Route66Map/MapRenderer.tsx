@@ -72,8 +72,8 @@ const MapRenderer = ({
     const statesPaths = mapStates.createStatesPaths();
     mapSvg.appendChild(statesPaths);
     
-    // Create and add route line
-    const route66Line = Route66Line();
+    // Create and add route line with animation
+    const route66Line = Route66Line({ animated: true });
     const routePath = route66Line.createRoutePath();
     mapSvg.appendChild(routePath);
     
@@ -98,12 +98,6 @@ const MapRenderer = ({
     }
     
     container.appendChild(mapWrapper);
-    
-    // Render the towns list as a React component outside the DOM manipulation
-    const townsList = document.createElement('div');
-    townsList.className = 'absolute bottom-4 left-4 right-4 z-10';
-    townsList.id = 'towns-list-container';
-    mapWrapper.appendChild(townsList);
   };
 
   return {

@@ -41,7 +41,7 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
       <div
         ref={mapContainerRef}
         id="route66-map-container"
-        className="w-full h-[400px] rounded-xl shadow-lg border border-gray-200"
+        className="w-full h-[500px] rounded-xl shadow-lg border border-gray-200"
       ></div>
       
       {/* Towns list positioned at the bottom */}
