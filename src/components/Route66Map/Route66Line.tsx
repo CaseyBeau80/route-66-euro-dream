@@ -9,11 +9,11 @@ const Route66Line = ({ animated = true }: Route66LineProps) => {
   const createRoutePath = () => {
     const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     
-    // Enhanced path with more detailed points following the actual Route 66 through all states
-    routePath.setAttribute('d', 'M645,250 C640,255 635,260 630,270 C625,280 620,290 617,300 C610,305 605,308 600,310 C595,315 592,318 590,320 C580,320 575,320 570,320 C565,320 562,320 560,320 C550,325 545,328 540,330 C530,335 525,338 520,340 C510,348 505,352 500,355 C490,363 485,367 480,370 C472,373 468,374 465,375 C457,378 453,379 450,380 C437,388 431,392 425,395 C412,403 406,407 400,410 C387,410 381,410 375,410 C362,410 356,410 350,410 C337,415 331,418 325,420 C312,425 306,428 300,430 C287,433 281,434 275,435 C262,438 256,439 250,440 C237,443 231,444 225,445 C212,448 206,449 200,450');
+    // Enhanced path following the actual Route 66 through all states with proper coordinates
+    routePath.setAttribute('d', 'M147,391 C159,386 170,380 182,375 C208,363 233,363 245,352 C261,340 284,335 310,330 C328,325 346,325 362,330 C380,330 400,332 420,335 C450,340 470,345 490,350 C505,352 520,355 540,360 C555,362 567,364 580,370 C592,373 604,376 618,380');
     
     routePath.setAttribute('stroke', '#D92121');
-    routePath.setAttribute('stroke-width', '4');
+    routePath.setAttribute('stroke-width', '6');
     routePath.setAttribute('fill', 'none');
     routePath.setAttribute('stroke-linecap', 'round');
     routePath.setAttribute('stroke-linejoin', 'round');
@@ -75,9 +75,9 @@ export const Route66LineComponent = ({ animated = true }: Route66LineProps) => {
   return (
     <path
       ref={pathRef}
-      d="M645,250 C640,255 635,260 630,270 C625,280 620,290 617,300 C610,305 605,308 600,310 C595,315 592,318 590,320 C580,320 575,320 570,320 C565,320 562,320 560,320 C550,325 545,328 540,330 C530,335 525,338 520,340 C510,348 505,352 500,355 C490,363 485,367 480,370 C472,373 468,374 465,375 C457,378 453,379 450,380 C437,388 431,392 425,395 C412,403 406,407 400,410 C387,410 381,410 375,410 C362,410 356,410 350,410 C337,415 331,418 325,420 C312,425 306,428 300,430 C287,433 281,434 275,435 C262,438 256,439 250,440 C237,443 231,444 225,445 C212,448 206,449 200,450"
+      d="M147,391 C159,386 170,380 182,375 C208,363 233,363 245,352 C261,340 284,335 310,330 C328,325 346,325 362,330 C380,330 400,332 420,335 C450,340 470,345 490,350 C505,352 520,355 540,360 C555,362 567,364 580,370 C592,373 604,376 618,380"
       stroke="#D92121"
-      strokeWidth="4"
+      strokeWidth="6"
       fill="none"
       strokeLinecap="round"
       strokeLinejoin="round"

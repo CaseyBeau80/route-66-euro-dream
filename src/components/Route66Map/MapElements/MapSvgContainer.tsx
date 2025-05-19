@@ -8,7 +8,7 @@ interface MapSvgContainerProps {
 const MapSvgContainer = ({ children }: MapSvgContainerProps) => {
   return (
     <svg 
-      viewBox="0 200 900 500" 
+      viewBox="0 0 959 593" 
       preserveAspectRatio="xMidYMid meet"
       className="absolute inset-0 w-full h-full"
     >

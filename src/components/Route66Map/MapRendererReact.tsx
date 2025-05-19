@@ -16,14 +16,15 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
+// Major cities along Route 66 with proper coordinates
 const majorCities = [
-  { x: 195, y: 450, name: "Los Angeles" },
-  { x: 270, y: 425, name: "Flagstaff" },
-  { x: 380, y: 390, name: "Albuquerque" },
-  { x: 450, y: 380, name: "Amarillo" },
-  { x: 500, y: 350, name: "Oklahoma City" },
-  { x: 580, y: 320, name: "St. Louis" },
-  { x: 645, y: 250, name: "Chicago" }
+  { x: 147, y: 391, name: "Los Angeles" },
+  { x: 212, y: 375, name: "Flagstaff" },
+  { x: 290, y: 350, name: "Albuquerque" },
+  { x: 362, y: 330, name: "Amarillo" },
+  { x: 446, y: 335, name: "Oklahoma City" },
+  { x: 506, y: 320, name: "St. Louis" },
+  { x: 618, y: 280, name: "Chicago" }
 ];
 
 /**

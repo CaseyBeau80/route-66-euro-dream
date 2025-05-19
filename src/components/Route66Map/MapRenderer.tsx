@@ -12,14 +12,15 @@ interface MapRendererProps {
   mapContainerRef: React.RefObject<HTMLDivElement>;
 }
 
+// Major cities along Route 66 with proper coordinates
 const majorCities = [
-  { x: 195, y: 450, name: "Los Angeles" },
-  { x: 270, y: 425, name: "Flagstaff" },
-  { x: 380, y: 390, name: "Albuquerque" },
-  { x: 450, y: 380, name: "Amarillo" },
-  { x: 500, y: 350, name: "Oklahoma City" },
-  { x: 580, y: 320, name: "St. Louis" },
-  { x: 645, y: 250, name: "Chicago" }
+  { x: 147, y: 391, name: "Los Angeles" },
+  { x: 212, y: 375, name: "Flagstaff" },
+  { x: 290, y: 350, name: "Albuquerque" },
+  { x: 362, y: 330, name: "Amarillo" },
+  { x: 446, y: 335, name: "Oklahoma City" },
+  { x: 506, y: 320, name: "St. Louis" },
+  { x: 618, y: 280, name: "Chicago" }
 ];
 
 const MapRenderer = ({
@@ -41,11 +42,11 @@ const MapRenderer = ({
     
     // Append MapBackground (container for SVG)
     const mapBg = document.createElement('div');
-    mapBg.className = 'absolute inset-0 rounded-xl bg-[#f5f5f5] overflow-hidden';
+    mapBg.className = 'absolute inset-0 rounded-xl bg-[#f8f8f8] overflow-hidden';
     
     // Create SVG for map elements with proper viewBox for full US map
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    mapSvg.setAttribute('viewBox', '0 200 900 500');
+    mapSvg.setAttribute('viewBox', '0 0 959 593');
     mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
     
