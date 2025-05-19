@@ -35,7 +35,10 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     if (selectedState) {
       const stateName = route66States.find(s => s.id === selectedState)?.name || '';
       // Filter towns where the name includes the state abbreviation or name
-      return route66Towns.filter(town => town.name.includes(stateName) || town.name.endsWith(`, ${selectedState}`));
+      return route66Towns.filter(town => 
+        town.name.includes(stateName) || 
+        town.name.endsWith(`, ${selectedState}`)
+      );
     }
     return route66Towns;
   };

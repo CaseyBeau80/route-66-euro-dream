@@ -42,7 +42,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
       statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : state.color);
       statePath.setAttribute('data-state', state.id);
       statePath.setAttribute('data-state-name', state.name);
-      statePath.setAttribute('class', 'cursor-pointer hover:fill-route66-blue transition-colors duration-200');
+      statePath.setAttribute('class', 'cursor-pointer hover:fill-[#7D9CB3] transition-colors duration-200');
       
       // Add click event
       statePath.addEventListener('click', () => {
@@ -83,7 +83,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
                 fill={selectedState === state.id ? '#5D7B93' : state.color}
                 data-state={state.id}
                 data-state-name={state.name}
-                className="cursor-pointer hover:fill-route66-blue transition-colors duration-200"
+                className="cursor-pointer hover:fill-[#7D9CB3] transition-colors duration-200"
                 onClick={() => onStateClick(state.id, state.name)}
               />
               {stateCenter && (
