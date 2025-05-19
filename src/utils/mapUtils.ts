@@ -14,46 +14,29 @@ export function checkScriptsLoaded(): boolean {
   
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
-  
-  // More permissive check for map data - just verify jQuery and jVectorMap are loaded
-  // This will allow us to proceed with initialization even if map data isn't fully detected
-  // Map data will be initialized manually if needed
+  const mapDataLoaded = jVectorMapLoaded && 
+                         window.jQuery.fn.vectorMap.maps && 
+                         typeof window.jQuery.fn.vectorMap.maps['us_aea_en'] !== 'undefined';
   
   console.log('Checking dependencies:', {
     jQuery: jQueryLoaded ? '✅' : '❌',
     jVectorMap: jVectorMapLoaded ? '✅' : '❌',
-    mapData: jVectorMapLoaded ? '✅' : '❌'  // Changed to match jVectorMap status
+    mapData: mapDataLoaded ? '✅' : '❌'
   });
   
-  return jQueryLoaded && jVectorMapLoaded;
+  return jQueryLoaded && jVectorMapLoaded && mapDataLoaded;
 }
 
 // Initialize jVectorMap with specified locations
 export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Location[]): boolean {
   try {
-    if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.vectorMap) {
-      console.error('❌ jQuery or jVectorMap not loaded');
+    if (!checkScriptsLoaded()) {
+      console.error('❌ jQuery, jVectorMap, or map data not loaded');
       return false;
     }
     
-    console.log('✅ Dependencies loaded, initializing map');
+    console.log('✅ All dependencies loaded, initializing map');
     
-    // Manually add US map data if it's missing
-    if (!window.jQuery.fn.vectorMap.maps || !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
-      console.log('Adding US map data manually');
-      // Add map data using the function from the external script
-      if (typeof window.jQuery.fn.vectorMap === 'function' && typeof window.jQuery.fn.vectorMap.addMap === 'function') {
-        try {
-          // The map data is already added via the included script in public/jquery.vmap.usa.js
-          console.log('Map data should be loaded from external script');
-        } catch (error) {
-          console.error('Failed to add map data manually:', error);
-          return false;
-        }
-      }
-    }
-    
-    // Setup jVectorMap
     window.jQuery(mapContainer).vectorMap({
       map: 'us_aea_en',
       backgroundColor: '#f7f7f7',
@@ -113,19 +96,21 @@ export function cleanupMap(mapContainer: HTMLDivElement): void {
   }
 }
 
-// Example array of coordinate pairs
+// Example array of coordinate pairs for Route 66 towns
 const coordinatesData: [number, number][] = [
-  [34.0522, -118.2437], // Los Angeles
-  [36.1699, -115.1398], // Las Vegas
-  [35.4676, -97.5164],  // Oklahoma City
-  [41.8781, -87.6298],  // Chicago
-  // Add more coordinates as needed
+  [34.0522, -118.2437], // Los Angeles (start of Route 66)
+  [35.1983, -111.6513], // Flagstaff, AZ
+  [35.0845, -106.6511], // Albuquerque, NM
+  [35.2220, -101.8313], // Amarillo, TX
+  [35.4676, -97.5164],  // Oklahoma City, OK
+  [38.6273, -90.1979],  // St. Louis, MO
+  [41.8781, -87.6298],  // Chicago, IL (end of Route 66)
 ];
 
 // Transform the array of coordinate pairs into the desired structure
 export const locations: Location[] = coordinatesData.map(
   ([lat, lng], index) => ({
     latLng: [lat, lng],
-    name: `Location ${index + 1}`,
+    name: `Route 66 Stop ${index + 1}`,
   })
 );
