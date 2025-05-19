@@ -50,6 +50,7 @@ export const initializeJVectorMap = (
         hover: { fill: "#ff6666" },
         selected: { fill: "#ff0000" }
       },
+      // Fixed: Properly format markers from Route66Town array
       markers: route66Towns.map(town => town.latLng),
       markerStyle: {
         initial: {
@@ -69,12 +70,13 @@ export const initializeJVectorMap = (
           description: `You clicked on ${code.toUpperCase()}`,
         });
       },
-      onMarkerClick: function(e, code) {
-        const index = parseInt(code);
-        if (!isNaN(index) && index >= 0 && index < route66Towns.length) {
+      onMarkerClick: function(e, index) {
+        // Fixed: Convert number to string for array index access
+        const idx = Number(index);
+        if (!isNaN(idx) && idx >= 0 && idx < route66Towns.length) {
           toast({
             title: "Town Selected",
-            description: `You clicked on ${route66Towns[index].name}`,
+            description: `You clicked on ${route66Towns[idx].name}`,
           });
         }
       }

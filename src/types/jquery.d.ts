@@ -1,8 +1,8 @@
 
 interface JQuery {
-  vectorMap(options: any): any;
+  vectorMap(options: any): JQuery;
+  empty(): JQuery;
   data(key: string): any;
-  empty(): void;
 }
 
 interface JQueryStatic {
