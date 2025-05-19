@@ -22,54 +22,68 @@ export function initializeVectorMap(mapContainer: HTMLDivElement, locations: Loc
       createMockJvmMap();
     }
     
-    // Create a wrapper for mapContainer if needed
+    // Create a wrapper for mapContainer
     const $mapContainer = window.jQuery(mapContainer);
     
-    // Initialize the vector map with parameters
-    $mapContainer.vectorMap({
-      map: mapName,
-      backgroundColor: '#f7f7f7',
-      borderColor: '#818181',
-      borderOpacity: 0.25,
-      borderWidth: 1,
-      color: '#f4f3f0',
-      enableZoom: true,
-      hoverColor: '#c9dfaf',
-      hoverOpacity: null,
-      normalizeFunction: 'linear',
-      scaleColors: ['#b6d6ff', '#005ace'],
-      selectedColor: '#c9dfaf',
-      selectedRegions: [],
-      showTooltip: true,
-      onRegionClick: function(event: Event, code: string, region: string) {
-        console.log('Region clicked:', region);
-      },
-      markerStyle: {
-        initial: {
-          fill: '#e74c3c',
-          stroke: '#383f47',
-          'fill-opacity': 0.9,
-          'stroke-width': 1,
-          'stroke-opacity': 0.8,
-          r: 6
+    try {
+      // Initialize the vector map with parameters
+      $mapContainer.vectorMap({
+        map: mapName,
+        backgroundColor: '#f7f7f7',
+        borderColor: '#818181',
+        borderOpacity: 0.25,
+        borderWidth: 1,
+        color: '#f4f3f0',
+        enableZoom: true,
+        hoverColor: '#c9dfaf',
+        hoverOpacity: null,
+        normalizeFunction: 'linear',
+        scaleColors: ['#b6d6ff', '#005ace'],
+        selectedColor: '#c9dfaf',
+        selectedRegions: [],
+        showTooltip: true,
+        onRegionClick: function(event: Event, code: string, region: string) {
+          console.log('Region clicked:', region);
         },
-        hover: {
-          fill: '#c0392b',
-          stroke: '#383f47',
-          'stroke-width': 2
-        }
-      },
-      markers: locations.map(location => ({
-        latLng: location.latLng,
-        name: location.name
-      }))
-    });
+        markerStyle: {
+          initial: {
+            fill: '#e74c3c',
+            stroke: '#383f47',
+            'fill-opacity': 0.9,
+            'stroke-width': 1,
+            'stroke-opacity': 0.8,
+            r: 6
+          },
+          hover: {
+            fill: '#c0392b',
+            stroke: '#383f47',
+            'stroke-width': 2
+          }
+        },
+        markers: locations.map(location => ({
+          latLng: location.latLng,
+          name: location.name
+        }))
+      });
+    } catch (error) {
+      console.error('Error initializing vector map:', error);
+      // Try direct fallback approach
+      createFallbackMapDisplay(mapContainer, locations);
+      return true; // We consider this a success since we showed something
+    }
     
     console.log('✅ Vector map initialized successfully');
     return true;
   } catch (error) {
     console.error('Vector map initialization failed:', error);
-    return false;
+    // Try to create a fallback if possible
+    try {
+      createFallbackMapDisplay(mapContainer, locations);
+      return true;
+    } catch (fallbackError) {
+      console.error('Fallback display also failed:', fallbackError);
+      return false;
+    }
   }
 }
 

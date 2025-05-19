@@ -1,8 +1,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { checkScriptsLoaded, initializeJVectorMap, cleanupMap, ensureMapDataLoaded } from "@/utils/mapUtils";
+import { ensureMapDataLoaded } from "@/utils/mapDataUtils";
+import { initializeJVectorMap, cleanupMap, checkScriptsLoaded } from "@/utils/mapUtils";
 import { route66Towns } from "@/utils/mapTypes";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { ensureJvmObjectExists } from "@/utils/jvmObjectHandler";
 
 export function useRouteMap() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -26,6 +28,9 @@ export function useRouteMap() {
         return false;
       }
 
+      // Ensure jvm object exists
+      ensureJvmObjectExists();
+
       // First ensure map data is loaded
       const mapDataLoaded = await ensureMapDataLoaded();
       if (!mapDataLoaded) {
@@ -40,7 +45,28 @@ export function useRouteMap() {
       }
       
       // Try to initialize the map with our data
-      const success = initializeJVectorMap(mapRef.current, route66Towns);
+      let success = false;
+      
+      try {
+        // Try the normal vector map initialization
+        success = initializeJVectorMap(mapRef.current, route66Towns);
+      } catch (error) {
+        console.error("Error using standard map initialization:", error);
+        
+        // If it fails, we'll create the fallback display directly
+        try {
+          console.log("Creating fallback display directly");
+          
+          // Import the fallback renderer and create the display
+          const { createFallbackMapDisplay } = await import('@/utils/mapFallbackRenderer');
+          createFallbackMapDisplay(mapRef.current, route66Towns);
+          
+          success = true;
+        } catch (fallbackError) {
+          console.error("Even fallback display creation failed:", fallbackError);
+          throw fallbackError;
+        }
+      }
       
       if (success) {
         setIsMapInitialized(true);
@@ -57,13 +83,6 @@ export function useRouteMap() {
     } catch (error) {
       console.error("❌ Error initializing map:", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      // Special handling for jvm reference error
-      if (errorMessage.includes("jvm is not defined") || errorMessage.includes("Cannot read properties of undefined")) {
-        console.log("🔄 Detected jvm reference error, will try alternative initialization");
-        // We'll let the retry mechanism handle this
-      }
-      
       setLoadingError(`Error initializing map: ${errorMessage}`);
       return false;
     }
@@ -96,7 +115,24 @@ export function useRouteMap() {
           if (!success && retryCount < maxRetries) {
             setRetryCount(prev => prev + 1);
           } else if (!success) {
-            setLoadingError(`Failed to load map after ${maxRetries} attempts. Please check your internet connection and try refreshing the page.`);
+            // On final attempt, try direct fallback rendering
+            try {
+              if (mapRef.current) {
+                import('@/utils/mapFallbackRenderer').then(({ createFallbackMapDisplay }) => {
+                  createFallbackMapDisplay(mapRef.current!, route66Towns);
+                  setIsMapInitialized(true);
+                  console.log("✅ Fallback map display created on final attempt");
+                  toast({
+                    title: "Map loaded",
+                    description: "A simplified Route 66 map has been loaded.",
+                    variant: "default",
+                  });
+                });
+              }
+            } catch (error) {
+              console.error("Final fallback attempt failed:", error);
+              setLoadingError(`Failed to load map after ${maxRetries} attempts. Please check your internet connection and try refreshing the page.`);
+            }
           }
         });
       }, retryDelay);
