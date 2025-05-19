@@ -1,14 +1,9 @@
 
 import React from "react";
-
-interface Town {
-  name: string;
-  state?: string;
-  description?: string;
-}
+import { Route66Town } from "@/types/route66";
 
 interface TownsListProps {
-  towns: Town[];
+  towns: Route66Town[];
 }
 
 const TownsList = ({ towns }: TownsListProps) => {

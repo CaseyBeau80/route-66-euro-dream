@@ -34,7 +34,8 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     // Filter towns if state is selected
     if (selectedState) {
       const stateName = route66States.find(s => s.id === selectedState)?.name || '';
-      return route66Towns.filter(town => town.state === stateName);
+      // Filter towns where the name includes the state abbreviation or name
+      return route66Towns.filter(town => town.name.includes(stateName) || town.name.endsWith(`, ${selectedState}`));
     }
     return route66Towns;
   };
