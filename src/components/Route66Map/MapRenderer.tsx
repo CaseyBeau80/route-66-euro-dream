@@ -1,12 +1,8 @@
+
 import React from "react";
 import MapStates from "./MapStates";
 import MapCities from "./MapCities";
 import Route66Line from "./Route66Line";
-import MapTitle from "./MapElements/MapTitle";
-import Route66Badge from "./MapElements/Route66Badge";
-import ClearSelectionButton from "./MapElements/ClearSelectionButton";
-import MapBackground from "./MapElements/MapBackground";
-import MapSvgContainer from "./MapElements/MapSvgContainer";
 import { route66States } from "./mapData";
 
 interface MapRendererProps {
@@ -93,10 +89,11 @@ const MapRenderer = ({
     
     // Add a clear selection button if state is selected
     if (selectedState) {
+      const stateName = route66States.find(s => s.id === selectedState)?.name || '';
       // Create button manually for DOM version
       const clearButton = document.createElement('button');
       clearButton.className = 'absolute top-2 left-24 bg-white px-3 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1 hover:bg-gray-100 transition-colors';
-      clearButton.innerHTML = `<span>Clear ${route66States.find(s => s.id === selectedState)?.name || ''}</span>`;
+      clearButton.innerHTML = `<span>Clear ${stateName}</span>`;
       clearButton.addEventListener('click', onClearSelection);
       
       mapWrapper.appendChild(clearButton);

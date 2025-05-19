@@ -1,21 +1,33 @@
 
-import { Route66Town } from "@/types/route66";
-import { Globe } from "lucide-react";
+import React from "react";
 
-interface TownsListProps {
-  towns: Route66Town[];
-  className?: string;
+interface Town {
+  name: string;
+  state?: string;
+  description?: string;
 }
 
-const TownsList = ({ towns, className = "" }: TownsListProps) => {
+interface TownsListProps {
+  towns: Town[];
+}
+
+const TownsList = ({ towns }: TownsListProps) => {
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 bg-white/90 p-3 rounded-lg text-sm shadow-md ${className}`}>
-      {towns.map((town, index) => (
-        <div key={index} className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-red-600 flex-shrink-0" />
-          <span className="truncate font-medium">{town.name}</span>
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <h3 className="text-lg font-bold mb-3">Route 66 Towns & Attractions</h3>
+      
+      {towns.length === 0 ? (
+        <p className="text-gray-500 italic">No towns to display</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {towns.map((town, index) => (
+            <div key={index} className="flex items-center p-2 rounded-md hover:bg-gray-50">
+              <div className="h-2 w-2 rounded-full bg-red-600 mr-2"></div>
+              <span>{town.name}</span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };

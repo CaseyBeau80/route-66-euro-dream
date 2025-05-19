@@ -4,6 +4,7 @@ import TownsList from "./TownsList";
 import { route66States } from "./mapData";
 import { route66Towns } from "@/types/route66";
 import MapRenderer from "./MapRenderer";
+import MapRendererReact from "./MapRendererReact";
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -33,7 +34,7 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     // Filter towns if state is selected
     if (selectedState) {
       const stateName = route66States.find(s => s.id === selectedState)?.name || '';
-      return route66Towns.filter(town => town.name.includes(stateName));
+      return route66Towns.filter(town => town.state === stateName);
     }
     return route66Towns;
   };
@@ -47,7 +48,14 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
         ref={mapContainerRef}
         id="route66-map-container"
         className="w-full h-[500px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
-      ></div>
+      >
+        {/* React-based renderer (future implementation) */}
+        {/* <MapRendererReact 
+          selectedState={selectedState}
+          onStateClick={onStateClick}
+          onClearSelection={() => onStateClick('', '')}
+        /> */}
+      </div>
       
       {/* Towns list positioned at the bottom */}
       <div className="mt-4">
