@@ -9,7 +9,7 @@ export function useRouteMap() {
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 30;
+  const maxRetries = 10; // Reduced for faster feedback
   const initAttemptRef = useRef(0);
 
   const initializeMap = useCallback((): boolean => {
@@ -60,12 +60,12 @@ export function useRouteMap() {
       }
       
       if (retryCount >= maxRetries) {
-        setLoadingError(`Failed to load map after ${maxRetries} attempts. Please reload the page.`);
+        setLoadingError(`Failed to load map after ${maxRetries} attempts. Try refreshing the page.`);
         return;
       }
       
       // Retry with exponential backoff, capped at 2 seconds
-      const delay = Math.min(100 * Math.pow(1.5, retryCount), 2000);
+      const delay = Math.min(500 * Math.pow(1.2, retryCount), 2000);
       console.log(`Scheduling next attempt in ${delay}ms (attempt ${retryCount + 1} of ${maxRetries})`);
       
       timeoutId = setTimeout(() => {
@@ -75,7 +75,8 @@ export function useRouteMap() {
     
     // Only attempt initialization if not already initialized
     if (!isMapInitialized) {
-      attemptMapInitialization();
+      // Add a small delay before first attempt to ensure DOM is fully loaded
+      timeoutId = setTimeout(attemptMapInitialization, 500);
     }
     
     return () => {

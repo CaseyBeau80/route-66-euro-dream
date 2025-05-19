@@ -14,15 +14,19 @@ export function checkScriptsLoaded(): boolean {
   
   const jQueryLoaded = typeof window.jQuery !== 'undefined';
   const jVectorMapLoaded = jQueryLoaded && typeof window.jQuery.fn.vectorMap !== 'undefined';
+  const mapDataLoaded = jVectorMapLoaded && 
+                         window.jQuery.fn.vectorMap.maps && 
+                         window.jQuery.fn.vectorMap.maps['us_aea_en'];
   
-  if (jQueryLoaded && jVectorMapLoaded) {
-    console.log('✅ jQuery and jVectorMap loaded successfully');
+  if (jQueryLoaded && jVectorMapLoaded && mapDataLoaded) {
+    console.log('✅ jQuery, jVectorMap, and map data loaded successfully');
     return true;
   }
   
-  console.log('❌ Scripts not loaded:', { 
+  console.log('❌ Scripts or map data not loaded:', { 
     jQuery: jQueryLoaded ? '✅' : '❌', 
-    jVectorMap: jVectorMapLoaded ? '✅' : '❌' 
+    jVectorMap: jVectorMapLoaded ? '✅' : '❌',
+    mapData: mapDataLoaded ? '✅' : '❌'
   });
   
   return false;
@@ -36,22 +40,8 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       return false;
     }
     
-    // Wait for the map data to be available
-    if (!window.jQuery.fn.vectorMap.maps) {
-      console.error('❌ Vector map data structure not found');
-      return false;
-    }
-    
-    // Check if the US map data is available
-    const usMapAvailable = window.jQuery.fn.vectorMap.maps && 
-                          window.jQuery.fn.vectorMap.maps['us_aea_en'];
-    
-    if (!usMapAvailable) {
-      console.log('❌ US map data not found, will retry later');
-      return false;
-    }
-    
-    console.log('✅ Found US map data, initializing map');
+    // Skip the explicit check for map data availability and try to initialize directly
+    console.log('Attempting to initialize map with available resources');
     
     // Setup jVectorMap
     window.jQuery(mapContainer).vectorMap({
