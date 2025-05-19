@@ -12,6 +12,12 @@ export function useRouteMap() {
   const maxRetries = 5; // Number of retries before giving up
   const initAttemptRef = useRef(0);
 
+  const loadScripts = useCallback(() => {
+    // Ensure the jQuery and jVectorMap scripts are loaded
+    // This is now handled by script tags in index.html
+    return true;
+  }, []);
+
   const initializeMap = useCallback((): boolean => {
     if (!mapRef.current) {
       console.log("❌ Map container not found");
@@ -52,6 +58,9 @@ export function useRouteMap() {
   }, [retryCount]);
 
   useEffect(() => {
+    // Load the scripts first
+    loadScripts();
+    
     let timeoutId: ReturnType<typeof setTimeout>;
     
     const attemptMapInitialization = () => {
@@ -84,7 +93,7 @@ export function useRouteMap() {
         cleanupMap(mapRef.current);
       }
     };
-  }, [retryCount, isMapInitialized, initializeMap, maxRetries]);
+  }, [retryCount, isMapInitialized, initializeMap, maxRetries, loadScripts]);
 
   const handleRetry = () => {
     setLoadingError(null);
