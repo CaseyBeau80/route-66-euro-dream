@@ -89,9 +89,9 @@ const MapRenderer = ({
     if (selectedState) {
       const stateName = route66States.find(s => s.id === selectedState)?.name || '';
       
-      // Add a clear selection button
+      // Add a clear selection button with improved styling
       const clearButton = document.createElement('button');
-      clearButton.className = 'absolute top-2 left-24 bg-white px-2 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1';
+      clearButton.className = 'absolute top-2 left-24 bg-white px-3 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1 hover:bg-gray-100 transition-colors';
       clearButton.innerHTML = `<span>Clear ${stateName}</span>`;
       clearButton.addEventListener('click', onClearSelection);
       mapWrapper.appendChild(clearButton);

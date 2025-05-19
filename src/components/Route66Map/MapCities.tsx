@@ -49,17 +49,17 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       // Create city label with background for better readability
       const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       labelBg.setAttribute('x', (city.x - 35).toString());
-      labelBg.setAttribute('y', (city.y - 20).toString());
+      labelBg.setAttribute('y', (city.y - 22).toString());
       labelBg.setAttribute('width', '70');
-      labelBg.setAttribute('height', '14');
-      labelBg.setAttribute('rx', '7');
+      labelBg.setAttribute('height', '16');
+      labelBg.setAttribute('rx', '8');
       labelBg.setAttribute('fill', 'rgba(255, 255, 255, 0.8)');
       
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('x', city.x.toString());
       label.setAttribute('y', (city.y - 10).toString());
       label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('font-size', '10');
+      label.setAttribute('font-size', '11');
       label.setAttribute('font-weight', 'bold');
       label.setAttribute('fill', '#444444');
       label.textContent = city.name;

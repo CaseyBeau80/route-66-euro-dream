@@ -14,6 +14,11 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
+    // Ensure the map container has the proper height before rendering
+    if (mapContainerRef.current) {
+      mapContainerRef.current.style.height = '500px';
+    }
+    
     const mapRenderer = MapRenderer({
       selectedState,
       onStateClick,
