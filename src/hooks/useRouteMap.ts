@@ -1,15 +1,18 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { checkScriptsLoaded, initializeJVectorMap, cleanupMap } from "@/utils/mapUtils";
 import { route66Towns } from "@/types/route66";
+import { toast } from "@/components/ui/use-toast";
 
 export function useRouteMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 30;
+  const initAttemptRef = useRef(0);
 
-  const initializeMap = (): boolean => {
+  const initializeMap = useCallback((): boolean => {
     if (!mapRef.current) {
       console.log("❌ Map container not found");
       return false;
@@ -17,66 +20,76 @@ export function useRouteMap() {
     
     if (!checkScriptsLoaded()) {
       console.log(`❌ Required scripts not ready (attempt ${retryCount + 1})`);
-      if (retryCount > 20) {
-        setLoadingError("Failed to load map scripts. Please try refreshing the page.");
-        return false;
-      }
-      setRetryCount(prev => prev + 1);
       return false;
     }
     
     try {
+      // Log current attempt number
+      initAttemptRef.current += 1;
+      console.log(`Attempting to initialize map (attempt ${initAttemptRef.current})`);
+      
       const success = initializeJVectorMap(mapRef.current, route66Towns);
       
       if (success) {
         setIsMapInitialized(true);
         console.log("✅ Map initialized successfully");
+        toast({
+          title: "Map loaded",
+          description: "The Route 66 map has been loaded successfully.",
+          variant: "default",
+        });
         return true;
       } else {
-        setLoadingError("Map data not loaded. Please try refreshing the page.");
+        console.log(`❌ Map initialization failed (attempt ${initAttemptRef.current})`);
         return false;
       }
     } catch (error) {
       console.error("❌ Error initializing map:", error);
-      setLoadingError(`Error initializing map: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setLoadingError(`Error initializing map: ${errorMessage}`);
       return false;
     }
-  };
+  }, [retryCount]);
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
     const attemptMapInitialization = () => {
       if (initializeMap()) {
         return;
       }
       
-      // Retry with exponential backoff
-      const timeoutId = setTimeout(() => {
-        if (retryCount < 20) {
-          attemptMapInitialization();
-        }
-      }, Math.min(100 * Math.pow(1.5, retryCount), 2000));
+      if (retryCount >= maxRetries) {
+        setLoadingError(`Failed to load map after ${maxRetries} attempts. Please reload the page.`);
+        return;
+      }
       
-      return () => clearTimeout(timeoutId);
+      // Retry with exponential backoff, capped at 2 seconds
+      const delay = Math.min(100 * Math.pow(1.5, retryCount), 2000);
+      console.log(`Scheduling next attempt in ${delay}ms (attempt ${retryCount + 1} of ${maxRetries})`);
+      
+      timeoutId = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, delay);
     };
     
-    // Small delay to ensure scripts are loaded
-    const initialDelay = setTimeout(() => {
+    // Only attempt initialization if not already initialized
+    if (!isMapInitialized) {
       attemptMapInitialization();
-    }, 500);
+    }
     
     return () => {
-      clearTimeout(initialDelay);
+      clearTimeout(timeoutId);
       if (isMapInitialized && mapRef.current) {
         cleanupMap(mapRef.current);
       }
     };
-  }, [retryCount, isMapInitialized]);
+  }, [retryCount, isMapInitialized, initializeMap, maxRetries]);
 
   const handleRetry = () => {
     setLoadingError(null);
     setRetryCount(0);
-    // Force a reload of the scripts
-    window.location.reload();
+    initAttemptRef.current = 0;
   };
 
   return {

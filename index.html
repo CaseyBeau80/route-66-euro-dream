@@ -11,8 +11,21 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.5/jquery-jvectormap.min.js"></script>
   
-  <!-- US Map file - Include the contents directly -->
-  <script src="https://cdn.jsdelivr.net/npm/jvectormap-content@0.1.0/jquery-jvectormap-us-aea-en.js"></script>
+  <!-- Load the US map data inline to ensure it's available before React initializes -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load the map data from the public folder
+      const script = document.createElement('script');
+      script.src = '/jquery-jvectormap-us-aea-en.js';
+      script.onload = function() {
+        console.log('✅ US map data loaded successfully');
+      };
+      script.onerror = function() {
+        console.error('❌ Failed to load US map data');
+      };
+      document.head.appendChild(script);
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>

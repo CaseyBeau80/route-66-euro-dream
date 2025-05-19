@@ -36,36 +36,22 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       return false;
     }
     
-    // Add the US map data directly if it doesn't exist
-    if (!window.jQuery.fn.vectorMap.maps || !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
-      console.log('❌ US map data not found, attempting to load it');
-      
-      // This is a fallback if the script loading fails
-      if (typeof window.jQuery.fn.vectorMap.addMap === 'function') {
-        // Import the map data from the public folder
-        // You would need to have this file in your public folder
-        fetch('/jquery-jvectormap-us-aea-en.js')
-          .then(response => response.text())
-          .then(data => {
-            try {
-              // Extract and evaluate the map data
-              const mapDataMatch = data.match(/jQuery\.fn\.vectorMap\('addMap',\s*'us_aea_en',\s*(.*)\);/);
-              if (mapDataMatch && mapDataMatch[1]) {
-                const mapData = JSON.parse(mapDataMatch[1]);
-                window.jQuery.fn.vectorMap('addMap', 'us_aea_en', mapData);
-                console.log('✅ Map data loaded from local file');
-              }
-            } catch (error) {
-              console.error('❌ Error processing map data:', error);
-            }
-          })
-          .catch(error => {
-            console.error('❌ Failed to fetch map data:', error);
-          });
-      }
-      
+    // Wait for the map data to be available
+    if (!window.jQuery.fn.vectorMap.maps) {
+      console.error('❌ Vector map data structure not found');
       return false;
     }
+    
+    // Check if the US map data is available
+    const usMapAvailable = window.jQuery.fn.vectorMap.maps && 
+                          window.jQuery.fn.vectorMap.maps['us_aea_en'];
+    
+    if (!usMapAvailable) {
+      console.log('❌ US map data not found, will retry later');
+      return false;
+    }
+    
+    console.log('✅ Found US map data, initializing map');
     
     // Setup jVectorMap
     window.jQuery(mapContainer).vectorMap({
@@ -83,7 +69,6 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
       selectedColor: '#c9dfaf',
       selectedRegions: [],
       showTooltip: true,
-      // Fix the onRegionClick handler type
       onRegionClick: function(event: Event, code: string, region: string) {
         console.log('Region clicked:', region);
       },
