@@ -10,14 +10,23 @@ import { createMockJvmMap, createFallbackMapDisplay } from './mapFallbackRendere
  */
 export function initializeVectorMap(mapContainer: HTMLDivElement, locations: Location[], mapName: string): boolean {
   try {
+    // Ensure jQuery is available
+    if (typeof window.jQuery === 'undefined') {
+      console.error('jQuery is not available');
+      return false;
+    }
+
     // Ensure jvm.Map constructor exists
-    if (typeof window.jvm === 'undefined' || typeof window.jvm.Map !== 'function') {
+    if (typeof (window as any).jvm === 'undefined' || typeof (window as any).jvm.Map !== 'function') {
       console.log('Creating jvm.Map constructor');
       createMockJvmMap();
     }
     
+    // Create a wrapper for mapContainer if needed
+    const $mapContainer = window.jQuery(mapContainer);
+    
     // Initialize the vector map with parameters
-    window.jQuery(mapContainer).vectorMap({
+    $mapContainer.vectorMap({
       map: mapName,
       backgroundColor: '#f7f7f7',
       borderColor: '#818181',
@@ -68,14 +77,22 @@ export function initializeVectorMap(mapContainer: HTMLDivElement, locations: Loc
  * Find the best available map to use
  */
 export function findBestAvailableMap(): string {
+  if (typeof window === 'undefined' || typeof window.jQuery === 'undefined') {
+    return '';
+  }
+  
   if (!window.jQuery?.fn?.vectorMap?.maps) {
+    console.error('No vector maps available in jQuery.fn.vectorMap.maps');
     return '';
   }
   
   const availableMaps = Object.keys(window.jQuery.fn.vectorMap.maps);
   if (availableMaps.length === 0) {
+    console.error('Vector maps object exists but contains no maps');
     return '';
   }
+  
+  console.log('Available maps:', availableMaps);
   
   // Prefer 'us_aea_en' or 'usa' maps, but fall back to any available map
   return availableMaps.find(name => name === 'us_aea_en') || 

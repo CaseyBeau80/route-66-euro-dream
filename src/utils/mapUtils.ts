@@ -5,7 +5,8 @@
 export { checkScriptsLoaded, createFallbackMapData } from './mapDependencyUtils';
 export { initializeJVectorMap, cleanupMap } from './mapInitUtils';
 export { ensureMapDataLoaded } from './mapDataUtils';
-export type { Location } from './mapTypes'; // Changed to 'export type'
-export { locations } from './mapTypes';
+export { route66Towns } from './mapTypes';
+export type { Location } from './mapTypes'; 
 export { createFallbackMapDisplay } from './mapFallbackRenderer';
 export { initializeVectorMap, findBestAvailableMap } from './vectorMapInitializer';
+export { ensureJvmObjectExists } from './jvmObjectHandler';

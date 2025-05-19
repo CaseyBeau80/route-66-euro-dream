@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { checkScriptsLoaded, initializeJVectorMap, cleanupMap, ensureMapDataLoaded } from "@/utils/mapUtils";
-import { route66Towns } from "@/types/route66";
+import { route66Towns } from "@/utils/mapTypes";
 import { toast } from "@/components/ui/use-toast";
 
 export function useRouteMap() {

@@ -7,21 +7,15 @@ export interface Location {
   name: string;
 }
 
-// Example array of coordinate pairs for Route 66 towns
-const coordinatesData: [number, number][] = [
-  [34.0522, -118.2437], // Los Angeles (start of Route 66)
-  [35.1983, -111.6513], // Flagstaff, AZ
-  [35.0845, -106.6511], // Albuquerque, NM
-  [35.2220, -101.8313], // Amarillo, TX
-  [35.4676, -97.5164],  // Oklahoma City, OK
-  [38.6273, -90.1979],  // St. Louis, MO
-  [41.8781, -87.6298],  // Chicago, IL (end of Route 66)
+// Route 66 towns with proper names
+export const route66Towns: Location[] = [
+  { latLng: [34.0522, -118.2437], name: "Los Angeles, CA" },
+  { latLng: [35.0845, -106.6511], name: "Albuquerque, NM" },
+  { latLng: [35.2220, -101.8313], name: "Amarillo, TX" },
+  { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
+  { latLng: [38.6273, -90.1979], name: "St. Louis, MO" },
+  { latLng: [41.8781, -87.6298], name: "Chicago, IL" }
 ];
 
-// Transform the array of coordinate pairs into the desired structure
-export const locations: Location[] = coordinatesData.map(
-  ([lat, lng], index) => ({
-    latLng: [lat, lng],
-    name: `Route 66 Stop ${index + 1}`,
-  })
-);
+// Legacy export for backward compatibility
+export const locations = route66Towns;
