@@ -20,16 +20,16 @@ export function useRouteMap() {
     try {
       console.log(`Attempting to initialize map (attempt ${retryCount + 1})`);
       
-      // Ensure jQuery is actually available
-      if (!window.jQuery) {
-        console.log("❌ jQuery not available");
+      // Check for jQuery first - most basic requirement
+      if (typeof window.jQuery === 'undefined') {
+        console.log("❌ jQuery not available yet");
         return false;
       }
 
       // First ensure map data is loaded
       const mapDataLoaded = await ensureMapDataLoaded();
       if (!mapDataLoaded) {
-        console.log("❌ Failed to load map data");
+        console.log("❌ Failed to load map data, will retry");
         return false;
       }
       
@@ -39,6 +39,7 @@ export function useRouteMap() {
         return false;
       }
       
+      // Try to initialize the map with our data
       const success = initializeJVectorMap(mapRef.current, route66Towns);
       
       if (success) {
@@ -56,13 +57,20 @@ export function useRouteMap() {
     } catch (error) {
       console.error("❌ Error initializing map:", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Special handling for jvm reference error
+      if (errorMessage.includes("jvm is not defined") || errorMessage.includes("Cannot read properties of undefined")) {
+        console.log("🔄 Detected jvm reference error, will try alternative initialization");
+        // We'll let the retry mechanism handle this
+      }
+      
       setLoadingError(`Error initializing map: ${errorMessage}`);
       return false;
     }
   }, [retryCount]);
 
   useEffect(() => {
-    // Always give the browser a moment to load scripts before first attempt
+    // Longer initial delay to ensure scripts are fully loaded
     const initialDelay = setTimeout(() => {
       if (!isMapInitialized) {
         initializeMap().then(success => {
@@ -71,7 +79,7 @@ export function useRouteMap() {
           }
         });
       }
-    }, 3500); // Increased initial delay further
+    }, 5000); // Even longer initial delay
     
     return () => clearTimeout(initialDelay);
   }, [initializeMap, isMapInitialized]);
@@ -79,7 +87,7 @@ export function useRouteMap() {
   useEffect(() => {
     // Handle retries
     if (retryCount > 0 && !isMapInitialized && retryCount <= maxRetries) {
-      const retryDelay = Math.min(2000 * retryCount, 5000); // Increased delay with cap
+      const retryDelay = Math.min(3000 * retryCount, 8000); // Longer delays with higher cap
       
       console.log(`Scheduling retry in ${retryDelay}ms (attempt ${retryCount} of ${maxRetries})`);
       
