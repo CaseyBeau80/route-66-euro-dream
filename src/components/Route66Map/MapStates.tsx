@@ -31,7 +31,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   const createStatesPaths = () => {
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     statesPaths.setAttribute('stroke', '#ffffff');
-    statesPaths.setAttribute('stroke-width', '1.5');
+    statesPaths.setAttribute('stroke-width', '2');
     
     // Add states with click handlers
     route66States.forEach(state => {
@@ -41,19 +41,22 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
       statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : '#a3c1e0');
       statePath.setAttribute('data-state', state.id);
       statePath.setAttribute('data-state-name', state.name);
-      statePath.setAttribute('class', 'cursor-pointer transition-colors duration-200');
+      statePath.setAttribute('class', 'cursor-pointer');
+      statePath.setAttribute('opacity', '1');
       
       // Add hover effect using event listeners
       statePath.addEventListener('mouseover', () => {
         if (selectedState !== state.id) {
           statePath.setAttribute('fill', '#7D9CB3');
         }
+        statePath.setAttribute('opacity', '0.9');
       });
       
       statePath.addEventListener('mouseout', () => {
         if (selectedState !== state.id) {
           statePath.setAttribute('fill', '#a3c1e0');
         }
+        statePath.setAttribute('opacity', '1');
       });
       
       // Add click event
@@ -66,13 +69,27 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
       // Add state label
       const stateCenter = getStateCentroid(state.d);
       if (stateCenter) {
+        // Create a background rectangle for better visibility
+        const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        labelBg.setAttribute('x', (stateCenter.x - 12).toString());
+        labelBg.setAttribute('y', (stateCenter.y - 10).toString());
+        labelBg.setAttribute('width', '24');
+        labelBg.setAttribute('height', '16');
+        labelBg.setAttribute('rx', '4');
+        labelBg.setAttribute('fill', selectedState === state.id ? '#5D7B93' : 'rgba(255,255,255,0.7)');
+        labelBg.setAttribute('class', 'pointer-events-none');
+        statesPaths.appendChild(labelBg);
+        
+        // Add the state text
         const stateLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         stateLabel.setAttribute('x', stateCenter.x.toString());
         stateLabel.setAttribute('y', stateCenter.y.toString());
         stateLabel.setAttribute('text-anchor', 'middle');
-        stateLabel.setAttribute('font-size', '14');
-        stateLabel.setAttribute('class', 'font-bold pointer-events-none');
-        stateLabel.setAttribute('fill', selectedState === state.id ? '#ffffff' : '#444444');
+        stateLabel.setAttribute('dominant-baseline', 'middle');
+        stateLabel.setAttribute('font-size', '10');
+        stateLabel.setAttribute('font-weight', 'bold');
+        stateLabel.setAttribute('class', 'pointer-events-none');
+        stateLabel.setAttribute('fill', selectedState === state.id ? '#ffffff' : '#333333');
         stateLabel.textContent = state.id;
         statesPaths.appendChild(stateLabel);
       }
@@ -84,7 +101,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   // React version for MapRendererReact
   const renderReactStates = () => {
     return (
-      <g stroke="#ffffff" strokeWidth="1.5">
+      <g stroke="#ffffff" strokeWidth="2">
         {route66States.map(state => {
           const stateCenter = getStateCentroid(state.d);
           return (
@@ -95,20 +112,33 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
                 fill={selectedState === state.id ? '#5D7B93' : '#a3c1e0'}
                 data-state={state.id}
                 data-state-name={state.name}
-                className="cursor-pointer hover:fill-[#7D9CB3] transition-colors duration-200"
+                className="cursor-pointer hover:opacity-90"
                 onClick={() => onStateClick(state.id, state.name)}
               />
               {stateCenter && (
-                <text
-                  x={stateCenter.x}
-                  y={stateCenter.y}
-                  textAnchor="middle"
-                  fontSize="14"
-                  className="font-bold pointer-events-none"
-                  fill={selectedState === state.id ? '#ffffff' : '#444444'}
-                >
-                  {state.id}
-                </text>
+                <>
+                  <rect
+                    x={stateCenter.x - 12}
+                    y={stateCenter.y - 10}
+                    width={24}
+                    height={16}
+                    rx={4}
+                    fill={selectedState === state.id ? '#5D7B93' : 'rgba(255,255,255,0.7)'}
+                    className="pointer-events-none"
+                  />
+                  <text
+                    x={stateCenter.x}
+                    y={stateCenter.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="10"
+                    fontWeight="bold"
+                    className="pointer-events-none"
+                    fill={selectedState === state.id ? '#ffffff' : '#333333'}
+                  >
+                    {state.id}
+                  </text>
+                </>
               )}
             </React.Fragment>
           );

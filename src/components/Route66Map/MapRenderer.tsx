@@ -45,7 +45,8 @@ const MapRenderer = ({
     
     // Create SVG for map elements with proper viewBox
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    mapSvg.setAttribute('viewBox', '150 200 600 350');
+    // Adjust viewBox to properly display the map - this is critical for rendering
+    mapSvg.setAttribute('viewBox', '175 225 550 300');
     mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
     
