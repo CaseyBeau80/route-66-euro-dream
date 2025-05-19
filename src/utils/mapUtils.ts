@@ -42,7 +42,7 @@ export function initializeJVectorMap(mapContainer: HTMLDivElement, locations: Lo
     if (!window.jQuery.fn.vectorMap.maps || !window.jQuery.fn.vectorMap.maps['us_aea_en']) {
       console.log('Adding US map data manually');
       // Add map data using the function from the external script
-      if (typeof jQuery.fn.vectorMap === 'function' && typeof jQuery.fn.vectorMap.addMap === 'function') {
+      if (typeof window.jQuery.fn.vectorMap === 'function' && typeof window.jQuery.fn.vectorMap.addMap === 'function') {
         try {
           // The map data is already added via the included script in public/jquery.vmap.usa.js
           console.log('Map data should be loaded from external script');
