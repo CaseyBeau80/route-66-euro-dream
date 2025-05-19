@@ -1,104 +1,24 @@
+// src/utils/mapUtils.ts
 
-import { toast } from "@/components/ui/use-toast";
-import { Route66Town } from "@/types/route66";
+// Define the structure for each location
+export interface Location {
+  latLng: [number, number];
+  name: string;
+}
 
-/**
- * Check if all necessary map scripts are loaded
- */
-export const checkScriptsLoaded = (): boolean => {
-  return (
-    typeof window !== "undefined" &&
-    window.jQuery &&
-    window.jQuery.fn &&
-    window.jQuery.fn.vectorMap &&
-    typeof window.jQuery.fn.vectorMap === 'function'
-  );
-};
+// Example array of coordinate pairs
+const coordinates: [number, number][] = [
+  [34.0522, -118.2437], // Los Angeles
+  [36.1699, -115.1398], // Las Vegas
+  [35.4676, -97.5164],  // Oklahoma City
+  [41.8781, -87.6298],  // Chicago
+  // Add more coordinates as needed
+];
 
-/**
- * Initialize the Route 66 map
- */
-export const initializeJVectorMap = (
-  mapElement: HTMLDivElement,
-  route66Towns: Route66Town[]
-): boolean => {
-  try {
-    const $ = window.jQuery;
-    console.log("✅ jQuery and jVectorMap loaded successfully");
-    
-    // Check if map file is loaded correctly
-    if (!window.jQuery.fn.vectorMap.maps['us_aea_en']) {
-      console.error("❌ US map data not loaded correctly");
-      return false;
-    }
-    
-    // Clean up any existing map instance
-    if ($(mapElement).data('mapObject')) {
-      try {
-        $(mapElement).empty();
-      } catch (e) {
-        console.error("Error cleaning existing map:", e);
-      }
-    }
-    
-    // Initialize the map
-    $(mapElement).vectorMap({
-      map: "us_aea_en",
-      backgroundColor: "transparent",
-      regionStyle: {
-        initial: { fill: "#dddddd" },
-        hover: { fill: "#ff6666" },
-        selected: { fill: "#ff0000" }
-      },
-      // Fixed: Properly format markers from Route66Town array
-      markers: route66Towns.map(town => town.latLng),
-      markerStyle: {
-        initial: {
-          fill: "#ff6666",
-          stroke: "#ffffff",
-          r: 6
-        },
-        hover: {
-          fill: "#ff0000",
-          stroke: "#ffffff",
-          r: 8
-        },
-      },
-      onRegionClick: function(e, code) {
-        toast({
-          title: "State Selected",
-          description: `You clicked on ${code.toUpperCase()}`,
-        });
-      },
-      onMarkerClick: function(e, index) {
-        // Fixed: Convert number to string for array index access
-        const idx = Number(index);
-        if (!isNaN(idx) && idx >= 0 && idx < route66Towns.length) {
-          toast({
-            title: "Town Selected",
-            description: `You clicked on ${route66Towns[idx].name}`,
-          });
-        }
-      }
-    });
-    
-    return true;
-  } catch (error) {
-    console.error("❌ Error initializing map:", error);
-    return false;
-  }
-};
-
-/**
- * Clean up the map instance
- */
-export const cleanupMap = (mapElement: HTMLDivElement): void => {
-  if (window.jQuery && mapElement) {
-    try {
-      const $ = window.jQuery;
-      $(mapElement).empty();
-    } catch (e) {
-      console.error("Error during cleanup:", e);
-    }
-  }
-};
+// Transform the array of coordinate pairs into the desired structure
+export const locations: Location[] = coordinates.map(
+  ([lat, lng], index) => ({
+    latLng: [lat, lng],
+    name: `Location ${index + 1}`,
+  })
+);
