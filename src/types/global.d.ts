@@ -4,6 +4,11 @@ interface JQuery {
   [key: string]: any;
 }
 
+interface JQueryStatic {
+  (selector: string): JQuery;
+  [key: string]: any;
+}
+
 interface Window {
-  $: JQuery;
+  $: JQueryStatic;
 }

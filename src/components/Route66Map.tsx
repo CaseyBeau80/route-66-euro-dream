@@ -4,7 +4,7 @@ import { useEffect } from "react";
 const Route66Map = () => {
   useEffect(() => {
     // Access jQuery safely with proper type checking
-    const $ = window.$ as JQuery;
+    const $ = window.$;
 
     if (!$ || !$("#map").vectorMap) {
       console.error("❌ jVectorMap not available on window.$");
