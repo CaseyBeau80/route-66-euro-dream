@@ -28,6 +28,13 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
     });
     
     mapRenderer.renderRouteMap();
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      if (mapContainerRef.current) {
+        mapContainerRef.current.innerHTML = '';
+      }
+    };
   }, [selectedState, onStateClick]);
   
   const getVisibleTowns = () => {
@@ -52,14 +59,7 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
         ref={mapContainerRef}
         id="route66-map-container"
         className="w-full h-[500px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
-      >
-        {/* React-based renderer (future implementation) */}
-        {/* <MapRendererReact 
-          selectedState={selectedState}
-          onStateClick={onStateClick}
-          onClearSelection={() => onStateClick('', '')}
-        /> */}
-      </div>
+      />
       
       {/* Towns list positioned at the bottom */}
       <div className="mt-4">

@@ -30,19 +30,31 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   // DOM version for MapRenderer
   const createStatesPaths = () => {
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    statesPaths.setAttribute('fill', '#a3c1e0');
     statesPaths.setAttribute('stroke', '#ffffff');
     statesPaths.setAttribute('stroke-width', '1.5');
-  
+    
     // Add states with click handlers
     route66States.forEach(state => {
       const statePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       statePath.setAttribute('d', state.d);
       statePath.setAttribute('id', `state-${state.id}`);
-      statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : state.color);
+      statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : '#a3c1e0');
       statePath.setAttribute('data-state', state.id);
       statePath.setAttribute('data-state-name', state.name);
-      statePath.setAttribute('class', 'cursor-pointer hover:fill-[#7D9CB3] transition-colors duration-200');
+      statePath.setAttribute('class', 'cursor-pointer transition-colors duration-200');
+      
+      // Add hover effect using event listeners
+      statePath.addEventListener('mouseover', () => {
+        if (selectedState !== state.id) {
+          statePath.setAttribute('fill', '#7D9CB3');
+        }
+      });
+      
+      statePath.addEventListener('mouseout', () => {
+        if (selectedState !== state.id) {
+          statePath.setAttribute('fill', '#a3c1e0');
+        }
+      });
       
       // Add click event
       statePath.addEventListener('click', () => {
@@ -58,8 +70,8 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
         stateLabel.setAttribute('x', stateCenter.x.toString());
         stateLabel.setAttribute('y', stateCenter.y.toString());
         stateLabel.setAttribute('text-anchor', 'middle');
-        stateLabel.setAttribute('font-size', '12');
-        stateLabel.setAttribute('class', 'font-semibold pointer-events-none');
+        stateLabel.setAttribute('font-size', '14');
+        stateLabel.setAttribute('class', 'font-bold pointer-events-none');
         stateLabel.setAttribute('fill', selectedState === state.id ? '#ffffff' : '#444444');
         stateLabel.textContent = state.id;
         statesPaths.appendChild(stateLabel);
@@ -72,7 +84,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
   // React version for MapRendererReact
   const renderReactStates = () => {
     return (
-      <g fill="#a3c1e0" stroke="#ffffff" strokeWidth="1.5">
+      <g stroke="#ffffff" strokeWidth="1.5">
         {route66States.map(state => {
           const stateCenter = getStateCentroid(state.d);
           return (
@@ -80,7 +92,7 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
               <path
                 d={state.d}
                 id={`state-${state.id}`}
-                fill={selectedState === state.id ? '#5D7B93' : state.color}
+                fill={selectedState === state.id ? '#5D7B93' : '#a3c1e0'}
                 data-state={state.id}
                 data-state-name={state.name}
                 className="cursor-pointer hover:fill-[#7D9CB3] transition-colors duration-200"
@@ -91,8 +103,8 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
                   x={stateCenter.x}
                   y={stateCenter.y}
                   textAnchor="middle"
-                  fontSize="12"
-                  className="font-semibold pointer-events-none"
+                  fontSize="14"
+                  className="font-bold pointer-events-none"
                   fill={selectedState === state.id ? '#ffffff' : '#444444'}
                 >
                   {state.id}

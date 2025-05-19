@@ -43,9 +43,10 @@ const MapRenderer = ({
     const mapBg = document.createElement('div');
     mapBg.className = 'absolute inset-0 rounded-xl bg-[#f5f5f5] overflow-hidden';
     
-    // Create SVG for map elements
+    // Create SVG for map elements with proper viewBox
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    mapSvg.setAttribute('viewBox', '0 0 960 600');
+    mapSvg.setAttribute('viewBox', '150 200 600 350');
+    mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
     
     // Create and add states
