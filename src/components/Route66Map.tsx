@@ -10,11 +10,8 @@ const Route66Map = () => {
   // Set loaded after a short delay to ensure rendering has completed
   useEffect(() => {
     if (isMapInitialized) {
-      const timer = setTimeout(() => {
-        setLoaded(true);
-      }, 500);
-      
-      return () => clearTimeout(timer);
+      // Mark as loaded immediately to show the map
+      setLoaded(true);
     }
   }, [isMapInitialized]);
 
@@ -22,8 +19,9 @@ const Route66Map = () => {
     <div className="my-8 px-4">
       <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Explore Route 66</h2>
       
-      {/* Map container - only shown when initialized */}
+      {/* Map container */}
       <div className="relative">
+        {/* Always show the map container, but handle visibility with CSS */}
         <div
           ref={mapRef}
           className="w-full h-[600px] rounded-xl shadow-lg border border-gray-200"
