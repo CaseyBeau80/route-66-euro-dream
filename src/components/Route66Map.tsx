@@ -1,7 +1,9 @@
+
 import { useEffect } from "react";
 
 const Route66Map = () => {
   useEffect(() => {
+    // Use window.$ to access jQuery safely
     const $ = window.$;
 
     if (!$ || !$("#map").vectorMap) {
