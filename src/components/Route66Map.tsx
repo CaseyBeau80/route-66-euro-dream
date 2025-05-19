@@ -1,12 +1,26 @@
 
 import { useEffect, useState } from "react";
-import { Route, SignpostBig, Navigation } from "lucide-react";
+import { Route, SignpostBig, MapPin } from "lucide-react";
 import { route66Towns } from "@/types/route66";
 import MapLoading from "./Route66Map/MapLoading";
+import { toast } from "@/components/ui/use-toast";
 
 const Route66Map = () => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+
+  // States that Route 66 passes through
+  const route66States = [
+    { id: "IL", name: "Illinois", d: "M617,300 L645,250 L670,240 L690,280 L650,310 L617,300 Z", color: "#a3c1e0" },
+    { id: "MO", name: "Missouri", d: "M560,320 L617,300 L650,310 L640,350 L590,360 L560,320 Z", color: "#a3c1e0" },
+    { id: "KS", name: "Kansas", d: "M530,335 L560,320 L590,360 L570,380 L530,370 L530,335 Z", color: "#a3c1e0" },
+    { id: "OK", name: "Oklahoma", d: "M460,380 L530,370 L570,380 L550,410 L480,420 L460,380 Z", color: "#a3c1e0" },
+    { id: "TX", name: "Texas", d: "M430,420 L480,420 L460,460 L410,440 L430,420 Z", color: "#a3c1e0" },
+    { id: "NM", name: "New Mexico", d: "M350,410 L410,440 L380,490 L320,470 L350,410 Z", color: "#a3c1e0" },
+    { id: "AZ", name: "Arizona", d: "M270,425 L320,470 L290,500 L240,450 L270,425 Z", color: "#a3c1e0" },
+    { id: "CA", name: "California", d: "M180,450 L240,450 L260,490 L200,510 L180,450 Z", color: "#a3c1e0" }
+  ];
 
   useEffect(() => {
     // Short delay to ensure the DOM is ready
@@ -21,7 +35,7 @@ const Route66Map = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [selectedState]); // Re-render when selected state changes
 
   const handleRetry = () => {
     setError(null);
@@ -37,6 +51,19 @@ const Route66Map = () => {
       }
     }, 300);
   };
+
+  const handleStateClick = (stateId: string, stateName: string) => {
+    setSelectedState(stateId);
+    
+    // Get towns in the selected state
+    const townsInState = route66Towns.filter(town => town.name.includes(stateName));
+    
+    toast({
+      title: `Route 66 through ${stateName}`,
+      description: `${townsInState.length} stops in ${stateName}: ${townsInState.map(town => town.name.split(',')[0]).join(', ')}`,
+      duration: 5000,
+    });
+  };
   
   const renderRouteMap = () => {
     const container = document.getElementById('route66-map-container');
@@ -51,7 +78,7 @@ const Route66Map = () => {
     
     // Create the map background
     const mapBg = document.createElement('div');
-    mapBg.className = 'absolute inset-0 rounded-xl bg-[#a3c1e0] overflow-hidden';
+    mapBg.className = 'absolute inset-0 rounded-xl bg-[#f5f5f5] overflow-hidden';
     
     // Create the title
     const title = document.createElement('div');
@@ -78,68 +105,103 @@ const Route66Map = () => {
     mapSvg.setAttribute('viewBox', '0 0 960 600');
     mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
     
-    // Add state boundaries
+    // Add state boundaries group
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     statesPaths.setAttribute('fill', '#a3c1e0');
     statesPaths.setAttribute('stroke', '#ffffff');
     statesPaths.setAttribute('stroke-width', '1.5');
+
+    // Add states with click handlers
+    route66States.forEach(state => {
+      const statePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      statePath.setAttribute('d', state.d);
+      statePath.setAttribute('id', `state-${state.id}`);
+      statePath.setAttribute('fill', selectedState === state.id ? '#5D7B93' : state.color);
+      statePath.setAttribute('data-state', state.id);
+      statePath.setAttribute('data-state-name', state.name);
+      statePath.setAttribute('class', 'cursor-pointer hover:fill-route66-blue transition-colors duration-200');
+      
+      // Add click event
+      statePath.addEventListener('click', () => {
+        handleStateClick(state.id, state.name);
+      });
+      
+      statesPaths.appendChild(statePath);
+      
+      // Add state label
+      const stateCenter = getStateCentroid(state.d);
+      if (stateCenter) {
+        const stateLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        stateLabel.setAttribute('x', stateCenter.x.toString());
+        stateLabel.setAttribute('y', stateCenter.y.toString());
+        stateLabel.setAttribute('text-anchor', 'middle');
+        stateLabel.setAttribute('font-size', '12');
+        stateLabel.setAttribute('class', 'font-semibold pointer-events-none');
+        stateLabel.setAttribute('fill', selectedState === state.id ? '#ffffff' : '#444444');
+        stateLabel.textContent = state.id;
+        statesPaths.appendChild(stateLabel);
+      }
+    });
     
-    // We'll use a simplified US map for performance
-    const usOutline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    usOutline.setAttribute('d', 'M215,493v14l-31-3v-12L215,493z M215,521l-31-3v12l31,3V521z M233,476v14l-18,3v-14L233,476z M233,505l-18,3v-14l18-3V505z M233,520l-18,3v-14l18-3V520z M233,534l-18,3v-14l18-3V534z M243,460l-6,1l-4,15l18-4L243,460z M215,435h31l-5,19l-26,5V435z M215,409v-49c21,0,38,0,38,23c0,15-1,26-7,30L215,409z M215,330v-19h38v19H215z M215,282v-19h38v19H215z M215,234h38v19h-38V234z M215,206h38v19h-38V206z M215,178h38v19h-38V178z M215,153h38v15h-38V153z M196,120c18,0,57,0,57,20c0,17-39,16-57,16V120z M196,438l19-4v23l-19,4V438z M196,483l19-4v23l-19,4V483z M196,529l19-4v22l-19,4V529z M177,120v36c-13,0-39,0-39-18C138,121,164,120,177,120z M177,206v47h-18v-28L177,206z M177,310l-18-22v-35h18V310z M177,329v23l-18-23H177z M177,387v24l-18-24H177z M177,444v24l-18-24H177z M177,530v54h-18v-30L177,530z M88,125c36,0,71,0,71,36c0,8-7,29-11,35H88V125z M88,210h60v42c-30-20-60,0-60,0V210z M88,272c42,0,60,48,60,48v31H88V272z M88,365h60v65H88V365z M88,444h60v65H88V444z M88,523h60v61H88V523z M138,92V25h-15L88,69v23H138z M51,10h87v102H51V10z M17,10h34v102H17V10z M215,92V25h15l35,44v23H215z M283,10h-68v102h68V10z M317,10h-34v102h34V10z');
-    
-    statesPaths.appendChild(usOutline);
     mapSvg.appendChild(statesPaths);
     
     // Add the Route 66 line path
     const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    routePath.setAttribute('d', 'M215,460 L300,430 L350,410 L400,390 L450,380 L500,350 L550,320 L600,300 L650,250');
-    routePath.setAttribute('stroke', '#e74c3c');
+    routePath.setAttribute('d', 'M645,250 L617,300 L590,320 L560,320 L520,340 L480,370 L450,380 L400,410 L350,410 L300,430 L250,440 L200,450');
+    routePath.setAttribute('stroke', '#D92121');
     routePath.setAttribute('stroke-width', '4');
     routePath.setAttribute('fill', 'none');
     routePath.setAttribute('stroke-linecap', 'round');
     routePath.setAttribute('stroke-linejoin', 'round');
+    routePath.setAttribute('stroke-dasharray', '6 3');
     mapSvg.appendChild(routePath);
     
     // Add city markers
     const markers = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     
     // Add major cities as dots with labels
-    const cities = [
-      { x: 205, y: 450, name: "Los Angeles" },
-      { x: 245, y: 435, name: "Barstow" },
-      { x: 270, y: 425, name: "Needles" },
-      { x: 300, y: 415, name: "Kingman" },
-      { x: 330, y: 410, name: "Flagstaff" },
+    const majorCities = [
+      { x: 195, y: 450, name: "Los Angeles" },
+      { x: 270, y: 425, name: "Flagstaff" },
       { x: 380, y: 390, name: "Albuquerque" },
-      { x: 420, y: 385, name: "Tucumcari" },
       { x: 450, y: 380, name: "Amarillo" },
       { x: 500, y: 350, name: "Oklahoma City" },
-      { x: 520, y: 335, name: "Tulsa" },
-      { x: 550, y: 320, name: "Joplin" },
-      { x: 580, y: 310, name: "Springfield" },
-      { x: 600, y: 300, name: "St. Louis" },
+      { x: 580, y: 320, name: "St. Louis" },
       { x: 645, y: 250, name: "Chicago" }
     ];
     
-    cities.forEach(city => {
-      // Create dot
+    majorCities.forEach(city => {
+      // Create dot with circle and pulse effect
+      const dotGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      
+      // Pulse circle
+      const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pulse.setAttribute('cx', city.x.toString());
+      pulse.setAttribute('cy', city.y.toString());
+      pulse.setAttribute('r', '6');
+      pulse.setAttribute('fill', 'rgba(217, 33, 33, 0.3)');
+      pulse.setAttribute('class', 'animate-pulse');
+      
+      // Main dot
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', '#000');
+      dot.setAttribute('fill', '#D92121');
       
       // Create city label
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('x', city.x.toString());
-      label.setAttribute('y', (city.y - 8).toString());
+      label.setAttribute('y', (city.y - 10).toString());
       label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('font-size', '8');
-      label.setAttribute('fill', '#000');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('font-weight', 'bold');
+      label.setAttribute('fill', '#444444');
       label.textContent = city.name;
       
-      markers.appendChild(dot);
+      dotGroup.appendChild(pulse);
+      dotGroup.appendChild(dot);
+      markers.appendChild(dotGroup);
       markers.appendChild(label);
     });
     
@@ -149,9 +211,25 @@ const Route66Map = () => {
     
     // Add the list of towns below the map
     const townsList = document.createElement('div');
-    townsList.className = 'absolute bottom-2 left-2 right-2 bg-white/80 p-2 rounded-lg text-xs grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2';
+    townsList.className = 'absolute bottom-2 left-2 right-2 bg-white/90 p-2 rounded-lg text-xs grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1';
     
-    route66Towns.forEach(town => {
+    // Filter towns if state is selected
+    let visibleTowns = route66Towns;
+    if (selectedState) {
+      const stateName = route66States.find(s => s.id === selectedState)?.name || '';
+      visibleTowns = route66Towns.filter(town => town.name.includes(stateName));
+      
+      // Add a clear selection button
+      const clearButton = document.createElement('button');
+      clearButton.className = 'absolute top-2 left-24 bg-white px-2 py-1 rounded-full text-xs shadow-md z-10 flex items-center gap-1';
+      clearButton.innerHTML = `<span>Clear ${stateName}</span>`;
+      clearButton.addEventListener('click', () => {
+        setSelectedState(null);
+      });
+      mapWrapper.appendChild(clearButton);
+    }
+    
+    visibleTowns.forEach(town => {
       const townItem = document.createElement('div');
       townItem.className = 'flex items-center gap-1';
       townItem.innerHTML = `
@@ -163,6 +241,24 @@ const Route66Map = () => {
     
     mapWrapper.appendChild(townsList);
     container.appendChild(mapWrapper);
+  };
+
+  // Helper function to calculate approximate centroids for state labels
+  const getStateCentroid = (pathD: string): {x: number, y: number} | null => {
+    // A simple centroid approximation based on the path's points
+    const points = pathD.split(/[ML,Z]/).filter(Boolean);
+    let sumX = 0, sumY = 0, count = 0;
+    
+    points.forEach(point => {
+      const [x, y] = point.trim().split(' ').map(Number);
+      if (!isNaN(x) && !isNaN(y)) {
+        sumX += x;
+        sumY += y;
+        count++;
+      }
+    });
+    
+    return count ? {x: sumX/count, y: sumY/count} : null;
   };
 
   return (
@@ -193,7 +289,24 @@ const Route66Map = () => {
         <p className="text-gray-600">
           Historic Route 66 spans 2,448 miles from Chicago to Santa Monica,
           passing through Illinois, Missouri, Kansas, Oklahoma, Texas, New Mexico, Arizona, and California.
+          {selectedState && <span className="font-semibold"> Click on states to see specific stops.</span>}
         </p>
+        
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-6 mt-4">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-red-600"></div>
+            <span className="text-xs">Route 66</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3 text-red-600" />
+            <span className="text-xs">Major Stops</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded bg-route66-blue"></div>
+            <span className="text-xs">Selected State</span>
+          </div>
+        </div>
       </div>
     </div>
   );
