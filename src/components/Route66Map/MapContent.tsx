@@ -16,20 +16,25 @@ const MapContent = ({
   cities
 }: MapContentProps) => {
   return (
-    <g transform="scale(1.1) translate(0, 40)"> {/* Added 40px downward translation */}
-      {/* Render states first (as the base layer) */}
-      <MapStatesComponent 
-        selectedState={selectedState}
-        onStateClick={onStateClick}
-      />
+    <>
+      {/* Render states first (as the base layer) with their own transformation */}
+      <g transform="scale(1.05)">
+        <MapStatesComponent 
+          selectedState={selectedState}
+          onStateClick={onStateClick}
+        />
+      </g>
       
-      {/* Render route line second */}
-      <Route66LineComponent animated={true} cities={cities} />
-      
-      {/* Render city markers and labels last (on top of everything) */}
-      <MapCityMarkers cities={cities} />
-      <MapCityLabels cities={cities} />
-    </g>
+      {/* Render route line and cities with separate transformation */}
+      <g transform="scale(1.1) translate(0, 40)">
+        {/* Render route line */}
+        <Route66LineComponent animated={true} cities={cities} />
+        
+        {/* Render city markers and labels last (on top of everything) */}
+        <MapCityMarkers cities={cities} />
+        <MapCityLabels cities={cities} />
+      </g>
+    </>
   );
 };
 
