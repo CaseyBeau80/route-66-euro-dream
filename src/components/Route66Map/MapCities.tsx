@@ -16,7 +16,29 @@ const MapCities = ({ cities }: MapCitiesProps) => {
     const markers = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     
     cities.forEach(city => {
-      // Create dot with circle and pulse effect
+      // Create city labels first (so they appear behind dots)
+      const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      labelBg.setAttribute('x', (city.x - 35).toString());
+      labelBg.setAttribute('y', (city.y - 22).toString());
+      labelBg.setAttribute('width', '70');
+      labelBg.setAttribute('height', '16');
+      labelBg.setAttribute('rx', '8');
+      labelBg.setAttribute('fill', 'rgba(255, 255, 255, 0.8)');
+      
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', city.x.toString());
+      label.setAttribute('y', (city.y - 10).toString());
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-size', '11');
+      label.setAttribute('font-weight', 'bold');
+      label.setAttribute('fill', '#444444');
+      label.textContent = city.name;
+      
+      // Add label elements to markers
+      markers.appendChild(labelBg);
+      markers.appendChild(label);
+      
+      // Create dot with circle and pulse effect in a separate group
       const dotGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       
       // Outer pulse circle with animation
@@ -50,34 +72,14 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       center.setAttribute('r', '1');
       center.setAttribute('fill', '#D92121'); // Small red dot in center
       
-      // Create city label with background for better readability
-      const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      labelBg.setAttribute('x', (city.x - 35).toString());
-      labelBg.setAttribute('y', (city.y - 22).toString());
-      labelBg.setAttribute('width', '70');
-      labelBg.setAttribute('height', '16');
-      labelBg.setAttribute('rx', '8');
-      labelBg.setAttribute('fill', 'rgba(255, 255, 255, 0.8)');
-      
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', city.x.toString());
-      label.setAttribute('y', (city.y - 10).toString());
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('font-size', '11');
-      label.setAttribute('font-weight', 'bold');
-      label.setAttribute('fill', '#444444');
-      label.textContent = city.name;
-      
-      // Add all elements in proper order
-      markers.appendChild(labelBg);
-      
+      // Add dot elements to dotGroup in order of rendering (back to front)
       dotGroup.appendChild(outerPulse);
       dotGroup.appendChild(pulse);
       dotGroup.appendChild(dot);
       dotGroup.appendChild(center);
       
+      // Add the dot group after labels
       markers.appendChild(dotGroup);
-      markers.appendChild(label);
     });
     
     return markers;
@@ -94,7 +96,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
     <g>
       {cities.map((city, index) => (
         <React.Fragment key={`city-${index}`}>
-          {/* City label background */}
+          {/* City label background - render first */}
           <rect
             x={city.x - 35}
             y={city.y - 22}
@@ -104,7 +106,19 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
             fill="rgba(255, 255, 255, 0.8)"
           />
           
-          {/* Dot group */}
+          {/* City label text - render second */}
+          <text
+            x={city.x}
+            y={city.y - 10}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight="bold"
+            fill="#444444"
+          >
+            {city.name}
+          </text>
+          
+          {/* Dot group - render last */}
           <g>
             {/* Outer pulse */}
             <circle
@@ -141,18 +155,6 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               fill="#D92121" // Small dot in center
             />
           </g>
-          
-          {/* City label */}
-          <text
-            x={city.x}
-            y={city.y - 10}
-            textAnchor="middle"
-            fontSize={11}
-            fontWeight="bold"
-            fill="#444444"
-          >
-            {city.name}
-          </text>
         </React.Fragment>
       ))}
     </g>
