@@ -17,16 +17,16 @@ const MapContent = ({
 }: MapContentProps) => {
   return (
     <>
-      {/* Render states first (as the base layer) with their own transformation */}
-      <g transform="scale(1.05)">
+      {/* Render states first (as the base layer) */}
+      <g>
         <MapStatesComponent 
           selectedState={selectedState}
           onStateClick={onStateClick}
         />
       </g>
       
-      {/* Render route line and cities with reduced scale but with minimal y-translation */}
-      <g transform="scale(0.85) translate(10, 20)">
+      {/* Render route line and cities at proper scale */}
+      <g>
         {/* Render route line */}
         <Route66LineComponent animated={true} cities={cities} />
         

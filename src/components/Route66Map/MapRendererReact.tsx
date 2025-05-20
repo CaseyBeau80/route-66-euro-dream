@@ -8,55 +8,14 @@ import ZoomControls from "./MapElements/ZoomControls";
 import InteractionIndicators from "./MapElements/InteractionIndicators";
 import MapContent from "./MapElements/MapContent";
 import { useZoomControls } from "./hooks/useZoomControls";
+import { route66Towns } from "@/types/route66"; 
+import { transformTownsToSvgPoints } from "@/utils/mapProjection";
 
 interface MapRendererReactProps {
   selectedState: string | null;
   onStateClick: (stateId: string, stateName: string) => void;
   onClearSelection: () => void;
 }
-
-// Refined city coordinates calibrated to match state boundaries in SVG viewBox (0 0 959 593)
-// These coordinates follow the historical Route 66 from Chicago (east) to Santa Monica (west)
-// Y-coordinates increased to shift cities south for better geographical alignment
-const majorCities = [
-  // Illinois
-  { x: 622, y: 245, name: "Chicago" },       // Start of Route 66
-  { x: 610, y: 257, name: "Joliet" },
-  { x: 600, y: 275, name: "Springfield, IL" },
-  
-  // Missouri
-  { x: 582, y: 288, name: "St. Louis" },
-  { x: 560, y: 315, name: "Springfield, MO" },
-  { x: 545, y: 330, name: "Joplin" },
-  
-  // Kansas (small segment)
-  { x: 530, y: 338, name: "Galena, KS" },
-  
-  // Oklahoma
-  { x: 500, y: 349, name: "Tulsa" },
-  { x: 470, y: 358, name: "Oklahoma City" },
-  
-  // Texas
-  { x: 395, y: 371, name: "Amarillo" },
-  
-  // New Mexico
-  { x: 365, y: 373, name: "Tucumcari" },
-  { x: 350, y: 375, name: "Santa Fe" },
-  { x: 320, y: 378, name: "Albuquerque" },
-  { x: 290, y: 382, name: "Gallup" },
-  
-  // Arizona
-  { x: 260, y: 386, name: "Winslow" },
-  { x: 230, y: 390, name: "Flagstaff" },
-  { x: 190, y: 394, name: "Kingman" },
-  
-  // California
-  { x: 170, y: 399, name: "Needles" },
-  { x: 150, y: 404, name: "Barstow" },
-  { x: 140, y: 408, name: "San Bernardino" },
-  { x: 125, y: 417, name: "Los Angeles" },
-  { x: 115, y: 425, name: "Santa Monica" }   // End of Route 66
-];
 
 /**
  * React-based implementation of the MapRenderer
@@ -71,6 +30,9 @@ const MapRendererReact = ({
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 5; // Increased max zoom for better detail on mobile
   const ZOOM_STEP = 0.5;
+  
+  // Transform the lat/lng coordinates to SVG coordinates
+  const majorCities = transformTownsToSvgPoints(route66Towns);
   
   const { 
     zoom, 
