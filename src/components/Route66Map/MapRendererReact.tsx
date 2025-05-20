@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
 import { Route66LineComponent } from "./Route66Line";
@@ -54,8 +54,14 @@ const MapRendererReact = ({
   };
   
   const handleZoomChange = (newZoom: number) => {
+    console.log('Zoom changed to:', newZoom);
     setZoom(newZoom);
   };
+  
+  // Log when component mounts to help with debugging
+  useEffect(() => {
+    console.log('MapRendererReact mounted, isMobile detection available:', typeof window !== 'undefined');
+  }, []);
 
   return (
     <div className="relative w-full h-full">

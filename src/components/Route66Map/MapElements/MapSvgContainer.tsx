@@ -36,12 +36,14 @@ const MapSvgContainer = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const isMobile = useIsMobile();
   
-  // Touch handling for pinch zoom
+  // Touch handling for pinch zoom with improved state management
   const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
-  const [currentZoom, setCurrentZoom] = useState<number>(zoom);
+  const [initialZoom, setInitialZoom] = useState<number>(zoom);
+  const [lastZoom, setLastZoom] = useState<number>(zoom);
   
+  // Update local zoom state when parent zoom changes
   useEffect(() => {
-    setCurrentZoom(zoom);
+    setLastZoom(zoom);
   }, [zoom]);
   
   // Calculate distance between two touch points
@@ -58,34 +60,42 @@ const MapSvgContainer = ({
       e.preventDefault(); // Prevent default browser pinch zoom
       const distance = getDistance(e.touches);
       setTouchStartDistance(distance);
+      setInitialZoom(lastZoom); // Save the initial zoom level when starting the pinch
+      
+      // Log debug info
+      console.log('Touch start - distance:', distance, 'initialZoom:', lastZoom);
     }
   };
   
   const handleTouchMove = (e: TouchEvent<SVGSVGElement>) => {
-    if (e.touches.length === 2 && touchStartDistance) {
+    if (e.touches.length === 2 && touchStartDistance && touchStartDistance > 0) {
       e.preventDefault(); // Prevent default browser behaviors
       
       const currentDistance = getDistance(e.touches);
-      const scaleFactor = currentDistance / touchStartDistance;
-      
-      // Calculate new zoom level
-      let newZoom = currentZoom * scaleFactor;
-      
-      // Apply zoom constraints
-      newZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
-      
-      // Update zoom if handler is provided
-      if (onZoomChange && newZoom !== currentZoom) {
-        onZoomChange(newZoom);
+      // Only process if we have a valid distance
+      if (currentDistance > 0) {
+        const scaleFactor = currentDistance / touchStartDistance;
+        
+        // Calculate new zoom level based on the initial zoom at touch start
+        let newZoom = initialZoom * scaleFactor;
+        
+        // Apply zoom constraints
+        newZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
+        
+        // Log debug info
+        console.log('Touch move - distance:', currentDistance, 'scaleFactor:', scaleFactor, 'newZoom:', newZoom);
+        
+        // Update zoom if handler is provided and zoom changed significantly
+        if (onZoomChange && Math.abs(newZoom - lastZoom) > 0.01) {
+          onZoomChange(newZoom);
+          setLastZoom(newZoom);
+        }
       }
-      
-      // Reset touch start distance for continuous pinching
-      setTouchStartDistance(currentDistance);
-      setCurrentZoom(newZoom);
     }
   };
   
   const handleTouchEnd = () => {
+    console.log('Touch end - resetting touch state');
     setTouchStartDistance(null);
   };
 
@@ -94,8 +104,7 @@ const MapSvgContainer = ({
       ref={svgRef}
       viewBox={viewBox}
       preserveAspectRatio="xMidYMid meet"
-      className="absolute inset-0 w-full h-full transition-all duration-300 ease-in-out"
-      // Only add touch handlers on mobile devices for better performance
+      className="absolute inset-0 w-full h-full transition-all duration-300 ease-in-out touch-none"
       onTouchStart={isMobile ? handleTouchStart : undefined}
       onTouchMove={isMobile ? handleTouchMove : undefined}
       onTouchEnd={isMobile ? handleTouchEnd : undefined}
