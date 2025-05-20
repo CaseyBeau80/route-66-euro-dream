@@ -3,37 +3,33 @@ import React from "react";
 
 const Route66Badge = () => {
   return (
-    <div className="bg-white shadow-md rounded-md overflow-hidden">
+    <div className="bg-transparent">
       {/* US Highway Shield */}
       <div className="relative w-24 h-28">
-        {/* Shield background with proper US Highway shield shape */}
+        {/* Shield background with authentic US Highway shield shape */}
         <svg viewBox="0 0 100 120" className="absolute inset-0 w-full h-full">
+          {/* Main shield shape */}
           <path 
-            d="M50,2 L95,2 L95,25 C95,75 70,105 50,118 C30,105 5,75 5,25 L5,2 L50,2 Z" 
+            d="M5,5 L95,5 L95,35 Q95,75 50,115 Q5,75 5,35 Z" 
             fill="white" 
             stroke="black" 
             strokeWidth="4"
           />
+          
+          {/* Red banner at top */}
+          <rect x="5" y="5" width="90" height="22" fill="#D92121" />
         </svg>
         
-        {/* Red top banner with proper width */}
-        <svg viewBox="0 0 100 120" className="absolute inset-0 w-full h-full">
-          <path 
-            d="M5,2 L95,2 L95,20 L5,20 Z" 
-            fill="#D92121"
-          />
-        </svg>
-        
-        {/* Shield content with better positioning and sizing */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {/* ROUTE text properly positioned in red banner */}
-          <div className="text-sm font-bold text-white absolute top-[6px]">ROUTE</div>
+        {/* Shield content */}
+        <div className="absolute inset-0 flex flex-col items-center">
+          {/* ROUTE text in the red banner */}
+          <div className="text-white font-bold text-sm mt-[8px]">ROUTE</div>
           
-          {/* US text positioned below the banner */}
-          <div className="text-[10px] font-bold mt-5">U.S.</div>
+          {/* U.S. text */}
+          <div className="text-xs font-bold mt-7">U.S.</div>
           
-          {/* Larger 66 as the focal point */}
-          <div className="text-5xl font-black leading-none mt-0.5">66</div>
+          {/* 66 as the focal point */}
+          <div className="text-5xl font-black mt-0">66</div>
         </div>
       </div>
     </div>
