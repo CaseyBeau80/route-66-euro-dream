@@ -1,15 +1,12 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
 import { Route66LineComponent } from "./Route66Line";
-import MapTitle from "./MapElements/MapTitle";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import ZoomControls from "./MapElements/ZoomControls";
-import { route66States } from "./mapData";
 import { Touchpad } from "lucide-react";
 
 interface MapRendererReactProps {
@@ -121,7 +118,7 @@ const MapRendererReact = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Route 66 Badge moved to top left */}
+      {/* Route 66 Shield Badge */}
       <div className="absolute top-4 left-4 z-10">
         <Route66Badge />
       </div>
