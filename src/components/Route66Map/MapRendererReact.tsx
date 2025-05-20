@@ -16,10 +16,11 @@ interface MapRendererReactProps {
 }
 
 // Cities along Route 66 with coordinates precisely aligned with the corrected route path
+// Note that the path goes from Chicago (east) to Santa Monica (west)
 const majorCities = [
   // Illinois
   { x: 618, y: 205, name: "Chicago" },
-  { x: 615, y: 210, name: "Joliet" },
+  { x: 612, y: 217, name: "Joliet" },
   { x: 605, y: 230, name: "Springfield, IL" },
   
   // Missouri
@@ -50,7 +51,7 @@ const majorCities = [
   
   // California
   { x: 160, y: 368, name: "Needles" },
-  { x: 150, y: 375, name: "Barstow" },
+  { x: 150, y: 372, name: "Barstow" },
   { x: 140, y: 380, name: "San Bernardino" },
   { x: 130, y: 385, name: "Los Angeles" },
   { x: 120, y: 410, name: "Santa Monica" }

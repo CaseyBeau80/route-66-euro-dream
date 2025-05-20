@@ -16,7 +16,7 @@ export const MapCityLabels = ({ cities }: MapCitiesProps) => {
   return (
     <g className="city-labels">
       {cities.map((city, index) => (
-        <React.Fragment key={`city-label-${index}`}>
+        <g key={`city-label-${index}`}>
           {/* City label background - render first */}
           <rect
             x={city.x - 40}
@@ -40,7 +40,7 @@ export const MapCityLabels = ({ cities }: MapCitiesProps) => {
           >
             {city.name}
           </text>
-        </React.Fragment>
+        </g>
       ))}
     </g>
   );

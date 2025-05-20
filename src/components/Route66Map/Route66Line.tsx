@@ -9,7 +9,7 @@ const Route66Line = ({ animated = true }: Route66LineProps) => {
   const createRoutePath = () => {
     const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     
-    // Path coordinates precisely aligned with the state boundaries and city markers
+    // Path coordinates precisely aligned with state boundaries and corrected city positions
     routePath.setAttribute('d', 'M618,205 C615,210 610,220 605,230 C600,240 595,250 590,255 C580,265 570,270 560,280 C545,290 535,295 525,300 C515,305 505,308 495,310 C485,312 475,316 465,320 C455,322 445,325 435,326 C425,327 415,327 405,328 C390,329 375,330 360,332 C345,334 330,335 315,338 C300,340 285,342 270,345 C255,348 240,350 225,353 C200,358 180,362 160,368 C150,372 140,377 130,385 C125,400 120,405 120,410');
     
     routePath.setAttribute('stroke', '#D92121');
