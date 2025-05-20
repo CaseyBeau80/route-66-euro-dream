@@ -121,8 +121,10 @@ const MapRendererReact = ({
 
   return (
     <div className="relative w-full h-full">
-      <MapTitle />
-      <Route66Badge />
+      {/* Route 66 Badge moved to top center */}
+      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
+        <Route66Badge />
+      </div>
       
       {selectedState && (
         <ClearSelectionButton 
@@ -161,23 +163,6 @@ const MapRendererReact = ({
           <MapCitiesComponent cities={majorCities} />
         </MapSvgContainer>
       </MapBackground>
-      
-      {/* More compact legend for mobile */}
-      <div className="absolute bottom-4 right-4 bg-white/90 p-2 rounded shadow-md z-10 flex flex-col gap-1.5 text-xs max-w-[120px] md:max-w-none">
-        <div className="font-bold mb-0.5">Legend</div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 bg-[#5D7B93]"></div>
-          <div>Route 66 States</div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 bg-[#d3d3d3]"></div>
-          <div>Other States</div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 bg-[#D92121]"></div>
-          <div>Route 66</div>
-        </div>
-      </div>
     </div>
   );
 };
