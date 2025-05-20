@@ -59,11 +59,11 @@ const Route66Map = () => {
   };
 
   return (
-    <div className="my-8 px-4">
+    <div className="my-8 px-2 sm:px-4 w-full">
       <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Historic Highway Map</h2>
       
       {/* Map container */}
-      <div className="relative bg-white p-5 rounded-lg shadow">
+      <div className="relative bg-white p-2 sm:p-5 rounded-lg shadow w-full">
         {/* Map display */}
         {loaded ? (
           <MapDisplay 

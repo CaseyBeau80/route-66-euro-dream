@@ -31,11 +31,11 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
   const handleClearSelection = () => onStateClick('', '');
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <div
         ref={mapContainerRef}
         id="route66-map-container"
-        className="w-full max-w-[1200px] mx-auto h-[75vh] md:h-[650px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
+        className="w-full h-[80vh] md:h-[700px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
       >
         <MapRendererReact 
           selectedState={selectedState}

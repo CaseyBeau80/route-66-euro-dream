@@ -3,7 +3,7 @@ import Route66Map from "../components/Route66Map";
 
 const Index = () => {
   return (
-    <div className="container max-w-[1400px] mx-auto">
+    <div className="container max-w-[1400px] mx-auto px-4">
       <Route66Map />
     </div>
   );
