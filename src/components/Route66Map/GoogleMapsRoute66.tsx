@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { route66Towns } from '@/types/route66';
@@ -75,7 +74,7 @@ const GoogleMapsRoute66 = ({
   // Load the Google Maps JS API
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'YOUR_API_KEY', // Replace with your Google Maps API key
+    googleMapsApiKey: 'AIzaSyAP0l1Xl7yjDLM9QHsH8j-zWmhOkUefdKQ', // Google Maps API key implemented
   });
 
   // State for active marker
