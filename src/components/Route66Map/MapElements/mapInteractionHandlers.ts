@@ -14,10 +14,15 @@ export const createMouseEventHandlers = ({
   baseHeight,
   viewBoxWidth,
   viewBoxHeight,
+  onDragStart,
 }) => {
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     setIsDragging(true);
     setLastPosition({ x: e.clientX, y: e.clientY });
+    // Call onDragStart if provided
+    if (onDragStart) {
+      onDragStart();
+    }
   };
   
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -77,13 +82,19 @@ export const createTouchEventHandlers = ({
   setInitialZoom,
   setIsPinching,
   touchTimeoutRef,
-  SENSITIVITY_FACTOR
+  SENSITIVITY_FACTOR,
+  onDragStart,
 }) => {
   const handleTouchStart = (e: TouchEvent<SVGSVGElement>) => {
     if (e.touches.length === 1) {
       // Single touch for panning
       setIsDragging(true);
       setLastPosition({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      
+      // Call onDragStart if provided
+      if (onDragStart) {
+        onDragStart();
+      }
     } else if (e.touches.length === 2) {
       console.log("[TouchStart] Detected 2 touch points - starting pinch");
       e.preventDefault(); // Prevent default browser pinch zoom
