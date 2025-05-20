@@ -9,8 +9,8 @@ const Route66Line = ({ animated = true }: Route66LineProps) => {
   const createRoutePath = () => {
     const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     
-    // Updated path coordinates to accurately follow the route through all states
-    routePath.setAttribute('d', 'M140,425 C145,420 150,415 155,410 C160,405 165,400 175,395 C195,385 210,385 230,385 C255,390 280,395 310,390 C330,385 350,385 370,380 C390,380 410,375 430,365 C445,358 460,350 475,348 C495,345 515,334 535,325 C550,318 565,305 590,275 C600,260 610,250 615,240');
+    // Revised path coordinates to accurately follow the route through all states
+    routePath.setAttribute('d', 'M137,430 C142,425 147,420 152,415 C157,410 162,405 172,400 C192,390 207,385 227,385 C252,385 277,390 307,385 C327,380 347,375 367,370 C387,370 407,365 427,355 C442,348 457,340 472,338 C492,335 512,324 532,315 C547,308 562,295 587,265 C597,250 607,240 612,230');
     
     routePath.setAttribute('stroke', '#D92121');
     routePath.setAttribute('stroke-width', '6');
@@ -75,7 +75,7 @@ export const Route66LineComponent = ({ animated = true }: Route66LineProps) => {
   return (
     <path
       ref={pathRef}
-      d="M140,425 C145,420 150,415 155,410 C160,405 165,400 175,395 C195,385 210,385 230,385 C255,390 280,395 310,390 C330,385 350,385 370,380 C390,380 410,375 430,365 C445,358 460,350 475,348 C495,345 515,334 535,325 C550,318 565,305 590,275 C600,260 610,250 615,240"
+      d="M137,430 C142,425 147,420 152,415 C157,410 162,405 172,400 C192,390 207,385 227,385 C252,385 277,390 307,385 C327,380 347,375 367,370 C387,370 407,365 427,355 C442,348 457,340 472,338 C492,335 512,324 532,315 C547,308 562,295 587,265 C597,250 607,240 612,230"
       stroke="#D92121"
       strokeWidth="6"
       fill="none"
