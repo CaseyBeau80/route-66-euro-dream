@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
@@ -14,45 +15,45 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Cities along Route 66 with completely redone coordinates to match the map projection
+// Cities along Route 66 with completely revised coordinates to match the map projection
 const majorCities = [
   // Illinois
   { x: 615, y: 240, name: "Chicago" },
-  { x: 610, y: 250, name: "Joliet" },
-  { x: 600, y: 270, name: "Springfield, IL" },
+  { x: 600, y: 255, name: "Joliet" },
+  { x: 590, y: 275, name: "Springfield, IL" },
   
   // Missouri
-  { x: 570, y: 300, name: "St. Louis" },
-  { x: 540, y: 320, name: "Springfield, MO" },
-  { x: 520, y: 330, name: "Joplin" },
+  { x: 565, y: 305, name: "St. Louis" },
+  { x: 535, y: 325, name: "Springfield, MO" },
+  { x: 515, y: 334, name: "Joplin" },
   
-  // Kansas
-  { x: 510, y: 334, name: "Galena, KS" },
+  // Kansas (small segment)
+  { x: 505, y: 334, name: "Galena, KS" },
   
   // Oklahoma
-  { x: 480, y: 346, name: "Tulsa" },
-  { x: 450, y: 358, name: "Oklahoma City" },
+  { x: 475, y: 348, name: "Tulsa" },
+  { x: 445, y: 358, name: "Oklahoma City" },
   
   // Texas
   { x: 390, y: 380, name: "Amarillo" },
   
-  // New Mexico - Completely reimagined based on proper state geography
-  { x: 370, y: 392, name: "Tucumcari" },
-  { x: 340, y: 385, name: "Santa Fe" },
-  { x: 330, y: 392, name: "Albuquerque" },
-  { x: 300, y: 398, name: "Gallup" },
+  // New Mexico - Completely revised coordinates
+  { x: 350, y: 385, name: "Tucumcari" },
+  { x: 325, y: 380, name: "Santa Fe" },
+  { x: 310, y: 390, name: "Albuquerque" },
+  { x: 280, y: 395, name: "Gallup" },
   
-  // Arizona - Completely reimagined based on proper state geography
-  { x: 270, y: 392, name: "Winslow" },
-  { x: 240, y: 386, name: "Flagstaff" },
-  { x: 180, y: 387, name: "Kingman" },
+  // Arizona - Completely revised coordinates
+  { x: 255, y: 390, name: "Winslow" },
+  { x: 230, y: 385, name: "Flagstaff" },
+  { x: 195, y: 385, name: "Kingman" },
   
-  // California - Completely reimagined based on proper state geography
-  { x: 165, y: 400, name: "Needles" },
-  { x: 150, y: 415, name: "Barstow" },
-  { x: 145, y: 420, name: "San Bernardino" },
-  { x: 137, y: 430, name: "Los Angeles" },
-  { x: 130, y: 435, name: "Santa Monica" }
+  // California - Completely revised coordinates
+  { x: 175, y: 395, name: "Needles" },
+  { x: 160, y: 410, name: "Barstow" },
+  { x: 150, y: 420, name: "San Bernardino" },
+  { x: 140, y: 425, name: "Los Angeles" },
+  { x: 137, y: 430, name: "Santa Monica" }
 ];
 
 /**
