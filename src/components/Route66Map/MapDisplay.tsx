@@ -3,7 +3,7 @@ import { useRef } from "react";
 import TownsList from "./TownsList";
 import { route66States } from "./mapData";
 import { route66Towns } from "@/types/route66";
-import MapRendererReact from "./MapRendererReact";
+import GoogleMapsRoute66 from "./GoogleMapsRoute66";
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -37,7 +37,8 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
         id="route66-map-container"
         className="w-full h-[80vh] md:h-[700px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
       >
-        <MapRendererReact 
+        {/* Use the Google Maps component instead of the SVG renderer */}
+        <GoogleMapsRoute66 
           selectedState={selectedState}
           onStateClick={onStateClick}
           onClearSelection={handleClearSelection}
