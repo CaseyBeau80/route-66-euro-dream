@@ -1,4 +1,3 @@
-
 import React from "react";
 import { route66States, otherUSStates, allUSStates } from "./mapData";
 

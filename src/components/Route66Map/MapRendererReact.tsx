@@ -15,45 +15,45 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Cities along Route 66 with meticulously adjusted coordinates to match the route path
+// Cities along Route 66 with adjusted coordinates to match the state paths
 const majorCities = [
   // Illinois
-  { x: 612, y: 230, name: "Chicago" },
-  { x: 602, y: 245, name: "Joliet" },
-  { x: 587, y: 265, name: "Springfield, IL" },
+  { x: 612, y: 170, name: "Chicago" },
+  { x: 602, y: 185, name: "Joliet" },
+  { x: 587, y: 205, name: "Springfield, IL" },
   
   // Missouri
-  { x: 562, y: 295, name: "St. Louis" },
-  { x: 532, y: 315, name: "Springfield, MO" },
-  { x: 502, y: 324, name: "Joplin" },
+  { x: 562, y: 235, name: "St. Louis" },
+  { x: 532, y: 255, name: "Springfield, MO" },
+  { x: 502, y: 264, name: "Joplin" },
   
   // Kansas (small segment)
-  { x: 492, y: 330, name: "Galena, KS" },
+  { x: 492, y: 270, name: "Galena, KS" },
   
   // Oklahoma
-  { x: 472, y: 338, name: "Tulsa" },
-  { x: 427, y: 355, name: "Oklahoma City" },
+  { x: 472, y: 278, name: "Tulsa" },
+  { x: 427, y: 295, name: "Oklahoma City" },
   
   // Texas
-  { x: 367, y: 370, name: "Amarillo" },
+  { x: 367, y: 310, name: "Amarillo" },
   
-  // New Mexico - Refined coordinates
-  { x: 337, y: 380, name: "Tucumcari" },
-  { x: 307, y: 385, name: "Santa Fe" },
-  { x: 277, y: 385, name: "Albuquerque" },
-  { x: 252, y: 385, name: "Gallup" },
+  // New Mexico - Adjusted coordinates
+  { x: 320, y: 320, name: "Tucumcari" },
+  { x: 290, y: 325, name: "Santa Fe" },
+  { x: 260, y: 325, name: "Albuquerque" },
+  { x: 235, y: 325, name: "Gallup" },
   
-  // Arizona - Refined coordinates
-  { x: 227, y: 385, name: "Winslow" },
-  { x: 202, y: 390, name: "Flagstaff" },
-  { x: 172, y: 400, name: "Kingman" },
+  // Arizona - Adjusted coordinates
+  { x: 210, y: 325, name: "Winslow" },
+  { x: 185, y: 330, name: "Flagstaff" },
+  { x: 155, y: 340, name: "Kingman" },
   
-  // California - Refined coordinates
-  { x: 157, y: 410, name: "Needles" },
-  { x: 147, y: 420, name: "Barstow" },
-  { x: 140, y: 427, name: "San Bernardino" },
-  { x: 137, y: 430, name: "Los Angeles" },
-  { x: 134, y: 435, name: "Santa Monica" }
+  // California - Adjusted coordinates
+  { x: 140, y: 350, name: "Needles" },
+  { x: 130, y: 360, name: "Barstow" },
+  { x: 123, y: 367, name: "San Bernardino" },
+  { x: 120, y: 370, name: "Los Angeles" },
+  { x: 117, y: 375, name: "Santa Monica" }
 ];
 
 /**

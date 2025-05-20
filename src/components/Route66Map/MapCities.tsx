@@ -23,7 +23,9 @@ export const MapCityLabels = ({ cities }: MapCitiesProps) => {
             width={70}
             height={16}
             rx={8}
-            fill="rgba(255, 255, 255, 0.7)"
+            fill="rgba(255, 255, 255, 0.8)"
+            stroke="#D92121"
+            strokeWidth="0.5"
           />
           
           {/* City label text */}
@@ -55,7 +57,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
             cy={city.y}
             r={8}
             fill="#D92121"
-            fillOpacity="0.05"
+            fillOpacity="0.15"
             className="animate-pulse"
           />
           
@@ -65,7 +67,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
             cy={city.y}
             r={6}
             fill="#D92121"
-            fillOpacity="0.1"
+            fillOpacity="0.25"
           />
           
           {/* Main dot - completely transparent fill with stroke */}
@@ -73,7 +75,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
             cx={city.x}
             cy={city.y}
             r={4}
-            fill="transparent"
+            fill="#ffffff"
             stroke="#D92121"
             strokeWidth="1.5"
           />
@@ -82,7 +84,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={1}
+            r={1.5}
             fill="#D92121"
           />
         </g>
@@ -105,6 +107,8 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       labelBg.setAttribute('height', '16');
       labelBg.setAttribute('rx', '8');
       labelBg.setAttribute('fill', 'rgba(255, 255, 255, 0.8)');
+      labelBg.setAttribute('stroke', '#D92121');
+      labelBg.setAttribute('stroke-width', '0.5');
       
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('x', city.x.toString());
@@ -127,7 +131,7 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       outerPulse.setAttribute('cx', city.x.toString());
       outerPulse.setAttribute('cy', city.y.toString());
       outerPulse.setAttribute('r', '8');
-      outerPulse.setAttribute('fill-opacity', '0.05');
+      outerPulse.setAttribute('fill-opacity', '0.15');
       outerPulse.setAttribute('fill', '#D92121');
       outerPulse.setAttribute('class', 'animate-pulse');
       
@@ -136,15 +140,15 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       pulse.setAttribute('cx', city.x.toString());
       pulse.setAttribute('cy', city.y.toString());
       pulse.setAttribute('r', '6');
-      pulse.setAttribute('fill-opacity', '0.1');
+      pulse.setAttribute('fill-opacity', '0.25');
       pulse.setAttribute('fill', '#D92121');
       
-      // Main dot - no fill, only stroke
+      // Main dot - white fill with stroke
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', 'transparent');
+      dot.setAttribute('fill', '#ffffff');
       dot.setAttribute('stroke', '#D92121');
       dot.setAttribute('stroke-width', '1.5');
       
@@ -152,7 +156,7 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       const center = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       center.setAttribute('cx', city.x.toString());
       center.setAttribute('cy', city.y.toString());
-      center.setAttribute('r', '1');
+      center.setAttribute('r', '1.5');
       center.setAttribute('fill', '#D92121');
       
       // Add dot elements to dotGroup in order of rendering (back to front)
