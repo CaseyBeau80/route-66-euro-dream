@@ -125,7 +125,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={8}
-              fill="rgba(217, 33, 33, 0.05)" // More transparent
+              fill="rgba(217, 33, 33, 0.05)"
               className="animate-pulse"
             />
             
@@ -134,7 +134,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={6}
-              fill="rgba(217, 33, 33, 0.1)" // More transparent
+              fill="rgba(217, 33, 33, 0.1)"
             />
             
             {/* Main dot - completely transparent fill with stroke */}
@@ -142,8 +142,8 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={4}
-              fill="none" // Use 'none' for SVG transparency
-              stroke="#D92121" // Red stroke
+              fill="none"
+              stroke="#D92121"
               strokeWidth="1.5"
             />
             
@@ -152,7 +152,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={1}
-              fill="#D92121" // Small dot in center
+              fill="#D92121"
             />
           </g>
         </React.Fragment>
