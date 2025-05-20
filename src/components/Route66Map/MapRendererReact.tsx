@@ -19,12 +19,12 @@ interface MapRendererReactProps {
 const majorCities = [
   // Illinois
   { x: 618, y: 205, name: "Chicago" },
-  { x: 612, y: 220, name: "Joliet" },
+  { x: 610, y: 218, name: "Joliet" },
   { x: 605, y: 230, name: "Springfield, IL" },
   
   // Missouri
-  { x: 585, y: 255, name: "St. Louis" },
-  { x: 565, y: 275, name: "Springfield, MO" },
+  { x: 588, y: 248, name: "St. Louis" },
+  { x: 560, y: 275, name: "Springfield, MO" },
   { x: 545, y: 290, name: "Joplin" },
   
   // Kansas (small segment)
@@ -38,20 +38,20 @@ const majorCities = [
   { x: 395, y: 330, name: "Amarillo" },
   
   // New Mexico
-  { x: 365, y: 332, name: "Tucumcari" },
-  { x: 350, y: 334, name: "Santa Fe" },
+  { x: 365, y: 333, name: "Tucumcari" },
+  { x: 350, y: 335, name: "Santa Fe" },
   { x: 320, y: 338, name: "Albuquerque" },
   { x: 290, y: 342, name: "Gallup" },
   
   // Arizona
   { x: 260, y: 346, name: "Winslow" },
-  { x: 215, y: 352, name: "Flagstaff" },
-  { x: 175, y: 360, name: "Kingman" },
+  { x: 230, y: 350, name: "Flagstaff" },
+  { x: 190, y: 354, name: "Kingman" },
   
   // California
-  { x: 155, y: 366, name: "Needles" },
-  { x: 145, y: 370, name: "Barstow" },
-  { x: 135, y: 375, name: "San Bernardino" },
+  { x: 170, y: 359, name: "Needles" },
+  { x: 150, y: 364, name: "Barstow" },
+  { x: 140, y: 368, name: "San Bernardino" },
   { x: 125, y: 382, name: "Los Angeles" },
   { x: 120, y: 410, name: "Santa Monica" }
 ];
