@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
@@ -72,7 +73,7 @@ const MapRendererReact = ({
   const [isPinching, setIsPinching] = useState(false);
   const [zoomActivity, setZoomActivity] = useState<boolean>(false);
   const MIN_ZOOM = 1;
-  const MAX_ZOOM = 4;
+  const MAX_ZOOM = 5; // Increased max zoom for better detail on mobile
   const ZOOM_STEP = 0.5;
 
   // Reset the zoom activity indicator after a delay
@@ -117,11 +118,6 @@ const MapRendererReact = ({
     
     return () => clearTimeout(timeout);
   }, []);
-  
-  // Log when component mounts to help with debugging
-  useEffect(() => {
-    console.log('MapRendererReact mounted, isMobile detection available:', typeof window !== 'undefined');
-  }, []);
 
   return (
     <div className="relative w-full h-full">
@@ -135,7 +131,7 @@ const MapRendererReact = ({
         />
       )}
       
-      {/* Add ZoomControls component */}
+      {/* Enhanced ZoomControls component */}
       <ZoomControls
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
@@ -145,9 +141,9 @@ const MapRendererReact = ({
       />
       
       {/* Add pinch indicator for mobile devices with pulsing animation when active */}
-      <div className={`absolute top-4 right-4 bg-white/80 p-2 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-2 transition-all ${isPinching || zoomActivity ? 'bg-blue-100 scale-110' : ''}`}>
-        <Touchpad className={`h-4 w-4 ${isPinching || zoomActivity ? 'text-blue-500 animate-pulse' : ''}`} />
-        <span className="text-xs">Pinch to zoom {zoom.toFixed(1)}x</span>
+      <div className={`absolute top-2 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-1 transition-all text-xs ${isPinching || zoomActivity ? 'bg-blue-100 scale-110' : ''}`}>
+        <Touchpad className={`h-3 w-3 ${isPinching || zoomActivity ? 'text-blue-500 animate-pulse' : ''}`} />
+        <span>Pinch to zoom {zoom.toFixed(1)}x</span>
       </div>
       
       <MapBackground>
@@ -166,20 +162,20 @@ const MapRendererReact = ({
         </MapSvgContainer>
       </MapBackground>
       
-      {/* Legend */}
-      <div className="absolute bottom-4 right-4 bg-white p-2 rounded shadow-md z-10 flex flex-col gap-2">
-        <div className="text-xs font-bold mb-1">Legend</div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#5D7B93]"></div>
-          <div className="text-xs">Route 66 States</div>
+      {/* More compact legend for mobile */}
+      <div className="absolute bottom-4 right-4 bg-white/90 p-2 rounded shadow-md z-10 flex flex-col gap-1.5 text-xs max-w-[120px] md:max-w-none">
+        <div className="font-bold mb-0.5">Legend</div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 bg-[#5D7B93]"></div>
+          <div>Route 66 States</div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#d3d3d3]"></div>
-          <div className="text-xs">Other States</div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 bg-[#d3d3d3]"></div>
+          <div>Other States</div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#D92121]"></div>
-          <div className="text-xs">Route 66</div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 bg-[#D92121]"></div>
+          <div>Route 66</div>
         </div>
       </div>
     </div>

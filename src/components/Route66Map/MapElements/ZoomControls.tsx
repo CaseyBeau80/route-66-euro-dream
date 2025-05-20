@@ -22,14 +22,14 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   const zoomPercentage = Math.round(currentZoom * 100);
   
   return (
-    <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 bg-white/80 p-1 rounded-md shadow-md backdrop-blur-sm">
+    <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm">
       <Button
         variant="outline"
         size="icon"
         onClick={onZoomIn}
         disabled={currentZoom >= maxZoom}
         title="Zoom in"
-        className="w-8 h-8"
+        className="w-8 h-8 shadow-sm"
       >
         <ZoomIn className="h-4 w-4" />
       </Button>
@@ -44,7 +44,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
         onClick={onZoomOut}
         disabled={currentZoom <= minZoom}
         title="Zoom out"
-        className="w-8 h-8"
+        className="w-8 h-8 shadow-sm"
       >
         <ZoomOut className="h-4 w-4" />
       </Button>
