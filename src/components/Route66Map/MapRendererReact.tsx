@@ -15,43 +15,43 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Cities along Route 66 with completely revised coordinates to match the map projection
+// Cities along Route 66 with meticulously adjusted coordinates to match the route path
 const majorCities = [
   // Illinois
   { x: 612, y: 230, name: "Chicago" },
-  { x: 597, y: 245, name: "Joliet" },
+  { x: 602, y: 245, name: "Joliet" },
   { x: 587, y: 265, name: "Springfield, IL" },
   
   // Missouri
   { x: 562, y: 295, name: "St. Louis" },
   { x: 532, y: 315, name: "Springfield, MO" },
-  { x: 512, y: 324, name: "Joplin" },
+  { x: 502, y: 324, name: "Joplin" },
   
   // Kansas (small segment)
-  { x: 502, y: 324, name: "Galena, KS" },
+  { x: 492, y: 330, name: "Galena, KS" },
   
   // Oklahoma
   { x: 472, y: 338, name: "Tulsa" },
-  { x: 442, y: 348, name: "Oklahoma City" },
+  { x: 427, y: 355, name: "Oklahoma City" },
   
   // Texas
-  { x: 387, y: 370, name: "Amarillo" },
+  { x: 367, y: 370, name: "Amarillo" },
   
-  // New Mexico - Revised coordinates
-  { x: 347, y: 375, name: "Tucumcari" },
-  { x: 322, y: 375, name: "Santa Fe" },
-  { x: 307, y: 385, name: "Albuquerque" },
-  { x: 277, y: 385, name: "Gallup" },
+  // New Mexico - Refined coordinates
+  { x: 337, y: 380, name: "Tucumcari" },
+  { x: 307, y: 385, name: "Santa Fe" },
+  { x: 277, y: 385, name: "Albuquerque" },
+  { x: 252, y: 385, name: "Gallup" },
   
-  // Arizona - Revised coordinates
-  { x: 252, y: 385, name: "Winslow" },
-  { x: 227, y: 385, name: "Flagstaff" },
-  { x: 192, y: 390, name: "Kingman" },
+  // Arizona - Refined coordinates
+  { x: 227, y: 385, name: "Winslow" },
+  { x: 202, y: 390, name: "Flagstaff" },
+  { x: 172, y: 400, name: "Kingman" },
   
-  // California - Revised coordinates
-  { x: 172, y: 400, name: "Needles" },
-  { x: 157, y: 415, name: "Barstow" },
-  { x: 147, y: 425, name: "San Bernardino" },
+  // California - Refined coordinates
+  { x: 157, y: 410, name: "Needles" },
+  { x: 147, y: 420, name: "Barstow" },
+  { x: 140, y: 427, name: "San Bernardino" },
   { x: 137, y: 430, name: "Los Angeles" },
   { x: 134, y: 435, name: "Santa Monica" }
 ];

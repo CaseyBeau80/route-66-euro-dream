@@ -1,4 +1,3 @@
-
 import React from "react";
 import { route66States, otherUSStates, allUSStates } from "./mapData";
 
@@ -111,68 +110,6 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
     
     return statesPaths;
   };
-  
-  // React version for MapRendererReact
-  const renderReactStates = () => {
-    return (
-      <g stroke="#ffffff" strokeWidth="1">
-        {allUSStates.map(state => {
-          // Determine if this is a Route 66 state
-          const isRoute66State = route66States.some(r66 => r66.id === state.id);
-          const stateCenter = getStateCentroid(state.d);
-          
-          // Determine fill color based on state type and selection
-          let fillColor;
-          if (selectedState === state.id) {
-            fillColor = '#5D7B93'; // Selected state color
-          } else if (isRoute66State) {
-            fillColor = '#7D9CB3'; // Route 66 state color
-          } else {
-            fillColor = '#d3d3d3'; // Non-Route 66 state color
-          }
-          
-          return (
-            <React.Fragment key={state.id}>
-              <path
-                d={state.d}
-                id={`state-${state.id}`}
-                fill={fillColor}
-                data-state={state.id}
-                data-state-name={state.name}
-                className={isRoute66State ? "cursor-pointer hover:opacity-90" : ""}
-                onClick={isRoute66State ? () => onStateClick(state.id, state.name) : undefined}
-              />
-              {stateCenter && (
-                <>
-                  <rect
-                    x={stateCenter.x - 12}
-                    y={stateCenter.y - 10}
-                    width={24}
-                    height={16}
-                    rx={4}
-                    fill={selectedState === state.id ? '#5D7B93' : 'rgba(255,255,255,0.7)'}
-                    className="pointer-events-none"
-                  />
-                  <text
-                    x={stateCenter.x}
-                    y={stateCenter.y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="10"
-                    fontWeight="bold"
-                    className="pointer-events-none"
-                    fill={selectedState === state.id ? '#ffffff' : '#333333'}
-                  >
-                    {state.id}
-                  </text>
-                </>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </g>
-    );
-  };
 
   return {
     createStatesPaths,
@@ -183,7 +120,84 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
 // MapStatesComponent - Used in MapRendererReact as JSX component
 export const MapStatesComponent = ({ selectedState, onStateClick }: MapStatesProps) => {
   const mapStates = MapStates({ selectedState, onStateClick });
-  return mapStates.renderReactStates();
+  
+  // Render all states with proper styling and event handling
+  return (
+    <g stroke="#ffffff" strokeWidth="1">
+      {allUSStates.map(state => {
+        // Determine if this is a Route 66 state
+        const isRoute66State = route66States.some(r66 => r66.id === state.id);
+        const stateCenter = getStateCentroid(state.d);
+        
+        // Determine fill color based on state type and selection
+        let fillColor;
+        if (selectedState === state.id) {
+          fillColor = '#5D7B93'; // Selected state color
+        } else if (isRoute66State) {
+          fillColor = '#7D9CB3'; // Route 66 state color
+        } else {
+          fillColor = '#d3d3d3'; // Non-Route 66 state color
+        }
+        
+        return (
+          <React.Fragment key={state.id}>
+            <path
+              d={state.d}
+              id={`state-${state.id}`}
+              fill={fillColor}
+              data-state={state.id}
+              data-state-name={state.name}
+              className={isRoute66State ? "cursor-pointer hover:opacity-90" : ""}
+              onClick={isRoute66State ? () => onStateClick(state.id, state.name) : undefined}
+            />
+            {stateCenter && (
+              <>
+                <rect
+                  x={stateCenter.x - 12}
+                  y={stateCenter.y - 10}
+                  width={24}
+                  height={16}
+                  rx={4}
+                  fill={selectedState === state.id ? '#5D7B93' : 'rgba(255,255,255,0.7)'}
+                  className="pointer-events-none"
+                />
+                <text
+                  x={stateCenter.x}
+                  y={stateCenter.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize="10"
+                  fontWeight="bold"
+                  className="pointer-events-none"
+                  fill={selectedState === state.id ? '#ffffff' : '#333333'}
+                >
+                  {state.id}
+                </text>
+              </>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </g>
+  );
+};
+
+// Helper function to calculate approximate centroids for state labels
+const getStateCentroid = (pathD: string): {x: number, y: number} | null => {
+  // A simple centroid approximation based on the path's points
+  const points = pathD.split(/[ML,Z]/).filter(Boolean);
+  let sumX = 0, sumY = 0, count = 0;
+  
+  points.forEach(point => {
+    const [x, y] = point.trim().split(' ').map(Number);
+    if (!isNaN(x) && !isNaN(y)) {
+      sumX += x;
+      sumY += y;
+      count++;
+    }
+  });
+  
+  return count ? {x: sumX/count, y: sumY/count} : null;
 };
 
 export default MapStates;
