@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
@@ -14,13 +15,14 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Cities along Route 66 with coordinates precisely aligned with the corrected route path
-// Path follows from Chicago (east) to Santa Monica (west)
+// Refined city coordinates calibrated to match SVG viewBox (0 0 959 593)
+// These coordinates are precisely aligned with state boundaries
+// Path follows historical Route 66 from Chicago (east) to Santa Monica (west)
 const majorCities = [
   // Illinois
-  { x: 618, y: 205, name: "Chicago" },
+  { x: 618, y: 205, name: "Chicago" },       // Start of Route 66
   { x: 610, y: 218, name: "Joliet" },
-  { x: 605, y: 230, name: "Springfield, IL" },
+  { x: 600, y: 235, name: "Springfield, IL" },
   
   // Missouri
   { x: 588, y: 248, name: "St. Louis" },
@@ -28,11 +30,11 @@ const majorCities = [
   { x: 545, y: 290, name: "Joplin" },
   
   // Kansas (small segment)
-  { x: 525, y: 300, name: "Galena, KS" },
+  { x: 530, y: 298, name: "Galena, KS" },
   
   // Oklahoma
-  { x: 495, y: 310, name: "Tulsa" },
-  { x: 465, y: 320, name: "Oklahoma City" },
+  { x: 500, y: 309, name: "Tulsa" },
+  { x: 470, y: 318, name: "Oklahoma City" },
   
   // Texas
   { x: 395, y: 330, name: "Amarillo" },
@@ -53,7 +55,7 @@ const majorCities = [
   { x: 150, y: 364, name: "Barstow" },
   { x: 140, y: 368, name: "San Bernardino" },
   { x: 125, y: 382, name: "Los Angeles" },
-  { x: 120, y: 410, name: "Santa Monica" }
+  { x: 120, y: 410, name: "Santa Monica" }   // End of Route 66
 ];
 
 /**

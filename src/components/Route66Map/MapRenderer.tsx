@@ -11,15 +11,45 @@ interface MapRendererProps {
   mapContainerRef: React.RefObject<HTMLDivElement>;
 }
 
-// Major cities along Route 66 with proper coordinates
+// Using the same city coordinates as in MapRendererReact for consistency
 const majorCities = [
-  { x: 147, y: 391, name: "Los Angeles" },
-  { x: 212, y: 375, name: "Flagstaff" },
-  { x: 290, y: 350, name: "Albuquerque" },
-  { x: 362, y: 330, name: "Amarillo" },
-  { x: 446, y: 335, name: "Oklahoma City" },
-  { x: 506, y: 320, name: "St. Louis" },
-  { x: 618, y: 280, name: "Chicago" }
+  // Illinois
+  { x: 618, y: 205, name: "Chicago" },       // Start of Route 66
+  { x: 610, y: 218, name: "Joliet" },
+  { x: 600, y: 235, name: "Springfield, IL" },
+  
+  // Missouri
+  { x: 588, y: 248, name: "St. Louis" },
+  { x: 560, y: 275, name: "Springfield, MO" },
+  { x: 545, y: 290, name: "Joplin" },
+  
+  // Kansas (small segment)
+  { x: 530, y: 298, name: "Galena, KS" },
+  
+  // Oklahoma
+  { x: 500, y: 309, name: "Tulsa" },
+  { x: 470, y: 318, name: "Oklahoma City" },
+  
+  // Texas
+  { x: 395, y: 330, name: "Amarillo" },
+  
+  // New Mexico
+  { x: 365, y: 333, name: "Tucumcari" },
+  { x: 350, y: 335, name: "Santa Fe" },
+  { x: 320, y: 338, name: "Albuquerque" },
+  { x: 290, y: 342, name: "Gallup" },
+  
+  // Arizona
+  { x: 260, y: 346, name: "Winslow" },
+  { x: 230, y: 350, name: "Flagstaff" },
+  { x: 190, y: 354, name: "Kingman" },
+  
+  // California
+  { x: 170, y: 359, name: "Needles" },
+  { x: 150, y: 364, name: "Barstow" },
+  { x: 140, y: 368, name: "San Bernardino" },
+  { x: 125, y: 382, name: "Los Angeles" },
+  { x: 120, y: 410, name: "Santa Monica" }   // End of Route 66
 ];
 
 const MapRenderer = ({
@@ -60,8 +90,8 @@ const MapRenderer = ({
     const statesPaths = mapStates.createStatesPaths();
     mapSvg.appendChild(statesPaths);
     
-    // Create and add route line with animation
-    const route66Line = Route66Line({ animated: true });
+    // Create and add route line with animation, passing cities
+    const route66Line = Route66Line({ animated: true, cities: majorCities });
     const routePath = route66Line.createRoutePath();
     mapSvg.appendChild(routePath);
     
