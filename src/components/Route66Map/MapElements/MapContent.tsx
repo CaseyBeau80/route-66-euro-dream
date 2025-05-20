@@ -25,8 +25,8 @@ const MapContent = ({
         />
       </g>
       
-      {/* Render route line and cities with reduced scale but adjusted y-translation */}
-      <g transform="scale(0.85) translate(10, 90)">
+      {/* Render route line and cities with reduced scale but with minimal y-translation */}
+      <g transform="scale(0.85) translate(10, 20)">
         {/* Render route line */}
         <Route66LineComponent animated={true} cities={cities} />
         
