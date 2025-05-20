@@ -24,7 +24,7 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       outerPulse.setAttribute('cx', city.x.toString());
       outerPulse.setAttribute('cy', city.y.toString());
       outerPulse.setAttribute('r', '8');
-      outerPulse.setAttribute('fill', 'rgba(217, 33, 33, 0.2)');
+      outerPulse.setAttribute('fill', 'rgba(217, 33, 33, 0.05)'); // More transparent
       outerPulse.setAttribute('class', 'animate-pulse');
       
       // Middle pulse circle
@@ -32,21 +32,23 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       pulse.setAttribute('cx', city.x.toString());
       pulse.setAttribute('cy', city.y.toString());
       pulse.setAttribute('r', '6');
-      pulse.setAttribute('fill', 'rgba(217, 33, 33, 0.4)');
+      pulse.setAttribute('fill', 'rgba(217, 33, 33, 0.1)'); // More transparent
       
-      // Main dot
+      // Main dot - transparent fill with stroke
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', '#D92121');
+      dot.setAttribute('fill', 'rgba(217, 33, 33, 0)'); // Transparent fill
+      dot.setAttribute('stroke', '#D92121'); // Red stroke
+      dot.setAttribute('stroke-width', '1.5'); // Stroke width
       
-      // White center for better visibility
+      // White center replaced with small circle marker
       const center = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       center.setAttribute('cx', city.x.toString());
       center.setAttribute('cy', city.y.toString());
-      center.setAttribute('r', '1.5');
-      center.setAttribute('fill', 'white');
+      center.setAttribute('r', '1');
+      center.setAttribute('fill', '#D92121'); // Small red dot in center
       
       // Create city label with background for better readability
       const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -109,7 +111,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={8}
-              fill="rgba(217, 33, 33, 0.2)"
+              fill="rgba(217, 33, 33, 0.05)" // More transparent
               className="animate-pulse"
             />
             
@@ -118,23 +120,25 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={6}
-              fill="rgba(217, 33, 33, 0.4)"
+              fill="rgba(217, 33, 33, 0.1)" // More transparent
             />
             
-            {/* Main dot */}
+            {/* Main dot - transparent with stroke */}
             <circle
               cx={city.x}
               cy={city.y}
               r={4}
-              fill="#D92121"
+              fill="rgba(0, 0, 0, 0)" // Transparent fill
+              stroke="#D92121" // Red stroke
+              strokeWidth="1.5"
             />
             
-            {/* White center */}
+            {/* Small center dot */}
             <circle
               cx={city.x}
               cy={city.y}
-              r={1.5}
-              fill="white"
+              r={1}
+              fill="#D92121" // Small dot in center
             />
           </g>
           
