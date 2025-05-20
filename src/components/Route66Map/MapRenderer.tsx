@@ -1,4 +1,3 @@
-
 import React from "react";
 import MapStates from "./MapStates";
 import MapCities from "./MapCities";
@@ -36,6 +35,12 @@ const MapRenderer = ({
     // Clear previous content
     container.innerHTML = '';
     
+    // Initialize zoom state
+    let currentZoom = 1;
+    const MIN_ZOOM = 1;
+    const MAX_ZOOM = 4;
+    const ZOOM_STEP = 0.5;
+    
     // Create the map wrapper
     const mapWrapper = document.createElement('div');
     mapWrapper.className = 'relative w-full h-full';
@@ -48,7 +53,7 @@ const MapRenderer = ({
     const mapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     mapSvg.setAttribute('viewBox', '0 0 959 593');
     mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full');
+    mapSvg.setAttribute('class', 'absolute inset-0 w-full h-full transition-all duration-300 ease-in-out');
     
     // Create and add states
     const mapStates = MapStates({ selectedState, onStateClick });
@@ -88,6 +93,54 @@ const MapRenderer = ({
       </div>
     `;
     mapWrapper.appendChild(badge);
+    
+    // Add zoom controls
+    const zoomControls = document.createElement('div');
+    zoomControls.className = 'absolute bottom-4 left-4 z-10 flex flex-col gap-1 bg-white/80 p-1 rounded-md shadow-md backdrop-blur-sm';
+    
+    const updateViewBox = () => {
+      // Base viewBox dimensions
+      const baseWidth = 959;
+      const baseHeight = 593;
+      const baseCenterX = baseWidth / 2;
+      const baseCenterY = baseHeight / 2;
+      
+      // Calculate adjusted viewBox based on zoom
+      const viewBoxWidth = baseWidth / currentZoom;
+      const viewBoxHeight = baseHeight / currentZoom;
+      
+      // Calculate new viewBox origin to keep the map centered
+      const viewBoxX = baseCenterX - (viewBoxWidth / 2);
+      const viewBoxY = baseCenterY - (viewBoxHeight / 2);
+      
+      mapSvg.setAttribute('viewBox', `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
+    };
+    
+    // Create zoom in button
+    const zoomInBtn = document.createElement('button');
+    zoomInBtn.className = 'w-8 h-8 bg-white border border-gray-200 rounded flex items-center justify-center hover:bg-gray-100 transition-colors';
+    zoomInBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`;
+    zoomInBtn.addEventListener('click', () => {
+      if (currentZoom < MAX_ZOOM) {
+        currentZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+        updateViewBox();
+      }
+    });
+    
+    // Create zoom out button
+    const zoomOutBtn = document.createElement('button');
+    zoomOutBtn.className = 'w-8 h-8 bg-white border border-gray-200 rounded flex items-center justify-center hover:bg-gray-100 transition-colors';
+    zoomOutBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`;
+    zoomOutBtn.addEventListener('click', () => {
+      if (currentZoom > MIN_ZOOM) {
+        currentZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+        updateViewBox();
+      }
+    });
+    
+    zoomControls.appendChild(zoomInBtn);
+    zoomControls.appendChild(zoomOutBtn);
+    mapWrapper.appendChild(zoomControls);
     
     // Add a legend for the map
     const legend = document.createElement('div');

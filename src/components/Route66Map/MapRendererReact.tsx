@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
 import { Route66LineComponent } from "./Route66Line";
@@ -8,6 +8,7 @@ import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
+import ZoomControls from "./MapElements/ZoomControls";
 import { route66States } from "./mapData";
 
 interface MapRendererReactProps {
@@ -36,6 +37,21 @@ const MapRendererReact = ({
   onStateClick,
   onClearSelection
 }: MapRendererReactProps) => {
+  // Zoom state management
+  const [zoom, setZoom] = useState(1);
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 4;
+  const ZOOM_STEP = 0.5;
+
+  // Zoom handlers
+  const handleZoomIn = () => {
+    setZoom(prevZoom => Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prevZoom => Math.max(prevZoom - ZOOM_STEP, MIN_ZOOM));
+  };
+
   return (
     <div className="relative w-full h-full">
       <MapTitle />
@@ -48,8 +64,17 @@ const MapRendererReact = ({
         />
       )}
       
+      {/* Add ZoomControls component */}
+      <ZoomControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        currentZoom={zoom}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+      />
+      
       <MapBackground>
-        <MapSvgContainer>
+        <MapSvgContainer zoom={zoom} minZoom={MIN_ZOOM} maxZoom={MAX_ZOOM}>
           <MapStatesComponent 
             selectedState={selectedState}
             onStateClick={onStateClick}
