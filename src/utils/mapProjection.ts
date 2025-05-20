@@ -29,7 +29,7 @@ export function projectLatLngToSvgCoordinates(latLng: [number, number]): { x: nu
   const longitudeRange = US_BOUNDS.east - US_BOUNDS.west;
   const normalizedLng = (lng - US_BOUNDS.west) / longitudeRange;
   // Map longitude to SVG coordinates (east-west direction)
-  const x = SVG_WIDTH * (1 - normalizedLng); // Re-invert X for correct east-west orientation
+  const x = SVG_WIDTH * normalizedLng; // Don't invert X for correct east-west orientation
   
   // Normalize latitude to SVG y coordinate
   const latitudeRange = US_BOUNDS.north - US_BOUNDS.south;
