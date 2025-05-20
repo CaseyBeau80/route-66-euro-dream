@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
 import { Route66LineComponent } from "./Route66Line";
@@ -44,19 +44,27 @@ const MapRendererReact = ({
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.5;
 
-  // Zoom handlers
-  const handleZoomIn = () => {
-    setZoom(prevZoom => Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM));
-  };
+  // Zoom handlers with debounce to prevent rapid updates
+  const handleZoomIn = useCallback(() => {
+    setZoom(prevZoom => {
+      const newZoom = Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM);
+      console.log('Zoom in to:', newZoom);
+      return newZoom;
+    });
+  }, [MAX_ZOOM, ZOOM_STEP]);
 
-  const handleZoomOut = () => {
-    setZoom(prevZoom => Math.max(prevZoom - ZOOM_STEP, MIN_ZOOM));
-  };
+  const handleZoomOut = useCallback(() => {
+    setZoom(prevZoom => {
+      const newZoom = Math.max(prevZoom - ZOOM_STEP, MIN_ZOOM);
+      console.log('Zoom out to:', newZoom);
+      return newZoom;
+    });
+  }, [MIN_ZOOM, ZOOM_STEP]);
   
-  const handleZoomChange = (newZoom: number) => {
-    console.log('Zoom changed to:', newZoom);
+  const handleZoomChange = useCallback((newZoom: number) => {
+    console.log('Zoom changed to:', newZoom.toFixed(2));
     setZoom(newZoom);
-  };
+  }, []);
   
   // Log when component mounts to help with debugging
   useEffect(() => {
