@@ -8,28 +8,43 @@ const Route66Badge = () => {
       <div className="relative w-24 h-28">
         {/* Shield background with authentic US Highway shield shape */}
         <svg viewBox="0 0 100 120" className="absolute inset-0 w-full h-full">
-          {/* Main shield shape */}
+          {/* Shield shape */}
           <path 
-            d="M5,5 L95,5 L95,35 Q95,75 50,115 Q5,75 5,35 Z" 
+            d="M50,5 
+               L5,5 
+               L5,35 
+               C5,50 12,70 25,85
+               C34,95 43,105 50,115
+               C57,105 66,95 75,85
+               C88,70 95,50 95,35
+               L95,5 
+               L50,5 Z" 
             fill="white" 
             stroke="black" 
             strokeWidth="4"
           />
           
-          {/* Red banner at top */}
-          <rect x="5" y="5" width="90" height="22" fill="#D92121" />
+          {/* Horizontal dividing line */}
+          <line 
+            x1="5" 
+            y1="40" 
+            x2="95" 
+            y2="40" 
+            stroke="black" 
+            strokeWidth="3"
+          />
         </svg>
         
         {/* Shield content */}
         <div className="absolute inset-0 flex flex-col items-center">
-          {/* ROUTE text in the red banner */}
-          <div className="text-white font-bold text-sm mt-[8px]">ROUTE</div>
+          {/* ROUTE text in upper section */}
+          <div className="text-black font-bold text-2xl mt-3">ROUTE</div>
           
-          {/* U.S. text */}
-          <div className="text-xs font-bold mt-7">U.S.</div>
+          {/* US text in middle section */}
+          <div className="text-black font-bold text-2xl mt-6">US</div>
           
-          {/* 66 as the focal point */}
-          <div className="text-5xl font-black mt-0">66</div>
+          {/* 66 as the focal point in lower section */}
+          <div className="text-6xl font-black mt-3">66</div>
         </div>
       </div>
     </div>
