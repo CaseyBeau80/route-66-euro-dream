@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
@@ -18,15 +17,41 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Major cities along Route 66 with proper coordinates
+// Cities along Route 66 with accurate SVG coordinates
 const majorCities = [
-  { x: 147, y: 391, name: "Los Angeles" },
-  { x: 212, y: 375, name: "Flagstaff" },
-  { x: 290, y: 350, name: "Albuquerque" },
-  { x: 362, y: 330, name: "Amarillo" },
-  { x: 446, y: 335, name: "Oklahoma City" },
+  // Illinois
+  { x: 618, y: 280, name: "Chicago" },
+  { x: 592, y: 300, name: "Joliet" },
+  { x: 568, y: 330, name: "Springfield, IL" },
+  
+  // Missouri
   { x: 506, y: 320, name: "St. Louis" },
-  { x: 618, y: 280, name: "Chicago" }
+  { x: 472, y: 348, name: "Springfield, MO" },
+  { x: 455, y: 358, name: "Joplin" },
+  
+  // Oklahoma
+  { x: 428, y: 340, name: "Tulsa" },
+  { x: 446, y: 335, name: "Oklahoma City" },
+  
+  // Texas
+  { x: 398, y: 325, name: "Amarillo" },
+  
+  // New Mexico
+  { x: 358, y: 340, name: "Tucumcari" },
+  { x: 345, y: 350, name: "Santa Fe" },
+  { x: 328, y: 360, name: "Albuquerque" },
+  { x: 290, y: 350, name: "Gallup" },
+  
+  // Arizona
+  { x: 255, y: 340, name: "Winslow" },
+  { x: 212, y: 375, name: "Flagstaff" },
+  { x: 192, y: 345, name: "Kingman" },
+  
+  // California
+  { x: 175, y: 380, name: "Needles" },
+  { x: 160, y: 370, name: "Barstow" },
+  { x: 147, y: 391, name: "Los Angeles" },
+  { x: 140, y: 395, name: "Santa Monica" }
 ];
 
 /**
