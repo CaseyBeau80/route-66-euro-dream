@@ -14,7 +14,7 @@ interface MapRendererProps {
 // Using the same city coordinates as in MapRendererReact for consistency
 const majorCities = [
   // Illinois
-  { x: 618, y: 205, name: "Chicago" },       // Start of Route 66
+  { x: 617, y: 206, name: "Chicago" },       // Start of Route 66
   { x: 610, y: 218, name: "Joliet" },
   { x: 600, y: 235, name: "Springfield, IL" },
   
@@ -48,8 +48,8 @@ const majorCities = [
   { x: 170, y: 359, name: "Needles" },
   { x: 150, y: 364, name: "Barstow" },
   { x: 140, y: 368, name: "San Bernardino" },
-  { x: 125, y: 382, name: "Los Angeles" },
-  { x: 120, y: 410, name: "Santa Monica" }   // End of Route 66
+  { x: 125, y: 377, name: "Los Angeles" },   // Adjusted for better alignment
+  { x: 115, y: 385, name: "Santa Monica" }   // End of Route 66 - adjusted for better alignment
 ];
 
 const MapRenderer = ({
