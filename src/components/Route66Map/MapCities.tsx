@@ -41,36 +41,38 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       // Create dot with circle and pulse effect in a separate group
       const dotGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       
-      // Outer pulse circle with animation
+      // Outer pulse circle with animation - fully transparent fill
       const outerPulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       outerPulse.setAttribute('cx', city.x.toString());
       outerPulse.setAttribute('cy', city.y.toString());
       outerPulse.setAttribute('r', '8');
-      outerPulse.setAttribute('fill', 'rgba(217, 33, 33, 0.05)'); // More transparent
+      outerPulse.setAttribute('fill-opacity', '0.05');
+      outerPulse.setAttribute('fill', '#D92121');
       outerPulse.setAttribute('class', 'animate-pulse');
       
-      // Middle pulse circle
+      // Middle pulse circle - semi transparent
       const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       pulse.setAttribute('cx', city.x.toString());
       pulse.setAttribute('cy', city.y.toString());
       pulse.setAttribute('r', '6');
-      pulse.setAttribute('fill', 'rgba(217, 33, 33, 0.1)'); // More transparent
+      pulse.setAttribute('fill-opacity', '0.1');
+      pulse.setAttribute('fill', '#D92121');
       
-      // Main dot - completely transparent fill with stroke
+      // Main dot - no fill, only stroke
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', 'none'); // Use 'none' for SVG transparency
-      dot.setAttribute('stroke', '#D92121'); // Red stroke
-      dot.setAttribute('stroke-width', '1.5'); // Stroke width
+      dot.setAttribute('fill', 'transparent');
+      dot.setAttribute('stroke', '#D92121');
+      dot.setAttribute('stroke-width', '1.5');
       
       // Small center dot
       const center = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       center.setAttribute('cx', city.x.toString());
       center.setAttribute('cy', city.y.toString());
       center.setAttribute('r', '1');
-      center.setAttribute('fill', '#D92121'); // Small red dot in center
+      center.setAttribute('fill', '#D92121');
       
       // Add dot elements to dotGroup in order of rendering (back to front)
       dotGroup.appendChild(outerPulse);
@@ -120,21 +122,23 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
           
           {/* Dot group - render last */}
           <g>
-            {/* Outer pulse */}
+            {/* Outer pulse with proper transparency */}
             <circle
               cx={city.x}
               cy={city.y}
               r={8}
-              fill="rgba(217, 33, 33, 0.05)"
+              fill="#D92121"
+              fillOpacity="0.05"
               className="animate-pulse"
             />
             
-            {/* Middle pulse */}
+            {/* Middle pulse with proper transparency */}
             <circle
               cx={city.x}
               cy={city.y}
               r={6}
-              fill="rgba(217, 33, 33, 0.1)"
+              fill="#D92121"
+              fillOpacity="0.1"
             />
             
             {/* Main dot - completely transparent fill with stroke */}
@@ -142,7 +146,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={4}
-              fill="none"
+              fill="transparent"
               stroke="#D92121"
               strokeWidth="1.5"
             />
