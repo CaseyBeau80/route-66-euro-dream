@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { MapStatesComponent } from "./MapStates";
 import { MapCitiesComponent } from "./MapCities";
@@ -7,7 +8,7 @@ import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import ZoomControls from "./MapElements/ZoomControls";
-import { Touchpad } from "lucide-react";
+import { Touchpad, Move } from "lucide-react";
 
 interface MapRendererReactProps {
   selectedState: string | null;
@@ -69,6 +70,7 @@ const MapRendererReact = ({
   const [zoom, setZoom] = useState(1);
   const [isPinching, setIsPinching] = useState(false);
   const [zoomActivity, setZoomActivity] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 5; // Increased max zoom for better detail on mobile
   const ZOOM_STEP = 0.5;
@@ -82,6 +84,16 @@ const MapRendererReact = ({
       return () => clearTimeout(timer);
     }
   }, [zoomActivity]);
+  
+  // Reset the drag indicator after a delay
+  useEffect(() => {
+    if (isDragging) {
+      const timer = setTimeout(() => {
+        setIsDragging(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isDragging]);
 
   // Zoom handlers with debounce to prevent rapid updates
   const handleZoomIn = useCallback(() => {
@@ -115,6 +127,11 @@ const MapRendererReact = ({
     
     return () => clearTimeout(timeout);
   }, []);
+  
+  // Detect drag events
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
 
   return (
     <div className="relative w-full h-full">
@@ -139,10 +156,25 @@ const MapRendererReact = ({
         maxZoom={MAX_ZOOM}
       />
       
-      {/* Add pinch indicator for mobile devices with pulsing animation when active */}
-      <div className={`absolute top-2 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-1 transition-all text-xs ${isPinching || zoomActivity ? 'bg-blue-100 scale-110' : ''}`}>
-        <Touchpad className={`h-3 w-3 ${isPinching || zoomActivity ? 'text-blue-500 animate-pulse' : ''}`} />
-        <span>Pinch to zoom {zoom.toFixed(1)}x</span>
+      {/* Add interaction indicators for mobile devices */}
+      <div className="absolute top-2 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-1 transition-all text-xs">
+        {isPinching || zoomActivity ? (
+          <div className={`flex items-center gap-1 ${isPinching || zoomActivity ? 'bg-blue-100 scale-110' : ''}`}>
+            <Touchpad className={`h-3 w-3 ${isPinching || zoomActivity ? 'text-blue-500 animate-pulse' : ''}`} />
+            <span>Pinch to zoom {zoom.toFixed(1)}x</span>
+          </div>
+        ) : (
+          <div className={`flex items-center gap-1 ${isDragging ? 'bg-green-100 scale-110' : ''}`}>
+            <Move className={`h-3 w-3 ${isDragging ? 'text-green-500 animate-pulse' : ''}`} />
+            <span>Drag to move</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Add desktop drag hint */}
+      <div className="absolute bottom-24 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm hidden md:flex items-center gap-1 text-xs">
+        <Move className="h-3 w-3" />
+        <span>Click and drag to explore</span>
       </div>
       
       <MapBackground>

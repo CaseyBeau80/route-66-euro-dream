@@ -20,17 +20,18 @@ const MapSvgContainer = ({
   // Base viewBox dimensions
   const baseWidth = 959;
   const baseHeight = 593;
-  const baseCenterX = baseWidth / 2;
-  const baseCenterY = baseHeight / 2;
+  
+  // State for panning functionality
+  const [viewBoxX, setViewBoxX] = useState(0);
+  const [viewBoxY, setViewBoxY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 });
   
   // Calculate adjusted viewBox based on zoom
   const viewBoxWidth = baseWidth / zoom;
   const viewBoxHeight = baseHeight / zoom;
   
-  // Calculate new viewBox origin to keep the map centered
-  const viewBoxX = baseCenterX - (viewBoxWidth / 2);
-  const viewBoxY = baseCenterY - (viewBoxHeight / 2);
-  
+  // Construct viewBox string with current pan position
   const viewBox = `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`;
   
   const svgRef = useRef<SVGSVGElement>(null);
@@ -66,8 +67,45 @@ const MapSvgContainer = ({
     return Math.sqrt(dx * dx + dy * dy);
   };
   
+  // Handle mouse events for dragging
+  const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    setIsDragging(true);
+    setLastPosition({ x: e.clientX, y: e.clientY });
+  };
+  
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!isDragging) return;
+    
+    const dx = e.clientX - lastPosition.x;
+    const dy = e.clientY - lastPosition.y;
+    
+    // Scale the drag amount based on current zoom level
+    const scaledDx = dx / zoom;
+    const scaledDy = dy / zoom;
+    
+    // Calculate boundaries to prevent excessive panning
+    const maxPanX = baseWidth - viewBoxWidth;
+    const maxPanY = baseHeight - viewBoxHeight;
+    
+    // Update viewBox position with boundaries
+    setViewBoxX((prev) => Math.min(Math.max(prev - scaledDx, 0), maxPanX));
+    setViewBoxY((prev) => Math.min(Math.max(prev - scaledDy, 0), maxPanY));
+    
+    // Update last position
+    setLastPosition({ x: e.clientX, y: e.clientY });
+  };
+  
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  
+  // Handle touch events for mobile
   const handleTouchStart = (e: TouchEvent<SVGSVGElement>) => {
-    if (e.touches.length === 2) {
+    if (e.touches.length === 1) {
+      // Single touch for panning
+      setIsDragging(true);
+      setLastPosition({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    } else if (e.touches.length === 2) {
       console.log("[TouchStart] Detected 2 touch points - starting pinch");
       e.preventDefault(); // Prevent default browser pinch zoom
       
@@ -81,7 +119,27 @@ const MapSvgContainer = ({
   };
   
   const handleTouchMove = (e: TouchEvent<SVGSVGElement>) => {
-    if (e.touches.length === 2 && touchStartDistance && touchStartDistance > 0 && isPinching) {
+    if (e.touches.length === 1 && isDragging && !isPinching) {
+      // Handle panning (single touch)
+      const touch = e.touches[0];
+      const dx = touch.clientX - lastPosition.x;
+      const dy = touch.clientY - lastPosition.y;
+      
+      // Scale the drag amount based on current zoom level
+      const scaledDx = dx / zoom;
+      const scaledDy = dy / zoom;
+      
+      // Calculate boundaries to prevent excessive panning
+      const maxPanX = baseWidth - viewBoxWidth;
+      const maxPanY = baseHeight - viewBoxHeight;
+      
+      // Update viewBox position with boundaries
+      setViewBoxX((prev) => Math.min(Math.max(prev - scaledDx, 0), maxPanX));
+      setViewBoxY((prev) => Math.min(Math.max(prev - scaledDy, 0), maxPanY));
+      
+      // Update last position
+      setLastPosition({ x: touch.clientX, y: touch.clientY });
+    } else if (e.touches.length === 2 && touchStartDistance && touchStartDistance > 0 && isPinching) {
       e.preventDefault(); // Prevent default browser behaviors
       e.stopPropagation();
       
@@ -112,6 +170,9 @@ const MapSvgContainer = ({
   const handleTouchEnd = (e: TouchEvent<SVGSVGElement>) => {
     console.log("[TouchEnd] Touch ended, isPinching:", isPinching);
     
+    // End dragging on touch end
+    setIsDragging(false);
+    
     // Add a small delay before resetting pinch state to catch quick touch changes
     if (touchTimeoutRef.current) {
       clearTimeout(touchTimeoutRef.current);
@@ -129,12 +190,27 @@ const MapSvgContainer = ({
     }
   };
 
+  // Reset the view to center (for external controls)
+  const resetView = () => {
+    setViewBoxX((baseWidth - viewBoxWidth) / 2);
+    setViewBoxY((baseHeight - viewBoxHeight) / 2);
+  };
+
+  // Center the view on component mount and when zoom changes
+  useEffect(() => {
+    resetView();
+  }, [zoom, viewBoxWidth, viewBoxHeight]);
+
   return (
     <svg 
       ref={svgRef}
       viewBox={viewBox}
       preserveAspectRatio="xMidYMid meet"
-      className="absolute inset-0 w-full h-full transition-all duration-300 ease-in-out touch-none"
+      className={`absolute inset-0 w-full h-full transition-all duration-300 ease-in-out ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
       onTouchStart={isMobile ? handleTouchStart : undefined}
       onTouchMove={isMobile ? handleTouchMove : undefined}
       onTouchEnd={isMobile ? handleTouchEnd : undefined}
