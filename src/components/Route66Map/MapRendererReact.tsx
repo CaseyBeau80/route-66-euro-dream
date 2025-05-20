@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect, useCallback } from "react";
-import { MapStatesComponent } from "./MapStates";
-import { MapCitiesComponent } from "./MapCities";
-import { Route66LineComponent } from "./Route66Line";
+import React, { useState, useEffect } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import ZoomControls from "./MapElements/ZoomControls";
-import { Touchpad, Move } from "lucide-react";
+import InteractionIndicators from "./MapElements/InteractionIndicators";
+import MapContent from "./MapElements/MapContent";
+import { useZoomControls } from "./hooks/useZoomControls";
 
 interface MapRendererReactProps {
   selectedState: string | null;
@@ -66,24 +65,25 @@ const MapRendererReact = ({
   onStateClick,
   onClearSelection
 }: MapRendererReactProps) => {
-  // Zoom state management
-  const [zoom, setZoom] = useState(1);
-  const [isPinching, setIsPinching] = useState(false);
-  const [zoomActivity, setZoomActivity] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  // Zoom configuration
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 5; // Increased max zoom for better detail on mobile
   const ZOOM_STEP = 0.5;
-
-  // Reset the zoom activity indicator after a delay
-  useEffect(() => {
-    if (zoomActivity) {
-      const timer = setTimeout(() => {
-        setZoomActivity(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [zoomActivity]);
+  
+  const { 
+    zoom, 
+    isPinching, 
+    zoomActivity, 
+    handleZoomIn, 
+    handleZoomOut, 
+    handleZoomChange 
+  } = useZoomControls({
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    zoomStep: ZOOM_STEP
+  });
+  
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   
   // Reset the drag indicator after a delay
   useEffect(() => {
@@ -95,43 +95,10 @@ const MapRendererReact = ({
     }
   }, [isDragging]);
 
-  // Zoom handlers with debounce to prevent rapid updates
-  const handleZoomIn = useCallback(() => {
-    setZoom(prevZoom => {
-      const newZoom = Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM);
-      console.log('Zoom in to:', newZoom);
-      setZoomActivity(true);
-      return newZoom;
-    });
-  }, [MAX_ZOOM, ZOOM_STEP]);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom(prevZoom => {
-      const newZoom = Math.max(prevZoom - ZOOM_STEP, MIN_ZOOM);
-      console.log('Zoom out to:', newZoom);
-      setZoomActivity(true);
-      return newZoom;
-    });
-  }, [MIN_ZOOM, ZOOM_STEP]);
-  
-  const handleZoomChange = useCallback((newZoom: number) => {
-    console.log('Zoom changed to:', newZoom.toFixed(2));
-    setIsPinching(true);
-    setZoom(newZoom);
-    setZoomActivity(true);
-    
-    // Reset isPinching after a short delay
-    const timeout = setTimeout(() => {
-      setIsPinching(false);
-    }, 1000);
-    
-    return () => clearTimeout(timeout);
-  }, []);
-  
   // Detect drag events
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = () => {
     setIsDragging(true);
-  }, []);
+  };
 
   return (
     <div className="relative w-full h-full">
@@ -156,26 +123,12 @@ const MapRendererReact = ({
         maxZoom={MAX_ZOOM}
       />
       
-      {/* Add interaction indicators for mobile devices */}
-      <div className="absolute top-2 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-1 transition-all text-xs">
-        {isPinching || zoomActivity ? (
-          <div className={`flex items-center gap-1 ${isPinching || zoomActivity ? 'bg-blue-100 scale-110' : ''}`}>
-            <Touchpad className={`h-3 w-3 ${isPinching || zoomActivity ? 'text-blue-500 animate-pulse' : ''}`} />
-            <span>Pinch to zoom {zoom.toFixed(1)}x</span>
-          </div>
-        ) : (
-          <div className={`flex items-center gap-1 ${isDragging ? 'bg-green-100 scale-110' : ''}`}>
-            <Move className={`h-3 w-3 ${isDragging ? 'text-green-500 animate-pulse' : ''}`} />
-            <span>Drag to move</span>
-          </div>
-        )}
-      </div>
-      
-      {/* Add desktop drag hint */}
-      <div className="absolute bottom-24 right-4 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm hidden md:flex items-center gap-1 text-xs">
-        <Move className="h-3 w-3" />
-        <span>Click and drag to explore</span>
-      </div>
+      <InteractionIndicators 
+        isPinching={isPinching}
+        zoomActivity={zoomActivity}
+        isDragging={isDragging}
+        zoom={zoom}
+      />
       
       <MapBackground>
         <MapSvgContainer 
@@ -183,13 +136,13 @@ const MapRendererReact = ({
           minZoom={MIN_ZOOM} 
           maxZoom={MAX_ZOOM}
           onZoomChange={handleZoomChange}
+          onDragStart={handleDragStart}
         >
-          <MapStatesComponent 
+          <MapContent 
             selectedState={selectedState}
             onStateClick={onStateClick}
+            cities={majorCities}
           />
-          <Route66LineComponent animated={true} />
-          <MapCitiesComponent cities={majorCities} />
         </MapSvgContainer>
       </MapBackground>
     </div>

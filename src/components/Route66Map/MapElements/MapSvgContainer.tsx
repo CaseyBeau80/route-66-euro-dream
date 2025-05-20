@@ -10,6 +10,7 @@ interface MapSvgContainerProps {
   minZoom?: number;
   maxZoom?: number;
   onZoomChange?: (newZoom: number) => void;
+  onDragStart?: () => void;
 }
 
 const MapSvgContainer = ({ 
@@ -17,7 +18,8 @@ const MapSvgContainer = ({
   zoom = 1,
   minZoom = 1,
   maxZoom = 4,
-  onZoomChange
+  onZoomChange,
+  onDragStart
 }: MapSvgContainerProps) => {
   // Base viewBox dimensions
   const baseWidth = 959;
@@ -55,7 +57,7 @@ const MapSvgContainer = ({
     onZoomChange
   });
   
-  // Create handlers for mouse events
+  // Create handlers for mouse events with drag start notification
   const {
     handleMouseDown,
     handleMouseMove,
@@ -71,10 +73,11 @@ const MapSvgContainer = ({
     baseWidth,
     baseHeight,
     viewBoxWidth,
-    viewBoxHeight
+    viewBoxHeight,
+    onDragStart
   });
   
-  // Create handlers for touch events
+  // Create handlers for touch events with drag start notification
   const {
     handleTouchStart,
     handleTouchMove,
@@ -102,7 +105,8 @@ const MapSvgContainer = ({
     setInitialZoom,
     setIsPinching,
     touchTimeoutRef,
-    SENSITIVITY_FACTOR
+    SENSITIVITY_FACTOR,
+    onDragStart
   });
 
   return (
