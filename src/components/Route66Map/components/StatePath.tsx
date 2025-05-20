@@ -21,11 +21,11 @@ const StatePath = ({ state, isRoute66State, isSelected, onClick }: StatePathProp
   // Determine fill color based on state type and selection
   let fillColor;
   if (isSelected) {
-    fillColor = '#5D7B93'; // Selected state color - kept the same
+    fillColor = '#5D7B93'; // Selected state color - more visible blue
   } else if (isRoute66State) {
-    fillColor = '#6B8DA5'; // Route 66 state color - made darker for more prominence
+    fillColor = '#6B8DA5'; // Route 66 state color - distinguishable blue
   } else {
-    fillColor = '#e8e8e8'; // Non-Route 66 state color - made lighter for more contrast
+    fillColor = '#e8e8e8'; // Non-Route 66 state color - light gray
   }
   
   const stateCenter = getStateCentroid(state.d);

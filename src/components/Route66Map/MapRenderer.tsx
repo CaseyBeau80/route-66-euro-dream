@@ -1,3 +1,4 @@
+
 import React from "react";
 import MapStates from "./MapStates";
 import MapCities from "./MapCities";
@@ -13,15 +14,15 @@ interface MapRendererProps {
   mapContainerRef: React.RefObject<HTMLDivElement>;
 }
 
-// Using the same city coordinates as in MapRendererReact for consistency
+// Using the same updated city coordinates as in MapRendererReact for consistency
 const majorCities = [
   // Illinois
-  { x: 617, y: 206, name: "Chicago" },       // Start of Route 66
-  { x: 610, y: 218, name: "Joliet" },
+  { x: 622, y: 205, name: "Chicago" },       // Start of Route 66
+  { x: 610, y: 217, name: "Joliet" },
   { x: 600, y: 235, name: "Springfield, IL" },
   
   // Missouri
-  { x: 588, y: 248, name: "St. Louis" },
+  { x: 582, y: 248, name: "St. Louis" },
   { x: 560, y: 275, name: "Springfield, MO" },
   { x: 545, y: 290, name: "Joplin" },
   
@@ -33,7 +34,7 @@ const majorCities = [
   { x: 470, y: 318, name: "Oklahoma City" },
   
   // Texas
-  { x: 395, y: 330, name: "Amarillo" },
+  { x: 395, y: 331, name: "Amarillo" },
   
   // New Mexico
   { x: 365, y: 333, name: "Tucumcari" },
@@ -50,8 +51,8 @@ const majorCities = [
   { x: 170, y: 359, name: "Needles" },
   { x: 150, y: 364, name: "Barstow" },
   { x: 140, y: 368, name: "San Bernardino" },
-  { x: 125, y: 377, name: "Los Angeles" },   // Adjusted for better alignment
-  { x: 115, y: 385, name: "Santa Monica" }   // End of Route 66 - adjusted for better alignment
+  { x: 125, y: 377, name: "Los Angeles" },
+  { x: 115, y: 385, name: "Santa Monica" }
 ];
 
 const MapRenderer = ({

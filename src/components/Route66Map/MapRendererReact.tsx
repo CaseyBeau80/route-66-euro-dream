@@ -15,17 +15,16 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Refined city coordinates calibrated to match SVG viewBox (0 0 959 593)
-// These coordinates are precisely aligned with state boundaries
-// Path follows historical Route 66 from Chicago (east) to Santa Monica (west)
+// Refined city coordinates carefully calibrated to match state boundaries in SVG viewBox (0 0 959 593)
+// These coordinates follow the historical Route 66 from Chicago (east) to Santa Monica (west)
 const majorCities = [
   // Illinois
-  { x: 617, y: 206, name: "Chicago" },       // Start of Route 66
-  { x: 610, y: 218, name: "Joliet" },
+  { x: 622, y: 205, name: "Chicago" },       // Start of Route 66
+  { x: 610, y: 217, name: "Joliet" },
   { x: 600, y: 235, name: "Springfield, IL" },
   
   // Missouri
-  { x: 588, y: 248, name: "St. Louis" },
+  { x: 582, y: 248, name: "St. Louis" },
   { x: 560, y: 275, name: "Springfield, MO" },
   { x: 545, y: 290, name: "Joplin" },
   
@@ -37,7 +36,7 @@ const majorCities = [
   { x: 470, y: 318, name: "Oklahoma City" },
   
   // Texas
-  { x: 395, y: 330, name: "Amarillo" },
+  { x: 395, y: 331, name: "Amarillo" },
   
   // New Mexico
   { x: 365, y: 333, name: "Tucumcari" },
@@ -54,8 +53,8 @@ const majorCities = [
   { x: 170, y: 359, name: "Needles" },
   { x: 150, y: 364, name: "Barstow" },
   { x: 140, y: 368, name: "San Bernardino" },
-  { x: 125, y: 377, name: "Los Angeles" },   // Adjusted for better alignment
-  { x: 115, y: 385, name: "Santa Monica" }   // End of Route 66 - adjusted for better alignment
+  { x: 125, y: 377, name: "Los Angeles" },
+  { x: 115, y: 385, name: "Santa Monica" }   // End of Route 66
 ];
 
 /**

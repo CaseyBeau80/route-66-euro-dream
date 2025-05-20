@@ -19,14 +19,14 @@ export const MapCityLabels = ({ cities }: MapCitiesProps) => {
         <g key={`city-label-${index}`}>
           {/* City label background - render first */}
           <rect
-            x={city.x - 40}
+            x={city.x - 42}
             y={city.y - 24}
-            width={80}
+            width={84}
             height={16}
             rx={8}
-            fill="rgba(255, 255, 255, 0.85)"
+            fill="rgba(255, 255, 255, 0.9)"
             stroke="#D92121"
-            strokeWidth="0.75"
+            strokeWidth="0.8"
           />
           
           {/* City label text */}
@@ -56,7 +56,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={8}
+            r={7}
             fill="#D92121"
             fillOpacity="0.15"
             className="animate-pulse"
@@ -66,7 +66,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={6}
+            r={5}
             fill="#D92121"
             fillOpacity="0.25"
           />
@@ -75,7 +75,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={4}
+            r={3.5}
             fill="#ffffff"
             stroke="#D92121"
             strokeWidth="1.5"
@@ -85,7 +85,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={2}
+            r={1.5}
             fill="#D92121"
           />
         </g>
