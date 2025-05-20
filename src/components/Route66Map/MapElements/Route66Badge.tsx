@@ -24,27 +24,36 @@ const Route66Badge = () => {
             strokeWidth="4"
           />
           
-          {/* Horizontal dividing line */}
+          {/* Red banner for "ROUTE" */}
+          <rect 
+            x="5" 
+            y="5" 
+            width="90" 
+            height="22" 
+            fill="#D92121" 
+          />
+          
+          {/* Horizontal dividing line below red banner */}
           <line 
             x1="5" 
-            y1="40" 
+            y1="27" 
             x2="95" 
-            y2="40" 
+            y2="27" 
             stroke="black" 
-            strokeWidth="3"
+            strokeWidth="2"
           />
         </svg>
         
         {/* Shield content */}
         <div className="absolute inset-0 flex flex-col items-center">
-          {/* ROUTE text in upper section */}
-          <div className="text-black font-bold text-2xl mt-3">ROUTE</div>
+          {/* ROUTE text in red banner */}
+          <div className="text-white font-bold text-xl mt-2">ROUTE</div>
           
           {/* US text in middle section */}
-          <div className="text-black font-bold text-2xl mt-6">US</div>
+          <div className="text-black font-bold text-xl mt-7">US</div>
           
           {/* 66 as the focal point in lower section */}
-          <div className="text-6xl font-black mt-3">66</div>
+          <div className="text-6xl font-black mt-2">66</div>
         </div>
       </div>
     </div>
