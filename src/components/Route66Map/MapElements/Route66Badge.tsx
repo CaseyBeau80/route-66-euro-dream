@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Route } from "lucide-react";
+import { Shield } from "lucide-react";
 
 const Route66Badge = () => {
   return (
@@ -10,18 +10,26 @@ const Route66Badge = () => {
         {/* Shield background */}
         <svg viewBox="0 0 100 120" className="absolute inset-0 w-full h-full">
           <path 
-            d="M50,0 L95,0 C95,0 100,40 50,120 C0,40 5,0 5,0 L50,0 Z" 
+            d="M50,2 L95,2 L95,30 C95,70 75,100 50,118 C25,100 5,70 5,30 L5,2 L50,2 Z" 
             fill="white" 
             stroke="black" 
-            strokeWidth="6"
+            strokeWidth="5"
+          />
+        </svg>
+        
+        {/* Red top banner */}
+        <svg viewBox="0 0 100 120" className="absolute inset-0 w-full h-full">
+          <path 
+            d="M5,2 L95,2 L95,15 L5,15 Z" 
+            fill="#D92121"
           />
         </svg>
         
         {/* Shield content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
-          <div className="text-sm font-black mt-1">ROUTE</div>
-          <div className="text-xs font-bold mb-0">U S</div>
-          <div className="text-3xl font-black leading-none">66</div>
+          <div className="text-sm font-bold text-white mt-[-2px]">ROUTE</div>
+          <div className="text-xs font-bold mt-3">U.S.</div>
+          <div className="text-4xl font-black leading-none mt-1">66</div>
         </div>
       </div>
     </div>
