@@ -16,7 +16,7 @@ const MapContent = ({
   cities
 }: MapContentProps) => {
   return (
-    <g transform="scale(1.0)"> {/* Ensures consistent scale across all elements */}
+    <g transform="scale(1.05)"> {/* Increased scale to make states more prominent */}
       {/* Render states first (as the base layer) */}
       <MapStatesComponent 
         selectedState={selectedState}

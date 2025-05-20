@@ -14,7 +14,7 @@ const DomMapStates = ({ selectedState, onStateClick }: DomMapStatesProps) => {
   const createStatesPaths = () => {
     const statesPaths = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     statesPaths.setAttribute('stroke', '#ffffff');
-    statesPaths.setAttribute('stroke-width', '1');
+    statesPaths.setAttribute('stroke-width', '1.2'); // Increased stroke width
     
     // Add all states
     const allUSStates = [...route66States];
@@ -31,9 +31,9 @@ const DomMapStates = ({ selectedState, onStateClick }: DomMapStatesProps) => {
       if (selectedState === state.id) {
         statePath.setAttribute('fill', '#5D7B93'); // Selected state color
       } else if (isRoute66State) {
-        statePath.setAttribute('fill', '#7D9CB3'); // Route 66 state color
+        statePath.setAttribute('fill', '#6B8DA5'); // Route 66 state color - made darker
       } else {
-        statePath.setAttribute('fill', '#d3d3d3'); // Non-Route 66 state color
+        statePath.setAttribute('fill', '#e8e8e8'); // Non-Route 66 state color - made lighter
       }
       
       statePath.setAttribute('data-state', state.id);
@@ -52,7 +52,7 @@ const DomMapStates = ({ selectedState, onStateClick }: DomMapStatesProps) => {
         
         statePath.addEventListener('mouseout', () => {
           if (selectedState !== state.id) {
-            statePath.setAttribute('fill', '#7D9CB3');
+            statePath.setAttribute('fill', '#6B8DA5');
           }
           statePath.setAttribute('opacity', '1');
         });
@@ -61,6 +61,9 @@ const DomMapStates = ({ selectedState, onStateClick }: DomMapStatesProps) => {
         statePath.addEventListener('click', () => {
           onStateClick(state.id, state.name);
         });
+        
+        // Increase stroke width for Route 66 states
+        statePath.setAttribute('stroke-width', '2');
       }
       
       statesPaths.appendChild(statePath);

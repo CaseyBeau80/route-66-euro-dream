@@ -21,11 +21,11 @@ const StatePath = ({ state, isRoute66State, isSelected, onClick }: StatePathProp
   // Determine fill color based on state type and selection
   let fillColor;
   if (isSelected) {
-    fillColor = '#5D7B93'; // Selected state color
+    fillColor = '#5D7B93'; // Selected state color - kept the same
   } else if (isRoute66State) {
-    fillColor = '#7D9CB3'; // Route 66 state color
+    fillColor = '#6B8DA5'; // Route 66 state color - made darker for more prominence
   } else {
-    fillColor = '#e0e0e0'; // Non-Route 66 state color - made slightly lighter for contrast
+    fillColor = '#e8e8e8'; // Non-Route 66 state color - made lighter for more contrast
   }
   
   const stateCenter = getStateCentroid(state.d);
@@ -37,10 +37,10 @@ const StatePath = ({ state, isRoute66State, isSelected, onClick }: StatePathProp
         id={`state-${state.id}`}
         fill={fillColor}
         stroke="#ffffff"
-        strokeWidth={isRoute66State ? "1.5" : "1"} // Thicker borders for Route 66 states
+        strokeWidth={isRoute66State ? "2" : "1"} // Increased stroke width for Route 66 states
         data-state={state.id}
         data-state-name={state.name}
-        className={isRoute66State ? "cursor-pointer hover:opacity-90" : ""}
+        className={isRoute66State ? "cursor-pointer hover:opacity-80" : ""}
         onClick={onClick}
       />
       {stateCenter && (
