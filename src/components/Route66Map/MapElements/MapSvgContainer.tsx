@@ -2,7 +2,10 @@
 import React, { ReactNode, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMapInteraction } from "../hooks/useMapInteraction";
-import { createMouseEventHandlers, createTouchEventHandlers } from "./mapInteractionHandlers";
+import { 
+  createMouseEventHandlers, 
+  createTouchEventHandlers 
+} from "../hooks/mapInteraction";
 
 interface MapSvgContainerProps {
   children: ReactNode;
