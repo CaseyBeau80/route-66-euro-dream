@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 
 interface City {
@@ -18,24 +19,24 @@ export const MapCityLabels = ({ cities }: MapCitiesProps) => {
         <React.Fragment key={`city-label-${index}`}>
           {/* City label background - render first */}
           <rect
-            x={city.x - 35}
-            y={city.y - 22}
-            width={70}
+            x={city.x - 40}
+            y={city.y - 24}
+            width={80}
             height={16}
             rx={8}
-            fill="rgba(255, 255, 255, 0.8)"
+            fill="rgba(255, 255, 255, 0.85)"
             stroke="#D92121"
-            strokeWidth="0.5"
+            strokeWidth="0.75"
           />
           
           {/* City label text */}
           <text
             x={city.x}
-            y={city.y - 10}
+            y={city.y - 12}
             textAnchor="middle"
-            fontSize={11}
+            fontSize={10}
             fontWeight="bold"
-            fill="#444444"
+            fill="#333333"
           >
             {city.name}
           </text>
@@ -70,7 +71,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
             fillOpacity="0.25"
           />
           
-          {/* Main dot - completely transparent fill with stroke */}
+          {/* Main dot - white fill with stroke */}
           <circle
             cx={city.x}
             cy={city.y}
@@ -84,7 +85,7 @@ export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
           <circle
             cx={city.x}
             cy={city.y}
-            r={1.5}
+            r={2}
             fill="#D92121"
           />
         </g>
