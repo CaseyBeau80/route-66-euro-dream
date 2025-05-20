@@ -1,8 +1,8 @@
 
 import React from "react";
-import { MapStatesComponent } from "../MapStates";
-import { MapCityLabels, MapCityMarkers } from "../MapCities";
-import { Route66LineComponent } from "../Route66Line";
+import { MapStatesComponent } from "./MapStates";
+import { MapCityLabels, MapCityMarkers } from "./MapCities";
+import { Route66LineComponent } from "./Route66Line";
 
 interface MapContentProps {
   selectedState: string | null;
