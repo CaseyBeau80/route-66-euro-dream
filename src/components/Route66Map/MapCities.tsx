@@ -34,16 +34,16 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       pulse.setAttribute('r', '6');
       pulse.setAttribute('fill', 'rgba(217, 33, 33, 0.1)'); // More transparent
       
-      // Main dot - transparent fill with stroke
+      // Main dot - completely transparent fill with stroke
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', 'rgba(217, 33, 33, 0)'); // Transparent fill
+      dot.setAttribute('fill', 'transparent'); // Completely transparent fill
       dot.setAttribute('stroke', '#D92121'); // Red stroke
       dot.setAttribute('stroke-width', '1.5'); // Stroke width
       
-      // White center replaced with small circle marker
+      // Small center dot
       const center = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       center.setAttribute('cx', city.x.toString());
       center.setAttribute('cy', city.y.toString());
@@ -123,12 +123,12 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               fill="rgba(217, 33, 33, 0.1)" // More transparent
             />
             
-            {/* Main dot - transparent with stroke */}
+            {/* Main dot - completely transparent fill with stroke */}
             <circle
               cx={city.x}
               cy={city.y}
               r={4}
-              fill="rgba(0, 0, 0, 0)" // Transparent fill
+              fill="transparent" // Completely transparent fill
               stroke="#D92121" // Red stroke
               strokeWidth="1.5"
             />
