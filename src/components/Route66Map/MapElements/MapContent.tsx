@@ -23,13 +23,11 @@ const MapContent = ({
         onStateClick={onStateClick}
       />
       
-      {/* Render city labels second */}
-      <MapCityLabels cities={cities} />
-      
-      {/* Render route line third */}
+      {/* Render route line second */}
       <Route66LineComponent animated={true} />
       
-      {/* Render city markers last */}
+      {/* Render city labels and markers last */}
+      <MapCityLabels cities={cities} />
       <MapCityMarkers cities={cities} />
     </>
   );
