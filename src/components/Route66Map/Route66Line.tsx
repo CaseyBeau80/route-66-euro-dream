@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef } from "react";
 
 interface Route66LineProps {
@@ -10,7 +11,8 @@ const Route66Line = ({ animated = true }: Route66LineProps) => {
     const routePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     
     // Enhanced path following the actual Route 66 through all states with proper coordinates
-    routePath.setAttribute('d', 'M147,391 C159,386 170,380 182,375 C208,363 233,363 245,352 C261,340 284,335 310,330 C328,325 346,325 362,330 C380,330 400,332 420,335 C450,340 470,345 490,350 C505,352 520,355 540,360 C555,362 567,364 580,370 C592,373 604,376 618,380');
+    // This path connects the cities in the majorCities array in MapRendererReact.tsx
+    routePath.setAttribute('d', 'M145,430 C145,428 148,426 150,425 C155,423 158,419 160,415 C170,410 175,408 180,405 C190,397 195,393 200,390 C210,388 215,387 220,387 C230,389 240,389 250,390 C260,391 265,393 270,395 C280,397 300,399 320,400 C330,395 330,392 330,390 C343,387 350,386 360,385 C375,380 382,378 390,375 C405,370 425,362 445,355 C458,348 465,343 470,340 C485,335 492,332 500,330 C512,324 516,322 520,320 C530,310 540,302 550,295 C560,285 565,280 570,275 C580,265 585,260 588,255 C590,248 592,245 593,242');
     
     routePath.setAttribute('stroke', '#D92121');
     routePath.setAttribute('stroke-width', '6');
@@ -75,7 +77,7 @@ export const Route66LineComponent = ({ animated = true }: Route66LineProps) => {
   return (
     <path
       ref={pathRef}
-      d="M147,391 C159,386 170,380 182,375 C208,363 233,363 245,352 C261,340 284,335 310,330 C328,325 346,325 362,330 C380,330 400,332 420,335 C450,340 470,345 490,350 C505,352 520,355 540,360 C555,362 567,364 580,370 C592,373 604,376 618,380"
+      d="M145,430 C145,428 148,426 150,425 C155,423 158,419 160,415 C170,410 175,408 180,405 C190,397 195,393 200,390 C210,388 215,387 220,387 C230,389 240,389 250,390 C260,391 265,393 270,395 C280,397 300,399 320,400 C330,395 330,392 330,390 C343,387 350,386 360,385 C375,380 382,378 390,375 C405,370 425,362 445,355 C458,348 465,343 470,340 C485,335 492,332 500,330 C512,324 516,322 520,320 C530,310 540,302 550,295 C560,285 565,280 570,275 C580,265 585,260 588,255 C590,248 592,245 593,242"
       stroke="#D92121"
       strokeWidth="6"
       fill="none"
@@ -87,3 +89,4 @@ export const Route66LineComponent = ({ animated = true }: Route66LineProps) => {
 };
 
 export default Route66Line;
+
