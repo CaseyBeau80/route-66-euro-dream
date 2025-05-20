@@ -51,8 +51,8 @@ const Route66Map = () => {
       const townsInState = route66Towns.filter(town => town.name.includes(stateName));
       
       toast({
-        title: `Route 66 through ${stateName}`,
-        description: `${townsInState.length} stops in ${stateName}: ${townsInState.map(town => town.name.split(',')[0]).join(', ')}`,
+        title: `${stateName} Stops`,
+        description: `${townsInState.length} historic stops in ${stateName}: ${townsInState.map(town => town.name.split(',')[0]).join(', ')}`,
         duration: 5000,
       });
     }
@@ -60,7 +60,7 @@ const Route66Map = () => {
 
   return (
     <div className="my-8 px-4">
-      <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Historic Route 66</h2>
+      <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Historic Highway Map</h2>
       
       {/* Map container */}
       <div className="relative bg-white p-5 rounded-lg shadow">

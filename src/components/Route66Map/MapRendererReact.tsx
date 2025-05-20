@@ -121,8 +121,8 @@ const MapRendererReact = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Route 66 Badge moved to top center */}
-      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
+      {/* Route 66 Badge moved to top left */}
+      <div className="absolute top-4 left-4 z-10">
         <Route66Badge />
       </div>
       
