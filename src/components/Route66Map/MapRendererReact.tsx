@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
@@ -37,23 +36,23 @@ const majorCities = [
   // Texas
   { x: 390, y: 375, name: "Amarillo" },
   
-  // New Mexico
-  { x: 360, y: 385, name: "Tucumcari" },
-  { x: 330, y: 390, name: "Santa Fe" },
-  { x: 320, y: 400, name: "Albuquerque" },
-  { x: 290, y: 400, name: "Gallup" },
+  // New Mexico - Adjusted coordinates
+  { x: 350, y: 390, name: "Tucumcari" },
+  { x: 320, y: 380, name: "Santa Fe" },
+  { x: 310, y: 390, name: "Albuquerque" },
+  { x: 280, y: 395, name: "Gallup" },
   
-  // Arizona
-  { x: 270, y: 395, name: "Winslow" },
-  { x: 250, y: 390, name: "Flagstaff" },
-  { x: 220, y: 387, name: "Kingman" },
+  // Arizona - Adjusted coordinates
+  { x: 255, y: 395, name: "Winslow" },
+  { x: 235, y: 400, name: "Flagstaff" },
+  { x: 215, y: 405, name: "Kingman" },
   
-  // California
-  { x: 200, y: 390, name: "Needles" },
-  { x: 180, y: 405, name: "Barstow" },
-  { x: 160, y: 415, name: "San Bernardino" },
-  { x: 150, y: 425, name: "Los Angeles" },
-  { x: 145, y: 430, name: "Santa Monica" }
+  // California - Adjusted coordinates
+  { x: 190, y: 410, name: "Needles" },
+  { x: 170, y: 420, name: "Barstow" },
+  { x: 155, y: 425, name: "San Bernardino" },
+  { x: 140, y: 430, name: "Los Angeles" },
+  { x: 135, y: 435, name: "Santa Monica" }
 ];
 
 /**
