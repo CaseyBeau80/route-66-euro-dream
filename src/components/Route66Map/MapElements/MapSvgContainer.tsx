@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState, useEffect, useRef, TouchEvent } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -35,11 +36,14 @@ const MapSvgContainer = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const isMobile = useIsMobile();
   
-  // Track first touch point for better pinch detection
+  // Track touch points for pinch detection with improved sensitivity
   const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
   const [initialZoom, setInitialZoom] = useState<number>(zoom);
   const [isPinching, setIsPinching] = useState<boolean>(false);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Sensitivity adjustment factor - lower number means more sensitive zoom
+  const SENSITIVITY_FACTOR = 0.5;
   
   // Update local zoom state when parent zoom changes
   useEffect(() => {
@@ -84,17 +88,21 @@ const MapSvgContainer = ({
       const currentDistance = getDistance(e.touches);
       
       if (currentDistance > 0) {
-        // Calculate scale factor relative to the starting distance
-        const rawScaleFactor = currentDistance / touchStartDistance;
-        const scaleFactor = Math.max(0.8, Math.min(1.25, rawScaleFactor)); // Limit scaling per move
+        // Calculate scale factor with improved sensitivity
+        const rawScaleDelta = (currentDistance - touchStartDistance) / touchStartDistance;
         
-        // Apply scale factor to initial zoom level
-        const newZoom = Math.max(minZoom, Math.min(maxZoom, initialZoom * scaleFactor));
+        // Apply sensitivity adjustment and smooth the changes
+        const adjustedScale = 1 + (rawScaleDelta * SENSITIVITY_FACTOR);
         
-        console.log(`[TouchMove] Distance: ${currentDistance.toFixed(2)}, Scale: ${scaleFactor.toFixed(2)}, NewZoom: ${newZoom.toFixed(2)}`);
+        // Apply the scale factor to initial zoom level with smoothing
+        const newZoom = Math.max(
+          minZoom, 
+          Math.min(maxZoom, initialZoom * adjustedScale)
+        );
         
-        // Update zoom if handler is provided and zoom changed significantly
+        // Only update if the change is significant enough
         if (onZoomChange && Math.abs(newZoom - zoom) > 0.01) {
+          console.log(`[TouchMove] Distance delta: ${(currentDistance - touchStartDistance).toFixed(2)}, Adjusted scale: ${adjustedScale.toFixed(3)}, NewZoom: ${newZoom.toFixed(2)}`);
           onZoomChange(newZoom);
         }
       }
