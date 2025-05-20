@@ -28,10 +28,18 @@ const StatePath = ({ state, isRoute66State, isSelected, onClick }: StatePathProp
     fillColor = '#e8e8e8'; // Non-Route 66 state color - light gray
   }
   
+  // Adjust position correction for specific states that need alignment
+  let transform = "";
+  if (state.id === "OK") {
+    transform = "translate(0, -5)"; // Specific adjustment for Oklahoma
+  } else if (state.id === "TX") {
+    transform = "translate(0, -3)"; // Specific adjustment for Texas
+  }
+  
   const stateCenter = getStateCentroid(state.d);
   
   return (
-    <>
+    <g transform={transform}>
       <path
         d={state.d}
         id={`state-${state.id}`}
@@ -50,7 +58,7 @@ const StatePath = ({ state, isRoute66State, isSelected, onClick }: StatePathProp
           isSelected={isSelected}
         />
       )}
-    </>
+    </g>
   );
 };
 

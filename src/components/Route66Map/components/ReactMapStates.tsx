@@ -13,7 +13,7 @@ interface ReactMapStatesProps {
  */
 const ReactMapStates = ({ selectedState, onStateClick }: ReactMapStatesProps) => {
   return (
-    <g stroke="#ffffff" strokeWidth="1.3" transform="scale(1.02)"> {/* Fine-tuned scale and stroke width */}
+    <g stroke="#ffffff" strokeWidth="1.3" transform="scale(1.01) translate(0, -2)"> {/* Adjusted scale and added vertical translation */}
       {allUSStates.map(state => {
         // Determine if this is a Route 66 state
         const isRoute66State = route66States.some(r66 => r66.id === state.id);
