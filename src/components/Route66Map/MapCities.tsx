@@ -39,7 +39,7 @@ const MapCities = ({ cities }: MapCitiesProps) => {
       dot.setAttribute('cx', city.x.toString());
       dot.setAttribute('cy', city.y.toString());
       dot.setAttribute('r', '4');
-      dot.setAttribute('fill', 'transparent'); // Completely transparent fill
+      dot.setAttribute('fill', 'none'); // Use 'none' for SVG transparency
       dot.setAttribute('stroke', '#D92121'); // Red stroke
       dot.setAttribute('stroke-width', '1.5'); // Stroke width
       
@@ -128,7 +128,7 @@ export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
               cx={city.x}
               cy={city.y}
               r={4}
-              fill="transparent" // Completely transparent fill
+              fill="none" // Use 'none' for SVG transparency
               stroke="#D92121" // Red stroke
               strokeWidth="1.5"
             />
