@@ -18,6 +18,9 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   minZoom,
   maxZoom
 }) => {
+  // Format zoom level as percentage
+  const zoomPercentage = Math.round(currentZoom * 100);
+  
   return (
     <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 bg-white/80 p-1 rounded-md shadow-md backdrop-blur-sm">
       <Button
@@ -30,6 +33,10 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       >
         <ZoomIn className="h-4 w-4" />
       </Button>
+      
+      <div className="text-xs text-center font-medium py-1">
+        {zoomPercentage}%
+      </div>
       
       <Button
         variant="outline"
