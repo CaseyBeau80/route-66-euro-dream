@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
@@ -15,45 +14,45 @@ interface MapRendererReactProps {
   onClearSelection: () => void;
 }
 
-// Cities along Route 66 with adjusted coordinates to better match state positions
+// Cities along Route 66 with coordinates realigned to better match the path
 const majorCities = [
   // Illinois
-  { x: 612, y: 205, name: "Chicago" },
-  { x: 602, y: 220, name: "Joliet" },
-  { x: 587, y: 240, name: "Springfield, IL" },
+  { x: 618, y: 205, name: "Chicago" },
+  { x: 615, y: 210, name: "Joliet" },
+  { x: 600, y: 235, name: "Springfield, IL" },
   
   // Missouri
-  { x: 562, y: 270, name: "St. Louis" },
-  { x: 532, y: 290, name: "Springfield, MO" },
-  { x: 502, y: 300, name: "Joplin" },
+  { x: 585, y: 250, name: "St. Louis" },
+  { x: 555, y: 275, name: "Springfield, MO" },
+  { x: 540, y: 285, name: "Joplin" },
   
   // Kansas (small segment)
-  { x: 492, y: 305, name: "Galena, KS" },
+  { x: 525, y: 295, name: "Galena, KS" },
   
   // Oklahoma
-  { x: 472, y: 325, name: "Tulsa" },
-  { x: 427, y: 340, name: "Oklahoma City" },
+  { x: 510, y: 302, name: "Tulsa" },
+  { x: 480, y: 315, name: "Oklahoma City" },
   
   // Texas
-  { x: 367, y: 365, name: "Amarillo" },
+  { x: 420, y: 328, name: "Amarillo" },
   
-  // New Mexico - Adjusted coordinates
-  { x: 320, y: 367, name: "Tucumcari" },
-  { x: 290, y: 367, name: "Santa Fe" },
-  { x: 260, y: 367, name: "Albuquerque" },
-  { x: 235, y: 367, name: "Gallup" },
+  // New Mexico
+  { x: 375, y: 334, name: "Tucumcari" },
+  { x: 345, y: 338, name: "Santa Fe" },
+  { x: 330, y: 340, name: "Albuquerque" },
+  { x: 300, y: 344, name: "Gallup" },
   
-  // Arizona - Adjusted coordinates
-  { x: 210, y: 367, name: "Winslow" },
-  { x: 185, y: 370, name: "Flagstaff" },
-  { x: 155, y: 375, name: "Kingman" },
+  // Arizona
+  { x: 270, y: 348, name: "Winslow" },
+  { x: 240, y: 353, name: "Flagstaff" },
+  { x: 210, y: 358, name: "Kingman" },
   
-  // California - Adjusted coordinates
-  { x: 140, y: 385, name: "Needles" },
-  { x: 130, y: 395, name: "Barstow" },
-  { x: 123, y: 405, name: "San Bernardino" },
-  { x: 120, y: 410, name: "Los Angeles" },
-  { x: 117, y: 415, name: "Santa Monica" }
+  // California
+  { x: 180, y: 362, name: "Needles" },
+  { x: 150, y: 375, name: "Barstow" },
+  { x: 135, y: 390, name: "San Bernardino" },
+  { x: 125, y: 405, name: "Los Angeles" },
+  { x: 120, y: 410, name: "Santa Monica" }
 ];
 
 /**
