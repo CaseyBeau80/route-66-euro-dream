@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useState, useEffect, useRef, TouchEvent } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -36,15 +35,22 @@ const MapSvgContainer = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const isMobile = useIsMobile();
   
-  // Improved touch state management
+  // Track first touch point for better pinch detection
   const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
   const [initialZoom, setInitialZoom] = useState<number>(zoom);
-  const [lastZoomUpdate, setLastZoomUpdate] = useState<number>(Date.now());
-  const touchStartRef = useRef<{x: number, y: number, time: number} | null>(null);
+  const [isPinching, setIsPinching] = useState<boolean>(false);
+  const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Update local zoom state when parent zoom changes
   useEffect(() => {
     setInitialZoom(zoom);
+    
+    return () => {
+      // Clear any timeout on component unmount
+      if (touchTimeoutRef.current) {
+        clearTimeout(touchTimeoutRef.current);
+      }
+    };
   }, [zoom]);
   
   // Calculate distance between two touch points
@@ -58,42 +64,34 @@ const MapSvgContainer = ({
   
   const handleTouchStart = (e: TouchEvent<SVGSVGElement>) => {
     if (e.touches.length === 2) {
+      console.log("[TouchStart] Detected 2 touch points - starting pinch");
       e.preventDefault(); // Prevent default browser pinch zoom
+      
       const distance = getDistance(e.touches);
       setTouchStartDistance(distance);
-      setInitialZoom(zoom); // Save the initial zoom level when starting the pinch
+      setInitialZoom(zoom);
+      setIsPinching(true);
       
-      // Store touch start details for debugging
-      touchStartRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-        time: Date.now()
-      };
-      
-      // Log debug info
-      console.log('Touch start - distance:', distance, 'initialZoom:', zoom);
+      console.log(`[TouchStart] Initial distance: ${distance.toFixed(2)}, Initial zoom: ${zoom}`);
     }
   };
   
   const handleTouchMove = (e: TouchEvent<SVGSVGElement>) => {
-    if (e.touches.length === 2 && touchStartDistance && touchStartDistance > 0) {
+    if (e.touches.length === 2 && touchStartDistance && touchStartDistance > 0 && isPinching) {
       e.preventDefault(); // Prevent default browser behaviors
+      e.stopPropagation();
       
       const currentDistance = getDistance(e.touches);
-      // Only process if we have a valid distance and enough time has passed since last update
-      if (currentDistance > 0 && Date.now() - lastZoomUpdate > 16) { // ~60fps rate limiting
-        const scaleFactor = currentDistance / touchStartDistance;
+      
+      if (currentDistance > 0) {
+        // Calculate scale factor relative to the starting distance
+        const rawScaleFactor = currentDistance / touchStartDistance;
+        const scaleFactor = Math.max(0.8, Math.min(1.25, rawScaleFactor)); // Limit scaling per move
         
-        // Calculate new zoom level based on the initial zoom at touch start
-        // Apply exponential scaling for smoother zoom feel
-        const rawZoom = initialZoom * scaleFactor;
-        const newZoom = Math.max(minZoom, Math.min(maxZoom, rawZoom));
+        // Apply scale factor to initial zoom level
+        const newZoom = Math.max(minZoom, Math.min(maxZoom, initialZoom * scaleFactor));
         
-        // Throttle updates to prevent overwhelming the system
-        setLastZoomUpdate(Date.now());
-        
-        // Log debug info
-        console.log('Touch move - distance:', currentDistance, 'scaleFactor:', scaleFactor, 'newZoom:', newZoom);
+        console.log(`[TouchMove] Distance: ${currentDistance.toFixed(2)}, Scale: ${scaleFactor.toFixed(2)}, NewZoom: ${newZoom.toFixed(2)}`);
         
         // Update zoom if handler is provided and zoom changed significantly
         if (onZoomChange && Math.abs(newZoom - zoom) > 0.01) {
@@ -103,14 +101,24 @@ const MapSvgContainer = ({
     }
   };
   
-  const handleTouchEnd = () => {
-    // Add debug logging
-    if (touchStartRef.current) {
-      const touchDuration = Date.now() - touchStartRef.current.time;
-      console.log('Touch end - duration:', touchDuration + 'ms', 'zoom value:', zoom);
+  const handleTouchEnd = (e: TouchEvent<SVGSVGElement>) => {
+    console.log("[TouchEnd] Touch ended, isPinching:", isPinching);
+    
+    // Add a small delay before resetting pinch state to catch quick touch changes
+    if (touchTimeoutRef.current) {
+      clearTimeout(touchTimeoutRef.current);
     }
-    setTouchStartDistance(null);
-    touchStartRef.current = null;
+    
+    touchTimeoutRef.current = setTimeout(() => {
+      setTouchStartDistance(null);
+      setIsPinching(false);
+      console.log("[TouchEnd] Pinch state reset");
+    }, 200);
+    
+    // If this was a multi-touch event that ended
+    if (e.touches.length < 2 && isPinching) {
+      console.log("[TouchEnd] Multi-touch ended, final zoom:", zoom);
+    }
   };
 
   return (

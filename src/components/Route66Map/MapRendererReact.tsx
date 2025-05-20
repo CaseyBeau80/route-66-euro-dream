@@ -10,7 +10,7 @@ import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import ZoomControls from "./MapElements/ZoomControls";
 import { route66States } from "./mapData";
-import { Pin } from "lucide-react";
+import { Touchpad } from "lucide-react";
 
 interface MapRendererReactProps {
   selectedState: string | null;
@@ -40,6 +40,7 @@ const MapRendererReact = ({
 }: MapRendererReactProps) => {
   // Zoom state management
   const [zoom, setZoom] = useState(1);
+  const [isPinching, setIsPinching] = useState(false);
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.5;
@@ -63,7 +64,15 @@ const MapRendererReact = ({
   
   const handleZoomChange = useCallback((newZoom: number) => {
     console.log('Zoom changed to:', newZoom.toFixed(2));
+    setIsPinching(true);
     setZoom(newZoom);
+    
+    // Reset isPinching after a short delay
+    const timeout = setTimeout(() => {
+      setIsPinching(false);
+    }, 1000);
+    
+    return () => clearTimeout(timeout);
   }, []);
   
   // Log when component mounts to help with debugging
@@ -92,9 +101,9 @@ const MapRendererReact = ({
         maxZoom={MAX_ZOOM}
       />
       
-      {/* Add pinch indicator for mobile devices */}
-      <div className="absolute top-4 right-4 bg-white/80 p-2 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-2">
-        <Pin className="h-4 w-4" />
+      {/* Add pinch indicator for mobile devices with pulsing animation when active */}
+      <div className={`absolute top-4 right-4 bg-white/80 p-2 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-2 transition-all ${isPinching ? 'bg-blue-100 scale-110' : ''}`}>
+        <Touchpad className={`h-4 w-4 ${isPinching ? 'text-blue-500' : ''}`} />
         <span className="text-xs">Pinch to zoom</span>
       </div>
       
