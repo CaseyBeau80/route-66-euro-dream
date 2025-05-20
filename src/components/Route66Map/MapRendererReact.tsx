@@ -10,7 +10,7 @@ import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import ZoomControls from "./MapElements/ZoomControls";
 import { route66States } from "./mapData";
-import { Pinch } from "lucide-react";
+import { Pin } from "lucide-react";
 
 interface MapRendererReactProps {
   selectedState: string | null;
@@ -80,7 +80,7 @@ const MapRendererReact = ({
       
       {/* Add pinch indicator for mobile devices */}
       <div className="absolute top-4 right-4 bg-white/80 p-2 rounded-md shadow-md backdrop-blur-sm md:hidden flex items-center gap-2">
-        <Pinch className="h-4 w-4" />
+        <Pin className="h-4 w-4" />
         <span className="text-xs">Pinch to zoom</span>
       </div>
       
