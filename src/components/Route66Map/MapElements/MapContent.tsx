@@ -1,7 +1,7 @@
 
 import React from "react";
 import { MapStatesComponent } from "../MapStates";
-import { MapCitiesComponent } from "../MapCities";
+import { MapCityLabels, MapCityMarkers } from "../MapCities";
 import { Route66LineComponent } from "../Route66Line";
 
 interface MapContentProps {
@@ -17,12 +17,20 @@ const MapContent = ({
 }: MapContentProps) => {
   return (
     <>
+      {/* Render states first */}
       <MapStatesComponent 
         selectedState={selectedState}
         onStateClick={onStateClick}
       />
+      
+      {/* Render city labels second */}
+      <MapCityLabels cities={cities} />
+      
+      {/* Render route line third */}
       <Route66LineComponent animated={true} />
-      <MapCitiesComponent cities={cities} />
+      
+      {/* Render city markers last */}
+      <MapCityMarkers cities={cities} />
     </>
   );
 };

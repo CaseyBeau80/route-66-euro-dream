@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 
 interface City {
@@ -11,6 +10,88 @@ interface MapCitiesProps {
   cities: Array<City>;
 }
 
+// Component for city labels (to be rendered before the route line)
+export const MapCityLabels = ({ cities }: MapCitiesProps) => {
+  return (
+    <g className="city-labels">
+      {cities.map((city, index) => (
+        <React.Fragment key={`city-label-${index}`}>
+          {/* City label background - render first */}
+          <rect
+            x={city.x - 35}
+            y={city.y - 22}
+            width={70}
+            height={16}
+            rx={8}
+            fill="rgba(255, 255, 255, 0.7)"
+          />
+          
+          {/* City label text */}
+          <text
+            x={city.x}
+            y={city.y - 10}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight="bold"
+            fill="#444444"
+          >
+            {city.name}
+          </text>
+        </React.Fragment>
+      ))}
+    </g>
+  );
+};
+
+// Component for city markers/dots (to be rendered after the route line)
+export const MapCityMarkers = ({ cities }: MapCitiesProps) => {
+  return (
+    <g className="city-markers">
+      {cities.map((city, index) => (
+        <g key={`city-marker-${index}`}>
+          {/* Outer pulse with proper transparency */}
+          <circle
+            cx={city.x}
+            cy={city.y}
+            r={8}
+            fill="#D92121"
+            fillOpacity="0.05"
+            className="animate-pulse"
+          />
+          
+          {/* Middle pulse with proper transparency */}
+          <circle
+            cx={city.x}
+            cy={city.y}
+            r={6}
+            fill="#D92121"
+            fillOpacity="0.1"
+          />
+          
+          {/* Main dot - completely transparent fill with stroke */}
+          <circle
+            cx={city.x}
+            cy={city.y}
+            r={4}
+            fill="transparent"
+            stroke="#D92121"
+            strokeWidth="1.5"
+          />
+          
+          {/* Small center dot */}
+          <circle
+            cx={city.x}
+            cy={city.y}
+            r={1}
+            fill="#D92121"
+          />
+        </g>
+      ))}
+    </g>
+  );
+};
+
+// Legacy DOM manipulation methods (keeping for backward compatibility)
 const MapCities = ({ cities }: MapCitiesProps) => {
   const createCityMarkers = () => {
     const markers = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -92,76 +173,13 @@ const MapCities = ({ cities }: MapCitiesProps) => {
   };
 };
 
-// React component for MapRendererReact
+// Keeping this for backward compatibility
 export const MapCitiesComponent = ({ cities }: MapCitiesProps) => {
   return (
-    <g>
-      {cities.map((city, index) => (
-        <React.Fragment key={`city-${index}`}>
-          {/* City label background - render first */}
-          <rect
-            x={city.x - 35}
-            y={city.y - 22}
-            width={70}
-            height={16}
-            rx={8}
-            fill="rgba(255, 255, 255, 0.8)"
-          />
-          
-          {/* City label text - render second */}
-          <text
-            x={city.x}
-            y={city.y - 10}
-            textAnchor="middle"
-            fontSize={11}
-            fontWeight="bold"
-            fill="#444444"
-          >
-            {city.name}
-          </text>
-          
-          {/* Dot group - render last */}
-          <g>
-            {/* Outer pulse with proper transparency */}
-            <circle
-              cx={city.x}
-              cy={city.y}
-              r={8}
-              fill="#D92121"
-              fillOpacity="0.05"
-              className="animate-pulse"
-            />
-            
-            {/* Middle pulse with proper transparency */}
-            <circle
-              cx={city.x}
-              cy={city.y}
-              r={6}
-              fill="#D92121"
-              fillOpacity="0.1"
-            />
-            
-            {/* Main dot - completely transparent fill with stroke */}
-            <circle
-              cx={city.x}
-              cy={city.y}
-              r={4}
-              fill="transparent"
-              stroke="#D92121"
-              strokeWidth="1.5"
-            />
-            
-            {/* Small center dot */}
-            <circle
-              cx={city.x}
-              cy={city.y}
-              r={1}
-              fill="#D92121"
-            />
-          </g>
-        </React.Fragment>
-      ))}
-    </g>
+    <>
+      <MapCityLabels cities={cities} />
+      <MapCityMarkers cities={cities} />
+    </>
   );
 };
 
