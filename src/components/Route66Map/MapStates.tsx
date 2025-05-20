@@ -1,3 +1,4 @@
+
 import React from "react";
 import { route66States, otherUSStates, allUSStates } from "./mapData";
 
@@ -111,16 +112,14 @@ const MapStates = ({ selectedState, onStateClick }: MapStatesProps) => {
     return statesPaths;
   };
 
+  // Only return createStatesPaths function
   return {
-    createStatesPaths,
-    renderReactStates
+    createStatesPaths
   };
 };
 
 // MapStatesComponent - Used in MapRendererReact as JSX component
 export const MapStatesComponent = ({ selectedState, onStateClick }: MapStatesProps) => {
-  const mapStates = MapStates({ selectedState, onStateClick });
-  
   // Render all states with proper styling and event handling
   return (
     <g stroke="#ffffff" strokeWidth="1">
