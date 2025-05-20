@@ -16,7 +16,7 @@ const MapContent = ({
   cities
 }: MapContentProps) => {
   return (
-    <g transform="scale(1.1) translate(0, 5)"> {/* Increased scale and kept vertical translation */}
+    <g transform="scale(1.1) translate(0, 25)"> {/* Increased scale and added more vertical translation downward */}
       {/* Render states first (as the base layer) */}
       <MapStatesComponent 
         selectedState={selectedState}
