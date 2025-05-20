@@ -28,14 +28,14 @@ export function projectLatLngToSvgCoordinates(latLng: [number, number]): { x: nu
   // Normalize longitude to SVG x coordinate
   const longitudeRange = US_BOUNDS.east - US_BOUNDS.west;
   const normalizedLng = (lng - US_BOUNDS.west) / longitudeRange;
-  // Flip X coordinate because SVG has 0,0 at top-left while map has it at bottom-left
-  const x = SVG_WIDTH * (1 - normalizedLng);
+  // Map longitude to SVG coordinates (east-west direction)
+  const x = SVG_WIDTH * (1 - normalizedLng); // Invert X for correct east-west orientation
   
   // Normalize latitude to SVG y coordinate
   const latitudeRange = US_BOUNDS.north - US_BOUNDS.south;
   const normalizedLat = (lat - US_BOUNDS.south) / latitudeRange;
-  // Flip Y coordinate because SVG has 0,0 at top-left
-  const y = SVG_HEIGHT * (1 - normalizedLat);
+  // Map latitude to SVG coordinates (north-south direction)
+  const y = SVG_HEIGHT * normalizedLat; // Fixed: Don't invert Y to keep north at top
   
   return { x, y };
 }
