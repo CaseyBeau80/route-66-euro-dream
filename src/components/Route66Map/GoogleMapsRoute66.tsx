@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { route66Towns } from '@/types/route66';
@@ -18,6 +17,21 @@ const center = {
   lng: -97.0,
 };
 
+// Define map bounds to only show Route 66 states
+// These coordinates form a rectangle that encompasses CA, AZ, NM, TX, OK, MO, IL
+const mapBounds = {
+  north: 43.0, // Northern boundary (covering Illinois)
+  south: 32.0, // Southern boundary (covering parts of Texas, New Mexico, Arizona, California)
+  east: -85.0, // Eastern boundary (covering Illinois)
+  west: -125.0, // Western boundary (covering California)
+};
+
+// Map restrictions to keep users within bounds
+const mapRestrictions = {
+  latLngBounds: mapBounds,
+  strictBounds: true,
+};
+
 // Custom styling to focus on Route 66
 const mapOptions = {
   disableDefaultUI: false,
@@ -25,6 +39,7 @@ const mapOptions = {
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
+  restriction: mapRestrictions,
   styles: [
     {
       featureType: 'road.highway',
@@ -114,6 +129,14 @@ const GoogleMapsRoute66 = ({
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    
+    // Ensure the map fits within the bounds
+    const bounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(mapBounds.south, mapBounds.west),
+      new google.maps.LatLng(mapBounds.north, mapBounds.east)
+    );
+    
+    map.fitBounds(bounds);
   }, []);
 
   // Show error if Maps failed to load
