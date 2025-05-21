@@ -1,6 +1,7 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
+import { useTownFiltering } from './hooks/useTownFiltering';
 import MapInitializer from './components/MapInitializer';
 import MapOverlays from './components/MapOverlays';
 import Route66Path from './components/Route66Path';
@@ -11,7 +12,6 @@ import ZoomControls from './MapElements/ZoomControls';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import { getVisibleTowns } from './utils/townUtils';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -40,8 +40,18 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     setIsDragging
   } = useGoogleMaps();
 
-  // Filter towns based on selected state
-  const visibleTowns = getVisibleTowns(selectedState);
+  // Use our town filtering hook
+  const { visibleTowns } = useTownFiltering({ selectedState });
+  
+  // State to track whether the map has been initialized
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  // Effect to set mapInitialized when the map reference is available
+  useEffect(() => {
+    if (mapRef.current && !mapInitialized) {
+      setMapInitialized(true);
+    }
+  }, [mapRef.current, mapInitialized]);
 
   // Map load handler
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -83,9 +93,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       google.maps.event.removeListener(listener);
     });
     
-    // Add overlays (via the component but invoked here)
-    new MapOverlays({ map });
-    
+    // Set the map as initialized
+    setMapInitialized(true);
   }, [route66Path, setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
@@ -127,6 +136,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
+        {/* Map overlays added separately */}
+        {mapInitialized && mapRef.current && (
+          <MapOverlays map={mapRef.current} />
+        )}
+        
         {/* Draw Route 66 line */}
         <Route66Path path={route66Path} />
         

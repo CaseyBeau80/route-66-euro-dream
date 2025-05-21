@@ -1,83 +1,50 @@
 
-import React from 'react';
-import { mapBounds } from '../config/MapConfig';
+import { useEffect } from 'react';
 
 interface MapOverlaysProps {
   map: google.maps.Map;
 }
 
-const MapOverlays: React.FC<MapOverlaysProps> = ({ map }) => {
-  // Create a rectangle overlay for areas outside Route 66 corridor
-  // This adds a semi-transparent overlay to de-emphasize areas outside the corridor
-  const addOverlays = () => {
-    // North overlay (Canada)
-    new google.maps.Rectangle({
-      bounds: {
-        north: 90,
-        south: mapBounds.north,
-        east: 180,
-        west: -180
-      },
-      map: map,
-      fillColor: "#8E9196",
-      fillOpacity: 0.2,
-      strokeWeight: 0,
-      clickable: false
-    });
+const MapOverlays = ({ map }: MapOverlaysProps) => {
+  useEffect(() => {
+    if (!map) return;
     
-    // South overlay (Mexico and below)
-    new google.maps.Rectangle({
-      bounds: {
-        north: mapBounds.south,
-        south: -90,
-        east: 180,
-        west: -180
-      },
-      map: map,
-      fillColor: "#8E9196",
-      fillOpacity: 0.2,
-      strokeWeight: 0,
-      clickable: false
-    });
+    // Define the Route 66 corridor with a slightly larger buffer
+    const route66Corridor = new google.maps.LatLngBounds(
+      new google.maps.LatLng(33.7, -118.5),  // SW - Los Angeles area
+      new google.maps.LatLng(42.1, -87.5)    // NE - Chicago area
+    );
     
-    // East overlay
-    new google.maps.Rectangle({
-      bounds: {
-        north: mapBounds.north,
-        south: mapBounds.south,
-        east: 180,
-        west: mapBounds.east
-      },
-      map: map,
-      fillColor: "#8E9196",
-      fillOpacity: 0.2,
-      strokeWeight: 0,
-      clickable: false
+    // Apply bounds restrictions
+    map.setOptions({
+      restriction: {
+        latLngBounds: route66Corridor,
+        strictBounds: false  // Allow some overflow but restrict excessive panning
+      }
     });
-    
-    // West overlay
-    new google.maps.Rectangle({
-      bounds: {
-        north: mapBounds.north,
-        south: mapBounds.south,
-        east: mapBounds.west,
-        west: -180
-      },
-      map: map,
-      fillColor: "#8E9196",
-      fillOpacity: 0.2,
-      strokeWeight: 0,
-      clickable: false
-    });
-  };
 
-  React.useEffect(() => {
-    if (map) {
-      addOverlays();
-    }
+    // Create a semi-transparent overlay for non-Route 66 areas
+    const nonRouteOverlay = new google.maps.Rectangle({
+      bounds: {
+        north: 85,  // Far north (covers the entire map height)
+        south: -85, // Far south
+        east: 180,  // Far east (covers the entire map width)
+        west: -180  // Far west
+      },
+      strokeOpacity: 0,
+      fillColor: "#CCCCCC",
+      fillOpacity: 0.35,
+      map: map,
+      zIndex: -1  // Place behind other elements
+    });
+    
+    // Return cleanup function
+    return () => {
+      nonRouteOverlay.setMap(null);
+    };
   }, [map]);
-
-  return null; // This component doesn't render anything visible directly
+  
+  return null; // This is a non-visual component
 };
 
 export default MapOverlays;

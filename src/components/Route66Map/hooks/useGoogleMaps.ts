@@ -1,20 +1,25 @@
 
-import { useState, useRef, useCallback } from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
+import { useRef, useCallback } from 'react';
 import { route66Towns } from '@/types/route66';
-import { googleMapsApiKey } from '../config/MapConfig';
+import { useMapLoading } from './useMapLoading';
+import { useMarkerInteraction } from './useMarkerInteraction';
 
 export const useGoogleMaps = () => {
-  // Load the Google Maps JS API
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey,
-  });
-
-  // State for active marker and zoom level
-  const [activeMarker, setActiveMarker] = useState<number | null>(null);
-  const [currentZoom, setCurrentZoom] = useState<number>(5);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  // Use our extracted hooks
+  const {
+    isLoaded,
+    loadError,
+    isDragging,
+    setIsDragging,
+    currentZoom,
+    setCurrentZoom
+  } = useMapLoading();
+  
+  const {
+    activeMarker,
+    handleMarkerClick,
+    handleMapClick
+  } = useMarkerInteraction();
   
   // Convert route66Towns to the format needed for the polyline
   const route66Path = route66Towns.map(town => ({
@@ -24,16 +29,6 @@ export const useGoogleMaps = () => {
   
   // Map ref for potential future use
   const mapRef = useRef<google.maps.Map | null>(null);
-
-  // Handle marker click
-  const handleMarkerClick = (index: number) => {
-    setActiveMarker(index === activeMarker ? null : index);
-  };
-
-  // Handle map click
-  const handleMapClick = () => {
-    setActiveMarker(null);
-  };
 
   // Handle zoom controls
   const handleZoomIn = useCallback(() => {
@@ -54,7 +49,6 @@ export const useGoogleMaps = () => {
     isLoaded,
     loadError,
     activeMarker,
-    setActiveMarker,
     currentZoom,
     setCurrentZoom,
     isDragging,
