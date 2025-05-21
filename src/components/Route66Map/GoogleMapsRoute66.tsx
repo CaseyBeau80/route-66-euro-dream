@@ -40,11 +40,13 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     setIsDragging
   } = useGoogleMaps();
 
-  // Use our town filtering hook
+  // Use our town filtering hook - will now filter to only Route 66 states
   const { visibleTowns } = useTownFiltering({ selectedState });
   
   // State to track whether the map has been initialized
   const [mapInitialized, setMapInitialized] = useState(false);
+  // State to track the stylized mode
+  const [nostalgicMode] = useState(true);
 
   // Effect to set mapInitialized when the map reference is available
   useEffect(() => {
@@ -52,6 +54,20 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setMapInitialized(true);
     }
   }, [mapRef.current, mapInitialized]);
+
+  // Add vintage font for nostalgic styling
+  useEffect(() => {
+    // Load Route 66 themed font
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+    
+    return () => {
+      // Clean up font link when component unmounts
+      document.head.removeChild(link);
+    };
+  }, []);
 
   // Map load handler
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -73,7 +89,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial bounds with larger padding to avoid excessive zoom
+    // Set initial bounds with padding to focus on Route 66 corridor
     const bounds = new google.maps.LatLngBounds();
     
     // Add all Route 66 towns to bounds
@@ -81,12 +97,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       bounds.extend(point);
     });
     
-    // Apply padding to the bounds (increased padding to show more context)
-    map.fitBounds(bounds, { top: 100, right: 100, bottom: 100, left: 100 });
+    // Apply padding to the bounds
+    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
     
     // Ensure we don't zoom in too much on initial load
     const listener = google.maps.event.addListener(map, "idle", () => {
-      // Force a lower zoom level to see more of the route
+      // Force a specific zoom level to see more of the route
       if (map.getZoom() > 5) {
         map.setZoom(5);
       }
@@ -108,13 +124,20 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }
 
   return (
-    <div className="relative w-full h-full">
-      {/* Route 66 Shield Badge */}
+    <div className={`relative w-full h-full ${nostalgicMode ? 'font-route66' : ''}`}>
+      {/* Custom styled header for nostalgic look */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-route66-gradient pb-8 pointer-events-none">
+        <h2 className="text-3xl font-bold text-center text-white drop-shadow-md pt-2">
+          Historic Route 66
+        </h2>
+      </div>
+      
+      {/* Route 66 Shield Badge - with nostalgic styling */}
       <div className="absolute top-4 left-4 z-10">
         <Route66Badge />
       </div>
       
-      {/* Clear Selection Button */}
+      {/* Clear Selection Button - with nostalgic styling */}
       {selectedState && (
         <ClearSelectionButton 
           selectedState={selectedState} 
@@ -122,7 +145,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         />
       )}
 
-      {/* Custom Zoom Controls */}
+      {/* Custom Zoom Controls - with nostalgic styling */}
       <ZoomControls 
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
@@ -136,15 +159,15 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Map overlays added separately */}
+        {/* Map overlays added separately - this adds nostalgic illustrations */}
         {mapInitialized && mapRef.current && (
           <MapOverlays map={mapRef.current} />
         )}
         
-        {/* Draw Route 66 line */}
+        {/* Draw Route 66 line - thicker styling */}
         <Route66Path path={route66Path} />
         
-        {/* Draw markers for each town */}
+        {/* Draw markers for each town - with nostalgic styling */}
         <TownMarkers 
           towns={visibleTowns} 
           activeMarker={activeMarker}

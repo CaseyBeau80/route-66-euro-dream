@@ -22,7 +22,19 @@ export const useGoogleMaps = () => {
   } = useMarkerInteraction();
   
   // Convert route66Towns to the format needed for the polyline
-  const route66Path = route66Towns.map(town => ({
+  // Focusing only on the 8 Route 66 states
+  const route66States = ['IL', 'MO', 'KS', 'OK', 'TX', 'NM', 'AZ', 'CA'];
+  
+  const filteredTowns = route66Towns.filter(town => {
+    const parts = town.name.split(', ');
+    if (parts.length > 1) {
+      const stateCode = parts[parts.length - 1];
+      return route66States.includes(stateCode);
+    }
+    return false;
+  });
+  
+  const route66Path = filteredTowns.map(town => ({
     lat: town.latLng[0],
     lng: town.latLng[1],
   }));
