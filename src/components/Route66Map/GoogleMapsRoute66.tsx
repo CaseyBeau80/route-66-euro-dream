@@ -1,8 +1,10 @@
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { route66Towns } from '@/types/route66';
 import Route66Badge from './MapElements/Route66Badge';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
+import ZoomControls from './MapElements/ZoomControls';
 
 // Styling for the Google Map
 const mapContainerStyle = {
@@ -29,17 +31,19 @@ const mapBounds = {
 // Map restrictions to keep users within bounds
 const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: true,
+  strictBounds: false, // Changed to false to allow zooming but still restrict panning
 };
 
 // Custom styling to focus on Route 66
 const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: true,
+  zoomControl: false, // Disable default zoom controls, we'll use custom ones
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
+  minZoom: 4, // Set minimum zoom level
+  maxZoom: 15, // Set maximum zoom level
   styles: [
     {
       featureType: 'road.highway',
@@ -90,11 +94,12 @@ const GoogleMapsRoute66 = ({
   // Load the Google Maps JS API
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8', // Updated Google Maps API key
+    googleMapsApiKey: 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8', // Google Maps API key
   });
 
-  // State for active marker
+  // State for active marker and zoom level
   const [activeMarker, setActiveMarker] = useState<number | null>(null);
+  const [currentZoom, setCurrentZoom] = useState<number>(5);
 
   // Convert route66Towns to the format needed for the polyline
   const route66Path = route66Towns.map(town => ({
@@ -125,18 +130,51 @@ const GoogleMapsRoute66 = ({
   };
 
   // Map ref for potential future use
-  const mapRef = React.useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     
-    // Ensure the map fits within the bounds
-    const bounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(mapBounds.south, mapBounds.west),
-      new google.maps.LatLng(mapBounds.north, mapBounds.east)
-    );
+    // Listen for zoom changes
+    map.addListener("zoom_changed", () => {
+      if (mapRef.current) {
+        setCurrentZoom(mapRef.current.getZoom() || 5);
+      }
+    });
     
-    map.fitBounds(bounds);
+    // Set initial bounds with padding to avoid too much zoom
+    const bounds = new google.maps.LatLngBounds();
+    
+    // Add all Route 66 towns to bounds
+    route66Towns.forEach(town => {
+      bounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
+    });
+    
+    // Apply padding to the bounds (20% padding)
+    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    
+    // Ensure we don't zoom in too much on initial load
+    const listener = google.maps.event.addListener(map, "idle", () => {
+      if (map.getZoom() > 6) {
+        map.setZoom(6);
+      }
+      google.maps.event.removeListener(listener);
+    });
+  }, [route66Towns]);
+
+  // Handle zoom controls
+  const handleZoomIn = useCallback(() => {
+    if (mapRef.current) {
+      const newZoom = Math.min((mapRef.current.getZoom() || 5) + 1, mapOptions.maxZoom);
+      mapRef.current.setZoom(newZoom);
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (mapRef.current) {
+      const newZoom = Math.max((mapRef.current.getZoom() || 5) - 1, mapOptions.minZoom);
+      mapRef.current.setZoom(newZoom);
+    }
   }, []);
 
   // Show error if Maps failed to load
@@ -179,6 +217,15 @@ const GoogleMapsRoute66 = ({
           onClearSelection={onClearSelection} 
         />
       )}
+
+      {/* Custom Zoom Controls */}
+      <ZoomControls 
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        currentZoom={currentZoom}
+        minZoom={mapOptions.minZoom}
+        maxZoom={mapOptions.maxZoom}
+      />
       
       {/* Google Map Component */}
       <GoogleMap
