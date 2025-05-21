@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { route66Towns } from '@/types/route66';
@@ -19,22 +18,25 @@ const center = {
   lng: -97.0,
 };
 
-// Define map bounds to only show Route 66 states
-// These coordinates form a rectangle that encompasses CA, AZ, NM, TX, OK, MO, IL
+// Define map bounds to only show Route 66 corridor
+// These coordinates form a tighter corridor that encompasses the Route 66 states
 const mapBounds = {
-  north: 43.0, // Northern boundary (covering Illinois)
-  south: 32.0, // Southern boundary (covering parts of Texas, New Mexico, Arizona, California)
-  east: -85.0, // Eastern boundary (covering Illinois)
-  west: -125.0, // Western boundary (covering California)
+  north: 42.5, // Northern boundary (covering Illinois)
+  south: 32.5, // Southern boundary (covering parts of Route 66 states)
+  east: -87.0, // Eastern boundary (covering Illinois)
+  west: -122.0, // Western boundary (covering California)
 };
 
 // Map restrictions to keep users within bounds
 const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: false, // Allow zooming but still restrict panning
+  strictBounds: true, // Use strict bounds to prevent panning outside Route 66 corridor
 };
 
-// Custom styling to focus on Route 66
+// Route 66 states to highlight
+const route66StateIds = ['ca', 'az', 'nm', 'tx', 'ok', 'mo', 'il'];
+
+// Custom styling to focus on Route 66 and de-emphasize other areas
 const mapOptions = {
   disableDefaultUI: false,
   zoomControl: false, // Disable default zoom controls, we'll use custom ones
@@ -46,6 +48,24 @@ const mapOptions = {
   maxZoom: 15, // Set maximum zoom level
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
+    {
+      // De-emphasize all administrative areas (states) first
+      featureType: 'administrative.province',
+      elementType: 'geometry',
+      stylers: [{ visibility: 'on' }, { color: '#d3d3d3' }]
+    },
+    {
+      // De-emphasize all administrative areas (states) with labels
+      featureType: 'administrative.province',
+      elementType: 'labels',
+      stylers: [{ visibility: 'on' }, { color: '#9e9e9e' }]
+    },
+    {
+      // De-emphasize all countries except US
+      featureType: 'administrative.country',
+      elementType: 'geometry',
+      stylers: [{ visibility: 'on' }, { color: '#8E9196' }]
+    },
     {
       featureType: 'road.highway',
       elementType: 'geometry',
@@ -171,6 +191,74 @@ const GoogleMapsRoute66 = ({
       }
       google.maps.event.removeListener(listener);
     });
+    
+    // Create a rectangle overlay for areas outside Route 66 corridor
+    // This adds a semi-transparent overlay to de-emphasize areas outside the corridor
+    const addOverlays = () => {
+      // North overlay (Canada)
+      new google.maps.Rectangle({
+        bounds: {
+          north: 90,
+          south: mapBounds.north,
+          east: 180,
+          west: -180
+        },
+        map: map,
+        fillColor: "#8E9196",
+        fillOpacity: 0.2,
+        strokeWeight: 0,
+        clickable: false
+      });
+      
+      // South overlay (Mexico and below)
+      new google.maps.Rectangle({
+        bounds: {
+          north: mapBounds.south,
+          south: -90,
+          east: 180,
+          west: -180
+        },
+        map: map,
+        fillColor: "#8E9196",
+        fillOpacity: 0.2,
+        strokeWeight: 0,
+        clickable: false
+      });
+      
+      // East overlay
+      new google.maps.Rectangle({
+        bounds: {
+          north: mapBounds.north,
+          south: mapBounds.south,
+          east: 180,
+          west: mapBounds.east
+        },
+        map: map,
+        fillColor: "#8E9196",
+        fillOpacity: 0.2,
+        strokeWeight: 0,
+        clickable: false
+      });
+      
+      // West overlay
+      new google.maps.Rectangle({
+        bounds: {
+          north: mapBounds.north,
+          south: mapBounds.south,
+          east: mapBounds.west,
+          west: -180
+        },
+        map: map,
+        fillColor: "#8E9196",
+        fillOpacity: 0.2,
+        strokeWeight: 0,
+        clickable: false
+      });
+    };
+    
+    // Add overlays to de-emphasize areas outside the Route 66 corridor
+    addOverlays();
+    
   }, [route66Towns]);
 
   // Handle zoom controls
