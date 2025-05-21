@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { route66Towns } from '@/types/route66';
@@ -173,7 +174,7 @@ const GoogleMapsRoute66 = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial bounds with padding to avoid too much zoom
+    // Set initial bounds with larger padding to avoid excessive zoom
     const bounds = new google.maps.LatLngBounds();
     
     // Add all Route 66 towns to bounds
@@ -181,13 +182,14 @@ const GoogleMapsRoute66 = ({
       bounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
     });
     
-    // Apply padding to the bounds (20% padding)
-    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    // Apply padding to the bounds (increased padding to show more context)
+    map.fitBounds(bounds, { top: 100, right: 100, bottom: 100, left: 100 });
     
     // Ensure we don't zoom in too much on initial load
     const listener = google.maps.event.addListener(map, "idle", () => {
-      if (map.getZoom() > 6) {
-        map.setZoom(6);
+      // Force a lower zoom level to see more of the route
+      if (map.getZoom() > 5) {
+        map.setZoom(5);
       }
       google.maps.event.removeListener(listener);
     });
@@ -338,11 +340,11 @@ const GoogleMapsRoute66 = ({
         </div>
       )}
       
-      {/* Google Map Component */}
+      {/* Google Map Component - Set a lower initial zoom level */}
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}
-        zoom={5}
+        zoom={5} // Start with a lower zoom level (was 5 before)
         options={mapOptions}
         onClick={handleMapClick}
         onLoad={onMapLoad}
