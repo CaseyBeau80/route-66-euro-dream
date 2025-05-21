@@ -31,8 +31,6 @@ export default {
 					blue: '#5D7B93',
 					gray: '#444444',
 					lightgray: '#F0F0F0',
-					amber: '#f8c967',
-					forest: '#14532d',
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
@@ -112,28 +110,19 @@ export default {
 					'50%': {
 						opacity: '0.8'
 					}
-				},
-				'route66-glow': {
-					'0%, 100%': {
-						filter: 'drop-shadow(0 0 2px rgba(217, 33, 33, 0.5))'
-					},
-					'50%': {
-						filter: 'drop-shadow(0 0 8px rgba(217, 33, 33, 0.8))'
-					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
-				'slow-pulse': 'slow-pulse 3s infinite ease-in-out',
-				'route66-glow': 'route66-glow 4s infinite ease-in-out'
+				'slow-pulse': 'slow-pulse 3s infinite ease-in-out'
 			},
 			backgroundImage: {
-				'route66-gradient': 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)',
+				'route66-gradient': 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
 			},
 			fontFamily: {
-				'route66': ['Racing Sans One', 'cursive'],
+				'route66': ['Racing Sans One', 'sans-serif'],
 				'sans': ['Inter', 'sans-serif'],
 			}
 		}
