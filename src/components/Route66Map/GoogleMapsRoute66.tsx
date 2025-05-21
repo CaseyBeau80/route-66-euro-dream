@@ -4,11 +4,9 @@ import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
 import MapInitializer from './components/MapInitializer';
 import MapOverlays from './components/MapOverlays';
-import Route66Path from './components/Route66Path';
 import TownMarkers from './components/TownMarkers';
 import Route66Badge from './MapElements/Route66Badge';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
-import ZoomControls from './MapElements/ZoomControls';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
@@ -30,12 +28,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     activeMarker,
     currentZoom,
     isDragging,
-    route66Path,
     mapRef,
     handleMarkerClick,
     handleMapClick,
-    handleZoomIn,
-    handleZoomOut,
     setCurrentZoom,
     setIsDragging
   } = useGoogleMaps();
@@ -76,9 +71,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     // Set initial bounds with larger padding to avoid excessive zoom
     const bounds = new google.maps.LatLngBounds();
     
-    // Add all Route 66 towns to bounds
-    route66Path.forEach(point => {
-      bounds.extend(point);
+    // Add all towns to bounds
+    visibleTowns.forEach(town => {
+      bounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
     });
     
     // Apply padding to the bounds (increased padding to show more context)
@@ -95,7 +90,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     
     // Set the map as initialized
     setMapInitialized(true);
-  }, [route66Path, setCurrentZoom, setIsDragging]);
+  }, [visibleTowns, setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
   if (loadError) {
@@ -121,15 +116,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           onClearSelection={onClearSelection} 
         />
       )}
-
-      {/* Custom Zoom Controls */}
-      <ZoomControls 
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        currentZoom={currentZoom}
-        minZoom={4}
-        maxZoom={15}
-      />
       
       {/* Map Interaction Hints */}
       <MapInteractionHints isDragging={isDragging} />
@@ -140,9 +126,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         {mapInitialized && mapRef.current && (
           <MapOverlays map={mapRef.current} />
         )}
-        
-        {/* Draw Route 66 line */}
-        <Route66Path path={route66Path} />
         
         {/* Draw markers for each town */}
         <TownMarkers 

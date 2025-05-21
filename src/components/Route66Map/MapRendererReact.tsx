@@ -4,7 +4,6 @@ import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
-import ZoomControls from "./MapElements/ZoomControls";
 import InteractionIndicators from "./MapElements/InteractionIndicators";
 import MapContent from "./MapElements/MapContent";
 import { useZoomControls } from "./hooks/useZoomControls";
@@ -77,15 +76,6 @@ const MapRendererReact = ({
           onClearSelection={onClearSelection} 
         />
       )}
-      
-      {/* Enhanced ZoomControls component */}
-      <ZoomControls
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        currentZoom={zoom}
-        minZoom={MIN_ZOOM}
-        maxZoom={MAX_ZOOM}
-      />
       
       <InteractionIndicators 
         isPinching={isPinching}
