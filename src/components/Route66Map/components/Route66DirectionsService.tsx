@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { route66WaypointData } from './Route66Waypoints';
 import BackupRoute from './BackupRoute';
@@ -10,8 +11,7 @@ interface Route66DirectionsServiceProps {
 const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-  const [isChunk1Success, setIsChunk1Success] = useState<boolean | null>(null);
-  const [isChunk2Success, setIsChunk2Success] = useState<boolean | null>(null);
+  const [routeCalculated, setRouteCalculated] = useState<boolean | null>(null);
   const [useBackupRoute, setUseBackupRoute] = useState(false);
 
   // Initialize DirectionsService and DirectionsRenderer
@@ -20,14 +20,15 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
     
     setDirectionsService(new google.maps.DirectionsService());
     
-    // Create a shared directions renderer for better route visualization
+    // Create a shared directions renderer with improved styling for better route visualization
     const renderer = new google.maps.DirectionsRenderer({
       suppressMarkers: false,
       preserveViewport: true,
       polylineOptions: {
-        strokeColor: '#B91C1C', // Deep red color for Route 66
-        strokeOpacity: 0.8,
-        strokeWeight: 4
+        strokeColor: '#DC2626', // Brighter red color for better visibility
+        strokeOpacity: 1.0,     // Full opacity for better visibility
+        strokeWeight: 5,        // Thicker line
+        zIndex: 10              // Ensure it appears on top
       }
     });
     
@@ -45,60 +46,71 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   useEffect(() => {
     if (!map) return;
     
-    // Check if both chunks failed or if we explicitly need to use backup
-    if (useBackupRoute || (isChunk1Success === false && isChunk2Success === false)) {
+    // Check if direct route failed or if we explicitly need to use backup
+    if (useBackupRoute || routeCalculated === false) {
       console.log("Using backup route method");
       const backupRoute = BackupRoute({ map, directionsRenderer });
       backupRoute.createBackupRoute();
     }
-  }, [map, directionsRenderer, isChunk1Success, isChunk2Success, useBackupRoute]);
+  }, [map, directionsRenderer, routeCalculated, useBackupRoute]);
 
-  // Calculate optimal chunk size based on waypoint length
-  // Google Maps API limits 25 waypoints per request (23 + origin + destination)
-  const calculateOptimalChunks = useCallback(() => {
-    const MAX_WAYPOINTS_PER_REQUEST = 23; // Google's limit minus origin/destination
-    const totalWaypoints = route66WaypointData.length;
+  // Calculate route between Chicago and Santa Monica
+  const calculateChicagoToSantaMonicaRoute = useCallback(() => {
+    // Find Chicago and Santa Monica waypoints
+    const chicagoWaypoint = route66WaypointData.find(
+      point => point.description?.includes("Chicago")
+    );
     
-    // If we have fewer than max waypoints, just use one chunk
-    if (totalWaypoints <= MAX_WAYPOINTS_PER_REQUEST + 2) {
-      return [{ start: 0, end: totalWaypoints - 1 }];
+    const santaMonicaWaypoint = route66WaypointData.find(
+      point => point.description?.includes("Santa Monica")
+    );
+
+    if (!chicagoWaypoint || !santaMonicaWaypoint) {
+      console.error("Could not find Chicago or Santa Monica waypoints");
+      setRouteCalculated(false);
+      return;
     }
-    
-    // Otherwise divide into optimal chunks
-    const numChunks = Math.ceil(totalWaypoints / MAX_WAYPOINTS_PER_REQUEST);
-    const chunks = [];
-    
-    for (let i = 0; i < numChunks; i++) {
-      const start = i === 0 ? 0 : i * MAX_WAYPOINTS_PER_REQUEST - 1;
-      const end = Math.min((i + 1) * MAX_WAYPOINTS_PER_REQUEST, totalWaypoints - 1);
-      chunks.push({ start, end });
-    }
-    
-    return chunks;
+
+    // Get intermediate cities as waypoints for an accurate historic route
+    // Using fewer waypoints to ensure we stay within Google Maps API limits
+    // and create a more visible continuous route
+    const waypoints = route66WaypointData
+      .filter(point => point.stopover)  // Only include major stops
+      .filter(point => 
+        !point.description?.includes("Chicago") && 
+        !point.description?.includes("Santa Monica")
+      ) // Exclude origin and destination
+      .map(point => ({
+        location: point.description || new google.maps.LatLng(point.lat, point.lng),
+        stopover: true
+      }));
+
+    return {
+      origin: chicagoWaypoint,
+      destination: santaMonicaWaypoint,
+      waypoints
+    };
   }, []);
 
   // If no directions service or renderer, don't render anything
   if (!directionsService || !directionsRenderer) return null;
 
-  // Get optimal chunks for route calculation
-  const chunks = calculateOptimalChunks();
+  // Get route data
+  const routeData = calculateChicagoToSantaMonicaRoute();
+  
+  if (!routeData) return null;
   
   return (
     <>
-      {chunks.map((chunk, index) => (
-        <RouteChunk 
-          key={`chunk-${index}`}
-          map={map}
-          directionsService={directionsService}
-          directionsRenderer={directionsRenderer}
-          startIndex={chunk.start}
-          endIndex={chunk.end}
-          onRouteCalculated={(success) => {
-            if (index === 0) setIsChunk1Success(success);
-            if (index === 1) setIsChunk2Success(success);
-          }}
-        />
-      ))}
+      <RouteChunk 
+        map={map}
+        directionsService={directionsService}
+        directionsRenderer={directionsRenderer}
+        origin={routeData.origin}
+        destination={routeData.destination}
+        waypoints={routeData.waypoints}
+        onRouteCalculated={(success) => setRouteCalculated(success)}
+      />
     </>
   );
 };

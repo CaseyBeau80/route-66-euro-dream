@@ -23,9 +23,10 @@ const DirectionsRenderer = ({
       suppressMarkers: false,
       preserveViewport: true,
       polylineOptions: {
-        strokeColor: '#B91C1C', // Deep red color for Route 66
-        strokeOpacity: 0.8,
-        strokeWeight: 4
+        strokeColor: '#DC2626', // Brighter red color for better visibility
+        strokeOpacity: 1.0,     // Full opacity for better visibility
+        strokeWeight: 5,        // Thicker line for better visibility
+        zIndex: 10             // Higher z-index to ensure it appears above other map elements
       },
       ...options
     };

@@ -21,13 +21,14 @@ const BackupRoute = ({ map, directionsRenderer }: BackupRouteProps) => {
     // Get route coordinates
     const coordinates = getRoute66Coordinates();
     
-    // Create a polyline path
+    // Create a polyline path with enhanced styling for better visibility
     const routePath = new google.maps.Polyline({
       path: coordinates,
       geodesic: true,
-      strokeColor: '#B91C1C',
-      strokeOpacity: 0.8,
-      strokeWeight: 4,
+      strokeColor: '#DC2626', // Brighter red color for better visibility
+      strokeOpacity: 1.0,     // Full opacity
+      strokeWeight: 5,        // Thicker line
+      zIndex: 10,            // Higher z-index
       map: map
     });
     
@@ -38,9 +39,9 @@ const BackupRoute = ({ map, directionsRenderer }: BackupRouteProps) => {
         map: map,
         title: point.description || "Route 66 Waypoint",
         icon: {
-          url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0I5MUMxQyIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS41YTIuNSAyLjUgMCAwIDEgMC01IDIuNSAyLjUgMCAwIDEgMCA1eiIvPjwvc3ZnPg==',
-          scaledSize: new google.maps.Size(24, 24),
-          anchor: new google.maps.Point(12, 24)
+          url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0RDMjYyNiIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS41YTIuNSAyLjUgMCAwIDEgMC01IDIuNSAyLjUgMCAwIDEgMCA1eiIvPjwvc3ZnPg==',
+          scaledSize: new google.maps.Size(28, 28),  // Slightly larger for better visibility
+          anchor: new google.maps.Point(14, 28)
         }
       });
     });
