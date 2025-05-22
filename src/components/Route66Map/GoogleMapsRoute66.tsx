@@ -10,6 +10,7 @@ import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
+import { route66StateIds } from './config/MapConfig';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -68,22 +69,22 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial bounds with larger padding to avoid excessive zoom
+    // Set initial bounds focusing on Route 66 corridor
     const bounds = new google.maps.LatLngBounds();
     
-    // Add all towns to bounds
+    // Add all towns to bounds to ensure they're visible
     visibleTowns.forEach(town => {
       bounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
     });
     
-    // Apply padding to the bounds (increased padding to show more context)
-    map.fitBounds(bounds, { top: 100, right: 100, bottom: 100, left: 100 });
+    // Apply padding to the bounds to show more context
+    map.fitBounds(bounds, { top: 80, right: 80, bottom: 80, left: 80 });
     
     // Ensure we don't zoom in too much on initial load
     const listener = google.maps.event.addListener(map, "idle", () => {
       // Force a lower zoom level to see more of the route
-      if (map.getZoom() > 5) {
-        map.setZoom(5);
+      if (map.getZoom() > 6) {
+        map.setZoom(6);
       }
       google.maps.event.removeListener(listener);
     });

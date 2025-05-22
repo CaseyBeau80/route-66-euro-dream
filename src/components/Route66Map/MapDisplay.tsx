@@ -24,7 +24,7 @@ const MapDisplay = ({ selectedState, onStateClick }: MapDisplayProps) => {
         id="route66-map-container"
         className="w-full h-[80vh] md:h-[700px] rounded-xl shadow-lg border border-gray-200 bg-[#f8f8f8]"
       >
-        {/* Use the Google Maps component */}
+        {/* Use the Google Maps component with restricted bounds */}
         <GoogleMapsRoute66 
           selectedState={selectedState}
           onStateClick={onStateClick}

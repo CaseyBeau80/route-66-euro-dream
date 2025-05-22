@@ -7,19 +7,19 @@ export const mapContainerStyle = {
   borderRadius: '0.75rem',
 };
 
-// Center the map on a point along Route 66 (near Oklahoma)
+// Center the map on a point along Route 66 (roughly Oklahoma)
 export const center = {
   lat: 37.0,
   lng: -97.0,
 };
 
 // Define map bounds to only show Route 66 corridor
-// These coordinates form a tighter corridor that encompasses the Route 66 states
+// These coordinates form a tighter corridor that encompasses just the Route 66 states
 export const mapBounds = {
   north: 42.5, // Northern boundary (covering Illinois)
-  south: 32.5, // Southern boundary (covering parts of Route 66 states)
-  east: -87.0, // Eastern boundary (covering Illinois)
-  west: -122.0, // Western boundary (covering California)
+  south: 32.5, // Southern boundary (covering southern part of route in Arizona/California)
+  east: -87.0, // Eastern boundary (covering Chicago)
+  west: -122.0, // Western boundary (covering Los Angeles)
 };
 
 // Map restrictions to keep users within bounds
@@ -28,55 +28,53 @@ export const mapRestrictions = {
   strictBounds: true, // Use strict bounds to prevent panning outside Route 66 corridor
 };
 
-// Route 66 states to highlight
-export const route66StateIds = ['ca', 'az', 'nm', 'tx', 'ok', 'mo', 'il'];
+// Route 66 states to highlight - including all states the route passes through
+export const route66StateIds = ['ca', 'az', 'nm', 'tx', 'ok', 'ks', 'mo', 'il'];
 
 // Custom styling to focus on Route 66 and de-emphasize other areas
 export const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: false, // Disable default zoom controls, we'll use custom ones
+  zoomControl: false, // We'll use custom zoom controls
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Set minimum zoom level
-  maxZoom: 15, // Set maximum zoom level
+  minZoom: 5, // Set minimum zoom level to see the entire Route 66
+  maxZoom: 12, // Limit maximum zoom to prevent zooming in too far
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
-      // De-emphasize all administrative areas (states) first
+      // Highlight Route 66 states
       featureType: 'administrative.province',
       elementType: 'geometry',
-      stylers: [{ visibility: 'on' }, { color: '#d3d3d3' }]
+      stylers: [{ visibility: 'on' }]
     },
     {
-      // De-emphasize all administrative areas (states) with labels
+      // Make non-Route 66 states appear muted
       featureType: 'administrative.province',
-      elementType: 'labels',
-      stylers: [{ visibility: 'on' }, { color: '#9e9e9e' }]
+      elementType: 'geometry.fill',
+      stylers: [{ saturation: -80 }, { lightness: 20 }]
     },
     {
-      // De-emphasize all countries except US
-      featureType: 'administrative.country',
-      elementType: 'geometry',
-      stylers: [{ visibility: 'on' }, { color: '#8E9196' }]
-    },
-    {
+      // Make highways more prominent
       featureType: 'road.highway',
       elementType: 'geometry',
-      stylers: [{ color: '#f8c967' }]
+      stylers: [{ color: '#f8c967' }, { weight: 1.5 }]
     },
     {
+      // Make highway labels more visible
       featureType: 'road.highway',
       elementType: 'labels.text.fill',
       stylers: [{ color: '#14532d' }]
     },
     {
+      // Subtle landscape
       featureType: 'landscape',
       elementType: 'geometry',
       stylers: [{ color: '#f5f5f4' }]
     },
     {
+      // Water features
       featureType: 'water',
       elementType: 'geometry',
       stylers: [{ color: '#bfdbfe' }]
