@@ -1,4 +1,3 @@
-
 // Map configuration constants
 
 // Styling for the Google Map
@@ -10,17 +9,17 @@ export const mapContainerStyle = {
 
 // Center the map on a point along Route 66 (roughly Oklahoma)
 export const center = {
-  lat: 37.0,
-  lng: -97.0,
+  lat: 36.0,
+  lng: -98.0,
 };
 
-// Define map bounds to only show Route 66 corridor
-// These coordinates form a tighter corridor that encompasses just the Route 66 states
+// Define map bounds to show Route 66 corridor
+// These coordinates form a corridor that encompasses the Route 66 states
 export const mapBounds = {
-  north: 42.5, // Northern boundary (covering Illinois)
-  south: 32.5, // Southern boundary (covering southern part of route in Arizona/California)
-  east: -87.0, // Eastern boundary (covering Chicago)
-  west: -122.0, // Western boundary (covering Los Angeles)
+  north: 44.0, // Northern boundary (covering Illinois)
+  south: 28.0, // Southern boundary (covering parts of Texas)
+  east: -80.0, // Eastern boundary (covering Chicago)
+  west: -124.0, // Western boundary (covering Los Angeles)
 };
 
 // Map restrictions to keep users within bounds
@@ -35,53 +34,41 @@ export const route66StateIds = ['ca', 'az', 'nm', 'tx', 'ok', 'ks', 'mo', 'il'];
 // Custom styling to focus on Route 66 and de-emphasize other areas
 export const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: false, // We'll use custom zoom controls
+  zoomControl: false,
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 5, // Set minimum zoom level to see the entire Route 66
+  minZoom: 4, // Lower minimum zoom to see more of the map
   maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
-      // Highlight Route 66 states
+      // Make all states lighter
       featureType: 'administrative.province',
-      elementType: 'geometry',
+      elementType: 'all',
       stylers: [{ visibility: 'on' }]
     },
     {
-      // Make non-Route 66 states appear muted
-      featureType: 'administrative.province',
-      elementType: 'geometry.fill',
-      stylers: [{ saturation: -80 }, { lightness: 20 }]
+      // Simplify the map overall
+      featureType: 'all',
+      elementType: 'all',
+      stylers: [{ saturation: -20 }]
     },
     {
-      // Make highways more prominent, especially Route 66
+      // Make highways more visible
       featureType: 'road.highway',
       elementType: 'geometry',
       stylers: [{ color: '#f8c967' }, { weight: 1.5 }]
     },
     {
-      // Route 66 states with orange tint
-      featureType: 'administrative.province',
-      elementType: 'geometry.fill',
-      stylers: [{ color: '#f97316' }, { saturation: 50 }]
+      // Make city labels smaller
+      featureType: 'administrative.locality',
+      elementType: 'labels',
+      stylers: [{ visibility: 'simplified' }]
     },
     {
-      // Make highway labels more visible
-      featureType: 'road.highway',
-      elementType: 'labels.text.fill',
-      stylers: [{ color: '#14532d' }]
-    },
-    {
-      // Subtle landscape
-      featureType: 'landscape',
-      elementType: 'geometry',
-      stylers: [{ color: '#f5f5f4' }]
-    },
-    {
-      // Water features
+      // Lighten the water
       featureType: 'water',
       elementType: 'geometry',
       stylers: [{ color: '#bfdbfe' }]

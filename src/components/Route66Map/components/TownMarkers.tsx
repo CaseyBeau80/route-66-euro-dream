@@ -26,9 +26,12 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
           position={{ lat: town.latLng[0], lng: town.latLng[1] }}
           onClick={() => onMarkerClick(index)}
           icon={{
-            url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzhjMWIxYiIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCA5LjVhMi41IDIuNSAwIDAgMSAwLTUgMi41IDIuNSAwIDAgMSAwIDV6Ii8+PC9zdmc+',
-            scaledSize: new google.maps.Size(30, 30)
+            // Use a dark red pin marker similar to the reference image
+            url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0I5MUMxQyIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS41YTIuNSAyLjUgMCAwIDEgMC01IDIuNSAyLjUgMCAwIDEgMCA1eiIvPjwvc3ZnPg==',
+            scaledSize: new google.maps.Size(32, 32),
+            anchor: new google.maps.Point(16, 32) // Anchor at the bottom center of the icon
           }}
+          zIndex={100}
         >
           {activeMarker === index && (
             <InfoWindow onCloseClick={() => onMarkerClick(index)}>

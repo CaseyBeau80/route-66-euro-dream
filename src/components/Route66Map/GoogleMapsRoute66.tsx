@@ -10,7 +10,7 @@ import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import { route66StateIds, mapOptions } from './config/MapConfig';
+import { mapOptions, center } from './config/MapConfig';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -69,29 +69,30 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial bounds focusing on Route 66 corridor
-    const bounds = new google.maps.LatLngBounds();
-    
-    // Add all towns to bounds to ensure they're visible
-    visibleTowns.forEach(town => {
-      bounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
-    });
-    
-    // Apply padding to the bounds to show more context
-    map.fitBounds(bounds, { top: 80, right: 80, bottom: 80, left: 80 });
-    
-    // Ensure we don't zoom in too much on initial load
-    const listener = google.maps.event.addListener(map, "idle", () => {
-      // Force a lower zoom level to see more of the route
-      if (map.getZoom() > 6) {
-        map.setZoom(6);
+    // Initial setup - determine what to show
+    if (selectedState) {
+      // If a state is selected, focus on that state
+      const stateTowns = visibleTowns.filter(town => 
+        town.name.toLowerCase().includes(selectedState.toLowerCase())
+      );
+      
+      if (stateTowns.length > 0) {
+        const stateBounds = new google.maps.LatLngBounds();
+        stateTowns.forEach(town => {
+          stateBounds.extend({lat: town.latLng[0], lng: town.latLng[1]});
+        });
+        map.fitBounds(stateBounds, { top: 50, right: 50, bottom: 50, left: 50 });
       }
-      google.maps.event.removeListener(listener);
-    });
+    } else {
+      // No state selected, show the whole route with a focus on the central section
+      // This gives a view similar to the reference image focusing on OK/MO/IL
+      map.setZoom(5);
+      map.setCenter({lat: 37.0, lng: -94.0}); // Center on Oklahoma/Missouri area
+    }
     
     // Set the map as initialized
     setMapInitialized(true);
-  }, [visibleTowns, setCurrentZoom, setIsDragging]);
+  }, [visibleTowns, selectedState, setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
   if (loadError) {
@@ -105,7 +106,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Route 66 Shield Badge */}
+      {/* Route 66 Shield Badge positioned in the top-left */}
       <div className="absolute top-4 left-4 z-10">
         <Route66Badge />
       </div>
