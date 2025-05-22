@@ -1,11 +1,11 @@
 
 import { useEffect, useState } from 'react';
 import { route66WaypointData, getGoogleWaypoints } from '../Route66Waypoints';
-import DirectionsRenderer from './DirectionsRenderer';
 
 interface RouteChunkProps {
   map: google.maps.Map;
   directionsService: google.maps.DirectionsService;
+  directionsRenderer: google.maps.DirectionsRenderer;
   startIndex: number;
   endIndex: number;
   onRouteCalculated?: (success: boolean) => void;
@@ -14,32 +14,35 @@ interface RouteChunkProps {
 const RouteChunk = ({ 
   map, 
   directionsService,
+  directionsRenderer,
   startIndex,
   endIndex,
   onRouteCalculated 
 }: RouteChunkProps) => {
-  const [directionsResult, setDirectionsResult] = useState<google.maps.DirectionsResult | undefined>(undefined);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
-    if (!map || !directionsService || typeof google === 'undefined') return;
+    if (!map || !directionsService || !directionsRenderer || typeof google === 'undefined' || isCalculating) return;
 
+    setIsCalculating(true);
+    
     // Get waypoint data for this chunk
     const originData = route66WaypointData[startIndex];
     const destinationData = route66WaypointData[endIndex];
     
-    // Create origin and destination LatLng objects
-    const origin = new google.maps.LatLng(originData.lat, originData.lng);
-    const destination = new google.maps.LatLng(destinationData.lat, destinationData.lng);
+    // Create origin and destination as proper addresses for better routing
+    const origin = originData.description || new google.maps.LatLng(originData.lat, originData.lng);
+    const destination = destinationData.description || new google.maps.LatLng(destinationData.lat, destinationData.lng);
     
     // Get waypoints excluding origin and destination
     const waypoints = route66WaypointData
       .slice(startIndex + 1, endIndex)
       .map(waypoint => ({ 
-        location: new google.maps.LatLng(waypoint.lat, waypoint.lng),
+        location: waypoint.description || new google.maps.LatLng(waypoint.lat, waypoint.lng),
         stopover: waypoint.stopover
       }));
 
-    // Create route request
+    // Create route request with specific routing preferences
     const request: google.maps.DirectionsRequest = {
       origin,
       destination,
@@ -47,29 +50,26 @@ const RouteChunk = ({
       travelMode: google.maps.TravelMode.DRIVING,
       optimizeWaypoints: false, // Don't reorder - we want the historic route
       avoidHighways: false,
-      avoidTolls: false
+      avoidTolls: false,
+      provideRouteAlternatives: false
     };
 
     // Calculate route
     directionsService.route(request, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK) {
+      if (status === google.maps.DirectionsStatus.OK && result) {
         console.log(`Route chunk ${startIndex} to ${endIndex} calculated successfully`);
-        setDirectionsResult(result);
+        directionsRenderer.setDirections(result);
         if (onRouteCalculated) onRouteCalculated(true);
       } else {
         console.error(`Error fetching directions for chunk ${startIndex}-${endIndex}: ${status}`);
         if (onRouteCalculated) onRouteCalculated(false);
       }
+      setIsCalculating(false);
     });
-  }, [map, directionsService, startIndex, endIndex, onRouteCalculated]);
+  }, [map, directionsService, directionsRenderer, startIndex, endIndex, onRouteCalculated, isCalculating]);
 
-  return (
-    <DirectionsRenderer 
-      map={map}
-      directionsService={directionsService}
-      directionsResult={directionsResult}
-    />
-  );
+  // This is a non-visual component that handles the directions calculation
+  return null;
 };
 
 export default RouteChunk;
