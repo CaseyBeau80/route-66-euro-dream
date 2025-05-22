@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { route66Waypoints } from './Route66Waypoints';
+import { route66WaypointData } from './Route66Waypoints';
 import BackupRoute from './BackupRoute';
 import RouteChunk from './directions/RouteChunk';
 
@@ -32,7 +32,7 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   }, [map, isChunk1Success, isChunk2Success, useBackupRoute]);
 
   // Break route calculation into chunks
-  const chunkDivision = Math.floor(route66Waypoints.length / 2);
+  const chunkDivision = Math.floor(route66WaypointData.length / 2);
   
   // If no directions service, don't render anything
   if (!directionsService) return null;
@@ -50,7 +50,7 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
         map={map}
         directionsService={directionsService}
         startIndex={chunkDivision}
-        endIndex={route66Waypoints.length - 1}
+        endIndex={route66WaypointData.length - 1}
         onRouteCalculated={(success) => setIsChunk2Success(success)}
       />
     </>
