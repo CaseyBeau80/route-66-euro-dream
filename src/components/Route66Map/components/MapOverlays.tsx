@@ -85,24 +85,66 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
         // Add the layer to the map
         statesLayer.setMap(map);
         
-        // Add a red polyline to represent Route 66
-        const route66Coordinates = [
-          {lat: 34.0522, lng: -118.2437}, // Los Angeles, CA
-          {lat: 35.1983, lng: -111.6513}, // Flagstaff, AZ
-          {lat: 35.0845, lng: -106.6511}, // Albuquerque, NM
-          {lat: 35.2220, lng: -101.8313}, // Amarillo, TX
-          {lat: 35.4676, lng: -97.5164},  // Oklahoma City, OK
-          {lat: 37.2091, lng: -93.2923},  // Springfield, MO
-          {lat: 38.6273, lng: -90.1979},  // St. Louis, MO
-          {lat: 41.8781, lng: -87.6298}   // Chicago, IL
+        // More detailed and accurate Route 66 path with key points along the actual highway
+        const route66DetailedCoordinates = [
+          // Los Angeles, CA to San Bernardino
+          {lat: 34.0522, lng: -118.2437},  // Los Angeles, CA
+          {lat: 34.0825, lng: -117.8711},  // Pasadena, CA
+          {lat: 34.1066, lng: -117.5931},  // San Bernardino, CA
+          
+          // Through Arizona
+          {lat: 34.4854, lng: -114.3477},  // Needles, CA
+          {lat: 35.0222, lng: -114.3716},  // Kingman, AZ
+          {lat: 35.2262, lng: -112.8871},  // Seligman, AZ
+          {lat: 35.2153, lng: -111.6494},  // Flagstaff, AZ
+          {lat: 35.0731, lng: -110.9559},  // Winslow, AZ
+          {lat: 35.0819, lng: -110.0298},  // Holbrook, AZ
+          
+          // Through New Mexico
+          {lat: 35.3106, lng: -107.8692},  // Grants, NM
+          {lat: 35.0844, lng: -106.6504},  // Albuquerque, NM
+          {lat: 35.0678, lng: -106.0470},  // Moriarty, NM
+          {lat: 35.0606, lng: -105.2678},  // Santa Rosa, NM
+          {lat: 35.1245, lng: -103.7207},  // Tucumcari, NM
+          
+          // Through Texas
+          {lat: 35.2220, lng: -101.8313},  // Amarillo, TX
+          
+          // Through Oklahoma
+          {lat: 35.5089, lng: -98.9680},   // Elk City, OK
+          {lat: 35.4676, lng: -97.5164},   // Oklahoma City, OK
+          {lat: 36.1540, lng: -95.9928},   // Tulsa, OK
+          
+          // Through Missouri
+          {lat: 37.0842, lng: -94.5133},   // Joplin, MO
+          {lat: 37.2090, lng: -93.2923},   // Springfield, MO
+          {lat: 38.7067, lng: -90.3990},   // St. Louis, MO
+          
+          // Through Illinois
+          {lat: 39.0473, lng: -89.5104},   // Litchfield, IL
+          {lat: 39.8106, lng: -89.6436},   // Springfield, IL
+          {lat: 41.1306, lng: -88.8290},   // Pontiac, IL
+          {lat: 41.5250, lng: -88.0817},   // Joliet, IL
+          {lat: 41.8781, lng: -87.6298}    // Chicago, IL - End of Route 66
         ];
         
+        // Add a polyline to represent Route 66 with more detailed styling
         const route66Path = new google.maps.Polyline({
-          path: route66Coordinates,
+          path: route66DetailedCoordinates,
           geodesic: true,
-          strokeColor: '#B91C1C',
+          strokeColor: '#B91C1C',  // Deep red color
           strokeOpacity: 0.8,
-          strokeWeight: 3
+          strokeWeight: 3,
+          icons: [{ 
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              scale: 1.5,
+              strokeColor: '#B91C1C',
+              strokeWeight: 1.5
+            },
+            offset: '50px',
+            repeat: '150px'  // Repeat arrows along the path
+          }]
         });
         
         route66Path.setMap(map);
