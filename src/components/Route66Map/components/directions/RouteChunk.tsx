@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { route66WaypointData, getGoogleWaypoints } from '../Route66Waypoints';
+import { route66WaypointData } from '../Route66Waypoints';
 
 interface RouteChunkProps {
   map: google.maps.Map;
@@ -23,6 +23,15 @@ const RouteChunk = ({
 
   useEffect(() => {
     if (!map || !directionsService || !directionsRenderer || typeof google === 'undefined' || isCalculating) return;
+
+    // Validate indices to prevent undefined access
+    if (startIndex < 0 || endIndex < 0 || 
+        startIndex >= route66WaypointData.length || 
+        endIndex >= route66WaypointData.length) {
+      console.error(`Invalid route indices: ${startIndex} to ${endIndex}`);
+      if (onRouteCalculated) onRouteCalculated(false);
+      return;
+    }
 
     setIsCalculating(true);
     
@@ -53,6 +62,10 @@ const RouteChunk = ({
       avoidTolls: false,
       provideRouteAlternatives: false
     };
+
+    console.log(`Calculating Route 66 chunk from ${startIndex} to ${endIndex}`);
+    console.log('Origin:', origin);
+    console.log('Destination:', destination);
 
     // Calculate route
     directionsService.route(request, (result, status) => {

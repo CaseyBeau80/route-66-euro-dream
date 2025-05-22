@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { route66WaypointData } from './Route66Waypoints';
 import BackupRoute from './BackupRoute';
 import RouteChunk from './directions/RouteChunk';
@@ -27,8 +27,8 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
       polylineOptions: {
         strokeColor: '#DC2626', // Brighter red color for better visibility
         strokeOpacity: 1.0,     // Full opacity for better visibility
-        strokeWeight: 5,        // Thicker line
-        zIndex: 10              // Ensure it appears on top
+        strokeWeight: 5,        // Thicker line for better visibility
+        zIndex: 10             // Higher z-index to ensure it appears above other map elements
       }
     });
     
@@ -54,51 +54,23 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
     }
   }, [map, directionsRenderer, routeCalculated, useBackupRoute]);
 
-  // Calculate route between Chicago and Santa Monica
-  const calculateChicagoToSantaMonicaRoute = useCallback(() => {
-    // Find Chicago and Santa Monica waypoints
-    const chicagoWaypoint = route66WaypointData.find(
-      point => point.description?.includes("Chicago")
-    );
-    
-    const santaMonicaWaypoint = route66WaypointData.find(
-      point => point.description?.includes("Santa Monica")
-    );
-
-    if (!chicagoWaypoint || !santaMonicaWaypoint) {
-      console.error("Could not find Chicago or Santa Monica waypoints");
-      setRouteCalculated(false);
-      return;
-    }
-
-    // Get intermediate cities as waypoints for an accurate historic route
-    // Using fewer waypoints to ensure we stay within Google Maps API limits
-    // and create a more visible continuous route
-    const waypoints = route66WaypointData
-      .filter(point => point.stopover)  // Only include major stops
-      .filter(point => 
-        !point.description?.includes("Chicago") && 
-        !point.description?.includes("Santa Monica")
-      ) // Exclude origin and destination
-      .map(point => ({
-        location: point.description || new google.maps.LatLng(point.lat, point.lng),
-        stopover: true
-      }));
-
-    return {
-      origin: chicagoWaypoint,
-      destination: santaMonicaWaypoint,
-      waypoints
-    };
-  }, []);
-
   // If no directions service or renderer, don't render anything
   if (!directionsService || !directionsRenderer) return null;
 
-  // Get route data
-  const routeData = calculateChicagoToSantaMonicaRoute();
+  // Find the indices for Chicago (start of Route 66) and Santa Monica (end of Route 66)
+  const chicagoIndex = route66WaypointData.findIndex(
+    point => point.description?.includes("Chicago")
+  );
   
-  if (!routeData) return null;
+  const santaMonicaIndex = route66WaypointData.findIndex(
+    point => point.description?.includes("Santa Monica")
+  );
+
+  // If we couldn't find either endpoint, don't render anything
+  if (chicagoIndex === -1 || santaMonicaIndex === -1) {
+    console.error("Could not find Chicago or Santa Monica waypoints");
+    return null;
+  }
   
   return (
     <>
@@ -106,9 +78,8 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
         map={map}
         directionsService={directionsService}
         directionsRenderer={directionsRenderer}
-        origin={routeData.origin}
-        destination={routeData.destination}
-        waypoints={routeData.waypoints}
+        startIndex={chicagoIndex}
+        endIndex={santaMonicaIndex}
         onRouteCalculated={(success) => setRouteCalculated(success)}
       />
     </>
