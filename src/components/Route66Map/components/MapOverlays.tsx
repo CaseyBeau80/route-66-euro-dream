@@ -42,17 +42,7 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
           
-          // Special handling for distinguishing Missouri from Montana
-          if (stateName === 'Missouri') {
-            return {
-              fillColor: '#f97316',
-              fillOpacity: 0.3,
-              strokeColor: '#c2410c',
-              strokeWeight: 2,
-              visible: true
-            };
-          }
-          
+          // Explicitly check if the state is Montana and ensure it's not highlighted
           if (stateName === 'Montana') {
             return {
               fillColor: '#d1d5db',
@@ -63,7 +53,18 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
             };
           }
           
-          // Check for each Route 66 state by full name
+          // Check for Missouri specifically - this should be highlighted
+          if (stateName === 'Missouri') {
+            return {
+              fillColor: '#f97316',
+              fillOpacity: 0.3,
+              strokeColor: '#c2410c',
+              strokeWeight: 2,
+              visible: true
+            };
+          }
+          
+          // Check for each Route 66 state by exact full name
           const isRoute66State = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Illinois'].includes(stateName);
           
           return {
