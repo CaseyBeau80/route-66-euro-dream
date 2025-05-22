@@ -10,16 +10,16 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
   useEffect(() => {
     if (!map) return;
     
-    // Define the Route 66 corridor with a buffer
-    const route66Corridor = new google.maps.LatLngBounds(
-      new google.maps.LatLng(28.0, -124.0),  // SW - extend to show more of west coast
-      new google.maps.LatLng(44.0, -80.0)    // NE - extend to show Chicago area better
+    // Define the USA boundary with a buffer
+    const usaBounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(24.5, -125.0),  // SW - cover all continental US
+      new google.maps.LatLng(50.0, -65.0)    // NE - cover all continental US
     );
     
     // Apply bounds restrictions
     map.setOptions({
       restriction: {
-        latLngBounds: route66Corridor,
+        latLngBounds: usaBounds,
         strictBounds: false  // Allow some overflow but restrict excessive panning
       }
     });
@@ -41,13 +41,34 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
         statesLayer.setStyle((feature) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
-          const stateId = stateName.toLowerCase().substring(0, 2);
           
-          const isRoute66State = route66StateIds.includes(stateId);
+          // Special handling for distinguishing Missouri from Montana
+          if (stateName === 'Missouri') {
+            return {
+              fillColor: '#f97316',
+              fillOpacity: 0.3,
+              strokeColor: '#c2410c',
+              strokeWeight: 2,
+              visible: true
+            };
+          }
+          
+          if (stateName === 'Montana') {
+            return {
+              fillColor: '#d1d5db',
+              fillOpacity: 0.05,
+              strokeColor: '#9ca3af',
+              strokeWeight: 0.5,
+              visible: true
+            };
+          }
+          
+          // Check for each Route 66 state by full name
+          const isRoute66State = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Illinois'].includes(stateName);
           
           return {
             fillColor: isRoute66State ? '#f97316' : '#d1d5db',
-            fillOpacity: isRoute66State ? 0.18 : 0.05,
+            fillOpacity: isRoute66State ? 0.3 : 0.05,
             strokeColor: isRoute66State ? '#c2410c' : '#9ca3af',
             strokeWeight: isRoute66State ? 2 : 0.5,
             visible: true
@@ -66,9 +87,11 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
         // Add a red polyline to represent Route 66
         const route66Coordinates = [
           {lat: 34.0522, lng: -118.2437}, // Los Angeles, CA
+          {lat: 35.1983, lng: -111.6513}, // Flagstaff, AZ
           {lat: 35.0845, lng: -106.6511}, // Albuquerque, NM
           {lat: 35.2220, lng: -101.8313}, // Amarillo, TX
           {lat: 35.4676, lng: -97.5164},  // Oklahoma City, OK
+          {lat: 37.2091, lng: -93.2923},  // Springfield, MO
           {lat: 38.6273, lng: -90.1979},  // St. Louis, MO
           {lat: 41.8781, lng: -87.6298}   // Chicago, IL
         ];

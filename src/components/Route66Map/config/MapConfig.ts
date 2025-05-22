@@ -9,27 +9,26 @@ export const mapContainerStyle = {
 
 // Center the map on a point along Route 66 (roughly Oklahoma)
 export const center = {
-  lat: 36.0,
+  lat: 39.0,
   lng: -98.0,
 };
 
-// Define map bounds to show Route 66 corridor
-// These coordinates form a corridor that encompasses the Route 66 states
+// Define map bounds to show full USA
 export const mapBounds = {
-  north: 44.0, // Northern boundary (covering Illinois)
-  south: 28.0, // Southern boundary (covering parts of Texas)
-  east: -80.0, // Eastern boundary (covering Chicago)
-  west: -124.0, // Western boundary (covering Los Angeles)
+  north: 49.5, // Northern boundary (covering all mainland US)
+  south: 25.0, // Southern boundary (covering southern Texas)
+  east: -66.0, // Eastern boundary (covering Maine)
+  west: -124.5, // Western boundary (covering all of West Coast)
 };
 
 // Map restrictions to keep users within bounds
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: false, // Use less strict bounds to allow slight panning outside Route 66 corridor
+  strictBounds: false, // Use less strict bounds to allow slight panning outside USA
 };
 
-// Route 66 states to highlight - including all states the route passes through
-export const route66StateIds = ['ca', 'az', 'nm', 'tx', 'ok', 'ks', 'mo', 'il'];
+// Route 66 states to highlight (using full names now for more reliable matching)
+export const route66StateIds = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Missouri', 'Illinois'];
 
 // Custom styling to focus on Route 66 and de-emphasize other areas
 export const mapOptions = {
@@ -39,7 +38,7 @@ export const mapOptions = {
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Lower minimum zoom to see more of the map
+  minZoom: 4, // Lower minimum zoom to see entire USA
   maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
@@ -72,6 +71,12 @@ export const mapOptions = {
       featureType: 'water',
       elementType: 'geometry',
       stylers: [{ color: '#bfdbfe' }]
+    },
+    {
+      // Hide country labels except USA
+      featureType: 'administrative.country',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
     }
   ]
 };
