@@ -57,7 +57,7 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
           if (stateName === 'Missouri') {
             return {
               fillColor: '#f97316',
-              fillOpacity: 0.3,
+              fillOpacity: 0.05,
               strokeColor: '#c2410c',
               strokeWeight: 2,
               visible: true
@@ -69,7 +69,7 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
           
           return {
             fillColor: isRoute66State ? '#f97316' : '#d1d5db',
-            fillOpacity: isRoute66State ? 0.3 : 0.05,
+            fillOpacity: 0.05,
             strokeColor: isRoute66State ? '#c2410c' : '#9ca3af',
             strokeWeight: isRoute66State ? 2 : 0.5,
             visible: true
