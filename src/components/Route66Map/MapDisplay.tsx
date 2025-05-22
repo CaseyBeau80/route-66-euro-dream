@@ -1,7 +1,6 @@
 
 import { useRef } from "react";
 import TownsList from "./TownsList";
-import { route66Towns } from "@/types/route66";
 import GoogleMapsRoute66 from "./GoogleMapsRoute66";
 import { getVisibleTowns } from "./utils/townUtils";
 

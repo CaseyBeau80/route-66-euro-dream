@@ -1,3 +1,4 @@
+
 // Map configuration constants
 
 // Styling for the Google Map
@@ -25,7 +26,7 @@ export const mapBounds = {
 // Map restrictions to keep users within bounds
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: true, // Use strict bounds to prevent panning outside Route 66 corridor
+  strictBounds: false, // Use less strict bounds to allow slight panning outside Route 66 corridor
 };
 
 // Route 66 states to highlight - including all states the route passes through
@@ -40,7 +41,7 @@ export const mapOptions = {
   fullscreenControl: true,
   restriction: mapRestrictions,
   minZoom: 5, // Set minimum zoom level to see the entire Route 66
-  maxZoom: 12, // Limit maximum zoom to prevent zooming in too far
+  maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
@@ -56,10 +57,16 @@ export const mapOptions = {
       stylers: [{ saturation: -80 }, { lightness: 20 }]
     },
     {
-      // Make highways more prominent
+      // Make highways more prominent, especially Route 66
       featureType: 'road.highway',
       elementType: 'geometry',
       stylers: [{ color: '#f8c967' }, { weight: 1.5 }]
+    },
+    {
+      // Route 66 states with orange tint
+      featureType: 'administrative.province',
+      elementType: 'geometry.fill',
+      stylers: [{ color: '#f97316' }, { saturation: 50 }]
     },
     {
       // Make highway labels more visible

@@ -10,7 +10,7 @@ import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import { route66StateIds } from './config/MapConfig';
+import { route66StateIds, mapOptions } from './config/MapConfig';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;

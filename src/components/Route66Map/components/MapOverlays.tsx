@@ -54,7 +54,11 @@ const MapOverlays = ({ map }: MapOverlaysProps) => {
         
         // Set style based on whether state is on Route 66
         statesLayer.setStyle((feature) => {
-          const stateId = feature.getProperty('name').toLowerCase().substring(0, 2);
+          const stateProperty = feature.getProperty('name');
+          const stateId = typeof stateProperty === 'string' 
+            ? stateProperty.toLowerCase().substring(0, 2) 
+            : '';
+          
           const isRoute66State = route66StateIds.includes(stateId);
           
           return {

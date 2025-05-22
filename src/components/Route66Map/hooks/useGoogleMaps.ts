@@ -2,6 +2,7 @@
 import { useRef, useCallback, useState } from 'react';
 import { useMapLoading } from './useMapLoading';
 import { useMarkerInteraction } from './useMarkerInteraction';
+import { mapBounds } from '../config/MapConfig';
 
 export const useGoogleMaps = () => {
   // Use our extracted hooks
@@ -33,7 +34,21 @@ export const useGoogleMaps = () => {
     const bounds = mapRef.current.getBounds();
     if (!bounds) return;
     
-    // Here we could implement additional boundary checking logic if needed
+    // Check if the current view is outside the Route 66 corridor
+    const route66LatLngBounds = new google.maps.LatLngBounds(
+      new google.maps.LatLng(mapBounds.south, mapBounds.west),
+      new google.maps.LatLng(mapBounds.north, mapBounds.east)
+    );
+    
+    // Check if the current view is completely outside the Route 66 corridor
+    if (!route66LatLngBounds.intersects(bounds)) {
+      setIsOutOfBounds(true);
+      
+      // Auto-correct by panning back to the Route 66 corridor
+      mapRef.current.panToBounds(route66LatLngBounds);
+    } else {
+      setIsOutOfBounds(false);
+    }
   }, []);
 
   return {
