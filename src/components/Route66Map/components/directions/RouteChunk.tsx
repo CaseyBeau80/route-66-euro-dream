@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { route66Waypoints } from '../Route66Waypoints';
+import { route66WaypointData, getGoogleWaypoints } from '../Route66Waypoints';
 import DirectionsRenderer from './DirectionsRenderer';
 
 interface RouteChunkProps {
@@ -21,17 +21,21 @@ const RouteChunk = ({
   const [directionsResult, setDirectionsResult] = useState<google.maps.DirectionsResult | undefined>(undefined);
 
   useEffect(() => {
-    if (!map || !directionsService) return;
+    if (!map || !directionsService || typeof google === 'undefined') return;
 
-    // Extract waypoints for this chunk
-    const origin = route66Waypoints[startIndex].location;
-    const destination = route66Waypoints[endIndex].location;
+    // Get waypoint data for this chunk
+    const originData = route66WaypointData[startIndex];
+    const destinationData = route66WaypointData[endIndex];
+    
+    // Create origin and destination LatLng objects
+    const origin = new google.maps.LatLng(originData.lat, originData.lng);
+    const destination = new google.maps.LatLng(destinationData.lat, destinationData.lng);
     
     // Get waypoints excluding origin and destination
-    const waypoints = route66Waypoints
+    const waypoints = route66WaypointData
       .slice(startIndex + 1, endIndex)
       .map(waypoint => ({ 
-        location: waypoint.location,
+        location: new google.maps.LatLng(waypoint.lat, waypoint.lng),
         stopover: waypoint.stopover
       }));
 
