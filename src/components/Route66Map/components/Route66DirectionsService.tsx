@@ -1,8 +1,7 @@
 
 import { useEffect, useState } from 'react';
-import { route66WaypointData } from './Route66Waypoints';
 import BackupRoute from './BackupRoute';
-import MultiSegmentRoute from './directions/MultiSegmentRoute';
+import HistoricRouteService from './directions/HistoricRouteService';
 
 interface Route66DirectionsServiceProps {
   map: google.maps.Map;
@@ -17,7 +16,7 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   useEffect(() => {
     if (!map || typeof google === 'undefined') return;
     
-    console.log("Initializing Route 66 directions service with multi-segment approach");
+    console.log("Initializing Historic Route 66 directions service following real highways");
     setDirectionsService(new google.maps.DirectionsService());
   }, [map]);
 
@@ -27,7 +26,7 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
     
     // Check if direct route failed or if we explicitly need to use backup
     if (useBackupRoute || routeCalculated === false) {
-      console.log("Using backup route method");
+      console.log("Using backup route method for historic roads");
       const backupRoute = BackupRoute({ map, directionsRenderer: null });
       backupRoute.createBackupRoute();
     }
@@ -38,14 +37,14 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
 
   return (
     <>
-      <MultiSegmentRoute 
+      <HistoricRouteService 
         map={map}
         directionsService={directionsService}
         onRouteCalculated={(success) => {
-          console.log(`Multi-segment route calculation result: ${success}`);
+          console.log(`Historic Route 66 calculation result: ${success}`);
           setRouteCalculated(success);
           if (!success) {
-            console.log("Multi-segment route failed, will use backup");
+            console.log("Historic route failed, will use backup");
             setUseBackupRoute(true);
           }
         }}
