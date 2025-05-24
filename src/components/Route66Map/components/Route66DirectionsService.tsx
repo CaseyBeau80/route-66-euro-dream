@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { route66WaypointData } from './Route66Waypoints';
 import BackupRoute from './BackupRoute';
-import RouteChunk from './directions/RouteChunk';
+import MultiSegmentRoute from './directions/MultiSegmentRoute';
 
 interface Route66DirectionsServiceProps {
   map: google.maps.Map;
@@ -10,36 +10,15 @@ interface Route66DirectionsServiceProps {
 
 const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
   const [routeCalculated, setRouteCalculated] = useState<boolean | null>(null);
   const [useBackupRoute, setUseBackupRoute] = useState(false);
 
-  // Initialize DirectionsService and DirectionsRenderer
+  // Initialize DirectionsService
   useEffect(() => {
     if (!map || typeof google === 'undefined') return;
     
+    console.log("Initializing Route 66 directions service with multi-segment approach");
     setDirectionsService(new google.maps.DirectionsService());
-    
-    // Create a shared directions renderer with improved styling for better route visualization
-    const renderer = new google.maps.DirectionsRenderer({
-      suppressMarkers: false,
-      preserveViewport: true,
-      polylineOptions: {
-        strokeColor: '#DC2626', // Brighter red color for better visibility
-        strokeOpacity: 1.0,     // Full opacity for better visibility
-        strokeWeight: 5,        // Thicker line for better visibility
-        zIndex: 10             // Higher z-index to ensure it appears above other map elements
-      }
-    });
-    
-    renderer.setMap(map);
-    setDirectionsRenderer(renderer);
-    
-    return () => {
-      if (renderer) {
-        renderer.setMap(null);
-      }
-    };
   }, [map]);
 
   // Handle backup route when needed
@@ -49,38 +28,27 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
     // Check if direct route failed or if we explicitly need to use backup
     if (useBackupRoute || routeCalculated === false) {
       console.log("Using backup route method");
-      const backupRoute = BackupRoute({ map, directionsRenderer });
+      const backupRoute = BackupRoute({ map, directionsRenderer: null });
       backupRoute.createBackupRoute();
     }
-  }, [map, directionsRenderer, routeCalculated, useBackupRoute]);
+  }, [map, routeCalculated, useBackupRoute]);
 
-  // If no directions service or renderer, don't render anything
-  if (!directionsService || !directionsRenderer) return null;
+  // If no directions service, don't render anything
+  if (!directionsService) return null;
 
-  // Find the indices for Chicago (start of Route 66) and Santa Monica (end of Route 66)
-  const chicagoIndex = route66WaypointData.findIndex(
-    point => point.description?.includes("Chicago")
-  );
-  
-  const santaMonicaIndex = route66WaypointData.findIndex(
-    point => point.description?.includes("Santa Monica")
-  );
-
-  // If we couldn't find either endpoint, don't render anything
-  if (chicagoIndex === -1 || santaMonicaIndex === -1) {
-    console.error("Could not find Chicago or Santa Monica waypoints");
-    return null;
-  }
-  
   return (
     <>
-      <RouteChunk 
+      <MultiSegmentRoute 
         map={map}
         directionsService={directionsService}
-        directionsRenderer={directionsRenderer}
-        startIndex={chicagoIndex}
-        endIndex={santaMonicaIndex}
-        onRouteCalculated={(success) => setRouteCalculated(success)}
+        onRouteCalculated={(success) => {
+          console.log(`Multi-segment route calculation result: ${success}`);
+          setRouteCalculated(success);
+          if (!success) {
+            console.log("Multi-segment route failed, will use backup");
+            setUseBackupRoute(true);
+          }
+        }}
       />
     </>
   );
