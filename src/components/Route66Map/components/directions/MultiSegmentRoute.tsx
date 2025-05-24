@@ -14,7 +14,6 @@ const MultiSegmentRoute = ({
   onRouteCalculated 
 }: MultiSegmentRouteProps) => {
   const [renderers, setRenderers] = useState<google.maps.DirectionsRenderer[]>([]);
-  const [calculatedSegments, setCalculatedSegments] = useState(0);
 
   useEffect(() => {
     if (!map || !directionsService || typeof google === 'undefined') return;
@@ -22,18 +21,18 @@ const MultiSegmentRoute = ({
     // Clear any existing renderers
     renderers.forEach(renderer => renderer.setMap(null));
     setRenderers([]);
-    setCalculatedSegments(0);
 
     const segments = getRoute66Segments();
     const newRenderers: google.maps.DirectionsRenderer[] = [];
     let successfulSegments = 0;
+    let completedSegments = 0;
 
-    console.log(`Calculating ${segments.length} route segments for better road following`);
+    console.log(`Calculating ${segments.length} small route segments for highway following`);
 
     segments.forEach((segment, index) => {
-      // Create a renderer for this segment
+      // Create a renderer for this segment with enhanced highway routing
       const renderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: index > 0, // Only show markers on first segment
+        suppressMarkers: true, // We'll handle markers separately
         preserveViewport: true,
         polylineOptions: {
           strokeColor: '#DC2626',
@@ -49,43 +48,49 @@ const MultiSegmentRoute = ({
       // Get waypoints for this segment
       const segmentWaypoints = detailedRoute66Waypoints.slice(segment.start, segment.end + 1);
       
-      if (segmentWaypoints.length < 2) return;
+      if (segmentWaypoints.length < 2) {
+        completedSegments++;
+        return;
+      }
 
       const origin = segmentWaypoints[0];
       const destination = segmentWaypoints[segmentWaypoints.length - 1];
-      const waypoints = segmentWaypoints.slice(1, -1).map(point => ({
-        location: point.description || new google.maps.LatLng(point.lat, point.lng),
-        stopover: point.stopover
-      }));
+      
+      // Only use intermediate waypoints if we have them and not too many
+      const intermediateWaypoints = segmentWaypoints.slice(1, -1);
+      const waypoints = intermediateWaypoints.length <= 8 ? 
+        intermediateWaypoints.map(point => ({
+          location: new google.maps.LatLng(point.lat, point.lng),
+          stopover: false // Don't stop at intermediate points
+        })) : [];
 
-      // Create enhanced request for road following
+      // Enhanced request for highway following
       const request: google.maps.DirectionsRequest = {
-        origin: origin.description || new google.maps.LatLng(origin.lat, origin.lng),
-        destination: destination.description || new google.maps.LatLng(destination.lat, destination.lng),
+        origin: new google.maps.LatLng(origin.lat, origin.lng),
+        destination: new google.maps.LatLng(destination.lat, destination.lng),
         waypoints: waypoints,
         travelMode: google.maps.TravelMode.DRIVING,
         optimizeWaypoints: false, // Keep historic order
-        avoidHighways: false, // We want to use highways like I-44, I-40
+        avoidHighways: false, // We WANT highways like I-44, I-40
         avoidTolls: false,
         provideRouteAlternatives: false,
-        drivingOptions: {
-          departureTime: new Date(),
-          trafficModel: google.maps.TrafficModel.BEST_GUESS
-        }
+        region: 'US' // Ensure US routing
       };
 
       console.log(`Calculating segment ${index + 1}/${segments.length}: ${origin.description} to ${destination.description}`);
 
-      // Calculate this segment
+      // Calculate this segment with enhanced error handling
       directionsService.route(request, (result, status) => {
+        completedSegments++;
+        
         if (status === google.maps.DirectionsStatus.OK && result) {
-          console.log(`Segment ${index + 1} calculated successfully`);
+          console.log(`✓ Segment ${index + 1} calculated successfully via highways`);
           renderer.setDirections(result);
           successfulSegments++;
         } else {
-          console.error(`Error calculating segment ${index + 1}: ${status}`);
+          console.warn(`⚠ Segment ${index + 1} failed (${status}), using fallback polyline`);
           
-          // Fallback: create a simple polyline for this segment
+          // Create a simple polyline as fallback
           const path = segmentWaypoints.map(point => 
             new google.maps.LatLng(point.lat, point.lng)
           );
@@ -96,20 +101,19 @@ const MultiSegmentRoute = ({
             strokeColor: '#DC2626',
             strokeOpacity: 0.8,
             strokeWeight: 4,
-            map: map
+            map: map,
+            zIndex: 5
           });
         }
 
-        // Check if all segments are done
-        setCalculatedSegments(prev => {
-          const newCount = prev + 1;
-          if (newCount === segments.length) {
-            const success = successfulSegments > segments.length / 2; // At least half successful
-            console.log(`Route calculation complete: ${successfulSegments}/${segments.length} segments successful`);
-            if (onRouteCalculated) onRouteCalculated(success);
+        // Check if all segments are complete
+        if (completedSegments === segments.length) {
+          const successRate = successfulSegments / segments.length;
+          console.log(`Route calculation complete: ${successfulSegments}/${segments.length} segments successful (${Math.round(successRate * 100)}%)`);
+          if (onRouteCalculated) {
+            onRouteCalculated(successRate > 0.5); // Success if more than half worked
           }
-          return newCount;
-        });
+        }
       });
     });
 
@@ -120,7 +124,7 @@ const MultiSegmentRoute = ({
     };
   }, [map, directionsService, onRouteCalculated]);
 
-  return null; // This is a non-visual component
+  return null;
 };
 
 export default MultiSegmentRoute;

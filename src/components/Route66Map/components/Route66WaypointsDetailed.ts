@@ -11,7 +11,7 @@ interface DetailedWaypointData {
 
 export const detailedRoute66Waypoints: DetailedWaypointData[] = [
   // Illinois - Following US-66/I-55 corridor
-  {lat: 41.8781, lng: -87.6298, stopover: true, description: "Chicago, IL - Start of Route 66", highway: "US-66"},
+  {lat: 41.8781, lng: -87.6298, stopover: true, description: "Chicago, IL", highway: "US-66"},
   {lat: 41.7500, lng: -87.7500, stopover: false, description: "Cicero, IL", highway: "US-66"},
   {lat: 41.5250, lng: -88.0817, stopover: true, description: "Joliet, IL", highway: "US-66"},
   {lat: 41.3500, lng: -88.4000, stopover: false, description: "Elwood, IL", highway: "US-66"},
@@ -64,18 +64,39 @@ export const detailedRoute66Waypoints: DetailedWaypointData[] = [
   {lat: 34.1066, lng: -117.5931, stopover: true, description: "San Bernardino, CA", highway: "I-210"},
   {lat: 34.0825, lng: -118.0732, stopover: true, description: "Pasadena, CA", highway: "I-210"},
   {lat: 34.0522, lng: -118.2437, stopover: true, description: "Los Angeles, CA", highway: "Local roads"},
-  {lat: 34.0195, lng: -118.4912, stopover: true, description: "Santa Monica, CA - End of Route 66", highway: "Local roads"},
+  {lat: 34.0195, lng: -118.4912, stopover: true, description: "Santa Monica, CA", highway: "Local roads"},
 ];
 
-// Function to get route segments for better road following
+// Create much smaller segments for better road following
 export const getRoute66Segments = (): Array<{start: number, end: number, maxWaypoints: number}> => {
   return [
-    {start: 0, end: 8, maxWaypoints: 8}, // Illinois
-    {start: 8, end: 17, maxWaypoints: 8}, // Missouri  
-    {start: 17, end: 22, maxWaypoints: 8}, // Oklahoma
-    {start: 22, end: 24, maxWaypoints: 8}, // Texas
-    {start: 24, end: 28, maxWaypoints: 8}, // New Mexico
-    {start: 28, end: 32, maxWaypoints: 8}, // Arizona
-    {start: 32, end: 37, maxWaypoints: 8}, // California
+    // Illinois - Break into 3 smaller segments
+    {start: 0, end: 3, maxWaypoints: 3},
+    {start: 3, end: 6, maxWaypoints: 3}, 
+    {start: 6, end: 8, maxWaypoints: 2},
+    
+    // Missouri - Break into 3 segments
+    {start: 8, end: 12, maxWaypoints: 4},
+    {start: 12, end: 15, maxWaypoints: 3},
+    {start: 15, end: 17, maxWaypoints: 2},
+    
+    // Oklahoma - Break into 3 segments
+    {start: 17, end: 20, maxWaypoints: 3},
+    {start: 20, end: 23, maxWaypoints: 3},
+    {start: 23, end: 25, maxWaypoints: 2},
+    
+    // Texas
+    {start: 25, end: 27, maxWaypoints: 2},
+    
+    // New Mexico - Break into 2 segments
+    {start: 27, end: 30, maxWaypoints: 3},
+    {start: 30, end: 32, maxWaypoints: 2},
+    
+    // Arizona - Break into 2 segments
+    {start: 32, end: 35, maxWaypoints: 3},
+    {start: 35, end: 37, maxWaypoints: 2},
+    
+    // California
+    {start: 37, end: 41, maxWaypoints: 4},
   ];
 };
