@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import BackupRoute from './BackupRoute';
-import HistoricRouteService from './directions/HistoricRouteService';
+import RealHighwayRoute from './directions/RealHighwayRoute';
 
 interface Route66DirectionsServiceProps {
   map: google.maps.Map;
@@ -16,7 +16,7 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   useEffect(() => {
     if (!map || typeof google === 'undefined') return;
     
-    console.log("Initializing Historic Route 66 directions service following real highways");
+    console.log("Initializing Route 66 directions service for REAL highway following");
     setDirectionsService(new google.maps.DirectionsService());
   }, [map]);
 
@@ -24,27 +24,25 @@ const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
   useEffect(() => {
     if (!map) return;
     
-    // Check if direct route failed or if we explicitly need to use backup
     if (useBackupRoute || routeCalculated === false) {
-      console.log("Using backup route method for historic roads");
+      console.log("Using backup route for areas where directions failed");
       const backupRoute = BackupRoute({ map, directionsRenderer: null });
       backupRoute.createBackupRoute();
     }
   }, [map, routeCalculated, useBackupRoute]);
 
-  // If no directions service, don't render anything
   if (!directionsService) return null;
 
   return (
     <>
-      <HistoricRouteService 
+      <RealHighwayRoute 
         map={map}
         directionsService={directionsService}
         onRouteCalculated={(success) => {
-          console.log(`Historic Route 66 calculation result: ${success}`);
+          console.log(`Real highway route calculation result: ${success}`);
           setRouteCalculated(success);
           if (!success) {
-            console.log("Historic route failed, will use backup");
+            console.log("Highway route mostly failed, using backup");
             setUseBackupRoute(true);
           }
         }}
