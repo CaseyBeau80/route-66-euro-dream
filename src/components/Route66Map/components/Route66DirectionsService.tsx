@@ -1,25 +1,38 @@
 
 import { useEffect, useState } from 'react';
-import StaticRoute66Path from './StaticRoute66Path';
+import ComprehensiveRouteService from './directions/ComprehensiveRouteService';
 
 interface Route66DirectionsServiceProps {
   map: google.maps.Map;
 }
 
 const Route66DirectionsService = ({ map }: Route66DirectionsServiceProps) => {
-  const [pathRendered, setPathRendered] = useState(false);
+  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
+  const [routeCalculated, setRouteCalculated] = useState(false);
 
   useEffect(() => {
     if (!map || typeof google === 'undefined') return;
     
-    console.log("Initializing Route 66 static highway path");
-    setPathRendered(true);
+    console.log("🗺️ Initializing Route 66 comprehensive directions service");
+    
+    // Create directions service
+    const service = new google.maps.DirectionsService();
+    setDirectionsService(service);
   }, [map]);
 
-  if (!pathRendered) return null;
+  const handleRouteCalculated = (success: boolean) => {
+    setRouteCalculated(success);
+    console.log(`🎯 Route 66 calculation ${success ? 'successful' : 'partially failed'}`);
+  };
+
+  if (!directionsService) return null;
 
   return (
-    <StaticRoute66Path map={map} />
+    <ComprehensiveRouteService 
+      map={map}
+      directionsService={directionsService}
+      onRouteCalculated={handleRouteCalculated}
+    />
   );
 };
 
