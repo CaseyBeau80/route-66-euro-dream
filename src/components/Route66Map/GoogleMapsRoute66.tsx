@@ -5,7 +5,6 @@ import { useTownFiltering } from './hooks/useTownFiltering';
 import MapInitializer from './components/MapInitializer';
 import MapOverlays from './components/MapOverlays';
 import TownMarkers from './components/TownMarkers';
-import Route66Badge from './MapElements/Route66Badge';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
@@ -106,11 +105,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Route 66 Shield Badge positioned in the top-left */}
-      <div className="absolute top-4 left-4 z-10">
-        <Route66Badge />
-      </div>
-      
       {/* Clear Selection Button */}
       {selectedState && (
         <ClearSelectionButton 
@@ -124,9 +118,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Map overlays with enhanced static markers */}
+        {/* Simplified map overlays */}
         {mapInitialized && mapRef.current && (
-          <MapOverlays map={mapRef.current} useEnhancedStatic={true} />
+          <MapOverlays map={mapRef.current} useEnhancedStatic={false} />
         )}
         
         {/* Draw markers for each town */}
