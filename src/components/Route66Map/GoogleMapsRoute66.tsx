@@ -118,7 +118,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Simplified map overlays */}
+        {/* Route 66 polyline and overlays */}
         {mapInitialized && mapRef.current && (
           <MapOverlays map={mapRef.current} useEnhancedStatic={false} />
         )}
