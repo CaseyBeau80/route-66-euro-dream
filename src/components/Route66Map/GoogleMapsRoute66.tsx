@@ -124,9 +124,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Map overlays added separately */}
+        {/* Map overlays with enhanced static markers */}
         {mapInitialized && mapRef.current && (
-          <MapOverlays map={mapRef.current} />
+          <MapOverlays map={mapRef.current} useEnhancedStatic={true} />
         )}
         
         {/* Draw markers for each town */}
