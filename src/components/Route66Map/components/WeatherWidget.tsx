@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
 import { Cloud, Thermometer, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
@@ -160,32 +159,26 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         </div>
       </div>
 
-      {/* 3-Day Forecast */}
+      {/* 3-Day Forecast - Horizontal Layout */}
       {weather.forecast && weather.forecast.length > 0 && (
         <div className="border-t border-blue-200 pt-3">
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="w-4 h-4 text-blue-600" />
             <h5 className="font-semibold text-sm text-gray-800">3-Day Forecast</h5>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
             {weather.forecast.map((day, index) => (
-              <div key={index} className="flex items-center justify-between bg-white rounded-md px-3 py-2">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={`https://openweathermap.org/img/wn/${day.icon}.png`}
-                    alt={day.description}
-                    className="w-8 h-8"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">{day.date}</p>
-                    <p className="text-xs text-gray-500 capitalize">{day.description}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-bold text-gray-900">{day.temperature.high}°</span>
-                    <span className="text-sm text-gray-500">{day.temperature.low}°</span>
-                  </div>
+              <div key={index} className="flex flex-col items-center bg-white rounded-md px-2 py-3">
+                <p className="text-xs font-medium text-gray-800 mb-1">{day.date}</p>
+                <img 
+                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+                  alt={day.description}
+                  className="w-8 h-8 mb-1"
+                />
+                <p className="text-xs text-gray-500 capitalize text-center mb-2">{day.description}</p>
+                <div className="flex flex-col items-center">
+                  <span className="text-sm font-bold text-gray-900">{day.temperature.high}°</span>
+                  <span className="text-xs text-gray-500">{day.temperature.low}°</span>
                 </div>
               </div>
             ))}
