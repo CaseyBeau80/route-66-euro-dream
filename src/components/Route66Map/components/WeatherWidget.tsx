@@ -70,7 +70,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500 p-2">
         <Cloud className="w-4 h-4 animate-pulse" />
         <span>Loading weather...</span>
       </div>
@@ -79,7 +79,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 text-xs text-red-500">
+      <div className="flex items-center gap-2 text-xs text-red-500 p-2">
         <AlertCircle className="w-4 h-4" />
         <span>Weather: {error}</span>
       </div>
@@ -88,7 +88,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   if (!weather) {
     return (
-      <div className="flex items-center gap-2 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-gray-400 p-2">
         <Cloud className="w-4 h-4" />
         <span>Weather unavailable</span>
       </div>
@@ -97,44 +97,54 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 text-sm bg-blue-50 rounded-md px-2 py-1">
         <img 
           src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
           alt={weather.description}
           className="w-6 h-6"
         />
-        <span className="font-medium">{weather.temperature}°F</span>
+        <span className="font-semibold text-blue-900">{weather.temperature}°F</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-3 min-w-[200px]">
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="font-semibold text-gray-800">{weather.cityName}</h4>
-        <img 
-          src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-          alt={weather.description}
-          className="w-8 h-8"
-        />
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[280px] border border-blue-200">
+      {/* Header with city name and weather icon */}
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
+        <div className="flex items-center">
+          <img 
+            src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+            alt={weather.description}
+            className="w-12 h-12"
+          />
+        </div>
       </div>
       
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Thermometer className="w-4 h-4 text-red-500" />
-          <span className="text-lg font-bold">{weather.temperature}°F</span>
+      {/* Main temperature display */}
+      <div className="text-center mb-3">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Thermometer className="w-5 h-5 text-red-500" />
+          <span className="text-3xl font-bold text-gray-900">{weather.temperature}°F</span>
         </div>
-        
-        <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
-        
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <Droplets className="w-3 h-3" />
-            <span>{weather.humidity}%</span>
+        <p className="text-sm text-gray-600 capitalize font-medium">{weather.description}</p>
+      </div>
+      
+      {/* Weather details */}
+      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200">
+        <div className="flex items-center gap-2 bg-white rounded-md px-2 py-1">
+          <Droplets className="w-4 h-4 text-blue-500" />
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-500">Humidity</span>
+            <span className="text-sm font-semibold text-gray-800">{weather.humidity}%</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Wind className="w-3 h-3" />
-            <span>{weather.windSpeed} mph</span>
+        </div>
+        <div className="flex items-center gap-2 bg-white rounded-md px-2 py-1">
+          <Wind className="w-4 h-4 text-green-500" />
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-500">Wind</span>
+            <span className="text-sm font-semibold text-gray-800">{weather.windSpeed} mph</span>
           </div>
         </div>
       </div>
