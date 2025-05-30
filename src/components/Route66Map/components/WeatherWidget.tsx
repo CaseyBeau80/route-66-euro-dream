@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
-import { Cloud, Thermometer, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
+import { Cloud, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
 
 interface WeatherWidgetProps {
   lat: number;
@@ -119,6 +118,38 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
     );
   }
 
+  // Custom thermometer with gradient
+  const ThermometerWithGradient = () => (
+    <div className="group cursor-pointer relative">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-6 h-6 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-md"
+      >
+        <defs>
+          <linearGradient id="thermometer-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="#dc2626" />
+            <stop offset="30%" stopColor="#ea580c" />
+            <stop offset="60%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#fbbf24" />
+          </linearGradient>
+        </defs>
+        {/* Thermometer bulb */}
+        <circle cx="12" cy="17" r="3" fill="url(#thermometer-gradient)" stroke="#dc2626" />
+        {/* Thermometer tube */}
+        <rect x="10" y="3" width="4" height="14" rx="2" fill="url(#thermometer-gradient)" stroke="#dc2626" />
+        {/* Temperature marks */}
+        <path d="M8 8h2M8 11h2M8 14h2" stroke="#dc2626" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[320px] border border-blue-200">
       {/* Header with centered city name and weather icon */}
@@ -135,12 +166,10 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         </div>
       </div>
       
-      {/* Main temperature display with interactive thermometer */}
+      {/* Main temperature display with gradient thermometer */}
       <div className="text-center mb-3">
         <div className="flex items-center justify-center gap-3 mb-1">
-          <div className="group cursor-pointer">
-            <Thermometer className="w-6 h-6 text-red-500 transition-all duration-300 group-hover:text-red-600 group-hover:scale-110 group-hover:drop-shadow-md" />
-          </div>
+          <ThermometerWithGradient />
           <div className="flex flex-col items-center">
             <span className="text-xs text-gray-600 font-medium">Currently</span>
             <span className="text-3xl font-bold text-gray-900">{weather.temperature}°F</span>
