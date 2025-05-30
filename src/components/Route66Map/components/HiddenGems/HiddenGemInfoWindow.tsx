@@ -45,16 +45,18 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
       options={{
         pixelOffset: new google.maps.Size(0, -15),
         maxWidth: 450,
-        disableAutoPan: false,
-        enableEventPropagation: false
+        disableAutoPan: false
       }}
       onLoad={(infoWindow) => {
         infoWindowRef.current = infoWindow;
         
         // Add custom styling for smooth animation
-        const infoWindowElement = infoWindow.getContent()?.parentElement;
-        if (infoWindowElement) {
-          infoWindowElement.style.animation = 'fadeSlideIn 0.4s ease-out';
+        const content = infoWindow.getContent();
+        if (content && typeof content !== 'string') {
+          const infoWindowElement = (content as Element).parentElement;
+          if (infoWindowElement) {
+            infoWindowElement.style.animation = 'fadeSlideIn 0.4s ease-out';
+          }
         }
       }}
     >
@@ -133,18 +135,20 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
         </div>
         
         {/* Add custom CSS for animations */}
-        <style jsx>{`
-          @keyframes fadeSlideIn {
-            0% {
-              opacity: 0;
-              transform: translateY(20px) scale(0.95);
+        <style>
+          {`
+            @keyframes fadeSlideIn {
+              0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+              }
+              100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+              }
             }
-            100% {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-        `}</style>
+          `}
+        </style>
       </div>
     </InfoWindow>
   );
