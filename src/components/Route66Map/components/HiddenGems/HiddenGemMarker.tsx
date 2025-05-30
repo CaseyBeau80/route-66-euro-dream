@@ -11,6 +11,7 @@ interface HiddenGemMarkerProps {
   onMarkerClick: (gem: HiddenGem) => void;
   onClose: () => void;
   onWebsiteClick: (website: string) => void;
+  map?: google.maps.Map;
 }
 
 const HiddenGemMarker: React.FC<HiddenGemMarkerProps> = ({
@@ -18,7 +19,8 @@ const HiddenGemMarker: React.FC<HiddenGemMarkerProps> = ({
   isActive,
   onMarkerClick,
   onClose,
-  onWebsiteClick
+  onWebsiteClick,
+  map
 }) => {
   console.log(`Rendering vintage gem: ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
   
@@ -36,6 +38,7 @@ const HiddenGemMarker: React.FC<HiddenGemMarkerProps> = ({
           gem={gem}
           onClose={onClose}
           onWebsiteClick={onWebsiteClick}
+          map={map}
         />
       )}
     </Marker>

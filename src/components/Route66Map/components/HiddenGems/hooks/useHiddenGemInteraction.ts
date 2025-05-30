@@ -7,7 +7,9 @@ export const useHiddenGemInteraction = (onGemClick?: (gem: HiddenGem) => void) =
 
   const handleMarkerClick = (gem: HiddenGem) => {
     console.log('🎯 Hidden gem clicked:', gem.title);
-    setActiveGem(activeGem === gem.id ? null : gem.id);
+    const newActiveGem = activeGem === gem.id ? null : gem.id;
+    setActiveGem(newActiveGem);
+    
     if (onGemClick) {
       onGemClick(gem);
     }

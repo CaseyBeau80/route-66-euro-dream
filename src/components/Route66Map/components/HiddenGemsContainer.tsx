@@ -26,6 +26,7 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
           onMarkerClick={handleMarkerClick}
           onClose={closeActiveGem}
           onWebsiteClick={handleWebsiteClick}
+          map={map}
         />
       ))}
     </>
