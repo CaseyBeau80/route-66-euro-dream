@@ -9,7 +9,7 @@ import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
-import Route66RenderingService from './services/Route66RenderingService';
+import Route66Orchestrator from './services/Route66Orchestrator';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -111,7 +111,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             />
             
             {isMapReady && (
-              <Route66RenderingService 
+              <Route66Orchestrator 
                 map={mapRef.current} 
                 isMapReady={isMapReady}
               />
