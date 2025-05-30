@@ -17,6 +17,9 @@ const CollapsibleWeatherDisplay: React.FC<CollapsibleWeatherDisplayProps> = ({ w
     setIsExpanded(!isExpanded);
   };
 
+  // Get today's forecast data if available
+  const todaysForecast = weather.forecast && weather.forecast.length > 0 ? weather.forecast[0] : null;
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg border border-blue-200 min-w-[280px]">
       {/* Centered city name at the top */}
@@ -36,9 +39,17 @@ const CollapsibleWeatherDisplay: React.FC<CollapsibleWeatherDisplayProps> = ({ w
               alt={weather.description}
               className="w-10 h-10"
             />
-            <div className="flex items-center gap-2">
-              <ThermometerIcon />
-              <span className="text-2xl font-bold text-gray-900">{weather.temperature}°F</span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 mb-1">
+                <ThermometerIcon />
+                <span className="text-2xl font-bold text-gray-900">{weather.temperature}°F</span>
+              </div>
+              {todaysForecast && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="font-medium">H: {todaysForecast.temperature.high}°</span>
+                  <span className="font-medium">L: {todaysForecast.temperature.low}°</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-end">

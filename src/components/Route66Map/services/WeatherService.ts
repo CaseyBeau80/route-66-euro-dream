@@ -163,8 +163,9 @@ export class WeatherService {
         cityName: cityName
       };
 
-      // Process forecast data - get next 3 days
+      // Process forecast data - get today and next 3 days
       const forecastByDay: { [key: string]: any[] } = {};
+      const today = new Date().toDateString();
       
       forecastData.list.forEach((item: any) => {
         const date = new Date(item.dt * 1000);
@@ -177,13 +178,13 @@ export class WeatherService {
       });
 
       const forecast: ForecastDay[] = Object.entries(forecastByDay)
-        .slice(1, 4) // Skip today, get next 3 days
-        .map(([dateKey, dayData]) => {
+        .slice(0, 4) // Get today and next 3 days
+        .map(([dateKey, dayData], index) => {
           const temps = dayData.map(item => item.main.temp);
           const date = new Date(dateKey);
           
           return {
-            date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+            date: index === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
             temperature: {
               high: Math.round(Math.max(...temps)),
               low: Math.round(Math.min(...temps))

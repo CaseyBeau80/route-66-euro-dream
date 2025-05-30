@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      hidden_gems: {
+        Row: {
+          city_name: string
+          created_at: string
+          description: string | null
+          id: string
+          latitude: number
+          longitude: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       route66_waypoints: {
         Row: {
           created_at: string
