@@ -68,6 +68,7 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
                       lat={town.latLng[0]} 
                       lng={town.latLng[1]} 
                       cityName={town.name}
+                      collapsible={true}
                     />
                   ) : (
                     <div className="space-y-2">

@@ -4,12 +4,14 @@ import { WeatherService } from '../services/WeatherService';
 import { Cloud, AlertCircle } from 'lucide-react';
 import { WeatherWidgetProps, WeatherData } from './weather/WeatherTypes';
 import WeatherDisplay from './weather/WeatherDisplay';
+import CollapsibleWeatherDisplay from './weather/CollapsibleWeatherDisplay';
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ 
   lat, 
   lng, 
   cityName, 
-  compact = false 
+  compact = false,
+  collapsible = false
 }) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,6 +94,11 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         <span className="font-semibold text-blue-900">{weather.temperature}°F</span>
       </div>
     );
+  }
+
+  // Use collapsible display if requested, otherwise use the full display
+  if (collapsible) {
+    return <CollapsibleWeatherDisplay weather={weather} />;
   }
 
   return <WeatherDisplay weather={weather} />;
