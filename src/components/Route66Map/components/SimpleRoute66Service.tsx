@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { historicRoute66Waypoints } from './HistoricRoute66Waypoints';
 
@@ -20,27 +21,42 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
     }));
 
     console.log(`📍 Creating Route 66 polyline with ${routePath.length} waypoints`);
+    console.log('🔍 First few waypoints:', routePath.slice(0, 5));
+    console.log('🔍 Last few waypoints:', routePath.slice(-5));
 
-    // Create a highly visible Route 66 polyline
+    // Create a highly visible Route 66 polyline with maximum visibility settings
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
       strokeColor: '#FF0000', // Bright red
       strokeOpacity: 1.0, // Full opacity
-      strokeWeight: 8, // Thick line
-      zIndex: 1000, // High z-index
-      clickable: true
+      strokeWeight: 12, // Even thicker line
+      zIndex: 10000, // Very high z-index
+      clickable: true,
+      visible: true // Explicitly set visible
     });
 
     // Add the polyline to the map
     route66Polyline.setMap(map);
-    console.log('✅ Route 66 polyline added to map');
+    console.log('✅ Route 66 polyline added to map with settings:', {
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 12,
+      zIndex: 10000,
+      visible: true,
+      pathLength: routePath.length
+    });
 
     // Create bounds to fit the entire route
     const bounds = new google.maps.LatLngBounds();
     routePath.forEach(point => bounds.extend(point));
     
-    // Fit the map to show the entire route with proper padding object
+    console.log('🗺️ Calculated bounds:', {
+      northeast: bounds.getNorthEast().toString(),
+      southwest: bounds.getSouthWest().toString()
+    });
+    
+    // Fit the map to show the entire route with proper padding
     map.fitBounds(bounds, { 
       top: 50, 
       right: 50, 
@@ -48,6 +64,17 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
       left: 50 
     });
     console.log('🗺️ Map bounds adjusted to show full Route 66');
+
+    // Add a timeout to zoom to a specific section after bounds are set
+    setTimeout(() => {
+      // Zoom to Chicago area to verify the line is there
+      const chicagoArea = new google.maps.LatLngBounds(
+        new google.maps.LatLng(41.5, -88.0),
+        new google.maps.LatLng(42.0, -87.0)
+      );
+      map.fitBounds(chicagoArea);
+      console.log('🎯 Zoomed to Chicago area to verify route visibility');
+    }, 2000);
 
     // Add start marker (Chicago)
     const startMarker = new google.maps.Marker({
@@ -64,7 +91,7 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
         anchor: new google.maps.Point(15, 15)
       },
       title: 'Route 66 Start - Chicago, IL',
-      zIndex: 2000
+      zIndex: 20000
     });
 
     // Add end marker (Santa Monica)
@@ -82,7 +109,7 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
         anchor: new google.maps.Point(15, 15)
       },
       title: 'Route 66 End - Santa Monica, CA',
-      zIndex: 2000
+      zIndex: 20000
     });
 
     console.log('📍 Start and end markers added');
@@ -90,6 +117,17 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
     // Add click listener to polyline for debugging
     route66Polyline.addListener('click', (event: google.maps.MapMouseEvent) => {
       console.log('🎯 Route 66 polyline clicked at:', event.latLng?.toString());
+      // Show an info window when clicked to confirm the line exists
+      const infoWindow = new google.maps.InfoWindow({
+        content: '<div style="color: red; font-weight: bold;">Route 66 - The Mother Road</div>',
+        position: event.latLng
+      });
+      infoWindow.open(map);
+    });
+
+    // Add map zoom change listener to log current zoom level
+    const zoomChangeListener = map.addListener('zoom_changed', () => {
+      console.log('🔍 Map zoom changed to:', map.getZoom());
     });
 
     setRouteRendered(true);
@@ -100,6 +138,7 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
       route66Polyline.setMap(null);
       startMarker.setMap(null);
       endMarker.setMap(null);
+      google.maps.event.removeListener(zoomChangeListener);
     };
   }, [map, routeRendered]);
 
