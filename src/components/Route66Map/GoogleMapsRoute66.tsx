@@ -8,7 +8,8 @@ import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import SimpleRoute66Service from './components/SimpleRoute66Service';
+import MapInitializationService from './services/MapInitializationService';
+import Route66RenderingService from './services/Route66RenderingService';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -36,13 +37,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   const { visibleTowns } = useTownFiltering({ selectedState });
   const [mapInitialized, setMapInitialized] = useState(false);
-
-  useEffect(() => {
-    if (mapRef.current && !mapInitialized) {
-      setMapInitialized(true);
-      console.log('🗺️ Google Maps Route 66 component initialized');
-    }
-  }, [mapRef.current, mapInitialized]);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     console.log('🚀 Map loading callback triggered');
@@ -64,14 +59,19 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial view - the SimpleRoute66Service will adjust bounds
+    // Set initial view
     console.log('🎯 Setting initial map view');
-    map.setZoom(4);
+    map.setZoom(5);
     map.setCenter({ lat: 36.0, lng: -95.0 });
     
     setMapInitialized(true);
-    console.log('✅ Route 66 map loaded and ready');
+    console.log('✅ Route 66 map loaded and ready for initialization service');
   }, [setCurrentZoom, setIsDragging]);
+
+  const onMapReady = useCallback((readyMap: google.maps.Map) => {
+    console.log('🎉 Map is fully ready for Route 66 rendering');
+    setIsMapReady(true);
+  }, []);
 
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
@@ -86,6 +86,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   console.log('🗺️ Rendering GoogleMapsRoute66 component', {
     isLoaded,
     mapInitialized,
+    isMapReady,
     selectedState,
     visibleTowns: visibleTowns.length
   });
@@ -104,7 +105,17 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
         {mapInitialized && mapRef.current && (
           <>
-            <SimpleRoute66Service map={mapRef.current} />
+            <MapInitializationService 
+              map={mapRef.current} 
+              onMapReady={onMapReady}
+            />
+            
+            {isMapReady && (
+              <Route66RenderingService 
+                map={mapRef.current} 
+                isMapReady={isMapReady}
+              />
+            )}
             
             <TownMarkers 
               towns={visibleTowns} 
