@@ -1,4 +1,3 @@
-
 import { DetailedWaypointData } from '../types/DetailedWaypointData';
 
 export const californiaWaypoints: DetailedWaypointData[] = [
@@ -72,5 +71,77 @@ export const californiaWaypoints: DetailedWaypointData[] = [
   {lat: 34.0320, lng: -118.4400, stopover: false, description: "Santa Monica North", highway: "Santa Monica Blvd"},
   {lat: 34.0300, lng: -118.4600, stopover: false, description: "Santa Monica Center", highway: "Santa Monica Blvd"},
   {lat: 34.0280, lng: -118.4800, stopover: false, description: "Santa Monica West", highway: "Santa Monica Blvd"},
+  {lat: 34.0195, lng: -118.4912, stopover: true, description: "Santa Monica, CA - Santa Monica Pier", highway: "Santa Monica Blvd"},
+  // Adding more detailed waypoints through the Mojave Desert and Los Angeles area
+  {lat: 35.0000, lng: -114.7500, stopover: false, description: "Arizona/California border extended", highway: "I-40"},
+  {lat: 34.9950, lng: -114.8000, stopover: false, description: "California border marker", highway: "I-40"},
+  {lat: 34.9900, lng: -114.8500, stopover: false, description: "Needles far approach", highway: "I-40"},
+  {lat: 34.9850, lng: -114.9000, stopover: false, description: "Needles east approach", highway: "I-40"},
+  {lat: 34.9800, lng: -114.9500, stopover: false, description: "Needles near approach", highway: "I-40"},
+  {lat: 34.9750, lng: -115.0000, stopover: false, description: "Needles outskirts", highway: "I-40"},
+  {lat: 34.8500, lng: -114.6000, stopover: false, description: "Needles east side", highway: "I-40"},
+  {lat: 34.8409, lng: -114.6160, stopover: true, description: "Needles, CA", highway: "I-40"},
+  {lat: 34.8450, lng: -114.6300, stopover: false, description: "Needles west side", highway: "I-40"},
+  {lat: 34.8400, lng: -114.6600, stopover: false, description: "Needles west outskirts", highway: "I-40"},
+  {lat: 34.8350, lng: -114.7000, stopover: false, description: "Between Needles and Goffs", highway: "I-40"},
+  {lat: 34.8320, lng: -114.7500, stopover: false, description: "Goffs far approach", highway: "I-40"},
+  {lat: 34.8300, lng: -114.8000, stopover: false, description: "Goffs near approach", highway: "I-40"},
+  {lat: 34.8280, lng: -114.8500, stopover: false, description: "Goffs outskirts", highway: "I-40"},
+  {lat: 34.8260, lng: -114.9000, stopover: false, description: "Goffs center extended", highway: "I-40"},
+  
+  // More detailed points through the Mojave Desert
+  {lat: 34.8240, lng: -114.9500, stopover: false, description: "Between Goffs and Fenner", highway: "I-40"},
+  {lat: 34.8220, lng: -115.0000, stopover: false, description: "Fenner far approach", highway: "I-40"},
+  {lat: 34.8200, lng: -115.0500, stopover: false, description: "Fenner near approach", highway: "I-40"},
+  {lat: 34.8180, lng: -115.1000, stopover: false, description: "Fenner outskirts", highway: "I-40"},
+  {lat: 34.8160, lng: -115.1500, stopover: false, description: "Fenner center extended", highway: "I-40"},
+  {lat: 34.8140, lng: -115.2000, stopover: false, description: "Between Fenner and Essex", highway: "I-40"},
+  
+  // Detailed points approaching Los Angeles metropolitan area
+  {lat: 34.1200, lng: -117.5500, stopover: false, description: "San Bernardino far approach", highway: "I-210"},
+  {lat: 34.1150, lng: -117.5600, stopover: false, description: "San Bernardino east approach", highway: "I-210"},
+  {lat: 34.1100, lng: -117.5700, stopover: false, description: "San Bernardino near approach", highway: "I-210"},
+  {lat: 34.1080, lng: -117.5800, stopover: false, description: "San Bernardino outskirts", highway: "I-210"},
+  {lat: 34.1066, lng: -117.5931, stopover: true, description: "San Bernardino, CA", highway: "I-210"},
+  {lat: 34.1050, lng: -117.6000, stopover: false, description: "San Bernardino west side", highway: "I-210"},
+  
+  // Very detailed points through Los Angeles
+  {lat: 34.0900, lng: -117.6200, stopover: false, description: "Rialto detailed approach", highway: "I-210"},
+  {lat: 34.0950, lng: -117.6400, stopover: false, description: "Rialto center detailed", highway: "I-210"},
+  {lat: 34.0920, lng: -117.6600, stopover: false, description: "Rialto west detailed", highway: "I-210"},
+  {lat: 34.0900, lng: -117.6800, stopover: false, description: "Fontana detailed approach", highway: "I-210"},
+  {lat: 34.0880, lng: -117.7000, stopover: false, description: "Fontana center detailed", highway: "I-210"},
+  {lat: 34.0860, lng: -117.7200, stopover: false, description: "Fontana west detailed", highway: "I-210"},
+  
+  // Final stretch to Santa Monica with high detail
+  {lat: 34.0550, lng: -118.2200, stopover: false, description: "Downtown LA east approach", highway: "US-66 Business Route"},
+  {lat: 34.0540, lng: -118.2300, stopover: false, description: "Downtown LA center detailed", highway: "US-66 Business Route"},
+  {lat: 34.0530, lng: -118.2400, stopover: false, description: "Downtown LA west approach", highway: "US-66 Business Route"},
+  {lat: 34.0522, lng: -118.2437, stopover: true, description: "Los Angeles, CA", highway: "US-66 Business Route"},
+  {lat: 34.0510, lng: -118.2500, stopover: false, description: "LA west side detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0500, lng: -118.2550, stopover: false, description: "Beverly Hills detailed approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0490, lng: -118.2600, stopover: false, description: "Beverly Hills center detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0480, lng: -118.2700, stopover: false, description: "Beverly Hills west detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0470, lng: -118.2800, stopover: false, description: "West Hollywood detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0460, lng: -118.2900, stopover: false, description: "West LA detailed approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0450, lng: -118.3000, stopover: false, description: "West LA center detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0440, lng: -118.3100, stopover: false, description: "Westwood detailed approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0430, lng: -118.3200, stopover: false, description: "Westwood center detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0420, lng: -118.3300, stopover: false, description: "Westwood west detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0410, lng: -118.3400, stopover: false, description: "Brentwood detailed approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0400, lng: -118.3500, stopover: false, description: "Brentwood center detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0390, lng: -118.3600, stopover: false, description: "Brentwood west detailed", highway: "Santa Monica Blvd"},
+  {lat: 34.0380, lng: -118.3700, stopover: false, description: "Santa Monica detailed approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0370, lng: -118.3800, stopover: false, description: "Santa Monica near approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0360, lng: -118.3900, stopover: false, description: "Santa Monica city limits", highway: "Santa Monica Blvd"},
+  {lat: 34.0350, lng: -118.4000, stopover: false, description: "Santa Monica residential", highway: "Santa Monica Blvd"},
+  {lat: 34.0340, lng: -118.4100, stopover: false, description: "Santa Monica business district", highway: "Santa Monica Blvd"},
+  {lat: 34.0330, lng: -118.4200, stopover: false, description: "Santa Monica downtown approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0320, lng: -118.4300, stopover: false, description: "Santa Monica downtown", highway: "Santa Monica Blvd"},
+  {lat: 34.0310, lng: -118.4400, stopover: false, description: "Santa Monica beach approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0300, lng: -118.4500, stopover: false, description: "Santa Monica final approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0290, lng: -118.4600, stopover: false, description: "Santa Monica pier approach", highway: "Santa Monica Blvd"},
+  {lat: 34.0280, lng: -118.4700, stopover: false, description: "Santa Monica pier near", highway: "Santa Monica Blvd"},
+  {lat: 34.0270, lng: -118.4800, stopover: false, description: "Santa Monica pier final", highway: "Santa Monica Blvd"},
   {lat: 34.0195, lng: -118.4912, stopover: true, description: "Santa Monica, CA - Santa Monica Pier", highway: "Santa Monica Blvd"},
 ];
