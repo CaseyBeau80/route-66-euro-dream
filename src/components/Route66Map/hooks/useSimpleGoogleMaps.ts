@@ -5,32 +5,17 @@ export const useSimpleGoogleMaps = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<Error | undefined>(undefined);
   const [currentZoom, setCurrentZoom] = useState(5);
-  const [isDragging, setIsDragging] = useState(false);
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
   
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // Simple zoom handler
+  // Simple zoom handler - no frequent updates
   const handleZoomChange = useCallback(() => {
     if (mapRef.current) {
       const newZoom = mapRef.current.getZoom() || 5;
       setCurrentZoom(newZoom);
       console.log('🔍 Zoom changed to:', newZoom);
     }
-  }, []);
-
-  // Minimal drag handlers - let Google Maps handle the actual dragging
-  const handleDragStart = useCallback(() => {
-    console.log('🖱️ User started dragging');
-    setIsDragging(true);
-  }, []);
-
-  const handleDragEnd = useCallback(() => {
-    console.log('🖱️ User finished dragging');
-    // Small delay to ensure smooth UX
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 100);
   }, []);
 
   // Map click handler
@@ -43,20 +28,18 @@ export const useSimpleGoogleMaps = () => {
     setActiveMarker(markerId);
   }, []);
 
-  // Minimal setup - let Google Maps handle navigation natively
+  // Minimal setup - let Google Maps handle navigation completely natively
   const setupMapListeners = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ Setting up minimal map listeners for navigation');
+    console.log('🗺️ Setting up native Google Maps navigation - no React interference');
     
     // Clear any existing listeners
     google.maps.event.clearInstanceListeners(map);
     
-    // Only essential listeners
+    // Only essential listeners - no drag state tracking
     map.addListener('zoom_changed', handleZoomChange);
-    map.addListener('dragstart', handleDragStart);
-    map.addListener('dragend', handleDragEnd);
     
-    console.log('✅ Minimal listeners configured for optimal navigation');
-  }, [handleZoomChange, handleDragStart, handleDragEnd]);
+    console.log('✅ Native Google Maps navigation enabled without React interference');
+  }, [handleZoomChange]);
 
   // Initialize Google Maps API
   const initializeGoogleMaps = useCallback(() => {
@@ -64,7 +47,7 @@ export const useSimpleGoogleMaps = () => {
       if (window.google && window.google.maps) {
         setIsLoaded(true);
         setLoadError(undefined);
-        console.log('✅ Google Maps API ready for navigation');
+        console.log('✅ Google Maps API ready for native navigation');
       } else {
         throw new Error('Google Maps API not available');
       }
@@ -78,11 +61,9 @@ export const useSimpleGoogleMaps = () => {
     isLoaded,
     loadError,
     currentZoom,
-    isDragging,
     activeMarker,
     mapRef,
     setCurrentZoom,
-    setIsDragging,
     handleMapClick,
     handleMarkerClick,
     setupMapListeners,

@@ -14,10 +14,6 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
   const {
     isLoaded,
     loadError,
-    currentZoom,
-    setCurrentZoom,
-    isDragging,
-    setIsDragging,
     mapRef,
     setupMapListeners,
     initializeGoogleMaps
@@ -44,8 +40,6 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
       map={map}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={() => setIsDragging(false)}
     />
   );
 };

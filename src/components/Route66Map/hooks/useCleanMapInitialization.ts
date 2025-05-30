@@ -13,7 +13,7 @@ export const useCleanMapInitialization = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded - enabling navigation");
+    console.log("🗺️ Google Map loaded - enabling NATIVE navigation only");
     mapRef.current = map;
     setMap(map);
     
@@ -21,38 +21,29 @@ export const useCleanMapInitialization = ({
     map.setZoom(5);
     map.setCenter({ lat: 35.5, lng: -100 });
     
-    // Force enable all navigation options
+    // Force enable native navigation - no React state interference
     map.setOptions({
       draggable: true,
       gestureHandling: 'greedy',
       scrollwheel: true,
       panControl: true,
-      zoomControl: true
+      zoomControl: true,
+      disableDefaultUI: false,
+      keyboardShortcuts: true
     });
     
-    // Verify navigation settings
-    console.log('🖱️ Map draggable:', map.get('draggable'));
+    // Verify settings
+    console.log('🖱️ Native dragging enabled:', map.get('draggable'));
     console.log('🖱️ Gesture handling:', map.get('gestureHandling'));
-    console.log('🖱️ Pan control:', map.get('panControl'));
     
-    // Setup listeners
+    // Setup minimal listeners only
     setupMapListeners(map);
     
-    // Test map interaction by adding a simple pan test
-    setTimeout(() => {
-      console.log('🧪 Testing map pan capabilities...');
-      const currentCenter = map.getCenter();
-      if (currentCenter) {
-        console.log('🧪 Current center:', currentCenter.toJSON());
-        console.log('🧪 Map should be ready for user interaction');
-      }
-    }, 1000);
-    
-    console.log('✅ Map initialization complete with navigation enabled');
+    console.log('✅ Map ready for NATIVE mouse navigation');
   }, [mapRef, setupMapListeners]);
 
   const onUnmount = useCallback(() => {
-    console.log("🗺️ Google Map unmounted - clean cleanup");
+    console.log("🗺️ Google Map unmounted");
     if (mapRef.current) {
       google.maps.event.clearInstanceListeners(mapRef.current);
     }
