@@ -1,19 +1,35 @@
 
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import SupabaseRoute66 from './SupabaseRoute66';
 
 interface MapContainerProps {
-  map: google.maps.Map | null;
-  onLoad: (map: google.maps.Map) => void;
-  onUnmount: () => void;
+  isLoaded: boolean;
 }
 
-const MapContainer: React.FC<MapContainerProps> = ({
-  map,
-  onLoad,
-  onUnmount
-}) => {
+const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    console.log("🗺️ Google Map loaded successfully");
+    mapRef.current = map;
+    
+    // Set initial position for Route 66
+    const route66Center = { lat: 35.5, lng: -100 };
+    map.setZoom(5);
+    map.setCenter(route66Center);
+    
+    console.log('✅ Map ready for native navigation');
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    console.log("🗺️ Google Map unmounted");
+    if (mapRef.current) {
+      google.maps.event.clearInstanceListeners(mapRef.current);
+    }
+    mapRef.current = null;
+  }, []);
+
   // Optimized map options for native dragging
   const mapOptions = {
     disableDefaultUI: false,
@@ -29,10 +45,14 @@ const MapContainer: React.FC<MapContainerProps> = ({
     disableDoubleClickZoom: false,
     keyboardShortcuts: true,
     clickableIcons: true,
+    minZoom: 3,
+    maxZoom: 18,
     styles: []
   };
 
-  console.log('🗺️ MapContainer: Native dragging configuration active');
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
@@ -47,7 +67,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        {map && <SupabaseRoute66 map={map} />}
+        {mapRef.current && <SupabaseRoute66 map={mapRef.current} />}
       </GoogleMap>
     </div>
   );

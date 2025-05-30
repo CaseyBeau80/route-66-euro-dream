@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
-import { useSimpleGoogleMaps } from './hooks/useSimpleGoogleMaps';
-import { useCleanMapInitialization } from './hooks/useCleanMapInitialization';
+import React from 'react';
+import { useJsApiLoader } from '@react-google-maps/api';
+import { googleMapsApiKey } from './config/GoogleMapsConfig';
 import MapLoadingStates from './components/MapLoadingStates';
 import MapContainer from './components/MapContainer';
 
@@ -11,31 +11,17 @@ interface MapDisplayProps {
 }
 
 const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) => {
-  const {
-    isLoaded,
-    loadError,
-    mapRef,
-    setupMapListeners,
-    initializeGoogleMaps,
-    cleanup
-  } = useSimpleGoogleMaps();
-
-  const { map, onLoad, onUnmount } = useCleanMapInitialization({
-    mapRef,
-    setupMapListeners
+  // Use the proper Google Maps API loader
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey,
   });
 
-  // Initialize Google Maps on component mount
-  useEffect(() => {
-    initializeGoogleMaps();
-  }, [initializeGoogleMaps]);
+  console.log('🗺️ MapDisplay: API loading state', { isLoaded, hasError: !!loadError });
 
-  // Cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      cleanup();
-    };
-  }, [cleanup]);
+  if (loadError) {
+    console.error('❌ Google Maps API failed to load:', loadError);
+  }
 
   // Show loading or error states
   const loadingState = MapLoadingStates({ loadError, isLoaded });
@@ -45,9 +31,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
 
   return (
     <MapContainer
-      map={map}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
+      isLoaded={isLoaded}
     />
   );
 };
