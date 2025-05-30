@@ -30,8 +30,8 @@ export const historicRoute66Waypoints: HistoricWaypointData[] = [
   {lat: 38.3500, lng: -91.5000, stopover: false, description: "Bourbon, MO", highway: "I-44", historicDesignation: "US-66"},
   {lat: 38.2500, lng: -91.8000, stopover: false, description: "Rolla, MO", highway: "I-44", historicDesignation: "US-66"},
   {lat: 38.1000, lng: -92.1000, stopover: false, description: "Doolittle, MO", highway: "I-44", historicDesignation: "US-66"},
-  {lat: 37.9500, lng: -92.3500, stopover: false, description: "Lebanon, MO", highway: "I-44", historicDesignation: "US-66"},
-  {lat: 37.7000, lng: -92.8000, stopover: false, description: "Marshfield, MO", highway: "I-44", historicDesignation: "US-66"},
+  {lat: 38.2500, lng: -92.3500, stopover: false, description: "Lebanon, MO", highway: "I-44", historicDesignation: "US-66"},
+  {lat: 37.9500, lng: -92.8000, stopover: false, description: "Marshfield, MO", highway: "I-44", historicDesignation: "US-66"},
   {lat: 37.2090, lng: -93.2923, stopover: true, description: "Springfield, MO", highway: "I-44", historicDesignation: "US-66"},
   {lat: 37.1500, lng: -93.8000, stopover: false, description: "Carthage, MO", highway: "I-44", historicDesignation: "US-66"},
   {lat: 37.0842, lng: -94.5133, stopover: true, description: "Joplin, MO", highway: "I-44", historicDesignation: "US-66"},
@@ -73,6 +73,19 @@ export const historicRoute66Waypoints: HistoricWaypointData[] = [
   {lat: 34.0195, lng: -118.4912, stopover: true, description: "Santa Monica, CA - Santa Monica Pier (Route 66 End)", highway: "Santa Monica Blvd", historicDesignation: "US-66"},
 ];
 
+// Debug function to validate waypoints
+export const validateRoute66Waypoints = () => {
+  console.log('🔍 Validating Route 66 waypoints:', {
+    total: historicRoute66Waypoints.length,
+    hasData: historicRoute66Waypoints.length > 0,
+    firstPoint: historicRoute66Waypoints[0],
+    lastPoint: historicRoute66Waypoints[historicRoute66Waypoints.length - 1],
+    samplePoints: historicRoute66Waypoints.slice(0, 3)
+  });
+  
+  return historicRoute66Waypoints.length > 0;
+};
+
 // Create highway-specific segments that follow real road networks
 export const getHistoricRoute66Segments = (): Array<{start: number, end: number, highway: string, description: string}> => {
   return [
@@ -104,3 +117,8 @@ export const getHistoricRoute66Segments = (): Array<{start: number, end: number,
     {start: 42, end: 45, highway: "Historic US-66/Local", description: "San Bernardino to Santa Monica via historic US-66 and local roads"},
   ];
 };
+
+// Call validation on import
+if (typeof window !== 'undefined') {
+  validateRoute66Waypoints();
+}
