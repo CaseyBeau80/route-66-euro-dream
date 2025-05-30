@@ -12,6 +12,13 @@ interface RouteSegment {
   highway: string;
 }
 
+// Type for GeoJSON feature properties
+interface GeoJSONProperties {
+  name?: string;
+  description?: string;
+  highway?: string;
+}
+
 const GeoJSONRoute66Map: React.FC<GeoJSONRoute66MapProps> = ({ map }) => {
   const [selectedSegment, setSelectedSegment] = useState<RouteSegment | null>(null);
   const [clickPosition, setClickPosition] = useState<{ lat: number, lng: number } | null>(null);
@@ -52,7 +59,12 @@ const GeoJSONRoute66Map: React.FC<GeoJSONRoute66MapProps> = ({ map }) => {
         dataLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
           if (event.latLng) {
             const feature = event.feature;
-            const properties = feature.getProperty('properties') || {};
+            
+            // Safely extract properties with proper type checking
+            const rawProperties = feature.getProperty('properties');
+            const properties: GeoJSONProperties = typeof rawProperties === 'object' && rawProperties !== null 
+              ? rawProperties as GeoJSONProperties 
+              : {};
             
             setClickPosition({
               lat: event.latLng.lat(),
