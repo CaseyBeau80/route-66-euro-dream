@@ -26,7 +26,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       geodesic: true,
       strokeColor: '#FF0000', // Bright red for better visibility
       strokeOpacity: 0.9,
-      strokeWeight: 8, // Thicker line
+      strokeWeight: 6, // Slightly thicker for better visibility
       zIndex: 10000, // Higher z-index to ensure visibility
       clickable: false
     });
@@ -34,7 +34,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
     // Set the polyline on the map
     route66Polyline.setMap(map);
     polylineRef.current = route66Polyline;
-    console.log("✅ Route 66 polyline added to map");
+    console.log(`✅ Route 66 polyline added to map with ${waypoints.length} waypoints`);
 
     // Fit the map to show the entire route
     fitMapToRoute(map, routePath);

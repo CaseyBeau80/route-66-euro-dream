@@ -11,7 +11,7 @@ export const useSupabaseRoute66 = () => {
   useEffect(() => {
     const fetchWaypoints = async () => {
       try {
-        console.log("🗺️ Fetching Route 66 waypoints from Supabase...");
+        console.log("🗺️ Fetching enhanced Route 66 waypoints from Supabase...");
         
         const { data, error } = await supabase
           .from('route66_waypoints')
@@ -30,7 +30,10 @@ export const useSupabaseRoute66 = () => {
           return;
         }
 
-        console.log(`✅ Fetched ${data.length} waypoints from Supabase`);
+        console.log(`✅ Fetched ${data.length} enhanced waypoints from Supabase`);
+        console.log(`Major stops: ${data.filter(w => w.is_major_stop).length}`);
+        console.log(`Intermediate waypoints: ${data.filter(w => !w.is_major_stop).length}`);
+        
         setWaypoints(data);
       } catch (err) {
         console.error("❌ Error fetching Route 66 waypoints:", err);

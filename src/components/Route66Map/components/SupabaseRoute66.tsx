@@ -24,7 +24,7 @@ const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
       return;
     }
 
-    console.log("✅ SupabaseRoute66 ready to display route");
+    console.log(`✅ SupabaseRoute66 ready to display route with ${waypoints.length} waypoints`);
   }, [map, waypoints, isLoading, error]);
 
   // Cleanup function

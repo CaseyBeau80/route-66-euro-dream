@@ -14,9 +14,9 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
   useEffect(() => {
     if (!map || !waypoints.length) return;
 
-    // Add markers for major stops only (to avoid clutter)
+    // Filter for major stops only to avoid clutter
     const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
-    console.log(`Adding ${majorStops.length} major stop markers`);
+    console.log(`Adding ${majorStops.length} major stop markers out of ${waypoints.length} total waypoints`);
     
     majorStops.forEach((waypoint, index) => {
       const marker = new google.maps.Marker({
