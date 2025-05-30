@@ -1,4 +1,3 @@
-
 export interface Route66Town {
   latLng: [number, number]; // Explicitly defining as a tuple with 2 numbers
   name: string;
@@ -33,3 +32,21 @@ export const route66Towns: Route66Town[] = [
 
 // Legacy export for backward compatibility
 export { route66Towns as locations };
+
+export interface Route66Waypoint {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  state: string;
+  sequence_order: number;
+  is_major_stop: boolean | null;
+  highway_designation: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupabaseRoute66Props {
+  map: google.maps.Map;
+}

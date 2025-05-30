@@ -9,7 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      route66_waypoints: {
+        Row: {
+          created_at: string
+          description: string | null
+          highway_designation: string | null
+          id: string
+          is_major_stop: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          sequence_order: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          highway_designation?: string | null
+          id?: string
+          is_major_stop?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          sequence_order: number
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          highway_designation?: string | null
+          id?: string
+          is_major_stop?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          sequence_order?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
