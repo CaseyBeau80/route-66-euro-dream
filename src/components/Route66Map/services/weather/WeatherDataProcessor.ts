@@ -31,9 +31,9 @@ export class WeatherDataProcessor {
       forecastByDay[dateKey].push(item);
     });
 
-    // Process next 2 days (skip today, get tomorrow and day after)
+    // Process 3 days: today, tomorrow, and day after
     return Object.entries(forecastByDay)
-      .slice(1, 3) // Skip today (index 0), get next 2 days
+      .slice(0, 3) // Get today, tomorrow, and day after
       .map(([dateKey, dayData], index) => {
         const temps = dayData.map(item => item.main.temp);
         const date = new Date(dateKey);
