@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
@@ -9,7 +8,7 @@ import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
-import SimpleRoute66Service from './components/SimpleRoute66Service';
+import HybridRouteService from './components/directions/HybridRouteService';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -83,7 +82,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadingIndicator />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component with highway-accurate waypoints', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with hybrid route calculation', {
     isLoaded,
     mapInitialized,
     isMapReady,
@@ -111,8 +110,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             />
             
             {isMapReady && (
-              <SimpleRoute66Service 
+              <HybridRouteService 
                 map={mapRef.current}
+                directionsService={new google.maps.DirectionsService()}
+                onRouteCalculated={(success) => {
+                  console.log(`🛣️ Hybrid route calculation completed: ${success ? 'success' : 'failed'}`);
+                }}
               />
             )}
             
