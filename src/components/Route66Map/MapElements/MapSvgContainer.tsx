@@ -1,7 +1,7 @@
 
 import React, { ReactNode, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useMapInteraction } from "../hooks/useMapInteraction";
+import { useSvgMapInteraction } from "../hooks/useSvgMapInteraction";
 import { 
   createMouseEventHandlers, 
   createTouchEventHandlers 
@@ -33,7 +33,7 @@ const MapSvgContainer = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const isMobile = useIsMobile();
   
-  // Use our custom hook for map interaction
+  // Use our custom SVG map interaction hook
   const {
     viewBox,
     isDragging,
@@ -54,7 +54,7 @@ const MapSvgContainer = ({
     getDistance,
     SENSITIVITY_FACTOR,
     captureZoomCenter
-  } = useMapInteraction({
+  } = useSvgMapInteraction({
     zoom,
     minZoom,
     maxZoom,
