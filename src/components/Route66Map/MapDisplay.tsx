@@ -1,12 +1,9 @@
 
-import React, { useCallback, useState, useRef } from 'react';
-import { GoogleMap } from '@react-google-maps/api';
+import React from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
-import { useMapEvents } from './hooks/useMapEvents';
-import { useZoomPreservation } from './hooks/useZoomPreservation';
-import { mapBounds, mapOptions } from './config/MapConfig';
-import SupabaseRoute66 from './components/SupabaseRoute66';
+import { useMapInitialization } from './hooks/useMapInitialization';
 import MapLoadingStates from './components/MapLoadingStates';
+import MapContainer from './components/MapContainer';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -25,64 +22,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     checkMapBounds
   } = useGoogleMaps();
 
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  
-  const {
-    preserveCenterRef,
-    isInitialLoadRef,
-    zoomTimeoutRef,
-    isZoomingRef,
-    debouncedZoomHandler,
-    captureCurrentCenter,
-    performZoom,
-    markInitialLoadComplete,
-    cleanup
-  } = useZoomPreservation();
-
-  // Create a bound version of debouncedZoomHandler for this component
-  const boundDebouncedZoomHandler = useCallback((newZoom: number) => {
-    debouncedZoomHandler(newZoom, setCurrentZoom);
-  }, [debouncedZoomHandler, setCurrentZoom]);
-
-  const { setupMapListeners } = useMapEvents({
+  const { map, onLoad, onUnmount } = useMapInitialization({
     setCurrentZoom,
     setIsDragging,
     checkMapBounds,
-    debouncedZoomHandler: boundDebouncedZoomHandler,
-    preserveCenterRef,
-    isInitialLoadRef,
-    isZoomingRef
+    mapRef
   });
-
-  const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded successfully");
-    mapRef.current = map;
-    setMap(map);
-    
-    // Set initial zoom and center
-    map.setZoom(5);
-    map.setCenter({ lat: 35.5, lng: -100 }); // Center of US for Route 66
-    
-    // Mark initial load as complete after a delay
-    markInitialLoadComplete();
-    
-    // Setup all map listeners
-    setupMapListeners(map);
-    
-    // Clear any pending zoom operations when user starts dragging
-    map.addListener('dragstart', () => {
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
-      }
-    });
-  }, [setCurrentZoom, setIsDragging, checkMapBounds, boundDebouncedZoomHandler, setupMapListeners, markInitialLoadComplete, zoomTimeoutRef]);
-
-  const onUnmount = useCallback(() => {
-    console.log("🗺️ Google Map unmounted");
-    mapRef.current = null;
-    setMap(null);
-    cleanup();
-  }, [cleanup]);
 
   // Show loading or error states
   const loadingState = MapLoadingStates({ loadError, isLoaded });
@@ -91,44 +36,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
   }
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
-      <GoogleMap
-        mapContainerStyle={{
-          width: '100%',
-          height: '100%'
-        }}
-        center={{ lat: 35.5, lng: -100 }}
-        zoom={5}
-        options={{
-          ...mapOptions,
-          draggable: true,
-          panControl: true,
-          gestureHandling: 'greedy',
-          zoomControl: true,
-          mapTypeControl: false,
-          scaleControl: true,
-          streetViewControl: false,
-          rotateControl: false,
-          fullscreenControl: true,
-          restriction: {
-            latLngBounds: mapBounds,
-            strictBounds: false,
-          },
-        }}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-        onDragStart={() => {
-          console.log('🖱️ GoogleMap onDragStart callback triggered');
-          setIsDragging(true);
-        }}
-        onDragEnd={() => {
-          console.log('🖱️ GoogleMap onDragEnd callback triggered');
-          setIsDragging(false);
-        }}
-      >
-        {map && <SupabaseRoute66 map={map} />}
-      </GoogleMap>
-    </div>
+    <MapContainer
+      map={map}
+      onLoad={onLoad}
+      onUnmount={onUnmount}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={() => setIsDragging(false)}
+    />
   );
 };
 
