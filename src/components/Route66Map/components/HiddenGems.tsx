@@ -83,13 +83,13 @@ const HiddenGems: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
             onClick={() => handleMarkerClick(gem)}
             icon={{
               url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-                  <circle cx="14" cy="14" r="12" fill="#7C3AED" stroke="#FFFFFF" stroke-width="3"/>
-                  <path d="M14 8l3 8-8-3 8 3-3 8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+                  <circle cx="10" cy="10" r="8" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+                  <path d="M10 6l2 6-6-2 6 2-2 6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1"/>
                 </svg>
               `)}`,
-              scaledSize: new google.maps.Size(28, 28),
-              anchor: new google.maps.Point(14, 14)
+              scaledSize: new google.maps.Size(20, 20),
+              anchor: new google.maps.Point(10, 10)
             }}
             title={`Hidden Gem: ${gem.title}`}
             zIndex={1000}
