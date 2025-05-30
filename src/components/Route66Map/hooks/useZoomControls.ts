@@ -32,31 +32,37 @@ export const useZoomControls = ({
   
   // Zoom handlers with proper boundary checking
   const handleZoomIn = useCallback(() => {
-    // Notify that zoom is starting so center can be captured
+    // Capture current center BEFORE changing zoom
     if (onZoomStart) {
       onZoomStart();
     }
     
-    setZoom(prevZoom => {
-      const newZoom = Math.min(prevZoom + zoomStep, maxZoom);
-      console.log('Zoom in to:', newZoom);
-      setZoomActivity(true);
-      return newZoom;
-    });
+    // Small delay to ensure center is captured before zoom changes
+    setTimeout(() => {
+      setZoom(prevZoom => {
+        const newZoom = Math.min(prevZoom + zoomStep, maxZoom);
+        console.log('Zoom in to:', newZoom);
+        setZoomActivity(true);
+        return newZoom;
+      });
+    }, 10);
   }, [maxZoom, zoomStep, onZoomStart]);
 
   const handleZoomOut = useCallback(() => {
-    // Notify that zoom is starting so center can be captured
+    // Capture current center BEFORE changing zoom
     if (onZoomStart) {
       onZoomStart();
     }
     
-    setZoom(prevZoom => {
-      const newZoom = Math.max(prevZoom - zoomStep, minZoom);
-      console.log('Zoom out to:', newZoom);
-      setZoomActivity(true);
-      return newZoom;
-    });
+    // Small delay to ensure center is captured before zoom changes
+    setTimeout(() => {
+      setZoom(prevZoom => {
+        const newZoom = Math.max(prevZoom - zoomStep, minZoom);
+        console.log('Zoom out to:', newZoom);
+        setZoomActivity(true);
+        return newZoom;
+      });
+    }, 10);
   }, [minZoom, zoomStep, onZoomStart]);
   
   const handleZoomChange = useCallback((newZoom: number) => {
