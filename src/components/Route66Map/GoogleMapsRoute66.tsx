@@ -45,6 +45,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   useEffect(() => {
     if (mapRef.current && !mapInitialized) {
       setMapInitialized(true);
+      console.log('🗺️ Google Maps Route 66 component initialized');
     }
   }, [mapRef.current, mapInitialized]);
 
@@ -91,6 +92,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     
     // Set the map as initialized
     setMapInitialized(true);
+    console.log('🎯 Route 66 map loaded and ready for GeoJSON overlay');
   }, [visibleTowns, selectedState, setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
@@ -118,7 +120,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Route 66 polyline and overlays */}
+        {/* Route 66 GeoJSON overlay and reference markers */}
         {mapInitialized && mapRef.current && (
           <MapOverlays map={mapRef.current} useEnhancedStatic={false} />
         )}
