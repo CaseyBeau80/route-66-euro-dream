@@ -5,7 +5,14 @@ import RoutePolyline from './RoutePolyline';
 import RouteMarkers from './RouteMarkers';
 import type { SupabaseRoute66Props } from '../types/supabaseTypes';
 
-const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
+interface EnhancedSupabaseRoute66Props extends SupabaseRoute66Props {
+  onRouteError?: () => void;
+}
+
+const SupabaseRoute66: React.FC<EnhancedSupabaseRoute66Props> = ({ 
+  map, 
+  onRouteError 
+}) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
 
   useEffect(() => {
@@ -16,21 +23,34 @@ const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
 
     if (error) {
       console.error("❌ Error loading Route 66 data:", error);
+      if (onRouteError) {
+        onRouteError();
+      }
       return;
     }
 
     if (isLoading) {
-      console.log("⏳ Loading Route 66 waypoints...");
+      console.log("⏳ Loading enhanced Route 66 waypoints from Supabase...");
       return;
     }
 
-    console.log(`✅ SupabaseRoute66 ready to display route with ${waypoints.length} waypoints`);
-  }, [map, waypoints, isLoading, error]);
+    if (waypoints.length === 0) {
+      console.log("❌ No waypoints loaded from Supabase");
+      if (onRouteError) {
+        onRouteError();
+      }
+      return;
+    }
+
+    console.log(`✅ SupabaseRoute66 ready to display enhanced route with ${waypoints.length} waypoints`);
+    console.log(`📍 Major stops: ${waypoints.filter(w => w.is_major_stop).length}`);
+    console.log(`🛤️ Intermediate waypoints: ${waypoints.filter(w => !w.is_major_stop).length}`);
+  }, [map, waypoints, isLoading, error, onRouteError]);
 
   // Cleanup function
   useEffect(() => {
     return () => {
-      console.log("🧹 Cleaning up Supabase Route 66 display");
+      console.log("🧹 Cleaning up enhanced Supabase Route 66 display");
     };
   }, []);
 

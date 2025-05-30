@@ -13,4 +13,5 @@ export interface Route66Waypoint {
 
 export interface SupabaseRoute66Props {
   map: google.maps.Map;
+  onRouteError?: () => void;
 }

@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
@@ -9,6 +10,7 @@ import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
 import HybridRouteService from './components/directions/HybridRouteService';
+import SupabaseRoute66 from './components/SupabaseRoute66';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -37,6 +39,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const { visibleTowns } = useTownFiltering({ selectedState });
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [routeDisplayMode, setRouteDisplayMode] = useState<'supabase' | 'hybrid'>('supabase');
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     console.log('🚀 GoogleMapsRoute66: Map loading callback triggered');
@@ -64,12 +67,17 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     map.setCenter({ lat: 35.5, lng: -97.5 }); // Centered on Route 66 corridor
     
     setMapInitialized(true);
-    console.log('✅ Route 66 map loaded and ready for highway-accurate rendering');
+    console.log('✅ Route 66 map loaded and ready for enhanced Supabase rendering');
   }, [setCurrentZoom, setIsDragging]);
 
   const onMapReady = useCallback((readyMap: google.maps.Map) => {
-    console.log('🎉 GoogleMapsRoute66: Map is fully ready for highway-accurate Route 66 rendering');
+    console.log('🎉 GoogleMapsRoute66: Map is fully ready for enhanced Route 66 rendering');
     setIsMapReady(true);
+  }, []);
+
+  const handleSupabaseRouteFailure = useCallback(() => {
+    console.log('⚠️ Supabase route failed, falling back to hybrid route system');
+    setRouteDisplayMode('hybrid');
   }, []);
 
   if (loadError) {
@@ -82,10 +90,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadingIndicator />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component with hybrid route calculation', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration', {
     isLoaded,
     mapInitialized,
     isMapReady,
+    routeDisplayMode,
     selectedState,
     visibleTowns: visibleTowns.length
   });
@@ -110,13 +119,22 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             />
             
             {isMapReady && (
-              <HybridRouteService 
-                map={mapRef.current}
-                directionsService={new google.maps.DirectionsService()}
-                onRouteCalculated={(success) => {
-                  console.log(`🛣️ Hybrid route calculation completed: ${success ? 'success' : 'failed'}`);
-                }}
-              />
+              <>
+                {routeDisplayMode === 'supabase' ? (
+                  <SupabaseRoute66 
+                    map={mapRef.current}
+                    onRouteError={handleSupabaseRouteFailure}
+                  />
+                ) : (
+                  <HybridRouteService 
+                    map={mapRef.current}
+                    directionsService={new google.maps.DirectionsService()}
+                    onRouteCalculated={(success) => {
+                      console.log(`🛣️ Hybrid route calculation completed: ${success ? 'success' : 'failed'}`);
+                    }}
+                  />
+                )}
+              </>
             )}
             
             <TownMarkers 

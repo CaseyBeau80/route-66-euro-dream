@@ -16,7 +16,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
 
     // Filter for major stops only to avoid clutter
     const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
-    console.log(`Adding ${majorStops.length} major stop markers out of ${waypoints.length} total waypoints`);
+    console.log(`📍 Adding ${majorStops.length} major stop markers out of ${waypoints.length} total waypoints`);
     
     majorStops.forEach((waypoint, index) => {
       const marker = new google.maps.Marker({
@@ -24,29 +24,42 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
         map: map,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" fill="#FF0000" stroke="#FFFFFF" stroke-width="2"/>
-              <text x="12" y="16" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">${index + 1}</text>
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+              <circle cx="14" cy="14" r="12" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="14" cy="14" r="6" fill="#FFFFFF"/>
+              <text x="14" y="18" text-anchor="middle" fill="#DC2626" font-family="Arial" font-size="8" font-weight="bold">${index + 1}</text>
             </svg>
           `)}`,
-          scaledSize: new google.maps.Size(24, 24),
-          anchor: new google.maps.Point(12, 12)
+          scaledSize: new google.maps.Size(28, 28),
+          anchor: new google.maps.Point(14, 14)
         },
         title: `${waypoint.name} - ${waypoint.state}`,
         zIndex: 20000
       });
 
-      // Add info window for major stops
+      // Create enhanced info window for major stops
       const infoWindow = new google.maps.InfoWindow({
         content: `
-          <div style="padding: 8px; max-width: 200px; font-family: Arial, sans-serif;">
-            <h3 style="margin: 0 0 5px 0; color: #FF0000; font-size: 14px;">${waypoint.name}</h3>
-            <p style="margin: 0; font-size: 12px; color: #666;">
-              ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
-            </p>
-            ${waypoint.description ? `<p style="margin: 5px 0 0 0; font-size: 11px; color: #333;">${waypoint.description}</p>` : ''}
+          <div style="padding: 12px; max-width: 280px; font-family: Arial, sans-serif;">
+            <h3 style="margin: 0 0 8px 0; color: #DC2626; font-size: 16px; font-weight: bold;">${waypoint.name}</h3>
+            <div style="margin-bottom: 8px;">
+              <p style="margin: 0; font-size: 13px; color: #666; font-weight: 500;">
+                ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
+              </p>
+            </div>
+            ${waypoint.description ? `
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #333; line-height: 1.4;">
+                ${waypoint.description}
+              </p>
+            ` : ''}
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+              <p style="margin: 0; font-size: 10px; color: #999;">
+                Stop ${index + 1} of ${majorStops.length} major stops
+              </p>
+            </div>
           </div>
-        `
+        `,
+        maxWidth: 300
       });
 
       marker.addListener('click', () => {
@@ -65,7 +78,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       markersRef.current.push(marker);
     });
 
-    console.log(`✅ Route 66 fully displayed with ${markersRef.current.length} markers`);
+    console.log(`✅ Enhanced Route 66 fully displayed with ${markersRef.current.length} major stop markers`);
 
     return () => {
       markersRef.current.forEach(marker => {
