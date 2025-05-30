@@ -48,12 +48,7 @@ export const useGoogleMaps = () => {
     version: 'weekly',
     language: 'en',
     region: 'US',
-    preventGoogleFontsLoading: true,
-    // Add additional options to prevent conflicts
-    loadScriptOptions: {
-      async: true,
-      defer: true,
-    }
+    preventGoogleFontsLoading: true
   });
 
   const {
