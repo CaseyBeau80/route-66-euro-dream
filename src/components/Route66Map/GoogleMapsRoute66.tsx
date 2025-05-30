@@ -122,7 +122,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             <TownMarkers 
               towns={visibleTowns} 
               activeMarker={activeMarker}
-              onMarkerClick={(index: number) => handleMarkerClick(index.toString())}
+              onMarkerClick={handleMarkerClick}
             />
           </>
         )}

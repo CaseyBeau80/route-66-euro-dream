@@ -39,9 +39,10 @@ export const useGoogleMaps = () => {
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  const handleMarkerClick = useCallback((markerId: string) => {
-    console.log('🎯 Marker clicked:', markerId);
-    setActiveMarker(prevActive => prevActive === markerId ? null : markerId);
+  const handleMarkerClick = useCallback((markerId: string | number) => {
+    const id = markerId.toString();
+    console.log('🎯 Marker clicked:', id);
+    setActiveMarker(prevActive => prevActive === id ? null : id);
   }, []);
 
   const handleMapClick = useCallback(() => {
