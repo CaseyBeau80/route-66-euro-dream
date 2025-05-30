@@ -1,150 +1,99 @@
-import { useState, useEffect, useRef } from "react";
+
+import { useCallback, useRef, useState } from 'react';
 
 interface UseMapInteractionProps {
-  zoom: number;
-  minZoom: number;
-  maxZoom: number;
-  baseWidth: number;
-  baseHeight: number;
-  onZoomChange?: (newZoom: number) => void;
+  mapRef: React.MutableRefObject<google.maps.Map | null>;
+  setCurrentZoom: (zoom: number) => void;
+  setIsDragging: (isDragging: boolean) => void;
 }
 
 export const useMapInteraction = ({
-  zoom,
-  minZoom,
-  maxZoom,
-  baseWidth,
-  baseHeight,
-  onZoomChange
+  mapRef,
+  setCurrentZoom,
+  setIsDragging
 }: UseMapInteractionProps) => {
-  // State for panning functionality
-  const [viewBoxX, setViewBoxX] = useState(0);
-  const [viewBoxY, setViewBoxY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 });
-  
-  // Track touch points for pinch detection
-  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
-  const [initialZoom, setInitialZoom] = useState<number>(zoom);
-  const [isPinching, setIsPinching] = useState<boolean>(false);
-  const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Store the center point when zoom starts to maintain it
-  const zoomCenterRef = useRef<{ x: number; y: number } | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Calculate adjusted viewBox based on zoom
-  const viewBoxWidth = baseWidth / zoom;
-  const viewBoxHeight = baseHeight / zoom;
-  
-  // Construct viewBox string with current pan position
-  const viewBox = `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`;
-  
-  // Sensitivity adjustment factor - lower number means more sensitive zoom
-  const SENSITIVITY_FACTOR = 0.5;
-  
-  // Calculate distance between two touch points
-  const getDistance = (touches: React.TouchList): number => {
-    if (touches.length < 2) return 0;
-    
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
+  const [isUserDragging, setIsUserDragging] = useState(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to capture the current view center before zoom changes
-  const captureZoomCenter = () => {
-    const currentViewBoxWidth = baseWidth / zoom;
-    const currentViewBoxHeight = baseHeight / zoom;
-    zoomCenterRef.current = {
-      x: viewBoxX + currentViewBoxWidth / 2,
-      y: viewBoxY + currentViewBoxHeight / 2
-    };
-    console.log('Captured zoom center at:', zoomCenterRef.current, 'from viewBox:', { viewBoxX, viewBoxY, zoom });
-  };
-
-  // Adjust view position when zoom changes to maintain current view center
-  useEffect(() => {
-    if (!isInitialized) return;
+  // Simplified zoom handler - no aggressive center preservation
+  const handleZoomChange = useCallback(() => {
+    if (!mapRef.current) return;
     
-    console.log('Zoom effect triggered, zoom:', zoom);
+    const newZoom = mapRef.current.getZoom() || 5;
     
-    // If we have a stored center, use it to adjust the view
-    if (zoomCenterRef.current) {
-      const centerX = zoomCenterRef.current.x;
-      const centerY = zoomCenterRef.current.y;
-      
-      // Calculate new viewBox dimensions
-      const newViewBoxWidth = baseWidth / zoom;
-      const newViewBoxHeight = baseHeight / zoom;
-      
-      // Calculate new viewBox position to keep the same center
-      let newViewBoxX = centerX - newViewBoxWidth / 2;
-      let newViewBoxY = centerY - newViewBoxHeight / 2;
-      
-      // Ensure the new position is within bounds
-      const maxPanX = Math.max(0, baseWidth - newViewBoxWidth);
-      const maxPanY = Math.max(0, baseHeight - newViewBoxHeight);
-      
-      newViewBoxX = Math.min(Math.max(newViewBoxX, 0), maxPanX);
-      newViewBoxY = Math.min(Math.max(newViewBoxY, 0), maxPanY);
-      
-      console.log('Adjusting view to maintain center:', { newViewBoxX, newViewBoxY, centerX, centerY });
-      
-      setViewBoxX(newViewBoxX);
-      setViewBoxY(newViewBoxY);
-      
-      // Clear the center reference after zoom change is complete
-      setTimeout(() => {
-        zoomCenterRef.current = null;
-        console.log('Cleared zoom center reference');
-      }, 100);
-    }
-  }, [zoom, baseWidth, baseHeight, isInitialized]);
-
-  // Initialize view to center only on first load
-  useEffect(() => {
-    if (!isInitialized) {
-      const initialViewBoxWidth = baseWidth / zoom;
-      const initialViewBoxHeight = baseHeight / zoom;
-      const centerX = (baseWidth - initialViewBoxWidth) / 2;
-      const centerY = (baseHeight - initialViewBoxHeight) / 2;
-      
-      setViewBoxX(centerX);
-      setViewBoxY(centerY);
-      setInitialZoom(zoom);
-      setIsInitialized(true);
-      
-      console.log('Map initialized with center position:', { centerX, centerY });
+    // Clear any existing zoom timeout
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
     }
     
+    // Debounce zoom updates to prevent rapid changes
+    zoomTimeoutRef.current = setTimeout(() => {
+      setCurrentZoom(newZoom);
+      console.log('🔍 Zoom updated to:', newZoom);
+    }, 150);
+  }, [setCurrentZoom, mapRef]);
+
+  // Improved drag start handler
+  const handleDragStart = useCallback(() => {
+    console.log('🖱️ Drag started by user');
+    setIsUserDragging(true);
+    setIsDragging(true);
+    
+    // Clear any pending zoom operations during drag
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
+    }
+  }, [setIsDragging]);
+
+  // Improved drag end handler with proper cleanup
+  const handleDragEnd = useCallback(() => {
+    console.log('🖱️ Drag ended');
+    setIsUserDragging(false);
+    
+    // Clear any existing drag timeout
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+    }
+    
+    // Set a small delay before clearing dragging state for smoother UX
+    dragTimeoutRef.current = setTimeout(() => {
+      setIsDragging(false);
+    }, 100);
+  }, [setIsDragging]);
+
+  // Setup map event listeners
+  const setupMapListeners = useCallback((map: google.maps.Map) => {
+    console.log('🗺️ Setting up simplified map interaction listeners');
+    
+    // Zoom change listener
+    map.addListener('zoom_changed', handleZoomChange);
+    
+    // Drag listeners with improved timing
+    map.addListener('dragstart', handleDragStart);
+    map.addListener('dragend', handleDragEnd);
+    
+    // Cleanup function
     return () => {
-      // Clear any timeout on component unmount
-      if (touchTimeoutRef.current) {
-        clearTimeout(touchTimeoutRef.current);
-      }
+      google.maps.event.clearInstanceListeners(map);
     };
-  }, [baseWidth, baseHeight, zoom, isInitialized]);
+  }, [handleZoomChange, handleDragStart, handleDragEnd]);
+
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+    }
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
+    }
+    setIsUserDragging(false);
+    setIsDragging(false);
+  }, [setIsDragging]);
 
   return {
-    viewBox,
-    isDragging,
-    isPinching,
-    touchStartDistance,
-    lastPosition,
-    setIsDragging,
-    setLastPosition,
-    setViewBoxX,
-    setViewBoxY,
-    setTouchStartDistance,
-    setInitialZoom,
-    setIsPinching,
-    viewBoxWidth,
-    viewBoxHeight,
-    initialZoom,
-    touchTimeoutRef,
-    getDistance,
-    SENSITIVITY_FACTOR,
-    captureZoomCenter
+    isUserDragging,
+    setupMapListeners,
+    cleanup
   };
 };

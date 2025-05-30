@@ -46,14 +46,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
-        onDragStart={() => {
-          console.log('🖱️ GoogleMap onDragStart callback triggered');
-          onDragStart();
-        }}
-        onDragEnd={() => {
-          console.log('🖱️ GoogleMap onDragEnd callback triggered');
-          onDragEnd();
-        }}
       >
         {map && <SupabaseRoute66 map={map} />}
       </GoogleMap>

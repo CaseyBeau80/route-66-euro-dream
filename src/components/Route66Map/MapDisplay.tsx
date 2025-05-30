@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
-import { useMapInitialization } from './hooks/useMapInitialization';
+import { useSimpleMapInitialization } from './hooks/useSimpleMapInitialization';
 import MapLoadingStates from './components/MapLoadingStates';
 import MapContainer from './components/MapContainer';
 
@@ -18,14 +18,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     setCurrentZoom,
     isDragging,
     setIsDragging,
-    mapRef,
-    checkMapBounds
+    mapRef
   } = useGoogleMaps();
 
-  const { map, onLoad, onUnmount } = useMapInitialization({
+  const { map, onLoad, onUnmount } = useSimpleMapInitialization({
     setCurrentZoom,
     setIsDragging,
-    checkMapBounds,
     mapRef
   });
 
