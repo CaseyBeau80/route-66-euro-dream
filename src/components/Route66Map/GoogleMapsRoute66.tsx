@@ -140,7 +140,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   />
                 )}
                 
-                {/* Add Hidden Gems markers */}
+                {/* Render Hidden Gems directly on the map - no tabs */}
                 <HiddenGems 
                   map={mapRef.current}
                   onGemClick={(gem) => {
@@ -150,6 +150,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
               </>
             )}
             
+            {/* Town markers on top */}
             <TownMarkers 
               towns={visibleTowns} 
               activeMarker={activeMarker}
