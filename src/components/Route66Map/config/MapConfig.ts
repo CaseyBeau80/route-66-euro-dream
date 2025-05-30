@@ -18,7 +18,7 @@ export const mapBounds = {
   north: 49.5, // Northern boundary (covering all mainland US)
   south: 25.0, // Southern boundary (covering southern Texas)
   east: -66.0, // Eastern boundary (covering Maine)
-  west: -124.5, // Western boundary (covering all of West Coast)
+  west: -124.5, // Western boundary (covering all of West Coast),
 };
 
 // Map restrictions to keep users within bounds
@@ -93,5 +93,4 @@ export const polylineOptions = {
   zIndex: 1,
 };
 
-// Google Maps API key
-export const googleMapsApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+// Note: API key is now managed centrally in the useGoogleMaps hook

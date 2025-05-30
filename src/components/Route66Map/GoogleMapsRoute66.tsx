@@ -9,7 +9,6 @@ import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import { mapOptions, center } from './config/MapConfig';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -123,7 +122,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             <TownMarkers 
               towns={visibleTowns} 
               activeMarker={activeMarker}
-              onMarkerClick={handleMarkerClick}
+              onMarkerClick={(index: number) => handleMarkerClick(index.toString())}
             />
           </>
         )}

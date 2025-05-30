@@ -1,8 +1,34 @@
 
 import { useState, useRef, useCallback } from 'react';
+import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
 
 export const useGoogleMaps = () => {
+  // Get API key from localStorage or environment
+  const getApiKey = () => {
+    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const storedApiKey = localStorage.getItem('google_maps_api_key');
+    
+    if (envApiKey && envApiKey !== 'demo-key') {
+      return envApiKey;
+    } else if (storedApiKey) {
+      return storedApiKey;
+    }
+    return null;
+  };
+
+  const apiKey = getApiKey();
+
+  // Only use the loader if we have a valid API key
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey || '',
+    libraries: ['maps'],
+    version: 'weekly',
+    language: 'en',
+    region: 'US',
+  });
+
   const {
     isDragging,
     setIsDragging,
@@ -24,6 +50,8 @@ export const useGoogleMaps = () => {
   }, []);
 
   return {
+    isLoaded,
+    loadError,
     activeMarker,
     currentZoom,
     isDragging,
@@ -31,6 +59,7 @@ export const useGoogleMaps = () => {
     handleMarkerClick,
     handleMapClick,
     setCurrentZoom,
-    setIsDragging
+    setIsDragging,
+    hasApiKey: !!apiKey
   };
 };

@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
 import MapLoadingStates from './components/MapLoadingStates';
 import MapContainer from './components/MapContainer';
 import ApiKeyInput from './components/ApiKeyInput';
+import { useGoogleMaps } from './hooks/useGoogleMaps';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -12,6 +12,7 @@ interface MapDisplayProps {
 
 const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) => {
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
   useEffect(() => {
     // Check for API key on component mount
@@ -31,18 +32,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     }
   }, []);
 
-  // Only use the loader if we have a valid API key
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: apiKey || '', // This will only be called when apiKey is valid
-    libraries: ['maps'],
-    version: 'weekly',
-    language: 'en',
-    region: 'US',
-  });
-
   // If no API key is available, show the input form
-  if (!apiKey) {
+  if (!hasApiKey) {
     return <ApiKeyInput onApiKeySet={setApiKey} />;
   }
 
