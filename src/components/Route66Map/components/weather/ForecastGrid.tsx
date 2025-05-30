@@ -29,34 +29,29 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
           console.log(`🔍 ForecastGrid: Day ${index} - Label: ${dayLabel}, Date: ${formattedDate}`);
           
           return (
-            <div key={index} className="flex flex-col items-center bg-gray-100 rounded-2xl px-4 py-6 min-h-[180px]">
-              {/* High temperature */}
+            <div key={index} className="flex flex-col items-center bg-gray-50 rounded-lg px-3 py-4 min-h-[120px]">
+              {/* Day label at top */}
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                {dayLabel}
+              </div>
+              
+              {/* Weather icon */}
+              <div className="mb-2">
+                <img 
+                  src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
+                  alt={day.description}
+                  className="w-10 h-10"
+                />
+              </div>
+              
+              {/* High temperature - larger and prominent */}
               <div className="text-2xl font-bold text-gray-900 mb-1">
                 {day.temperature.high}°
               </div>
               
-              {/* Low temperature */}
-              <div className="text-lg text-gray-500 mb-4">
+              {/* Low temperature - smaller and muted */}
+              <div className="text-sm text-gray-500">
                 {day.temperature.low}°
-              </div>
-              
-              {/* Weather icon */}
-              <div className="mb-4">
-                <img 
-                  src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
-                  alt={day.description}
-                  className="w-12 h-12"
-                />
-              </div>
-              
-              {/* Day label */}
-              <div className="text-center">
-                <div className="text-base font-semibold text-gray-900 mb-1">
-                  {dayLabel}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {formattedDate}
-                </div>
               </div>
             </div>
           );
