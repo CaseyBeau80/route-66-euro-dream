@@ -1,97 +1,85 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExternalLink, Key } from 'lucide-react';
 
 interface ApiKeyInputProps {
   onApiKeySet: (apiKey: string) => void;
+  error?: string;
 }
 
-const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet }) => {
+const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, error }) => {
   const [apiKey, setApiKey] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Check if API key is already stored in localStorage
-    const storedApiKey = localStorage.getItem('google_maps_api_key');
-    if (storedApiKey) {
-      setIsSubmitted(true);
-      onApiKeySet(storedApiKey);
-    }
-  }, [onApiKeySet]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (apiKey.trim()) {
-      localStorage.setItem('google_maps_api_key', apiKey.trim());
-      setIsSubmitted(true);
+    if (!apiKey.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
       onApiKeySet(apiKey.trim());
+    } catch (error) {
+      console.error('Error setting API key:', error);
     }
+    setIsSubmitting(false);
   };
-
-  const handleReset = () => {
-    localStorage.removeItem('google_maps_api_key');
-    setApiKey('');
-    setIsSubmitted(false);
-  };
-
-  if (isSubmitted) {
-    return (
-      <div className="w-full h-[600px] bg-green-50 border border-green-200 rounded-lg flex items-center justify-center">
-        <div className="text-center p-8">
-          <div className="text-green-600 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-green-800 mb-2">API Key Set Successfully!</h3>
-          <p className="text-green-700 mb-4">Your Google Maps API key has been stored securely.</p>
-          <Button onClick={handleReset} variant="outline" size="sm">
-            Change API Key
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="w-full h-[600px] bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-      <div className="text-center p-8 max-w-md">
-        <div className="text-blue-600 mb-4">
-          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a2 2 0 012.828 0z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-semibold text-blue-800 mb-2">Google Maps API Key Required</h3>
-        <p className="text-blue-700 mb-6 text-sm">
-          Please enter your Google Maps API key to load the Route 66 map. Your key will be stored securely in your browser.
-        </p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="password"
-            placeholder="Enter your Google Maps API key"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="w-full"
-          />
-          <Button type="submit" disabled={!apiKey.trim()} className="w-full">
-            Save API Key
-          </Button>
-        </form>
-        
-        <p className="text-xs text-blue-600 mt-4">
-          Get your API key from the{' '}
-          <a 
-            href="https://console.cloud.google.com/apis/credentials" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="underline hover:text-blue-800"
-          >
-            Google Cloud Console
-          </a>
-        </p>
-      </div>
+    <div className="flex items-center justify-center h-full bg-gray-50">
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Key className="h-12 w-12 text-blue-600" />
+          </div>
+          <CardTitle>Google Maps API Key Required</CardTitle>
+          <CardDescription>
+            To display the Route 66 map, please enter your Google Maps API key
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Input
+                type="text"
+                placeholder="Enter your Google Maps API key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={!apiKey.trim() || isSubmitting}
+            >
+              {isSubmitting ? 'Loading...' : 'Load Map'}
+            </Button>
+          </form>
+
+          <div className="text-sm text-gray-600 space-y-2">
+            <p>Don't have an API key?</p>
+            <a
+              href="https://developers.google.com/maps/documentation/javascript/get-api-key"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline"
+            >
+              Get a Google Maps API key
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
