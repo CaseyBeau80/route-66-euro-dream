@@ -31,16 +31,14 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     }
   }, []);
 
-  // Only use the loader if we have a valid API key - this prevents the empty string error
+  // Only use the loader if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey || 'placeholder-key', // Use placeholder instead of empty string
+    googleMapsApiKey: apiKey || '', // This will only be called when apiKey is valid
     libraries: ['maps'],
     version: 'weekly',
     language: 'en',
     region: 'US',
-    // Only load if we have a real API key
-    skipLoader: !apiKey || apiKey === 'placeholder-key'
   });
 
   // If no API key is available, show the input form
