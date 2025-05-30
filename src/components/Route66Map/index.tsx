@@ -8,7 +8,7 @@ import RouteInfo from "./RouteInfo";
 
 /**
  * Main Route 66 Map component
- * Manages the map state and loading
+ * Uses Google Maps implementation only (no SVG overlay)
  */
 const Route66Map = () => {
   const [loaded, setLoaded] = useState(false);
@@ -20,6 +20,7 @@ const Route66Map = () => {
     const timer = setTimeout(() => {
       try {
         setLoaded(true);
+        console.log("🗺️ Route66Map: Using Google Maps implementation only");
       } catch (err) {
         console.error("Error rendering map:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -58,13 +59,18 @@ const Route66Map = () => {
     }
   };
 
+  const handleClearSelection = () => {
+    setSelectedState(null);
+    console.log("🗺️ Route66Map: Selection cleared");
+  };
+
   return (
     <div className="my-8 px-2 sm:px-4 w-full">
       <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Historic Highway Map</h2>
       
       {/* Map container */}
       <div className="relative bg-white p-2 sm:p-5 rounded-lg shadow w-full">
-        {/* Map display */}
+        {/* Map display - Google Maps only */}
         {loaded ? (
           <MapDisplay 
             selectedState={selectedState} 
@@ -72,6 +78,18 @@ const Route66Map = () => {
           />
         ) : (
           <MapLoading error={error} onRetry={handleRetry} />
+        )}
+        
+        {/* Clear selection button overlay for Google Maps */}
+        {selectedState && (
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={handleClearSelection}
+              className="bg-white hover:bg-gray-50 text-gray-800 px-4 py-2 rounded-lg shadow-lg border border-gray-200 transition-colors"
+            >
+              Clear Selection
+            </button>
+          </div>
         )}
       </div>
       

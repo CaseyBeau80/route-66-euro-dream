@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
@@ -108,18 +107,28 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
       return result;
     };
     
+    // Enhanced drag event listeners
     map.addListener('dragstart', () => {
-      console.log('🖱️ Google Map drag started');
+      console.log('🖱️ Google Map drag started - user interaction detected');
       setIsDragging(true);
     });
     
+    map.addListener('drag', () => {
+      // Optional: track ongoing drag
+      console.log('🖱️ Google Map dragging...');
+    });
+    
     map.addListener('dragend', () => {
-      console.log('🖱️ Google Map drag ended');
+      console.log('🖱️ Google Map drag ended - checking bounds');
       setIsDragging(false);
       checkMapBounds();
     });
     
     map.addListener('bounds_changed', checkMapBounds);
+    
+    // Test draggability
+    console.log('🗺️ Map draggable setting:', map.get('draggable'));
+    console.log('🗺️ Map gesture handling:', map.get('gestureHandling'));
   }, [setCurrentZoom, setIsDragging, checkMapBounds]);
 
   const onUnmount = useCallback(() => {
@@ -176,6 +185,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
           draggable: true,
           panControl: true,
           gestureHandling: 'greedy', // Allow dragging without requiring ctrl/cmd key
+          zoomControl: true,
+          mapTypeControl: false,
+          scaleControl: true,
+          streetViewControl: false,
+          rotateControl: false,
+          fullscreenControl: true,
           restriction: {
             latLngBounds: mapBounds,
             strictBounds: false,
@@ -183,6 +198,14 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
+        onDragStart={() => {
+          console.log('🖱️ GoogleMap onDragStart callback triggered');
+          setIsDragging(true);
+        }}
+        onDragEnd={() => {
+          console.log('🖱️ GoogleMap onDragEnd callback triggered');
+          setIsDragging(false);
+        }}
       >
         {map && <SupabaseRoute66 map={map} />}
       </GoogleMap>
