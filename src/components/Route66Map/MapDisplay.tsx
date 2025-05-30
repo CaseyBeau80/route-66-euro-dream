@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
@@ -108,10 +109,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     };
     
     map.addListener('dragstart', () => {
+      console.log('🖱️ Drag started');
       setIsDragging(true);
     });
     
     map.addListener('dragend', () => {
+      console.log('🖱️ Drag ended');
       setIsDragging(false);
       checkMapBounds();
     });
@@ -170,6 +173,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
         zoom={5}
         options={{
           ...mapOptions,
+          draggable: true, // Explicitly enable dragging
+          panControl: true, // Enable pan control
           restriction: {
             latLngBounds: mapBounds,
             strictBounds: false,
