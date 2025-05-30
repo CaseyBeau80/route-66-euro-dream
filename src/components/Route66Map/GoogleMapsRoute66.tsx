@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
@@ -11,6 +10,7 @@ import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
 import HybridRouteService from './components/directions/HybridRouteService';
 import SupabaseRoute66 from './components/SupabaseRoute66';
+import StateHighlighting from './components/StateHighlighting';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -117,6 +117,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
               map={mapRef.current} 
               onMapReady={onMapReady}
             />
+            
+            {/* Add state highlighting as the base layer */}
+            <StateHighlighting map={mapRef.current} />
             
             {isMapReady && (
               <>
