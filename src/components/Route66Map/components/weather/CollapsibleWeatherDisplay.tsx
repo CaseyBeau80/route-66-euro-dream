@@ -19,6 +19,11 @@ const CollapsibleWeatherDisplay: React.FC<CollapsibleWeatherDisplayProps> = ({ w
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg border border-blue-200 min-w-[280px]">
+      {/* Centered city name at the top */}
+      <div className="text-center p-3 border-b border-blue-200">
+        <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
+      </div>
+
       {/* Compact header - always visible */}
       <div 
         className="p-3 cursor-pointer hover:bg-blue-50 transition-colors rounded-lg"
@@ -31,12 +36,9 @@ const CollapsibleWeatherDisplay: React.FC<CollapsibleWeatherDisplayProps> = ({ w
               alt={weather.description}
               className="w-10 h-10"
             />
-            <div>
-              <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
-              <div className="flex items-center gap-2">
-                <ThermometerIcon />
-                <span className="text-2xl font-bold text-gray-900">{weather.temperature}°F</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <ThermometerIcon />
+              <span className="text-2xl font-bold text-gray-900">{weather.temperature}°F</span>
             </div>
           </div>
           <div className="flex flex-col items-end">
