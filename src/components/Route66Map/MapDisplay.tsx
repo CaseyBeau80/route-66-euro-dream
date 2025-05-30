@@ -16,7 +16,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     loadError,
     mapRef,
     setupMapListeners,
-    initializeGoogleMaps
+    initializeGoogleMaps,
+    cleanup
   } = useSimpleGoogleMaps();
 
   const { map, onLoad, onUnmount } = useCleanMapInitialization({
@@ -28,6 +29,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
   useEffect(() => {
     initializeGoogleMaps();
   }, [initializeGoogleMaps]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   // Show loading or error states
   const loadingState = MapLoadingStates({ loadError, isLoaded });
