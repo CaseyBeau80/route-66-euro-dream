@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
-import { Cloud, Thermometer, Droplets, Wind } from 'lucide-react';
+import { Cloud, Thermometer, Droplets, Wind, AlertCircle } from 'lucide-react';
 
 interface WeatherWidgetProps {
   lat: number;
@@ -31,27 +31,35 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   useEffect(() => {
     const fetchWeather = async () => {
+      console.log(`🌤️ WeatherWidget: Starting weather fetch for ${cityName}`);
       const weatherService = WeatherService.getInstance();
       
       if (!weatherService.hasApiKey()) {
-        setError('Weather API key not configured');
+        console.warn('❌ WeatherWidget: No API key configured');
+        setError('API key not configured');
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
+        setError(null);
+        
+        console.log(`🌐 WeatherWidget: Requesting weather data for ${cityName}`);
         const weatherData = await weatherService.getWeatherData(lat, lng, cityName);
         
         if (weatherData) {
+          console.log('✅ WeatherWidget: Weather data received successfully');
           setWeather(weatherData);
           setError(null);
         } else {
+          console.warn('❌ WeatherWidget: No weather data returned from service');
           setError('Unable to fetch weather data');
         }
       } catch (err) {
-        setError('Weather service error');
-        console.error('Weather fetch error:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Weather service error';
+        console.error('❌ WeatherWidget: Weather fetch error:', err);
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -69,10 +77,20 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
     );
   }
 
-  if (error || !weather) {
+  if (error) {
     return (
-      <div className="text-xs text-gray-400">
-        Weather unavailable
+      <div className="flex items-center gap-2 text-xs text-red-500">
+        <AlertCircle className="w-4 h-4" />
+        <span>Weather: {error}</span>
+      </div>
+    );
+  }
+
+  if (!weather) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-gray-400">
+        <Cloud className="w-4 h-4" />
+        <span>Weather unavailable</span>
       </div>
     );
   }

@@ -23,15 +23,21 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
 }) => {
   const [hasWeatherApiKey, setHasWeatherApiKey] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [weatherRefreshKey, setWeatherRefreshKey] = useState(0);
 
   useEffect(() => {
     const weatherService = WeatherService.getInstance();
-    setHasWeatherApiKey(weatherService.hasApiKey());
+    const hasKey = weatherService.hasApiKey();
+    console.log('🔑 TownMarkers: Checking API key availability:', hasKey);
+    setHasWeatherApiKey(hasKey);
   }, []);
 
   const handleApiKeySet = () => {
+    console.log('🔑 TownMarkers: API key has been set, refreshing weather widgets');
     setHasWeatherApiKey(true);
     setShowApiKeyInput(false);
+    // Force weather widgets to refresh by updating the key
+    setWeatherRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -58,6 +64,7 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
                   
                   {hasWeatherApiKey ? (
                     <WeatherWidget 
+                      key={`weather-${index}-${weatherRefreshKey}`}
                       lat={town.latLng[0]} 
                       lng={town.latLng[1]} 
                       cityName={town.name}
