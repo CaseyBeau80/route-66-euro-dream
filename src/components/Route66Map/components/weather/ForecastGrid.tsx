@@ -43,10 +43,10 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
             {/* Day label */}
             <div className="text-center">
               <div className="text-base font-semibold text-gray-900 mb-1">
-                {index === 0 ? 'Tomorrow' : getDayAfterTomorrow()}
+                {getDayLabel(index)}
               </div>
               <div className="text-sm text-gray-500">
-                {formatDateShort(day.date)}
+                {formatDateFromForecast(day.date)}
               </div>
             </div>
           </div>
@@ -56,24 +56,49 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
   );
 };
 
-// Helper function to get "Day After" label
-const getDayAfterTomorrow = (): string => {
-  const dayAfter = new Date();
-  dayAfter.setDate(dayAfter.getDate() + 2);
-  return dayAfter.toLocaleDateString('en-US', { weekday: 'short' });
+// Helper function to get day label based on index
+const getDayLabel = (index: number): string => {
+  if (index === 0) {
+    return 'Tomorrow';
+  } else if (index === 1) {
+    return 'Day After';
+  }
+  return `Day ${index + 1}`;
 };
 
-// Helper function to format date as M/D
-const formatDateShort = (dateString: string): string => {
-  // Parse the date string and format it as M/D
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const dayAfter = new Date(today);
-  dayAfter.setDate(today.getDate() + 2);
-  
-  // Since we're showing tomorrow and day after, format accordingly
-  return tomorrow.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+// Helper function to format date from forecast data
+const formatDateFromForecast = (dateString: string): string => {
+  // The date comes from WeatherDataProcessor in format like "Sat, May 31"
+  // We need to extract just the month and day part
+  try {
+    // Parse the date string that comes in format "Sat, May 31"
+    const parts = dateString.split(', ');
+    if (parts.length >= 2) {
+      const monthDay = parts[1]; // "May 31"
+      const [monthName, day] = monthDay.split(' ');
+      
+      // Convert month name to number
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthNumber = monthNames.indexOf(monthName) + 1;
+      
+      if (monthNumber > 0) {
+        return `${monthNumber}/${day}`;
+      }
+    }
+    
+    // Fallback: if parsing fails, try to extract numbers
+    const dateMatch = dateString.match(/(\d+)/g);
+    if (dateMatch && dateMatch.length >= 2) {
+      return `${dateMatch[0]}/${dateMatch[1]}`;
+    }
+    
+    // Final fallback
+    return dateString;
+  } catch (error) {
+    console.error('Error formatting forecast date:', error);
+    return dateString;
+  }
 };
 
 export default ForecastGrid;
