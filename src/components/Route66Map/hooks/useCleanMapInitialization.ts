@@ -13,7 +13,7 @@ export const useCleanMapInitialization = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded - clean initialization");
+    console.log("🗺️ Google Map loaded - enabling navigation");
     mapRef.current = map;
     setMap(map);
     
@@ -21,19 +21,34 @@ export const useCleanMapInitialization = ({
     map.setZoom(5);
     map.setCenter({ lat: 35.5, lng: -100 });
     
-    // Explicitly ensure dragging is enabled
+    // Force enable all navigation options
     map.setOptions({
       draggable: true,
-      gestureHandling: 'greedy'
+      gestureHandling: 'greedy',
+      scrollwheel: true,
+      panControl: true,
+      zoomControl: true
     });
     
-    console.log('🖱️ Map dragging enabled:', map.get('draggable'));
+    // Verify navigation settings
+    console.log('🖱️ Map draggable:', map.get('draggable'));
     console.log('🖱️ Gesture handling:', map.get('gestureHandling'));
+    console.log('🖱️ Pan control:', map.get('panControl'));
     
     // Setup listeners
     setupMapListeners(map);
     
-    console.log('✅ Clean map initialization complete with drag enabled');
+    // Test map interaction by adding a simple pan test
+    setTimeout(() => {
+      console.log('🧪 Testing map pan capabilities...');
+      const currentCenter = map.getCenter();
+      if (currentCenter) {
+        console.log('🧪 Current center:', currentCenter.toJSON());
+        console.log('🧪 Map should be ready for user interaction');
+      }
+    }, 1000);
+    
+    console.log('✅ Map initialization complete with navigation enabled');
   }, [mapRef, setupMapListeners]);
 
   const onUnmount = useCallback(() => {

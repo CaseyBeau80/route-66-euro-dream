@@ -10,7 +10,7 @@ export const useSimpleGoogleMaps = () => {
   
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // Simplified zoom handler
+  // Simple zoom handler
   const handleZoomChange = useCallback(() => {
     if (mapRef.current) {
       const newZoom = mapRef.current.getZoom() || 5;
@@ -19,15 +19,18 @@ export const useSimpleGoogleMaps = () => {
     }
   }, []);
 
-  // Enhanced drag handlers with better logging
+  // Minimal drag handlers - let Google Maps handle the actual dragging
   const handleDragStart = useCallback(() => {
-    console.log('🖱️ Drag started - setting isDragging to true');
+    console.log('🖱️ User started dragging');
     setIsDragging(true);
   }, []);
 
   const handleDragEnd = useCallback(() => {
-    console.log('🖱️ Drag ended - setting isDragging to false');
-    setIsDragging(false);
+    console.log('🖱️ User finished dragging');
+    // Small delay to ensure smooth UX
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 100);
   }, []);
 
   // Map click handler
@@ -40,37 +43,20 @@ export const useSimpleGoogleMaps = () => {
     setActiveMarker(markerId);
   }, []);
 
-  // Setup map listeners with enhanced drag detection
+  // Minimal setup - let Google Maps handle navigation natively
   const setupMapListeners = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ Setting up enhanced map listeners');
+    console.log('🗺️ Setting up minimal map listeners for navigation');
     
     // Clear any existing listeners
     google.maps.event.clearInstanceListeners(map);
     
-    // Add zoom listener
+    // Only essential listeners
     map.addListener('zoom_changed', handleZoomChange);
+    map.addListener('dragstart', handleDragStart);
+    map.addListener('dragend', handleDragEnd);
     
-    // Enhanced drag listeners
-    map.addListener('dragstart', () => {
-      console.log('🖱️ Native Google Maps dragstart event fired');
-      handleDragStart();
-    });
-    
-    map.addListener('dragend', () => {
-      console.log('🖱️ Native Google Maps dragend event fired');
-      handleDragEnd();
-    });
-    
-    // Additional drag-related listeners for better detection
-    map.addListener('drag', () => {
-      if (!isDragging) {
-        console.log('🖱️ Drag event detected during drag operation');
-        setIsDragging(true);
-      }
-    });
-    
-    console.log('✅ Enhanced map listeners configured successfully');
-  }, [handleZoomChange, handleDragStart, handleDragEnd, isDragging]);
+    console.log('✅ Minimal listeners configured for optimal navigation');
+  }, [handleZoomChange, handleDragStart, handleDragEnd]);
 
   // Initialize Google Maps API
   const initializeGoogleMaps = useCallback(() => {
@@ -78,7 +64,7 @@ export const useSimpleGoogleMaps = () => {
       if (window.google && window.google.maps) {
         setIsLoaded(true);
         setLoadError(undefined);
-        console.log('✅ Google Maps API loaded successfully');
+        console.log('✅ Google Maps API ready for navigation');
       } else {
         throw new Error('Google Maps API not available');
       }

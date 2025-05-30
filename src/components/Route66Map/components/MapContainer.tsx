@@ -18,45 +18,34 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onDragStart,
   onDragEnd
 }) => {
-  // Enhanced map options to ensure dragging works properly
+  // Simplified map options focused on enabling dragging
   const mapOptions = {
     disableDefaultUI: false,
     zoomControl: true,
     mapTypeControl: false,
-    scaleControl: true,
+    scaleControl: false,
     streetViewControl: false,
     rotateControl: false,
     fullscreenControl: true,
-    gestureHandling: 'greedy' as const, // This enables all gestures including drag
-    draggable: true, // Explicitly enable dragging
+    gestureHandling: 'greedy' as const,
+    draggable: true,
     scrollwheel: true,
     disableDoubleClickZoom: false,
     keyboardShortcuts: true,
-    // Remove any restrictions that might interfere with dragging
     clickableIcons: true,
-    styles: [
-      {
-        featureType: 'all',
-        elementType: 'labels.text.fill',
-        stylers: [{ saturation: 36 }, { color: '#333333' }, { lightness: 40 }]
-      },
-      {
-        featureType: 'all',
-        elementType: 'labels.text.stroke',
-        stylers: [{ visibility: 'on' }, { color: '#ffffff' }, { lightness: 16 }]
-      }
-    ]
+    // Remove any custom styles that might interfere
+    styles: []
   };
 
-  // Relaxed map bounds for Route 66 corridor - less restrictive
+  // More generous map bounds for Route 66 corridor
   const mapBounds = {
-    north: 45.0,  // Expanded bounds
-    south: 30.0,
-    east: -115.0,
-    west: -105.0
+    north: 50.0,
+    south: 25.0,
+    east: -110.0,
+    west: -125.0
   };
 
-  console.log('🗺️ MapContainer rendering with draggable:', true);
+  console.log('🗺️ MapContainer rendering with basic dragging config');
 
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
@@ -71,17 +60,17 @@ const MapContainer: React.FC<MapContainerProps> = ({
           ...mapOptions,
           restriction: {
             latLngBounds: mapBounds,
-            strictBounds: false, // Allow some flexibility
+            strictBounds: false,
           },
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
         onDragStart={() => {
-          console.log('🖱️ GoogleMap onDragStart triggered');
+          console.log('🖱️ Native GoogleMap drag started');
           onDragStart();
         }}
         onDragEnd={() => {
-          console.log('🖱️ GoogleMap onDragEnd triggered');
+          console.log('🖱️ Native GoogleMap drag ended');
           onDragEnd();
         }}
       >
