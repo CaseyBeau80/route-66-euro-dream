@@ -1,7 +1,6 @@
 
 import React, { useCallback, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
-import SimpleRoute66Service from './SimpleRoute66Service';
 
 interface MapContainerProps {
   isLoaded: boolean;
@@ -11,7 +10,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
   const mapRef = useRef<google.maps.Map | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded successfully");
+    console.log("🗺️ Google Map loaded successfully in MapContainer");
     mapRef.current = map;
     
     // Set initial position for Route 66
@@ -19,7 +18,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
     map.setZoom(5);
     map.setCenter(route66Center);
     
-    console.log('✅ Map ready for Route 66 rendering with SimpleRoute66Service');
+    console.log('✅ Map ready for Route 66 rendering - no services will be added here');
   }, []);
 
   const onUnmount = useCallback(() => {
@@ -67,7 +66,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        {mapRef.current && <SimpleRoute66Service map={mapRef.current} />}
+        {/* No Route 66 services here - they will be handled by GoogleMapsRoute66 component */}
       </GoogleMap>
     </div>
   );

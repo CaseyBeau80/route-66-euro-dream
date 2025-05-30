@@ -9,7 +9,7 @@ import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
-import Route66Orchestrator from './services/Route66Orchestrator';
+import SimpleRoute66Service from './components/SimpleRoute66Service';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -40,7 +40,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const [isMapReady, setIsMapReady] = useState(false);
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🚀 Map loading callback triggered');
+    console.log('🚀 GoogleMapsRoute66: Map loading callback triggered');
     mapRef.current = map;
     
     // Listen for zoom changes
@@ -69,7 +69,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }, [setCurrentZoom, setIsDragging]);
 
   const onMapReady = useCallback((readyMap: google.maps.Map) => {
-    console.log('🎉 Map is fully ready for Route 66 rendering');
+    console.log('🎉 GoogleMapsRoute66: Map is fully ready for Route 66 rendering');
     setIsMapReady(true);
   }, []);
 
@@ -111,9 +111,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             />
             
             {isMapReady && (
-              <Route66Orchestrator 
-                map={mapRef.current} 
-                isMapReady={isMapReady}
+              <SimpleRoute66Service 
+                map={mapRef.current}
               />
             )}
             
