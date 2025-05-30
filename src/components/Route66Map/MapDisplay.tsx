@@ -109,12 +109,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     };
     
     map.addListener('dragstart', () => {
-      console.log('🖱️ Drag started');
+      console.log('🖱️ Google Map drag started');
       setIsDragging(true);
     });
     
     map.addListener('dragend', () => {
-      console.log('🖱️ Drag ended');
+      console.log('🖱️ Google Map drag ended');
       setIsDragging(false);
       checkMapBounds();
     });
@@ -173,8 +173,9 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
         zoom={5}
         options={{
           ...mapOptions,
-          draggable: true, // Explicitly enable dragging
-          panControl: true, // Enable pan control
+          draggable: true,
+          panControl: true,
+          gestureHandling: 'greedy', // Allow dragging without requiring ctrl/cmd key
           restriction: {
             latLngBounds: mapBounds,
             strictBounds: false,
