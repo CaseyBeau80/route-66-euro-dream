@@ -24,7 +24,7 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Route 66 states to highlight
         const route66States = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Missouri', 'Illinois'];
         
-        // Set style to highlight only Route 66 states with 5% opacity
+        // Set style to highlight only Route 66 states with 10% opacity
         highlightLayer.setStyle((feature) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
@@ -35,9 +35,9 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
           if (isRoute66State) {
             return {
               fillColor: '#f97316', // Orange color for Route 66 theme
-              fillOpacity: 0.05, // 5% opacity as requested
+              fillOpacity: 0.1, // 10% opacity as requested
               strokeColor: '#f97316',
-              strokeOpacity: 0.1,
+              strokeOpacity: 0.2,
               strokeWeight: 1,
               visible: true
             };
@@ -52,7 +52,7 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Add the highlighting layer to the map
         highlightLayer.setMap(map);
         
-        console.log('✅ Route 66 state highlighting added with 5% opacity');
+        console.log('✅ Route 66 state highlighting added with 10% opacity');
       } catch (error) {
         console.error('Error loading state highlighting data:', error);
       }
