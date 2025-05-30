@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
@@ -35,6 +35,15 @@ const MapRendererReact = ({
   // Transform the lat/lng coordinates to SVG coordinates
   const majorCities = transformTownsToSvgPoints(route66Towns);
   
+  // State to track zoom start for center capture
+  const [zoomStartCallback, setZoomStartCallback] = useState<(() => void) | null>(null);
+  
+  const handleZoomStart = useCallback(() => {
+    if (zoomStartCallback) {
+      zoomStartCallback();
+    }
+  }, [zoomStartCallback]);
+  
   const { 
     zoom, 
     isPinching, 
@@ -46,7 +55,8 @@ const MapRendererReact = ({
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
     zoomStep: ZOOM_STEP,
-    initialZoom: INITIAL_ZOOM
+    initialZoom: INITIAL_ZOOM,
+    onZoomStart: handleZoomStart
   });
   
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -103,6 +113,7 @@ const MapRendererReact = ({
           maxZoom={MAX_ZOOM}
           onZoomChange={handleZoomChange}
           onDragStart={handleDragStart}
+          onZoomStartCallback={setZoomStartCallback}
         >
           <MapContent 
             selectedState={selectedState}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 
 interface UseMapInteractionProps {
@@ -34,6 +35,7 @@ export const useMapInteraction = ({
   
   // Store the center point when zoom starts to maintain it
   const zoomCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Calculate adjusted viewBox based on zoom
   const viewBoxWidth = baseWidth / zoom;
@@ -54,17 +56,33 @@ export const useMapInteraction = ({
     return Math.sqrt(dx * dx + dy * dy);
   };
 
+  // Function to capture the current view center before zoom changes
+  const captureZoomCenter = () => {
+    if (!zoomCenterRef.current && isInitialized) {
+      const currentViewBoxWidth = baseWidth / zoom;
+      const currentViewBoxHeight = baseHeight / zoom;
+      zoomCenterRef.current = {
+        x: viewBoxX + currentViewBoxWidth / 2,
+        y: viewBoxY + currentViewBoxHeight / 2
+      };
+      console.log('Captured zoom center:', zoomCenterRef.current);
+    }
+  };
+
   // Adjust view position when zoom changes to maintain current view center
   useEffect(() => {
-    if (previousZoom !== zoom) {
+    if (previousZoom !== zoom && isInitialized) {
       console.log('Zoom changed from', previousZoom, 'to', zoom);
       
-      // If we don't have a stored center, use the current view center
+      // If we don't have a stored center, capture it now using the previous zoom
       if (!zoomCenterRef.current) {
+        const previousViewBoxWidth = baseWidth / previousZoom;
+        const previousViewBoxHeight = baseHeight / previousZoom;
         zoomCenterRef.current = {
-          x: viewBoxX + (baseWidth / previousZoom) / 2,
-          y: viewBoxY + (baseHeight / previousZoom) / 2
+          x: viewBoxX + previousViewBoxWidth / 2,
+          y: viewBoxY + previousViewBoxHeight / 2
         };
+        console.log('Late capture of zoom center:', zoomCenterRef.current);
       }
       
       const centerX = zoomCenterRef.current.x;
@@ -94,21 +112,23 @@ export const useMapInteraction = ({
       // Clear the center reference after zoom change is complete
       setTimeout(() => {
         zoomCenterRef.current = null;
-      }, 100);
+        console.log('Cleared zoom center reference');
+      }, 50);
     }
-  }, [zoom, previousZoom, baseWidth, baseHeight]); // Removed viewBoxX and viewBoxY from dependencies
+  }, [zoom, previousZoom, baseWidth, baseHeight, isInitialized, viewBoxX, viewBoxY]);
 
   // Initialize view to center only on first load
   useEffect(() => {
-    if (viewBoxX === 0 && viewBoxY === 0) {
+    if (!isInitialized) {
       const initialViewBoxWidth = baseWidth / zoom;
       const initialViewBoxHeight = baseHeight / zoom;
       setViewBoxX((baseWidth - initialViewBoxWidth) / 2);
       setViewBoxY((baseHeight - initialViewBoxHeight) / 2);
       setPreviousZoom(zoom);
+      setInitialZoom(zoom);
+      setIsInitialized(true);
+      console.log('Map initialized with center position');
     }
-    
-    setInitialZoom(zoom);
     
     return () => {
       // Clear any timeout on component unmount
@@ -116,7 +136,7 @@ export const useMapInteraction = ({
         clearTimeout(touchTimeoutRef.current);
       }
     };
-  }, []); // Empty dependency array to run only once
+  }, [baseWidth, baseHeight, zoom, isInitialized]);
 
   return {
     viewBox,
@@ -136,6 +156,7 @@ export const useMapInteraction = ({
     initialZoom,
     touchTimeoutRef,
     getDistance,
-    SENSITIVITY_FACTOR
+    SENSITIVITY_FACTOR,
+    captureZoomCenter
   };
 };

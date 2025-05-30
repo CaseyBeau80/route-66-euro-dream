@@ -6,13 +6,15 @@ interface UseZoomControlsProps {
   maxZoom: number;
   zoomStep: number;
   initialZoom?: number;
+  onZoomStart?: () => void;
 }
 
 export const useZoomControls = ({ 
   minZoom, 
   maxZoom,
   zoomStep,
-  initialZoom = 1
+  initialZoom = 1,
+  onZoomStart
 }: UseZoomControlsProps) => {
   const [zoom, setZoom] = useState(initialZoom);
   const [zoomActivity, setZoomActivity] = useState<boolean>(false);
@@ -30,22 +32,32 @@ export const useZoomControls = ({
   
   // Zoom handlers with proper boundary checking
   const handleZoomIn = useCallback(() => {
+    // Notify that zoom is starting so center can be captured
+    if (onZoomStart) {
+      onZoomStart();
+    }
+    
     setZoom(prevZoom => {
       const newZoom = Math.min(prevZoom + zoomStep, maxZoom);
       console.log('Zoom in to:', newZoom);
       setZoomActivity(true);
       return newZoom;
     });
-  }, [maxZoom, zoomStep]);
+  }, [maxZoom, zoomStep, onZoomStart]);
 
   const handleZoomOut = useCallback(() => {
+    // Notify that zoom is starting so center can be captured
+    if (onZoomStart) {
+      onZoomStart();
+    }
+    
     setZoom(prevZoom => {
       const newZoom = Math.max(prevZoom - zoomStep, minZoom);
       console.log('Zoom out to:', newZoom);
       setZoomActivity(true);
       return newZoom;
     });
-  }, [minZoom, zoomStep]);
+  }, [minZoom, zoomStep, onZoomStart]);
   
   const handleZoomChange = useCallback((newZoom: number) => {
     // Ensure zoom is within bounds

@@ -1,5 +1,5 @@
 
-import React, { ReactNode, useRef } from "react";
+import React, { ReactNode, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMapInteraction } from "../hooks/useMapInteraction";
 import { 
@@ -14,6 +14,7 @@ interface MapSvgContainerProps {
   maxZoom?: number;
   onZoomChange?: (newZoom: number) => void;
   onDragStart?: () => void;
+  onZoomStartCallback?: (callback: () => void) => void;
 }
 
 const MapSvgContainer = ({ 
@@ -22,7 +23,8 @@ const MapSvgContainer = ({
   minZoom = 1,
   maxZoom = 4,
   onZoomChange,
-  onDragStart
+  onDragStart,
+  onZoomStartCallback
 }: MapSvgContainerProps) => {
   // Base viewBox dimensions
   const baseWidth = 959;
@@ -50,7 +52,8 @@ const MapSvgContainer = ({
     initialZoom,
     touchTimeoutRef,
     getDistance,
-    SENSITIVITY_FACTOR
+    SENSITIVITY_FACTOR,
+    captureZoomCenter
   } = useMapInteraction({
     zoom,
     minZoom,
@@ -59,6 +62,13 @@ const MapSvgContainer = ({
     baseHeight,
     onZoomChange
   });
+  
+  // Provide the captureZoomCenter function to parent component
+  useEffect(() => {
+    if (onZoomStartCallback) {
+      onZoomStartCallback(captureZoomCenter);
+    }
+  }, [onZoomStartCallback, captureZoomCenter]);
   
   // Create handlers for mouse events with drag start notification
   const {
