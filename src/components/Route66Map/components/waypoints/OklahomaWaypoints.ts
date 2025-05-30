@@ -1,13 +1,20 @@
+
 import { DetailedWaypointData } from '../types/DetailedWaypointData';
 
 export const oklahomaWaypoints: DetailedWaypointData[] = [
-  // Oklahoma - Following I-44 and historic US-66 with extensive detail
+  // Oklahoma - Following I-44 from Missouri border to Oklahoma City, then I-40 west
   {lat: 37.0800, lng: -94.6000, stopover: false, description: "Missouri/Oklahoma border", highway: "I-44"},
   {lat: 37.0790, lng: -94.6020, stopover: false, description: "Oklahoma border east", highway: "I-44"},
   {lat: 37.0780, lng: -94.6040, stopover: false, description: "Oklahoma border center", highway: "I-44"},
   {lat: 37.0770, lng: -94.6060, stopover: false, description: "Oklahoma border west", highway: "I-44"},
   {lat: 37.0760, lng: -94.6080, stopover: false, description: "Quapaw approach east", highway: "I-44"},
   {lat: 37.0750, lng: -94.6100, stopover: false, description: "Quapaw approach", highway: "I-44"},
+
+  // I-44 corridor through northeastern Oklahoma
+  {lat: 36.9000, lng: -94.8000, stopover: false, description: "Miami, OK", highway: "I-44"},
+  {lat: 36.7500, lng: -95.1500, stopover: false, description: "Vinita, OK", highway: "I-44"},
+  {lat: 36.6000, lng: -95.4000, stopover: false, description: "Chelsea, OK", highway: "I-44"},
+  {lat: 36.4500, lng: -95.6500, stopover: false, description: "Claremore, OK", highway: "I-44"},
 
   {lat: 36.1540, lng: -95.9928, stopover: true, description: "Tulsa, OK", highway: "I-44"},
   {lat: 36.1530, lng: -95.9950, stopover: false, description: "Tulsa east side", highway: "I-44"},
@@ -16,69 +23,38 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
   {lat: 36.1500, lng: -96.0010, stopover: false, description: "Tulsa central west", highway: "I-44"},
   {lat: 36.1490, lng: -96.0030, stopover: false, description: "Tulsa west side", highway: "I-44"},
   {lat: 36.1480, lng: -96.0050, stopover: false, description: "Tulsa southwest", highway: "I-44"},
-  {lat: 36.1470, lng: -96.0070, stopover: false, description: "Sand Springs approach east", highway: "I-44"},
-  {lat: 36.1460, lng: -96.0090, stopover: false, description: "Sand Springs approach center", highway: "I-44"},
-  {lat: 36.1450, lng: -96.0110, stopover: false, description: "Sand Springs approach west", highway: "I-44"},
-  {lat: 36.1440, lng: -96.0130, stopover: false, description: "Sand Springs east", highway: "I-44"},
 
-  // Enhanced Oklahoma City area waypoints based on screenshot
-  
-  // Edmond area (visible in screenshot north of OKC)
-  {lat: 35.6529, lng: -97.4781, stopover: false, description: "Edmond, OK", highway: "I-35"},
-  
-  // Arcadia (visible in screenshot northeast of OKC)
-  {lat: 35.6589, lng: -97.3242, stopover: false, description: "Arcadia, OK", highway: "Route 66"},
-  
-  // Luther area (visible in screenshot)
-  {lat: 35.6612, lng: -97.1956, stopover: false, description: "Luther, OK", highway: "Route 66"},
-  
-  // Wellston area (visible in screenshot)
-  {lat: 35.6889, lng: -97.0597, stopover: false, description: "Wellston, OK", highway: "Route 66"},
-  
-  // Nichols Hills (visible in screenshot, upscale area north of OKC)
-  {lat: 35.5431, lng: -97.5289, stopover: false, description: "Nichols Hills, OK", highway: "I-44"},
-  
-  // Bethany (visible in screenshot northwest of OKC)
-  {lat: 35.5151, lng: -97.6311, stopover: false, description: "Bethany, OK", highway: "Route 66"},
-  
-  // Forest Park area
-  {lat: 35.4989, lng: -97.5456, stopover: false, description: "Forest Park, OK", highway: "Route 66"},
-  
-  // Del City (visible in screenshot southeast of OKC)
-  {lat: 35.4420, lng: -97.4408, stopover: false, description: "Del City, OK", highway: "I-40"},
-  
-  // Spencer (visible in screenshot northeast of OKC)
-  {lat: 35.5273, lng: -97.3789, stopover: false, description: "Spencer, OK", highway: "I-35"},
-  
-  // Choctaw (visible in screenshot east of OKC)
-  {lat: 35.4973, lng: -97.2689, stopover: false, description: "Choctaw, OK", highway: "I-40"},
-  
-  // Harrah (visible in screenshot east of OKC)
-  {lat: 35.4900, lng: -97.1614, stopover: false, description: "Harrah, OK", highway: "Route 66"},
-  
-  // McLoud (visible in screenshot southeast)
-  {lat: 35.4342, lng: -97.0922, stopover: false, description: "McLoud, OK", highway: "Route 66"},
-  
-  // Jones (visible in screenshot northeast of OKC)
-  {lat: 35.5661, lng: -97.2867, stopover: false, description: "Jones, OK", highway: "Route 66"},
+  // I-44 from Tulsa towards Oklahoma City
+  {lat: 36.1000, lng: -96.1000, stopover: false, description: "Sand Springs, OK", highway: "I-44"},
+  {lat: 36.0500, lng: -96.2500, stopover: false, description: "Sapulpa, OK", highway: "I-44"},
+  {lat: 35.9500, lng: -96.4000, stopover: false, description: "Bristow, OK", highway: "I-44"},
+  {lat: 35.8500, lng: -96.6000, stopover: false, description: "Stroud, OK", highway: "I-44"},
+  {lat: 35.7500, lng: -96.8000, stopover: false, description: "Chandler, OK", highway: "I-44"},
+  {lat: 35.6500, lng: -97.0000, stopover: false, description: "Wellston, OK", highway: "I-44"},
 
+  // I-44 approach to Oklahoma City
+  {lat: 35.5500, lng: -97.2000, stopover: false, description: "Luther, OK", highway: "I-44"},
+  {lat: 35.5000, lng: -97.3500, stopover: false, description: "Arcadia, OK", highway: "I-44"},
+  {lat: 35.4800, lng: -97.4000, stopover: false, description: "Oklahoma City northeast approach", highway: "I-44"},
+
+  // Oklahoma City area on I-44
   {lat: 35.4676, lng: -97.5164, stopover: true, description: "Oklahoma City, OK", highway: "I-44"},
   {lat: 35.4670, lng: -97.5180, stopover: false, description: "Oklahoma City east side", highway: "I-44"},
   {lat: 35.4660, lng: -97.5200, stopover: false, description: "Oklahoma City central east", highway: "I-44"},
   {lat: 35.4650, lng: -97.5220, stopover: false, description: "Oklahoma City downtown", highway: "I-44"},
   {lat: 35.4640, lng: -97.5240, stopover: false, description: "Oklahoma City central west", highway: "I-44"},
-  {lat: 35.4630, lng: -97.5260, stopover: false, description: "Oklahoma City west side", highway: "I-44"},
-  {lat: 35.4620, lng: -97.5280, stopover: false, description: "Oklahoma City southwest", highway: "I-44"},
-  {lat: 35.4610, lng: -97.5300, stopover: false, description: "Bethany approach east", highway: "I-44"},
-  {lat: 35.4600, lng: -97.5320, stopover: false, description: "Bethany approach center", highway: "I-44"},
-  {lat: 35.4590, lng: -97.5340, stopover: false, description: "Bethany approach west", highway: "I-44"},
-  {lat: 35.4580, lng: -97.5360, stopover: false, description: "Bethany east", highway: "I-44"},
 
-  // El Reno, OK - Added as non-destination waypoint
+  // Transition from I-44 to I-40 in Oklahoma City area
+  {lat: 35.4630, lng: -97.5500, stopover: false, description: "I-44/I-40 junction approach", highway: "I-44/I-40"},
+  {lat: 35.4620, lng: -97.6000, stopover: false, description: "Bethany, OK", highway: "I-40"},
+  {lat: 35.4610, lng: -97.6500, stopover: false, description: "Warr Acres, OK", highway: "I-40"},
+
+  // I-40 west from Oklahoma City
   {lat: 35.5322, lng: -97.9553, stopover: false, description: "El Reno, OK", highway: "I-40"},
-
-  // Bridgeport, OK - Added as non-destination waypoint
+  {lat: 35.4500, lng: -98.2000, stopover: false, description: "Union City, OK", highway: "I-40"},
   {lat: 35.3606, lng: -98.3836, stopover: false, description: "Bridgeport, OK", highway: "I-40"},
+  {lat: 35.3500, lng: -98.5000, stopover: false, description: "Weatherford, OK", highway: "I-40"},
+  {lat: 35.3000, lng: -98.7000, stopover: false, description: "Clinton, OK", highway: "I-40"},
 
   {lat: 35.5089, lng: -98.9680, stopover: true, description: "Elk City, OK", highway: "I-40"},
   {lat: 35.5080, lng: -98.9700, stopover: false, description: "Elk City east side", highway: "I-40"},
@@ -87,7 +63,7 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
   {lat: 35.5050, lng: -98.9760, stopover: false, description: "Elk City central west", highway: "I-40"},
   {lat: 35.5040, lng: -98.9780, stopover: false, description: "Elk City west side", highway: "I-40"},
 
-  // Additional detailed waypoints for highway following
+  // Additional detailed waypoints for highway following along I-44
   {lat: 37.0500, lng: -94.8500, stopover: false, description: "Miami detailed", highway: "I-44"},
   {lat: 37.0490, lng: -94.8520, stopover: false, description: "Miami detailed east", highway: "I-44"},
   {lat: 37.0480, lng: -94.8540, stopover: false, description: "Miami detailed center", highway: "I-44"},
@@ -132,10 +108,11 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
   {lat: 36.0520, lng: -96.9160, stopover: false, description: "Luther detailed approach", highway: "I-44"},
   {lat: 36.0510, lng: -96.9180, stopover: false, description: "Luther detailed", highway: "I-44"},
 
-  {lat: 35.4200, lng: -97.9500, stopover: false, description: "Mustang detailed", highway: "I-44"},
-  {lat: 35.4190, lng: -97.9520, stopover: false, description: "Mustang detailed east", highway: "I-44"},
-  {lat: 35.4180, lng: -97.9540, stopover: false, description: "Mustang detailed center", highway: "I-44"},
-  {lat: 35.4170, lng: -97.9560, stopover: false, description: "Mustang detailed west", highway: "I-44"},
+  // I-40 detailed waypoints from Oklahoma City westward
+  {lat: 35.4200, lng: -97.9500, stopover: false, description: "Mustang detailed", highway: "I-40"},
+  {lat: 35.4190, lng: -97.9520, stopover: false, description: "Mustang detailed east", highway: "I-40"},
+  {lat: 35.4180, lng: -97.9540, stopover: false, description: "Mustang detailed center", highway: "I-40"},
+  {lat: 35.4170, lng: -97.9560, stopover: false, description: "Mustang detailed west", highway: "I-40"},
   {lat: 35.4160, lng: -97.9580, stopover: false, description: "Union City detailed approach", highway: "I-40"},
   {lat: 35.4150, lng: -97.9600, stopover: false, description: "Union City detailed east", highway: "I-40"},
   {lat: 35.4140, lng: -97.9620, stopover: false, description: "Union City detailed center", highway: "I-40"},
