@@ -1,5 +1,5 @@
 
-import { detailedRoute66Waypoints } from './Route66WaypointsDetailed';
+import { detailedRoute66Waypoints } from './Route66WaypointsCoordinator';
 
 interface BackupRouteProps {
   map: google.maps.Map;
@@ -59,7 +59,7 @@ const BackupRoute = ({ map, directionsRenderer }: BackupRouteProps) => {
           map: map,
           title: point.description || "Route 66 Stop",
           icon: {
-            url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0RDMjYyNiIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS41YTIuNSAyLjUgMCAwIDEgMC01IDIuNSAyLjUgMCAwIDEgMCA1eiIvPjwvc3ZnPg==',
+            url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0RDMjYyNiIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS5hMi41IDIuNSAwIDAgMSAwLTUgMi41IDIuNSAwIDAgMSAwIDV6Ii8+PC9zdmc+',
             scaledSize: new google.maps.Size(28, 28),
             anchor: new google.maps.Point(14, 28)
           }

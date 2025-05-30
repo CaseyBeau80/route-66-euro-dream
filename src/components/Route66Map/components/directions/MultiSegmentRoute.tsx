@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { detailedRoute66Waypoints, getRoute66Segments } from '../Route66WaypointsDetailed';
+import { detailedRoute66Waypoints, getRoute66Segments } from '../Route66WaypointsCoordinator';
 
 interface MultiSegmentRouteProps {
   map: google.maps.Map;
