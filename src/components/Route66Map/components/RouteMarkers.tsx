@@ -65,48 +65,6 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       markersRef.current.push(marker);
     });
 
-    // Add special start and end markers
-    if (waypoints.length > 0) {
-      const startPoint = waypoints[0];
-      const endPoint = waypoints[waypoints.length - 1];
-
-      const startMarker = new google.maps.Marker({
-        position: { lat: startPoint.latitude, lng: startPoint.longitude },
-        map: map,
-        icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <circle cx="16" cy="16" r="14" fill="#00AA00" stroke="#FFFFFF" stroke-width="3"/>
-              <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">START</text>
-            </svg>
-          `)}`,
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 16)
-        },
-        title: `Route 66 Start - ${startPoint.name}`,
-        zIndex: 30000
-      });
-
-      const endMarker = new google.maps.Marker({
-        position: { lat: endPoint.latitude, lng: endPoint.longitude },
-        map: map,
-        icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <circle cx="16" cy="16" r="14" fill="#FF0000" stroke="#FFFFFF" stroke-width="3"/>
-              <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">END</text>
-            </svg>
-          `)}`,
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 16)
-        },
-        title: `Route 66 End - ${endPoint.name}`,
-        zIndex: 30000
-      });
-
-      markersRef.current.push(startMarker, endMarker);
-    }
-
     console.log(`✅ Route 66 fully displayed with ${markersRef.current.length} markers`);
 
     return () => {
