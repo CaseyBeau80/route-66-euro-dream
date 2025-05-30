@@ -1,16 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
-import MapContainer from './components/MapContainer';
+import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 
 interface MapDisplayProps {
   selectedState: string | null;
   onStateClick: (stateId: string, stateName: string) => void;
+  onClearSelection: () => void;
 }
 
-const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) => {
+const MapDisplay: React.FC<MapDisplayProps> = ({ 
+  selectedState, 
+  onStateClick, 
+  onClearSelection 
+}) => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
@@ -51,10 +56,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     return loadingState;
   }
 
+  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 with SimpleRoute66Service');
+
   return (
-    <MapContainer
-      isLoaded={isLoaded}
-    />
+    <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
+      <GoogleMapsRoute66
+        selectedState={selectedState}
+        onStateClick={onStateClick}
+        onClearSelection={onClearSelection}
+      />
+    </div>
   );
 };
 

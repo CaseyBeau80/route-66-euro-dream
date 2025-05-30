@@ -74,22 +74,11 @@ const Route66Map = () => {
         {loaded ? (
           <MapDisplay 
             selectedState={selectedState} 
-            onStateClick={handleStateClick} 
+            onStateClick={handleStateClick}
+            onClearSelection={handleClearSelection}
           />
         ) : (
           <MapLoading error={error} onRetry={handleRetry} />
-        )}
-        
-        {/* Clear selection button overlay for Google Maps */}
-        {selectedState && (
-          <div className="absolute top-4 right-4 z-10">
-            <button
-              onClick={handleClearSelection}
-              className="bg-white hover:bg-gray-50 text-gray-800 px-4 py-2 rounded-lg shadow-lg border border-gray-200 transition-colors"
-            >
-              Clear Selection
-            </button>
-          </div>
         )}
       </div>
       
