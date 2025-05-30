@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
 import { Cloud, Thermometer, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
@@ -120,9 +121,11 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[320px] border border-blue-200">
-      {/* Header with city name and weather icon */}
+      {/* Header with centered city name and weather icon */}
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
+        <div className="flex-1 text-center">
+          <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
+        </div>
         <div className="flex items-center">
           <img 
             src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
@@ -132,11 +135,16 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         </div>
       </div>
       
-      {/* Main temperature display */}
+      {/* Main temperature display with interactive thermometer */}
       <div className="text-center mb-3">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Thermometer className="w-5 h-5 text-red-500" />
-          <span className="text-3xl font-bold text-gray-900">{weather.temperature}°F</span>
+        <div className="flex items-center justify-center gap-3 mb-1">
+          <div className="group cursor-pointer">
+            <Thermometer className="w-6 h-6 text-red-500 transition-all duration-300 group-hover:text-red-600 group-hover:scale-110 group-hover:drop-shadow-md" />
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-600 font-medium">Currently</span>
+            <span className="text-3xl font-bold text-gray-900">{weather.temperature}°F</span>
+          </div>
         </div>
         <p className="text-sm text-gray-600 capitalize font-medium">{weather.description}</p>
       </div>
