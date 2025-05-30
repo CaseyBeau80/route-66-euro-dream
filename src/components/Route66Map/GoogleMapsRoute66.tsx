@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
@@ -11,7 +10,7 @@ import MapInitializationService from './services/MapInitializationService';
 import HybridRouteService from './components/directions/HybridRouteService';
 import SupabaseRoute66 from './components/SupabaseRoute66';
 import StateHighlighting from './components/StateHighlighting';
-import HiddenGems from './components/HiddenGems';
+import HiddenGemsContainer from './components/HiddenGemsContainer';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -140,7 +139,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 )}
                 
                 {/* Render Hidden Gems directly on the map - no tabs */}
-                <HiddenGems 
+                <HiddenGemsContainer 
                   map={mapRef.current}
                   onGemClick={(gem) => {
                     console.log('✨ Hidden gem selected:', gem.title);
