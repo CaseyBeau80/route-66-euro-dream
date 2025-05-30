@@ -18,17 +18,28 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
+    console.log('🔑 Checking API keys:', { envApiKey: envApiKey ? 'found' : 'not found', storedApiKey: storedApiKey ? 'found' : 'not found' });
+    
     if (envApiKey && envApiKey !== 'demo-key') {
+      console.log('🔑 Using environment API key');
       setApiKey(envApiKey);
     } else if (storedApiKey) {
+      console.log('🔑 Using stored API key');
       setApiKey(storedApiKey);
+    } else {
+      console.log('🔑 No valid API key found');
     }
   }, []);
 
-  // Use the proper Google Maps API loader
+  // Only use the loader if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey || 'demo-key',
+    googleMapsApiKey: apiKey || '',
+    // Add additional options to ensure consistency
+    libraries: ['maps'],
+    version: 'weekly',
+    language: 'en',
+    region: 'US'
   });
 
   // If no API key is available, show the input form
