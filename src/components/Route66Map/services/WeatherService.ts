@@ -8,6 +8,20 @@ interface WeatherData {
   cityName: string;
 }
 
+interface ForecastDay {
+  date: string;
+  temperature: {
+    high: number;
+    low: number;
+  };
+  description: string;
+  icon: string;
+}
+
+interface WeatherWithForecast extends WeatherData {
+  forecast: ForecastDay[];
+}
+
 export class WeatherService {
   private static instance: WeatherService;
   private apiKey: string | null = null;
@@ -106,6 +120,88 @@ export class WeatherService {
       return weatherData;
     } catch (error) {
       console.error('❌ WeatherService: Error fetching weather data:', error);
+      return null;
+    }
+  }
+
+  async getWeatherWithForecast(lat: number, lng: number, cityName: string): Promise<WeatherWithForecast | null> {
+    console.log(`🌤️ WeatherService: Fetching weather with forecast for ${cityName} (${lat}, ${lng})`);
+    
+    // Refresh API key from localStorage before making request
+    this.refreshApiKey();
+    
+    if (!this.validateApiKey()) {
+      console.warn('❌ WeatherService: Invalid or missing API key');
+      return null;
+    }
+
+    try {
+      // Fetch current weather and 5-day forecast in parallel
+      const [currentResponse, forecastResponse] = await Promise.all([
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${this.apiKey}&units=imperial`),
+        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${this.apiKey}&units=imperial`)
+      ]);
+
+      if (!currentResponse.ok || !forecastResponse.ok) {
+        throw new Error('Failed to fetch weather data');
+      }
+
+      const [currentData, forecastData] = await Promise.all([
+        currentResponse.json(),
+        forecastResponse.json()
+      ]);
+
+      console.log('✅ WeatherService: Successfully received weather and forecast data');
+
+      // Process current weather
+      const currentWeather = {
+        temperature: Math.round(currentData.main.temp),
+        description: currentData.weather[0].description,
+        icon: currentData.weather[0].icon,
+        humidity: currentData.main.humidity,
+        windSpeed: Math.round(currentData.wind?.speed || 0),
+        cityName: cityName
+      };
+
+      // Process forecast data - get next 3 days
+      const forecastByDay: { [key: string]: any[] } = {};
+      
+      forecastData.list.forEach((item: any) => {
+        const date = new Date(item.dt * 1000);
+        const dateKey = date.toDateString();
+        
+        if (!forecastByDay[dateKey]) {
+          forecastByDay[dateKey] = [];
+        }
+        forecastByDay[dateKey].push(item);
+      });
+
+      const forecast: ForecastDay[] = Object.entries(forecastByDay)
+        .slice(1, 4) // Skip today, get next 3 days
+        .map(([dateKey, dayData]) => {
+          const temps = dayData.map(item => item.main.temp);
+          const date = new Date(dateKey);
+          
+          return {
+            date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+            temperature: {
+              high: Math.round(Math.max(...temps)),
+              low: Math.round(Math.min(...temps))
+            },
+            description: dayData[Math.floor(dayData.length / 2)].weather[0].description,
+            icon: dayData[Math.floor(dayData.length / 2)].weather[0].icon
+          };
+        });
+
+      const weatherWithForecast = {
+        ...currentWeather,
+        forecast
+      };
+      
+      console.log('🌤️ WeatherService: Processed weather with forecast:', weatherWithForecast);
+      return weatherWithForecast;
+    } catch (error) {
+      console.error('❌ WeatherService: Error fetching weather with forecast:', error);
       return null;
     }
   }

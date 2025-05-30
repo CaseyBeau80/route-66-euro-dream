@@ -1,13 +1,23 @@
 
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
-import { Cloud, Thermometer, Droplets, Wind, AlertCircle } from 'lucide-react';
+import { Cloud, Thermometer, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
 
 interface WeatherWidgetProps {
   lat: number;
   lng: number;
   cityName: string;
   compact?: boolean;
+}
+
+interface ForecastDay {
+  date: string;
+  temperature: {
+    high: number;
+    low: number;
+  };
+  description: string;
+  icon: string;
 }
 
 interface WeatherData {
@@ -17,6 +27,7 @@ interface WeatherData {
   humidity: number;
   windSpeed: number;
   cityName: string;
+  forecast?: ForecastDay[];
 }
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ 
@@ -46,7 +57,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         setError(null);
         
         console.log(`🌐 WeatherWidget: Requesting weather data for ${cityName}`);
-        const weatherData = await weatherService.getWeatherData(lat, lng, cityName);
+        const weatherData = await weatherService.getWeatherWithForecast(lat, lng, cityName);
         
         if (weatherData) {
           console.log('✅ WeatherWidget: Weather data received successfully');
@@ -109,7 +120,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[280px] border border-blue-200">
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[320px] border border-blue-200">
       {/* Header with city name and weather icon */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
@@ -132,7 +143,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
       </div>
       
       {/* Weather details */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200">
+      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200 mb-4">
         <div className="flex items-center gap-2 bg-white rounded-md px-2 py-1">
           <Droplets className="w-4 h-4 text-blue-500" />
           <div className="flex flex-col">
@@ -148,6 +159,39 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 3-Day Forecast */}
+      {weather.forecast && weather.forecast.length > 0 && (
+        <div className="border-t border-blue-200 pt-3">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <h5 className="font-semibold text-sm text-gray-800">3-Day Forecast</h5>
+          </div>
+          <div className="space-y-2">
+            {weather.forecast.map((day, index) => (
+              <div key={index} className="flex items-center justify-between bg-white rounded-md px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+                    alt={day.description}
+                    className="w-8 h-8"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{day.date}</p>
+                    <p className="text-xs text-gray-500 capitalize">{day.description}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-bold text-gray-900">{day.temperature.high}°</span>
+                    <span className="text-sm text-gray-500">{day.temperature.low}°</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
