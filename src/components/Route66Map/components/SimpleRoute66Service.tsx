@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { historicRoute66Waypoints } from './HistoricRoute66Waypoints';
 
@@ -41,8 +40,13 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
     const bounds = new google.maps.LatLngBounds();
     routePath.forEach(point => bounds.extend(point));
     
-    // Fit the map to show the entire route with some padding
-    map.fitBounds(bounds, { padding: 50 });
+    // Fit the map to show the entire route with proper padding object
+    map.fitBounds(bounds, { 
+      top: 50, 
+      right: 50, 
+      bottom: 50, 
+      left: 50 
+    });
     console.log('🗺️ Map bounds adjusted to show full Route 66');
 
     // Add start marker (Chicago)
