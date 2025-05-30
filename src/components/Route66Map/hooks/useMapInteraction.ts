@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 
 interface UseMapInteractionProps {
@@ -30,6 +29,9 @@ export const useMapInteraction = ({
   const [isPinching, setIsPinching] = useState<boolean>(false);
   const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Track previous zoom for smooth transitions
+  const [previousZoom, setPreviousZoom] = useState<number>(zoom);
+  
   // Calculate adjusted viewBox based on zoom
   const viewBoxWidth = baseWidth / zoom;
   const viewBoxHeight = baseHeight / zoom;
@@ -40,18 +42,6 @@ export const useMapInteraction = ({
   // Sensitivity adjustment factor - lower number means more sensitive zoom
   const SENSITIVITY_FACTOR = 0.5;
   
-  // Update local zoom state when parent zoom changes
-  useEffect(() => {
-    setInitialZoom(zoom);
-    
-    return () => {
-      // Clear any timeout on component unmount
-      if (touchTimeoutRef.current) {
-        clearTimeout(touchTimeoutRef.current);
-      }
-    };
-  }, [zoom]);
-
   // Calculate distance between two touch points
   const getDistance = (touches: React.TouchList): number => {
     if (touches.length < 2) return 0;
@@ -61,16 +51,52 @@ export const useMapInteraction = ({
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  // Reset the view to center
-  const resetView = () => {
-    setViewBoxX((baseWidth - viewBoxWidth) / 2);
-    setViewBoxY((baseHeight - viewBoxHeight) / 2);
-  };
-
-  // Center the view on component mount and when zoom changes
+  // Adjust view position when zoom changes to maintain current view center
   useEffect(() => {
-    resetView();
-  }, [zoom, viewBoxWidth, viewBoxHeight]);
+    if (previousZoom !== zoom) {
+      // Calculate the center of the current view
+      const currentCenterX = viewBoxX + viewBoxWidth / 2;
+      const currentCenterY = viewBoxY + viewBoxHeight / 2;
+      
+      // Calculate new viewBox dimensions
+      const newViewBoxWidth = baseWidth / zoom;
+      const newViewBoxHeight = baseHeight / zoom;
+      
+      // Calculate new viewBox position to keep the same center
+      let newViewBoxX = currentCenterX - newViewBoxWidth / 2;
+      let newViewBoxY = currentCenterY - newViewBoxHeight / 2;
+      
+      // Ensure the new position is within bounds
+      const maxPanX = baseWidth - newViewBoxWidth;
+      const maxPanY = baseHeight - newViewBoxHeight;
+      
+      newViewBoxX = Math.min(Math.max(newViewBoxX, 0), maxPanX);
+      newViewBoxY = Math.min(Math.max(newViewBoxY, 0), maxPanY);
+      
+      setViewBoxX(newViewBoxX);
+      setViewBoxY(newViewBoxY);
+      setPreviousZoom(zoom);
+    }
+    
+    setInitialZoom(zoom);
+    
+    return () => {
+      // Clear any timeout on component unmount
+      if (touchTimeoutRef.current) {
+        clearTimeout(touchTimeoutRef.current);
+      }
+    };
+  }, [zoom, baseWidth, baseHeight, viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight, previousZoom]);
+
+  // Initialize view to center only on first load
+  useEffect(() => {
+    if (previousZoom === zoom && viewBoxX === 0 && viewBoxY === 0) {
+      const initialViewBoxWidth = baseWidth / zoom;
+      const initialViewBoxHeight = baseHeight / zoom;
+      setViewBoxX((baseWidth - initialViewBoxWidth) / 2);
+      setViewBoxY((baseHeight - initialViewBoxHeight) / 2);
+    }
+  }, []);
 
   return {
     viewBox,
