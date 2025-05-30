@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
 import MapInitializer from './components/MapInitializer';
-import TownMarkers from './components/TownMarkers';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
@@ -149,13 +148,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 />
               </>
             )}
-            
-            {/* Town markers on top */}
-            <TownMarkers 
-              towns={visibleTowns} 
-              activeMarker={activeMarker}
-              onMarkerClick={handleMarkerClick}
-            />
           </>
         )}
       </MapInitializer>
