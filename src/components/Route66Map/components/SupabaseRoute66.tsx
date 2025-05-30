@@ -55,132 +55,156 @@ const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
           lng: waypoint.longitude
         }));
 
-        // Create the Route 66 polyline
+        // Create the Route 66 polyline with enhanced visibility
         const route66Polyline = new google.maps.Polyline({
           path: routePath,
           geodesic: true,
-          strokeColor: '#DC2626', // Red color for Route 66
-          strokeOpacity: 1.0,
-          strokeWeight: 6,
-          zIndex: 1000,
+          strokeColor: '#FF0000', // Bright red for better visibility
+          strokeOpacity: 0.9,
+          strokeWeight: 8, // Thicker line
+          zIndex: 10000, // Higher z-index to ensure visibility
           clickable: false
         });
 
         // Set the polyline on the map
         route66Polyline.setMap(map);
         polylineRef.current = route66Polyline;
+        console.log("✅ Route 66 polyline added to map");
 
-        // Create bounds for the entire route
+        // Create bounds for the entire route and fit map
         const bounds = new google.maps.LatLngBounds();
         routePath.forEach(point => {
           bounds.extend(new google.maps.LatLng(point.lat, point.lng));
         });
 
-        // Fit the map to show the entire route
+        // Fit the map to show the entire route with padding
         map.fitBounds(bounds, {
-          top: 50,
-          right: 50,
-          bottom: 50,
-          left: 50
+          top: 100,
+          right: 100,
+          bottom: 100,
+          left: 100
         });
 
-        // Add markers for major stops
+        console.log("✅ Map bounds adjusted to show Route 66");
+
+        // Add markers for major stops only (to avoid clutter)
         const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
+        console.log(`Adding ${majorStops.length} major stop markers`);
         
-        majorStops.forEach(waypoint => {
+        majorStops.forEach((waypoint, index) => {
           const marker = new google.maps.Marker({
             position: { lat: waypoint.latitude, lng: waypoint.longitude },
             map: map,
             icon: {
               url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-                  <circle cx="15" cy="15" r="12" fill="#DC2626" stroke="#fff" stroke-width="2"/>
-                  <text x="15" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="10" font-weight="bold">${waypoint.state}</text>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="#FF0000" stroke="#FFFFFF" stroke-width="2"/>
+                  <text x="12" y="16" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">${index + 1}</text>
                 </svg>
               `)}`,
-              scaledSize: new google.maps.Size(30, 30),
-              anchor: new google.maps.Point(15, 15)
+              scaledSize: new google.maps.Size(24, 24),
+              anchor: new google.maps.Point(12, 12)
             },
             title: `${waypoint.name} - ${waypoint.state}`,
-            zIndex: 2000
+            zIndex: 20000
           });
 
           // Add info window for major stops
           const infoWindow = new google.maps.InfoWindow({
             content: `
-              <div style="padding: 10px; max-width: 200px;">
-                <h3 style="margin: 0 0 5px 0; color: #DC2626;">${waypoint.name}</h3>
+              <div style="padding: 8px; max-width: 200px; font-family: Arial, sans-serif;">
+                <h3 style="margin: 0 0 5px 0; color: #FF0000; font-size: 14px;">${waypoint.name}</h3>
                 <p style="margin: 0; font-size: 12px; color: #666;">
                   ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
                 </p>
-                ${waypoint.description ? `<p style="margin: 5px 0 0 0; font-size: 12px;">${waypoint.description}</p>` : ''}
+                ${waypoint.description ? `<p style="margin: 5px 0 0 0; font-size: 11px; color: #333;">${waypoint.description}</p>` : ''}
               </div>
             `
           });
 
           marker.addListener('click', () => {
+            // Close any other open info windows
+            markersRef.current.forEach(m => {
+              if (m.infoWindow) {
+                m.infoWindow.close();
+              }
+            });
             infoWindow.open(map, marker);
           });
 
+          // Store reference to info window for cleanup
+          (marker as any).infoWindow = infoWindow;
           markersRef.current.push(marker);
         });
 
-        // Add start and end markers
-        const startPoint = waypoints[0];
-        const endPoint = waypoints[waypoints.length - 1];
+        // Add special start and end markers
+        if (waypoints.length > 0) {
+          const startPoint = waypoints[0];
+          const endPoint = waypoints[waypoints.length - 1];
 
-        const startMarker = new google.maps.Marker({
-          position: { lat: startPoint.latitude, lng: startPoint.longitude },
-          map: map,
-          icon: {
-            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" fill="#22C55E" stroke="#fff" stroke-width="3"/>
-                <text x="20" y="26" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">START</text>
-              </svg>
-            `)}`,
-            scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 20)
-          },
-          title: `Route 66 Start - ${startPoint.name}`,
-          zIndex: 3000
-        });
+          const startMarker = new google.maps.Marker({
+            position: { lat: startPoint.latitude, lng: startPoint.longitude },
+            map: map,
+            icon: {
+              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                  <circle cx="16" cy="16" r="14" fill="#00AA00" stroke="#FFFFFF" stroke-width="3"/>
+                  <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">START</text>
+                </svg>
+              `)}`,
+              scaledSize: new google.maps.Size(32, 32),
+              anchor: new google.maps.Point(16, 16)
+            },
+            title: `Route 66 Start - ${startPoint.name}`,
+            zIndex: 30000
+          });
 
-        const endMarker = new google.maps.Marker({
-          position: { lat: endPoint.latitude, lng: endPoint.longitude },
-          map: map,
-          icon: {
-            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" fill="#EF4444" stroke="#fff" stroke-width="3"/>
-                <text x="20" y="26" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">END</text>
-              </svg>
-            `)}`,
-            scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 20)
-          },
-          title: `Route 66 End - ${endPoint.name}`,
-          zIndex: 3000
-        });
+          const endMarker = new google.maps.Marker({
+            position: { lat: endPoint.latitude, lng: endPoint.longitude },
+            map: map,
+            icon: {
+              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                  <circle cx="16" cy="16" r="14" fill="#FF0000" stroke="#FFFFFF" stroke-width="3"/>
+                  <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">END</text>
+                </svg>
+              `)}`,
+              scaledSize: new google.maps.Size(32, 32),
+              anchor: new google.maps.Point(16, 16)
+            },
+            title: `Route 66 End - ${endPoint.name}`,
+            zIndex: 30000
+          });
 
-        markersRef.current.push(startMarker, endMarker);
+          markersRef.current.push(startMarker, endMarker);
+        }
 
-        console.log(`✅ Route 66 displayed with ${majorStops.length} major stops`);
+        console.log(`✅ Route 66 fully displayed with polyline and ${markersRef.current.length} markers`);
 
       } catch (error) {
         console.error("❌ Error creating Route 66 display:", error);
       }
     };
 
-    fetchAndDisplayRoute();
+    // Small delay to ensure map is fully loaded
+    const timer = setTimeout(() => {
+      fetchAndDisplayRoute();
+    }, 500);
 
     // Cleanup function
     return () => {
+      clearTimeout(timer);
       console.log("🧹 Cleaning up Supabase Route 66 display");
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
+        polylineRef.current = null;
       }
-      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current.forEach(marker => {
+        if ((marker as any).infoWindow) {
+          (marker as any).infoWindow.close();
+        }
+        marker.setMap(null);
+      });
       markersRef.current = [];
     };
   }, [map]);
