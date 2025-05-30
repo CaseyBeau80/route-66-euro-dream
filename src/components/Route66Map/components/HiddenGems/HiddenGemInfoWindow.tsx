@@ -19,84 +19,51 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
 }) => {
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
-  // Enhanced auto-pan logic to ensure full visibility
+  // Simplified auto-pan logic that doesn't interfere with InfoWindow display
   useEffect(() => {
     if (map && gem) {
       const gemPosition = { lat: Number(gem.latitude), lng: Number(gem.longitude) };
       
-      // Wait for info window to be fully rendered
-      setTimeout(() => {
-        const mapDiv = map.getDiv();
-        const mapBounds = mapDiv.getBoundingClientRect();
-        const currentCenter = map.getCenter();
+      // Wait for InfoWindow to be mounted, then gently adjust view
+      const timeoutId = setTimeout(() => {
+        // Center the map on the gem with a slight upward offset to account for InfoWindow
+        const offsetLat = gemPosition.lat + 0.01; // Small offset to show InfoWindow better
+        map.panTo({ lat: offsetLat, lng: gemPosition.lng });
         
-        if (currentCenter) {
-          // Calculate offset needed to show info window fully
-          const infoWindowHeight = 500; // Approximate height of our info window
-          const infoWindowWidth = 450; // Max width of our info window
-          
-          // Get current map bounds
-          const bounds = map.getBounds();
-          if (bounds) {
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
-            
-            // Calculate the lat/lng per pixel
-            const latRange = ne.lat() - sw.lat();
-            const lngRange = ne.lng() - sw.lng();
-            const latPerPixel = latRange / mapBounds.height;
-            const lngPerPixel = lngRange / mapBounds.width;
-            
-            // Calculate offsets to center the info window
-            const verticalOffset = (infoWindowHeight / 2) * latPerPixel;
-            const horizontalOffset = (infoWindowWidth / 4) * lngPerPixel; // Small horizontal adjustment
-            
-            // Pan to a position that will show the info window fully
-            const targetLat = gemPosition.lat + verticalOffset;
-            const targetLng = gemPosition.lng + horizontalOffset;
-            
-            map.panTo({ lat: targetLat, lng: targetLng });
-            
-            // Ensure we're at an appropriate zoom level
-            const currentZoom = map.getZoom() || 10;
-            if (currentZoom < 12) {
-              map.setZoom(12);
-            }
-          }
+        // Ensure reasonable zoom level
+        const currentZoom = map.getZoom() || 10;
+        if (currentZoom < 11) {
+          map.setZoom(11);
         }
-      }, 100);
+        
+        console.log(`📍 Adjusted map view for ${gem.title}`);
+      }, 300); // Give InfoWindow time to render first
+
+      return () => clearTimeout(timeoutId);
     }
   }, [map, gem]);
 
+  const gemPosition = { lat: Number(gem.latitude), lng: Number(gem.longitude) };
+
   return (
     <InfoWindow 
+      position={gemPosition}
       onCloseClick={onClose}
-      position={{ lat: Number(gem.latitude), lng: Number(gem.longitude) }}
       options={{
-        pixelOffset: new google.maps.Size(0, -30),
-        maxWidth: 420,
-        disableAutoPan: true, // We handle auto-pan manually
+        pixelOffset: new google.maps.Size(0, -40),
+        maxWidth: 450,
+        disableAutoPan: false, // Let Google Maps handle auto-pan
         zIndex: 9999
       }}
       onLoad={(infoWindow) => {
         infoWindowRef.current = infoWindow;
-        
-        // Add custom styling for smooth animation
-        const content = infoWindow.getContent();
-        if (content && typeof content !== 'string') {
-          const infoWindowElement = (content as Element).parentElement;
-          if (infoWindowElement) {
-            infoWindowElement.style.animation = 'fadeSlideIn 0.4s ease-out';
-            infoWindowElement.style.zIndex = '9999';
-          }
-        }
+        console.log(`✅ InfoWindow loaded for ${gem.title}`);
       }}
     >
       <div 
-        className="vintage-roadside-sign w-[400px] max-w-[90vw] bg-white border-4 border-route66-blue rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+        className="vintage-roadside-sign w-[420px] max-w-[95vw] bg-white border-4 border-route66-blue rounded-xl shadow-2xl overflow-hidden"
         style={{
-          animation: 'fadeSlideIn 0.4s ease-out',
-          maxHeight: '70vh',
+          maxHeight: '80vh',
           overflowY: 'auto'
         }}
       >
@@ -169,17 +136,6 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
         {/* Add custom CSS for animations */}
         <style>
           {`
-            @keyframes fadeSlideIn {
-              0% {
-                opacity: 0;
-                transform: translateY(20px) scale(0.95);
-              }
-              100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-              }
-            }
-            
             .vintage-roadside-sign {
               font-family: 'Arial Black', Arial, sans-serif;
             }

@@ -7,12 +7,18 @@ export const useHiddenGemInteraction = (onGemClick?: (gem: HiddenGem) => void) =
 
   const handleMarkerClick = (gem: HiddenGem) => {
     console.log('🎯 Hidden gem clicked:', gem.title);
+    console.log('📍 Current active gem:', activeGem);
+    
     const newActiveGem = activeGem === gem.id ? null : gem.id;
+    console.log('🔄 Setting active gem to:', newActiveGem);
+    
     setActiveGem(newActiveGem);
     
     if (onGemClick) {
       onGemClick(gem);
     }
+    
+    console.log('✅ Marker click handler completed for:', gem.title);
   };
 
   const handleWebsiteClick = (website: string) => {
@@ -22,6 +28,7 @@ export const useHiddenGemInteraction = (onGemClick?: (gem: HiddenGem) => void) =
   };
 
   const closeActiveGem = () => {
+    console.log('❌ Closing active gem:', activeGem);
     setActiveGem(null);
   };
 
