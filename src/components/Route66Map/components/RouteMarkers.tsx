@@ -18,20 +18,18 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
     const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
     console.log(`📍 Adding ${majorStops.length} major stop markers out of ${waypoints.length} total waypoints`);
     
-    majorStops.forEach((waypoint, index) => {
+    majorStops.forEach((waypoint) => {
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: map,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-              <circle cx="14" cy="14" r="12" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
-              <circle cx="14" cy="14" r="6" fill="#FFFFFF"/>
-              <text x="14" y="18" text-anchor="middle" fill="#DC2626" font-family="Arial" font-size="8" font-weight="bold">${index + 1}</text>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="6" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
             </svg>
           `)}`,
-          scaledSize: new google.maps.Size(28, 28),
-          anchor: new google.maps.Point(14, 14)
+          scaledSize: new google.maps.Size(16, 16),
+          anchor: new google.maps.Point(8, 8)
         },
         title: `${waypoint.name} - ${waypoint.state}`,
         zIndex: 20000
@@ -54,7 +52,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
             ` : ''}
             <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
               <p style="margin: 0; font-size: 10px; color: #999;">
-                Stop ${index + 1} of ${majorStops.length} major stops
+                Route 66 major stop
               </p>
             </div>
           </div>
@@ -78,7 +76,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       markersRef.current.push(marker);
     });
 
-    console.log(`✅ Enhanced Route 66 fully displayed with ${markersRef.current.length} major stop markers`);
+    console.log(`✅ Enhanced Route 66 fully displayed with ${markersRef.current.length} simple major stop markers`);
 
     return () => {
       markersRef.current.forEach(marker => {
