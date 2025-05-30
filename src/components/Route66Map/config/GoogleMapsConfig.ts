@@ -1,6 +1,17 @@
-
 // Google Maps Configuration
-export const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'demo-key';
+const getApiKey = () => {
+  // First try environment variable
+  const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (envApiKey && envApiKey !== 'demo-key') {
+    return envApiKey;
+  }
+  
+  // Then try localStorage
+  const storedApiKey = localStorage.getItem('google_maps_api_key');
+  return storedApiKey || 'demo-key';
+};
+
+export const googleMapsApiKey = getApiKey();
 
 export const mapContainerStyle = {
   width: '100%',
