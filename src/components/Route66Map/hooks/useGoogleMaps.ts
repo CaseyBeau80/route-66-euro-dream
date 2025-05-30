@@ -33,12 +33,13 @@ export const useGoogleMaps = () => {
   }, []);
 
   // Only use the loader if we have a valid API key
-  const shouldLoadApi = apiKey && apiKey.trim() !== '' && apiKey !== 'demo-key';
+  const shouldLoadApi = apiKey && apiKey.trim() !== '' && apiKey !== 'demo-key' && !apiKey.startsWith('I am tryin');
   
   console.log('🗺️ Google Maps loader config:', {
     shouldLoadApi,
     apiKeyLength: apiKey.length,
-    apiKeyPrefix: apiKey.substring(0, 10) + '...'
+    apiKeyPrefix: apiKey.substring(0, 10) + '...',
+    isValidKey: shouldLoadApi
   });
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -72,12 +73,13 @@ export const useGoogleMaps = () => {
     setActiveMarker(null);
   }, []);
 
-  // If no API key is available, return a state that indicates this
+  // If no API key is available or the key is clearly invalid, return appropriate state
   if (!shouldLoadApi) {
-    console.log('🔑 No valid Google Maps API key available');
+    console.log('🔑 No valid Google Maps API key available or key appears invalid');
     return {
       isLoaded: false,
-      loadError: null,
+      loadError: apiKey.startsWith('I am tryin') ? 
+        new Error('Invalid API key - please enter a valid Google Maps API key') : null,
       activeMarker,
       currentZoom,
       isDragging,
