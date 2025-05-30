@@ -1,6 +1,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { historicRoute66Waypoints } from './HistoricRoute66Waypoints';
+import { missouriWaypoints } from './waypoints/MissouriWaypoints';
+import { oklahomaWaypoints } from './waypoints/OklahomaWaypoints';
 
 interface SimpleRoute66ServiceProps {
   map: google.maps.Map;
@@ -18,104 +20,101 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
       return;
     }
 
-    // Prevent multiple initializations
     if (initializationRef.current) {
       console.log('⚠️ SimpleRoute66Service: Route already initialized, skipping');
       return;
     }
 
-    console.log('🚗 SimpleRoute66Service: Initializing Route 66 rendering service');
+    console.log('🚗 SimpleRoute66Service: Initializing Route 66 rendering with highway-following waypoints');
     initializationRef.current = true;
 
-    // Validate waypoints first
-    if (!historicRoute66Waypoints || historicRoute66Waypoints.length === 0) {
-      console.error('❌ No waypoints available for Route 66');
-      return;
-    }
-
-    console.log('📍 Route waypoints loaded:', {
-      total: historicRoute66Waypoints.length,
-      first: historicRoute66Waypoints[0],
-      last: historicRoute66Waypoints[historicRoute66Waypoints.length - 1]
-    });
-
-    // Immediate rendering to test
     renderRoute66();
 
     function renderRoute66() {
-      console.log('🎯 SimpleRoute66Service: Starting Route 66 rendering IMMEDIATELY');
+      console.log('🎯 SimpleRoute66Service: Creating highway-following Route 66 polyline');
 
-      // Clean up any existing elements first
       cleanup();
 
-      // Create the route path from waypoints
-      const routePath = historicRoute66Waypoints.map(waypoint => ({
+      // Combine basic historic waypoints with detailed highway waypoints for better accuracy
+      const combinedWaypoints = [
+        // Illinois section (basic waypoints)
+        ...historicRoute66Waypoints.slice(0, 9),
+        
+        // Missouri section (detailed highway-following waypoints)
+        ...missouriWaypoints,
+        
+        // Oklahoma section (detailed highway-following waypoints)  
+        ...oklahomaWaypoints,
+        
+        // Texas, New Mexico, Arizona, California (basic waypoints for now)
+        ...historicRoute66Waypoints.slice(30)
+      ];
+
+      console.log('📍 Highway-following waypoints loaded:', {
+        total: combinedWaypoints.length,
+        historic: historicRoute66Waypoints.length,
+        missouri: missouriWaypoints.length,
+        oklahoma: oklahomaWaypoints.length
+      });
+
+      // Create the route path from combined waypoints
+      const routePath = combinedWaypoints.map(waypoint => ({
         lat: waypoint.lat,
         lng: waypoint.lng
       }));
 
-      console.log('🛣️ Creating Route 66 polyline with', routePath.length, 'points');
-      console.log('📍 First 3 points:', routePath.slice(0, 3));
-      console.log('📍 Last 3 points:', routePath.slice(-3));
+      console.log('🛣️ Creating highway-following Route 66 polyline with', routePath.length, 'detailed points');
 
-      // Create the Route 66 polyline with maximum visibility
+      // Create the Route 66 polyline with highway-following accuracy
       const polylineOptions: google.maps.PolylineOptions = {
         path: routePath,
         geodesic: true,
         strokeColor: '#FF0000',
         strokeOpacity: 1.0,
-        strokeWeight: 15, // Even thicker for maximum visibility
+        strokeWeight: 12, // Slightly thicker for highway visibility
         zIndex: 999999,
         clickable: true,
         visible: true
       };
 
-      console.log('🔧 Creating polyline with options:', polylineOptions);
-
       polylineRef.current = new google.maps.Polyline(polylineOptions);
-      console.log('✅ Polyline object created:', polylineRef.current);
-      
       polylineRef.current.setMap(map);
-      console.log('✅ Route 66 polyline attached to map');
+      console.log('✅ Highway-following Route 66 polyline attached to map');
 
-      // Force visibility and verify immediately
+      // Verify visibility immediately
       setTimeout(() => {
         if (polylineRef.current) {
-          console.log('🔍 IMMEDIATE polyline verification:');
+          console.log('🔍 Highway polyline verification:');
           console.log('  - Polyline exists:', !!polylineRef.current);
           console.log('  - Attached to map:', !!polylineRef.current.getMap());
           console.log('  - Visible:', polylineRef.current.getVisible());
           console.log('  - Path length:', polylineRef.current.getPath()?.getLength());
-          console.log('  - Stroke color:', polylineRef.current.get('strokeColor'));
-          console.log('  - Stroke weight:', polylineRef.current.get('strokeWeight'));
-          console.log('  - Z-index:', polylineRef.current.get('zIndex'));
+          console.log('  - Following highways: I-44, I-40, and historic corridors');
 
-          // Force all properties again
+          // Ensure visibility
           polylineRef.current.setOptions({
             strokeColor: '#FF0000',
             strokeOpacity: 1.0,
-            strokeWeight: 15,
+            strokeWeight: 12,
             zIndex: 999999,
             visible: true
           });
-
-          console.log('🔧 Forced all polyline properties again');
         }
       }, 50);
 
-      // Add click listener to polyline
+      // Add click listener
       if (polylineRef.current) {
         polylineRef.current.addListener('click', (event: google.maps.MapMouseEvent) => {
-          console.log('🎯 Route 66 polyline clicked!', event.latLng?.toString());
+          console.log('🎯 Highway-following Route 66 clicked!', event.latLng?.toString());
           const infoWindow = new google.maps.InfoWindow({
-            content: '<div style="color: red; font-weight: bold; padding: 10px;">🛣️ Route 66 - The Mother Road</div>',
+            content: '<div style="color: red; font-weight: bold; padding: 10px;">🛣️ Route 66 - Following I-44, I-40 & Historic Highways</div>',
             position: event.latLng
           });
           infoWindow.open(map);
         });
       }
 
-      // Create start marker (Chicago) with higher visibility
+      // Create start marker (Chicago)
       startMarkerRef.current = new google.maps.Marker({
         position: routePath[0],
         map: map,
@@ -133,7 +132,7 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
         zIndex: 1000000
       });
 
-      // Create end marker (Santa Monica) with higher visibility
+      // Create end marker (Santa Monica)
       endMarkerRef.current = new google.maps.Marker({
         position: routePath[routePath.length - 1],
         map: map,
@@ -164,8 +163,7 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
         left: 80
       });
 
-      console.log('✅ Map bounds fitted to route');
-      console.log('✅ SimpleRoute66Service: Route 66 initialization complete');
+      console.log('✅ Highway-following Route 66 initialization complete');
     }
 
     function cleanup() {
@@ -187,9 +185,8 @@ const SimpleRoute66Service: React.FC<SimpleRoute66ServiceProps> = ({ map }) => {
       }
     }
 
-    // Cleanup function
     return () => {
-      console.log('🧹 SimpleRoute66Service: Component unmounting - cleaning up Route 66 service');
+      console.log('🧹 SimpleRoute66Service: Component unmounting - cleaning up highway-following service');
       cleanup();
       initializationRef.current = false;
     };
