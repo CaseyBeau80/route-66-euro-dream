@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { mapBounds, mapOptions } from './config/MapConfig';
@@ -23,6 +23,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
   } = useGoogleMaps();
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const centerBeforeZoomRef = useRef<google.maps.LatLng | null>(null);
+  const isZoomingRef = useRef(false);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     console.log("🗺️ Google Map loaded successfully");
@@ -33,10 +35,26 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     map.setZoom(5);
     map.setCenter({ lat: 35.5, lng: -100 }); // Center of US for Route 66
     
-    // Add event listeners
+    // Add zoom change listener that preserves current center
     map.addListener('zoom_changed', () => {
+      if (isZoomingRef.current && centerBeforeZoomRef.current) {
+        // If we're in a zoom operation, preserve the center
+        console.log('🎯 Preserving center during zoom:', centerBeforeZoomRef.current.toJSON());
+        map.setCenter(centerBeforeZoomRef.current);
+        isZoomingRef.current = false;
+        centerBeforeZoomRef.current = null;
+      }
+      
       const newZoom = map.getZoom() || 5;
       setCurrentZoom(newZoom);
+      console.log('🔍 Zoom level changed to:', newZoom);
+    });
+    
+    // Add listener to capture center before any zoom operation starts
+    map.addListener('zoom_start', () => {
+      console.log('🎯 Zoom start - capturing current center');
+      centerBeforeZoomRef.current = map.getCenter() || null;
+      isZoomingRef.current = true;
     });
     
     map.addListener('dragstart', () => {
@@ -55,6 +73,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     console.log("🗺️ Google Map unmounted");
     mapRef.current = null;
     setMap(null);
+    centerBeforeZoomRef.current = null;
+    isZoomingRef.current = false;
   }, []);
 
   if (loadError) {
