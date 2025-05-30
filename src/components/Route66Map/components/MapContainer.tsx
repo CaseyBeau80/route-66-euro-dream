@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { GoogleMap } from '@react-google-maps/api';
-import { mapBounds, mapOptions } from '../config/MapConfig';
 import SupabaseRoute66 from './SupabaseRoute66';
 
 interface MapContainerProps {
@@ -19,6 +18,42 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onDragStart,
   onDragEnd
 }) => {
+  // Simplified map options for better interaction
+  const mapOptions = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    scaleControl: true,
+    streetViewControl: false,
+    rotateControl: false,
+    fullscreenControl: true,
+    gestureHandling: 'greedy' as const,
+    draggable: true,
+    scrollwheel: true,
+    disableDoubleClickZoom: false,
+    keyboardShortcuts: true,
+    styles: [
+      {
+        featureType: 'all',
+        elementType: 'labels.text.fill',
+        stylers: [{ saturation: 36 }, { color: '#333333' }, { lightness: 40 }]
+      },
+      {
+        featureType: 'all',
+        elementType: 'labels.text.stroke',
+        stylers: [{ visibility: 'on' }, { color: '#ffffff' }, { lightness: 16 }]
+      }
+    ]
+  };
+
+  // Map bounds for Route 66 corridor
+  const mapBounds = {
+    north: 42.0,
+    south: 32.0,
+    east: -117.0,
+    west: -109.0
+  };
+
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
       <GoogleMap
@@ -30,15 +65,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
         zoom={5}
         options={{
           ...mapOptions,
-          draggable: true,
-          panControl: true,
-          gestureHandling: 'greedy',
-          zoomControl: true,
-          mapTypeControl: false,
-          scaleControl: true,
-          streetViewControl: false,
-          rotateControl: false,
-          fullscreenControl: true,
           restriction: {
             latLngBounds: mapBounds,
             strictBounds: false,
@@ -46,6 +72,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
       >
         {map && <SupabaseRoute66 map={map} />}
       </GoogleMap>

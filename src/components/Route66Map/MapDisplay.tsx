@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { useGoogleMaps } from './hooks/useGoogleMaps';
-import { useSimpleMapInitialization } from './hooks/useSimpleMapInitialization';
+import React, { useEffect } from 'react';
+import { useSimpleGoogleMaps } from './hooks/useSimpleGoogleMaps';
+import { useCleanMapInitialization } from './hooks/useCleanMapInitialization';
 import MapLoadingStates from './components/MapLoadingStates';
 import MapContainer from './components/MapContainer';
 
@@ -18,14 +18,20 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
     setCurrentZoom,
     isDragging,
     setIsDragging,
-    mapRef
-  } = useGoogleMaps();
+    mapRef,
+    setupMapListeners,
+    initializeGoogleMaps
+  } = useSimpleGoogleMaps();
 
-  const { map, onLoad, onUnmount } = useSimpleMapInitialization({
-    setCurrentZoom,
-    setIsDragging,
-    mapRef
+  const { map, onLoad, onUnmount } = useCleanMapInitialization({
+    mapRef,
+    setupMapListeners
   });
+
+  // Initialize Google Maps on component mount
+  useEffect(() => {
+    initializeGoogleMaps();
+  }, [initializeGoogleMaps]);
 
   // Show loading or error states
   const loadingState = MapLoadingStates({ loadError, isLoaded });
