@@ -54,7 +54,12 @@ const Route66Polyline: React.FC<Route66PolylineProps> = ({ map }) => {
 
       {/* Interactive highway segments */}
       {segments.map((segment, index) => {
-        const segmentPath = routePath.slice(segment.start, segment.end + 1);
+        // Ensure we don't go out of bounds
+        const startIndex = Math.min(segment.start, routePath.length - 1);
+        const endIndex = Math.min(segment.end, routePath.length - 1);
+        const segmentPath = routePath.slice(startIndex, endIndex + 1);
+        
+        if (segmentPath.length < 2) return null;
         
         return (
           <Polyline
@@ -72,7 +77,7 @@ const Route66Polyline: React.FC<Route66PolylineProps> = ({ map }) => {
       })}
 
       {/* Info window for clicked segments */}
-      {selectedSegment !== null && clickPosition && (
+      {selectedSegment !== null && clickPosition && selectedSegment < segments.length && (
         <InfoWindow
           position={clickPosition}
           onCloseClick={handleCloseInfoWindow}

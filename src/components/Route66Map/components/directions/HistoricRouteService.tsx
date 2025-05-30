@@ -45,8 +45,10 @@ const HistoricRouteService = ({
       renderer.setMap(map);
       newRenderers.push(renderer);
 
-      // Get waypoints for this segment
-      const segmentWaypoints = historicRoute66Waypoints.slice(segment.start, segment.end + 1);
+      // Ensure we don't go out of bounds
+      const startIndex = Math.min(segment.start, historicRoute66Waypoints.length - 1);
+      const endIndex = Math.min(segment.end, historicRoute66Waypoints.length - 1);
+      const segmentWaypoints = historicRoute66Waypoints.slice(startIndex, endIndex + 1);
       
       if (segmentWaypoints.length < 2) {
         completedSegments++;
