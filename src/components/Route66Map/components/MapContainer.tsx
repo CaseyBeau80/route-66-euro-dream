@@ -18,7 +18,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   onDragStart,
   onDragEnd
 }) => {
-  // Simplified map options for better interaction
+  // Enhanced map options to ensure dragging works properly
   const mapOptions = {
     disableDefaultUI: false,
     zoomControl: true,
@@ -27,11 +27,13 @@ const MapContainer: React.FC<MapContainerProps> = ({
     streetViewControl: false,
     rotateControl: false,
     fullscreenControl: true,
-    gestureHandling: 'greedy' as const,
-    draggable: true,
+    gestureHandling: 'greedy' as const, // This enables all gestures including drag
+    draggable: true, // Explicitly enable dragging
     scrollwheel: true,
     disableDoubleClickZoom: false,
     keyboardShortcuts: true,
+    // Remove any restrictions that might interfere with dragging
+    clickableIcons: true,
     styles: [
       {
         featureType: 'all',
@@ -46,13 +48,15 @@ const MapContainer: React.FC<MapContainerProps> = ({
     ]
   };
 
-  // Map bounds for Route 66 corridor
+  // Relaxed map bounds for Route 66 corridor - less restrictive
   const mapBounds = {
-    north: 42.0,
-    south: 32.0,
-    east: -117.0,
-    west: -109.0
+    north: 45.0,  // Expanded bounds
+    south: 30.0,
+    east: -115.0,
+    west: -105.0
   };
+
+  console.log('🗺️ MapContainer rendering with draggable:', true);
 
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
@@ -67,13 +71,19 @@ const MapContainer: React.FC<MapContainerProps> = ({
           ...mapOptions,
           restriction: {
             latLngBounds: mapBounds,
-            strictBounds: false,
+            strictBounds: false, // Allow some flexibility
           },
         }}
         onLoad={onLoad}
         onUnmount={onUnmount}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
+        onDragStart={() => {
+          console.log('🖱️ GoogleMap onDragStart triggered');
+          onDragStart();
+        }}
+        onDragEnd={() => {
+          console.log('🖱️ GoogleMap onDragEnd triggered');
+          onDragEnd();
+        }}
       >
         {map && <SupabaseRoute66 map={map} />}
       </GoogleMap>

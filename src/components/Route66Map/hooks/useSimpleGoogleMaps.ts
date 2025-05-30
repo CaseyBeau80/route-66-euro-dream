@@ -19,14 +19,14 @@ export const useSimpleGoogleMaps = () => {
     }
   }, []);
 
-  // Simplified drag handlers
+  // Enhanced drag handlers with better logging
   const handleDragStart = useCallback(() => {
-    console.log('🖱️ Drag started');
+    console.log('🖱️ Drag started - setting isDragging to true');
     setIsDragging(true);
   }, []);
 
   const handleDragEnd = useCallback(() => {
-    console.log('🖱️ Drag ended');
+    console.log('🖱️ Drag ended - setting isDragging to false');
     setIsDragging(false);
   }, []);
 
@@ -40,20 +40,37 @@ export const useSimpleGoogleMaps = () => {
     setActiveMarker(markerId);
   }, []);
 
-  // Setup map listeners
+  // Setup map listeners with enhanced drag detection
   const setupMapListeners = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ Setting up simple map listeners');
+    console.log('🗺️ Setting up enhanced map listeners');
     
     // Clear any existing listeners
     google.maps.event.clearInstanceListeners(map);
     
-    // Add basic listeners
+    // Add zoom listener
     map.addListener('zoom_changed', handleZoomChange);
-    map.addListener('dragstart', handleDragStart);
-    map.addListener('dragend', handleDragEnd);
     
-    console.log('✅ Map listeners configured successfully');
-  }, [handleZoomChange, handleDragStart, handleDragEnd]);
+    // Enhanced drag listeners
+    map.addListener('dragstart', () => {
+      console.log('🖱️ Native Google Maps dragstart event fired');
+      handleDragStart();
+    });
+    
+    map.addListener('dragend', () => {
+      console.log('🖱️ Native Google Maps dragend event fired');
+      handleDragEnd();
+    });
+    
+    // Additional drag-related listeners for better detection
+    map.addListener('drag', () => {
+      if (!isDragging) {
+        console.log('🖱️ Drag event detected during drag operation');
+        setIsDragging(true);
+      }
+    });
+    
+    console.log('✅ Enhanced map listeners configured successfully');
+  }, [handleZoomChange, handleDragStart, handleDragEnd, isDragging]);
 
   // Initialize Google Maps API
   const initializeGoogleMaps = useCallback(() => {

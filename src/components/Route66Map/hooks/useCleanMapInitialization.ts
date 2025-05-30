@@ -21,10 +21,19 @@ export const useCleanMapInitialization = ({
     map.setZoom(5);
     map.setCenter({ lat: 35.5, lng: -100 });
     
+    // Explicitly ensure dragging is enabled
+    map.setOptions({
+      draggable: true,
+      gestureHandling: 'greedy'
+    });
+    
+    console.log('🖱️ Map dragging enabled:', map.get('draggable'));
+    console.log('🖱️ Gesture handling:', map.get('gestureHandling'));
+    
     // Setup listeners
     setupMapListeners(map);
     
-    console.log('✅ Clean map initialization complete');
+    console.log('✅ Clean map initialization complete with drag enabled');
   }, [mapRef, setupMapListeners]);
 
   const onUnmount = useCallback(() => {
