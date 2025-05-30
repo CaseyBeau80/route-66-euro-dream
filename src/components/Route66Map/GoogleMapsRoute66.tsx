@@ -34,13 +34,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     setIsDragging
   } = useGoogleMaps();
 
-  // Use our town filtering hook
   const { visibleTowns } = useTownFiltering({ selectedState });
-  
-  // State to track whether the map has been initialized
   const [mapInitialized, setMapInitialized] = useState(false);
 
-  // Effect to set mapInitialized when the map reference is available
   useEffect(() => {
     if (mapRef.current && !mapInitialized) {
       setMapInitialized(true);
@@ -48,7 +44,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     }
   }, [mapRef.current, mapInitialized]);
 
-  // Map load handler
   const onMapLoad = useCallback((map: google.maps.Map) => {
     console.log('🚀 Map loading callback triggered');
     mapRef.current = map;
@@ -60,7 +55,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       }
     });
     
-    // Listen for drag events to show visual feedback
+    // Listen for drag events
     map.addListener("dragstart", () => {
       setIsDragging(true);
     });
@@ -69,23 +64,20 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial view to show Route 66 corridor
-    console.log('🎯 Setting initial map view for Route 66');
+    // Set initial view - the SimpleRoute66Service will adjust bounds
+    console.log('🎯 Setting initial map view');
     map.setZoom(4);
-    map.setCenter({ lat: 36.0, lng: -95.0 }); // Center on Route 66 corridor
+    map.setCenter({ lat: 36.0, lng: -95.0 });
     
-    // Set the map as initialized
     setMapInitialized(true);
-    console.log('✅ Route 66 map loaded and ready for route rendering');
+    console.log('✅ Route 66 map loaded and ready');
   }, [setCurrentZoom, setIsDragging]);
 
-  // Show error if Maps failed to load
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return <MapLoadError error="Failed to load Google Maps API." />;
   }
 
-  // Show loading indicator while Maps is loading
   if (!isLoaded) {
     console.log('⏳ Google Maps API still loading...');
     return <MapLoadingIndicator />;
@@ -100,7 +92,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Clear Selection Button */}
       {selectedState && (
         <ClearSelectionButton 
           selectedState={selectedState} 
@@ -108,17 +99,13 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         />
       )}
       
-      {/* Map Interaction Hints */}
       <MapInteractionHints isDragging={isDragging} />
       
-      {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Simplified Route 66 service - single source of truth for route rendering */}
         {mapInitialized && mapRef.current && (
           <>
             <SimpleRoute66Service map={mapRef.current} />
             
-            {/* Draw markers for each town */}
             <TownMarkers 
               towns={visibleTowns} 
               activeMarker={activeMarker}
