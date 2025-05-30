@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Marker, InfoWindow } from '@react-google-maps/api';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, MapPin } from 'lucide-react';
+import { Eye, MapPin, ExternalLink } from 'lucide-react';
 
 interface HiddenGem {
   id: string;
@@ -11,6 +11,7 @@ interface HiddenGem {
   latitude: number;
   longitude: number;
   city_name: string;
+  website: string | null;
 }
 
 interface HiddenGemsProps {
@@ -57,6 +58,13 @@ const HiddenGems: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
     }
   };
 
+  const handleWebsiteClick = (website: string) => {
+    console.log('🌐 Opening website:', website);
+    // Ensure the URL has a protocol
+    const url = website.startsWith('http') ? website : `https://${website}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   if (loading) {
     console.log('⏳ Hidden gems still loading...');
     return null;
@@ -100,12 +108,24 @@ const HiddenGems: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
                   </div>
                   
                   {gem.description && (
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-gray-700 leading-relaxed mb-3">
                       {gem.description}
                     </p>
                   )}
                   
-                  <div className="mt-2 pt-2 border-t border-gray-200">
+                  {gem.website && (
+                    <div className="mb-3">
+                      <button
+                        onClick={() => handleWebsiteClick(gem.website!)}
+                        className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-800 hover:underline transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Visit Website
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="pt-2 border-t border-gray-200">
                     <span className="text-xs text-purple-600 font-medium">
                       ✨ Hidden Gem
                     </span>

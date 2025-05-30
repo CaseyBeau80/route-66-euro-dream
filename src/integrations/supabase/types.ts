@@ -19,6 +19,7 @@ export type Database = {
           longitude: number
           title: string
           updated_at: string
+          website: string | null
         }
         Insert: {
           city_name: string
@@ -29,6 +30,7 @@ export type Database = {
           longitude: number
           title: string
           updated_at?: string
+          website?: string | null
         }
         Update: {
           city_name?: string
@@ -39,6 +41,7 @@ export type Database = {
           longitude?: number
           title?: string
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }

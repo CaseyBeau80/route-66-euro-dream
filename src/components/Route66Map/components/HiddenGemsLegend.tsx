@@ -26,7 +26,7 @@ const HiddenGemsLegend: React.FC<HiddenGemsLegendProps> = ({ count }) => {
           </span>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Discover off-the-beaten-path locations, mysterious phenomena, and unique attractions that most travelers miss.
+          Discover off-the-beaten-path locations, mysterious phenomena, and unique attractions that most travelers miss. Click markers to learn more and visit their websites!
         </p>
       </CardContent>
     </Card>
