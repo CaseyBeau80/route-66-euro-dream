@@ -21,13 +21,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   const handleApiKeySet = (newApiKey: string) => {
     if (newApiKey && newApiKey.trim() !== '') {
       localStorage.setItem('google_maps_api_key', newApiKey.trim());
-      console.log('🔑 API key saved to localStorage');
+      console.log('🔑 API key saved to localStorage:', newApiKey.substring(0, 10) + '...');
       // Force a page reload to reinitialize the Google Maps loader with the new API key
       window.location.reload();
     }
   };
 
-  console.log('🗺️ MapDisplay: API loading state', { 
+  console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 
     hasError: !!loadError, 
     hasApiKey,
@@ -44,14 +44,14 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }
 
-  // If there's a loading error (like invalid API key), show the input form to re-enter key
+  // If there's a loading error, show the input form to re-enter key
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return (
       <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
         <ApiKeyInput 
           onApiKeySet={handleApiKeySet} 
-          error="Failed to load Google Maps. Please check your API key and try again."
+          error={`Failed to load Google Maps: ${loadError.message}. Please check your API key and ensure it has the necessary permissions.`}
         />
       </div>
     );
@@ -66,7 +66,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }
 
-  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 with Supabase integration');
+  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 successfully');
 
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">

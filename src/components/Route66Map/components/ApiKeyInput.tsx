@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExternalLink, Key } from 'lucide-react';
+import { ExternalLink, Key, AlertCircle } from 'lucide-react';
 
 interface ApiKeyInputProps {
   onApiKeySet: (apiKey: string) => void;
@@ -43,6 +43,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, error }) => {
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -67,7 +68,13 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, error }) => {
           </form>
 
           <div className="text-sm text-gray-600 space-y-2">
-            <p>Don't have an API key?</p>
+            <p className="font-medium">Need an API key?</p>
+            <ol className="list-decimal list-inside space-y-1 text-xs">
+              <li>Go to Google Cloud Console</li>
+              <li>Enable the Maps JavaScript API</li>
+              <li>Create credentials (API key)</li>
+              <li>Restrict the key to your domain (optional but recommended)</li>
+            </ol>
             <a
               href="https://developers.google.com/maps/documentation/javascript/get-api-key"
               target="_blank"

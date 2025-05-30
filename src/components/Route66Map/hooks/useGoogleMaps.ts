@@ -12,25 +12,48 @@ export const useGoogleMaps = () => {
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
-    if (envApiKey && envApiKey !== 'demo-key') {
-      return envApiKey;
-    } else if (storedApiKey && storedApiKey.trim() !== '') {
-      return storedApiKey;
+    console.log('🔑 API Key check:', { 
+      hasEnvKey: !!envApiKey, 
+      envKeyValue: envApiKey, 
+      hasStoredKey: !!storedApiKey,
+      storedKeyLength: storedApiKey?.length || 0
+    });
+    
+    // Prioritize stored API key over env key for user-provided keys
+    if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
+      console.log('🔑 Using stored API key');
+      return storedApiKey.trim();
+    } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
+      console.log('🔑 Using environment API key');
+      return envApiKey.trim();
     }
+    
+    console.log('🔑 No valid API key found');
     return '';
   }, []);
 
   // Only use the loader if we have a valid API key
-  const shouldLoadApi = apiKey && apiKey.trim() !== '';
+  const shouldLoadApi = apiKey && apiKey.trim() !== '' && apiKey !== 'demo-key';
   
+  console.log('🗺️ Google Maps loader config:', {
+    shouldLoadApi,
+    apiKeyLength: apiKey.length,
+    apiKeyPrefix: apiKey.substring(0, 10) + '...'
+  });
+
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: shouldLoadApi ? apiKey : '',
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
     region: 'US',
     preventGoogleFontsLoading: true,
+    // Add additional options to prevent conflicts
+    loadScriptOptions: {
+      async: true,
+      defer: true,
+    }
   });
 
   const {
@@ -56,10 +79,10 @@ export const useGoogleMaps = () => {
 
   // If no API key is available, return a state that indicates this
   if (!shouldLoadApi) {
-    console.log('🔑 No valid Google Maps API key found');
+    console.log('🔑 No valid Google Maps API key available');
     return {
       isLoaded: false,
-      loadError: new Error('No Google Maps API key provided'),
+      loadError: null,
       activeMarker,
       currentZoom,
       isDragging,
@@ -72,9 +95,14 @@ export const useGoogleMaps = () => {
     };
   }
 
+  // Log any loading errors
+  if (loadError) {
+    console.error('❌ Google Maps loading error:', loadError);
+  }
+
   return {
     isLoaded: shouldLoadApi ? isLoaded : false,
-    loadError: shouldLoadApi ? loadError : new Error('No API key'),
+    loadError: shouldLoadApi ? loadError : null,
     activeMarker,
     currentZoom,
     isDragging,
