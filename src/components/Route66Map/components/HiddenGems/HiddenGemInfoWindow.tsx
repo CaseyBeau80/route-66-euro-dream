@@ -16,7 +16,10 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
   onWebsiteClick
 }) => {
   return (
-    <InfoWindow onCloseClick={onClose}>
+    <InfoWindow 
+      onCloseClick={onClose}
+      position={{ lat: Number(gem.latitude), lng: Number(gem.longitude) }}
+    >
       <div className="vintage-roadside-sign w-80 bg-gradient-to-b from-route66-cream to-gray-100 border-4 border-route66-blue rounded-lg shadow-2xl overflow-hidden">
         {/* Vintage Header Banner */}
         <div className="bg-gradient-to-r from-route66-blue to-teal-700 text-route66-cream px-6 py-3 relative">
