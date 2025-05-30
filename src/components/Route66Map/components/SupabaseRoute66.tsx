@@ -21,6 +21,7 @@ interface Route66Waypoint {
 const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const infoWindowsRef = useRef<WeakMap<google.maps.Marker, google.maps.InfoWindow>>(new WeakMap());
 
   useEffect(() => {
     if (!map) {
@@ -125,15 +126,16 @@ const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
           marker.addListener('click', () => {
             // Close any other open info windows
             markersRef.current.forEach(m => {
-              if (m.infoWindow) {
-                m.infoWindow.close();
+              const infoWin = infoWindowsRef.current.get(m);
+              if (infoWin) {
+                infoWin.close();
               }
             });
             infoWindow.open(map, marker);
           });
 
-          // Store reference to info window for cleanup
-          (marker as any).infoWindow = infoWindow;
+          // Store reference to info window using WeakMap
+          infoWindowsRef.current.set(marker, infoWindow);
           markersRef.current.push(marker);
         });
 
@@ -200,12 +202,14 @@ const SupabaseRoute66: React.FC<SupabaseRoute66Props> = ({ map }) => {
         polylineRef.current = null;
       }
       markersRef.current.forEach(marker => {
-        if ((marker as any).infoWindow) {
-          (marker as any).infoWindow.close();
+        const infoWindow = infoWindowsRef.current.get(marker);
+        if (infoWindow) {
+          infoWindow.close();
         }
         marker.setMap(null);
       });
       markersRef.current = [];
+      infoWindowsRef.current = new WeakMap();
     };
   }, [map]);
 
