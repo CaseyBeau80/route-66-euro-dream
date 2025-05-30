@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ComprehensiveRouteServiceProps } from './types';
 import { HybridRouteCalculator } from './hybridRouteCalculator';
 import { RouteValidator } from './routeValidator';
+import StaticRoute66Service from './StaticRoute66Service';
 
 const HybridRouteService = ({ 
   map, 
@@ -11,6 +12,7 @@ const HybridRouteService = ({
 }: ComprehensiveRouteServiceProps) => {
   const [renderers, setRenderers] = useState<google.maps.DirectionsRenderer[]>([]);
   const [routeStatus, setRouteStatus] = useState<string>('Initializing...');
+  const [useStaticFallback, setUseStaticFallback] = useState(false);
 
   useEffect(() => {
     if (!map || !directionsService || typeof google === 'undefined') return;
@@ -36,10 +38,9 @@ const HybridRouteService = ({
           onRouteCalculated(success);
         }
       } else {
-        setRouteStatus('Route calculation failed');
-        if (onRouteCalculated) {
-          onRouteCalculated(false);
-        }
+        console.log('❌ Directions API failed, falling back to static polyline');
+        setRouteStatus('Using static Route 66 polyline (Directions API unavailable)');
+        setUseStaticFallback(true);
       }
     });
 
@@ -55,6 +56,20 @@ const HybridRouteService = ({
   useEffect(() => {
     console.log(`🛣️ Route Status: ${routeStatus}`);
   }, [routeStatus]);
+
+  // Render static fallback if Directions API fails
+  if (useStaticFallback) {
+    return (
+      <StaticRoute66Service 
+        map={map} 
+        onRouteReady={(success) => {
+          if (onRouteCalculated) {
+            onRouteCalculated(success);
+          }
+        }} 
+      />
+    );
+  }
 
   return null;
 };
