@@ -16,9 +16,9 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
     <div className="border-t border-blue-200 pt-3">
       <div className="flex items-center gap-2 mb-3">
         <Calendar className="w-4 h-4 text-blue-600" />
-        <h5 className="font-semibold text-sm text-gray-800">3-Day Forecast</h5>
+        <h5 className="font-semibold text-sm text-gray-800">2-Day Forecast</h5>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {forecast.map((day, index) => (
           <div key={index} className="flex flex-col items-center bg-white rounded-md px-2 py-3">
             <p className="text-xs font-medium text-gray-800 mb-1">{day.date}</p>
