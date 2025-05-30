@@ -3,12 +3,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useTownFiltering } from './hooks/useTownFiltering';
 import MapInitializer from './components/MapInitializer';
-import MapOverlays from './components/MapOverlays';
 import TownMarkers from './components/TownMarkers';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
+import SimpleRoute66Service from './components/SimpleRoute66Service';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -76,7 +76,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     
     // Set the map as initialized
     setMapInitialized(true);
-    console.log('✅ Route 66 map loaded and ready for overlays');
+    console.log('✅ Route 66 map loaded and ready for route rendering');
   }, [setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
@@ -113,10 +113,10 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Route 66 static polyline overlay and reference markers */}
+        {/* Simplified Route 66 service - single source of truth for route rendering */}
         {mapInitialized && mapRef.current && (
           <>
-            <MapOverlays map={mapRef.current} useEnhancedStatic={false} />
+            <SimpleRoute66Service map={mapRef.current} />
             
             {/* Draw markers for each town */}
             <TownMarkers 

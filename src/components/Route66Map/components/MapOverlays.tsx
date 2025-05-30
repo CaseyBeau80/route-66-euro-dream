@@ -1,7 +1,5 @@
 
 import React from 'react';
-import StaticRoute66Path from './StaticRoute66Path';
-import Route66StaticPolyline from './Route66StaticPolyline';
 
 interface MapOverlaysProps {
   map: google.maps.Map;
@@ -12,15 +10,11 @@ const MapOverlays: React.FC<MapOverlaysProps> = ({
   map, 
   useEnhancedStatic = false 
 }) => {
-  return (
-    <>
-      {/* Main Route 66 polyline with highway markers */}
-      <Route66StaticPolyline map={map} />
-      
-      {/* Simple static markers for Route 66 reference */}
-      <StaticRoute66Path map={map} enhanced={useEnhancedStatic} />
-    </>
-  );
+  // This component is now simplified - route rendering is handled by SimpleRoute66Service
+  // This prevents conflicts between multiple route implementations
+  console.log('🎯 MapOverlays: Route rendering delegated to SimpleRoute66Service');
+  
+  return null;
 };
 
 export default MapOverlays;
