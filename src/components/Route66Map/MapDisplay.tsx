@@ -16,38 +16,31 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
+  const [forceRefresh, setForceRefresh] = useState(0);
 
-  useEffect(() => {
-    // Check for API key on component mount
-    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const storedApiKey = localStorage.getItem('google_maps_api_key');
-    
-    console.log('🔑 Checking API keys:', { envApiKey: envApiKey ? 'found' : 'not found', storedApiKey: storedApiKey ? 'found' : 'not found' });
-    
-    if (envApiKey && envApiKey !== 'demo-key') {
-      console.log('🔑 Using environment API key');
-      setApiKey(envApiKey);
-    } else if (storedApiKey) {
-      console.log('🔑 Using stored API key');
-      setApiKey(storedApiKey);
-    } else {
-      console.log('🔑 No valid API key found');
-    }
-  }, []);
+  const handleApiKeySet = (newApiKey: string) => {
+    localStorage.setItem('google_maps_api_key', newApiKey);
+    console.log('🔑 API key saved to localStorage');
+    // Force a page reload to reinitialize the Google Maps loader with the new API key
+    window.location.reload();
+  };
+
+  console.log('🗺️ MapDisplay: API loading state', { 
+    isLoaded, 
+    hasError: !!loadError, 
+    hasApiKey 
+  });
 
   // If no API key is available, show the input form
   if (!hasApiKey) {
-    return <ApiKeyInput onApiKeySet={setApiKey} />;
+    return <ApiKeyInput onApiKeySet={handleApiKeySet} />;
   }
-
-  console.log('🗺️ MapDisplay: API loading state', { isLoaded, hasError: !!loadError, apiKey: apiKey ? 'present' : 'missing' });
 
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     // If there's an error, it might be due to invalid API key, allow user to re-enter
-    return <ApiKeyInput onApiKeySet={setApiKey} />;
+    return <ApiKeyInput onApiKeySet={handleApiKeySet} />;
   }
 
   // Show loading or error states
@@ -56,7 +49,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     return loadingState;
   }
 
-  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 with SimpleRoute66Service');
+  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 with Supabase integration');
 
   return (
     <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">

@@ -1,11 +1,11 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
 
 export const useGoogleMaps = () => {
-  // Get API key from localStorage or environment
-  const getApiKey = () => {
+  // Memoize the API key to prevent it from changing between renders
+  const apiKey = useMemo(() => {
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
@@ -14,15 +14,13 @@ export const useGoogleMaps = () => {
     } else if (storedApiKey) {
       return storedApiKey;
     }
-    return null;
-  };
-
-  const apiKey = getApiKey();
+    return '';
+  }, []);
 
   // Only use the loader if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey || '',
+    googleMapsApiKey: apiKey,
     libraries: ['maps'],
     version: 'weekly',
     language: 'en',
