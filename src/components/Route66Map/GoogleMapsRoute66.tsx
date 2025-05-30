@@ -59,17 +59,17 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       setTimeout(() => setIsDragging(false), 200);
     });
     
-    // Set initial view
-    console.log('🎯 Setting initial map view');
+    // Set initial view optimized for Route 66
+    console.log('🎯 Setting initial map view for Route 66');
     map.setZoom(5);
-    map.setCenter({ lat: 36.0, lng: -95.0 });
+    map.setCenter({ lat: 35.5, lng: -97.5 }); // Centered on Route 66 corridor
     
     setMapInitialized(true);
-    console.log('✅ Route 66 map loaded and ready for initialization service');
+    console.log('✅ Route 66 map loaded and ready for highway-accurate rendering');
   }, [setCurrentZoom, setIsDragging]);
 
   const onMapReady = useCallback((readyMap: google.maps.Map) => {
-    console.log('🎉 GoogleMapsRoute66: Map is fully ready for Route 66 rendering');
+    console.log('🎉 GoogleMapsRoute66: Map is fully ready for highway-accurate Route 66 rendering');
     setIsMapReady(true);
   }, []);
 
@@ -83,7 +83,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadingIndicator />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with highway-accurate waypoints', {
     isLoaded,
     mapInitialized,
     isMapReady,
