@@ -1,13 +1,21 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface Route66StaticPolylineProps {
   map: google.maps.Map;
 }
 
 const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) => {
+  const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+
   useEffect(() => {
-    if (!map) return;
+    if (!map) {
+      console.log("❌ No map provided to Route66StaticPolyline");
+      return;
+    }
+
+    console.log("🗺️ Creating Route 66 static polyline...");
 
     // Detailed waypoints that follow actual highways
     const route66HighwayPath = [
@@ -52,17 +60,43 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       { lat: 34.0195, lng: -118.4912 }, // Santa Monica
     ];
 
-    // Create the main Route 66 polyline
+    // Create the main Route 66 polyline with very visible styling
     const route66Polyline = new google.maps.Polyline({
       path: route66HighwayPath,
       geodesic: true,
-      strokeColor: '#DC2626',
-      strokeOpacity: 1.0,
-      strokeWeight: 6,
-      zIndex: 100
+      strokeColor: '#FF0000', // Bright red
+      strokeOpacity: 0.9,
+      strokeWeight: 8, // Thicker line
+      zIndex: 1000 // Higher z-index to ensure visibility
     });
 
+    // Set the polyline on the map
     route66Polyline.setMap(map);
+    polylineRef.current = route66Polyline;
+
+    console.log("✅ Route 66 polyline created with path:", route66HighwayPath.length, "points");
+    console.log("🎨 Polyline styling:", {
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.9,
+      strokeWeight: 8,
+      zIndex: 1000
+    });
+
+    // Create a bounds object to ensure the polyline is visible
+    const bounds = new google.maps.LatLngBounds();
+    route66HighwayPath.forEach(point => {
+      bounds.extend(new google.maps.LatLng(point.lat, point.lng));
+    });
+
+    // Fit the map to show the entire route
+    map.fitBounds(bounds, {
+      top: 50,
+      right: 50,
+      bottom: 50,
+      left: 50
+    });
+
+    console.log("📍 Map bounds set to show entire Route 66");
 
     // Add highway markers for context
     const highwayMarkers = [
@@ -91,18 +125,28 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
           anchor: new google.maps.Point(30, 10)
         },
         title: `${marker.text} - ${marker.state}`,
-        zIndex: 200
+        zIndex: 2000
       });
       
       markers.push(googleMarker);
     });
 
-    console.log("✅ Static Route 66 polyline created following highway paths");
+    markersRef.current = markers;
+
+    console.log(`✅ Created ${markers.length} highway markers`);
+
+    // Log map center and zoom for debugging
+    console.log("🎯 Map center:", map.getCenter()?.toString());
+    console.log("🔍 Map zoom:", map.getZoom());
 
     // Cleanup function
     return () => {
-      route66Polyline.setMap(null);
-      markers.forEach(marker => marker.setMap(null));
+      console.log("🧹 Cleaning up Route 66 polyline and markers");
+      if (polylineRef.current) {
+        polylineRef.current.setMap(null);
+      }
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
     };
   }, [map]);
 
