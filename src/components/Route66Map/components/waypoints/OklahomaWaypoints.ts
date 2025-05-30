@@ -1,4 +1,3 @@
-
 import { DetailedWaypointData } from '../types/DetailedWaypointData';
 
 export const oklahomaWaypoints: DetailedWaypointData[] = [
@@ -36,6 +35,9 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
 
   // El Reno, OK - Added as non-destination waypoint
   {lat: 35.5322, lng: -97.9553, stopover: false, description: "El Reno, OK", highway: "I-40"},
+
+  // Bridgeport, OK - Added as non-destination waypoint
+  {lat: 35.3606, lng: -98.3836, stopover: false, description: "Bridgeport, OK", highway: "I-40"},
 
   {lat: 35.5089, lng: -98.9680, stopover: true, description: "Elk City, OK", highway: "I-40"},
   {lat: 35.5080, lng: -98.9700, stopover: false, description: "Elk City east side", highway: "I-40"},
