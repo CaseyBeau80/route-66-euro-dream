@@ -34,6 +34,9 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
   {lat: 35.4590, lng: -97.5340, stopover: false, description: "Bethany approach west", highway: "I-44"},
   {lat: 35.4580, lng: -97.5360, stopover: false, description: "Bethany east", highway: "I-44"},
 
+  // El Reno, OK - Added as non-destination waypoint
+  {lat: 35.5322, lng: -97.9553, stopover: false, description: "El Reno, OK", highway: "I-40"},
+
   {lat: 35.5089, lng: -98.9680, stopover: true, description: "Elk City, OK", highway: "I-40"},
   {lat: 35.5080, lng: -98.9700, stopover: false, description: "Elk City east side", highway: "I-40"},
   {lat: 35.5070, lng: -98.9720, stopover: false, description: "Elk City central east", highway: "I-40"},
