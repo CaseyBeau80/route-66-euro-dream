@@ -3,7 +3,9 @@ import React, { useCallback, useState } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { mapBounds, mapOptions } from './config/MapConfig';
-import SupabaseRoute66 from './components/SupabaseRoute66';
+import Route66StaticPolyline from './components/Route66StaticPolyline';
+import StaticRoute66Path from './components/StaticRoute66Path';
+import StaticRoute66Markers from './components/StaticRoute66Markers';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -108,7 +110,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        {map && <SupabaseRoute66 map={map} />}
+        {map && (
+          <>
+            <Route66StaticPolyline map={map} />
+            <StaticRoute66Path map={map} enhanced={false} />
+            <StaticRoute66Markers map={map} />
+          </>
+        )}
       </GoogleMap>
     </div>
   );
