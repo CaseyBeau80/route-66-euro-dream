@@ -1,3 +1,4 @@
+
 import { WeatherData, ForecastDay, WeatherWithForecast, OpenWeatherResponse, ForecastResponse } from './WeatherServiceTypes';
 
 export class WeatherDataProcessor {
@@ -30,15 +31,15 @@ export class WeatherDataProcessor {
       forecastByDay[dateKey].push(item);
     });
 
-    // Process today and next 1 day (2-day forecast)
+    // Process next 2 days (skip today, get tomorrow and day after)
     return Object.entries(forecastByDay)
-      .slice(0, 2) // Get today and next 1 day
+      .slice(1, 3) // Skip today (index 0), get next 2 days
       .map(([dateKey, dayData], index) => {
         const temps = dayData.map(item => item.main.temp);
         const date = new Date(dateKey);
         
         return {
-          date: index === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
           temperature: {
             high: Math.round(Math.max(...temps)),
             low: Math.round(Math.min(...temps))
