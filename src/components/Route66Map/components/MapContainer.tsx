@@ -1,7 +1,7 @@
 
 import React, { useCallback, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
-import SupabaseRoute66 from './SupabaseRoute66';
+import SimpleRoute66Service from './SimpleRoute66Service';
 
 interface MapContainerProps {
   isLoaded: boolean;
@@ -19,7 +19,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
     map.setZoom(5);
     map.setCenter(route66Center);
     
-    console.log('✅ Map ready for native navigation');
+    console.log('✅ Map ready for Route 66 rendering with SimpleRoute66Service');
   }, []);
 
   const onUnmount = useCallback(() => {
@@ -30,7 +30,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
     mapRef.current = null;
   }, []);
 
-  // Optimized map options for native dragging
+  // Optimized map options for native dragging and Route 66 visibility
   const mapOptions = {
     disableDefaultUI: false,
     zoomControl: true,
@@ -67,7 +67,7 @@ const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        {mapRef.current && <SupabaseRoute66 map={mapRef.current} />}
+        {mapRef.current && <SimpleRoute66Service map={mapRef.current} />}
       </GoogleMap>
     </div>
   );
