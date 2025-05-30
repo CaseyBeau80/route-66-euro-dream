@@ -21,6 +21,47 @@ export const oklahomaWaypoints: DetailedWaypointData[] = [
   {lat: 36.1450, lng: -96.0110, stopover: false, description: "Sand Springs approach west", highway: "I-44"},
   {lat: 36.1440, lng: -96.0130, stopover: false, description: "Sand Springs east", highway: "I-44"},
 
+  // Enhanced Oklahoma City area waypoints based on screenshot
+  
+  // Edmond area (visible in screenshot north of OKC)
+  {lat: 35.6529, lng: -97.4781, stopover: false, description: "Edmond, OK", highway: "I-35"},
+  
+  // Arcadia (visible in screenshot northeast of OKC)
+  {lat: 35.6589, lng: -97.3242, stopover: false, description: "Arcadia, OK", highway: "Route 66"},
+  
+  // Luther area (visible in screenshot)
+  {lat: 35.6612, lng: -97.1956, stopover: false, description: "Luther, OK", highway: "Route 66"},
+  
+  // Wellston area (visible in screenshot)
+  {lat: 35.6889, lng: -97.0597, stopover: false, description: "Wellston, OK", highway: "Route 66"},
+  
+  // Nichols Hills (visible in screenshot, upscale area north of OKC)
+  {lat: 35.5431, lng: -97.5289, stopover: false, description: "Nichols Hills, OK", highway: "I-44"},
+  
+  // Bethany (visible in screenshot northwest of OKC)
+  {lat: 35.5151, lng: -97.6311, stopover: false, description: "Bethany, OK", highway: "Route 66"},
+  
+  // Forest Park area
+  {lat: 35.4989, lng: -97.5456, stopover: false, description: "Forest Park, OK", highway: "Route 66"},
+  
+  // Del City (visible in screenshot southeast of OKC)
+  {lat: 35.4420, lng: -97.4408, stopover: false, description: "Del City, OK", highway: "I-40"},
+  
+  // Spencer (visible in screenshot northeast of OKC)
+  {lat: 35.5273, lng: -97.3789, stopover: false, description: "Spencer, OK", highway: "I-35"},
+  
+  // Choctaw (visible in screenshot east of OKC)
+  {lat: 35.4973, lng: -97.2689, stopover: false, description: "Choctaw, OK", highway: "I-40"},
+  
+  // Harrah (visible in screenshot east of OKC)
+  {lat: 35.4900, lng: -97.1614, stopover: false, description: "Harrah, OK", highway: "Route 66"},
+  
+  // McLoud (visible in screenshot southeast)
+  {lat: 35.4342, lng: -97.0922, stopover: false, description: "McLoud, OK", highway: "Route 66"},
+  
+  // Jones (visible in screenshot northeast of OKC)
+  {lat: 35.5661, lng: -97.2867, stopover: false, description: "Jones, OK", highway: "Route 66"},
+
   {lat: 35.4676, lng: -97.5164, stopover: true, description: "Oklahoma City, OK", highway: "I-44"},
   {lat: 35.4670, lng: -97.5180, stopover: false, description: "Oklahoma City east side", highway: "I-44"},
   {lat: 35.4660, lng: -97.5200, stopover: false, description: "Oklahoma City central east", highway: "I-44"},
