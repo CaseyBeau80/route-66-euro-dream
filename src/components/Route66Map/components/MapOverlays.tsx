@@ -1,7 +1,7 @@
 
 import React from 'react';
 import StaticRoute66Path from './StaticRoute66Path';
-import GeoJSONRoute66Map from './GeoJSONRoute66Map';
+import Route66StaticPolyline from './Route66StaticPolyline';
 
 interface MapOverlaysProps {
   map: google.maps.Map;
@@ -14,8 +14,8 @@ const MapOverlays: React.FC<MapOverlaysProps> = ({
 }) => {
   return (
     <>
-      {/* Route 66 GeoJSON layer with accurate road data */}
-      <GeoJSONRoute66Map map={map} />
+      {/* Main Route 66 polyline with highway markers */}
+      <Route66StaticPolyline map={map} />
       
       {/* Simple static markers for Route 66 reference */}
       <StaticRoute66Path map={map} enhanced={useEnhancedStatic} />

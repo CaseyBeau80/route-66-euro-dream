@@ -92,7 +92,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     
     // Set the map as initialized
     setMapInitialized(true);
-    console.log('🎯 Route 66 map loaded and ready for GeoJSON overlay');
+    console.log('🎯 Route 66 map loaded and ready for static polyline overlay');
   }, [visibleTowns, selectedState, setCurrentZoom, setIsDragging]);
 
   // Show error if Maps failed to load
@@ -120,7 +120,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       {/* Google Map Component */}
       <MapInitializer onLoad={onMapLoad} onClick={handleMapClick}>
-        {/* Route 66 GeoJSON overlay and reference markers */}
+        {/* Route 66 static polyline overlay and reference markers */}
         {mapInitialized && mapRef.current && (
           <MapOverlays map={mapRef.current} useEnhancedStatic={false} />
         )}
