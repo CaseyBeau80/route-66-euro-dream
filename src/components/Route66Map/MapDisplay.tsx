@@ -27,11 +27,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded successfully");
+    console.log("🗺️ Google Map loaded successfully with enhanced Route 66");
     mapRef.current = map;
     setMap(map);
     
-    // Set initial zoom and center
+    // Set initial zoom and center for better Route 66 view
     map.setZoom(5);
     map.setCenter({ lat: 35.5, lng: -100 }); // Center of US for Route 66
     
@@ -85,7 +85,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
       <div className="w-full h-[600px] bg-gray-100 flex items-center justify-center">
         <div className="text-center p-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Route 66 Map...</p>
+          <p className="text-gray-600">Loading Enhanced Route 66 Map...</p>
         </div>
       </div>
     );
@@ -113,7 +113,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ selectedState, onStateClick }) 
         {map && (
           <>
             <Route66StaticPolyline map={map} />
-            <StaticRoute66Path map={map} enhanced={false} />
+            <StaticRoute66Path map={map} enhanced={true} />
             <StaticRoute66Markers map={map} />
           </>
         )}
