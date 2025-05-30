@@ -16,11 +16,13 @@ const Route66Map = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("🗺️ Route66Map: Initializing component");
+    
     // Short delay to ensure the DOM is ready
     const timer = setTimeout(() => {
       try {
         setLoaded(true);
-        console.log("🗺️ Route66Map: Using Google Maps implementation only");
+        console.log("🗺️ Route66Map: Component loaded successfully");
       } catch (err) {
         console.error("Error rendering map:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -31,12 +33,14 @@ const Route66Map = () => {
   }, []); 
 
   const handleRetry = () => {
+    console.log("🔄 Route66Map: Retrying map load");
     setError(null);
     setLoaded(false);
     
     setTimeout(() => {
       try {
         setLoaded(true);
+        console.log("🗺️ Route66Map: Retry successful");
       } catch (err) {
         console.error("Error on retry:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -45,6 +49,7 @@ const Route66Map = () => {
   };
 
   const handleStateClick = (stateId: string, stateName: string) => {
+    console.log(`🎯 Route66Map: State clicked - ${stateName} (${stateId})`);
     setSelectedState(stateId || null);
     
     if (stateId && stateName) {
@@ -60,9 +65,11 @@ const Route66Map = () => {
   };
 
   const handleClearSelection = () => {
+    console.log("🗺️ Route66Map: Clearing state selection");
     setSelectedState(null);
-    console.log("🗺️ Route66Map: Selection cleared");
   };
+
+  console.log("🗺️ Route66Map: Rendering with state", { loaded, error, selectedState });
 
   return (
     <div className="my-8 px-2 sm:px-4 w-full">
@@ -70,15 +77,18 @@ const Route66Map = () => {
       
       {/* Map container */}
       <div className="relative bg-white p-2 sm:p-5 rounded-lg shadow w-full">
-        {/* Map display - Google Maps only */}
-        {loaded ? (
+        {/* Show loading or error state */}
+        {!loaded && (
+          <MapLoading error={error} onRetry={handleRetry} />
+        )}
+        
+        {/* Show map when loaded */}
+        {loaded && (
           <MapDisplay 
             selectedState={selectedState} 
             onStateClick={handleStateClick}
             onClearSelection={handleClearSelection}
           />
-        ) : (
-          <MapLoading error={error} onRetry={handleRetry} />
         )}
       </div>
       

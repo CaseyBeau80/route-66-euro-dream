@@ -1,63 +1,50 @@
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+import React from 'react';
 
 interface MapLoadingProps {
   error: string | null;
   onRetry: () => void;
 }
 
-const MapLoading = ({ error, onRetry }: MapLoadingProps) => {
-  const [loadingTime, setLoadingTime] = useState(0);
-  
-  useEffect(() => {
-    if (error) return; // Don't count time if there's an error
-    
-    const interval = setInterval(() => {
-      setLoadingTime(prev => prev + 1);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [error]);
-  
+const MapLoading: React.FC<MapLoadingProps> = ({ error, onRetry }) => {
+  console.log("⏳ MapLoading: Rendering with error:", error);
+
   if (error) {
     return (
-      <div className="w-full h-[600px] rounded-xl border border-red-300 bg-red-50 flex flex-col items-center justify-center p-4">
-        <p className="text-red-600 text-lg mb-4 text-center">{error}</p>
-        <p className="text-gray-600 mb-4 text-center">
-          The map library may be having compatibility issues. Please try again or refresh the page.
-        </p>
-        <button 
-          onClick={onRetry}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-        >
-          Retry Loading
-        </button>
+      <div className="w-full h-[600px] bg-red-50 flex items-center justify-center rounded-lg border border-red-200">
+        <div className="text-center p-8 max-w-md">
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-red-800 mb-2">
+            Map Loading Error
+          </h3>
+          <p className="text-red-700 mb-4">
+            {error}
+          </p>
+          <button 
+            onClick={onRetry}
+            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
-  const loadingMessages = [
-    "Loading map resources...",
-    "Preparing Route 66 journey...",
-    "Setting up the map...",
-    "Almost there, finalizing map details...",
-    "This is taking longer than expected, please wait..."
-  ];
-  
-  const messageIndex = Math.min(Math.floor(loadingTime / 3), loadingMessages.length - 1);
-
   return (
-    <div className="w-full h-[600px] rounded-xl relative">
-      <Skeleton className="w-full h-full rounded-xl" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-gray-500 mb-2">{loadingMessages[messageIndex]}</p>
-        <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-        {loadingTime > 10 && (
-          <p className="text-gray-500 mt-4 text-sm max-w-md text-center">
-            Map loading is taking longer than usual. This might be due to slow connection or resource conflicts.
-          </p>
-        )}
+    <div className="w-full h-[600px] bg-blue-50 flex items-center justify-center rounded-lg border border-blue-200">
+      <div className="text-center p-8">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+        <h3 className="text-xl font-semibold text-blue-800 mb-2">
+          Loading Route 66 Map
+        </h3>
+        <p className="text-blue-700">
+          Please wait while we prepare your historic highway adventure...
+        </p>
       </div>
     </div>
   );
