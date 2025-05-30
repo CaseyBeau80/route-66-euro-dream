@@ -1,33 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { WeatherService } from '../services/WeatherService';
-import { Cloud, Droplets, Wind, AlertCircle, Calendar } from 'lucide-react';
-
-interface WeatherWidgetProps {
-  lat: number;
-  lng: number;
-  cityName: string;
-  compact?: boolean;
-}
-
-interface ForecastDay {
-  date: string;
-  temperature: {
-    high: number;
-    low: number;
-  };
-  description: string;
-  icon: string;
-}
-
-interface WeatherData {
-  temperature: number;
-  description: string;
-  icon: string;
-  humidity: number;
-  windSpeed: number;
-  cityName: string;
-  forecast?: ForecastDay[];
-}
+import { Cloud, AlertCircle } from 'lucide-react';
+import { WeatherWidgetProps, WeatherData } from './weather/WeatherTypes';
+import WeatherDisplay from './weather/WeatherDisplay';
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ 
   lat, 
@@ -118,112 +94,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
     );
   }
 
-  // Custom thermometer with gradient
-  const ThermometerWithGradient = () => (
-    <div className="group cursor-pointer relative">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="w-6 h-6 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-md"
-      >
-        <defs>
-          <linearGradient id="thermometer-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#dc2626" />
-            <stop offset="30%" stopColor="#ea580c" />
-            <stop offset="60%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#fbbf24" />
-          </linearGradient>
-        </defs>
-        {/* Thermometer bulb */}
-        <circle cx="12" cy="17" r="3" fill="url(#thermometer-gradient)" stroke="#dc2626" />
-        {/* Thermometer tube */}
-        <rect x="10" y="3" width="4" height="14" rx="2" fill="url(#thermometer-gradient)" stroke="#dc2626" />
-        {/* Temperature marks */}
-        <path d="M8 8h2M8 11h2M8 14h2" stroke="#dc2626" strokeWidth="1.5" />
-      </svg>
-    </div>
-  );
-
-  return (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-4 min-w-[320px] border border-blue-200">
-      {/* Header with centered city name and weather icon */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex-1 text-center">
-          <h4 className="font-bold text-lg text-gray-800">{weather.cityName}</h4>
-        </div>
-        <div className="flex items-center">
-          <img 
-            src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-            alt={weather.description}
-            className="w-12 h-12"
-          />
-        </div>
-      </div>
-      
-      {/* Main temperature display with gradient thermometer */}
-      <div className="text-center mb-3">
-        <div className="flex items-center justify-center gap-3 mb-1">
-          <ThermometerWithGradient />
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-600 font-medium">Currently</span>
-            <span className="text-3xl font-bold text-gray-900">{weather.temperature}°F</span>
-          </div>
-        </div>
-        <p className="text-sm text-gray-600 capitalize font-medium">{weather.description}</p>
-      </div>
-      
-      {/* Weather details */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200 mb-4">
-        <div className="flex items-center gap-2 bg-white rounded-md px-2 py-1">
-          <Droplets className="w-4 h-4 text-blue-500" />
-          <div className="flex flex-col">
-            <span className="text-xs text-gray-500">Humidity</span>
-            <span className="text-sm font-semibold text-gray-800">{weather.humidity}%</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 bg-white rounded-md px-2 py-1">
-          <Wind className="w-4 h-4 text-green-500" />
-          <div className="flex flex-col">
-            <span className="text-xs text-gray-500">Wind</span>
-            <span className="text-sm font-semibold text-gray-800">{weather.windSpeed} mph</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3-Day Forecast - Horizontal Layout */}
-      {weather.forecast && weather.forecast.length > 0 && (
-        <div className="border-t border-blue-200 pt-3">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-4 h-4 text-blue-600" />
-            <h5 className="font-semibold text-sm text-gray-800">3-Day Forecast</h5>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {weather.forecast.map((day, index) => (
-              <div key={index} className="flex flex-col items-center bg-white rounded-md px-2 py-3">
-                <p className="text-xs font-medium text-gray-800 mb-1">{day.date}</p>
-                <img 
-                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
-                  alt={day.description}
-                  className="w-8 h-8 mb-1"
-                />
-                <p className="text-xs text-gray-500 capitalize text-center mb-2">{day.description}</p>
-                <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold text-gray-900">{day.temperature.high}°</span>
-                  <span className="text-xs text-gray-500">{day.temperature.low}°</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <WeatherDisplay weather={weather} />;
 };
 
 export default WeatherWidget;
