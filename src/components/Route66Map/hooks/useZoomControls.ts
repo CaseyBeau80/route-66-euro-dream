@@ -5,14 +5,16 @@ interface UseZoomControlsProps {
   minZoom: number;
   maxZoom: number;
   zoomStep: number;
+  initialZoom?: number;
 }
 
 export const useZoomControls = ({ 
   minZoom, 
   maxZoom,
-  zoomStep 
+  zoomStep,
+  initialZoom = 1
 }: UseZoomControlsProps) => {
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(initialZoom);
   const [zoomActivity, setZoomActivity] = useState<boolean>(false);
   const [isPinching, setIsPinching] = useState(false);
 
@@ -26,7 +28,7 @@ export const useZoomControls = ({
     }
   }, [zoomActivity]);
   
-  // Zoom handlers with debounce to prevent rapid updates
+  // Zoom handlers with proper boundary checking
   const handleZoomIn = useCallback(() => {
     setZoom(prevZoom => {
       const newZoom = Math.min(prevZoom + zoomStep, maxZoom);
@@ -46,9 +48,11 @@ export const useZoomControls = ({
   }, [minZoom, zoomStep]);
   
   const handleZoomChange = useCallback((newZoom: number) => {
-    console.log('Zoom changed to:', newZoom.toFixed(2));
+    // Ensure zoom is within bounds
+    const clampedZoom = Math.min(Math.max(newZoom, minZoom), maxZoom);
+    console.log('Zoom changed to:', clampedZoom.toFixed(2));
     setIsPinching(true);
-    setZoom(newZoom);
+    setZoom(clampedZoom);
     setZoomActivity(true);
     
     // Reset isPinching after a short delay
@@ -57,7 +61,14 @@ export const useZoomControls = ({
     }, 1000);
     
     return () => clearTimeout(timeout);
-  }, []);
+  }, [minZoom, maxZoom]);
+
+  // Set zoom to a specific value
+  const setZoomLevel = useCallback((newZoom: number) => {
+    const clampedZoom = Math.min(Math.max(newZoom, minZoom), maxZoom);
+    setZoom(clampedZoom);
+    setZoomActivity(true);
+  }, [minZoom, maxZoom]);
 
   return {
     zoom,
@@ -67,6 +78,7 @@ export const useZoomControls = ({
     setZoomActivity,
     handleZoomIn,
     handleZoomOut,
-    handleZoomChange
+    handleZoomChange,
+    setZoomLevel
   };
 };

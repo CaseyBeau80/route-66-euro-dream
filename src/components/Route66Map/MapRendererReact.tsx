@@ -6,6 +6,7 @@ import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import InteractionIndicators from "./MapElements/InteractionIndicators";
 import MapContent from "./MapElements/MapContent";
+import ZoomControls from "./MapElements/ZoomControls";
 import { useZoomControls } from "./hooks/useZoomControls";
 import { route66Towns } from "@/types/route66"; 
 import { transformTownsToSvgPoints } from "@/utils/mapProjection";
@@ -27,8 +28,9 @@ const MapRendererReact = ({
 }: MapRendererReactProps) => {
   // Zoom configuration
   const MIN_ZOOM = 1;
-  const MAX_ZOOM = 5; // Increased max zoom for better detail on mobile
+  const MAX_ZOOM = 5;
   const ZOOM_STEP = 0.5;
+  const INITIAL_ZOOM = 1;
   
   // Transform the lat/lng coordinates to SVG coordinates
   const majorCities = transformTownsToSvgPoints(route66Towns);
@@ -43,7 +45,8 @@ const MapRendererReact = ({
   } = useZoomControls({
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
-    zoomStep: ZOOM_STEP
+    zoomStep: ZOOM_STEP,
+    initialZoom: INITIAL_ZOOM
   });
   
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -76,6 +79,15 @@ const MapRendererReact = ({
           onClearSelection={onClearSelection} 
         />
       )}
+      
+      {/* Zoom Controls */}
+      <ZoomControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        currentZoom={zoom}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+      />
       
       <InteractionIndicators 
         isPinching={isPinching}
