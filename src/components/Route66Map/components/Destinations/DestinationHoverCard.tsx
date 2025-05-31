@@ -26,29 +26,29 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   };
 
   return (
-    <Card className="w-80 max-w-sm shadow-lg border-2 border-amber-700 bg-gradient-to-b from-amber-50 to-amber-100">
+    <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200">
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Header with vintage Route 66 styling */}
-          <div className="text-center border-b-2 border-amber-600 pb-2">
+          <div className="text-center border-b-3 border-orange-700 pb-2">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="w-8 h-6 bg-amber-700 text-amber-100 rounded text-xs font-bold flex items-center justify-center">
+              <div className="w-10 h-7 bg-orange-800 text-orange-50 rounded-md text-sm font-black flex items-center justify-center shadow-md">
                 66
               </div>
-              <h3 className="text-lg font-bold text-amber-900">Destination</h3>
+              <h3 className="text-xl font-black text-orange-900 uppercase tracking-wide">Destination</h3>
             </div>
           </div>
 
           {/* City and State */}
-          <div className="text-center">
-            <h4 className="text-xl font-bold text-amber-900 mb-1">{cityName}</h4>
-            <p className="text-amber-700 font-semibold">{stateName}</p>
+          <div className="text-center bg-gradient-to-r from-orange-200 to-orange-300 py-3 px-4 rounded-lg border-2 border-orange-600 shadow-inner">
+            <h4 className="text-2xl font-black text-orange-900 mb-1 uppercase tracking-wide">{cityName}</h4>
+            <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">{stateName}</p>
           </div>
 
           {/* Description if available */}
           {destination.description && (
-            <div className="text-sm text-amber-800 bg-amber-50 p-2 rounded border border-amber-200">
-              <p>{destination.description}</p>
+            <div className="text-sm text-orange-900 bg-orange-100 p-3 rounded-lg border-2 border-orange-400 shadow-inner">
+              <p className="font-medium leading-relaxed">{destination.description}</p>
             </div>
           )}
 
@@ -62,7 +62,7 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
           {/* Highway designation if available */}
           {destination.highway_designation && (
             <div className="text-center">
-              <span className="inline-block bg-amber-700 text-amber-100 px-2 py-1 rounded text-xs font-semibold">
+              <span className="inline-block bg-orange-800 text-orange-100 px-3 py-2 rounded-full text-sm font-black uppercase tracking-wide shadow-lg border-2 border-orange-900">
                 {destination.highway_designation}
               </span>
             </div>
@@ -73,7 +73,7 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
             <div className="text-center pt-2">
               <Button 
                 onClick={handleVisitCityPage}
-                className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-full font-semibold transition-colors duration-200 flex items-center gap-2 mx-auto"
+                className="bg-red-700 hover:bg-red-800 text-white text-sm px-6 py-3 rounded-full font-black transition-all duration-200 flex items-center gap-2 mx-auto shadow-lg border-2 border-red-900 uppercase tracking-wide transform hover:scale-105"
               >
                 <ExternalLink className="w-4 h-4" />
                 Visit City Page
@@ -82,14 +82,14 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
           )}
 
           {/* Coordinates */}
-          <div className="text-xs text-amber-600 text-center border-t border-amber-300 pt-2">
-            <p>{destination.latitude.toFixed(4)}°N, {Math.abs(destination.longitude).toFixed(4)}°W</p>
+          <div className="text-xs text-orange-700 text-center border-t-2 border-orange-400 pt-2">
+            <p className="font-bold">{destination.latitude.toFixed(4)}°N, {Math.abs(destination.longitude).toFixed(4)}°W</p>
           </div>
 
           {/* Vintage Route 66 footer */}
           <div className="text-center">
-            <div className="inline-block bg-gradient-to-r from-amber-700 to-amber-800 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md">
-              Historic Route 66 Stop
+            <div className="inline-block bg-gradient-to-r from-orange-800 via-orange-900 to-orange-800 text-orange-100 px-4 py-2 rounded-full text-sm font-black shadow-xl border-2 border-orange-950 uppercase tracking-wider">
+              🏛️ Historic Route 66 Stop 🏛️
             </div>
           </div>
         </div>

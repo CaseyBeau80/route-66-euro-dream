@@ -30,12 +30,12 @@ const FunFactsTile: React.FC<FunFactsTileProps> = ({ destination }) => {
   const facts = generateFunFacts(destination);
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-2 border-green-300 hover:shadow-lg transition-all duration-200">
+    <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-2 border-orange-500 hover:shadow-lg transition-all duration-200 hover:border-orange-600">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-sm font-bold text-green-800 flex items-center justify-between">
+        <CardTitle className="text-sm font-bold text-orange-900 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4" />
             Fun Facts
@@ -52,8 +52,8 @@ const FunFactsTile: React.FC<FunFactsTileProps> = ({ destination }) => {
           <div className="space-y-2">
             {facts.map((fact, index) => (
               <div key={index} className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="text-xs text-green-700 leading-relaxed">{fact}</p>
+                <div className="w-1.5 h-1.5 bg-orange-700 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-xs text-orange-800 leading-relaxed font-medium">{fact}</p>
               </div>
             ))}
           </div>

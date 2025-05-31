@@ -4,6 +4,7 @@ import UltraSmoothRouteRenderer from '../services/UltraSmoothRouteRenderer';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
+import StateHighlighting from './StateHighlighting';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -101,6 +102,11 @@ const MapCore: React.FC<MapCoreProps> = ({
         className="w-full h-full"
         style={{ minHeight: '400px' }}
       />
+      
+      {/* Orange State Highlighting */}
+      {mapRef.current && isMapReady && (
+        <StateHighlighting map={mapRef.current} />
+      )}
       
       {/* Route Renderer - Force re-mount when map is ready */}
       {mapRef.current && isMapReady && (

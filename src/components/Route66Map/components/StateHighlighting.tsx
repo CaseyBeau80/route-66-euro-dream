@@ -24,7 +24,7 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Route 66 states to highlight
         const route66States = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Missouri', 'Illinois'];
         
-        // Set style to highlight only Route 66 states with 5% opacity and brighter borders
+        // Set style to highlight only Route 66 states with enhanced orange styling
         highlightLayer.setStyle((feature) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
@@ -34,11 +34,11 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
           
           if (isRoute66State) {
             return {
-              fillColor: '#f97316', // Orange color for Route 66 theme
-              fillOpacity: 0.05, // 5% opacity as requested
-              strokeColor: '#f97316',
-              strokeOpacity: 0.6, // Increased from 0.2 to 0.6 for brighter borders
-              strokeWeight: 2, // Increased from 1 to 2 for more visible borders
+              fillColor: '#ea580c', // Enhanced orange color (orange-600)
+              fillOpacity: 0.08, // Slightly increased opacity for better visibility
+              strokeColor: '#c2410c', // Darker orange border (orange-700)
+              strokeOpacity: 0.8, // High opacity for clear borders
+              strokeWeight: 2.5, // Increased border weight for better visibility
               visible: true
             };
           } else {
@@ -52,7 +52,7 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Add the highlighting layer to the map
         highlightLayer.setMap(map);
         
-        console.log('✅ Route 66 state highlighting added with 5% opacity and brighter borders');
+        console.log('✅ Route 66 state highlighting added with enhanced orange styling');
       } catch (error) {
         console.error('Error loading state highlighting data:', error);
       }

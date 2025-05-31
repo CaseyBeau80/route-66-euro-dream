@@ -32,12 +32,12 @@ const EventsCalendarTile: React.FC<EventsCalendarTileProps> = ({ destination }) 
   ];
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-300 hover:shadow-lg transition-all duration-200">
+    <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-2 border-orange-500 hover:shadow-lg transition-all duration-200 hover:border-orange-600">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-sm font-bold text-blue-800 flex items-center justify-between">
+        <CardTitle className="text-sm font-bold text-orange-900 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Events
@@ -53,19 +53,19 @@ const EventsCalendarTile: React.FC<EventsCalendarTileProps> = ({ destination }) 
         <CardContent className="pt-0">
           <div className="space-y-3">
             {mockEvents.map((event, index) => (
-              <div key={index} className="bg-white rounded-lg p-2 border border-blue-200">
+              <div key={index} className="bg-orange-50 rounded-lg p-2 border border-orange-400">
                 <div className="flex items-start gap-2 mb-1">
-                  <MapPin className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <MapPin className="w-3 h-3 text-orange-700 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h4 className="text-xs font-semibold text-blue-900">{event.title}</h4>
-                    <p className="text-xs text-blue-600 font-medium">{event.date}</p>
+                    <h4 className="text-xs font-semibold text-orange-900">{event.title}</h4>
+                    <p className="text-xs text-orange-700 font-medium">{event.date}</p>
                   </div>
                 </div>
-                <p className="text-xs text-blue-700 leading-relaxed ml-5">{event.description}</p>
+                <p className="text-xs text-orange-800 leading-relaxed ml-5">{event.description}</p>
               </div>
             ))}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
-              <p className="text-xs text-blue-600 italic">More events coming soon for {cityName}!</p>
+            <div className="bg-orange-200 border border-orange-500 rounded-lg p-2 text-center">
+              <p className="text-xs text-orange-800 font-medium italic">More events coming soon for {cityName}!</p>
             </div>
           </div>
         </CardContent>
