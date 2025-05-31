@@ -12,6 +12,11 @@ const CityNavigation: React.FC = () => {
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
   const { waypoints, isLoading } = useSupabaseRoute66();
 
+  const handleMainToggle = () => {
+    console.log('🗺️ Main navigation toggle clicked, current state:', isExpanded);
+    setIsExpanded(!isExpanded);
+  };
+
   // Filter for major stops only and group by state
   const majorCities = waypoints.filter(waypoint => waypoint.is_major_stop);
   
@@ -30,6 +35,7 @@ const CityNavigation: React.FC = () => {
   const sortedStates = stateOrder.filter(state => citiesByState[state]);
 
   const toggleStateExpansion = (state: string) => {
+    console.log('🏛️ State toggle clicked:', state, 'currently expanded:', expandedStates.has(state));
     const newExpandedStates = new Set(expandedStates);
     if (newExpandedStates.has(state)) {
       newExpandedStates.delete(state);
@@ -37,6 +43,7 @@ const CityNavigation: React.FC = () => {
       newExpandedStates.add(state);
     }
     setExpandedStates(newExpandedStates);
+    console.log('🏛️ New expanded states:', Array.from(newExpandedStates));
   };
 
   const handleCityClick = (waypoint: any) => {
@@ -44,13 +51,23 @@ const CityNavigation: React.FC = () => {
     // Navigation removed - cities in navigation panel no longer navigate to city pages
   };
 
-  if (isLoading) return null;
+  if (isLoading) {
+    console.log('🗺️ CityNavigation: Still loading waypoints...');
+    return null;
+  }
+
+  console.log('🗺️ CityNavigation render:', {
+    isExpanded,
+    expandedStates: Array.from(expandedStates),
+    majorCitiesCount: majorCities.length,
+    statesCount: sortedStates.length
+  });
 
   return (
     <Card className="absolute top-4 right-4 z-10 w-80 bg-white shadow-lg border border-amber-300">
       <CardHeader 
         className="pb-3 cursor-pointer hover:bg-amber-50 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleMainToggle}
       >
         <CardTitle className="flex items-center justify-between text-amber-800">
           <div className="flex items-center gap-2">
@@ -73,24 +90,26 @@ const CityNavigation: React.FC = () => {
               const isStateExpanded = expandedStates.has(state);
               
               return (
-                <Collapsible key={state} open={isStateExpanded} onOpenChange={() => toggleStateExpansion(state)}>
-                  <CollapsibleTrigger className="w-full">
-                    <div className="flex items-center justify-between w-full p-2 hover:bg-amber-100 rounded-md transition-colors">
-                      <div className="flex items-center gap-2">
-                        {isStateExpanded ? (
-                          <ChevronDown className="w-4 h-4 text-amber-700" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-amber-700" />
-                        )}
-                        <span className="font-semibold text-amber-800 text-left">{state}</span>
-                      </div>
-                      <span className="text-xs text-amber-600 bg-amber-200 px-2 py-1 rounded-full">
-                        {cities.length}
-                      </span>
+                <div key={state}>
+                  <button
+                    className="w-full flex items-center justify-between p-2 hover:bg-amber-100 rounded-md transition-colors"
+                    onClick={() => toggleStateExpansion(state)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {isStateExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-amber-700" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-amber-700" />
+                      )}
+                      <span className="font-semibold text-amber-800 text-left">{state}</span>
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-6">
-                    <div className="space-y-1 pb-2">
+                    <span className="text-xs text-amber-600 bg-amber-200 px-2 py-1 rounded-full">
+                      {cities.length}
+                    </span>
+                  </button>
+                  
+                  {isStateExpanded && (
+                    <div className="pl-6 space-y-1 pb-2">
                       {cities.map((city) => {
                         const cityName = extractCityName(city.name);
                         return (
@@ -107,8 +126,8 @@ const CityNavigation: React.FC = () => {
                         );
                       })}
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
               );
             })}
           </div>
