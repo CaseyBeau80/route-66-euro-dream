@@ -11,65 +11,72 @@ interface HiddenGemCustomOverlayProps {
   onWebsiteClick: (website: string) => void;
 }
 
-class CustomOverlay extends google.maps.OverlayView {
-  private position: google.maps.LatLng;
-  private container: HTMLDivElement | null = null;
-  private content: React.ReactNode;
-
-  constructor(position: google.maps.LatLng, content: React.ReactNode) {
-    super();
-    this.position = position;
-    this.content = content;
-  }
-
-  onAdd() {
-    this.container = document.createElement('div');
-    this.container.style.position = 'absolute';
-    this.container.style.zIndex = '9999';
-    
-    const panes = this.getPanes();
-    if (panes) {
-      panes.overlayMouseTarget.appendChild(this.container);
-    }
-  }
-
-  draw() {
-    if (!this.container) return;
-
-    const projection = this.getProjection();
-    const point = projection.fromLatLngToDivPixel(this.position);
-
-    if (point) {
-      this.container.style.left = point.x + 'px';
-      this.container.style.top = (point.y - 80) + 'px'; // Position 80px above the marker
-      this.container.style.transform = 'translateX(-50%)'; // Center horizontally
-    }
-  }
-
-  onRemove() {
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
-      this.container = null;
-    }
-  }
-
-  getContainer() {
-    return this.container;
-  }
-}
-
 const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
   gem,
   map,
   onClose,
   onWebsiteClick
 }) => {
-  const overlayRef = useRef<CustomOverlay | null>(null);
+  const overlayRef = useRef<any>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Check if Google Maps API is loaded
+    if (!window.google || !window.google.maps) {
+      console.error('Google Maps API not loaded');
+      return;
+    }
+
     console.log(`🎯 Creating custom overlay for ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
     
+    // Define the CustomOverlay class inside the useEffect to ensure google is available
+    class CustomOverlay extends google.maps.OverlayView {
+      private position: google.maps.LatLng;
+      private container: HTMLDivElement | null = null;
+      private content: React.ReactNode;
+
+      constructor(position: google.maps.LatLng, content: React.ReactNode) {
+        super();
+        this.position = position;
+        this.content = content;
+      }
+
+      onAdd() {
+        this.container = document.createElement('div');
+        this.container.style.position = 'absolute';
+        this.container.style.zIndex = '9999';
+        
+        const panes = this.getPanes();
+        if (panes) {
+          panes.overlayMouseTarget.appendChild(this.container);
+        }
+      }
+
+      draw() {
+        if (!this.container) return;
+
+        const projection = this.getProjection();
+        const point = projection.fromLatLngToDivPixel(this.position);
+
+        if (point) {
+          this.container.style.left = point.x + 'px';
+          this.container.style.top = (point.y - 80) + 'px'; // Position 80px above the marker
+          this.container.style.transform = 'translateX(-50%)'; // Center horizontally
+        }
+      }
+
+      onRemove() {
+        if (this.container && this.container.parentNode) {
+          this.container.parentNode.removeChild(this.container);
+          this.container = null;
+        }
+      }
+
+      getContainer() {
+        return this.container;
+      }
+    }
+
     const position = new google.maps.LatLng(Number(gem.latitude), Number(gem.longitude));
     
     const overlayContent = (
