@@ -1,14 +1,16 @@
 
-import { useEffect } from 'react';
-import Route66Markers from './markers/Route66Markers';
+import React from 'react';
 
 interface StaticRoute66PathProps {
   map: google.maps.Map;
-  enhanced?: boolean; // Whether to show enhanced static route
+  enhanced?: boolean;
 }
 
+// This component is completely disabled to prevent route conflicts
+// All route rendering is now handled by Route66StaticPolyline component
 const StaticRoute66Path = ({ map, enhanced = false }: StaticRoute66PathProps) => {
-  return <Route66Markers map={map} enhanced={enhanced} />;
+  console.log('⚠️ StaticRoute66Path: Component completely disabled to prevent conflicts with single Route66StaticPolyline');
+  return null;
 };
 
 export default StaticRoute66Path;
