@@ -4,46 +4,47 @@ export const createVintageRoute66Icon = () => {
   const iconSize = 36; // Increased from 24 to 36
   const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-      <!-- Enhanced US Highway shield shape with more pronounced curvature -->
+      <!-- Authentic US Highway shield shape - proper shield profile -->
       <path d="M18,2 
-               L29,2 
-               C31,2 33,4 33,6
-               L33,14 
-               C33,18 31,22 28,25
-               C25,28 22,30 18,32
-               C14,30 11,28 8,25
-               C5,22 3,18 3,14
-               L3,6
-               C3,4 5,2 7,2
+               L30,2 
+               C32,2 34,4 34,6
+               L34,12
+               C34,16 32,20 29,24
+               C26,28 22,31 18,34
+               C14,31 10,28 7,24
+               C4,20 2,16 2,12
+               L2,6
+               C2,4 4,2 6,2
                L18,2 Z" 
             fill="#FFFFFF" 
             stroke="#000000" 
-            stroke-width="1.5"/>
+            stroke-width="2"/>
       
-      <!-- ROUTE text -->
-      <text x="18" y="11" text-anchor="middle" 
-            fill="#000000" 
+      <!-- Red banner for ROUTE text -->
+      <rect x="3" y="3" width="30" height="8" 
+            fill="#CC0000" 
+            stroke="#000000" 
+            stroke-width="0.5"/>
+      
+      <!-- ROUTE text in white on red banner -->
+      <text x="18" y="8.5" text-anchor="middle" 
+            fill="#FFFFFF" 
             font-family="Arial, sans-serif" 
-            font-size="4.2" 
+            font-size="3.8" 
             font-weight="bold">ROUTE</text>
       
-      <!-- Horizontal line below ROUTE -->
-      <line x1="8" y1="13" x2="28" y2="13" 
-            stroke="#000000" 
-            stroke-width="0.8"/>
-      
-      <!-- US text -->
-      <text x="18" y="18" text-anchor="middle" 
+      <!-- US text in black -->
+      <text x="18" y="17" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
             font-size="3.2" 
             font-weight="bold">US</text>
       
-      <!-- 66 large numbers -->
-      <text x="18" y="27" text-anchor="middle" 
+      <!-- 66 large numbers in black -->
+      <text x="18" y="28" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="8.5" 
+            font-size="10" 
             font-weight="bold">66</text>
     </svg>
   `;
