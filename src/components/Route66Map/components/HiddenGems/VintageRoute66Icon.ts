@@ -1,12 +1,11 @@
 
-
 export const createVintageRoute66Icon = () => {
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="42" viewBox="0 0 36 42">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="28" viewBox="0 0 24 28">
         <defs>
           <filter id="vintageShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.4"/>
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.4"/>
           </filter>
           <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#F5F2EA;stop-opacity:1" />
@@ -19,42 +18,41 @@ export const createVintageRoute66Icon = () => {
         </defs>
         
         <!-- Shield Background -->
-        <path d="M18 2 L32 8 L32 22 C32 28 26 34 18 40 C10 34 4 28 4 22 L4 8 Z" 
+        <path d="M12 1 L21 5 L21 15 C21 19 17 23 12 27 C7 23 3 19 3 15 L3 5 Z" 
               fill="url(#shieldGradient)" 
               stroke="#2C5F41" 
-              stroke-width="2" 
+              stroke-width="1.5" 
               filter="url(#vintageShadow)"/>
         
         <!-- Route 66 Banner -->
-        <rect x="6" y="12" width="24" height="8" rx="2" 
+        <rect x="4" y="8" width="16" height="5" rx="1" 
               fill="url(#route66Gradient)" 
               stroke="#1E3A5F" 
-              stroke-width="1"/>
+              stroke-width="0.8"/>
         
         <!-- Route 66 Text -->
-        <text x="18" y="17.5" text-anchor="middle" 
+        <text x="12" y="11.5" text-anchor="middle" 
               fill="#F5F2EA" 
               font-family="Arial Black, sans-serif" 
-              font-size="7" 
+              font-size="4.5" 
               font-weight="900">ROUTE</text>
         
         <!-- Large 66 -->
-        <text x="18" y="30" text-anchor="middle" 
+        <text x="12" y="19" text-anchor="middle" 
               fill="#D92121" 
               font-family="Arial Black, sans-serif" 
-              font-size="12" 
+              font-size="8" 
               font-weight="900" 
               stroke="#1E3A5F" 
-              stroke-width="0.5">66</text>
+              stroke-width="0.3">66</text>
         
         <!-- Hidden Gem Star -->
-        <circle cx="26" cy="10" r="4" fill="#D92121" stroke="#F5F2EA" stroke-width="1"/>
-        <path d="M26,7 L26.8,9.2 L29,9.2 L27.1,10.6 L27.9,12.8 L26,11.4 L24.1,12.8 L24.9,10.6 L23,9.2 L25.2,9.2 Z" 
+        <circle cx="17" cy="6" r="2.5" fill="#D92121" stroke="#F5F2EA" stroke-width="0.8"/>
+        <path d="M17,4.5 L17.5,6 L19,6 L17.8,6.8 L18.3,8.3 L17,7.5 L15.7,8.3 L16.2,6.8 L15,6 L16.5,6 Z" 
               fill="#F5F2EA"/>
       </svg>
     `)}`,
-    scaledSize: new google.maps.Size(36, 42),
-    anchor: new google.maps.Point(18, 42)
+    scaledSize: new google.maps.Size(24, 28),
+    anchor: new google.maps.Point(12, 28)
   };
 };
-
