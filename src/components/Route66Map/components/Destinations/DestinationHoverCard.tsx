@@ -15,10 +15,39 @@ interface DestinationHoverCardProps {
   destination: Route66Waypoint;
 }
 
+// Population data for Route 66 cities
+const cityPopulations: Record<string, string> = {
+  'Chicago': '2,746,388',
+  'Joliet': '150,362',
+  'Pontiac': '11,150',
+  'Springfield': '114,394',
+  'St. Louis': '300,576',
+  'Springfield': '169,176', // Springfield, MO
+  'Joplin': '51,762',
+  'Tulsa': '413,066',
+  'Oklahoma City': '695,724',
+  'Elk City': '11,544',
+  'Amarillo': '200,393',
+  'Tucumcari': '4,976',
+  'Albuquerque': '564,559',
+  'Gallup': '22,580',
+  'Holbrook': '5,053',
+  'Flagstaff': '76,831',
+  'Seligman': '456',
+  'Kingman': '32,689',
+  'Needles': '4,931',
+  'Barstow': '25,415',
+  'San Bernardino': '222,101',
+  'Pasadena': '138,699',
+  'Los Angeles': '3,898,747',
+  'Santa Monica': '93,076'
+};
+
 const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination }) => {
   const navigate = useNavigate();
   const cityName = extractCityName(destination.name);
   const stateName = destination.state;
+  const population = cityPopulations[cityName] || 'Population data unavailable';
 
   const handleVisitCityPage = () => {
     const cityUrl = generateCityUrl(destination);
@@ -29,10 +58,14 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
     <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200 max-h-[85vh] overflow-hidden">
       <CardContent className="p-4 overflow-y-auto max-h-[calc(85vh-2rem)]">
         <div className="space-y-3">
-          {/* Clean City and State Header - No outline box */}
+          {/* City, State and Population Header */}
           <div className="text-center py-3 px-4">
-            <h4 className="text-2xl font-black text-orange-900 mb-1 uppercase tracking-wide">{cityName}</h4>
-            <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">{stateName}</p>
+            <h4 className="text-2xl font-black text-orange-900 mb-1 uppercase tracking-wide">
+              {cityName}, {stateName}
+            </h4>
+            <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">
+              Population: {population}
+            </p>
           </div>
 
           {/* Interactive Tiles */}
