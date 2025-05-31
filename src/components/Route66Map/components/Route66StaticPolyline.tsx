@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
+import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 
 interface Route66StaticPolylineProps {
   map: google.maps.Map;
@@ -7,53 +8,31 @@ interface Route66StaticPolylineProps {
 
 const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const centerLineRef = useRef<google.maps.Polyline | null>(null);
+  const roadEdge1Ref = useRef<google.maps.Polyline | null>(null);
+  const roadEdge2Ref = useRef<google.maps.Polyline | null>(null);
+  
+  const { waypoints, isLoading, error } = useSupabaseRoute66();
 
   useEffect(() => {
-    if (!map) {
-      console.log("❌ No map provided to Route66StaticPolyline");
+    if (!map || isLoading || error || waypoints.length === 0) {
+      if (error) {
+        console.log("❌ Error loading waypoints for textured route:", error);
+      }
       return;
     }
 
-    console.log("🗺️ Creating Route 66 polyline with realistic road texture...");
+    console.log("🗺️ Creating textured Route 66 polyline with realistic road appearance and yellow dashed center line...");
 
-    // Simplified but accurate Route 66 path with key waypoints
-    const route66Path = [
-      // Illinois
-      { lat: 41.8781, lng: -87.6298 }, // Chicago - Start
-      { lat: 41.5250, lng: -88.0817 }, // Joliet
-      { lat: 39.8003, lng: -89.6437 }, // Springfield, IL
-      
-      // Missouri  
-      { lat: 38.7067, lng: -90.3990 }, // St. Louis
-      { lat: 37.2090, lng: -93.2923 }, // Springfield, MO
-      { lat: 37.0842, lng: -94.5133 }, // Joplin
-      
-      // Oklahoma
-      { lat: 36.1540, lng: -95.9928 }, // Tulsa
-      { lat: 35.4676, lng: -97.5164 }, // Oklahoma City
-      { lat: 35.5089, lng: -98.9680 }, // Elk City
-      
-      // Texas
-      { lat: 35.2220, lng: -101.8313 }, // Amarillo
-      
-      // New Mexico
-      { lat: 35.1245, lng: -103.7207 }, // Tucumcari
-      { lat: 35.0844, lng: -106.6504 }, // Albuquerque
-      { lat: 35.0820, lng: -108.7426 }, // Gallup
-      
-      // Arizona
-      { lat: 35.0819, lng: -110.0298 }, // Holbrook
-      { lat: 35.1983, lng: -111.6513 }, // Flagstaff
-      { lat: 35.2262, lng: -112.8871 }, // Seligman
-      { lat: 35.0222, lng: -114.3716 }, // Kingman
-      
-      // California
-      { lat: 34.8409, lng: -114.6160 }, // Needles
-      { lat: 34.8987, lng: -117.0178 }, // Barstow
-      { lat: 34.1066, lng: -117.5931 }, // San Bernardino
-      { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-      { lat: 34.0195, lng: -118.4912 }, // Santa Monica - End
-    ];
+    // Convert Supabase waypoints to Google Maps format
+    const route66Path = waypoints
+      .sort((a, b) => a.sequence_order - b.sequence_order)
+      .map(waypoint => ({
+        lat: Number(waypoint.latitude),
+        lng: Number(waypoint.longitude)
+      }));
+
+    console.log(`🛣️ Using ${route66Path.length} waypoints from Supabase for textured route`);
 
     // Create a custom textured road icon for the polyline
     const createAsphaltTexture = () => {
@@ -67,6 +46,27 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         strokeOpacity: 0.6
       };
     };
+
+    // Create weathered road edges for depth
+    const roadEdgePolyline2 = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#404040',
+      strokeOpacity: 0.3,
+      strokeWeight: 12,
+      zIndex: 998,
+      clickable: false
+    });
+
+    const roadEdgePolyline1 = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#1A1A1A',
+      strokeOpacity: 0.4,
+      strokeWeight: 10,
+      zIndex: 999,
+      clickable: false
+    });
 
     // Create the main Route 66 polyline with realistic asphalt appearance
     const route66Polyline = new google.maps.Polyline({
@@ -84,11 +84,11 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       }]
     });
 
-    // Create realistic dashed yellow center line to match screenshot
+    // Create realistic dashed yellow center line - this is the key feature
     const centerLinePolyline = new google.maps.Polyline({
       path: route66Path,
       geodesic: true,
-      strokeColor: '#FFD700',
+      strokeColor: '#FFD700', // Bright yellow for visibility
       strokeOpacity: 0,
       strokeWeight: 0,
       zIndex: 1001,
@@ -102,42 +102,25 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
           scale: 4
         },
         offset: '0%',
-        repeat: '40px'
+        repeat: '40px' // Dashed pattern spacing
       }]
     });
 
-    // Create weathered road edges
-    const roadEdgePolyline1 = new google.maps.Polyline({
-      path: route66Path,
-      geodesic: true,
-      strokeColor: '#1A1A1A',
-      strokeOpacity: 0.4,
-      strokeWeight: 10,
-      zIndex: 999,
-      clickable: false
-    });
-
-    const roadEdgePolyline2 = new google.maps.Polyline({
-      path: route66Path,
-      geodesic: true,
-      strokeColor: '#404040',
-      strokeOpacity: 0.3,
-      strokeWeight: 12,
-      zIndex: 998,
-      clickable: false
-    });
-
-    // Set all polylines on the map
+    // Set all polylines on the map in correct order
     roadEdgePolyline2.setMap(map);
     roadEdgePolyline1.setMap(map);
     route66Polyline.setMap(map);
     centerLinePolyline.setMap(map);
     
+    // Store references for cleanup
     polylineRef.current = route66Polyline;
+    centerLineRef.current = centerLinePolyline;
+    roadEdge1Ref.current = roadEdgePolyline1;
+    roadEdge2Ref.current = roadEdgePolyline2;
 
-    console.log("✅ Realistic textured Route 66 polyline created with", route66Path.length, "waypoints");
+    console.log("✅ Textured Route 66 polyline created with yellow dashed center line using", route66Path.length, "Supabase waypoints");
 
-    // Wait a moment before fitting bounds to ensure polyline is rendered
+    // Wait a moment before fitting bounds to ensure polylines are rendered
     setTimeout(() => {
       // Create bounds for the entire route
       const bounds = new google.maps.LatLngBounds();
@@ -153,7 +136,7 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         left: 50
       });
 
-      console.log("🎯 Map bounds fitted to textured Route 66");
+      console.log("🎯 Map bounds fitted to textured Route 66 with yellow dashed center line");
     }, 500);
 
     // Cleanup function
@@ -162,11 +145,17 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
       }
-      centerLinePolyline.setMap(null);
-      roadEdgePolyline1.setMap(null);
-      roadEdgePolyline2.setMap(null);
+      if (centerLineRef.current) {
+        centerLineRef.current.setMap(null);
+      }
+      if (roadEdge1Ref.current) {
+        roadEdge1Ref.current.setMap(null);
+      }
+      if (roadEdge2Ref.current) {
+        roadEdge2Ref.current.setMap(null);
+      }
     };
-  }, [map]);
+  }, [map, waypoints, isLoading, error]);
 
   return null;
 };

@@ -1,6 +1,6 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import RoutePolyline from './RoutePolyline';
+import Route66StaticPolyline from './Route66StaticPolyline';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 
 interface RouteDisplayManagerProps {
@@ -21,7 +21,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Reset state when map changes
   useEffect(() => {
     if (map && isMapReady) {
-      console.log('🔄 RouteDisplayManager: Resetting state for clean route rendering');
+      console.log('🔄 RouteDisplayManager: Resetting state for textured route rendering');
       
       // Clear any pending render timeout
       if (renderTimeoutRef.current) {
@@ -41,7 +41,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Handle waypoints loading success
   useEffect(() => {
     if (waypoints.length > 0 && !routeRendered && isMapReady) {
-      console.log('✅ Waypoints loaded, single route system ready to render');
+      console.log('✅ Waypoints loaded, textured Route 66 system ready to render');
       
       // Debounce route success to prevent multiple rapid calls
       if (renderTimeoutRef.current) {
@@ -70,19 +70,18 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
     return null;
   }
 
-  console.log(`🛣️ RouteDisplayManager: Rendering SINGLE clean Route 66 polyline system`, {
+  console.log(`🛣️ RouteDisplayManager: Rendering TEXTURED Route 66 with yellow dashed striping`, {
     routeRendered,
     waypointsCount: waypoints.length,
     isMapReady
   });
 
-  // ONLY render RoutePolyline - no other route systems to prevent conflicts
+  // Use Route66StaticPolyline for the textured road appearance
   return (
     <>
-      {waypoints.length > 0 && (
-        <RoutePolyline 
+      {waypoints.length > 0 && isMapReady && (
+        <Route66StaticPolyline 
           map={map}
-          waypoints={waypoints}
         />
       )}
     </>
