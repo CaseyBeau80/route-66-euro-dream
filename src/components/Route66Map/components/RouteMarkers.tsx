@@ -11,8 +11,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const infoWindowsRef = useRef<WeakMap<google.maps.Marker, google.maps.InfoWindow>>(new WeakMap());
 
-  const createRoute66CityIcon = (cityName: string) => {
-    // Use consistent sizing like the original Route 66 icons
+  const createDestinationCityIcon = (cityName: string) => {
     const iconWidth = 40;
     const iconHeight = 40;
     
@@ -116,49 +115,138 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
     };
   };
 
+  const createRegularStopIcon = () => {
+    const iconWidth = 20;
+    const iconHeight = 20;
+    
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
+          <defs>
+            <filter id="stopShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0.5" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.25"/>
+            </filter>
+            
+            <linearGradient id="stopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#B91C1C;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Outer circle -->
+          <circle cx="10" cy="10" r="8" 
+                  fill="url(#stopGradient)" 
+                  stroke="#FFFFFF" 
+                  stroke-width="2"
+                  filter="url(#stopShadow)"/>
+          
+          <!-- Inner circle -->
+          <circle cx="10" cy="10" r="4" 
+                  fill="#FFFFFF" 
+                  opacity="0.9"/>
+          
+          <!-- Center dot -->
+          <circle cx="10" cy="10" r="1.5" 
+                  fill="#DC2626"/>
+        </svg>
+      `)}`,
+      scaledSize: new google.maps.Size(iconWidth, iconHeight),
+      anchor: new google.maps.Point(iconWidth/2, iconHeight/2)
+    };
+  };
+
+  const createDestinationInfoWindow = (waypoint: Route66Waypoint) => {
+    const cityName = waypoint.name.split(',')[0].split(' - ')[0].trim();
+    
+    return new google.maps.InfoWindow({
+      content: `
+        <div style="padding: 14px; max-width: 320px; font-family: Arial, sans-serif;">
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F8F6F0, #E6E4DE); border: 2px solid #000; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 8px; font-weight: bold; color: #000;">66</span>
+            </div>
+            <h3 style="margin: 0; color: #DC2626; font-size: 18px; font-weight: bold;">${waypoint.name}</h3>
+          </div>
+          
+          <div style="margin-bottom: 10px;">
+            <p style="margin: 0; font-size: 14px; color: #666; font-weight: 500;">
+              <strong>Destination City</strong> • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
+            </p>
+          </div>
+          
+          ${waypoint.description ? `
+            <p style="margin: 10px 0; font-size: 13px; color: #333; line-height: 1.5; background: #F9F9F9; padding: 8px; border-radius: 4px;">
+              ${waypoint.description}
+            </p>
+          ` : ''}
+          
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 2px solid #DC2626;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p style="margin: 0; font-size: 11px; color: #999;">
+                Major Route 66 destination
+              </p>
+              <div style="background: #DC2626; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">
+                STOP #${waypoint.sequence_order}
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      maxWidth: 350
+    });
+  };
+
+  const createRegularStopInfoWindow = (waypoint: Route66Waypoint) => {
+    return new google.maps.InfoWindow({
+      content: `
+        <div style="padding: 10px; max-width: 260px; font-family: Arial, sans-serif;">
+          <h3 style="margin: 0 0 6px 0; color: #DC2626; font-size: 15px; font-weight: bold;">${waypoint.name}</h3>
+          
+          <div style="margin-bottom: 8px;">
+            <p style="margin: 0; font-size: 12px; color: #666; font-weight: 500;">
+              Route 66 Stop • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
+            </p>
+          </div>
+          
+          ${waypoint.description ? `
+            <p style="margin: 6px 0 0 0; font-size: 12px; color: #333; line-height: 1.4;">
+              ${waypoint.description}
+            </p>
+          ` : ''}
+          
+          <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #eee;">
+            <p style="margin: 0; font-size: 10px; color: #999;">
+              Waypoint #${waypoint.sequence_order}
+            </p>
+          </div>
+        </div>
+      `,
+      maxWidth: 280
+    });
+  };
+
   useEffect(() => {
     if (!map || !waypoints.length) return;
 
-    // Filter for major stops only to avoid clutter
-    const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
-    console.log(`📍 Adding ${majorStops.length} Route 66 city shield markers out of ${waypoints.length} total waypoints`);
+    // Separate waypoints into destinations and regular stops
+    const destinationCities = waypoints.filter(waypoint => waypoint.is_major_stop);
+    const regularStops = waypoints.filter(waypoint => !waypoint.is_major_stop);
     
-    majorStops.forEach((waypoint) => {
-      // Extract city name from waypoint name (remove any extra descriptive text)
+    console.log(`📍 Adding ${destinationCities.length} destination cities and ${regularStops.length} regular stops`);
+    
+    // Create destination city markers (higher zIndex)
+    destinationCities.forEach((waypoint) => {
       const cityName = waypoint.name.split(',')[0].split(' - ')[0].trim();
       
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: map,
-        icon: createRoute66CityIcon(cityName),
-        title: `${waypoint.name} - ${waypoint.state}`,
-        zIndex: 20000
+        icon: createDestinationCityIcon(cityName),
+        title: `${waypoint.name} - ${waypoint.state} (Destination)`,
+        zIndex: 30000 // Higher zIndex for destinations
       });
 
-      // Create enhanced info window for major stops
-      const infoWindow = new google.maps.InfoWindow({
-        content: `
-          <div style="padding: 12px; max-width: 280px; font-family: Arial, sans-serif;">
-            <h3 style="margin: 0 0 8px 0; color: #DC2626; font-size: 16px; font-weight: bold;">${waypoint.name}</h3>
-            <div style="margin-bottom: 8px;">
-              <p style="margin: 0; font-size: 13px; color: #666; font-weight: 500;">
-                ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
-              </p>
-            </div>
-            ${waypoint.description ? `
-              <p style="margin: 8px 0 0 0; font-size: 12px; color: #333; line-height: 1.4;">
-                ${waypoint.description}
-              </p>
-            ` : ''}
-            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
-              <p style="margin: 0; font-size: 10px; color: #999;">
-                Route 66 destination
-              </p>
-            </div>
-          </div>
-        `,
-        maxWidth: 300
-      });
+      const infoWindow = createDestinationInfoWindow(waypoint);
 
       marker.addListener('click', () => {
         // Close any other open info windows
@@ -171,12 +259,38 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
         infoWindow.open(map, marker);
       });
 
-      // Store reference to info window using WeakMap
       infoWindowsRef.current.set(marker, infoWindow);
       markersRef.current.push(marker);
     });
 
-    console.log(`✅ Route 66 city shields fully displayed with ${markersRef.current.length} destination markers`);
+    // Create regular stop markers (lower zIndex)
+    regularStops.forEach((waypoint) => {
+      const marker = new google.maps.Marker({
+        position: { lat: waypoint.latitude, lng: waypoint.longitude },
+        map: map,
+        icon: createRegularStopIcon(),
+        title: `${waypoint.name} - ${waypoint.state}`,
+        zIndex: 20000 // Lower zIndex for regular stops
+      });
+
+      const infoWindow = createRegularStopInfoWindow(waypoint);
+
+      marker.addListener('click', () => {
+        // Close any other open info windows
+        markersRef.current.forEach(m => {
+          const infoWin = infoWindowsRef.current.get(m);
+          if (infoWin) {
+            infoWin.close();
+          }
+        });
+        infoWindow.open(map, marker);
+      });
+
+      infoWindowsRef.current.set(marker, infoWindow);
+      markersRef.current.push(marker);
+    });
+
+    console.log(`✅ Route 66 markers fully displayed: ${destinationCities.length} destinations + ${regularStops.length} regular stops = ${markersRef.current.length} total markers`);
 
     return () => {
       markersRef.current.forEach(marker => {
