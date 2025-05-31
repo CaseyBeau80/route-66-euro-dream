@@ -16,40 +16,40 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
   }
 
   return (
-    <div className="border-t border-blue-200 pt-3">
+    <div className="space-y-3">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar className="w-4 h-4 text-blue-600" />
-        <h5 className="font-semibold text-sm text-gray-800">3-Day Forecast</h5>
+        <Calendar className="w-4 h-4 text-orange-600" />
+        <h5 className="font-semibold text-sm text-orange-900">3-Day Forecast</h5>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         {forecast.map((day, index) => {
           console.log(`🔍 ForecastGrid: Processing day ${index}:`, day);
           const dayLabel = getDayLabel(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Label: ${dayLabel}`);
           
           return (
-            <div key={index} className="flex flex-col items-center bg-gray-50 rounded-lg px-2 py-3 min-h-[100px]">
+            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-orange-50 to-orange-100 rounded-lg px-2 py-3 min-h-[110px] border border-orange-300 shadow-sm">
               {/* Day label at top */}
-              <div className="text-xs font-medium text-gray-700 mb-1">
+              <div className="text-xs font-bold text-orange-800 mb-2 uppercase tracking-wide">
                 {dayLabel}
               </div>
               
               {/* Weather icon */}
-              <div className="mb-1">
+              <div className="mb-2">
                 <img 
                   src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
                   alt={day.description}
-                  className="w-8 h-8"
+                  className="w-10 h-10"
                 />
               </div>
               
               {/* High temperature - larger and prominent */}
-              <div className="text-lg font-bold text-gray-900 mb-1">
+              <div className="text-lg font-black text-orange-900 mb-1">
                 {day.temperature.high}°
               </div>
               
               {/* Low temperature - smaller and muted */}
-              <div className="text-xs text-gray-500">
+              <div className="text-sm text-orange-700 font-semibold">
                 {day.temperature.low}°
               </div>
             </div>
