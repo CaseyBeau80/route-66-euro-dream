@@ -9,13 +9,16 @@ import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
 import StateHighlighting from './components/StateHighlighting';
+import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
+import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
+import ClusterManager from './components/markers/ClusterManager';
+import { useMapBounds } from './components/MapBounds';
+import { useMapEventHandlers } from './components/MapEventHandlers';
+
+// Import individual components for non-clustered rendering when needed
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
-import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
-import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
-import { useMapBounds } from './components/MapBounds';
-import { useMapEventHandlers } from './components/MapEventHandlers';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -44,6 +47,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showRouteStats, setShowRouteStats] = useState(true);
+  const [useClusteringMode, setUseClusteringMode] = useState(true);
+  const [hiddenGems, setHiddenGems] = useState<any[]>([]);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -67,6 +72,13 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       return () => clearTimeout(timer);
     }
   }, [showRouteStats, mapInitialized]);
+
+  // Load hidden gems data for clustering
+  useEffect(() => {
+    // This would normally come from your hidden gems hook/service
+    // For now, we'll use an empty array - you should integrate with your existing hidden gems data
+    setHiddenGems([]);
+  }, []);
 
   // Cleanup function to remove any existing polylines
   useEffect(() => {
@@ -97,6 +109,10 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     ? waypoints.filter(waypoint => waypoint.state === selectedState)
     : waypoints;
 
+  // Split waypoints into attractions and destinations
+  const attractions = visibleWaypoints.filter(wp => !wp.is_major_stop);
+  const destinations = visibleWaypoints.filter(wp => wp.is_major_stop);
+
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return <MapLoadError error="Failed to load Google Maps API." />;
@@ -117,11 +133,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with UltraSmoothRouteRenderer', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with clustering', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
     selectedState,
+    useClusteringMode,
     visibleWaypoints: visibleWaypoints.length,
     totalWaypoints: waypoints.length
   });
@@ -142,6 +159,18 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         isVisible={showRouteStats && mapEventHandlers.isMapReady}
         onToggle={() => setShowRouteStats(!showRouteStats)}
       />
+
+      {/* Clustering toggle button */}
+      {mapEventHandlers.isMapReady && (
+        <div className="absolute top-4 right-4 z-[10000]">
+          <button
+            onClick={() => setUseClusteringMode(!useClusteringMode)}
+            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium shadow-lg hover:bg-gray-50 transition-colors"
+          >
+            {useClusteringMode ? '📍 Clustered' : '🔍 Individual'}
+          </button>
+        </div>
+      )}
       
       <MapInitializer onLoad={mapBounds.handleMapLoad} onClick={handleMapClick}>
         {mapInitialized && mapRef.current && (
@@ -162,31 +191,52 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   isMapReady={mapEventHandlers.isMapReady}
                 />
                 
-                {/* Render Hidden Gems with hover cards */}
-                <HiddenGemsContainer 
-                  map={mapRef.current}
-                  onGemClick={(gem) => {
-                    console.log('✨ Hidden gem selected:', gem.title);
-                  }}
-                />
-                
-                {/* Render Destination Cities with hover cards */}
-                <DestinationCitiesContainer
-                  map={mapRef.current}
-                  waypoints={visibleWaypoints}
-                  onDestinationClick={(destination) => {
-                    console.log('🏛️ Destination city selected:', destination.name);
-                  }}
-                />
-                
-                {/* Render Attractions with improved zoom-based filtering */}
-                <AttractionsContainer
-                  map={mapRef.current}
-                  waypoints={visibleWaypoints}
-                  onAttractionClick={(attraction) => {
-                    console.log('🎯 Attraction selected:', attraction.name);
-                  }}
-                />
+                {/* Conditional rendering based on clustering mode */}
+                {useClusteringMode ? (
+                  <ClusterManager
+                    map={mapRef.current}
+                    hiddenGems={hiddenGems}
+                    attractions={attractions}
+                    destinations={destinations}
+                    onGemClick={(gem) => {
+                      console.log('✨ Hidden gem selected (clustered):', gem.title);
+                    }}
+                    onAttractionClick={(attraction) => {
+                      console.log('🎯 Attraction selected (clustered):', attraction.name);
+                    }}
+                    onDestinationClick={(destination) => {
+                      console.log('🏛️ Destination city selected (clustered):', destination.name);
+                    }}
+                  />
+                ) : (
+                  <>
+                    {/* Render Hidden Gems with hover cards */}
+                    <HiddenGemsContainer 
+                      map={mapRef.current}
+                      onGemClick={(gem) => {
+                        console.log('✨ Hidden gem selected:', gem.title);
+                      }}
+                    />
+                    
+                    {/* Render Destination Cities with hover cards */}
+                    <DestinationCitiesContainer
+                      map={mapRef.current}
+                      waypoints={destinations}
+                      onDestinationClick={(destination) => {
+                        console.log('🏛️ Destination city selected:', destination.name);
+                      }}
+                    />
+                    
+                    {/* Render Attractions with improved zoom-based filtering */}
+                    <AttractionsContainer
+                      map={mapRef.current}
+                      waypoints={attractions}
+                      onAttractionClick={(attraction) => {
+                        console.log('🎯 Attraction selected:', attraction.name);
+                      }}
+                    />
+                  </>
+                )}
               </>
             )}
           </>
