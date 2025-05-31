@@ -35,19 +35,16 @@ export class CustomOverlay {
         if (overlayProjection) {
           const point = overlayProjection.fromLatLngToDivPixel(this.customOverlay.position);
           if (point && this.customOverlay.div) {
-            this.customOverlay.div.style.left = (point.x - 20) + 'px';
-            this.customOverlay.div.style.top = (point.y - 20) + 'px';
+            // Ensure the point coordinates are valid
+            const x = Math.max(0, Math.min(point.x, 2000)); // Clamp to reasonable bounds
+            const y = Math.max(0, Math.min(point.y, 2000)); // Clamp to reasonable bounds
             
-            // Get the map container to calculate relative position
-            const mapContainer = this.customOverlay.div.closest('.gm-style');
-            if (mapContainer) {
-              const rect = mapContainer.getBoundingClientRect();
-              // Update hover card position relative to map container
-              this.customOverlay.onPositionUpdate(point.x, point.y);
-            } else {
-              // Fallback to direct point coordinates
-              this.customOverlay.onPositionUpdate(point.x, point.y);
-            }
+            this.customOverlay.div.style.left = (x - 20) + 'px';
+            this.customOverlay.div.style.top = (y - 20) + 'px';
+            
+            // Use the clamped coordinates for hover positioning
+            // Add a small offset for the hover card to appear near the cursor
+            this.customOverlay.onPositionUpdate(x + 10, y - 10);
           }
         }
       }

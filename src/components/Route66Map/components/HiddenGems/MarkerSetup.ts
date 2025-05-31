@@ -7,7 +7,7 @@ interface MarkerSetupConfig {
   gem: HiddenGem;
   map: google.maps.Map;
   onMarkerClick: (gem: HiddenGem) => void;
-  onMouseEnter: () => void;
+  onMouseEnter: (event: MouseEvent) => void;
   onMouseLeave: () => void;
   onPositionUpdate: (x: number, y: number) => void;
 }
@@ -53,9 +53,18 @@ export const createMarkerSetup = ({
     onMarkerClick(gem);
   };
 
+  // Add event listeners with proper event passing
+  const handleOverlayMouseEnter = (event: MouseEvent) => {
+    onMouseEnter(event);
+  };
+
+  const handleOverlayMouseLeave = () => {
+    onMouseLeave();
+  };
+
   // Add event listeners
-  overlay.addEventListener('mouseenter', onMouseEnter);
-  overlay.addEventListener('mouseleave', onMouseLeave);
+  overlay.addEventListener('mouseenter', handleOverlayMouseEnter);
+  overlay.addEventListener('mouseleave', handleOverlayMouseLeave);
   overlay.addEventListener('click', handleClick);
   marker.addListener('click', handleClick);
 
@@ -77,8 +86,8 @@ export const createMarkerSetup = ({
     if (customOverlay) {
       customOverlay.setMap(null);
     }
-    overlay.removeEventListener('mouseenter', onMouseEnter);
-    overlay.removeEventListener('mouseleave', onMouseLeave);
+    overlay.removeEventListener('mouseenter', handleOverlayMouseEnter);
+    overlay.removeEventListener('mouseleave', handleOverlayMouseLeave);
     overlay.removeEventListener('click', handleClick);
     
     // Remove listeners using the listener objects
