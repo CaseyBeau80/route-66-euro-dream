@@ -20,18 +20,33 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
 
   // Calculate positioning to ensure card stays on screen
   const cardWidth = 350;
-  const cardHeight = 250;
+  const cardHeight = 280;
   
   // Calculate position ensuring the card stays within viewport
-  const left = Math.max(10, Math.min(position.x - cardWidth / 2, window.innerWidth - cardWidth - 10));
-  const top = Math.max(10, position.y - cardHeight - 20); // Position above the marker
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  // Center the card horizontally on the marker, but adjust if it goes off-screen
+  let left = position.x - cardWidth / 2;
+  if (left < 10) left = 10;
+  if (left + cardWidth > viewportWidth - 10) left = viewportWidth - cardWidth - 10;
+  
+  // Position above the marker with some offset
+  let top = position.y - cardHeight - 30;
+  if (top < 10) top = position.y + 30; // If it goes above viewport, show below
+
+  console.log(`🎨 Rendering hover card for ${gem.title} at:`, { 
+    markerPos: position, 
+    cardPos: { left, top },
+    viewport: { viewportWidth, viewportHeight }
+  });
 
   const cardStyle = {
     position: 'fixed' as const,
     left: `${left}px`,
     top: `${top}px`,
     zIndex: 999999,
-    pointerEvents: 'none' as const, // Prevent interfering with map interaction
+    pointerEvents: 'auto' as const, // Allow interaction with the card
   };
 
   return (
@@ -86,9 +101,10 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  console.log(`🌐 Opening website for ${gem.title}: ${gem.website}`);
                   onWebsiteClick(gem.website!);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide pointer-events-auto"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
               >
                 <ExternalLink className="h-3 w-3" />
                 Visit Website

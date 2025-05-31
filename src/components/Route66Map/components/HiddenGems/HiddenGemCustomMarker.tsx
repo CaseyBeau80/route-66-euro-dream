@@ -1,10 +1,7 @@
 
 import React from 'react';
 import { HiddenGem } from './types';
-import MarkerInteractionHandler from './components/MarkerInteractionHandler';
-import MarkerElement from './components/MarkerElement';
-import MarkerClickHandler from './components/MarkerClickHandler';
-import HoverCardDisplay from './HoverCardDisplay';
+import HoverableMarker from './components/HoverableMarker';
 
 interface HiddenGemCustomMarkerProps {
   gem: HiddenGem;
@@ -21,40 +18,15 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
   onWebsiteClick,
   map
 }) => {
-  console.log(`Rendering custom gem marker: ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
+  console.log(`🔧 Rendering simplified gem marker: ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
 
   return (
-    <MarkerInteractionHandler gem={gem}>
-      {({ isHovered, hoverPosition, handleMouseEnter, handleMouseLeave, updatePosition, cleanup }) => (
-        <>
-          <MarkerElement
-            gem={gem}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onPositionUpdate={updatePosition}
-            map={map}
-          />
-          
-          <MarkerClickHandler
-            gem={gem}
-            onMarkerClick={onMarkerClick}
-            map={map}
-          />
-          
-          {/* Render the hover card within the map container */}
-          {isHovered && (
-            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 999999 }}>
-              <HoverCardDisplay
-                gem={gem}
-                isVisible={isHovered}
-                position={hoverPosition}
-                onWebsiteClick={onWebsiteClick}
-              />
-            </div>
-          )}
-        </>
-      )}
-    </MarkerInteractionHandler>
+    <HoverableMarker
+      gem={gem}
+      onMarkerClick={onMarkerClick}
+      onWebsiteClick={onWebsiteClick}
+      map={map}
+    />
   );
 };
 
