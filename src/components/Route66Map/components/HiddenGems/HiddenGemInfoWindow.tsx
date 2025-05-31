@@ -17,29 +17,26 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
   onWebsiteClick,
   map
 }) => {
-  // Calculate a position slightly north of the marker
-  // Adding approximately 0.001 degrees latitude (roughly 100 meters north)
-  const offsetLatitude = Number(gem.latitude) + 0.001;
-  const infoWindowPosition = { 
-    lat: offsetLatitude, 
+  // Use the exact marker position
+  const markerPosition = { 
+    lat: Number(gem.latitude), 
     lng: Number(gem.longitude) 
   };
 
-  console.log(`📍 Positioning info window for ${gem.title}:`);
-  console.log(`   Marker position: ${gem.latitude}, ${gem.longitude}`);
-  console.log(`   InfoWindow position: ${infoWindowPosition.lat}, ${infoWindowPosition.lng}`);
+  console.log(`📍 Positioning info window for ${gem.title} directly above marker at:`, markerPosition);
 
   return (
     <InfoWindow 
-      position={infoWindowPosition}
+      position={markerPosition}
       onCloseClick={onClose}
       options={{
         maxWidth: 280,
         disableAutoPan: false,
-        zIndex: 9999
+        zIndex: 9999,
+        pixelOffset: new google.maps.Size(0, -60) // Position 60px above the marker
       }}
       onLoad={(infoWindow) => {
-        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned north of marker using coordinate offset`);
+        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned directly above marker with pixel offset`);
       }}
     >
       <div 
