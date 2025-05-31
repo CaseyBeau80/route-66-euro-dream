@@ -42,24 +42,23 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
       onAdd() {
         this.container = document.createElement('div');
         this.container.style.position = 'absolute';
-        // Use a very high z-index to ensure it appears above all other map overlays
         this.container.style.zIndex = '99999';
+        this.container.style.pointerEvents = 'auto';
         
         const panes = this.getPanes();
         if (panes) {
-          // Use floatPane instead of overlayMouseTarget for higher priority
+          // Use floatPane for highest priority positioning
           panes.floatPane.appendChild(this.container);
           
           // Create React root and render content
           if (this.container) {
             rootRef.current = createRoot(this.container);
             rootRef.current.render(
-              <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden relative" style={{ zIndex: 99999 }}>
+              <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
                 {/* Close button */}
                 <button
                   onClick={onClose}
-                  className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10"
-                  style={{ fontSize: '12px', fontWeight: 'bold', zIndex: 100000 }}
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10 text-xs font-bold"
                 >
                   ×
                 </button>
@@ -96,7 +95,10 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
                   {gem.description && (
                     <div className="mb-4 p-3 bg-gray-50 border border-dashed border-blue-600 rounded">
                       <p className="text-sm text-gray-800 leading-relaxed font-medium text-left break-words">
-                        {gem.description}
+                        {gem.description.length > 150 
+                          ? `${gem.description.substring(0, 150)}...` 
+                          : gem.description
+                        }
                       </p>
                     </div>
                   )}
@@ -142,9 +144,9 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
         const point = projection.fromLatLngToDivPixel(this.position);
 
         if (point) {
-          this.container.style.left = point.x + 'px';
-          this.container.style.top = (point.y - 120) + 'px';
-          this.container.style.transform = 'translateX(-50%)';
+          // Position the overlay above the marker with proper centering
+          this.container.style.left = (point.x - 175) + 'px'; // Center the 350px wide card
+          this.container.style.top = (point.y - 200) + 'px'; // Position above marker
         }
       }
 
@@ -157,10 +159,6 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
           this.container.parentNode.removeChild(this.container);
           this.container = null;
         }
-      }
-
-      getContainer() {
-        return this.container;
       }
     }
 
