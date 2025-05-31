@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
-import { EnhancedClusteringManager } from '../../services/EnhancedClusteringManager';
+import { ClusterIconGenerator } from '../../services/clustering/ClusterIconGenerator';
 
 interface ClusterMarkerProps {
   center: { lat: number; lng: number };
@@ -24,7 +24,7 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
     const clusterMarker = new google.maps.Marker({
       position: center,
       map: map,
-      icon: EnhancedClusteringManager.getClusterIcon(markers.length),
+      icon: ClusterIconGenerator.getClusterIcon(markers.length),
       title: `Cluster of ${markers.length} locations`,
       zIndex: 5000, // Below destination cities but above individual markers
     });
