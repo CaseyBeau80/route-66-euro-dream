@@ -24,12 +24,12 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
       onCloseClick={onClose}
       options={{
         maxWidth: 280,
-        disableAutoPan: false,
+        disableAutoPan: true, // Disable auto-pan since we're positioning manually
         zIndex: 9999,
-        pixelOffset: new window.google.maps.Size(0, -350) // Position above the marker
+        pixelOffset: new window.google.maps.Size(0, -400) // Position well above the marker
       }}
       onLoad={(infoWindow) => {
-        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned above marker`);
+        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned north of marker`);
       }}
     >
       <div 
