@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createVintageRoute66Icon } from './VintageRoute66Icon';
 import { HiddenGem } from './types';
-import HiddenGemHoverCard from './HiddenGemHoverCard';
 
 interface HiddenGemCustomMarkerProps {
   gem: HiddenGem;
@@ -21,7 +20,10 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const customOverlayRef = useRef<google.maps.OverlayView | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -37,16 +39,18 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
 
     markerRef.current = marker;
 
-    // Create overlay element for hover
+    // Create overlay element for hover detection with larger area
     const overlay = document.createElement('div');
     overlay.style.position = 'absolute';
-    overlay.style.width = '20px';
-    overlay.style.height = '20px';
+    overlay.style.width = '40px';
+    overlay.style.height = '40px';
     overlay.style.cursor = 'pointer';
     overlay.style.zIndex = '999999';
+    overlay.style.backgroundColor = 'transparent';
+    overlay.style.borderRadius = '50%';
     overlayRef.current = overlay;
 
-    // Custom overlay class
+    // Custom overlay class with improved positioning
     class CustomOverlay extends google.maps.OverlayView {
       private div: HTMLDivElement;
       private position: google.maps.LatLng;
@@ -69,8 +73,11 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
         if (overlayProjection) {
           const point = overlayProjection.fromLatLngToDivPixel(this.position);
           if (point && this.div) {
-            this.div.style.left = (point.x - 10) + 'px';
-            this.div.style.top = (point.y - 10) + 'px';
+            this.div.style.left = (point.x - 20) + 'px';
+            this.div.style.top = (point.y - 20) + 'px';
+            
+            // Update hover card position
+            setHoverPosition({ x: point.x, y: point.y });
           }
         }
       }
@@ -88,16 +95,22 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
     );
 
     customOverlay.setMap(map);
+    customOverlayRef.current = customOverlay;
 
-    // Add event listeners
+    // Enhanced event listeners with debouncing
     const handleMouseEnter = () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
       console.log(`🎯 Hover started for gem: ${gem.title}`);
       setIsHovered(true);
     };
 
     const handleMouseLeave = () => {
-      console.log(`🎯 Hover ended for gem: ${gem.title}`);
-      setIsHovered(false);
+      hoverTimeoutRef.current = setTimeout(() => {
+        console.log(`🎯 Hover ended for gem: ${gem.title}`);
+        setIsHovered(false);
+      }, 150); // Small delay to prevent flickering
     };
 
     const handleClick = () => {
@@ -110,15 +123,32 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
     overlay.addEventListener('click', handleClick);
     marker.addListener('click', handleClick);
 
+    // Update overlay position when map changes
+    const updatePosition = () => {
+      if (customOverlay) {
+        customOverlay.draw();
+      }
+    };
+
+    map.addListener('zoom_changed', updatePosition);
+    map.addListener('bounds_changed', updatePosition);
+
     // Cleanup function
     return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
       if (markerRef.current) {
         markerRef.current.setMap(null);
       }
-      customOverlay.setMap(null);
+      if (customOverlayRef.current) {
+        customOverlayRef.current.setMap(null);
+      }
       overlay.removeEventListener('mouseenter', handleMouseEnter);
       overlay.removeEventListener('mouseleave', handleMouseLeave);
       overlay.removeEventListener('click', handleClick);
+      map.removeListener('zoom_changed', updatePosition);
+      map.removeListener('bounds_changed', updatePosition);
     };
   }, [gem, map, onMarkerClick]);
 
@@ -128,16 +158,16 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
     <>
       {isHovered && (
         <div 
+          className="fixed pointer-events-none transition-all duration-200 ease-out"
           style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            left: `${hoverPosition.x}px`,
+            top: `${hoverPosition.y - 180}px`,
+            transform: 'translateX(-50%)',
             zIndex: 999999,
-            pointerEvents: 'none'
+            opacity: isHovered ? 1 : 0,
           }}
         >
-          <div className="w-80 max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden p-0">
+          <div className="w-80 max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header Banner */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2">
               <div className="flex items-center justify-between">
@@ -169,7 +199,10 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
               {gem.description && (
                 <div className="mb-4 p-3 bg-gray-50 border border-dashed border-blue-600 rounded">
                   <p className="text-sm text-gray-800 leading-relaxed font-medium text-left break-words">
-                    {gem.description}
+                    {gem.description.length > 150 
+                      ? `${gem.description.substring(0, 150)}...` 
+                      : gem.description
+                    }
                   </p>
                 </div>
               )}
@@ -178,9 +211,11 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
               {gem.website && (
                 <div className="text-center mb-2">
                   <button
-                    onClick={() => onWebsiteClick(gem.website!)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
-                    style={{ pointerEvents: 'auto' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWebsiteClick(gem.website!);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide pointer-events-auto"
                   >
                     Visit Website
                   </button>
