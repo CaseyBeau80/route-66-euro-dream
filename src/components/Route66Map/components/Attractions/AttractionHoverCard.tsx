@@ -2,7 +2,6 @@
 import React from 'react';
 import { MapPin, Route, ExternalLink } from 'lucide-react';
 import { AttractionHoverProps } from './types';
-import { useAttractionHoverContext } from './contexts/AttractionHoverContext';
 
 const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
   attraction,
@@ -10,8 +9,6 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
   position,
   onWebsiteClick
 }) => {
-  const { keepCardVisible, setActiveAttraction } = useAttractionHoverContext();
-
   if (!isVisible) return null;
 
   // Calculate positioning to ensure card stays on screen
@@ -46,8 +43,6 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
     <div 
       className="transition-all duration-200 ease-out"
       style={cardStyle}
-      onMouseEnter={() => keepCardVisible(attraction.name)}
-      onMouseLeave={() => setActiveAttraction(null)}
     >
       <div className="w-[320px] max-w-[90vw] bg-white border-2 border-red-600 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header Banner */}

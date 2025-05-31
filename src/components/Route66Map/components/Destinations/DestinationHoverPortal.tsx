@@ -2,7 +2,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import DestinationHoverCard from './DestinationHoverCard';
-import { useDestinationHoverContext } from './contexts/DestinationHoverContext';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface DestinationHoverPortalProps {
@@ -16,8 +15,6 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   position,
   isVisible
 }) => {
-  const { keepCardVisible, setActiveDestination } = useDestinationHoverContext();
-
   if (!isVisible) return null;
 
   const portalRoot = document.getElementById('map-portal-root') || document.body;
@@ -29,14 +26,12 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   return createPortal(
     <div
-      className="fixed pointer-events-auto z-[100000] transition-opacity duration-200"
+      className="fixed pointer-events-none z-[100000] transition-opacity duration-200"
       style={{
         left: `${adjustedPosition.x}px`,
         top: `${adjustedPosition.y}px`,
         opacity: isVisible ? 1 : 0
       }}
-      onMouseEnter={() => keepCardVisible(destination.name)}
-      onMouseLeave={() => setActiveDestination(null)}
     >
       <DestinationHoverCard destination={destination} />
     </div>,

@@ -4,7 +4,6 @@ export class CustomOverlay {
   private position: google.maps.LatLng;
   private onPositionUpdate: (x: number, y: number) => void;
   private overlay: google.maps.OverlayView;
-  private lastValidPosition: { x: number; y: number } | null = null;
 
   constructor(
     position: google.maps.LatLng, 
@@ -15,7 +14,7 @@ export class CustomOverlay {
     this.div = div;
     this.onPositionUpdate = onPositionUpdate;
     
-    // Create the overlay instance with improved coordinate transformation
+    // Create the overlay instance only when constructor is called
     this.overlay = new (class extends google.maps.OverlayView {
       private customOverlay: CustomOverlay;
       
@@ -36,39 +35,18 @@ export class CustomOverlay {
         if (overlayProjection) {
           const point = overlayProjection.fromLatLngToDivPixel(this.customOverlay.position);
           if (point && this.customOverlay.div) {
-            // Improved coordinate transformation with validation
-            const x = Math.round(point.x);
-            const y = Math.round(point.y);
+            this.customOverlay.div.style.left = (point.x - 20) + 'px';
+            this.customOverlay.div.style.top = (point.y - 20) + 'px';
             
-            // Validate coordinates are within reasonable bounds
-            const viewport = {
-              width: window.innerWidth,
-              height: window.innerHeight
-            };
-            
-            const isValidPosition = x >= -100 && x <= viewport.width + 100 && 
-                                  y >= -100 && y <= viewport.height + 100;
-            
-            if (isValidPosition) {
-              this.customOverlay.div.style.left = (x - 20) + 'px';
-              this.customOverlay.div.style.top = (y - 20) + 'px';
-              
-              // Calculate hover position with better offset
-              const hoverX = x + 15;
-              const hoverY = y - 15;
-              
-              // Only update if position changed significantly (debouncing at coordinate level)
-              if (!this.customOverlay.lastValidPosition || 
-                  Math.abs(hoverX - this.customOverlay.lastValidPosition.x) > 5 ||
-                  Math.abs(hoverY - this.customOverlay.lastValidPosition.y) > 5) {
-                
-                this.customOverlay.lastValidPosition = { x: hoverX, y: hoverY };
-                this.customOverlay.onPositionUpdate(hoverX, hoverY);
-                
-                console.log(`📍 Updated coordinate transformation for marker:`, { x: hoverX, y: hoverY });
-              }
+            // Get the map container to calculate relative position
+            const mapContainer = this.customOverlay.div.closest('.gm-style');
+            if (mapContainer) {
+              const rect = mapContainer.getBoundingClientRect();
+              // Update hover card position relative to map container
+              this.customOverlay.onPositionUpdate(point.x, point.y);
             } else {
-              console.warn(`⚠️ Invalid coordinates detected:`, { x, y, viewport });
+              // Fallback to direct point coordinates
+              this.customOverlay.onPositionUpdate(point.x, point.y);
             }
           }
         }

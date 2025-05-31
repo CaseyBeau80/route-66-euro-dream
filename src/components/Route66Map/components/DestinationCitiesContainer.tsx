@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import DestinationCustomMarker from './Destinations/DestinationCustomMarker';
-import { DestinationHoverProvider } from './Destinations/contexts/DestinationHoverContext';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface DestinationCitiesContainerProps {
@@ -22,6 +21,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     console.log('🏛️ DestinationCitiesContainer: ONLY destination marker system active');
     console.log(`✅ Managing ${destinationCities.length} destination cities with NO YELLOW CIRCLES`);
     console.log('🎯 Destination cities:', destinationCities.map(d => d.name));
+    console.log('🚫 RouteMarkersManager is completely disabled to prevent yellow circle overlap');
     
     // Add portal root if it doesn't exist
     if (!document.getElementById('map-portal-root')) {
@@ -37,7 +37,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     }
 
     return () => {
-      console.log('🧹 DestinationCitiesContainer: Cleaning up destination markers');
+      console.log('🧹 DestinationCitiesContainer: Cleaning up destination markers (no yellow circles to clean)');
     };
   }, [destinationCities.length]);
 
@@ -46,10 +46,10 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     return null;
   }
 
-  console.log('🏛️ DestinationCitiesContainer: Rendering ONLY Route 66 shield markers with improved hover');
+  console.log('🏛️ DestinationCitiesContainer: Rendering ONLY Route 66 shield markers (no yellow circles)');
 
   return (
-    <DestinationHoverProvider>
+    <>
       {destinationCities.map((destination) => (
         <DestinationCustomMarker
           key={destination.id}
@@ -58,7 +58,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
           onDestinationClick={onDestinationClick}
         />
       ))}
-    </DestinationHoverProvider>
+    </>
   );
 };
 

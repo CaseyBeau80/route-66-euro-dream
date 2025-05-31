@@ -3,7 +3,6 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { HiddenGem } from '../types';
 import HoverCardDisplay from '../HoverCardDisplay';
-import { useHiddenGemHoverContext } from '../contexts/HiddenGemHoverContext';
 
 interface HoverCardPortalProps {
   gem: HiddenGem;
@@ -18,28 +17,17 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
   position,
   onWebsiteClick
 }) => {
-  const { activeGem, hoverPosition, keepCardVisible, setActiveGem } = useHiddenGemHoverContext();
+  if (!isVisible) return null;
 
-  // Use the stabilized context state instead of local props
-  const shouldShow = activeGem === gem.title;
-  const stabilizedPosition = shouldShow ? hoverPosition : position;
-
-  if (!shouldShow) return null;
-
-  console.log(`🔮 Portal rendering STABILIZED hover card for ${gem.title} at position:`, stabilizedPosition);
+  console.log(`🔮 Portal rendering hover card for ${gem.title} at position:`, position);
 
   return createPortal(
-    <div
-      onMouseEnter={() => keepCardVisible(gem.title)}
-      onMouseLeave={() => setActiveGem(null)}
-    >
-      <HoverCardDisplay
-        gem={gem}
-        isVisible={shouldShow}
-        position={stabilizedPosition}
-        onWebsiteClick={onWebsiteClick}
-      />
-    </div>,
+    <HoverCardDisplay
+      gem={gem}
+      isVisible={isVisible}
+      position={position}
+      onWebsiteClick={onWebsiteClick}
+    />,
     document.body
   );
 };

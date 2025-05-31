@@ -2,7 +2,6 @@
 import React from 'react';
 import { HiddenGem } from './types';
 import HoverableMarker from './components/HoverableMarker';
-import { useHiddenGemHoverContext } from './contexts/HiddenGemHoverContext';
 
 interface HiddenGemCustomMarkerProps {
   gem: HiddenGem;

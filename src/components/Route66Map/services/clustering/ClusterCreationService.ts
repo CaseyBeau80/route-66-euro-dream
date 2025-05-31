@@ -1,4 +1,3 @@
-
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { DestinationCityProtectionService } from '../DestinationCityProtectionService';
 import { DistanceCalculator } from './DistanceCalculator';
@@ -6,30 +5,30 @@ import type { ClusterGroup, ClusteringConfig, ZoomBasedClusteringConfig } from '
 
 export class ClusterCreationService {
   private static readonly DEFAULT_CONFIG: ClusteringConfig = {
-    minClusterSize: 2, // More aggressive default
-    clusterRadiusMeters: 75000, // Larger default radius
-    destinationExclusionRadius: 100000 // Larger exclusion zone around destinations
+    minClusterSize: 3,
+    clusterRadiusMeters: 50000, // 50km
+    destinationExclusionRadius: 75000 // 75km around destinations
   };
 
   private static readonly ZOOM_CONFIGS: ZoomBasedClusteringConfig = {
     ultra: {
       minClusterSize: 2,
-      radiusMeters: 300000, // 300km - very aggressive clustering
-      iconSizeMultiplier: 2.0
+      radiusMeters: 200000, // 200km - very aggressive clustering
+      iconSizeMultiplier: 1.8
     },
     large: {
-      minClusterSize: 2,
-      radiusMeters: 150000, // 150km - aggressive clustering
-      iconSizeMultiplier: 1.7
+      minClusterSize: 3,
+      radiusMeters: 100000, // 100km - large clustering
+      iconSizeMultiplier: 1.5
     },
     medium: {
       minClusterSize: 3,
-      radiusMeters: 75000, // 75km - medium clustering
-      iconSizeMultiplier: 1.4
+      radiusMeters: 50000, // 50km - medium clustering
+      iconSizeMultiplier: 1.2
     },
     small: {
       minClusterSize: 4,
-      radiusMeters: 35000, // 35km - tighter clustering
+      radiusMeters: 25000, // 25km - tight clustering
       iconSizeMultiplier: 1.0
     }
   };
@@ -42,22 +41,20 @@ export class ClusterCreationService {
   ): { clusters: ClusterGroup[], unclustered: Route66Waypoint[] } {
     const clusterConfig = { ...this.DEFAULT_CONFIG, ...config };
     
-    console.log(`🎯 Creating aggressive clusters for ${markers.length} markers at zoom ${currentZoom.toFixed(1)}`);
+    console.log(`🎯 Creating enhanced zoom-responsive clusters for ${markers.length} markers at zoom ${currentZoom}`);
     
     // Determine clustering level based on zoom
     const clusterLevel = this.getClusterLevel(currentZoom);
     const zoomConfig = this.ZOOM_CONFIGS[clusterLevel];
     
-    console.log(`📊 Using ${clusterLevel} clustering:`, {
-      minClusterSize: zoomConfig.minClusterSize,
-      radius: `${(zoomConfig.radiusMeters / 1000).toFixed(0)}km`
-    });
+    console.log(`📊 Using ${clusterLevel} clustering config:`, zoomConfig);
     
     // Always exclude destination cities from clustering
     const destinationCities = DestinationCityProtectionService.validateDestinationCities(markers);
     const nonDestinationMarkers = markers.filter(m => !destinationCities.some(d => d.id === m.id));
     
     console.log(`🛡️ Protected ${destinationCities.length} destination cities from clustering`);
+    console.log(`🎯 Processing ${nonDestinationMarkers.length} non-destination markers for clustering`);
 
     // Filter markers that are visible in current bounds with expanded view
     const expandedBounds = this.expandBounds(mapBounds, currentZoom);
@@ -66,7 +63,7 @@ export class ClusterCreationService {
       return expandedBounds.contains(position);
     });
 
-    console.log(`👁️ ${visibleMarkers.length} non-destination markers visible in expanded bounds`);
+    console.log(`👁️ ${visibleMarkers.length} markers visible in expanded bounds`);
 
     // Create clusters based on zoom level and proximity
     const clusters: ClusterGroup[] = [];
@@ -126,20 +123,20 @@ export class ClusterCreationService {
       }
     }
 
-    console.log(`✅ Aggressive clustering complete: ${clusters.length} ${clusterLevel} clusters, ${unclustered.length} individual markers`);
+    console.log(`✅ Enhanced zoom-responsive clustering complete: ${clusters.length} ${clusterLevel} clusters, ${unclustered.length} individual markers`);
     return { clusters, unclustered };
   }
 
   private static getClusterLevel(zoom: number): keyof ZoomBasedClusteringConfig {
-    if (zoom <= 5) return 'ultra';
-    if (zoom <= 6.5) return 'large';
-    if (zoom <= 8) return 'medium';
+    if (zoom <= 4) return 'ultra';
+    if (zoom <= 5.5) return 'large';
+    if (zoom <= 7) return 'medium';
     return 'small';
   }
 
   private static expandBounds(bounds: google.maps.LatLngBounds, zoom: number): google.maps.LatLngBounds {
-    // More generous expansion at lower zoom levels for better clustering
-    const expansionFactor = Math.max(0.2, (10 - zoom) * 0.3);
+    // Expand bounds based on zoom level to catch nearby clusters
+    const expansionFactor = Math.max(0.1, (10 - zoom) * 0.2);
     
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
@@ -161,8 +158,8 @@ export class ClusterCreationService {
   }
 
   static shouldShowIndividualMarkers(currentZoom: number): boolean {
-    // Show individual markers only at higher zoom levels
-    return currentZoom >= 9.5;
+    // Show individual markers at higher zoom levels
+    return currentZoom >= 8.5;
   }
 
   static getIconSizeMultiplier(clusterLevel: keyof ZoomBasedClusteringConfig): number {
