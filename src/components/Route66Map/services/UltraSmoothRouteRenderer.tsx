@@ -36,8 +36,8 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    // FORCE recreation to apply new asphalt colors - remove the skip condition temporarily
-    console.log('🎨 FORCING Route 66 recreation with NEW ASPHALT COLORS');
+    // FORCE recreation to apply new YELLOW stripe colors
+    console.log('🎨 FORCING Route 66 recreation with NEW BRIGHT YELLOW CENTER STRIPES');
 
     // Reset flags to force recreation
     hasRendered.current = false;
@@ -51,7 +51,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    console.log(`🚀 UltraSmoothRouteRenderer: Creating ASPHALT Route 66 (attempt ${renderAttempts.current})`);
+    console.log(`🚀 UltraSmoothRouteRenderer: Creating ASPHALT Route 66 with YELLOW stripes (attempt ${renderAttempts.current})`);
     
     try {
       // Initialize managers
@@ -60,7 +60,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       const cleanupManager = new RouteCleanupManager(map, markersManager, polylineManager);
       
       // Step 1: Clean up any existing routes
-      console.log('🧹 FORCING cleanup of existing routes for asphalt color update...');
+      console.log('🧹 FORCING cleanup of existing routes for yellow stripe update...');
       cleanupManager.performNuclearCleanup();
       
       // Step 2: Filter ONLY major stops (Route 66 city icons) - this is critical
@@ -132,9 +132,9 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     };
   }, [map, isMapReady, waypoints, isLoading, error]);
 
-  // Fallback route creation function with asphalt colors
+  // Fallback route creation function with BRIGHT YELLOW stripes
   const createAsphaltFallbackRoute = (map: google.maps.Map, majorStops: any[]) => {
-    console.log('🔄 Creating ASPHALT fallback straight-line route');
+    console.log('🔄 Creating ASPHALT fallback straight-line route with BRIGHT YELLOW stripes');
     
     const routePath = majorStops.map(stop => ({
       lat: stop.latitude,
@@ -152,10 +152,34 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       map: map
     });
 
-    console.log('✅ ASPHALT Fallback route created');
+    // Add bright yellow center line to fallback route
+    const fallbackCenterLine = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#FFD700', // Bright yellow
+      strokeOpacity: 0,
+      strokeWeight: 0,
+      zIndex: 10001,
+      clickable: false,
+      map: map,
+      icons: [{
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1.0, // Full opacity for bright yellow
+          strokeColor: '#FFD700', // Bright yellow
+          strokeWeight: 2,
+          scale: 1
+        },
+        offset: '0%',
+        repeat: '40px'
+      }]
+    });
+
+    console.log('✅ ASPHALT Fallback route with BRIGHT YELLOW stripes created');
     
     // Store in global state for cleanup
     RouteGlobalState.addPolylineSegment(fallbackPolyline);
+    RouteGlobalState.addPolylineSegment(fallbackCenterLine);
   };
 
   return null;

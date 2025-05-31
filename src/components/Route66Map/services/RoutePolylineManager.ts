@@ -113,7 +113,7 @@ export class RoutePolylineManager {
       return;
     }
 
-    console.log('🛣️ Creating NEW ASPHALT-COLORED Route 66 road path between major stops');
+    console.log('🛣️ Creating NEW ASPHALT-COLORED Route 66 road path with YELLOW center stripes');
     console.log(`🎯 Input validation: ${majorStopsOnly.length} major stops confirmed`);
 
     if (majorStopsOnly.length < 2) {
@@ -124,7 +124,7 @@ export class RoutePolylineManager {
     // Sort by sequence order to ensure proper city-to-city connections
     const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
     
-    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} ASPHALT-COLORED road segments:`);
+    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} ASPHALT-COLORED road segments with YELLOW stripes:`);
 
     // Create curved segments between consecutive major stops (city-to-city)
     for (let i = 0; i < sortedMajorStops.length - 1; i++) {
@@ -150,11 +150,11 @@ export class RoutePolylineManager {
         map: this.map // Add directly to map
       });
 
-      // Create worn center line for authentic old Route 66 look
+      // Create BRIGHT YELLOW center line for authentic Route 66 look
       const centerLine = new google.maps.Polyline({
         path: windyPath,
         geodesic: false,
-        strokeColor: '#F5F5DC', // Faded beige/cream for worn paint
+        strokeColor: '#FFD700', // Bright yellow/gold color
         strokeOpacity: 0,
         strokeWeight: 0,
         zIndex: 10001,
@@ -163,8 +163,8 @@ export class RoutePolylineManager {
         icons: [{
           icon: {
             path: 'M 0,-1.5 0,1.5',
-            strokeOpacity: 0.6, // Faded appearance
-            strokeColor: '#F5F5DC', // Faded cream color
+            strokeOpacity: 1.0, // Full opacity for bright yellow
+            strokeColor: '#FFD700', // Bright yellow/gold color
             strokeWeight: 2,
             scale: 1
           },
@@ -177,13 +177,13 @@ export class RoutePolylineManager {
       RouteGlobalState.addPolylineSegment(mainPolyline);
       RouteGlobalState.addPolylineSegment(centerLine);
 
-      console.log(`✅ ASPHALT Route 66 segment created: ${startCity.name} → ${endCity.name} with ${windyPath.length} points`);
+      console.log(`✅ ASPHALT Route 66 segment with YELLOW stripes created: ${startCity.name} → ${endCity.name} with ${windyPath.length} points`);
     }
 
     // Mark route as created with new colors
     RouteGlobalState.setRouteCreated(true);
 
-    console.log(`🛣️ ASPHALT Route 66 road is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
+    console.log(`🛣️ ASPHALT Route 66 road with BRIGHT YELLOW stripes is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
   }
 
   fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {
