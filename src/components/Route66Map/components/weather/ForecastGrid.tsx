@@ -17,42 +17,42 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {showHeader && (
-        <div className="flex items-center gap-2 mb-3">
-          <Calendar className="w-4 h-4 text-orange-600" />
-          <h5 className="font-semibold text-sm text-orange-900">3-Day Forecast</h5>
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar className="w-3 h-3 text-orange-600" />
+          <h5 className="font-semibold text-xs text-orange-900">3-Day Forecast</h5>
         </div>
       )}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {forecast.map((day, index) => {
           console.log(`🔍 ForecastGrid: Processing day ${index}:`, day);
           const dayLabel = getDayLabel(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Label: ${dayLabel}`);
           
           return (
-            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-orange-50 to-orange-100 rounded-lg px-2 py-3 min-h-[110px] border border-orange-300 shadow-sm">
-              {/* Day label at top */}
-              <div className="text-xs font-bold text-orange-800 mb-2 uppercase tracking-wide">
+            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-orange-50 to-orange-100 rounded-lg px-1 py-2 min-h-[90px] border border-orange-300 shadow-sm">
+              {/* Day label at top - smaller font */}
+              <div className="text-xs font-bold text-orange-800 mb-1 uppercase tracking-wide">
                 {dayLabel}
               </div>
               
-              {/* Weather icon */}
-              <div className="mb-2">
+              {/* Weather icon - smaller */}
+              <div className="mb-1">
                 <img 
                   src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
                   alt={day.description}
-                  className="w-10 h-10"
+                  className="w-8 h-8"
                 />
               </div>
               
-              {/* High temperature - larger and prominent */}
-              <div className="text-lg font-black text-orange-900 mb-1">
+              {/* High temperature - smaller and prominent */}
+              <div className="text-sm font-black text-orange-900 mb-1">
                 {day.temperature.high}°
               </div>
               
               {/* Low temperature - smaller and muted */}
-              <div className="text-sm text-orange-700 font-semibold">
+              <div className="text-xs text-orange-700 font-semibold">
                 {day.temperature.low}°
               </div>
             </div>

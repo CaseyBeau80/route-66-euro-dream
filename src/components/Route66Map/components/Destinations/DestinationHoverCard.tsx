@@ -29,8 +29,8 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
     <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200 max-h-[85vh] overflow-hidden">
       <CardContent className="p-4 overflow-y-auto max-h-[calc(85vh-2rem)]">
         <div className="space-y-3">
-          {/* Clean City and State Header */}
-          <div className="text-center bg-gradient-to-r from-orange-200 to-orange-300 py-3 px-4 rounded-lg border-2 border-orange-600 shadow-inner">
+          {/* Clean City and State Header - No outline box */}
+          <div className="text-center py-3 px-4">
             <h4 className="text-2xl font-black text-orange-900 mb-1 uppercase tracking-wide">{cityName}</h4>
             <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">{stateName}</p>
           </div>
