@@ -7,28 +7,47 @@ export const useAttractionHover = () => {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const positionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoverStableRef = useRef(false);
+  const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ULTRA-STABLE hover enter handler with debouncing
+  // ULTRA-STABLE hover enter handler with show delay
   const handleMouseEnter = useCallback((attractionName?: string) => {
-    // Prevent rapid state changes
+    // Clear any pending hide timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+
+    // If already showing, don't restart the delay
     if (isHoverStableRef.current) {
       console.log(`🔒 Hover already stable for: ${attractionName}, ignoring enter`);
       return;
     }
 
-    // Clear any pending timeout to prevent flickering
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
+    // Clear any existing show delay
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
     }
+
+    console.log(`⏳ Starting hover delay for attraction: ${attractionName || 'unknown'}`);
     
-    console.log(`🎯 STABLE hover started for attraction: ${attractionName || 'unknown'}`);
-    isHoverStableRef.current = true;
-    setIsHovered(true);
+    // Add 400ms delay before showing the tooltip
+    showDelayTimeoutRef.current = setTimeout(() => {
+      console.log(`🎯 STABLE hover started for attraction: ${attractionName || 'unknown'}`);
+      isHoverStableRef.current = true;
+      setIsHovered(true);
+      showDelayTimeoutRef.current = null;
+    }, 400);
   }, []);
 
   // ULTRA-STABLE hover leave handler with longer delay
   const handleMouseLeave = useCallback((attractionName?: string) => {
+    // Clear any pending show delay
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
+      console.log(`🚫 Cancelled hover delay for attraction: ${attractionName || 'unknown'}`);
+    }
+
     // Clear any existing timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -40,7 +59,7 @@ export const useAttractionHover = () => {
       isHoverStableRef.current = false;
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 500); // Longer delay for stability
+    }, 300);
   }, []);
 
   // ULTRA-STABLE position update with heavy debouncing
@@ -53,7 +72,7 @@ export const useAttractionHover = () => {
       console.log(`📍 STABLE position update:`, { x, y });
       setHoverPosition({ x, y });
       positionTimeoutRef.current = null;
-    }, 50); // Heavier debouncing for stability
+    }, 50);
   }, []);
 
   // Enhanced cleanup function
@@ -66,6 +85,10 @@ export const useAttractionHover = () => {
     if (positionTimeoutRef.current) {
       clearTimeout(positionTimeoutRef.current);
       positionTimeoutRef.current = null;
+    }
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
     }
     isHoverStableRef.current = false;
     setIsHovered(false);
@@ -80,6 +103,10 @@ export const useAttractionHover = () => {
     if (positionTimeoutRef.current) {
       clearTimeout(positionTimeoutRef.current);
       positionTimeoutRef.current = null;
+    }
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
     }
     isHoverStableRef.current = false;
     setIsHovered(false);

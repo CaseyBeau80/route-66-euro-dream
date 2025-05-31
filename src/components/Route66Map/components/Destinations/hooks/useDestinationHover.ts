@@ -5,17 +5,38 @@ export const useDestinationHover = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = useCallback((destinationName?: string) => {
+    // Clear any pending hide timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-    console.log(`🏛️ Hover started for destination: ${destinationName || 'unknown'}`);
-    setIsHovered(true);
+
+    // Clear any existing show delay
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+    }
+
+    console.log(`⏳ Starting hover delay for destination: ${destinationName || 'unknown'}`);
+    
+    // Add 400ms delay before showing the tooltip
+    showDelayTimeoutRef.current = setTimeout(() => {
+      console.log(`🏛️ Hover started for destination: ${destinationName || 'unknown'}`);
+      setIsHovered(true);
+      showDelayTimeoutRef.current = null;
+    }, 400);
   }, []);
 
   const handleMouseLeave = useCallback((destinationName?: string) => {
+    // Clear any pending show delay
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
+      console.log(`🚫 Cancelled hover delay for destination: ${destinationName || 'unknown'}`);
+    }
+
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -37,6 +58,10 @@ export const useDestinationHover = () => {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
+    }
     setIsHovered(false);
   }, []);
 
@@ -44,6 +69,10 @@ export const useDestinationHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
+    }
+    if (showDelayTimeoutRef.current) {
+      clearTimeout(showDelayTimeoutRef.current);
+      showDelayTimeoutRef.current = null;
     }
     setIsHovered(false);
   }, []);
