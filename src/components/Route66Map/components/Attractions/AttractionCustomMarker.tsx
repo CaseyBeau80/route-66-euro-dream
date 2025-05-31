@@ -32,17 +32,20 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
 
     console.log(`🎯 Creating attraction marker for ${attraction.name}`);
 
-    // Create simple red dot marker for attractions
-    const iconSize = 14;
+    // Create more visible marker for drive-in theaters and other attractions
+    const iconSize = 16; // Increased from 14
+    const isDriveIn = attraction.name.toLowerCase().includes('drive-in');
+    
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-        <circle cx="7" cy="7" r="6" 
-                fill="#FEF3C7" 
-                stroke="#DC2626" 
+        <circle cx="8" cy="8" r="7" 
+                fill="${isDriveIn ? '#FFD700' : '#FEF3C7'}" 
+                stroke="${isDriveIn ? '#8B4513' : '#DC2626'}" 
                 stroke-width="2"/>
-        <circle cx="7" cy="7" r="3" 
-                fill="#DC2626" 
-                opacity="0.8"/>
+        <circle cx="8" cy="8" r="4" 
+                fill="${isDriveIn ? '#8B4513' : '#DC2626'}" 
+                opacity="0.9"/>
+        ${isDriveIn ? '<text x="8" y="12" text-anchor="middle" font-size="8" fill="white">🎬</text>' : ''}
       </svg>
     `;
 
@@ -54,11 +57,17 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
         scaledSize: new google.maps.Size(iconSize, iconSize),
         anchor: new google.maps.Point(iconSize/2, iconSize/2)
       },
-      title: `${attraction.name} - ${attraction.state}`,
-      zIndex: 20000
+      title: `${attraction.name} - ${attraction.state}${isDriveIn ? ' (Drive-In Theater)' : ''}`,
+      zIndex: 25000, // Higher than destinations (15000) to show on top
+      optimized: false // Ensure custom icons render properly
     });
 
     markerRef.current = marker;
+
+    // Log drive-in creation specifically
+    if (isDriveIn) {
+      console.log(`🎬 Drive-in theater marker created: ${attraction.name} at ${attraction.latitude}, ${attraction.longitude}`);
+    }
 
     // Mouse enter handler
     const mouseEnterListener = marker.addListener('mouseover', () => {

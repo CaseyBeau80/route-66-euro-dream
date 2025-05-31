@@ -33,13 +33,13 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     
     console.log(`🏛️ Creating destination marker for: ${cityName}`);
 
-    // Create the marker with the elevated road post icon
+    // Create the marker with LOWER z-index so attractions show on top
     const marker = new google.maps.Marker({
       position: { lat: destination.latitude, lng: destination.longitude },
       map: map,
       icon: IconCreator.createDestinationCityIcon(cityName),
       title: `${destination.name} - ${destination.state} (Destination)`,
-      zIndex: 30000,
+      zIndex: 15000, // Reduced from 30000 to be below attractions (20000)
       visible: true
     });
 

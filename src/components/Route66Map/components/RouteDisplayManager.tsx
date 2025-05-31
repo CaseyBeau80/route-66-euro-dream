@@ -34,16 +34,24 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Reset state when map changes
   useEffect(() => {
     if (map && isMapReady) {
+      console.log('🔄 RouteDisplayManager: Resetting state for new map');
       setRouteRendered(false);
       activeRouteRef.current = null;
+      // Force re-render by resetting to supabase mode
+      setRouteDisplayMode('supabase');
     }
   }, [map, isMapReady]);
 
-  if (!isMapReady || routeRendered) {
+  // Don't render anything if map isn't ready
+  if (!isMapReady) {
+    console.log('⏳ RouteDisplayManager: Map not ready yet');
     return null;
   }
 
-  console.log(`🛣️ RouteDisplayManager: Rendering ${routeDisplayMode} route system`);
+  // Always try to render if route hasn't been rendered yet
+  if (!routeRendered) {
+    console.log(`🛣️ RouteDisplayManager: Attempting to render ${routeDisplayMode} route system`);
+  }
 
   return (
     <>
