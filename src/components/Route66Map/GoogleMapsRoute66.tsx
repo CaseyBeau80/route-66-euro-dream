@@ -81,7 +81,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with SINGLE route renderer only', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with ABSOLUTELY ONLY RouteDisplayManager (single route)', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -112,7 +112,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             {/* Add state highlighting as the base layer */}
             <StateHighlighting map={mapRef.current} />
             
-            {/* ONLY RouteDisplayManager - no other route components */}
+            {/* ABSOLUTELY ONLY RouteDisplayManager - no other route components whatsoever */}
             <RouteDisplayManager 
               map={mapRef.current}
               isMapReady={mapEventHandlers.isMapReady}

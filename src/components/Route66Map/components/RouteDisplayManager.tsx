@@ -21,7 +21,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Reset state when map changes
   useEffect(() => {
     if (map && isMapReady) {
-      console.log('🔄 RouteDisplayManager: ONLY Route66StaticPolyline will render - ALL other route services permanently disabled');
+      console.log('🔄 RouteDisplayManager: ABSOLUTELY ONLY Route66StaticPolyline - ALL other route services PERMANENTLY DISABLED');
       
       // Clear any pending render timeout
       if (renderTimeoutRef.current) {
@@ -41,7 +41,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Handle waypoints loading success
   useEffect(() => {
     if (waypoints.length > 0 && !routeRendered && isMapReady) {
-      console.log('✅ Waypoints loaded, rendering SINGLE Route 66 road ONLY');
+      console.log('✅ Waypoints loaded, rendering SINGLE Route 66 road ONLY - NO OTHER ROUTES');
       
       // Debounce route success to prevent multiple rapid calls
       if (renderTimeoutRef.current) {
@@ -70,9 +70,9 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
     return null;
   }
 
-  console.log(`🛣️ RouteDisplayManager: Rendering ONLY Route66StaticPolyline (waypoints: ${waypoints.length})`);
+  console.log(`🛣️ RouteDisplayManager: Rendering ABSOLUTELY ONLY Route66StaticPolyline (waypoints: ${waypoints.length}) - NO SupabaseRoute66`);
 
-  // ONLY Route66StaticPolyline - absolutely no other route components
+  // ABSOLUTELY ONLY Route66StaticPolyline - NO SupabaseRoute66 component at all
   return (
     <>
       {waypoints.length > 0 && isMapReady && (

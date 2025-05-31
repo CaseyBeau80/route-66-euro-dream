@@ -8,7 +8,7 @@ import RouteInfo from "./RouteInfo";
 
 /**
  * Main Route 66 Map component
- * Uses Google Maps implementation only (no SVG overlay)
+ * Uses Google Maps implementation with SINGLE route rendering only
  */
 const Route66Map = () => {
   const [loaded, setLoaded] = useState(false);
@@ -16,13 +16,13 @@ const Route66Map = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("🗺️ Route66Map: Initializing component");
+    console.log("🗺️ Route66Map: Initializing component with SINGLE route system");
     
     // Short delay to ensure the DOM is ready
     const timer = setTimeout(() => {
       try {
         setLoaded(true);
-        console.log("🗺️ Route66Map: Component loaded successfully");
+        console.log("🗺️ Route66Map: Component loaded successfully with SINGLE route system");
       } catch (err) {
         console.error("Error rendering map:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -33,14 +33,14 @@ const Route66Map = () => {
   }, []); 
 
   const handleRetry = () => {
-    console.log("🔄 Route66Map: Retrying map load");
+    console.log("🔄 Route66Map: Retrying map load with SINGLE route system");
     setError(null);
     setLoaded(false);
     
     setTimeout(() => {
       try {
         setLoaded(true);
-        console.log("🗺️ Route66Map: Retry successful");
+        console.log("🗺️ Route66Map: Retry successful with SINGLE route system");
       } catch (err) {
         console.error("Error on retry:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -69,7 +69,7 @@ const Route66Map = () => {
     setSelectedState(null);
   };
 
-  console.log("🗺️ Route66Map: Rendering with state", { loaded, error, selectedState });
+  console.log("🗺️ Route66Map: Rendering with SINGLE route system", { loaded, error, selectedState });
 
   return (
     <div className="my-8 px-2 sm:px-4 w-full">
