@@ -7,6 +7,8 @@ interface AttractionHoverContextType {
   setActiveAttraction: (attractionName: string | null, position?: { x: number; y: number }) => void;
   clearAllHovers: () => void;
   keepCardVisible: (attractionName: string) => void;
+  shouldShowIndividualMarkers: (zoomLevel: number) => boolean;
+  shouldShowClusters: (zoomLevel: number) => boolean;
 }
 
 const AttractionHoverContext = createContext<AttractionHoverContextType | undefined>(undefined);
@@ -17,6 +19,21 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastHoveredRef = useRef<string | null>(null);
+
+  // Fixed zoom level logic for clustering behavior
+  const shouldShowIndividualMarkers = useCallback((zoomLevel: number): boolean => {
+    const threshold = 12; // Show individual markers at zoom 12+
+    const show = zoomLevel >= threshold;
+    console.log(`🔍 Zoom ${zoomLevel}: Individual markers ${show ? 'VISIBLE' : 'HIDDEN'} (threshold: ${threshold})`);
+    return show;
+  }, []);
+
+  const shouldShowClusters = useCallback((zoomLevel: number): boolean => {
+    const threshold = 12; // Show clusters below zoom 12
+    const show = zoomLevel < threshold;
+    console.log(`🔍 Zoom ${zoomLevel}: Clusters ${show ? 'VISIBLE' : 'HIDDEN'} (threshold: ${threshold})`);
+    return show;
+  }, []);
 
   const setActiveAttraction = useCallback((attractionName: string | null, position?: { x: number; y: number }) => {
     // Clear any existing timeouts
@@ -44,25 +61,25 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
       // Update position
       setHoverPosition(position);
       
-      console.log(`⏳ Starting stabilized hover for attraction: ${attractionName}`);
+      console.log(`⏳ Starting hover for attraction: ${attractionName}`);
       
-      // Reduced delay for faster response (300ms instead of 600ms)
+      // Reduced delay for faster response (100ms instead of 300ms)
       showDelayTimeoutRef.current = setTimeout(() => {
         // Double-check the attraction is still being hovered
         if (lastHoveredRef.current === attractionName) {
-          console.log(`🎯 Stabilized hover activated for attraction: ${attractionName}`);
+          console.log(`🎯 Hover activated for attraction: ${attractionName}`);
           setActiveAttractionState(attractionName);
         }
         showDelayTimeoutRef.current = null;
-      }, 300);
+      }, 100);
     } else {
-      // Handle mouse leave - much longer delay before hiding (2000ms for reading time)
+      // Handle mouse leave - shorter delay for attractions (1000ms)
       lastHoveredRef.current = null;
       hoverTimeoutRef.current = setTimeout(() => {
-        console.log(`🎯 Stabilized hover ended for attraction: ${activeAttraction}`);
+        console.log(`🎯 Hover ended for attraction: ${activeAttraction}`);
         setActiveAttractionState(null);
         hoverTimeoutRef.current = null;
-      }, 2000);
+      }, 1000);
     }
   }, [activeAttraction]);
 
@@ -94,7 +111,9 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
       hoverPosition,
       setActiveAttraction,
       clearAllHovers,
-      keepCardVisible
+      keepCardVisible,
+      shouldShowIndividualMarkers,
+      shouldShowClusters
     }}>
       {children}
     </AttractionHoverContext.Provider>

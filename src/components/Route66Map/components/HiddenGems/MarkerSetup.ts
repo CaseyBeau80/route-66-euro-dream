@@ -29,15 +29,22 @@ export const createMarkerSetup = ({
     zIndex: 1000
   });
 
-  // Create overlay element for hover detection with larger area
+  // Create overlay element with larger hover area (increased from 40px to 60px)
   const overlay = document.createElement('div');
   overlay.style.position = 'absolute';
-  overlay.style.width = '40px';
-  overlay.style.height = '40px';
+  overlay.style.width = '60px'; // Increased hover detection area
+  overlay.style.height = '60px'; // Increased hover detection area
   overlay.style.cursor = 'pointer';
   overlay.style.zIndex = '999999';
   overlay.style.backgroundColor = 'transparent';
   overlay.style.borderRadius = '50%';
+  overlay.style.transform = 'translate(-50%, -50%)'; // Center the overlay properly
+
+  // Add hover area visualization for debugging (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    overlay.style.border = '1px dashed rgba(255, 0, 0, 0.3)';
+    overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+  }
 
   const customOverlay = new CustomOverlay(
     new google.maps.LatLng(Number(gem.latitude), Number(gem.longitude)),
@@ -47,45 +54,76 @@ export const createMarkerSetup = ({
 
   customOverlay.setMap(map);
 
-  // Event handlers
+  // Optimized event handlers with proper debouncing
+  let isHovering = false;
+  let hoverDebounceTimeout: NodeJS.Timeout | null = null;
+
   const handleClick = () => {
     console.log(`🎯 Clicked gem: ${gem.title}`);
     onMarkerClick(gem);
   };
 
-  // Add event listeners with proper event passing
   const handleOverlayMouseEnter = (event: MouseEvent) => {
+    if (isHovering) return; // Prevent duplicate events
+    
+    if (hoverDebounceTimeout) {
+      clearTimeout(hoverDebounceTimeout);
+    }
+    
+    isHovering = true;
+    console.log(`🔥 Optimized mouse enter for ${gem.title}`);
     onMouseEnter(event);
   };
 
   const handleOverlayMouseLeave = () => {
-    onMouseLeave();
+    if (!isHovering) return; // Prevent duplicate events
+    
+    // Small delay to prevent flickering on micro-movements
+    hoverDebounceTimeout = setTimeout(() => {
+      isHovering = false;
+      console.log(`❄️ Optimized mouse leave for ${gem.title}`);
+      onMouseLeave();
+    }, 100);
   };
 
-  // Add event listeners
-  overlay.addEventListener('mouseenter', handleOverlayMouseEnter);
-  overlay.addEventListener('mouseleave', handleOverlayMouseLeave);
-  overlay.addEventListener('click', handleClick);
+  // Add event listeners with passive option for better performance
+  overlay.addEventListener('mouseenter', handleOverlayMouseEnter, { passive: true });
+  overlay.addEventListener('mouseleave', handleOverlayMouseLeave, { passive: true });
+  overlay.addEventListener('click', handleClick, { passive: true });
   marker.addListener('click', handleClick);
 
-  // Update overlay position when map changes
-  const updatePosition = () => {
-    if (customOverlay) {
-      customOverlay.draw();
+  // Optimized position update handling
+  let updateTimeout: NodeJS.Timeout | null = null;
+  const debouncedUpdatePosition = () => {
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
     }
+    updateTimeout = setTimeout(() => {
+      if (customOverlay) {
+        customOverlay.draw();
+      }
+    }, 16); // ~60fps for smooth updates
   };
 
-  const zoomChangedListener = map.addListener('zoom_changed', updatePosition);
-  const boundsChangedListener = map.addListener('bounds_changed', updatePosition);
+  const zoomChangedListener = map.addListener('zoom_changed', debouncedUpdatePosition);
+  const boundsChangedListener = map.addListener('bounds_changed', debouncedUpdatePosition);
 
   // Cleanup function
   const cleanup = () => {
+    if (hoverDebounceTimeout) {
+      clearTimeout(hoverDebounceTimeout);
+    }
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
+    }
+    
     if (marker) {
       marker.setMap(null);
     }
     if (customOverlay) {
       customOverlay.setMap(null);
     }
+    
     overlay.removeEventListener('mouseenter', handleOverlayMouseEnter);
     overlay.removeEventListener('mouseleave', handleOverlayMouseLeave);
     overlay.removeEventListener('click', handleClick);
@@ -97,6 +135,8 @@ export const createMarkerSetup = ({
     if (boundsChangedListener) {
       google.maps.event.removeListener(boundsChangedListener);
     }
+    
+    console.log(`🧹 Cleaned up optimized marker setup for ${gem.title}`);
   };
 
   return { marker, customOverlay, cleanup };

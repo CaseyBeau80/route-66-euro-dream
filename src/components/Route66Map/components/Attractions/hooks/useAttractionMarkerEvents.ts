@@ -18,7 +18,7 @@ export const useAttractionMarkerEvents = ({
   isHovered,
   onAttractionClick
 }: UseAttractionMarkerEventsProps) => {
-  const { setActiveAttraction } = useAttractionHoverContext();
+  const { setActiveAttraction, shouldShowIndividualMarkers } = useAttractionHoverContext();
 
   useEffect(() => {
     if (!marker) return;
@@ -29,15 +29,32 @@ export const useAttractionMarkerEvents = ({
     });
     listenersRef.current = [];
 
-    // Add event listeners with global hover management
+    // Check current zoom level to determine if marker should be interactive
+    const map = marker.getMap() as google.maps.Map;
+    if (map) {
+      const currentZoom = map.getZoom() || 10;
+      const shouldShow = shouldShowIndividualMarkers(currentZoom);
+      
+      console.log(`🔧 Setting up attraction marker events for ${attraction.name}, zoom: ${currentZoom}, shouldShow: ${shouldShow}`);
+      
+      if (!shouldShow) {
+        // If markers shouldn't be shown at this zoom, don't add hover events
+        console.log(`🚫 Skipping hover events for ${attraction.name} at zoom ${currentZoom}`);
+        return;
+      }
+    }
+
+    // Add event listeners with improved hover management
     const mouseEnterListener = marker.addListener('mouseover', (event: google.maps.MapMouseEvent) => {
       if (event.domEvent) {
         const mouseEvent = event.domEvent as MouseEvent;
+        console.log(`🎯 Attraction hover START: ${attraction.name}`);
         setActiveAttraction(attraction.name, { x: mouseEvent.clientX + 10, y: mouseEvent.clientY - 10 });
       }
     });
 
     const mouseLeaveListener = marker.addListener('mouseout', () => {
+      console.log(`🎯 Attraction hover END: ${attraction.name}`);
       setActiveAttraction(null);
     });
 
@@ -65,5 +82,5 @@ export const useAttractionMarkerEvents = ({
       });
       listenersRef.current = [];
     };
-  }, [marker, attraction, setActiveAttraction, isHovered, onAttractionClick, listenersRef]);
+  }, [marker, attraction, setActiveAttraction, isHovered, onAttractionClick, listenersRef, shouldShowIndividualMarkers]);
 };
