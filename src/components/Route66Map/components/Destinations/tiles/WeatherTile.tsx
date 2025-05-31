@@ -45,7 +45,7 @@ const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
         </CardTitle>
       </CardHeader>
       {isExpanded && (
-        <CardContent className="pt-0">
+        <CardContent className="p-0 m-0">
           {hasApiKey ? (
             <WeatherWidget 
               key={apiKeyRefreshTrigger}
@@ -56,10 +56,12 @@ const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
               collapsible={false}
             />
           ) : (
-            <SimpleWeatherApiKeyInput 
-              onApiKeySet={handleApiKeySet}
-              cityName={cityName}
-            />
+            <div className="p-4">
+              <SimpleWeatherApiKeyInput 
+                onApiKeySet={handleApiKeySet}
+                cityName={cityName}
+              />
+            </div>
           )}
         </CardContent>
       )}
