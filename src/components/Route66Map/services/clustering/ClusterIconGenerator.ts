@@ -5,7 +5,7 @@ export class ClusterIconGenerator {
   static getClusterIcon(markerCount: number): google.maps.Icon {
     const size = Math.min(60, Math.max(40, markerCount * 1.5 + 30)); // Made it bigger
     
-    console.log(`🚗 Creating 1950s rust red vintage car cluster icon for ${markerCount} markers, size: ${size}`);
+    console.log(`🚗 Creating green vintage car cluster icon for ${markerCount} markers, size: ${size}`);
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -19,13 +19,13 @@ export class ClusterIconGenerator {
         <ellipse cx="${size * 0.5}" cy="${size * 0.82}" rx="${size * 0.4}" ry="${size * 0.06}" 
                  fill="#000000" opacity="0.2"/>
         
-        <!-- Main car body (1950s rust red) -->
+        <!-- Main car body (green) -->
         <rect x="${size * 0.15}" y="${size * 0.55}" width="${size * 0.7}" height="${size * 0.18}"
-              fill="#a0522d" stroke="#8b4513" stroke-width="1.5" rx="${size * 0.03}" filter="url(#shadow)"/>
+              fill="#22c55e" stroke="#16a34a" stroke-width="1.5" rx="${size * 0.03}" filter="url(#shadow)"/>
         
         <!-- Car roof -->
         <rect x="${size * 0.25}" y="${size * 0.42}" width="${size * 0.5}" height="${size * 0.13}"
-              fill="#a0522d" stroke="#8b4513" stroke-width="1.5" rx="${size * 0.025}"/>
+              fill="#22c55e" stroke="#16a34a" stroke-width="1.5" rx="${size * 0.025}"/>
         
         <!-- Windshield -->
         <rect x="${size * 0.28}" y="${size * 0.45}" width="${size * 0.44}" height="${size * 0.08}"
@@ -37,7 +37,7 @@ export class ClusterIconGenerator {
         
         <!-- Front grille -->
         <rect x="${size * 0.12}" y="${size * 0.6}" width="${size * 0.76}" height="${size * 0.08}"
-              fill="#333333" stroke="#8b4513" stroke-width="1" rx="${size * 0.01}"/>
+              fill="#333333" stroke="#16a34a" stroke-width="1" rx="${size * 0.01}"/>
         
         <!-- Headlights -->
         <circle cx="${size * 0.2}" cy="${size * 0.62}" r="${size * 0.035}"
@@ -59,13 +59,13 @@ export class ClusterIconGenerator {
         
         <!-- Side mirrors -->
         <rect x="${size * 0.23}" y="${size * 0.52}" width="${size * 0.02}" height="${size * 0.04}"
-              fill="#a0522d" stroke="#8b4513" stroke-width="0.5"/>
+              fill="#22c55e" stroke="#16a34a" stroke-width="0.5"/>
         <rect x="${size * 0.75}" y="${size * 0.52}" width="${size * 0.02}" height="${size * 0.04}"
-              fill="#a0522d" stroke="#8b4513" stroke-width="0.5"/>
+              fill="#22c55e" stroke="#16a34a" stroke-width="0.5"/>
         
         <!-- Count badge background -->
         <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.16}"
-                fill="#ffffff" stroke="#a0522d" stroke-width="2.5" filter="url(#shadow)"/>
+                fill="#ffffff" stroke="#22c55e" stroke-width="2.5" filter="url(#shadow)"/>
         
         <!-- Inner badge circle -->
         <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.12}"
@@ -73,14 +73,14 @@ export class ClusterIconGenerator {
         
         <!-- Cluster count text -->
         <text x="${size * 0.5}" y="${size * 0.29}" text-anchor="middle"
-              fill="#a0522d" font-family="Arial, sans-serif" 
+              fill="#22c55e" font-family="Arial, sans-serif" 
               font-size="${Math.max(12, size * 0.28)}" font-weight="bold">${markerCount}</text>
       </svg>
     `;
 
     const dataUri = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
     
-    console.log(`🚗 Generated 1950s rust red vintage car cluster icon, data URI length: ${dataUri.length}`);
+    console.log(`🚗 Generated green vintage car cluster icon, data URI length: ${dataUri.length}`);
 
     return {
       url: dataUri,
