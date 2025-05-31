@@ -5,9 +5,10 @@ interface Route66PathProps {
   path: google.maps.LatLngLiteral[];
 }
 
-// Deprecated component - route rendering is now handled by RoutePolyline
+// This component has been completely removed to prevent route conflicts
+// All route rendering is now handled by RoutePolyline component
 const Route66Path: React.FC<Route66PathProps> = ({ path }) => {
-  console.log('⚠️ Route66Path: Deprecated component - use RoutePolyline instead');
+  console.log('⚠️ Route66Path: Component deprecated and disabled to prevent route conflicts');
   return null;
 };
 

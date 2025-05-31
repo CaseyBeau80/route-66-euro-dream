@@ -18,7 +18,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       return;
     }
 
-    console.log('🛣️ RoutePolyline: Creating simple route with', waypoints.length, 'waypoints');
+    console.log('🛣️ RoutePolyline: Creating single clean Route 66 polyline with', waypoints.length, 'waypoints');
 
     // Convert waypoints to Google Maps LatLng objects, sorted by sequence
     const sortedWaypoints = [...waypoints].sort((a, b) => a.sequence_order - b.sequence_order);
@@ -27,20 +27,20 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       lng: waypoint.longitude
     }));
 
-    console.log('📍 RoutePolyline: Route path created:', {
+    console.log('📍 RoutePolyline: Clean route path created:', {
       totalWaypoints: routePath.length,
       firstPoint: routePath[0],
       lastPoint: routePath[routePath.length - 1]
     });
 
-    // Create a simple, clean Route 66 polyline with proper color
+    // Create THE definitive Route 66 polyline - clean and simple
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#8B4513', // Brown color for historic Route 66
-      strokeOpacity: 0.9,
-      strokeWeight: 6,
-      zIndex: 10000,
+      strokeColor: '#8B4513', // Historic Route 66 brown
+      strokeOpacity: 1.0, // Fully opaque
+      strokeWeight: 5, // Clean, visible line
+      zIndex: 1000, // High z-index to appear above other elements
       clickable: true,
       visible: true
     });
@@ -78,10 +78,10 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
     route66Polyline.setMap(map);
     polylineRef.current = route66Polyline;
     
-    console.log(`✅ Route 66 polyline created with brown color and added to map with ${waypoints.length} waypoints`);
-    console.log(`📊 Route data: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
+    console.log(`✅ Clean Route 66 polyline successfully created and displayed with ${waypoints.length} waypoints`);
+    console.log(`📊 Route statistics: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
 
-    // Fit the map to show the entire route with some padding
+    // Fit the map to show the entire route with padding
     fitMapToRoute(map, routePath);
 
     return () => {

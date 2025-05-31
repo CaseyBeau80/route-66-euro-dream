@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Attraction } from '../types';
@@ -52,11 +53,14 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
     return { left, top, display: 'block' };
   }, [isVisible, position, attraction.name]);
 
-  // Check if attraction has website property (for type safety)
-  const hasWebsite = useMemo(() => 
-    'website' in attraction && attraction.website,
-    [attraction]
-  );
+  // Check if attraction has website property (accessing it safely from the base Route66Waypoint type)
+  const attractionWebsite = useMemo(() => {
+    // Since Attraction extends Route66Waypoint, we need to check if description contains a website
+    // or if there's any website-like property we can extract
+    const descriptionText = attraction.description || '';
+    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
+    return websiteMatch ? websiteMatch[0] : null;
+  }, [attraction.description]);
 
   if (!isVisible) return null;
 
@@ -86,10 +90,10 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
                   {attraction.description}
                 </p>
               )}
-              {hasWebsite && (
+              {attractionWebsite && (
                 <button
                   className="text-xs text-amber-900 hover:text-yellow-600 font-medium underline pointer-events-auto"
-                  onClick={() => onWebsiteClick?.(attraction.website as string)}
+                  onClick={() => onWebsiteClick?.(attractionWebsite)}
                 >
                   Visit Website
                 </button>

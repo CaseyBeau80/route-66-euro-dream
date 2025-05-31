@@ -6,12 +6,13 @@ interface MapOverlaysProps {
   useEnhancedStatic?: boolean;
 }
 
-// Deprecated component - route rendering is now handled by RoutePolyline
+// This component has been completely removed to prevent route conflicts
+// All route rendering is now handled by RoutePolyline component
 const MapOverlays: React.FC<MapOverlaysProps> = ({ 
   map, 
   useEnhancedStatic = false 
 }) => {
-  console.log('⚠️ MapOverlays: Deprecated - use RoutePolyline instead');
+  console.log('⚠️ MapOverlays: Component deprecated and disabled to prevent route conflicts');
   return null;
 };
 

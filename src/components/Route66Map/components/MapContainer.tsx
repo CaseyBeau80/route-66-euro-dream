@@ -5,15 +5,11 @@ interface MapContainerProps {
   isLoaded: boolean;
 }
 
-// Deprecated component - use GoogleMapsRoute66 instead
+// This component has been completely removed to prevent route conflicts
+// Use GoogleMapsRoute66 instead
 const MapContainer: React.FC<MapContainerProps> = ({ isLoaded }) => {
-  console.log('⚠️ MapContainer: Deprecated - use GoogleMapsRoute66 instead');
-  
-  return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg flex items-center justify-center bg-gray-100">
-      <p className="text-gray-600">Component deprecated - use GoogleMapsRoute66</p>
-    </div>
-  );
+  console.log('⚠️ MapContainer: Component deprecated and disabled to prevent route conflicts');
+  return null;
 };
 
 export default MapContainer;
