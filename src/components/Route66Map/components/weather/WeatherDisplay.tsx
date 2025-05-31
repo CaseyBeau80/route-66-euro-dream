@@ -20,14 +20,6 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather }) => {
 
       {/* Integrated 3-Day Forecast */}
       <ForecastGrid forecast={weather.forecast || []} showHeader={true} />
-      
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-          <div>Forecast items: {weather.forecast?.length || 0}</div>
-          <div>First item icon: {weather.forecast?.[0]?.icon || 'none'}</div>
-        </div>
-      )}
     </div>
   );
 };
