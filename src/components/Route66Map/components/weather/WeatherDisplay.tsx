@@ -9,7 +9,7 @@ interface WeatherDisplayProps {
 
 const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather }) => {
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-lg p-4 min-w-[320px] border-2 border-orange-300">
+    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-lg p-4 w-full border-2 border-orange-300 overflow-hidden">
       {/* Header with centered city name only */}
       <div className="text-center mb-4">
         <h4 className="font-bold text-lg text-orange-900">{weather.cityName}</h4>

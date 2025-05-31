@@ -17,23 +17,23 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full">
       {showHeader && (
         <div className="flex items-center gap-2 mb-2">
           <Calendar className="w-3 h-3 text-orange-600" />
           <h5 className="font-semibold text-xs text-orange-900">3-Day Forecast</h5>
         </div>
       )}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1 w-full">
         {forecast.map((day, index) => {
           console.log(`🔍 ForecastGrid: Processing day ${index}:`, day);
           const dayLabel = getDayLabel(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Label: ${dayLabel}`);
           
           return (
-            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-orange-50 to-orange-100 rounded-lg px-1 py-2 min-h-[90px] border border-orange-300 shadow-sm">
+            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-orange-50 to-orange-100 rounded-lg px-1 py-2 min-h-[80px] border border-orange-300 shadow-sm flex-1 max-w-none">
               {/* Day label at top - smaller font */}
-              <div className="text-xs font-bold text-orange-800 mb-1 uppercase tracking-wide">
+              <div className="text-xs font-bold text-orange-800 mb-1 uppercase tracking-wide text-center">
                 {dayLabel}
               </div>
               
@@ -42,7 +42,7 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
                 <img 
                   src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
                   alt={day.description}
-                  className="w-8 h-8"
+                  className="w-6 h-6"
                 />
               </div>
               
