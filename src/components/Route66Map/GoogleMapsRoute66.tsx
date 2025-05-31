@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -11,7 +12,6 @@ import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
-import SupabaseRoute66Polyline from './components/SupabaseRoute66Polyline';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -107,7 +107,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with Supabase Route 66 road', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 without Route polyline', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -137,12 +137,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             
             {/* Add state highlighting as the base layer */}
             <StateHighlighting map={mapRef.current} />
-            
-            {/* Add the Route 66 road from Supabase data */}
-            <SupabaseRoute66Polyline 
-              map={mapRef.current}
-              isMapReady={mapEventHandlers.isMapReady}
-            />
             
             {mapEventHandlers.isMapReady && (
               <>
