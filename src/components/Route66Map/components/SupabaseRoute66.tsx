@@ -15,17 +15,9 @@ const SupabaseRoute66: React.FC<EnhancedSupabaseRoute66Props> = ({
   onRouteError,
   onRouteSuccess
 }) => {
-  console.log('⚠️ SupabaseRoute66: Component COMPLETELY DISABLED to prevent conflicts with SINGLE Route66StaticPolyline');
+  console.log('⚠️ SupabaseRoute66: Component COMPLETELY DISABLED to prevent conflicts with SINGLE Route66StaticPolyline - NO RENDERING WHATSOEVER');
   
-  // Still call success callback if provided to maintain compatibility
-  useEffect(() => {
-    if (onRouteSuccess) {
-      setTimeout(() => {
-        onRouteSuccess();
-      }, 100);
-    }
-  }, [onRouteSuccess]);
-
+  // Don't call any callbacks to prevent interference with the main route system
   return null;
 };
 
