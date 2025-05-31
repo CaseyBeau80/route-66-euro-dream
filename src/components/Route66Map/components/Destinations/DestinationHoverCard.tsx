@@ -1,15 +1,25 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
+import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
 
 interface DestinationHoverCardProps {
   destination: Route66Waypoint;
 }
 
 const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination }) => {
-  const cityName = destination.name.split(',')[0].split(' - ')[0].trim();
+  const navigate = useNavigate();
+  const cityName = extractCityName(destination.name);
   const stateName = destination.state;
+
+  const handleVisitCityPage = () => {
+    const cityUrl = generateCityUrl(destination);
+    navigate(cityUrl);
+  };
 
   return (
     <Card className="w-64 shadow-lg border-2 border-amber-700 bg-gradient-to-b from-amber-50 to-amber-100">
@@ -44,6 +54,19 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
               <span className="inline-block bg-amber-700 text-amber-100 px-2 py-1 rounded text-xs font-semibold">
                 {destination.highway_designation}
               </span>
+            </div>
+          )}
+
+          {/* Visit City Page Button */}
+          {destination.is_major_stop && (
+            <div className="text-center pt-2">
+              <Button 
+                onClick={handleVisitCityPage}
+                className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-full font-semibold transition-colors duration-200 flex items-center gap-2 mx-auto"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Visit City Page
+              </Button>
             </div>
           )}
 

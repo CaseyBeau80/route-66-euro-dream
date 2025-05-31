@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -13,6 +14,7 @@ import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
 import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
 import EnhancedClusteringContainer from './components/clustering/EnhancedClusteringContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
+import CityNavigation from './components/CityNavigation';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 import type { Route66Waypoint } from './types/supabaseTypes';
@@ -150,6 +152,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           onClearSelection={onClearSelection} 
         />
       )}
+      
+      {/* City Navigation Panel */}
+      <CityNavigation />
       
       <MapInteractionHints isDragging={isDragging} />
       
