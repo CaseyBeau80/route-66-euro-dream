@@ -13,6 +13,7 @@ import HiddenGemsContainer from './components/HiddenGemsContainer';
 import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
 import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
 import EnhancedClusteringContainer from './components/clustering/EnhancedClusteringContainer';
+import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -67,11 +68,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     }
   }, [showRouteStats, mapInitialized]);
 
-  // Cleanup function to remove any existing polylines
+  // Cleanup function to remove any existing polylines and markers
   useEffect(() => {
     return () => {
       if (mapRef.current) {
-        console.log('🧹 Cleaning up any existing polylines on component unmount');
+        console.log('🧹 Cleaning up map on component unmount');
         
         try {
           const mapInstance = mapRef.current as any;
@@ -85,7 +86,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           console.log('🧹 Cleared all map event listeners');
           
         } catch (cleanupError) {
-          console.warn('⚠️ Error during polyline cleanup:', cleanupError);
+          console.warn('⚠️ Error during cleanup:', cleanupError);
         }
       }
     };
@@ -96,9 +97,9 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     ? waypoints.filter(waypoint => waypoint.state === selectedState)
     : waypoints;
 
-  // Handle marker clicks
-  const handleWaypointClick = (waypoint: any) => {
-    console.log('🎯 Waypoint clicked:', waypoint.name);
+  // Handle destination clicks
+  const handleDestinationClick = (destination: any) => {
+    console.log('🏛️ Destination clicked:', destination.name);
   };
 
   if (loadError) {
@@ -121,7 +122,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with Enhanced Clustering', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with clean destination system', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -174,11 +175,18 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   }}
                 />
                 
-                {/* Enhanced Clustering System with Destination City Protection */}
+                {/* Enhanced Clustering System for regular attractions */}
                 <EnhancedClusteringContainer
                   map={mapRef.current}
+                  waypoints={visibleWaypoints.filter(w => !w.is_major_stop)}
+                  onMarkerClick={handleMarkerClick}
+                />
+                
+                {/* NEW: Separate Destination Cities Container - replaces old RouteMarkersManager */}
+                <DestinationCitiesContainer
+                  map={mapRef.current}
                   waypoints={visibleWaypoints}
-                  onMarkerClick={handleWaypointClick}
+                  onDestinationClick={handleDestinationClick}
                 />
               </>
             )}

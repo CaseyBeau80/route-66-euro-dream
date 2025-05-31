@@ -18,7 +18,9 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
   const destinationCities = waypoints.filter(waypoint => waypoint.is_major_stop === true);
 
   useEffect(() => {
-    console.log(`🏛️ DestinationCitiesContainer: Managing ${destinationCities.length} destination cities`);
+    console.log('🏛️ DestinationCitiesContainer: Active and managing destination cities');
+    console.log(`✅ Managing ${destinationCities.length} destination cities (NO yellow circles)`);
+    console.log('🎯 Destination cities:', destinationCities.map(d => d.name));
     
     // Add portal root if it doesn't exist
     if (!document.getElementById('map-portal-root')) {
@@ -30,10 +32,11 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
       portalRoot.style.pointerEvents = 'none';
       portalRoot.style.zIndex = '100000';
       document.body.appendChild(portalRoot);
+      console.log('📍 Created map portal root for hover cards');
     }
 
     return () => {
-      console.log('🧹 DestinationCitiesContainer: Cleaning up');
+      console.log('🧹 DestinationCitiesContainer: Cleaning up destination markers');
     };
   }, [destinationCities.length]);
 
@@ -41,6 +44,8 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     console.log('🏛️ DestinationCitiesContainer: No map or destination cities available');
     return null;
   }
+
+  console.log('🏛️ DestinationCitiesContainer: Rendering destination markers for:', destinationCities.map(d => d.name));
 
   return (
     <>
