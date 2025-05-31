@@ -9,39 +9,37 @@ interface Route66StaticPolylineProps {
 const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
   const centerLineRef = useRef<google.maps.Polyline | null>(null);
-  const initializationRef = useRef<boolean>(false);
-  const cleanupRef = useRef<boolean>(false);
+  const isRenderingRef = useRef<boolean>(false);
   
   const { waypoints, isLoading, error } = useSupabaseRoute66();
 
   useEffect(() => {
-    if (!map || isLoading || error || waypoints.length === 0) {
-      if (error) {
-        console.log("❌ Error loading waypoints for Route 66:", error);
-      }
+    if (!map || isLoading || error || waypoints.length === 0 || isRenderingRef.current) {
       return;
     }
 
-    // Prevent multiple initializations
-    if (initializationRef.current) {
-      console.log("⚠️ Route66StaticPolyline: Already initialized, skipping to prevent duplicates");
-      return;
-    }
+    console.log("🗺️ Creating SINGLE Route 66 polyline - clearing any existing polylines first");
+    
+    // Mark as rendering to prevent duplicates
+    isRenderingRef.current = true;
 
-    console.log("🗺️ Creating SINGLE Route 66 polyline with yellow dashed center line (ONLY route renderer active)...");
-    initializationRef.current = true;
-    cleanupRef.current = false;
-
-    // Aggressive cleanup of any existing polylines first
+    // AGGRESSIVELY clean up any existing polylines from this component
     if (polylineRef.current) {
-      console.log("🧹 Cleaning up existing main polyline");
+      console.log("🧹 Removing existing main polyline");
       polylineRef.current.setMap(null);
       polylineRef.current = null;
     }
     if (centerLineRef.current) {
-      console.log("🧹 Cleaning up existing center line");
+      console.log("🧹 Removing existing center line");
       centerLineRef.current.setMap(null);
       centerLineRef.current = null;
+    }
+
+    // Clean up any existing polylines on the map
+    // This will remove ALL polylines to ensure a clean slate
+    const existingOverlays = (map as any).overlayMapTypes;
+    if (existingOverlays) {
+      existingOverlays.clear();
     }
 
     // Convert Supabase waypoints to Google Maps format
@@ -52,7 +50,7 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         lng: Number(waypoint.longitude)
       }));
 
-    console.log(`🛣️ Using ${route66Path.length} waypoints from Supabase for SINGLE Route 66 road`);
+    console.log(`🛣️ Creating Route 66 road with ${route66Path.length} waypoints`);
 
     // Create the main Route 66 polyline with dark asphalt appearance
     const route66Polyline = new google.maps.Polyline({
@@ -87,26 +85,22 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
           scale: 1
         },
         offset: '0%',
-        repeat: '40px' // Dashed pattern spacing for center line
+        repeat: '40px'
       }]
     });
 
     centerLinePolyline.setMap(map);
     centerLineRef.current = centerLinePolyline;
 
-    console.log("✅ SINGLE Route 66 polyline created with yellow dashed center line using", route66Path.length, "Supabase waypoints");
+    console.log("✅ SINGLE Route 66 polyline created successfully");
 
-    // Wait a moment before fitting bounds to ensure polyline is rendered
+    // Fit map bounds after a delay
     setTimeout(() => {
-      if (cleanupRef.current) return; // Don't fit bounds if component is being cleaned up
-      
-      // Create bounds for the entire route
       const bounds = new google.maps.LatLngBounds();
       route66Path.forEach(point => {
         bounds.extend(new google.maps.LatLng(point.lat, point.lng));
       });
 
-      // Fit the map to show the entire route with some padding
       map.fitBounds(bounds, {
         top: 50,
         right: 50,
@@ -114,13 +108,13 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         left: 50
       });
 
-      console.log("🎯 Map bounds fitted to SINGLE Route 66 road");
+      console.log("🎯 Map bounds fitted to Route 66");
+      isRenderingRef.current = false;
     }, 500);
 
     // Cleanup function
     return () => {
-      console.log("🧹 Cleaning up SINGLE Route 66 polylines");
-      cleanupRef.current = true;
+      console.log("🧹 Cleaning up Route 66 polylines");
       
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
@@ -130,7 +124,7 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         centerLineRef.current.setMap(null);
         centerLineRef.current = null;
       }
-      initializationRef.current = false;
+      isRenderingRef.current = false;
     };
   }, [map, waypoints, isLoading, error]);
 
