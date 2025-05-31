@@ -26,28 +26,21 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       return;
     }
 
-    // Separate waypoints into destinations and regular stops
+    // Only handle destination cities - regular stops are now handled by AttractionsContainer
     const destinationCities = waypoints.filter(waypoint => waypoint.is_major_stop);
-    const regularStops = waypoints.filter(waypoint => !waypoint.is_major_stop);
     
-    console.log(`📍 RouteMarkers: Separating waypoints:`);
+    console.log(`📍 RouteMarkers: Handling destination cities only:`);
     console.log(`  - Destination cities: ${destinationCities.length}`);
-    console.log(`  - Regular stops: ${regularStops.length}`);
     console.log(`  - Destinations:`, destinationCities.map(d => d.name));
-    console.log(`  - Sample regular stops:`, regularStops.slice(0, 5).map(r => r.name));
     
     const markerRefs = { markersRef, infoWindowsRef };
 
     try {
-      // Create destination city markers (higher zIndex)
+      // Create destination city markers only
       console.log('🏙️ Creating destination markers...');
       MarkerManager.createDestinationMarkers(destinationCities, map, markerRefs);
 
-      // Create regular stop markers (lower zIndex)
-      console.log('🛑 Creating regular stop markers...');
-      MarkerManager.createRegularStopMarkers(regularStops, map, markerRefs);
-
-      console.log(`✅ Route 66 markers fully displayed: ${destinationCities.length} destinations + ${regularStops.length} regular stops = ${markersRef.current.length} total markers created`);
+      console.log(`✅ Route 66 destination markers displayed: ${destinationCities.length} destination cities = ${markersRef.current.length} total markers created`);
       
       // Log current map state
       console.log('🗺️ Current map state:', {
@@ -57,7 +50,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       });
 
     } catch (error) {
-      console.error('❌ Error creating Route 66 markers:', error);
+      console.error('❌ Error creating Route 66 destination markers:', error);
     }
 
     return () => {

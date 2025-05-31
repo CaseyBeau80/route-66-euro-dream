@@ -10,6 +10,7 @@ import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
 import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
+import AttractionsContainer from './components/AttractionsContainer';
 import RouteDisplayManager from './components/RouteDisplayManager';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
@@ -64,7 +65,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadingIndicator />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration and Hidden Gems', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration, Hidden Gems, and Attractions', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -100,13 +101,24 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             />
             
             {mapEventHandlers.isMapReady && (
-              /* Render Hidden Gems directly on the map - no tabs */
-              <HiddenGemsContainer 
-                map={mapRef.current}
-                onGemClick={(gem) => {
-                  console.log('✨ Hidden gem selected:', gem.title);
-                }}
-              />
+              <>
+                {/* Render Hidden Gems with hover cards */}
+                <HiddenGemsContainer 
+                  map={mapRef.current}
+                  onGemClick={(gem) => {
+                    console.log('✨ Hidden gem selected:', gem.title);
+                  }}
+                />
+                
+                {/* Render Attractions (regular stops) with hover cards */}
+                <AttractionsContainer
+                  map={mapRef.current}
+                  waypoints={visibleTowns}
+                  onAttractionClick={(attraction) => {
+                    console.log('🎯 Attraction selected:', attraction.name);
+                  }}
+                />
+              </>
             )}
           </>
         )}
