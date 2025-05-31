@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAttractionHover } from './hooks/useAttractionHover';
 import AttractionHoverCard from './AttractionHoverCard';
@@ -8,12 +7,14 @@ interface AttractionCustomMarkerProps {
   map: google.maps.Map;
   attraction: Route66Waypoint;
   onAttractionClick: (attraction: Route66Waypoint) => void;
+  onWebsiteClick?: (website: string) => void;
 }
 
 const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
   map,
   attraction,
-  onAttractionClick
+  onAttractionClick,
+  onWebsiteClick
 }) => {
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -134,10 +135,10 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       attraction={attraction}
       isVisible={isHovered}
       position={hoverPosition}
-      onWebsiteClick={(website) => {
+      onWebsiteClick={onWebsiteClick || ((website) => {
         console.log('🌐 Opening attraction website:', website);
         window.open(website, '_blank', 'noopener,noreferrer');
-      }}
+      })}
     />
   );
 };
