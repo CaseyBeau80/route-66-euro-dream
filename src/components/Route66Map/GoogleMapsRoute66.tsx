@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -181,6 +182,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 {/* Render Hidden Gems with hover cards */}
                 <HiddenGemsContainer 
                   map={mapRef.current}
+                  selectedState={selectedState}
                   onGemClick={(gem) => {
                     console.log('✨ Hidden gem selected:', gem.title);
                   }}

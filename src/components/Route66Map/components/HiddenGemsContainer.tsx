@@ -1,78 +1,62 @@
 
-import React, { useEffect, useState } from 'react';
-import { useHiddenGems } from './HiddenGems/useHiddenGems';
+import React, { useEffect } from 'react';
 import HiddenGemCustomMarker from './HiddenGems/HiddenGemCustomMarker';
 import { HiddenGemHoverProvider } from './HiddenGems/contexts/HiddenGemHoverContext';
+import { useHiddenGems } from './HiddenGems/useHiddenGems';
 import type { HiddenGem } from './HiddenGems/types';
 
 interface HiddenGemsContainerProps {
-  map: google.maps.Map | null;
-  selectedState: string | null;
-  isVisible?: boolean;
-  onGemClick?: (gem: HiddenGem) => void;
-  onWebsiteClick?: (website: string) => void;
+  map: google.maps.Map;
+  selectedState?: string | null;
+  onGemClick: (gem: HiddenGem) => void;
 }
 
 const HiddenGemsContainer: React.FC<HiddenGemsContainerProps> = ({
   map,
   selectedState,
-  isVisible = true,
-  onGemClick,
-  onWebsiteClick = (url) => window.open(url, '_blank')
+  onGemClick
 }) => {
-  const [activeGem, setActiveGem] = useState<HiddenGem | null>(null);
-  const { 
-    gems,
-    isLoading,
-    error 
-  } = useHiddenGems();
-
-  console.log(`💎 HiddenGemsContainer: Rendering with ${gems?.length || 0} hidden gems`, {
-    selectedState,
-    isVisible,
-    isLoading,
-    error: !!error
-  });
+  const { hiddenGems, loading } = useHiddenGems();
 
   useEffect(() => {
-    console.log('💎 HiddenGemsContainer: Initializing with improved hover behavior');
+    console.log('✨ HiddenGemsContainer: Rendering with enhanced hover system');
+    console.log(`📍 Managing ${hiddenGems?.length || 0} hidden gems`);
+    
+    if (selectedState) {
+      console.log(`🗺️ Filtering by state: ${selectedState}`);
+    }
     
     return () => {
-      console.log('🧹 HiddenGemsContainer: Cleaning up');
+      console.log('🧹 HiddenGemsContainer: Cleaning up hidden gems');
     };
-  }, []);
+  }, [hiddenGems?.length, selectedState]);
 
-  if (!isVisible || !map || isLoading || error || !gems?.length) {
-    if (isLoading) console.log('💎 HiddenGemsContainer: Loading gems...');
-    if (error) console.log('💎 HiddenGemsContainer: Error loading gems:', error);
-    if (!gems?.length) console.log('💎 HiddenGemsContainer: No gems available');
+  if (!map || loading || !hiddenGems?.length) {
+    console.log('✨ HiddenGemsContainer: No map, loading, or no hidden gems available');
     return null;
   }
 
   // Filter gems by selected state if applicable
   const filteredGems = selectedState 
-    ? gems.filter(gem => 
+    ? hiddenGems.filter(gem => 
         gem.state?.toLowerCase() === selectedState.toLowerCase()
       )
-    : gems;
+    : hiddenGems;
 
-  console.log(`💎 HiddenGemsContainer: Showing ${filteredGems.length} hidden gems (filtered by state: ${selectedState || 'none'})`);
-
-  const handleGemClick = (gem: HiddenGem) => {
-    console.log(`💎 HiddenGemsContainer: Gem clicked - ${gem.title}`);
-    setActiveGem(gem);
-    onGemClick?.(gem);
-  };
+  console.log('✨ HiddenGemsContainer: Rendering hover-enhanced hidden gems with advanced positioning');
 
   return (
     <HiddenGemHoverProvider>
-      {filteredGems.map((gem) => (
+      {filteredGems.map((gem, index) => (
         <HiddenGemCustomMarker
-          key={gem.id}
+          key={`hidden-gem-${gem.id || index}`}
           gem={gem}
-          isActive={activeGem?.id === gem.id}
-          onMarkerClick={handleGemClick}
-          onWebsiteClick={onWebsiteClick}
+          isActive={false}
+          onMarkerClick={onGemClick}
+          onWebsiteClick={(website) => {
+            console.log(`🔗 Opening website: ${website}`);
+            window.open(website, '_blank');
+          }}
           map={map}
         />
       ))}
