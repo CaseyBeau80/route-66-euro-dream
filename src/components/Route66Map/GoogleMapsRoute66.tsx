@@ -2,21 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
-import MapInitializer from './components/MapInitializer';
-import ClearSelectionButton from './MapElements/ClearSelectionButton';
-import MapInteractionHints from './components/MapInteractionHints';
 import MapLoadError from './components/MapLoadError';
 import MapLoadingIndicator from './components/MapLoading';
-import MapInitializationService from './services/MapInitializationService';
-import StateHighlighting from './components/StateHighlighting';
-import HiddenGemsContainer from './components/HiddenGemsContainer';
-import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
-import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
-import EnhancedClusteringContainer from './components/clustering/EnhancedClusteringContainer';
-import DestinationCitiesContainer from './components/DestinationCitiesContainer';
-import CityNavigation from './components/CityNavigation';
+import MapOverlaysContainer from './components/MapOverlaysContainer';
+import MapCore from './components/MapCore';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
+import { useRouteStatistics } from './hooks/useRouteStatistics';
+import { useWaypointManagement } from './hooks/useWaypointManagement';
 import type { Route66Waypoint } from './types/supabaseTypes';
 
 interface GoogleMapsRoute66Props {
@@ -45,7 +38,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [showRouteStats, setShowRouteStats] = useState(true);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -60,15 +52,15 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     mapRef
   });
 
-  // Auto-hide route stats after 10 seconds
-  useEffect(() => {
-    if (showRouteStats && mapInitialized) {
-      const timer = setTimeout(() => {
-        setShowRouteStats(false);
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [showRouteStats, mapInitialized]);
+  const { showRouteStats, setShowRouteStats } = useRouteStatistics({
+    mapInitialized,
+    isMapReady: mapEventHandlers.isMapReady
+  });
+
+  const { visibleWaypoints, handleDestinationClick, handleAttractionClick } = useWaypointManagement({
+    waypoints,
+    selectedState
+  });
 
   // Enhanced cleanup function to aggressively remove any yellow circle markers
   useEffect(() => {
@@ -98,21 +90,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       }
     };
   }, []);
-
-  // Filter waypoints by selected state if applicable
-  const visibleWaypoints = selectedState 
-    ? waypoints.filter(waypoint => waypoint.state === selectedState)
-    : waypoints;
-
-  // Handle destination clicks with correct type signature
-  const handleDestinationClick = (destination: Route66Waypoint) => {
-    console.log('🏛️ Destination clicked (shield only, no yellow circle):', destination.name);
-  };
-
-  // Handle attraction/waypoint clicks with correct type signature
-  const handleAttractionClick = (waypoint: Route66Waypoint) => {
-    console.log('🎯 Attraction clicked (clustered, no yellow):', waypoint.name);
-  };
 
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
@@ -146,69 +123,26 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   return (
     <div className="relative w-full h-full">
-      {selectedState && (
-        <ClearSelectionButton 
-          selectedState={selectedState} 
-          onClearSelection={onClearSelection} 
-        />
-      )}
-      
-      {/* City Navigation Panel */}
-      <CityNavigation />
-      
-      <MapInteractionHints isDragging={isDragging} />
-      
-      {/* Route Statistics Overlay */}
-      <RouteStatisticsOverlay 
-        isVisible={showRouteStats && mapEventHandlers.isMapReady}
-        onToggle={() => setShowRouteStats(!showRouteStats)}
+      <MapOverlaysContainer
+        selectedState={selectedState}
+        onClearSelection={onClearSelection}
+        isDragging={isDragging}
+        showRouteStats={showRouteStats}
+        isMapReady={mapEventHandlers.isMapReady}
+        onToggleRouteStats={() => setShowRouteStats(!showRouteStats)}
       />
       
-      <MapInitializer onLoad={mapBounds.handleMapLoad} onClick={handleMapClick}>
-        {mapInitialized && mapRef.current && (
-          <>
-            <MapInitializationService 
-              map={mapRef.current} 
-              onMapReady={mapEventHandlers.onMapReady}
-            />
-            
-            {/* Add state highlighting as the base layer */}
-            <StateHighlighting map={mapRef.current} />
-            
-            {mapEventHandlers.isMapReady && (
-              <>
-                {/* Render the ultra-smooth Route 66 with ~2000 interpolated points */}
-                <UltraSmoothRouteRenderer 
-                  map={mapRef.current}
-                  isMapReady={mapEventHandlers.isMapReady}
-                />
-                
-                {/* Render Hidden Gems with hover cards */}
-                <HiddenGemsContainer 
-                  map={mapRef.current}
-                  onGemClick={(gem) => {
-                    console.log('✨ Hidden gem selected:', gem.title);
-                  }}
-                />
-                
-                {/* Enhanced Clustering System for regular attractions (no yellow) */}
-                <EnhancedClusteringContainer
-                  map={mapRef.current}
-                  waypoints={visibleWaypoints.filter(w => !w.is_major_stop)}
-                  onMarkerClick={handleAttractionClick}
-                />
-                
-                {/* ONLY destination system - Route 66 shields with NO yellow circles */}
-                <DestinationCitiesContainer
-                  map={mapRef.current}
-                  waypoints={visibleWaypoints}
-                  onDestinationClick={handleDestinationClick}
-                />
-              </>
-            )}
-          </>
-        )}
-      </MapInitializer>
+      <MapCore
+        mapInitialized={mapInitialized}
+        mapRef={mapRef}
+        isMapReady={mapEventHandlers.isMapReady}
+        visibleWaypoints={visibleWaypoints}
+        onMapLoad={mapBounds.handleMapLoad}
+        onMapClick={handleMapClick}
+        onMapReady={mapEventHandlers.onMapReady}
+        onDestinationClick={handleDestinationClick}
+        onAttractionClick={handleAttractionClick}
+      />
     </div>
   );
 };
