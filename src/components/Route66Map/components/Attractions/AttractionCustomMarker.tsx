@@ -32,33 +32,49 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
   // Memoize marker properties to prevent unnecessary recreations
   const markerConfig = useMemo(() => {
     const isDriveIn = attraction.name.toLowerCase().includes('drive-in');
-    const iconSize = 16;
     
-    const svgContent = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-        <circle cx="8" cy="8" r="7" 
-                fill="${isDriveIn ? '#FFD700' : '#FEF3C7'}" 
-                stroke="${isDriveIn ? '#8B4513' : '#DC2626'}" 
-                stroke-width="2"/>
-        <circle cx="8" cy="8" r="4" 
-                fill="${isDriveIn ? '#8B4513' : '#DC2626'}" 
-                opacity="0.9"/>
-        ${isDriveIn ? '<text x="8" y="12" text-anchor="middle" font-size="8" fill="white">🎬</text>' : ''}
-      </svg>
-    `;
+    if (isDriveIn) {
+      // Use the uploaded drive-in icon image, similar size to hidden gems (around 40x40)
+      return {
+        position: { lat: attraction.latitude, lng: attraction.longitude },
+        icon: {
+          url: '/lovable-uploads/ef90c3a0-71fe-4f68-8671-5a455d6e9bc1.png',
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 20)
+        },
+        title: `${attraction.name} - ${attraction.state} (Drive-In Theater)`,
+        zIndex: 25000,
+        optimized: false,
+        isDriveIn: true
+      };
+    } else {
+      // Regular attraction icon
+      const iconSize = 16;
+      const svgContent = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
+          <circle cx="8" cy="8" r="7" 
+                  fill="#FEF3C7" 
+                  stroke="#DC2626" 
+                  stroke-width="2"/>
+          <circle cx="8" cy="8" r="4" 
+                  fill="#DC2626" 
+                  opacity="0.9"/>
+        </svg>
+      `;
 
-    return {
-      position: { lat: attraction.latitude, lng: attraction.longitude },
-      icon: {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
-        scaledSize: new google.maps.Size(iconSize, iconSize),
-        anchor: new google.maps.Point(iconSize/2, iconSize/2)
-      },
-      title: `${attraction.name} - ${attraction.state}${isDriveIn ? ' (Drive-In Theater)' : ''}`,
-      zIndex: 25000,
-      optimized: false,
-      isDriveIn
-    };
+      return {
+        position: { lat: attraction.latitude, lng: attraction.longitude },
+        icon: {
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+          scaledSize: new google.maps.Size(iconSize, iconSize),
+          anchor: new google.maps.Point(iconSize/2, iconSize/2)
+        },
+        title: `${attraction.name} - ${attraction.state}`,
+        zIndex: 25000,
+        optimized: false,
+        isDriveIn: false
+      };
+    }
   }, [attraction.latitude, attraction.longitude, attraction.name, attraction.state]);
 
   // FIXED: Removed isHovered from dependencies to prevent re-render loop
@@ -91,7 +107,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     markerRef.current = marker;
 
     if (markerConfig.isDriveIn) {
-      console.log(`🎬 Stable drive-in theater marker created: ${attraction.name}`);
+      console.log(`🎬 Enhanced drive-in theater marker created with new icon: ${attraction.name}`);
     }
 
     // Clear any existing listeners
