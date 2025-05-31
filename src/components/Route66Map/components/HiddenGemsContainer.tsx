@@ -3,7 +3,6 @@ import React from 'react';
 import { useHiddenGems } from './HiddenGems/useHiddenGems';
 import { useHiddenGemInteraction } from './HiddenGems/hooks/useHiddenGemInteraction';
 import HiddenGemMarker from './HiddenGems/HiddenGemMarker';
-import HiddenGemCustomOverlay from './HiddenGems/HiddenGemCustomOverlay';
 import { HiddenGemsProps } from './HiddenGems/types';
 
 const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
@@ -15,34 +14,21 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map`);
-
-  // Find the active gem object
-  const activeGemObject = hiddenGems.find(gem => gem.id === activeGem);
+  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map with hover cards`);
 
   return (
     <>
-      {/* Render all markers */}
+      {/* Render all markers with hover cards */}
       {hiddenGems.map((gem) => (
         <HiddenGemMarker
           key={`hidden-gem-marker-${gem.id}`}
           gem={gem}
           isActive={activeGem === gem.id}
           onMarkerClick={handleMarkerClick}
+          onWebsiteClick={handleWebsiteClick}
           map={map}
         />
       ))}
-      
-      {/* Render the active custom overlay */}
-      {activeGemObject && (
-        <HiddenGemCustomOverlay
-          key={`hidden-gem-overlay-${activeGemObject.id}`}
-          gem={activeGemObject}
-          map={map}
-          onClose={closeActiveGem}
-          onWebsiteClick={handleWebsiteClick}
-        />
-      )}
     </>
   );
 };
