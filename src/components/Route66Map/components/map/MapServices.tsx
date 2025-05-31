@@ -1,6 +1,6 @@
 
 import React from 'react';
-import MapInitializationService from '../MapInitializationService';
+import MapInitializationService from '../../services/MapInitializationService';
 import StateHighlighting from '../StateHighlighting';
 import UltraSmoothRouteRenderer from '../../services/UltraSmoothRouteRenderer';
 
