@@ -6,78 +6,69 @@ export const useAttractionHover = () => {
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const positionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isHoverStableRef = useRef(false);
-  const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoverActiveRef = useRef(false);
+  const lastPositionRef = useRef({ x: 0, y: 0 });
 
-  // ULTRA-STABLE hover enter handler with show delay
+  // Simplified and more stable hover enter handler
   const handleMouseEnter = useCallback((attractionName?: string) => {
-    // Clear any pending hide timeout
+    // Clear any pending hide timeout immediately
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
 
-    // If already showing, don't restart the delay
-    if (isHoverStableRef.current) {
-      console.log(`🔒 Hover already stable for: ${attractionName}, ignoring enter`);
+    // If already active, don't restart
+    if (isHoverActiveRef.current) {
       return;
     }
 
-    // Clear any existing show delay
-    if (showDelayTimeoutRef.current) {
-      clearTimeout(showDelayTimeoutRef.current);
-    }
-
-    console.log(`⏳ Starting hover delay for attraction: ${attractionName || 'unknown'}`);
-    
-    // Add 400ms delay before showing the tooltip
-    showDelayTimeoutRef.current = setTimeout(() => {
-      console.log(`🎯 STABLE hover started for attraction: ${attractionName || 'unknown'}`);
-      isHoverStableRef.current = true;
-      setIsHovered(true);
-      showDelayTimeoutRef.current = null;
-    }, 400);
+    console.log(`🎯 Hover ENTER for attraction: ${attractionName || 'unknown'}`);
+    isHoverActiveRef.current = true;
+    setIsHovered(true);
   }, []);
 
-  // ULTRA-STABLE hover leave handler with longer delay
+  // Simplified and more stable hover leave handler with longer delay
   const handleMouseLeave = useCallback((attractionName?: string) => {
-    // Clear any pending show delay
-    if (showDelayTimeoutRef.current) {
-      clearTimeout(showDelayTimeoutRef.current);
-      showDelayTimeoutRef.current = null;
-      console.log(`🚫 Cancelled hover delay for attraction: ${attractionName || 'unknown'}`);
-    }
-
     // Clear any existing timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
     
-    // Add a longer delay to prevent flickering and re-renders
+    // Add a longer delay to prevent flickering
     hoverTimeoutRef.current = setTimeout(() => {
-      console.log(`🎯 STABLE hover ended for attraction: ${attractionName || 'unknown'}`);
-      isHoverStableRef.current = false;
+      console.log(`🎯 Hover LEAVE for attraction: ${attractionName || 'unknown'}`);
+      isHoverActiveRef.current = false;
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 300);
+    }, 500); // Increased delay to 500ms
   }, []);
 
-  // ULTRA-STABLE position update with heavy debouncing
+  // Much more conservative position update with distance-based filtering
   const updatePosition = useCallback((x: number, y: number) => {
+    // Only update if position has changed significantly (reduces jitter)
+    const lastPos = lastPositionRef.current;
+    const distance = Math.sqrt(Math.pow(x - lastPos.x, 2) + Math.pow(y - lastPos.y, 2));
+    
+    if (distance < 10) {
+      // Position hasn't changed enough, ignore update
+      return;
+    }
+
     if (positionTimeoutRef.current) {
       clearTimeout(positionTimeoutRef.current);
     }
     
     positionTimeoutRef.current = setTimeout(() => {
-      console.log(`📍 STABLE position update:`, { x, y });
+      console.log(`📍 Position update:`, { x, y, distance });
+      lastPositionRef.current = { x, y };
       setHoverPosition({ x, y });
       positionTimeoutRef.current = null;
-    }, 50);
+    }, 100); // Reduced frequency of position updates
   }, []);
 
   // Enhanced cleanup function
   const cleanup = useCallback(() => {
-    console.log(`🧹 ULTRA-STABLE cleanup of attraction hover state`);
+    console.log(`🧹 Cleaning up attraction hover state`);
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
@@ -86,15 +77,11 @@ export const useAttractionHover = () => {
       clearTimeout(positionTimeoutRef.current);
       positionTimeoutRef.current = null;
     }
-    if (showDelayTimeoutRef.current) {
-      clearTimeout(showDelayTimeoutRef.current);
-      showDelayTimeoutRef.current = null;
-    }
-    isHoverStableRef.current = false;
+    isHoverActiveRef.current = false;
     setIsHovered(false);
   }, []);
 
-  // Immediate clear hover without delay for emergency situations
+  // Immediate clear hover for emergency situations
   const clearHover = useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -104,11 +91,7 @@ export const useAttractionHover = () => {
       clearTimeout(positionTimeoutRef.current);
       positionTimeoutRef.current = null;
     }
-    if (showDelayTimeoutRef.current) {
-      clearTimeout(showDelayTimeoutRef.current);
-      showDelayTimeoutRef.current = null;
-    }
-    isHoverStableRef.current = false;
+    isHoverActiveRef.current = false;
     setIsHovered(false);
   }, []);
 
