@@ -13,12 +13,12 @@ export const center = {
   lng: -97.5,
 };
 
-// Define tighter map bounds focused on Route 66 states plus Arkansas
+// Define tighter map bounds focused on Route 66 states plus Arkansas with expanded boundaries
 export const mapBounds = {
-  north: 42.0, // Northern boundary (southern Illinois/Missouri)
-  south: 25.5, // Southern boundary (southern Texas)
-  east: -87.0, // Eastern boundary (eastern Illinois/Arkansas)
-  west: -125.0, // Western boundary (California coast)
+  north: 43.7, // Increased by 10% from 42.0 (42.0 + 1.7 = 43.7)
+  south: 25.5, // Southern boundary (southern Texas) - unchanged
+  east: -87.0, // Eastern boundary (eastern Illinois/Arkansas) - unchanged
+  west: -136.4, // Increased by 30% from -125.0 (125.0 + 11.4 = 136.4 west)
 };
 
 // Strict map restrictions to keep users within Route 66 corridor
