@@ -9,11 +9,14 @@ export class ClusterIconGenerator {
       small: 50
     };
     
-    const baseSize = baseSizes[clusterLevel];
+    // Ensure clusterLevel is valid, fallback to medium if not
+    const validClusterLevel = ['ultra', 'large', 'medium', 'small'].includes(clusterLevel) ? clusterLevel : 'medium';
+    
+    const baseSize = baseSizes[validClusterLevel];
     const countMultiplier = Math.min(1.5, Math.max(0.8, Math.log10(markerCount) * 0.5));
     const size = Math.min(100, Math.max(baseSize, baseSize * countMultiplier));
     
-    console.log(`🚗 Creating enhanced ${clusterLevel} green vintage car cluster icon for ${markerCount} markers, size: ${size}`);
+    console.log(`🚗 Creating enhanced ${validClusterLevel} green vintage car cluster icon for ${markerCount} markers, size: ${size}`);
     
     // Enhanced colors for better visibility at different zoom levels
     const colors = {
@@ -23,7 +26,8 @@ export class ClusterIconGenerator {
       small: { main: '#16a34a', accent: '#22c55e', shadow: '#15803d' }
     };
     
-    const colorScheme = colors[clusterLevel];
+    // Safely access color scheme with fallback
+    const colorScheme = colors[validClusterLevel] || colors.medium;
     
     // Enhanced stroke widths for better visibility
     const strokeWidths = {
@@ -33,7 +37,7 @@ export class ClusterIconGenerator {
       small: 1.5
     };
     
-    const strokeWidth = strokeWidths[clusterLevel];
+    const strokeWidth = strokeWidths[validClusterLevel] || strokeWidths.medium;
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -122,7 +126,7 @@ export class ClusterIconGenerator {
 
     const dataUri = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
     
-    console.log(`🚗 Generated enhanced ${clusterLevel} green vintage car cluster icon, size: ${size}, data URI length: ${dataUri.length}`);
+    console.log(`🚗 Generated enhanced ${validClusterLevel} green vintage car cluster icon, size: ${size}, data URI length: ${dataUri.length}`);
 
     return {
       url: dataUri,

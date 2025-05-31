@@ -17,22 +17,22 @@ export interface ClusteringConfig {
 }
 
 export interface ZoomBasedClusteringConfig {
-  ultraCluster: {
+  ultra: {
     minClusterSize: number;
     radiusMeters: number;
     iconSizeMultiplier: number;
   };
-  largeCluster: {
+  large: {
     minClusterSize: number;
     radiusMeters: number;
     iconSizeMultiplier: number;
   };
-  mediumCluster: {
+  medium: {
     minClusterSize: number;
     radiusMeters: number;
     iconSizeMultiplier: number;
   };
-  smallCluster: {
+  small: {
     minClusterSize: number;
     radiusMeters: number;
     iconSizeMultiplier: number;

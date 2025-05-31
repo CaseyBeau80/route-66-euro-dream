@@ -45,9 +45,9 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
         bounds.extend(new google.maps.LatLng(m.latitude, m.longitude));
       });
       
-      // Add padding and zoom to fit
+      // Add padding and zoom to fit - using correct Google Maps padding format
       map.fitBounds(bounds, { 
-        padding: { top: 50, right: 50, bottom: 50, left: 50 } 
+        top: 50, right: 50, bottom: 50, left: 50
       });
       
       // Ensure we don't zoom in too much
