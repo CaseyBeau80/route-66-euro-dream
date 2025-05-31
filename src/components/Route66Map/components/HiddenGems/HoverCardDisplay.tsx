@@ -35,11 +35,10 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
   let top = position.y - cardHeight - 30;
   if (top < 10) top = position.y + 30; // If it goes above viewport, show below
 
-  console.log(`🎨 RENDERING hover card for ${gem.title} at:`, { 
+  console.log(`🎨 Rendering hover card for ${gem.title} at:`, { 
     markerPos: position, 
     cardPos: { left, top },
-    viewport: { viewportWidth, viewportHeight },
-    isVisible
+    viewport: { viewportWidth, viewportHeight }
   });
 
   const cardStyle = {
@@ -47,7 +46,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
     left: `${left}px`,
     top: `${top}px`,
     zIndex: 999999,
-    pointerEvents: 'auto' as const,
+    pointerEvents: 'auto' as const, // Allow interaction with the card
   };
 
   return (
