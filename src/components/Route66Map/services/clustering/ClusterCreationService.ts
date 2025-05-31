@@ -1,4 +1,3 @@
-
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { DestinationCityProtectionService } from '../DestinationCityProtectionService';
 import { DistanceCalculator } from './DistanceCalculator';
@@ -12,22 +11,22 @@ export class ClusterCreationService {
   };
 
   private static readonly ZOOM_CONFIGS: ZoomBasedClusteringConfig = {
-    ultraCluster: {
+    ultra: {
       minClusterSize: 2,
       radiusMeters: 200000, // 200km - very aggressive clustering
       iconSizeMultiplier: 1.8
     },
-    largeCluster: {
+    large: {
       minClusterSize: 3,
       radiusMeters: 100000, // 100km - large clustering
       iconSizeMultiplier: 1.5
     },
-    mediumCluster: {
+    medium: {
       minClusterSize: 3,
       radiusMeters: 50000, // 50km - medium clustering
       iconSizeMultiplier: 1.2
     },
-    smallCluster: {
+    small: {
       minClusterSize: 4,
       radiusMeters: 25000, // 25km - tight clustering
       iconSizeMultiplier: 1.0
@@ -129,10 +128,10 @@ export class ClusterCreationService {
   }
 
   private static getClusterLevel(zoom: number): keyof ZoomBasedClusteringConfig {
-    if (zoom <= 4) return 'ultraCluster';
-    if (zoom <= 5.5) return 'largeCluster';
-    if (zoom <= 7) return 'mediumCluster';
-    return 'smallCluster';
+    if (zoom <= 4) return 'ultra';
+    if (zoom <= 5.5) return 'large';
+    if (zoom <= 7) return 'medium';
+    return 'small';
   }
 
   private static expandBounds(bounds: google.maps.LatLngBounds, zoom: number): google.maps.LatLngBounds {
