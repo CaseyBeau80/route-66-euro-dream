@@ -47,7 +47,13 @@ export const useAttractionHover = () => {
     }, 300);
   }, []);
 
-  const updatePosition = useCallback((x: number, y: number) => {
+  const updatePosition = useCallback((x: number | null, y: number | null) => {
+    // Handle null values safely
+    if (x === null || y === null || typeof x !== 'number' || typeof y !== 'number') {
+      console.warn('🚫 Invalid position values provided to updatePosition:', { x, y });
+      return;
+    }
+    
     console.log(`📍 Updating attraction hover position:`, { x, y });
     setHoverPosition({ x, y });
   }, []);
