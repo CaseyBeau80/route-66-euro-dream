@@ -20,6 +20,8 @@ const CityNavigation: React.FC = () => {
   // Filter for major stops only and group by state
   const majorCities = waypoints.filter(waypoint => waypoint.is_major_stop);
   
+  console.log('🗺️ Major cities data:', majorCities.map(city => ({ name: city.name, state: city.state })));
+  
   // Group cities by state
   const citiesByState = majorCities.reduce((acc, city) => {
     const state = city.state;
@@ -30,9 +32,18 @@ const CityNavigation: React.FC = () => {
     return acc;
   }, {} as Record<string, typeof majorCities>);
 
-  // Sort states by their appearance order along Route 66
-  const stateOrder = ['Illinois', 'Missouri', 'Oklahoma', 'Texas', 'New Mexico', 'Arizona', 'California'];
-  const sortedStates = stateOrder.filter(state => citiesByState[state]);
+  console.log('🗺️ Cities grouped by state:', Object.keys(citiesByState));
+
+  // Get all unique states from the actual data and sort them by Route 66 order
+  const stateOrder = ['IL', 'MO', 'OK', 'TX', 'NM', 'AZ', 'CA', 'Illinois', 'Missouri', 'Oklahoma', 'Texas', 'New Mexico', 'Arizona', 'California'];
+  const availableStates = Object.keys(citiesByState);
+  const sortedStates = stateOrder.filter(state => availableStates.includes(state));
+  
+  // If no states match the expected order, just use the available states
+  const finalStates = sortedStates.length > 0 ? sortedStates : availableStates;
+
+  console.log('🗺️ Available states:', availableStates);
+  console.log('🗺️ Final sorted states:', finalStates);
 
   const toggleStateExpansion = (state: string) => {
     console.log('🏛️ State toggle clicked:', state, 'currently expanded:', expandedStates.has(state));
@@ -60,7 +71,8 @@ const CityNavigation: React.FC = () => {
     isExpanded,
     expandedStates: Array.from(expandedStates),
     majorCitiesCount: majorCities.length,
-    statesCount: sortedStates.length
+    statesCount: finalStates.length,
+    finalStates
   });
 
   return (
@@ -85,7 +97,7 @@ const CityNavigation: React.FC = () => {
       {isExpanded && (
         <CardContent className="pt-0 max-h-64 overflow-y-auto">
           <div className="space-y-1">
-            {sortedStates.map((state) => {
+            {finalStates.map((state) => {
               const cities = citiesByState[state];
               const isStateExpanded = expandedStates.has(state);
               
