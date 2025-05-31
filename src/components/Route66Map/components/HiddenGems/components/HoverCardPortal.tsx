@@ -198,21 +198,6 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
                   Learn More
                 </button>
               )}
-              
-              {/* Bottom Banner - Black and white */}
-              <div className="bg-black text-white px-3 py-2 -mx-4 -mb-4 text-center rounded-b-lg border-t-2 border-black mt-3">
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-black">
-                    <span className="text-xs font-black text-black">66</span>
-                  </div>
-                  <span className="text-sm font-bold uppercase tracking-wider">
-                    America's Main Street
-                  </span>
-                  <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-black">
-                    <span className="text-xs font-black text-black">66</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
