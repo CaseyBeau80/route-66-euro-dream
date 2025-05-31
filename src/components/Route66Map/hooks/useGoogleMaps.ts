@@ -1,10 +1,9 @@
-
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
 
-// Define libraries as a constant to prevent recreating the array
-const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
+// Define libraries as a constant to prevent recreating the array - now includes marker library
+const GOOGLE_MAPS_LIBRARIES: ("maps" | "marker")[] = ['maps', 'marker'];
 
 export const useGoogleMaps = () => {
   // Memoize the API key to prevent it from changing between renders
@@ -39,7 +38,8 @@ export const useGoogleMaps = () => {
     shouldLoadApi,
     apiKeyLength: apiKey.length,
     apiKeyPrefix: apiKey.substring(0, 10) + '...',
-    isValidKey: shouldLoadApi
+    isValidKey: shouldLoadApi,
+    libraries: GOOGLE_MAPS_LIBRARIES
   });
 
   const { isLoaded, loadError } = useJsApiLoader({
