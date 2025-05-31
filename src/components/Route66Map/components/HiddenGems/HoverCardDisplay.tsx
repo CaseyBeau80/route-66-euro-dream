@@ -19,12 +19,19 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
   if (!isVisible) return null;
 
   // Calculate positioning to ensure card stays on screen
+  const cardWidth = 350;
+  const cardHeight = 250;
+  
+  // Calculate position ensuring the card stays within viewport
+  const left = Math.max(10, Math.min(position.x - cardWidth / 2, window.innerWidth - cardWidth - 10));
+  const top = Math.max(10, position.y - cardHeight - 20); // Position above the marker
+
   const cardStyle = {
     position: 'fixed' as const,
-    left: `${Math.max(10, Math.min(position.x - 175, window.innerWidth - 360))}px`,
-    top: `${Math.max(10, position.y - 250)}px`,
+    left: `${left}px`,
+    top: `${top}px`,
     zIndex: 999999,
-    pointerEvents: 'auto' as const,
+    pointerEvents: 'none' as const, // Prevent interfering with map interaction
   };
 
   return (
@@ -65,8 +72,8 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
           {gem.description && (
             <div className="mb-4 p-3 bg-gray-50 border border-dashed border-blue-600 rounded">
               <p className="text-sm text-gray-800 leading-relaxed font-medium text-left break-words">
-                {gem.description.length > 150 
-                  ? `${gem.description.substring(0, 150)}...` 
+                {gem.description.length > 120 
+                  ? `${gem.description.substring(0, 120)}...` 
                   : gem.description
                 }
               </p>
@@ -81,7 +88,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
                   e.stopPropagation();
                   onWebsiteClick(gem.website!);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide pointer-events-auto"
               >
                 <ExternalLink className="h-3 w-3" />
                 Visit Website

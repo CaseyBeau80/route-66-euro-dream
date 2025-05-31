@@ -10,18 +10,19 @@ export const useMarkerHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-    console.log(`🎯 Hover started for gem: ${gemTitle}`);
+    console.log(`✨ Hover started for gem: ${gemTitle}`);
     setIsHovered(true);
   }, []);
 
   const handleMouseLeave = useCallback((gemTitle: string) => {
     hoverTimeoutRef.current = setTimeout(() => {
-      console.log(`🎯 Hover ended for gem: ${gemTitle}`);
+      console.log(`✨ Hover ended for gem: ${gemTitle}`);
       setIsHovered(false);
-    }, 150); // Small delay to prevent flickering
+    }, 200); // Slightly longer delay to prevent flickering
   }, []);
 
   const updatePosition = useCallback((x: number, y: number) => {
+    console.log(`📍 Updating hover position: ${x}, ${y}`);
     setHoverPosition({ x, y });
   }, []);
 
@@ -29,6 +30,7 @@ export const useMarkerHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
+    setIsHovered(false);
   }, []);
 
   return {

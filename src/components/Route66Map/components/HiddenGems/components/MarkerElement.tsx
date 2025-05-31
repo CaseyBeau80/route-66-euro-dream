@@ -30,40 +30,48 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
       zIndex: 1000
     });
 
-    // Function to update hover card position
-    const updatePosition = () => {
+    // Function to get marker screen position
+    const getMarkerScreenPosition = () => {
       const projection = map.getProjection();
-      if (projection) {
-        const point = projection.fromLatLngToPoint(marker.getPosition()!);
-        const scale = Math.pow(2, map.getZoom());
-        const pixelPosition = new google.maps.Point(
-          point.x * scale,
-          point.y * scale
-        );
-        
-        // Convert to screen coordinates
-        const bounds = map.getBounds();
-        const ne = bounds?.getNorthEast();
-        const sw = bounds?.getSouthWest();
-        
-        if (ne && sw) {
-          const mapDiv = map.getDiv();
-          const mapWidth = mapDiv.offsetWidth;
-          const mapHeight = mapDiv.offsetHeight;
-          
-          const x = ((Number(gem.longitude) - sw.lng()) / (ne.lng() - sw.lng())) * mapWidth;
-          const y = ((ne.lat() - Number(gem.latitude)) / (ne.lat() - sw.lat())) * mapHeight;
-          
-          onPositionUpdate(x, y);
-        }
-      }
+      if (!projection) return null;
+
+      const position = marker.getPosition();
+      if (!position) return null;
+
+      // Get the map div
+      const mapDiv = map.getDiv();
+      const mapRect = mapDiv.getBoundingClientRect();
+
+      // Convert lat/lng to pixel coordinates
+      const point = projection.fromLatLngToPoint(position);
+      const scale = Math.pow(2, map.getZoom());
+      
+      // Get map bounds to calculate relative position
+      const bounds = map.getBounds();
+      if (!bounds) return null;
+
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+
+      // Calculate relative position within the map
+      const x = ((position.lng() - sw.lng()) / (ne.lng() - sw.lng())) * mapRect.width;
+      const y = ((ne.lat() - position.lat()) / (ne.lat() - sw.lat())) * mapRect.height;
+
+      // Add map's position on the page
+      return {
+        x: mapRect.left + x,
+        y: mapRect.top + y
+      };
     };
 
     // Add mouse event listeners to the marker
     marker.addListener('mouseover', () => {
       console.log(`🎯 Mouse over gem: ${gem.title}`);
-      updatePosition();
-      onMouseEnter();
+      const screenPos = getMarkerScreenPosition();
+      if (screenPos) {
+        onPositionUpdate(screenPos.x, screenPos.y);
+        onMouseEnter();
+      }
     });
 
     marker.addListener('mouseout', () => {
@@ -72,6 +80,13 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
     });
 
     // Update position when map changes
+    const updatePosition = () => {
+      const screenPos = getMarkerScreenPosition();
+      if (screenPos) {
+        onPositionUpdate(screenPos.x, screenPos.y);
+      }
+    };
+
     const boundsListener = map.addListener('bounds_changed', updatePosition);
     const zoomListener = map.addListener('zoom_changed', updatePosition);
 
