@@ -37,12 +37,12 @@ const MapCore: React.FC<MapCoreProps> = ({
       return;
     }
 
-    console.log('🗺️ MapCore: Initializing Google Map with viewport lock');
+    console.log('🗺️ MapCore: Initializing Google Map with continental US view');
 
     try {
       const map = new google.maps.Map(containerRef.current, {
-        zoom: 4, // Set to zoom level 4 to match the desired extent shown in the image
-        center: { lat: 36.0, lng: -96.0 }, // Updated center point for Route 66 corridor
+        zoom: 3, // Reduced zoom to show continental US
+        center: { lat: 39.0, lng: -98.0 }, // Centered on continental US
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
@@ -52,10 +52,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        // Apply strict boundary restrictions for viewport lock
+        // Apply boundary restrictions for continental US
         restriction: mapRestrictions,
-        minZoom: 4, // Minimum zoom to see the Route 66 corridor
-        maxZoom: 8, // Reduced maximum zoom to maintain focus on corridor
+        minZoom: 3, // Minimum zoom to see the full continental US
+        maxZoom: 10, // Maximum zoom for detailed viewing
         styles: [
           {
             featureType: 'poi',
@@ -81,7 +81,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      console.log('✅ Google Map initialized with viewport lock - bounds:', mapBounds);
+      console.log('✅ Google Map initialized with continental US bounds:', mapBounds);
       onMapLoad(map);
       onMapReady();
 
@@ -89,11 +89,11 @@ const MapCore: React.FC<MapCoreProps> = ({
       map.addListener('click', onMapClick);
 
       // Log boundary restriction status
-      console.log('🔒 Viewport lock enabled with strict bounds:', {
+      console.log('🌎 Continental US viewport enabled with bounds:', {
         bounds: mapBounds,
         strictBounds: mapRestrictions.strictBounds,
-        minZoom: 4,
-        maxZoom: 8
+        minZoom: 3,
+        maxZoom: 10
       });
 
     } catch (error) {
@@ -106,7 +106,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
-    viewportLockEnabled: true
+    continentalUSView: true
   });
 
   return (

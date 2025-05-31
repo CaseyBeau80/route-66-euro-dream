@@ -1,4 +1,5 @@
 
+
 // Map configuration constants
 
 // Styling for the Google Map
@@ -14,18 +15,18 @@ export const center = {
   lng: -96.0, // Adjusted to center between Chicago and LA
 };
 
-// Define tighter map bounds to restrict view to Route 66 corridor only (expanded by 25%)
+// Define map bounds to show the continental United States
 export const mapBounds = {
-  north: 44.5, // Northern boundary (expanded from 42.0 by 25%)
-  south: 29.5, // Southern boundary (expanded from 32.0 by 25%)
-  east: -79.25, // Eastern boundary (expanded from -87.0 by 25%)
-  west: -126.4, // Western boundary (expanded from -118.5 by 25%)
+  north: 49.0, // Northern boundary (US-Canada border)
+  south: 25.0, // Southern boundary (covering southern Florida and Texas)
+  east: -66.0, // Eastern boundary (covering the East Coast)
+  west: -125.0, // Western boundary (covering the West Coast)
 };
 
-// Map restrictions with strict bounds to create viewport lock
+// Map restrictions with bounds to show continental US
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: true, // Enable strict bounds to prevent panning outside Route 66 corridor
+  strictBounds: true, // Enable strict bounds to prevent panning outside continental US
 };
 
 // Route 66 states to highlight (using full names now for more reliable matching)
@@ -39,8 +40,8 @@ export const mapOptions = {
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Minimum zoom to see the Route 66 corridor
-  maxZoom: 8, // Reduced maximum zoom to maintain focus on corridor
+  minZoom: 3, // Reduced minimum zoom to see the full continental US
+  maxZoom: 10, // Increased maximum zoom for more detail when needed
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
@@ -95,3 +96,4 @@ export const polylineOptions = {
 };
 
 // Note: API key is now managed centrally in the useGoogleMaps hook
+
