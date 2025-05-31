@@ -1,23 +1,21 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
-import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
+import { extractCityName } from '@/utils/cityUrlUtils';
 
 const CityNavigation: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { waypoints, isLoading } = useSupabaseRoute66();
-  const navigate = useNavigate();
 
   // Filter for major stops only
   const majorCities = waypoints.filter(waypoint => waypoint.is_major_stop);
 
   const handleCityClick = (waypoint: any) => {
-    const cityUrl = generateCityUrl(waypoint);
-    navigate(cityUrl);
+    console.log('🏛️ City clicked (navigation disabled):', waypoint.name);
+    // Navigation removed - cities in navigation panel no longer navigate to city pages
   };
 
   if (isLoading) return null;
@@ -50,7 +48,7 @@ const CityNavigation: React.FC = () => {
                 <Button
                   key={city.id}
                   variant="ghost"
-                  className="w-full justify-start hover:bg-amber-100 text-left p-3"
+                  className="w-full justify-start hover:bg-amber-100 text-left p-3 cursor-default"
                   onClick={() => handleCityClick(city)}
                 >
                   <div>

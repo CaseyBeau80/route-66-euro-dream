@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import DestinationCustomMarker from './Destinations/DestinationCustomMarker';
 import type { Route66Waypoint } from '../types/supabaseTypes';
-import { generateCityUrl } from '@/utils/cityUrlUtils';
 
 interface DestinationCitiesContainerProps {
   map: google.maps.Map;
@@ -16,8 +14,6 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
   waypoints, 
   onDestinationClick 
 }) => {
-  const navigate = useNavigate();
-
   // Filter for major stops only (destinations) and add logging
   const destinations = waypoints.filter(waypoint => waypoint.is_major_stop);
   
@@ -33,16 +29,12 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
   });
 
   const handleDestinationSelect = (destination: Route66Waypoint) => {
-    console.log('🏛️ Destination selected:', destination.name);
+    console.log('🏛️ Destination selected (no navigation):', destination.name);
     
-    // Call the original click handler
+    // Call the original click handler but removed navigation
     onDestinationClick(destination);
     
-    // Navigate to city page if it's a major stop
-    if (destination.is_major_stop) {
-      const cityUrl = generateCityUrl(destination);
-      navigate(cityUrl);
-    }
+    // Navigation to city page removed - destinations now only show info cards
   };
 
   if (!map) {
