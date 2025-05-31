@@ -1,5 +1,7 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Route } from 'lucide-react';
 import { AttractionHoverProps } from './types';
 
@@ -9,41 +11,61 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
   position,
   onWebsiteClick
 }) => {
+  // Enhanced position calculations similar to HoverCardPortal
+  const cardPosition = useMemo(() => {
+    if (!isVisible) return { left: 0, top: 0, display: 'none' };
+
+    const cardWidth = 280;
+    const cardHeight = 160;
+    const padding = 20;
+    const topOffset = 60;
+
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+
+    let left = position.x - cardWidth / 2;
+    let top = position.y - cardHeight - topOffset;
+
+    // Horizontal positioning
+    if (left < padding) {
+      left = padding;
+    } else if (left + cardWidth > viewport.width - padding) {
+      left = viewport.width - cardWidth - padding;
+    }
+
+    // Vertical positioning
+    if (top < padding) {
+      top = position.y + topOffset + 20;
+    }
+
+    if (top + cardHeight > viewport.height - padding) {
+      top = viewport.height - cardHeight - padding;
+    }
+
+    console.log(`🎨 Attraction hover card positioned:`, {
+      attractionName: attraction.name,
+      markerPos: position,
+      cardPos: { left, top }
+    });
+
+    return { left, top, display: 'block' };
+  }, [isVisible, position, attraction.name]);
+
   if (!isVisible) return null;
 
-  // Simplified positioning to reduce interference with hover detection
-  const cardWidth = 280;
-  const cardHeight = 160; // Reduced height for simpler design
-  
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  
-  // More conservative positioning to avoid mouse interference
-  let left = position.x - cardWidth / 2;
-  if (left < 20) left = 20;
-  if (left + cardWidth > viewportWidth - 20) left = viewportWidth - cardWidth - 20;
-  
-  // Always position above the marker to avoid mouse interference
-  let top = position.y - cardHeight - 40; // Fixed positioning above marker
-  if (top < 20) top = position.y + 40; // Fallback to below if not enough space
-
-  console.log(`🎨 Rendering simplified attraction hover card for ${attraction.name}`);
-
-  const cardStyle = {
-    position: 'fixed' as const,
-    left: `${left}px`,
-    top: `${top}px`,
-    zIndex: 999999,
-    pointerEvents: 'none' as const, // Prevent card from interfering with mouse events
-  };
-
-  return (
-    <div 
-      className="transition-opacity duration-200 ease-out"
-      style={cardStyle}
+  const cardContent = (
+    <div
+      className="fixed pointer-events-none"
+      style={{
+        left: `${cardPosition.left}px`,
+        top: `${cardPosition.top}px`,
+        zIndex: 40000
+      }}
     >
-      <div className="w-[280px] max-w-[90vw] bg-white border-2 border-red-600 rounded-lg shadow-xl overflow-hidden">
-        {/* Simplified header */}
+      <Card className="w-70 border-2 border-red-600 bg-white shadow-2xl transition-all duration-200">
+        {/* Header */}
         <div className="bg-red-600 text-white px-4 py-2">
           <div className="flex items-center gap-2">
             <Route className="h-4 w-4" />
@@ -54,8 +76,7 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
           </div>
         </div>
         
-        {/* Simplified content */}
-        <div className="p-4">
+        <CardContent className="p-4">
           {/* Title */}
           <h3 className="font-bold text-lg text-red-900 mb-2">
             {attraction.name.split(',')[0].split(' - ')[0].trim()}
@@ -67,7 +88,7 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
             <span className="text-sm font-medium">{attraction.state}</span>
           </div>
           
-          {/* Description - simplified */}
+          {/* Description */}
           {attraction.description && (
             <p className="text-sm text-red-800 leading-relaxed">
               {attraction.description.length > 120 
@@ -76,10 +97,12 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
               }
             </p>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
+
+  return createPortal(cardContent, document.body);
 };
 
 export default AttractionHoverCard;
