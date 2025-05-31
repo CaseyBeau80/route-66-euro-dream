@@ -42,7 +42,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
 
     markerRef.current = marker;
 
-    // Mouse enter event with improved hover management
+    // Mouse enter event with stabilized hover management
     const mouseEnterListener = marker.addListener('mouseover', (event: google.maps.MapMouseEvent) => {
       console.log(`🏛️ Mouse enter on destination: ${cityName}`);
       
@@ -52,9 +52,10 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       }
     });
 
-    // Mouse leave event with improved hover management
+    // Mouse leave event with stabilized hover management
     const mouseLeaveListener = marker.addListener('mouseout', () => {
       console.log(`🏛️ Mouse leave on destination: ${cityName}`);
+      // Pass null to trigger the hide timeout in the context
       setActiveDestination(null);
     });
 
@@ -80,6 +81,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       google.maps.event.removeListener(mouseMoveListener);
       google.maps.event.removeListener(clickListener);
       marker.setMap(null);
+      markerRef.current = null;
     };
   }, [map, destination, onDestinationClick, setActiveDestination, isHovered]);
 
