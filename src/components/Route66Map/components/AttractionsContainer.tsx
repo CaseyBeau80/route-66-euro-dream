@@ -21,18 +21,18 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
 }) => {
   const { 
     waypoints: attractions,
-    loading,
+    isLoading,
     error 
   } = useSupabaseRoute66();
 
   console.log(`🎯 AttractionsContainer: Rendering with ${attractions?.length || 0} attractions`, {
     selectedState,
     isVisible,
-    loading,
+    isLoading,
     error: !!error
   });
 
-  if (!isVisible || !map || loading || error || !attractions?.length) {
+  if (!isVisible || !map || isLoading || error || !attractions?.length) {
     return null;
   }
 

@@ -121,11 +121,11 @@ const EnhancedClusteringContainer: React.FC<EnhancedClusteringContainerProps> = 
         />
       ))}
 
-      {/* Render individual attractions that aren't clustered */}
+      {/* Render individual attractions that aren't clustered - pass correct props */}
       {otherMarkers.length > 0 && (
         <AttractionsContainer
           map={map}
-          waypoints={otherMarkers}
+          selectedState={null}
           onAttractionClick={onMarkerClick}
         />
       )}
