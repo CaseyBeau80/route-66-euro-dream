@@ -45,7 +45,7 @@ export class InfoWindowManager {
   static createHighwayInfoContent(text: string, state: string, description: string): string {
     return `
       <div class="p-2">
-        <h3 class="font-bold text-blue-600">${text}</h3>
+        <h3 class="font-bold text-black">${text}</h3>
         <p class="text-sm text-gray-600">${state}</p>
         <p class="text-xs text-gray-500">${description}</p>
       </div>
@@ -55,7 +55,7 @@ export class InfoWindowManager {
   static createStopInfoContent(name: string, description: string): string {
     return `
       <div class="p-2">
-        <h3 class="font-bold text-red-600">${name}</h3>
+        <h3 class="font-bold text-black">${name}</h3>
         <p class="text-sm text-gray-600">${description}</p>
       </div>
     `;

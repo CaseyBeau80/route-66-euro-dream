@@ -55,23 +55,23 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
       style={cardStyle}
     >
       <div className="w-[350px] max-w-[90vw] bg-white border-2 border-black rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Header Banner - Weathered cream background */}
-        <div className="bg-gradient-to-r from-[#F5F2EA] to-[#EFEDE7] text-black px-4 py-2 border-b-2 border-black">
+        {/* Header Banner - Black and white */}
+        <div className="bg-black text-white px-4 py-2 border-b-2 border-black">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center border border-black shadow-sm">
-                <Star className="h-2.5 w-2.5 text-white" fill="currentColor" />
+              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center border border-black shadow-sm">
+                <Star className="h-2.5 w-2.5 text-black" fill="currentColor" />
               </div>
-              <span className="text-sm font-bold tracking-wide uppercase text-black">Hidden Gem</span>
+              <span className="text-sm font-bold tracking-wide uppercase text-white">Hidden Gem</span>
             </div>
-            <div className="text-xs font-bold bg-black text-white px-2 py-1 rounded transform -rotate-2 shadow-sm">
+            <div className="text-xs font-bold bg-white text-black px-2 py-1 rounded transform -rotate-2 shadow-sm">
               ROUTE 66
             </div>
           </div>
         </div>
         
         {/* Main Content */}
-        <div className="p-4 bg-gradient-to-br from-[#F8F6F0] to-[#E6E4DE]">
+        <div className="p-4 bg-white">
           {/* Title Section */}
           <div className="mb-3 text-center">
             <h3 className="font-black text-lg text-black leading-tight uppercase tracking-wide border-b-2 border-black pb-2 mb-2 break-words">
@@ -85,7 +85,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
           
           {/* Description */}
           {gem.description && (
-            <div className="mb-4 p-3 bg-white border border-dashed border-black rounded shadow-inner">
+            <div className="mb-4 p-3 bg-gray-100 border border-dashed border-black rounded shadow-inner">
               <p className="text-sm text-black leading-relaxed font-medium text-left break-words">
                 {gem.description.length > 120 
                   ? `${gem.description.substring(0, 120)}...` 
@@ -112,17 +112,17 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
             </div>
           )}
           
-          {/* Bottom Banner - Weathered cream background */}
-          <div className="bg-gradient-to-r from-[#F5F2EA] to-[#EFEDE7] text-black px-3 py-2 -mx-4 -mb-4 text-center rounded-b-lg border-t-2 border-black">
+          {/* Bottom Banner - Black and white */}
+          <div className="bg-black text-white px-3 py-2 -mx-4 -mb-4 text-center rounded-b-lg border-t-2 border-black">
             <div className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center border border-black">
-                <span className="text-xs font-black text-white">66</span>
+              <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-black">
+                <span className="text-xs font-black text-black">66</span>
               </div>
-              <span className="text-sm font-bold uppercase tracking-wider text-black">
+              <span className="text-sm font-bold uppercase tracking-wider text-white">
                 America's Main Street
               </span>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center border border-black">
-                <span className="text-xs font-black text-white">66</span>
+              <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-black">
+                <span className="text-xs font-black text-black">66</span>
               </div>
             </div>
           </div>
