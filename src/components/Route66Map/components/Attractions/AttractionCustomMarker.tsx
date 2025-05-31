@@ -34,34 +34,80 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     const isDriveIn = attraction.name.toLowerCase().includes('drive-in');
     
     if (isDriveIn) {
-      // Custom SVG drive-in theater icon that nests well with other icons
-      const iconSize = 24;
+      // Nostalgic drive-in theater icon inspired by vintage aesthetic
+      const iconSize = 32;
       const driveInSvgContent = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-          <!-- Outer circle with drive-in themed colors -->
-          <circle cx="12" cy="12" r="11" 
-                  fill="#1a1a2e" 
-                  stroke="#ffd700" 
+          <!-- Vintage background circle -->
+          <circle cx="16" cy="16" r="15" 
+                  fill="#2c1810" 
+                  stroke="#d4af37" 
                   stroke-width="2"/>
-          <!-- Inner screen/projection area -->
-          <rect x="6" y="8" width="12" height="8" 
-                fill="#333333" 
-                stroke="#ffd700" 
-                stroke-width="1" 
+          
+          <!-- Inner vintage border -->
+          <circle cx="16" cy="16" r="12" 
+                  fill="none" 
+                  stroke="#8b4513" 
+                  stroke-width="1"/>
+          
+          <!-- Drive-in screen -->
+          <rect x="8" y="10" width="16" height="10" 
+                fill="#1a1a1a" 
+                stroke="#d4af37" 
+                stroke-width="1.5" 
                 rx="1"/>
-          <!-- Screen content indicator -->
-          <rect x="7" y="9" width="10" height="6" 
-                fill="#4a4a4a" 
+          
+          <!-- Screen glow effect -->
+          <rect x="9" y="11" width="14" height="8" 
+                fill="#87ceeb" 
+                opacity="0.3" 
                 rx="0.5"/>
-          <!-- Small projection beam effect -->
-          <polygon points="12,16 10,20 14,20" 
-                   fill="#ffd700" 
-                   opacity="0.6"/>
-          <!-- Movie symbol -->
-          <circle cx="12" cy="12" r="2" 
-                  fill="#ffd700" 
-                  opacity="0.8"/>
-          <text x="12" y="13.5" text-anchor="middle" font-size="3" fill="#1a1a2e">▶</text>
+          
+          <!-- Vintage car silhouettes -->
+          <rect x="5" y="21" width="4" height="2" 
+                fill="#8b4513" 
+                rx="1"/>
+          <rect x="11" y="21" width="4" height="2" 
+                fill="#8b4513" 
+                rx="1"/>
+          <rect x="17" y="21" width="4" height="2" 
+                fill="#8b4513" 
+                rx="1"/>
+          <rect x="23" y="21" width="4" height="2" 
+                fill="#8b4513" 
+                rx="1"/>
+          
+          <!-- Speaker posts -->
+          <line x1="6" y1="20" x2="6" y2="17" 
+                stroke="#d4af37" 
+                stroke-width="1"/>
+          <line x1="26" y1="20" x2="26" y2="17" 
+                stroke="#d4af37" 
+                stroke-width="1"/>
+          
+          <!-- Vintage movie reel symbol in center -->
+          <circle cx="16" cy="14" r="3" 
+                  fill="none" 
+                  stroke="#d4af37" 
+                  stroke-width="1"/>
+          <circle cx="16" cy="14" r="1" 
+                  fill="#d4af37"/>
+          <circle cx="13.5" cy="11.5" r="0.8" 
+                  fill="none" 
+                  stroke="#d4af37" 
+                  stroke-width="0.5"/>
+          <circle cx="18.5" cy="11.5" r="0.8" 
+                  fill="none" 
+                  stroke="#d4af37" 
+                  stroke-width="0.5"/>
+          <circle cx="13.5" cy="16.5" r="0.8" 
+                  fill="none" 
+                  stroke="#d4af37" 
+                  stroke-width="0.5"/>
+          <circle cx="18.5" cy="16.5" r="0.8" 
+                  fill="none" 
+                  stroke="#d4af37" 
+                  stroke-width="0.5"/>
         </svg>
       `;
 
@@ -73,12 +119,12 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
           anchor: new google.maps.Point(iconSize/2, iconSize/2)
         },
         title: `${attraction.name} - ${attraction.state} (Drive-In Theater)`,
-        zIndex: 25000,
+        zIndex: 30000, // Higher zIndex to prevent overlapping
         optimized: false,
         isDriveIn: true
       };
     } else {
-      // Regular attraction icon
+      // Regular attraction icon with adjusted zIndex
       const iconSize = 16;
       const svgContent = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
@@ -100,7 +146,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
           anchor: new google.maps.Point(iconSize/2, iconSize/2)
         },
         title: `${attraction.name} - ${attraction.state}`,
-        zIndex: 25000,
+        zIndex: 25000, // Lower than drive-ins but still high
         optimized: false,
         isDriveIn: false
       };
@@ -122,7 +168,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
       }
     }
 
-    console.log(`🎯 Creating stable attraction marker for ${attraction.name}`);
+    console.log(`🎯 Creating nostalgic attraction marker for ${attraction.name}`);
 
     // Create marker with memoized config
     const marker = new google.maps.Marker({
@@ -137,7 +183,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     markerRef.current = marker;
 
     if (markerConfig.isDriveIn) {
-      console.log(`🎬 Enhanced drive-in theater marker created with new icon: ${attraction.name}`);
+      console.log(`🎬 Nostalgic drive-in theater marker created: ${attraction.name}`);
     }
 
     // Clear any existing listeners
@@ -175,7 +221,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     listenersRef.current = [mouseEnterListener, mouseLeaveListener, mouseMoveListener, clickListener];
 
     return () => {
-      console.log(`🧹 Cleaning up stable attraction marker: ${attraction.name}`);
+      console.log(`🧹 Cleaning up nostalgic attraction marker: ${attraction.name}`);
       
       // Remove all listeners
       listenersRef.current.forEach(listener => {
@@ -192,7 +238,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
       // Cleanup hover state
       cleanup();
     };
-  }, [map, attraction, markerConfig, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, onAttractionClick]); // REMOVED isHovered
+  }, [map, attraction, markerConfig, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, onAttractionClick]);
 
   // Use drive-in specific hover card for drive-ins, regular card for others
   return (

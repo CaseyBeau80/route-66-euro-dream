@@ -25,12 +25,23 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
 
     console.log(`🎯 Creating ${clusterLevel} cluster marker with ${markers.length} attractions`);
 
+    // Adjusted zIndex to be lower than drive-in theaters and individual attractions
+    const getClusterZIndex = (level: string) => {
+      switch (level) {
+        case 'ultra': return 15000;
+        case 'large': return 14000;
+        case 'medium': return 13000;
+        case 'small': return 12000;
+        default: return 10000;
+      }
+    };
+
     const clusterMarker = new google.maps.Marker({
       position: center,
       map: map,
       icon: ClusterIconGenerator.getClusterIcon(markers.length, clusterLevel),
       title: `${clusterLevel} cluster of ${markers.length} locations`,
-      zIndex: 5000 + (clusterLevel === 'ultra' ? 1000 : clusterLevel === 'large' ? 800 : clusterLevel === 'medium' ? 600 : 400),
+      zIndex: getClusterZIndex(clusterLevel),
       optimized: false // Better rendering for custom SVG icons
     });
 
