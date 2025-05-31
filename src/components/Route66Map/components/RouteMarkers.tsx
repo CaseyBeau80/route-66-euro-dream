@@ -24,13 +24,13 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
         map: map,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-              <path d="M8 1.5l1.5 4.5h4.5l-3.5 2.5 1.5 4.5L8 10.5 4.5 13l1.5-4.5L2.5 6h4.5L8 1.5z" 
-                    fill="#FFD700" stroke="#B8860B" stroke-width="0.5"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2l2.25 6.75h6.75l-5.25 3.75 2.25 6.75L12 15.75 6.75 19.5l2.25-6.75L3.75 8.75h6.75L12 2z" 
+                    fill="#FFD700" stroke="#B8860B" stroke-width="0.75"/>
             </svg>
           `)}`,
-          scaledSize: new google.maps.Size(16, 16),
-          anchor: new google.maps.Point(8, 8)
+          scaledSize: new google.maps.Size(24, 24),
+          anchor: new google.maps.Point(12, 12)
         },
         title: `${waypoint.name} - ${waypoint.state}`,
         zIndex: 20000
