@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAttractionHover } from './hooks/useAttractionHover';
 import AttractionHoverCard from './AttractionHoverCard';
+import AttractionClickableCard from './AttractionClickableCard';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface AttractionCustomMarkerProps {
@@ -19,6 +20,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const [isMarkerReady, setIsMarkerReady] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
 
   const {
     isHovered,
@@ -36,7 +39,6 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     console.log('🎯 Creating attraction marker for:', attraction.name);
 
     try {
-      // Use regular marker with custom icon
       const marker = new google.maps.Marker({
         map,
         position: {
@@ -57,7 +59,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       markerRef.current = marker;
       setIsMarkerReady(true);
 
-      console.log('✅ Regular attraction marker created successfully for:', attraction.name);
+      console.log('✅ Attraction marker created successfully for:', attraction.name);
 
     } catch (error) {
       console.error('❌ Error creating attraction marker:', error);
@@ -80,21 +82,37 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     const marker = markerRef.current;
 
     const handleMouseOverEvent = (e: google.maps.MapMouseEvent) => {
-      console.log('🖱️ Mouse over attraction:', attraction.name);
-      if (e.domEvent && e.domEvent.target) {
-        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-        updatePosition(rect.left + rect.width / 2, rect.top);
+      if (!isClicked) { // Only show hover if not clicked
+        console.log('🖱️ Mouse over attraction:', attraction.name);
+        if (e.domEvent && e.domEvent.target) {
+          const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
+          updatePosition(rect.left + rect.width / 2, rect.top);
+        }
+        handleMouseEnter(attraction.name);
       }
-      handleMouseEnter(attraction.name);
     };
 
     const handleMouseOutEvent = () => {
-      console.log('🖱️ Mouse out attraction:', attraction.name);
-      handleMouseLeave(attraction.name);
+      if (!isClicked) { // Only hide hover if not clicked
+        console.log('🖱️ Mouse out attraction:', attraction.name);
+        handleMouseLeave(attraction.name);
+      }
     };
 
-    const handleClickEvent = () => {
+    const handleClickEvent = (e: google.maps.MapMouseEvent) => {
       console.log('🖱️ Click attraction:', attraction.name);
+      
+      // Calculate click position
+      if (e.domEvent) {
+        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
+        setClickPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top
+        });
+      }
+      
+      setIsClicked(true);
+      handleMouseLeave(attraction.name); // Hide hover card
       onAttractionClick(attraction);
     };
 
@@ -105,22 +123,43 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     return () => {
       google.maps.event.clearInstanceListeners(marker);
     };
-  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick]);
+  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked]);
+
+  const handleCloseClickableCard = () => {
+    setIsClicked(false);
+  };
 
   if (!isMarkerReady) {
     return null;
   }
 
   return (
-    <AttractionHoverCard
-      attraction={attraction}
-      isVisible={isHovered}
-      position={hoverPosition}
-      onWebsiteClick={onWebsiteClick || ((website) => {
-        console.log('🌐 Opening attraction website:', website);
-        window.open(website, '_blank', 'noopener,noreferrer');
-      })}
-    />
+    <>
+      {/* Hover card - only show when hovering and not clicked */}
+      {!isClicked && (
+        <AttractionHoverCard
+          attraction={attraction}
+          isVisible={isHovered}
+          position={hoverPosition}
+          onWebsiteClick={onWebsiteClick || ((website) => {
+            console.log('🌐 Opening attraction website:', website);
+            window.open(website, '_blank', 'noopener,noreferrer');
+          })}
+        />
+      )}
+
+      {/* Clickable card - show when clicked */}
+      <AttractionClickableCard
+        attraction={attraction}
+        isVisible={isClicked}
+        position={clickPosition}
+        onClose={handleCloseClickableCard}
+        onWebsiteClick={onWebsiteClick || ((website) => {
+          console.log('🌐 Opening attraction website:', website);
+          window.open(website, '_blank', 'noopener,noreferrer');
+        })}
+      />
+    </>
   );
 };
 

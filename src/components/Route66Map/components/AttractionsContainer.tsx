@@ -34,24 +34,40 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [map]);
 
-  // ALL ATTRACTIONS NOW ENABLED - including drive-ins for full Route 66 experience
+  // Enhanced filtering to show more drive-ins and attractions
   const filteredAttractions = useMemo(() => {
-    // Show all attractions with enhanced clustering protection
-    const allAttractions = attractions;
+    // Separate drive-ins and regular attractions
+    const driveIns = attractions.filter(attraction => 
+      attraction.name.toLowerCase().includes('drive-in') ||
+      attraction.description?.toLowerCase().includes('drive-in')
+    );
+    
+    const regularAttractions = attractions.filter(attraction => 
+      !attraction.name.toLowerCase().includes('drive-in') &&
+      !attraction.description?.toLowerCase().includes('drive-in')
+    );
 
-    console.log(`🎯 AttractionsContainer: All attractions enabled (${allAttractions.length} total)`);
-    console.log(`🎬 Drive-ins re-enabled for full Route 66 experience`);
+    console.log(`🎬 Found ${driveIns.length} drive-in theaters in attractions`);
+    console.log(`🎯 Found ${regularAttractions.length} regular attractions`);
 
+    // Always show ALL drive-ins regardless of zoom level (they're special!)
+    let visibleAttractions = [...driveIns];
+
+    // Add regular attractions based on zoom level
     if (currentZoom >= 8) {
-      // High zoom: show all attractions
-      return allAttractions;
+      // High zoom: show all regular attractions
+      visibleAttractions.push(...regularAttractions);
     } else if (currentZoom >= 6) {
-      // Medium zoom: show every other attraction
-      return allAttractions.filter((_, index) => index % 2 === 0);
+      // Medium zoom: show every other regular attraction
+      visibleAttractions.push(...regularAttractions.filter((_, index) => index % 2 === 0));
     } else {
-      // Low zoom: show every 3rd attraction
-      return allAttractions.filter((_, index) => index % 3 === 0);
+      // Low zoom: show every 3rd regular attraction
+      visibleAttractions.push(...regularAttractions.filter((_, index) => index % 3 === 0));
     }
+
+    console.log(`🎯 AttractionsContainer: Showing ${visibleAttractions.length} total attractions (${driveIns.length} drive-ins always visible, zoom: ${currentZoom})`);
+
+    return visibleAttractions;
   }, [attractions, currentZoom]);
 
   // Listen to zoom changes with debouncing
@@ -80,8 +96,7 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions (zoom: ${currentZoom}, total available: ${attractions.length})`);
-  console.log(`🛡️ Enhanced clustering protection active for destination cities`);
+  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions with clickable cards (total available: ${attractions.length})`);
 
   return (
     <>
