@@ -3,7 +3,7 @@ import React from 'react';
 import { useHiddenGems } from './HiddenGems/useHiddenGems';
 import { useHiddenGemInteraction } from './HiddenGems/hooks/useHiddenGemInteraction';
 import HiddenGemMarker from './HiddenGems/HiddenGemMarker';
-import HiddenGemInfoWindow from './HiddenGems/HiddenGemInfoWindow';
+import HiddenGemCustomOverlay from './HiddenGems/HiddenGemCustomOverlay';
 import { HiddenGemsProps } from './HiddenGems/types';
 
 const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
@@ -33,14 +33,14 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
         />
       ))}
       
-      {/* Render the active info window as a sibling */}
+      {/* Render the active custom overlay */}
       {activeGemObject && (
-        <HiddenGemInfoWindow
-          key={`hidden-gem-info-${activeGemObject.id}`}
+        <HiddenGemCustomOverlay
+          key={`hidden-gem-overlay-${activeGemObject.id}`}
           gem={activeGemObject}
+          map={map}
           onClose={closeActiveGem}
           onWebsiteClick={handleWebsiteClick}
-          map={map}
         />
       )}
     </>
