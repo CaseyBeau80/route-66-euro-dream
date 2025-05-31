@@ -22,8 +22,9 @@ const MarkerClickHandler: React.FC<MarkerClickHandlerProps> = ({
       position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
       map: map,
       icon: {
-        ...createVintageRoute66Icon(),
-        opacity: 0 // Make it invisible
+        url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9InRyYW5zcGFyZW50Ii8+PC9zdmc+', // Transparent 1x1 SVG
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20)
       },
       title: `Hidden Gem: ${gem.title}`,
       zIndex: 1001 // Higher than the visual marker

@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { HiddenGem } from './types';
-import { MarkerInteractionHandler } from './components/MarkerInteractionHandler';
-import { MarkerElement } from './components/MarkerElement';
-import { MarkerClickHandler } from './components/MarkerClickHandler';
+import MarkerInteractionHandler from './components/MarkerInteractionHandler';
+import MarkerElement from './components/MarkerElement';
+import MarkerClickHandler from './components/MarkerClickHandler';
 import HoverCardDisplay from './HoverCardDisplay';
 
 interface HiddenGemCustomMarkerProps {
