@@ -16,6 +16,7 @@ export interface ForecastDay {
   };
   description: string;
   icon: string;
+  precipitationChance?: string;
 }
 
 export interface WeatherWithForecast extends WeatherData {
@@ -46,5 +47,6 @@ export interface ForecastResponse {
       description: string;
       icon: string;
     }>;
+    pop?: number; // probability of precipitation (0-1)
   }>;
 }

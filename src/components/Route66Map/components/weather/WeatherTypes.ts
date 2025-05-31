@@ -15,6 +15,7 @@ export interface ForecastDay {
   };
   description: string;
   icon: string;
+  precipitationChance?: string;
 }
 
 export interface WeatherData {

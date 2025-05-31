@@ -38,6 +38,12 @@ export class WeatherDataProcessor {
         const temps = dayData.map(item => item.main.temp);
         const date = new Date(dateKey);
         
+        // Calculate precipitation chance (average of all forecasts for the day)
+        const precipChances = dayData.map(item => (item.pop || 0) * 100);
+        const avgPrecipChance = precipChances.length > 0 
+          ? Math.round(precipChances.reduce((sum, chance) => sum + chance, 0) / precipChances.length)
+          : 0;
+        
         return {
           date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
           temperature: {
@@ -45,7 +51,8 @@ export class WeatherDataProcessor {
             low: Math.round(Math.min(...temps))
           },
           description: dayData[Math.floor(dayData.length / 2)].weather[0].description,
-          icon: dayData[Math.floor(dayData.length / 2)].weather[0].icon
+          icon: dayData[Math.floor(dayData.length / 2)].weather[0].icon,
+          precipitationChance: avgPrecipChance.toString()
         };
       });
   }
