@@ -16,93 +16,20 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
 
     // Filter for major stops only to avoid clutter
     const majorStops = waypoints.filter(waypoint => waypoint.is_major_stop);
-    console.log(`📍 Adding ${majorStops.length} Route 66 shield markers out of ${waypoints.length} total waypoints`);
+    console.log(`📍 Adding ${majorStops.length} major stop markers out of ${waypoints.length} total waypoints`);
     
     majorStops.forEach((waypoint) => {
-      // Extract city name from waypoint name (remove state abbreviation)
-      const cityName = waypoint.name.split(',')[0].trim().toUpperCase();
-      
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: map,
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="100" viewBox="0 0 80 100">
-              <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.3"/>
-                </filter>
-              </defs>
-              
-              <!-- US Route Shield Shape -->
-              <path d="M40 8
-                       L12 8
-                       C8 8 4 12 4 16
-                       L4 40
-                       C4 48 8 56 16 64
-                       C24 70 32 74 40 76
-                       C48 74 56 70 64 64
-                       C72 56 76 48 76 40
-                       L76 16
-                       C76 12 72 8 68 8
-                       L40 8 Z" 
-                    fill="#F8F6F0" 
-                    stroke="#000000" 
-                    stroke-width="3"
-                    filter="url(#shadow)"/>
-              
-              <!-- Inner shield border -->
-              <path d="M40 12
-                       L16 12
-                       C13 12 10 15 10 18
-                       L10 38
-                       C10 45 13 52 19 58
-                       C25 63 32 66 40 68
-                       C48 66 55 63 61 58
-                       C67 52 70 45 70 38
-                       L70 18
-                       C70 15 67 12 64 12
-                       L40 12 Z" 
-                    fill="none" 
-                    stroke="#000000" 
-                    stroke-width="1.5"/>
-              
-              <!-- City name at top -->
-              <text x="40" y="25" text-anchor="middle" 
-                    fill="#000000" 
-                    font-family="Arial, sans-serif" 
-                    font-size="${cityName.length > 7 ? '8' : '10'}" 
-                    font-weight="bold"
-                    letter-spacing="0.5px">${cityName}</text>
-              
-              <!-- Horizontal dividing line -->
-              <line x1="16" y1="32" x2="64" y2="32" 
-                    stroke="#000000" 
-                    stroke-width="2"/>
-              
-              <!-- ROUTE text -->
-              <text x="40" y="45" text-anchor="middle" 
-                    fill="#000000" 
-                    font-family="Arial, sans-serif" 
-                    font-size="9" 
-                    font-weight="bold"
-                    letter-spacing="0.5px">ROUTE</text>
-              
-              <!-- Horizontal dividing line -->
-              <line x1="16" y1="50" x2="64" y2="50" 
-                    stroke="#000000" 
-                    stroke-width="2"/>
-              
-              <!-- Large 66 numbers -->
-              <text x="40" y="68" text-anchor="middle" 
-                    fill="#000000" 
-                    font-family="Arial, sans-serif" 
-                    font-size="18" 
-                    font-weight="900">66</text>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="6" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
             </svg>
           `)}`,
-          scaledSize: new google.maps.Size(80, 100),
-          anchor: new google.maps.Point(40, 100)
+          scaledSize: new google.maps.Size(16, 16),
+          anchor: new google.maps.Point(8, 8)
         },
         title: `${waypoint.name} - ${waypoint.state}`,
         zIndex: 20000
@@ -112,7 +39,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       const infoWindow = new google.maps.InfoWindow({
         content: `
           <div style="padding: 12px; max-width: 280px; font-family: Arial, sans-serif;">
-            <h3 style="margin: 0 0 8px 0; color: #B8860B; font-size: 16px; font-weight: bold;">${waypoint.name}</h3>
+            <h3 style="margin: 0 0 8px 0; color: #DC2626; font-size: 16px; font-weight: bold;">${waypoint.name}</h3>
             <div style="margin-bottom: 8px;">
               <p style="margin: 0; font-size: 13px; color: #666; font-weight: 500;">
                 ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
@@ -149,7 +76,7 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
       markersRef.current.push(marker);
     });
 
-    console.log(`✅ Enhanced Route 66 fully displayed with ${markersRef.current.length} Route 66 shield markers`);
+    console.log(`✅ Enhanced Route 66 fully displayed with ${markersRef.current.length} simple major stop markers`);
 
     return () => {
       markersRef.current.forEach(marker => {
