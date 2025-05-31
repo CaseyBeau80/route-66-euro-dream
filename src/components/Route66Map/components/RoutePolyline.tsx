@@ -10,8 +10,6 @@ interface RoutePolylineProps {
 
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
-  const centerLineRef = useRef<google.maps.Polyline | null>(null);
-  const edgeLineRef = useRef<google.maps.Polyline | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   useEffect(() => {
@@ -20,7 +18,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       return;
     }
 
-    console.log('🛣️ RoutePolyline: Creating route with', waypoints.length, 'waypoints');
+    console.log('🛣️ RoutePolyline: Creating simple route with', waypoints.length, 'waypoints');
 
     // Convert waypoints to Google Maps LatLng objects, sorted by sequence
     const sortedWaypoints = [...waypoints].sort((a, b) => a.sequence_order - b.sequence_order);
@@ -35,69 +33,16 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       lastPoint: routePath[routePath.length - 1]
     });
 
-    // Create asphalt texture
-    const createAsphaltTexture = () => {
-      return {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 3,
-        fillColor: '#2C2C2C',
-        fillOpacity: 0.7,
-        strokeColor: '#1A1A1A',
-        strokeWeight: 1,
-        strokeOpacity: 0.5
-      };
-    };
-
-    // Create weathered road base (wider, darker)
-    const roadBase = new google.maps.Polyline({
-      path: routePath,
-      geodesic: true,
-      strokeColor: '#1A1A1A',
-      strokeOpacity: 0.4,
-      strokeWeight: 10,
-      zIndex: 9998,
-      clickable: false,
-      visible: true
-    });
-
-    // Create main asphalt road surface
+    // Create a simple, clean Route 66 polyline
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#2C2C2C',
+      strokeColor: '#D92121', // Classic Route 66 red
       strokeOpacity: 0.9,
-      strokeWeight: 7,
-      zIndex: 9999,
-      clickable: true,
-      visible: true,
-      icons: [{
-        icon: createAsphaltTexture(),
-        offset: '0%',
-        repeat: '25px'
-      }]
-    });
-
-    // Create realistic dashed yellow center line
-    const centerLine = new google.maps.Polyline({
-      path: routePath,
-      geodesic: true,
-      strokeColor: '#FFD700',
-      strokeOpacity: 0,
-      strokeWeight: 0,
+      strokeWeight: 6,
       zIndex: 10000,
-      clickable: false,
-      visible: true,
-      icons: [{
-        icon: {
-          path: 'M 0,-0.5 L 0,0.5',
-          strokeOpacity: 1,
-          strokeColor: '#FFD700',
-          strokeWeight: 3,
-          scale: 4
-        },
-        offset: '0%',
-        repeat: '40px'
-      }]
+      clickable: true,
+      visible: true
     });
 
     // Add click listener for route information
@@ -113,7 +58,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
               <h3 class="font-bold text-red-600 mb-2 text-lg">Historic Route 66</h3>
               <p class="text-sm text-gray-700 mb-1">The Mother Road</p>
               <p class="text-sm text-gray-700 mb-1">Chicago to Santa Monica</p>
-              <p class="text-xs text-gray-500 mb-2">2,448 miles of weathered asphalt</p>
+              <p class="text-xs text-gray-500 mb-2">2,448 miles of American history</p>
               <div class="text-xs text-gray-600">
                 <p><strong>${waypoints.length}</strong> waypoints loaded</p>
                 <p><strong>${waypoints.filter(w => w.is_major_stop).length}</strong> major stops</p>
@@ -129,50 +74,21 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       }
     });
 
-    // Set all polylines on the map in proper order with forced visibility
-    roadBase.setMap(map);
+    // Set polyline on the map
     route66Polyline.setMap(map);
-    centerLine.setMap(map);
-    
     polylineRef.current = route66Polyline;
-    centerLineRef.current = centerLine;
-    edgeLineRef.current = roadBase;
     
-    // Force visibility after a short delay
-    setTimeout(() => {
-      if (roadBase) {
-        roadBase.setVisible(true);
-        console.log('🔧 Forced road base visibility');
-      }
-      if (route66Polyline) {
-        route66Polyline.setVisible(true);
-        console.log('🔧 Forced main route visibility');
-      }
-      if (centerLine) {
-        centerLine.setVisible(true);
-        console.log('🔧 Forced center line visibility');
-      }
-    }, 100);
-    
-    console.log(`✅ Route 66 polyline created and added to map with ${waypoints.length} waypoints`);
+    console.log(`✅ Simple Route 66 polyline created and added to map with ${waypoints.length} waypoints`);
     console.log(`📊 Route data: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
 
     // Fit the map to show the entire route with some padding
     fitMapToRoute(map, routePath);
 
     return () => {
-      console.log('🧹 RoutePolyline: Cleaning up polylines');
+      console.log('🧹 RoutePolyline: Cleaning up polyline');
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
         polylineRef.current = null;
-      }
-      if (centerLineRef.current) {
-        centerLineRef.current.setMap(null);
-        centerLineRef.current = null;
-      }
-      if (edgeLineRef.current) {
-        edgeLineRef.current.setMap(null);
-        edgeLineRef.current = null;
       }
       if (infoWindowRef.current) {
         infoWindowRef.current.close();

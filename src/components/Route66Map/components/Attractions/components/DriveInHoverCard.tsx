@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Attraction } from '../types';
@@ -47,6 +48,9 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
     viewport: { viewportWidth: viewport.width, viewportHeight: viewport.height }
   });
 
+  // Check if attraction has website property (for type safety)
+  const hasWebsite = 'website' in attraction && attraction.website;
+
   return (
     <div
       className="fixed z-[60000] pointer-events-none"
@@ -72,10 +76,10 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
                   {attraction.description}
                 </p>
               )}
-              {attraction.website && (
+              {hasWebsite && (
                 <button
                   className="text-xs text-amber-900 hover:text-yellow-600 font-medium underline pointer-events-auto"
-                  onClick={() => onWebsiteClick?.(attraction.website!)}
+                  onClick={() => onWebsiteClick?.(attraction.website as string)}
                 >
                   Visit Website
                 </button>
