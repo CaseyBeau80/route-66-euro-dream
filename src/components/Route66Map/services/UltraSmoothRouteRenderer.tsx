@@ -36,20 +36,22 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    if (hasRendered.current || RouteGlobalState.isRouteCreated()) {
-      console.log('🎯 UltraSmoothRouteRenderer: Route already exists, skipping');
-      return;
-    }
+    // FORCE recreation to apply new asphalt colors - remove the skip condition temporarily
+    console.log('🎨 FORCING Route 66 recreation with NEW ASPHALT COLORS');
+
+    // Reset flags to force recreation
+    hasRendered.current = false;
+    RouteGlobalState.setRouteCreated(false);
 
     // Increment render attempts
     renderAttempts.current++;
     
-    if (renderAttempts.current > 3) {
+    if (renderAttempts.current > 5) {
       console.warn('⚠️ UltraSmoothRouteRenderer: Too many render attempts, stopping');
       return;
     }
 
-    console.log(`🚀 UltraSmoothRouteRenderer: Creating Route 66 (attempt ${renderAttempts.current})`);
+    console.log(`🚀 UltraSmoothRouteRenderer: Creating ASPHALT Route 66 (attempt ${renderAttempts.current})`);
     
     try {
       // Initialize managers
@@ -58,39 +60,39 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       const cleanupManager = new RouteCleanupManager(map, markersManager, polylineManager);
       
       // Step 1: Clean up any existing routes
-      console.log('🧹 Cleaning up existing routes...');
+      console.log('🧹 FORCING cleanup of existing routes for asphalt color update...');
       cleanupManager.performNuclearCleanup();
       
       // Step 2: Filter ONLY major stops (Route 66 city icons) - this is critical
       const majorStops = waypoints.filter(wp => wp.is_major_stop === true);
-      console.log(`🎯 Filtered to ${majorStops.length} major stops with Route 66 city icons:`);
+      console.log(`🎯 Filtered to ${majorStops.length} major stops for ASPHALT route:`);
       majorStops.forEach((stop, index) => {
         console.log(`  ${index + 1}. ${stop.name} (${stop.state}) - Sequence: ${stop.sequence_order}`);
       });
       
       if (majorStops.length < 2) {
-        console.warn('⚠️ Not enough major stops with Route 66 city icons to create road segments');
+        console.warn('⚠️ Not enough major stops to create asphalt road segments');
         return;
       }
 
       // Step 3: Sort major stops by sequence order to ensure proper city-to-city connections
       const sortedMajorStops = majorStops.sort((a, b) => a.sequence_order - b.sequence_order);
-      console.log(`🔄 Sorted major stops by sequence order for proper city-to-city connections`);
+      console.log(`🔄 Sorted major stops by sequence order for ASPHALT city-to-city connections`);
 
-      // Step 4: Create polylines ONLY between consecutive major stops (city-to-city)
-      console.log(`🛣️ Creating ${sortedMajorStops.length - 1} city-to-city road segments...`);
+      // Step 4: Create NEW ASPHALT polylines between consecutive major stops
+      console.log(`🛣️ Creating ${sortedMajorStops.length - 1} ASPHALT city-to-city road segments...`);
       
       // Add a small delay to ensure map is fully ready
       setTimeout(() => {
         try {
           polylineManager.createPolylines([], sortedMajorStops);
-          console.log('✅ Route polylines created successfully');
+          console.log('✅ ASPHALT Route polylines created successfully');
         } catch (polylineError) {
-          console.error('❌ Error creating polylines:', polylineError);
+          console.error('❌ Error creating asphalt polylines:', polylineError);
           
-          // Fallback: Create simple straight-line route
-          console.log('🔄 Attempting fallback route creation...');
-          createFallbackRoute(map, sortedMajorStops);
+          // Fallback: Create simple straight-line route with asphalt colors
+          console.log('🔄 Attempting asphalt fallback route creation...');
+          createAsphaltFallbackRoute(map, sortedMajorStops);
         }
       }, 500);
 
@@ -109,7 +111,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       RouteGlobalState.setRouteCreated(true);
       hasRendered.current = true;
 
-      console.log(`✅ Route 66 spine created with ${sortedMajorStops.length - 1} city-to-city segments between ${sortedMajorStops.length} major stops!`);
+      console.log(`✅ ASPHALT Route 66 spine created with ${sortedMajorStops.length - 1} city-to-city segments!`);
 
       // Step 7: Fit map to bounds of major stops only
       setTimeout(() => {
@@ -130,9 +132,9 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     };
   }, [map, isMapReady, waypoints, isLoading, error]);
 
-  // Fallback route creation function
-  const createFallbackRoute = (map: google.maps.Map, majorStops: any[]) => {
-    console.log('🔄 Creating fallback straight-line route');
+  // Fallback route creation function with asphalt colors
+  const createAsphaltFallbackRoute = (map: google.maps.Map, majorStops: any[]) => {
+    console.log('🔄 Creating ASPHALT fallback straight-line route');
     
     const routePath = majorStops.map(stop => ({
       lat: stop.latitude,
@@ -142,15 +144,15 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     const fallbackPolyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#D92121', // Route 66 red
-      strokeOpacity: 1.0,
-      strokeWeight: 6,
+      strokeColor: '#2C2C2C', // Dark charcoal/asphalt color
+      strokeOpacity: 0.9,
+      strokeWeight: 8,
       zIndex: 10000,
       clickable: false,
       map: map
     });
 
-    console.log('✅ Fallback route created');
+    console.log('✅ ASPHALT Fallback route created');
     
     // Store in global state for cleanup
     RouteGlobalState.addPolylineSegment(fallbackPolyline);

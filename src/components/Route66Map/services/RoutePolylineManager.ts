@@ -93,6 +93,13 @@ export class RoutePolylineManager {
   }
 
   createPolylines(smoothRoutePath: google.maps.LatLngLiteral[], majorStopsOnly: Route66Waypoint[]): void {
+    // FORCE cleanup of existing polylines first
+    console.log('🧹 FORCING cleanup of existing polylines before creating new asphalt-colored route');
+    this.cleanupPolylines();
+    
+    // Reset global state to allow recreation
+    RouteGlobalState.setRouteCreated(false);
+    
     if (majorStopsOnly.length === 0) {
       console.error('❌ Cannot create polylines with empty major stops array');
       return;
@@ -106,7 +113,7 @@ export class RoutePolylineManager {
       return;
     }
 
-    console.log('🛣️ Creating VISIBLE Route 66 road path between major stops');
+    console.log('🛣️ Creating NEW ASPHALT-COLORED Route 66 road path between major stops');
     console.log(`🎯 Input validation: ${majorStopsOnly.length} major stops confirmed`);
 
     if (majorStopsOnly.length < 2) {
@@ -117,7 +124,7 @@ export class RoutePolylineManager {
     // Sort by sequence order to ensure proper city-to-city connections
     const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
     
-    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} VISIBLE road segments:`);
+    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} ASPHALT-COLORED road segments:`);
 
     // Create curved segments between consecutive major stops (city-to-city)
     for (let i = 0; i < sortedMajorStops.length - 1; i++) {
@@ -126,7 +133,7 @@ export class RoutePolylineManager {
       const prevCity = i > 0 ? sortedMajorStops[i - 1] : undefined;
       const nextCity = i < sortedMajorStops.length - 2 ? sortedMajorStops[i + 2] : undefined;
       
-      console.log(`🛣️ Creating VISIBLE segment ${i + 1}: ${startCity.name} → ${endCity.name}`);
+      console.log(`🛣️ Creating ASPHALT segment ${i + 1}: ${startCity.name} → ${endCity.name}`);
       
       // Generate windy, curved path between cities
       const windyPath = this.generateWindyPath(startCity, endCity, prevCity, nextCity);
@@ -170,10 +177,13 @@ export class RoutePolylineManager {
       RouteGlobalState.addPolylineSegment(mainPolyline);
       RouteGlobalState.addPolylineSegment(centerLine);
 
-      console.log(`✅ VISIBLE Route 66 segment created: ${startCity.name} → ${endCity.name} with ${windyPath.length} points`);
+      console.log(`✅ ASPHALT Route 66 segment created: ${startCity.name} → ${endCity.name} with ${windyPath.length} points`);
     }
 
-    console.log(`🛣️ Route 66 road is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
+    // Mark route as created with new colors
+    RouteGlobalState.setRouteCreated(true);
+
+    console.log(`🛣️ ASPHALT Route 66 road is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
   }
 
   fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {
