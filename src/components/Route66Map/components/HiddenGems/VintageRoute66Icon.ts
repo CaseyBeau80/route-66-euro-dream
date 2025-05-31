@@ -1,3 +1,4 @@
+
 export const createVintageRoute66Icon = () => {
   // Larger black and white Route 66 shield icon with authentic US Highway shield shape
   const iconSize = 36; // Increased from 24 to 36
@@ -5,25 +6,27 @@ export const createVintageRoute66Icon = () => {
     <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
       <!-- Authentic US Highway shield shape -->
       <path d="M18,2 
-               L6,2 
-               L6,12 
-               C6,18 8,24 12,28
-               C15,32 17,34 18,36
-               C19,34 21,32 24,28
-               C28,24 30,18 30,12
-               L30,2 
+               L8,2 
+               C6,2 4,4 4,6
+               L4,16 
+               C4,20 6,24 10,27
+               C14,30 16,32 18,34
+               C20,32 22,30 26,27
+               C30,24 32,20 32,16
+               L32,6
+               C32,4 30,2 28,2
                L18,2 Z" 
             fill="#FFFFFF" 
             stroke="#000000" 
             stroke-width="2"/>
       
       <!-- Route 66 text -->
-      <text x="18" y="10" text-anchor="middle" 
+      <text x="18" y="12" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="6" 
+            font-size="5" 
             font-weight="bold">ROUTE</text>
-      <text x="18" y="18" text-anchor="middle" 
+      <text x="18" y="22" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
             font-size="8" 
