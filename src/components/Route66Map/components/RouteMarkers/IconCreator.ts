@@ -1,110 +1,149 @@
-
 export class IconCreator {
   static createDestinationCityIcon(cityName: string) {
-    const iconWidth = 45;  // Slightly larger for better visibility
-    const iconHeight = 45;
+    const iconWidth = 50;  // Slightly wider for the post design
+    const iconHeight = 60; // Taller to accommodate the elevated post
     
-    console.log(`🎨 Creating destination icon for ${cityName}`);
+    console.log(`🎨 Creating elevated road post icon for ${cityName}`);
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
         <defs>
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.3"/>
+          <filter id="postShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.4"/>
           </filter>
           
-          <!-- Asphalt texture gradient -->
-          <linearGradient id="asphaltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#F8F6F0;stop-opacity:1" />
-            <stop offset="15%" style="stop-color:#F5F3ED;stop-opacity:1" />
-            <stop offset="30%" style="stop-color:#F2F0EA;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#EFEDE7;stop-opacity:1" />
-            <stop offset="70%" style="stop-color:#ECEAE4;stop-opacity:1" />
-            <stop offset="85%" style="stop-color:#E9E7E1;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#E6E4DE;stop-opacity:1" />
+          <!-- Wood grain texture for the post -->
+          <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#A0522D;stop-opacity:1" />
+            <stop offset="40%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="60%" style="stop-color:#654321;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
           </linearGradient>
           
-          <!-- Sun-faded worn effect -->
-          <radialGradient id="sunFadeGradient" cx="50%" cy="30%" r="60%">
-            <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.1" />
-            <stop offset="40%" style="stop-color:#F8F6F0;stop-opacity:0.05" />
-            <stop offset="100%" style="stop-color:#E6E4DE;stop-opacity:0" />
+          <!-- Metal bracket gradient -->
+          <linearGradient id="metalBracket" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#808080;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#606060;stop-opacity:1" />
+          </linearGradient>
+          
+          <!-- Vintage Route 66 shield background -->
+          <radialGradient id="vintageBg" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" style="stop-color:#FFF8DC;stop-opacity:1" />
+            <stop offset="60%" style="stop-color:#F5F5DC;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
+          </radialGradient>
+          
+          <!-- Rust/weathering effect -->
+          <radialGradient id="rustEffect" cx="30%" cy="20%" r="40%">
+            <stop offset="0%" style="stop-color:#CD853F;stop-opacity:0.3" />
+            <stop offset="70%" style="stop-color:#A0522D;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#8B4513;stop-opacity:0" />
           </radialGradient>
         </defs>
         
-        <!-- Classic US Route Shield Shape with textured background -->
-        <path d="M22.5 4
-                 L9 4
-                 C6.5 4 4.5 6 4.5 8.5
-                 L4.5 22
-                 C4.5 26.5 6.5 30.5 10 34
-                 C15 37.5 19 39.5 22.5 40.5
-                 C26 39.5 30 37.5 35 34
-                 C38.5 30.5 40.5 26.5 40.5 22
-                 L40.5 8.5
-                 C40.5 6 38.5 4 36 4
-                 L22.5 4 Z" 
-              fill="url(#asphaltGradient)" 
-              stroke="#000000" 
+        <!-- Wooden post (vertical pole) -->
+        <rect x="21" y="25" width="8" height="35" 
+              fill="url(#woodGrain)" 
+              stroke="#654321" 
+              stroke-width="0.5"
+              filter="url(#postShadow)"/>
+        
+        <!-- Wood grain lines for texture -->
+        <line x1="22" y1="28" x2="28" y2="28" stroke="#654321" stroke-width="0.3" opacity="0.6"/>
+        <line x1="22" y1="35" x2="28" y2="35" stroke="#654321" stroke-width="0.3" opacity="0.4"/>
+        <line x1="22" y1="42" x2="28" y2="42" stroke="#654321" stroke-width="0.3" opacity="0.5"/>
+        <line x1="22" y1="49" x2="28" y2="49" stroke="#654321" stroke-width="0.3" opacity="0.6"/>
+        <line x1="22" y1="56" x2="28" y2="56" stroke="#654321" stroke-width="0.3" opacity="0.4"/>
+        
+        <!-- Metal mounting brackets -->
+        <rect x="19" y="22" width="12" height="3" 
+              fill="url(#metalBracket)" 
+              stroke="#606060" 
+              stroke-width="0.5"/>
+        <circle cx="21" cy="23.5" r="0.8" fill="#404040"/>
+        <circle cx="29" cy="23.5" r="0.8" fill="#404040"/>
+        
+        <!-- Route 66 Shield mounted on post -->
+        <path d="M25 4
+                 L12 4
+                 C9 4 6.5 6.5 6.5 9.5
+                 L6.5 16
+                 C6.5 19.5 8.5 22.5 12 24
+                 C17 26 21 27 25 27
+                 C29 27 33 26 38 24
+                 C41.5 22.5 43.5 19.5 43.5 16
+                 L43.5 9.5
+                 C43.5 6.5 41 4 38 4
+                 L25 4 Z" 
+              fill="url(#vintageBg)" 
+              stroke="#8B4513" 
               stroke-width="2"
-              filter="url(#shadow)"/>
+              filter="url(#postShadow)"/>
         
-        <!-- Add sun-faded overlay -->
-        <path d="M22.5 4
-                 L9 4
-                 C6.5 4 4.5 6 4.5 8.5
-                 L4.5 22
-                 C4.5 26.5 6.5 30.5 10 34
-                 C15 37.5 19 39.5 22.5 40.5
-                 C26 39.5 30 37.5 35 34
-                 C38.5 30.5 40.5 26.5 40.5 22
-                 L40.5 8.5
-                 C40.5 6 38.5 4 36 4
-                 L22.5 4 Z" 
-              fill="url(#sunFadeGradient)"/>
+        <!-- Weathering/rust overlay on shield -->
+        <path d="M25 4
+                 L12 4
+                 C9 4 6.5 6.5 6.5 9.5
+                 L6.5 16
+                 C6.5 19.5 8.5 22.5 12 24
+                 C17 26 21 27 25 27
+                 C29 27 33 26 38 24
+                 C41.5 22.5 43.5 19.5 43.5 16
+                 L43.5 9.5
+                 C43.5 6.5 41 4 38 4
+                 L25 4 Z" 
+              fill="url(#rustEffect)"/>
         
-        <!-- Inner shield border for authentic look -->
-        <path d="M22.5 6.5
-                 L11 6.5
-                 C9 6.5 7.5 8 7.5 10
-                 L7.5 20.5
-                 C7.5 24.5 9 28 12 31
-                 C16 33.5 19 35 22.5 35.5
-                 C26 35 29 33.5 33 31
-                 C36 28 37.5 24.5 37.5 20.5
-                 L37.5 10
-                 C37.5 8 36 6.5 34 6.5
-                 L22.5 6.5 Z" 
+        <!-- Inner shield border for depth -->
+        <path d="M25 6.5
+                 L14 6.5
+                 C12 6.5 10.5 8 10.5 10
+                 L10.5 15
+                 C10.5 17.5 12 20 15 21.5
+                 C19 23 22 23.5 25 23.5
+                 C28 23.5 31 23 35 21.5
+                 C38 20 39.5 17.5 39.5 15
+                 L39.5 10
+                 C39.5 8 38 6.5 36 6.5
+                 L25 6.5 Z" 
               fill="none" 
-              stroke="#000000" 
-              stroke-width="1"/>
+              stroke="#654321" 
+              stroke-width="0.8"/>
         
         <!-- City name at top (abbreviated if too long) -->
-        <text x="22.5" y="16" text-anchor="middle" 
-              fill="#000000" 
+        <text x="25" y="13" text-anchor="middle" 
+              fill="#654321" 
               font-family="Arial, sans-serif" 
-              font-size="6" 
+              font-size="5" 
               font-weight="bold"
-              letter-spacing="0.3px">${cityName.length > 8 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
+              letter-spacing="0.2px">${cityName.length > 10 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
         
         <!-- Horizontal dividing line -->
-        <line x1="10" y1="19" x2="35" y2="19" 
-              stroke="#000000" 
-              stroke-width="1.5"/>
+        <line x1="12" y1="15.5" x2="38" y2="15.5" 
+              stroke="#654321" 
+              stroke-width="1"/>
         
         <!-- Large 66 numbers -->
-        <text x="22.5" y="33" text-anchor="middle" 
-              fill="#000000" 
+        <text x="25" y="22" text-anchor="middle" 
+              fill="#654321" 
               font-family="Arial, sans-serif" 
-              font-size="16" 
+              font-size="10" 
               font-weight="900">66</text>
+        
+        <!-- Small weathering spots for authenticity -->
+        <circle cx="35" cy="8" r="0.8" fill="#CD853F" opacity="0.4"/>
+        <circle cx="15" cy="19" r="0.6" fill="#A0522D" opacity="0.3"/>
+        <circle cx="32" cy="21" r="0.5" fill="#8B4513" opacity="0.5"/>
       </svg>
     `;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
       scaledSize: new google.maps.Size(iconWidth, iconHeight),
-      anchor: new google.maps.Point(iconWidth/2, iconHeight)
+      anchor: new google.maps.Point(iconWidth/2, iconHeight - 5) // Anchor near the bottom of the post
     };
   }
 
