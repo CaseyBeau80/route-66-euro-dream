@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
+import TileContainer from './tiles/TileContainer';
+import FunFactsTile from './tiles/FunFactsTile';
+import EventsCalendarTile from './tiles/EventsCalendarTile';
+import WeatherTile from './tiles/WeatherTile';
 
 interface DestinationHoverCardProps {
   destination: Route66Waypoint;
@@ -22,7 +26,7 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   };
 
   return (
-    <Card className="w-64 shadow-lg border-2 border-amber-700 bg-gradient-to-b from-amber-50 to-amber-100">
+    <Card className="w-80 max-w-sm shadow-lg border-2 border-amber-700 bg-gradient-to-b from-amber-50 to-amber-100">
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Header with vintage Route 66 styling */}
@@ -47,6 +51,13 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
               <p>{destination.description}</p>
             </div>
           )}
+
+          {/* Interactive Tiles */}
+          <TileContainer>
+            <FunFactsTile destination={destination} />
+            <EventsCalendarTile destination={destination} />
+            <WeatherTile destination={destination} />
+          </TileContainer>
 
           {/* Highway designation if available */}
           {destination.highway_designation && (
