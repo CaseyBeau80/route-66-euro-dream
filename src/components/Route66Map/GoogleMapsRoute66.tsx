@@ -10,10 +10,9 @@ import MapLoadingIndicator from './components/MapLoading';
 import MapInitializationService from './services/MapInitializationService';
 import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
-import AttractionsContainer from './components/AttractionsContainer';
-import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
 import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
+import EnhancedClusteringContainer from './components/clustering/EnhancedClusteringContainer';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -97,6 +96,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     ? waypoints.filter(waypoint => waypoint.state === selectedState)
     : waypoints;
 
+  // Handle marker clicks
+  const handleWaypointClick = (waypoint: any) => {
+    console.log('🎯 Waypoint clicked:', waypoint.name);
+  };
+
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return <MapLoadError error="Failed to load Google Maps API." />;
@@ -117,7 +121,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with UltraSmoothRouteRenderer', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with Enhanced Clustering', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -170,22 +174,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   }}
                 />
                 
-                {/* Render Destination Cities with hover cards */}
-                <DestinationCitiesContainer
+                {/* Enhanced Clustering System with Destination City Protection */}
+                <EnhancedClusteringContainer
                   map={mapRef.current}
                   waypoints={visibleWaypoints}
-                  onDestinationClick={(destination) => {
-                    console.log('🏛️ Destination city selected:', destination.name);
-                  }}
-                />
-                
-                {/* Render Attractions with improved zoom-based filtering */}
-                <AttractionsContainer
-                  map={mapRef.current}
-                  waypoints={visibleWaypoints}
-                  onAttractionClick={(attraction) => {
-                    console.log('🎯 Attraction selected:', attraction.name);
-                  }}
+                  onMarkerClick={handleWaypointClick}
                 />
               </>
             )}

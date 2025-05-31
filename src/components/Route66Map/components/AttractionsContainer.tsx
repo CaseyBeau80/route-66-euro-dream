@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AttractionsProps, Attraction } from './Attractions/types';
 import AttractionCustomMarker from './Attractions/AttractionCustomMarker';
+import { DestinationCityProtectionService } from '../services/DestinationCityProtectionService';
 
 const AttractionsContainer: React.FC<AttractionsProps> = ({ 
   map, 
@@ -33,29 +34,23 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [map]);
 
-  // TEMPORARILY DISABLE DRIVE-INS to test Route 66 polyline stability
+  // ALL ATTRACTIONS NOW ENABLED - including drive-ins for full Route 66 experience
   const filteredAttractions = useMemo(() => {
-    // Separate drive-ins from other attractions
-    const driveIns = attractions.filter(attraction => 
-      attraction.name.toLowerCase().includes('drive-in')
-    );
-    const otherAttractions = attractions.filter(attraction => 
-      !attraction.name.toLowerCase().includes('drive-in')
-    );
+    // Show all attractions with enhanced clustering protection
+    const allAttractions = attractions;
 
-    console.log(`🎬 TEMPORARILY DISABLED: Found ${driveIns.length} drive-in theaters (not rendering)`);
-    console.log(`🚫 Drive-ins disabled for polyline testing:`, driveIns.map(d => d.name));
+    console.log(`🎯 AttractionsContainer: All attractions enabled (${allAttractions.length} total)`);
+    console.log(`🎬 Drive-ins re-enabled for full Route 66 experience`);
 
-    // ONLY RENDER NON-DRIVE-IN ATTRACTIONS FOR NOW
     if (currentZoom >= 8) {
-      // High zoom: show every other attraction (no drive-ins)
-      return otherAttractions.filter((_, index) => index % 2 === 0);
+      // High zoom: show all attractions
+      return allAttractions;
     } else if (currentZoom >= 6) {
-      // Medium zoom: show every 3rd attraction (no drive-ins)
-      return otherAttractions.filter((_, index) => index % 3 === 0);
+      // Medium zoom: show every other attraction
+      return allAttractions.filter((_, index) => index % 2 === 0);
     } else {
-      // Low zoom: show every 4th attraction (no drive-ins)
-      return otherAttractions.filter((_, index) => index % 4 === 0);
+      // Low zoom: show every 3rd attraction
+      return allAttractions.filter((_, index) => index % 3 === 0);
     }
   }, [attractions, currentZoom]);
 
@@ -85,14 +80,14 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} STABLE Route 66 attractions (zoom: ${currentZoom}, total available: ${attractions.length})`);
-  console.log(`🚫 DRIVE-INS TEMPORARILY DISABLED for polyline testing`);
+  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions (zoom: ${currentZoom}, total available: ${attractions.length})`);
+  console.log(`🛡️ Enhanced clustering protection active for destination cities`);
 
   return (
     <>
       {filteredAttractions.map((attraction) => (
         <AttractionCustomMarker
-          key={`stable-attraction-${attraction.id}`}
+          key={`attraction-${attraction.id}`}
           attraction={attraction}
           map={map}
           onAttractionClick={onAttractionClick}
