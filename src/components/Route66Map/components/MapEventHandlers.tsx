@@ -15,7 +15,7 @@ export const useMapEventHandlers = ({
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
-  const onMapReady = useCallback((readyMap: google.maps.Map) => {
+  const onMapReady = useCallback(() => {
     console.log('🎉 MapEventHandlers: Map is fully ready for enhanced Route 66 rendering');
     setIsMapReady(true);
   }, []);
