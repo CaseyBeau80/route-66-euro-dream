@@ -3,6 +3,7 @@ import React from 'react';
 import { useHiddenGems } from './HiddenGems/useHiddenGems';
 import { useHiddenGemInteraction } from './HiddenGems/hooks/useHiddenGemInteraction';
 import HiddenGemCustomOverlay from './HiddenGems/HiddenGemCustomOverlay';
+import { createVintageRoute66Icon } from './HiddenGems/VintageRoute66Icon';
 import { HiddenGemsProps } from './HiddenGems/types';
 
 const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
@@ -14,7 +15,7 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map with Google Maps overlay system`);
+  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map with custom icons`);
 
   return (
     <>
@@ -47,7 +48,7 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
   );
 };
 
-// Simple marker component for interaction only
+// Marker component that uses the vintage Route 66 icon
 const HiddenGemMarker: React.FC<{
   gem: any;
   onMarkerClick: (gem: any) => void;
@@ -56,18 +57,13 @@ const HiddenGemMarker: React.FC<{
   React.useEffect(() => {
     if (!map) return;
 
-    // Create a simple marker for clicking
+    console.log(`🎯 Creating vintage Route 66 marker for: ${gem.title}`);
+
+    // Create marker with vintage Route 66 icon
     const marker = new google.maps.Marker({
       position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
       map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        fillColor: '#dc2626',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2,
-      },
+      icon: createVintageRoute66Icon(),
       title: `Hidden Gem: ${gem.title}`,
       zIndex: 1000
     });
