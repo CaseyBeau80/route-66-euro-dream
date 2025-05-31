@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Attraction } from '../types';
+import { useAttractionHoverContext } from '../contexts/AttractionHoverContext';
 
 interface DriveInHoverCardProps {
   attraction: Attraction;
@@ -16,6 +17,8 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
   position,
   onWebsiteClick
 }) => {
+  const { keepCardVisible, setActiveAttraction } = useAttractionHoverContext();
+
   // Stabilized position calculations to prevent flickering
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
@@ -62,13 +65,15 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
 
   return (
     <div
-      className="fixed pointer-events-none z-[40000]"
+      className="fixed pointer-events-auto z-[40000]"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
         transform: 'none',
         display: cardPosition.display
       }}
+      onMouseEnter={() => keepCardVisible(attraction.name)}
+      onMouseLeave={() => setActiveAttraction(null)}
     >
       <Card className="w-70 border-3 border-amber-600 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100 shadow-xl relative overflow-hidden transition-all duration-300 ease-out">
         {/* Enhanced vintage film strip border */}

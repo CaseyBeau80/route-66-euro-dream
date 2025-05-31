@@ -6,6 +6,7 @@ interface AttractionHoverContextType {
   hoverPosition: { x: number; y: number };
   setActiveAttraction: (attractionName: string | null, position?: { x: number; y: number }) => void;
   clearAllHovers: () => void;
+  keepCardVisible: (attractionName: string) => void;
 }
 
 const AttractionHoverContext = createContext<AttractionHoverContextType | undefined>(undefined);
@@ -45,7 +46,7 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
       
       console.log(`⏳ Starting stabilized hover for attraction: ${attractionName}`);
       
-      // Add longer delay to prevent flickering (600ms instead of 400ms)
+      // Reduced delay for faster response (300ms instead of 600ms)
       showDelayTimeoutRef.current = setTimeout(() => {
         // Double-check the attraction is still being hovered
         if (lastHoveredRef.current === attractionName) {
@@ -53,17 +54,26 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
           setActiveAttractionState(attractionName);
         }
         showDelayTimeoutRef.current = null;
-      }, 600);
+      }, 300);
     } else {
-      // Handle mouse leave - add longer delay before hiding (500ms instead of 300ms)
+      // Handle mouse leave - much longer delay before hiding (2000ms for reading time)
       lastHoveredRef.current = null;
       hoverTimeoutRef.current = setTimeout(() => {
         console.log(`🎯 Stabilized hover ended for attraction: ${activeAttraction}`);
         setActiveAttractionState(null);
         hoverTimeoutRef.current = null;
-      }, 500);
+      }, 2000);
     }
   }, [activeAttraction]);
+
+  const keepCardVisible = useCallback((attractionName: string) => {
+    // Cancel any pending hide timeout when user hovers over the card
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+      console.log(`🎯 Keeping card visible for attraction: ${attractionName}`);
+    }
+  }, []);
 
   const clearAllHovers = useCallback(() => {
     if (hoverTimeoutRef.current) {
@@ -83,7 +93,8 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
       activeAttraction,
       hoverPosition,
       setActiveAttraction,
-      clearAllHovers
+      clearAllHovers,
+      keepCardVisible
     }}>
       {children}
     </AttractionHoverContext.Provider>
