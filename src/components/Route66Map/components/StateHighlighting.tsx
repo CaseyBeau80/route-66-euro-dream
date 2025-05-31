@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { route66StateIds } from '../config/MapConfig';
 
 interface StateHighlightingProps {
   map: google.maps.Map;
@@ -9,7 +10,7 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
   useEffect(() => {
     if (!map) return;
     
-    // Create a new data layer for Route 66 state highlighting
+    // Create a new data layer for enhanced Route 66 state highlighting
     const highlightLayer = new google.maps.Data();
     
     const loadStateHighlighting = async () => {
@@ -21,30 +22,34 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Add GeoJSON to the data layer
         highlightLayer.addGeoJson(statesData);
         
-        // Route 66 states to highlight
-        const route66States = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Missouri', 'Illinois'];
+        console.log('🗺️ Enhanced Route 66 states for highlighting:', route66StateIds);
         
-        // Set style to highlight only Route 66 states with enhanced orange styling
+        // Set enhanced styling for Route 66 states including Arkansas
         highlightLayer.setStyle((feature) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
           
-          // Check if this is a Route 66 state
-          const isRoute66State = route66States.includes(stateName);
+          // Check if this is a Route 66 state (including Arkansas)
+          const isRoute66State = route66StateIds.includes(stateName);
           
           if (isRoute66State) {
             return {
-              fillColor: '#ea580c', // Enhanced orange color (orange-600)
-              fillOpacity: 0.08, // Slightly increased opacity for better visibility
-              strokeColor: '#c2410c', // Darker orange border (orange-700)
-              strokeOpacity: 0.8, // High opacity for clear borders
-              strokeWeight: 2.5, // Increased border weight for better visibility
+              fillColor: '#f97316', // Enhanced orange color (orange-500)
+              fillOpacity: 0.12, // Increased opacity for better visibility
+              strokeColor: '#ea580c', // Darker orange border (orange-600)
+              strokeOpacity: 0.9, // High opacity for clear borders
+              strokeWeight: 3, // Increased border weight for prominence
               visible: true
             };
           } else {
-            // Hide non-Route 66 states from this highlighting layer
+            // Subtly style non-Route 66 states
             return {
-              visible: false
+              fillColor: '#e5e7eb', // Light gray
+              fillOpacity: 0.05, // Very subtle
+              strokeColor: '#d1d5db', // Light gray border
+              strokeOpacity: 0.3,
+              strokeWeight: 1,
+              visible: true
             };
           }
         });
@@ -52,9 +57,9 @@ const StateHighlighting = ({ map }: StateHighlightingProps) => {
         // Add the highlighting layer to the map
         highlightLayer.setMap(map);
         
-        console.log('✅ Route 66 state highlighting added with enhanced orange styling');
+        console.log('✅ Enhanced Route 66 state highlighting added with Arkansas included');
       } catch (error) {
-        console.error('Error loading state highlighting data:', error);
+        console.error('❌ Error loading enhanced state highlighting data:', error);
       }
     };
     

@@ -7,90 +7,153 @@ export const mapContainerStyle = {
   borderRadius: '0.75rem',
 };
 
-// Center the map on a point along Route 66 (roughly Oklahoma)
+// Center the map on Route 66 corridor
 export const center = {
-  lat: 39.0,
-  lng: -98.0,
+  lat: 35.5,
+  lng: -97.5,
 };
 
-// Define map bounds to show full USA
+// Define tighter map bounds focused on Route 66 states plus Arkansas
 export const mapBounds = {
-  north: 49.5, // Northern boundary (covering all mainland US)
-  south: 25.0, // Southern boundary (covering southern Texas)
-  east: -66.0, // Eastern boundary (covering Maine)
-  west: -124.5, // Western boundary (covering all of West Coast),
+  north: 42.0, // Northern boundary (southern Illinois/Missouri)
+  south: 25.5, // Southern boundary (southern Texas)
+  east: -87.0, // Eastern boundary (eastern Illinois/Arkansas)
+  west: -125.0, // Western boundary (California coast)
 };
 
-// Map restrictions to keep users within bounds
+// Strict map restrictions to keep users within Route 66 corridor
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: false, // Use less strict bounds to allow slight panning outside USA
+  strictBounds: true, // Use strict bounds to prevent panning outside corridor
 };
 
-// Route 66 states to highlight (using full names now for more reliable matching)
-export const route66StateIds = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Missouri', 'Illinois'];
+// Route 66 states plus Arkansas (enhanced list)
+export const route66StateIds = [
+  'California', 
+  'Arizona', 
+  'New Mexico', 
+  'Texas', 
+  'Oklahoma', 
+  'Arkansas', // Added Arkansas as requested
+  'Missouri', 
+  'Illinois'
+];
 
-// Custom styling to focus on Route 66 and de-emphasize other areas
+// Enhanced custom styling for US focus with Canada/Mexico grayed out
 export const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: false,
+  zoomControl: true,
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Lower minimum zoom to see entire USA
-  maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
-  gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
+  minZoom: 4, // Minimum zoom to see Route 66 corridor
+  maxZoom: 12, // Maximum zoom for detailed exploration
+  gestureHandling: 'greedy',
   styles: [
+    // Gray out Canada and Mexico
     {
-      // Make all states lighter
-      featureType: 'administrative.province',
-      elementType: 'all',
-      stylers: [{ visibility: 'on' }]
+      featureType: 'administrative.country',
+      elementType: 'geometry.fill',
+      stylers: [
+        { visibility: 'on' },
+        { color: '#e5e5e5' }, // Light gray for non-US countries
+        { lightness: 60 }
+      ]
     },
     {
-      // Simplify the map overall
-      featureType: 'all',
-      elementType: 'all',
-      stylers: [{ saturation: -20 }]
+      featureType: 'administrative.country',
+      elementType: 'geometry.stroke',
+      stylers: [
+        { color: '#cccccc' },
+        { weight: 1 }
+      ]
     },
+    // Enhance US styling
     {
-      // Make highways more visible
-      featureType: 'road.highway',
-      elementType: 'geometry',
-      stylers: [{ color: '#f8c967' }, { weight: 1.5 }]
-    },
-    {
-      // Make city labels smaller
-      featureType: 'administrative.locality',
+      featureType: 'administrative.country',
       elementType: 'labels',
       stylers: [{ visibility: 'simplified' }]
     },
+    // Enhanced state boundaries for Route 66 states
     {
-      // Lighten the water
-      featureType: 'water',
+      featureType: 'administrative.province',
+      elementType: 'geometry.stroke',
+      stylers: [
+        { color: '#8b5cf6' }, // Purple borders for states
+        { weight: 2 },
+        { visibility: 'on' }
+      ]
+    },
+    // Highlight highways more prominently
+    {
+      featureType: 'road.highway',
       elementType: 'geometry',
-      stylers: [{ color: '#bfdbfe' }]
+      stylers: [
+        { color: '#f59e0b' }, // Amber highways
+        { weight: 3 },
+        { visibility: 'on' }
+      ]
     },
     {
-      // Hide country labels except USA
-      featureType: 'administrative.country',
+      featureType: 'road.highway',
       elementType: 'labels',
-      stylers: [{ visibility: 'off' }]
+      stylers: [
+        { visibility: 'simplified' },
+        { color: '#1f2937' }
+      ]
+    },
+    // Enhance water features
+    {
+      featureType: 'water',
+      elementType: 'geometry',
+      stylers: [
+        { color: '#3b82f6' }, // Blue water
+        { visibility: 'on' }
+      ]
+    },
+    // Simplify and focus on Route 66 relevant features
+    {
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }] // Hide POI labels for cleaner look
+    },
+    {
+      featureType: 'administrative.locality',
+      elementType: 'labels',
+      stylers: [
+        { visibility: 'simplified' },
+        { color: '#374151' }
+      ]
+    },
+    // Enhance terrain for better depth
+    {
+      featureType: 'landscape',
+      elementType: 'geometry',
+      stylers: [
+        { color: '#f3f4f6' }, // Light background
+        { visibility: 'on' }
+      ]
+    },
+    // Style transit features
+    {
+      featureType: 'transit',
+      elementType: 'all',
+      stylers: [{ visibility: 'off' }] // Hide transit for cleaner Route 66 focus
     }
   ]
 };
 
-// Route 66 polyline options
+// Enhanced Route 66 polyline options
 export const polylineOptions = {
-  strokeColor: '#c2410c',
-  strokeOpacity: 0.8,
-  strokeWeight: 4,
+  strokeColor: '#dc2626', // Bright red for Route 66
+  strokeOpacity: 0.9,
+  strokeWeight: 5, // Thicker line for better visibility
   clickable: false,
   draggable: false,
   editable: false,
   visible: true,
-  zIndex: 1,
+  zIndex: 10, // Higher z-index to ensure visibility
 };
 
 // Note: API key is now managed centrally in the useGoogleMaps hook
