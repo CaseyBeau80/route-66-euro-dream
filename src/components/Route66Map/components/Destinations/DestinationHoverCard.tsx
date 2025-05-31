@@ -35,32 +35,12 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
             <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">{stateName}</p>
           </div>
 
-          {/* Description if available */}
-          {destination.description && (
-            <div className="text-sm text-orange-900 bg-orange-100 p-3 rounded-lg border-2 border-orange-400 shadow-inner">
-              <p className="font-medium leading-relaxed">{destination.description}</p>
-            </div>
-          )}
-
           {/* Interactive Tiles */}
           <TileContainer>
             <FunFactsTile destination={destination} />
             <EventsCalendarTile destination={destination} />
             <WeatherTile destination={destination} />
           </TileContainer>
-
-          {/* Visit City Page Button */}
-          {destination.is_major_stop && (
-            <div className="text-center pt-2">
-              <Button 
-                onClick={handleVisitCityPage}
-                className="bg-red-700 hover:bg-red-800 text-white text-sm px-6 py-3 rounded-full font-black transition-all duration-200 flex items-center gap-2 mx-auto shadow-lg border-2 border-red-900 uppercase tracking-wide transform hover:scale-105"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Visit City Page
-              </Button>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
