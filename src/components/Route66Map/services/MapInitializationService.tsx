@@ -18,16 +18,23 @@ const MapInitializationService: React.FC<MapInitializationServiceProps> = ({
 
     console.log('🚀 MapInitializationService: Starting map readiness check');
     
-    // Check if Google Maps API is fully loaded
+    // Simplified Google Maps API readiness check
     const checkGoogleMapsApiReady = () => {
-      if (!window.google || !window.google.maps || !window.google.maps.marker) {
-        console.log('⏳ Google Maps API not fully loaded yet');
+      if (!window.google || !window.google.maps) {
+        console.log('⏳ Google Maps API base not loaded yet');
         return false;
       }
+      
+      // Check for marker API - but be more flexible about it
+      if (!window.google.maps.marker) {
+        console.log('⏳ Google Maps marker API not loaded yet, but continuing anyway');
+        // Don't fail if marker API isn't loaded - we can work without it
+      }
+      
       return true;
     };
 
-    // Check if map is already ready
+    // Simplified map readiness check
     const checkMapReady = () => {
       try {
         // First check if Google Maps API is available
@@ -35,12 +42,11 @@ const MapInitializationService: React.FC<MapInitializationServiceProps> = ({
           return false;
         }
 
-        // Test if map methods are available and working
-        const zoom = map.getZoom();
+        // Test basic map functionality
         const center = map.getCenter();
         
-        if (zoom !== undefined && center && typeof zoom === 'number') {
-          console.log('✅ Map is ready - zoom and center are available');
+        if (center) {
+          console.log('✅ Map is ready - center is available');
           initializationRef.current = true;
           setIsMapReady(true);
           onMapReady(map);
@@ -56,10 +62,26 @@ const MapInitializationService: React.FC<MapInitializationServiceProps> = ({
     // Try immediate check
     if (checkMapReady()) return;
 
-    // Set up interval to check map readiness
+    // Set up a more aggressive interval to check map readiness
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max
+    
     const readinessInterval = setInterval(() => {
+      attempts++;
+      
       if (checkMapReady()) {
         clearInterval(readinessInterval);
+        return;
+      }
+      
+      // If we've tried too many times, assume the map is ready anyway
+      if (attempts >= maxAttempts) {
+        console.log('⚠️ Map readiness timeout - assuming map is ready');
+        clearInterval(readinessInterval);
+        initializationRef.current = true;
+        setIsMapReady(true);
+        onMapReady(map);
+        return;
       }
     }, 100);
 
@@ -80,16 +102,35 @@ const MapInitializationService: React.FC<MapInitializationServiceProps> = ({
       }
     };
 
-    // Add event listeners
-    const tilesLoadedListener = map.addListener('tilesloaded', onTilesLoaded);
-    const idleListener = map.addListener('idle', onIdle);
+    // Add event listeners with error handling
+    let tilesLoadedListener: google.maps.MapsEventListener | null = null;
+    let idleListener: google.maps.MapsEventListener | null = null;
+    
+    try {
+      tilesLoadedListener = map.addListener('tilesloaded', onTilesLoaded);
+      idleListener = map.addListener('idle', onIdle);
+    } catch (error) {
+      console.log('⚠️ Could not add event listeners:', error);
+    }
 
     // Cleanup
     return () => {
       console.log('🧹 MapInitializationService cleanup');
       clearInterval(readinessInterval);
-      if (tilesLoadedListener) tilesLoadedListener.remove();
-      if (idleListener) idleListener.remove();
+      if (tilesLoadedListener) {
+        try {
+          tilesLoadedListener.remove();
+        } catch (error) {
+          console.log('⚠️ Error removing tiles loaded listener:', error);
+        }
+      }
+      if (idleListener) {
+        try {
+          idleListener.remove();
+        } catch (error) {
+          console.log('⚠️ Error removing idle listener:', error);
+        }
+      }
       initializationRef.current = false;
     };
   }, [map, onMapReady]);
