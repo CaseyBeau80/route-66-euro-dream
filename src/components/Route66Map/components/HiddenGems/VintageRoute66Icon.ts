@@ -19,30 +19,23 @@ export const createVintageRoute66Icon = () => {
             stroke="#000000" 
             stroke-width="2"/>
       
-      <!-- ROUTE text in black -->
-      <text x="18" y="9" text-anchor="middle" 
+      <!-- ROUTE text in black - larger size -->
+      <text x="18" y="11" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="3.8" 
+            font-size="4.5" 
             font-weight="bold">ROUTE</text>
       
-      <!-- Horizontal line below ROUTE -->
-      <line x1="6" y1="11" x2="30" y2="11" 
+      <!-- Horizontal line below ROUTE - adjusted position and length -->
+      <line x1="5" y1="14" x2="31" y2="14" 
             stroke="#000000" 
-            stroke-width="1"/>
+            stroke-width="1.2"/>
       
-      <!-- US text in black -->
-      <text x="18" y="17" text-anchor="middle" 
-            fill="#000000" 
-            font-family="Arial, sans-serif" 
-            font-size="3.2" 
-            font-weight="bold">US</text>
-      
-      <!-- 66 large numbers in black -->
+      <!-- 66 large numbers in black - larger and repositioned -->
       <text x="18" y="28" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="10" 
+            font-size="12" 
             font-weight="bold">66</text>
     </svg>
   `;
