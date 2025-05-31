@@ -1,3 +1,4 @@
+
 import { RouteGlobalState } from './RouteGlobalState';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -106,7 +107,7 @@ export class RoutePolylineManager {
       return;
     }
 
-    console.log('🛣️ Creating windy, nostalgic polylines between Route 66 city icons (major stops)');
+    console.log('🛣️ Creating VISIBLE Route 66 road path between major stops');
     console.log(`🎯 Input validation: ${majorStopsOnly.length} major stops confirmed`);
 
     if (majorStopsOnly.length < 2) {
@@ -117,7 +118,7 @@ export class RoutePolylineManager {
     // Sort by sequence order to ensure proper city-to-city connections
     const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
     
-    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} windy city-to-city road segments:`);
+    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} VISIBLE road segments:`);
 
     // Create curved segments between consecutive major stops (city-to-city)
     for (let i = 0; i < sortedMajorStops.length - 1; i++) {
@@ -126,31 +127,33 @@ export class RoutePolylineManager {
       const prevCity = i > 0 ? sortedMajorStops[i - 1] : undefined;
       const nextCity = i < sortedMajorStops.length - 2 ? sortedMajorStops[i + 2] : undefined;
       
-      console.log(`🛣️ Segment ${i + 1}: ${startCity.name} (${startCity.state}) → ${endCity.name} (${endCity.state})`);
+      console.log(`🛣️ Creating VISIBLE segment ${i + 1}: ${startCity.name} → ${endCity.name}`);
       
       // Generate windy, curved path between cities
       const windyPath = this.generateWindyPath(startCity, endCity, prevCity, nextCity);
 
-      // Create main route polyline for this windy city-to-city segment
+      // Create main route polyline with HIGH VISIBILITY
       const mainPolyline = new google.maps.Polyline({
         path: windyPath,
-        geodesic: false, // Turn off geodesic for more pronounced curves
-        strokeColor: '#2C2C2C',
-        strokeOpacity: 0.9,
-        strokeWeight: 10,
-        zIndex: 1000,
-        clickable: false
+        geodesic: false,
+        strokeColor: '#D92121', // Route 66 red - highly visible
+        strokeOpacity: 1.0, // Full opacity
+        strokeWeight: 8, // Thick line
+        zIndex: 10000, // High z-index to be on top
+        clickable: false,
+        map: this.map // Add directly to map
       });
 
       // Create center dashed line for authentic Route 66 look
       const centerLine = new google.maps.Polyline({
         path: windyPath,
         geodesic: false,
-        strokeColor: '#FFD700',
+        strokeColor: '#FFD700', // Gold center line
         strokeOpacity: 0,
         strokeWeight: 0,
-        zIndex: 1001,
+        zIndex: 10001,
         clickable: false,
+        map: this.map, // Add directly to map
         icons: [{
           icon: {
             path: 'M 0,-2 0,2',
@@ -164,18 +167,14 @@ export class RoutePolylineManager {
         }]
       });
 
-      // Add polylines to map
-      mainPolyline.setMap(this.map);
-      centerLine.setMap(this.map);
-
-      // Store in global state
+      // Store in global state for cleanup
       RouteGlobalState.addPolylineSegment(mainPolyline);
       RouteGlobalState.addPolylineSegment(centerLine);
 
-      console.log(`✅ Created windy city-to-city segment ${i + 1}: ${startCity.name} → ${endCity.name} with ${windyPath.length} curve points`);
+      console.log(`✅ VISIBLE Route 66 segment created: ${startCity.name} → ${endCity.name} with ${windyPath.length} points`);
     }
 
-    console.log(`🛣️ Nostalgic windy Route 66 spine completed: ${sortedMajorStops.length - 1} curved city-to-city segments between ${sortedMajorStops.length} major stops only`);
+    console.log(`🛣️ Route 66 road is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
   }
 
   fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {

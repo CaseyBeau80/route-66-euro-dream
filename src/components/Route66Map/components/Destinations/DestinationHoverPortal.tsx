@@ -19,14 +19,22 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   onMouseEnter,
   onMouseLeave
 }) => {
-  if (!isVisible) return null;
+  if (!isVisible) {
+    console.log(`🚫 Hover card not visible for ${destination.name}`);
+    return null;
+  }
+
+  console.log(`🏛️ SHOWING hover card for ${destination.name} at position:`, position);
 
   const portalRoot = document.getElementById('map-portal-root') || document.body;
 
+  // Better positioning to ensure card is always visible
   const adjustedPosition = {
-    x: Math.min(position.x, window.innerWidth - 280), // Card width + padding
-    y: Math.max(20, position.y - 150) // Adjust to show above cursor
+    x: Math.min(Math.max(10, position.x), window.innerWidth - 330), // Card width + margin
+    y: Math.max(10, Math.min(position.y - 160, window.innerHeight - 200)) // Adjust based on card height
   };
+
+  console.log(`📍 Adjusted position for ${destination.name}:`, adjustedPosition);
 
   return createPortal(
     <div
@@ -34,10 +42,18 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
       style={{
         left: `${adjustedPosition.x}px`,
         top: `${adjustedPosition.y}px`,
-        opacity: isVisible ? 1 : 0
+        opacity: isVisible ? 1 : 0,
+        transform: 'translateZ(0)', // Force hardware acceleration
+        willChange: 'opacity, transform'
       }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={() => {
+        console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
+        onMouseEnter?.();
+      }}
+      onMouseLeave={() => {
+        console.log(`🏛️ Mouse left hover card for ${destination.name}`);
+        onMouseLeave?.();
+      }}
     >
       <DestinationHoverCard destination={destination} />
     </div>,
