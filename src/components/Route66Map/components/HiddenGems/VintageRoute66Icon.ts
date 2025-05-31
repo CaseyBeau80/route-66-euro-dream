@@ -1,35 +1,43 @@
-
 export const createVintageRoute66Icon = () => {
-  // Larger black and white Route 66 shield icon with authentic US Highway shield shape
+  // Authentic Route 66 shield icon matching the classic US Highway shield design
   const iconSize = 36; // Increased from 24 to 36
   const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-      <!-- Authentic US Highway shield shape -->
-      <path d="M18,2 
-               L8,2 
-               C6,2 4,4 4,6
-               L4,16 
-               C4,20 6,24 10,27
-               C14,30 16,32 18,34
-               C20,32 22,30 26,27
-               C30,24 32,20 32,16
-               L32,6
-               C32,4 30,2 28,2
-               L18,2 Z" 
+      <!-- Authentic US Highway shield shape with proper curvature -->
+      <path d="M18,3 
+               L28,3 
+               C30,3 32,5 32,7
+               L32,15 
+               C32,19 30,23 27,26
+               C24,29 21,31 18,33
+               C15,31 12,29 9,26
+               C6,23 4,19 4,15
+               L4,7
+               C4,5 6,3 8,3
+               L18,3 Z" 
             fill="#FFFFFF" 
             stroke="#000000" 
-            stroke-width="2"/>
+            stroke-width="1.5"/>
       
-      <!-- Route 66 text -->
+      <!-- ROUTE text (no line below) -->
       <text x="18" y="12" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="5" 
+            font-size="4.5" 
             font-weight="bold">ROUTE</text>
-      <text x="18" y="22" text-anchor="middle" 
+      
+      <!-- US text -->
+      <text x="18" y="18" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="8" 
+            font-size="3.5" 
+            font-weight="bold">US</text>
+      
+      <!-- 66 large numbers -->
+      <text x="18" y="28" text-anchor="middle" 
+            fill="#000000" 
+            font-family="Arial, sans-serif" 
+            font-size="9" 
             font-weight="bold">66</text>
     </svg>
   `;
