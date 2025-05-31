@@ -28,27 +28,38 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   } = useDestinationHover();
 
   useEffect(() => {
-    // Create the marker
+    // Check if Google Maps API is available before proceeding
+    if (!window.google?.maps || !map || !destination) {
+      console.log('⚠️ Google Maps API, map, or destination not available yet');
+      return;
+    }
+
+    // Create the marker with proper error handling
     const marker = DestinationMarkerCreator.createMarker(destination, map);
     
     if (!marker) {
+      console.warn(`⚠️ Failed to create marker for ${destination.name}`);
       return;
     }
 
     markerRef.current = marker;
 
-    // Attach event listeners
-    DestinationMarkerEvents.attachEventListeners(
-      marker,
-      destination,
-      map,
-      handleMouseEnter,
-      handleMouseLeave,
-      updatePosition,
-      onDestinationClick
-    );
+    // Attach event listeners with proper error handling
+    try {
+      DestinationMarkerEvents.attachEventListeners(
+        marker,
+        destination,
+        map,
+        handleMouseEnter,
+        handleMouseLeave,
+        updatePosition,
+        onDestinationClick
+      );
 
-    console.log(`✅ Wooden post marker created successfully for ${destination.name}`);
+      console.log(`✅ Wooden post marker created successfully for ${destination.name}`);
+    } catch (eventError) {
+      console.error(`❌ Error attaching events for ${destination.name}:`, eventError);
+    }
 
     return () => {
       DestinationMarkerCreator.cleanupMarker(markerRef.current, destination.name);

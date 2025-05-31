@@ -34,16 +34,24 @@ export class DestinationMarkerEvents {
       onDestinationClick(destination);
     };
 
-    // Add listeners based on marker type
-    if (marker instanceof google.maps.marker.AdvancedMarkerElement) {
+    // Check if Google Maps API is available and marker type safely
+    const isAdvancedMarker = window.google?.maps?.marker?.AdvancedMarkerElement && 
+                            marker instanceof window.google.maps.marker.AdvancedMarkerElement;
+
+    // Add listeners based on marker type with safety checks
+    if (isAdvancedMarker) {
       const element = marker.content as HTMLElement;
-      element.addEventListener('mouseenter', handleMarkerMouseEnter);
-      element.addEventListener('mouseleave', handleMarkerMouseLeave);
-      element.addEventListener('click', handleMarkerClick);
-    } else {
+      if (element) {
+        element.addEventListener('mouseenter', handleMarkerMouseEnter);
+        element.addEventListener('mouseleave', handleMarkerMouseLeave);
+        element.addEventListener('click', handleMarkerClick);
+      }
+    } else if (window.google?.maps?.Marker && marker instanceof window.google.maps.Marker) {
       marker.addListener('mouseover', handleMarkerMouseEnter);
       marker.addListener('mouseout', handleMarkerMouseLeave);
       marker.addListener('click', handleMarkerClick);
+    } else {
+      console.warn('⚠️ Unknown marker type or Google Maps API not fully loaded:', marker);
     }
   }
 }
