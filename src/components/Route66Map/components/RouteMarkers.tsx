@@ -12,10 +12,9 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
   const infoWindowsRef = useRef<WeakMap<google.maps.Marker, google.maps.InfoWindow>>(new WeakMap());
 
   const createRoute66CityIcon = (cityName: string) => {
-    // Adjust icon size based on city name length
-    const nameLength = cityName.length;
-    const iconWidth = Math.max(50, nameLength * 4 + 20);
-    const iconHeight = 60;
+    // Use consistent sizing like the original Route 66 icons
+    const iconWidth = 40;
+    const iconHeight = 40;
     
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -45,71 +44,70 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
           </defs>
           
           <!-- Classic US Route Shield Shape with textured background -->
-          <path d="M${iconWidth/2} 4
+          <path d="M20 4
                    L8 4
                    C6 4 4 6 4 8
-                   L4 ${iconHeight/2}
-                   C4 ${iconHeight/2 + 4} 6 ${iconHeight/2 + 8} 10 ${iconHeight/2 + 12}
-                   C14 ${iconHeight/2 + 15} 17 ${iconHeight/2 + 17} ${iconWidth/2} ${iconHeight - 2}
-                   C${iconWidth/2 + 3} ${iconHeight/2 + 17} ${iconWidth/2 + 6} ${iconHeight/2 + 15} ${iconWidth - 10} ${iconHeight/2 + 12}
-                   C${iconWidth - 6} ${iconHeight/2 + 8} ${iconWidth - 4} ${iconHeight/2 + 4} ${iconWidth - 4} ${iconHeight/2}
-                   L${iconWidth - 4} 8
-                   C${iconWidth - 4} 6 ${iconWidth - 6} 4 ${iconWidth - 8} 4
-                   L${iconWidth/2} 4 Z" 
+                   L4 20
+                   C4 24 6 28 10 32
+                   C14 35 17 37 20 38
+                   C23 37 26 35 30 32
+                   C34 28 36 24 36 20
+                   L36 8
+                   C36 6 34 4 32 4
+                   L20 4 Z" 
                 fill="url(#asphaltGradient)" 
                 stroke="#000000" 
                 stroke-width="2"
                 filter="url(#shadow)"/>
           
           <!-- Add sun-faded overlay -->
-          <path d="M${iconWidth/2} 4
+          <path d="M20 4
                    L8 4
                    C6 4 4 6 4 8
-                   L4 ${iconHeight/2}
-                   C4 ${iconHeight/2 + 4} 6 ${iconHeight/2 + 8} 10 ${iconHeight/2 + 12}
-                   C14 ${iconHeight/2 + 15} 17 ${iconHeight/2 + 17} ${iconWidth/2} ${iconHeight - 2}
-                   C${iconWidth/2 + 3} ${iconHeight/2 + 17} ${iconWidth/2 + 6} ${iconHeight/2 + 15} ${iconWidth - 10} ${iconHeight/2 + 12}
-                   C${iconWidth - 6} ${iconHeight/2 + 8} ${iconWidth - 4} ${iconHeight/2 + 4} ${iconWidth - 4} ${iconHeight/2}
-                   L${iconWidth - 4} 8
-                   C${iconWidth - 4} 6 ${iconWidth - 6} 4 ${iconWidth - 8} 4
-                   L${iconWidth/2} 4 Z" 
+                   L4 20
+                   C4 24 6 28 10 32
+                   C14 35 17 37 20 38
+                   C23 37 26 35 30 32
+                   C34 28 36 24 36 20
+                   L36 8
+                   C36 6 34 4 32 4
+                   L20 4 Z" 
                 fill="url(#sunFadeGradient)"/>
           
           <!-- Inner shield border for authentic look -->
-          <path d="M${iconWidth/2} 6
+          <path d="M20 6
                    L10 6
                    C8.5 6 7 7.5 7 9
-                   L7 ${iconHeight/2 - 1}
-                   C7 ${iconHeight/2 + 2.5} 8.5 ${iconHeight/2 + 6} 11.5 ${iconHeight/2 + 9}
-                   C14.5 ${iconHeight/2 + 11.5} 17 ${iconHeight/2 + 13} ${iconWidth/2} ${iconHeight/2 + 13.5}
-                   C${iconWidth/2 + 3} ${iconHeight/2 + 13} ${iconWidth/2 + 5.5} ${iconHeight/2 + 11.5} ${iconWidth - 11.5} ${iconHeight/2 + 9}
-                   C${iconWidth - 8.5} ${iconHeight/2 + 6} ${iconWidth - 7} ${iconHeight/2 + 2.5} ${iconWidth - 7} ${iconHeight/2 - 1}
-                   L${iconWidth - 7} 9
-                   C${iconWidth - 7} 7.5 ${iconWidth - 8.5} 6 ${iconWidth - 10} 6
-                   L${iconWidth/2} 6 Z" 
+                   L7 19
+                   C7 22.5 8.5 26 11.5 29
+                   C14.5 31.5 17 33 20 33.5
+                   C23 33 25.5 31.5 28.5 29
+                   C31.5 26 33 22.5 33 19
+                   L33 9
+                   C33 7.5 31.5 6 30 6
+                   L20 6 Z" 
                 fill="none" 
                 stroke="#000000" 
                 stroke-width="1"/>
           
-          <!-- City name at top -->
-          <text x="${iconWidth/2}" y="18" text-anchor="middle" 
+          <!-- City name at top (abbreviated if too long) -->
+          <text x="20" y="15" text-anchor="middle" 
                 fill="#000000" 
                 font-family="Arial, sans-serif" 
-                font-size="${Math.min(8, Math.max(6, 36/nameLength))}" 
+                font-size="6" 
                 font-weight="bold"
-                letter-spacing="0.3px">${cityName.toUpperCase()}</text>
+                letter-spacing="0.3px">${cityName.length > 8 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
           
           <!-- Horizontal dividing line -->
-          <line x1="${Math.max(9, iconWidth * 0.15)}" y1="${iconHeight/2 - 8}" 
-                x2="${Math.min(iconWidth - 9, iconWidth * 0.85)}" y2="${iconHeight/2 - 8}" 
+          <line x1="9" y1="18" x2="31" y2="18" 
                 stroke="#000000" 
                 stroke-width="1.5"/>
           
           <!-- Large 66 numbers -->
-          <text x="${iconWidth/2}" y="${iconHeight/2 + 8}" text-anchor="middle" 
+          <text x="20" y="31" text-anchor="middle" 
                 fill="#000000" 
                 font-family="Arial, sans-serif" 
-                font-size="14" 
+                font-size="15" 
                 font-weight="900">66</text>
         </svg>
       `)}`,
