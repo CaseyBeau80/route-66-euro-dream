@@ -1,7 +1,7 @@
-
 import React, { useEffect, useRef } from 'react';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 import { RouteInterpolationService } from './RouteInterpolationService';
+import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface UltraSmoothRouteRendererProps {
   map: google.maps.Map;
@@ -46,7 +46,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
   };
 
   // Create route markers for major stops
-  const createRouteMarkers = (waypoints: typeof waypoints) => {
+  const createRouteMarkers = (waypoints: Route66Waypoint[]) => {
     const majorStops = waypoints.filter(wp => wp.is_major_stop);
     
     majorStops.forEach((waypoint, index) => {
