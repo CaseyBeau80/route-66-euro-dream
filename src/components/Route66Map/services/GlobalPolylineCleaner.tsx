@@ -25,8 +25,10 @@ export class GlobalPolylineCleaner {
 
     try {
       // Remove all registered polylines
-      this.activePolylines.forEach((polyline, index) => {
-        console.log(`🧹 Removing registered polyline ${index + 1}`);
+      let index = 0;
+      this.activePolylines.forEach((polyline) => {
+        index++;
+        console.log(`🧹 Removing registered polyline ${index}`);
         polyline.setMap(null);
       });
       this.activePolylines.clear();
