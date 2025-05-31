@@ -5,6 +5,7 @@ import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import StateHighlighting from './StateHighlighting';
+import { mapBounds, mapRestrictions } from '../config/MapConfig';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -36,7 +37,7 @@ const MapCore: React.FC<MapCoreProps> = ({
       return;
     }
 
-    console.log('🗺️ MapCore: Initializing Google Map');
+    console.log('🗺️ MapCore: Initializing Google Map with viewport lock');
 
     try {
       const map = new google.maps.Map(containerRef.current, {
@@ -51,6 +52,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
+        // Apply strict boundary restrictions for viewport lock
+        restriction: mapRestrictions,
+        minZoom: 4, // Minimum zoom to see the Route 66 corridor
+        maxZoom: 8, // Reduced maximum zoom to maintain focus on corridor
         styles: [
           {
             featureType: 'poi',
@@ -76,12 +81,20 @@ const MapCore: React.FC<MapCoreProps> = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      console.log('✅ Google Map initialized successfully');
+      console.log('✅ Google Map initialized with viewport lock - bounds:', mapBounds);
       onMapLoad(map);
       onMapReady();
 
       // Add click listener
       map.addListener('click', onMapClick);
+
+      // Log boundary restriction status
+      console.log('🔒 Viewport lock enabled with strict bounds:', {
+        bounds: mapBounds,
+        strictBounds: mapRestrictions.strictBounds,
+        minZoom: 4,
+        maxZoom: 8
+      });
 
     } catch (error) {
       console.error('❌ Error initializing Google Map:', error);
@@ -92,7 +105,8 @@ const MapCore: React.FC<MapCoreProps> = ({
     mapInitialized,
     isMapReady,
     hasMap: !!mapRef.current,
-    visibleWaypoints: visibleWaypoints.length
+    visibleWaypoints: visibleWaypoints.length,
+    viewportLockEnabled: true
   });
 
   return (

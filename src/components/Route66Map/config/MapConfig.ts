@@ -14,18 +14,18 @@ export const center = {
   lng: -96.0, // Adjusted to center between Chicago and LA
 };
 
-// Define map bounds to show full USA with enhanced western coverage
+// Define tighter map bounds to restrict view to Route 66 corridor only
 export const mapBounds = {
-  north: 49.5, // Northern boundary (covering all mainland US)
-  south: 25.0, // Southern boundary (covering southern Texas)
-  east: -66.0, // Eastern boundary (covering Maine)
-  west: -124.5, // Western boundary (covering all of West Coast),
+  north: 42.0, // Northern boundary (just above Chicago/Illinois)
+  south: 32.0, // Southern boundary (covering southern Texas)
+  east: -87.0, // Eastern boundary (covering Chicago area)
+  west: -118.5, // Western boundary (covering Los Angeles area)
 };
 
-// Map restrictions to keep users within bounds
+// Map restrictions with strict bounds to create viewport lock
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: false, // Use less strict bounds to allow slight panning outside USA
+  strictBounds: true, // Enable strict bounds to prevent panning outside Route 66 corridor
 };
 
 // Route 66 states to highlight (using full names now for more reliable matching)
@@ -39,8 +39,8 @@ export const mapOptions = {
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Set to match the desired zoom extent
-  maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
+  minZoom: 4, // Minimum zoom to see the Route 66 corridor
+  maxZoom: 8, // Reduced maximum zoom to maintain focus on corridor
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
