@@ -1,38 +1,39 @@
+
 export const createVintageRoute66Icon = () => {
   // Authentic Route 66 shield icon matching the classic US Highway shield design
   const iconSize = 36; // Increased from 24 to 36
   const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-      <!-- Authentic US Highway shield shape - proper shield profile -->
-      <path d="M18,2 
-               L30,2 
-               C32,2 34,4 34,6
-               L34,12
-               C34,16 32,20 29,24
-               C26,28 22,31 18,34
-               C14,31 10,28 7,24
-               C4,20 2,16 2,12
-               L2,6
-               C2,4 4,2 6,2
-               L18,2 Z" 
+      <!-- Authentic US Highway shield shape - proper shield profile with reduced top margin -->
+      <path d="M18,1 
+               L30,1 
+               C32,1 34,3 34,5
+               L34,11
+               C34,15 32,19 29,23
+               C26,27 22,30 18,33
+               C14,30 10,27 7,23
+               C4,19 2,15 2,11
+               L2,5
+               C2,3 4,1 6,1
+               L18,1 Z" 
             fill="#FFFFFF" 
             stroke="#000000" 
             stroke-width="2"/>
       
       <!-- ROUTE text in black - larger size -->
-      <text x="18" y="11" text-anchor="middle" 
+      <text x="18" y="9" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
             font-size="4.5" 
             font-weight="bold">ROUTE</text>
       
       <!-- Horizontal line below ROUTE - adjusted position and length -->
-      <line x1="5" y1="14" x2="31" y2="14" 
+      <line x1="5" y1="12" x2="31" y2="12" 
             stroke="#000000" 
             stroke-width="1.2"/>
       
-      <!-- 66 large numbers in black - larger and repositioned -->
-      <text x="18" y="28" text-anchor="middle" 
+      <!-- 66 large numbers in black - moved up significantly -->
+      <text x="18" y="24" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
             font-size="12" 
