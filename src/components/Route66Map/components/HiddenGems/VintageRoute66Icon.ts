@@ -1,4 +1,3 @@
-
 export const createVintageRoute66Icon = () => {
   // Authentic Route 66 shield icon matching the classic US Highway shield design
   const iconSize = 36; // Increased from 24 to 36
@@ -20,18 +19,17 @@ export const createVintageRoute66Icon = () => {
             stroke="#000000" 
             stroke-width="2"/>
       
-      <!-- Red banner for ROUTE text -->
-      <rect x="3" y="3" width="30" height="8" 
-            fill="#CC0000" 
-            stroke="#000000" 
-            stroke-width="0.5"/>
-      
-      <!-- ROUTE text in white on red banner -->
-      <text x="18" y="8.5" text-anchor="middle" 
-            fill="#FFFFFF" 
+      <!-- ROUTE text in black -->
+      <text x="18" y="9" text-anchor="middle" 
+            fill="#000000" 
             font-family="Arial, sans-serif" 
             font-size="3.8" 
             font-weight="bold">ROUTE</text>
+      
+      <!-- Horizontal line below ROUTE -->
+      <line x1="6" y1="11" x2="30" y2="11" 
+            stroke="#000000" 
+            stroke-width="1"/>
       
       <!-- US text in black -->
       <text x="18" y="17" text-anchor="middle" 
