@@ -30,6 +30,8 @@ const EnhancedClusteringContainer: React.FC<EnhancedClusteringContainerProps> = 
       const bounds = map.getBounds();
       setCurrentZoom(zoom);
       setMapBounds(bounds || null);
+      
+      console.log(`🔍 Map state updated - Zoom: ${zoom.toFixed(1)}, Bounds: ${bounds ? 'available' : 'unavailable'}`);
     };
 
     // Initial state
@@ -44,23 +46,44 @@ const EnhancedClusteringContainer: React.FC<EnhancedClusteringContainerProps> = 
     };
   }, [map]);
 
-  // Create clusters and unclustered markers
+  // Get visibility settings based on current zoom
+  const visibilitySettings = useMemo(() => {
+    return EnhancedClusteringManager.getVisibilitySettings(currentZoom);
+  }, [currentZoom]);
+
+  // Create clusters and unclustered markers with enhanced zoom-responsive logic
   const { clusters, unclustered } = useMemo(() => {
     if (!mapBounds) {
       return { clusters: [], unclustered: waypoints };
     }
 
     // Always show individual markers at high zoom levels
-    if (EnhancedClusteringManager.shouldShowIndividualMarkers(currentZoom)) {
+    if (visibilitySettings.showIndividual && !visibilitySettings.showClusters) {
+      console.log(`👁️ High zoom (${currentZoom.toFixed(1)}) - showing all individual markers`);
       return { clusters: [], unclustered: waypoints };
     }
 
-    return EnhancedClusteringManager.createClusters(waypoints, currentZoom, mapBounds);
-  }, [waypoints, currentZoom, mapBounds]);
+    const result = EnhancedClusteringManager.createClusters(waypoints, currentZoom, mapBounds);
+    
+    console.log(`🎯 Zoom-responsive clustering result:`, {
+      zoom: currentZoom.toFixed(1),
+      clusterLevel: visibilitySettings.clusterLevel,
+      clusters: result.clusters.length,
+      unclustered: result.unclustered.length,
+      showClusters: visibilitySettings.showClusters,
+      showIndividual: visibilitySettings.showIndividual
+    });
+    
+    return result;
+  }, [waypoints, currentZoom, mapBounds, visibilitySettings]);
 
   const handleClusterClick = useCallback((clusterMarkers: Route66Waypoint[]) => {
-    console.log(`🎯 Cluster clicked, showing ${clusterMarkers.length} markers`);
-    // Optionally show a popup with cluster contents or zoom in
+    console.log(`🎯 Enhanced cluster clicked, revealing ${clusterMarkers.length} markers`);
+    
+    // Show a toast or popup with cluster contents
+    const locationNames = clusterMarkers.slice(0, 5).map(m => m.name).join(', ');
+    const additionalCount = clusterMarkers.length > 5 ? ` and ${clusterMarkers.length - 5} more` : '';
+    console.log(`📍 Cluster contains: ${locationNames}${additionalCount}`);
   }, []);
 
   // Separate destination cities and other markers for rendering
@@ -68,11 +91,13 @@ const EnhancedClusteringContainer: React.FC<EnhancedClusteringContainerProps> = 
   const otherMarkers = unclustered.filter(wp => wp.is_major_stop !== true);
 
   console.log(`🎯 Enhanced clustering render:`, {
-    zoom: currentZoom,
+    zoom: currentZoom.toFixed(1),
+    clusterLevel: visibilitySettings.clusterLevel,
     clusters: clusters.length,
     unclustered: unclustered.length,
     destinationCities: destinationCities.length,
-    otherMarkers: otherMarkers.length
+    otherMarkers: otherMarkers.length,
+    visibility: visibilitySettings
   });
 
   return (
@@ -84,13 +109,14 @@ const EnhancedClusteringContainer: React.FC<EnhancedClusteringContainerProps> = 
         onDestinationClick={onMarkerClick}
       />
 
-      {/* Render clusters when zoom is low */}
-      {clusters.map((cluster) => (
+      {/* Render enhanced zoom-responsive clusters */}
+      {visibilitySettings.showClusters && clusters.map((cluster) => (
         <ClusterMarker
           key={cluster.id}
           center={cluster.center}
           markers={cluster.markers}
           map={map}
+          clusterLevel={cluster.clusterLevel}
           onClusterClick={handleClusterClick}
         />
       ))}

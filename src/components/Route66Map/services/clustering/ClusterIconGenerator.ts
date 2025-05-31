@@ -1,93 +1,133 @@
 
-
-
 export class ClusterIconGenerator {
-  static getClusterIcon(markerCount: number): google.maps.Icon {
-    const size = Math.min(60, Math.max(40, markerCount * 1.5 + 30)); // Made it bigger
+  static getClusterIcon(markerCount: number, clusterLevel: 'ultra' | 'large' | 'medium' | 'small' = 'medium'): google.maps.Icon {
+    // Enhanced size calculation based on cluster level and marker count
+    const baseSizes = {
+      ultra: 80,
+      large: 70,
+      medium: 60,
+      small: 50
+    };
     
-    console.log(`🚗 Creating green vintage car cluster icon for ${markerCount} markers, size: ${size}`);
+    const baseSize = baseSizes[clusterLevel];
+    const countMultiplier = Math.min(1.5, Math.max(0.8, Math.log10(markerCount) * 0.5));
+    const size = Math.min(100, Math.max(baseSize, baseSize * countMultiplier));
+    
+    console.log(`🚗 Creating enhanced ${clusterLevel} green vintage car cluster icon for ${markerCount} markers, size: ${size}`);
+    
+    // Enhanced colors for better visibility at different zoom levels
+    const colors = {
+      ultra: { main: '#16a34a', accent: '#22c55e', shadow: '#15803d' },
+      large: { main: '#16a34a', accent: '#22c55e', shadow: '#15803d' },
+      medium: { main: '#16a34a', accent: '#22c55e', shadow: '#15803d' },
+      small: { main: '#16a34a', accent: '#22c55e', shadow: '#15803d' }
+    };
+    
+    const colorScheme = colors[clusterLevel];
+    
+    // Enhanced stroke widths for better visibility
+    const strokeWidths = {
+      ultra: 3,
+      large: 2.5,
+      medium: 2,
+      small: 1.5
+    };
+    
+    const strokeWidth = strokeWidths[clusterLevel];
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
         <defs>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.3"/>
+            <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.4"/>
+          </filter>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge> 
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
           </filter>
         </defs>
         
-        <!-- Car shadow -->
-        <ellipse cx="${size * 0.5}" cy="${size * 0.82}" rx="${size * 0.4}" ry="${size * 0.06}" 
-                 fill="#000000" opacity="0.2"/>
+        <!-- Enhanced car shadow -->
+        <ellipse cx="${size * 0.5}" cy="${size * 0.85}" rx="${size * 0.45}" ry="${size * 0.08}" 
+                 fill="#000000" opacity="0.3"/>
         
-        <!-- Main car body (green) -->
-        <rect x="${size * 0.15}" y="${size * 0.55}" width="${size * 0.7}" height="${size * 0.18}"
-              fill="#22c55e" stroke="#16a34a" stroke-width="1.5" rx="${size * 0.03}" filter="url(#shadow)"/>
+        <!-- Main car body with enhanced visibility -->
+        <rect x="${size * 0.12}" y="${size * 0.55}" width="${size * 0.76}" height="${size * 0.2}"
+              fill="${colorScheme.accent}" stroke="${colorScheme.main}" stroke-width="${strokeWidth}" 
+              rx="${size * 0.04}" filter="url(#shadow)"/>
         
-        <!-- Car roof -->
-        <rect x="${size * 0.25}" y="${size * 0.42}" width="${size * 0.5}" height="${size * 0.13}"
-              fill="#22c55e" stroke="#16a34a" stroke-width="1.5" rx="${size * 0.025}"/>
+        <!-- Enhanced car roof -->
+        <rect x="${size * 0.22}" y="${size * 0.4}" width="${size * 0.56}" height="${size * 0.15}"
+              fill="${colorScheme.accent}" stroke="${colorScheme.main}" stroke-width="${strokeWidth}" 
+              rx="${size * 0.03}"/>
         
-        <!-- Windshield -->
-        <rect x="${size * 0.28}" y="${size * 0.45}" width="${size * 0.44}" height="${size * 0.08}"
-              fill="#87ceeb" stroke="#4682b4" stroke-width="1" rx="${size * 0.015}" opacity="0.8"/>
+        <!-- Enhanced windshield -->
+        <rect x="${size * 0.26}" y="${size * 0.43}" width="${size * 0.48}" height="${size * 0.1}"
+              fill="#87ceeb" stroke="#4682b4" stroke-width="${strokeWidth * 0.7}" 
+              rx="${size * 0.02}" opacity="0.9"/>
         
-        <!-- Front bumper -->
-        <rect x="${size * 0.1}" y="${size * 0.68}" width="${size * 0.8}" height="${size * 0.04}"
-              fill="#c0c0c0" stroke="#999999" stroke-width="1"/>
+        <!-- Enhanced front bumper -->
+        <rect x="${size * 0.08}" y="${size * 0.7}" width="${size * 0.84}" height="${size * 0.05}"
+              fill="#e5e7eb" stroke="#9ca3af" stroke-width="${strokeWidth * 0.8}"/>
         
-        <!-- Front grille -->
-        <rect x="${size * 0.12}" y="${size * 0.6}" width="${size * 0.76}" height="${size * 0.08}"
-              fill="#333333" stroke="#16a34a" stroke-width="1" rx="${size * 0.01}"/>
+        <!-- Enhanced front grille -->
+        <rect x="${size * 0.1}" y="${size * 0.6}" width="${size * 0.8}" height="${size * 0.1}"
+              fill="#374151" stroke="${colorScheme.main}" stroke-width="${strokeWidth * 0.8}" 
+              rx="${size * 0.015}"/>
         
-        <!-- Headlights -->
-        <circle cx="${size * 0.2}" cy="${size * 0.62}" r="${size * 0.035}"
-                fill="#fff8dc" stroke="#daa520" stroke-width="1"/>
-        <circle cx="${size * 0.8}" cy="${size * 0.62}" r="${size * 0.035}"
-                fill="#fff8dc" stroke="#daa520" stroke-width="1"/>
+        <!-- Enhanced headlights -->
+        <circle cx="${size * 0.18}" cy="${size * 0.63}" r="${size * 0.04}"
+                fill="#fff8dc" stroke="#f59e0b" stroke-width="${strokeWidth * 0.6}"/>
+        <circle cx="${size * 0.82}" cy="${size * 0.63}" r="${size * 0.04}"
+                fill="#fff8dc" stroke="#f59e0b" stroke-width="${strokeWidth * 0.6}"/>
         
-        <!-- Wheels -->
-        <circle cx="${size * 0.27}" cy="${size * 0.75}" r="${size * 0.06}"
-                fill="#2f2f2f" stroke="#000000" stroke-width="1"/>
-        <circle cx="${size * 0.73}" cy="${size * 0.75}" r="${size * 0.06}"
-                fill="#2f2f2f" stroke="#000000" stroke-width="1"/>
+        <!-- Enhanced wheels with better visibility -->
+        <circle cx="${size * 0.25}" cy="${size * 0.77}" r="${size * 0.07}"
+                fill="#1f2937" stroke="#000000" stroke-width="${strokeWidth * 0.8}"/>
+        <circle cx="${size * 0.75}" cy="${size * 0.77}" r="${size * 0.07}"
+                fill="#1f2937" stroke="#000000" stroke-width="${strokeWidth * 0.8}"/>
         
-        <!-- Hubcaps -->
-        <circle cx="${size * 0.27}" cy="${size * 0.75}" r="${size * 0.025}"
-                fill="#c0c0c0"/>
-        <circle cx="${size * 0.73}" cy="${size * 0.75}" r="${size * 0.025}"
-                fill="#c0c0c0"/>
+        <!-- Enhanced hubcaps -->
+        <circle cx="${size * 0.25}" cy="${size * 0.77}" r="${size * 0.03}"
+                fill="#d1d5db" stroke="#9ca3af" stroke-width="${strokeWidth * 0.5}"/>
+        <circle cx="${size * 0.75}" cy="${size * 0.77}" r="${size * 0.03}"
+                fill="#d1d5db" stroke="#9ca3af" stroke-width="${strokeWidth * 0.5}"/>
         
-        <!-- Side mirrors -->
-        <rect x="${size * 0.23}" y="${size * 0.52}" width="${size * 0.02}" height="${size * 0.04}"
-              fill="#22c55e" stroke="#16a34a" stroke-width="0.5"/>
-        <rect x="${size * 0.75}" y="${size * 0.52}" width="${size * 0.02}" height="${size * 0.04}"
-              fill="#22c55e" stroke="#16a34a" stroke-width="0.5"/>
+        <!-- Enhanced side mirrors -->
+        <rect x="${size * 0.2}" y="${size * 0.5}" width="${size * 0.025}" height="${size * 0.05}"
+              fill="${colorScheme.accent}" stroke="${colorScheme.main}" stroke-width="${strokeWidth * 0.6}"/>
+        <rect x="${size * 0.775}" y="${size * 0.5}" width="${size * 0.025}" height="${size * 0.05}"
+              fill="${colorScheme.accent}" stroke="${colorScheme.main}" stroke-width="${strokeWidth * 0.6}"/>
         
-        <!-- Count badge background -->
-        <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.16}"
-                fill="#ffffff" stroke="#22c55e" stroke-width="2.5" filter="url(#shadow)"/>
+        <!-- Enhanced count badge with glow effect -->
+        <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.18}"
+                fill="#ffffff" stroke="${colorScheme.main}" stroke-width="${strokeWidth + 1}" 
+                filter="url(#glow)" opacity="0.95"/>
         
-        <!-- Inner badge circle -->
-        <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.12}"
-                fill="#ffffff" opacity="0.95"/>
+        <!-- Inner badge circle with enhanced contrast -->
+        <circle cx="${size * 0.5}" cy="${size * 0.22}" r="${size * 0.14}"
+                fill="#ffffff" stroke="${colorScheme.accent}" stroke-width="${strokeWidth * 0.5}" 
+                opacity="0.98"/>
         
-        <!-- Cluster count text -->
-        <text x="${size * 0.5}" y="${size * 0.29}" text-anchor="middle"
-              fill="#22c55e" font-family="Arial, sans-serif" 
-              font-size="${Math.max(12, size * 0.28)}" font-weight="bold">${markerCount}</text>
+        <!-- Enhanced cluster count text with better sizing -->
+        <text x="${size * 0.5}" y="${size * 0.3}" text-anchor="middle"
+              fill="${colorScheme.shadow}" font-family="Arial, sans-serif" 
+              font-size="${Math.max(14, size * 0.25)}" font-weight="bold" 
+              stroke="#ffffff" stroke-width="0.5">${markerCount}</text>
       </svg>
     `;
 
     const dataUri = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
     
-    console.log(`🚗 Generated green vintage car cluster icon, data URI length: ${dataUri.length}`);
+    console.log(`🚗 Generated enhanced ${clusterLevel} green vintage car cluster icon, size: ${size}, data URI length: ${dataUri.length}`);
 
     return {
       url: dataUri,
       scaledSize: new google.maps.Size(size, size),
-      anchor: new google.maps.Point(size/2, size * 0.8)
+      anchor: new google.maps.Point(size/2, size * 0.82)
     };
   }
 }
-
-
