@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
 import MapInitializer from './components/MapInitializer';
@@ -12,7 +12,6 @@ import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
-import NuclearRouteRenderer from './services/NuclearRouteRenderer';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -56,6 +55,33 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     mapRef
   });
 
+  // Cleanup function to remove any existing polylines
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        console.log('🧹 Cleaning up any existing polylines on component unmount');
+        
+        // Clear all overlays from the map
+        try {
+          const mapInstance = mapRef.current as any;
+          
+          // Clear overlay map types
+          if (mapInstance.overlayMapTypes) {
+            mapInstance.overlayMapTypes.clear();
+            console.log('🧹 Cleared overlay map types');
+          }
+
+          // Clear all event listeners to prevent recreation
+          google.maps.event.clearInstanceListeners(mapRef.current);
+          console.log('🧹 Cleared all map event listeners');
+          
+        } catch (cleanupError) {
+          console.warn('⚠️ Error during polyline cleanup:', cleanupError);
+        }
+      }
+    };
+  }, []);
+
   // Filter waypoints by selected state if applicable
   const visibleWaypoints = selectedState 
     ? waypoints.filter(waypoint => waypoint.state === selectedState)
@@ -81,7 +107,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with NUCLEAR RouteRenderer (absolutely single route)', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 without Route polyline', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -111,12 +137,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             
             {/* Add state highlighting as the base layer */}
             <StateHighlighting map={mapRef.current} />
-            
-            {/* NUCLEAR ROUTE RENDERER - absolutely only one route possible */}
-            <NuclearRouteRenderer 
-              map={mapRef.current}
-              isMapReady={mapEventHandlers.isMapReady}
-            />
             
             {mapEventHandlers.isMapReady && (
               <>
