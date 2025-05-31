@@ -3,12 +3,11 @@ import React from 'react';
 
 interface TileContainerProps {
   children: React.ReactNode;
-  className?: string;
 }
 
-const TileContainer: React.FC<TileContainerProps> = ({ children, className = "" }) => {
+const TileContainer: React.FC<TileContainerProps> = ({ children }) => {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 ${className}`}>
+    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
       {children}
     </div>
   );

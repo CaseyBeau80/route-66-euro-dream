@@ -26,8 +26,8 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   };
 
   return (
-    <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200">
-      <CardContent className="p-4">
+    <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200 max-h-[85vh] overflow-hidden">
+      <CardContent className="p-4 overflow-y-auto max-h-[calc(85vh-2rem)]">
         <div className="space-y-3">
           {/* Header with vintage Route 66 styling */}
           <div className="text-center border-b-3 border-orange-700 pb-2">

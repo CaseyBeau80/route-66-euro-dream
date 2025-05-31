@@ -28,9 +28,9 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   const portalRoot = document.getElementById('map-portal-root') || document.body;
 
-  // Card dimensions (approximate)
+  // Updated card dimensions to account for expanded tiles
   const cardWidth = 320;
-  const cardHeight = 200;
+  const cardHeight = 450; // Increased to accommodate expanded tiles
   const margin = 20;
 
   // Better positioning to ensure card is always visible within viewport
@@ -40,7 +40,7 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   let adjustedX = position.x;
   let adjustedY = position.y;
 
-  // Horizontal positioning
+  // Horizontal positioning - prefer to show to the right of marker
   if (position.x + cardWidth + margin > viewportWidth) {
     // Position to the left of the marker
     adjustedX = position.x - cardWidth - margin;
@@ -49,7 +49,7 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
     adjustedX = position.x + margin;
   }
 
-  // Vertical positioning
+  // Vertical positioning - prefer to show above marker to avoid cut-off
   if (position.y + cardHeight + margin > viewportHeight) {
     // Position above the marker
     adjustedY = position.y - cardHeight - margin;
@@ -58,7 +58,7 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
     adjustedY = position.y + margin;
   }
 
-  // Ensure card doesn't go off-screen
+  // Ensure card doesn't go off-screen with extra safety margins
   adjustedX = Math.max(margin, Math.min(adjustedX, viewportWidth - cardWidth - margin));
   adjustedY = Math.max(margin, Math.min(adjustedY, viewportHeight - cardHeight - margin));
 
@@ -71,13 +71,15 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   return createPortal(
     <div
-      className="fixed pointer-events-auto z-[100000] transition-opacity duration-200"
+      className="fixed pointer-events-auto z-[100000] transition-all duration-200"
       style={{
         left: `${adjustedX}px`,
         top: `${adjustedY}px`,
         opacity: isVisible ? 1 : 0,
-        transform: 'translateZ(0)', // Force hardware acceleration
-        willChange: 'opacity, transform'
+        transform: 'translateZ(0)',
+        willChange: 'opacity, transform',
+        maxHeight: '90vh',
+        overflow: 'visible'
       }}
       onMouseEnter={() => {
         console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
