@@ -28,7 +28,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    console.log('🚀 UltraSmoothRouteRenderer: Creating icon-based Route 66 segments');
+    console.log('🚀 UltraSmoothRouteRenderer: Creating ONLY Route 66 city-to-city segments');
     
     // Initialize managers
     const markersManager = new RouteMarkersManager(map);
@@ -38,29 +38,38 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     // Step 1: Clean up any existing routes
     cleanupManager.performNuclearCleanup();
     
-    // Step 2: Create polylines ONLY between major stops with icons
-    const majorStops = waypoints.filter(wp => wp.is_major_stop);
-    console.log(`🎯 Found ${majorStops.length} major stops with Route 66 icons`);
+    // Step 2: Filter ONLY major stops (Route 66 city icons) - this is critical
+    const majorStops = waypoints.filter(wp => wp.is_major_stop === true);
+    console.log(`🎯 Filtered to ${majorStops.length} major stops with Route 66 city icons:`);
+    majorStops.forEach((stop, index) => {
+      console.log(`  ${index + 1}. ${stop.name} (${stop.state}) - Sequence: ${stop.sequence_order}`);
+    });
     
     if (majorStops.length < 2) {
-      console.warn('⚠️ Not enough major stops with icons to create road segments');
+      console.warn('⚠️ Not enough major stops with Route 66 city icons to create road segments');
       return;
     }
 
-    // Step 3: Create road segments only between locations with icons
-    polylineManager.createPolylines([], waypoints);
+    // Step 3: Sort major stops by sequence order to ensure proper city-to-city connections
+    const sortedMajorStops = majorStops.sort((a, b) => a.sequence_order - b.sequence_order);
+    console.log(`🔄 Sorted major stops by sequence order for proper city-to-city connections`);
 
-    // Step 4: Create route markers for major stops with icons
-    markersManager.createRouteMarkers(waypoints);
+    // Step 4: Create polylines ONLY between consecutive major stops (city-to-city)
+    console.log(`🛣️ Creating ${sortedMajorStops.length - 1} city-to-city road segments...`);
+    polylineManager.createPolylines([], sortedMajorStops);
 
-    // Step 5: Mark as created
+    // Step 5: Create Route 66 shield markers ONLY for major stops
+    console.log(`🛡️ Creating Route 66 shield markers for ${sortedMajorStops.length} major stops...`);
+    markersManager.createRouteMarkers(sortedMajorStops);
+
+    // Step 6: Mark as created
     RouteGlobalState.setRouteCreated(true);
     hasRendered.current = true;
 
-    console.log(`✅ Icon-based Route 66 created with road segments only between ${majorStops.length} locations with Route 66 shields!`);
+    console.log(`✅ Clean Route 66 spine created with ${sortedMajorStops.length - 1} city-to-city segments between ${sortedMajorStops.length} major stops only!`);
 
-    // Step 6: Fit map to bounds of major stops only
-    polylineManager.fitMapToBounds(waypoints);
+    // Step 7: Fit map to bounds of major stops only
+    polylineManager.fitMapToBounds(sortedMajorStops);
 
     // Cleanup function
     return () => {

@@ -5,10 +5,20 @@ import { RouteGlobalState } from './RouteGlobalState';
 export class RouteMarkersManager {
   constructor(private map: google.maps.Map) {}
 
-  createRouteMarkers(waypoints: Route66Waypoint[]): void {
-    const majorStops = waypoints.filter(wp => wp.is_major_stop);
+  createRouteMarkers(majorStopsOnly: Route66Waypoint[]): void {
+    // VALIDATION: Ensure we're only working with major stops
+    const nonMajorStops = majorStopsOnly.filter(wp => wp.is_major_stop !== true);
+    if (nonMajorStops.length > 0) {
+      console.error('❌ CRITICAL ERROR: Non-major stops detected in Route 66 shield creation:', 
+        nonMajorStops.map(s => s.name));
+      return;
+    }
+
+    console.log(`🛡️ Creating Route 66 shield markers for ${majorStopsOnly.length} major stops only:`);
     
-    majorStops.forEach((waypoint) => {
+    majorStopsOnly.forEach((waypoint, index) => {
+      console.log(`  ${index + 1}. Creating Route 66 shield for: ${waypoint.name} (${waypoint.state})`);
+      
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: this.map,
@@ -43,7 +53,7 @@ export class RouteMarkersManager {
       RouteGlobalState.addRouteMarker(marker);
     });
 
-    console.log(`📍 Created ${RouteGlobalState.getRouteMarkers().length} route markers for major stops`);
+    console.log(`📍 Created ${RouteGlobalState.getRouteMarkers().length} Route 66 shield markers for major stops only`);
   }
 
   private createInfoWindowContent(waypoint: Route66Waypoint): string {

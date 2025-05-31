@@ -5,36 +5,47 @@ import type { Route66Waypoint } from '../types/supabaseTypes';
 export class RoutePolylineManager {
   constructor(private map: google.maps.Map) {}
 
-  createPolylines(smoothRoutePath: google.maps.LatLngLiteral[], waypoints: Route66Waypoint[]): void {
-    if (smoothRoutePath.length === 0 || waypoints.length === 0) {
-      console.error('❌ Cannot create polylines with empty route path or waypoints');
+  createPolylines(smoothRoutePath: google.maps.LatLngLiteral[], majorStopsOnly: Route66Waypoint[]): void {
+    if (majorStopsOnly.length === 0) {
+      console.error('❌ Cannot create polylines with empty major stops array');
       return;
     }
 
-    console.log('🛣️ Creating polylines only for segments with Route 66 icons');
+    // VALIDATION: Ensure we're only working with major stops
+    const nonMajorStops = majorStopsOnly.filter(wp => wp.is_major_stop !== true);
+    if (nonMajorStops.length > 0) {
+      console.error('❌ CRITICAL ERROR: Non-major stops detected in majorStopsOnly array:', 
+        nonMajorStops.map(s => s.name));
+      return;
+    }
 
-    // Only create polylines between major stops (where icons exist)
-    const majorStops = waypoints.filter(wp => wp.is_major_stop);
+    console.log('🛣️ Creating polylines ONLY between consecutive Route 66 city icons (major stops)');
+    console.log(`🎯 Input validation: ${majorStopsOnly.length} major stops confirmed`);
+
+    if (majorStopsOnly.length < 2) {
+      console.log('⚠️ Not enough major stops to create city-to-city road segments');
+      return;
+    }
+
+    // Sort by sequence order to ensure proper city-to-city connections
+    const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
     
-    if (majorStops.length < 2) {
-      console.log('⚠️ Not enough major stops with icons to create road segments');
-      return;
-    }
+    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} city-to-city road segments:`);
 
-    console.log(`🎯 Found ${majorStops.length} major stops with icons - creating ${majorStops.length - 1} road segments`);
-
-    // Create segments only between consecutive major stops
-    for (let i = 0; i < majorStops.length - 1; i++) {
-      const startStop = majorStops[i];
-      const endStop = majorStops[i + 1];
+    // Create segments ONLY between consecutive major stops (city-to-city)
+    for (let i = 0; i < sortedMajorStops.length - 1; i++) {
+      const startCity = sortedMajorStops[i];
+      const endCity = sortedMajorStops[i + 1];
       
-      // Create a simple straight line segment between major stops with icons
+      console.log(`🛣️ Segment ${i + 1}: ${startCity.name} (${startCity.state}) → ${endCity.name} (${endCity.state})`);
+      
+      // Create a simple straight line segment between major cities only
       const segmentPath = [
-        { lat: startStop.latitude, lng: startStop.longitude },
-        { lat: endStop.latitude, lng: endStop.longitude }
+        { lat: startCity.latitude, lng: startCity.longitude },
+        { lat: endCity.latitude, lng: endCity.longitude }
       ];
 
-      // Create main route polyline for this segment
+      // Create main route polyline for this city-to-city segment
       const mainPolyline = new google.maps.Polyline({
         path: segmentPath,
         geodesic: true,
@@ -75,20 +86,18 @@ export class RoutePolylineManager {
       RouteGlobalState.addPolylineSegment(mainPolyline);
       RouteGlobalState.addPolylineSegment(centerLine);
 
-      console.log(`✅ Created road segment ${i + 1}: ${startStop.name} → ${endStop.name}`);
+      console.log(`✅ Created city-to-city segment ${i + 1}: ${startCity.name} → ${endCity.name}`);
     }
 
-    console.log(`🛣️ Road segments created only between ${majorStops.length} locations with Route 66 icons`);
+    console.log(`🛣️ Clean Route 66 spine completed: ${sortedMajorStops.length - 1} city-to-city segments between ${sortedMajorStops.length} major stops only`);
   }
 
-  fitMapToBounds(waypoints: Route66Waypoint[]): void {
-    const majorStops = waypoints.filter(wp => wp.is_major_stop);
-    
-    if (majorStops.length === 0) return;
+  fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {
+    if (majorStopsOnly.length === 0) return;
 
     setTimeout(() => {
       const bounds = new google.maps.LatLngBounds();
-      majorStops.forEach(stop => {
+      majorStopsOnly.forEach(stop => {
         bounds.extend(new google.maps.LatLng(stop.latitude, stop.longitude));
       });
       this.map.fitBounds(bounds, { 
