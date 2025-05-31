@@ -15,37 +15,43 @@ interface MarkerInteractionHandlerProps {
   }) => React.ReactNode;
 }
 
-export const MarkerInteractionHandler: React.FC<MarkerInteractionHandlerProps> = ({
+const MarkerInteractionHandler: React.FC<MarkerInteractionHandlerProps> = ({
   gem,
   children
 }) => {
   const {
     isHovered,
     hoverPosition,
-    handleMouseEnter,
-    handleMouseLeave,
+    handleMouseEnter: baseHandleMouseEnter,
+    handleMouseLeave: baseHandleMouseLeave,
     updatePosition,
     cleanup
   } = useMarkerHover();
 
-  const wrappedHandleMouseEnter = React.useCallback(() => {
-    handleMouseEnter(gem.title);
-  }, [handleMouseEnter, gem.title]);
+  const handleMouseEnter = () => {
+    baseHandleMouseEnter(gem.title);
+  };
 
-  const wrappedHandleMouseLeave = React.useCallback(() => {
-    handleMouseLeave(gem.title);
-  }, [handleMouseLeave, gem.title]);
+  const handleMouseLeave = () => {
+    baseHandleMouseLeave(gem.title);
+  };
+
+  React.useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
 
   return (
     <>
       {children({
         isHovered,
         hoverPosition,
-        handleMouseEnter: wrappedHandleMouseEnter,
-        handleMouseLeave: wrappedHandleMouseLeave,
+        handleMouseEnter,
+        handleMouseLeave,
         updatePosition,
         cleanup
       })}
     </>
   );
 };
+
+export default MarkerInteractionHandler;

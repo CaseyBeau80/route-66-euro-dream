@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Star, MapPin, ExternalLink } from 'lucide-react';
 import { HiddenGem } from './types';
 
 interface HoverCardDisplayProps {
@@ -21,7 +22,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
   const cardStyle = {
     position: 'absolute' as const,
     left: `${position.x}px`,
-    top: `${position.y - 200}px`, // Position above the marker with more offset
+    top: `${position.y - 220}px`, // Position above the marker with more offset
     transform: 'translateX(-50%)',
     zIndex: 999999,
     opacity: isVisible ? 1 : 0,
@@ -33,13 +34,13 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
       className="transition-all duration-200 ease-out"
       style={cardStyle}
     >
-      <div className="w-80 max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center border border-white shadow-sm">
-                <span className="text-xs font-black text-white">★</span>
+                <Star className="h-2.5 w-2.5 text-white" fill="currentColor" />
               </div>
               <span className="text-sm font-bold tracking-wide uppercase">Hidden Gem</span>
             </div>
@@ -57,6 +58,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
               {gem.title}
             </h3>
             <div className="flex items-center justify-center gap-2 text-gray-700">
+              <MapPin className="h-4 w-4 text-red-600 flex-shrink-0" />
               <span className="text-sm font-bold uppercase tracking-wide">{gem.city_name}</span>
             </div>
           </div>
@@ -83,6 +85,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
               >
+                <ExternalLink className="h-3 w-3" />
                 Visit Website
               </button>
             </div>

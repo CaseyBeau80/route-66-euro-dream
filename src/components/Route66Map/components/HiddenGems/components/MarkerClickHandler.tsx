@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { HiddenGem } from '../types';
+import { createVintageRoute66Icon } from '../VintageRoute66Icon';
 
 interface MarkerClickHandlerProps {
   gem: HiddenGem;
@@ -8,7 +9,7 @@ interface MarkerClickHandlerProps {
   map: google.maps.Map;
 }
 
-export const MarkerClickHandler: React.FC<MarkerClickHandlerProps> = ({
+const MarkerClickHandler: React.FC<MarkerClickHandlerProps> = ({
   gem,
   onMarkerClick,
   map
@@ -16,31 +17,31 @@ export const MarkerClickHandler: React.FC<MarkerClickHandlerProps> = ({
   React.useEffect(() => {
     if (!map) return;
 
+    // Create a separate invisible marker just for click handling
+    const clickMarker = new google.maps.Marker({
+      position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
+      map: map,
+      icon: {
+        ...createVintageRoute66Icon(),
+        opacity: 0 // Make it invisible
+      },
+      title: `Hidden Gem: ${gem.title}`,
+      zIndex: 1001 // Higher than the visual marker
+    });
+
     const handleClick = () => {
       console.log(`🎯 Clicked gem: ${gem.title}`);
       onMarkerClick(gem);
     };
 
-    // Add click listener to the map for this specific gem location
-    const clickListener = google.maps.event.addListener(map, 'click', (event: google.maps.MapMouseEvent) => {
-      if (event.latLng) {
-        const clickLat = event.latLng.lat();
-        const clickLng = event.latLng.lng();
-        const gemLat = Number(gem.latitude);
-        const gemLng = Number(gem.longitude);
-        
-        // Check if click is near the gem location (within a small tolerance)
-        const tolerance = 0.001;
-        if (Math.abs(clickLat - gemLat) < tolerance && Math.abs(clickLng - gemLng) < tolerance) {
-          handleClick();
-        }
-      }
-    });
+    clickMarker.addListener('click', handleClick);
 
     return () => {
-      google.maps.event.removeListener(clickListener);
+      clickMarker.setMap(null);
     };
-  }, [gem, onMarkerClick, map]);
+  }, [gem, map, onMarkerClick]);
 
   return null;
 };
+
+export default MarkerClickHandler;

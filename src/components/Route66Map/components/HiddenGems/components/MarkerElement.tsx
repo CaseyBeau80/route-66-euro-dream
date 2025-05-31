@@ -11,35 +11,29 @@ interface MarkerElementProps {
   map: google.maps.Map;
 }
 
-export const MarkerElement: React.FC<MarkerElementProps> = ({
+const MarkerElement: React.FC<MarkerElementProps> = ({
   gem,
   onMouseEnter,
   onMouseLeave,
   onPositionUpdate,
   map
 }) => {
-  const markerSetupRef = React.useRef<{ cleanup: () => void } | null>(null);
-
   React.useEffect(() => {
     if (!map) return;
 
-    const markerSetup = createMarkerSetup({
+    const { cleanup } = createMarkerSetup({
       gem,
       map,
-      onMarkerClick: () => {}, // This will be handled by the parent component
+      onMarkerClick: () => {}, // Click handling is done separately
       onMouseEnter,
       onMouseLeave,
       onPositionUpdate
     });
 
-    markerSetupRef.current = markerSetup;
-
-    return () => {
-      if (markerSetupRef.current) {
-        markerSetupRef.current.cleanup();
-      }
-    };
+    return cleanup;
   }, [gem, map, onMouseEnter, onMouseLeave, onPositionUpdate]);
 
   return null;
 };
+
+export default MarkerElement;
