@@ -59,8 +59,32 @@ export const PolylineService = {
 
     polylineRef.current = new google.maps.Polyline(polylineOptions);
     polylineRef.current.setMap(map);
+
+    // Create realistic dashed yellow center line to match screenshot
+    const centerLinePolyline = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#FFD700',
+      strokeOpacity: 0,
+      strokeWeight: 0,
+      zIndex: 1000000,
+      clickable: false,
+      icons: [{
+        icon: {
+          path: 'M 0,-0.5 L 0,0.5',
+          strokeOpacity: 1,
+          strokeColor: '#FFD700',
+          strokeWeight: 3,
+          scale: 4
+        },
+        offset: '0%',
+        repeat: '40px'
+      }]
+    });
+
+    centerLinePolyline.setMap(map);
     
-    console.log('✅ PolylineService: Realistic textured polyline created and attached to map');
+    console.log('✅ PolylineService: Realistic textured polyline with dashed center line created and attached to map');
     return routePath;
   },
 

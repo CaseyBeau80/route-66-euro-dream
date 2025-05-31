@@ -84,25 +84,25 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       }]
     });
 
-    // Create yellow center line overlay
+    // Create realistic dashed yellow center line to match screenshot
     const centerLinePolyline = new google.maps.Polyline({
       path: route66Path,
       geodesic: true,
-      strokeColor: '#FFD700', // Yellow center line
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
+      strokeColor: '#FFD700',
+      strokeOpacity: 0,
+      strokeWeight: 0,
       zIndex: 1001,
       clickable: false,
       icons: [{
         icon: {
-          path: 'M 0,-1 0,1',
+          path: 'M 0,-0.5 L 0,0.5',
           strokeOpacity: 1,
           strokeColor: '#FFD700',
-          strokeWeight: 2,
-          scale: 1
+          strokeWeight: 3,
+          scale: 4
         },
         offset: '0%',
-        repeat: '30px'
+        repeat: '40px'
       }]
     });
 

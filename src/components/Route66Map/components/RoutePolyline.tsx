@@ -63,25 +63,25 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       }]
     });
 
-    // Create yellow dashed center line
+    // Create realistic dashed yellow center line to match screenshot
     const centerLine = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
       strokeColor: '#FFD700', // Highway yellow
-      strokeOpacity: 0.9,
-      strokeWeight: 2,
+      strokeOpacity: 0,
+      strokeWeight: 0,
       zIndex: 10000,
       clickable: false,
       icons: [{
         icon: {
-          path: 'M 0,-1 0,1',
+          path: 'M 0,-0.5 L 0,0.5',
           strokeOpacity: 1,
           strokeColor: '#FFD700',
-          strokeWeight: 2,
-          scale: 1
+          strokeWeight: 3,
+          scale: 4
         },
         offset: '0%',
-        repeat: '25px'
+        repeat: '40px'
       }]
     });
 
