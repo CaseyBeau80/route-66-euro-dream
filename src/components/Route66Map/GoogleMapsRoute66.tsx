@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -16,6 +15,7 @@ import EnhancedClusteringContainer from './components/clustering/EnhancedCluster
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
+import type { Route66Waypoint } from './types/supabaseTypes';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -97,8 +97,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     ? waypoints.filter(waypoint => waypoint.state === selectedState)
     : waypoints;
 
-  // Handle destination clicks
-  const handleDestinationClick = (destination: any) => {
+  // Handle destination clicks with correct type signature
+  const handleDestinationClick = (destination: Route66Waypoint) => {
     console.log('🏛️ Destination clicked:', destination.name);
   };
 
