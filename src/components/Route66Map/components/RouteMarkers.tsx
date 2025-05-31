@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -160,68 +159,154 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
     
     return new google.maps.InfoWindow({
       content: `
-        <div style="padding: 14px; max-width: 320px; font-family: Arial, sans-serif;">
-          <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #F8F6F0, #E6E4DE); border: 2px solid #000; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 8px; font-weight: bold; color: #000;">66</span>
-            </div>
-            <h3 style="margin: 0; color: #DC2626; font-size: 18px; font-weight: bold;">${waypoint.name}</h3>
+        <div style="
+          padding: 16px; 
+          max-width: 300px; 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          line-height: 1.4;
+          color: #333;
+        ">
+          <div style="
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 12px;
+            border-bottom: 2px solid #DC2626;
+            padding-bottom: 8px;
+          ">
+            <div style="
+              width: 20px; 
+              height: 20px; 
+              background: linear-gradient(135deg, #F8F6F0, #E6E4DE); 
+              border: 1px solid #333; 
+              border-radius: 3px; 
+              margin-right: 8px; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center;
+              font-size: 7px;
+              font-weight: bold;
+              color: #000;
+            ">66</div>
+            <h3 style="
+              margin: 0; 
+              color: #DC2626; 
+              font-size: 16px; 
+              font-weight: 600;
+              flex: 1;
+            ">${waypoint.name}</h3>
           </div>
           
           <div style="margin-bottom: 10px;">
-            <p style="margin: 0; font-size: 14px; color: #666; font-weight: 500;">
-              <strong>Destination City</strong> • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
-            </p>
+            <div style="
+              background: #F3F4F6;
+              padding: 6px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+              color: #6B7280;
+              font-weight: 500;
+            ">
+              🏁 Major Destination • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
+            </div>
           </div>
           
           ${waypoint.description ? `
-            <p style="margin: 10px 0; font-size: 13px; color: #333; line-height: 1.5; background: #F9F9F9; padding: 8px; border-radius: 4px;">
+            <div style="
+              margin: 10px 0;
+              font-size: 13px;
+              color: #4B5563;
+              background: #F9FAFB;
+              padding: 10px;
+              border-radius: 6px;
+              border-left: 3px solid #DC2626;
+            ">
               ${waypoint.description}
-            </p>
+            </div>
           ` : ''}
           
-          <div style="margin-top: 12px; padding-top: 10px; border-top: 2px solid #DC2626;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <p style="margin: 0; font-size: 11px; color: #999;">
-                Major Route 66 destination
-              </p>
-              <div style="background: #DC2626; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">
-                STOP #${waypoint.sequence_order}
-              </div>
+          <div style="
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #9CA3AF;
+          ">
+            <span>Historic Route 66</span>
+            <div style="
+              background: #DC2626;
+              color: white;
+              padding: 3px 8px;
+              border-radius: 12px;
+              font-size: 10px;
+              font-weight: 600;
+            ">
+              STOP #${waypoint.sequence_order}
             </div>
           </div>
         </div>
       `,
-      maxWidth: 350
+      maxWidth: 320,
+      pixelOffset: new google.maps.Size(0, -10)
     });
   };
 
   const createRegularStopInfoWindow = (waypoint: Route66Waypoint) => {
     return new google.maps.InfoWindow({
       content: `
-        <div style="padding: 10px; max-width: 260px; font-family: Arial, sans-serif;">
-          <h3 style="margin: 0 0 6px 0; color: #DC2626; font-size: 15px; font-weight: bold;">${waypoint.name}</h3>
+        <div style="
+          padding: 12px; 
+          max-width: 260px; 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          line-height: 1.4;
+          color: #333;
+        ">
+          <h3 style="
+            margin: 0 0 8px 0; 
+            color: #DC2626; 
+            font-size: 14px; 
+            font-weight: 600;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 6px;
+          ">${waypoint.name}</h3>
           
           <div style="margin-bottom: 8px;">
-            <p style="margin: 0; font-size: 12px; color: #666; font-weight: 500;">
-              Route 66 Stop • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
-            </p>
+            <div style="
+              font-size: 11px;
+              color: #6B7280;
+              background: #F3F4F6;
+              padding: 4px 6px;
+              border-radius: 3px;
+              display: inline-block;
+            ">
+              📍 Route 66 Stop • ${waypoint.state}${waypoint.highway_designation ? ` • ${waypoint.highway_designation}` : ''}
+            </div>
           </div>
           
           ${waypoint.description ? `
-            <p style="margin: 6px 0 0 0; font-size: 12px; color: #333; line-height: 1.4;">
+            <div style="
+              margin: 8px 0 0 0;
+              font-size: 12px;
+              color: #4B5563;
+              background: #F9FAFB;
+              padding: 8px;
+              border-radius: 4px;
+            ">
               ${waypoint.description}
-            </p>
+            </div>
           ` : ''}
           
-          <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #eee;">
-            <p style="margin: 0; font-size: 10px; color: #999;">
-              Waypoint #${waypoint.sequence_order}
-            </p>
+          <div style="
+            margin-top: 10px;
+            text-align: right;
+            font-size: 10px;
+            color: #9CA3AF;
+          ">
+            Waypoint #${waypoint.sequence_order}
           </div>
         </div>
       `,
-      maxWidth: 280
+      maxWidth: 280,
+      pixelOffset: new google.maps.Size(0, -5)
     });
   };
 
