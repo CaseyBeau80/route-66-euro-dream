@@ -1,19 +1,22 @@
 
 import { useMemo } from 'react';
-import { getVisibleTowns } from '../utils/townUtils';
-import { Route66Town } from '@/types/route66';
+import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface UseTownFilteringProps {
   selectedState: string | null;
+  waypoints: Route66Waypoint[];
 }
 
-export const useTownFiltering = ({ selectedState }: UseTownFilteringProps) => {
+export const useTownFiltering = ({ selectedState, waypoints }: UseTownFilteringProps) => {
   // Use memoization to prevent unnecessary re-filtering
-  const visibleTowns = useMemo(() => {
-    return getVisibleTowns(selectedState);
-  }, [selectedState]);
+  const visibleWaypoints = useMemo(() => {
+    if (selectedState) {
+      return waypoints.filter(waypoint => waypoint.state === selectedState);
+    }
+    return waypoints;
+  }, [selectedState, waypoints]);
 
   return {
-    visibleTowns
+    visibleWaypoints
   };
 };

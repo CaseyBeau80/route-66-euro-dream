@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
-import { useTownFiltering } from './hooks/useTownFiltering';
+import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
 import MapInitializer from './components/MapInitializer';
 import ClearSelectionButton from './MapElements/ClearSelectionButton';
 import MapInteractionHints from './components/MapInteractionHints';
@@ -39,7 +39,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     setIsDragging
   } = useGoogleMaps();
 
-  const { visibleTowns } = useTownFiltering({ selectedState });
+  const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
   const [mapInitialized, setMapInitialized] = useState(false);
   
   const mapEventHandlers = useMapEventHandlers({ 
@@ -55,6 +55,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     mapRef
   });
 
+  // Filter waypoints by selected state if applicable
+  const visibleWaypoints = selectedState 
+    ? waypoints.filter(waypoint => waypoint.state === selectedState)
+    : waypoints;
+
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return <MapLoadError error="Failed to load Google Maps API." />;
@@ -65,12 +70,23 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadingIndicator />;
   }
 
+  if (waypointsLoading) {
+    console.log('⏳ Route 66 waypoints still loading...');
+    return <MapLoadingIndicator />;
+  }
+
+  if (waypointsError) {
+    console.error('❌ Failed to load Route 66 waypoints:', waypointsError);
+    return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
+  }
+
   console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration, Hidden Gems, and Attractions', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
     selectedState,
-    visibleTowns: visibleTowns.length
+    visibleWaypoints: visibleWaypoints.length,
+    totalWaypoints: waypoints.length
   });
 
   return (
@@ -113,7 +129,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 {/* Render Attractions (regular stops) with hover cards */}
                 <AttractionsContainer
                   map={mapRef.current}
-                  waypoints={visibleTowns}
+                  waypoints={visibleWaypoints}
                   onAttractionClick={(attraction) => {
                     console.log('🎯 Attraction selected:', attraction.name);
                   }}
