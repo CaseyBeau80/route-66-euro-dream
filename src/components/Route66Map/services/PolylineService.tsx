@@ -9,7 +9,7 @@ interface PolylineServiceProps {
 
 export const PolylineService = {
   createRoutePolyline: ({ map, polylineRef }: PolylineServiceProps) => {
-    console.log('🎨 PolylineService: Creating Route 66 polyline');
+    console.log('🎨 PolylineService: Creating realistic textured Route 66 polyline');
     
     // Validate waypoints
     if (!historicRoute66Waypoints || historicRoute66Waypoints.length === 0) {
@@ -29,22 +29,38 @@ export const PolylineService = {
       lastPoint: routePath[routePath.length - 1]
     });
 
-    // Create polyline with maximum visibility settings
+    // Create realistic asphalt texture symbol
+    const asphaltTexture = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 3,
+      fillColor: '#2C2C2C',
+      fillOpacity: 0.6,
+      strokeColor: '#1A1A1A',
+      strokeWeight: 1,
+      strokeOpacity: 0.4
+    };
+
+    // Create polyline with realistic road appearance
     const polylineOptions: google.maps.PolylineOptions = {
       path: routePath,
       geodesic: true,
-      strokeColor: '#FF0000',
-      strokeOpacity: 1.0,
-      strokeWeight: 8,
+      strokeColor: '#2C2C2C', // Dark asphalt color
+      strokeOpacity: 0.8,
+      strokeWeight: 7,
       zIndex: 999999,
       clickable: true,
-      visible: true
+      visible: true,
+      icons: [{
+        icon: asphaltTexture,
+        offset: '0%',
+        repeat: '20px'
+      }]
     };
 
     polylineRef.current = new google.maps.Polyline(polylineOptions);
     polylineRef.current.setMap(map);
     
-    console.log('✅ PolylineService: Polyline created and attached to map');
+    console.log('✅ PolylineService: Realistic textured polyline created and attached to map');
     return routePath;
   },
 
@@ -78,9 +94,9 @@ export const PolylineService = {
   addClickListener: (polylineRef: React.MutableRefObject<google.maps.Polyline | null>, map: google.maps.Map) => {
     if (polylineRef.current) {
       polylineRef.current.addListener('click', (event: google.maps.MapMouseEvent) => {
-        console.log('🎯 PolylineService: Route 66 polyline clicked!', event.latLng?.toString());
+        console.log('🎯 PolylineService: Textured Route 66 polyline clicked!', event.latLng?.toString());
         const infoWindow = new google.maps.InfoWindow({
-          content: '<div style="color: red; font-weight: bold; padding: 10px;">🛣️ Route 66 - The Mother Road</div>',
+          content: '<div style="color: #2C2C2C; font-weight: bold; padding: 10px;">🛣️ Route 66 - The Weathered Mother Road</div>',
           position: event.latLng
         });
         infoWindow.open(map);

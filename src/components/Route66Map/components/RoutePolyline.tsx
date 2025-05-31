@@ -10,6 +10,8 @@ interface RoutePolylineProps {
 
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const centerLineRef = useRef<google.maps.Polyline | null>(null);
+  const edgeLineRef = useRef<google.maps.Polyline | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   useEffect(() => {
@@ -22,15 +24,65 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       lng: waypoint.longitude
     }));
 
-    // Create the enhanced Route 66 polyline
+    // Create realistic asphalt texture
+    const createAsphaltTexture = () => {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 3,
+        fillColor: '#2C2C2C',
+        fillOpacity: 0.7,
+        strokeColor: '#1A1A1A',
+        strokeWeight: 1,
+        strokeOpacity: 0.5
+      };
+    };
+
+    // Create weathered road base (wider, darker)
+    const roadBase = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#1A1A1A', // Very dark asphalt
+      strokeOpacity: 0.4,
+      strokeWeight: 10,
+      zIndex: 9998
+    });
+
+    // Create main asphalt road surface
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#DC2626', // Historic Route 66 red
+      strokeColor: '#2C2C2C', // Dark asphalt gray
       strokeOpacity: 0.9,
-      strokeWeight: 6,
+      strokeWeight: 7,
+      zIndex: 9999,
+      clickable: true,
+      icons: [{
+        icon: createAsphaltTexture(),
+        offset: '0%',
+        repeat: '25px'
+      }]
+    });
+
+    // Create yellow dashed center line
+    const centerLine = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#FFD700', // Highway yellow
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
       zIndex: 10000,
-      clickable: true
+      clickable: false,
+      icons: [{
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1,
+          strokeColor: '#FFD700',
+          strokeWeight: 2,
+          scale: 1
+        },
+        offset: '0%',
+        repeat: '25px'
+      }]
     });
 
     // Add click listener for route information
@@ -46,7 +98,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
               <h3 class="font-bold text-red-600 mb-2 text-lg">Historic Route 66</h3>
               <p class="text-sm text-gray-700 mb-1">The Mother Road</p>
               <p class="text-sm text-gray-700 mb-1">Chicago to Santa Monica</p>
-              <p class="text-xs text-gray-500 mb-2">2,448 miles of American history</p>
+              <p class="text-xs text-gray-500 mb-2">2,448 miles of weathered asphalt</p>
               <div class="text-xs text-gray-600">
                 <p><strong>${waypoints.length}</strong> waypoints loaded</p>
                 <p><strong>${waypoints.filter(w => w.is_major_stop).length}</strong> major stops</p>
@@ -62,11 +114,16 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       }
     });
 
-    // Set the polyline on the map
+    // Set all polylines on the map in proper order
+    roadBase.setMap(map);
     route66Polyline.setMap(map);
-    polylineRef.current = route66Polyline;
+    centerLine.setMap(map);
     
-    console.log(`✅ Enhanced Route 66 polyline added to map with ${waypoints.length} waypoints`);
+    polylineRef.current = route66Polyline;
+    centerLineRef.current = centerLine;
+    edgeLineRef.current = roadBase;
+    
+    console.log(`✅ Realistic textured Route 66 polyline added with ${waypoints.length} waypoints`);
     console.log(`📊 Route data: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
 
     // Fit the map to show the entire route with some padding
@@ -76,6 +133,14 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
         polylineRef.current = null;
+      }
+      if (centerLineRef.current) {
+        centerLineRef.current.setMap(null);
+        centerLineRef.current = null;
+      }
+      if (edgeLineRef.current) {
+        edgeLineRef.current.setMap(null);
+        edgeLineRef.current = null;
       }
       if (infoWindowRef.current) {
         infoWindowRef.current.close();

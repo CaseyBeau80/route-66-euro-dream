@@ -14,7 +14,7 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       return;
     }
 
-    console.log("🗺️ Creating Route 66 polyline with proper geodesic routing...");
+    console.log("🗺️ Creating Route 66 polyline with realistic road texture...");
 
     // Simplified but accurate Route 66 path with key waypoints
     const route66Path = [
@@ -55,22 +55,87 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       { lat: 34.0195, lng: -118.4912 }, // Santa Monica - End
     ];
 
-    // Create the Route 66 polyline with proper settings
+    // Create a custom textured road icon for the polyline
+    const createAsphaltTexture = () => {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 4,
+        fillColor: '#2C2C2C',
+        fillOpacity: 0.8,
+        strokeColor: '#1A1A1A',
+        strokeWeight: 1,
+        strokeOpacity: 0.6
+      };
+    };
+
+    // Create the main Route 66 polyline with realistic asphalt appearance
     const route66Polyline = new google.maps.Polyline({
       path: route66Path,
-      geodesic: true, // Use geodesic lines for proper curved routing
-      strokeColor: '#FF0000', // Bright red
+      geodesic: true,
+      strokeColor: '#2C2C2C', // Dark asphalt color
       strokeOpacity: 0.9,
-      strokeWeight: 6,
+      strokeWeight: 8,
       zIndex: 1000,
+      clickable: false,
+      icons: [{
+        icon: createAsphaltTexture(),
+        offset: '0%',
+        repeat: '20px'
+      }]
+    });
+
+    // Create yellow center line overlay
+    const centerLinePolyline = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#FFD700', // Yellow center line
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      zIndex: 1001,
+      clickable: false,
+      icons: [{
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1,
+          strokeColor: '#FFD700',
+          strokeWeight: 2,
+          scale: 1
+        },
+        offset: '0%',
+        repeat: '30px'
+      }]
+    });
+
+    // Create weathered road edges
+    const roadEdgePolyline1 = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#1A1A1A',
+      strokeOpacity: 0.4,
+      strokeWeight: 10,
+      zIndex: 999,
       clickable: false
     });
 
-    // Set the polyline on the map
+    const roadEdgePolyline2 = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#404040',
+      strokeOpacity: 0.3,
+      strokeWeight: 12,
+      zIndex: 998,
+      clickable: false
+    });
+
+    // Set all polylines on the map
+    roadEdgePolyline2.setMap(map);
+    roadEdgePolyline1.setMap(map);
     route66Polyline.setMap(map);
+    centerLinePolyline.setMap(map);
+    
     polylineRef.current = route66Polyline;
 
-    console.log("✅ Route 66 polyline created with", route66Path.length, "waypoints");
+    console.log("✅ Realistic textured Route 66 polyline created with", route66Path.length, "waypoints");
 
     // Wait a moment before fitting bounds to ensure polyline is rendered
     setTimeout(() => {
@@ -88,15 +153,18 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
         left: 50
       });
 
-      console.log("🎯 Map bounds fitted to Route 66");
+      console.log("🎯 Map bounds fitted to textured Route 66");
     }, 500);
 
     // Cleanup function
     return () => {
-      console.log("🧹 Cleaning up Route 66 polyline");
+      console.log("🧹 Cleaning up textured Route 66 polylines");
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
       }
+      centerLinePolyline.setMap(null);
+      roadEdgePolyline1.setMap(null);
+      roadEdgePolyline2.setMap(null);
     };
   }, [map]);
 
