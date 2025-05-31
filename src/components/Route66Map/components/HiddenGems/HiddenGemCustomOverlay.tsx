@@ -42,22 +42,24 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
       onAdd() {
         this.container = document.createElement('div');
         this.container.style.position = 'absolute';
-        this.container.style.zIndex = '9999';
+        // Use a very high z-index to ensure it appears above all other map overlays
+        this.container.style.zIndex = '99999';
         
         const panes = this.getPanes();
         if (panes) {
-          panes.overlayMouseTarget.appendChild(this.container);
+          // Use floatPane instead of overlayMouseTarget for higher priority
+          panes.floatPane.appendChild(this.container);
           
           // Create React root and render content
           if (this.container) {
             rootRef.current = createRoot(this.container);
             rootRef.current.render(
-              <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-lg overflow-hidden relative">
+              <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden relative" style={{ zIndex: 99999 }}>
                 {/* Close button */}
                 <button
                   onClick={onClose}
                   className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10"
-                  style={{ fontSize: '12px', fontWeight: 'bold' }}
+                  style={{ fontSize: '12px', fontWeight: 'bold', zIndex: 100000 }}
                 >
                   ×
                 </button>
