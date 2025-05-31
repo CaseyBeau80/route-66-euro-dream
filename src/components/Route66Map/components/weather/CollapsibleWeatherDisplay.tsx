@@ -12,8 +12,11 @@ const CollapsibleWeatherDisplay: React.FC<CollapsibleWeatherDisplayProps> = ({ w
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
+    console.log('🔄 CollapsibleWeatherDisplay: Toggling expanded state', !isExpanded);
     setIsExpanded(!isExpanded);
   };
+
+  console.log('🌤️ CollapsibleWeatherDisplay: Rendering with weather data:', weather);
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg border border-blue-200 min-w-[280px]">

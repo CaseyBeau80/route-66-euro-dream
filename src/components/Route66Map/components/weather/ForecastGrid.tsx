@@ -13,7 +13,12 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
   
   if (!forecast || forecast.length === 0) {
     console.log('⚠️ ForecastGrid: No forecast data available');
-    return null;
+    return (
+      <div className="text-center text-gray-500 py-4">
+        <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">No forecast data available</p>
+      </div>
+    );
   }
 
   return (
@@ -26,14 +31,44 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
       )}
       <div className="grid grid-cols-3 gap-1 w-full">
         {forecast.map((day, index) => {
-          console.log(`🔍 ForecastGrid: Processing day ${index}:`, day);
+          console.log(`🔍 ForecastGrid: Rendering day ${index}:`, day);
           const { dayLabel, dateLabel } = getDayAndDateLabels(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Day: ${dayLabel}, Date: ${dateLabel}`);
           
+          // Validate weather icon
+          const weatherIconUrl = `https://openweathermap.org/img/wn/${day.icon}@2x.png`;
+          console.log(`🌤️ Weather icon URL for day ${index}:`, weatherIconUrl);
+          
           return (
-            <div key={index} className="flex flex-col items-center bg-gray-100 rounded-lg px-2 py-3 min-h-[120px] border border-gray-200 shadow-sm flex-1 max-w-none">
+            <div key={index} className="flex flex-col items-center bg-gradient-to-b from-white to-gray-50 rounded-lg px-2 py-3 min-h-[140px] border border-gray-300 shadow-sm flex-1 max-w-none hover:shadow-md transition-shadow">
+              {/* Day of week - moved to top */}
+              <div className="text-sm font-bold text-gray-900 mb-1">
+                {dayLabel}
+              </div>
+              
+              {/* Date - smaller, under day */}
+              <div className="text-xs text-gray-600 mb-2">
+                {dateLabel}
+              </div>
+              
+              {/* Weather icon with error handling */}
+              <div className="mb-2 flex items-center justify-center h-10">
+                <img 
+                  src={weatherIconUrl}
+                  alt={day.description}
+                  className="w-10 h-10"
+                  onError={(e) => {
+                    console.error(`❌ Failed to load weather icon for day ${index}:`, weatherIconUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log(`✅ Successfully loaded weather icon for day ${index}`);
+                  }}
+                />
+              </div>
+              
               {/* High temperature - large and prominent */}
-              <div className="text-xl font-bold text-gray-800 mb-1">
+              <div className="text-lg font-bold text-gray-800 mb-1">
                 {day.temperature.high}°
               </div>
               
@@ -42,28 +77,14 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
                 {day.temperature.low}°
               </div>
               
-              {/* Weather icon */}
-              <div className="mb-2">
-                <img 
-                  src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
-                  alt={day.description}
-                  className="w-8 h-8"
-                />
-              </div>
-              
               {/* Precipitation chance */}
-              <div className="text-sm text-blue-600 font-medium mb-2">
+              <div className="text-xs text-blue-600 font-medium mb-1">
                 {day.precipitationChance || '0'}%
               </div>
               
-              {/* Day of week */}
-              <div className="text-sm font-medium text-gray-800 mb-1">
-                {dayLabel}
-              </div>
-              
-              {/* Date */}
-              <div className="text-sm text-gray-600">
-                {dateLabel}
+              {/* Weather description - truncated */}
+              <div className="text-xs text-gray-500 text-center leading-tight">
+                {day.description}
               </div>
             </div>
           );
@@ -79,12 +100,21 @@ const getDayAndDateLabels = (index: number): { dayLabel: string; dateLabel: stri
   const targetDate = new Date(today);
   targetDate.setDate(today.getDate() + index);
   
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayLabel = dayNames[targetDate.getDay()];
+  let dayLabel: string;
+  if (index === 0) {
+    dayLabel = 'Today';
+  } else if (index === 1) {
+    dayLabel = 'Tomorrow';
+  } else {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayLabel = dayNames[targetDate.getDay()];
+  }
   
   const month = targetDate.getMonth() + 1;
   const day = targetDate.getDate();
   const dateLabel = `${month}/${day}`;
+  
+  console.log(`📅 Generated labels for day ${index}: ${dayLabel} ${dateLabel}`);
   
   return { dayLabel, dateLabel };
 };
