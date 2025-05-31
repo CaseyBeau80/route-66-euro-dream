@@ -1,4 +1,3 @@
-
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { IconCreator } from './IconCreator';
 import { InfoWindowCreator } from './InfoWindowCreator';
@@ -44,11 +43,16 @@ export class MarkerManager {
     map: google.maps.Map, 
     markerRefs: MarkerRefs
   ): void {
-    regularStops.forEach((waypoint) => {
+    // Filter stops to reduce density - keep every 3rd stop for better spacing
+    const filteredStops = regularStops.filter((_, index) => index % 3 === 0);
+    
+    console.log(`📍 Filtered regular stops: ${regularStops.length} → ${filteredStops.length} (reduced density)`);
+
+    filteredStops.forEach((waypoint) => {
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: map,
-        icon: IconCreator.createRegularStopIcon(),
+        icon: IconCreator.createRegularStopIcon(false), // Start with simple dots
         title: `${waypoint.name} - ${waypoint.state}`,
         zIndex: 20000 // Lower zIndex for regular stops
       });
@@ -66,6 +70,26 @@ export class MarkerManager {
         infoWindow.open(map, marker);
       });
 
+      // Add zoom-based icon switching
+      const updateIconBasedOnZoom = () => {
+        const currentZoom = map.getZoom() || 5;
+        const isCloseZoom = currentZoom >= 8; // Show detailed icons at zoom 8+
+        const shouldBeVisible = currentZoom >= 6; // Hide completely below zoom 6
+        
+        if (shouldBeVisible) {
+          marker.setIcon(IconCreator.createRegularStopIcon(isCloseZoom));
+          marker.setVisible(true);
+        } else {
+          marker.setVisible(false);
+        }
+      };
+
+      // Set up zoom listener for this marker
+      map.addListener('zoom_changed', updateIconBasedOnZoom);
+      
+      // Set initial visibility
+      updateIconBasedOnZoom();
+
       markerRefs.infoWindowsRef.current.set(marker, infoWindow);
       markerRefs.markersRef.current.push(marker);
     });
@@ -77,6 +101,7 @@ export class MarkerManager {
       if (infoWindow) {
         infoWindow.close();
       }
+      google.maps.event.clearInstanceListeners(marker);
       marker.setMap(null);
     });
     markerRefs.markersRef.current = [];

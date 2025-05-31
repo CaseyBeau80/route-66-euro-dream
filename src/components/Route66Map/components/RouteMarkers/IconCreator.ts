@@ -104,43 +104,79 @@ export class IconCreator {
     };
   }
 
-  static createRegularStopIcon() {
-    const iconWidth = 20;
-    const iconHeight = 20;
-    
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
-          <defs>
-            <filter id="stopShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0.5" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.25"/>
-            </filter>
+  static createRegularStopIcon(isCloseZoom: boolean = false) {
+    if (isCloseZoom) {
+      // Detailed icon for close zoom levels
+      const iconWidth = 16;
+      const iconHeight = 16;
+      
+      return {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
+            <defs>
+              <filter id="miniShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0.5" dy="1" stdDeviation="0.8" flood-color="#000000" flood-opacity="0.2"/>
+              </filter>
+            </defs>
             
-            <linearGradient id="stopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#B91C1C;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          
-          <!-- Outer circle -->
-          <circle cx="10" cy="10" r="8" 
-                  fill="url(#stopGradient)" 
-                  stroke="#FFFFFF" 
-                  stroke-width="2"
-                  filter="url(#stopShadow)"/>
-          
-          <!-- Inner circle -->
-          <circle cx="10" cy="10" r="4" 
+            <!-- Outer circle with vintage feel -->
+            <circle cx="8" cy="8" r="7" 
+                    fill="#FEF3C7" 
+                    stroke="#DC2626" 
+                    stroke-width="2"
+                    filter="url(#miniShadow)"/>
+            
+            <!-- Inner white circle -->
+            <circle cx="8" cy="8" r="4" 
+                    fill="#FFFFFF" 
+                    opacity="0.95"/>
+            
+            <!-- Tiny Route 66 shield silhouette -->
+            <path d="M8 3.5
+                     L5.5 3.5
+                     C5 3.5 4.5 4 4.5 4.5
+                     L4.5 8.5
+                     C4.5 10 5 11.5 6 12.5
+                     C7 13 7.5 13.2 8 13.3
+                     C8.5 13.2 9 13 10 12.5
+                     C11 11.5 11.5 10 11.5 8.5
+                     L11.5 4.5
+                     C11.5 4 11 3.5 10.5 3.5
+                     L8 3.5 Z" 
+                  fill="#DC2626" 
+                  opacity="0.8"/>
+            
+            <!-- Tiny "66" text -->
+            <text x="8" y="9.5" text-anchor="middle" 
                   fill="#FFFFFF" 
-                  opacity="0.9"/>
-          
-          <!-- Center dot -->
-          <circle cx="10" cy="10" r="1.5" 
-                  fill="#DC2626"/>
-        </svg>
-      `)}`,
-      scaledSize: new google.maps.Size(iconWidth, iconHeight),
-      anchor: new google.maps.Point(iconWidth/2, iconHeight/2)
-    };
+                  font-family="Arial, sans-serif" 
+                  font-size="3" 
+                  font-weight="bold">66</text>
+          </svg>
+        `)}`,
+        scaledSize: new google.maps.Size(iconWidth, iconHeight),
+        anchor: new google.maps.Point(iconWidth/2, iconHeight/2)
+      };
+    } else {
+      // Simple dot for far zoom levels
+      const iconWidth = 8;
+      const iconHeight = 8;
+      
+      return {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
+            <circle cx="4" cy="4" r="3" 
+                    fill="#FEF3C7" 
+                    stroke="#DC2626" 
+                    stroke-width="1.5"/>
+            <circle cx="4" cy="4" r="1.5" 
+                    fill="#FFFFFF" 
+                    opacity="0.9"/>
+          </svg>
+        `)}`,
+        scaledSize: new google.maps.Size(iconWidth, iconHeight),
+        anchor: new google.maps.Point(iconWidth/2, iconHeight/2)
+      };
+    }
   }
 }
