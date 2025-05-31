@@ -6,10 +6,10 @@ interface RouteApiServiceProps {
   onRouteReady: (success: boolean, fallbackUsed: boolean) => void;
 }
 
-// This component has been completely removed to prevent route conflicts
-// All route rendering is now handled by RoutePolyline component
+// This component is completely disabled to prevent route conflicts
+// All route rendering is now handled by Route66StaticPolyline component
 const RouteApiService = ({ map, onRouteReady }: RouteApiServiceProps) => {
-  console.log('⚠️ RouteApiService: Component deprecated and disabled to prevent route conflicts');
+  console.log('⚠️ RouteApiService: Component completely disabled to prevent route conflicts');
   
   // Don't call onRouteReady to prevent interference with the main route system
   return null;

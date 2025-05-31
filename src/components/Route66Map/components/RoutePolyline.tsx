@@ -7,10 +7,10 @@ interface RoutePolylineProps {
   waypoints: Route66Waypoint[];
 }
 
-// This component has been completely disabled to prevent route conflicts
-// All route rendering is now handled by Route66StaticPolyline component with textured appearance
+// This component is completely disabled to prevent route conflicts
+// All route rendering is now handled by Route66StaticPolyline component with single polyline
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
-  console.log('⚠️ RoutePolyline: Component disabled to prevent conflicts with textured Route66StaticPolyline');
+  console.log('⚠️ RoutePolyline: Component completely disabled to prevent conflicts with single Route66StaticPolyline');
   return null;
 };
 
