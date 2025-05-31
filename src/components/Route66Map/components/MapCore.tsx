@@ -45,7 +45,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
-        mapTypeControl: true,
+        mapTypeControl: false, // Disable map type control (Map/Satellite buttons)
         scaleControl: true,
         streetViewControl: false,
         rotateControl: false,
