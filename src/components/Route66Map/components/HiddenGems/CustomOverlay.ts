@@ -38,8 +38,16 @@ export class CustomOverlay {
             this.customOverlay.div.style.left = (point.x - 20) + 'px';
             this.customOverlay.div.style.top = (point.y - 20) + 'px';
             
-            // Update hover card position
-            this.customOverlay.onPositionUpdate(point.x, point.y);
+            // Get the map container to calculate relative position
+            const mapContainer = this.customOverlay.div.closest('.gm-style');
+            if (mapContainer) {
+              const rect = mapContainer.getBoundingClientRect();
+              // Update hover card position relative to map container
+              this.customOverlay.onPositionUpdate(point.x, point.y);
+            } else {
+              // Fallback to direct point coordinates
+              this.customOverlay.onPositionUpdate(point.x, point.y);
+            }
           }
         }
       }

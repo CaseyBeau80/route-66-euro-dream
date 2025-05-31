@@ -17,16 +17,21 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
 }) => {
   if (!isVisible) return null;
 
+  // Calculate proper positioning relative to the map container
+  const cardStyle = {
+    position: 'absolute' as const,
+    left: `${position.x}px`,
+    top: `${position.y - 200}px`, // Position above the marker with more offset
+    transform: 'translateX(-50%)',
+    zIndex: 999999,
+    opacity: isVisible ? 1 : 0,
+    pointerEvents: 'auto' as const,
+  };
+
   return (
     <div 
-      className="fixed pointer-events-none transition-all duration-200 ease-out"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y - 180}px`,
-        transform: 'translateX(-50%)',
-        zIndex: 999999,
-        opacity: isVisible ? 1 : 0,
-      }}
+      className="transition-all duration-200 ease-out"
+      style={cardStyle}
     >
       <div className="w-80 max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header Banner */}
@@ -76,7 +81,7 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
                   e.stopPropagation();
                   onWebsiteClick(gem.website!);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide pointer-events-auto"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
               >
                 Visit Website
               </button>

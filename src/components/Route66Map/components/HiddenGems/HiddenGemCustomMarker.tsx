@@ -41,12 +41,17 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
             map={map}
           />
           
-          <HoverCardDisplay
-            gem={gem}
-            isVisible={isHovered}
-            position={hoverPosition}
-            onWebsiteClick={onWebsiteClick}
-          />
+          {/* Render the hover card within the map container */}
+          {isHovered && (
+            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 999999 }}>
+              <HoverCardDisplay
+                gem={gem}
+                isVisible={isHovered}
+                position={hoverPosition}
+                onWebsiteClick={onWebsiteClick}
+              />
+            </div>
+          )}
         </>
       )}
     </MarkerInteractionHandler>
