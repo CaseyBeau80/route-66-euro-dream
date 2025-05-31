@@ -17,6 +17,9 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 }) => {
   if (!isVisible) return null;
 
+  console.log(`🔮 Portal rendering destination hover card for ${destination.name} at position:`, position);
+
+  // Use the portal root if it exists, otherwise fall back to document.body
   const portalRoot = document.getElementById('map-portal-root') || document.body;
 
   const adjustedPosition = {
@@ -25,15 +28,18 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   };
 
   return createPortal(
-    <div
-      className="fixed pointer-events-none z-[100000] transition-opacity duration-200"
-      style={{
-        left: `${adjustedPosition.x}px`,
-        top: `${adjustedPosition.y}px`,
-        opacity: isVisible ? 1 : 0
-      }}
-    >
-      <DestinationHoverCard destination={destination} />
+    <div className="fixed inset-0 pointer-events-none z-[999999]">
+      <div
+        className="absolute transition-opacity duration-200"
+        style={{
+          left: `${adjustedPosition.x}px`,
+          top: `${adjustedPosition.y}px`,
+          opacity: isVisible ? 1 : 0,
+          pointerEvents: 'auto'
+        }}
+      >
+        <DestinationHoverCard destination={destination} />
+      </div>
     </div>,
     portalRoot
   );

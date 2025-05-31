@@ -22,8 +22,18 @@ const MapContent: React.FC<MapContentProps> = ({
 }) => {
   if (!isMapReady) return null;
 
+  console.log('🎨 MapContent rendering:', { 
+    useClusteringMode, 
+    attractions: attractions.length, 
+    destinations: destinations.length,
+    isMapReady 
+  });
+
   return (
     <>
+      {/* Always render a portal root for hover cards */}
+      <div id="map-portal-root" className="fixed inset-0 pointer-events-none z-[999999]" />
+      
       {/* Conditional rendering based on clustering mode */}
       {useClusteringMode ? (
         <ClusterManager
@@ -47,7 +57,7 @@ const MapContent: React.FC<MapContentProps> = ({
           <HiddenGemsContainer 
             map={map}
             onGemClick={(gem) => {
-              console.log('✨ Hidden gem selected:', gem.title);
+              console.log('✨ Hidden gem selected (individual):', gem.title);
             }}
           />
           
@@ -56,7 +66,7 @@ const MapContent: React.FC<MapContentProps> = ({
             map={map}
             waypoints={destinations}
             onDestinationClick={(destination) => {
-              console.log('🏛️ Destination city selected:', destination.name);
+              console.log('🏛️ Destination city selected (individual):', destination.name);
             }}
           />
           
@@ -65,7 +75,7 @@ const MapContent: React.FC<MapContentProps> = ({
             map={map}
             waypoints={attractions}
             onAttractionClick={(attraction) => {
-              console.log('🎯 Attraction selected:', attraction.name);
+              console.log('🎯 Attraction selected (individual):', attraction.name);
             }}
           />
         </>
