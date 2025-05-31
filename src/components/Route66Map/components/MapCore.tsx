@@ -5,8 +5,6 @@ import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import StateHighlighting from './StateHighlighting';
-import EnhancedMapBoundaryRestriction from './EnhancedMapBoundaryRestriction';
-import { mapOptions, center } from '../config/MapConfig';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -38,12 +36,12 @@ const MapCore: React.FC<MapCoreProps> = ({
       return;
     }
 
-    console.log('🗺️ MapCore: Initializing Enhanced Route 66 Google Map');
+    console.log('🗺️ MapCore: Initializing Google Map');
 
     try {
       const map = new google.maps.Map(containerRef.current, {
         zoom: 5,
-        center: center, // Use center from config
+        center: { lat: 35.2271, lng: -101.8313 }, // Center of Route 66
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
@@ -53,11 +51,13 @@ const MapCore: React.FC<MapCoreProps> = ({
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        // Apply enhanced styling from config
-        styles: mapOptions.styles,
-        restriction: mapOptions.restriction,
-        minZoom: mapOptions.minZoom,
-        maxZoom: mapOptions.maxZoom
+        styles: [
+          {
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }]
+          }
+        ]
       });
 
       mapRef.current = map;
@@ -76,7 +76,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      console.log('✅ Enhanced Route 66 Google Map initialized successfully');
+      console.log('✅ Google Map initialized successfully');
       onMapLoad(map);
       onMapReady();
 
@@ -84,7 +84,7 @@ const MapCore: React.FC<MapCoreProps> = ({
       map.addListener('click', onMapClick);
 
     } catch (error) {
-      console.error('❌ Error initializing Enhanced Route 66 Google Map:', error);
+      console.error('❌ Error initializing Google Map:', error);
     }
   }, [mapInitialized, onMapLoad, onMapClick, onMapReady]);
 
@@ -92,8 +92,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     mapInitialized,
     isMapReady,
     hasMap: !!mapRef.current,
-    visibleWaypoints: visibleWaypoints.length,
-    enhancedStyling: true
+    visibleWaypoints: visibleWaypoints.length
   });
 
   return (
@@ -104,12 +103,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         style={{ minHeight: '400px' }}
       />
       
-      {/* Enhanced Map Boundary Restrictions */}
-      {mapRef.current && isMapReady && (
-        <EnhancedMapBoundaryRestriction map={mapRef.current} />
-      )}
-      
-      {/* Enhanced State Highlighting */}
+      {/* Orange State Highlighting */}
       {mapRef.current && isMapReady && (
         <StateHighlighting map={mapRef.current} />
       )}
