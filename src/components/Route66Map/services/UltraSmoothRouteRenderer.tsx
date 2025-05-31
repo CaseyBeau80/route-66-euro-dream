@@ -1,7 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
-import { RouteInterpolationService } from './RouteInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
 import { RouteMarkersManager } from './RouteMarkersManager';
 import { RoutePolylineManager } from './RoutePolylineManager';
@@ -18,7 +17,6 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
 }) => {
   const hasRendered = useRef(false);
   const { waypoints, isLoading, error } = useSupabaseRoute66();
-  const interpolationServiceRef = useRef<RouteInterpolationService | null>(null);
 
   useEffect(() => {
     if (!map || !isMapReady || isLoading || error || waypoints.length === 0) {
@@ -30,7 +28,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    console.log('🚀 UltraSmoothRouteRenderer: Creating ultra-smooth Route 66');
+    console.log('🚀 UltraSmoothRouteRenderer: Creating icon-based Route 66 segments');
     
     // Initialize managers
     const markersManager = new RouteMarkersManager(map);
@@ -40,51 +38,35 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     // Step 1: Clean up any existing routes
     cleanupManager.performNuclearCleanup();
     
-    // Step 2: Initialize interpolation service
-    interpolationServiceRef.current = new RouteInterpolationService(waypoints);
+    // Step 2: Create polylines ONLY between major stops with icons
+    const majorStops = waypoints.filter(wp => wp.is_major_stop);
+    console.log(`🎯 Found ${majorStops.length} major stops with Route 66 icons`);
     
-    // Step 3: Generate smooth route with ~2000 points
-    const smoothRoutePath = interpolationServiceRef.current.generateSmoothRoute();
-    
-    if (smoothRoutePath.length === 0) {
-      console.error('❌ Failed to generate smooth route path');
+    if (majorStops.length < 2) {
+      console.warn('⚠️ Not enough major stops with icons to create road segments');
       return;
     }
 
-    // Step 4: Get statistics
-    const stats = interpolationServiceRef.current.getRouteStatistics();
-    console.log('📊 Route Statistics:', stats);
+    // Step 3: Create road segments only between locations with icons
+    polylineManager.createPolylines([], waypoints);
 
-    // Step 5: Create polylines
-    polylineManager.createPolylines(smoothRoutePath);
-
-    // Step 6: Create route markers for major stops
+    // Step 4: Create route markers for major stops with icons
     markersManager.createRouteMarkers(waypoints);
 
-    // Step 7: Mark as created and set bounds
+    // Step 5: Mark as created
     RouteGlobalState.setRouteCreated(true);
     hasRendered.current = true;
 
-    console.log(`✅ Ultra-smooth Route 66 created with ${stats.totalPoints} points!`);
-    console.log(`📏 Total distance: ${stats.totalDistance.toFixed(2)} km`);
-    console.log(`🎯 Average points per segment: ${stats.averagePointsPerSegment}`);
+    console.log(`✅ Icon-based Route 66 created with road segments only between ${majorStops.length} locations with Route 66 shields!`);
 
-    // Step 8: Fit map to route bounds
-    polylineManager.fitMapToBounds(smoothRoutePath);
+    // Step 6: Fit map to bounds of major stops only
+    polylineManager.fitMapToBounds(waypoints);
 
     // Cleanup function
     return () => {
       console.log('🧹 UltraSmoothRouteRenderer: Component unmounting');
     };
   }, [map, isMapReady, waypoints, isLoading, error]);
-
-  // Provide access to route statistics for debugging
-  useEffect(() => {
-    if (interpolationServiceRef.current && RouteGlobalState.isRouteCreated()) {
-      const stats = interpolationServiceRef.current.getRouteStatistics();
-      console.log('📈 Current Route Statistics:', stats);
-    }
-  }, [RouteGlobalState.isRouteCreated()]);
 
   return null;
 };
