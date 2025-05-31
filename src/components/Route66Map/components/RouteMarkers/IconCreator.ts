@@ -4,6 +4,8 @@ export class IconCreator {
     const iconWidth = 40;
     const iconHeight = 40;
     
+    console.log(`🎨 Creating destination icon for ${cityName}`);
+    
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
@@ -110,6 +112,8 @@ export class IconCreator {
       const iconWidth = 16;
       const iconHeight = 16;
       
+      console.log('🎨 Creating detailed regular stop icon');
+      
       return {
         url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
           <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
@@ -158,18 +162,20 @@ export class IconCreator {
         anchor: new google.maps.Point(iconWidth/2, iconHeight/2)
       };
     } else {
-      // Simple dot for far zoom levels
-      const iconWidth = 8;
-      const iconHeight = 8;
+      // Simple dot for far zoom levels - make it more visible
+      const iconWidth = 10;
+      const iconHeight = 10;
+      
+      console.log('🎨 Creating simple regular stop icon');
       
       return {
         url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
           <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
-            <circle cx="4" cy="4" r="3" 
+            <circle cx="5" cy="5" r="4" 
                     fill="#FEF3C7" 
                     stroke="#DC2626" 
-                    stroke-width="1.5"/>
-            <circle cx="4" cy="4" r="1.5" 
+                    stroke-width="2"/>
+            <circle cx="5" cy="5" r="2" 
                     fill="#FFFFFF" 
                     opacity="0.9"/>
           </svg>

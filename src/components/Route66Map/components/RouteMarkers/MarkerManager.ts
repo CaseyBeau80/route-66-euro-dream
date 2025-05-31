@@ -1,3 +1,4 @@
+
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { IconCreator } from './IconCreator';
 import { InfoWindowCreator } from './InfoWindowCreator';
@@ -9,6 +10,8 @@ export class MarkerManager {
     map: google.maps.Map, 
     markerRefs: MarkerRefs
   ): void {
+    console.log(`📍 Creating ${destinationCities.length} destination markers`);
+    
     destinationCities.forEach((waypoint) => {
       const cityName = waypoint.name.split(',')[0].split(' - ')[0].trim();
       
@@ -17,7 +20,8 @@ export class MarkerManager {
         map: map,
         icon: IconCreator.createDestinationCityIcon(cityName),
         title: `${waypoint.name} - ${waypoint.state} (Destination)`,
-        zIndex: 30000 // Higher zIndex for destinations
+        zIndex: 30000,
+        visible: true // Ensure visibility
       });
 
       const infoWindow = InfoWindowCreator.createDestinationInfoWindow(waypoint);
@@ -36,6 +40,8 @@ export class MarkerManager {
       markerRefs.infoWindowsRef.current.set(marker, infoWindow);
       markerRefs.markersRef.current.push(marker);
     });
+    
+    console.log(`✅ Created ${destinationCities.length} destination markers successfully`);
   }
 
   static createRegularStopMarkers(
@@ -43,18 +49,19 @@ export class MarkerManager {
     map: google.maps.Map, 
     markerRefs: MarkerRefs
   ): void {
-    // Filter stops to reduce density - keep every 3rd stop for better spacing
-    const filteredStops = regularStops.filter((_, index) => index % 3 === 0);
+    // Reduce filtering - show every 2nd stop instead of every 3rd for better coverage
+    const filteredStops = regularStops.filter((_, index) => index % 2 === 0);
     
-    console.log(`📍 Filtered regular stops: ${regularStops.length} → ${filteredStops.length} (reduced density)`);
+    console.log(`📍 Creating regular stop markers: ${regularStops.length} → ${filteredStops.length} (showing every 2nd stop)`);
 
-    filteredStops.forEach((waypoint) => {
+    filteredStops.forEach((waypoint, index) => {
       const marker = new google.maps.Marker({
         position: { lat: waypoint.latitude, lng: waypoint.longitude },
         map: map,
         icon: IconCreator.createRegularStopIcon(false), // Start with simple dots
         title: `${waypoint.name} - ${waypoint.state}`,
-        zIndex: 20000 // Lower zIndex for regular stops
+        zIndex: 20000,
+        visible: true // Start visible
       });
 
       const infoWindow = InfoWindowCreator.createRegularStopInfoWindow(waypoint);
@@ -70,11 +77,11 @@ export class MarkerManager {
         infoWindow.open(map, marker);
       });
 
-      // Add zoom-based icon switching
+      // Simplified zoom-based icon switching
       const updateIconBasedOnZoom = () => {
         const currentZoom = map.getZoom() || 5;
         const isCloseZoom = currentZoom >= 8; // Show detailed icons at zoom 8+
-        const shouldBeVisible = currentZoom >= 6; // Hide completely below zoom 6
+        const shouldBeVisible = currentZoom >= 5; // Show at zoom 5+ instead of 6+
         
         if (shouldBeVisible) {
           marker.setIcon(IconCreator.createRegularStopIcon(isCloseZoom));
@@ -84,27 +91,48 @@ export class MarkerManager {
         }
       };
 
-      // Set up zoom listener for this marker
-      map.addListener('zoom_changed', updateIconBasedOnZoom);
+      // Set up zoom listener - but don't overdo it
+      const zoomListener = map.addListener('zoom_changed', updateIconBasedOnZoom);
       
-      // Set initial visibility
-      updateIconBasedOnZoom();
+      // Store listener for cleanup
+      (marker as any)._zoomListener = zoomListener;
+      
+      // Set initial visibility based on current zoom
+      const currentZoom = map.getZoom() || 5;
+      if (currentZoom >= 5) {
+        marker.setVisible(true);
+      } else {
+        marker.setVisible(false);
+      }
 
       markerRefs.infoWindowsRef.current.set(marker, infoWindow);
       markerRefs.markersRef.current.push(marker);
     });
+    
+    console.log(`✅ Created ${filteredStops.length} regular stop markers successfully`);
   }
 
   static cleanupMarkers(markerRefs: MarkerRefs): void {
+    console.log(`🧹 Cleaning up ${markerRefs.markersRef.current.length} markers`);
+    
     markerRefs.markersRef.current.forEach(marker => {
       const infoWindow = markerRefs.infoWindowsRef.current.get(marker);
       if (infoWindow) {
         infoWindow.close();
       }
+      
+      // Clean up zoom listener if it exists
+      if ((marker as any)._zoomListener) {
+        google.maps.event.removeListener((marker as any)._zoomListener);
+      }
+      
       google.maps.event.clearInstanceListeners(marker);
       marker.setMap(null);
     });
+    
     markerRefs.markersRef.current = [];
     markerRefs.infoWindowsRef.current = new WeakMap();
+    
+    console.log('✅ Marker cleanup completed');
   }
 }
