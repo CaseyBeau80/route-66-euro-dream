@@ -61,10 +61,22 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     };
   }, [attraction.latitude, attraction.longitude, attraction.name, attraction.state]);
 
+  // FIXED: Removed isHovered from dependencies to prevent re-render loop
   useEffect(() => {
     if (!map || !attraction) return;
 
-    console.log(`🎯 Creating optimized attraction marker for ${attraction.name}`);
+    // Prevent marker recreation if it already exists with same position
+    if (markerRef.current) {
+      const currentPos = markerRef.current.getPosition();
+      if (currentPos && 
+          Math.abs(currentPos.lat() - markerConfig.position.lat) < 0.0001 &&
+          Math.abs(currentPos.lng() - markerConfig.position.lng) < 0.0001) {
+        console.log(`🔒 Marker already exists for ${attraction.name}, skipping recreation`);
+        return;
+      }
+    }
+
+    console.log(`🎯 Creating stable attraction marker for ${attraction.name}`);
 
     // Create marker with memoized config
     const marker = new google.maps.Marker({
@@ -79,7 +91,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     markerRef.current = marker;
 
     if (markerConfig.isDriveIn) {
-      console.log(`🎬 Optimized drive-in theater marker created: ${attraction.name}`);
+      console.log(`🎬 Stable drive-in theater marker created: ${attraction.name}`);
     }
 
     // Clear any existing listeners
@@ -102,7 +114,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     });
 
     const mouseMoveListener = marker.addListener('mousemove', (event: google.maps.MapMouseEvent) => {
-      if (event.domEvent && isHovered) {
+      if (event.domEvent) {
         const mouseEvent = event.domEvent as MouseEvent;
         updatePosition(mouseEvent.clientX + 10, mouseEvent.clientY - 10);
       }
@@ -117,7 +129,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     listenersRef.current = [mouseEnterListener, mouseLeaveListener, mouseMoveListener, clickListener];
 
     return () => {
-      console.log(`🧹 Cleaning up optimized attraction marker: ${attraction.name}`);
+      console.log(`🧹 Cleaning up stable attraction marker: ${attraction.name}`);
       
       // Remove all listeners
       listenersRef.current.forEach(listener => {
@@ -134,7 +146,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
       // Cleanup hover state
       cleanup();
     };
-  }, [map, attraction, markerConfig, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, onAttractionClick, isHovered]);
+  }, [map, attraction, markerConfig, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, onAttractionClick]); // REMOVED isHovered
 
   // Use drive-in specific hover card for drive-ins, regular card for others
   return (

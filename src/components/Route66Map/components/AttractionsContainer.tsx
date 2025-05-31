@@ -33,7 +33,7 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [map]);
 
-  // Smart filtering with special handling for drive-ins
+  // TEMPORARILY DISABLE DRIVE-INS to test Route 66 polyline stability
   const filteredAttractions = useMemo(() => {
     // Separate drive-ins from other attractions
     const driveIns = attractions.filter(attraction => 
@@ -43,17 +43,19 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
       !attraction.name.toLowerCase().includes('drive-in')
     );
 
-    console.log(`🎬 Found ${driveIns.length} drive-in theaters in attractions`);
+    console.log(`🎬 TEMPORARILY DISABLED: Found ${driveIns.length} drive-in theaters (not rendering)`);
+    console.log(`🚫 Drive-ins disabled for polyline testing:`, driveIns.map(d => d.name));
 
+    // ONLY RENDER NON-DRIVE-IN ATTRACTIONS FOR NOW
     if (currentZoom >= 8) {
-      // High zoom: show all attractions including drive-ins
-      return [...driveIns, ...otherAttractions];
+      // High zoom: show every other attraction (no drive-ins)
+      return otherAttractions.filter((_, index) => index % 2 === 0);
     } else if (currentZoom >= 6) {
-      // Medium zoom: show all drive-ins + every 2nd other attraction
-      return [...driveIns, ...otherAttractions.filter((_, index) => index % 2 === 0)];
+      // Medium zoom: show every 3rd attraction (no drive-ins)
+      return otherAttractions.filter((_, index) => index % 3 === 0);
     } else {
-      // Low zoom: show all drive-ins + every 3rd other attraction
-      return [...driveIns, ...otherAttractions.filter((_, index) => index % 3 === 0)];
+      // Low zoom: show every 4th attraction (no drive-ins)
+      return otherAttractions.filter((_, index) => index % 4 === 0);
     }
   }, [attractions, currentZoom]);
 
@@ -83,19 +85,14 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} optimized Route 66 attractions (zoom: ${currentZoom}, total available: ${attractions.length})`);
-  
-  // Log drive-ins specifically
-  const driveInsBeingRendered = filteredAttractions.filter(a => a.name.toLowerCase().includes('drive-in'));
-  console.log(`🎬 Rendering ${driveInsBeingRendered.length} drive-in theaters:`, 
-    driveInsBeingRendered.map(d => d.name)
-  );
+  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} STABLE Route 66 attractions (zoom: ${currentZoom}, total available: ${attractions.length})`);
+  console.log(`🚫 DRIVE-INS TEMPORARILY DISABLED for polyline testing`);
 
   return (
     <>
       {filteredAttractions.map((attraction) => (
         <AttractionCustomMarker
-          key={`attraction-marker-${attraction.id}`}
+          key={`stable-attraction-${attraction.id}`}
           attraction={attraction}
           map={map}
           onAttractionClick={onAttractionClick}
