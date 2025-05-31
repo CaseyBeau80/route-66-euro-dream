@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { InfoWindow } from '@react-google-maps/api';
 import { Star, MapPin, ExternalLink } from 'lucide-react';
 import { HiddenGem } from './types';
+import { calculateNortheastOffset, calculateDynamicOffset } from './utils/coordinateOffset';
 
 interface HiddenGemInfoWindowProps {
   gem: HiddenGem;
@@ -14,22 +14,38 @@ interface HiddenGemInfoWindowProps {
 const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
   gem,
   onClose,
-  onWebsiteClick
+  onWebsiteClick,
+  map
 }) => {
-  const gemPosition = { lat: Number(gem.latitude), lng: Number(gem.longitude) };
+  // Get current zoom level for dynamic positioning
+  const currentZoom = map?.getZoom() || 10;
+  
+  // Calculate dynamic offset based on zoom level
+  const offsetMeters = calculateDynamicOffset(800, currentZoom);
+  
+  // Calculate northeast position from the marker
+  const northeastPosition = calculateNortheastOffset(
+    Number(gem.latitude), 
+    Number(gem.longitude), 
+    offsetMeters
+  );
+
+  console.log(`📍 Positioning info window for ${gem.title}:`);
+  console.log(`   Original: ${gem.latitude}, ${gem.longitude}`);
+  console.log(`   Northeast: ${northeastPosition.lat}, ${northeastPosition.lng}`);
+  console.log(`   Zoom: ${currentZoom}, Offset: ${offsetMeters}m`);
 
   return (
     <InfoWindow 
-      position={gemPosition}
+      position={northeastPosition}
       onCloseClick={onClose}
       options={{
         maxWidth: 280,
-        disableAutoPan: true, // Disable auto-pan since we're positioning manually
-        zIndex: 9999,
-        pixelOffset: new window.google.maps.Size(150, -300) // Position northeast of marker (150px east, 300px north)
+        disableAutoPan: true,
+        zIndex: 9999
       }}
       onLoad={(infoWindow) => {
-        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned northeast of marker`);
+        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned northeast using geographic coordinates`);
       }}
     >
       <div 
