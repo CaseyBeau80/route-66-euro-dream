@@ -19,8 +19,8 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   console.log(`🔮 Portal rendering destination hover card for ${destination.name} at position:`, position);
 
-  // Use the portal root if it exists, otherwise fall back to document.body
-  const portalRoot = document.getElementById('map-portal-root') || document.body;
+  // Use the dedicated hover portal root
+  const portalRoot = document.getElementById('hover-portal-root') || document.body;
 
   const adjustedPosition = {
     x: Math.min(position.x, window.innerWidth - 280), // Card width + padding
@@ -28,14 +28,22 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 pointer-events-none z-[999999]">
+    <div 
+      className="fixed pointer-events-none"
+      style={{
+        left: 0,
+        top: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999
+      }}
+    >
       <div
-        className="absolute transition-opacity duration-200"
+        className="absolute transition-opacity duration-200 pointer-events-auto"
         style={{
           left: `${adjustedPosition.x}px`,
           top: `${adjustedPosition.y}px`,
-          opacity: isVisible ? 1 : 0,
-          pointerEvents: 'auto'
+          opacity: isVisible ? 1 : 0
         }}
       >
         <DestinationHoverCard destination={destination} />

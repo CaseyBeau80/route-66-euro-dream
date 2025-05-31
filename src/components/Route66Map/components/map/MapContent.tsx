@@ -31,9 +31,6 @@ const MapContent: React.FC<MapContentProps> = ({
 
   return (
     <>
-      {/* Always render a portal root for hover cards */}
-      <div id="map-portal-root" className="fixed inset-0 pointer-events-none z-[999999]" />
-      
       {/* Conditional rendering based on clustering mode */}
       {useClusteringMode ? (
         <ClusterManager

@@ -14,11 +14,20 @@ const AttractionHoverPortal: React.FC<AttractionHoverProps> = ({
 
   console.log(`🔮 Portal rendering attraction hover card for ${attraction.name} at position:`, position);
 
-  // Use the portal root if it exists, otherwise fall back to document.body
-  const portalRoot = document.getElementById('map-portal-root') || document.body;
+  // Use the dedicated hover portal root
+  const portalRoot = document.getElementById('hover-portal-root') || document.body;
 
   return createPortal(
-    <div className="fixed inset-0 pointer-events-none z-[999999]">
+    <div 
+      className="fixed pointer-events-none"
+      style={{
+        left: 0,
+        top: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999
+      }}
+    >
       <AttractionHoverCard
         attraction={attraction}
         isVisible={isVisible}

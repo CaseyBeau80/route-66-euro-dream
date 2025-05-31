@@ -94,6 +94,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
   return (
     <div className="relative w-full h-full">
+      {/* Portal root for hover cards - positioned at document body level */}
+      <div id="hover-portal-root" className="fixed inset-0 pointer-events-none z-[999999]" />
+      
       <MapControls
         selectedState={selectedState}
         onClearSelection={onClearSelection}

@@ -21,11 +21,20 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
 
   console.log(`🔮 Portal rendering hover card for ${gem.title} at position:`, position);
 
-  // Use the portal root if it exists, otherwise fall back to document.body
-  const portalRoot = document.getElementById('map-portal-root') || document.body;
+  // Use the dedicated hover portal root
+  const portalRoot = document.getElementById('hover-portal-root') || document.body;
 
   return createPortal(
-    <div className="fixed inset-0 pointer-events-none z-[999999]">
+    <div 
+      className="fixed pointer-events-none"
+      style={{
+        left: 0,
+        top: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999
+      }}
+    >
       <HoverCardDisplay
         gem={gem}
         isVisible={isVisible}
