@@ -1,4 +1,3 @@
-
 import { RouteGlobalState } from './RouteGlobalState';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -132,23 +131,23 @@ export class RoutePolylineManager {
       // Generate windy, curved path between cities
       const windyPath = this.generateWindyPath(startCity, endCity, prevCity, nextCity);
 
-      // Create main route polyline with HIGH VISIBILITY
+      // Create main route polyline with realistic old asphalt appearance
       const mainPolyline = new google.maps.Polyline({
         path: windyPath,
         geodesic: false,
-        strokeColor: '#D92121', // Route 66 red - highly visible
-        strokeOpacity: 1.0, // Full opacity
+        strokeColor: '#2C2C2C', // Dark charcoal/asphalt color
+        strokeOpacity: 0.9, // Slightly weathered appearance
         strokeWeight: 8, // Thick line
         zIndex: 10000, // High z-index to be on top
         clickable: false,
         map: this.map // Add directly to map
       });
 
-      // Create center dashed line for authentic Route 66 look
+      // Create worn center line for authentic old Route 66 look
       const centerLine = new google.maps.Polyline({
         path: windyPath,
         geodesic: false,
-        strokeColor: '#FFD700', // Gold center line
+        strokeColor: '#F5F5DC', // Faded beige/cream for worn paint
         strokeOpacity: 0,
         strokeWeight: 0,
         zIndex: 10001,
@@ -156,14 +155,14 @@ export class RoutePolylineManager {
         map: this.map, // Add directly to map
         icons: [{
           icon: {
-            path: 'M 0,-2 0,2',
-            strokeOpacity: 1,
-            strokeColor: '#FFD700',
-            strokeWeight: 3,
+            path: 'M 0,-1.5 0,1.5',
+            strokeOpacity: 0.6, // Faded appearance
+            strokeColor: '#F5F5DC', // Faded cream color
+            strokeWeight: 2,
             scale: 1
           },
           offset: '0%',
-          repeat: '30px'
+          repeat: '40px' // Slightly longer dashes for worn look
         }]
       });
 
