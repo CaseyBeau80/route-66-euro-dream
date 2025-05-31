@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { InfoWindow } from '@react-google-maps/api';
 import { Star, MapPin, ExternalLink } from 'lucide-react';
 import { HiddenGem } from './types';
-import { calculateNortheastOffset, calculateDynamicOffset } from './utils/coordinateOffset';
 
 interface HiddenGemInfoWindowProps {
   gem: HiddenGem;
@@ -17,35 +17,22 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
   onWebsiteClick,
   map
 }) => {
-  // Get current zoom level for dynamic positioning
-  const currentZoom = map?.getZoom() || 10;
-  
-  // Calculate dynamic offset based on zoom level
-  const offsetMeters = calculateDynamicOffset(800, currentZoom);
-  
-  // Calculate northeast position from the marker
-  const northeastPosition = calculateNortheastOffset(
-    Number(gem.latitude), 
-    Number(gem.longitude), 
-    offsetMeters
-  );
+  const gemPosition = { lat: Number(gem.latitude), lng: Number(gem.longitude) };
 
-  console.log(`📍 Positioning info window for ${gem.title}:`);
-  console.log(`   Original: ${gem.latitude}, ${gem.longitude}`);
-  console.log(`   Northeast: ${northeastPosition.lat}, ${northeastPosition.lng}`);
-  console.log(`   Zoom: ${currentZoom}, Offset: ${offsetMeters}m`);
+  console.log(`📍 Positioning info window for ${gem.title} at marker coordinates:`, gemPosition);
 
   return (
     <InfoWindow 
-      position={northeastPosition}
+      position={gemPosition}
       onCloseClick={onClose}
       options={{
         maxWidth: 280,
-        disableAutoPan: true,
-        zIndex: 9999
+        disableAutoPan: false, // Enable auto-pan for better UX
+        zIndex: 9999,
+        pixelOffset: new window.google.maps.Size(0, -50) // Position 50px above the marker
       }}
       onLoad={(infoWindow) => {
-        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned northeast using geographic coordinates`);
+        console.log(`✅ InfoWindow loaded for ${gem.title} - positioned above marker using pixelOffset`);
       }}
     >
       <div 
