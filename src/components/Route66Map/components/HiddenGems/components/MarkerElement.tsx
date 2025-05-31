@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { HiddenGem } from '../types';
+import { createMarkerSetup } from '../MarkerSetup';
 
 interface MarkerElementProps {
   gem: HiddenGem;
@@ -22,8 +23,6 @@ export const MarkerElement: React.FC<MarkerElementProps> = ({
   React.useEffect(() => {
     if (!map) return;
 
-    const { createMarkerSetup } = require('../MarkerSetup');
-    
     const markerSetup = createMarkerSetup({
       gem,
       map,
