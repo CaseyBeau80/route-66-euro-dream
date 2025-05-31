@@ -15,7 +15,12 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   useEffect(() => {
-    if (!map || !waypoints.length) return;
+    if (!map || !waypoints.length) {
+      console.log('❌ RoutePolyline: Missing map or waypoints', { hasMap: !!map, waypointsCount: waypoints.length });
+      return;
+    }
+
+    console.log('🛣️ RoutePolyline: Creating route with', waypoints.length, 'waypoints');
 
     // Convert waypoints to Google Maps LatLng objects, sorted by sequence
     const sortedWaypoints = [...waypoints].sort((a, b) => a.sequence_order - b.sequence_order);
@@ -24,7 +29,13 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       lng: waypoint.longitude
     }));
 
-    // Create realistic asphalt texture
+    console.log('📍 RoutePolyline: Route path created:', {
+      totalWaypoints: routePath.length,
+      firstPoint: routePath[0],
+      lastPoint: routePath[routePath.length - 1]
+    });
+
+    // Create asphalt texture
     const createAsphaltTexture = () => {
       return {
         path: google.maps.SymbolPath.CIRCLE,
@@ -41,21 +52,24 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
     const roadBase = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#1A1A1A', // Very dark asphalt
+      strokeColor: '#1A1A1A',
       strokeOpacity: 0.4,
       strokeWeight: 10,
-      zIndex: 9998
+      zIndex: 9998,
+      clickable: false,
+      visible: true
     });
 
     // Create main asphalt road surface
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#2C2C2C', // Dark asphalt gray
+      strokeColor: '#2C2C2C',
       strokeOpacity: 0.9,
       strokeWeight: 7,
       zIndex: 9999,
       clickable: true,
+      visible: true,
       icons: [{
         icon: createAsphaltTexture(),
         offset: '0%',
@@ -63,15 +77,16 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       }]
     });
 
-    // Create realistic dashed yellow center line to match screenshot
+    // Create realistic dashed yellow center line
     const centerLine = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#FFD700', // Highway yellow
+      strokeColor: '#FFD700',
       strokeOpacity: 0,
       strokeWeight: 0,
       zIndex: 10000,
       clickable: false,
+      visible: true,
       icons: [{
         icon: {
           path: 'M 0,-0.5 L 0,0.5',
@@ -114,7 +129,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       }
     });
 
-    // Set all polylines on the map in proper order
+    // Set all polylines on the map in proper order with forced visibility
     roadBase.setMap(map);
     route66Polyline.setMap(map);
     centerLine.setMap(map);
@@ -123,13 +138,30 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
     centerLineRef.current = centerLine;
     edgeLineRef.current = roadBase;
     
-    console.log(`✅ Realistic textured Route 66 polyline added with ${waypoints.length} waypoints`);
+    // Force visibility after a short delay
+    setTimeout(() => {
+      if (roadBase) {
+        roadBase.setVisible(true);
+        console.log('🔧 Forced road base visibility');
+      }
+      if (route66Polyline) {
+        route66Polyline.setVisible(true);
+        console.log('🔧 Forced main route visibility');
+      }
+      if (centerLine) {
+        centerLine.setVisible(true);
+        console.log('🔧 Forced center line visibility');
+      }
+    }, 100);
+    
+    console.log(`✅ Route 66 polyline created and added to map with ${waypoints.length} waypoints`);
     console.log(`📊 Route data: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
 
     // Fit the map to show the entire route with some padding
     fitMapToRoute(map, routePath);
 
     return () => {
+      console.log('🧹 RoutePolyline: Cleaning up polylines');
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
         polylineRef.current = null;

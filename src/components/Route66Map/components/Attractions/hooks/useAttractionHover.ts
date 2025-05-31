@@ -7,6 +7,7 @@ export const useAttractionHover = () => {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = useCallback((attractionName?: string) => {
+    // Clear any pending timeout to prevent flickering
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
@@ -16,14 +17,17 @@ export const useAttractionHover = () => {
   }, []);
 
   const handleMouseLeave = useCallback((attractionName?: string) => {
+    // Clear any existing timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
+    
+    // Add a shorter delay to reduce flickering but still provide smooth interaction
     hoverTimeoutRef.current = setTimeout(() => {
       console.log(`🎯 Hover ended for attraction: ${attractionName || 'unknown'}`);
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 300);
+    }, 150); // Reduced from 300ms to 150ms
   }, []);
 
   const updatePosition = useCallback((x: number, y: number) => {
