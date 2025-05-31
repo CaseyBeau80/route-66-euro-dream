@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -102,6 +103,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     console.log('🏛️ Destination clicked:', destination.name);
   };
 
+  // Handle attraction/waypoint clicks with correct type signature
+  const handleAttractionClick = (waypoint: Route66Waypoint) => {
+    console.log('🎯 Attraction clicked:', waypoint.name);
+    // You can add more logic here if needed, like showing details or navigating
+  };
+
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return <MapLoadError error="Failed to load Google Maps API." />;
@@ -179,7 +186,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 <EnhancedClusteringContainer
                   map={mapRef.current}
                   waypoints={visibleWaypoints.filter(w => !w.is_major_stop)}
-                  onMarkerClick={handleMarkerClick}
+                  onMarkerClick={handleAttractionClick}
                 />
                 
                 {/* NEW: Separate Destination Cities Container - replaces old RouteMarkersManager */}
