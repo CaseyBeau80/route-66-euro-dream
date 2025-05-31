@@ -8,6 +8,8 @@ interface Route66StaticPolylineProps {
 
 const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const centerLineRef = useRef<google.maps.Polyline | null>(null);
+  const initializationRef = useRef<boolean>(false);
   
   const { waypoints, isLoading, error } = useSupabaseRoute66();
 
@@ -19,7 +21,24 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       return;
     }
 
-    console.log("🗺️ Creating single Route 66 polyline with yellow dashed center line...");
+    // Prevent multiple initializations
+    if (initializationRef.current) {
+      console.log("⚠️ Route66StaticPolyline: Already initialized, skipping");
+      return;
+    }
+
+    console.log("🗺️ Creating SINGLE Route 66 polyline with yellow dashed center line...");
+    initializationRef.current = true;
+
+    // Clean up any existing polylines first
+    if (polylineRef.current) {
+      polylineRef.current.setMap(null);
+      polylineRef.current = null;
+    }
+    if (centerLineRef.current) {
+      centerLineRef.current.setMap(null);
+      centerLineRef.current = null;
+    }
 
     // Convert Supabase waypoints to Google Maps format
     const route66Path = waypoints
@@ -31,7 +50,7 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
 
     console.log(`🛣️ Using ${route66Path.length} waypoints from Supabase for Route 66`);
 
-    // Create a single Route 66 polyline with dark asphalt appearance and yellow dashed center line
+    // Create the main Route 66 polyline with dark asphalt appearance
     const route66Polyline = new google.maps.Polyline({
       path: route66Path,
       geodesic: true,
@@ -39,12 +58,27 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       strokeOpacity: 0.9,
       strokeWeight: 8,
       zIndex: 1000,
+      clickable: false
+    });
+
+    // Set the polyline on the map
+    route66Polyline.setMap(map);
+    polylineRef.current = route66Polyline;
+
+    // Create yellow dashed center line
+    const centerLinePolyline = new google.maps.Polyline({
+      path: route66Path,
+      geodesic: true,
+      strokeColor: '#FFD700', // Bright yellow for visibility
+      strokeOpacity: 0,
+      strokeWeight: 0,
+      zIndex: 1001,
       clickable: false,
       icons: [{
         icon: {
           path: 'M 0,-1 0,1',
           strokeOpacity: 1,
-          strokeColor: '#FFD700', // Bright yellow for visibility
+          strokeColor: '#FFD700',
           strokeWeight: 4,
           scale: 1
         },
@@ -53,13 +87,10 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
       }]
     });
 
-    // Set the polyline on the map
-    route66Polyline.setMap(map);
-    
-    // Store reference for cleanup
-    polylineRef.current = route66Polyline;
+    centerLinePolyline.setMap(map);
+    centerLineRef.current = centerLinePolyline;
 
-    console.log("✅ Single Route 66 polyline created with yellow dashed center line using", route66Path.length, "Supabase waypoints");
+    console.log("✅ SINGLE Route 66 polyline created with yellow dashed center line using", route66Path.length, "Supabase waypoints");
 
     // Wait a moment before fitting bounds to ensure polyline is rendered
     setTimeout(() => {
@@ -82,10 +113,16 @@ const Route66StaticPolyline: React.FC<Route66StaticPolylineProps> = ({ map }) =>
 
     // Cleanup function
     return () => {
-      console.log("🧹 Cleaning up Route 66 polyline");
+      console.log("🧹 Cleaning up Route 66 polylines");
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
+        polylineRef.current = null;
       }
+      if (centerLineRef.current) {
+        centerLineRef.current.setMap(null);
+        centerLineRef.current = null;
+      }
+      initializationRef.current = false;
     };
   }, [map, waypoints, isLoading, error]);
 

@@ -21,7 +21,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Reset state when map changes
   useEffect(() => {
     if (map && isMapReady) {
-      console.log('🔄 RouteDisplayManager: Resetting state for textured route rendering');
+      console.log('🔄 RouteDisplayManager: Resetting state for SINGLE Route66StaticPolyline rendering');
       
       // Clear any pending render timeout
       if (renderTimeoutRef.current) {
@@ -41,7 +41,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   // Handle waypoints loading success
   useEffect(() => {
     if (waypoints.length > 0 && !routeRendered && isMapReady) {
-      console.log('✅ Waypoints loaded, textured Route 66 system ready to render');
+      console.log('✅ Waypoints loaded, SINGLE Route 66 system ready to render');
       
       // Debounce route success to prevent multiple rapid calls
       if (renderTimeoutRef.current) {
@@ -70,13 +70,13 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
     return null;
   }
 
-  console.log(`🛣️ RouteDisplayManager: Rendering TEXTURED Route 66 with yellow dashed striping`, {
+  console.log(`🛣️ RouteDisplayManager: Rendering SINGLE Route66StaticPolyline ONLY`, {
     routeRendered,
     waypointsCount: waypoints.length,
     isMapReady
   });
 
-  // Use Route66StaticPolyline for the textured road appearance
+  // Use ONLY Route66StaticPolyline - all other route services are disabled
   return (
     <>
       {waypoints.length > 0 && isMapReady && (
