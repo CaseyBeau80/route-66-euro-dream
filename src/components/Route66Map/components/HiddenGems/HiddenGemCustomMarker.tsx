@@ -1,8 +1,9 @@
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { HiddenGem } from './types';
-import { useMarkerHover } from './hooks/useMarkerHover';
-import { createMarkerSetup } from './MarkerSetup';
+import { MarkerInteractionHandler } from './components/MarkerInteractionHandler';
+import { MarkerElement } from './components/MarkerElement';
+import { MarkerClickHandler } from './components/MarkerClickHandler';
 import HoverCardDisplay from './HoverCardDisplay';
 
 interface HiddenGemCustomMarkerProps {
@@ -20,48 +21,35 @@ const HiddenGemCustomMarker: React.FC<HiddenGemCustomMarkerProps> = ({
   onWebsiteClick,
   map
 }) => {
-  const markerSetupRef = useRef<{ cleanup: () => void } | null>(null);
-  const {
-    isHovered,
-    hoverPosition,
-    handleMouseEnter,
-    handleMouseLeave,
-    updatePosition,
-    cleanup: cleanupHover
-  } = useMarkerHover();
-
-  useEffect(() => {
-    if (!map) return;
-
-    const markerSetup = createMarkerSetup({
-      gem,
-      map,
-      onMarkerClick,
-      onMouseEnter: () => handleMouseEnter(gem.title),
-      onMouseLeave: () => handleMouseLeave(gem.title),
-      onPositionUpdate: updatePosition
-    });
-
-    markerSetupRef.current = markerSetup;
-
-    // Cleanup function
-    return () => {
-      cleanupHover();
-      if (markerSetupRef.current) {
-        markerSetupRef.current.cleanup();
-      }
-    };
-  }, [gem, map, onMarkerClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanupHover]);
-
-  console.log(`Rendering custom gem marker: ${gem.title} at ${gem.latitude}, ${gem.longitude}, hovered: ${isHovered}`);
+  console.log(`Rendering custom gem marker: ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
 
   return (
-    <HoverCardDisplay
-      gem={gem}
-      isVisible={isHovered}
-      position={hoverPosition}
-      onWebsiteClick={onWebsiteClick}
-    />
+    <MarkerInteractionHandler gem={gem}>
+      {({ isHovered, hoverPosition, handleMouseEnter, handleMouseLeave, updatePosition, cleanup }) => (
+        <>
+          <MarkerElement
+            gem={gem}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onPositionUpdate={updatePosition}
+            map={map}
+          />
+          
+          <MarkerClickHandler
+            gem={gem}
+            onMarkerClick={onMarkerClick}
+            map={map}
+          />
+          
+          <HoverCardDisplay
+            gem={gem}
+            isVisible={isHovered}
+            position={hoverPosition}
+            onWebsiteClick={onWebsiteClick}
+          />
+        </>
+      )}
+    </MarkerInteractionHandler>
   );
 };
 
