@@ -20,9 +20,9 @@ const cityPopulations: Record<string, string> = {
   'Chicago': '2,746,388',
   'Joliet': '150,362',
   'Pontiac': '11,150',
-  'Springfield': '114,394',
+  'Springfield, IL': '114,394',
   'St. Louis': '300,576',
-  'Springfield': '169,176', // Springfield, MO
+  'Springfield, MO': '169,176',
   'Joplin': '51,762',
   'Tulsa': '413,066',
   'Oklahoma City': '695,724',
@@ -47,7 +47,10 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   const navigate = useNavigate();
   const cityName = extractCityName(destination.name);
   const stateName = destination.state;
-  const population = cityPopulations[cityName] || 'Population data unavailable';
+  
+  // Create a lookup key that includes state for Springfield cities
+  const populationKey = cityName === 'Springfield' ? `${cityName}, ${stateName}` : cityName;
+  const population = cityPopulations[populationKey] || 'Population data unavailable';
 
   const handleVisitCityPage = () => {
     const cityUrl = generateCityUrl(destination);
