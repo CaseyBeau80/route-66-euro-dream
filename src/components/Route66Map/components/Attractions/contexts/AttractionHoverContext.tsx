@@ -15,6 +15,7 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastHoveredRef = useRef<string | null>(null);
 
   const setActiveAttraction = useCallback((attractionName: string | null, position?: { x: number; y: number }) => {
     // Clear any existing timeouts
@@ -28,27 +29,39 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     if (attractionName && position) {
+      // Prevent flickering by checking if we're hovering the same attraction
+      if (lastHoveredRef.current === attractionName && activeAttraction === attractionName) {
+        // Just update position for same attraction
+        setHoverPosition(position);
+        return;
+      }
+
       // Immediately hide any currently showing attraction
       setActiveAttractionState(null);
+      lastHoveredRef.current = attractionName;
       
       // Update position
       setHoverPosition(position);
       
-      console.log(`⏳ Starting global hover delay for attraction: ${attractionName}`);
+      console.log(`⏳ Starting stabilized hover for attraction: ${attractionName}`);
       
-      // Add 400ms delay before showing the new card
+      // Add longer delay to prevent flickering (600ms instead of 400ms)
       showDelayTimeoutRef.current = setTimeout(() => {
-        console.log(`🎯 Global hover started for attraction: ${attractionName}`);
-        setActiveAttractionState(attractionName);
+        // Double-check the attraction is still being hovered
+        if (lastHoveredRef.current === attractionName) {
+          console.log(`🎯 Stabilized hover activated for attraction: ${attractionName}`);
+          setActiveAttractionState(attractionName);
+        }
         showDelayTimeoutRef.current = null;
-      }, 400);
+      }, 600);
     } else {
-      // Handle mouse leave - add 300ms delay before hiding
+      // Handle mouse leave - add longer delay before hiding (500ms instead of 300ms)
+      lastHoveredRef.current = null;
       hoverTimeoutRef.current = setTimeout(() => {
-        console.log(`🎯 Global hover ended for attraction: ${activeAttraction}`);
+        console.log(`🎯 Stabilized hover ended for attraction: ${activeAttraction}`);
         setActiveAttractionState(null);
         hoverTimeoutRef.current = null;
-      }, 300);
+      }, 500);
     }
   }, [activeAttraction]);
 
@@ -61,6 +74,7 @@ export const AttractionHoverProvider: React.FC<{ children: React.ReactNode }> = 
       clearTimeout(showDelayTimeoutRef.current);
       showDelayTimeoutRef.current = null;
     }
+    lastHoveredRef.current = null;
     setActiveAttractionState(null);
   }, []);
 

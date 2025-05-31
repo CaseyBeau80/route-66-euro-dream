@@ -22,16 +22,16 @@ export class EnhancedClusteringManager {
   }
 
   static getClusterZoomLevel(currentZoom: number): 'ultra' | 'large' | 'medium' | 'small' {
-    if (currentZoom <= 4) return 'ultra';
-    if (currentZoom <= 5.5) return 'large';
-    if (currentZoom <= 7) return 'medium';
+    if (currentZoom <= 5) return 'ultra';    // More aggressive ultra clustering
+    if (currentZoom <= 6.5) return 'large';  // Extended large clustering
+    if (currentZoom <= 8) return 'medium';   // Extended medium clustering
     return 'small';
   }
 
   static getVisibilitySettings(currentZoom: number) {
     return {
-      showClusters: currentZoom < 8.5,
-      showIndividual: currentZoom >= 7,
+      showClusters: currentZoom < 9.5,        // Show clusters longer
+      showIndividual: currentZoom >= 8.5,     // Show individual markers later
       clusterLevel: this.getClusterZoomLevel(currentZoom),
       minClusterSize: this.getMinClusterSize(currentZoom),
       clusterRadius: this.getClusterRadius(currentZoom)
@@ -39,16 +39,16 @@ export class EnhancedClusteringManager {
   }
 
   private static getMinClusterSize(zoom: number): number {
-    if (zoom <= 4) return 2; // Ultra-aggressive clustering at very low zoom
-    if (zoom <= 5.5) return 3; // Large clustering
-    if (zoom <= 7) return 3; // Medium clustering
-    return 4; // Small clustering
+    if (zoom <= 5) return 2; // Very aggressive clustering at low zoom
+    if (zoom <= 6.5) return 2; // Still aggressive
+    if (zoom <= 8) return 3; // Medium clustering
+    return 4; // Small clustering at higher zoom
   }
 
   private static getClusterRadius(zoom: number): number {
-    if (zoom <= 4) return 200000; // 200km
-    if (zoom <= 5.5) return 100000; // 100km
-    if (zoom <= 7) return 50000; // 50km
-    return 25000; // 25km
+    if (zoom <= 5) return 300000; // 300km - much more aggressive
+    if (zoom <= 6.5) return 150000; // 150km - still very aggressive
+    if (zoom <= 8) return 75000; // 75km - medium clustering
+    return 35000; // 35km - tighter clustering
   }
 }
