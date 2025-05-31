@@ -11,6 +11,7 @@ import MapInitializationService from './services/MapInitializationService';
 import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
+import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import RouteDisplayManager from './components/RouteDisplayManager';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
@@ -80,7 +81,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration, Hidden Gems, and Attractions', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration, Hidden Gems, Attractions, and Destination Cities', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -123,6 +124,15 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   map={mapRef.current}
                   onGemClick={(gem) => {
                     console.log('✨ Hidden gem selected:', gem.title);
+                  }}
+                />
+                
+                {/* Render Destination Cities with hover cards */}
+                <DestinationCitiesContainer
+                  map={mapRef.current}
+                  waypoints={visibleWaypoints}
+                  onDestinationClick={(destination) => {
+                    console.log('🏛️ Destination city selected:', destination.name);
                   }}
                 />
                 
