@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { HiddenGem } from '../types';
-import { createVintageRoute66Icon } from '../VintageRoute66Icon';
+import { createVintageRoute66Icon, createDriveInIcon } from '../VintageRoute66Icon';
 import { useMarkerHover } from '../hooks/useMarkerHover';
 import HoverCardPortal from './HoverCardPortal';
 
@@ -30,6 +30,17 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
 
   const markerRef = useRef<google.maps.Marker | null>(null);
   const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
+
+  // Enhanced icon selection for drive-ins
+  const getMarkerIcon = useCallback(() => {
+    const isDriveIn = gem.title.toLowerCase().includes('drive-in');
+    if (isDriveIn) {
+      console.log(`🎬 Creating enhanced drive-in icon for: ${gem.title}`);
+      return createDriveInIcon();
+    } else {
+      return createVintageRoute66Icon();
+    }
+  }, [gem.title]);
 
   // Function to get marker screen position
   const getMarkerScreenPosition = useCallback(() => {
@@ -70,22 +81,23 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   useEffect(() => {
     if (!map || markerRef.current) return;
 
-    console.log(`🎯 Creating stable marker for: ${gem.title}`);
+    const isDriveIn = gem.title.toLowerCase().includes('drive-in');
+    console.log(`🎯 Creating ${isDriveIn ? 'ENHANCED DRIVE-IN' : 'hidden gem'} marker for: ${gem.title}`);
 
-    // Create the visual marker
+    // Create the visual marker with enhanced icon
     const marker = new google.maps.Marker({
       position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
       map: map,
-      icon: createVintageRoute66Icon(),
-      title: `Hidden Gem: ${gem.title}`,
-      zIndex: 1000
+      icon: getMarkerIcon(),
+      title: `${isDriveIn ? 'Drive-In Theater: ' : 'Hidden Gem: '}${gem.title}`,
+      zIndex: isDriveIn ? 35000 : 30000 // Higher z-index for drive-ins
     });
 
     markerRef.current = marker;
 
     // Mouse event handlers
     const handleMouseOver = () => {
-      console.log(`🐭 Mouse over gem: ${gem.title}`);
+      console.log(`🐭 Mouse over ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
       const screenPos = getMarkerScreenPosition();
       if (screenPos) {
         updatePosition(screenPos.x, screenPos.y);
@@ -94,12 +106,12 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     };
 
     const handleMouseOut = () => {
-      console.log(`🐭 Mouse out gem: ${gem.title}`);
+      console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
       handleMouseLeave(gem.title);
     };
 
     const handleClick = () => {
-      console.log(`🎯 Clicked gem: ${gem.title}`);
+      console.log(`🎯 Clicked ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
       clearHover(); // Clear hover state on click
       onMarkerClick(gem);
     };
@@ -137,7 +149,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
 
     // Cleanup function
     return () => {
-      console.log(`🧹 Cleaning up stable marker for: ${gem.title}`);
+      console.log(`🧹 Cleaning up ${isDriveIn ? 'DRIVE-IN' : 'hidden gem'} marker for: ${gem.title}`);
       
       // Remove all listeners
       listenersRef.current.forEach(listener => {
@@ -153,7 +165,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
 
       cleanup();
     };
-  }, [map, gem.latitude, gem.longitude, gem.title]); // Only depend on static values
+  }, [map, gem.latitude, gem.longitude, gem.title, getMarkerIcon]); // Only depend on static values
 
   // Update position when hover state changes
   useEffect(() => {
