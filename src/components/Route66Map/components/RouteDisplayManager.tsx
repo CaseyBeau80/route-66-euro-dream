@@ -17,6 +17,7 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   const [routeDisplayMode, setRouteDisplayMode] = useState<'polyline' | 'supabase' | 'hybrid'>('polyline');
   const [routeRendered, setRouteRendered] = useState(false);
   const activeRouteRef = useRef<'polyline' | 'supabase' | 'hybrid' | null>(null);
+  const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get waypoints for the polyline route
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
@@ -36,44 +37,61 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
     setRouteRendered(true);
   }, []);
 
-  // Reset state when map changes
+  // Reset state when map changes with debouncing
   useEffect(() => {
     if (map && isMapReady) {
       console.log('🔄 RouteDisplayManager: Resetting state for new map');
+      
+      // Clear any pending render timeout
+      if (renderTimeoutRef.current) {
+        clearTimeout(renderTimeoutRef.current);
+      }
+      
       setRouteRendered(false);
       activeRouteRef.current = null;
-      // Start with polyline mode for better reliability
       setRouteDisplayMode('polyline');
     }
+
+    return () => {
+      if (renderTimeoutRef.current) {
+        clearTimeout(renderTimeoutRef.current);
+      }
+    };
   }, [map, isMapReady]);
 
-  // Handle waypoints loading success
+  // Handle waypoints loading success with debouncing
   useEffect(() => {
     if (waypoints.length > 0 && routeDisplayMode === 'polyline' && !routeRendered) {
       console.log('✅ Waypoints loaded, polyline route should render');
-      handleRouteSuccess('polyline');
+      
+      // Debounce route success to prevent multiple rapid calls
+      if (renderTimeoutRef.current) {
+        clearTimeout(renderTimeoutRef.current);
+      }
+      
+      renderTimeoutRef.current = setTimeout(() => {
+        handleRouteSuccess('polyline');
+      }, 100);
     }
   }, [waypoints, routeDisplayMode, routeRendered, handleRouteSuccess]);
 
-  // Don't render anything if map isn't ready
+  // Early returns for better performance
   if (!isMapReady) {
     console.log('⏳ RouteDisplayManager: Map not ready yet');
     return null;
   }
 
-  // Show loading if waypoints are still loading
   if (waypointsLoading) {
     console.log('⏳ RouteDisplayManager: Waypoints still loading');
     return null;
   }
 
-  // Handle waypoints error
   if (waypointsError) {
     console.error('❌ RouteDisplayManager: Waypoints error:', waypointsError);
     return null;
   }
 
-  console.log(`🛣️ RouteDisplayManager: Rendering ${routeDisplayMode} route system`, {
+  console.log(`🛣️ RouteDisplayManager: Rendering optimized ${routeDisplayMode} route system`, {
     routeRendered,
     waypointsCount: waypoints.length,
     mode: routeDisplayMode
@@ -110,4 +128,4 @@ const RouteDisplayManager: React.FC<RouteDisplayManagerProps> = ({
   );
 };
 
-export default RouteDisplayManager;
+export default React.memo(RouteDisplayManager);

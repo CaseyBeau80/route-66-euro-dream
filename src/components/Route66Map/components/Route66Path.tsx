@@ -1,15 +1,13 @@
 
 import React from 'react';
-import { Polyline } from '@react-google-maps/api';
-import { polylineOptions } from '../config/MapConfig';
 
 interface Route66PathProps {
   path: google.maps.LatLngLiteral[];
 }
 
-// Component removed as requested
+// Deprecated component - route rendering is now handled by RoutePolyline
 const Route66Path: React.FC<Route66PathProps> = ({ path }) => {
-  // Returning null instead of rendering the path
+  console.log('⚠️ Route66Path: Deprecated component - use RoutePolyline instead');
   return null;
 };
 

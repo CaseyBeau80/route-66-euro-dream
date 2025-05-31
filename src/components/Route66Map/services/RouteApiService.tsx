@@ -6,10 +6,9 @@ interface RouteApiServiceProps {
   onRouteReady: (success: boolean, fallbackUsed: boolean) => void;
 }
 
+// Deprecated component - route rendering is now handled by RoutePolyline
 const RouteApiService = ({ map, onRouteReady }: RouteApiServiceProps) => {
-  // This service is now simplified - API testing and route rendering
-  // is handled by SimpleRoute66Service to prevent conflicts
-  console.log('⚠️ RouteApiService: Deprecated - using SimpleRoute66Service instead');
+  console.log('⚠️ RouteApiService: Deprecated - use RoutePolyline instead');
   
   // Immediately report success to prevent blocking
   React.useEffect(() => {

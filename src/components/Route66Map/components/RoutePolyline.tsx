@@ -33,11 +33,11 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       lastPoint: routePath[routePath.length - 1]
     });
 
-    // Create a simple, clean Route 66 polyline
+    // Create a simple, clean Route 66 polyline with proper color
     const route66Polyline = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#D92121', // Classic Route 66 red
+      strokeColor: '#8B4513', // Brown color for historic Route 66
       strokeOpacity: 0.9,
       strokeWeight: 6,
       zIndex: 10000,
@@ -55,7 +55,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
         const infoWindow = new google.maps.InfoWindow({
           content: `
             <div class="p-3 max-w-xs">
-              <h3 class="font-bold text-red-600 mb-2 text-lg">Historic Route 66</h3>
+              <h3 class="font-bold text-amber-800 mb-2 text-lg">Historic Route 66</h3>
               <p class="text-sm text-gray-700 mb-1">The Mother Road</p>
               <p class="text-sm text-gray-700 mb-1">Chicago to Santa Monica</p>
               <p class="text-xs text-gray-500 mb-2">2,448 miles of American history</p>
@@ -78,7 +78,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
     route66Polyline.setMap(map);
     polylineRef.current = route66Polyline;
     
-    console.log(`✅ Simple Route 66 polyline created and added to map with ${waypoints.length} waypoints`);
+    console.log(`✅ Route 66 polyline created with brown color and added to map with ${waypoints.length} waypoints`);
     console.log(`📊 Route data: ${waypoints.filter(w => w.is_major_stop).length} major stops, ${waypoints.filter(w => !w.is_major_stop).length} intermediate waypoints`);
 
     // Fit the map to show the entire route with some padding
