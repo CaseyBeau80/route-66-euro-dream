@@ -36,10 +36,10 @@ const HiddenGemsContainer: React.FC<HiddenGemsContainerProps> = ({
     return null;
   }
 
-  // Filter gems by selected state if applicable - using location instead of state
+  // Filter gems by selected state if applicable - using city_name instead of location
   const filteredGems = selectedState 
     ? hiddenGems.filter(gem => 
-        gem.location?.toLowerCase().includes(selectedState.toLowerCase())
+        gem.city_name?.toLowerCase().includes(selectedState.toLowerCase())
       )
     : hiddenGems;
 
