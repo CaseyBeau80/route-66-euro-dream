@@ -35,11 +35,30 @@ export class MarkerClusteringService {
   }
 
   static clusterMarkers(markers: ClusterableMarker[]): MarkerCluster[] {
+    if (!markers || markers.length === 0) {
+      console.log('⚠️ MarkerClusteringService: No markers to cluster');
+      return [];
+    }
+
+    console.log(`🔧 MarkerClusteringService: Clustering ${markers.length} markers`);
+    
     const clusters: MarkerCluster[] = [];
     const processed = new Set<string>();
 
-    for (const marker of markers) {
+    // Sort markers by type priority (destinations first, then attractions, then gems)
+    const sortedMarkers = [...markers].sort((a, b) => {
+      const typePriority = { destination: 0, attraction: 1, gem: 2 };
+      return typePriority[a.type] - typePriority[b.type];
+    });
+
+    for (const marker of sortedMarkers) {
       if (processed.has(marker.id)) continue;
+
+      // Validate marker data
+      if (!marker.latitude || !marker.longitude || isNaN(marker.latitude) || isNaN(marker.longitude)) {
+        console.warn(`⚠️ Invalid marker data:`, marker);
+        continue;
+      }
 
       const cluster: MarkerCluster = {
         id: `cluster-${marker.id}`,
@@ -52,8 +71,13 @@ export class MarkerClusteringService {
       processed.add(marker.id);
 
       // Find nearby markers
-      for (const otherMarker of markers) {
+      for (const otherMarker of sortedMarkers) {
         if (processed.has(otherMarker.id)) continue;
+        
+        // Validate other marker data
+        if (!otherMarker.latitude || !otherMarker.longitude || isNaN(otherMarker.latitude) || isNaN(otherMarker.longitude)) {
+          continue;
+        }
 
         const distance = this.calculateDistance(
           marker.latitude, marker.longitude,
@@ -72,11 +96,14 @@ export class MarkerClusteringService {
         const avgLng = cluster.markers.reduce((sum, m) => sum + m.longitude, 0) / cluster.markers.length;
         cluster.centerLat = avgLat;
         cluster.centerLng = avgLng;
+        
+        console.log(`🔗 Created cluster with ${cluster.markers.length} markers at ${avgLat.toFixed(4)}, ${avgLng.toFixed(4)}`);
       }
 
       clusters.push(cluster);
     }
 
+    console.log(`✅ MarkerClusteringService: Created ${clusters.length} clusters`);
     return clusters;
   }
 

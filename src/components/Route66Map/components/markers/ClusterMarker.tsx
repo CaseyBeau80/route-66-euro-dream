@@ -35,11 +35,31 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
   useEffect(() => {
     if (!map) return;
 
-    // Create cluster marker
+    // If cluster has only one marker, show individual marker directly
+    if (cluster.markers.length === 1) {
+      const singleMarker = cluster.markers[0];
+      const marker = new google.maps.Marker({
+        position: { lat: cluster.centerLat, lng: cluster.centerLng },
+        map: map,
+        icon: createIndividualMarkerIcon(singleMarker.type),
+        title: getMarkerTitle(singleMarker),
+        zIndex: 45000
+      });
+
+      marker.addListener('click', () => {
+        console.log(`🎯 Single marker clicked: ${singleMarker.id}`);
+        onMarkerClick(singleMarker.data, singleMarker.type);
+      });
+
+      setClusterMarker(marker);
+      return () => marker.setMap(null);
+    }
+
+    // Create cluster marker for multiple markers
     const marker = new google.maps.Marker({
       position: { lat: cluster.centerLat, lng: cluster.centerLng },
       map: map,
-      icon: createClusterIcon(cluster.markers.length),
+      icon: createClusterIcon(cluster.markers),
       title: `${cluster.markers.length} items`,
       zIndex: 50000
     });
@@ -64,7 +84,6 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
       
       timeoutRef.current = setTimeout(() => {
         console.log(`🔍 Hovering over cluster with ${cluster.markers.length} markers`);
-        // Could show a preview tooltip here
       }, 400);
     });
 
@@ -83,10 +102,10 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
       }
       marker.setMap(null);
     };
-  }, [map, cluster, onExpand]);
+  }, [map, cluster, onExpand, onMarkerClick]);
 
   useEffect(() => {
-    if (!map || !cluster.isExpanded) {
+    if (!map || !cluster.isExpanded || cluster.markers.length <= 1) {
       // Clean up expanded markers
       expandedMarkers.forEach(marker => marker.setMap(null));
       setExpandedMarkers([]);
@@ -140,9 +159,27 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
   return null;
 };
 
-function createClusterIcon(count: number): google.maps.Icon {
+function createClusterIcon(markers: Array<{ type: string }>): google.maps.Icon {
+  const count = markers.length;
   const size = Math.min(40 + (count * 2), 60);
-  const color = count > 5 ? '#DC2626' : count > 2 ? '#F59E0B' : '#059669';
+  
+  // Determine cluster type based on majority marker type
+  const typeCounts = markers.reduce((acc, marker) => {
+    acc[marker.type] = (acc[marker.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const dominantType = Object.entries(typeCounts).reduce((a, b) => 
+    typeCounts[a[0]] > typeCounts[b[0]] ? a : b
+  )[0];
+
+  const colors = {
+    gem: '#8B5CF6',
+    attraction: '#EF4444', 
+    destination: '#3B82F6'
+  };
+  
+  const color = colors[dominantType as keyof typeof colors] || '#6B7280';
   
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -165,22 +202,67 @@ function createIndividualMarkerIcon(type: string): google.maps.Icon {
   
   const color = colors[type as keyof typeof colors] || '#6B7280';
   
+  // Create distinctive icons based on type
+  if (type === 'gem') {
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <polygon points="15,3 21,9 21,18 15,27 9,18 9,9" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
+          <polygon points="15,7 18,10 18,16 15,21 12,16 12,10" fill="#fff" opacity="0.8"/>
+        </svg>
+      `)}`,
+      scaledSize: new google.maps.Size(30, 30),
+      anchor: new google.maps.Point(15, 27)
+    };
+  }
+  
+  if (type === 'destination') {
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <circle cx="14" cy="14" r="12" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
+          <circle cx="14" cy="14" r="6" fill="#fff"/>
+          <rect x="11" y="8" width="6" height="12" fill="${color}"/>
+          <rect x="8" y="11" width="12" height="6" fill="${color}"/>
+        </svg>
+      `)}`,
+      scaledSize: new google.maps.Size(28, 28),
+      anchor: new google.maps.Point(14, 14)
+    };
+  }
+  
+  // Default attraction icon
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" fill="${color}" stroke="#fff" stroke-width="2"/>
-        <circle cx="12" cy="12" r="4" fill="#fff"/>
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+        <circle cx="13" cy="13" r="11" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
+        <circle cx="13" cy="13" r="5" fill="#fff"/>
       </svg>
     `)}`,
-    scaledSize: new google.maps.Size(24, 24),
-    anchor: new google.maps.Point(12, 12)
+    scaledSize: new google.maps.Size(26, 26),
+    anchor: new google.maps.Point(13, 13)
   };
 }
 
 function getMarkerTitle(markerData: any): string {
-  if (markerData.type === 'gem') return `Hidden Gem: ${markerData.data.title}`;
-  if (markerData.type === 'destination') return `Destination: ${markerData.data.name}`;
-  if (markerData.type === 'attraction') return `Attraction: ${markerData.data.name}`;
+  if (markerData.type === 'gem') return `Hidden Gem: ${markerData.data.title || 'Unknown'}`;
+  if (markerData.type === 'destination') return `Destination: ${markerData.data.name || 'Unknown'}`;
+  if (markerData.type === 'attraction') return `Attraction: ${markerData.data.name || 'Unknown'}`;
   return 'Unknown marker';
 }
 

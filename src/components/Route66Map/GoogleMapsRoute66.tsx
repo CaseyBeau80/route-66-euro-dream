@@ -48,7 +48,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showRouteStats, setShowRouteStats] = useState(true);
   const [useClusteringMode, setUseClusteringMode] = useState(true);
-  const [hiddenGems, setHiddenGems] = useState<any[]>([]);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -72,13 +71,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       return () => clearTimeout(timer);
     }
   }, [showRouteStats, mapInitialized]);
-
-  // Load hidden gems data for clustering
-  useEffect(() => {
-    // This would normally come from your hidden gems hook/service
-    // For now, we'll use an empty array - you should integrate with your existing hidden gems data
-    setHiddenGems([]);
-  }, []);
 
   // Cleanup function to remove any existing polylines
   useEffect(() => {
@@ -195,7 +187,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                 {useClusteringMode ? (
                   <ClusterManager
                     map={mapRef.current}
-                    hiddenGems={hiddenGems}
+                    hiddenGems={[]} // ClusterManager will load real data internally
                     attractions={attractions}
                     destinations={destinations}
                     onGemClick={(gem) => {
