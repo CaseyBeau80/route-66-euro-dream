@@ -163,14 +163,31 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       if (markerRef.current) {
         console.log(`🧹 Cleaning up destination marker: ${destination.name}`);
         
-        // Handle cleanup for both AdvancedMarkerElement and regular Marker
-        if (markerRef.current instanceof google.maps.marker.AdvancedMarkerElement) {
-          // For AdvancedMarkerElement, set map property to null
-          markerRef.current.map = null;
-        } else if (markerRef.current instanceof google.maps.Marker) {
-          // For regular Marker, use setMap method
-          markerRef.current.setMap(null);
+        try {
+          // Safely check if Google Maps API is still available
+          if (window.google?.maps?.marker?.AdvancedMarkerElement && 
+              markerRef.current instanceof google.maps.marker.AdvancedMarkerElement) {
+            // For AdvancedMarkerElement, set map property to null
+            markerRef.current.map = null;
+          } else if (window.google?.maps?.Marker && 
+                     markerRef.current instanceof google.maps.Marker) {
+            // For regular Marker, use setMap method
+            markerRef.current.setMap(null);
+          } else {
+            // Fallback cleanup - try both methods safely
+            console.log('⚠️ Google Maps API not available during cleanup, attempting fallback cleanup');
+            if ('map' in markerRef.current && markerRef.current.map !== undefined) {
+              (markerRef.current as any).map = null;
+            } else if ('setMap' in markerRef.current && typeof markerRef.current.setMap === 'function') {
+              (markerRef.current as any).setMap(null);
+            }
+          }
+        } catch (cleanupError) {
+          console.warn(`⚠️ Error during marker cleanup for ${destination.name}:`, cleanupError);
+          // Even if cleanup fails, we should continue to avoid blocking the unmount
         }
+        
+        markerRef.current = null;
       }
       cleanup();
     };
