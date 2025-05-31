@@ -3,6 +3,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { HiddenGem } from '../types';
 import HoverCardDisplay from '../HoverCardDisplay';
+import { useHiddenGemHoverContext } from '../contexts/HiddenGemHoverContext';
 
 interface HoverCardPortalProps {
   gem: HiddenGem;
@@ -17,17 +18,24 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
   position,
   onWebsiteClick
 }) => {
+  const { keepCardVisible, setActiveGem } = useHiddenGemHoverContext();
+
   if (!isVisible) return null;
 
   console.log(`🔮 Portal rendering hover card for ${gem.title} at position:`, position);
 
   return createPortal(
-    <HoverCardDisplay
-      gem={gem}
-      isVisible={isVisible}
-      position={position}
-      onWebsiteClick={onWebsiteClick}
-    />,
+    <div
+      onMouseEnter={() => keepCardVisible(gem.title)}
+      onMouseLeave={() => setActiveGem(null)}
+    >
+      <HoverCardDisplay
+        gem={gem}
+        isVisible={isVisible}
+        position={position}
+        onWebsiteClick={onWebsiteClick}
+      />
+    </div>,
     document.body
   );
 };

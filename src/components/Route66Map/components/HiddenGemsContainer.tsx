@@ -1,52 +1,82 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHiddenGems } from './HiddenGems/useHiddenGems';
-import { useHiddenGemInteraction } from './HiddenGems/hooks/useHiddenGemInteraction';
-import HiddenGemCustomOverlay from './HiddenGems/HiddenGemCustomOverlay';
 import HiddenGemCustomMarker from './HiddenGems/HiddenGemCustomMarker';
-import { HiddenGemsProps } from './HiddenGems/types';
+import { HiddenGemHoverProvider } from './HiddenGems/contexts/HiddenGemHoverContext';
+import type { HiddenGem } from './HiddenGems/types';
 
-const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => {
-  const { hiddenGems, loading } = useHiddenGems();
-  const { activeGem, handleMarkerClick, handleWebsiteClick, closeActiveGem } = useHiddenGemInteraction(onGemClick);
+interface HiddenGemsContainerProps {
+  map: google.maps.Map | null;
+  selectedState: string | null;
+  isVisible?: boolean;
+  onGemClick?: (gem: HiddenGem) => void;
+  onWebsiteClick?: (website: string) => void;
+}
 
-  if (loading) {
-    console.log('⏳ Hidden gems still loading...');
+const HiddenGemsContainer: React.FC<HiddenGemsContainerProps> = ({
+  map,
+  selectedState,
+  isVisible = true,
+  onGemClick,
+  onWebsiteClick = (url) => window.open(url, '_blank')
+}) => {
+  const [activeGem, setActiveGem] = useState<HiddenGem | null>(null);
+  const { 
+    gems,
+    isLoading,
+    error 
+  } = useHiddenGems();
+
+  console.log(`💎 HiddenGemsContainer: Rendering with ${gems?.length || 0} hidden gems`, {
+    selectedState,
+    isVisible,
+    isLoading,
+    error: !!error
+  });
+
+  useEffect(() => {
+    console.log('💎 HiddenGemsContainer: Initializing with improved hover behavior');
+    
+    return () => {
+      console.log('🧹 HiddenGemsContainer: Cleaning up');
+    };
+  }, []);
+
+  if (!isVisible || !map || isLoading || error || !gems?.length) {
+    if (isLoading) console.log('💎 HiddenGemsContainer: Loading gems...');
+    if (error) console.log('💎 HiddenGemsContainer: Error loading gems:', error);
+    if (!gems?.length) console.log('💎 HiddenGemsContainer: No gems available');
     return null;
   }
 
-  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map with custom icons`);
+  // Filter gems by selected state if applicable
+  const filteredGems = selectedState 
+    ? gems.filter(gem => 
+        gem.state?.toLowerCase() === selectedState.toLowerCase()
+      )
+    : gems;
+
+  console.log(`💎 HiddenGemsContainer: Showing ${filteredGems.length} hidden gems (filtered by state: ${selectedState || 'none'})`);
+
+  const handleGemClick = (gem: HiddenGem) => {
+    console.log(`💎 HiddenGemsContainer: Gem clicked - ${gem.title}`);
+    setActiveGem(gem);
+    onGemClick?.(gem);
+  };
 
   return (
-    <>
-      {/* Render active gem overlay if one is selected */}
-      {activeGem && (
-        (() => {
-          const gem = hiddenGems.find(g => g.id === activeGem);
-          return gem ? (
-            <HiddenGemCustomOverlay
-              key={`hidden-gem-overlay-${gem.id}`}
-              gem={gem}
-              map={map}
-              onClose={closeActiveGem}
-              onWebsiteClick={handleWebsiteClick}
-            />
-          ) : null;
-        })()
-      )}
-
-      {/* Render all markers with hover functionality */}
-      {hiddenGems.map((gem) => (
+    <HiddenGemHoverProvider>
+      {filteredGems.map((gem) => (
         <HiddenGemCustomMarker
-          key={`hidden-gem-marker-${gem.id}`}
+          key={gem.id}
           gem={gem}
-          isActive={activeGem === gem.id}
-          onMarkerClick={handleMarkerClick}
-          onWebsiteClick={handleWebsiteClick}
+          isActive={activeGem?.id === gem.id}
+          onMarkerClick={handleGemClick}
+          onWebsiteClick={onWebsiteClick}
           map={map}
         />
       ))}
-    </>
+    </HiddenGemHoverProvider>
   );
 };
 
