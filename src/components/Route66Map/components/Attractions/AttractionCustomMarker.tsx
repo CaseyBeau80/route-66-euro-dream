@@ -34,80 +34,55 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     const isDriveIn = attraction.name.toLowerCase().includes('drive-in');
     
     if (isDriveIn) {
-      // Nostalgic drive-in theater icon inspired by vintage aesthetic
+      // Vintage drive-in theater sign icon based on the provided image
       const iconSize = 32;
       const driveInSvgContent = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-          <!-- Vintage background circle -->
-          <circle cx="16" cy="16" r="15" 
-                  fill="#2c1810" 
-                  stroke="#d4af37" 
-                  stroke-width="2"/>
+          <!-- Main sign background (red/orange gradient) -->
+          <rect x="4" y="6" width="24" height="20" 
+                fill="#D2691E" 
+                stroke="#8B4513" 
+                stroke-width="1" 
+                rx="2"/>
           
-          <!-- Inner vintage border -->
-          <circle cx="16" cy="16" r="12" 
-                  fill="none" 
-                  stroke="#8b4513" 
-                  stroke-width="1"/>
+          <!-- Sign border -->
+          <rect x="5" y="7" width="22" height="18" 
+                fill="none" 
+                stroke="#FFFFFF" 
+                stroke-width="1" 
+                rx="1"/>
           
-          <!-- Drive-in screen -->
-          <rect x="8" y="10" width="16" height="10" 
-                fill="#1a1a1a" 
-                stroke="#d4af37" 
+          <!-- DRIVE-IN text -->
+          <text x="16" y="13" text-anchor="middle" 
+                fill="#FFFFFF" 
+                font-family="Arial, sans-serif" 
+                font-size="4" 
+                font-weight="bold">DRIVE-IN</text>
+          
+          <!-- THEATER text -->
+          <text x="16" y="18" text-anchor="middle" 
+                fill="#FFFFFF" 
+                font-family="Arial, sans-serif" 
+                font-size="3.5" 
+                font-weight="bold">THEATER</text>
+          
+          <!-- Sign post -->
+          <rect x="15" y="26" width="2" height="6" 
+                fill="#8B4513"/>
+          
+          <!-- Decorative elements (small lights/bulbs) -->
+          <circle cx="7" cy="9" r="0.8" fill="#FFFF00" opacity="0.8"/>
+          <circle cx="25" cy="9" r="0.8" fill="#FFFF00" opacity="0.8"/>
+          <circle cx="7" cy="23" r="0.8" fill="#FFFF00" opacity="0.8"/>
+          <circle cx="25" cy="23" r="0.8" fill="#FFFF00" opacity="0.8"/>
+          
+          <!-- Arrow pointing down -->
+          <path d="M13 20 L16 23 L19 20" 
+                stroke="#FFFF00" 
                 stroke-width="1.5" 
-                rx="1"/>
-          
-          <!-- Screen glow effect -->
-          <rect x="9" y="11" width="14" height="8" 
-                fill="#87ceeb" 
-                opacity="0.3" 
-                rx="0.5"/>
-          
-          <!-- Vintage car silhouettes -->
-          <rect x="5" y="21" width="4" height="2" 
-                fill="#8b4513" 
-                rx="1"/>
-          <rect x="11" y="21" width="4" height="2" 
-                fill="#8b4513" 
-                rx="1"/>
-          <rect x="17" y="21" width="4" height="2" 
-                fill="#8b4513" 
-                rx="1"/>
-          <rect x="23" y="21" width="4" height="2" 
-                fill="#8b4513" 
-                rx="1"/>
-          
-          <!-- Speaker posts -->
-          <line x1="6" y1="20" x2="6" y2="17" 
-                stroke="#d4af37" 
-                stroke-width="1"/>
-          <line x1="26" y1="20" x2="26" y2="17" 
-                stroke="#d4af37" 
-                stroke-width="1"/>
-          
-          <!-- Vintage movie reel symbol in center -->
-          <circle cx="16" cy="14" r="3" 
-                  fill="none" 
-                  stroke="#d4af37" 
-                  stroke-width="1"/>
-          <circle cx="16" cy="14" r="1" 
-                  fill="#d4af37"/>
-          <circle cx="13.5" cy="11.5" r="0.8" 
-                  fill="none" 
-                  stroke="#d4af37" 
-                  stroke-width="0.5"/>
-          <circle cx="18.5" cy="11.5" r="0.8" 
-                  fill="none" 
-                  stroke="#d4af37" 
-                  stroke-width="0.5"/>
-          <circle cx="13.5" cy="16.5" r="0.8" 
-                  fill="none" 
-                  stroke="#d4af37" 
-                  stroke-width="0.5"/>
-          <circle cx="18.5" cy="16.5" r="0.8" 
-                  fill="none" 
-                  stroke="#d4af37" 
-                  stroke-width="0.5"/>
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"/>
         </svg>
       `;
 
@@ -116,15 +91,15 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
         icon: {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(driveInSvgContent)}`,
           scaledSize: new google.maps.Size(iconSize, iconSize),
-          anchor: new google.maps.Point(iconSize/2, iconSize/2)
+          anchor: new google.maps.Point(iconSize/2, iconSize)
         },
         title: `${attraction.name} - ${attraction.state} (Drive-In Theater)`,
-        zIndex: 30000, // Higher zIndex to prevent overlapping
+        zIndex: 30000,
         optimized: false,
         isDriveIn: true
       };
     } else {
-      // Regular attraction icon with adjusted zIndex
+      // Regular attraction icon - simple red circle
       const iconSize = 16;
       const svgContent = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
@@ -146,14 +121,13 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
           anchor: new google.maps.Point(iconSize/2, iconSize/2)
         },
         title: `${attraction.name} - ${attraction.state}`,
-        zIndex: 25000, // Lower than drive-ins but still high
+        zIndex: 25000,
         optimized: false,
         isDriveIn: false
       };
     }
   }, [attraction.latitude, attraction.longitude, attraction.name, attraction.state]);
 
-  // FIXED: Removed isHovered from dependencies to prevent re-render loop
   useEffect(() => {
     if (!map || !attraction) return;
 
@@ -168,7 +142,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
       }
     }
 
-    console.log(`🎯 Creating nostalgic attraction marker for ${attraction.name}`);
+    console.log(`🎯 Creating attraction marker for ${attraction.name}${markerConfig.isDriveIn ? ' (DRIVE-IN THEATER)' : ''}`);
 
     // Create marker with memoized config
     const marker = new google.maps.Marker({
@@ -181,10 +155,6 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     });
 
     markerRef.current = marker;
-
-    if (markerConfig.isDriveIn) {
-      console.log(`🎬 Nostalgic drive-in theater marker created: ${attraction.name}`);
-    }
 
     // Clear any existing listeners
     listenersRef.current.forEach(listener => {
@@ -221,7 +191,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     listenersRef.current = [mouseEnterListener, mouseLeaveListener, mouseMoveListener, clickListener];
 
     return () => {
-      console.log(`🧹 Cleaning up nostalgic attraction marker: ${attraction.name}`);
+      console.log(`🧹 Cleaning up attraction marker: ${attraction.name}`);
       
       // Remove all listeners
       listenersRef.current.forEach(listener => {
