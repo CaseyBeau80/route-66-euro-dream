@@ -18,9 +18,23 @@ const MapInitializationService: React.FC<MapInitializationServiceProps> = ({
 
     console.log('🚀 MapInitializationService: Starting map readiness check');
     
+    // Check if Google Maps API is fully loaded
+    const checkGoogleMapsApiReady = () => {
+      if (!window.google || !window.google.maps || !window.google.maps.marker) {
+        console.log('⏳ Google Maps API not fully loaded yet');
+        return false;
+      }
+      return true;
+    };
+
     // Check if map is already ready
     const checkMapReady = () => {
       try {
+        // First check if Google Maps API is available
+        if (!checkGoogleMapsApiReady()) {
+          return false;
+        }
+
         // Test if map methods are available and working
         const zoom = map.getZoom();
         const center = map.getCenter();

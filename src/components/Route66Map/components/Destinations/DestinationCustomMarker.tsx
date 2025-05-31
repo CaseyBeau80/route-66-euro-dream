@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { useDestinationHover } from './hooks/useDestinationHover';
 import DestinationHoverPortal from './DestinationHoverPortal';
@@ -26,6 +27,14 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
 
   useEffect(() => {
     if (!map || !destination) return;
+
+    // Check if Google Maps API is fully loaded before proceeding
+    if (!window.google || !window.google.maps || !window.google.maps.marker || !window.google.maps.marker.AdvancedMarkerElement) {
+      console.log('⏳ Google Maps API not fully loaded yet, waiting...');
+      return;
+    }
+
+    console.log(`🛡️ Creating Route 66 shield marker for ${destination.name}`);
 
     // Create marker element
     const markerElement = document.createElement('div');
@@ -62,69 +71,76 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       markerElement.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
     });
 
-    // Create advanced marker
-    const marker = new google.maps.marker.AdvancedMarkerElement({
-      map,
-      position: { lat: destination.latitude, lng: destination.longitude },
-      content: markerElement,
-      title: destination.name
-    });
+    try {
+      // Create advanced marker
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: { lat: destination.latitude, lng: destination.longitude },
+        content: markerElement,
+        title: destination.name
+      });
 
-    markerRef.current = marker;
+      markerRef.current = marker;
 
-    // Add event listeners for hover
-    const handleMarkerMouseEnter = (event: MouseEvent) => {
-      const rect = map.getDiv().getBoundingClientRect();
-      const projection = map.getProjection();
-      
-      if (projection) {
-        const point = projection.fromLatLngToPoint(
-          new google.maps.LatLng(destination.latitude, destination.longitude)
-        );
+      // Add event listeners for hover
+      const handleMarkerMouseEnter = (event: MouseEvent) => {
+        const rect = map.getDiv().getBoundingClientRect();
+        const projection = map.getProjection();
         
-        if (point) {
-          const scale = Math.pow(2, map.getZoom());
-          const worldCoordinate = new google.maps.Point(
-            point.x * scale,
-            point.y * scale
+        if (projection) {
+          const point = projection.fromLatLngToPoint(
+            new google.maps.LatLng(destination.latitude, destination.longitude)
           );
           
-          const pixelOffset = new google.maps.Point(
-            Math.floor(worldCoordinate.x),
-            Math.floor(worldCoordinate.y)
-          );
-          
-          const viewportX = pixelOffset.x - rect.left;
-          const viewportY = pixelOffset.y - rect.top;
-          
-          console.log(`📍 Marker screen position for ${destination.name}:`, {
-            viewportX,
-            viewportY
-          });
-          
-          updatePosition(viewportX, viewportY);
+          if (point) {
+            const scale = Math.pow(2, map.getZoom());
+            const worldCoordinate = new google.maps.Point(
+              point.x * scale,
+              point.y * scale
+            );
+            
+            const pixelOffset = new google.maps.Point(
+              Math.floor(worldCoordinate.x),
+              Math.floor(worldCoordinate.y)
+            );
+            
+            const viewportX = pixelOffset.x - rect.left;
+            const viewportY = pixelOffset.y - rect.top;
+            
+            console.log(`📍 Marker screen position for ${destination.name}:`, {
+              viewportX,
+              viewportY
+            });
+            
+            updatePosition(viewportX, viewportY);
+          }
         }
-      }
-      
-      handleMouseEnter(destination.name);
-    };
+        
+        handleMouseEnter(destination.name);
+      };
 
-    const handleMarkerMouseLeave = () => {
-      handleMouseLeave(destination.name);
-    };
+      const handleMarkerMouseLeave = () => {
+        handleMouseLeave(destination.name);
+      };
 
-    const handleMarkerClick = () => {
-      console.log(`🏛️ Destination marker clicked: ${destination.name}`);
-      onDestinationClick(destination);
-    };
+      const handleMarkerClick = () => {
+        console.log(`🏛️ Destination marker clicked: ${destination.name}`);
+        onDestinationClick(destination);
+      };
 
-    markerElement.addEventListener('mouseenter', handleMarkerMouseEnter);
-    markerElement.addEventListener('mouseleave', handleMarkerMouseLeave);
-    markerElement.addEventListener('click', handleMarkerClick);
+      markerElement.addEventListener('mouseenter', handleMarkerMouseEnter);
+      markerElement.addEventListener('mouseleave', handleMarkerMouseLeave);
+      markerElement.addEventListener('click', handleMarkerClick);
+
+      console.log(`✅ Route 66 shield marker created for ${destination.name}`);
+    } catch (error) {
+      console.error(`❌ Error creating marker for ${destination.name}:`, error);
+    }
 
     return () => {
-      if (marker) {
-        marker.map = null;
+      if (markerRef.current) {
+        markerRef.current.map = null;
+        console.log(`🧹 Cleaning up destination marker: ${destination.name} (removing shield, no yellow to clean)`);
       }
       cleanup();
     };
