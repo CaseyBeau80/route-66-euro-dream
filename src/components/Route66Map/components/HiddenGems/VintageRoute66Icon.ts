@@ -46,7 +46,7 @@ export const createVintageRoute66Icon = () => {
         
         <!-- ROUTE text at top -->
         <text x="20" y="15" text-anchor="middle" 
-              fill="#2C5F7E" 
+              fill="#000000" 
               font-family="Arial, sans-serif" 
               font-size="7" 
               font-weight="bold"
@@ -59,7 +59,7 @@ export const createVintageRoute66Icon = () => {
         
         <!-- Large 66 numbers -->
         <text x="20" y="31" text-anchor="middle" 
-              fill="#2C5F7E" 
+              fill="#000000" 
               font-family="Arial, sans-serif" 
               font-size="15" 
               font-weight="900">66</text>
@@ -69,6 +69,7 @@ export const createVintageRoute66Icon = () => {
     anchor: new google.maps.Point(20, 40)
   };
 };
+
 
 
 
