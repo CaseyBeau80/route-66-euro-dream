@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { createPortal } from 'react-dom/client';
+import { createPortal } from 'react-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, MapPin, ExternalLink, X } from 'lucide-react';
 import { HiddenGem } from './types';
