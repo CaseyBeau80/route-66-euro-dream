@@ -14,12 +14,12 @@ export const center = {
   lng: -96.0, // Adjusted to center between Chicago and LA
 };
 
-// Define tighter map bounds to restrict view to Route 66 corridor only
+// Define tighter map bounds to restrict view to Route 66 corridor only (expanded by 25%)
 export const mapBounds = {
-  north: 42.0, // Northern boundary (just above Chicago/Illinois)
-  south: 32.0, // Southern boundary (covering southern Texas)
-  east: -87.0, // Eastern boundary (covering Chicago area)
-  west: -118.5, // Western boundary (covering Los Angeles area)
+  north: 44.5, // Northern boundary (expanded from 42.0 by 25%)
+  south: 29.5, // Southern boundary (expanded from 32.0 by 25%)
+  east: -79.25, // Eastern boundary (expanded from -87.0 by 25%)
+  west: -126.4, // Western boundary (expanded from -118.5 by 25%)
 };
 
 // Map restrictions with strict bounds to create viewport lock
