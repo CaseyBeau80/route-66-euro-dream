@@ -1,17 +1,43 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Map } from 'lucide-react';
+import { ChevronDown, ChevronUp, Map, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 import { extractCityName } from '@/utils/cityUrlUtils';
 
 const CityNavigation: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
   const { waypoints, isLoading } = useSupabaseRoute66();
 
-  // Filter for major stops only
+  // Filter for major stops only and group by state
   const majorCities = waypoints.filter(waypoint => waypoint.is_major_stop);
+  
+  // Group cities by state
+  const citiesByState = majorCities.reduce((acc, city) => {
+    const state = city.state;
+    if (!acc[state]) {
+      acc[state] = [];
+    }
+    acc[state].push(city);
+    return acc;
+  }, {} as Record<string, typeof majorCities>);
+
+  // Sort states by their appearance order along Route 66
+  const stateOrder = ['Illinois', 'Missouri', 'Oklahoma', 'Texas', 'New Mexico', 'Arizona', 'California'];
+  const sortedStates = stateOrder.filter(state => citiesByState[state]);
+
+  const toggleStateExpansion = (state: string) => {
+    const newExpandedStates = new Set(expandedStates);
+    if (newExpandedStates.has(state)) {
+      newExpandedStates.delete(state);
+    } else {
+      newExpandedStates.add(state);
+    }
+    setExpandedStates(newExpandedStates);
+  };
 
   const handleCityClick = (waypoint: any) => {
     console.log('🏛️ City clicked (navigation disabled):', waypoint.name);
@@ -41,21 +67,48 @@ const CityNavigation: React.FC = () => {
       
       {isExpanded && (
         <CardContent className="pt-0 max-h-64 overflow-y-auto">
-          <div className="space-y-2">
-            {majorCities.map((city) => {
-              const cityName = extractCityName(city.name);
+          <div className="space-y-1">
+            {sortedStates.map((state) => {
+              const cities = citiesByState[state];
+              const isStateExpanded = expandedStates.has(state);
+              
               return (
-                <Button
-                  key={city.id}
-                  variant="ghost"
-                  className="w-full justify-start hover:bg-amber-100 text-left p-3 cursor-default"
-                  onClick={() => handleCityClick(city)}
-                >
-                  <div>
-                    <div className="font-semibold text-amber-800">{cityName}</div>
-                    <div className="text-sm text-amber-600">{city.state}</div>
-                  </div>
-                </Button>
+                <Collapsible key={state} open={isStateExpanded} onOpenChange={() => toggleStateExpansion(state)}>
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center justify-between w-full p-2 hover:bg-amber-100 rounded-md transition-colors">
+                      <div className="flex items-center gap-2">
+                        {isStateExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-amber-700" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-amber-700" />
+                        )}
+                        <span className="font-semibold text-amber-800 text-left">{state}</span>
+                      </div>
+                      <span className="text-xs text-amber-600 bg-amber-200 px-2 py-1 rounded-full">
+                        {cities.length}
+                      </span>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-6">
+                    <div className="space-y-1 pb-2">
+                      {cities.map((city) => {
+                        const cityName = extractCityName(city.name);
+                        return (
+                          <Button
+                            key={city.id}
+                            variant="ghost"
+                            className="w-full justify-start hover:bg-amber-50 text-left p-2 h-auto cursor-default"
+                            onClick={() => handleCityClick(city)}
+                          >
+                            <div className="text-left">
+                              <div className="font-medium text-amber-800 text-sm">{cityName}</div>
+                            </div>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               );
             })}
           </div>
