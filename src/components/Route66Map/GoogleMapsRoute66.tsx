@@ -42,6 +42,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [routeSystemReady, setRouteSystemReady] = useState(false);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -81,10 +82,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 component with enhanced Supabase integration, Hidden Gems, Attractions, and Destination Cities', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 component with optimized route rendering and attraction filtering', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
+    routeSystemReady,
     selectedState,
     visibleWaypoints: visibleWaypoints.length,
     totalWaypoints: waypoints.length
@@ -112,6 +114,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             {/* Add state highlighting as the base layer */}
             <StateHighlighting map={mapRef.current} />
             
+            {/* Single route system to prevent overlapping */}
             <RouteDisplayManager 
               map={mapRef.current}
               isMapReady={mapEventHandlers.isMapReady}
@@ -136,7 +139,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   }}
                 />
                 
-                {/* Render Attractions (regular stops) with hover cards */}
+                {/* Render Attractions with improved zoom-based filtering */}
                 <AttractionsContainer
                   map={mapRef.current}
                   waypoints={visibleWaypoints}
