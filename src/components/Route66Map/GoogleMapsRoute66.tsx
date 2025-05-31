@@ -12,7 +12,7 @@ import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
-import SingleRouteManager from './services/SingleRouteManager';
+import NuclearRouteRenderer from './services/NuclearRouteRenderer';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -81,7 +81,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with NUCLEAR SingleRouteManager (absolutely only one route)', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with NUCLEAR RouteRenderer (absolutely single route)', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -112,8 +112,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             {/* Add state highlighting as the base layer */}
             <StateHighlighting map={mapRef.current} />
             
-            {/* NUCLEAR SINGLE ROUTE MANAGER - absolutely only one route possible */}
-            <SingleRouteManager 
+            {/* NUCLEAR ROUTE RENDERER - absolutely only one route possible */}
+            <NuclearRouteRenderer 
               map={mapRef.current}
               isMapReady={mapEventHandlers.isMapReady}
             />
