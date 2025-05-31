@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { HiddenGem } from '../types';
 import { createVintageRoute66Icon } from '../VintageRoute66Icon';
 import { useMarkerHover } from '../hooks/useMarkerHover';
@@ -24,13 +24,53 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup
+    cleanup,
+    clearHover
   } = useMarkerHover();
 
-  React.useEffect(() => {
-    if (!map) return;
+  const markerRef = useRef<google.maps.Marker | null>(null);
+  const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
 
-    console.log(`🎯 Creating hoverable marker for: ${gem.title}`);
+  // Function to get marker screen position
+  const getMarkerScreenPosition = useCallback(() => {
+    if (!map || !markerRef.current) return null;
+
+    const position = markerRef.current.getPosition();
+    if (!position) return null;
+
+    // Get the map div and its bounds
+    const mapDiv = map.getDiv();
+    const mapRect = mapDiv.getBoundingClientRect();
+
+    // Get map bounds
+    const bounds = map.getBounds();
+    if (!bounds) return null;
+
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    // Calculate relative position within the map viewport
+    const lat = position.lat();
+    const lng = position.lng();
+
+    // Convert to pixel coordinates relative to map container
+    const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapRect.width;
+    const y = ((ne.lat() - lat) / (ne.lat() - sw.lat())) * mapRect.height;
+
+    // Convert to viewport coordinates
+    const viewportX = mapRect.left + x;
+    const viewportY = mapRect.top + y;
+
+    console.log(`📍 Marker screen position for ${gem.title}:`, { viewportX, viewportY });
+
+    return { x: viewportX, y: viewportY };
+  }, [map, gem.title]);
+
+  // Create marker only once
+  useEffect(() => {
+    if (!map || markerRef.current) return;
+
+    console.log(`🎯 Creating stable marker for: ${gem.title}`);
 
     // Create the visual marker
     const marker = new google.maps.Marker({
@@ -41,41 +81,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
       zIndex: 1000
     });
 
-    // Function to get marker screen position
-    const getMarkerScreenPosition = () => {
-      const projection = map.getProjection();
-      if (!projection) return null;
-
-      const position = marker.getPosition();
-      if (!position) return null;
-
-      // Get the map div and its bounds
-      const mapDiv = map.getDiv();
-      const mapRect = mapDiv.getBoundingClientRect();
-
-      // Get map bounds
-      const bounds = map.getBounds();
-      if (!bounds) return null;
-
-      const ne = bounds.getNorthEast();
-      const sw = bounds.getSouthWest();
-
-      // Calculate relative position within the map viewport
-      const lat = position.lat();
-      const lng = position.lng();
-
-      // Convert to pixel coordinates relative to map container
-      const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapRect.width;
-      const y = ((ne.lat() - lat) / (ne.lat() - sw.lat())) * mapRect.height;
-
-      // Convert to viewport coordinates
-      const viewportX = mapRect.left + x;
-      const viewportY = mapRect.top + y;
-
-      console.log(`📍 Marker screen position for ${gem.title}:`, { viewportX, viewportY });
-
-      return { x: viewportX, y: viewportY };
-    };
+    markerRef.current = marker;
 
     // Mouse event handlers
     const handleMouseOver = () => {
@@ -83,24 +89,28 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
       const screenPos = getMarkerScreenPosition();
       if (screenPos) {
         updatePosition(screenPos.x, screenPos.y);
-        handleMouseEnter();
+        handleMouseEnter(gem.title);
       }
     };
 
     const handleMouseOut = () => {
       console.log(`🐭 Mouse out gem: ${gem.title}`);
-      handleMouseLeave();
+      handleMouseLeave(gem.title);
     };
 
     const handleClick = () => {
       console.log(`🎯 Clicked gem: ${gem.title}`);
+      clearHover(); // Clear hover state on click
       onMarkerClick(gem);
     };
 
     // Add event listeners
-    marker.addListener('mouseover', handleMouseOver);
-    marker.addListener('mouseout', handleMouseOut);
-    marker.addListener('click', handleClick);
+    const mouseOverListener = marker.addListener('mouseover', handleMouseOver);
+    const mouseOutListener = marker.addListener('mouseout', handleMouseOut);
+    const clickListener = marker.addListener('click', handleClick);
+
+    // Store listeners for cleanup
+    listenersRef.current = [mouseOverListener, mouseOutListener, clickListener];
 
     // Update position when map changes
     const updateMarkerPosition = () => {
@@ -115,6 +125,8 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     const boundsListener = map.addListener('bounds_changed', updateMarkerPosition);
     const zoomListener = map.addListener('zoom_changed', updateMarkerPosition);
 
+    listenersRef.current.push(boundsListener, zoomListener);
+
     // Initial position update
     setTimeout(() => {
       const screenPos = getMarkerScreenPosition();
@@ -125,13 +137,33 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
 
     // Cleanup function
     return () => {
-      console.log(`🧹 Cleaning up marker for: ${gem.title}`);
-      marker.setMap(null);
-      google.maps.event.removeListener(boundsListener);
-      google.maps.event.removeListener(zoomListener);
+      console.log(`🧹 Cleaning up stable marker for: ${gem.title}`);
+      
+      // Remove all listeners
+      listenersRef.current.forEach(listener => {
+        google.maps.event.removeListener(listener);
+      });
+      listenersRef.current = [];
+
+      // Remove marker
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
+
       cleanup();
     };
-  }, [gem, map, onMarkerClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, isHovered]);
+  }, [map, gem.latitude, gem.longitude, gem.title]); // Only depend on static values
+
+  // Update position when hover state changes
+  useEffect(() => {
+    if (isHovered) {
+      const screenPos = getMarkerScreenPosition();
+      if (screenPos) {
+        updatePosition(screenPos.x, screenPos.y);
+      }
+    }
+  }, [isHovered, getMarkerScreenPosition, updatePosition]);
 
   return (
     <HoverCardPortal
