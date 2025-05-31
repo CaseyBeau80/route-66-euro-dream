@@ -40,8 +40,8 @@ const MapCore: React.FC<MapCoreProps> = ({
 
     try {
       const map = new google.maps.Map(containerRef.current, {
-        zoom: 5,
-        center: { lat: 35.2271, lng: -101.8313 }, // Center of Route 66
+        zoom: 4, // Set to zoom level 4 to match the desired extent shown in the image
+        center: { lat: 36.0, lng: -96.0 }, // Updated center point for Route 66 corridor
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,

@@ -1,3 +1,4 @@
+
 // Map configuration constants
 
 // Styling for the Google Map
@@ -7,13 +8,13 @@ export const mapContainerStyle = {
   borderRadius: '0.75rem',
 };
 
-// Center the map on a point along Route 66 (roughly Oklahoma)
+// Center the map to show the full Route 66 corridor as shown in the image
 export const center = {
-  lat: 39.0,
-  lng: -98.0,
+  lat: 36.0, // Slightly north to better center the route corridor
+  lng: -96.0, // Adjusted to center between Chicago and LA
 };
 
-// Define map bounds to show full USA
+// Define map bounds to show full USA with enhanced western coverage
 export const mapBounds = {
   north: 49.5, // Northern boundary (covering all mainland US)
   south: 25.0, // Southern boundary (covering southern Texas)
@@ -38,7 +39,7 @@ export const mapOptions = {
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 4, // Lower minimum zoom to see entire USA
+  minZoom: 4, // Set to match the desired zoom extent
   maxZoom: 10, // Limit maximum zoom to prevent zooming in too far
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
