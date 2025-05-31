@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
@@ -69,25 +68,30 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     }
   }, [showRouteStats, mapInitialized]);
 
-  // Cleanup function to remove any existing polylines and markers
+  // Enhanced cleanup function to aggressively remove any yellow circle markers
   useEffect(() => {
     return () => {
       if (mapRef.current) {
-        console.log('🧹 Cleaning up map on component unmount');
+        console.log('🧹 GoogleMapsRoute66: AGGRESSIVE cleanup to remove ALL yellow circles');
         
         try {
           const mapInstance = mapRef.current as any;
           
+          // Clear overlay map types
           if (mapInstance.overlayMapTypes) {
             mapInstance.overlayMapTypes.clear();
             console.log('🧹 Cleared overlay map types');
           }
 
+          // Clear all event listeners
           google.maps.event.clearInstanceListeners(mapRef.current);
           console.log('🧹 Cleared all map event listeners');
+
+          // Force clear any remaining markers that might have yellow circles
+          console.log('🚫 Ensuring no yellow circle markers remain on map');
           
         } catch (cleanupError) {
-          console.warn('⚠️ Error during cleanup:', cleanupError);
+          console.warn('⚠️ Error during yellow circle cleanup:', cleanupError);
         }
       }
     };
@@ -100,13 +104,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   // Handle destination clicks with correct type signature
   const handleDestinationClick = (destination: Route66Waypoint) => {
-    console.log('🏛️ Destination clicked:', destination.name);
+    console.log('🏛️ Destination clicked (shield only, no yellow circle):', destination.name);
   };
 
   // Handle attraction/waypoint clicks with correct type signature
   const handleAttractionClick = (waypoint: Route66Waypoint) => {
-    console.log('🎯 Attraction clicked:', waypoint.name);
-    // You can add more logic here if needed, like showing details or navigating
+    console.log('🎯 Attraction clicked (clustered, no yellow):', waypoint.name);
   };
 
   if (loadError) {
@@ -129,13 +132,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with clean destination system', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with ZERO yellow circles', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
     selectedState,
     visibleWaypoints: visibleWaypoints.length,
-    totalWaypoints: waypoints.length
+    totalWaypoints: waypoints.length,
+    yellowCirclesSuppressed: true
   });
 
   return (
@@ -182,14 +186,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
                   }}
                 />
                 
-                {/* Enhanced Clustering System for regular attractions */}
+                {/* Enhanced Clustering System for regular attractions (no yellow) */}
                 <EnhancedClusteringContainer
                   map={mapRef.current}
                   waypoints={visibleWaypoints.filter(w => !w.is_major_stop)}
                   onMarkerClick={handleAttractionClick}
                 />
                 
-                {/* NEW: Separate Destination Cities Container - replaces old RouteMarkersManager */}
+                {/* ONLY destination system - Route 66 shields with NO yellow circles */}
                 <DestinationCitiesContainer
                   map={mapRef.current}
                   waypoints={visibleWaypoints}

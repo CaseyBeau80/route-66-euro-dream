@@ -18,9 +18,10 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
   const destinationCities = waypoints.filter(waypoint => waypoint.is_major_stop === true);
 
   useEffect(() => {
-    console.log('🏛️ DestinationCitiesContainer: Active and managing destination cities');
-    console.log(`✅ Managing ${destinationCities.length} destination cities (NO yellow circles)`);
+    console.log('🏛️ DestinationCitiesContainer: ONLY destination marker system active');
+    console.log(`✅ Managing ${destinationCities.length} destination cities with NO YELLOW CIRCLES`);
     console.log('🎯 Destination cities:', destinationCities.map(d => d.name));
+    console.log('🚫 RouteMarkersManager is completely disabled to prevent yellow circle overlap');
     
     // Add portal root if it doesn't exist
     if (!document.getElementById('map-portal-root')) {
@@ -36,7 +37,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     }
 
     return () => {
-      console.log('🧹 DestinationCitiesContainer: Cleaning up destination markers');
+      console.log('🧹 DestinationCitiesContainer: Cleaning up destination markers (no yellow circles to clean)');
     };
   }, [destinationCities.length]);
 
@@ -45,7 +46,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     return null;
   }
 
-  console.log('🏛️ DestinationCitiesContainer: Rendering destination markers for:', destinationCities.map(d => d.name));
+  console.log('🏛️ DestinationCitiesContainer: Rendering ONLY Route 66 shield markers (no yellow circles)');
 
   return (
     <>

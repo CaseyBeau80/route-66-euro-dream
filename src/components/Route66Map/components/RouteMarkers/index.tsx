@@ -8,20 +8,26 @@ const RouteMarkers: React.FC<RouteMarkersProps> = ({ map, waypoints }) => {
   const infoWindowsRef = useRef<WeakMap<google.maps.Marker, google.maps.InfoWindow>>(new WeakMap());
 
   useEffect(() => {
-    console.log('⚠️ RouteMarkers: COMPLETELY DISABLED - replaced by DestinationCitiesContainer');
-    console.log('🏛️ All destination markers are now handled by DestinationCitiesContainer to prevent overlapping yellow circles');
+    console.log('🚫 RouteMarkers: COMPLETELY DISABLED - all yellow circle prevention active');
+    console.log('🧹 RouteMarkers: Ensuring no yellow circle markers are created for', waypoints.length, 'waypoints');
     
-    // Clean up any existing markers immediately
+    // Immediately clean up any existing markers to prevent yellow circles
     const markerRefs = { markersRef, infoWindowsRef };
     MarkerManager.cleanupMarkers(markerRefs);
     
+    // Clear the refs to ensure nothing remains
+    markersRef.current = [];
+    infoWindowsRef.current = new WeakMap();
+    
     return () => {
-      console.log('🧹 RouteMarkers cleanup - ensuring no old markers remain');
+      console.log('🧹 RouteMarkers cleanup - aggressively removing any potential yellow circle markers');
       MarkerManager.cleanupMarkers(markerRefs);
+      markersRef.current = [];
+      infoWindowsRef.current = new WeakMap();
     };
   }, [map, waypoints]);
 
-  // Return null - this component is completely disabled
+  // Return null - this component is completely disabled to prevent yellow circles
   return null;
 };
 
