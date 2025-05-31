@@ -23,8 +23,8 @@ export const createVintageRoute66Icon = () => {
                  L36 8
                  C36 6 34 4 32 4
                  L20 4 Z" 
-              fill="#F5F1E8" 
-              stroke="#2C5F7E" 
+              fill="#FFFFFF" 
+              stroke="#000000" 
               stroke-width="2.5"
               filter="url(#shadow)"/>
         
@@ -41,7 +41,7 @@ export const createVintageRoute66Icon = () => {
                  C33 7.5 31.5 6 30 6
                  L20 6 Z" 
               fill="none" 
-              stroke="#2C5F7E" 
+              stroke="#000000" 
               stroke-width="1"/>
         
         <!-- ROUTE text at top -->
@@ -54,7 +54,7 @@ export const createVintageRoute66Icon = () => {
         
         <!-- Horizontal dividing line -->
         <line x1="9" y1="18" x2="31" y2="18" 
-              stroke="#2C5F7E" 
+              stroke="#000000" 
               stroke-width="1.5"/>
         
         <!-- Large 66 numbers -->
