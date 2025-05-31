@@ -8,12 +8,16 @@ interface DestinationHoverPortalProps {
   destination: Route66Waypoint;
   position: { x: number; y: number };
   isVisible: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   destination,
   position,
-  isVisible
+  isVisible,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   if (!isVisible) return null;
 
@@ -26,12 +30,14 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   return createPortal(
     <div
-      className="fixed pointer-events-none z-[100000] transition-opacity duration-200"
+      className="fixed pointer-events-auto z-[100000] transition-opacity duration-200"
       style={{
         left: `${adjustedPosition.x}px`,
         top: `${adjustedPosition.y}px`,
         opacity: isVisible ? 1 : 0
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <DestinationHoverCard destination={destination} />
     </div>,

@@ -1,6 +1,4 @@
-
 import React, { useEffect, useRef } from 'react';
-import { IconCreator } from '../RouteMarkers/IconCreator';
 import { useDestinationHover } from './hooks/useDestinationHover';
 import DestinationHoverPortal from './DestinationHoverPortal';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
@@ -16,7 +14,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   map,
   onDestinationClick
 }) => {
-  const markerRef = useRef<google.maps.Marker | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const {
     isHovered,
     hoverPosition,
@@ -29,72 +27,129 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   useEffect(() => {
     if (!map || !destination) return;
 
-    const cityName = destination.name.split(',')[0].split(' - ')[0].trim();
-    
-    console.log(`🏛️ Creating ONLY Route 66 shield marker for: ${cityName} (NO YELLOW CIRCLE)`);
-    console.log(`🚫 Ensuring no yellow circle base for: ${cityName}`);
+    // Create marker element
+    const markerElement = document.createElement('div');
+    markerElement.className = 'destination-marker';
+    markerElement.style.cssText = `
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      border: 3px solid #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 10px;
+      transition: all 0.2s ease;
+    `;
 
-    // Create the marker with ONLY the Route 66 shield icon (no yellow background)
-    const marker = new google.maps.Marker({
+    // Add Route 66 shield number
+    markerElement.textContent = '66';
+
+    // Add hover effects
+    markerElement.addEventListener('mouseenter', () => {
+      markerElement.style.transform = 'scale(1.1)';
+      markerElement.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+    });
+
+    markerElement.addEventListener('mouseleave', () => {
+      markerElement.style.transform = 'scale(1)';
+      markerElement.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    });
+
+    // Create advanced marker
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map,
       position: { lat: destination.latitude, lng: destination.longitude },
-      map: map,
-      icon: IconCreator.createDestinationCityIcon(cityName),
-      title: `${destination.name} - ${destination.state} (Destination)`,
-      zIndex: 15000, // Lower than attractions to prevent conflicts
-      visible: true,
-      optimized: false // Force custom rendering to prevent any default yellow circles
+      content: markerElement,
+      title: destination.name
     });
 
     markerRef.current = marker;
 
-    // Mouse enter event
-    const mouseEnterListener = marker.addListener('mouseover', (event: google.maps.MapMouseEvent) => {
-      console.log(`🏛️ Mouse enter on destination: ${cityName} (shield only, no yellow)`);
-      handleMouseEnter(cityName);
+    // Add event listeners for hover
+    const handleMarkerMouseEnter = (event: MouseEvent) => {
+      const rect = map.getDiv().getBoundingClientRect();
+      const projection = map.getProjection();
       
-      if (event.domEvent) {
-        const mouseEvent = event.domEvent as MouseEvent;
-        updatePosition(mouseEvent.clientX + 10, mouseEvent.clientY - 10);
+      if (projection) {
+        const point = projection.fromLatLngToPoint(
+          new google.maps.LatLng(destination.latitude, destination.longitude)
+        );
+        
+        if (point) {
+          const scale = Math.pow(2, map.getZoom());
+          const worldCoordinate = new google.maps.Point(
+            point.x * scale,
+            point.y * scale
+          );
+          
+          const pixelOffset = new google.maps.Point(
+            Math.floor(worldCoordinate.x),
+            Math.floor(worldCoordinate.y)
+          );
+          
+          const viewportX = pixelOffset.x - rect.left;
+          const viewportY = pixelOffset.y - rect.top;
+          
+          console.log(`📍 Marker screen position for ${destination.name}:`, {
+            viewportX,
+            viewportY
+          });
+          
+          updatePosition(viewportX, viewportY);
+        }
       }
-    });
+      
+      handleMouseEnter(destination.name);
+    };
 
-    // Mouse leave event
-    const mouseLeaveListener = marker.addListener('mouseout', () => {
-      console.log(`🏛️ Mouse leave on destination: ${cityName}`);
-      handleMouseLeave(cityName);
-    });
+    const handleMarkerMouseLeave = () => {
+      handleMouseLeave(destination.name);
+    };
 
-    // Mouse move event for position updates
-    const mouseMoveListener = marker.addListener('mousemove', (event: google.maps.MapMouseEvent) => {
-      if (event.domEvent) {
-        const mouseEvent = event.domEvent as MouseEvent;
-        updatePosition(mouseEvent.clientX + 10, mouseEvent.clientY - 10);
-      }
-    });
-
-    // Click event
-    const clickListener = marker.addListener('click', () => {
-      console.log(`🏛️ Destination clicked: ${cityName} (shield marker only)`);
+    const handleMarkerClick = () => {
+      console.log(`🏛️ Destination marker clicked: ${destination.name}`);
       onDestinationClick(destination);
-    });
+    };
 
-    // Cleanup function
+    markerElement.addEventListener('mouseenter', handleMarkerMouseEnter);
+    markerElement.addEventListener('mouseleave', handleMarkerMouseLeave);
+    markerElement.addEventListener('click', handleMarkerClick);
+
     return () => {
-      console.log(`🧹 Cleaning up destination marker: ${cityName} (removing shield, no yellow to clean)`);
-      google.maps.event.removeListener(mouseEnterListener);
-      google.maps.event.removeListener(mouseLeaveListener);
-      google.maps.event.removeListener(mouseMoveListener);
-      google.maps.event.removeListener(clickListener);
-      marker.setMap(null);
+      if (marker) {
+        marker.map = null;
+      }
       cleanup();
     };
   }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup]);
+
+  // Handle hover card mouse events to keep it visible when interacting with it
+  const handleHoverCardMouseEnter = () => {
+    console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
+    // Keep the card visible by calling mouse enter again
+    handleMouseEnter(destination.name);
+  };
+
+  const handleHoverCardMouseLeave = () => {
+    console.log(`🏛️ Mouse left hover card for ${destination.name}`);
+    // Start the hide timer
+    handleMouseLeave(destination.name);
+  };
 
   return (
     <DestinationHoverPortal
       destination={destination}
       position={hoverPosition}
       isVisible={isHovered}
+      onMouseEnter={handleHoverCardMouseEnter}
+      onMouseLeave={handleHoverCardMouseLeave}
     />
   );
 };
