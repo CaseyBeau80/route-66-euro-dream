@@ -7,57 +7,61 @@ export const createVintageRoute66Icon = () => {
       <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
         <defs>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.3"/>
+            <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.3"/>
           </filter>
         </defs>
         
-        <!-- US Highway Shield Shape - accurate to reference image -->
-        <path d="M20 2
-                 L6 2
-                 C4 2 2 4 2 6
-                 L2 16
-                 C2 20 4 24 8 28
-                 C12 32 16 36 20 38
-                 C24 36 28 32 32 28
-                 C36 24 38 20 38 16
-                 L38 6
-                 C38 4 36 2 34 2
-                 L20 2 Z" 
-              fill="white" 
-              stroke="#000000" 
-              stroke-width="2"
+        <!-- Classic US Route Shield Shape - matching reference image -->
+        <path d="M20 4
+                 L8 4
+                 C6 4 4 6 4 8
+                 L4 20
+                 C4 24 6 28 10 32
+                 C14 35 17 37 20 38
+                 C23 37 26 35 30 32
+                 C34 28 36 24 36 20
+                 L36 8
+                 C36 6 34 4 32 4
+                 L20 4 Z" 
+              fill="#F5F1E8" 
+              stroke="#2C5F7E" 
+              stroke-width="2.5"
               filter="url(#shadow)"/>
         
-        <!-- Red banner at top for "ROUTE" -->
-        <rect x="2" y="2" width="36" height="8" 
-              fill="#D91E18" 
-              stroke="#000000" 
+        <!-- Inner shield border for authentic look -->
+        <path d="M20 6
+                 L10 6
+                 C8.5 6 7 7.5 7 9
+                 L7 19
+                 C7 22.5 8.5 26 11.5 29
+                 C14.5 31.5 17 33 20 33.5
+                 C23 33 25.5 31.5 28.5 29
+                 C31.5 26 33 22.5 33 19
+                 L33 9
+                 C33 7.5 31.5 6 30 6
+                 L20 6 Z" 
+              fill="none" 
+              stroke="#2C5F7E" 
               stroke-width="1"/>
         
-        <!-- Black dividing line -->
-        <line x1="2" y1="10" x2="38" y2="10" 
-              stroke="#000000" 
-              stroke-width="1"/>
-        
-        <!-- ROUTE text in red banner -->
-        <text x="20" y="7.5" text-anchor="middle" 
-              fill="white" 
-              font-family="Arial, sans-serif" 
-              font-size="5" 
-              font-weight="bold">ROUTE</text>
-        
-        <!-- US text in middle -->
-        <text x="20" y="18" text-anchor="middle" 
-              fill="black" 
+        <!-- ROUTE text at top -->
+        <text x="20" y="15" text-anchor="middle" 
+              fill="#2C5F7E" 
               font-family="Arial, sans-serif" 
               font-size="7" 
-              font-weight="bold">US</text>
+              font-weight="bold"
+              letter-spacing="0.5px">ROUTE</text>
         
-        <!-- Large 66 number -->
-        <text x="20" y="32" text-anchor="middle" 
-              fill="black" 
+        <!-- Horizontal dividing line -->
+        <line x1="9" y1="18" x2="31" y2="18" 
+              stroke="#2C5F7E" 
+              stroke-width="1.5"/>
+        
+        <!-- Large 66 numbers -->
+        <text x="20" y="31" text-anchor="middle" 
+              fill="#2C5F7E" 
               font-family="Arial, sans-serif" 
-              font-size="16" 
+              font-size="15" 
               font-weight="900">66</text>
       </svg>
     `)}`,
@@ -65,5 +69,6 @@ export const createVintageRoute66Icon = () => {
     anchor: new google.maps.Point(20, 40)
   };
 };
+
 
 
