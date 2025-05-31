@@ -15,8 +15,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather }) => {
         <h4 className="font-bold text-lg text-orange-900">{weather.cityName}</h4>
       </div>
 
-      {/* 3-Day Forecast - Improved Layout */}
-      <ForecastGrid forecast={weather.forecast || []} />
+      {/* Integrated 3-Day Forecast */}
+      <ForecastGrid forecast={weather.forecast || []} showHeader={true} />
     </div>
   );
 };

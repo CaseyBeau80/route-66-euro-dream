@@ -5,9 +5,10 @@ import { ForecastDay } from './WeatherTypes';
 
 interface ForecastGridProps {
   forecast: ForecastDay[];
+  showHeader?: boolean;
 }
 
-const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
+const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = false }) => {
   console.log('🔍 ForecastGrid: Received forecast data:', forecast);
   
   if (!forecast || forecast.length === 0) {
@@ -17,10 +18,12 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast }) => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-3">
-        <Calendar className="w-4 h-4 text-orange-600" />
-        <h5 className="font-semibold text-sm text-orange-900">3-Day Forecast</h5>
-      </div>
+      {showHeader && (
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar className="w-4 h-4 text-orange-600" />
+          <h5 className="font-semibold text-sm text-orange-900">3-Day Forecast</h5>
+        </div>
+      )}
       <div className="grid grid-cols-3 gap-3">
         {forecast.map((day, index) => {
           console.log(`🔍 ForecastGrid: Processing day ${index}:`, day);

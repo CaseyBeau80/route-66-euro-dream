@@ -7,7 +7,7 @@ interface TileContainerProps {
 
 const TileContainer: React.FC<TileContainerProps> = ({ children }) => {
   return (
-    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+    <div className="space-y-2">
       {children}
     </div>
   );
