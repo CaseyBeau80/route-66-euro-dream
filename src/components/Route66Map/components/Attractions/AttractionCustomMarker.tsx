@@ -34,13 +34,43 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     const isDriveIn = attraction.name.toLowerCase().includes('drive-in');
     
     if (isDriveIn) {
-      // Use the uploaded drive-in icon image, similar size to hidden gems (around 40x40)
+      // Custom SVG drive-in theater icon that nests well with other icons
+      const iconSize = 24;
+      const driveInSvgContent = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
+          <!-- Outer circle with drive-in themed colors -->
+          <circle cx="12" cy="12" r="11" 
+                  fill="#1a1a2e" 
+                  stroke="#ffd700" 
+                  stroke-width="2"/>
+          <!-- Inner screen/projection area -->
+          <rect x="6" y="8" width="12" height="8" 
+                fill="#333333" 
+                stroke="#ffd700" 
+                stroke-width="1" 
+                rx="1"/>
+          <!-- Screen content indicator -->
+          <rect x="7" y="9" width="10" height="6" 
+                fill="#4a4a4a" 
+                rx="0.5"/>
+          <!-- Small projection beam effect -->
+          <polygon points="12,16 10,20 14,20" 
+                   fill="#ffd700" 
+                   opacity="0.6"/>
+          <!-- Movie symbol -->
+          <circle cx="12" cy="12" r="2" 
+                  fill="#ffd700" 
+                  opacity="0.8"/>
+          <text x="12" y="13.5" text-anchor="middle" font-size="3" fill="#1a1a2e">▶</text>
+        </svg>
+      `;
+
       return {
         position: { lat: attraction.latitude, lng: attraction.longitude },
         icon: {
-          url: '/lovable-uploads/ef90c3a0-71fe-4f68-8671-5a455d6e9bc1.png',
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 20)
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(driveInSvgContent)}`,
+          scaledSize: new google.maps.Size(iconSize, iconSize),
+          anchor: new google.maps.Point(iconSize/2, iconSize/2)
         },
         title: `${attraction.name} - ${attraction.state} (Drive-In Theater)`,
         zIndex: 25000,
