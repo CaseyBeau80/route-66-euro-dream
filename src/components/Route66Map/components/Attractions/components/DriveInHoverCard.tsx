@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Attraction } from '../types';
@@ -16,35 +15,41 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
   position,
   onWebsiteClick
 }) => {
-  // Memoize position calculations for better performance
+  // Memoize position calculations for better performance and overlap prevention
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 280;
-    const cardHeight = 180;
-    const padding = 20;
+    const cardHeight = 200;
+    const padding = 30;
+    const topOffset = 60; // Extra offset to avoid overlapping with other cards
 
-    // Smart positioning to keep card in viewport
+    // Smart positioning to keep card in viewport and avoid overlaps
     const viewport = {
       width: window.innerWidth,
       height: window.innerHeight
     };
 
     let left = position.x - cardWidth / 2;
-    let top = position.y - cardHeight - 20;
+    let top = position.y - cardHeight - topOffset;
 
-    // Adjust horizontal position
+    // Adjust horizontal position with more padding to avoid overlaps
     if (left < padding) left = padding;
     if (left + cardWidth > viewport.width - padding) {
       left = viewport.width - cardWidth - padding;
     }
 
-    // Adjust vertical position  
-    if (top < padding) {
-      top = position.y + 20;
+    // Adjust vertical position with more aggressive spacing
+    if (top < padding + 100) { // Extra space from top to avoid header overlaps
+      top = position.y + topOffset; // Position below marker instead
     }
 
-    console.log(`🎬 Rendering nostalgic drive-in hover card for ${attraction.name} at:`, {
+    // Ensure we don't go off bottom of screen
+    if (top + cardHeight > viewport.height - padding) {
+      top = viewport.height - cardHeight - padding;
+    }
+
+    console.log(`🎬 Rendering non-overlapping drive-in hover card for ${attraction.name} at:`, {
       markerPos: position,
       cardPos: { left, top },
       viewport: { viewportWidth: viewport.width, viewportHeight: viewport.height }
@@ -64,12 +69,13 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
 
   return (
     <div
-      className="fixed z-[60000] pointer-events-none"
+      className="fixed pointer-events-none"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
         transform: 'none',
-        display: cardPosition.display
+        display: cardPosition.display,
+        zIndex: 50000 // Lower z-index to avoid overlapping with other important UI elements
       }}
     >
       <Card className="w-70 border-4 border-amber-600 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100 shadow-2xl relative overflow-hidden">
