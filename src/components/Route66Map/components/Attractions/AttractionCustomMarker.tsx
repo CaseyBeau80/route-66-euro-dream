@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useMemo } from 'react';
 import { Attraction } from './types';
-import { useAttractionHover } from './hooks/useAttractionHover';
+import { useAttractionHoverContext } from './contexts/AttractionHoverContext';
 import AttractionHoverPortal from './components/AttractionHoverPortal';
 import DriveInHoverCard from './components/DriveInHoverCard';
 
@@ -20,14 +20,10 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
-  const {
-    isHovered,
-    hoverPosition,
-    handleMouseEnter,
-    handleMouseLeave,
-    updatePosition,
-    cleanup
-  } = useAttractionHover();
+  const { activeAttraction, hoverPosition, setActiveAttraction } = useAttractionHoverContext();
+
+  // Check if this attraction is currently being hovered
+  const isHovered = activeAttraction === attraction.name;
 
   // Memoize marker properties to prevent unnecessary recreations
   const markerConfig = useMemo(() => {
@@ -153,7 +149,6 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     }
   }, [attraction.latitude, attraction.longitude, attraction.name, attraction.state]);
 
-  // FIXED: Removed isHovered from dependencies to prevent re-render loop
   useEffect(() => {
     if (!map || !attraction) return;
 
@@ -168,7 +163,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
       }
     }
 
-    console.log(`🎯 Creating nostalgic attraction marker for ${attraction.name}`);
+    console.log(`🎯 Creating attraction marker for ${attraction.name}`);
 
     // Create marker with memoized config
     const marker = new google.maps.Marker({
@@ -183,7 +178,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     markerRef.current = marker;
 
     if (markerConfig.isDriveIn) {
-      console.log(`🎬 Nostalgic drive-in theater marker created: ${attraction.name}`);
+      console.log(`🎬 Drive-in theater marker created: ${attraction.name}`);
     }
 
     // Clear any existing listeners
@@ -192,23 +187,22 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     });
     listenersRef.current = [];
 
-    // Add event listeners with proper cleanup tracking
+    // Add event listeners with global hover management
     const mouseEnterListener = marker.addListener('mouseover', (event: google.maps.MapMouseEvent) => {
       if (event.domEvent) {
         const mouseEvent = event.domEvent as MouseEvent;
-        updatePosition(mouseEvent.clientX + 10, mouseEvent.clientY - 10);
+        setActiveAttraction(attraction.name, { x: mouseEvent.clientX + 10, y: mouseEvent.clientY - 10 });
       }
-      handleMouseEnter(attraction.name);
     });
 
     const mouseLeaveListener = marker.addListener('mouseout', () => {
-      handleMouseLeave(attraction.name);
+      setActiveAttraction(null);
     });
 
     const mouseMoveListener = marker.addListener('mousemove', (event: google.maps.MapMouseEvent) => {
-      if (event.domEvent) {
+      if (event.domEvent && isHovered) {
         const mouseEvent = event.domEvent as MouseEvent;
-        updatePosition(mouseEvent.clientX + 10, mouseEvent.clientY - 10);
+        setActiveAttraction(attraction.name, { x: mouseEvent.clientX + 10, y: mouseEvent.clientY - 10 });
       }
     });
 
@@ -221,7 +215,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
     listenersRef.current = [mouseEnterListener, mouseLeaveListener, mouseMoveListener, clickListener];
 
     return () => {
-      console.log(`🧹 Cleaning up nostalgic attraction marker: ${attraction.name}`);
+      console.log(`🧹 Cleaning up attraction marker: ${attraction.name}`);
       
       // Remove all listeners
       listenersRef.current.forEach(listener => {
@@ -234,11 +228,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = React.memo
         markerRef.current.setMap(null);
         markerRef.current = null;
       }
-      
-      // Cleanup hover state
-      cleanup();
     };
-  }, [map, attraction, markerConfig, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, onAttractionClick]);
+  }, [map, attraction, markerConfig, setActiveAttraction, isHovered, onAttractionClick]);
 
   // Use drive-in specific hover card for drive-ins, regular card for others
   return (
