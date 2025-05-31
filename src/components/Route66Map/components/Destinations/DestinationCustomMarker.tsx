@@ -15,7 +15,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   map,
   onDestinationClick
 }) => {
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
   const {
     isHovered,
     hoverPosition,
@@ -101,8 +101,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
           zIndex: 1000
         });
 
-        // Store the regular marker in a compatible way
-        markerRef.current = marker as any;
+        markerRef.current = marker;
       }
 
       // Add event listeners for hover
@@ -163,10 +162,14 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     return () => {
       if (markerRef.current) {
         console.log(`🧹 Cleaning up destination marker: ${destination.name}`);
-        if (markerRef.current.setMap) {
+        
+        // Handle cleanup for both AdvancedMarkerElement and regular Marker
+        if (markerRef.current instanceof google.maps.marker.AdvancedMarkerElement) {
+          // For AdvancedMarkerElement, set map property to null
+          markerRef.current.map = null;
+        } else if (markerRef.current instanceof google.maps.Marker) {
+          // For regular Marker, use setMap method
           markerRef.current.setMap(null);
-        } else if ((markerRef.current as any).map) {
-          (markerRef.current as any).map = null;
         }
       }
       cleanup();
