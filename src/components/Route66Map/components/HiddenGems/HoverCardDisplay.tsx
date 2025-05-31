@@ -18,14 +18,12 @@ const HoverCardDisplay: React.FC<HoverCardDisplayProps> = ({
 }) => {
   if (!isVisible) return null;
 
-  // Calculate proper positioning relative to the map container
+  // Calculate positioning to ensure card stays on screen
   const cardStyle = {
-    position: 'absolute' as const,
-    left: `${position.x}px`,
-    top: `${position.y - 220}px`, // Position above the marker with more offset
-    transform: 'translateX(-50%)',
+    position: 'fixed' as const,
+    left: `${Math.max(10, Math.min(position.x - 175, window.innerWidth - 360))}px`,
+    top: `${Math.max(10, position.y - 250)}px`,
     zIndex: 999999,
-    opacity: isVisible ? 1 : 0,
     pointerEvents: 'auto' as const,
   };
 
