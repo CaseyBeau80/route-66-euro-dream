@@ -12,6 +12,8 @@ import StateHighlighting from './components/StateHighlighting';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
+import UltraSmoothRouteRenderer from './services/UltraSmoothRouteRenderer';
+import RouteStatisticsOverlay from './components/RouteStatisticsOverlay';
 import { useMapBounds } from './components/MapBounds';
 import { useMapEventHandlers } from './components/MapEventHandlers';
 
@@ -41,6 +43,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [showRouteStats, setShowRouteStats] = useState(true);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -55,23 +58,30 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     mapRef
   });
 
+  // Auto-hide route stats after 10 seconds
+  useEffect(() => {
+    if (showRouteStats && mapInitialized) {
+      const timer = setTimeout(() => {
+        setShowRouteStats(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showRouteStats, mapInitialized]);
+
   // Cleanup function to remove any existing polylines
   useEffect(() => {
     return () => {
       if (mapRef.current) {
         console.log('🧹 Cleaning up any existing polylines on component unmount');
         
-        // Clear all overlays from the map
         try {
           const mapInstance = mapRef.current as any;
           
-          // Clear overlay map types
           if (mapInstance.overlayMapTypes) {
             mapInstance.overlayMapTypes.clear();
             console.log('🧹 Cleared overlay map types');
           }
 
-          // Clear all event listeners to prevent recreation
           google.maps.event.clearInstanceListeners(mapRef.current);
           console.log('🧹 Cleared all map event listeners');
           
@@ -107,7 +117,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 without Route polyline', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with UltraSmoothRouteRenderer', {
     isLoaded,
     mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
@@ -127,6 +137,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       
       <MapInteractionHints isDragging={isDragging} />
       
+      {/* Route Statistics Overlay */}
+      <RouteStatisticsOverlay 
+        isVisible={showRouteStats && mapEventHandlers.isMapReady}
+        onToggle={() => setShowRouteStats(!showRouteStats)}
+      />
+      
       <MapInitializer onLoad={mapBounds.handleMapLoad} onClick={handleMapClick}>
         {mapInitialized && mapRef.current && (
           <>
@@ -140,6 +156,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             
             {mapEventHandlers.isMapReady && (
               <>
+                {/* Render the ultra-smooth Route 66 with ~2000 interpolated points */}
+                <UltraSmoothRouteRenderer 
+                  map={mapRef.current}
+                  isMapReady={mapEventHandlers.isMapReady}
+                />
+                
                 {/* Render Hidden Gems with hover cards */}
                 <HiddenGemsContainer 
                   map={mapRef.current}
