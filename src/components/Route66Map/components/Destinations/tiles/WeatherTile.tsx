@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Cloud, ChevronDown, ChevronUp } from 'lucide-react';
 import WeatherWidget from '../../WeatherWidget';
+import SimpleWeatherApiKeyInput from '../../weather/SimpleWeatherApiKeyInput';
+import { WeatherService } from '../../../services/WeatherService';
 import type { Route66Waypoint } from '../../../types/supabaseTypes';
 
 interface WeatherTileProps {
@@ -11,8 +13,18 @@ interface WeatherTileProps {
 
 const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [apiKeyRefreshTrigger, setApiKeyRefreshTrigger] = useState(0);
 
   const cityName = destination.name.split(',')[0].split(' - ')[0].trim();
+  const weatherService = WeatherService.getInstance();
+  const hasApiKey = weatherService.hasApiKey();
+
+  console.log(`🌤️ WeatherTile: Rendering for ${cityName}, hasApiKey: ${hasApiKey}`);
+
+  const handleApiKeySet = () => {
+    console.log('🔑 WeatherTile: API key set, triggering refresh');
+    setApiKeyRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <Card className="bg-gradient-to-br from-sky-50 to-blue-100 border-2 border-sky-300 hover:shadow-lg transition-all duration-200">
@@ -34,13 +46,21 @@ const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
       </CardHeader>
       {isExpanded && (
         <CardContent className="pt-0">
-          <WeatherWidget 
-            lat={destination.latitude}
-            lng={destination.longitude}
-            cityName={cityName}
-            compact={false}
-            collapsible={false}
-          />
+          {hasApiKey ? (
+            <WeatherWidget 
+              key={apiKeyRefreshTrigger}
+              lat={destination.latitude}
+              lng={destination.longitude}
+              cityName={cityName}
+              compact={false}
+              collapsible={false}
+            />
+          ) : (
+            <SimpleWeatherApiKeyInput 
+              onApiKeySet={handleApiKeySet}
+              cityName={cityName}
+            />
+          )}
         </CardContent>
       )}
     </Card>

@@ -10,6 +10,7 @@ export class WeatherService {
 
   private constructor() {
     this.apiKeyManager = new WeatherApiKeyManager();
+    console.log('🌤️ WeatherService: Service initialized');
   }
 
   static getInstance(): WeatherService {
@@ -20,11 +21,22 @@ export class WeatherService {
   }
 
   setApiKey(apiKey: string): void {
+    console.log('🔑 WeatherService: Setting new API key');
     this.apiKeyManager.setApiKey(apiKey);
   }
 
   hasApiKey(): boolean {
-    return this.apiKeyManager.hasApiKey();
+    const hasKey = this.apiKeyManager.hasApiKey();
+    console.log(`🔑 WeatherService: hasApiKey() = ${hasKey}`);
+    return hasKey;
+  }
+
+  getDebugInfo(): { hasKey: boolean; keyLength: number | null } {
+    const apiKey = this.apiKeyManager.getApiKey();
+    return {
+      hasKey: !!apiKey,
+      keyLength: apiKey ? apiKey.length : null
+    };
   }
 
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
@@ -35,11 +47,14 @@ export class WeatherService {
     
     if (!this.apiKeyManager.validateApiKey()) {
       console.warn('❌ WeatherService: Invalid or missing API key');
+      const debugInfo = this.getDebugInfo();
+      console.warn('❌ WeatherService: Debug info:', debugInfo);
       return null;
     }
 
     const apiKey = this.apiKeyManager.getApiKey();
     if (!apiKey) {
+      console.error('❌ WeatherService: API key is null after validation');
       return null;
     }
 
@@ -54,6 +69,12 @@ export class WeatherService {
       return weatherData;
     } catch (error) {
       console.error('❌ WeatherService: Error fetching weather data:', error);
+      if (error instanceof Error) {
+        console.error('❌ WeatherService: Error message:', error.message);
+        if (error.message.includes('Invalid API key')) {
+          console.error('❌ WeatherService: API key is invalid - user needs to check their key');
+        }
+      }
       return null;
     }
   }
@@ -66,11 +87,14 @@ export class WeatherService {
     
     if (!this.apiKeyManager.validateApiKey()) {
       console.warn('❌ WeatherService: Invalid or missing API key');
+      const debugInfo = this.getDebugInfo();
+      console.warn('❌ WeatherService: Debug info:', debugInfo);
       return null;
     }
 
     const apiKey = this.apiKeyManager.getApiKey();
     if (!apiKey) {
+      console.error('❌ WeatherService: API key is null after validation');
       return null;
     }
 
@@ -90,6 +114,12 @@ export class WeatherService {
       return weatherWithForecast;
     } catch (error) {
       console.error('❌ WeatherService: Error fetching weather with forecast:', error);
+      if (error instanceof Error) {
+        console.error('❌ WeatherService: Error message:', error.message);
+        if (error.message.includes('Invalid API key')) {
+          console.error('❌ WeatherService: API key is invalid - user needs to check their key');
+        }
+      }
       return null;
     }
   }
