@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createVintageRoute66Icon } from '../HiddenGems/VintageRoute66Icon';
+import { IconCreator } from '../RouteMarkers/IconCreator';
 
 interface MarkerCluster {
   id: string;
@@ -41,7 +43,7 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
       const marker = new google.maps.Marker({
         position: { lat: cluster.centerLat, lng: cluster.centerLng },
         map: map,
-        icon: createIndividualMarkerIcon(singleMarker.type),
+        icon: createDetailedMarkerIcon(singleMarker.type, singleMarker.data),
         title: getMarkerTitle(singleMarker),
         zIndex: 45000
       });
@@ -112,7 +114,7 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
       return;
     }
 
-    // Create expanded markers
+    // Create expanded markers with detailed icons
     const newExpandedMarkers: google.maps.Marker[] = [];
     const angleStep = (2 * Math.PI) / cluster.markers.length;
     const radius = 0.002; // Degrees
@@ -128,7 +130,7 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
           lng: cluster.centerLng + offsetLng
         },
         map: map,
-        icon: createIndividualMarkerIcon(markerData.type),
+        icon: createDetailedMarkerIcon(markerData.type, markerData.data),
         title: getMarkerTitle(markerData),
         zIndex: 45000
       });
@@ -159,9 +161,32 @@ const ClusterMarker: React.FC<ClusterMarkerProps> = ({
   return null;
 };
 
-function createClusterIcon(markers: Array<{ type: string }>): google.maps.Icon {
+function createDetailedMarkerIcon(type: string, markerData: any): google.maps.Icon {
+  console.log(`🎨 Creating detailed icon for type: ${type}`);
+  
+  if (type === 'gem') {
+    // Use the vintage Route 66 icon for hidden gems
+    return createVintageRoute66Icon();
+  }
+  
+  if (type === 'destination') {
+    // Use the detailed destination city icon
+    const cityName = markerData.name || 'City';
+    return IconCreator.createDestinationCityIcon(cityName);
+  }
+  
+  if (type === 'attraction') {
+    // Use the detailed regular stop icon for attractions
+    return IconCreator.createRegularStopIcon(true); // true for detailed version
+  }
+  
+  // Fallback to vintage Route 66 icon
+  return createVintageRoute66Icon();
+}
+
+function createClusterIcon(markers: Array<{ type: string; data: any }>): google.maps.Icon {
   const count = markers.length;
-  const size = Math.min(40 + (count * 2), 60);
+  const size = Math.min(50 + (count * 3), 80); // Larger cluster icons to accommodate detail
   
   // Determine cluster type based on majority marker type
   const typeCounts = markers.reduce((acc, marker) => {
@@ -173,89 +198,94 @@ function createClusterIcon(markers: Array<{ type: string }>): google.maps.Icon {
     typeCounts[a[0]] > typeCounts[b[0]] ? a : b
   )[0];
 
-  const colors = {
-    gem: '#8B5CF6',
-    attraction: '#EF4444', 
-    destination: '#3B82F6'
-  };
-  
-  const color = colors[dominantType as keyof typeof colors] || '#6B7280';
-  
-  return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-        <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" stroke="#fff" stroke-width="3"/>
-        <text x="${size/2}" y="${size/2 + 4}" text-anchor="middle" fill="white" font-family="Arial" font-size="${Math.max(12, size/4)}" font-weight="bold">${count}</text>
-      </svg>
-    `)}`,
-    scaledSize: new google.maps.Size(size, size),
-    anchor: new google.maps.Point(size/2, size/2)
-  };
-}
+  // Create a detailed cluster icon that hints at the content
+  const svgContent = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <defs>
+        <filter id="clusterShadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.4"/>
+        </filter>
+        
+        <!-- Vintage paper texture -->
+        <radialGradient id="vintagePaper" cx="40%" cy="30%" r="70%">
+          <stop offset="0%" style="stop-color:#FFF8DC;stop-opacity:1" />
+          <stop offset="60%" style="stop-color:#F5F5DC;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
+        </radialGradient>
+        
+        <!-- Route 66 shield shape for cluster -->
+        <radialGradient id="shieldGradient" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9" />
+          <stop offset="50%" style="stop-color:#F8F6F0;stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:#E6E4DE;stop-opacity:0.7" />
+        </radialGradient>
+      </defs>
+      
+      <!-- Outer Route 66 shield shape -->
+      <path d="M${size/2} ${size * 0.1}
+               L${size * 0.25} ${size * 0.1}
+               C${size * 0.15} ${size * 0.1} ${size * 0.1} ${size * 0.2} ${size * 0.1} ${size * 0.3}
+               L${size * 0.1} ${size * 0.55}
+               C${size * 0.1} ${size * 0.75} ${size * 0.2} ${size * 0.85} ${size * 0.35} ${size * 0.9}
+               C${size * 0.42} ${size * 0.92} ${size * 0.48} ${size * 0.93} ${size/2} ${size * 0.93}
+               C${size * 0.52} ${size * 0.93} ${size * 0.58} ${size * 0.92} ${size * 0.65} ${size * 0.9}
+               C${size * 0.8} ${size * 0.85} ${size * 0.9} ${size * 0.75} ${size * 0.9} ${size * 0.55}
+               L${size * 0.9} ${size * 0.3}
+               C${size * 0.9} ${size * 0.2} ${size * 0.85} ${size * 0.1} ${size * 0.75} ${size * 0.1}
+               L${size/2} ${size * 0.1} Z" 
+            fill="url(#vintagePaper)" 
+            stroke="#8B4513" 
+            stroke-width="3"
+            filter="url(#clusterShadow)"/>
+      
+      <!-- Inner highlight -->
+      <path d="M${size/2} ${size * 0.15}
+               L${size * 0.3} ${size * 0.15}
+               C${size * 0.22} ${size * 0.15} ${size * 0.17} ${size * 0.22} ${size * 0.17} ${size * 0.3}
+               L${size * 0.17} ${size * 0.5}
+               C${size * 0.17} ${size * 0.65} ${size * 0.25} ${size * 0.75} ${size * 0.37} ${size * 0.8}
+               C${size * 0.43} ${size * 0.82} ${size * 0.47} ${size * 0.83} ${size/2} ${size * 0.83}
+               C${size * 0.53} ${size * 0.83} ${size * 0.57} ${size * 0.82} ${size * 0.63} ${size * 0.8}
+               C${size * 0.75} ${size * 0.75} ${size * 0.83} ${size * 0.65} ${size * 0.83} ${size * 0.5}
+               L${size * 0.83} ${size * 0.3}
+               C${size * 0.83} ${size * 0.22} ${size * 0.78} ${size * 0.15} ${size * 0.7} ${size * 0.15}
+               L${size/2} ${size * 0.15} Z" 
+            fill="url(#shieldGradient)" 
+            stroke="#654321" 
+            stroke-width="1"/>
+      
+      <!-- Count number -->
+      <text x="${size/2}" y="${size * 0.45}" text-anchor="middle" 
+            fill="#654321" 
+            font-family="Arial, sans-serif" 
+            font-size="${Math.max(size/6, 12)}" 
+            font-weight="bold">${count}</text>
+      
+      <!-- Small "ITEMS" text -->
+      <text x="${size/2}" y="${size * 0.6}" text-anchor="middle" 
+            fill="#8B4513" 
+            font-family="Arial, sans-serif" 
+            font-size="${Math.max(size/12, 6)}" 
+            font-weight="bold">ITEMS</text>
+      
+      <!-- Route 66 indicator at bottom -->
+      <text x="${size/2}" y="${size * 0.75}" text-anchor="middle" 
+            fill="#654321" 
+            font-family="Arial, sans-serif" 
+            font-size="${Math.max(size/10, 8)}" 
+            font-weight="900">66</text>
+      
+      <!-- Type indicator dots -->
+      <circle cx="${size * 0.7}" cy="${size * 0.25}" r="3" 
+              fill="${dominantType === 'gem' ? '#8B5CF6' : dominantType === 'destination' ? '#3B82F6' : '#EF4444'}" 
+              opacity="0.8"/>
+    </svg>
+  `;
 
-function createIndividualMarkerIcon(type: string): google.maps.Icon {
-  const colors = {
-    gem: '#8B5CF6',
-    attraction: '#EF4444', 
-    destination: '#3B82F6'
-  };
-  
-  const color = colors[type as keyof typeof colors] || '#6B7280';
-  
-  // Create distinctive icons based on type
-  if (type === 'gem') {
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-          <defs>
-            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <polygon points="15,3 21,9 21,18 15,27 9,18 9,9" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
-          <polygon points="15,7 18,10 18,16 15,21 12,16 12,10" fill="#fff" opacity="0.8"/>
-        </svg>
-      `)}`,
-      scaledSize: new google.maps.Size(30, 30),
-      anchor: new google.maps.Point(15, 27)
-    };
-  }
-  
-  if (type === 'destination') {
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-          <defs>
-            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <circle cx="14" cy="14" r="12" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
-          <circle cx="14" cy="14" r="6" fill="#fff"/>
-          <rect x="11" y="8" width="6" height="12" fill="${color}"/>
-          <rect x="8" y="11" width="12" height="6" fill="${color}"/>
-        </svg>
-      `)}`,
-      scaledSize: new google.maps.Size(28, 28),
-      anchor: new google.maps.Point(14, 14)
-    };
-  }
-  
-  // Default attraction icon
   return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">
-        <defs>
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000000" flood-opacity="0.3"/>
-          </filter>
-        </defs>
-        <circle cx="13" cy="13" r="11" fill="${color}" stroke="#fff" stroke-width="2" filter="url(#shadow)"/>
-        <circle cx="13" cy="13" r="5" fill="#fff"/>
-      </svg>
-    `)}`,
-    scaledSize: new google.maps.Size(26, 26),
-    anchor: new google.maps.Point(13, 13)
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+    scaledSize: new google.maps.Size(size, size),
+    anchor: new google.maps.Point(size/2, size * 0.9)
   };
 }
 
