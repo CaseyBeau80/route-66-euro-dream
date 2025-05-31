@@ -37,7 +37,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   } = useGoogleMaps();
 
   const { waypoints, isLoading: waypointsLoading, error: waypointsError } = useSupabaseRoute66();
-  const [mapInitialized, setMapInitialized] = useState(false);
   
   const mapEventHandlers = useMapEventHandlers({ 
     isDragging, 
@@ -46,14 +45,16 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   });
 
   const mapBounds = useMapBounds({
-    onMapLoad: () => setMapInitialized(true),
+    onMapLoad: (map: google.maps.Map) => {
+      console.log('🗺️ Map loaded and bounds initialized');
+    },
     setCurrentZoom,
     setIsDragging,
     mapRef
   });
 
   const { showRouteStats, setShowRouteStats } = useRouteStatistics({
-    mapInitialized,
+    mapInitialized: true, // Always true since we handle initialization in MapCore
     isMapReady: mapEventHandlers.isMapReady
   });
 
@@ -113,7 +114,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 
   console.log('🗺️ Rendering GoogleMapsRoute66 with ZERO yellow circles', {
     isLoaded,
-    mapInitialized,
     isMapReady: mapEventHandlers.isMapReady,
     selectedState,
     visibleWaypoints: visibleWaypoints.length,
@@ -133,7 +133,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       />
       
       <MapCore
-        mapInitialized={mapInitialized}
         mapRef={mapRef}
         isMapReady={mapEventHandlers.isMapReady}
         visibleWaypoints={visibleWaypoints}

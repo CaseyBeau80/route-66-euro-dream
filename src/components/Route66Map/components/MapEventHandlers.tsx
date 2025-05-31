@@ -12,7 +12,6 @@ export const useMapEventHandlers = ({
   selectedState,
   onClearSelection
 }: MapEventHandlersProps) => {
-  const [mapInitialized, setMapInitialized] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
   const onMapReady = useCallback(() => {
@@ -21,8 +20,6 @@ export const useMapEventHandlers = ({
   }, []);
 
   return {
-    mapInitialized,
-    setMapInitialized,
     isMapReady,
     setIsMapReady,
     onMapReady

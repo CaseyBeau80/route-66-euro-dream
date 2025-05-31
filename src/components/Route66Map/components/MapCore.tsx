@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import UltraSmoothRouteRenderer from '../services/UltraSmoothRouteRenderer';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
@@ -7,7 +7,6 @@ import HiddenGemsContainer from './HiddenGemsContainer';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
-  mapInitialized: boolean;
   mapRef: React.MutableRefObject<google.maps.Map | null>;
   isMapReady: boolean;
   visibleWaypoints: Route66Waypoint[];
@@ -19,7 +18,6 @@ interface MapCoreProps {
 }
 
 const MapCore: React.FC<MapCoreProps> = ({
-  mapInitialized,
   mapRef,
   isMapReady,
   visibleWaypoints,
@@ -30,10 +28,10 @@ const MapCore: React.FC<MapCoreProps> = ({
   onAttractionClick
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const routeRendererMounted = useRef(false);
+  const [mapInitialized, setMapInitialized] = useState(false);
 
   useEffect(() => {
-    if (!mapInitialized || !containerRef.current || mapRef.current) {
+    if (mapInitialized || !containerRef.current || mapRef.current) {
       return;
     }
 
@@ -62,6 +60,7 @@ const MapCore: React.FC<MapCoreProps> = ({
       });
 
       mapRef.current = map;
+      setMapInitialized(true);
 
       // Add portal root for hover cards
       if (!document.getElementById('map-portal-root')) {
@@ -92,8 +91,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     mapInitialized,
     isMapReady,
     hasMap: !!mapRef.current,
-    visibleWaypoints: visibleWaypoints.length,
-    routeRendererMounted: routeRendererMounted.current
+    visibleWaypoints: visibleWaypoints.length
   });
 
   return (
