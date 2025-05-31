@@ -52,28 +52,26 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
           if (this.container) {
             rootRef.current = createRoot(this.container);
             rootRef.current.render(
-              <div 
-                className="vintage-roadside-sign w-[350px] max-w-[90vw] bg-white border-2 border-route66-blue rounded-lg shadow-lg overflow-hidden"
-              >
+              <div className="w-[350px] max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-lg overflow-hidden relative">
                 {/* Close button */}
                 <button
                   onClick={onClose}
-                  className="absolute top-2 right-2 w-6 h-6 bg-route66-red text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10"
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10"
                   style={{ fontSize: '12px', fontWeight: 'bold' }}
                 >
                   ×
                 </button>
 
                 {/* Header Banner */}
-                <div className="bg-gradient-to-r from-route66-blue to-blue-800 text-white px-4 py-2 relative">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-route66-red rounded-full flex items-center justify-center border border-white shadow-sm">
+                      <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center border border-white shadow-sm">
                         <Star className="h-2.5 w-2.5 text-white" fill="currentColor" />
                       </div>
                       <span className="text-sm font-bold tracking-wide uppercase">Hidden Gem</span>
                     </div>
-                    <div className="text-xs font-bold bg-white text-route66-blue px-2 py-1 rounded transform -rotate-2 shadow-sm">
+                    <div className="text-xs font-bold bg-white text-blue-600 px-2 py-1 rounded transform -rotate-2 shadow-sm">
                       ROUTE 66
                     </div>
                   </div>
@@ -83,18 +81,18 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
                 <div className="p-4 bg-white">
                   {/* Title Section */}
                   <div className="mb-3 text-center">
-                    <h3 className="font-black text-lg text-route66-blue leading-tight uppercase tracking-wide border-b-2 border-route66-red pb-2 mb-2 break-words">
+                    <h3 className="font-black text-lg text-blue-600 leading-tight uppercase tracking-wide border-b-2 border-red-600 pb-2 mb-2 break-words">
                       {gem.title}
                     </h3>
                     <div className="flex items-center justify-center gap-2 text-gray-700">
-                      <MapPin className="h-4 w-4 text-route66-red flex-shrink-0" />
+                      <MapPin className="h-4 w-4 text-red-600 flex-shrink-0" />
                       <span className="text-sm font-bold uppercase tracking-wide">{gem.city_name}</span>
                     </div>
                   </div>
                   
                   {/* Description */}
                   {gem.description && (
-                    <div className="mb-4 p-3 bg-gray-50 border border-dashed border-route66-blue rounded">
+                    <div className="mb-4 p-3 bg-gray-50 border border-dashed border-blue-600 rounded">
                       <p className="text-sm text-gray-800 leading-relaxed font-medium text-left break-words">
                         {gem.description}
                       </p>
@@ -106,7 +104,7 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
                     <div className="text-center mb-2">
                       <button
                         onClick={() => onWebsiteClick(gem.website!)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-route66-red text-white font-bold text-sm rounded-full border border-route66-blue hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold text-sm rounded-full border border-blue-600 hover:bg-red-700 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
                       >
                         <ExternalLink className="h-3 w-3" />
                         Visit Website
@@ -115,29 +113,20 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
                   )}
                   
                   {/* Bottom Banner */}
-                  <div className="bg-gradient-to-r from-route66-blue to-blue-800 text-white px-3 py-2 -mx-4 -mb-4 text-center rounded-b-lg">
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-2 -mx-4 -mb-4 text-center rounded-b-lg">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 bg-route66-red rounded-full flex items-center justify-center border border-white">
+                      <div className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center border border-white">
                         <span className="text-xs font-black text-white">66</span>
                       </div>
                       <span className="text-sm font-bold uppercase tracking-wider">
                         America's Main Street
                       </span>
-                      <div className="w-4 h-4 bg-route66-red rounded-full flex items-center justify-center border border-white">
+                      <div className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center border border-white">
                         <span className="text-xs font-black text-white">66</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Custom styles */}
-                <style>
-                  {`
-                    .vintage-roadside-sign {
-                      font-family: 'Arial Black', Arial, sans-serif;
-                    }
-                  `}
-                </style>
               </div>
             );
           }
@@ -152,8 +141,8 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
 
         if (point) {
           this.container.style.left = point.x + 'px';
-          this.container.style.top = (point.y - 120) + 'px'; // Position higher above the marker to accommodate larger size
-          this.container.style.transform = 'translateX(-50%)'; // Center horizontally
+          this.container.style.top = (point.y - 120) + 'px';
+          this.container.style.transform = 'translateX(-50%)';
         }
       }
 
@@ -189,7 +178,7 @@ const HiddenGemCustomOverlay: React.FC<HiddenGemCustomOverlayProps> = ({
     };
   }, [gem, map, onClose, onWebsiteClick]);
 
-  return null; // This component doesn't render anything directly
+  return null;
 };
 
 export default HiddenGemCustomOverlay;
