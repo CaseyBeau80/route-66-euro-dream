@@ -20,39 +20,57 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Direct click handlers with immediate execution
-  const handleZoomInClick = React.useCallback(() => {
-    console.log('🎯 ZoomControls: Zoom IN button clicked directly!');
+  // Simplified click handlers with immediate execution
+  const handleZoomInClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🎯 ZoomControls: Zoom IN button clicked - executing immediately');
     
     if (disabled || currentZoom >= maxZoom) {
       console.log('⚠️ Zoom in blocked - disabled or at max zoom');
       return;
     }
 
-    // Call the zoom function immediately
-    onZoomIn();
-  }, [onZoomIn, disabled, currentZoom, maxZoom]);
+    // Execute zoom function immediately
+    try {
+      onZoomIn();
+      console.log('✅ Zoom in function executed successfully');
+    } catch (error) {
+      console.error('❌ Error executing zoom in:', error);
+    }
+  };
 
-  const handleZoomOutClick = React.useCallback(() => {
-    console.log('🎯 ZoomControls: Zoom OUT button clicked directly!');
+  const handleZoomOutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🎯 ZoomControls: Zoom OUT button clicked - executing immediately');
     
     if (disabled || currentZoom <= minZoom) {
       console.log('⚠️ Zoom out blocked - disabled or at min zoom');
       return;
     }
 
-    // Call the zoom function immediately
-    onZoomOut();
-  }, [onZoomOut, disabled, currentZoom, minZoom]);
+    // Execute zoom function immediately
+    try {
+      onZoomOut();
+      console.log('✅ Zoom out function executed successfully');
+    } catch (error) {
+      console.error('❌ Error executing zoom out:', error);
+    }
+  };
 
   const isZoomInDisabled = disabled || currentZoom >= maxZoom;
   const isZoomOutDisabled = disabled || currentZoom <= minZoom;
   
   console.log('🎮 ZoomControls render:', {
-    currentZoom,
+    currentZoom: Math.round(currentZoom * 10) / 10,
     isZoomInDisabled,
     isZoomOutDisabled,
-    disabled
+    disabled,
+    minZoom,
+    maxZoom
   });
 
   return (
@@ -60,25 +78,27 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleZoomInClick}
+        onMouseDown={handleZoomInClick}
         disabled={isZoomInDisabled}
-        className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200"
         type="button"
+        title={isZoomInDisabled ? 'Maximum zoom reached' : 'Zoom in'}
       >
         <ZoomIn className="h-6 w-6" />
       </Button>
       
       <div className="text-xs text-center font-bold py-2 px-3 bg-gray-50 rounded border min-h-[32px] flex items-center justify-center">
-        {Math.round(currentZoom * 10)}
+        {Math.round(currentZoom * 10) / 10}
       </div>
       
       <Button
         variant="outline"
         size="sm"
-        onClick={handleZoomOutClick}
+        onMouseDown={handleZoomOutClick}
         disabled={isZoomOutDisabled}
-        className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200"
         type="button"
+        title={isZoomOutDisabled ? 'Minimum zoom reached' : 'Zoom out'}
       >
         <ZoomOut className="h-6 w-6" />
       </Button>
