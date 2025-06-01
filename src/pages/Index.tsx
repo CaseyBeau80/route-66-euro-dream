@@ -1,5 +1,6 @@
 
 import Route66Map from "../components/Route66Map";
+import FeaturedListings from "../components/FeaturedListings";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -125,6 +126,9 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Featured Listings Section */}
+      <FeaturedListings language="en" />
 
       {/* Vintage Travel Poster Footer */}
       <div className="bg-gradient-to-r from-route66-navy via-route66-vintage-blue to-route66-navy text-white py-8 mt-6 relative overflow-hidden travel-poster-edge">
