@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 declare global {
   interface Window {
@@ -8,24 +8,75 @@ declare global {
 }
 
 const TwitterTimeline: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
   useEffect(() => {
-    // Load Twitter widget script if not already loaded
-    if (!window.twttr) {
-      const script = document.createElement('script');
-      script.setAttribute('src', 'https://platform.twitter.com/widgets.js');
-      script.setAttribute('charset', 'utf-8');
-      script.async = true;
-      document.head.appendChild(script);
+    let timeoutId: NodeJS.Timeout;
+
+    const loadTwitterWidget = () => {
+      console.log("🐦 TwitterTimeline: Starting widget load process");
       
-      script.onload = () => {
-        if (window.twttr && window.twttr.widgets) {
-          window.twttr.widgets.load();
-        }
-      };
-    } else {
-      // If script is already loaded, just reload widgets
-      window.twttr.widgets.load();
-    }
+      // Set a timeout to handle cases where the widget never loads
+      timeoutId = setTimeout(() => {
+        console.log("🐦 TwitterTimeline: Widget load timeout");
+        setIsLoading(false);
+        setHasError(true);
+      }, 10000); // 10 second timeout
+
+      if (!window.twttr) {
+        console.log("🐦 TwitterTimeline: Loading Twitter script");
+        const script = document.createElement('script');
+        script.setAttribute('src', 'https://platform.twitter.com/widgets.js');
+        script.setAttribute('charset', 'utf-8');
+        script.async = true;
+        
+        script.onload = () => {
+          console.log("🐦 TwitterTimeline: Script loaded, initializing widgets");
+          if (window.twttr && window.twttr.widgets) {
+            window.twttr.widgets.load().then(() => {
+              console.log("🐦 TwitterTimeline: Widgets loaded successfully");
+              clearTimeout(timeoutId);
+              setIsLoading(false);
+            }).catch((error: any) => {
+              console.error("🐦 TwitterTimeline: Widget load error:", error);
+              clearTimeout(timeoutId);
+              setIsLoading(false);
+              setHasError(true);
+            });
+          }
+        };
+        
+        script.onerror = () => {
+          console.error("🐦 TwitterTimeline: Failed to load Twitter script");
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          setHasError(true);
+        };
+        
+        document.head.appendChild(script);
+      } else {
+        console.log("🐦 TwitterTimeline: Script already loaded, reloading widgets");
+        window.twttr.widgets.load().then(() => {
+          console.log("🐦 TwitterTimeline: Widgets reloaded successfully");
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+        }).catch((error: any) => {
+          console.error("🐦 TwitterTimeline: Widget reload error:", error);
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          setHasError(true);
+        });
+      }
+    };
+
+    loadTwitterWidget();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   return (
@@ -53,22 +104,76 @@ const TwitterTimeline: React.FC = () => {
           <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-yellow via-route66-cream to-route66-vintage-yellow rounded-lg opacity-60"></div>
           
           <div className="relative bg-white rounded-lg p-4 border-4 border-route66-vintage-brown shadow-postcard">
-            {/* Twitter Timeline Embed */}
-            <div className="flex justify-center">
-              <a 
-                className="twitter-timeline" 
-                data-height="600"
-                data-theme="light"
-                data-chrome="noheader,nofooter,noborders,transparent"
-                data-border-color="#8B4513"
-                data-link-color="#CC2936"
-                href="https://twitter.com/search?q=%23Route66"
-              >
-                Loading Route 66 tweets...
-              </a>
-            </div>
+            {/* Loading State */}
+            {isLoading && !hasError && (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-route66-red mx-auto mb-4"></div>
+                  <p className="font-travel text-route66-vintage-brown">
+                    Loading Route 66 tweets...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {hasError && (
+              <div className="text-center py-8">
+                <div className="mb-4">
+                  <div className="bg-route66-vintage-yellow text-route66-navy px-4 py-2 rounded-full font-bold text-sm inline-block mb-4">
+                    SOCIAL FEED TEMPORARILY UNAVAILABLE
+                  </div>
+                </div>
+                <p className="font-travel text-route66-vintage-brown mb-4">
+                  Having trouble loading the latest tweets. Connect with Route 66 travelers directly:
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <a 
+                    href="https://twitter.com/hashtag/Route66" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="vintage-button inline-block px-6 py-2 text-sm bg-route66-red text-white hover:bg-route66-vintage-red transition-colors"
+                  >
+                    View #Route66 on Twitter
+                  </a>
+                  <a 
+                    href="https://twitter.com/search?q=Route%2066%20road%20trip" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="vintage-button inline-block px-6 py-2 text-sm bg-route66-orange text-white hover:bg-route66-rust transition-colors"
+                  >
+                    Route 66 Road Trips
+                  </a>
+                  <a 
+                    href="https://twitter.com/search?q=%22mother%20road%22" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="vintage-button inline-block px-6 py-2 text-sm bg-route66-vintage-turquoise text-white hover:opacity-80 transition-opacity"
+                  >
+                    Mother Road Stories
+                  </a>
+                </div>
+              </div>
+            )}
             
-            {/* Fallback content while loading */}
+            {/* Twitter Timeline Embed - Only show when not loading and no error */}
+            {!isLoading && !hasError && (
+              <div className="flex justify-center">
+                <a 
+                  className="twitter-timeline" 
+                  data-height="600"
+                  data-theme="light"
+                  data-chrome="noheader,nofooter,noborders,transparent"
+                  data-border-color="#8B4513"
+                  data-link-color="#CC2936"
+                  href="https://twitter.com/search?q=%23Route66"
+                >
+                  Loading Route 66 tweets...
+                </a>
+              </div>
+            )}
+            
+            {/* Fallback content for no JavaScript */}
             <noscript>
               <div className="text-center py-8">
                 <p className="font-travel text-route66-vintage-brown">
