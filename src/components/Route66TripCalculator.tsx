@@ -29,6 +29,10 @@ const Route66TripCalculator = () => {
   const [dailyDrivingLimit, setDailyDrivingLimit] = useState<number[]>([300]);
   const [calculation, setCalculation] = useState<TripCalculation | null>(null);
 
+  // Debug: Log the route66Towns data
+  console.log('Route66 Towns data:', route66Towns);
+  console.log('Number of towns:', route66Towns?.length || 'undefined');
+
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 3959; // Earth's radius in miles
@@ -114,6 +118,9 @@ const Route66TripCalculator = () => {
     return `${wholeHours}h ${minutes}m`;
   };
 
+  // Debug: Log current state
+  console.log('Current state:', { startLocation, endLocation, isButtonDisabled: !startLocation || !endLocation });
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
       <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
@@ -126,6 +133,14 @@ const Route66TripCalculator = () => {
           </p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
+          {/* Debug Info */}
+          {(!route66Towns || route66Towns.length === 0) && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <strong>Debug:</strong> Route66 towns data is not loading properly. 
+              Towns available: {route66Towns?.length || 0}
+            </div>
+          )}
+
           {/* Start Location */}
           <div className="space-y-2">
             <Label className="font-travel font-bold text-route66-vintage-brown">
@@ -136,11 +151,17 @@ const Route66TripCalculator = () => {
                 <SelectValue placeholder="Select starting city" />
               </SelectTrigger>
               <SelectContent>
-                {route66Towns.map((town) => (
-                  <SelectItem key={town.name} value={town.name}>
-                    {town.name}
+                {route66Towns && route66Towns.length > 0 ? (
+                  route66Towns.map((town) => (
+                    <SelectItem key={town.name} value={town.name}>
+                      {town.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-data" disabled>
+                    No towns data available
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -155,11 +176,17 @@ const Route66TripCalculator = () => {
                 <SelectValue placeholder="Select destination city" />
               </SelectTrigger>
               <SelectContent>
-                {availableEndLocations.map((town) => (
-                  <SelectItem key={town.name} value={town.name}>
-                    {town.name}
+                {availableEndLocations && availableEndLocations.length > 0 ? (
+                  availableEndLocations.map((town) => (
+                    <SelectItem key={town.name} value={town.name}>
+                      {town.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-data" disabled>
+                    No towns data available
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -213,6 +240,12 @@ const Route66TripCalculator = () => {
           >
             Calculate Trip
           </Button>
+          
+          {/* Debug info for button state */}
+          <div className="text-xs text-gray-500">
+            Debug: Button disabled = {(!startLocation || !endLocation).toString()}
+            | Start: "{startLocation}" | End: "{endLocation}"
+          </div>
         </CardContent>
       </Card>
 
