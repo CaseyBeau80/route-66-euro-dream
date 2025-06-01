@@ -1,81 +1,91 @@
 
-import { useCallback, useState, useRef } from 'react';
-import { useMapEvents } from './useMapEvents';
-import { useZoomPreservation } from './useZoomPreservation';
+import { useState, useCallback } from 'react';
+import { mapBounds, mapRestrictions } from '../config/MapConfig';
 
 interface UseMapInitializationProps {
-  setCurrentZoom: (zoom: number) => void;
-  setIsDragging: (isDragging: boolean) => void;
-  checkMapBounds: () => void;
-  mapRef: React.MutableRefObject<google.maps.Map | null>;
+  onMapLoad: (map: google.maps.Map) => void;
+  onMapReady: () => void;
+  onMapClick: () => void;
 }
 
 export const useMapInitialization = ({
-  setCurrentZoom,
-  setIsDragging,
-  checkMapBounds,
-  mapRef
+  onMapLoad,
+  onMapReady,
+  onMapClick
 }: UseMapInitializationProps) => {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  
-  const {
-    preserveCenterRef,
-    isInitialLoadRef,
-    zoomTimeoutRef,
-    isZoomingRef,
-    debouncedZoomHandler,
-    markInitialLoadComplete,
-    cleanup
-  } = useZoomPreservation();
+  const [mapInitialized, setMapInitialized] = useState(false);
 
-  // Create a bound version of debouncedZoomHandler for this component
-  const boundDebouncedZoomHandler = useCallback((newZoom: number) => {
-    debouncedZoomHandler(newZoom, setCurrentZoom);
-  }, [debouncedZoomHandler, setCurrentZoom]);
+  const initializeMap = useCallback((containerRef: HTMLDivElement) => {
+    if (mapInitialized) {
+      console.log('⚠️ Map already initialized, skipping');
+      return null;
+    }
 
-  const { setupMapListeners } = useMapEvents({
-    setCurrentZoom,
-    setIsDragging,
-    checkMapBounds,
-    debouncedZoomHandler: boundDebouncedZoomHandler,
-    preserveCenterRef,
-    isInitialLoadRef,
-    isZoomingRef
-  });
+    // Check if Google Maps API is available
+    if (!window.google || !window.google.maps) {
+      console.log('⏳ Google Maps API not yet available, waiting...');
+      return null;
+    }
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    console.log("🗺️ Google Map loaded successfully");
-    mapRef.current = map;
-    setMap(map);
-    
-    // Set initial zoom and center
-    map.setZoom(5);
-    map.setCenter({ lat: 35.5, lng: -100 }); // Center of US for Route 66
-    
-    // Mark initial load as complete after a delay
-    markInitialLoadComplete();
-    
-    // Setup all map listeners
-    setupMapListeners(map);
-    
-    // Clear any pending zoom operations when user starts dragging
-    map.addListener('dragstart', () => {
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
+    console.log('🗺️ MapCore: Initializing Google Map with continental US view');
+
+    try {
+      const map = new google.maps.Map(containerRef, {
+        zoom: 4,
+        center: { lat: 39.0, lng: -98.0 },
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        gestureHandling: 'greedy',
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true,
+        clickableIcons: false,
+        scrollwheel: false, // Disable default scrollwheel initially
+        restriction: mapRestrictions,
+        minZoom: 3,
+        maxZoom: 10,
+        styles: [
+          {
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }]
+          }
+        ]
+      });
+
+      setMapInitialized(true);
+
+      // Add portal root for hover cards
+      if (!document.getElementById('map-portal-root')) {
+        const portalRoot = document.createElement('div');
+        portalRoot.id = 'map-portal-root';
+        portalRoot.style.position = 'fixed';
+        portalRoot.style.top = '0';
+        portalRoot.style.left = '0';
+        portalRoot.style.pointerEvents = 'none';
+        portalRoot.style.zIndex = '100000';
+        document.body.appendChild(portalRoot);
+        console.log('📍 Created map portal root for hover cards');
       }
-    });
-  }, [setCurrentZoom, setIsDragging, checkMapBounds, boundDebouncedZoomHandler, setupMapListeners, markInitialLoadComplete, zoomTimeoutRef, mapRef]);
 
-  const onUnmount = useCallback(() => {
-    console.log("🗺️ Google Map unmounted");
-    mapRef.current = null;
-    setMap(null);
-    cleanup();
-  }, [cleanup, mapRef]);
+      console.log('✅ Google Map initialized successfully');
+      onMapLoad(map);
+      onMapReady();
+
+      // Add click listener
+      map.addListener('click', onMapClick);
+
+      return map;
+    } catch (error) {
+      console.error('❌ Error initializing Google Map:', error);
+      return null;
+    }
+  }, [mapInitialized, onMapLoad, onMapReady, onMapClick]);
 
   return {
-    map,
-    onLoad,
-    onUnmount
+    mapInitialized,
+    initializeMap
   };
 };
