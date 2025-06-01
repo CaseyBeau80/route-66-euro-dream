@@ -32,28 +32,37 @@ export const createMarkerEventHandlers = ({
   const isDriveIn = gem.title.toLowerCase().includes('drive-in');
 
   const handleMouseOver = () => {
-    if (!isClicked) { // Only show hover if not clicked
+    // Only show hover if not clicked
+    if (!isClicked) {
       console.log(`🐭 Mouse over ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
       const screenPos = getMarkerScreenPosition(map, marker);
       if (screenPos) {
         updatePosition(screenPos.x, screenPos.y);
         handleMouseEnter(gem.title);
       }
+    } else {
+      console.log(`🚫 Hover blocked - ${gem.title} is already clicked`);
     }
   };
 
   const handleMouseOut = () => {
-    if (!isClicked) { // Only hide hover if not clicked
+    // Only handle mouse out if not clicked
+    if (!isClicked) {
       console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
-      // Increased delay from 100ms to 500ms to give more time to move to card
+      // Reduced timeout to make hover disappear faster when not clicked
       setTimeout(() => {
-        handleMouseLeave(gem.title);
-      }, 500);
+        if (!isClicked) { // Double check it's still not clicked
+          handleMouseLeave(gem.title);
+        }
+      }, 300);
     }
   };
 
   const handleClick = () => {
     console.log(`🎯 Clicked ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
+    
+    // IMMEDIATELY clear hover state before setting clicked state
+    clearHover();
     
     // Calculate click position
     const screenPos = getMarkerScreenPosition(map, marker);
@@ -61,12 +70,17 @@ export const createMarkerEventHandlers = ({
       setClickPosition(screenPos);
     }
     
+    // Set clicked state
     setIsClicked(true);
-    clearHover(); // Clear hover state on click
+    
+    // Call the click handler
     onMarkerClick(gem);
+    
+    console.log(`✅ Click handled for ${gem.title} - hover cleared, clickable card should show`);
   };
 
   const updateMarkerPosition = () => {
+    // Only update position if not clicked (to prevent hover card repositioning during click)
     if (marker && !isClicked) {
       const screenPos = getMarkerScreenPosition(map, marker);
       if (screenPos) {

@@ -32,20 +32,33 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   const [isClicked, setIsClicked] = useState(false);
   const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
 
-  // Prevent hover card from disappearing when hovering over it
+  // Prevent hover card from appearing when hovering over it during clicked state
   const handleCardMouseEnter = useCallback(() => {
-    console.log(`🐭 Mouse entered hover card for: ${gem.title} - keeping card visible`);
-    handleMouseEnter(gem.title);
-  }, [handleMouseEnter, gem.title]);
+    if (!isClicked) {
+      console.log(`🐭 Mouse entered hover card for: ${gem.title} - keeping card visible`);
+      handleMouseEnter(gem.title);
+    }
+  }, [handleMouseEnter, gem.title, isClicked]);
 
   const handleCardMouseLeave = useCallback(() => {
-    console.log(`🐭 Mouse left hover card for: ${gem.title} - starting hide delay`);
-    handleMouseLeave(gem.title);
-  }, [handleMouseLeave, gem.title]);
+    if (!isClicked) {
+      console.log(`🐭 Mouse left hover card for: ${gem.title} - starting hide delay`);
+      handleMouseLeave(gem.title);
+    }
+  }, [handleMouseLeave, gem.title, isClicked]);
 
   const handleCloseClickableCard = () => {
+    console.log(`🔄 Closing clickable card for: ${gem.title}`);
     setIsClicked(false);
   };
+
+  // Debug logging
+  console.log(`🔍 HoverableMarker render - ${gem.title}:`, {
+    isHovered,
+    isClicked,
+    shouldShowHover: !isClicked && isHovered,
+    shouldShowClickable: isClicked
+  });
 
   return (
     <>
@@ -63,7 +76,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         setClickPosition={setClickPosition}
       />
 
-      {/* Hover card - only show when hovering and NOT clicked */}
+      {/* Hover card - ONLY show when hovering AND NOT clicked */}
       {!isClicked && isHovered && (
         <HoverCardPortal
           gem={gem}
@@ -76,13 +89,15 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
       )}
 
       {/* Clickable card - show when clicked */}
-      <HiddenGemClickableCard
-        gem={gem}
-        isVisible={isClicked}
-        position={clickPosition}
-        onClose={handleCloseClickableCard}
-        onWebsiteClick={onWebsiteClick}
-      />
+      {isClicked && (
+        <HiddenGemClickableCard
+          gem={gem}
+          isVisible={isClicked}
+          position={clickPosition}
+          onClose={handleCloseClickableCard}
+          onWebsiteClick={onWebsiteClick}
+        />
+      )}
     </>
   );
 };
