@@ -20,12 +20,20 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Simplified click handlers
-  const handleZoomInClick = () => {
-    console.log('🎯 ZoomControls: Zoom IN button clicked');
+  // Simplified click handlers with better error handling
+  const handleZoomInClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (disabled || currentZoom >= maxZoom) {
-      console.log('⚠️ Zoom in blocked - disabled or at max zoom');
+    console.log('🎯 ZoomControls: Zoom IN button clicked, disabled:', disabled, 'currentZoom:', currentZoom);
+    
+    if (disabled) {
+      console.log('⚠️ Zoom controls are disabled');
+      return;
+    }
+
+    if (currentZoom >= maxZoom) {
+      console.log('⚠️ Already at max zoom level');
       return;
     }
 
@@ -37,11 +45,19 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     }
   };
 
-  const handleZoomOutClick = () => {
-    console.log('🎯 ZoomControls: Zoom OUT button clicked');
+  const handleZoomOutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (disabled || currentZoom <= minZoom) {
-      console.log('⚠️ Zoom out blocked - disabled or at min zoom');
+    console.log('🎯 ZoomControls: Zoom OUT button clicked, disabled:', disabled, 'currentZoom:', currentZoom);
+    
+    if (disabled) {
+      console.log('⚠️ Zoom controls are disabled');
+      return;
+    }
+
+    if (currentZoom <= minZoom) {
+      console.log('⚠️ Already at min zoom level');
       return;
     }
 
