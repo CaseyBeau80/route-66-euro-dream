@@ -14,42 +14,48 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     const target = e.target as HTMLImageElement;
     const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
     
-    console.log(`🖼️ Image failed to load for ${item.name}, using category-specific fallback`);
-    
-    // Set category-specific fallback image
-    target.src = fallbackUrl;
-  };
-
-  const handleImageClick = () => {
-    if (item.website) {
-      window.open(item.website, '_blank', 'noopener,noreferrer');
+    // Only log if we're actually switching to fallback (avoid redundant logs)
+    if (target.src !== fallbackUrl) {
+      console.log(`🖼️ Image failed to load for ${item.name}, switching to fallback`);
+      target.src = fallbackUrl;
     }
   };
 
-  // Use database image URL if available, otherwise use category-specific fallback
+  // Always try database image first, only use fallback on error
   const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
   
-  console.log(`🖼️ Rendering ${item.name}:`, {
-    hasImageUrl: !!item.image_url,
-    imageUrl: item.image_url,
-    finalImageUrl: imageUrl,
-    category: item.category,
-    hasWebsite: !!item.website
-  });
+  // Simplified logging - only when database image is missing
+  if (!item.image_url) {
+    console.log(`🖼️ No database image for ${item.name}, using category fallback`);
+  }
+
+  // Create image element with optional website wrapper
+  const imageElement = (
+    <img 
+      src={imageUrl}
+      alt={item.name} 
+      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+      onError={handleImageError}
+      loading="lazy"
+    />
+  );
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
       <div className="relative h-48 overflow-hidden">
-        <img 
-          src={imageUrl}
-          alt={item.name} 
-          className={`w-full h-full object-cover hover:scale-105 transition-transform duration-500 ${
-            item.website ? 'cursor-pointer' : ''
-          }`}
-          onError={handleImageError}
-          onClick={handleImageClick}
-          loading="lazy"
-        />
+        {item.website ? (
+          <a 
+            href={item.website} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block w-full h-full cursor-pointer"
+          >
+            {imageElement}
+          </a>
+        ) : (
+          imageElement
+        )}
+        
         {item.featured && (
           <div className="absolute top-3 right-3">
             <Badge className="bg-route66-vintage-yellow text-black flex items-center gap-1">
@@ -58,6 +64,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
             </Badge>
           </div>
         )}
+        
         {item.website && (
           <div className="absolute bottom-3 right-3 opacity-0 hover:opacity-100 transition-opacity duration-300">
             <div className="bg-black/70 text-white p-2 rounded-full">
@@ -66,6 +73,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
           </div>
         )}
       </div>
+      
       <CardContent className="p-5">
         <h3 className="font-bold text-lg text-route66-gray mb-1">{item.name}</h3>
         <p className="text-sm text-route66-gray/70 flex items-center mb-3">
