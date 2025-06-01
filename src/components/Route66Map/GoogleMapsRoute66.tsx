@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useSupabaseRoute66 } from './hooks/useSupabaseRoute66';
 import MapLoadError from './components/MapLoadError';
@@ -92,31 +91,116 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     });
   }, [mapRef.current, mapEventHandlers.isMapReady]);
 
-  // Enhanced cleanup with better error handling
+  // Enhanced cleanup with comprehensive overlay error handling
   useEffect(() => {
     return () => {
       if (mapRef.current) {
-        console.log('🧹 GoogleMapsRoute66: Enhanced cleanup starting');
+        console.log('🧹 GoogleMapsRoute66: Starting comprehensive overlay cleanup');
         
         try {
           const mapInstance = mapRef.current as any;
           
-          // Clear overlay map types
+          // Enhanced overlay cleanup with type checking
           if (mapInstance.overlayMapTypes) {
-            mapInstance.overlayMapTypes.clear();
-            console.log('🧹 Cleared overlay map types');
+            console.log('🔍 Inspecting overlay map types before cleanup');
+            
+            // Log overlay types for debugging
+            for (let i = 0; i < mapInstance.overlayMapTypes.getLength(); i++) {
+              try {
+                const overlay = mapInstance.overlayMapTypes.getAt(i);
+                console.log(`🔍 Overlay ${i}:`, {
+                  type: typeof overlay,
+                  hasRemove: typeof overlay?.remove === 'function',
+                  hasSetMap: typeof overlay?.setMap === 'function',
+                  constructor: overlay?.constructor?.name
+                });
+              } catch (inspectionError) {
+                console.warn(`⚠️ Error inspecting overlay ${i}:`, inspectionError);
+              }
+            }
+            
+            // Safe overlay removal with multiple strategies
+            const overlayCount = mapInstance.overlayMapTypes.getLength();
+            console.log(`🧹 Attempting to clean ${overlayCount} overlays`);
+            
+            for (let i = overlayCount - 1; i >= 0; i--) {
+              try {
+                const overlay = mapInstance.overlayMapTypes.getAt(i);
+                console.log(`🧹 Cleaning overlay ${i}`);
+                
+                if (overlay) {
+                  // Strategy 1: Try overlay.remove() if available
+                  if (typeof overlay.remove === 'function') {
+                    console.log(`🧹 Using overlay.remove() for overlay ${i}`);
+                    overlay.remove();
+                  }
+                  // Strategy 2: Try overlay.setMap(null) if available
+                  else if (typeof overlay.setMap === 'function') {
+                    console.log(`🧹 Using overlay.setMap(null) for overlay ${i}`);
+                    overlay.setMap(null);
+                  }
+                  // Strategy 3: Remove from overlayMapTypes collection
+                  else {
+                    console.log(`🧹 Removing overlay ${i} from collection`);
+                    mapInstance.overlayMapTypes.removeAt(i);
+                  }
+                }
+              } catch (overlayError) {
+                console.error(`❌ Error cleaning overlay ${i}:`, overlayError);
+                
+                // Fallback: try to remove from collection
+                try {
+                  mapInstance.overlayMapTypes.removeAt(i);
+                  console.log(`✅ Fallback removal successful for overlay ${i}`);
+                } catch (fallbackError) {
+                  console.error(`❌ Fallback removal failed for overlay ${i}:`, fallbackError);
+                }
+              }
+            }
+            
+            // Final safety clear
+            try {
+              mapInstance.overlayMapTypes.clear();
+              console.log('🧹 Final overlay collection clear completed');
+            } catch (clearError) {
+              console.warn('⚠️ Error during final overlay clear:', clearError);
+            }
           }
 
-          // Clear all event listeners
+          // Enhanced event listener cleanup
           if (window.google?.maps?.event) {
-            google.maps.event.clearInstanceListeners(mapRef.current);
-            console.log('🧹 Cleared all map event listeners');
+            try {
+              console.log('🧹 Clearing Google Maps event listeners');
+              google.maps.event.clearInstanceListeners(mapRef.current);
+              console.log('✅ Event listeners cleared successfully');
+            } catch (eventError) {
+              console.error('❌ Error clearing event listeners:', eventError);
+            }
           }
 
-          console.log('✅ Enhanced cleanup completed successfully');
+          // Additional safety cleanup for map instance
+          try {
+            if (typeof mapInstance.setOptions === 'function') {
+              mapInstance.setOptions({ gestureHandling: 'none' });
+            }
+          } catch (optionsError) {
+            console.warn('⚠️ Error setting cleanup options:', optionsError);
+          }
+
+          console.log('✅ Comprehensive overlay cleanup completed');
           
         } catch (cleanupError) {
-          console.warn('⚠️ Error during enhanced cleanup:', cleanupError);
+          console.error('❌ Error during comprehensive cleanup:', cleanupError);
+          
+          // Emergency cleanup fallback
+          try {
+            console.log('🚨 Attempting emergency cleanup fallback');
+            if (mapRef.current && (mapRef.current as any).overlayMapTypes) {
+              (mapRef.current as any).overlayMapTypes.clear();
+            }
+          } catch (emergencyError) {
+            console.error('❌ Emergency cleanup also failed:', emergencyError);
+          }
         }
       }
     };
@@ -142,7 +226,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with enhanced zoom controls', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with enhanced overlay error handling', {
     isLoaded,
     isMapReady: mapEventHandlers.isMapReady,
     isMapRefStable,

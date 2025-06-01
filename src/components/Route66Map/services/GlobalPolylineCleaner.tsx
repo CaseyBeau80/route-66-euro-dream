@@ -1,5 +1,5 @@
 
-// Enhanced global polyline cleanup service to prevent multiple overlapping routes
+// Enhanced global polyline cleanup service with comprehensive overlay error handling
 export class GlobalPolylineCleaner {
   private static activePolylines: Set<google.maps.Polyline> = new Set();
   private static isCleaningInProgress = false;
@@ -34,7 +34,7 @@ export class GlobalPolylineCleaner {
     }
 
     this.isCleaningInProgress = true;
-    console.log(`🧹 GlobalPolylineCleaner: Starting ENHANCED nuclear cleanup of ${this.activePolylines.size} registered polylines`);
+    console.log(`🧹 GlobalPolylineCleaner: Starting COMPREHENSIVE cleanup of ${this.activePolylines.size} registered polylines`);
 
     try {
       // STEP 1: Execute all cleanup callbacks
@@ -60,46 +60,121 @@ export class GlobalPolylineCleaner {
       });
       this.activePolylines.clear();
 
-      // STEP 3: Clear map overlays and event listeners
+      // STEP 3: Enhanced overlay cleanup with comprehensive error handling
       const mapInstance = map as any;
       if (mapInstance.overlayMapTypes) {
-        mapInstance.overlayMapTypes.clear();
-        console.log('🧹 Cleared map overlay types');
+        console.log('🧹 Starting enhanced overlay cleanup');
+        
+        // Log overlay information for debugging
+        const overlayCount = mapInstance.overlayMapTypes.getLength();
+        console.log(`🔍 Found ${overlayCount} overlays to clean`);
+        
+        for (let i = 0; i < overlayCount; i++) {
+          try {
+            const overlay = mapInstance.overlayMapTypes.getAt(i);
+            console.log(`🔍 Overlay ${i} inspection:`, {
+              type: typeof overlay,
+              hasRemove: typeof overlay?.remove === 'function',
+              hasSetMap: typeof overlay?.setMap === 'function',
+              constructor: overlay?.constructor?.name
+            });
+          } catch (inspectionError) {
+            console.warn(`⚠️ Error inspecting overlay ${i}:`, inspectionError);
+          }
+        }
+        
+        // Enhanced overlay removal with multiple strategies
+        for (let i = overlayCount - 1; i >= 0; i--) {
+          try {
+            const overlay = mapInstance.overlayMapTypes.getAt(i);
+            console.log(`🧹 Cleaning overlay ${i}`);
+            
+            if (overlay) {
+              // Strategy 1: Try overlay.remove() if available
+              if (typeof overlay.remove === 'function') {
+                console.log(`🧹 Using overlay.remove() for overlay ${i}`);
+                overlay.remove();
+              }
+              // Strategy 2: Try overlay.setMap(null) if available
+              else if (typeof overlay.setMap === 'function') {
+                console.log(`🧹 Using overlay.setMap(null) for overlay ${i}`);
+                overlay.setMap(null);
+              }
+              // Strategy 3: Remove from overlayMapTypes collection
+              else {
+                console.log(`🧹 Removing overlay ${i} from collection`);
+                mapInstance.overlayMapTypes.removeAt(i);
+              }
+            }
+          } catch (overlayError) {
+            console.error(`❌ Error cleaning overlay ${i}:`, overlayError);
+            
+            // Fallback: try to remove from collection
+            try {
+              mapInstance.overlayMapTypes.removeAt(i);
+              console.log(`✅ Fallback removal successful for overlay ${i}`);
+            } catch (fallbackError) {
+              console.error(`❌ Fallback removal failed for overlay ${i}:`, fallbackError);
+            }
+          }
+        }
+        
+        // Final safety clear
+        try {
+          mapInstance.overlayMapTypes.clear();
+          console.log('🧹 Final overlay collection clear completed');
+        } catch (clearError) {
+          console.warn('⚠️ Error during final overlay clear:', clearError);
+        }
       }
 
-      // STEP 4: Clear Google Maps event listeners
+      // STEP 4: Enhanced Google Maps event listener cleanup
       if (window.google?.maps?.event) {
         try {
+          console.log('🧹 Clearing Google Maps event listeners');
           google.maps.event.clearInstanceListeners(map);
-          console.log('🧹 Cleared Google Maps event listeners');
-        } catch (error) {
-          console.error('❌ Error clearing event listeners:', error);
+          console.log('✅ Event listeners cleared successfully');
+        } catch (eventError) {
+          console.error('❌ Error clearing event listeners:', eventError);
         }
       }
 
       // STEP 5: Additional safety cleanup delay
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // STEP 6: Secondary overlay cleanup (belt and suspenders)
       if (mapInstance.overlayMapTypes) {
-        mapInstance.overlayMapTypes.clear();
-        console.log('🧹 Secondary overlay cleanup completed');
+        try {
+          const remainingCount = mapInstance.overlayMapTypes.getLength();
+          if (remainingCount > 0) {
+            console.log(`🧹 Secondary cleanup: ${remainingCount} overlays still present`);
+            mapInstance.overlayMapTypes.clear();
+            console.log('🧹 Secondary overlay cleanup completed');
+          }
+        } catch (secondaryError) {
+          console.warn('⚠️ Error during secondary overlay cleanup:', secondaryError);
+        }
       }
 
       // STEP 7: Force garbage collection hints
       if (mapInstance.overlayMapTypes) {
-        mapInstance.overlayMapTypes.forEach((overlay: any, index: number) => {
-          try {
-            mapInstance.overlayMapTypes.removeAt(index);
-          } catch (error) {
-            // Ignore errors - this is belt and suspenders cleanup
+        try {
+          // Try to remove any remaining overlays by index
+          for (let i = mapInstance.overlayMapTypes.getLength() - 1; i >= 0; i--) {
+            try {
+              mapInstance.overlayMapTypes.removeAt(i);
+            } catch (indexError) {
+              // Ignore errors - this is belt and suspenders cleanup
+            }
           }
-        });
+        } catch (indexCleanupError) {
+          console.warn('⚠️ Error during index-based cleanup:', indexCleanupError);
+        }
       }
 
-      console.log('✅ GlobalPolylineCleaner: ENHANCED nuclear cleanup completed successfully');
+      console.log('✅ GlobalPolylineCleaner: COMPREHENSIVE cleanup completed successfully');
     } catch (error) {
-      console.error('❌ GlobalPolylineCleaner: Error during ENHANCED cleanup:', error);
+      console.error('❌ GlobalPolylineCleaner: Error during COMPREHENSIVE cleanup:', error);
     } finally {
       this.isCleaningInProgress = false;
     }
