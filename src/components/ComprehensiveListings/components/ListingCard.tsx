@@ -31,6 +31,9 @@ export const ListingCard = ({ item }: ListingCardProps) => {
   // Always try database image first, only use fallback on error
   const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
   
+  // Check if this is a Supabase Storage image (theater-sourced)
+  const isTheaterSourcedImage = item.image_url && item.image_url.includes('/storage/drive_ins/');
+  
   // Simplified logging - only when database image is missing
   if (!item.image_url) {
     console.log(`🖼️ No database image for ${item.name}, using category fallback`);
@@ -107,6 +110,13 @@ export const ListingCard = ({ item }: ListingCardProps) => {
           draggable={false}
           style={{ pointerEvents: 'auto' }}
         />
+        
+        {/* Image Credit for theater-sourced images */}
+        {isTheaterSourcedImage && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs px-2 py-1">
+            <span className="text-white/80">Image courtesy of {item.name}</span>
+          </div>
+        )}
         
         {item.featured && (
           <div className="absolute top-3 right-3 pointer-events-none">
