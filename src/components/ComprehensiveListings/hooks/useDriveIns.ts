@@ -11,53 +11,71 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 REFRESHING drive-ins from database...');
+        console.log('🎬 FETCHING ALL drive-ins from database...');
         
+        // Remove the limit to get ALL drive-ins
         const { data: driveIns, error } = await supabase
           .from('drive_ins')
           .select('*')
-          .limit(6);
+          .order('name', { ascending: true });
 
-        if (!error && driveIns) {
-          console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins with fresh data`);
-          
-          driveIns.forEach((driveIn, index) => {
-            console.log(`🎬 Drive-in ${index + 1}: ${driveIn.name}`, {
-              hasImage: !!driveIn.image_url,
-              hasWebsite: !!driveIn.website,
-              website: driveIn.website,
-              imageUrl: driveIn.image_url
-            });
-          });
-          
-          const mappedItems = driveIns.map(driveIn => ({
-            id: driveIn.id,
-            name: driveIn.name,
-            description: driveIn.description,
-            city_name: driveIn.city_name,
-            state: driveIn.state,
-            image_url: driveIn.image_url,
-            website: driveIn.website,
-            latitude: driveIn.latitude,
-            longitude: driveIn.longitude,
-            category: 'drive_ins',
-            tags: generateTags(driveIn, 'drive_ins'),
-            year_opened: driveIn.year_opened,
-            featured: driveIn.featured
-          }));
-          
-          console.log('🎬 Drive-ins mapped with websites:', mappedItems.map(item => ({
-            name: item.name,
-            hasWebsite: !!item.website,
-            website: item.website
-          })));
-          
-          setItems(mappedItems);
-        } else {
+        if (error) {
           console.error('❌ Error fetching drive-ins:', error);
+          setItems([]);
+          return;
         }
+
+        if (!driveIns || driveIns.length === 0) {
+          console.warn('⚠️ No drive-ins found in database');
+          setItems([]);
+          return;
+        }
+
+        console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins from database`);
+        
+        // Log each drive-in with detailed info
+        driveIns.forEach((driveIn, index) => {
+          console.log(`🎬 Drive-in ${index + 1}:`, {
+            name: driveIn.name,
+            city: driveIn.city_name,
+            state: driveIn.state,
+            hasImage: !!driveIn.image_url,
+            hasWebsite: !!driveIn.website,
+            website: driveIn.website,
+            imageUrl: driveIn.image_url,
+            status: driveIn.status,
+            yearOpened: driveIn.year_opened
+          });
+        });
+        
+        const mappedItems = driveIns.map(driveIn => ({
+          id: driveIn.id,
+          name: driveIn.name,
+          description: driveIn.description,
+          city_name: driveIn.city_name,
+          state: driveIn.state,
+          image_url: driveIn.image_url,
+          website: driveIn.website,
+          latitude: driveIn.latitude,
+          longitude: driveIn.longitude,
+          category: 'drive_ins',
+          tags: generateTags(driveIn, 'drive_ins'),
+          year_opened: driveIn.year_opened,
+          featured: driveIn.featured
+        }));
+        
+        console.log('🎬 Mapped drive-ins:', mappedItems.map(item => ({
+          name: item.name,
+          city: item.city_name,
+          state: item.state,
+          hasWebsite: !!item.website,
+          website: item.website
+        })));
+        
+        setItems(mappedItems);
       } catch (error) {
         console.error('❌ Exception while fetching drive-ins:', error);
+        setItems([]);
       } finally {
         setLoading(false);
       }
@@ -65,6 +83,12 @@ export const useDriveIns = () => {
 
     fetchDriveIns();
   }, []);
+
+  console.log(`🎬 useDriveIns returning:`, { 
+    loading, 
+    itemsCount: items.length,
+    items: items.map(item => ({ name: item.name, city: item.city_name, state: item.state }))
+  });
 
   return { items, loading };
 };
