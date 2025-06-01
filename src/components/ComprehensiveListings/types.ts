@@ -17,3 +17,11 @@ export interface ListingItem {
   year_opened?: number;
   featured?: boolean;
 }
+
+export interface CategoryData {
+  title: string;
+  items: ListingItem[];
+  loading: boolean;
+  color: string;
+  icon: string;
+}
