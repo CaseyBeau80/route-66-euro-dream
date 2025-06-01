@@ -9,6 +9,168 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      attractions: {
+        Row: {
+          admission_fee: string | null
+          category: string | null
+          city_name: string
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          hours_of_operation: string | null
+          id: string
+          image_url: string | null
+          latitude: number
+          longitude: number
+          name: string
+          state: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          admission_fee?: string | null
+          category?: string | null
+          city_name: string
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          hours_of_operation?: string | null
+          id?: string
+          image_url?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          state: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          admission_fee?: string | null
+          category?: string | null
+          city_name?: string
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          hours_of_operation?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          state?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      destination_cities: {
+        Row: {
+          created_at: string
+          description: string | null
+          elevation_ft: number | null
+          featured: boolean | null
+          founded_year: number | null
+          id: string
+          image_url: string | null
+          latitude: number
+          longitude: number
+          name: string
+          population: number | null
+          state: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          elevation_ft?: number | null
+          featured?: boolean | null
+          founded_year?: number | null
+          id?: string
+          image_url?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          population?: number | null
+          state: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          elevation_ft?: number | null
+          featured?: boolean | null
+          founded_year?: number | null
+          id?: string
+          image_url?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          population?: number | null
+          state?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      drive_ins: {
+        Row: {
+          capacity_cars: number | null
+          city_name: string
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          latitude: number
+          longitude: number
+          name: string
+          screens_count: number | null
+          state: string
+          status: string | null
+          updated_at: string
+          website: string | null
+          year_opened: number | null
+        }
+        Insert: {
+          capacity_cars?: number | null
+          city_name: string
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          latitude: number
+          longitude: number
+          name: string
+          screens_count?: number | null
+          state: string
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+          year_opened?: number | null
+        }
+        Update: {
+          capacity_cars?: number | null
+          city_name?: string
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          screens_count?: number | null
+          state?: string
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+          year_opened?: number | null
+        }
+        Relationships: []
+      }
       hidden_gems: {
         Row: {
           city_name: string
