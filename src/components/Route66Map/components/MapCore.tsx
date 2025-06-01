@@ -53,7 +53,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render with DIRECT zoom controls:', {
+  console.log('🗺️ MapCore render with SIMPLIFIED zoom controls:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -74,11 +74,13 @@ const MapCore: React.FC<MapCoreProps> = ({
         setShowScrollHint={setShowScrollHint}
       />
       
-      {/* Direct Zoom Controls - no overlay wrapper */}
-      <ZoomControls
-        map={mapRef.current}
-        isMapReady={isMapReady}
-      />
+      {/* Simplified Zoom Controls - properly positioned and functional */}
+      {mapRef.current && isMapReady && (
+        <ZoomControls
+          map={mapRef.current}
+          isMapReady={isMapReady}
+        />
+      )}
       
       {/* Scroll Zoom Hint Overlay */}
       <ScrollZoomHint show={showScrollHint} />

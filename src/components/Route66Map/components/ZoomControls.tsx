@@ -9,7 +9,6 @@ interface ZoomControlsProps {
 
 const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
   const [currentZoom, setCurrentZoom] = useState(4);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   // Update zoom level when map zoom changes
   useEffect(() => {
@@ -35,69 +34,50 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     };
   }, [map, isMapReady]);
 
-  const handleZoomIn = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!map || !isMapReady || isUpdating) {
-      console.log('⚠️ Zoom in blocked:', { hasMap: !!map, isMapReady, isUpdating });
+  const handleZoomIn = useCallback(() => {
+    if (!map || !isMapReady) {
+      console.log('⚠️ Zoom in blocked: map not ready');
       return;
     }
 
-    console.log('🎯 ZoomControls: Executing zoom in');
-    setIsUpdating(true);
+    console.log('🎯 Zooming in...');
+    const currentZoom = map.getZoom() || 4;
+    const newZoom = Math.min(currentZoom + 1, 18);
     
-    try {
-      const currentZoom = map.getZoom() || 4;
-      const newZoom = Math.min(currentZoom + 1, 18);
-      map.setZoom(newZoom);
-      console.log('✅ Zoom in successful:', newZoom);
-    } catch (error) {
-      console.error('❌ Error zooming in:', error);
-    } finally {
-      setTimeout(() => setIsUpdating(false), 100);
-    }
-  }, [map, isMapReady, isUpdating]);
+    // Use the proper Google Maps API method
+    map.setZoom(newZoom);
+    console.log('✅ Zoom in completed:', newZoom);
+  }, [map, isMapReady]);
 
-  const handleZoomOut = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!map || !isMapReady || isUpdating) {
-      console.log('⚠️ Zoom out blocked:', { hasMap: !!map, isMapReady, isUpdating });
+  const handleZoomOut = useCallback(() => {
+    if (!map || !isMapReady) {
+      console.log('⚠️ Zoom out blocked: map not ready');
       return;
     }
 
-    console.log('🎯 ZoomControls: Executing zoom out');
-    setIsUpdating(true);
+    console.log('🎯 Zooming out...');
+    const currentZoom = map.getZoom() || 4;
+    const newZoom = Math.max(currentZoom - 1, 3);
     
-    try {
-      const currentZoom = map.getZoom() || 4;
-      const newZoom = Math.max(currentZoom - 1, 3);
-      map.setZoom(newZoom);
-      console.log('✅ Zoom out successful:', newZoom);
-    } catch (error) {
-      console.error('❌ Error zooming out:', error);
-    } finally {
-      setTimeout(() => setIsUpdating(false), 100);
-    }
-  }, [map, isMapReady, isUpdating]);
+    // Use the proper Google Maps API method
+    map.setZoom(newZoom);
+    console.log('✅ Zoom out completed:', newZoom);
+  }, [map, isMapReady]);
 
   // Don't render if map isn't ready
   if (!isMapReady || !map) {
-    console.log('🔍 ZoomControls: Not rendering - map not ready');
     return null;
   }
 
-  const isZoomInDisabled = isUpdating || currentZoom >= 18;
-  const isZoomOutDisabled = isUpdating || currentZoom <= 3;
+  const isZoomInDisabled = currentZoom >= 18;
+  const isZoomOutDisabled = currentZoom <= 3;
 
   console.log('🎮 ZoomControls render:', {
     currentZoom: Math.round(currentZoom * 10) / 10,
     isZoomInDisabled,
     isZoomOutDisabled,
-    isUpdating,
-    hasMap: !!map
+    hasMap: !!map,
+    isMapReady
   });
 
   return (
@@ -114,10 +94,6 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
         className="w-12 h-12 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200 transition-colors"
         type="button"
         title={isZoomInDisabled ? 'Maximum zoom reached' : 'Zoom in'}
-        style={{ 
-          pointerEvents: 'auto',
-          cursor: isZoomInDisabled ? 'not-allowed' : 'pointer'
-        }}
       >
         <ZoomIn className="h-6 w-6 text-gray-700" />
       </button>
@@ -134,10 +110,6 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
         className="w-12 h-12 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200 transition-colors"
         type="button"
         title={isZoomOutDisabled ? 'Minimum zoom reached' : 'Zoom out'}
-        style={{ 
-          pointerEvents: 'auto',
-          cursor: isZoomOutDisabled ? 'not-allowed' : 'pointer'
-        }}
       >
         <ZoomOut className="h-6 w-6 text-gray-700" />
       </button>
