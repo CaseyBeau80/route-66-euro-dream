@@ -49,11 +49,15 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
         <DriveInHoverCard
           gem={gem}
           onWebsiteClick={onWebsiteClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
         />
       ) : (
         <RegularGemHoverCard
           gem={gem}
           onWebsiteClick={onWebsiteClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
         />
       )}
     </div>

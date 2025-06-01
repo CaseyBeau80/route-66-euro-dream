@@ -7,11 +7,22 @@ import { HiddenGem } from '../types';
 interface DriveInHoverCardProps {
   gem: HiddenGem;
   onWebsiteClick: (website: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({ gem, onWebsiteClick }) => {
+const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({ 
+  gem, 
+  onWebsiteClick,
+  onMouseEnter,
+  onMouseLeave 
+}) => {
   return (
-    <Card className="w-87 border-4 border-red-600 bg-gradient-to-br from-red-50 via-yellow-50 to-orange-100 shadow-2xl overflow-hidden relative">
+    <Card 
+      className="w-87 border-4 border-red-600 bg-gradient-to-br from-red-50 via-yellow-50 to-orange-100 shadow-2xl overflow-hidden relative"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {/* Film strip decorations */}
       <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-r from-red-800 via-yellow-600 to-red-800"></div>
       <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-red-800 via-yellow-600 to-red-800"></div>

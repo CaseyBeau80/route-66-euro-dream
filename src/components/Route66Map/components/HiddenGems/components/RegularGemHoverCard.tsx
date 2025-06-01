@@ -7,11 +7,22 @@ import { HiddenGem } from '../types';
 interface RegularGemHoverCardProps {
   gem: HiddenGem;
   onWebsiteClick: (website: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({ gem, onWebsiteClick }) => {
+const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({ 
+  gem, 
+  onWebsiteClick,
+  onMouseEnter,
+  onMouseLeave 
+}) => {
   return (
-    <Card className="w-87 border-3 border-black bg-white shadow-2xl">
+    <Card 
+      className="w-87 border-3 border-black bg-white shadow-2xl"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {/* Header */}
       <div className="bg-black text-white px-4 py-3">
         <div className="flex items-center justify-between">
