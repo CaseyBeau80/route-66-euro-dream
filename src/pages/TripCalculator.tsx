@@ -3,19 +3,18 @@ import { useState } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import TripCalculatorForm from "@/components/TripCalculator/TripCalculatorForm";
 import TripCalculatorResults from "@/components/TripCalculator/TripCalculatorResults";
-
-// Define the TripResults type inline since it's not exported from the module
-interface TripResults {
-  totalDistance: number;
-  estimatedDuration: number;
-  fuelCost: number;
-  recommendedStops: string[];
-  totalCost: number;
-}
+import { useTripCalculation } from "@/components/TripCalculator/hooks/useTripCalculation";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
-  const [tripResults, setTripResults] = useState<TripResults | null>(null);
+  const {
+    formData,
+    setFormData,
+    calculation,
+    availableEndLocations,
+    calculateTrip,
+    isCalculateDisabled
+  } = useTripCalculation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
@@ -37,12 +36,18 @@ const TripCalculator = () => {
             
             <div className="grid lg:grid-cols-2 gap-8">
               <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-route66-vintage-yellow">
-                <TripCalculatorForm onResultsGenerated={setTripResults} />
+                <TripCalculatorForm 
+                  formData={formData}
+                  setFormData={setFormData}
+                  availableEndLocations={availableEndLocations}
+                  onCalculate={calculateTrip}
+                  isCalculateDisabled={isCalculateDisabled}
+                />
               </div>
               
-              {tripResults && (
+              {calculation && (
                 <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-route66-vintage-yellow">
-                  <TripCalculatorResults results={tripResults} />
+                  <TripCalculatorResults calculation={calculation} />
                 </div>
               )}
             </div>
