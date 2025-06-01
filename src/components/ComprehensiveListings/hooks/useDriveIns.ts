@@ -11,7 +11,7 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 Fetching drive-ins with images...');
+        console.log('🎬 Fetching drive-ins with updated images...');
         
         const { data: driveIns, error } = await supabase
           .from('drive_ins')
@@ -19,7 +19,11 @@ export const useDriveIns = () => {
           .limit(6);
 
         if (!error && driveIns) {
-          console.log(`🎬 Fetched ${driveIns.length} drive-ins with images`);
+          console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins with images:`);
+          driveIns.forEach(driveIn => {
+            console.log(`  - ${driveIn.name}: ${driveIn.image_url ? '✅ Has image' : '❌ No image'}`);
+          });
+          
           setItems(driveIns.map(driveIn => ({
             id: driveIn.id,
             name: driveIn.name,
@@ -35,9 +39,11 @@ export const useDriveIns = () => {
             year_opened: driveIn.year_opened,
             featured: driveIn.featured
           })));
+        } else {
+          console.error('❌ Error fetching drive-ins:', error);
         }
       } catch (error) {
-        console.error('❌ Error fetching drive-ins:', error);
+        console.error('❌ Exception while fetching drive-ins:', error);
       } finally {
         setLoading(false);
       }

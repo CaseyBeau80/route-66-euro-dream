@@ -11,7 +11,27 @@ export const getFallbackImage = (name: string, description: string | null, categ
   }
   
   if (category === 'drive_ins') {
-    return "https://images.unsplash.com/photo-1489599856444-7f58f2ab7ec9?auto=format&fit=crop&w=600&q=80";
+    // Enhanced drive-in specific fallback images with more variety
+    if (nameAndDesc.includes('route 66') || nameAndDesc.includes('route66')) {
+      return "https://images.unsplash.com/photo-1489599856444-7f58f2ab7ec9?auto=format&fit=crop&w=600&q=80";
+    }
+    if (nameAndDesc.includes('starlite') || nameAndDesc.includes('star')) {
+      return "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=600&q=80";
+    }
+    if (nameAndDesc.includes('sky') || nameAndDesc.includes('vue')) {
+      return "https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?auto=format&fit=crop&w=600&q=80";
+    }
+    if (nameAndDesc.includes('moonlight') || nameAndDesc.includes('moon')) {
+      return "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=600&q=80";
+    }
+    if (nameAndDesc.includes('sunset') || nameAndDesc.includes('sun')) {
+      return "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80";
+    }
+    if (nameAndDesc.includes('twin') || nameAndDesc.includes('double')) {
+      return "https://images.unsplash.com/photo-1594736797933-d0ac1b65a7a0?auto=format&fit=crop&w=600&q=80";
+    }
+    // Default drive-in fallback
+    return "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
   }
   
   if (category === 'attractions') {

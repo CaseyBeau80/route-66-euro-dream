@@ -10,18 +10,31 @@ interface ListingCardProps {
 }
 
 export const ListingCard = ({ item }: ListingCardProps) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log(`🖼️ Image failed to load for ${item.name}, using fallback`);
+    const target = e.target as HTMLImageElement;
+    const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
+    
+    // Prevent infinite loop if fallback also fails
+    if (target.src !== fallbackUrl) {
+      target.src = fallbackUrl;
+    } else {
+      console.warn(`⚠️ Fallback image also failed for ${item.name}`);
+      target.style.display = 'none';
+    }
+  };
+
+  const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
       <div className="relative h-48 overflow-hidden">
         <img 
-          src={item.image_url || getFallbackImage(item.name, item.description, item.category)} 
+          src={imageUrl}
           alt={item.name} 
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            console.log(`🖼️ Image failed to load for ${item.name}, using fallback`);
-            const target = e.target as HTMLImageElement;
-            target.src = getFallbackImage(item.name, item.description, item.category);
-          }}
+          onError={handleImageError}
+          loading="lazy"
         />
         {item.featured && (
           <div className="absolute top-3 right-3">
