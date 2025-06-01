@@ -32,8 +32,31 @@ export const useGoogleMaps = () => {
     return '';
   }, []);
 
-  // Only use the loader if we have a valid API key
-  const shouldLoadApi = apiKey && apiKey.trim() !== '' && apiKey !== 'demo-key' && !apiKey.startsWith('I am tryin');
+  // Enhanced validation - check if key looks like a real Google Maps API key
+  const isValidGoogleMapsKey = (key: string): boolean => {
+    if (!key || key.trim() === '' || key === 'demo-key') return false;
+    
+    // Check if key starts with common test/placeholder text
+    const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'AIza', 'placeholder'];
+    const keyLower = key.toLowerCase();
+    
+    for (const prefix of invalidPrefixes) {
+      if (keyLower.startsWith(prefix.toLowerCase())) {
+        console.log(`🔑 Invalid API key detected - starts with: ${prefix}`);
+        return false;
+      }
+    }
+    
+    // Google Maps API keys are typically 39 characters and start with 'AIza'
+    if (key.length < 35) {
+      console.log('🔑 API key too short');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const shouldLoadApi = isValidGoogleMapsKey(apiKey);
   
   console.log('🗺️ Google Maps loader config:', {
     shouldLoadApi,
@@ -76,11 +99,10 @@ export const useGoogleMaps = () => {
 
   // If no API key is available or the key is clearly invalid, return appropriate state
   if (!shouldLoadApi) {
-    console.log('🔑 No valid Google Maps API key available or key appears invalid');
+    console.log('🔑 No valid Google Maps API key available - showing input form');
     return {
       isLoaded: false,
-      loadError: apiKey.startsWith('I am tryin') ? 
-        new Error('Invalid API key - please enter a valid Google Maps API key') : null,
+      loadError: null,
       activeMarker,
       currentZoom,
       isDragging,
