@@ -34,32 +34,38 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const hintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wheelListenerRef = useRef<((e: WheelEvent) => void) | null>(null);
 
   useEffect(() => {
     if (mapInitialized || !containerRef.current || mapRef.current) {
       return;
     }
 
-    console.log('🗺️ MapCore: Initializing Google Map with continental US view and custom scroll handling');
+    // Check if Google Maps API is available
+    if (!window.google || !window.google.maps) {
+      console.log('⏳ Google Maps API not yet available, waiting...');
+      return;
+    }
+
+    console.log('🗺️ MapCore: Initializing Google Map with continental US view');
 
     try {
       const map = new google.maps.Map(containerRef.current, {
-        zoom: 3, // Reduced zoom to show continental US
-        center: { lat: 39.0, lng: -98.0 }, // Centered on continental US
+        zoom: 4,
+        center: { lat: 39.0, lng: -98.0 },
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
         zoomControl: true,
-        mapTypeControl: false, // Disable map type control (Map/Satellite buttons)
+        mapTypeControl: false,
         scaleControl: true,
         streetViewControl: false,
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        scrollwheel: false, // Disable default scroll wheel zoom
-        // Apply boundary restrictions for continental US
+        scrollwheel: true, // Enable default scrollwheel initially
         restriction: mapRestrictions,
-        minZoom: 3, // Minimum zoom to see the full continental US
-        maxZoom: 10, // Maximum zoom for detailed viewing
+        minZoom: 3,
+        maxZoom: 10,
         styles: [
           {
             featureType: 'poi',
@@ -89,15 +95,13 @@ const MapCore: React.FC<MapCoreProps> = ({
       const handleWheel = (e: WheelEvent) => {
         if (e.ctrlKey || e.metaKey) {
           // Allow zoom when Ctrl (or Cmd on Mac) is pressed
-          e.preventDefault();
-          const currentZoom = map.getZoom() || 3;
-          const delta = e.deltaY > 0 ? -0.5 : 0.5;
-          const newZoom = Math.max(3, Math.min(10, currentZoom + delta));
-          map.setZoom(newZoom);
-          console.log('🔍 Ctrl+Scroll zoom to:', newZoom);
+          // The map will handle this naturally since scrollwheel is enabled
+          console.log('🔍 Ctrl+Scroll zoom allowed');
         } else {
-          // Show hint when scrolling without Ctrl
+          // Prevent default zoom and show hint
           e.preventDefault();
+          e.stopPropagation();
+          
           setShowScrollHint(true);
           
           // Clear existing timeout
@@ -114,49 +118,36 @@ const MapCore: React.FC<MapCoreProps> = ({
         }
       };
 
+      // Store the listener reference for cleanup
+      wheelListenerRef.current = handleWheel;
+
       // Add wheel event listener to the map container
       const mapDiv = containerRef.current;
       if (mapDiv) {
         mapDiv.addEventListener('wheel', handleWheel, { passive: false });
       }
 
-      console.log('✅ Google Map initialized with continental US bounds and custom scroll handling:', mapBounds);
+      console.log('✅ Google Map initialized successfully');
       onMapLoad(map);
       onMapReady();
 
       // Add click listener
       map.addListener('click', onMapClick);
 
-      // Log boundary restriction status
-      console.log('🌎 Continental US viewport enabled with Ctrl+Scroll zoom:', {
-        bounds: mapBounds,
-        strictBounds: mapRestrictions.strictBounds,
-        minZoom: 3,
-        maxZoom: 10,
-        scrollwheel: false,
-        ctrlScrollEnabled: true
-      });
-
-      // Cleanup function for wheel event listener
-      return () => {
-        if (mapDiv) {
-          mapDiv.removeEventListener('wheel', handleWheel);
-        }
-        if (hintTimeoutRef.current) {
-          clearTimeout(hintTimeoutRef.current);
-        }
-      };
-
     } catch (error) {
       console.error('❌ Error initializing Google Map:', error);
     }
   }, [mapInitialized, onMapLoad, onMapClick, onMapReady]);
 
-  // Cleanup timeout on unmount
+  // Cleanup effect
   useEffect(() => {
     return () => {
       if (hintTimeoutRef.current) {
         clearTimeout(hintTimeoutRef.current);
+      }
+      
+      if (containerRef.current && wheelListenerRef.current) {
+        containerRef.current.removeEventListener('wheel', wheelListenerRef.current);
       }
     };
   }, []);
@@ -166,8 +157,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
-    continentalUSView: true,
-    ctrlScrollZoom: true,
+    hasGoogleMaps: !!(window.google && window.google.maps),
     showScrollHint
   });
 
@@ -195,10 +185,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* Route Renderer - Force re-mount when map is ready */}
+      {/* Route Renderer */}
       {mapRef.current && isMapReady && (
         <UltraSmoothRouteRenderer
-          key={`route-${isMapReady}-${mapRef.current ? 'map-ready' : 'no-map'}`}
+          key={`route-${isMapReady}`}
           map={mapRef.current}
           isMapReady={isMapReady}
         />
