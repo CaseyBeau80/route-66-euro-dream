@@ -13,10 +13,6 @@ export const useTripCalculation = () => {
   });
   const [calculation, setCalculation] = useState<TripCalculation | null>(null);
 
-  // Debug: Log the route66Towns data
-  console.log('Route66 Towns data:', route66Towns);
-  console.log('Number of towns:', route66Towns?.length || 'undefined');
-
   // Get available end locations based on start location
   const availableEndLocations = useMemo(() => {
     if (!formData.startLocation) return route66Towns;
@@ -82,13 +78,6 @@ export const useTripCalculation = () => {
       averageDailyDistance
     });
   };
-
-  // Debug: Log current state
-  console.log('Current state:', { 
-    startLocation: formData.startLocation, 
-    endLocation: formData.endLocation, 
-    isButtonDisabled: !formData.startLocation || !formData.endLocation 
-  });
 
   return {
     formData,

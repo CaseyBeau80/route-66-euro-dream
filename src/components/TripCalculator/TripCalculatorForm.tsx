@@ -35,14 +35,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Debug Info */}
-      {(!route66Towns || route66Towns.length === 0) && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <strong>Debug:</strong> Route66 towns data is not loading properly. 
-          Towns available: {route66Towns?.length || 0}
-        </div>
-      )}
-
       {/* Start Location */}
       <div className="space-y-2">
         <Label className="font-travel font-bold text-route66-vintage-brown">
@@ -53,17 +45,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             <SelectValue placeholder="Select starting city" />
           </SelectTrigger>
           <SelectContent>
-            {route66Towns && route66Towns.length > 0 ? (
-              route66Towns.map((town) => (
-                <SelectItem key={town.name} value={town.name}>
-                  {town.name}
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="no-data" disabled>
-                No towns data available
+            {route66Towns.map((town) => (
+              <SelectItem key={town.name} value={town.name}>
+                {town.name}
               </SelectItem>
-            )}
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -78,17 +64,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             <SelectValue placeholder="Select destination city" />
           </SelectTrigger>
           <SelectContent>
-            {availableEndLocations && availableEndLocations.length > 0 ? (
-              availableEndLocations.map((town) => (
-                <SelectItem key={town.name} value={town.name}>
-                  {town.name}
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="no-data" disabled>
-                No towns data available
+            {availableEndLocations.map((town) => (
+              <SelectItem key={town.name} value={town.name}>
+                {town.name}
               </SelectItem>
-            )}
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -142,12 +122,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       >
         Calculate Trip
       </Button>
-      
-      {/* Debug info for button state */}
-      <div className="text-xs text-gray-500">
-        Debug: Button disabled = {isCalculateDisabled.toString()}
-        | Start: "{formData.startLocation}" | End: "{formData.endLocation}"
-      </div>
     </div>
   );
 };
