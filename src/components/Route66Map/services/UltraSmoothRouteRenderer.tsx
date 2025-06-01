@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
-import { DirectionsApiRouteService } from './DirectionsApiRouteService';
+import { IdealizedRoute66Renderer } from './IdealizedRoute66Renderer';
 import { RouteGlobalState } from './RouteGlobalState';
 
 interface UltraSmoothRouteRendererProps {
@@ -14,15 +14,15 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
   isMapReady
 }) => {
   const { waypoints, isLoading } = useSupabaseRoute66();
-  const [routeService, setRouteService] = useState<DirectionsApiRouteService | null>(null);
+  const [routeRenderer, setRouteRenderer] = useState<IdealizedRoute66Renderer | null>(null);
   const [isRouteRendered, setIsRouteRendered] = useState(false);
 
-  // Initialize route service
+  // Initialize route renderer
   useEffect(() => {
     if (!isMapReady || !map) return;
 
-    const service = new DirectionsApiRouteService(map);
-    setRouteService(service);
+    const renderer = new IdealizedRoute66Renderer(map);
+    setRouteRenderer(renderer);
 
     return () => {
       // Cleanup on unmount
@@ -30,11 +30,11 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     };
   }, [map, isMapReady]);
 
-  // Render the route when data is ready
+  // Render the idealized route when data is ready
   useEffect(() => {
-    if (!routeService || !waypoints.length || isLoading || isRouteRendered) return;
+    if (!routeRenderer || !waypoints.length || isLoading || isRouteRendered) return;
 
-    console.log('🗺️ UltraSmoothRouteRenderer: Starting realistic Route 66 rendering');
+    console.log('🗺️ UltraSmoothRouteRenderer: Starting idealized curvy Route 66 rendering');
 
     // Filter to major stops only for main route
     const majorStops = waypoints
@@ -46,34 +46,32 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       return;
     }
 
-    console.log(`🛣️ Rendering Route 66 with ${majorStops.length} major stops using Directions API`);
+    console.log(`🛣️ Rendering idealized Route 66 with ${majorStops.length} major stops`);
 
-    // Create realistic route
-    routeService.createRealisticRoute66(majorStops)
+    // Create idealized curvy route
+    routeRenderer.createIdealizedRoute66(majorStops)
       .then(() => {
         setIsRouteRendered(true);
-        console.log('✅ Route 66 realistic route rendering completed');
+        console.log('✅ Idealized Route 66 rendering completed');
       })
       .catch(error => {
-        console.error('❌ Error rendering realistic Route 66:', error);
+        console.error('❌ Error rendering idealized Route 66:', error);
       });
 
-  }, [routeService, waypoints, isLoading, isRouteRendered]);
+  }, [routeRenderer, waypoints, isLoading, isRouteRendered]);
 
   // Log current status
   useEffect(() => {
     if (!isMapReady) return;
 
     const polylineCount = RouteGlobalState.getPolylineCount();
-    const rendererCount = RouteGlobalState.getRendererCount();
     
-    console.log('📊 Route rendering status:', {
+    console.log('📊 Idealized route rendering status:', {
       isMapReady,
       waypointsLoaded: waypoints.length,
       isLoading,
       isRouteRendered,
-      polylineSegments: polylineCount,
-      directionsRenderers: rendererCount
+      polylineSegments: polylineCount
     });
   }, [isMapReady, waypoints.length, isLoading, isRouteRendered]);
 

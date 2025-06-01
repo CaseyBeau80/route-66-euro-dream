@@ -1,12 +1,12 @@
 
 export class PolylineStylesConfig {
-  // Main Route 66 asphalt road styling
+  // Main Route 66 asphalt road styling - enhanced for idealized route
   static getMainPolylineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
       strokeColor: '#2C1810', // Dark asphalt color
-      strokeOpacity: 0.9,
-      strokeWeight: 8,
+      strokeOpacity: 0.95,
+      strokeWeight: 10, // Slightly thicker for better visibility
       clickable: false,
       draggable: false,
       editable: false,
@@ -21,7 +21,7 @@ export class PolylineStylesConfig {
       geodesic: true,
       strokeColor: '#FFD700', // Bright yellow
       strokeOpacity: 1.0,
-      strokeWeight: 2,
+      strokeWeight: 3, // Slightly thicker center line
       clickable: false,
       draggable: false,
       editable: false,
@@ -30,7 +30,7 @@ export class PolylineStylesConfig {
     };
   }
 
-  // Fallback styling for segments where Directions API fails
+  // Enhanced fallback styling for segments where needed
   static getFallbackPolylineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
@@ -45,7 +45,7 @@ export class PolylineStylesConfig {
     };
   }
 
-  // Highway-specific styling based on route type
+  // Highway-specific styling based on route type (kept for compatibility)
   static getHighwaySpecificOptions(highway: string): google.maps.PolylineOptions {
     const baseOptions = this.getMainPolylineOptions();
     
@@ -57,9 +57,39 @@ export class PolylineStylesConfig {
       case 'I-40':
         return { ...baseOptions, strokeColor: '#DC2626' }; // Red for I-40
       case 'Historic US-66':
-        return { ...baseOptions, strokeColor: '#D97706', strokeWeight: 6 }; // Orange for historic sections
+        return { ...baseOptions, strokeColor: '#D97706', strokeWeight: 8 }; // Orange for historic sections
       default:
         return baseOptions;
     }
+  }
+
+  // New method for idealized route styling with enhanced curves
+  static getIdealizedRouteOptions(): google.maps.PolylineOptions {
+    return {
+      geodesic: true,
+      strokeColor: '#2C1810', // Classic asphalt
+      strokeOpacity: 0.95,
+      strokeWeight: 10,
+      clickable: false,
+      draggable: false,
+      editable: false,
+      visible: true,
+      zIndex: 50
+    };
+  }
+
+  // Enhanced center line for idealized route
+  static getIdealizedCenterLineOptions(): google.maps.PolylineOptions {
+    return {
+      geodesic: true,
+      strokeColor: '#FFD700', // Route 66 yellow
+      strokeOpacity: 1.0,
+      strokeWeight: 3,
+      clickable: false,
+      draggable: false,
+      editable: false,
+      visible: true,
+      zIndex: 100
+    };
   }
 }
