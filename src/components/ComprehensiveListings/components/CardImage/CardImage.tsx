@@ -51,19 +51,22 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
 
   return (
     <div 
-      className="relative h-48 overflow-hidden cursor-pointer bg-gray-100"
+      className="relative h-48 overflow-hidden cursor-pointer bg-gray-100 group"
       onClick={onContainerClick}
       style={{ userSelect: 'none' }}
     >
       <img 
         src={imageUrl}
         alt={item.name} 
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer select-none"
+        className="w-full h-full object-cover cursor-pointer select-none transition-all duration-300 ease-in-out group-hover:animate-jiggle"
         onError={handleImageError}
         onClick={onImageClick}
         loading="lazy"
         draggable={false}
-        style={{ pointerEvents: 'auto' }}
+        style={{ 
+          pointerEvents: 'auto',
+          transformOrigin: 'center center'
+        }}
       />
       
       {/* Image Credit for theater-sourced images */}
