@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
@@ -23,6 +24,30 @@ const Index = () => {
   }, []);
 
   console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme");
+
+  // Function to get appropriate placeholder image based on attraction type
+  const getPlaceholderImage = (title, description) => {
+    const titleLower = title?.toLowerCase() || '';
+    const descLower = description?.toLowerCase() || '';
+    
+    if (titleLower.includes('motel') || titleLower.includes('motor') || titleLower.includes('inn')) {
+      return "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=600&q=80";
+    }
+    if (titleLower.includes('diner') || titleLower.includes('cafe') || titleLower.includes('restaurant')) {
+      return "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?auto=format&fit=crop&w=600&q=80";
+    }
+    if (titleLower.includes('museum') || titleLower.includes('hall')) {
+      return "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=600&q=80";
+    }
+    if (titleLower.includes('drive-in') || titleLower.includes('theater')) {
+      return "https://images.unsplash.com/photo-1489599856444-7f58f2ab7ec9?auto=format&fit=crop&w=600&q=80";
+    }
+    if (titleLower.includes('gas') || titleLower.includes('station') || titleLower.includes('service')) {
+      return "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=600&q=80";
+    }
+    // Default Route 66 road image
+    return "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
@@ -99,13 +124,13 @@ const Index = () => {
       </div>
 
       {/* Featured Listings Section (Dynamic) */}
-      <div className="mt-10">
+      <div className="mt-10 px-4">
         <h2 className="text-center text-2xl font-bold mb-6">Featured Places Along the Route</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {listings.map((item) => (
             <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <img 
-                src={item.website || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"} 
+                src={getPlaceholderImage(item.title, item.description)} 
                 alt={item.title} 
                 className="w-full h-48 object-cover" 
               />
@@ -113,6 +138,16 @@ const Index = () => {
                 <h3 className="text-xl font-semibold">{item.title}</h3>
                 <p className="text-sm text-gray-500">{item.city_name}</p>
                 <p className="mt-2 text-sm">{item.description}</p>
+                {item.website && (
+                  <a 
+                    href={item.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block mt-3 text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    Visit Website →
+                  </a>
+                )}
               </div>
             </div>
           ))}
