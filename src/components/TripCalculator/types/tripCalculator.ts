@@ -1,0 +1,15 @@
+
+export interface TripCalculation {
+  totalDistance: number;
+  totalDriveTime: number;
+  dailyDistances: number[];
+  numberOfDays: number;
+  averageDailyDistance: number;
+}
+
+export interface TripFormData {
+  startLocation: string;
+  endLocation: string;
+  travelDays: number;
+  dailyDrivingLimit: number[];
+}
