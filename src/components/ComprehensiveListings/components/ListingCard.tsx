@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Users, Calendar, Star, ExternalLink } from 'lucide-react';
 import { ListingItem } from '../types';
-import { getFallbackImage } from '../utils/fallbackImages';
 
 interface ListingCardProps {
   item: ListingItem;
@@ -12,27 +11,15 @@ interface ListingCardProps {
 export const ListingCard = ({ item }: ListingCardProps) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
-    const originalSrc = target.src;
-    const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
     
-    console.log(`🖼️ Image failed to load for ${item.name}:`, {
-      originalSrc,
-      fallbackUrl,
-      itemImageUrl: item.image_url,
-      category: item.category
-    });
+    console.log(`🖼️ Image failed to load for ${item.name}, using /fallback.jpg`);
     
-    // Prevent infinite loop if fallback also fails
-    if (target.src !== fallbackUrl) {
-      target.src = fallbackUrl;
-    } else {
-      console.warn(`⚠️ Fallback image also failed for ${item.name}`);
-      target.style.display = 'none';
-    }
+    // Set fallback image
+    target.src = '/fallback.jpg';
   };
 
   // Use database image URL if available, otherwise use fallback
-  const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
+  const imageUrl = item.image_url || '/fallback.jpg';
   
   console.log(`🖼️ Rendering ${item.name}:`, {
     hasImageUrl: !!item.image_url,

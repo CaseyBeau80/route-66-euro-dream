@@ -24,6 +24,7 @@ export type Database = {
           longitude: number
           name: string
           state: string
+          thumbnail_url: string | null
           updated_at: string
           website: string | null
         }
@@ -41,6 +42,7 @@ export type Database = {
           longitude: number
           name: string
           state: string
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -58,6 +60,7 @@ export type Database = {
           longitude?: number
           name?: string
           state?: string
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -77,6 +80,7 @@ export type Database = {
           name: string
           population: number | null
           state: string
+          thumbnail_url: string | null
           updated_at: string
           website: string | null
         }
@@ -93,6 +97,7 @@ export type Database = {
           name: string
           population?: number | null
           state: string
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -109,6 +114,7 @@ export type Database = {
           name?: string
           population?: number | null
           state?: string
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -129,6 +135,8 @@ export type Database = {
           screens_count: number | null
           state: string
           status: string | null
+          status_notes: string | null
+          thumbnail_url: string | null
           updated_at: string
           website: string | null
           year_opened: number | null
@@ -147,6 +155,8 @@ export type Database = {
           screens_count?: number | null
           state: string
           status?: string | null
+          status_notes?: string | null
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
           year_opened?: number | null
@@ -165,6 +175,8 @@ export type Database = {
           screens_count?: number | null
           state?: string
           status?: string | null
+          status_notes?: string | null
+          thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
           year_opened?: number | null
@@ -180,6 +192,7 @@ export type Database = {
           image_url: string | null
           latitude: number
           longitude: number
+          thumbnail_url: string | null
           title: string
           updated_at: string
           website: string | null
@@ -192,6 +205,7 @@ export type Database = {
           image_url?: string | null
           latitude: number
           longitude: number
+          thumbnail_url?: string | null
           title: string
           updated_at?: string
           website?: string | null
@@ -204,6 +218,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number
           longitude?: number
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string
           website?: string | null
@@ -223,6 +238,7 @@ export type Database = {
           name: string
           sequence_order: number
           state: string
+          thumbnail_url: string | null
           updated_at: string
         }
         Insert: {
@@ -237,6 +253,7 @@ export type Database = {
           name: string
           sequence_order: number
           state: string
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -251,6 +268,7 @@ export type Database = {
           name?: string
           sequence_order?: number
           state?: string
+          thumbnail_url?: string | null
           updated_at?: string
         }
         Relationships: []
