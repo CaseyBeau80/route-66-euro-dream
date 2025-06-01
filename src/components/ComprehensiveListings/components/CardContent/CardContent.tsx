@@ -22,18 +22,6 @@ export const CardContent = ({ item }: CardContentProps) => {
         </p>
       )}
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        {item.tags.slice(0, 3).map((tag, idx) => (
-          <Badge 
-            key={idx} 
-            variant="outline" 
-            className="text-xs bg-route66-cream border-route66-gray/20"
-          >
-            {tag}
-          </Badge>
-        ))}
-      </div>
-
       <div className="flex items-center justify-between text-xs text-route66-gray/60 mb-3">
         {item.population && (
           <div className="flex items-center gap-1">
