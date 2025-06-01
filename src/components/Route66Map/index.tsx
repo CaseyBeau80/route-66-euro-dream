@@ -7,9 +7,9 @@ import MapLoading from "./MapLoading";
 import RouteInfo from "./RouteInfo";
 
 /**
- * Main Route 66 Map component - OPTIMIZED VERSION
+ * Main Route 66 Map component - COMPACT VERSION
  * Uses Google Maps implementation with SINGLE route rendering only
- * Optimized for proper spacing and map viewing area
+ * Optimized for minimal space usage while maintaining usability
  */
 const Route66Map = () => {
   const [loaded, setLoaded] = useState(false);
@@ -17,13 +17,13 @@ const Route66Map = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("🗺️ Route66Map: Initializing OPTIMIZED component with SINGLE route system");
+    console.log("🗺️ Route66Map: Initializing COMPACT component with SINGLE route system");
     
     // Short delay to ensure the DOM is ready
     const timer = setTimeout(() => {
       try {
         setLoaded(true);
-        console.log("🗺️ Route66Map: OPTIMIZED Component loaded successfully with SINGLE route system");
+        console.log("🗺️ Route66Map: COMPACT Component loaded successfully with SINGLE route system");
       } catch (err) {
         console.error("Error rendering map:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -34,14 +34,14 @@ const Route66Map = () => {
   }, []); 
 
   const handleRetry = () => {
-    console.log("🔄 Route66Map: Retrying OPTIMIZED map load with SINGLE route system");
+    console.log("🔄 Route66Map: Retrying COMPACT map load with SINGLE route system");
     setError(null);
     setLoaded(false);
     
     setTimeout(() => {
       try {
         setLoaded(true);
-        console.log("🗺️ Route66Map: OPTIMIZED Retry successful with SINGLE route system");
+        console.log("🗺️ Route66Map: COMPACT Retry successful with SINGLE route system");
       } catch (err) {
         console.error("Error on retry:", err);
         setError("Unable to load the Route 66 map. Please try refreshing the page.");
@@ -70,20 +70,20 @@ const Route66Map = () => {
     setSelectedState(null);
   };
 
-  console.log("🗺️ Route66Map: Rendering OPTIMIZED with SINGLE route system", { loaded, error, selectedState });
+  console.log("🗺️ Route66Map: Rendering COMPACT with SINGLE route system", { loaded, error, selectedState });
 
   return (
     <div className="w-full">
-      {/* OPTIMIZED Map container - proper height for good viewing without wasted space */}
+      {/* COMPACT Map container - significantly reduced height to eliminate wasted space */}
       <div className="relative w-full">
         {/* Show loading or error state */}
         {!loaded && (
           <MapLoading error={error} onRetry={handleRetry} />
         )}
         
-        {/* Show OPTIMIZED map when loaded - reasonable height for good viewing */}
+        {/* Show COMPACT map when loaded - much smaller height to reduce wasted space */}
         {loaded && (
-          <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] xl:h-[90vh] rounded-lg overflow-hidden shadow-lg">
+          <div className="h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] rounded-lg overflow-hidden shadow-lg">
             <MapDisplay 
               selectedState={selectedState} 
               onStateClick={handleStateClick}
