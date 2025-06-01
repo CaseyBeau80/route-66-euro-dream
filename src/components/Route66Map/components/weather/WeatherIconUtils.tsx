@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Sun, 
@@ -64,26 +65,24 @@ export const WeatherIcon: React.FC<WeatherIconProps> = ({
   size = 40,
   className = ""
 }) => {
-  const [imageError, setImageError] = React.useState(false);
-  const [imageLoading, setImageLoading] = React.useState(true);
+  const [useImage, setUseImage] = React.useState(true);
+  const [imageLoaded, setImageLoaded] = React.useState(false);
   
   const weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
   const FallbackIcon = getFallbackIcon(iconCode);
 
   const handleImageLoad = () => {
     console.log(`✅ Weather icon loaded successfully: ${iconCode}`);
-    setImageLoading(false);
-    setImageError(false);
+    setImageLoaded(true);
   };
 
   const handleImageError = () => {
     console.warn(`⚠️ Weather icon failed to load: ${iconCode}, using fallback`);
-    setImageLoading(false);
-    setImageError(true);
+    setUseImage(false);
   };
 
-  // If image failed to load or is still loading, show fallback
-  if (imageError || imageLoading) {
+  // If we should use fallback or image hasn't loaded yet, show fallback
+  if (!useImage || !imageLoaded) {
     return (
       <div className={`flex items-center justify-center ${className}`}>
         <FallbackIcon 
@@ -91,8 +90,8 @@ export const WeatherIcon: React.FC<WeatherIconProps> = ({
           className="text-blue-600" 
           aria-label={description}
         />
-        {/* Keep trying to load the image in the background */}
-        {!imageError && (
+        {/* Try to load the image in the background only if we haven't given up on it */}
+        {useImage && (
           <img
             src={weatherIconUrl}
             alt={description}
