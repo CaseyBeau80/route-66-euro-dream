@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Bubblegum+Sans:wght@400&family=Lilita+One:wght@400&family=Bungee:wght@400&family=Righteous:wght@400&family=Staatliches:wght@400&family=Kalam:wght@300;400;700&family=Playfair+Display:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Fredoka+One:wght@400&family=Bungee:wght@400&family=Righteous:wght@400&family=Staatliches:wght@400&family=Kalam:wght@300;400;700&family=Playfair+Display:wght@400;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -86,204 +86,224 @@
   body {
     @apply bg-background text-foreground;
     background-image: 
-      radial-gradient(circle at 20% 80%, rgba(255, 192, 203, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 255, 0, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(204, 41, 54, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(244, 208, 63, 0.02) 0%, transparent 50%),
       repeating-linear-gradient(
         45deg,
         transparent,
         transparent 100px,
-        rgba(255,105,180,0.02) 100px,
-        rgba(255,105,180,0.02) 102px
+        rgba(0,0,0,0.005) 100px,
+        rgba(0,0,0,0.005) 102px
       );
   }
 
-  /* Cartoon texture effect */
-  .cartoon-texture {
+  /* Vintage paper texture effect */
+  .vintage-paper-texture {
     background-image: 
-      radial-gradient(circle at 20% 80%, rgba(255, 192, 203, 0.1) 0%, transparent 40%),
-      radial-gradient(circle at 80% 20%, rgba(255, 255, 0, 0.1) 0%, transparent 40%),
-      radial-gradient(circle at 60% 60%, rgba(135, 206, 250, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(204, 41, 54, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(244, 208, 63, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 60% 60%, rgba(230, 120, 34, 0.02) 0%, transparent 40%),
       repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 2px,
-        rgba(255,105,180,0.02) 2px,
-        rgba(255,105,180,0.02) 4px
+        transparent 1px,
+        rgba(0,0,0,0.01) 1px,
+        rgba(0,0,0,0.01) 2px
       );
+  }
+
+  /* Travel poster distressed edge effect */
+  .travel-poster-edge {
+    position: relative;
+  }
+
+  .travel-poster-edge::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #CC2936, #F4D03F, #E67E22, #2E4057);
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0.1;
   }
 }
 
-/* Cartoon scrollbar */
+/* Enhanced vintage scrollbar */
 ::-webkit-scrollbar {
-  width: 16px;
+  width: 14px;
 }
 
 ::-webkit-scrollbar-track {
-  background: linear-gradient(to bottom, #FFE4E1, #E6E6FA);
-  border-radius: 10px;
-  border: 2px solid rgba(255, 20, 147, 0.2);
+  background: linear-gradient(to bottom, #FDF6E3, #F5F2EA);
+  border-radius: 8px;
+  border: 1px solid rgba(204, 41, 54, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #FF1493, #FF69B4, #FFB6C1);
-  border-radius: 10px;
-  border: 2px solid #FFF;
-  box-shadow: 0 0 8px rgba(255, 20, 147, 0.3);
+  background: linear-gradient(45deg, #CC2936, #E67E22, #F4D03F);
+  border-radius: 8px;
+  border: 2px solid #FDF6E3;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #FF69B4, #FF1493, #FFB6C1);
-  box-shadow: 0 0 12px rgba(255, 20, 147, 0.5);
-  transform: scale(1.1);
+  background: linear-gradient(45deg, #A52A2A, #CD853F, #DAA520);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 }
 
-/* Cartoon animations */
-@keyframes bounce-gentle {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+/* Vintage typography effects */
+.travel-poster-text {
+  font-family: 'Staatliches', 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  background: linear-gradient(45deg, #CC2936, #F4D03F, #E67E22);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease-in-out infinite;
 }
 
-@keyframes cartoon-bounce {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(-2deg); }
-  75% { transform: scale(1.05) rotate(2deg); }
+.handwritten-style {
+  font-family: 'Kalam', cursive;
+  transform: rotate(-1deg);
+  color: #8B4513;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
-@keyframes cartoon-bounce-slow {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+.stamp-effect {
+  background: #FDF6E3;
+  border: 3px dashed #CC2936;
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(204, 41, 54, 0.1);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+.stamp-effect::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 1px solid rgba(204, 41, 54, 0.3);
+  border-radius: 10px;
+  pointer-events: none;
 }
 
-@keyframes cartoon-glow {
-  0%, 100% { 
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.5);
+/* Vintage animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes vintage-wobble {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-0.5deg) scale(1.02); }
+  75% { transform: rotate(0.5deg) scale(0.98); }
+}
+
+@keyframes dust-particles {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px) rotate(0deg);
   }
   50% { 
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.8), 0 0 40px rgba(135, 206, 250, 0.6);
+    opacity: 0.6;
+    transform: translateY(-10px) rotate(180deg);
+  }
+  100% { 
+    opacity: 0;
+    transform: translateY(-40px) rotate(360deg);
   }
 }
 
-@keyframes cartoon-wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-3deg); }
-  75% { transform: rotate(3deg); }
-}
-
-/* Cartoon utility classes */
-.cartoon-bounce {
-  animation: cartoon-bounce 2s infinite ease-in-out;
-}
-
-.cartoon-bounce-slow {
-  animation: cartoon-bounce-slow 3s infinite ease-in-out;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s infinite ease-in-out;
-}
-
-.animate-float {
-  animation: float 3s infinite ease-in-out;
-}
-
-.cartoon-glow {
-  animation: cartoon-glow 2s infinite ease-in-out;
-}
-
-.cartoon-wiggle {
-  animation: cartoon-wiggle 1s infinite ease-in-out;
-}
-
-/* Cartoon styling classes */
-.cartoon-text-shadow {
-  text-shadow: 
-    4px 4px 0px #FF1493,
-    8px 8px 0px #FFB6C1,
-    12px 12px 8px rgba(255, 20, 147, 0.3);
-}
-
-.cartoon-text-outline {
-  text-shadow: 
-    -2px -2px 0 #FFF,
-    2px -2px 0 #FFF,
-    -2px 2px 0 #FFF,
-    2px 2px 0 #FFF,
-    4px 4px 8px rgba(0,0,0,0.3);
-}
-
-.shadow-cartoon {
-  box-shadow: 
-    0 8px 16px rgba(255, 20, 147, 0.3),
-    0 4px 8px rgba(255, 105, 180, 0.2),
-    inset 0 2px 4px rgba(255, 255, 255, 0.5);
-}
-
-.cartoon-cloud {
-  animation: float 4s infinite ease-in-out;
-}
-
-.cartoon-road {
-  background-image: repeating-linear-gradient(
-    90deg,
-    #FFFF00 0px,
-    #FFFF00 20px,
-    #FFF 20px,
-    #FFF 40px
+/* Route 66 specific styling */
+.route66-authentic {
+  background: linear-gradient(
+    135deg,
+    #FDF6E3 0%,
+    #F5F2EA 25%,
+    #E6D3A3 50%,
+    #F5F2EA 75%,
+    #FDF6E3 100%
   );
+  border: 2px solid #8B4513;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
-.cartoon-bubble {
-  background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 50%, #FFC0CB 100%);
+.route66-authentic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(204, 41, 54, 0.02) 10px,
+      rgba(204, 41, 54, 0.02) 20px
+    );
+  pointer-events: none;
+}
+
+/* Postcard style elements */
+.vintage-postcard {
+  background: linear-gradient(145deg, #FDF6E3 0%, #F5F2EA 100%);
+  border: 1px solid #D2B48C;
+  border-radius: 4px;
   box-shadow: 
-    0 4px 8px rgba(255, 20, 147, 0.3),
-    inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    0 4px 8px rgba(0,0,0,0.1),
+    inset 0 1px 2px rgba(255,255,255,0.5);
+  position: relative;
 }
 
-.cartoon-stripe {
-  background-image: repeating-linear-gradient(
-    90deg,
-    #FF1493 0px,
-    #FF1493 20px,
-    #FFD700 20px,
-    #FFD700 40px,
-    #00BFFF 40px,
-    #00BFFF 60px
-  );
+.vintage-postcard::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 40px;
+  height: 30px;
+  background: linear-gradient(45deg, #CC2936, #F4D03F);
+  border: 2px solid #8B4513;
+  border-radius: 2px;
+  opacity: 0.3;
 }
 
-.cartoon-zigzag {
-  border-image: repeating-linear-gradient(
-    45deg,
-    #FFD700 0px,
-    #FFD700 10px,
-    #FF69B4 10px,
-    #FF69B4 20px
-  ) 6;
+/* Travel stamp animations */
+.travel-stamp {
+  animation: vintage-wobble 6s ease-in-out infinite;
 }
 
-/* Font families for cartoon feel */
-.font-cartoon {
-  font-family: 'Fredoka One', 'Bubblegum Sans', 'Lilita One', cursive;
+.dust-effect {
+  animation: dust-particles 3s ease-in-out infinite;
 }
 
-/* Mobile responsiveness for cartoon elements */
+/* Mobile responsiveness for vintage elements */
 @media (max-width: 768px) {
-  .cartoon-text-shadow {
+  .retro-heading {
     text-shadow: 
-      2px 2px 0px #FF1493,
-      4px 4px 0px #FFB6C1,
-      6px 6px 8px rgba(255, 20, 147, 0.3);
+      2px 2px 0px #CC2936,
+      4px 4px 0px #F4D03F,
+      6px 6px 8px rgba(0,0,0,0.3);
   }
   
-  .shadow-cartoon {
-    box-shadow: 
-      0 4px 8px rgba(255, 20, 147, 0.3),
-      0 2px 4px rgba(255, 105, 180, 0.2),
-      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  .travel-poster-text {
+    letter-spacing: 1px;
+  }
+  
+  .highway-sign {
+    padding: 6px 12px;
+    font-size: 0.75rem;
   }
 }
