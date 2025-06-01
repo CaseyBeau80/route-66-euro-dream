@@ -73,6 +73,17 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     return { x: viewportX, y: viewportY };
   }, [map, gem.title]);
 
+  // Prevent hover card from disappearing when hovering over it
+  const handleCardMouseEnter = useCallback(() => {
+    console.log(`🐭 Mouse entered hover card for: ${gem.title}`);
+    handleMouseEnter(gem.title);
+  }, [handleMouseEnter, gem.title]);
+
+  const handleCardMouseLeave = useCallback(() => {
+    console.log(`🐭 Mouse left hover card for: ${gem.title}`);
+    handleMouseLeave(gem.title);
+  }, [handleMouseLeave, gem.title]);
+
   // Create marker only once
   useEffect(() => {
     if (!map || markerRef.current) return;
@@ -105,7 +116,10 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     const handleMouseOut = () => {
       if (!isClicked) { // Only hide hover if not clicked
         console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
-        handleMouseLeave(gem.title);
+        // Add a small delay to allow mouse to move to the card
+        setTimeout(() => {
+          handleMouseLeave(gem.title);
+        }, 100);
       }
     };
 
@@ -176,6 +190,8 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
           isVisible={isHovered}
           position={hoverPosition}
           onWebsiteClick={onWebsiteClick}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
         />
       )}
 
