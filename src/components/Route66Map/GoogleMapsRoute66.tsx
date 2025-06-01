@@ -63,11 +63,40 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     selectedState
   });
 
-  // Enhanced cleanup function to aggressively remove any yellow circle markers
+  // Enhanced mapRef stability tracking
+  const [mapRefStabilityCounter, setMapRefStabilityCounter] = useState(0);
+  const [isMapRefStable, setIsMapRefStable] = useState(false);
+
+  // Track mapRef changes and stability
+  useEffect(() => {
+    const hasStableMap = !!(
+      mapRef.current && 
+      typeof mapRef.current.getZoom === 'function' &&
+      typeof mapRef.current.setZoom === 'function' &&
+      mapEventHandlers.isMapReady
+    );
+
+    setIsMapRefStable(hasStableMap);
+    
+    if (mapRef.current) {
+      setMapRefStabilityCounter(prev => prev + 1);
+    }
+
+    console.log('🗺️ GoogleMapsRoute66 mapRef stability check:', {
+      hasMapRef: !!mapRef.current,
+      hasZoomMethods: !!(mapRef.current && typeof mapRef.current.getZoom === 'function'),
+      isMapReady: mapEventHandlers.isMapReady,
+      isMapRefStable: hasStableMap,
+      stabilityCounter: mapRefStabilityCounter,
+      currentZoom: mapRef.current?.getZoom()
+    });
+  }, [mapRef.current, mapEventHandlers.isMapReady]);
+
+  // Enhanced cleanup with better error handling
   useEffect(() => {
     return () => {
       if (mapRef.current) {
-        console.log('🧹 GoogleMapsRoute66: AGGRESSIVE cleanup to remove ALL yellow circles');
+        console.log('🧹 GoogleMapsRoute66: Enhanced cleanup starting');
         
         try {
           const mapInstance = mapRef.current as any;
@@ -79,14 +108,15 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           }
 
           // Clear all event listeners
-          google.maps.event.clearInstanceListeners(mapRef.current);
-          console.log('🧹 Cleared all map event listeners');
+          if (window.google?.maps?.event) {
+            google.maps.event.clearInstanceListeners(mapRef.current);
+            console.log('🧹 Cleared all map event listeners');
+          }
 
-          // Force clear any remaining markers that might have yellow circles
-          console.log('🚫 Ensuring no yellow circle markers remain on map');
+          console.log('✅ Enhanced cleanup completed successfully');
           
         } catch (cleanupError) {
-          console.warn('⚠️ Error during yellow circle cleanup:', cleanupError);
+          console.warn('⚠️ Error during enhanced cleanup:', cleanupError);
         }
       }
     };
@@ -112,13 +142,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${waypointsError}`} />;
   }
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with ZERO yellow circles', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with enhanced zoom controls', {
     isLoaded,
     isMapReady: mapEventHandlers.isMapReady,
+    isMapRefStable,
     selectedState,
     visibleWaypoints: visibleWaypoints.length,
     totalWaypoints: waypoints.length,
-    yellowCirclesSuppressed: true
+    stabilityCounter: mapRefStabilityCounter
   });
 
   return (
@@ -128,7 +159,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         onClearSelection={onClearSelection}
         isDragging={isDragging}
         showRouteStats={showRouteStats}
-        isMapReady={mapEventHandlers.isMapReady}
+        isMapReady={mapEventHandlers.isMapReady && isMapRefStable}
         onToggleRouteStats={() => setShowRouteStats(!showRouteStats)}
         mapRef={mapRef}
       />
