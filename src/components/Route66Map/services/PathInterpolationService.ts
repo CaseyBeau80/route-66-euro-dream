@@ -1,49 +1,50 @@
+
 export class PathInterpolationService {
   /**
-   * Creates a simple linear path between waypoints (NO MORE CRAZY CURVES!)
+   * Creates ULTRA-STRAIGHT linear path between waypoints (ABSOLUTELY NO CURVES!)
    * @param waypoints Array of lat/lng coordinates
-   * @param segmentPoints Number of interpolated points between each pair of waypoints
-   * @returns Array of interpolated coordinates creating a straight-line path
+   * @param segmentPoints Number of interpolated points between each pair of waypoints (fewer = straighter)
+   * @returns Array of interpolated coordinates creating the straightest possible path
    */
   static createSmoothPath(
     waypoints: google.maps.LatLngLiteral[], 
-    segmentPoints: number = 20
+    segmentPoints: number = 5 // Reduced for maximum straightness
   ): google.maps.LatLngLiteral[] {
     if (waypoints.length < 2) {
       return waypoints;
     }
 
-    console.log(`🛣️ Creating LINEAR path with ${segmentPoints} points per segment (NO CURVES)`);
+    console.log(`🛣️ Creating ULTRA-STRAIGHT linear path with ${segmentPoints} points per segment (ZERO CURVES)`);
     
-    const linearPath: google.maps.LatLngLiteral[] = [];
+    const ultraStraightPath: google.maps.LatLngLiteral[] = [];
     
     for (let i = 0; i < waypoints.length - 1; i++) {
       const current = waypoints[i];
       const next = waypoints[i + 1];
       
       // Add the current waypoint
-      linearPath.push(current);
+      ultraStraightPath.push(current);
       
-      // Create simple linear interpolation between current and next waypoint
+      // Create ULTRA-SIMPLE linear interpolation between current and next waypoint
       for (let t = 1; t <= segmentPoints; t++) {
         const alpha = t / segmentPoints;
         const interpolated = {
           lat: current.lat + (next.lat - current.lat) * alpha,
           lng: current.lng + (next.lng - current.lng) * alpha
         };
-        linearPath.push(interpolated);
+        ultraStraightPath.push(interpolated);
       }
     }
     
     // Add the final waypoint
-    linearPath.push(waypoints[waypoints.length - 1]);
+    ultraStraightPath.push(waypoints[waypoints.length - 1]);
     
-    console.log(`✅ Generated ${linearPath.length} LINEAR interpolated points for straight Route 66`);
-    return linearPath;
+    console.log(`✅ Generated ${ultraStraightPath.length} ULTRA-STRAIGHT interpolated points for perfectly linear Route 66`);
+    return ultraStraightPath;
   }
 
   /**
-   * Simple linear interpolation between two points
+   * Simple linear interpolation between two points - MAXIMUM STRAIGHTNESS
    */
   static linearInterpolate(
     start: google.maps.LatLngLiteral,
@@ -64,13 +65,8 @@ export class PathInterpolationService {
     return path;
   }
 
-  // DEPRECATED: Removing curve-based interpolation methods that cause zigzag patterns
-  // These methods are commented out to prevent accidental use
-  /*
-  private static catmullRomInterpolation(...) { ... }
-  static createBezierPath(...) { ... }
-  private static bezierInterpolation(...) { ... }
-  */
+  // ALL CURVE METHODS PERMANENTLY REMOVED to prevent accidental zigzag creation
+  // NO catmullRomInterpolation, NO bezierInterpolation, NO spline methods
 
   private static calculateDistance(
     point1: google.maps.LatLngLiteral,

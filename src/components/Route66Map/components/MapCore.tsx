@@ -7,6 +7,7 @@ import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
+import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -31,13 +32,34 @@ const MapCore: React.FC<MapCoreProps> = ({
   onAttractionClick
 }) => {
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const [routeCleanupComplete, setRouteCleanupComplete] = useState(false);
 
-  console.log('🗺️ MapCore render (using destination cities route):', {
+  // Enhanced map load handler with nuclear cleanup
+  const handleMapLoad = async (map: google.maps.Map) => {
+    console.log('🗺️ MapCore: Enhanced map load with nuclear cleanup starting');
+    
+    // Perform nuclear cleanup of any existing polylines
+    try {
+      await GlobalPolylineCleaner.cleanupAllPolylines(map);
+      console.log('✅ Nuclear polyline cleanup completed successfully');
+      setRouteCleanupComplete(true);
+    } catch (error) {
+      console.error('❌ Error during nuclear cleanup:', error);
+      setRouteCleanupComplete(true); // Continue anyway
+    }
+    
+    // Call the original onMapLoad
+    onMapLoad(map);
+  };
+
+  console.log('🗺️ MapCore render (SINGLE destination cities route ONLY):', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
     hasGoogleMaps: !!(window.google && window.google.maps),
-    showScrollHint
+    showScrollHint,
+    routeCleanupComplete,
+    activePolylines: mapRef.current ? GlobalPolylineCleaner.getActivePolylineCount() : 0
   });
 
   return (
@@ -45,7 +67,7 @@ const MapCore: React.FC<MapCoreProps> = ({
       {/* Map Initializer */}
       <MapInitializerCore
         mapRef={mapRef}
-        onMapLoad={onMapLoad}
+        onMapLoad={handleMapLoad}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         setShowScrollHint={setShowScrollHint}
@@ -67,10 +89,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* NEW: Destination Cities Route Renderer */}
-      {mapRef.current && isMapReady && (
+      {/* SINGLE ROUTE SYSTEM: Only DestinationCitiesRoute66Renderer is active */}
+      {mapRef.current && isMapReady && routeCleanupComplete && (
         <DestinationCitiesRoute66Renderer
-          key={`destination-cities-route-${isMapReady}`}
+          key={`single-destination-route-${isMapReady}-${routeCleanupComplete}`}
           map={mapRef.current}
           isMapReady={isMapReady}
         />

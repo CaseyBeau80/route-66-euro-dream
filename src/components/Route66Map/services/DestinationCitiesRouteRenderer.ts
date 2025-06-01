@@ -2,6 +2,7 @@
 import { PolylineStylesConfig } from './PolylineStylesConfig';
 import { PathInterpolationService } from './PathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
+import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class DestinationCitiesRouteRenderer {
@@ -9,35 +10,35 @@ export class DestinationCitiesRouteRenderer {
   private mainPolyline: google.maps.Polyline | null = null;
   private centerLine: google.maps.Polyline | null = null;
 
-  // FIXED: Updated Route 66 order to include Pontiac and fix missing cities
+  // ENHANCED: Updated Route 66 order with all major cities including Pontiac
   private readonly ROUTE_66_ORDER = [
-    'Chicago',
+    'Chicago',     // Starting point
     'Joliet', 
-    'Pontiac',     // ADDED: Missing Pontiac, IL
+    'Pontiac',     // CRITICAL: Pontiac, IL must be included
     'Springfield', // Springfield, IL
-    'St. Louis',
-    'Cuba',
-    'Springfield', // Springfield, MO (Note: There are two Springfields in the route)
-    'Joplin',
-    'Tulsa',
+    'St. Louis',   // Missouri border
+    'Cuba',        // Missouri
+    'Springfield', // Springfield, MO (Note: There are two Springfields)
+    'Joplin',      // Missouri/Kansas border
+    'Tulsa',       // Oklahoma
     'Oklahoma City',
-    'Elk City',
-    'Shamrock',
+    'Elk City',    // Oklahoma/Texas border
+    'Shamrock',    // Texas
     'Amarillo',
-    'Tucumcari',
+    'Tucumcari',   // New Mexico
     'Santa Rosa',
     'Albuquerque',
-    'Gallup',
-    'Holbrook',
+    'Gallup',      // New Mexico/Arizona border
+    'Holbrook',    // Arizona
     'Winslow',
     'Flagstaff',
     'Williams',
     'Seligman',
-    'Kingman',
-    'Needles',
+    'Kingman',     // Arizona/California border
+    'Needles',     // California
     'Barstow',
     'San Bernardino',
-    'Santa Monica'
+    'Santa Monica' // End point
   ];
 
   constructor(map: google.maps.Map) {
@@ -46,58 +47,67 @@ export class DestinationCitiesRouteRenderer {
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
     try {
-      console.log('🛣️ Creating STRAIGHT Route 66 from destination cities (NO MORE ZIGZAG!)');
+      console.log('🛣️ Creating NUCLEAR-CLEAN STRAIGHT Route 66 from destination cities (ZERO ZIGZAG)');
       
-      // Clean up any existing routes
-      this.cleanup();
+      // STEP 1: AGGRESSIVE cleanup of any existing routes
+      await this.performAggressiveCleanup();
       
       if (cities.length < 2) {
         console.warn('⚠️ Need at least 2 cities to create a route');
         return;
       }
 
-      // Sort cities according to the exact Route 66 order
+      // STEP 2: Sort cities according to the exact Route 66 order
       const orderedCities = this.sortCitiesByRoute66Order(cities);
       
-      console.log(`🗺️ Route 66 order (${orderedCities.length} cities found):`, 
+      console.log(`🗺️ STRAIGHT Route 66 order (${orderedCities.length} cities found):`, 
         orderedCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
       );
 
-      // ENHANCED: Check specifically for Pontiac
+      // STEP 3: CRITICAL verification for Pontiac
       const hasPontiac = orderedCities.some(city => city.name.toLowerCase().includes('pontiac'));
       console.log(`🔍 Pontiac verification: ${hasPontiac ? '✅ FOUND' : '❌ MISSING'}`);
+      
+      // STEP 4: Verify we have Chicago and Santa Monica
+      const hasChicago = orderedCities.some(city => city.name.toLowerCase().includes('chicago'));
+      const hasSantaMonica = orderedCities.some(city => city.name.toLowerCase().includes('santa monica'));
+      
+      if (!hasChicago || !hasSantaMonica) {
+        console.error('❌ Missing critical endpoints:', { hasChicago, hasSantaMonica });
+        return;
+      }
 
       if (orderedCities.length < 2) {
         console.warn('⚠️ Not enough cities found in the correct order to create route');
         return;
       }
 
-      // Create coordinate path - simple point-to-point connection
+      // STEP 5: Create STRAIGHT coordinate path - point-to-point connection
       const routePath = orderedCities.map(city => ({
         lat: Number(city.latitude),
         lng: Number(city.longitude)
       }));
 
-      // FIXED: Create STRAIGHT linear path between the ordered cities (NO CURVES!)
-      const straightPath = PathInterpolationService.createSmoothPath(routePath, 10); // Fewer points for straighter lines
+      // STEP 6: Create ULTRA-STRAIGHT linear path (NO CURVES AT ALL!)
+      const straightPath = PathInterpolationService.createSmoothPath(routePath, 5); // Minimal points for maximum straightness
       
-      console.log(`🛣️ Creating STRAIGHT Route 66 with ${straightPath.length} linear points connecting ${orderedCities.length} cities`);
+      console.log(`🛣️ Creating ULTRA-STRAIGHT Route 66 with ${straightPath.length} linear points connecting ${orderedCities.length} cities`);
 
-      // Create main asphalt road with enhanced visibility
+      // STEP 7: Create main asphalt road with enhanced visibility
       this.mainPolyline = new google.maps.Polyline({
         ...PolylineStylesConfig.getIdealizedRouteOptions(),
         path: straightPath,
         map: this.map
       });
 
-      // FIXED: Create dashed yellow center line
+      // STEP 8: Create dashed yellow center line
       this.centerLine = new google.maps.Polyline({
         ...PolylineStylesConfig.getIdealizedCenterLineOptions(),
         path: straightPath,
         map: this.map
       });
 
-      // Verify polylines were created and are visible
+      // STEP 9: Verify polylines were created and are visible
       if (!this.mainPolyline || !this.centerLine) {
         throw new Error('Failed to create polylines');
       }
@@ -111,21 +121,56 @@ export class DestinationCitiesRouteRenderer {
         hasDashedStripe: !!(this.centerLine.get('icons'))
       });
 
-      // Register with global state
+      // STEP 10: Register with global state and global cleaner
       RouteGlobalState.addPolylineSegment(this.mainPolyline);
       RouteGlobalState.addPolylineSegment(this.centerLine);
+      GlobalPolylineCleaner.registerPolyline(this.mainPolyline);
+      GlobalPolylineCleaner.registerPolyline(this.centerLine);
       RouteGlobalState.setRouteCreated(true);
 
-      console.log('✅ STRAIGHT Route 66 created successfully with DASHED yellow stripe from Chicago to Santa Monica');
+      console.log('✅ ULTRA-STRAIGHT Route 66 created successfully with DASHED yellow stripe from Chicago to Santa Monica');
       console.log(`📊 Global state updated: ${RouteGlobalState.getPolylineCount()} polylines registered`);
 
-      // Fit map to route bounds
+      // STEP 11: Fit map to route bounds
       this.fitMapToBounds(routePath);
 
     } catch (error) {
-      console.error('❌ Error creating Route 66 from destination cities:', error);
-      this.cleanup(); // Clean up on error
+      console.error('❌ Error creating STRAIGHT Route 66 from destination cities:', error);
+      await this.cleanup(); // Clean up on error
       throw error;
+    }
+  }
+
+  private async performAggressiveCleanup(): Promise<void> {
+    console.log('🧹 AGGRESSIVE cleanup of existing polylines starting');
+    
+    try {
+      // Clean up any existing polylines from this instance
+      if (this.mainPolyline) {
+        this.mainPolyline.setMap(null);
+        GlobalPolylineCleaner.unregisterPolyline(this.mainPolyline);
+        this.mainPolyline = null;
+      }
+      
+      if (this.centerLine) {
+        this.centerLine.setMap(null);
+        GlobalPolylineCleaner.unregisterPolyline(this.centerLine);
+        this.centerLine = null;
+      }
+
+      // Nuclear cleanup of all polylines
+      await GlobalPolylineCleaner.cleanupAllPolylines(this.map);
+      
+      // Clear global state
+      RouteGlobalState.clearAll();
+      
+      // Additional delay to ensure cleanup completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('✅ AGGRESSIVE cleanup completed');
+      
+    } catch (error) {
+      console.error('❌ Error during aggressive cleanup:', error);
     }
   }
 
@@ -189,19 +234,21 @@ export class DestinationCitiesRouteRenderer {
       left: 50
     });
 
-    console.log('🗺️ Map bounds fitted to STRAIGHT route');
+    console.log('🗺️ Map bounds fitted to ULTRA-STRAIGHT route');
   }
 
-  cleanup(): void {
+  async cleanup(): Promise<void> {
     console.log('🧹 Cleaning up destination cities route');
     
     if (this.mainPolyline) {
       this.mainPolyline.setMap(null);
+      GlobalPolylineCleaner.unregisterPolyline(this.mainPolyline);
       this.mainPolyline = null;
     }
     
     if (this.centerLine) {
       this.centerLine.setMap(null);
+      GlobalPolylineCleaner.unregisterPolyline(this.centerLine);
       this.centerLine = null;
     }
   }
