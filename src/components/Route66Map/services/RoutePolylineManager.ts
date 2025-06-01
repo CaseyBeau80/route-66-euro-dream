@@ -5,11 +5,9 @@ import { MapBoundsService } from './MapBoundsService';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 export class RoutePolylineManager {
-  private polylineCreator: PolylineCreationService;
   private boundsService: MapBoundsService;
 
   constructor(private map: google.maps.Map) {
-    this.polylineCreator = new PolylineCreationService(map);
     this.boundsService = new MapBoundsService(map);
   }
 
@@ -45,13 +43,25 @@ export class RoutePolylineManager {
     // Sort by sequence order to ensure proper city-to-city connections
     const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
     
-    // Create the route segments
-    this.polylineCreator.createRouteSegments(sortedMajorStops);
+    // Create route segments using the enhanced polyline creation
+    this.createRouteSegments(sortedMajorStops);
 
     // Mark route as created with new colors
     RouteGlobalState.setRouteCreated(true);
 
     console.log(`🛣️ ASPHALT Route 66 road with BRIGHT YELLOW stripes is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
+  }
+
+  private createRouteSegments(waypoints: Route66Waypoint[]): void {
+    console.log('🛣️ Creating route segments from waypoints:', waypoints.length);
+    
+    // Create enhanced polylines using the existing service
+    const polylines = PolylineCreationService.createEnhancedPolyline(this.map, waypoints);
+    
+    // Register polylines with global state
+    polylines.forEach(polyline => {
+      RouteGlobalState.addPolylineSegment(polyline);
+    });
   }
 
   fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {
