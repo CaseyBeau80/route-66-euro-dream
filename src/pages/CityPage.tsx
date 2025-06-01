@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Lightbulb } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Lightbulb, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeatherWidget from '@/components/Route66Map/components/WeatherWidget';
 import { useSupabaseRoute66 } from '@/components/Route66Map/hooks/useSupabaseRoute66';
+import { getCityEventLinks } from '@/components/Route66Map/data/cityEventLinks';
+import { getEventSourceIcon, getEventSourceBadgeClass, openEventLink } from '@/components/Route66Map/utils/eventSourceUtils';
 
 const CityPage: React.FC = () => {
   const { citySlug } = useParams<{ citySlug: string }>();
@@ -47,6 +48,11 @@ const CityPage: React.FC = () => {
   }
 
   const cityName = city.name.split(',')[0].split(' - ')[0].trim();
+  const cityEventData = getCityEventLinks(cityName, city.state);
+
+  const handleEventSourceClick = (url: string, sourceName: string) => {
+    openEventLink(url, sourceName);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
@@ -131,18 +137,61 @@ const CityPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-2xl text-amber-800 flex items-center gap-2">
                   <Calendar className="w-6 h-6" />
-                  Upcoming Events in {cityName}
+                  Events Calendar for {cityName}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-                  <Calendar className="w-12 h-12 text-amber-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-amber-800 mb-2">Events Coming Soon</h3>
-                  <p className="text-amber-700">
-                    Event listings for {cityName} are being curated. Check back soon for Route 66 festivals, 
-                    car shows, and local celebrations!
-                  </p>
-                </div>
+                {cityEventData ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {cityEventData.eventSources.map((source, index) => (
+                      <div 
+                        key={index}
+                        className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-300 rounded-lg p-4 hover:bg-gradient-to-br hover:from-amber-100 hover:to-amber-150 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+                        onClick={() => handleEventSourceClick(source.url, source.name)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl flex-shrink-0 mt-1">
+                            {getEventSourceIcon(source.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold text-amber-900 group-hover:text-amber-700 truncate">
+                                {source.name}
+                              </h3>
+                              <ExternalLink className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                            </div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className={`text-sm px-3 py-1 rounded-full border ${getEventSourceBadgeClass(source.type)}`}>
+                                {source.type.replace('_', ' ')}
+                              </span>
+                            </div>
+                            <p className="text-amber-800 text-sm leading-relaxed">
+                              {source.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="md:col-span-2 bg-gradient-to-r from-amber-200 to-amber-300 border border-amber-400 rounded-lg p-4 text-center">
+                      <Calendar className="w-8 h-8 text-amber-800 mx-auto mb-2" />
+                      <p className="text-amber-900 font-semibold mb-1">
+                        Find Current Events in {cityName}
+                      </p>
+                      <p className="text-amber-800 text-sm">
+                        Click any event source above to discover festivals, car shows, Route 66 celebrations, and local activities happening now!
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+                    <Calendar className="w-12 h-12 text-amber-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-amber-800 mb-2">Events Coming Soon</h3>
+                    <p className="text-amber-700">
+                      Event listings for {cityName} are being curated. Check back soon for Route 66 festivals, 
+                      car shows, and local celebrations!
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TripCalculator from "./pages/TripCalculator";
+import CityPage from "./pages/CityPage";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/trip-calculator" element={<TripCalculator />} />
+          <Route path="/city/:citySlug" element={<CityPage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

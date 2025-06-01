@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Map, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ const CityNavigation: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
   const { waypoints, isLoading } = useSupabaseRoute66();
+  const navigate = useNavigate();
 
   const handleMainToggle = () => {
     console.log('🗺️ Main navigation toggle clicked, current state:', isExpanded);
@@ -58,8 +60,10 @@ const CityNavigation: React.FC = () => {
   };
 
   const handleCityClick = (waypoint: any) => {
-    console.log('🏛️ City clicked (navigation disabled):', waypoint.name);
-    // Navigation removed - cities in navigation panel no longer navigate to city pages
+    const cityName = extractCityName(waypoint.name);
+    const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    console.log('🏛️ City clicked, navigating to:', citySlug);
+    navigate(`/city/${citySlug}`);
   };
 
   if (isLoading) {
@@ -128,11 +132,11 @@ const CityNavigation: React.FC = () => {
                           <Button
                             key={city.id}
                             variant="ghost"
-                            className="w-full justify-start hover:bg-amber-50 text-left p-2 h-auto cursor-default"
+                            className="w-full justify-start hover:bg-amber-50 text-left p-2 h-auto cursor-pointer"
                             onClick={() => handleCityClick(city)}
                           >
                             <div className="text-left">
-                              <div className="font-medium text-amber-800 text-sm">{cityName}</div>
+                              <div className="font-medium text-amber-800 text-sm hover:text-amber-600">{cityName}</div>
                             </div>
                           </Button>
                         );
