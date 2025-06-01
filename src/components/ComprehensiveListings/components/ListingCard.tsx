@@ -31,31 +31,44 @@ export const ListingCard = ({ item }: ListingCardProps) => {
 
   // Handle image click - open website in new tab
   const handleImageClick = (e: React.MouseEvent) => {
+    console.log(`🔗 Image clicked for ${item.name}`, { website: item.website });
+    
     if (item.website) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log(`🚀 Opening website: ${item.website}`);
+      window.open(item.website, '_blank', 'noopener,noreferrer');
+    } else {
+      console.log(`❌ No website available for ${item.name}`);
+    }
+  };
+
+  // Handle container click as backup
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // Only handle clicks on the image container itself, not child elements
+    if (e.target === e.currentTarget && item.website) {
+      console.log(`🔗 Container clicked for ${item.name}, opening website`);
       window.open(item.website, '_blank', 'noopener,noreferrer');
     }
   };
 
-  // Create image element with click handler
-  const imageElement = (
-    <img 
-      src={imageUrl}
-      alt={item.name} 
-      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
-      onError={handleImageError}
-      onClick={handleImageClick}
-      loading="lazy"
-    />
-  );
-
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
-      <div className="relative h-48 overflow-hidden">
-        {imageElement}
+      <div 
+        className="relative h-48 overflow-hidden cursor-pointer"
+        onClick={handleContainerClick}
+      >
+        <img 
+          src={imageUrl}
+          alt={item.name} 
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
+          onError={handleImageError}
+          onClick={handleImageClick}
+          loading="lazy"
+        />
         
         {item.featured && (
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 pointer-events-none">
             <Badge className="bg-route66-vintage-yellow text-black flex items-center gap-1">
               <Star size={12} fill="currentColor" />
               Featured
