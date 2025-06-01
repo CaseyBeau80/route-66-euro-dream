@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Users, Calendar, Star, ExternalLink } from 'lucide-react';
 import { ListingItem } from '../types';
+import { getFallbackImage } from '../utils/fallbackImages';
 
 interface ListingCardProps {
   item: ListingItem;
@@ -11,21 +12,29 @@ interface ListingCardProps {
 export const ListingCard = ({ item }: ListingCardProps) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
+    const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
     
-    console.log(`🖼️ Image failed to load for ${item.name}, using /fallback.jpg`);
+    console.log(`🖼️ Image failed to load for ${item.name}, using category-specific fallback`);
     
-    // Set fallback image
-    target.src = '/fallback.jpg';
+    // Set category-specific fallback image
+    target.src = fallbackUrl;
   };
 
-  // Use database image URL if available, otherwise use fallback
-  const imageUrl = item.image_url || '/fallback.jpg';
+  const handleImageClick = () => {
+    if (item.website) {
+      window.open(item.website, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Use database image URL if available, otherwise use category-specific fallback
+  const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
   
   console.log(`🖼️ Rendering ${item.name}:`, {
     hasImageUrl: !!item.image_url,
     imageUrl: item.image_url,
     finalImageUrl: imageUrl,
-    category: item.category
+    category: item.category,
+    hasWebsite: !!item.website
   });
 
   return (
@@ -34,8 +43,11 @@ export const ListingCard = ({ item }: ListingCardProps) => {
         <img 
           src={imageUrl}
           alt={item.name} 
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover hover:scale-105 transition-transform duration-500 ${
+            item.website ? 'cursor-pointer' : ''
+          }`}
           onError={handleImageError}
+          onClick={handleImageClick}
           loading="lazy"
         />
         {item.featured && (
@@ -44,6 +56,13 @@ export const ListingCard = ({ item }: ListingCardProps) => {
               <Star size={12} fill="currentColor" />
               Featured
             </Badge>
+          </div>
+        )}
+        {item.website && (
+          <div className="absolute bottom-3 right-3 opacity-0 hover:opacity-100 transition-opacity duration-300">
+            <div className="bg-black/70 text-white p-2 rounded-full">
+              <ExternalLink size={16} />
+            </div>
           </div>
         )}
       </div>
