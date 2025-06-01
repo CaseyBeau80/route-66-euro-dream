@@ -3,7 +3,15 @@ import { useState } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import TripCalculatorForm from "@/components/TripCalculator/TripCalculatorForm";
 import TripCalculatorResults from "@/components/TripCalculator/TripCalculatorResults";
-import { TripResults } from "@/components/TripCalculator/types/tripCalculator";
+
+// Define the TripResults type inline since it's not exported from the module
+interface TripResults {
+  totalDistance: number;
+  estimatedDuration: number;
+  fuelCost: number;
+  recommendedStops: string[];
+  totalCost: number;
+}
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");

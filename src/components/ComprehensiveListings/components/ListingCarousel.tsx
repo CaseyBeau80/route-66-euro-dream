@@ -3,7 +3,7 @@ import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carouse
 import { ListingCard } from './ListingCard';
 import { LoadingCard } from './LoadingCard';
 import { ListingItem } from '../types';
-import { ChevronLeft, ChevronRight, ChevronFirst, ChevronLast } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -25,20 +25,6 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
     canScrollNext,
     hasApi: !!api
   });
-
-  const scrollToStart = useCallback(() => {
-    console.log(`🔄 Scrolling to start for ${categoryTitle}`);
-    if (api) {
-      api.scrollTo(0);
-    }
-  }, [api, categoryTitle]);
-
-  const scrollToEnd = useCallback(() => {
-    console.log(`🔄 Scrolling to end for ${categoryTitle}`);
-    if (api) {
-      api.scrollTo(api.scrollSnapList().length - 1);
-    }
-  }, [api, categoryTitle]);
 
   const scrollPrev = useCallback(() => {
     console.log(`◀️ Scrolling prev for ${categoryTitle}`);
@@ -101,7 +87,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
   }
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <Carousel 
         className="w-full" 
         setApi={setApi}
@@ -121,92 +107,58 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
         </CarouselContent>
       </Carousel>
 
-      {/* Single Navigation System - Desktop */}
-      <div className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 flex-col gap-2 z-10">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200"
-          onClick={scrollToStart}
-          disabled={!canScrollPrev}
-        >
-          <ChevronFirst className="h-5 w-5" />
-          <span className="sr-only">Go to beginning</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200"
-          onClick={scrollPrev}
-          disabled={!canScrollPrev}
-        >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="sr-only">Previous</span>
-        </Button>
-      </div>
-      
-      <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 flex-col gap-2 z-10">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200"
-          onClick={scrollNext}
-          disabled={!canScrollNext}
-        >
-          <ChevronRight className="h-5 w-5" />
-          <span className="sr-only">Next</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200"
-          onClick={scrollToEnd}
-          disabled={!canScrollNext}
-        >
-          <ChevronLast className="h-5 w-5" />
-          <span className="sr-only">Go to end</span>
-        </Button>
-      </div>
+      {/* Modern Desktop Navigation */}
+      {(canScrollPrev || canScrollNext) && (
+        <>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 hover:bg-white opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
+            onClick={scrollPrev}
+            disabled={!canScrollPrev}
+          >
+            <ChevronLeft className="h-5 w-5 text-gray-700" />
+            <span className="sr-only">Previous items</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 hover:bg-white opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
+            onClick={scrollNext}
+            disabled={!canScrollNext}
+          >
+            <ChevronRight className="h-5 w-5 text-gray-700" />
+            <span className="sr-only">Next items</span>
+          </Button>
+        </>
+      )}
 
-      {/* Single Navigation System - Mobile */}
-      <div className="md:hidden flex justify-center gap-3 mt-6">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
-          onClick={scrollToStart}
-          disabled={!canScrollPrev}
-        >
-          <ChevronFirst className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
-          onClick={scrollPrev}
-          disabled={!canScrollPrev}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
-          onClick={scrollNext}
-          disabled={!canScrollNext}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
-          onClick={scrollToEnd}
-          disabled={!canScrollNext}
-        >
-          <ChevronLast className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Modern Mobile Navigation */}
+      {(canScrollPrev || canScrollNext) && (
+        <div className="md:hidden flex justify-center gap-3 mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-11 px-4 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+            onClick={scrollPrev}
+            disabled={!canScrollPrev}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-11 px-4 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+            onClick={scrollNext}
+            disabled={!canScrollNext}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
