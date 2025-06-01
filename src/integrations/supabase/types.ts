@@ -80,6 +80,7 @@ export type Database = {
           name: string
           population: number | null
           state: string
+          status: string | null
           thumbnail_url: string | null
           updated_at: string
           website: string | null
@@ -97,6 +98,7 @@ export type Database = {
           name: string
           population?: number | null
           state: string
+          status?: string | null
           thumbnail_url?: string | null
           updated_at?: string
           website?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           name?: string
           population?: number | null
           state?: string
+          status?: string | null
           thumbnail_url?: string | null
           updated_at?: string
           website?: string | null

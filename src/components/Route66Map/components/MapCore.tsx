@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import UltraSmoothRouteRenderer from '../services/UltraSmoothRouteRenderer';
+import DestinationCitiesRoute66Renderer from '../services/DestinationCitiesRoute66Renderer';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -32,7 +32,7 @@ const MapCore: React.FC<MapCoreProps> = ({
 }) => {
   const [showScrollHint, setShowScrollHint] = useState(false);
 
-  console.log('🗺️ MapCore render:', {
+  console.log('🗺️ MapCore render (using destination cities route):', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -67,10 +67,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* Route Renderer */}
+      {/* NEW: Destination Cities Route Renderer */}
       {mapRef.current && isMapReady && (
-        <UltraSmoothRouteRenderer
-          key={`route-${isMapReady}`}
+        <DestinationCitiesRoute66Renderer
+          key={`destination-cities-route-${isMapReady}`}
           map={mapRef.current}
           isMapReady={isMapReady}
         />

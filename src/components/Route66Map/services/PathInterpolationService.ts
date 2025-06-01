@@ -1,146 +1,162 @@
 
-import type { Route66Waypoint } from '../types/supabaseTypes';
-
 export class PathInterpolationService {
-  // Generate smooth curved path between waypoints for idealized route
-  generateIdealizedCurvePath(
-    start: Route66Waypoint,
-    end: Route66Waypoint,
-    prevWaypoint?: Route66Waypoint,
-    nextWaypoint?: Route66Waypoint
+  /**
+   * Creates a smooth curved path between waypoints using Catmull-Rom spline interpolation
+   * @param waypoints Array of lat/lng coordinates
+   * @param segmentPoints Number of interpolated points between each pair of waypoints
+   * @returns Array of interpolated coordinates creating a smooth curve
+   */
+  static createSmoothPath(
+    waypoints: google.maps.LatLngLiteral[], 
+    segmentPoints: number = 50
   ): google.maps.LatLngLiteral[] {
-    const startPoint = { lat: start.latitude, lng: start.longitude };
-    const endPoint = { lat: end.latitude, lng: end.longitude };
-    
-    // Create smooth, natural highway curves
-    return this.generateSmoothHighwayCurve(startPoint, endPoint, prevWaypoint, nextWaypoint);
-  }
+    if (waypoints.length < 2) {
+      return waypoints;
+    }
 
-  private generateSmoothHighwayCurve(
-    start: google.maps.LatLngLiteral,
-    end: google.maps.LatLngLiteral,
-    prevWaypoint?: Route66Waypoint,
-    nextWaypoint?: Route66Waypoint
-  ): google.maps.LatLngLiteral[] {
-    const points: google.maps.LatLngLiteral[] = [];
+    console.log(`🌊 Creating smooth path with ${segmentPoints} points per segment`);
     
-    // Calculate distance to determine curve intensity and point density
-    const distance = this.calculateDistance(start, end);
-    const numPoints = Math.max(30, Math.floor(distance * 60)); // Adaptive point density
-    const curveIntensity = Math.min(distance * 0.2, 1.0); // Adaptive curve intensity
+    const smoothPath: google.maps.LatLngLiteral[] = [];
     
-    // Calculate control points for natural curves
-    const control1 = this.calculateSmartControlPoint(start, end, 0.3, curveIntensity, prevWaypoint);
-    const control2 = this.calculateSmartControlPoint(start, end, 0.7, curveIntensity, nextWaypoint);
-    
-    // Generate smooth bezier curve points
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      const point = this.cubicBezier(t, start, control1, control2, end);
-      points.push(point);
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const current = waypoints[i];
+      const next = waypoints[i + 1];
+      
+      // Calculate control points for smooth curves
+      const prev = i > 0 ? waypoints[i - 1] : current;
+      const nextNext = i < waypoints.length - 2 ? waypoints[i + 2] : next;
+      
+      // Add the current waypoint
+      smoothPath.push(current);
+      
+      // Interpolate between current and next waypoint
+      for (let t = 1; t <= segmentPoints; t++) {
+        const alpha = t / segmentPoints;
+        const interpolated = this.catmullRomInterpolation(prev, current, next, nextNext, alpha);
+        smoothPath.push(interpolated);
+      }
     }
     
-    return points;
+    // Add the final waypoint
+    smoothPath.push(waypoints[waypoints.length - 1]);
+    
+    console.log(`✅ Generated ${smoothPath.length} interpolated points for smooth Route 66`);
+    return smoothPath;
   }
 
-  private calculateSmartControlPoint(
-    start: google.maps.LatLngLiteral,
-    end: google.maps.LatLngLiteral,
-    ratio: number,
-    curveIntensity: number,
-    referenceWaypoint?: Route66Waypoint
-  ): google.maps.LatLngLiteral {
-    // Base position along the direct line
-    const baseLat = start.lat + (end.lat - start.lat) * ratio;
-    const baseLng = start.lng + (end.lng - start.lng) * ratio;
-    
-    // Calculate perpendicular offset for natural highway curves
-    const perpLat = -(end.lng - start.lng) * curveIntensity;
-    const perpLng = (end.lat - start.lat) * curveIntensity;
-    
-    // Add slight randomness for natural variation
-    const randomFactor = 0.2;
-    const randomLat = (Math.random() - 0.5) * randomFactor * curveIntensity;
-    const randomLng = (Math.random() - 0.5) * randomFactor * curveIntensity;
-    
-    // Influence from reference waypoint for smoother transitions
-    let refInfluenceLat = 0;
-    let refInfluenceLng = 0;
-    
-    if (referenceWaypoint) {
-      const refInfluence = 0.15 * curveIntensity;
-      refInfluenceLat = (referenceWaypoint.latitude - baseLat) * refInfluence;
-      refInfluenceLng = (referenceWaypoint.longitude - baseLng) * refInfluence;
-    }
-    
-    return {
-      lat: baseLat + perpLat + randomLat + refInfluenceLat,
-      lng: baseLng + perpLng + randomLng + refInfluenceLng
-    };
-  }
-
-  private cubicBezier(
-    t: number,
+  /**
+   * Catmull-Rom spline interpolation for smooth curves
+   */
+  private static catmullRomInterpolation(
     p0: google.maps.LatLngLiteral,
     p1: google.maps.LatLngLiteral,
     p2: google.maps.LatLngLiteral,
-    p3: google.maps.LatLngLiteral
+    p3: google.maps.LatLngLiteral,
+    t: number
+  ): google.maps.LatLngLiteral {
+    const t2 = t * t;
+    const t3 = t2 * t;
+    
+    // Catmull-Rom basis functions
+    const f0 = -0.5 * t3 + t2 - 0.5 * t;
+    const f1 = 1.5 * t3 - 2.5 * t2 + 1;
+    const f2 = -1.5 * t3 + 2 * t2 + 0.5 * t;
+    const f3 = 0.5 * t3 - 0.5 * t2;
+    
+    return {
+      lat: f0 * p0.lat + f1 * p1.lat + f2 * p2.lat + f3 * p3.lat,
+      lng: f0 * p0.lng + f1 * p1.lng + f2 * p2.lng + f3 * p3.lng
+    };
+  }
+
+  /**
+   * Simple linear interpolation between two points
+   */
+  static linearInterpolate(
+    start: google.maps.LatLngLiteral,
+    end: google.maps.LatLngLiteral,
+    steps: number
+  ): google.maps.LatLngLiteral[] {
+    const path: google.maps.LatLngLiteral[] = [start];
+    
+    for (let i = 1; i < steps; i++) {
+      const ratio = i / steps;
+      path.push({
+        lat: start.lat + (end.lat - start.lat) * ratio,
+        lng: start.lng + (end.lng - start.lng) * ratio
+      });
+    }
+    
+    path.push(end);
+    return path;
+  }
+
+  /**
+   * Creates a bezier curve between waypoints for extra smoothness
+   */
+  static createBezierPath(
+    waypoints: google.maps.LatLngLiteral[],
+    curveFactor: number = 0.3,
+    pointsPerSegment: number = 30
+  ): google.maps.LatLngLiteral[] {
+    if (waypoints.length < 2) return waypoints;
+    
+    const smoothPath: google.maps.LatLngLiteral[] = [waypoints[0]];
+    
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const current = waypoints[i];
+      const next = waypoints[i + 1];
+      
+      // Calculate control points
+      const distance = this.calculateDistance(current, next);
+      const controlOffset = distance * curveFactor;
+      
+      const control1 = {
+        lat: current.lat + (next.lat - current.lat) * 0.3,
+        lng: current.lng + controlOffset * (Math.random() - 0.5) * 0.1
+      };
+      
+      const control2 = {
+        lat: next.lat - (next.lat - current.lat) * 0.3,
+        lng: next.lng + controlOffset * (Math.random() - 0.5) * 0.1
+      };
+      
+      // Generate bezier curve points
+      for (let t = 1; t <= pointsPerSegment; t++) {
+        const alpha = t / pointsPerSegment;
+        const point = this.bezierInterpolation(current, control1, control2, next, alpha);
+        smoothPath.push(point);
+      }
+    }
+    
+    return smoothPath;
+  }
+
+  private static bezierInterpolation(
+    p0: google.maps.LatLngLiteral,
+    p1: google.maps.LatLngLiteral,
+    p2: google.maps.LatLngLiteral,
+    p3: google.maps.LatLngLiteral,
+    t: number
   ): google.maps.LatLngLiteral {
     const u = 1 - t;
     const tt = t * t;
     const uu = u * u;
     const uuu = uu * u;
     const ttt = tt * t;
-
-    // Cubic bezier formula for smooth curves
-    const lat = uuu * p0.lat + 3 * uu * t * p1.lat + 3 * u * tt * p2.lat + ttt * p3.lat;
-    const lng = uuu * p0.lng + 3 * uu * t * p1.lng + 3 * u * tt * p2.lng + ttt * p3.lng;
-
-    return { lat, lng };
+    
+    return {
+      lat: uuu * p0.lat + 3 * uu * t * p1.lat + 3 * u * tt * p2.lat + ttt * p3.lat,
+      lng: uuu * p0.lng + 3 * uu * t * p1.lng + 3 * u * tt * p2.lng + ttt * p3.lng
+    };
   }
 
-  private calculateDistance(
+  private static calculateDistance(
     point1: google.maps.LatLngLiteral,
     point2: google.maps.LatLngLiteral
   ): number {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = this.toRadians(point2.lat - point1.lat);
-    const dLng = this.toRadians(point2.lng - point1.lng);
-    
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(this.toRadians(point1.lat)) * Math.cos(this.toRadians(point2.lat)) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  private toRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
-  }
-
-  // Legacy method for backward compatibility
-  generateWindyPath(
-    start: Route66Waypoint,
-    end: Route66Waypoint,
-    prevCity?: Route66Waypoint,
-    nextCity?: Route66Waypoint
-  ): google.maps.LatLngLiteral[] {
-    return this.generateIdealizedCurvePath(start, end, prevCity, nextCity);
-  }
-
-  // Legacy method for backward compatibility
-  generateHighwayAwareInterpolation(
-    waypoints: Route66Waypoint[],
-    segmentIndex: number
-  ): google.maps.LatLngLiteral[] {
-    if (segmentIndex >= waypoints.length - 1) return [];
-    
-    const current = waypoints[segmentIndex];
-    const next = waypoints[segmentIndex + 1];
-    const prev = segmentIndex > 0 ? waypoints[segmentIndex - 1] : undefined;
-    const following = segmentIndex < waypoints.length - 2 ? waypoints[segmentIndex + 2] : undefined;
-    
-    return this.generateIdealizedCurvePath(current, next, prev, following);
+    const dlat = point2.lat - point1.lat;
+    const dlng = point2.lng - point1.lng;
+    return Math.sqrt(dlat * dlat + dlng * dlng);
   }
 }
