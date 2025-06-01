@@ -11,124 +11,109 @@ const ZoomControlsOverlay: React.FC<ZoomControlsOverlayProps> = ({
   isMapReady,
   mapRef
 }) => {
-  // Enhanced state tracking for debugging
-  const [isMapStable, setIsMapStable] = React.useState(false);
   const [currentZoom, setCurrentZoom] = React.useState(5);
 
-  // Track mapRef stability and zoom changes
+  // Track zoom changes from Google Maps
   React.useEffect(() => {
-    const hasValidMap = !!(mapRef?.current && typeof mapRef.current.getZoom === 'function');
-    setIsMapStable(hasValidMap);
-    
-    // Update current zoom when map changes
-    if (hasValidMap) {
-      try {
-        const zoom = mapRef.current.getZoom();
-        setCurrentZoom(zoom || 5);
-        
-        // Add zoom change listener
-        const zoomListener = mapRef.current.addListener('zoom_changed', () => {
-          const newZoom = mapRef.current?.getZoom();
-          if (newZoom !== undefined) {
-            setCurrentZoom(newZoom);
-          }
-        });
+    if (!mapRef?.current || !isMapReady) return;
 
-        return () => {
-          if (zoomListener) {
-            zoomListener.remove();
-          }
-        };
-      } catch (error) {
-        console.error('❌ Error setting up zoom listener:', error);
-      }
+    const map = mapRef.current;
+    
+    // Get initial zoom
+    const initialZoom = map.getZoom();
+    if (initialZoom !== undefined) {
+      setCurrentZoom(initialZoom);
     }
-  }, [mapRef?.current, isMapReady]);
 
-  // Improved zoom handlers with better error handling
+    // Listen for zoom changes
+    const zoomListener = map.addListener('zoom_changed', () => {
+      const newZoom = map.getZoom();
+      if (newZoom !== undefined) {
+        setCurrentZoom(newZoom);
+        console.log('🔍 Google Maps zoom changed to:', newZoom);
+      }
+    });
+
+    return () => {
+      if (zoomListener) {
+        zoomListener.remove();
+      }
+    };
+  }, [mapRef, isMapReady]);
+
+  // Simple zoom handlers that directly call Google Maps methods
   const handleZoomIn = React.useCallback(() => {
-    console.log('🔍 Zoom in button clicked');
-    
     if (!mapRef?.current) {
-      console.error('❌ Map reference not available for zoom in');
+      console.error('❌ No map reference available for zoom in');
       return;
     }
     
+    console.log('🔍 Zoom IN clicked - current zoom:', currentZoom);
+    
     try {
-      const currentZoomLevel = mapRef.current.getZoom();
-      if (currentZoomLevel !== undefined && currentZoomLevel !== null) {
-        const newZoom = Math.min(currentZoomLevel + 1, 18);
-        console.log(`🔍 Zooming in from ${currentZoomLevel} to ${newZoom}`);
-        
-        mapRef.current.setZoom(newZoom);
-        setCurrentZoom(newZoom);
-        
-        console.log('✅ Zoom in completed successfully');
-      } else {
-        console.error('❌ Could not get current zoom level');
+      const map = mapRef.current;
+      const currentLevel = map.getZoom();
+      if (currentLevel !== undefined) {
+        const newZoom = Math.min(currentLevel + 1, 18);
+        console.log('🔍 Setting zoom from', currentLevel, 'to', newZoom);
+        map.setZoom(newZoom);
       }
     } catch (error) {
-      console.error('❌ Error during zoom in operation:', error);
+      console.error('❌ Error zooming in:', error);
     }
-  }, [mapRef]);
+  }, [mapRef, currentZoom]);
 
   const handleZoomOut = React.useCallback(() => {
-    console.log('🔍 Zoom out button clicked');
-    
     if (!mapRef?.current) {
-      console.error('❌ Map reference not available for zoom out');
+      console.error('❌ No map reference available for zoom out');
       return;
     }
     
+    console.log('🔍 Zoom OUT clicked - current zoom:', currentZoom);
+    
     try {
-      const currentZoomLevel = mapRef.current.getZoom();
-      if (currentZoomLevel !== undefined && currentZoomLevel !== null) {
-        const newZoom = Math.max(currentZoomLevel - 1, 3);
-        console.log(`🔍 Zooming out from ${currentZoomLevel} to ${newZoom}`);
-        
-        mapRef.current.setZoom(newZoom);
-        setCurrentZoom(newZoom);
-        
-        console.log('✅ Zoom out completed successfully');
-      } else {
-        console.error('❌ Could not get current zoom level');
+      const map = mapRef.current;
+      const currentLevel = map.getZoom();
+      if (currentLevel !== undefined) {
+        const newZoom = Math.max(currentLevel - 1, 3);
+        console.log('🔍 Setting zoom from', currentLevel, 'to', newZoom);
+        map.setZoom(newZoom);
       }
     } catch (error) {
-      console.error('❌ Error during zoom out operation:', error);
+      console.error('❌ Error zooming out:', error);
     }
-  }, [mapRef]);
+  }, [mapRef, currentZoom]);
 
-  // Determine if zoom controls should be shown
-  const shouldShowZoomControls = isMapReady && isMapStable && mapRef?.current;
+  // Only show controls when map is ready and we have a valid map reference
+  const shouldShowControls = isMapReady && mapRef?.current;
 
-  console.log('🎮 ZoomControlsOverlay render state:', {
+  console.log('🎮 ZoomControlsOverlay render:', {
     isMapReady,
-    isMapStable,
-    shouldShowZoomControls,
-    currentZoom,
-    hasMapRef: !!mapRef?.current
+    hasMapRef: !!mapRef?.current,
+    shouldShowControls,
+    currentZoom
   });
 
-  return (
-    <div className="absolute bottom-16 left-4 z-30">
-      {shouldShowZoomControls ? (
-        <div className="pointer-events-auto">
-          <ZoomControls
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            currentZoom={currentZoom}
-            minZoom={3}
-            maxZoom={18}
-            disabled={false}
-          />
-        </div>
-      ) : (
+  if (!shouldShowControls) {
+    return (
+      <div className="absolute bottom-16 left-4 z-30">
         <div className="bg-white/90 p-3 rounded-lg shadow-lg border text-sm text-gray-600">
-          {!isMapReady ? 'Map loading...' : 
-           !isMapStable ? 'Map initializing...' : 
-           'Zoom controls unavailable'}
+          Map initializing...
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute bottom-16 left-4 z-30 pointer-events-auto">
+      <ZoomControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        currentZoom={currentZoom}
+        minZoom={3}
+        maxZoom={18}
+        disabled={false}
+      />
     </div>
   );
 };
