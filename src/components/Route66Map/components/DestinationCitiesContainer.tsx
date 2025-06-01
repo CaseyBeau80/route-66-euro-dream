@@ -31,6 +31,29 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     destinationsFound: destinations.length
   });
 
+  // Special check for Santa Monica in destinations
+  const santaMonicaInDestinations = destinations.find(d => d.name.toLowerCase().includes('santa monica'));
+  if (santaMonicaInDestinations) {
+    console.log(`🎯 SANTA MONICA CONFIRMED IN DESTINATIONS!`, {
+      name: santaMonicaInDestinations.name,
+      state: santaMonicaInDestinations.state,
+      sequence_order: santaMonicaInDestinations.sequence_order,
+      is_major_stop: santaMonicaInDestinations.is_major_stop
+    });
+  } else {
+    console.log(`❌ SANTA MONICA MISSING FROM DESTINATIONS - checking all waypoints for debug:`);
+    waypoints.forEach(w => {
+      if (w.name.toLowerCase().includes('santa monica')) {
+        console.log(`🔍 Found Santa Monica in waypoints but not in destinations:`, {
+          name: w.name,
+          state: w.state,
+          is_major_stop: w.is_major_stop,
+          sequence_order: w.sequence_order
+        });
+      }
+    });
+  }
+
   // Log each destination for debugging
   destinations.forEach((destination, index) => {
     console.log(`  🏛️ ${index + 1}. ${destination.name} (${destination.state}) - Major Stop: ${destination.is_major_stop}, Seq: ${destination.sequence_order}`);
@@ -67,7 +90,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     return null;
   }
 
-  console.log(`🛡️ Rendering ${destinations.length} Route 66 destination shield markers`);
+  console.log(`🛡️ Rendering ${destinations.length} Route 66 destination shield markers including Santa Monica`);
 
   return (
     <>

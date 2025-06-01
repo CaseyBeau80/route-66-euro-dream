@@ -42,7 +42,22 @@ export const useSupabaseRoute66 = () => {
           nonMajorStops: nonMajorStops.length
         });
         
-        console.log(`📍 Major stops (destination cities):`, majorStops.map(stop => `${stop.name} (${stop.state})`));
+        console.log(`📍 Major stops (destination cities):`, majorStops.map(stop => `${stop.name} (${stop.state}) - Seq: ${stop.sequence_order}`));
+        
+        // Special check for Santa Monica
+        const santaMonica = data.find(w => w.name.toLowerCase().includes('santa monica'));
+        if (santaMonica) {
+          console.log(`🎯 SANTA MONICA FOUND!`, {
+            name: santaMonica.name,
+            state: santaMonica.state,
+            sequence_order: santaMonica.sequence_order,
+            is_major_stop: santaMonica.is_major_stop,
+            latitude: santaMonica.latitude,
+            longitude: santaMonica.longitude
+          });
+        } else {
+          console.log(`❌ SANTA MONICA NOT FOUND in waypoints!`);
+        }
         
         if (nonMajorStops.length > 0) {
           console.log(`📍 Non-major stops:`, nonMajorStops.map(stop => `${stop.name} (${stop.state}) - Major: ${stop.is_major_stop}`));
