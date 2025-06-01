@@ -38,8 +38,8 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
 
     // Filter to major stops only for main route
     const majorStops = waypoints
-      .filter(waypoint => waypoint.is_major_stop || waypoint.is_destination)
-      .sort((a, b) => a.route_order - b.route_order);
+      .filter(waypoint => waypoint.is_major_stop === true)
+      .sort((a, b) => a.sequence_order - b.sequence_order);
 
     if (majorStops.length < 2) {
       console.warn('⚠️ Not enough major stops for route rendering');

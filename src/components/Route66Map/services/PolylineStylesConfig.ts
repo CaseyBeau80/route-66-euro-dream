@@ -37,9 +37,6 @@ export class PolylineStylesConfig {
       strokeColor: '#DC2626', // Red fallback color
       strokeOpacity: 0.7,
       strokeWeight: 4,
-      strokePattern: [
-        { icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 4 }, offset: '0', repeat: '20px' }
-      ],
       clickable: false,
       draggable: false,
       editable: false,
