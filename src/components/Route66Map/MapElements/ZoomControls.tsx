@@ -20,44 +20,36 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Simplified click handlers with immediate execution
-  const handleZoomInClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('🎯 ZoomControls: Zoom IN button clicked - executing immediately');
+  // Simplified click handlers
+  const handleZoomInClick = () => {
+    console.log('🎯 ZoomControls: Zoom IN button clicked');
     
     if (disabled || currentZoom >= maxZoom) {
       console.log('⚠️ Zoom in blocked - disabled or at max zoom');
       return;
     }
 
-    // Execute zoom function immediately
     try {
       onZoomIn();
-      console.log('✅ Zoom in function executed successfully');
+      console.log('✅ Zoom in function called successfully');
     } catch (error) {
-      console.error('❌ Error executing zoom in:', error);
+      console.error('❌ Error calling zoom in:', error);
     }
   };
 
-  const handleZoomOutClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('🎯 ZoomControls: Zoom OUT button clicked - executing immediately');
+  const handleZoomOutClick = () => {
+    console.log('🎯 ZoomControls: Zoom OUT button clicked');
     
     if (disabled || currentZoom <= minZoom) {
       console.log('⚠️ Zoom out blocked - disabled or at min zoom');
       return;
     }
 
-    // Execute zoom function immediately
     try {
       onZoomOut();
-      console.log('✅ Zoom out function executed successfully');
+      console.log('✅ Zoom out function called successfully');
     } catch (error) {
-      console.error('❌ Error executing zoom out:', error);
+      console.error('❌ Error calling zoom out:', error);
     }
   };
 
@@ -78,7 +70,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       <Button
         variant="outline"
         size="sm"
-        onMouseDown={handleZoomInClick}
+        onClick={handleZoomInClick}
         disabled={isZoomInDisabled}
         className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200"
         type="button"
@@ -94,7 +86,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       <Button
         variant="outline"
         size="sm"
-        onMouseDown={handleZoomOutClick}
+        onClick={handleZoomOutClick}
         disabled={isZoomOutDisabled}
         className="w-12 h-12 p-0 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200"
         type="button"
