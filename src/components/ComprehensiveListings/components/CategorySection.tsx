@@ -1,7 +1,6 @@
 
 import { CategoryData } from '../types';
-import { ListingCard } from './ListingCard';
-import { LoadingCard } from './LoadingCard';
+import { ListingCarousel } from './ListingCarousel';
 
 interface CategorySectionProps {
   categoryKey: string;
@@ -21,26 +20,11 @@ export const CategorySection = ({ categoryKey, categoryData }: CategorySectionPr
         </div>
       </div>
 
-      {categoryData.loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <LoadingCard key={i} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryData.items.map((item) => (
-            <ListingCard key={item.id} item={item} />
-          ))}
-        </div>
-      )}
-
-      {!categoryData.loading && categoryData.items.length === 0 && (
-        <div className="text-center py-12 text-route66-gray/60">
-          <p className="text-lg">No {categoryData.title.toLowerCase()} found at the moment.</p>
-          <p className="text-sm">Check back soon for new additions!</p>
-        </div>
-      )}
+      <ListingCarousel 
+        items={categoryData.items}
+        loading={categoryData.loading}
+        categoryTitle={categoryData.title}
+      />
     </div>
   );
 };
