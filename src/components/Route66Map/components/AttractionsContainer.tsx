@@ -36,24 +36,18 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
 
   // Enhanced filtering to show ALL drive-ins and attractions
   const filteredAttractions = useMemo(() => {
-    // Enhanced drive-in detection with broader criteria
+    // Separate drive-ins and regular attractions with broader detection
     const driveIns = attractions.filter(attraction => {
       const name = attraction.name.toLowerCase();
       const desc = attraction.description?.toLowerCase() || '';
-      const isDriveIn = name.includes('drive-in') || 
-                       name.includes('drive in') ||
-                       name.includes('theater') ||
-                       name.includes('theatre') ||
-                       desc.includes('drive-in') ||
-                       desc.includes('drive in') ||
-                       desc.includes('theater') ||
-                       desc.includes('theatre');
-      
-      if (isDriveIn) {
-        console.log(`🎬 FOUND DRIVE-IN in attractions: ${attraction.name} (${attraction.state})`);
-      }
-      
-      return isDriveIn;
+      return name.includes('drive-in') || 
+             name.includes('drive in') ||
+             name.includes('theater') ||
+             name.includes('theatre') ||
+             desc.includes('drive-in') ||
+             desc.includes('drive in') ||
+             desc.includes('theater') ||
+             desc.includes('theatre');
     });
     
     const regularAttractions = attractions.filter(attraction => {
@@ -69,7 +63,7 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
                desc.includes('theatre'));
     });
 
-    console.log(`🎬 Found ${driveIns.length} drive-in theaters in waypoint attractions:`, driveIns.map(d => `${d.name} (${d.state})`));
+    console.log(`🎬 Found ${driveIns.length} drive-in theaters in waypoint attractions:`, driveIns.map(d => d.name));
     console.log(`🎯 Found ${regularAttractions.length} regular attractions`);
 
     // Always show ALL drive-ins regardless of zoom level (they're special!)
