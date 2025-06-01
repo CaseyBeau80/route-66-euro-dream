@@ -34,7 +34,6 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [mapInitialized, setMapInitialized] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const hintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const wheelListenerRef = useRef<((e: WheelEvent) => void) | null>(null);
 
   useEffect(() => {
     if (mapInitialized || !containerRef.current || mapRef.current) {
@@ -62,7 +61,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        scrollwheel: true, // Enable default scrollwheel initially
+        scrollwheel: false, // Disable default scrollwheel initially
         restriction: mapRestrictions,
         minZoom: 3,
         maxZoom: 10,
@@ -91,12 +90,19 @@ const MapCore: React.FC<MapCoreProps> = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      // Custom scroll handling for Ctrl+Scroll zoom
+      // Simplified custom scroll handling
       const handleWheel = (e: WheelEvent) => {
         if (e.ctrlKey || e.metaKey) {
           // Allow zoom when Ctrl (or Cmd on Mac) is pressed
-          // The map will handle this naturally since scrollwheel is enabled
-          console.log('🔍 Ctrl+Scroll zoom allowed');
+          e.stopPropagation();
+          
+          // Manual zoom handling
+          const currentZoom = map.getZoom() || 4;
+          const zoomDelta = e.deltaY > 0 ? -1 : 1;
+          const newZoom = Math.max(3, Math.min(10, currentZoom + zoomDelta));
+          
+          map.setZoom(newZoom);
+          console.log('🔍 Ctrl+Scroll zoom:', newZoom);
         } else {
           // Prevent default zoom and show hint
           e.preventDefault();
@@ -118,9 +124,6 @@ const MapCore: React.FC<MapCoreProps> = ({
         }
       };
 
-      // Store the listener reference for cleanup
-      wheelListenerRef.current = handleWheel;
-
       // Add wheel event listener to the map container
       const mapDiv = containerRef.current;
       if (mapDiv) {
@@ -134,6 +137,19 @@ const MapCore: React.FC<MapCoreProps> = ({
       // Add click listener
       map.addListener('click', onMapClick);
 
+      // Cleanup function stored in a ref for proper cleanup
+      const cleanup = () => {
+        if (mapDiv) {
+          mapDiv.removeEventListener('wheel', handleWheel);
+        }
+        if (hintTimeoutRef.current) {
+          clearTimeout(hintTimeoutRef.current);
+        }
+      };
+
+      // Store cleanup function
+      (map as any).__cleanup = cleanup;
+
     } catch (error) {
       console.error('❌ Error initializing Google Map:', error);
     }
@@ -146,8 +162,9 @@ const MapCore: React.FC<MapCoreProps> = ({
         clearTimeout(hintTimeoutRef.current);
       }
       
-      if (containerRef.current && wheelListenerRef.current) {
-        containerRef.current.removeEventListener('wheel', wheelListenerRef.current);
+      // Call cleanup if it exists
+      if (mapRef.current && (mapRef.current as any).__cleanup) {
+        (mapRef.current as any).__cleanup();
       }
     };
   }, []);
