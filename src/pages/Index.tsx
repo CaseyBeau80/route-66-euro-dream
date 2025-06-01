@@ -1,3 +1,4 @@
+
 import Route66Map from "../components/Route66Map";
 
 const Index = () => {
@@ -5,42 +6,24 @@ const Index = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
-      {/* Route 66 Highway Header with Desert Road Aesthetic */}
+      {/* Route 66 Highway Header with Real Road Perspective */}
       <div className="relative h-96 overflow-hidden">
-        {/* Desert highway background */}
+        {/* Real Route 66 road background */}
         <div className="absolute inset-0">
           <img 
-            src="/lovable-uploads/d4bef21f-6976-42cb-95de-facd08a1a838.png" 
-            alt="Route 66 desert highway" 
+            src="/lovable-uploads/a51e8034-fdbf-4f32-8be1-f184bcc4f908.png" 
+            alt="Route 66 road sign painted on asphalt" 
             className="w-full h-full object-cover object-center"
           />
-          {/* Overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40"></div>
+          {/* Subtle overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
         </div>
         
-        {/* Content overlay */}
+        {/* Content overlay - positioned to complement the road view */}
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="w-full px-3 sm:px-6 text-center">
-            {/* Route 66 Shield - positioned to match the road sign in the image */}
-            <div className="flex justify-center mb-6">
-              <div className="relative travel-stamp">
-                <div className="w-20 h-24 bg-white rounded-xl border-4 border-black shadow-2xl flex flex-col items-center justify-center">
-                  {/* Shield shape background */}
-                  <div className="absolute inset-2 bg-white border-2 border-black rounded-lg"></div>
-                  
-                  {/* Content over shield */}
-                  <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                    <div className="text-black text-xs font-bold font-americana tracking-wide">ROUTE</div>
-                    <div className="text-black text-2xl font-black leading-none font-route66 mt-1">66</div>
-                  </div>
-                </div>
-                {/* Vintage glow effects */}
-                <div className="absolute inset-0 rounded-xl bg-route66-vintage-yellow opacity-25 blur-xl animate-pulse"></div>
-              </div>
-            </div>
-            
-            {/* Main heading with road trip aesthetic */}
-            <h1 className="font-route66 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-4 animate-fade-in text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+            {/* Main heading positioned above the road */}
+            <h1 className="font-route66 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-4 animate-fade-in text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] mt-8">
               THE MOTHER ROAD AWAITS
             </h1>
             
@@ -51,12 +34,12 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Desert road tagline */}
+            {/* Road trip tagline */}
             <p className="font-travel text-xl md:text-2xl mb-6 text-white drop-shadow-lg animate-fade-in leading-relaxed max-w-3xl mx-auto" style={{ animationDelay: "0.2s" }}>
               From Chicago's Skyline to Santa Monica's Sunset • The Ultimate American Road Trip Experience
             </p>
             
-            {/* Highway markers matching the desert road theme */}
+            {/* Highway markers positioned to work with the road perspective */}
             <div className="flex flex-wrap justify-center gap-4 mb-6">
               <div className="bg-route66-vintage-yellow text-black px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse">
                 <div className="font-americana">EST. 1926</div>
@@ -71,10 +54,10 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Highway lane divider at bottom */}
+        {/* Road continuation effect at bottom */}
         <div className="absolute bottom-0 left-0 right-0 z-20">
-          <div className="h-2 bg-route66-vintage-yellow"></div>
-          <div className="h-1 bg-white"></div>
+          <div className="h-2 bg-route66-vintage-yellow opacity-80"></div>
+          <div className="h-1 bg-white opacity-60"></div>
         </div>
       </div>
 
