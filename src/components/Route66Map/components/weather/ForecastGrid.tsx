@@ -2,6 +2,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { ForecastDay } from './WeatherTypes';
+import { WeatherIcon } from './WeatherIconUtils';
 
 interface ForecastGridProps {
   forecast: ForecastDay[];
@@ -35,10 +36,6 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
           const { dayLabel, dateLabel } = getDayAndDateLabels(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Day: ${dayLabel}, Date: ${dateLabel}`);
           
-          // Validate weather icon
-          const weatherIconUrl = `https://openweathermap.org/img/wn/${day.icon}@2x.png`;
-          console.log(`🌤️ Weather icon URL for day ${index}:`, weatherIconUrl);
-          
           return (
             <div key={index} className="flex flex-col items-center bg-gradient-to-b from-white to-gray-50 rounded-lg px-2 py-3 min-h-[140px] border border-gray-300 shadow-sm flex-1 max-w-none hover:shadow-md transition-shadow">
               {/* Day of week - moved to top */}
@@ -51,19 +48,13 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
                 {dateLabel}
               </div>
               
-              {/* Weather icon with error handling */}
+              {/* Weather icon with fallback handling */}
               <div className="mb-2 flex items-center justify-center h-10">
-                <img 
-                  src={weatherIconUrl}
-                  alt={day.description}
+                <WeatherIcon
+                  iconCode={day.icon}
+                  description={day.description}
+                  size={40}
                   className="w-10 h-10"
-                  onError={(e) => {
-                    console.error(`❌ Failed to load weather icon for day ${index}:`, weatherIconUrl);
-                    e.currentTarget.style.display = 'none';
-                  }}
-                  onLoad={() => {
-                    console.log(`✅ Successfully loaded weather icon for day ${index}`);
-                  }}
                 />
               </div>
               
