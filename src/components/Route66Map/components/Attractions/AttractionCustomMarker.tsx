@@ -1,28 +1,24 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
+import { Attraction } from './types';
 import { useAttractionHover } from './hooks/useAttractionHover';
+import DriveInHoverCard from './components/DriveInHoverCard';
 import AttractionHoverCard from './AttractionHoverCard';
-import AttractionClickableCard from './AttractionClickableCard';
-import type { Route66Waypoint } from '../../types/supabaseTypes';
+import { createDriveInIcon, createVintageRoute66Icon } from '../HiddenGems/VintageRoute66Icon';
 
 interface AttractionCustomMarkerProps {
+  attraction: Attraction;
   map: google.maps.Map;
-  attraction: Route66Waypoint;
-  onAttractionClick: (attraction: Route66Waypoint) => void;
-  onWebsiteClick?: (website: string) => void;
+  onAttractionClick: (attraction: Attraction) => void;
+  onWebsiteClick: (website: string) => void;
 }
 
 const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
-  map,
   attraction,
+  map,
   onAttractionClick,
   onWebsiteClick
 }) => {
-  const markerRef = useRef<google.maps.Marker | null>(null);
-  const [isMarkerReady, setIsMarkerReady] = useState(false);
-  const [isClicked, setIsClicked] = useState(false);
-  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
-
   const {
     isHovered,
     hoverPosition,
@@ -32,133 +28,122 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     cleanup
   } = useAttractionHover();
 
-  // Create marker element
-  useEffect(() => {
-    if (!map || markerRef.current) return;
+  // Enhanced drive-in detection matching Hidden Gems logic
+  const isDriveIn = React.useMemo(() => {
+    const name = attraction.name.toLowerCase();
+    const desc = attraction.description?.toLowerCase() || '';
+    return name.includes('drive-in') || 
+           name.includes('drive in') ||
+           name.includes('theater') ||
+           name.includes('theatre') ||
+           desc.includes('drive-in') ||
+           desc.includes('drive in') ||
+           desc.includes('theater') ||
+           desc.includes('theatre');
+  }, [attraction.name, attraction.description]);
 
-    console.log('🎯 Creating attraction marker for:', attraction.name);
+  // Create marker with appropriate icon
+  React.useEffect(() => {
+    if (!map) return;
 
-    try {
-      const marker = new google.maps.Marker({
-        map,
-        position: {
-          lat: Number(attraction.latitude),
-          lng: Number(attraction.longitude)
-        },
-        title: attraction.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#dc2626',
-          fillOpacity: 1,
-          strokeColor: 'white',
-          strokeWeight: 2
-        }
-      });
+    console.log(`🎯 Creating ${isDriveIn ? 'ENHANCED DRIVE-IN' : 'attraction'} marker for: ${attraction.name}`);
 
-      markerRef.current = marker;
-      setIsMarkerReady(true);
+    const marker = new google.maps.Marker({
+      position: { lat: Number(attraction.latitude), lng: Number(attraction.longitude) },
+      map: map,
+      icon: isDriveIn ? createDriveInIcon() : createVintageRoute66Icon(),
+      title: `${isDriveIn ? 'Drive-In Theater: ' : 'Attraction: '}${attraction.name}`,
+      zIndex: isDriveIn ? 35000 : 30000
+    });
 
-      console.log('✅ Attraction marker created successfully for:', attraction.name);
+    // Enhanced hover detection for drive-ins
+    const handleMouseOver = () => {
+      console.log(`🐭 Mouse over ${isDriveIn ? 'DRIVE-IN' : 'attraction'}: ${attraction.name}`);
+      const bounds = map.getBounds();
+      if (!bounds) return;
 
-    } catch (error) {
-      console.error('❌ Error creating attraction marker:', error);
-    }
+      const mapDiv = map.getDiv();
+      const mapRect = mapDiv.getBoundingClientRect();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
 
-    return () => {
-      cleanup();
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-        markerRef.current = null;
-      }
-      setIsMarkerReady(false);
-    };
-  }, [map, attraction, cleanup]);
+      const lat = Number(attraction.latitude);
+      const lng = Number(attraction.longitude);
 
-  // Add event listeners when marker is ready
-  useEffect(() => {
-    if (!isMarkerReady || !markerRef.current) return;
+      const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapRect.width;
+      const y = ((ne.lat() - lat) / (ne.lat() - sw.lat())) * mapRect.height;
 
-    const marker = markerRef.current;
+      const viewportX = mapRect.left + x;
+      const viewportY = mapRect.top + y;
 
-    const handleMouseOverEvent = (e: google.maps.MapMouseEvent) => {
-      if (!isClicked) { // Only show hover if not clicked
-        console.log('🖱️ Mouse over attraction:', attraction.name);
-        if (e.domEvent && e.domEvent.target) {
-          const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-          updatePosition(rect.left + rect.width / 2, rect.top);
-        }
-        handleMouseEnter(attraction.name);
-      }
+      updatePosition(viewportX, viewportY);
+      handleMouseEnter(attraction.name);
     };
 
-    const handleMouseOutEvent = () => {
-      if (!isClicked) { // Only hide hover if not clicked
-        console.log('🖱️ Mouse out attraction:', attraction.name);
+    const handleMouseOut = () => {
+      console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'attraction'}: ${attraction.name}`);
+      setTimeout(() => {
         handleMouseLeave(attraction.name);
-      }
+      }, 300);
     };
 
-    const handleClickEvent = (e: google.maps.MapMouseEvent) => {
-      console.log('🖱️ Click attraction:', attraction.name);
-      
-      // Calculate click position
-      if (e.domEvent) {
-        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-        setClickPosition({
-          x: rect.left + rect.width / 2,
-          y: rect.top
-        });
-      }
-      
-      setIsClicked(true);
-      handleMouseLeave(attraction.name); // Hide hover card
-      onAttractionClick(attraction);
-    };
+    // Add event listeners
+    const mouseOverListener = marker.addListener('mouseover', handleMouseOver);
+    const mouseOutListener = marker.addListener('mouseout', handleMouseOut);
 
-    marker.addListener('mouseover', handleMouseOverEvent);
-    marker.addListener('mouseout', handleMouseOutEvent);
-    marker.addListener('click', handleClickEvent);
-
+    // Cleanup function
     return () => {
-      google.maps.event.clearInstanceListeners(marker);
+      console.log(`🧹 Cleaning up ${isDriveIn ? 'DRIVE-IN' : 'attraction'} marker for: ${attraction.name}`);
+      google.maps.event.removeListener(mouseOverListener);
+      google.maps.event.removeListener(mouseOutListener);
+      if (marker) {
+        marker.setMap(null);
+      }
+      cleanup();
     };
-  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked]);
+  }, [map, attraction, isDriveIn, updatePosition, handleMouseEnter, handleMouseLeave, cleanup]);
 
-  const handleCloseClickableCard = () => {
-    setIsClicked(false);
-  };
+  // Prevent hover card from disappearing when hovering over it
+  const handleCardMouseEnter = useCallback(() => {
+    console.log(`🐭 Mouse entered hover card for: ${attraction.name} - keeping card visible`);
+    handleMouseEnter(attraction.name);
+  }, [handleMouseEnter, attraction.name]);
 
-  if (!isMarkerReady) {
-    return null;
-  }
+  const handleCardMouseLeave = useCallback(() => {
+    console.log(`🐭 Mouse left hover card for: ${attraction.name} - starting hide delay`);
+    handleMouseLeave(attraction.name);
+  }, [handleMouseLeave, attraction.name]);
+
+  console.log(`🔍 AttractionCustomMarker render - ${attraction.name}:`, {
+    isDriveIn,
+    isHovered,
+    shouldShowHover: isHovered
+  });
 
   return (
     <>
-      {/* Hover card - only show when hovering and not clicked */}
-      {!isClicked && (
-        <AttractionHoverCard
-          attraction={attraction}
-          isVisible={isHovered}
-          position={hoverPosition}
-          onWebsiteClick={onWebsiteClick || ((website) => {
-            console.log('🌐 Opening attraction website:', website);
-            window.open(website, '_blank', 'noopener,noreferrer');
-          })}
-        />
+      {/* Hover card - show when hovering, use drive-in card for drive-ins */}
+      {isHovered && (
+        isDriveIn ? (
+          <DriveInHoverCard
+            attraction={attraction}
+            isVisible={true}
+            position={hoverPosition}
+            onWebsiteClick={onWebsiteClick}
+            onMouseEnter={handleCardMouseEnter}
+            onMouseLeave={handleCardMouseLeave}
+          />
+        ) : (
+          <AttractionHoverCard
+            attraction={attraction}
+            isVisible={true}
+            position={hoverPosition}
+            onWebsiteClick={onWebsiteClick}
+            onMouseEnter={handleCardMouseEnter}
+            onMouseLeave={handleCardMouseLeave}
+          />
+        )
       )}
-
-      {/* Clickable card - show when clicked */}
-      <AttractionClickableCard
-        attraction={attraction}
-        isVisible={isClicked}
-        position={clickPosition}
-        onClose={handleCloseClickableCard}
-        onWebsiteClick={onWebsiteClick || ((website) => {
-          console.log('🌐 Opening attraction website:', website);
-          window.open(website, '_blank', 'noopener,noreferrer');
-        })}
-      />
     </>
   );
 };

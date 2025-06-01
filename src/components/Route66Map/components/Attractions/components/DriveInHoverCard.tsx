@@ -8,13 +8,17 @@ interface DriveInHoverCardProps {
   isVisible: boolean;
   position: { x: number; y: number };
   onWebsiteClick?: (website: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
   attraction,
   isVisible,
   position,
-  onWebsiteClick
+  onWebsiteClick,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   // Enhanced position calculations with better overlap prevention
   const cardPosition = useMemo(() => {
@@ -71,7 +75,7 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
 
   return (
     <div
-      className="fixed pointer-events-none"
+      className="fixed pointer-events-auto"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
@@ -79,6 +83,8 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
         display: cardPosition.display,
         zIndex: 45000 // Reduced z-index for better layering
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Card className="w-75 border-4 border-amber-600 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100 shadow-2xl relative overflow-hidden transition-all duration-200">
         {/* Enhanced vintage film strip border */}

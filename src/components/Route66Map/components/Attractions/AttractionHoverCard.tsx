@@ -1,22 +1,30 @@
 
 import React, { useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Route } from 'lucide-react';
-import { AttractionHoverProps } from './types';
+import { Attraction } from './types';
 
-const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
+interface AttractionHoverCardProps {
+  attraction: Attraction;
+  isVisible: boolean;
+  position: { x: number; y: number };
+  onWebsiteClick?: (website: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}
+
+const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
   attraction,
   isVisible,
   position,
-  onWebsiteClick
+  onWebsiteClick,
+  onMouseEnter,
+  onMouseLeave
 }) => {
-  // Enhanced position calculations similar to HoverCardPortal
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 280;
-    const cardHeight = 160;
+    const cardHeight = 200;
     const padding = 20;
     const topOffset = 60;
 
@@ -36,73 +44,79 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
     }
 
     // Vertical positioning
-    if (top < padding) {
-      top = position.y + topOffset + 20;
+    if (top < padding + 60) {
+      top = position.y + topOffset + 10;
     }
 
     if (top + cardHeight > viewport.height - padding) {
       top = viewport.height - cardHeight - padding;
     }
 
-    console.log(`🎨 Attraction hover card positioned:`, {
-      attractionName: attraction.name,
-      markerPos: position,
-      cardPos: { left, top }
-    });
-
     return { left, top, display: 'block' };
-  }, [isVisible, position, attraction.name]);
+  }, [isVisible, position]);
+
+  const attractionWebsite = useMemo(() => {
+    const descriptionText = attraction.description || '';
+    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
+    return websiteMatch ? websiteMatch[0] : null;
+  }, [attraction.description]);
 
   if (!isVisible) return null;
 
-  const cardContent = (
+  return (
     <div
-      className="fixed pointer-events-none"
+      className="fixed pointer-events-auto"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
-        zIndex: 40000
+        transform: 'none',
+        display: cardPosition.display,
+        zIndex: 45000
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      <Card className="w-70 border-2 border-red-600 bg-white shadow-2xl transition-all duration-200">
-        {/* Header */}
-        <div className="bg-red-600 text-white px-4 py-2">
-          <div className="flex items-center gap-2">
-            <Route className="h-4 w-4" />
-            <span className="text-sm font-bold">Route 66 Stop</span>
-            <span className="text-xs bg-white text-red-600 px-2 py-1 rounded font-bold ml-auto">
-              #{attraction.sequence_order}
-            </span>
-          </div>
-        </div>
-        
+      <Card className="w-70 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-white shadow-xl">
         <CardContent className="p-4">
-          {/* Title */}
-          <h3 className="font-bold text-lg text-red-900 mb-2">
-            {attraction.name.split(',')[0].split(' - ')[0].trim()}
-          </h3>
-          
-          {/* Location */}
-          <div className="flex items-center gap-2 text-red-700 mb-3">
-            <MapPin className="h-4 w-4" />
-            <span className="text-sm font-medium">{attraction.state}</span>
+          <div className="text-center">
+            <div className="bg-blue-600 text-white px-3 py-1 rounded mb-3">
+              <span className="font-bold text-sm">Route 66 Attraction</span>
+            </div>
+            
+            <h3 className="font-bold text-lg text-blue-900 mb-2">
+              {attraction.name.split(',')[0].split(' - ')[0].trim()}
+            </h3>
+            
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                📍 {attraction.state}
+              </span>
+            </div>
+            
+            {attraction.description && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {attraction.description.length > 80 
+                    ? `${attraction.description.substring(0, 80)}...` 
+                    : attraction.description
+                  }
+                </p>
+              </div>
+            )}
+            
+            {attractionWebsite && (
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 transition-colors pointer-events-auto"
+                onClick={() => onWebsiteClick?.(attractionWebsite)}
+              >
+                Visit Website
+              </button>
+            )}
           </div>
-          
-          {/* Description */}
-          {attraction.description && (
-            <p className="text-sm text-red-800 leading-relaxed">
-              {attraction.description.length > 120 
-                ? `${attraction.description.substring(0, 120)}...` 
-                : attraction.description
-              }
-            </p>
-          )}
         </CardContent>
       </Card>
     </div>
   );
-
-  return createPortal(cardContent, document.body);
 };
 
-export default AttractionHoverCard;
+export default React.memo(AttractionHoverCard);
