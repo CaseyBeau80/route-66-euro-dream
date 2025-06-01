@@ -21,7 +21,7 @@ export const useDestinationHover = () => {
 
     console.log(`⏳ Starting hover delay for destination: ${destinationName || 'unknown'}`);
     
-    // Add 400ms delay before showing the tooltip
+    // Add 400ms delay before showing the tooltip (same as hidden gems)
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`🏛️ Hover started for destination: ${destinationName || 'unknown'}`);
       setIsHovered(true);
@@ -40,6 +40,8 @@ export const useDestinationHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
+    
+    // Add 300ms delay before hiding (same as hidden gems)
     hoverTimeoutRef.current = setTimeout(() => {
       console.log(`🏛️ Hover ended for destination: ${destinationName || 'unknown'}`);
       setIsHovered(false);
