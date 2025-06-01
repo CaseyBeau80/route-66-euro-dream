@@ -20,6 +20,18 @@ export class DestinationMarkerCreator {
 
     console.log(`🛡️ Creating WOODEN POST marker for ${destination.name} at ${destination.latitude}, ${destination.longitude}`);
 
+    // Enhanced debugging for Santa Monica specifically
+    if (destination.name.toLowerCase().includes('santa monica')) {
+      console.log(`🎯 CREATING SANTA MONICA MARKER:`, {
+        name: destination.name,
+        latitude: destination.latitude,
+        longitude: destination.longitude,
+        mapCenter: map.getCenter()?.toJSON(),
+        mapZoom: map.getZoom(),
+        mapBounds: map.getBounds()?.toJSON()
+      });
+    }
+
     const cityName = destination.name.split(',')[0].split(' - ')[0].trim();
     const position = { lat: destination.latitude, lng: destination.longitude };
 
@@ -28,11 +40,31 @@ export class DestinationMarkerCreator {
       if (window.google.maps.marker?.AdvancedMarkerElement) {
         console.log(`✅ Creating AdvancedMarkerElement with WOODEN POST for ${destination.name}`);
         
-        return this.createAdvancedMarker(cityName, position, destination.name, map);
+        const marker = this.createAdvancedMarker(cityName, position, destination.name, map);
+        
+        if (marker && destination.name.toLowerCase().includes('santa monica')) {
+          console.log(`🎯 SANTA MONICA ADVANCED MARKER CREATED SUCCESSFULLY:`, {
+            position: marker.position,
+            map: !!marker.map,
+            content: !!marker.content
+          });
+        }
+        
+        return marker;
       } else {
         console.log(`⚠️ AdvancedMarkerElement not available, using regular Marker with WOODEN POST for ${destination.name}`);
         
-        return this.createRegularMarker(cityName, position, destination.name, map);
+        const marker = this.createRegularMarker(cityName, position, destination.name, map);
+        
+        if (marker && destination.name.toLowerCase().includes('santa monica')) {
+          console.log(`🎯 SANTA MONICA REGULAR MARKER CREATED SUCCESSFULLY:`, {
+            position: marker.getPosition()?.toJSON(),
+            map: !!marker.getMap(),
+            visible: marker.getVisible()
+          });
+        }
+        
+        return marker;
       }
     } catch (error) {
       console.error(`❌ Error creating wooden post marker for ${destination.name}:`, error);
@@ -90,6 +122,20 @@ export class DestinationMarkerCreator {
       });
 
       console.log(`✅ WOODEN POST AdvancedMarkerElement created for ${destinationName}`);
+      
+      // Enhanced verification for Santa Monica
+      if (destinationName.toLowerCase().includes('santa monica')) {
+        setTimeout(() => {
+          console.log(`🔍 SANTA MONICA MARKER VERIFICATION:`, {
+            markerExists: !!advancedMarker,
+            hasMap: !!advancedMarker.map,
+            position: advancedMarker.position,
+            zIndex: advancedMarker.zIndex,
+            isInMapBounds: map.getBounds()?.contains(new google.maps.LatLng(position.lat, position.lng))
+          });
+        }, 1000);
+      }
+      
       return advancedMarker;
     } catch (error) {
       console.error(`❌ Error creating wooden post AdvancedMarkerElement for ${destinationName}:`, error);
@@ -118,6 +164,21 @@ export class DestinationMarkerCreator {
       });
 
       console.log(`✅ WOODEN POST regular Marker created for ${destinationName}`);
+      
+      // Enhanced verification for Santa Monica
+      if (destinationName.toLowerCase().includes('santa monica')) {
+        setTimeout(() => {
+          console.log(`🔍 SANTA MONICA REGULAR MARKER VERIFICATION:`, {
+            markerExists: !!regularMarker,
+            hasMap: !!regularMarker.getMap(),
+            position: regularMarker.getPosition()?.toJSON(),
+            visible: regularMarker.getVisible(),
+            zIndex: regularMarker.getZIndex(),
+            isInMapBounds: map.getBounds()?.contains(regularMarker.getPosition()!)
+          });
+        }, 1000);
+      }
+      
       return regularMarker;
     } catch (error) {
       console.error(`❌ Error creating wooden post regular Marker for ${destinationName}:`, error);

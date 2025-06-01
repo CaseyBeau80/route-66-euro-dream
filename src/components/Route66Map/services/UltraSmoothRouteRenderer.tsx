@@ -55,14 +55,18 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
         state: santaMonicaInRoute.state,
         sequence_order: santaMonicaInRoute.sequence_order,
         position: majorStops.findIndex(s => s.id === santaMonicaInRoute.id) + 1,
-        totalMajorStops: majorStops.length
+        totalMajorStops: majorStops.length,
+        coordinates: {
+          latitude: santaMonicaInRoute.latitude,
+          longitude: santaMonicaInRoute.longitude
+        }
       });
     } else {
       console.log(`❌ SANTA MONICA NOT IN ROUTE RENDERING - this is the problem!`);
     }
 
-    // Log major stops for route rendering
-    console.log(`🛣️ Major stops for route rendering:`, majorStops.map((stop, index) => `${index + 1}. ${stop.name} (${stop.state}) - Seq: ${stop.sequence_order}`));
+    // Log major stops for route rendering with coordinates
+    console.log(`🛣️ Major stops for route rendering:`, majorStops.map((stop, index) => `${index + 1}. ${stop.name} (${stop.state}) - Seq: ${stop.sequence_order} - Coords: [${stop.latitude}, ${stop.longitude}]`));
 
     if (majorStops.length < 2) {
       console.warn('⚠️ Not enough major stops for route rendering');
@@ -82,12 +86,35 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
       .then(() => {
         setIsRouteRendered(true);
         console.log('✅ Idealized Route 66 rendering completed with Santa Monica as final destination');
+        
+        // Check map bounds after route creation
+        setTimeout(() => {
+          const bounds = map.getBounds();
+          if (bounds && santaMonicaInRoute) {
+            const santaMonicaLatLng = new google.maps.LatLng(
+              santaMonicaInRoute.latitude, 
+              santaMonicaInRoute.longitude
+            );
+            const isInBounds = bounds.contains(santaMonicaLatLng);
+            console.log(`🗺️ SANTA MONICA BOUNDS CHECK:`, {
+              mapBounds: bounds.toJSON(),
+              santaMonicaCoords: santaMonicaLatLng.toJSON(),
+              isInCurrentBounds: isInBounds,
+              mapCenter: map.getCenter()?.toJSON(),
+              mapZoom: map.getZoom()
+            });
+            
+            if (!isInBounds) {
+              console.log('⚠️ SANTA MONICA IS OUTSIDE CURRENT MAP BOUNDS - this might be why it\'s not visible');
+            }
+          }
+        }, 2000);
       })
       .catch(error => {
         console.error('❌ Error rendering idealized Route 66:', error);
       });
 
-  }, [routeRenderer, waypoints, isLoading, isRouteRendered]);
+  }, [routeRenderer, waypoints, isLoading, isRouteRendered, map]);
 
   // Log current status with enhanced debugging
   useEffect(() => {
@@ -110,7 +137,8 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
         name: w.name,
         state: w.state,
         isMajor: w.is_major_stop,
-        sequence: w.sequence_order
+        sequence: w.sequence_order,
+        coords: [w.latitude, w.longitude]
       })));
       
       const santaMonica = waypoints.find(w => w.name.toLowerCase().includes('santa monica'));
@@ -120,6 +148,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
           name: santaMonica.name,
           isMajorStop: santaMonica.is_major_stop,
           sequenceOrder: santaMonica.sequence_order,
+          coordinates: [santaMonica.latitude, santaMonica.longitude],
           shouldBeInRoute: santaMonica.is_major_stop === true
         });
       } else {
