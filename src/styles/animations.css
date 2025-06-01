@@ -57,16 +57,16 @@
 
 @keyframes jiggle {
   0%, 100% { 
-    transform: rotate(0deg) scale(1.1);
+    transform: rotate(0deg);
   }
   25% { 
-    transform: rotate(1deg) scale(1.1);
+    transform: rotate(1deg);
   }
   50% { 
-    transform: rotate(-1deg) scale(1.1);
+    transform: rotate(-1deg);
   }
   75% { 
-    transform: rotate(0.5deg) scale(1.1);
+    transform: rotate(0.5deg);
   }
 }
 

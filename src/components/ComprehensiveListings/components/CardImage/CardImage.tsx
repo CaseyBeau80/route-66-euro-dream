@@ -58,7 +58,7 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
       <img 
         src={imageUrl}
         alt={item.name} 
-        className="w-full h-full object-cover cursor-pointer select-none transition-all duration-300 ease-in-out group-hover:animate-jiggle"
+        className="w-full h-full object-cover cursor-pointer select-none transition-all duration-300 ease-in-out hover:scale-110 hover:animate-jiggle"
         onError={handleImageError}
         onClick={onImageClick}
         loading="lazy"
