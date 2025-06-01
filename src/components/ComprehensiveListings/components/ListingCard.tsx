@@ -29,13 +29,22 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     console.log(`🖼️ No database image for ${item.name}, using category fallback`);
   }
 
-  // Create image element with optional website wrapper
+  // Handle image click - open website in new tab
+  const handleImageClick = (e: React.MouseEvent) => {
+    if (item.website) {
+      e.preventDefault();
+      window.open(item.website, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Create image element with click handler
   const imageElement = (
     <img 
       src={imageUrl}
       alt={item.name} 
-      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
       onError={handleImageError}
+      onClick={handleImageClick}
       loading="lazy"
     />
   );
@@ -43,18 +52,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
       <div className="relative h-48 overflow-hidden">
-        {item.website ? (
-          <a 
-            href={item.website} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block w-full h-full cursor-pointer"
-          >
-            {imageElement}
-          </a>
-        ) : (
-          imageElement
-        )}
+        {imageElement}
         
         {item.featured && (
           <div className="absolute top-3 right-3">
@@ -66,7 +64,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
         )}
         
         {item.website && (
-          <div className="absolute bottom-3 right-3 opacity-0 hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-3 right-3 opacity-70 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <div className="bg-black/70 text-white p-2 rounded-full">
               <ExternalLink size={16} />
             </div>
