@@ -1,0 +1,36 @@
+
+/* Custom Tailwind Utility Extensions */
+
+/* Remove duplicate Route 66 variables since they're already in variables.css */
+
+/* Duplicate utility classes removed - they're already in utilities.css */
+
+/* Keep only Tailwind-specific animations that extend the framework */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slow-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slow-pulse {
+  animation: slow-pulse 3s ease-in-out infinite;
+}
