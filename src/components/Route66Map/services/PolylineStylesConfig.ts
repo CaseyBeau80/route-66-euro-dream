@@ -15,7 +15,7 @@ export class PolylineStylesConfig {
     };
   }
 
-  // Bright yellow center line for authentic Route 66 look
+  // FIXED: Dashed yellow center line for authentic Route 66 look
   static getCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
@@ -26,7 +26,19 @@ export class PolylineStylesConfig {
       draggable: false,
       editable: false,
       visible: true,
-      zIndex: 100
+      zIndex: 100,
+      // DASHED PATTERN for authentic road stripe
+      icons: [{
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1,
+          strokeColor: '#FFD700',
+          strokeWeight: 3,
+          scale: 4
+        },
+        offset: '0',
+        repeat: '20px'
+      }]
     };
   }
 
@@ -78,7 +90,7 @@ export class PolylineStylesConfig {
     };
   }
 
-  // ENHANCED: Bright center line with solid stroke for maximum visibility
+  // ENHANCED: Dashed center line with solid stroke for maximum visibility
   static getIdealizedCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
@@ -89,7 +101,19 @@ export class PolylineStylesConfig {
       draggable: false,
       editable: false,
       visible: true,
-      zIndex: 100
+      zIndex: 100,
+      // DASHED PATTERN for authentic road appearance
+      icons: [{
+        icon: {
+          path: 'M 0,-1 0,1',
+          strokeOpacity: 1,
+          strokeColor: '#FFD700',
+          strokeWeight: 4,
+          scale: 5
+        },
+        offset: '0',
+        repeat: '25px'
+      }]
     };
   }
 }

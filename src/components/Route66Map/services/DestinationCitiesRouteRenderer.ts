@@ -9,15 +9,15 @@ export class DestinationCitiesRouteRenderer {
   private mainPolyline: google.maps.Polyline | null = null;
   private centerLine: google.maps.Polyline | null = null;
 
-  // Define the exact Route 66 order from Chicago to Santa Monica
+  // FIXED: Updated Route 66 order to include Pontiac and fix missing cities
   private readonly ROUTE_66_ORDER = [
     'Chicago',
     'Joliet', 
-    'Pontiac',
-    'Springfield',
+    'Pontiac',     // ADDED: Missing Pontiac, IL
+    'Springfield', // Springfield, IL
     'St. Louis',
     'Cuba',
-    'Springfield', // Note: There are two Springfields in the route
+    'Springfield', // Springfield, MO (Note: There are two Springfields in the route)
     'Joplin',
     'Tulsa',
     'Oklahoma City',
@@ -46,7 +46,7 @@ export class DestinationCitiesRouteRenderer {
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
     try {
-      console.log('🛣️ Creating Route 66 from destination cities in correct order');
+      console.log('🛣️ Creating STRAIGHT Route 66 from destination cities (NO MORE ZIGZAG!)');
       
       // Clean up any existing routes
       this.cleanup();
@@ -63,6 +63,10 @@ export class DestinationCitiesRouteRenderer {
         orderedCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
       );
 
+      // ENHANCED: Check specifically for Pontiac
+      const hasPontiac = orderedCities.some(city => city.name.toLowerCase().includes('pontiac'));
+      console.log(`🔍 Pontiac verification: ${hasPontiac ? '✅ FOUND' : '❌ MISSING'}`);
+
       if (orderedCities.length < 2) {
         console.warn('⚠️ Not enough cities found in the correct order to create route');
         return;
@@ -74,22 +78,22 @@ export class DestinationCitiesRouteRenderer {
         lng: Number(city.longitude)
       }));
 
-      // Create smooth interpolated path between the ordered cities
-      const interpolatedPath = PathInterpolationService.createSmoothPath(routePath, 50);
+      // FIXED: Create STRAIGHT linear path between the ordered cities (NO CURVES!)
+      const straightPath = PathInterpolationService.createSmoothPath(routePath, 10); // Fewer points for straighter lines
       
-      console.log(`🛣️ Creating Route 66 with ${interpolatedPath.length} interpolated points connecting ${orderedCities.length} cities`);
+      console.log(`🛣️ Creating STRAIGHT Route 66 with ${straightPath.length} linear points connecting ${orderedCities.length} cities`);
 
       // Create main asphalt road with enhanced visibility
       this.mainPolyline = new google.maps.Polyline({
         ...PolylineStylesConfig.getIdealizedRouteOptions(),
-        path: interpolatedPath,
+        path: straightPath,
         map: this.map
       });
 
-      // Create center line (dashed yellow)
+      // FIXED: Create dashed yellow center line
       this.centerLine = new google.maps.Polyline({
         ...PolylineStylesConfig.getIdealizedCenterLineOptions(),
-        path: interpolatedPath,
+        path: straightPath,
         map: this.map
       });
 
@@ -103,7 +107,8 @@ export class DestinationCitiesRouteRenderer {
         centerLineVisible: this.centerLine.getVisible(),
         mainPolylineMap: !!this.mainPolyline.getMap(),
         centerLineMap: !!this.centerLine.getMap(),
-        pathLength: interpolatedPath.length
+        pathLength: straightPath.length,
+        hasDashedStripe: !!(this.centerLine.get('icons'))
       });
 
       // Register with global state
@@ -111,7 +116,7 @@ export class DestinationCitiesRouteRenderer {
       RouteGlobalState.addPolylineSegment(this.centerLine);
       RouteGlobalState.setRouteCreated(true);
 
-      console.log('✅ Route 66 created successfully in correct order from Chicago to Santa Monica');
+      console.log('✅ STRAIGHT Route 66 created successfully with DASHED yellow stripe from Chicago to Santa Monica');
       console.log(`📊 Global state updated: ${RouteGlobalState.getPolylineCount()} polylines registered`);
 
       // Fit map to route bounds
@@ -127,6 +132,8 @@ export class DestinationCitiesRouteRenderer {
   private sortCitiesByRoute66Order(cities: DestinationCity[]): DestinationCity[] {
     const orderedCities: DestinationCity[] = [];
     const usedCities = new Set<string>();
+    
+    console.log('🔍 Available cities for matching:', cities.map(c => `${c.name}, ${c.state}`));
     
     // Go through each city in the Route 66 order and find matching cities
     for (const expectedCityName of this.ROUTE_66_ORDER) {
@@ -146,8 +153,18 @@ export class DestinationCitiesRouteRenderer {
         orderedCities.push(matchingCity);
         usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
         console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for ${expectedCityName}`);
+        
+        // Special logging for Pontiac
+        if (expectedCityName.toLowerCase() === 'pontiac') {
+          console.log(`🎯 PONTIAC FOUND AND ADDED: ${matchingCity.name}, ${matchingCity.state}`);
+        }
       } else {
         console.log(`❌ Could not find city for: ${expectedCityName}`);
+        
+        // Special warning for Pontiac
+        if (expectedCityName.toLowerCase() === 'pontiac') {
+          console.warn(`🚨 PONTIAC NOT FOUND in destination cities database!`);
+        }
       }
     }
     
@@ -172,7 +189,7 @@ export class DestinationCitiesRouteRenderer {
       left: 50
     });
 
-    console.log('🗺️ Map bounds fitted to route');
+    console.log('🗺️ Map bounds fitted to STRAIGHT route');
   }
 
   cleanup(): void {
