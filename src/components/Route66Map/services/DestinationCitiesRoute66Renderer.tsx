@@ -17,94 +17,84 @@ const DestinationCitiesRoute66Renderer: React.FC<DestinationCitiesRoute66Rendere
   const [routeRenderer, setRouteRenderer] = useState<DestinationCitiesRouteRenderer | null>(null);
   const [isRouteRendered, setIsRouteRendered] = useState(false);
 
-  // Initialize route renderer
+  // Initialize route renderer only once
   useEffect(() => {
-    if (!isMapReady || !map) return;
+    if (!isMapReady || !map || routeRenderer) return;
 
+    console.log('🛣️ Initializing DestinationCitiesRouteRenderer');
     const renderer = new DestinationCitiesRouteRenderer(map);
     setRouteRenderer(renderer);
 
     return () => {
-      // Cleanup on unmount
-      RouteGlobalState.clearAll();
+      console.log('🧹 Cleaning up route renderer on unmount');
+      if (renderer) {
+        renderer.cleanup();
+      }
     };
-  }, [map, isMapReady]);
+  }, [map, isMapReady, routeRenderer]);
 
   // Render the route when data is ready
   useEffect(() => {
-    if (!routeRenderer || !destinationCities.length || isLoading || isRouteRendered) return;
-
-    console.log('🛣️ DestinationCitiesRoute66Renderer: Starting Route 66 rendering with destination cities');
-
-    console.log(`🏛️ Destination cities analysis:`, {
-      totalCities: destinationCities.length,
-      citiesByState: destinationCities.reduce((acc, city) => {
-        acc[city.state] = (acc[city.state] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    });
-
-    // Check for key cities
-    const santaMonica = destinationCities.find(city => city.name.toLowerCase().includes('santa monica'));
-    const chicago = destinationCities.find(city => city.name.toLowerCase().includes('chicago'));
-    
-    if (santaMonica) {
-      console.log(`🎯 SANTA MONICA FOUND in destination cities!`, {
-        name: santaMonica.name,
-        state: santaMonica.state,
-        coordinates: [santaMonica.latitude, santaMonica.longitude]
-      });
-    }
-    
-    if (chicago) {
-      console.log(`🏁 CHICAGO FOUND in destination cities!`, {
-        name: chicago.name,
-        state: chicago.state,
-        coordinates: [chicago.latitude, chicago.longitude]
-      });
-    }
-
-    if (destinationCities.length < 2) {
-      console.warn('⚠️ Not enough destination cities for route rendering');
+    if (!routeRenderer || !destinationCities.length || isLoading || isRouteRendered) {
       return;
     }
 
-    console.log(`🛣️ Rendering Route 66 with ${destinationCities.length} destination cities`);
+    console.log('🛣️ Starting Route 66 rendering with destination cities');
+    console.log(`🏛️ Found ${destinationCities.length} destination cities for route creation`);
+
+    // Check for key cities to ensure we have proper endpoints
+    const chicago = destinationCities.find(city => city.name.toLowerCase().includes('chicago'));
+    const santaMonica = destinationCities.find(city => city.name.toLowerCase().includes('santa monica'));
+    
+    if (!chicago || !santaMonica) {
+      console.error('❌ Missing key endpoint cities (Chicago or Santa Monica)');
+      return;
+    }
+
+    console.log('🏁 Route endpoints confirmed:', {
+      start: `${chicago.name}, ${chicago.state}`,
+      end: `${santaMonica.name}, ${santaMonica.state}`
+    });
 
     // Create the route
     routeRenderer.createRoute66FromDestinations(destinationCities)
       .then(() => {
+        console.log('✅ Destination cities Route 66 created successfully');
         setIsRouteRendered(true);
-        console.log('✅ Destination cities Route 66 rendering completed');
+        
+        // Verify polylines were created
+        const polylineCount = RouteGlobalState.getPolylineCount();
+        console.log(`🔍 Route verification: ${polylineCount} polyline segments created`);
+        
+        if (polylineCount === 0) {
+          console.error('❌ No polylines were created despite successful route creation');
+        }
       })
       .catch(error => {
-        console.error('❌ Error rendering destination cities Route 66:', error);
+        console.error('❌ Error creating destination cities Route 66:', error);
+        setIsRouteRendered(false);
       });
 
   }, [routeRenderer, destinationCities, isLoading, isRouteRendered]);
 
-  // Log current status
+  // Enhanced status logging
   useEffect(() => {
-    if (!isMapReady) return;
-
     const polylineCount = RouteGlobalState.getPolylineCount();
     
-    console.log('📊 Destination cities route rendering status:', {
+    console.log('📊 Enhanced route status:', {
       isMapReady,
+      hasRouteRenderer: !!routeRenderer,
       citiesLoaded: destinationCities.length,
       isLoading,
       isRouteRendered,
-      polylineSegments: polylineCount
+      polylineSegments: polylineCount,
+      routeGlobalStateCreated: RouteGlobalState.isRouteCreated()
     });
 
-    if (destinationCities.length > 0) {
-      console.log('🏛️ Destination cities summary:', destinationCities.map(city => ({
-        name: city.name,
-        state: city.state,
-        coords: [city.latitude, city.longitude]
-      })));
+    if (isRouteRendered && polylineCount === 0) {
+      console.warn('⚠️ Route marked as rendered but no polylines found in global state');
     }
-  }, [isMapReady, destinationCities.length, isLoading, isRouteRendered]);
+  }, [isMapReady, routeRenderer, destinationCities.length, isLoading, isRouteRendered]);
 
   return null;
 };

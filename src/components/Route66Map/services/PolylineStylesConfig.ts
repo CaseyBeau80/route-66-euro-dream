@@ -63,13 +63,13 @@ export class PolylineStylesConfig {
     }
   }
 
-  // NEW: Enhanced destination cities route styling with authentic asphalt look
+  // ENHANCED: Maximum visibility destination cities route styling
   static getIdealizedRouteOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
-      strokeColor: '#2C1810', // Authentic dark asphalt color
-      strokeOpacity: 0.95,
-      strokeWeight: 12, // Slightly thicker for prominence
+      strokeColor: '#1a1a1a', // Very dark for maximum contrast
+      strokeOpacity: 1.0, // Full opacity
+      strokeWeight: 14, // Thicker for better visibility
       clickable: false,
       draggable: false,
       editable: false,
@@ -78,29 +78,18 @@ export class PolylineStylesConfig {
     };
   }
 
-  // NEW: Enhanced center line for destination cities route with dashed effect
+  // ENHANCED: Bright center line with solid stroke for maximum visibility
   static getIdealizedCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
-      strokeColor: '#FFD700', // Classic Route 66 yellow
-      strokeOpacity: 0, // Set to 0 so we can use icons for dashes
-      strokeWeight: 0,
+      strokeColor: '#FFD700', // Bright gold yellow
+      strokeOpacity: 1.0, // Full opacity
+      strokeWeight: 4, // Thicker for visibility
       clickable: false,
       draggable: false,
       editable: false,
       visible: true,
-      zIndex: 100,
-      icons: [{
-        icon: {
-          path: 'M 0,-1 0,1',
-          strokeOpacity: 1,
-          strokeColor: '#FFD700',
-          strokeWeight: 4,
-          scale: 1
-        },
-        offset: '0%',
-        repeat: '40px'
-      }]
+      zIndex: 100
     };
   }
 }

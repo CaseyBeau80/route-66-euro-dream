@@ -75,11 +75,11 @@ export class DestinationCitiesRouteRenderer {
       }));
 
       // Create smooth interpolated path between the ordered cities
-      const interpolatedPath = PathInterpolationService.createSmoothPath(routePath, 30);
+      const interpolatedPath = PathInterpolationService.createSmoothPath(routePath, 50);
       
       console.log(`🛣️ Creating Route 66 with ${interpolatedPath.length} interpolated points connecting ${orderedCities.length} cities`);
 
-      // Create main asphalt road
+      // Create main asphalt road with enhanced visibility
       this.mainPolyline = new google.maps.Polyline({
         ...PolylineStylesConfig.getIdealizedRouteOptions(),
         path: interpolatedPath,
@@ -93,29 +93,48 @@ export class DestinationCitiesRouteRenderer {
         map: this.map
       });
 
+      // Verify polylines were created and are visible
+      if (!this.mainPolyline || !this.centerLine) {
+        throw new Error('Failed to create polylines');
+      }
+
+      console.log('🔍 Polyline verification:', {
+        mainPolylineVisible: this.mainPolyline.getVisible(),
+        centerLineVisible: this.centerLine.getVisible(),
+        mainPolylineMap: !!this.mainPolyline.getMap(),
+        centerLineMap: !!this.centerLine.getMap(),
+        pathLength: interpolatedPath.length
+      });
+
       // Register with global state
       RouteGlobalState.addPolylineSegment(this.mainPolyline);
       RouteGlobalState.addPolylineSegment(this.centerLine);
       RouteGlobalState.setRouteCreated(true);
 
       console.log('✅ Route 66 created successfully in correct order from Chicago to Santa Monica');
+      console.log(`📊 Global state updated: ${RouteGlobalState.getPolylineCount()} polylines registered`);
 
       // Fit map to route bounds
       this.fitMapToBounds(routePath);
 
     } catch (error) {
       console.error('❌ Error creating Route 66 from destination cities:', error);
+      this.cleanup(); // Clean up on error
       throw error;
     }
   }
 
   private sortCitiesByRoute66Order(cities: DestinationCity[]): DestinationCity[] {
     const orderedCities: DestinationCity[] = [];
+    const usedCities = new Set<string>();
     
     // Go through each city in the Route 66 order and find matching cities
     for (const expectedCityName of this.ROUTE_66_ORDER) {
       // Find matching city (case insensitive, partial match)
       const matchingCity = cities.find(city => {
+        const cityKey = `${city.name}-${city.state}`;
+        if (usedCities.has(cityKey)) return false; // Skip already used cities
+        
         const cityName = city.name.toLowerCase();
         const expectedName = expectedCityName.toLowerCase();
         
@@ -125,6 +144,7 @@ export class DestinationCitiesRouteRenderer {
       
       if (matchingCity) {
         orderedCities.push(matchingCity);
+        usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
         console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for ${expectedCityName}`);
       } else {
         console.log(`❌ Could not find city for: ${expectedCityName}`);
@@ -151,6 +171,8 @@ export class DestinationCitiesRouteRenderer {
       bottom: 50,
       left: 50
     });
+
+    console.log('🗺️ Map bounds fitted to route');
   }
 
   cleanup(): void {
