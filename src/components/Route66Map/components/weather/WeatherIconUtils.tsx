@@ -65,54 +65,17 @@ export const WeatherIcon: React.FC<WeatherIconProps> = ({
   size = 40,
   className = ""
 }) => {
-  const [useImage, setUseImage] = React.useState(true);
-  const [imageLoaded, setImageLoaded] = React.useState(false);
-  
-  const weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
   const FallbackIcon = getFallbackIcon(iconCode);
 
-  const handleImageLoad = () => {
-    console.log(`✅ Weather icon loaded successfully: ${iconCode}`);
-    setImageLoaded(true);
-  };
+  console.log(`🌤️ WeatherIcon: Rendering icon for code ${iconCode} with fallback`);
 
-  const handleImageError = () => {
-    console.warn(`⚠️ Weather icon failed to load: ${iconCode}, using fallback`);
-    setUseImage(false);
-  };
-
-  // If we should use fallback or image hasn't loaded yet, show fallback
-  if (!useImage || !imageLoaded) {
-    return (
-      <div className={`flex items-center justify-center ${className}`}>
-        <FallbackIcon 
-          size={size} 
-          className="text-blue-600" 
-          aria-label={description}
-        />
-        {/* Try to load the image in the background only if we haven't given up on it */}
-        {useImage && (
-          <img
-            src={weatherIconUrl}
-            alt={description}
-            className="hidden"
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Show the actual weather icon when loaded successfully
+  // Always use the fallback Lucide icons for consistent, colorful display
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <img 
-        src={weatherIconUrl}
-        alt={description}
-        width={size}
-        height={size}
-        onError={handleImageError}
+      <FallbackIcon 
+        size={size} 
+        className="text-blue-600" 
+        aria-label={description}
       />
     </div>
   );
