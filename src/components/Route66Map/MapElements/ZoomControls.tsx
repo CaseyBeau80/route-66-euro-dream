@@ -20,31 +20,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Enhanced debugging for component lifecycle
-  React.useEffect(() => {
-    console.log('🎮 ZoomControls MOUNTED with handlers:', {
-      onZoomIn: typeof onZoomIn,
-      onZoomOut: typeof onZoomOut,
-      currentZoom,
-      disabled,
-      timestamp: new Date().toISOString()
-    });
-
-    return () => {
-      console.log('🎮 ZoomControls UNMOUNTING at:', new Date().toISOString());
-    };
-  }, []);
-
-  // Track handler changes
-  React.useEffect(() => {
-    console.log('🔄 ZoomControls handlers changed:', {
-      onZoomInType: typeof onZoomIn,
-      onZoomOutType: typeof onZoomOut,
-      areHandlersValid: typeof onZoomIn === 'function' && typeof onZoomOut === 'function'
-    });
-  }, [onZoomIn, onZoomOut]);
-
-  // Stabilized click handlers with enhanced error handling
+  // Stabilized click handlers with immediate execution
   const handleZoomInClick = React.useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -53,9 +29,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       disabled,
       currentZoom,
       maxZoom,
-      canZoomIn: currentZoom < maxZoom,
-      handlerType: typeof onZoomIn,
-      timestamp: new Date().toISOString()
+      canZoomIn: currentZoom < maxZoom
     });
 
     if (disabled || currentZoom >= maxZoom) {
@@ -83,9 +57,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       disabled,
       currentZoom,
       minZoom,
-      canZoomOut: currentZoom > minZoom,
-      handlerType: typeof onZoomOut,
-      timestamp: new Date().toISOString()
+      canZoomOut: currentZoom > minZoom
     });
 
     if (disabled || currentZoom <= minZoom) {
@@ -105,67 +77,46 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     }
   }, [onZoomOut, disabled, currentZoom, minZoom]);
 
-  // Enhanced state logging
-  React.useEffect(() => {
-    console.log('🎮 ZoomControls state update:', {
-      currentZoom,
-      minZoom,
-      maxZoom,
-      disabled,
-      canZoomIn: currentZoom < maxZoom && !disabled,
-      canZoomOut: currentZoom > minZoom && !disabled,
-      handlersValid: typeof onZoomIn === 'function' && typeof onZoomOut === 'function'
-    });
-  }, [currentZoom, minZoom, maxZoom, disabled, onZoomIn, onZoomOut]);
+  // Check if buttons should be disabled
+  const isZoomInDisabled = disabled || currentZoom >= maxZoom;
+  const isZoomOutDisabled = disabled || currentZoom <= minZoom;
 
   // Format zoom level for display
-  const zoomPercentage = Math.round(currentZoom * 100);
+  const zoomPercentage = Math.round(currentZoom * 10);
   
-  // Enhanced click area with visual feedback
+  console.log('🎮 ZoomControls render:', {
+    currentZoom,
+    isZoomInDisabled,
+    isZoomOutDisabled,
+    zoomPercentage
+  });
+
   return (
     <div className="flex flex-col gap-2 bg-white/95 p-3 rounded-lg shadow-lg backdrop-blur-sm border border-gray-200 pointer-events-auto">
       <Button
         variant="outline"
         size="sm"
         onClick={handleZoomInClick}
-        onMouseDown={(e) => {
-          console.log('🖱️ Zoom IN mousedown detected');
-          e.preventDefault();
-        }}
-        disabled={disabled || currentZoom >= maxZoom}
+        disabled={isZoomInDisabled}
         title={`Zoom in (Current: ${currentZoom.toFixed(1)})`}
-        className="w-12 h-12 p-0 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 border-2 border-gray-300 hover:border-blue-400 active:border-blue-600 active:scale-95"
+        className="w-12 h-12 p-0 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 border-2 border-gray-300 hover:border-blue-400 active:border-blue-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         type="button"
-        style={{ 
-          cursor: disabled || currentZoom >= maxZoom ? 'not-allowed' : 'pointer',
-          minHeight: '48px',
-          minWidth: '48px'
-        }}
       >
         <ZoomIn className="h-6 w-6" />
       </Button>
       
       <div className="text-xs text-center font-bold py-2 px-3 bg-gray-50 rounded border min-h-[32px] flex items-center justify-center">
-        {zoomPercentage}%
+        {zoomPercentage}
       </div>
       
       <Button
         variant="outline"
         size="sm"
         onClick={handleZoomOutClick}
-        onMouseDown={(e) => {
-          console.log('🖱️ Zoom OUT mousedown detected');
-          e.preventDefault();
-        }}
-        disabled={disabled || currentZoom <= minZoom}
+        disabled={isZoomOutDisabled}
         title={`Zoom out (Current: ${currentZoom.toFixed(1)})`}
-        className="w-12 h-12 p-0 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 border-2 border-gray-300 hover:border-blue-400 active:border-blue-600 active:scale-95"
+        className="w-12 h-12 p-0 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 border-2 border-gray-300 hover:border-blue-400 active:border-blue-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         type="button"
-        style={{ 
-          cursor: disabled || currentZoom <= minZoom ? 'not-allowed' : 'pointer',
-          minHeight: '48px',
-          minWidth: '48px'
-        }}
       >
         <ZoomOut className="h-6 w-6" />
       </Button>

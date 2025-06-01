@@ -13,59 +13,59 @@ const ZoomControlsOverlay: React.FC<ZoomControlsOverlayProps> = ({
 }) => {
   // Enhanced state tracking for debugging
   const [isMapStable, setIsMapStable] = React.useState(false);
-  const [mapRefChangeCount, setMapRefChangeCount] = React.useState(0);
+  const [currentZoom, setCurrentZoom] = React.useState(5);
 
-  // Track mapRef stability
+  // Track mapRef stability and zoom changes
   React.useEffect(() => {
     const hasValidMap = !!(mapRef?.current && typeof mapRef.current.getZoom === 'function');
     setIsMapStable(hasValidMap);
     
-    console.log('🗺️ ZoomControlsOverlay mapRef status:', {
-      hasMapRef: !!mapRef,
-      hasCurrentMap: !!mapRef?.current,
-      hasZoomMethod: !!(mapRef?.current && typeof mapRef.current.getZoom === 'function'),
-      isMapReady,
-      isMapStable: hasValidMap,
-      changeCount: mapRefChangeCount
-    });
+    // Update current zoom when map changes
+    if (hasValidMap) {
+      try {
+        const zoom = mapRef.current.getZoom();
+        setCurrentZoom(zoom || 5);
+        
+        // Add zoom change listener
+        const zoomListener = mapRef.current.addListener('zoom_changed', () => {
+          const newZoom = mapRef.current?.getZoom();
+          if (newZoom !== undefined) {
+            setCurrentZoom(newZoom);
+          }
+        });
 
-    if (mapRef?.current) {
-      setMapRefChangeCount(prev => prev + 1);
+        return () => {
+          if (zoomListener) {
+            zoomListener.remove();
+          }
+        };
+      } catch (error) {
+        console.error('❌ Error setting up zoom listener:', error);
+      }
     }
   }, [mapRef?.current, isMapReady]);
 
-  // Stabilized zoom handlers with enhanced error handling and retry logic
+  // Improved zoom handlers with better error handling
   const handleZoomIn = React.useCallback(() => {
-    console.log('🔍 Zoom in handler called - starting validation');
+    console.log('🔍 Zoom in button clicked');
     
     if (!mapRef?.current) {
       console.error('❌ Map reference not available for zoom in');
       return;
     }
     
-    if (typeof mapRef.current.getZoom !== 'function') {
-      console.error('❌ Map zoom methods not available');
-      return;
-    }
-    
     try {
-      const currentZoom = mapRef.current.getZoom();
-      console.log('🔍 Current zoom level before zoom in:', currentZoom);
-      
-      if (currentZoom !== undefined && currentZoom !== null) {
-        const newZoom = Math.min(currentZoom + 1, 18);
-        console.log('🔍 Setting new zoom level to:', newZoom);
+      const currentZoomLevel = mapRef.current.getZoom();
+      if (currentZoomLevel !== undefined && currentZoomLevel !== null) {
+        const newZoom = Math.min(currentZoomLevel + 1, 18);
+        console.log(`🔍 Zooming in from ${currentZoomLevel} to ${newZoom}`);
         
         mapRef.current.setZoom(newZoom);
+        setCurrentZoom(newZoom);
         
-        setTimeout(() => {
-          const verifyZoom = mapRef.current?.getZoom();
-          console.log('✅ Zoom verification - New zoom level:', verifyZoom);
-        }, 100);
-        
-        console.log('✅ Zoom in completed successfully to level:', newZoom);
+        console.log('✅ Zoom in completed successfully');
       } else {
-        console.error('❌ Could not get valid current zoom level:', currentZoom);
+        console.error('❌ Could not get current zoom level');
       }
     } catch (error) {
       console.error('❌ Error during zoom in operation:', error);
@@ -73,60 +73,41 @@ const ZoomControlsOverlay: React.FC<ZoomControlsOverlayProps> = ({
   }, [mapRef]);
 
   const handleZoomOut = React.useCallback(() => {
-    console.log('🔍 Zoom out handler called - starting validation');
+    console.log('🔍 Zoom out button clicked');
     
     if (!mapRef?.current) {
       console.error('❌ Map reference not available for zoom out');
       return;
     }
     
-    if (typeof mapRef.current.getZoom !== 'function') {
-      console.error('❌ Map zoom methods not available');
-      return;
-    }
-    
     try {
-      const currentZoom = mapRef.current.getZoom();
-      console.log('🔍 Current zoom level before zoom out:', currentZoom);
-      
-      if (currentZoom !== undefined && currentZoom !== null) {
-        const newZoom = Math.max(currentZoom - 1, 3);
-        console.log('🔍 Setting new zoom level to:', newZoom);
+      const currentZoomLevel = mapRef.current.getZoom();
+      if (currentZoomLevel !== undefined && currentZoomLevel !== null) {
+        const newZoom = Math.max(currentZoomLevel - 1, 3);
+        console.log(`🔍 Zooming out from ${currentZoomLevel} to ${newZoom}`);
         
         mapRef.current.setZoom(newZoom);
+        setCurrentZoom(newZoom);
         
-        setTimeout(() => {
-          const verifyZoom = mapRef.current?.getZoom();
-          console.log('✅ Zoom verification - New zoom level:', verifyZoom);
-        }, 100);
-        
-        console.log('✅ Zoom out completed successfully to level:', newZoom);
+        console.log('✅ Zoom out completed successfully');
       } else {
-        console.error('❌ Could not get valid current zoom level:', currentZoom);
+        console.error('❌ Could not get current zoom level');
       }
     } catch (error) {
       console.error('❌ Error during zoom out operation:', error);
     }
   }, [mapRef]);
 
-  const getCurrentZoom = React.useCallback(() => {
-    if (!mapRef?.current || typeof mapRef.current.getZoom !== 'function') {
-      console.log('🔍 Map not available for getCurrentZoom, returning default');
-      return 5;
-    }
-    
-    try {
-      const zoom = mapRef.current.getZoom();
-      console.log('🔍 Getting current zoom:', zoom);
-      return zoom || 5;
-    } catch (error) {
-      console.error('❌ Error getting current zoom:', error);
-      return 5;
-    }
-  }, [mapRef]);
-
   // Determine if zoom controls should be shown
   const shouldShowZoomControls = isMapReady && isMapStable && mapRef?.current;
+
+  console.log('🎮 ZoomControlsOverlay render state:', {
+    isMapReady,
+    isMapStable,
+    shouldShowZoomControls,
+    currentZoom,
+    hasMapRef: !!mapRef?.current
+  });
 
   return (
     <div className="absolute bottom-16 left-4 z-30">
@@ -135,7 +116,7 @@ const ZoomControlsOverlay: React.FC<ZoomControlsOverlayProps> = ({
           <ZoomControls
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
-            currentZoom={getCurrentZoom()}
+            currentZoom={currentZoom}
             minZoom={3}
             maxZoom={18}
             disabled={false}
