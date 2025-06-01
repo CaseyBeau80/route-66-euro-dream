@@ -20,17 +20,40 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Format zoom level as percentage
+  // Enhanced click handlers with logging
+  const handleZoomInClick = () => {
+    console.log('🎯 ZoomControls: Zoom in button clicked');
+    onZoomIn();
+  };
+
+  const handleZoomOutClick = () => {
+    console.log('🎯 ZoomControls: Zoom out button clicked');
+    onZoomOut();
+  };
+
+  // Log current state
+  React.useEffect(() => {
+    console.log('🎮 ZoomControls state:', {
+      currentZoom,
+      minZoom,
+      maxZoom,
+      disabled,
+      canZoomIn: currentZoom < maxZoom,
+      canZoomOut: currentZoom > minZoom
+    });
+  }, [currentZoom, minZoom, maxZoom, disabled]);
+
+  // Format zoom level for display
   const zoomPercentage = Math.round(currentZoom * 100);
   
   return (
-    <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm">
+    <div className="flex flex-col gap-1 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm">
       <Button
         variant="outline"
         size="icon"
-        onClick={onZoomIn}
+        onClick={handleZoomInClick}
         disabled={disabled || currentZoom >= maxZoom}
-        title="Zoom in"
+        title={`Zoom in (Current: ${currentZoom})`}
         className="w-8 h-8 shadow-sm hover:bg-gray-100"
       >
         <ZoomIn className="h-4 w-4" />
@@ -43,9 +66,9 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       <Button
         variant="outline"
         size="icon"
-        onClick={onZoomOut}
+        onClick={handleZoomOutClick}
         disabled={disabled || currentZoom <= minZoom}
-        title="Zoom out"
+        title={`Zoom out (Current: ${currentZoom})`}
         className="w-8 h-8 shadow-sm hover:bg-gray-100"
       >
         <ZoomOut className="h-4 w-4" />

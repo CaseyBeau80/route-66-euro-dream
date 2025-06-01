@@ -22,28 +22,75 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
   onToggleRouteStats,
   mapRef
 }) => {
-  // Zoom control handlers that interface with Google Maps
+  // Enhanced zoom control handlers with better error handling and logging
   const handleZoomIn = () => {
-    if (mapRef?.current) {
-      const currentZoom = mapRef.current.getZoom() || 5;
-      const newZoom = Math.min(currentZoom + 1, 18);
-      mapRef.current.setZoom(newZoom);
-      console.log('🔍 Zoom in to:', newZoom);
+    console.log('🔍 Zoom in button clicked');
+    if (!mapRef?.current) {
+      console.error('❌ Map reference not available for zoom in');
+      return;
+    }
+    
+    try {
+      const currentZoom = mapRef.current.getZoom();
+      console.log('🔍 Current zoom level:', currentZoom);
+      
+      if (currentZoom !== undefined) {
+        const newZoom = Math.min(currentZoom + 1, 18);
+        console.log('🔍 Setting new zoom level:', newZoom);
+        mapRef.current.setZoom(newZoom);
+        console.log('✅ Zoom in completed successfully');
+      } else {
+        console.error('❌ Could not get current zoom level');
+      }
+    } catch (error) {
+      console.error('❌ Error during zoom in:', error);
     }
   };
 
   const handleZoomOut = () => {
-    if (mapRef?.current) {
-      const currentZoom = mapRef.current.getZoom() || 5;
-      const newZoom = Math.max(currentZoom - 1, 3);
-      mapRef.current.setZoom(newZoom);
-      console.log('🔍 Zoom out to:', newZoom);
+    console.log('🔍 Zoom out button clicked');
+    if (!mapRef?.current) {
+      console.error('❌ Map reference not available for zoom out');
+      return;
+    }
+    
+    try {
+      const currentZoom = mapRef.current.getZoom();
+      console.log('🔍 Current zoom level:', currentZoom);
+      
+      if (currentZoom !== undefined) {
+        const newZoom = Math.max(currentZoom - 1, 3);
+        console.log('🔍 Setting new zoom level:', newZoom);
+        mapRef.current.setZoom(newZoom);
+        console.log('✅ Zoom out completed successfully');
+      } else {
+        console.error('❌ Could not get current zoom level');
+      }
+    } catch (error) {
+      console.error('❌ Error during zoom out:', error);
     }
   };
 
   const getCurrentZoom = () => {
-    return mapRef?.current?.getZoom() || 5;
+    if (!mapRef?.current) {
+      console.log('🔍 Map not available, returning default zoom');
+      return 5;
+    }
+    
+    const zoom = mapRef.current.getZoom();
+    console.log('🔍 Getting current zoom:', zoom);
+    return zoom || 5;
   };
+
+  // Enhanced debugging for map state
+  React.useEffect(() => {
+    console.log('🗺️ MapOverlaysContainer state:', {
+      isMapReady,
+      hasMapRef: !!mapRef?.current,
+      mapType: mapRef?.current ? 'Google Maps' : 'None',
+      currentZoom: mapRef?.current?.getZoom()
+    });
+  }, [isMapReady, mapRef?.current]);
 
   return (
     <>
@@ -59,16 +106,18 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
         </div>
       )}
 
-      {/* Zoom Controls */}
+      {/* Enhanced Zoom Controls with better conditions */}
       {isMapReady && mapRef?.current && (
-        <ZoomControls
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          currentZoom={getCurrentZoom()}
-          minZoom={3}
-          maxZoom={18}
-          disabled={false}
-        />
+        <div className="absolute bottom-4 left-4 z-10">
+          <ZoomControls
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            currentZoom={getCurrentZoom()}
+            minZoom={3}
+            maxZoom={18}
+            disabled={false}
+          />
+        </div>
       )}
 
       {/* Route Statistics Overlay */}
