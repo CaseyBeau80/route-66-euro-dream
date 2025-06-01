@@ -2,91 +2,102 @@
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 export class PathInterpolationService {
-  // Catmull-Rom spline interpolation for smooth, windy curves
-  private catmullRomInterpolate(
-    p0: { lat: number; lng: number },
-    p1: { lat: number; lng: number },
-    p2: { lat: number; lng: number },
-    p3: { lat: number; lng: number },
-    t: number
-  ): { lat: number; lng: number } {
-    const t2 = t * t;
-    const t3 = t2 * t;
+  generateWindyPath(
+    start: Route66Waypoint,
+    end: Route66Waypoint,
+    prevCity?: Route66Waypoint,
+    nextCity?: Route66Waypoint
+  ): google.maps.LatLngLiteral[] {
+    const startPoint = { lat: start.latitude, lng: start.longitude };
+    const endPoint = { lat: end.latitude, lng: end.longitude };
+    
+    // Create more realistic highway curves
+    return this.generateHighwayCurve(startPoint, endPoint, prevCity, nextCity);
+  }
 
-    const lat = 0.5 * (
-      (2 * p1.lat) +
-      (-p0.lat + p2.lat) * t +
-      (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t2 +
-      (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t3
-    );
+  private generateHighwayCurve(
+    start: google.maps.LatLngLiteral,
+    end: google.maps.LatLngLiteral,
+    prevCity?: Route66Waypoint,
+    nextCity?: Route66Waypoint
+  ): google.maps.LatLngLiteral[] {
+    const points: google.maps.LatLngLiteral[] = [];
+    const numPoints = 50; // Smooth curve with many points
+    
+    // Calculate control points for highway-like curves
+    const control1 = this.calculateControlPoint(start, end, 0.25, prevCity);
+    const control2 = this.calculateControlPoint(start, end, 0.75, nextCity);
+    
+    // Generate bezier curve points
+    for (let i = 0; i <= numPoints; i++) {
+      const t = i / numPoints;
+      const point = this.cubicBezier(t, start, control1, control2, end);
+      points.push(point);
+    }
+    
+    return points;
+  }
 
-    const lng = 0.5 * (
-      (2 * p1.lng) +
-      (-p0.lng + p2.lng) * t +
-      (2 * p0.lng - 5 * p1.lng + 4 * p2.lng - p3.lng) * t2 +
-      (-p0.lng + 3 * p1.lng - 3 * p2.lng + p3.lng) * t3
+  private calculateControlPoint(
+    start: google.maps.LatLngLiteral,
+    end: google.maps.LatLngLiteral,
+    ratio: number,
+    referenceCity?: Route66Waypoint
+  ): google.maps.LatLngLiteral {
+    const baseLat = start.lat + (end.lat - start.lat) * ratio;
+    const baseLng = start.lng + (end.lng - start.lng) * ratio;
+    
+    // Add curve variation to simulate highway routing
+    let curveFactor = 0.1;
+    
+    // Adjust curve based on distance (longer segments need more curve)
+    const distance = Math.sqrt(
+      Math.pow(end.lat - start.lat, 2) + Math.pow(end.lng - start.lng, 2)
     );
+    curveFactor *= Math.min(distance * 2, 0.3);
+    
+    // Add perpendicular offset for natural highway curve
+    const perpLat = -(end.lng - start.lng) * curveFactor;
+    const perpLng = (end.lat - start.lat) * curveFactor;
+    
+    return {
+      lat: baseLat + perpLat,
+      lng: baseLng + perpLng
+    };
+  }
+
+  private cubicBezier(
+    t: number,
+    p0: google.maps.LatLngLiteral,
+    p1: google.maps.LatLngLiteral,
+    p2: google.maps.LatLngLiteral,
+    p3: google.maps.LatLngLiteral
+  ): google.maps.LatLngLiteral {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const uuu = uu * u;
+    const ttt = tt * t;
+
+    // Cubic bezier formula
+    const lat = uuu * p0.lat + 3 * uu * t * p1.lat + 3 * u * tt * p2.lat + ttt * p3.lat;
+    const lng = uuu * p0.lng + 3 * uu * t * p1.lng + 3 * u * tt * p2.lng + ttt * p3.lng;
 
     return { lat, lng };
   }
 
-  // Calculate distance between two points for adaptive interpolation
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLng = (lng2 - lng1) * (Math.PI / 180);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  // Generate windy interpolated path between two cities
-  generateWindyPath(startCity: Route66Waypoint, endCity: Route66Waypoint, prevCity?: Route66Waypoint, nextCity?: Route66Waypoint): google.maps.LatLngLiteral[] {
-    const distance = this.calculateDistance(startCity.latitude, startCity.longitude, endCity.latitude, endCity.longitude);
+  // Alternative method for highway-following interpolation
+  generateHighwayAwareInterpolation(
+    waypoints: Route66Waypoint[],
+    segmentIndex: number
+  ): google.maps.LatLngLiteral[] {
+    if (segmentIndex >= waypoints.length - 1) return [];
     
-    // More interpolation points for longer segments to create more curves
-    const interpolationSteps = Math.max(12, Math.min(25, Math.floor(distance * 3)));
+    const current = waypoints[segmentIndex];
+    const next = waypoints[segmentIndex + 1];
+    const prev = segmentIndex > 0 ? waypoints[segmentIndex - 1] : undefined;
+    const following = segmentIndex < waypoints.length - 2 ? waypoints[segmentIndex + 2] : undefined;
     
-    const path: google.maps.LatLngLiteral[] = [];
-    
-    // Use surrounding cities for better curve calculation
-    const p0 = prevCity ? { lat: prevCity.latitude, lng: prevCity.longitude } : { lat: startCity.latitude, lng: startCity.longitude };
-    const p1 = { lat: startCity.latitude, lng: startCity.longitude };
-    const p2 = { lat: endCity.latitude, lng: endCity.longitude };
-    const p3 = nextCity ? { lat: nextCity.latitude, lng: nextCity.longitude } : { lat: endCity.latitude, lng: endCity.longitude };
-
-    for (let step = 0; step <= interpolationSteps; step++) {
-      const t = step / interpolationSteps;
-      
-      let interpolatedPoint: { lat: number; lng: number };
-      
-      if (prevCity && nextCity) {
-        // Use Catmull-Rom spline for smooth, windy curves
-        interpolatedPoint = this.catmullRomInterpolate(p0, p1, p2, p3, t);
-      } else {
-        // Add some artificial curves for end segments
-        const midLat = p1.lat + (p2.lat - p1.lat) * t;
-        const midLng = p1.lng + (p2.lng - p1.lng) * t;
-        
-        // Add a slight curve perpendicular to the main direction
-        const perpOffset = Math.sin(t * Math.PI) * 0.05; // Adjust curve intensity
-        const deltaLat = p2.lat - p1.lat;
-        const deltaLng = p2.lng - p1.lng;
-        
-        interpolatedPoint = {
-          lat: midLat + (-deltaLng * perpOffset),
-          lng: midLng + (deltaLat * perpOffset)
-        };
-      }
-      
-      path.push({
-        lat: interpolatedPoint.lat,
-        lng: interpolatedPoint.lng
-      });
-    }
-    
-    return path;
+    return this.generateWindyPath(current, next, prev, following);
   }
 }
