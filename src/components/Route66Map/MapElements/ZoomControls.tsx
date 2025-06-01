@@ -19,44 +19,52 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  const handleZoomIn = React.useCallback((e: React.MouseEvent) => {
+  // Simple click handlers
+  const handleZoomIn = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('🎯 ZoomControls: Zoom IN button clicked');
+    console.log('🎯 ZoomControls: Zoom IN button clicked directly');
     
     if (disabled || currentZoom >= maxZoom) {
       console.log('⚠️ Zoom in blocked - disabled or at max zoom');
       return;
     }
 
+    console.log('🎯 ZoomControls: Calling onZoomIn');
     onZoomIn();
-  }, [disabled, currentZoom, maxZoom, onZoomIn]);
+  };
 
-  const handleZoomOut = React.useCallback((e: React.MouseEvent) => {
+  const handleZoomOut = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('🎯 ZoomControls: Zoom OUT button clicked');
+    console.log('🎯 ZoomControls: Zoom OUT button clicked directly');
     
     if (disabled || currentZoom <= minZoom) {
       console.log('⚠️ Zoom out blocked - disabled or at min zoom');
       return;
     }
 
+    console.log('🎯 ZoomControls: Calling onZoomOut');
     onZoomOut();
-  }, [disabled, currentZoom, minZoom, onZoomOut]);
+  };
 
   const isZoomInDisabled = disabled || currentZoom >= maxZoom;
   const isZoomOutDisabled = disabled || currentZoom <= minZoom;
   
-  console.log('🎮 ZoomControls render:', {
+  console.log('🎮 ZoomControls render state:', {
     currentZoom: Math.round(currentZoom * 10) / 10,
     isZoomInDisabled,
     isZoomOutDisabled,
-    disabled
+    disabled,
+    hasZoomInHandler: typeof onZoomIn === 'function',
+    hasZoomOutHandler: typeof onZoomOut === 'function'
   });
 
   return (
-    <div className="flex flex-col gap-2 bg-white/95 p-3 rounded-lg shadow-xl border border-gray-200 backdrop-blur-sm">
+    <div 
+      className="flex flex-col gap-2 bg-white/95 p-3 rounded-lg shadow-xl border border-gray-200 backdrop-blur-sm"
+      style={{ pointerEvents: 'auto' }}
+    >
       {/* Zoom In Button */}
       <button
         onClick={handleZoomIn}
@@ -64,7 +72,10 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
         className="w-12 h-12 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200 transition-colors"
         type="button"
         title={isZoomInDisabled ? 'Maximum zoom reached' : 'Zoom in'}
-        style={{ pointerEvents: 'auto' }}
+        style={{ 
+          pointerEvents: 'auto',
+          cursor: isZoomInDisabled ? 'not-allowed' : 'pointer'
+        }}
       >
         <ZoomIn className="h-6 w-6 text-gray-700" />
       </button>
@@ -81,7 +92,10 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
         className="w-12 h-12 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-200 transition-colors"
         type="button"
         title={isZoomOutDisabled ? 'Minimum zoom reached' : 'Zoom out'}
-        style={{ pointerEvents: 'auto' }}
+        style={{ 
+          pointerEvents: 'auto',
+          cursor: isZoomOutDisabled ? 'not-allowed' : 'pointer'
+        }}
       >
         <ZoomOut className="h-6 w-6 text-gray-700" />
       </button>
