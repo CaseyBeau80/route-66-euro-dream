@@ -191,7 +191,7 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
              !isMapStable ? 'Map initializing...' : 
              'Zoom controls unavailable'}
           </div>
-        )}
+        </div>
       )}
 
       {/* Route Statistics Overlay */}
