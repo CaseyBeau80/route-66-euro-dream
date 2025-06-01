@@ -73,16 +73,16 @@ const Route66Map = () => {
 
   return (
     <div className="w-full">
-      {/* Expanded map container with larger height */}
-      <div className="relative bg-white p-2 rounded-lg shadow w-full">
+      {/* Map container without white background and padding */}
+      <div className="relative w-full">
         {/* Show loading or error state */}
         {!loaded && (
           <MapLoading error={error} onRetry={handleRetry} />
         )}
         
-        {/* Show map when loaded with increased height */}
+        {/* Show map when loaded with increased height and no white container */}
         {loaded && (
-          <div className="h-[700px]">
+          <div className="h-[800px] rounded-lg overflow-hidden shadow-lg">
             <MapDisplay 
               selectedState={selectedState} 
               onStateClick={handleStateClick}
