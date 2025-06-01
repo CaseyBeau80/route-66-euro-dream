@@ -1,5 +1,7 @@
 
 import Route66Map from "../components/Route66Map";
+import { Link } from "react-router-dom";
+
 const Index = () => {
   console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme");
   return <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
@@ -47,6 +49,16 @@ const Index = () => {
             }}>
                 <div className="font-americana">ENDLESS ADVENTURE</div>
               </div>
+            </div>
+
+            {/* Trip Calculator Button */}
+            <div className="mt-8">
+              <Link 
+                to="/trip-calculator"
+                className="inline-block vintage-button px-8 py-3 text-lg font-bold"
+              >
+                PLAN YOUR TRIP
+              </Link>
             </div>
           </div>
         </div>
