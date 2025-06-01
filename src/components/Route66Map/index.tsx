@@ -15,31 +15,25 @@ const Route66Map: React.FC<Route66MapProps> = ({
   onStateClick = () => {},
   onClearSelection = () => {}
 }) => {
-  // For now, always use the React SVG map to prevent zoom control conflicts
+  // Always use the React SVG map to prevent zoom control conflicts
   const useReactMap = true;
   
-  console.log('🗺️ Route66Map: Rendering with React SVG map to prevent zoom conflicts', {
+  console.log('🗺️ Route66Map: Rendering with React SVG map', {
     selectedState,
-    useReactMap
+    useReactMap,
+    hasStateClick: !!onStateClick,
+    hasClearSelection: !!onClearSelection
   });
 
-  if (useReactMap) {
-    return (
+  // Use React SVG Map
+  return (
+    <div className="w-full h-[600px]">
       <MapRendererReact
         selectedState={selectedState}
         onStateClick={onStateClick}
         onClearSelection={onClearSelection}
       />
-    );
-  }
-
-  // Fallback to Google Maps (currently disabled to prevent conflicts)
-  return (
-    <MapDisplay
-      selectedState={selectedState}
-      onStateClick={onStateClick}
-      onClearSelection={onClearSelection}
-    />
+    </div>
   );
 };
 

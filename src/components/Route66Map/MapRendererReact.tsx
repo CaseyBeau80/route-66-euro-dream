@@ -32,8 +32,14 @@ const MapRendererReact = ({
   const ZOOM_STEP = 0.5;
   const INITIAL_ZOOM = 1;
   
+  console.log('🗺️ MapRendererReact: Starting render', {
+    selectedState,
+    route66TownsCount: route66Towns.length
+  });
+  
   // Transform the lat/lng coordinates to SVG coordinates
   const majorCities = transformTownsToSvgPoints(route66Towns);
+  console.log('🏙️ MapRendererReact: Transformed cities', { citiesCount: majorCities.length });
   
   // State to track zoom start for center capture
   const [zoomStartCallback, setZoomStartCallback] = useState<(() => void) | null>(null);
@@ -76,8 +82,15 @@ const MapRendererReact = ({
     setIsDragging(true);
   };
 
+  console.log('🎮 MapRendererReact: Rendering with zoom controls', {
+    zoom,
+    isPinching,
+    zoomActivity,
+    isDragging
+  });
+
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-[600px] bg-gray-100 rounded-lg overflow-hidden">
       {/* Route 66 Shield Badge */}
       <div className="absolute top-4 left-4 z-10">
         <Route66Badge />
