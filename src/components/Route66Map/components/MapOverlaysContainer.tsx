@@ -1,7 +1,6 @@
 
 import React from 'react';
 import ClearSelectionOverlay from './overlays/ClearSelectionOverlay';
-import ZoomControlsOverlay from './overlays/ZoomControlsOverlay';
 import RouteStatsOverlay from './overlays/RouteStatsOverlay';
 
 interface MapOverlaysContainerProps {
@@ -25,7 +24,7 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
 }) => {
   // Enhanced debugging for component state
   React.useEffect(() => {
-    console.log('🗺️ MapOverlaysContainer state update:', {
+    console.log('🗺️ MapOverlaysContainer state update (NO ZOOM CONTROLS):', {
       isMapReady,
       hasMapRef: !!mapRef?.current,
       selectedState,
@@ -41,12 +40,6 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
         selectedState={selectedState}
         onClearSelection={onClearSelection}
         isDragging={isDragging}
-      />
-
-      {/* Enhanced Zoom Controls */}
-      <ZoomControlsOverlay
-        isMapReady={isMapReady}
-        mapRef={mapRef}
       />
 
       {/* Route Statistics Overlay */}

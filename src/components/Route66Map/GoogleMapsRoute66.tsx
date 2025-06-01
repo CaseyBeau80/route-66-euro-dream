@@ -75,7 +75,7 @@ const GoogleMapsRoute66Core: React.FC<GoogleMapsRoute66CoreProps> = ({
 }) => {
   const { isDragging, mapRef, handleMapClick } = useGoogleMapsContext();
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with refactored components', {
+  console.log('🗺️ Rendering GoogleMapsRoute66 with DIRECT zoom controls in MapCore', {
     isMapReady: mapEventHandlers.isMapReady,
     selectedState,
     visibleWaypoints: visibleWaypoints.length,
@@ -84,7 +84,7 @@ const GoogleMapsRoute66Core: React.FC<GoogleMapsRoute66CoreProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Simplified overlays - only pass essential props */}
+      {/* Simplified overlays - zoom controls moved to MapCore */}
       <MapOverlaysContainer
         selectedState={selectedState}
         onClearSelection={onClearSelection}

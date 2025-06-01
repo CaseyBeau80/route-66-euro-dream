@@ -7,6 +7,7 @@ import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
+import ZoomControls from './ZoomControls';
 import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -52,7 +53,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render (SINGLE destination cities route ONLY):', {
+  console.log('🗺️ MapCore render with DIRECT zoom controls:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -71,6 +72,12 @@ const MapCore: React.FC<MapCoreProps> = ({
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         setShowScrollHint={setShowScrollHint}
+      />
+      
+      {/* Direct Zoom Controls - no overlay wrapper */}
+      <ZoomControls
+        map={mapRef.current}
+        isMapReady={isMapReady}
       />
       
       {/* Scroll Zoom Hint Overlay */}
