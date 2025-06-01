@@ -11,9 +11,16 @@ interface ListingCardProps {
 
 export const ListingCard = ({ item }: ListingCardProps) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.log(`🖼️ Image failed to load for ${item.name}, using fallback`);
     const target = e.target as HTMLImageElement;
+    const originalSrc = target.src;
     const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
+    
+    console.log(`🖼️ Image failed to load for ${item.name}:`, {
+      originalSrc,
+      fallbackUrl,
+      itemImageUrl: item.image_url,
+      category: item.category
+    });
     
     // Prevent infinite loop if fallback also fails
     if (target.src !== fallbackUrl) {
@@ -24,7 +31,15 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     }
   };
 
+  // More detailed logging for image URL selection
   const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
+  
+  console.log(`🖼️ Rendering ${item.name}:`, {
+    hasImageUrl: !!item.image_url,
+    imageUrl: item.image_url,
+    finalImageUrl: imageUrl,
+    category: item.category
+  });
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
