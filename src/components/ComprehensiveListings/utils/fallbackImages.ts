@@ -17,8 +17,8 @@ export const getFallbackImage = (
   }
   
   if (actualCategory === 'drive_ins') {
-    // Use the specified fallback image for drive-ins
-    return "/fallback_drivein.jpg";
+    // Use a reliable vintage drive-in image from Unsplash
+    return "https://images.unsplash.com/photo-1489599856804-e747b5bccadb?auto=format&fit=crop&w=600&q=80";
   }
   
   if (actualCategory === 'attractions') {

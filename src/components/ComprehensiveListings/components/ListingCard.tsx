@@ -4,39 +4,65 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Users, Calendar, Star, ExternalLink } from 'lucide-react';
 import { ListingItem } from '../types';
 import { getFallbackImage } from '../utils/fallbackImages';
+import { useState } from 'react';
 
 interface ListingCardProps {
   item: ListingItem;
 }
 
 export const ListingCard = ({ item }: ListingCardProps) => {
+  const [imageError, setImageError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
+
   console.log(`🃏 ListingCard render for ${item.name}`, { 
     category: item.category, 
     hasWebsite: !!item.website,
     website: item.website,
-    hasImage: !!item.image_url 
+    hasImage: !!item.image_url,
+    imageError,
+    fallbackError
   });
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
     const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
     
-    // Only log if we're actually switching to fallback (avoid redundant logs)
-    if (target.src !== fallbackUrl) {
-      console.log(`🖼️ Image failed to load for ${item.name}, switching to fallback`);
+    // Check if this is the first error (database image failed)
+    if (!imageError && target.src !== fallbackUrl) {
+      console.log(`🖼️ Database image failed for ${item.name}, switching to fallback: ${fallbackUrl}`);
+      setImageError(true);
       target.src = fallbackUrl;
+    } 
+    // This is the fallback image failing
+    else if (imageError && !fallbackError) {
+      console.log(`❌ Fallback image also failed for ${item.name}, using final backup`);
+      setFallbackError(true);
+      // Use a very reliable backup image
+      target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80";
     }
   };
 
-  // Always try database image first, only use fallback on error
-  const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
+  // Determine the image URL to use
+  const getImageUrl = () => {
+    if (fallbackError) {
+      return "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80";
+    }
+    if (imageError || !item.image_url) {
+      return getFallbackImage(item.name, item.description, item.category);
+    }
+    return item.image_url;
+  };
+
+  const imageUrl = getImageUrl();
   
   // Check if this is a Supabase Storage image (theater-sourced)
-  const isTheaterSourcedImage = item.image_url && item.image_url.includes('/storage/drive_ins/');
+  const isTheaterSourcedImage = item.image_url && item.image_url.includes('/storage/drive_ins/') && !imageError;
   
-  // Simplified logging - only when database image is missing
+  // Log image loading strategy
   if (!item.image_url) {
     console.log(`🖼️ No database image for ${item.name}, using category fallback`);
+  } else if (imageError) {
+    console.log(`🖼️ Using fallback image for ${item.name} due to load error`);
   }
 
   // Handle image click - open website in new tab
