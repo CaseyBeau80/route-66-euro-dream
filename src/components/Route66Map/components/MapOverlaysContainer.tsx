@@ -24,7 +24,7 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
 }) => {
   // Enhanced zoom control handlers with better error handling and logging
   const handleZoomIn = () => {
-    console.log('🔍 Zoom in button clicked');
+    console.log('🔍 Zoom in button clicked - starting zoom operation');
     if (!mapRef?.current) {
       console.error('❌ Map reference not available for zoom in');
       return;
@@ -32,13 +32,13 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
     
     try {
       const currentZoom = mapRef.current.getZoom();
-      console.log('🔍 Current zoom level:', currentZoom);
+      console.log('🔍 Current zoom level before zoom in:', currentZoom);
       
       if (currentZoom !== undefined) {
         const newZoom = Math.min(currentZoom + 1, 18);
-        console.log('🔍 Setting new zoom level:', newZoom);
+        console.log('🔍 Setting new zoom level to:', newZoom);
         mapRef.current.setZoom(newZoom);
-        console.log('✅ Zoom in completed successfully');
+        console.log('✅ Zoom in completed successfully to level:', newZoom);
       } else {
         console.error('❌ Could not get current zoom level');
       }
@@ -48,7 +48,7 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
   };
 
   const handleZoomOut = () => {
-    console.log('🔍 Zoom out button clicked');
+    console.log('🔍 Zoom out button clicked - starting zoom operation');
     if (!mapRef?.current) {
       console.error('❌ Map reference not available for zoom out');
       return;
@@ -56,13 +56,13 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
     
     try {
       const currentZoom = mapRef.current.getZoom();
-      console.log('🔍 Current zoom level:', currentZoom);
+      console.log('🔍 Current zoom level before zoom out:', currentZoom);
       
       if (currentZoom !== undefined) {
         const newZoom = Math.max(currentZoom - 1, 3);
-        console.log('🔍 Setting new zoom level:', newZoom);
+        console.log('🔍 Setting new zoom level to:', newZoom);
         mapRef.current.setZoom(newZoom);
-        console.log('✅ Zoom out completed successfully');
+        console.log('✅ Zoom out completed successfully to level:', newZoom);
       } else {
         console.error('❌ Could not get current zoom level');
       }
@@ -106,17 +106,19 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
         </div>
       )}
 
-      {/* Enhanced Zoom Controls with better conditions */}
+      {/* Enhanced Zoom Controls with better positioning and z-index */}
       {isMapReady && mapRef?.current && (
-        <div className="absolute bottom-4 left-4 z-10">
-          <ZoomControls
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            currentZoom={getCurrentZoom()}
-            minZoom={3}
-            maxZoom={18}
-            disabled={false}
-          />
+        <div className="absolute bottom-16 left-4 z-30 pointer-events-none">
+          <div className="pointer-events-auto">
+            <ZoomControls
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              currentZoom={getCurrentZoom()}
+              minZoom={3}
+              maxZoom={18}
+              disabled={false}
+            />
+          </div>
         </div>
       )}
 

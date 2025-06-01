@@ -20,14 +20,18 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   maxZoom,
   disabled = false
 }) => {
-  // Enhanced click handlers with logging
-  const handleZoomInClick = () => {
-    console.log('🎯 ZoomControls: Zoom in button clicked');
+  // Enhanced click handlers with immediate feedback
+  const handleZoomInClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('🎯 ZoomControls: Zoom in button CLICKED!');
     onZoomIn();
   };
 
-  const handleZoomOutClick = () => {
-    console.log('🎯 ZoomControls: Zoom out button clicked');
+  const handleZoomOutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('🎯 ZoomControls: Zoom out button CLICKED!');
     onZoomOut();
   };
 
@@ -47,31 +51,33 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   const zoomPercentage = Math.round(currentZoom * 100);
   
   return (
-    <div className="flex flex-col gap-1 bg-white/90 p-1.5 rounded-md shadow-md backdrop-blur-sm">
+    <div className="flex flex-col gap-2 bg-white/95 p-2 rounded-lg shadow-lg backdrop-blur-sm border border-gray-200 pointer-events-auto">
       <Button
         variant="outline"
-        size="icon"
+        size="sm"
         onClick={handleZoomInClick}
         disabled={disabled || currentZoom >= maxZoom}
         title={`Zoom in (Current: ${currentZoom})`}
-        className="w-8 h-8 shadow-sm hover:bg-gray-100"
+        className="w-10 h-10 p-0 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        type="button"
       >
-        <ZoomIn className="h-4 w-4" />
+        <ZoomIn className="h-5 w-5" />
       </Button>
       
-      <div className="text-xs text-center font-medium py-1 min-w-[40px]">
+      <div className="text-xs text-center font-bold py-1 px-2 bg-gray-50 rounded border">
         {zoomPercentage}%
       </div>
       
       <Button
         variant="outline"
-        size="icon"
+        size="sm"
         onClick={handleZoomOutClick}
         disabled={disabled || currentZoom <= minZoom}
         title={`Zoom out (Current: ${currentZoom})`}
-        className="w-8 h-8 shadow-sm hover:bg-gray-100"
+        className="w-10 h-10 p-0 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        type="button"
       >
-        <ZoomOut className="h-4 w-4" />
+        <ZoomOut className="h-5 w-5" />
       </Button>
     </div>
   );
