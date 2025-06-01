@@ -31,8 +31,22 @@ export const useSupabaseRoute66 = () => {
         }
 
         console.log(`✅ Fetched ${data.length} enhanced waypoints from Supabase`);
-        console.log(`Major stops: ${data.filter(w => w.is_major_stop).length}`);
-        console.log(`Intermediate waypoints: ${data.filter(w => !w.is_major_stop).length}`);
+        
+        // Enhanced logging for destination city analysis
+        const majorStops = data.filter(w => w.is_major_stop === true);
+        const nonMajorStops = data.filter(w => w.is_major_stop !== true);
+        
+        console.log(`🏛️ Destination cities analysis:`, {
+          totalWaypoints: data.length,
+          majorStops: majorStops.length,
+          nonMajorStops: nonMajorStops.length
+        });
+        
+        console.log(`📍 Major stops (destination cities):`, majorStops.map(stop => `${stop.name} (${stop.state})`));
+        
+        if (nonMajorStops.length > 0) {
+          console.log(`📍 Non-major stops:`, nonMajorStops.map(stop => `${stop.name} (${stop.state}) - Major: ${stop.is_major_stop}`));
+        }
         
         setWaypoints(data);
       } catch (err) {

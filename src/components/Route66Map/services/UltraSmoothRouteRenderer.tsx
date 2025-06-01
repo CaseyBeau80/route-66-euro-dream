@@ -36,13 +36,28 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
 
     console.log('🗺️ UltraSmoothRouteRenderer: Starting idealized curvy Route 66 rendering');
 
-    // Filter to major stops only for main route
+    // Filter to major stops only for main route - but log the filtering process
     const majorStops = waypoints
       .filter(waypoint => waypoint.is_major_stop === true)
       .sort((a, b) => a.sequence_order - b.sequence_order);
 
+    console.log(`🔍 Route rendering waypoint analysis:`, {
+      totalWaypoints: waypoints.length,
+      majorStops: majorStops.length,
+      nonMajorStops: waypoints.filter(w => w.is_major_stop !== true).length
+    });
+
+    // Log major stops for route rendering
+    console.log(`🛣️ Major stops for route rendering:`, majorStops.map(stop => `${stop.name} (${stop.state}) - Seq: ${stop.sequence_order}`));
+
     if (majorStops.length < 2) {
       console.warn('⚠️ Not enough major stops for route rendering');
+      console.log('🔍 Available waypoints:', waypoints.map(w => ({
+        name: w.name,
+        state: w.state,
+        is_major_stop: w.is_major_stop,
+        sequence_order: w.sequence_order
+      })));
       return;
     }
 
@@ -60,7 +75,7 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
 
   }, [routeRenderer, waypoints, isLoading, isRouteRendered]);
 
-  // Log current status
+  // Log current status with enhanced debugging
   useEffect(() => {
     if (!isMapReady) return;
 
@@ -69,10 +84,21 @@ const UltraSmoothRouteRenderer: React.FC<UltraSmoothRouteRendererProps> = ({
     console.log('📊 Idealized route rendering status:', {
       isMapReady,
       waypointsLoaded: waypoints.length,
+      majorStopsCount: waypoints.filter(w => w.is_major_stop === true).length,
       isLoading,
       isRouteRendered,
       polylineSegments: polylineCount
     });
+
+    // Enhanced waypoint debugging
+    if (waypoints.length > 0) {
+      console.log('🗺️ All waypoints summary:', waypoints.map(w => ({
+        name: w.name,
+        state: w.state,
+        isMajor: w.is_major_stop,
+        sequence: w.sequence_order
+      })));
+    }
   }, [isMapReady, waypoints.length, isLoading, isRouteRendered]);
 
   return null;
