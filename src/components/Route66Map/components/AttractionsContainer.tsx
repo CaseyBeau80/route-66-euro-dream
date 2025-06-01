@@ -34,20 +34,36 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [map]);
 
-  // Enhanced filtering to show more drive-ins and attractions
+  // Enhanced filtering to show ALL drive-ins and attractions
   const filteredAttractions = useMemo(() => {
-    // Separate drive-ins and regular attractions
-    const driveIns = attractions.filter(attraction => 
-      attraction.name.toLowerCase().includes('drive-in') ||
-      attraction.description?.toLowerCase().includes('drive-in')
-    );
+    // Separate drive-ins and regular attractions with broader detection
+    const driveIns = attractions.filter(attraction => {
+      const name = attraction.name.toLowerCase();
+      const desc = attraction.description?.toLowerCase() || '';
+      return name.includes('drive-in') || 
+             name.includes('drive in') ||
+             name.includes('theater') ||
+             name.includes('theatre') ||
+             desc.includes('drive-in') ||
+             desc.includes('drive in') ||
+             desc.includes('theater') ||
+             desc.includes('theatre');
+    });
     
-    const regularAttractions = attractions.filter(attraction => 
-      !attraction.name.toLowerCase().includes('drive-in') &&
-      !attraction.description?.toLowerCase().includes('drive-in')
-    );
+    const regularAttractions = attractions.filter(attraction => {
+      const name = attraction.name.toLowerCase();
+      const desc = attraction.description?.toLowerCase() || '';
+      return !(name.includes('drive-in') || 
+               name.includes('drive in') ||
+               name.includes('theater') ||
+               name.includes('theatre') ||
+               desc.includes('drive-in') ||
+               desc.includes('drive in') ||
+               desc.includes('theater') ||
+               desc.includes('theatre'));
+    });
 
-    console.log(`🎬 Found ${driveIns.length} drive-in theaters in attractions`);
+    console.log(`🎬 Found ${driveIns.length} drive-in theaters in waypoint attractions:`, driveIns.map(d => d.name));
     console.log(`🎯 Found ${regularAttractions.length} regular attractions`);
 
     // Always show ALL drive-ins regardless of zoom level (they're special!)
@@ -96,7 +112,7 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions with clickable cards (total available: ${attractions.length})`);
+  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions with ALL drive-ins visible (total available: ${attractions.length})`);
 
   return (
     <>

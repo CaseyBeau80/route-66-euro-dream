@@ -15,7 +15,22 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  console.log(`🗺️ Rendering ${hiddenGems.length} vintage Route 66 hidden gems on map with custom icons`);
+  // Enhanced drive-in detection
+  const driveInGems = hiddenGems.filter(gem => {
+    const title = gem.title.toLowerCase();
+    const desc = gem.description?.toLowerCase() || '';
+    return title.includes('drive-in') || 
+           title.includes('drive in') ||
+           title.includes('theater') ||
+           title.includes('theatre') ||
+           desc.includes('drive-in') ||
+           desc.includes('drive in') ||
+           desc.includes('theater') ||
+           desc.includes('theatre');
+  });
+
+  console.log(`🎬 Found ${driveInGems.length} drive-in theaters in hidden gems:`, driveInGems.map(d => d.title));
+  console.log(`🗺️ Rendering ${hiddenGems.length} total vintage Route 66 hidden gems on map with custom icons`);
 
   return (
     <>

@@ -19,7 +19,10 @@ export const createMarkerEventHandlers = ({
   handleMouseEnter,
   handleMouseLeave
 }: MarkerEventHandlersConfig) => {
-  const isDriveIn = gem.title.toLowerCase().includes('drive-in');
+  const isDriveIn = gem.title.toLowerCase().includes('drive-in') || 
+                   gem.title.toLowerCase().includes('drive in') ||
+                   gem.title.toLowerCase().includes('theater') ||
+                   gem.title.toLowerCase().includes('theatre');
 
   const handleMouseOver = () => {
     console.log(`🐭 Mouse over ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
