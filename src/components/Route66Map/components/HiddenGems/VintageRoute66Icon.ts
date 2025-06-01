@@ -1,43 +1,51 @@
 
 export const createVintageRoute66Icon = () => {
   // Authentic Route 66 shield icon matching the classic US Highway shield design
-  const iconSize = 36; // Increased from 24 to 36
+  const iconSize = 36;
   const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
-      <!-- Authentic US Highway shield shape - proper shield profile with reduced top margin -->
+      <!-- Authentic US Highway shield shape - matching vintage image -->
       <path d="M18,1 
-               L30,1 
-               C32,1 34,3 34,5
-               L34,11
-               C34,15 32,19 29,23
-               C26,27 22,30 18,33
-               C14,30 10,27 7,23
-               C4,19 2,15 2,11
-               L2,5
-               C2,3 4,1 6,1
+               L3,1 
+               L3,12
+               C3,17 5,22 9,27
+               C12,30 15,32 18,33
+               C21,32 24,30 27,27
+               C31,22 33,17 33,12
+               L33,1 
                L18,1 Z" 
-            fill="#FFFFFF" 
+            fill="#F5F5DC" 
             stroke="#000000" 
             stroke-width="2"/>
       
-      <!-- ROUTE text in black - larger size -->
+      <!-- Inner shield border for depth -->
+      <path d="M18,3 
+               L6,3 
+               L6,11
+               C6,15 7,19 10,23
+               C12,25 15,27 18,28
+               C21,27 24,25 26,23
+               C29,19 30,15 30,11
+               L30,3 
+               L18,3 Z" 
+            fill="none" 
+            stroke="#000000" 
+            stroke-width="0.8"/>
+      
+      <!-- ROUTE text at top - smaller size for icon -->
       <text x="18" y="9" text-anchor="middle" 
             fill="#000000" 
             font-family="Arial, sans-serif" 
-            font-size="4.5" 
-            font-weight="bold">ROUTE</text>
+            font-size="4" 
+            font-weight="bold"
+            letter-spacing="0.3px">ROUTE</text>
       
-      <!-- Horizontal line below ROUTE - adjusted position and length -->
-      <line x1="5" y1="12" x2="31" y2="12" 
-            stroke="#000000" 
-            stroke-width="1.2"/>
-      
-      <!-- 66 large numbers in black - moved up significantly -->
-      <text x="18" y="24" text-anchor="middle" 
+      <!-- Large 66 numbers in black - matching vintage style -->
+      <text x="18" y="22" text-anchor="middle" 
             fill="#000000" 
-            font-family="Arial, sans-serif" 
-            font-size="12" 
-            font-weight="bold">66</text>
+            font-family="Arial Black, Arial, sans-serif" 
+            font-size="11" 
+            font-weight="900">66</text>
     </svg>
   `;
 

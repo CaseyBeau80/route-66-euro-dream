@@ -74,14 +74,19 @@ const Hero = ({ language }: HeroProps) => {
       {/* Content */}
       <div className="container mx-auto px-4 z-10 text-white relative">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Route 66 Shield Logo */}
+          {/* Authentic Route 66 Shield Logo - matching vintage image */}
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="w-32 h-40 bg-white rounded-xl border-6 border-route66-navy shadow-2xl flex flex-col items-center justify-center route66-shield transform hover:scale-105 transition-transform duration-300">
-                <div className="bg-route66-red text-white px-4 py-2 text-sm font-bold rounded-t-lg w-full text-center">ROUTE</div>
-                <div className="text-route66-navy text-lg font-bold mt-2">US</div>
-                <div className="text-route66-navy text-5xl font-black leading-none">66</div>
-                <div className="text-route66-navy text-xs mt-1">AMERICA'S HIGHWAY</div>
+              <div className="w-32 h-40 bg-route66-vintage-beige rounded-xl border-6 border-black shadow-2xl flex flex-col items-center justify-center route66-shield transform hover:scale-105 transition-transform duration-300">
+                {/* Shield shape outline */}
+                <div className="absolute inset-4 border-2 border-black rounded-lg"></div>
+                
+                {/* Content over shield */}
+                <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                  <div className="text-black text-lg font-bold mt-2 font-americana tracking-wider">ROUTE</div>
+                  <div className="text-black text-5xl font-black leading-none font-route66">66</div>
+                  <div className="text-black text-xs mt-1 font-travel">AMERICA'S HIGHWAY</div>
+                </div>
               </div>
               {/* Vintage neon glow */}
               <div className="absolute inset-0 rounded-xl bg-route66-yellow opacity-30 blur-xl animate-pulse"></div>

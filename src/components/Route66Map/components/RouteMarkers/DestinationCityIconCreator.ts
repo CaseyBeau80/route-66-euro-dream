@@ -1,10 +1,10 @@
 
 export class DestinationCityIconCreator {
   static createDestinationCityIcon(cityName: string) {
-    const iconWidth = 50;  // Slightly wider for the post design
-    const iconHeight = 60; // Taller to accommodate the elevated post
+    const iconWidth = 50;  
+    const iconHeight = 60; 
     
-    console.log(`🎨 Creating elevated road post icon for ${cityName}`);
+    console.log(`🎨 Creating authentic Route 66 shield icon for ${cityName}`);
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
@@ -29,20 +29,6 @@ export class DestinationCityIconCreator {
             <stop offset="50%" style="stop-color:#808080;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#606060;stop-opacity:1" />
           </linearGradient>
-          
-          <!-- Vintage Route 66 shield background -->
-          <radialGradient id="vintageBg" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" style="stop-color:#FFF8DC;stop-opacity:1" />
-            <stop offset="60%" style="stop-color:#F5F5DC;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
-          </radialGradient>
-          
-          <!-- Rust/weathering effect -->
-          <radialGradient id="rustEffect" cx="30%" cy="20%" r="40%">
-            <stop offset="0%" style="stop-color:#CD853F;stop-opacity:0.3" />
-            <stop offset="70%" style="stop-color:#A0522D;stop-opacity:0.1" />
-            <stop offset="100%" style="stop-color:#8B4513;stop-opacity:0" />
-          </radialGradient>
         </defs>
         
         <!-- Wooden post (vertical pole) -->
@@ -67,84 +53,63 @@ export class DestinationCityIconCreator {
         <circle cx="21" cy="23.5" r="0.8" fill="#404040"/>
         <circle cx="29" cy="23.5" r="0.8" fill="#404040"/>
         
-        <!-- Route 66 Shield mounted on post -->
+        <!-- Authentic Route 66 Shield mounted on post - matching vintage image -->
         <path d="M25 4
-                 L12 4
-                 C9 4 6.5 6.5 6.5 9.5
-                 L6.5 16
-                 C6.5 19.5 8.5 22.5 12 24
-                 C17 26 21 27 25 27
-                 C29 27 33 26 38 24
-                 C41.5 22.5 43.5 19.5 43.5 16
-                 L43.5 9.5
-                 C43.5 6.5 41 4 38 4
+                 L8 4
+                 L8 16
+                 C8 20 10 24 14 27
+                 C18 29 21 30 25 30
+                 C29 30 32 29 36 27
+                 C40 24 42 20 42 16
+                 L42 4
                  L25 4 Z" 
-              fill="url(#vintageBg)" 
-              stroke="#8B4513" 
+              fill="#F5F5DC" 
+              stroke="#000000" 
               stroke-width="2"
               filter="url(#postShadow)"/>
         
-        <!-- Weathering/rust overlay on shield -->
-        <path d="M25 4
-                 L12 4
-                 C9 4 6.5 6.5 6.5 9.5
-                 L6.5 16
-                 C6.5 19.5 8.5 22.5 12 24
-                 C17 26 21 27 25 27
-                 C29 27 33 26 38 24
-                 C41.5 22.5 43.5 19.5 43.5 16
-                 L43.5 9.5
-                 C43.5 6.5 41 4 38 4
-                 L25 4 Z" 
-              fill="url(#rustEffect)"/>
-        
         <!-- Inner shield border for depth -->
-        <path d="M25 6.5
-                 L14 6.5
-                 C12 6.5 10.5 8 10.5 10
-                 L10.5 15
-                 C10.5 17.5 12 20 15 21.5
-                 C19 23 22 23.5 25 23.5
-                 C28 23.5 31 23 35 21.5
-                 C38 20 39.5 17.5 39.5 15
-                 L39.5 10
-                 C39.5 8 38 6.5 36 6.5
-                 L25 6.5 Z" 
+        <path d="M25 6
+                 L11 6
+                 L11 15
+                 C11 18 12 21 15 24
+                 C18 26 21 27 25 27
+                 C29 27 32 26 35 24
+                 C38 21 39 18 39 15
+                 L39 6
+                 L25 6 Z" 
               fill="none" 
-              stroke="#654321" 
-              stroke-width="0.8"/>
-        
-        <!-- City name at top (abbreviated if too long) -->
-        <text x="25" y="13" text-anchor="middle" 
-              fill="#654321" 
-              font-family="Arial, sans-serif" 
-              font-size="5" 
-              font-weight="bold"
-              letter-spacing="0.2px">${cityName.length > 10 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
-        
-        <!-- Horizontal dividing line -->
-        <line x1="12" y1="15.5" x2="38" y2="15.5" 
-              stroke="#654321" 
+              stroke="#000000" 
               stroke-width="1"/>
         
-        <!-- Large 66 numbers -->
-        <text x="25" y="22" text-anchor="middle" 
-              fill="#654321" 
+        <!-- ROUTE text at top -->
+        <text x="25" y="11" text-anchor="middle" 
+              fill="#000000" 
               font-family="Arial, sans-serif" 
-              font-size="10" 
+              font-size="4" 
+              font-weight="bold"
+              letter-spacing="0.5px">ROUTE</text>
+        
+        <!-- Large 66 numbers - matching vintage style -->
+        <text x="25" y="23" text-anchor="middle" 
+              fill="#000000" 
+              font-family="Arial Black, Arial, sans-serif" 
+              font-size="12" 
               font-weight="900">66</text>
         
-        <!-- Small weathering spots for authenticity -->
-        <circle cx="35" cy="8" r="0.8" fill="#CD853F" opacity="0.4"/>
-        <circle cx="15" cy="19" r="0.6" fill="#A0522D" opacity="0.3"/>
-        <circle cx="32" cy="21" r="0.5" fill="#8B4513" opacity="0.5"/>
+        <!-- City name below shield -->
+        <text x="25" y="34" text-anchor="middle" 
+              fill="#654321" 
+              font-family="Arial, sans-serif" 
+              font-size="3" 
+              font-weight="bold">${cityName.length > 10 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
       </svg>
     `;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
       scaledSize: new google.maps.Size(iconWidth, iconHeight),
-      anchor: new google.maps.Point(iconWidth/2, iconHeight - 5) // Anchor near the bottom of the post
+      anchor: new google.maps.Point(iconWidth/2, iconHeight - 5)
     };
   }
 }

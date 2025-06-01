@@ -37,14 +37,18 @@ const Index = () => {
         <div className="absolute inset-0 vintage-paper-texture opacity-20"></div>
         
         <div className="w-full px-3 sm:px-6 text-center relative z-10">
-          {/* Authentic Route 66 Shield Badge */}
+          {/* Authentic Route 66 Shield Badge - Updated to match vintage image */}
           <div className="flex justify-center mb-6">
             <div className="relative travel-stamp">
-              <div className="w-20 h-24 bg-white rounded-xl border-4 border-route66-navy shadow-vintage route66-shield flex flex-col items-center justify-center">
-                <div className="bg-route66-vintage-red text-white px-3 py-1.5 text-xs font-bold rounded-t-lg w-full text-center font-americana">ROUTE</div>
-                <div className="text-route66-navy text-sm font-bold mt-1 font-vintage">US</div>
-                <div className="text-route66-navy text-3xl font-black leading-none font-route66">66</div>
-                <div className="text-route66-vintage-blue text-xs mt-0.5 font-travel">EST. 1926</div>
+              <div className="w-20 h-24 bg-route66-vintage-beige rounded-xl border-4 border-black shadow-vintage flex flex-col items-center justify-center">
+                {/* Shield shape background */}
+                <div className="absolute inset-2 bg-route66-vintage-beige border-2 border-black rounded-lg"></div>
+                
+                {/* Content over shield */}
+                <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                  <div className="text-black text-xs font-bold font-americana tracking-wide">ROUTE</div>
+                  <div className="text-black text-2xl font-black leading-none font-route66 mt-1">66</div>
+                </div>
               </div>
               {/* Vintage glow and dust effects */}
               <div className="absolute inset-0 rounded-xl bg-route66-vintage-yellow opacity-25 blur-xl animate-pulse"></div>
