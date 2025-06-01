@@ -20,27 +20,35 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
 
   console.log(`🎠 ListingCarousel render for ${categoryTitle}`, { 
     loading, 
-    itemCount: items.length 
+    itemCount: items.length,
+    canScrollPrev,
+    canScrollNext,
+    hasApi: !!api
   });
 
   const scrollToStart = useCallback(() => {
+    console.log(`🔄 Scrolling to start for ${categoryTitle}`);
     if (api) {
       api.scrollTo(0);
     }
-  }, [api]);
+  }, [api, categoryTitle]);
 
   const scrollToEnd = useCallback(() => {
+    console.log(`🔄 Scrolling to end for ${categoryTitle}`);
     if (api) {
       api.scrollTo(api.scrollSnapList().length - 1);
     }
-  }, [api]);
+  }, [api, categoryTitle]);
 
   useEffect(() => {
     if (!api) return;
 
     const onSelect = () => {
-      setCanScrollPrev(api.canScrollPrev());
-      setCanScrollNext(api.canScrollNext());
+      const prevState = api.canScrollPrev();
+      const nextState = api.canScrollNext();
+      setCanScrollPrev(prevState);
+      setCanScrollNext(nextState);
+      console.log(`🎠 Navigation state for ${categoryTitle}:`, { canScrollPrev: prevState, canScrollNext: nextState });
     };
 
     onSelect();
@@ -51,7 +59,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
       api.off('select', onSelect);
       api.off('reInit', onSelect);
     };
-  }, [api]);
+  }, [api, categoryTitle]);
 
   if (loading) {
     return (
@@ -81,7 +89,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
   }
 
   return (
-    <div className="relative">
+    <div className="relative px-24 md:px-28">
       <Carousel 
         className="w-full" 
         setApi={setApi}
@@ -100,52 +108,52 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
           ))}
         </CarouselContent>
         
-        {/* Enhanced Navigation Controls */}
-        <div className="hidden md:flex absolute -left-20 top-1/2 -translate-y-1/2 flex-col gap-2">
+        {/* Enhanced Navigation Controls - Desktop */}
+        <div className="hidden md:flex absolute -left-24 top-1/2 -translate-y-1/2 flex-col gap-2 z-10">
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-lg border-route66-gray/20"
+            className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200 hover:border-gray-300"
             onClick={scrollToStart}
             disabled={!canScrollPrev}
           >
-            <ChevronFirst className="h-4 w-4" />
+            <ChevronFirst className="h-5 w-5" />
             <span className="sr-only">Go to beginning</span>
           </Button>
-          <CarouselPrevious className="static shadow-lg bg-white/90 hover:bg-white border-route66-gray/20" />
+          <CarouselPrevious className="static h-10 w-10 shadow-lg bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300" />
         </div>
         
-        <div className="hidden md:flex absolute -right-20 top-1/2 -translate-y-1/2 flex-col gap-2">
-          <CarouselNext className="static shadow-lg bg-white/90 hover:bg-white border-route66-gray/20" />
+        <div className="hidden md:flex absolute -right-24 top-1/2 -translate-y-1/2 flex-col gap-2 z-10">
+          <CarouselNext className="static h-10 w-10 shadow-lg bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300" />
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-lg border-route66-gray/20"
+            className="h-10 w-10 rounded-full bg-white hover:bg-gray-50 shadow-lg border-gray-200 hover:border-gray-300"
             onClick={scrollToEnd}
             disabled={!canScrollNext}
           >
-            <ChevronLast className="h-4 w-4" />
+            <ChevronLast className="h-5 w-5" />
             <span className="sr-only">Go to end</span>
           </Button>
         </div>
       </Carousel>
 
       {/* Mobile Navigation - Compact horizontal layout */}
-      <div className="md:hidden flex justify-center gap-2 mt-4">
+      <div className="md:hidden flex justify-center gap-2 mt-6">
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 bg-white/90 hover:bg-white shadow-md border-route66-gray/20"
+          className="h-9 px-4 bg-white hover:bg-gray-50 shadow-md border-gray-200"
           onClick={scrollToStart}
           disabled={!canScrollPrev}
         >
-          <ChevronFirst className="h-3 w-3 mr-1" />
+          <ChevronFirst className="h-4 w-4 mr-1" />
           Start
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 bg-white/90 hover:bg-white shadow-md border-route66-gray/20"
+          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
           onClick={api?.scrollPrev}
           disabled={!canScrollPrev}
         >
@@ -154,7 +162,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 bg-white/90 hover:bg-white shadow-md border-route66-gray/20"
+          className="h-9 px-3 bg-white hover:bg-gray-50 shadow-md border-gray-200"
           onClick={api?.scrollNext}
           disabled={!canScrollNext}
         >
@@ -163,11 +171,11 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 bg-white/90 hover:bg-white shadow-md border-route66-gray/20"
+          className="h-9 px-4 bg-white hover:bg-gray-50 shadow-md border-gray-200"
           onClick={scrollToEnd}
           disabled={!canScrollNext}
         >
-          <ChevronLast className="h-3 w-3 mr-1" />
+          <ChevronLast className="h-4 w-4 mr-1" />
           End
         </Button>
       </div>
