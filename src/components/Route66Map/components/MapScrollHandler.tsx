@@ -23,8 +23,12 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
     const scrollHandler = createScrollHandler(map, setShowScrollHint);
     handlerRef.current = scrollHandler;
 
-    // Add wheel event listener to the map container
+    // Add wheel event listener only to the map container with passive: false
+    // This ensures we can prevent default behavior when needed
     mapDiv.addEventListener('wheel', scrollHandler, { passive: false });
+
+    // Also disable the default Google Maps scroll zoom to prevent conflicts
+    map.setOptions({ scrollwheel: false });
 
     // Cleanup function
     const cleanupHandler = () => {
