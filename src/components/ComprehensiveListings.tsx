@@ -71,10 +71,11 @@ const ComprehensiveListings = () => {
     }
   });
 
-  const getPlaceholderImage = (name: string, description: string | null, category: string): string => {
+  // Fallback image function - only used if database image_url is null
+  const getFallbackImage = (name: string, description: string | null, category: string): string => {
     const nameAndDesc = `${name} ${description || ''}`.toLowerCase();
     
-    // Category-specific images
+    // Category-specific fallback images
     if (category === 'destination_cities') {
       if (nameAndDesc.includes('chicago')) return "https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?auto=format&fit=crop&w=600&q=80";
       if (nameAndDesc.includes('santa monica')) return "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80";
@@ -96,7 +97,7 @@ const ComprehensiveListings = () => {
       return "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=600&q=80";
     }
     
-    // Hidden gems - contextual
+    // Hidden gems fallback
     if (nameAndDesc.includes('motel') || nameAndDesc.includes('motor') || nameAndDesc.includes('inn')) {
       return "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=600&q=80";
     }
@@ -144,6 +145,8 @@ const ComprehensiveListings = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+        console.log('🎯 Fetching all Route 66 data with images from database...');
+
         // Fetch destination cities
         const { data: cities, error: citiesError } = await supabase
           .from('destination_cities')
@@ -151,6 +154,7 @@ const ComprehensiveListings = () => {
           .limit(6);
 
         if (!citiesError && cities) {
+          console.log(`🏙️ Fetched ${cities.length} destination cities with images`);
           setCategories(prev => ({
             ...prev,
             destination_cities: {
@@ -183,6 +187,7 @@ const ComprehensiveListings = () => {
           .limit(6);
 
         if (!attractionsError && attractions) {
+          console.log(`🏛️ Fetched ${attractions.length} attractions with images`);
           setCategories(prev => ({
             ...prev,
             attractions: {
@@ -213,6 +218,7 @@ const ComprehensiveListings = () => {
           .limit(6);
 
         if (!driveInsError && driveIns) {
+          console.log(`🎬 Fetched ${driveIns.length} drive-ins with images`);
           setCategories(prev => ({
             ...prev,
             drive_ins: {
@@ -244,6 +250,7 @@ const ComprehensiveListings = () => {
           .limit(6);
 
         if (!hiddenGemsError && hiddenGems) {
+          console.log(`💎 Fetched ${hiddenGems.length} hidden gems with images`);
           setCategories(prev => ({
             ...prev,
             hidden_gems: {
@@ -255,7 +262,7 @@ const ComprehensiveListings = () => {
                 description: gem.description,
                 city_name: gem.city_name,
                 state: 'Various', // Hidden gems don't have state in the schema
-                image_url: null,
+                image_url: gem.image_url,
                 website: gem.website,
                 latitude: gem.latitude,
                 longitude: gem.longitude,
@@ -275,6 +282,7 @@ const ComprehensiveListings = () => {
           .limit(6);
 
         if (!waypointsError && waypoints) {
+          console.log(`🛣️ Fetched ${waypoints.length} waypoints with images`);
           setCategories(prev => ({
             ...prev,
             route66_waypoints: {
@@ -285,7 +293,7 @@ const ComprehensiveListings = () => {
                 description: waypoint.description,
                 city_name: waypoint.name,
                 state: waypoint.state,
-                image_url: null,
+                image_url: waypoint.image_url,
                 website: null,
                 latitude: waypoint.latitude,
                 longitude: waypoint.longitude,
@@ -297,8 +305,10 @@ const ComprehensiveListings = () => {
           }));
         }
 
+        console.log('✅ All Route 66 data loaded with images successfully!');
+
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('❌ Error fetching data:', error);
         // Set all categories to not loading on error
         setCategories(prev => 
           Object.keys(prev).reduce((acc, key) => ({
@@ -346,9 +356,14 @@ const ComprehensiveListings = () => {
             <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
               <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={item.image_url || getPlaceholderImage(item.name, item.description, item.category)} 
+                  src={item.image_url || getFallbackImage(item.name, item.description, item.category)} 
                   alt={item.name} 
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    console.log(`🖼️ Image failed to load for ${item.name}, using fallback`);
+                    const target = e.target as HTMLImageElement;
+                    target.src = getFallbackImage(item.name, item.description, item.category);
+                  }}
                 />
                 {item.featured && (
                   <div className="absolute top-3 right-3">

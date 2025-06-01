@@ -177,6 +177,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           latitude: number
           longitude: number
           title: string
@@ -188,6 +189,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           latitude: number
           longitude: number
           title: string
@@ -199,6 +201,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           latitude?: number
           longitude?: number
           title?: string
@@ -213,6 +216,7 @@ export type Database = {
           description: string | null
           highway_designation: string | null
           id: string
+          image_url: string | null
           is_major_stop: boolean | null
           latitude: number
           longitude: number
@@ -226,6 +230,7 @@ export type Database = {
           description?: string | null
           highway_designation?: string | null
           id?: string
+          image_url?: string | null
           is_major_stop?: boolean | null
           latitude: number
           longitude: number
@@ -239,6 +244,7 @@ export type Database = {
           description?: string | null
           highway_designation?: string | null
           id?: string
+          image_url?: string | null
           is_major_stop?: boolean | null
           latitude?: number
           longitude?: number
