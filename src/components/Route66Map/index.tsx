@@ -72,23 +72,23 @@ const Route66Map = () => {
   console.log("🗺️ Route66Map: Rendering with SINGLE route system", { loaded, error, selectedState });
 
   return (
-    <div className="my-8 px-2 sm:px-4 w-full">
-      <h2 className="text-3xl font-bold text-center text-red-600 mb-6">Historic Highway Map</h2>
-      
-      {/* Map container */}
-      <div className="relative bg-white p-2 sm:p-5 rounded-lg shadow w-full">
+    <div className="w-full">
+      {/* Expanded map container with larger height */}
+      <div className="relative bg-white p-2 rounded-lg shadow w-full">
         {/* Show loading or error state */}
         {!loaded && (
           <MapLoading error={error} onRetry={handleRetry} />
         )}
         
-        {/* Show map when loaded */}
+        {/* Show map when loaded with increased height */}
         {loaded && (
-          <MapDisplay 
-            selectedState={selectedState} 
-            onStateClick={handleStateClick}
-            onClearSelection={handleClearSelection}
-          />
+          <div className="h-[700px]">
+            <MapDisplay 
+              selectedState={selectedState} 
+              onStateClick={handleStateClick}
+              onClearSelection={handleClearSelection}
+            />
+          </div>
         )}
       </div>
       
