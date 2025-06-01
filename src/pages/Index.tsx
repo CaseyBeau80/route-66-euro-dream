@@ -1,20 +1,12 @@
-
 import Route66Map from "../components/Route66Map";
-
 const Index = () => {
   console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme");
-  
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
+  return <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
       {/* Route 66 Highway Header with Real Road Perspective */}
       <div className="relative h-96 overflow-hidden">
         {/* Real Route 66 road background */}
         <div className="absolute inset-0">
-          <img 
-            src="/lovable-uploads/a51e8034-fdbf-4f32-8be1-f184bcc4f908.png" 
-            alt="Route 66 road sign painted on asphalt" 
-            className="w-full h-full object-cover object-center"
-          />
+          <img src="/lovable-uploads/a51e8034-fdbf-4f32-8be1-f184bcc4f908.png" alt="Route 66 road sign painted on asphalt" className="w-full h-full object-cover object-center" />
           {/* Subtle overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
         </div>
@@ -29,13 +21,13 @@ const Index = () => {
             
             {/* Highway mile marker style badge */}
             <div className="mb-4">
-              <div className="inline-block bg-white text-black px-8 py-3 rounded-lg font-bold text-lg md:text-xl border-4 border-black shadow-lg transform -rotate-1">
-                ★ 2,448 MILES OF PURE AMERICANA ★
-              </div>
+              
             </div>
             
             {/* Road trip tagline */}
-            <p className="font-travel text-xl md:text-2xl mb-6 text-white drop-shadow-lg animate-fade-in leading-relaxed max-w-3xl mx-auto" style={{ animationDelay: "0.2s" }}>
+            <p className="font-travel text-xl md:text-2xl mb-6 text-white drop-shadow-lg animate-fade-in leading-relaxed max-w-3xl mx-auto" style={{
+            animationDelay: "0.2s"
+          }}>
               From Chicago's Skyline to Santa Monica's Sunset • The Ultimate American Road Trip Experience
             </p>
             
@@ -44,10 +36,14 @@ const Index = () => {
               <div className="bg-route66-vintage-yellow text-black px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse">
                 <div className="font-americana">EST. 1926</div>
               </div>
-              <div className="bg-route66-orange text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{ animationDelay: "0.5s" }}>
+              <div className="bg-route66-orange text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{
+              animationDelay: "0.5s"
+            }}>
                 <div className="font-vintage">8 STATES</div>
               </div>
-              <div className="bg-route66-vintage-turquoise text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{ animationDelay: "1s" }}>
+              <div className="bg-route66-vintage-turquoise text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{
+              animationDelay: "1s"
+            }}>
                 <div className="font-americana">ENDLESS ADVENTURE</div>
               </div>
             </div>
@@ -110,32 +106,43 @@ const Index = () => {
         {/* Vintage pattern overlay */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
-            backgroundImage: `
+          backgroundImage: `
               radial-gradient(circle at 30% 70%, white 3px, transparent 3px),
               radial-gradient(circle at 70% 30%, rgba(244,208,63,0.8) 2px, transparent 2px)
             `,
-            backgroundSize: '40px 40px, 60px 60px'
-          }}></div>
+          backgroundSize: '40px 40px, 60px 60px'
+        }}></div>
         </div>
         
         <div className="w-full px-6 text-center relative z-10">
           {/* Vintage city route markers */}
           <div className="flex flex-col md:flex-row items-center justify-center gap-3 mb-6">
             <div className="flex flex-wrap justify-center gap-2">
-              {[
-                { city: 'CHICAGO', state: 'IL' },
-                { city: 'ST. LOUIS', state: 'MO' },
-                { city: 'TULSA', state: 'OK' },
-                { city: 'AMARILLO', state: 'TX' },
-                { city: 'ALBUQUERQUE', state: 'NM' },
-                { city: 'FLAGSTAFF', state: 'AZ' },
-                { city: 'SANTA MONICA', state: 'CA' }
-              ].map((location, index) => (
-                <div key={location.city} className="vintage-postcard px-3 py-2 text-route66-vintage-brown transform hover:rotate-1 transition-transform">
+              {[{
+              city: 'CHICAGO',
+              state: 'IL'
+            }, {
+              city: 'ST. LOUIS',
+              state: 'MO'
+            }, {
+              city: 'TULSA',
+              state: 'OK'
+            }, {
+              city: 'AMARILLO',
+              state: 'TX'
+            }, {
+              city: 'ALBUQUERQUE',
+              state: 'NM'
+            }, {
+              city: 'FLAGSTAFF',
+              state: 'AZ'
+            }, {
+              city: 'SANTA MONICA',
+              state: 'CA'
+            }].map((location, index) => <div key={location.city} className="vintage-postcard px-3 py-2 text-route66-vintage-brown transform hover:rotate-1 transition-transform">
                   <div className="font-americana text-xs font-bold">{location.city}</div>
                   <div className="font-travel text-xs opacity-80">{location.state}</div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
           
@@ -170,8 +177,6 @@ const Index = () => {
         {/* Bottom vintage stripe */}
         <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-route66-vintage-red via-route66-vintage-yellow to-route66-vintage-red"></div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
