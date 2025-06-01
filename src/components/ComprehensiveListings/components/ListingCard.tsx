@@ -37,15 +37,15 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     else if (imageError && !fallbackError) {
       console.log(`❌ Fallback image also failed for ${item.name}, using final backup`);
       setFallbackError(true);
-      // Use a very reliable backup image
-      target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80";
+      // Use a very reliable backup image - vintage car/cinema theme
+      target.src = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
     }
   };
 
   // Determine the image URL to use
   const getImageUrl = () => {
     if (fallbackError) {
-      return "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80";
+      return "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
     }
     if (imageError || !item.image_url) {
       return getFallbackImage(item.name, item.description, item.category);

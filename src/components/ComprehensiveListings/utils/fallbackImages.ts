@@ -17,8 +17,18 @@ export const getFallbackImage = (
   }
   
   if (actualCategory === 'drive_ins') {
-    // Use a reliable vintage drive-in image from Unsplash
-    return "https://images.unsplash.com/photo-1489599856804-e747b5bccadb?auto=format&fit=crop&w=600&q=80";
+    // Use multiple reliable vintage/retro images that work well for drive-ins
+    const driveInImages = [
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80", // Vintage car at night
+      "https://images.unsplash.com/photo-1533319415-e95e8075c522?auto=format&fit=crop&w=600&q=80", // Classic cinema
+      "https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?auto=format&fit=crop&w=600&q=80", // Retro neon sign
+      "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=600&q=80", // Movie theater seats
+      "https://images.unsplash.com/photo-1489599856804-e747b5bccadb?auto=format&fit=crop&w=600&q=80"  // Theater screen
+    ];
+    
+    // Use name hash to consistently pick the same image for the same drive-in
+    const nameHash = nameOrCategory.split('').reduce((hash, char) => hash + char.charCodeAt(0), 0);
+    return driveInImages[nameHash % driveInImages.length];
   }
   
   if (actualCategory === 'attractions') {
