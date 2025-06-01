@@ -11,7 +11,7 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 Fetching drive-ins with detailed logging...');
+        console.log('🎬 Fetching drive-ins from database...');
         
         const { data: driveIns, error } = await supabase
           .from('drive_ins')
@@ -19,15 +19,10 @@ export const useDriveIns = () => {
           .limit(6);
 
         if (!error && driveIns) {
-          console.log(`🎬 Raw database response:`, driveIns);
+          console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins`);
           
           driveIns.forEach((driveIn, index) => {
-            console.log(`🎬 Drive-in ${index + 1}:`, {
-              name: driveIn.name,
-              image_url: driveIn.image_url,
-              hasImage: !!driveIn.image_url,
-              imageType: typeof driveIn.image_url
-            });
+            console.log(`🎬 Drive-in ${index + 1}: ${driveIn.name} - Image: ${driveIn.image_url ? '✅' : '❌'}`);
           });
           
           const mappedItems = driveIns.map(driveIn => ({
@@ -46,11 +41,7 @@ export const useDriveIns = () => {
             featured: driveIn.featured
           }));
           
-          console.log('🎬 Mapped items with image URLs:', mappedItems.map(item => ({
-            name: item.name,
-            image_url: item.image_url
-          })));
-          
+          console.log('🎬 Drive-ins mapped successfully with updated images');
           setItems(mappedItems);
         } else {
           console.error('❌ Error fetching drive-ins:', error);

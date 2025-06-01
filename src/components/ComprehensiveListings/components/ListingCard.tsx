@@ -31,7 +31,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     }
   };
 
-  // More detailed logging for image URL selection
+  // Use database image URL if available, otherwise use fallback
   const imageUrl = item.image_url || getFallbackImage(item.name, item.description, item.category);
   
   console.log(`🖼️ Rendering ${item.name}:`, {

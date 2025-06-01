@@ -30,7 +30,7 @@ export const getFallbackImage = (name: string, description: string | null, categ
     if (nameAndDesc.includes('twin') || nameAndDesc.includes('double')) {
       return "https://images.unsplash.com/photo-1594736797933-d0ac1b65a7a0?auto=format&fit=crop&w=600&q=80";
     }
-    // Default drive-in fallback
+    // Default drive-in fallback - vintage drive-in theater at night
     return "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
   }
   
