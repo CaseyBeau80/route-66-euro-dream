@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
   
-  console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme");
+  console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme and enhanced scroll experience");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
@@ -81,6 +81,10 @@ const Index = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-route66-vintage-turquoise rounded-full"></div>
                   <span className="font-travel text-route66-vintage-brown">Hidden Gems</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-route66-vintage-yellow">⌨️</span>
+                  <span className="font-travel text-route66-vintage-brown">Ctrl + scroll to zoom map</span>
                 </div>
               </div>
             </div>
