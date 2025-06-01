@@ -1,56 +1,42 @@
 
-import { RouteGlobalState } from './RouteGlobalState';
-import { PathInterpolationService } from './PathInterpolationService';
 import { PolylineStylesConfig } from './PolylineStylesConfig';
-import type { Route66Waypoint } from '../types/supabaseTypes';
+import { PathInterpolationService } from './PathInterpolationService';
 
 export class PolylineCreationService {
-  private pathInterpolator: PathInterpolationService;
-
-  constructor(private map: google.maps.Map) {
-    this.pathInterpolator = new PathInterpolationService();
+  static createMainPolyline(map: google.maps.Map, path: google.maps.LatLngLiteral[]): google.maps.Polyline {
+    return new google.maps.Polyline({
+      ...PolylineStylesConfig.getMainPolylineOptions(),
+      path,
+      map
+    });
   }
 
-  createRouteSegments(sortedMajorStops: Route66Waypoint[]): void {
-    console.log(`🏛️ Creating ${sortedMajorStops.length - 1} ASPHALT-COLORED road segments with YELLOW stripes:`);
-
-    // Create curved segments between consecutive major stops (city-to-city)
-    for (let i = 0; i < sortedMajorStops.length - 1; i++) {
-      const startCity = sortedMajorStops[i];
-      const endCity = sortedMajorStops[i + 1];
-      const prevCity = i > 0 ? sortedMajorStops[i - 1] : undefined;
-      const nextCity = i < sortedMajorStops.length - 2 ? sortedMajorStops[i + 2] : undefined;
-      
-      console.log(`🛣️ Creating ASPHALT segment ${i + 1}: ${startCity.name} → ${endCity.name}`);
-      
-      // Generate windy, curved path between cities
-      const windyPath = this.pathInterpolator.generateWindyPath(startCity, endCity, prevCity, nextCity);
-
-      this.createSegmentPolylines(windyPath, startCity.name, endCity.name);
-    }
+  static createCenterLine(map: google.maps.Map, path: google.maps.LatLngLiteral[]): google.maps.Polyline {
+    return new google.maps.Polyline({
+      ...PolylineStylesConfig.getCenterLineOptions(),
+      path,
+      map
+    });
   }
 
-  private createSegmentPolylines(path: google.maps.LatLngLiteral[], startCityName: string, endCityName: string): void {
-    // Create main route polyline with realistic old asphalt appearance
-    const mainPolylineOptions = PolylineStylesConfig.getMainPolylineOptions();
-    const mainPolyline = new google.maps.Polyline({
-      ...mainPolylineOptions,
-      path: path,
-      map: this.map // Add directly to map
+  static createEnhancedPolyline(map: google.maps.Map, waypoints: any[]): google.maps.Polyline[] {
+    console.log('🛣️ Creating enhanced polyline with waypoints:', waypoints.length);
+    
+    // Use smooth path interpolation instead of the missing generateWindyPath method
+    const coordinates = waypoints.map(wp => ({ lat: wp.latitude, lng: wp.longitude }));
+    const smoothPath = PathInterpolationService.createSmoothPath(coordinates, 50);
+    
+    const mainPolyline = this.createMainPolyline(map, smoothPath);
+    const centerLine = this.createCenterLine(map, smoothPath);
+    
+    return [mainPolyline, centerLine];
+  }
+
+  static createFallbackPolyline(map: google.maps.Map, path: google.maps.LatLngLiteral[]): google.maps.Polyline {
+    return new google.maps.Polyline({
+      ...PolylineStylesConfig.getFallbackPolylineOptions(),
+      path,
+      map
     });
-
-    // Create BRIGHT YELLOW center line for authentic Route 66 look
-    const centerLineOptions = PolylineStylesConfig.getCenterLineOptions();
-    const centerLine = new google.maps.Polyline({
-      ...centerLineOptions,
-      path: path,
-      map: this.map // Add directly to map
-    });
-
-    // Store in global state for cleanup
-    RouteGlobalState.addPolylineSegment(mainPolyline);
-    RouteGlobalState.addPolylineSegment(centerLine);
-
-    console.log(`✅ ASPHALT Route 66 segment with YELLOW stripes created: ${startCityName} → ${endCityName} with ${path.length} points`);
   }
 }
