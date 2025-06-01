@@ -6,7 +6,7 @@ import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import InteractionIndicators from "./MapElements/InteractionIndicators";
 import MapContent from "./MapElements/MapContent";
-import ZoomControls from "./MapElements/ZoomControls";
+import ZoomControls from "./components/ZoomControls";
 import { useZoomControls } from "./hooks/useZoomControls";
 import { route66Towns } from "@/types/route66"; 
 import { transformTownsToSvgPoints } from "@/utils/mapProjection";
