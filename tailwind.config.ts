@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,28 +24,49 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				// Cartoon color palette - bright and playful
+				cartoon: {
+					pink: '#FF69B4',        // Hot pink
+					yellow: '#FFD700',      // Gold
+					blue: '#00BFFF',        // Deep sky blue
+					green: '#32CD32',       // Lime green
+					orange: '#FF8C00',      // Dark orange
+					purple: '#9370DB',      // Medium purple
+					red: '#FF1493',         // Deep pink
+					cyan: '#00FFFF',        // Cyan
+					lime: '#00FF00',        // Lime
+					magenta: '#FF00FF',     // Magenta
+					// Soft cartoon colors
+					soft: {
+						pink: '#FFB6C1',      // Light pink
+						blue: '#87CEEB',      // Sky blue
+						green: '#98FB98',     // Pale green
+						yellow: '#FFFFE0',    // Light yellow
+						purple: '#DDA0DD',    // Plum
+						orange: '#FFDAB9',    // Peach puff
+					}
+				},
 				route66: {
-					// Authentic vintage Route 66 color palette
-					red: '#CC2936',          // Vintage red from classic signs
-					yellow: '#F4D03F',       // Warm vintage yellow
-					cream: '#FDF6E3',        // Warm paper cream
-					brown: '#8B4513',        // Rich leather brown
-					navy: '#2E4057',         // Deep vintage navy
-					orange: '#E67E22',       // Warm sunset orange
-					tan: '#D2B48C',          // Desert tan
-					rust: '#B7410E',         // Weathered rust
-					// Enhanced vintage sub-palette
+					// Keep existing route66 colors for compatibility
+					red: '#FF1493',          // Changed to cartoon pink-red
+					yellow: '#FFD700',       // Bright cartoon yellow
+					cream: '#FFFFE0',        // Light cartoon yellow
+					brown: '#8B4513',        // Keep brown
+					navy: '#0000FF',         // Bright blue
+					orange: '#FF8C00',       // Bright orange
+					tan: '#F5DEB3',          // Light tan
+					rust: '#B22222',         // Bright red
 					vintage: {
-						red: '#A52A2A',        // Deep barn red
-						yellow: '#DAA520',     // Antique gold
-						blue: '#1B2951',       // Midnight blue
-						cream: '#F5F2EA',      // Aged paper
-						brown: '#654321',      // Coffee brown
-						green: '#2D5016',      // Forest green
-						orange: '#CD853F',     // Peru orange
-						beige: '#F5F5DC',      // Vintage beige
-						burgundy: '#800020',   // Deep burgundy
-						turquoise: '#40B5A8'   // Vintage turquoise
+						red: '#FF1493',        // Cartoon pink-red
+						yellow: '#FFD700',     // Gold
+						blue: '#0000FF',       // Bright blue
+						cream: '#FFFFE0',      // Light yellow
+						brown: '#8B4513',      // Brown
+						green: '#32CD32',      // Lime green
+						orange: '#FF8C00',     // Dark orange
+						beige: '#F5F5DC',      // Beige
+						burgundy: '#800080',   // Purple
+						turquoise: '#40E0D0'   // Turquoise
 					}
 				},
 				primary: {
@@ -120,6 +140,41 @@ export default {
 						transform: 'translateY(0)'
 					}
 				},
+				'bounce-gentle': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'cartoon-bounce': {
+					'0%, 100%': { transform: 'scale(1) rotate(0deg)' },
+					'25%': { transform: 'scale(1.1) rotate(-2deg)' },
+					'75%': { transform: 'scale(1.05) rotate(2deg)' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-8px)' }
+				},
+				'cartoon-wiggle': {
+					'0%, 100%': { transform: 'rotate(0deg)' },
+					'25%': { transform: 'rotate(-3deg)' },
+					'75%': { transform: 'rotate(3deg)' }
+				},
+				'cartoon-glow': {
+					'0%, 100%': { 
+						boxShadow: '0 0 20px rgba(255, 20, 147, 0.5)'
+					},
+					'50%': { 
+						boxShadow: '0 0 30px rgba(255, 20, 147, 0.8), 0 0 40px rgba(135, 206, 250, 0.6)'
+					}
+				},
+				'rainbow': {
+					'0%': { color: '#FF1493' },
+					'16%': { color: '#FF8C00' },
+					'33%': { color: '#FFD700' },
+					'50%': { color: '#32CD32' },
+					'66%': { color: '#00BFFF' },
+					'83%': { color: '#9370DB' },
+					'100%': { color: '#FF1493' }
+				},
 				'slow-pulse': {
 					'0%, 100%': {
 						opacity: '1'
@@ -145,10 +200,6 @@ export default {
 					'12%': { opacity: '0.9' },
 					'15%': { opacity: '1' }
 				},
-				'float': {
-					'0%, 100%': { transform: 'translateY(0px)' },
-					'50%': { transform: 'translateY(-10px)' }
-				},
 				'shimmer': {
 					'0%': { backgroundPosition: '-200% 0' },
 					'100%': { backgroundPosition: '200% 0' }
@@ -172,15 +223,25 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
+				'bounce-gentle': 'bounce-gentle 2s infinite ease-in-out',
+				'cartoon-bounce': 'cartoon-bounce 2s infinite ease-in-out',
+				'float': 'float 3s infinite ease-in-out',
+				'cartoon-wiggle': 'cartoon-wiggle 1s infinite ease-in-out',
+				'cartoon-glow': 'cartoon-glow 2s infinite ease-in-out',
+				'rainbow': 'rainbow 3s linear infinite',
 				'slow-pulse': 'slow-pulse 3s infinite ease-in-out',
 				'neon-glow': 'neon-glow 2s ease-in-out infinite alternate',
 				'vintage-flicker': 'vintage-flicker 3s linear infinite',
-				'float': 'float 3s ease-in-out infinite',
 				'shimmer': 'shimmer 2s linear infinite',
 				'typewriter': 'typewriter 3s steps(40) infinite',
 				'paper-tear': 'paper-tear 0.5s ease-out forwards'
 			},
 			backgroundImage: {
+				'cartoon-gradient': 'linear-gradient(45deg, #FF69B4 0%, #FFD700 25%, #00BFFF 50%, #32CD32 75%, #FF69B4 100%)',
+				'cartoon-sky': 'linear-gradient(180deg, #87CEEB 0%, #98FB98 100%)',
+				'cartoon-sunset': 'linear-gradient(135deg, #FF8C00 0%, #FFD700 50%, #FF69B4 100%)',
+				'cartoon-rainbow': 'linear-gradient(90deg, #FF1493 0%, #FF8C00 16%, #FFD700 33%, #32CD32 50%, #00BFFF 66%, #9370DB 83%, #FF1493 100%)',
+				'cartoon-bubble': 'radial-gradient(circle, #FFB6C1 0%, #FF69B4 50%, #FF1493 100%)',
 				'route66-gradient': 'linear-gradient(45deg, #CC2936 0%, #F4D03F 25%, #E67E22 50%, #CC2936 75%, #F4D03F 100%)',
 				'vintage-paper': 'linear-gradient(45deg, #FDF6E3 0%, #F5F2EA 100%)',
 				'asphalt': 'linear-gradient(180deg, #2C2C2C 0%, #1A1A1A 100%)',
@@ -205,7 +266,11 @@ export default {
 				`
 			},
 			fontFamily: {
-				// Authentic vintage typography
+				// Cartoon-style fonts
+				'cartoon': ['Fredoka One', 'Bubblegum Sans', 'Lilita One', 'cursive'],
+				'bubble': ['Bubblegum Sans', 'Fredoka One', 'cursive'],
+				'playful': ['Lilita One', 'Fredoka One', 'cursive'],
+				// Keep existing fonts for compatibility
 				'route66': ['Bebas Neue', 'Impact', 'Arial Black', 'sans-serif'],
 				'vintage': ['Fredoka One', 'Cooper Black', 'serif'],
 				'americana': ['Bungee', 'Patriot', 'Impact', 'sans-serif'],
@@ -216,6 +281,9 @@ export default {
 				'sans': ['Inter', 'Helvetica', 'Arial', 'sans-serif'],
 			},
 			boxShadow: {
+				'cartoon': '0 8px 16px rgba(255, 69, 180, 0.3), 0 4px 8px rgba(255, 105, 180, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.5)',
+				'cartoon-glow': '0 0 20px rgba(255, 20, 147, 0.5), 0 0 40px rgba(255, 20, 147, 0.3)',
+				'cartoon-button': '0 6px 12px rgba(255, 69, 180, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
 				'vintage': '0 8px 16px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2)',
 				'neon': '0 0 10px #F4D03F, 0 0 20px #F4D03F, 0 0 30px #F4D03F',
 				'retro': '8px 8px 0px #CC2936, 12px 12px 0px #F4D03F',
@@ -235,6 +303,35 @@ export default {
 		require("tailwindcss-animate"),
 		function({ addUtilities }: any) {
 			const newUtilities = {
+				'.cartoon-text-shadow': {
+					textShadow: '4px 4px 0px #FF1493, 8px 8px 0px #FFB6C1, 12px 12px 8px rgba(255, 20, 147, 0.3)',
+				},
+				'.cartoon-text-outline': {
+					textShadow: '-2px -2px 0 #FFF, 2px -2px 0 #FFF, -2px 2px 0 #FFF, 2px 2px 0 #FFF, 4px 4px 8px rgba(0,0,0,0.3)',
+				},
+				'.cartoon-button': {
+					background: 'linear-gradient(45deg, #FF69B4 0%, #FFD700 100%)',
+					border: '4px solid #FFF',
+					color: 'white',
+					fontFamily: 'Fredoka One, cursive',
+					textTransform: 'uppercase',
+					letterSpacing: '1px',
+					padding: '12px 24px',
+					borderRadius: '25px',
+					boxShadow: '0 6px 12px rgba(255, 69, 180, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
+					transition: 'all 0.3s ease',
+					'&:hover': {
+						transform: 'translateY(-2px) scale(1.05)',
+						boxShadow: '0 8px 16px rgba(255, 69, 180, 0.5), 0 0 20px rgba(255, 215, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4)'
+					}
+				},
+				'.cartoon-bubble': {
+					background: 'linear-gradient(135deg, #FF69B4 0%, #FFB6C1 50%, #FFC0CB 100%)',
+					border: '3px solid #FFF',
+					borderRadius: '50px',
+					boxShadow: '0 4px 8px rgba(255, 20, 147, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4)',
+					position: 'relative',
+				},
 				'.text-shadow-vintage': {
 					textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
 				},
