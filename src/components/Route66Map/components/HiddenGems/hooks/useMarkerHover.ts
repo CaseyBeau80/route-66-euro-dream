@@ -21,12 +21,12 @@ export const useMarkerHover = () => {
 
     console.log(`⏳ Starting hover delay for gem: ${gemTitle || 'unknown'}`);
     
-    // Add 400ms delay before showing the tooltip
+    // Reduced delay from 400ms to 200ms for faster response
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`✨ Hover started for gem: ${gemTitle || 'unknown'}`);
       setIsHovered(true);
       showDelayTimeoutRef.current = null;
-    }, 400);
+    }, 200);
   }, []);
 
   const handleMouseLeave = useCallback((gemTitle?: string) => {
@@ -40,11 +40,13 @@ export const useMarkerHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
+    
+    // Increased delay from 300ms to 1000ms (1 second) to give users more time
     hoverTimeoutRef.current = setTimeout(() => {
       console.log(`✨ Hover ended for gem: ${gemTitle || 'unknown'}`);
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 300);
+    }, 1000);
   }, []);
 
   const updatePosition = useCallback((x: number, y: number) => {

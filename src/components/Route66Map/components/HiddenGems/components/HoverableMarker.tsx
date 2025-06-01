@@ -75,12 +75,12 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
 
   // Prevent hover card from disappearing when hovering over it
   const handleCardMouseEnter = useCallback(() => {
-    console.log(`🐭 Mouse entered hover card for: ${gem.title}`);
+    console.log(`🐭 Mouse entered hover card for: ${gem.title} - keeping card visible`);
     handleMouseEnter(gem.title);
   }, [handleMouseEnter, gem.title]);
 
   const handleCardMouseLeave = useCallback(() => {
-    console.log(`🐭 Mouse left hover card for: ${gem.title}`);
+    console.log(`🐭 Mouse left hover card for: ${gem.title} - starting hide delay`);
     handleMouseLeave(gem.title);
   }, [handleMouseLeave, gem.title]);
 
@@ -116,10 +116,10 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     const handleMouseOut = () => {
       if (!isClicked) { // Only hide hover if not clicked
         console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
-        // Add a small delay to allow mouse to move to the card
+        // Increased delay from 100ms to 500ms to give more time to move to card
         setTimeout(() => {
           handleMouseLeave(gem.title);
-        }, 100);
+        }, 500);
       }
     };
 
