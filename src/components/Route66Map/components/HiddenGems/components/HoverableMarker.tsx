@@ -63,11 +63,11 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         setClickPosition={setClickPosition}
       />
 
-      {/* Hover card - only show when hovering and not clicked */}
-      {!isClicked && (
+      {/* Hover card - only show when hovering and NOT clicked */}
+      {!isClicked && isHovered && (
         <HoverCardPortal
           gem={gem}
-          isVisible={isHovered}
+          isVisible={true}
           position={hoverPosition}
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={handleCardMouseEnter}
