@@ -74,16 +74,16 @@ const Route66Map = () => {
 
   return (
     <div className="w-full">
-      {/* MAXIMIZED Map container - responsive viewport sizing with 50% height increase */}
+      {/* MAXIMIZED Map container - extreme vertical expansion to show full north-south coverage */}
       <div className="relative w-full">
         {/* Show loading or error state */}
         {!loaded && (
           <MapLoading error={error} onRetry={handleRetry} />
         )}
         
-        {/* Show MAXIMIZED map when loaded - increased height by ~50% using larger viewport units */}
+        {/* Show MAXIMIZED map when loaded - dramatically increased height to eliminate truncation */}
         {loaded && (
-          <div className="h-[100vh] sm:h-[105vh] md:h-[110vh] lg:h-[115vh] xl:h-[120vh] rounded-lg overflow-hidden shadow-lg">
+          <div className="h-[130vh] sm:h-[140vh] md:h-[150vh] lg:h-[160vh] xl:h-[170vh] 2xl:h-[180vh] rounded-lg overflow-hidden shadow-lg">
             <MapDisplay 
               selectedState={selectedState} 
               onStateClick={handleStateClick}
