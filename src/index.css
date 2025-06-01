@@ -1,3 +1,6 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Fredoka+One:wght@400&family=Bungee:wght@400&family=Righteous:wght@400&family=Staatliches:wght@400&family=Kalam:wght@300;400;700&family=Playfair+Display:wght@400;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,47 +38,32 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -97,5 +85,225 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(204, 41, 54, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(244, 208, 63, 0.02) 0%, transparent 50%),
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 100px,
+        rgba(0,0,0,0.005) 100px,
+        rgba(0,0,0,0.005) 102px
+      );
+  }
+
+  /* Vintage paper texture effect */
+  .vintage-paper-texture {
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(204, 41, 54, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(244, 208, 63, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 60% 60%, rgba(230, 120, 34, 0.02) 0%, transparent 40%),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0,0,0,0.01) 1px,
+        rgba(0,0,0,0.01) 2px
+      );
+  }
+
+  /* Travel poster distressed edge effect */
+  .travel-poster-edge {
+    position: relative;
+  }
+
+  .travel-poster-edge::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #CC2936, #F4D03F, #E67E22, #2E4057);
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0.1;
+  }
+}
+
+/* Enhanced vintage scrollbar */
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(to bottom, #FDF6E3, #F5F2EA);
+  border-radius: 8px;
+  border: 1px solid rgba(204, 41, 54, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #CC2936, #E67E22, #F4D03F);
+  border-radius: 8px;
+  border: 2px solid #FDF6E3;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #A52A2A, #CD853F, #DAA520);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+/* Vintage typography effects */
+.travel-poster-text {
+  font-family: 'Staatliches', 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  background: linear-gradient(45deg, #CC2936, #F4D03F, #E67E22);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+.handwritten-style {
+  font-family: 'Kalam', cursive;
+  transform: rotate(-1deg);
+  color: #8B4513;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.stamp-effect {
+  background: #FDF6E3;
+  border: 3px dashed #CC2936;
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(204, 41, 54, 0.1);
+}
+
+.stamp-effect::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 1px solid rgba(204, 41, 54, 0.3);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Vintage animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes vintage-wobble {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-0.5deg) scale(1.02); }
+  75% { transform: rotate(0.5deg) scale(0.98); }
+}
+
+@keyframes dust-particles {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px) rotate(0deg);
+  }
+  50% { 
+    opacity: 0.6;
+    transform: translateY(-10px) rotate(180deg);
+  }
+  100% { 
+    opacity: 0;
+    transform: translateY(-40px) rotate(360deg);
+  }
+}
+
+/* Route 66 specific styling */
+.route66-authentic {
+  background: linear-gradient(
+    135deg,
+    #FDF6E3 0%,
+    #F5F2EA 25%,
+    #E6D3A3 50%,
+    #F5F2EA 75%,
+    #FDF6E3 100%
+  );
+  border: 2px solid #8B4513;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.route66-authentic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(204, 41, 54, 0.02) 10px,
+      rgba(204, 41, 54, 0.02) 20px
+    );
+  pointer-events: none;
+}
+
+/* Postcard style elements */
+.vintage-postcard {
+  background: linear-gradient(145deg, #FDF6E3 0%, #F5F2EA 100%);
+  border: 1px solid #D2B48C;
+  border-radius: 4px;
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.1),
+    inset 0 1px 2px rgba(255,255,255,0.5);
+  position: relative;
+}
+
+.vintage-postcard::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 40px;
+  height: 30px;
+  background: linear-gradient(45deg, #CC2936, #F4D03F);
+  border: 2px solid #8B4513;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+/* Travel stamp animations */
+.travel-stamp {
+  animation: vintage-wobble 6s ease-in-out infinite;
+}
+
+.dust-effect {
+  animation: dust-particles 3s ease-in-out infinite;
+}
+
+/* Mobile responsiveness for vintage elements */
+@media (max-width: 768px) {
+  .retro-heading {
+    text-shadow: 
+      2px 2px 0px #CC2936,
+      4px 4px 0px #F4D03F,
+      6px 6px 8px rgba(0,0,0,0.3);
+  }
+  
+  .travel-poster-text {
+    letter-spacing: 1px;
+  }
+  
+  .highway-sign {
+    padding: 6px 12px;
+    font-size: 0.75rem;
   }
 }
