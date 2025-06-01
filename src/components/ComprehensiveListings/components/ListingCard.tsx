@@ -10,6 +10,13 @@ interface ListingCardProps {
 }
 
 export const ListingCard = ({ item }: ListingCardProps) => {
+  console.log(`🃏 ListingCard render for ${item.name}`, { 
+    category: item.category, 
+    hasWebsite: !!item.website,
+    website: item.website,
+    hasImage: !!item.image_url 
+  });
+
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
     const fallbackUrl = getFallbackImage(item.name, item.description, item.category);
@@ -31,13 +38,29 @@ export const ListingCard = ({ item }: ListingCardProps) => {
 
   // Handle image click - open website in new tab
   const handleImageClick = (e: React.MouseEvent) => {
-    console.log(`🔗 Image clicked for ${item.name}`, { website: item.website });
+    console.log(`🔗 IMAGE CLICKED for ${item.name}`, { 
+      website: item.website,
+      category: item.category,
+      eventType: e.type,
+      target: e.target,
+      currentTarget: e.currentTarget 
+    });
     
     if (item.website) {
       e.preventDefault();
       e.stopPropagation();
-      console.log(`🚀 Opening website: ${item.website}`);
-      window.open(item.website, '_blank', 'noopener,noreferrer');
+      console.log(`🚀 OPENING WEBSITE: ${item.website}`);
+      
+      try {
+        const newWindow = window.open(item.website, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+          console.log(`✅ Window opened successfully for ${item.name}`);
+        } else {
+          console.log(`❌ Failed to open window for ${item.name} - popup blocked?`);
+        }
+      } catch (error) {
+        console.error(`❌ Error opening website for ${item.name}:`, error);
+      }
     } else {
       console.log(`❌ No website available for ${item.name}`);
     }
@@ -45,9 +68,24 @@ export const ListingCard = ({ item }: ListingCardProps) => {
 
   // Handle container click as backup
   const handleContainerClick = (e: React.MouseEvent) => {
+    console.log(`🔗 CONTAINER CLICKED for ${item.name}`, {
+      target: e.target,
+      currentTarget: e.currentTarget,
+      isDirectClick: e.target === e.currentTarget
+    });
+    
     // Only handle clicks on the image container itself, not child elements
     if (e.target === e.currentTarget && item.website) {
-      console.log(`🔗 Container clicked for ${item.name}, opening website`);
+      console.log(`🔗 Container direct click for ${item.name}, opening website`);
+      window.open(item.website, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Handle website link click
+  const handleWebsiteLinkClick = (e: React.MouseEvent) => {
+    console.log(`🔗 WEBSITE LINK CLICKED for ${item.name}`, { website: item.website });
+    if (item.website) {
+      e.preventDefault();
       window.open(item.website, '_blank', 'noopener,noreferrer');
     }
   };
@@ -55,16 +93,19 @@ export const ListingCard = ({ item }: ListingCardProps) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
       <div 
-        className="relative h-48 overflow-hidden cursor-pointer"
+        className="relative h-48 overflow-hidden cursor-pointer bg-gray-100"
         onClick={handleContainerClick}
+        style={{ userSelect: 'none' }}
       >
         <img 
           src={imageUrl}
           alt={item.name} 
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer select-none"
           onError={handleImageError}
           onClick={handleImageClick}
           loading="lazy"
+          draggable={false}
+          style={{ pointerEvents: 'auto' }}
         />
         
         {item.featured && (
@@ -126,15 +167,13 @@ export const ListingCard = ({ item }: ListingCardProps) => {
         </div>
 
         {item.website && (
-          <a 
-            href={item.website} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-route66-blue hover:text-route66-blue/80 text-sm font-medium"
+          <button 
+            onClick={handleWebsiteLinkClick}
+            className="inline-flex items-center gap-1 text-route66-blue hover:text-route66-blue/80 text-sm font-medium cursor-pointer"
           >
             <ExternalLink size={14} />
             Visit Website
-          </a>
+          </button>
         )}
       </CardContent>
     </Card>
