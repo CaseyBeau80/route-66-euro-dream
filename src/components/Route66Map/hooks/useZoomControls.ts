@@ -46,6 +46,8 @@ export const useZoomControls = ({
   
   // Zoom handlers with proper boundary checking
   const handleZoomIn = useCallback(() => {
+    console.log('🔍 useZoomControls: handleZoomIn called', { currentZoom: zoom, maxZoom });
+    
     // Capture current center BEFORE changing zoom
     if (onZoomStart) {
       onZoomStart();
@@ -55,14 +57,16 @@ export const useZoomControls = ({
     setTimeout(() => {
       setZoom(prevZoom => {
         const newZoom = Math.min(prevZoom + zoomStep, maxZoom);
-        console.log('Zoom in to:', newZoom);
+        console.log('✅ useZoomControls: Zoom in completed:', { oldZoom: prevZoom, newZoom });
         setZoomActivity(true);
         return newZoom;
       });
     }, 10);
-  }, [maxZoom, zoomStep, onZoomStart]);
+  }, [zoom, maxZoom, zoomStep, onZoomStart]);
 
   const handleZoomOut = useCallback(() => {
+    console.log('🔍 useZoomControls: handleZoomOut called', { currentZoom: zoom, minZoom });
+    
     // Capture current center BEFORE changing zoom
     if (onZoomStart) {
       onZoomStart();
@@ -72,17 +76,17 @@ export const useZoomControls = ({
     setTimeout(() => {
       setZoom(prevZoom => {
         const newZoom = Math.max(prevZoom - zoomStep, minZoom);
-        console.log('Zoom out to:', newZoom);
+        console.log('✅ useZoomControls: Zoom out completed:', { oldZoom: prevZoom, newZoom });
         setZoomActivity(true);
         return newZoom;
       });
     }, 10);
-  }, [minZoom, zoomStep, onZoomStart]);
+  }, [zoom, minZoom, zoomStep, onZoomStart]);
   
   const handleZoomChange = useCallback((newZoom: number) => {
     // Ensure zoom is within bounds
     const clampedZoom = Math.min(Math.max(newZoom, minZoom), maxZoom);
-    console.log('Zoom changed to:', clampedZoom.toFixed(2));
+    console.log('🔍 useZoomControls: Zoom changed to:', clampedZoom.toFixed(2));
     setIsPinching(true);
     setZoom(clampedZoom);
     setZoomActivity(true);
@@ -98,6 +102,7 @@ export const useZoomControls = ({
   // Set zoom to a specific value
   const setZoomLevel = useCallback((newZoom: number) => {
     const clampedZoom = Math.min(Math.max(newZoom, minZoom), maxZoom);
+    console.log('🔍 useZoomControls: Setting zoom level to:', clampedZoom);
     setZoom(clampedZoom);
     setZoomActivity(true);
   }, [minZoom, maxZoom]);

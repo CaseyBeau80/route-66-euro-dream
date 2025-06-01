@@ -12,13 +12,21 @@ interface GoogleMapsRoute66Props {
   selectedState: string | null;
   onStateClick: (stateId: string, stateName: string) => void;
   onClearSelection: () => void;
+  isActive?: boolean; // Add prop to control when this should be active
 }
 
 const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({ 
   selectedState,
   onStateClick,
-  onClearSelection
+  onClearSelection,
+  isActive = false // Default to false to prevent conflicts
 }: GoogleMapsRoute66Props) => {
+  // Don't render if not active to prevent zoom control conflicts
+  if (!isActive) {
+    console.log('🚫 GoogleMapsRoute66: Not active, preventing render to avoid zoom control conflicts');
+    return null;
+  }
+
   return (
     <GoogleMapsProvider>
       <MapErrorHandler>
