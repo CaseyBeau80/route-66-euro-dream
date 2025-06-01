@@ -1,4 +1,3 @@
-
 import Route66Map from "../components/Route66Map";
 
 const Index = () => {
@@ -6,96 +5,77 @@ const Index = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
-      {/* Vintage Travel Poster Header */}
-      <div className="relative bg-gradient-to-r from-route66-vintage-red via-route66-orange to-route66-vintage-burgundy text-white py-8 overflow-hidden travel-poster-edge">
-        {/* Authentic vintage texture overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/20"></div>
-        
-        {/* Classic travel poster pattern background */}
-        <div className="absolute inset-0 opacity-15">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
-              repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 25px,
-                rgba(255,255,255,0.1) 25px,
-                rgba(255,255,255,0.1) 50px
-              ),
-              repeating-linear-gradient(
-                -45deg,
-                transparent,
-                transparent 25px,
-                rgba(244,208,63,0.1) 25px,
-                rgba(244,208,63,0.1) 50px
-              )
-            `,
-          }}></div>
+      {/* Route 66 Highway Header with Desert Road Aesthetic */}
+      <div className="relative h-96 overflow-hidden">
+        {/* Desert highway background */}
+        <div className="absolute inset-0">
+          <img 
+            src="/lovable-uploads/d4bef21f-6976-42cb-95de-facd08a1a838.png" 
+            alt="Route 66 desert highway" 
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40"></div>
         </div>
         
-        {/* Vintage paper texture */}
-        <div className="absolute inset-0 vintage-paper-texture opacity-20"></div>
-        
-        <div className="w-full px-3 sm:px-6 text-center relative z-10">
-          {/* Authentic Route 66 Shield Badge - Updated to match vintage image */}
-          <div className="flex justify-center mb-6">
-            <div className="relative travel-stamp">
-              <div className="w-20 h-24 bg-route66-vintage-beige rounded-xl border-4 border-black shadow-vintage flex flex-col items-center justify-center">
-                {/* Shield shape background */}
-                <div className="absolute inset-2 bg-route66-vintage-beige border-2 border-black rounded-lg"></div>
-                
-                {/* Content over shield */}
-                <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                  <div className="text-black text-xs font-bold font-americana tracking-wide">ROUTE</div>
-                  <div className="text-black text-2xl font-black leading-none font-route66 mt-1">66</div>
+        {/* Content overlay */}
+        <div className="relative z-10 h-full flex items-center justify-center">
+          <div className="w-full px-3 sm:px-6 text-center">
+            {/* Route 66 Shield - positioned to match the road sign in the image */}
+            <div className="flex justify-center mb-6">
+              <div className="relative travel-stamp">
+                <div className="w-20 h-24 bg-white rounded-xl border-4 border-black shadow-2xl flex flex-col items-center justify-center">
+                  {/* Shield shape background */}
+                  <div className="absolute inset-2 bg-white border-2 border-black rounded-lg"></div>
+                  
+                  {/* Content over shield */}
+                  <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                    <div className="text-black text-xs font-bold font-americana tracking-wide">ROUTE</div>
+                    <div className="text-black text-2xl font-black leading-none font-route66 mt-1">66</div>
+                  </div>
                 </div>
+                {/* Vintage glow effects */}
+                <div className="absolute inset-0 rounded-xl bg-route66-vintage-yellow opacity-25 blur-xl animate-pulse"></div>
               </div>
-              {/* Vintage glow and dust effects */}
-              <div className="absolute inset-0 rounded-xl bg-route66-vintage-yellow opacity-25 blur-xl animate-pulse"></div>
-              <div className="absolute -top-2 -right-2 w-3 h-3 bg-route66-vintage-yellow rounded-full opacity-60 dust-effect"></div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-route66-orange rounded-full opacity-40 dust-effect" style={{ animationDelay: '1s' }}></div>
             </div>
-          </div>
-          
-          <h1 className="font-route66 text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight mb-4 animate-fade-in retro-heading">
-            HISTORIC ROUTE 66 EXPLORER
-          </h1>
-          
-          {/* Vintage travel poster style tagline */}
-          <div className="mb-4">
-            <div className="inline-block bg-route66-vintage-yellow text-route66-navy px-6 py-2 rounded-full font-bold text-sm md:text-base highway-sign animate-vintage-flicker transform rotate-1">
-              ★ AMERICA'S MOST FAMOUS HIGHWAY ★
+            
+            {/* Main heading with road trip aesthetic */}
+            <h1 className="font-route66 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-4 animate-fade-in text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+              THE MOTHER ROAD AWAITS
+            </h1>
+            
+            {/* Highway mile marker style badge */}
+            <div className="mb-4">
+              <div className="inline-block bg-white text-black px-8 py-3 rounded-lg font-bold text-lg md:text-xl border-4 border-black shadow-lg transform -rotate-1">
+                ★ 2,448 MILES OF PURE AMERICANA ★
+              </div>
             </div>
-          </div>
-          
-          <p className="font-travel text-lg md:text-xl mb-6 text-route66-cream drop-shadow-lg animate-fade-in leading-relaxed" style={{ animationDelay: "0.2s" }}>
-            Journey Through Time • Chicago to Santa Monica • 2,448 Miles of Authentic Americana
-          </p>
-          
-          {/* Authentic vintage travel badges */}
-          <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <div className="stamp-effect bg-route66-cream text-route66-vintage-red px-4 py-2 font-bold text-xs animate-slow-pulse">
-              <div className="handwritten-style">Since 1926</div>
-            </div>
-            <div className="stamp-effect bg-route66-vintage-yellow text-route66-navy px-4 py-2 font-bold text-xs animate-slow-pulse" style={{ animationDelay: "0.5s" }}>
-              <div className="font-americana">THE MOTHER ROAD</div>
-            </div>
-            <div className="stamp-effect bg-route66-vintage-turquoise text-white px-4 py-2 font-bold text-xs animate-slow-pulse" style={{ animationDelay: "1s" }}>
-              <div className="font-vintage">8 STATES</div>
-            </div>
-          </div>
-          
-          {/* Vintage postcard style information */}
-          <div className="max-w-2xl mx-auto vintage-postcard p-4 mb-4">
-            <div className="text-route66-vintage-brown text-sm italic handwritten-style">
-              "Discover hidden diners, vintage motels, roadside attractions, and the spirit of the open road..."
+            
+            {/* Desert road tagline */}
+            <p className="font-travel text-xl md:text-2xl mb-6 text-white drop-shadow-lg animate-fade-in leading-relaxed max-w-3xl mx-auto" style={{ animationDelay: "0.2s" }}>
+              From Chicago's Skyline to Santa Monica's Sunset • The Ultimate American Road Trip Experience
+            </p>
+            
+            {/* Highway markers matching the desert road theme */}
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <div className="bg-route66-vintage-yellow text-black px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse">
+                <div className="font-americana">EST. 1926</div>
+              </div>
+              <div className="bg-route66-orange text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{ animationDelay: "0.5s" }}>
+                <div className="font-vintage">8 STATES</div>
+              </div>
+              <div className="bg-route66-vintage-turquoise text-white px-6 py-2 font-bold text-sm rounded-full border-2 border-black shadow-lg animate-slow-pulse" style={{ animationDelay: "1s" }}>
+                <div className="font-americana">ENDLESS ADVENTURE</div>
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Decorative vintage border elements */}
-        <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-route66-vintage-yellow via-route66-cream to-route66-vintage-yellow"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-route66-vintage-red"></div>
+        {/* Highway lane divider at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 z-20">
+          <div className="h-2 bg-route66-vintage-yellow"></div>
+          <div className="h-1 bg-white"></div>
+        </div>
       </div>
 
       {/* Enhanced Map Section with Travel Poster Styling */}

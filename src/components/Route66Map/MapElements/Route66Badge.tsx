@@ -55,7 +55,7 @@ const Route66Badge = () => {
             66
           </div>
         </div>
-      </svg>
+      </div>
     </div>
   );
 };
