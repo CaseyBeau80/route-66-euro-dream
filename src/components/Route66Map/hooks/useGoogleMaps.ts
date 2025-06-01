@@ -36,8 +36,8 @@ export const useGoogleMaps = () => {
   const isValidGoogleMapsKey = (key: string): boolean => {
     if (!key || key.trim() === '' || key === 'demo-key') return false;
     
-    // Check if key starts with common test/placeholder text
-    const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'AIza', 'placeholder'];
+    // Check if key starts with common test/placeholder text (but NOT AIzaSy which is valid)
+    const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'placeholder', 'YOUR_API_KEY', 'enter_your'];
     const keyLower = key.toLowerCase();
     
     for (const prefix of invalidPrefixes) {
@@ -47,13 +47,26 @@ export const useGoogleMaps = () => {
       }
     }
     
-    // Google Maps API keys are typically 39 characters and start with 'AIza'
+    // Google Maps API keys are typically 39 characters and start with 'AIzaSy'
     if (key.length < 35) {
       console.log('🔑 API key too short');
       return false;
     }
     
-    return true;
+    // Accept keys that start with AIzaSy (legitimate Google Maps API keys)
+    if (key.startsWith('AIzaSy')) {
+      console.log('🔑 Valid Google Maps API key format detected');
+      return true;
+    }
+    
+    // For other formats, be more lenient but still check basic criteria
+    if (key.length >= 35 && !/^[a-zA-Z_\s]/.test(key)) {
+      console.log('🔑 API key appears to be in valid format');
+      return true;
+    }
+    
+    console.log('🔑 API key format appears invalid');
+    return false;
   };
 
   const shouldLoadApi = isValidGoogleMapsKey(apiKey);
