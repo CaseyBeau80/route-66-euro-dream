@@ -3,13 +3,19 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
 import ComprehensiveListings from "../components/ComprehensiveListings";
+import NavigationBar from "../components/NavigationBar";
 import { Link } from "react-router-dom";
 
 const Index = () => {
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+  
   console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
+      {/* Navigation Bar */}
+      <NavigationBar language={language} setLanguage={setLanguage} />
+      
       {/* Hero Section */}
       <div className="relative h-96 overflow-hidden">
         <div className="absolute inset-0">
@@ -49,7 +55,7 @@ const Index = () => {
       </div>
 
       {/* Interactive Map Section */}
-      <div className="w-full px-2 sm:px-3 py-3">
+      <div className="w-full px-2 sm:px-3 py-3" id="map">
         <div className="relative w-full route66-authentic">
           <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80 vintage-paper-texture"></div>
           <div className="absolute -inset-1 bg-gradient-to-r from-route66-vintage-yellow via-route66-cream to-route66-vintage-yellow rounded-lg opacity-60"></div>

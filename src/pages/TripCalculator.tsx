@@ -1,22 +1,45 @@
 
-import React from 'react';
-import Route66TripCalculator from '../components/Route66TripCalculator';
+import { useState } from "react";
+import NavigationBar from "@/components/NavigationBar";
+import TripCalculatorForm from "@/components/TripCalculator/TripCalculatorForm";
+import TripCalculatorResults from "@/components/TripCalculator/TripCalculatorResults";
+import { TripResults } from "@/components/TripCalculator/types/tripCalculator";
 
 const TripCalculator = () => {
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+  const [tripResults, setTripResults] = useState<TripResults | null>(null);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
-      <div className="container mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="font-route66 text-4xl md:text-5xl text-route66-vintage-red mb-4">
-            PLAN YOUR ROUTE 66 ADVENTURE
-          </h1>
-          <p className="font-travel text-xl text-route66-vintage-brown max-w-2xl mx-auto">
-            Calculate distances, drive times, and plan the perfect Mother Road journey 
-            from Chicago to Santa Monica
-          </p>
+      {/* Navigation Bar */}
+      <NavigationBar language={language} setLanguage={setLanguage} />
+      
+      {/* Main Content */}
+      <div className="pt-20 pb-8">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="font-route66 text-4xl md:text-5xl text-route66-red mb-4">
+                ROUTE 66 TRIP CALCULATOR
+              </h1>
+              <p className="font-travel text-lg text-route66-gray max-w-2xl mx-auto">
+                Plan your perfect Route 66 adventure. Calculate distances, costs, and discover the best stops along the Mother Road.
+              </p>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-route66-vintage-yellow">
+                <TripCalculatorForm onResultsGenerated={setTripResults} />
+              </div>
+              
+              {tripResults && (
+                <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-route66-vintage-yellow">
+                  <TripCalculatorResults results={tripResults} />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        
-        <Route66TripCalculator />
       </div>
     </div>
   );
