@@ -1,6 +1,7 @@
 
 import React from 'react';
 import DestinationCustomMarker from './Destinations/DestinationCustomMarker';
+import { useDestinationCities } from '../hooks/useDestinationCities';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface DestinationCitiesContainerProps {
@@ -14,64 +15,56 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
   waypoints, 
   onDestinationClick 
 }) => {
-  // Filter for major stops only (destinations) - ensure we're getting all of them
-  const destinations = waypoints.filter(waypoint => waypoint.is_major_stop === true);
+  // Use the actual destination cities data instead of filtering waypoints
+  const { destinationCities, isLoading } = useDestinationCities();
   
-  console.log(`🏛️ DestinationCitiesContainer: Processing waypoints`, {
-    totalWaypoints: waypoints.length,
-    destinationCities: destinations.length,
-    mapAvailable: !!map
+  console.log(`🏛️ DestinationCitiesContainer: Using ACTUAL destination cities data`, {
+    destinationCitiesCount: destinationCities.length,
+    waypointsCount: waypoints.length,
+    mapAvailable: !!map,
+    isLoading
   });
 
-  // Log detailed information about filtering
-  console.log(`🔍 Waypoint filtering breakdown:`, {
-    totalWaypoints: waypoints.length,
-    majorStops: waypoints.filter(w => w.is_major_stop === true).length,
-    nonMajorStops: waypoints.filter(w => w.is_major_stop === false || w.is_major_stop === null).length,
-    destinationsFound: destinations.length
+  // Convert destination cities to Route66Waypoint format for compatibility
+  const destinationWaypoints: Route66Waypoint[] = destinationCities.map((city, index) => ({
+    id: city.id,
+    name: city.name,
+    state: city.state,
+    latitude: Number(city.latitude),
+    longitude: Number(city.longitude),
+    sequence_order: index + 1, // Assign sequence based on order
+    is_major_stop: true, // All destination cities are major stops
+    highway_designation: 'US-66',
+    description: city.description || null
+  }));
+
+  console.log(`🏛️ Converted ${destinationCities.length} destination cities to waypoint format:`);
+  destinationWaypoints.forEach((dest, index) => {
+    console.log(`  🏛️ ${index + 1}. ${dest.name} (${dest.state})`);
   });
 
-  // Special check for Santa Monica in destinations
-  const santaMonicaInDestinations = destinations.find(d => d.name.toLowerCase().includes('santa monica'));
-  if (santaMonicaInDestinations) {
-    console.log(`🎯 SANTA MONICA CONFIRMED IN DESTINATIONS!`, {
-      name: santaMonicaInDestinations.name,
-      state: santaMonicaInDestinations.state,
-      sequence_order: santaMonicaInDestinations.sequence_order,
-      is_major_stop: santaMonicaInDestinations.is_major_stop
-    });
+  // Special check for Rolla - it should NOT be in destination cities
+  const rollaInDestinations = destinationWaypoints.find(d => d.name.toLowerCase().includes('rolla'));
+  if (rollaInDestinations) {
+    console.warn(`🚨 WARNING: Rolla found in destination cities - this should NOT happen!`, rollaInDestinations);
   } else {
-    console.log(`❌ SANTA MONICA MISSING FROM DESTINATIONS - checking all waypoints for debug:`);
-    waypoints.forEach(w => {
-      if (w.name.toLowerCase().includes('santa monica')) {
-        console.log(`🔍 Found Santa Monica in waypoints but not in destinations:`, {
-          name: w.name,
-          state: w.state,
-          is_major_stop: w.is_major_stop,
-          sequence_order: w.sequence_order
-        });
-      }
-    });
+    console.log(`✅ CORRECT: Rolla is NOT in destination cities`);
   }
 
-  // Log each destination for debugging
-  destinations.forEach((destination, index) => {
-    console.log(`  🏛️ ${index + 1}. ${destination.name} (${destination.state}) - Major Stop: ${destination.is_major_stop}, Seq: ${destination.sequence_order}`);
-  });
-
-  // Also log waypoints that are NOT marked as major stops for debugging
-  const nonMajorStops = waypoints.filter(w => w.is_major_stop !== true);
-  if (nonMajorStops.length > 0) {
-    console.log(`⚠️ Waypoints NOT marked as major stops:`, nonMajorStops.map(w => `${w.name} (${w.state}) - Major: ${w.is_major_stop}`));
+  // Also check if Rolla is in the original waypoints for debugging
+  const rollaInWaypoints = waypoints.find(w => w.name.toLowerCase().includes('rolla'));
+  if (rollaInWaypoints) {
+    console.log(`🔍 DEBUG: Rolla found in route66_waypoints:`, {
+      name: rollaInWaypoints.name,
+      state: rollaInWaypoints.state,
+      is_major_stop: rollaInWaypoints.is_major_stop,
+      sequence_order: rollaInWaypoints.sequence_order
+    });
   }
 
   const handleDestinationSelect = (destination: Route66Waypoint) => {
-    console.log('🏛️ Destination selected (no navigation):', destination.name);
-    
-    // Call the original click handler but removed navigation
+    console.log('🏛️ Destination selected from ACTUAL destination cities:', destination.name);
     onDestinationClick(destination);
-    
-    // Navigation to city page removed - destinations now only show info cards
   };
 
   if (!map) {
@@ -79,22 +72,21 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     return null;
   }
 
-  if (destinations.length === 0) {
-    console.log('⚠️ DestinationCitiesContainer: No destination cities found - this suggests data issue');
-    console.log('🔍 All waypoints for debugging:', waypoints.map(w => ({
-      name: w.name,
-      state: w.state,
-      is_major_stop: w.is_major_stop,
-      sequence_order: w.sequence_order
-    })));
+  if (isLoading) {
+    console.log('⏳ DestinationCitiesContainer: Still loading destination cities');
     return null;
   }
 
-  console.log(`🛡️ Rendering ${destinations.length} Route 66 destination shield markers including Santa Monica`);
+  if (destinationWaypoints.length === 0) {
+    console.log('⚠️ DestinationCitiesContainer: No destination cities found');
+    return null;
+  }
+
+  console.log(`🛡️ Rendering ${destinationWaypoints.length} ACTUAL destination city markers (Rolla should NOT be included)`);
 
   return (
     <>
-      {destinations.map((destination) => (
+      {destinationWaypoints.map((destination) => (
         <DestinationCustomMarker
           key={`destination-${destination.id}`}
           destination={destination}
