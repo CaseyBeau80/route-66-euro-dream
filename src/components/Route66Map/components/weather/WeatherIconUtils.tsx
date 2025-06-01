@@ -65,17 +65,18 @@ export const WeatherIcon: React.FC<WeatherIconProps> = ({
   size = 40,
   className = ""
 }) => {
-  const FallbackIcon = getFallbackIcon(iconCode);
+  const weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 
-  console.log(`🌤️ WeatherIcon: Rendering icon for code ${iconCode} with fallback`);
+  console.log(`🌤️ WeatherIcon: Using OpenWeatherMap icon for code ${iconCode}`);
 
-  // Always use the fallback Lucide icons for consistent, colorful display
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <FallbackIcon 
-        size={size} 
-        className="text-blue-600" 
-        aria-label={description}
+      <img 
+        src={weatherIconUrl}
+        alt={description}
+        width={size}
+        height={size}
+        className="object-contain"
       />
     </div>
   );
