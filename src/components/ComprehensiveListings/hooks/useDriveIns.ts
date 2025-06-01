@@ -33,16 +33,18 @@ export const useDriveIns = () => {
 
         console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins from database`);
         
-        // Log each drive-in with detailed info
+        // Log each drive-in with detailed info including thumbnail
         driveIns.forEach((driveIn, index) => {
           console.log(`🎬 Drive-in ${index + 1}:`, {
             name: driveIn.name,
             city: driveIn.city_name,
             state: driveIn.state,
             hasImage: !!driveIn.image_url,
+            hasThumbnail: !!driveIn.thumbnail_url,
             hasWebsite: !!driveIn.website,
             website: driveIn.website,
             imageUrl: driveIn.image_url,
+            thumbnailUrl: driveIn.thumbnail_url,
             status: driveIn.status,
             yearOpened: driveIn.year_opened
           });
@@ -55,6 +57,7 @@ export const useDriveIns = () => {
           city_name: driveIn.city_name,
           state: driveIn.state,
           image_url: driveIn.image_url,
+          thumbnail_url: driveIn.thumbnail_url,
           website: driveIn.website,
           latitude: driveIn.latitude,
           longitude: driveIn.longitude,
@@ -69,7 +72,9 @@ export const useDriveIns = () => {
           city: item.city_name,
           state: item.state,
           hasWebsite: !!item.website,
-          website: item.website
+          website: item.website,
+          hasThumbnail: !!item.thumbnail_url,
+          thumbnailUrl: item.thumbnail_url
         })));
         
         setItems(mappedItems);
@@ -87,7 +92,12 @@ export const useDriveIns = () => {
   console.log(`🎬 useDriveIns returning:`, { 
     loading, 
     itemsCount: items.length,
-    items: items.map(item => ({ name: item.name, city: item.city_name, state: item.state }))
+    items: items.map(item => ({ 
+      name: item.name, 
+      city: item.city_name, 
+      state: item.state,
+      hasThumbnail: !!item.thumbnail_url 
+    }))
   });
 
   return { items, loading };

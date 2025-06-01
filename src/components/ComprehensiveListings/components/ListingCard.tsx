@@ -19,6 +19,8 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     hasWebsite: !!item.website,
     website: item.website,
     hasImage: !!item.image_url,
+    hasThumbnail: !!item.thumbnail_url,
+    thumbnail_url: item.thumbnail_url,
     imageError,
     fallbackError
   });
@@ -42,27 +44,33 @@ export const ListingCard = ({ item }: ListingCardProps) => {
     }
   };
 
-  // Determine the image URL to use
+  // Determine the image URL to use - prioritize thumbnail_url over image_url
   const getImageUrl = () => {
     if (fallbackError) {
       return "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
     }
-    if (imageError || !item.image_url) {
+    if (imageError || (!item.thumbnail_url && !item.image_url)) {
       return getFallbackImage(item.name, item.description, item.category);
     }
-    return item.image_url;
+    // Prioritize thumbnail_url, fall back to image_url
+    return item.thumbnail_url || item.image_url;
   };
 
   const imageUrl = getImageUrl();
   
-  // Check if this is a Supabase Storage image (theater-sourced)
-  const isTheaterSourcedImage = item.image_url && item.image_url.includes('/storage/drive_ins/') && !imageError;
+  // Check if this is a Supabase Storage image (theater-sourced) - check both thumbnail and regular image
+  const isTheaterSourcedImage = ((item.thumbnail_url && item.thumbnail_url.includes('/storage/drive_ins/')) || 
+                                 (item.image_url && item.image_url.includes('/storage/drive_ins/'))) && !imageError;
   
   // Log image loading strategy
-  if (!item.image_url) {
+  if (!item.thumbnail_url && !item.image_url) {
     console.log(`🖼️ No database image for ${item.name}, using category fallback`);
   } else if (imageError) {
     console.log(`🖼️ Using fallback image for ${item.name} due to load error`);
+  } else if (item.thumbnail_url) {
+    console.log(`🖼️ Using thumbnail_url for ${item.name}: ${item.thumbnail_url}`);
+  } else {
+    console.log(`🖼️ Using image_url for ${item.name}: ${item.image_url}`);
   }
 
   // Handle image click - open website in new tab
