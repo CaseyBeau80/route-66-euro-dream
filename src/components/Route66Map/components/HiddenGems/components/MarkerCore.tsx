@@ -7,29 +7,19 @@ import { createMarkerEventHandlers } from './MarkerEventHandlers';
 interface MarkerCoreProps {
   gem: HiddenGem;
   map: google.maps.Map;
-  isClicked: boolean;
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (gemTitle: string) => void;
   handleMouseLeave: (gemTitle: string) => void;
-  clearHover: () => void;
   cleanup: () => void;
-  onMarkerClick: (gem: HiddenGem) => void;
-  setIsClicked: (clicked: boolean) => void;
-  setClickPosition: (position: { x: number; y: number }) => void;
 }
 
 const MarkerCore: React.FC<MarkerCoreProps> = ({
   gem,
   map,
-  isClicked,
   updatePosition,
   handleMouseEnter,
   handleMouseLeave,
-  clearHover,
-  cleanup,
-  onMarkerClick,
-  setIsClicked,
-  setClickPosition
+  cleanup
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
@@ -54,22 +44,16 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
       gem,
       map,
       marker,
-      isClicked,
       updatePosition,
       handleMouseEnter,
-      handleMouseLeave,
-      clearHover,
-      onMarkerClick,
-      setIsClicked,
-      setClickPosition
+      handleMouseLeave
     });
 
-    // Add event listeners
+    // Add only hover event listeners
     const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
     const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
-    const clickListener = marker.addListener('click', eventHandlers.handleClick);
 
-    listenersRef.current = [mouseOverListener, mouseOutListener, clickListener];
+    listenersRef.current = [mouseOverListener, mouseOutListener];
 
     // Update position when map changes
     const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);
@@ -93,7 +77,7 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
 
       cleanup();
     };
-  }, [map, gem.latitude, gem.longitude, gem.title, isClicked]);
+  }, [map, gem.latitude, gem.longitude, gem.title]);
 
   return null;
 };
