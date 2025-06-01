@@ -1,0 +1,66 @@
+
+/* Route 66 Typography and Font Styles */
+
+/* Custom Font Classes */
+.font-route66 {
+  font-family: 'Righteous', cursive;
+}
+
+.font-americana {
+  font-family: 'Americana', serif;
+}
+
+.font-vintage {
+  font-family: 'Righteous', cursive;
+  letter-spacing: 0.1em;
+}
+
+.font-travel {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Route 66 Text Styling */
+.route66-text {
+  font-family: 'Racing Sans One', 'Bebas Neue', Impact, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(45deg, #D2041A, #FFD700, #FF6B35);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+/* Retro Typography */
+.retro-heading {
+  font-family: 'Righteous', 'Arial Black', sans-serif;
+  text-shadow: 
+    3px 3px 0px #D2041A,
+    6px 6px 0px #FFD700,
+    9px 9px 10px rgba(0,0,0,0.3);
+  color: white;
+}
+
+/* Route 66 Documentation Link */
+.read-the-docs {
+  color: #D2041A;
+  font-family: 'Fredoka One', cursive;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.read-the-docs:hover {
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+/* Mobile Typography Adjustments */
+@media (max-width: 768px) {
+  .retro-heading {
+    text-shadow: 
+      2px 2px 0px #D2041A,
+      4px 4px 0px #FFD700,
+      6px 6px 8px rgba(0,0,0,0.3);
+  }
+}

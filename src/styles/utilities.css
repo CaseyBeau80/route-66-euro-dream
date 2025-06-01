@@ -1,0 +1,50 @@
+
+/* Route 66 Utility Classes and Effects */
+
+/* Utility Classes */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Route 66 themed elements */
+.vintage-paper-texture {
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(210, 0, 31, 0.2) 0%, transparent 50%);
+}
+
+.route66-authentic {
+  position: relative;
+}
+
+.shadow-postcard {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.travel-poster-edge {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+  border: 2px solid #34495e;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.vintage-button {
+  background: linear-gradient(135deg, var(--route66-vintage-yellow) 0%, var(--route66-orange) 100%);
+  color: #000;
+  border: 3px solid var(--route66-vintage-brown);
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.vintage-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--route66-orange) 0%, var(--route66-vintage-yellow) 100%);
+}

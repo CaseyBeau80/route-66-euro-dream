@@ -1,0 +1,17 @@
+
+/* Route 66 Custom Colors and Variables */
+:root {
+  --route66-red: #D2001F;
+  --route66-blue: #1E3A8A;
+  --route66-cream: #FDF6E3;
+  --route66-tan: #D2B48C;
+  --route66-gray: #4A5568;
+  --route66-orange: #FF6B35;
+  --route66-vintage-yellow: #F7DC6F;
+  --route66-vintage-blue: #5DADE2;
+  --route66-vintage-red: #E74C3C;
+  --route66-vintage-brown: #8B4513;
+  --route66-vintage-beige: #F5F5DC;
+  --route66-vintage-turquoise: #48CAE4;
+  --route66-rust: #B85450;
+}
