@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
 import { Link } from "react-router-dom";
 
