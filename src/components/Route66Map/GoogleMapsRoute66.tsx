@@ -54,7 +54,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   });
 
   const { showRouteStats, setShowRouteStats } = useRouteStatistics({
-    mapInitialized: true, // Always true since we handle initialization in MapCore
+    mapInitialized: true,
     isMapReady: mapEventHandlers.isMapReady
   });
 
@@ -130,6 +130,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         showRouteStats={showRouteStats}
         isMapReady={mapEventHandlers.isMapReady}
         onToggleRouteStats={() => setShowRouteStats(!showRouteStats)}
+        mapRef={mapRef}
       />
       
       <MapCore
