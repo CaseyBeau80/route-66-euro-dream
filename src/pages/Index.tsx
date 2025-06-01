@@ -104,18 +104,15 @@ const Index = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {listings.map((item) => (
             <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" />
+              <img 
+                src={item.website || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"} 
+                alt={item.title} 
+                className="w-full h-48 object-cover" 
+              />
               <div className="p-4">
-                <h3 className="text-xl font-semibold">{item.name}</h3>
-                <p className="text-sm text-gray-500">{item.location}</p>
+                <h3 className="text-xl font-semibold">{item.title}</h3>
+                <p className="text-sm text-gray-500">{item.city_name}</p>
                 <p className="mt-2 text-sm">{item.description}</p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {item.tags?.split(',').map((tag, i) => (
-                    <span key={i} className="text-xs bg-yellow-100 px-2 py-1 rounded">
-                      {tag.trim()}
-                    </span>
-                  ))}
-                </div>
               </div>
             </div>
           ))}
