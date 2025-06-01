@@ -1,5 +1,5 @@
 
-import TwitterTimeline from "../components/TwitterTimeline";
+import InstagramStyleFeed from "../components/InstagramStyleFeed";
 import RouteHeaderSection from "../components/RouteHeaderSection";
 import RouteMapSection from "../components/RouteMapSection";
 import RouteFooterSection from "../components/RouteFooterSection";
@@ -15,8 +15,8 @@ const Index = () => {
       {/* Enhanced Map Section with Travel Poster Styling */}
       <RouteMapSection />
 
-      {/* Twitter Timeline Section */}
-      <TwitterTimeline />
+      {/* Instagram-Style Social Feed Section */}
+      <InstagramStyleFeed />
 
       {/* Vintage Travel Poster Footer */}
       <RouteFooterSection />
