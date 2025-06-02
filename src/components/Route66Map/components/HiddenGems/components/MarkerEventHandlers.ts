@@ -1,6 +1,7 @@
 
 import { HiddenGem } from '../types';
 import { getMarkerScreenPosition } from './MarkerPositioning';
+import { MarkerAnimationUtils } from '../../../utils/markerAnimationUtils';
 
 interface MarkerEventHandlersConfig {
   gem: HiddenGem;
@@ -19,10 +20,13 @@ export const createMarkerEventHandlers = ({
   handleMouseEnter,
   handleMouseLeave
 }: MarkerEventHandlersConfig) => {
-  // Remove drive-in detection - all hidden gems are regular gems now
   
   const handleMouseOver = () => {
     console.log(`🐭 Mouse over hidden gem: ${gem.title}`);
+    
+    // Trigger enhanced jiggle animation
+    MarkerAnimationUtils.triggerEnhancedJiggle(marker, gem.title);
+    
     const screenPos = getMarkerScreenPosition(map, marker);
     if (screenPos) {
       updatePosition(screenPos.x, screenPos.y);

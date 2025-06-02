@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAttractionHover } from './hooks/useAttractionHover';
 import AttractionHoverCard from './AttractionHoverCard';
 import AttractionClickableCard from './AttractionClickableCard';
+import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface AttractionCustomMarkerProps {
@@ -83,13 +84,10 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
 
     const handleMouseOverEvent = (e: google.maps.MapMouseEvent) => {
       if (!isClicked) { // Only show hover if not clicked
-        console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering jiggle');
+        console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering enhanced jiggle');
         
-        // Use Google Maps bounce animation
-        marker.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(() => {
-          marker.setAnimation(null);
-        }, 700);
+        // Use enhanced jiggle animation
+        MarkerAnimationUtils.triggerEnhancedJiggle(marker, attraction.name);
 
         if (e.domEvent && e.domEvent.target) {
           const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();

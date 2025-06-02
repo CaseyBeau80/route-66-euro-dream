@@ -4,6 +4,7 @@ import { useDestinationHover } from './hooks/useDestinationHover';
 import DestinationHoverPortal from './DestinationHoverPortal';
 import { DestinationMarkerCreator } from './DestinationMarkerCreator';
 import { DestinationMarkerEvents } from './DestinationMarkerEvents';
+import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface DestinationCustomMarkerProps {
@@ -44,13 +45,27 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
 
     markerRef.current = marker;
 
+    // Enhanced mouse enter handler with animation
+    const enhancedMouseEnter = (name: string) => {
+      console.log(`🏛️ Enhanced mouse enter for ${name}`);
+      
+      // Trigger animation based on marker type
+      if ('content' in marker) {
+        MarkerAnimationUtils.triggerAdvancedMarkerJiggle(marker, name);
+      } else {
+        MarkerAnimationUtils.triggerEnhancedJiggle(marker as google.maps.Marker, name);
+      }
+      
+      handleMouseEnter(name);
+    };
+
     // Attach event listeners with proper error handling
     try {
       DestinationMarkerEvents.attachEventListeners(
         marker,
         destination,
         map,
-        handleMouseEnter,
+        enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
         onDestinationClick

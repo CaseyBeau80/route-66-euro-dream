@@ -1,8 +1,8 @@
 
 import { DriveInData } from './hooks/useDriveInsData';
-import { getMarkerScreenPosition } from '../HiddenGems/components/MarkerPositioning';
+import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 
-interface DriveInMarkerEventHandlersProps {
+interface DriveInMarkerEventHandlersConfig {
   driveIn: DriveInData;
   map: google.maps.Map;
   marker: google.maps.Marker;
@@ -11,6 +11,31 @@ interface DriveInMarkerEventHandlersProps {
   handleMouseLeave: (driveInName: string) => void;
 }
 
+const getMarkerScreenPosition = (map: google.maps.Map, marker: google.maps.Marker) => {
+  const projection = map.getProjection();
+  if (!projection) return null;
+
+  const position = marker.getPosition();
+  if (!position) return null;
+
+  const mapDiv = map.getDiv();
+  const mapRect = mapDiv.getBoundingClientRect();
+
+  const bounds = map.getBounds();
+  if (!bounds) return null;
+
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+
+  const x = ((position.lng() - sw.lng()) / (ne.lng() - sw.lng())) * mapRect.width;
+  const y = ((ne.lat() - position.lat()) / (ne.lat() - sw.lat())) * mapRect.height;
+
+  return {
+    x: mapRect.left + x,
+    y: mapRect.top + y
+  };
+};
+
 export const createDriveInMarkerEventHandlers = ({
   driveIn,
   map,
@@ -18,37 +43,40 @@ export const createDriveInMarkerEventHandlers = ({
   updatePosition,
   handleMouseEnter,
   handleMouseLeave
-}: DriveInMarkerEventHandlersProps) => {
+}: DriveInMarkerEventHandlersConfig) => {
   
-  const updateMarkerPosition = () => {
-    console.log(`🎬 Updating drive-in marker position for: ${driveIn.name}`);
+  const handleMouseOver = () => {
+    console.log(`🐭 Mouse over drive-in: ${driveIn.name}`);
     
-    const screenPosition = getMarkerScreenPosition(map, marker);
-    if (screenPosition) {
-      console.log(`📍 Drive-in screen position calculated:`, {
-        driveInName: driveIn.name,
-        screenPosition
-      });
-      updatePosition(screenPosition.x, screenPosition.y);
-    } else {
-      console.warn(`⚠️ Could not calculate screen position for drive-in: ${driveIn.name}`);
+    // Trigger enhanced jiggle animation
+    MarkerAnimationUtils.triggerEnhancedJiggle(marker, driveIn.name);
+    
+    const screenPos = getMarkerScreenPosition(map, marker);
+    if (screenPos) {
+      updatePosition(screenPos.x, screenPos.y);
+      handleMouseEnter(driveIn.name);
     }
   };
 
-  const handleMouseOver = () => {
-    console.log(`🎬 Mouse over drive-in marker: ${driveIn.name}`);
-    updateMarkerPosition();
-    handleMouseEnter(driveIn.name);
+  const handleMouseOut = () => {
+    console.log(`🐭 Mouse out drive-in: ${driveIn.name}`);
+    setTimeout(() => {
+      handleMouseLeave(driveIn.name);
+    }, 300);
   };
 
-  const handleMouseOut = () => {
-    console.log(`🎬 Mouse out drive-in marker: ${driveIn.name}`);
-    handleMouseLeave(driveIn.name);
+  const updateMarkerPosition = () => {
+    if (marker) {
+      const screenPos = getMarkerScreenPosition(map, marker);
+      if (screenPos) {
+        updatePosition(screenPos.x, screenPos.y);
+      }
+    }
   };
 
   return {
-    updateMarkerPosition,
     handleMouseOver,
-    handleMouseOut
+    handleMouseOut,
+    updateMarkerPosition
   };
 };
