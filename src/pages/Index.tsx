@@ -7,6 +7,7 @@ import Route66Countdown from "../components/Route66Countdown";
 import Route66FunFacts from "../components/Route66Countdown/Route66FunFacts";
 import MapLegend from "../components/Route66Countdown/MapLegend";
 import NostalgicRoute66Banner from "../components/Route66Map/components/NostalgicRoute66Banner";
+import InstagramCarousel from "../components/InstagramCarousel/InstagramCarousel";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -125,6 +126,9 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Instagram Carousel Section */}
+      <InstagramCarousel />
 
       {/* Comprehensive Listings Section */}
       <ComprehensiveListings />

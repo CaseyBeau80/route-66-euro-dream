@@ -228,6 +228,69 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_posts: {
+        Row: {
+          caption: string | null
+          carousel_media: Json | null
+          comments_count: number | null
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          instagram_post_id: string
+          is_featured: boolean | null
+          like_count: number | null
+          location_id: string | null
+          location_name: string | null
+          media_type: string
+          media_url: string
+          mentions: string[] | null
+          permalink: string
+          thumbnail_url: string | null
+          timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          carousel_media?: Json | null
+          comments_count?: number | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          instagram_post_id: string
+          is_featured?: boolean | null
+          like_count?: number | null
+          location_id?: string | null
+          location_name?: string | null
+          media_type: string
+          media_url: string
+          mentions?: string[] | null
+          permalink: string
+          thumbnail_url?: string | null
+          timestamp: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          carousel_media?: Json | null
+          comments_count?: number | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          instagram_post_id?: string
+          is_featured?: boolean | null
+          like_count?: number | null
+          location_id?: string | null
+          location_name?: string | null
+          media_type?: string
+          media_url?: string
+          mentions?: string[] | null
+          permalink?: string
+          thumbnail_url?: string | null
+          timestamp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       route66_waypoints: {
         Row: {
           created_at: string
