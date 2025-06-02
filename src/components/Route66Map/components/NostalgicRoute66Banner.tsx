@@ -69,48 +69,6 @@ const NostalgicRoute66Banner: React.FC = () => {
 
       {/* Main Content Container */}
       <div className="relative z-10 flex items-center justify-center py-3 px-4">
-        {/* Left Route 66 Shield */}
-        <div className="flex-shrink-0 mr-4">
-          <div 
-            className="relative w-10 h-10 flex items-center justify-center rounded-lg transform hover:scale-110 transition-transform duration-300"
-            style={{
-              background: `
-                linear-gradient(135deg, #F5F5DC 0%, #FFFFFF 50%, #F5F5DC 100%)
-              `,
-              border: '3px solid #8B4513',
-              boxShadow: `
-                inset 0 2px 4px rgba(255,255,255,0.6),
-                inset 0 -2px 4px rgba(0,0,0,0.3),
-                0 4px 8px rgba(0,0,0,0.4),
-                0 0 15px rgba(255,215,0,0.3)
-              `
-            }}
-          >
-            <div className="text-center">
-              <div 
-                className="text-xs font-black leading-none"
-                style={{
-                  fontFamily: "'Black Ops One', 'Impact', sans-serif",
-                  color: '#8B4513',
-                  textShadow: '1px 1px 2px rgba(255,255,255,0.8)'
-                }}
-              >
-                ROUTE
-              </div>
-              <div 
-                className="text-lg font-black leading-none"
-                style={{
-                  fontFamily: "'Black Ops One', 'Impact', sans-serif",
-                  color: '#DC2626',
-                  textShadow: '1px 1px 2px rgba(255,255,255,0.8)'
-                }}
-              >
-                66
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Central Title */}
         <div className="flex-1 text-center px-4">
           <h2 
@@ -143,48 +101,6 @@ const NostalgicRoute66Banner: React.FC = () => {
             }}
           >
             THE MOTHER ROAD EXPERIENCE
-          </div>
-        </div>
-
-        {/* Right Route 66 Shield */}
-        <div className="flex-shrink-0 ml-4">
-          <div 
-            className="relative w-10 h-10 flex items-center justify-center rounded-lg transform hover:scale-110 transition-transform duration-300"
-            style={{
-              background: `
-                linear-gradient(135deg, #F5F5DC 0%, #FFFFFF 50%, #F5F5DC 100%)
-              `,
-              border: '3px solid #8B4513',
-              boxShadow: `
-                inset 0 2px 4px rgba(255,255,255,0.6),
-                inset 0 -2px 4px rgba(0,0,0,0.3),
-                0 4px 8px rgba(0,0,0,0.4),
-                0 0 15px rgba(255,215,0,0.3)
-              `
-            }}
-          >
-            <div className="text-center">
-              <div 
-                className="text-xs font-black leading-none"
-                style={{
-                  fontFamily: "'Black Ops One', 'Impact', sans-serif",
-                  color: '#8B4513',
-                  textShadow: '1px 1px 2px rgba(255,255,255,0.8)'
-                }}
-              >
-                ROUTE
-              </div>
-              <div 
-                className="text-lg font-black leading-none"
-                style={{
-                  fontFamily: "'Black Ops One', 'Impact', sans-serif",
-                  color: '#DC2626',
-                  textShadow: '1px 1px 2px rgba(255,255,255,0.8)'
-                }}
-              >
-                66
-              </div>
-            </div>
           </div>
         </div>
       </div>
