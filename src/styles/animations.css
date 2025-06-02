@@ -3,10 +3,21 @@
 
 @keyframes neon-glow {
   0%, 100% {
-    text-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #FFD700;
+    text-shadow: 
+      3px 3px 0px #FFD700,
+      6px 6px 0px #FF4500,
+      9px 9px 10px rgba(0,0,0,0.5),
+      0 0 20px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 69, 0, 0.6);
   }
   50% {
-    text-shadow: 0 0 2px #FFD700, 0 0 5px #FFD700, 0 0 8px #FFD700, 0 0 12px #D2041A;
+    text-shadow: 
+      3px 3px 0px #FFD700,
+      6px 6px 0px #FF4500,
+      9px 9px 10px rgba(0,0,0,0.5),
+      0 0 30px rgba(255, 215, 0, 1),
+      0 0 60px rgba(255, 69, 0, 0.8),
+      0 0 80px rgba(255, 215, 0, 0.4);
   }
 }
 
