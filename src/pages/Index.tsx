@@ -55,14 +55,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Countdown Timer Section */}
-      <div className="w-full px-4 py-8 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown">
-        <div className="max-w-4xl mx-auto">
-          <Route66Countdown />
-        </div>
-      </div>
-
-      {/* Interactive Map Section */}
+      {/* Interactive Map Section - Moved back to original position */}
       <div className="w-full px-2 sm:px-3 py-3" id="map">
         <div className="relative w-full route66-authentic">
           <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80 vintage-paper-texture"></div>
@@ -97,6 +90,13 @@ const Index = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Countdown Timer Section - Moved below the map */}
+      <div className="w-full px-4 py-8 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown">
+        <div className="max-w-4xl mx-auto">
+          <Route66Countdown />
         </div>
       </div>
 
