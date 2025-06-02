@@ -1,6 +1,8 @@
 
 import React from 'react';
-import ClearSelectionOverlay from './overlays/ClearSelectionOverlay';
+import Route66Badge from '../MapElements/Route66Badge';
+import ClearSelectionButton from '../MapElements/ClearSelectionButton';
+import ZoomControls from '../MapElements/ZoomControls';
 import RouteStatsOverlay from './overlays/RouteStatsOverlay';
 
 interface MapOverlaysContainerProps {
@@ -10,7 +12,7 @@ interface MapOverlaysContainerProps {
   showRouteStats: boolean;
   isMapReady: boolean;
   onToggleRouteStats: () => void;
-  mapRef?: React.MutableRefObject<google.maps.Map | null>;
+  mapRef: React.MutableRefObject<google.maps.Map | null>;
 }
 
 const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
@@ -22,32 +24,42 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
   onToggleRouteStats,
   mapRef
 }) => {
-  // Enhanced debugging for component state
-  React.useEffect(() => {
-    console.log('🗺️ MapOverlaysContainer state update (NO ZOOM CONTROLS):', {
-      isMapReady,
-      hasMapRef: !!mapRef?.current,
-      selectedState,
-      showRouteStats,
-      isDragging
-    });
-  }, [isMapReady, mapRef?.current, selectedState, showRouteStats, isDragging]);
+  console.log('🎮 MapOverlaysContainer: Rendering with Google Maps zoom controls');
 
   return (
     <>
-      {/* Clear Selection Button */}
-      <ClearSelectionOverlay
-        selectedState={selectedState}
-        onClearSelection={onClearSelection}
-        isDragging={isDragging}
-      />
+      {/* Route 66 Badge */}
+      <div className="absolute top-4 left-4 z-10">
+        <Route66Badge />
+      </div>
 
-      {/* Route Statistics Overlay */}
-      <RouteStatsOverlay
-        showRouteStats={showRouteStats}
-        isMapReady={isMapReady}
-        onToggleRouteStats={onToggleRouteStats}
-      />
+      {/* Clear Selection Button */}
+      {selectedState && (
+        <ClearSelectionButton 
+          selectedState={selectedState} 
+          onClearSelection={onClearSelection} 
+        />
+      )}
+
+      {/* Google Maps Zoom Controls */}
+      {mapRef.current && isMapReady && (
+        <ZoomControls
+          onZoomIn={() => {}} // Handled internally by the component
+          onZoomOut={() => {}} // Handled internally by the component
+          currentZoom={mapRef.current.getZoom() || 4}
+          minZoom={3}
+          maxZoom={18}
+          map={mapRef.current}
+        />
+      )}
+
+      {/* Route Statistics */}
+      {showRouteStats && (
+        <RouteStatsOverlay 
+          onToggle={onToggleRouteStats}
+          isDragging={isDragging}
+        />
+      )}
     </>
   );
 };

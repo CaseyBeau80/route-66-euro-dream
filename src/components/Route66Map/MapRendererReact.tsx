@@ -76,6 +76,8 @@ const MapRendererReact = ({
     setIsDragging(true);
   };
 
+  console.log('🗺️ MapRendererReact: Rendering SVG-based map with working zoom controls');
+
   return (
     <div className="relative w-full h-full">
       {/* Route 66 Shield Badge */}
@@ -90,7 +92,7 @@ const MapRendererReact = ({
         />
       )}
       
-      {/* Zoom Controls */}
+      {/* Zoom Controls - SVG Map Version */}
       <ZoomControls
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}

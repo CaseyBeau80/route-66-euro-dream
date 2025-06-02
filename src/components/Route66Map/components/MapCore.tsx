@@ -7,7 +7,6 @@ import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
-import ZoomControls from './ZoomControls';
 import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -49,11 +48,17 @@ const MapCore: React.FC<MapCoreProps> = ({
       setRouteCleanupComplete(true); // Continue anyway
     }
     
+    // Enable mouse wheel zoom on the map
+    map.setOptions({
+      scrollwheel: true,
+      gestureHandling: 'greedy'
+    });
+    
     // Call the original onMapLoad
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render with WORKING zoom controls and scroll zoom:', {
+  console.log('🗺️ MapCore render - zoom controls removed from here:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -73,14 +78,6 @@ const MapCore: React.FC<MapCoreProps> = ({
         onMapReady={onMapReady}
         setShowScrollHint={setShowScrollHint}
       />
-      
-      {/* Working Zoom Controls with proper pointer events */}
-      {mapRef.current && isMapReady && (
-        <ZoomControls
-          map={mapRef.current}
-          isMapReady={isMapReady}
-        />
-      )}
       
       {/* Scroll Zoom Hint Overlay - only show if needed */}
       <ScrollZoomHint show={showScrollHint} />
