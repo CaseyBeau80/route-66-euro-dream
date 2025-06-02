@@ -1,6 +1,6 @@
 
-import { PolylineStylesConfig } from './PolylineStylesConfig';
-import { PathInterpolationService } from './PathInterpolationService';
+import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
+import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
 import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
 import type { DestinationCity } from '../hooks/useDestinationCities';
@@ -10,35 +10,35 @@ export class DestinationCitiesRouteRenderer {
   private mainPolyline: google.maps.Polyline | null = null;
   private centerLine: google.maps.Polyline | null = null;
 
-  // ENHANCED: Updated Route 66 order with all major cities including Pontiac
+  // FIXED: Updated Route 66 order with proper Springfield distinction
   private readonly ROUTE_66_ORDER = [
-    'Chicago',     // Starting point
-    'Joliet', 
-    'Pontiac',     // CRITICAL: Pontiac, IL must be included
-    'Springfield', // Springfield, IL
-    'St. Louis',   // Missouri border
-    'Cuba',        // Missouri
-    'Springfield', // Springfield, MO (Note: There are two Springfields)
-    'Joplin',      // Missouri/Kansas border
-    'Tulsa',       // Oklahoma
+    'Chicago',         // Starting point - Illinois
+    'Joliet',          // Illinois
+    'Pontiac',         // CRITICAL: Pontiac, IL must be included
+    'Springfield_IL',  // Springfield, Illinois (first Springfield)
+    'St. Louis',       // Missouri border
+    'Cuba',            // Missouri
+    'Springfield_MO',  // Springfield, Missouri (second Springfield)
+    'Joplin',          // Missouri/Kansas border
+    'Tulsa',           // Oklahoma
     'Oklahoma City',
-    'Elk City',    // Oklahoma/Texas border
-    'Shamrock',    // Texas
+    'Elk City',        // Oklahoma/Texas border
+    'Shamrock',        // Texas
     'Amarillo',
-    'Tucumcari',   // New Mexico
+    'Tucumcari',       // New Mexico
     'Santa Rosa',
     'Albuquerque',
-    'Gallup',      // New Mexico/Arizona border
-    'Holbrook',    // Arizona
+    'Gallup',          // New Mexico/Arizona border
+    'Holbrook',        // Arizona
     'Winslow',
     'Flagstaff',
     'Williams',
     'Seligman',
-    'Kingman',     // Arizona/California border
-    'Needles',     // California
+    'Kingman',         // Arizona/California border
+    'Needles',         // California
     'Barstow',
     'San Bernardino',
-    'Santa Monica' // End point
+    'Santa Monica'     // End point
   ];
 
   constructor(map: google.maps.Map) {
@@ -47,9 +47,9 @@ export class DestinationCitiesRouteRenderer {
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
     try {
-      console.log('🛣️ Creating NUCLEAR-CLEAN STRAIGHT Route 66 from destination cities (ZERO ZIGZAG)');
+      console.log('🛣️ Creating FLOWING CURVED Route 66 from destination cities with enhanced dashed stripes');
       
-      // STEP 1: AGGRESSIVE cleanup of any existing routes
+      // Step 1: Aggressive cleanup of any existing routes
       await this.performAggressiveCleanup();
       
       if (cities.length < 2) {
@@ -57,18 +57,27 @@ export class DestinationCitiesRouteRenderer {
         return;
       }
 
-      // STEP 2: Sort cities according to the exact Route 66 order
+      // Step 2: Sort cities according to the corrected Route 66 order
       const orderedCities = this.sortCitiesByRoute66Order(cities);
       
-      console.log(`🗺️ STRAIGHT Route 66 order (${orderedCities.length} cities found):`, 
+      console.log(`🗺️ FLOWING Route 66 order (${orderedCities.length} cities found):`, 
         orderedCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
       );
 
-      // STEP 3: CRITICAL verification for Pontiac
-      const hasPontiac = orderedCities.some(city => city.name.toLowerCase().includes('pontiac'));
-      console.log(`🔍 Pontiac verification: ${hasPontiac ? '✅ FOUND' : '❌ MISSING'}`);
+      // Step 3: Enhanced verification for both Springfields
+      const springfieldIL = orderedCities.find(city => 
+        city.name.toLowerCase().includes('springfield') && city.state === 'IL'
+      );
+      const springfieldMO = orderedCities.find(city => 
+        city.name.toLowerCase().includes('springfield') && city.state === 'MO'
+      );
       
-      // STEP 4: Verify we have Chicago and Santa Monica
+      console.log(`🔍 Springfield verification:`, {
+        'Springfield, IL': springfieldIL ? '✅ FOUND' : '❌ MISSING',
+        'Springfield, MO': springfieldMO ? '✅ FOUND' : '❌ MISSING'
+      });
+
+      // Step 4: Verify we have Chicago and Santa Monica
       const hasChicago = orderedCities.some(city => city.name.toLowerCase().includes('chicago'));
       const hasSantaMonica = orderedCities.some(city => city.name.toLowerCase().includes('santa monica'));
       
@@ -82,61 +91,61 @@ export class DestinationCitiesRouteRenderer {
         return;
       }
 
-      // STEP 5: Create STRAIGHT coordinate path - point-to-point connection
+      // Step 5: Create flowing curved coordinate path
       const routePath = orderedCities.map(city => ({
         lat: Number(city.latitude),
         lng: Number(city.longitude)
       }));
 
-      // STEP 6: Create ULTRA-STRAIGHT linear path (NO CURVES AT ALL!)
-      const straightPath = PathInterpolationService.createSmoothPath(routePath, 5); // Minimal points for maximum straightness
+      // Step 6: Create FLOWING CURVED path using enhanced interpolation
+      const flowingPath = EnhancedPathInterpolationService.createFlowingCurvedPath(routePath, 25);
       
-      console.log(`🛣️ Creating ULTRA-STRAIGHT Route 66 with ${straightPath.length} linear points connecting ${orderedCities.length} cities`);
+      console.log(`🛣️ Creating FLOWING CURVED Route 66 with ${flowingPath.length} smooth points connecting ${orderedCities.length} cities`);
 
-      // STEP 7: Create main asphalt road with enhanced visibility
+      // Step 7: Create main asphalt road with flowing curve styling
       this.mainPolyline = new google.maps.Polyline({
-        ...PolylineStylesConfig.getIdealizedRouteOptions(),
-        path: straightPath,
+        ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
+        path: flowingPath,
         map: this.map
       });
 
-      // STEP 8: Create dashed yellow center line
+      // Step 8: Create enhanced dashed yellow center line
       this.centerLine = new google.maps.Polyline({
-        ...PolylineStylesConfig.getIdealizedCenterLineOptions(),
-        path: straightPath,
+        ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
+        path: flowingPath,
         map: this.map
       });
 
-      // STEP 9: Verify polylines were created and are visible
+      // Step 9: Verify polylines were created and are visible
       if (!this.mainPolyline || !this.centerLine) {
-        throw new Error('Failed to create polylines');
+        throw new Error('Failed to create flowing polylines');
       }
 
-      console.log('🔍 Polyline verification:', {
+      console.log('🔍 Flowing polyline verification:', {
         mainPolylineVisible: this.mainPolyline.getVisible(),
         centerLineVisible: this.centerLine.getVisible(),
         mainPolylineMap: !!this.mainPolyline.getMap(),
         centerLineMap: !!this.centerLine.getMap(),
-        pathLength: straightPath.length,
-        hasDashedStripe: !!(this.centerLine.get('icons'))
+        pathLength: flowingPath.length,
+        hasEnhancedDashedStripe: !!(this.centerLine.get('icons'))
       });
 
-      // STEP 10: Register with global state and global cleaner
+      // Step 10: Register with global state and global cleaner
       RouteGlobalState.addPolylineSegment(this.mainPolyline);
       RouteGlobalState.addPolylineSegment(this.centerLine);
       GlobalPolylineCleaner.registerPolyline(this.mainPolyline);
       GlobalPolylineCleaner.registerPolyline(this.centerLine);
       RouteGlobalState.setRouteCreated(true);
 
-      console.log('✅ ULTRA-STRAIGHT Route 66 created successfully with DASHED yellow stripe from Chicago to Santa Monica');
+      console.log('✅ FLOWING CURVED Route 66 created successfully with ENHANCED dashed yellow stripes from Chicago to Santa Monica');
       console.log(`📊 Global state updated: ${RouteGlobalState.getPolylineCount()} polylines registered`);
 
-      // STEP 11: Fit map to route bounds
+      // Step 11: Fit map to route bounds
       this.fitMapToBounds(routePath);
 
     } catch (error) {
-      console.error('❌ Error creating STRAIGHT Route 66 from destination cities:', error);
-      await this.cleanup(); // Clean up on error
+      console.error('❌ Error creating FLOWING CURVED Route 66 from destination cities:', error);
+      await this.cleanup();
       throw error;
     }
   }
@@ -182,34 +191,49 @@ export class DestinationCitiesRouteRenderer {
     
     // Go through each city in the Route 66 order and find matching cities
     for (const expectedCityName of this.ROUTE_66_ORDER) {
-      // Find matching city (case insensitive, partial match)
-      const matchingCity = cities.find(city => {
-        const cityKey = `${city.name}-${city.state}`;
-        if (usedCities.has(cityKey)) return false; // Skip already used cities
-        
-        const cityName = city.name.toLowerCase();
-        const expectedName = expectedCityName.toLowerCase();
-        
-        // Check for exact match or if the city name contains the expected name
-        return cityName.includes(expectedName) || expectedName.includes(cityName);
-      });
+      let matchingCity: DestinationCity | undefined;
+      
+      // Handle Springfield special cases
+      if (expectedCityName === 'Springfield_IL') {
+        matchingCity = cities.find(city => {
+          const cityKey = `${city.name}-${city.state}`;
+          return !usedCities.has(cityKey) && 
+                 city.name.toLowerCase().includes('springfield') && 
+                 city.state === 'IL';
+        });
+      } else if (expectedCityName === 'Springfield_MO') {
+        matchingCity = cities.find(city => {
+          const cityKey = `${city.name}-${city.state}`;
+          return !usedCities.has(cityKey) && 
+                 city.name.toLowerCase().includes('springfield') && 
+                 city.state === 'MO';
+        });
+      } else {
+        // Find matching city (case insensitive, partial match)
+        matchingCity = cities.find(city => {
+          const cityKey = `${city.name}-${city.state}`;
+          if (usedCities.has(cityKey)) return false;
+          
+          const cityName = city.name.toLowerCase();
+          const expectedName = expectedCityName.toLowerCase();
+          
+          return cityName.includes(expectedName) || expectedName.includes(cityName);
+        });
+      }
       
       if (matchingCity) {
         orderedCities.push(matchingCity);
         usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
         console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for ${expectedCityName}`);
         
-        // Special logging for Pontiac
-        if (expectedCityName.toLowerCase() === 'pontiac') {
-          console.log(`🎯 PONTIAC FOUND AND ADDED: ${matchingCity.name}, ${matchingCity.state}`);
+        // Special logging for Springfields
+        if (expectedCityName === 'Springfield_IL') {
+          console.log(`🎯 SPRINGFIELD IL FOUND AND ADDED: ${matchingCity.name}, ${matchingCity.state}`);
+        } else if (expectedCityName === 'Springfield_MO') {
+          console.log(`🎯 SPRINGFIELD MO FOUND AND ADDED: ${matchingCity.name}, ${matchingCity.state}`);
         }
       } else {
         console.log(`❌ Could not find city for: ${expectedCityName}`);
-        
-        // Special warning for Pontiac
-        if (expectedCityName.toLowerCase() === 'pontiac') {
-          console.warn(`🚨 PONTIAC NOT FOUND in destination cities database!`);
-        }
       }
     }
     
@@ -234,11 +258,11 @@ export class DestinationCitiesRouteRenderer {
       left: 50
     });
 
-    console.log('🗺️ Map bounds fitted to ULTRA-STRAIGHT route');
+    console.log('🗺️ Map bounds fitted to FLOWING CURVED route');
   }
 
   async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up destination cities route');
+    console.log('🧹 Cleaning up flowing destination cities route');
     
     if (this.mainPolyline) {
       this.mainPolyline.setMap(null);
