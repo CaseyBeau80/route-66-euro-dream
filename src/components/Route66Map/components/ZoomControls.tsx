@@ -43,62 +43,82 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     };
   }, [map, isMapReady]);
 
-  const handleZoomIn = useCallback((e: React.MouseEvent) => {
+  const handleZoomIn = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    // CRITICAL: Prevent all default behaviors that could trigger browser zoom
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
     if (!map || !isMapReady || isZooming) {
       console.log('🎮 ZoomControls: Zoom in blocked');
-      return;
+      return false;
     }
 
     const currentMapZoom = map.getZoom();
     if (currentMapZoom === undefined || currentMapZoom >= 18) {
       console.log('🎮 ZoomControls: Already at maximum zoom');
-      return;
+      return false;
     }
 
     console.log('🎮 ZoomControls: Zooming in from:', currentMapZoom);
     setIsZooming(true);
     
-    const newZoom = Math.min(currentMapZoom + 1, 18);
-    console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
-    
-    map.setZoom(newZoom);
-    
-    // Reset zooming state
-    setTimeout(() => {
+    try {
+      const newZoom = Math.min(currentMapZoom + 1, 18);
+      console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
+      
+      // Use Google Maps setZoom method directly
+      map.setZoom(newZoom);
+      
+      // Reset zooming state after a delay
+      setTimeout(() => {
+        setIsZooming(false);
+      }, 300);
+    } catch (error) {
+      console.error('🎮 ZoomControls: Error zooming in:', error);
       setIsZooming(false);
-    }, 500);
+    }
+    
+    return false;
   }, [map, isMapReady, isZooming]);
 
-  const handleZoomOut = useCallback((e: React.MouseEvent) => {
+  const handleZoomOut = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    // CRITICAL: Prevent all default behaviors that could trigger browser zoom
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
     if (!map || !isMapReady || isZooming) {
       console.log('🎮 ZoomControls: Zoom out blocked');
-      return;
+      return false;
     }
 
     const currentMapZoom = map.getZoom();
     if (currentMapZoom === undefined || currentMapZoom <= 3) {
       console.log('🎮 ZoomControls: Already at minimum zoom');
-      return;
+      return false;
     }
 
     console.log('🎮 ZoomControls: Zooming out from:', currentMapZoom);
     setIsZooming(true);
     
-    const newZoom = Math.max(currentMapZoom - 1, 3);
-    console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
-    
-    map.setZoom(newZoom);
-    
-    // Reset zooming state
-    setTimeout(() => {
+    try {
+      const newZoom = Math.max(currentMapZoom - 1, 3);
+      console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
+      
+      // Use Google Maps setZoom method directly
+      map.setZoom(newZoom);
+      
+      // Reset zooming state after a delay
+      setTimeout(() => {
+        setIsZooming(false);
+      }, 300);
+    } catch (error) {
+      console.error('🎮 ZoomControls: Error zooming out:', error);
       setIsZooming(false);
-    }, 500);
+    }
+    
+    return false;
   }, [map, isMapReady, isZooming]);
 
   // Don't render if map isn't ready
@@ -119,19 +139,38 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
         position: 'absolute',
         zIndex: 1000
       }}
+      onWheel={(e) => {
+        // Prevent wheel events from affecting zoom controls
+        e.preventDefault();
+        e.stopPropagation();
+      }}
     >
       {/* Zoom In Button */}
       <button
         onClick={handleZoomIn}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDoubleClick={(e) => {
+          // Prevent double-click zoom
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         disabled={isZoomInDisabled}
         className={`w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-300 rounded hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
           isZooming ? 'scale-95 bg-blue-100 border-blue-500' : 'active:bg-blue-100 active:scale-95'
         }`}
         type="button"
         title={isZoomInDisabled ? 'Maximum zoom reached' : 'Zoom in'}
-        style={{ pointerEvents: 'auto' }}
+        style={{ 
+          pointerEvents: 'auto',
+          touchAction: 'manipulation' // Prevent iOS zoom gestures
+        }}
       >
         <ZoomIn className={`h-6 w-6 text-gray-700 ${isZooming ? 'animate-pulse text-blue-600' : ''}`} />
       </button>
@@ -145,15 +184,29 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
       {/* Zoom Out Button */}
       <button
         onClick={handleZoomOut}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDoubleClick={(e) => {
+          // Prevent double-click zoom
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         disabled={isZoomOutDisabled}
         className={`w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-300 rounded hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
           isZooming ? 'scale-95 bg-blue-100 border-blue-500' : 'active:bg-blue-100 active:scale-95'
         }`}
         type="button"
         title={isZoomOutDisabled ? 'Minimum zoom reached' : 'Zoom out'}
-        style={{ pointerEvents: 'auto' }}
+        style={{ 
+          pointerEvents: 'auto',
+          touchAction: 'manipulation' // Prevent iOS zoom gestures
+        }}
       >
         <ZoomOut className={`h-6 w-6 text-gray-700 ${isZooming ? 'animate-pulse text-blue-600' : ''}`} />
       </button>
