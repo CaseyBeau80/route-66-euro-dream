@@ -15,29 +15,16 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  // REMOVED: Drive-in filtering since we now have a dedicated DriveInsContainer
-  // All hidden gems will be shown as regular gems
-  const nonDriveInGems = hiddenGems.filter(gem => {
-    const title = gem.title.toLowerCase();
-    const desc = gem.description?.toLowerCase() || '';
-    return !(title.includes('drive-in') || 
-           title.includes('drive in') ||
-           title.includes('theater') ||
-           title.includes('theatre') ||
-           desc.includes('drive-in') ||
-           desc.includes('drive in') ||
-           desc.includes('theater') ||
-           desc.includes('theatre'));
-  });
-
-  console.log(`🗺️ HiddenGemsContainer: Rendering ${nonDriveInGems.length} NON-DRIVE-IN hidden gems (${hiddenGems.length - nonDriveInGems.length} drive-ins filtered out for dedicated system)`);
+  // Now using direct hidden_gems table data - no need to filter drive-ins 
+  // since they're handled by the dedicated DriveInsContainer
+  console.log(`💎 HiddenGemsContainer: Rendering ${hiddenGems.length} hidden gems from hidden_gems table`);
 
   return (
     <>
       {/* Render active gem overlay if one is selected */}
       {activeGem && (
         (() => {
-          const gem = nonDriveInGems.find(g => g.id === activeGem);
+          const gem = hiddenGems.find(g => g.id === activeGem);
           return gem ? (
             <HiddenGemCustomOverlay
               key={`hidden-gem-overlay-${gem.id}`}
@@ -50,8 +37,8 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
         })()
       )}
 
-      {/* Render all NON-DRIVE-IN markers with hover functionality */}
-      {nonDriveInGems.map((gem) => (
+      {/* Render all hidden gem markers with hover functionality */}
+      {hiddenGems.map((gem) => (
         <HiddenGemCustomMarker
           key={`hidden-gem-marker-${gem.id}`}
           gem={gem}

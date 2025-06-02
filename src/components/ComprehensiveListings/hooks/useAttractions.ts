@@ -11,22 +11,25 @@ export const useAttractions = () => {
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        console.log('🏛️ Fetching attractions with images...');
+        console.log('🏛️ Fetching attractions from attractions table...');
         
         const { data: attractions, error } = await supabase
           .from('attractions')
           .select('*')
+          .order('name')
           .limit(6);
 
         if (!error && attractions) {
-          console.log(`🏛️ Fetched ${attractions.length} attractions with images`);
+          console.log(`🏛️ Fetched ${attractions.length} attractions from attractions table`);
           setItems(attractions.map(attraction => ({
             id: attraction.id,
             name: attraction.name,
+            title: attraction.name,
             description: attraction.description,
             city_name: attraction.city_name,
             state: attraction.state,
             image_url: attraction.image_url,
+            thumbnail_url: attraction.thumbnail_url,
             website: attraction.website,
             latitude: attraction.latitude,
             longitude: attraction.longitude,

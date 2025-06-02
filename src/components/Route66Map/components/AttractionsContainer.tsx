@@ -1,22 +1,64 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { AttractionsProps, Attraction } from './Attractions/types';
+import { supabase } from '@/integrations/supabase/client';
 import AttractionCustomMarker from './Attractions/AttractionCustomMarker';
-import { DestinationCityProtectionService } from '../services/DestinationCityProtectionService';
 
-const AttractionsContainer: React.FC<AttractionsProps> = ({ 
+interface Attraction {
+  id: string;
+  name: string;
+  city_name: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  website?: string;
+  image_url?: string;
+  category?: string;
+  featured?: boolean;
+}
+
+interface AttractionsContainerProps {
+  map: google.maps.Map;
+  waypoints: any[]; // Keep for compatibility but won't use
+  onAttractionClick: (attraction: any) => void;
+}
+
+const AttractionsContainer: React.FC<AttractionsContainerProps> = ({ 
   map, 
-  waypoints, 
   onAttractionClick 
 }) => {
+  const [attractions, setAttractions] = useState<Attraction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState<number>(6);
   const [isZoomStable, setIsZoomStable] = useState(true);
-  
-  // Filter for regular stops (non-major destinations)
-  const attractions: Attraction[] = useMemo(() => 
-    waypoints.filter(waypoint => !waypoint.is_major_stop),
-    [waypoints]
-  );
+
+  // Fetch attractions from the attractions table
+  useEffect(() => {
+    const fetchAttractions = async () => {
+      try {
+        console.log('🎯 Fetching attractions from attractions table...');
+        
+        const { data, error } = await supabase
+          .from('attractions')
+          .select('*')
+          .order('name');
+
+        if (error) {
+          console.error('❌ Error fetching attractions:', error);
+          return;
+        }
+
+        console.log(`✅ Fetched ${data?.length || 0} attractions from database`);
+        setAttractions(data || []);
+      } catch (error) {
+        console.error('❌ Error in fetchAttractions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttractions();
+  }, []);
   
   // Debounced zoom handling to prevent excessive re-renders
   const handleZoomChange = useCallback(() => {
@@ -34,57 +76,32 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [map]);
 
-  // Enhanced filtering to show ALL drive-ins and attractions
+  // Enhanced filtering based on zoom level
   const filteredAttractions = useMemo(() => {
-    // Separate drive-ins and regular attractions with broader detection
-    const driveIns = attractions.filter(attraction => {
-      const name = attraction.name.toLowerCase();
-      const desc = attraction.description?.toLowerCase() || '';
-      return name.includes('drive-in') || 
-             name.includes('drive in') ||
-             name.includes('theater') ||
-             name.includes('theatre') ||
-             desc.includes('drive-in') ||
-             desc.includes('drive in') ||
-             desc.includes('theater') ||
-             desc.includes('theatre');
-    });
-    
-    const regularAttractions = attractions.filter(attraction => {
-      const name = attraction.name.toLowerCase();
-      const desc = attraction.description?.toLowerCase() || '';
-      return !(name.includes('drive-in') || 
-               name.includes('drive in') ||
-               name.includes('theater') ||
-               name.includes('theatre') ||
-               desc.includes('drive-in') ||
-               desc.includes('drive in') ||
-               desc.includes('theater') ||
-               desc.includes('theatre'));
-    });
+    if (loading) return [];
 
-    console.log(`🎬 Found ${driveIns.length} drive-in theaters in waypoint attractions:`, driveIns.map(d => d.name));
-    console.log(`🎯 Found ${regularAttractions.length} regular attractions`);
+    // Show more attractions at higher zoom levels
+    let visibleAttractions = attractions;
 
-    // Always show ALL drive-ins regardless of zoom level (they're special!)
-    let visibleAttractions = [...driveIns];
-
-    // Add regular attractions based on zoom level
     if (currentZoom >= 8) {
-      // High zoom: show all regular attractions
-      visibleAttractions.push(...regularAttractions);
+      // High zoom: show all attractions
+      visibleAttractions = attractions;
     } else if (currentZoom >= 6) {
-      // Medium zoom: show every other regular attraction
-      visibleAttractions.push(...regularAttractions.filter((_, index) => index % 2 === 0));
+      // Medium zoom: show featured attractions and every other attraction
+      visibleAttractions = attractions.filter((attraction, index) => 
+        attraction.featured || index % 2 === 0
+      );
     } else {
-      // Low zoom: show every 3rd regular attraction
-      visibleAttractions.push(...regularAttractions.filter((_, index) => index % 3 === 0));
+      // Low zoom: show only featured attractions or every 3rd attraction
+      visibleAttractions = attractions.filter((attraction, index) => 
+        attraction.featured || index % 3 === 0
+      );
     }
 
-    console.log(`🎯 AttractionsContainer: Showing ${visibleAttractions.length} total attractions (${driveIns.length} drive-ins always visible, zoom: ${currentZoom})`);
+    console.log(`🎯 AttractionsContainer: Showing ${visibleAttractions.length} attractions (zoom: ${currentZoom}, total: ${attractions.length})`);
 
     return visibleAttractions;
-  }, [attractions, currentZoom]);
+  }, [attractions, currentZoom, loading]);
 
   // Listen to zoom changes with debouncing
   useEffect(() => {
@@ -108,18 +125,27 @@ const AttractionsContainer: React.FC<AttractionsProps> = ({
   }, []);
 
   // Don't render markers during zoom transitions for better performance
-  if (!isZoomStable) {
+  if (!isZoomStable || loading) {
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} Route 66 attractions with ALL drive-ins visible (total available: ${attractions.length})`);
+  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} attractions from attractions table`);
 
   return (
     <>
       {filteredAttractions.map((attraction) => (
         <AttractionCustomMarker
           key={`attraction-${attraction.id}`}
-          attraction={attraction}
+          attraction={{
+            id: attraction.id,
+            name: attraction.name,
+            latitude: Number(attraction.latitude),
+            longitude: Number(attraction.longitude),
+            description: attraction.description,
+            website: attraction.website,
+            state: attraction.state,
+            city_name: attraction.city_name
+          }}
           map={map}
           onAttractionClick={onAttractionClick}
           onWebsiteClick={handleWebsiteClick}

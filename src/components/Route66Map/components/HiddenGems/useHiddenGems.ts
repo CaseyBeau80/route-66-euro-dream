@@ -13,21 +13,21 @@ export const useHiddenGems = () => {
 
   const fetchHiddenGems = async () => {
     try {
-      console.log('🔍 Fetching hidden gems from database...');
+      console.log('💎 Fetching hidden gems from hidden_gems table...');
       const { data, error } = await supabase
         .from('hidden_gems')
         .select('*')
         .order('title');
 
       if (error) {
-        console.error('Error fetching hidden gems:', error);
+        console.error('❌ Error fetching hidden gems:', error);
         return;
       }
 
-      console.log(`✨ Found ${data?.length || 0} hidden gems`, data);
+      console.log(`💎 Found ${data?.length || 0} hidden gems from hidden_gems table`, data);
       setHiddenGems(data || []);
     } catch (error) {
-      console.error('Error in fetchHiddenGems:', error);
+      console.error('❌ Error in fetchHiddenGems:', error);
     } finally {
       setLoading(false);
     }

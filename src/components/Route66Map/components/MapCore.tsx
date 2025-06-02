@@ -59,7 +59,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render with DEDICATED DRIVE-IN SYSTEM:', {
+  console.log('🗺️ MapCore render with SEPARATE TABLES:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -97,7 +97,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         />
       )}
 
-      {/* Destination Markers */}
+      {/* Destination Markers - using destination_cities table */}
       {mapRef.current && isMapReady && (
         <DestinationCitiesContainer
           map={mapRef.current}
@@ -106,28 +106,33 @@ const MapCore: React.FC<MapCoreProps> = ({
         />
       )}
 
-      {/* Attraction Markers */}
+      {/* Attraction Markers - NOW using attractions table directly */}
       {mapRef.current && isMapReady && (
         <AttractionsContainer
           map={mapRef.current}
-          waypoints={visibleWaypoints}
+          waypoints={[]} // Empty since we're using the attractions table
           onAttractionClick={onAttractionClick}
         />
       )}
 
-      {/* DEDICATED DRIVE-IN THEATERS - Direct from drive_ins table */}
+      {/* Drive-In Theaters - using drive_ins table */}
       {mapRef.current && isMapReady && (
         <DriveInsContainer
           map={mapRef.current}
           onDriveInClick={(driveIn) => {
-            console.log('🎬 Drive-in selected from dedicated system:', driveIn.name);
+            console.log('🎬 Drive-in selected from drive_ins table:', driveIn.name);
           }}
         />
       )}
 
-      {/* Hidden Gems (NO LONGER includes drive-ins) */}
+      {/* Hidden Gems - NOW using hidden_gems table directly */}
       {mapRef.current && isMapReady && (
-        <HiddenGemsContainer map={mapRef.current} />
+        <HiddenGemsContainer 
+          map={mapRef.current} 
+          onGemClick={(gem) => {
+            console.log('💎 Hidden gem selected from hidden_gems table:', gem.title);
+          }}
+        />
       )}
     </div>
   );

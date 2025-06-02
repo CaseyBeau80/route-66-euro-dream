@@ -11,76 +11,36 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 FETCHING ALL drive-ins from database...');
+        console.log('🎬 Fetching drive-ins from drive_ins table...');
         
-        // Remove the limit to get ALL drive-ins
         const { data: driveIns, error } = await supabase
           .from('drive_ins')
           .select('*')
-          .order('name', { ascending: true });
+          .order('name')
+          .limit(6);
 
-        if (error) {
-          console.error('❌ Error fetching drive-ins:', error);
-          setItems([]);
-          return;
-        }
-
-        if (!driveIns || driveIns.length === 0) {
-          console.warn('⚠️ No drive-ins found in database');
-          setItems([]);
-          return;
-        }
-
-        console.log(`🎬 Successfully fetched ${driveIns.length} drive-ins from database`);
-        
-        // Log each drive-in with detailed info including thumbnail
-        driveIns.forEach((driveIn, index) => {
-          console.log(`🎬 Drive-in ${index + 1}:`, {
+        if (!error && driveIns) {
+          console.log(`🎬 Fetched ${driveIns.length} drive-ins from drive_ins table`);
+          setItems(driveIns.map(driveIn => ({
+            id: driveIn.id,
             name: driveIn.name,
-            city: driveIn.city_name,
+            title: driveIn.name,
+            description: driveIn.description,
+            city_name: driveIn.city_name,
             state: driveIn.state,
-            hasImage: !!driveIn.image_url,
-            hasThumbnail: !!driveIn.thumbnail_url,
-            hasWebsite: !!driveIn.website,
+            image_url: driveIn.image_url,
+            thumbnail_url: driveIn.thumbnail_url,
             website: driveIn.website,
-            imageUrl: driveIn.image_url,
-            thumbnailUrl: driveIn.thumbnail_url,
-            status: driveIn.status,
-            yearOpened: driveIn.year_opened
-          });
-        });
-        
-        const mappedItems = driveIns.map(driveIn => ({
-          id: driveIn.id,
-          name: driveIn.name,
-          description: driveIn.description,
-          city_name: driveIn.city_name,
-          state: driveIn.state,
-          image_url: driveIn.image_url,
-          thumbnail_url: driveIn.thumbnail_url,
-          website: driveIn.website,
-          latitude: driveIn.latitude,
-          longitude: driveIn.longitude,
-          category: 'drive_ins',
-          tags: generateTags(driveIn, 'drive_ins'),
-          year_opened: driveIn.year_opened,
-          featured: driveIn.featured
-        }));
-        
-        console.log('🎬 Mapped drive-ins:', mappedItems.map(item => ({
-          name: item.name,
-          city: item.city_name,
-          state: item.state,
-          hasWebsite: !!item.website,
-          website: item.website,
-          hasThumbnail: !!item.thumbnail_url,
-          thumbnailUrl: item.thumbnail_url
-        })));
-        
-        setItems(mappedItems);
+            latitude: driveIn.latitude,
+            longitude: driveIn.longitude,
+            category: 'drive_ins',
+            tags: generateTags(driveIn, 'drive_ins'),
+            featured: driveIn.featured,
+            status: driveIn.status
+          })));
+        }
       } catch (error) {
-        console.error('❌ Exception while fetching drive-ins:', error);
-        setItems([]);
+        console.error('❌ Error fetching drive-ins:', error);
       } finally {
         setLoading(false);
       }
@@ -88,17 +48,6 @@ export const useDriveIns = () => {
 
     fetchDriveIns();
   }, []);
-
-  console.log(`🎬 useDriveIns returning:`, { 
-    loading, 
-    itemsCount: items.length,
-    items: items.map(item => ({ 
-      name: item.name, 
-      city: item.city_name, 
-      state: item.state,
-      hasThumbnail: !!item.thumbnail_url 
-    }))
-  });
 
   return { items, loading };
 };

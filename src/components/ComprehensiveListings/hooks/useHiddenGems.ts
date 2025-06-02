@@ -11,23 +11,25 @@ export const useHiddenGems = () => {
   useEffect(() => {
     const fetchHiddenGems = async () => {
       try {
-        console.log('💎 Fetching hidden gems with images...');
+        console.log('💎 Fetching hidden gems from hidden_gems table...');
         
         const { data: hiddenGems, error } = await supabase
           .from('hidden_gems')
           .select('*')
+          .order('title')
           .limit(6);
 
         if (!error && hiddenGems) {
-          console.log(`💎 Fetched ${hiddenGems.length} hidden gems with images`);
+          console.log(`💎 Fetched ${hiddenGems.length} hidden gems from hidden_gems table`);
           setItems(hiddenGems.map(gem => ({
             id: gem.id,
             name: gem.title,
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
-            state: 'Various',
+            state: 'Various', // Hidden gems may span multiple states
             image_url: gem.image_url,
+            thumbnail_url: gem.thumbnail_url,
             website: gem.website,
             latitude: gem.latitude,
             longitude: gem.longitude,
