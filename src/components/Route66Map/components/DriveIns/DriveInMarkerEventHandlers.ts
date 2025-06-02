@@ -1,5 +1,6 @@
 
 import { DriveInData } from './hooks/useDriveInsData';
+import { getMarkerScreenPosition } from '../HiddenGems/components/MarkerPositioning';
 
 interface DriveInMarkerEventHandlersProps {
   driveIn: DriveInData;
@@ -20,29 +21,18 @@ export const createDriveInMarkerEventHandlers = ({
 }: DriveInMarkerEventHandlersProps) => {
   
   const updateMarkerPosition = () => {
-    if (!map || !marker) return;
+    console.log(`🎬 Updating drive-in marker position for: ${driveIn.name}`);
     
-    const projection = map.getProjection();
-    if (!projection) return;
-    
-    const position = marker.getPosition();
-    if (!position) return;
-    
-    const point = projection.fromLatLngToPoint(position);
-    if (!point) return;
-    
-    const scale = Math.pow(2, map.getZoom() || 0);
-    const worldCoordinate = new google.maps.Point(
-      point.x * scale,
-      point.y * scale
-    );
-    
-    const pixelOffset = new google.maps.Point(
-      Math.floor(worldCoordinate.x),
-      Math.floor(worldCoordinate.y)
-    );
-    
-    updatePosition(pixelOffset.x, pixelOffset.y);
+    const screenPosition = getMarkerScreenPosition(map, marker);
+    if (screenPosition) {
+      console.log(`📍 Drive-in screen position calculated:`, {
+        driveInName: driveIn.name,
+        screenPosition
+      });
+      updatePosition(screenPosition.x, screenPosition.y);
+    } else {
+      console.warn(`⚠️ Could not calculate screen position for drive-in: ${driveIn.name}`);
+    }
   };
 
   const handleMouseOver = () => {
