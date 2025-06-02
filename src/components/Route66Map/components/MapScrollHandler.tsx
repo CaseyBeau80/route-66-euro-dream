@@ -15,7 +15,7 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
   useEffect(() => {
     if (!map || !containerRef.current) return;
 
-    console.log('🔄 MapScrollHandler: Setting up scroll event handling');
+    console.log('🔄 MapScrollHandler: Setting up scroll event handling with NATIVE Google Maps zoom');
 
     const mapContainer = containerRef.current;
     let hintTimeout: NodeJS.Timeout | null = null;
@@ -27,31 +27,15 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
       
       if (!isOverMap) return;
 
-      // If Ctrl/Cmd is pressed, allow native Google Maps zoom
-      if (e.ctrlKey || e.metaKey) {
-        console.log('🔍 Ctrl+Scroll zoom allowed');
-        // Let Google Maps handle this - don't prevent default
-        return;
-      }
-
-      // For regular scroll without Ctrl, show the hint
-      console.log('📜 Regular scroll detected, showing hint');
+      // Allow ALL wheel events on the map - let Google Maps handle zoom natively
+      console.log('🔍 Wheel event on map - allowing Google Maps to handle zoom');
       
-      // Show the hint
-      setShowScrollHint(true);
-      
-      // Clear existing timeout
-      if (hintTimeout) {
-        clearTimeout(hintTimeout);
-      }
-      
-      // Hide hint after 3 seconds
-      hintTimeout = setTimeout(() => {
-        setShowScrollHint(false);
-      }, 3000);
+      // Don't prevent default - let Google Maps handle the zoom
+      // This enables native mouse wheel zoom
+      return;
     };
 
-    // Add wheel event listener to the map container
+    // Add wheel event listener with passive: true to not interfere with Google Maps
     mapContainer.addEventListener('wheel', handleWheel, { passive: true });
 
     // Cleanup

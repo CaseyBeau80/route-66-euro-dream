@@ -6,7 +6,6 @@ import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
 import InteractionIndicators from "./MapElements/InteractionIndicators";
 import MapContent from "./MapElements/MapContent";
-import ZoomControls from "./MapElements/ZoomControls";
 import { useZoomControls } from "./hooks/useZoomControls";
 import { route66Towns } from "@/types/route66"; 
 import { transformTownsToSvgPoints } from "@/utils/mapProjection";
@@ -76,7 +75,7 @@ const MapRendererReact = ({
     setIsDragging(true);
   };
 
-  console.log('🗺️ MapRendererReact: Rendering SVG-based map with working zoom controls');
+  console.log('🗺️ MapRendererReact: Rendering SVG-based map WITHOUT zoom controls (Google Maps handles zoom)');
 
   return (
     <div className="relative w-full h-full">
@@ -92,14 +91,7 @@ const MapRendererReact = ({
         />
       )}
       
-      {/* Zoom Controls - SVG Map Version */}
-      <ZoomControls
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        currentZoom={zoom}
-        minZoom={MIN_ZOOM}
-        maxZoom={MAX_ZOOM}
-      />
+      {/* NO ZOOM CONTROLS HERE - Google Maps handles all zoom functionality */}
       
       <InteractionIndicators 
         isPinching={isPinching}
