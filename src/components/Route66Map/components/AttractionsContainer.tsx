@@ -143,8 +143,11 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
             longitude: Number(attraction.longitude),
             description: attraction.description,
             state: attraction.state,
-            city_name: attraction.city_name
-            // Removed website property since Route66Waypoint type doesn't include it
+            city_name: attraction.city_name,
+            // Add required Route66Waypoint properties with default values
+            sequence_order: 0, // Attractions don't have a sequence order
+            is_major_stop: false, // Attractions are not major stops by default
+            highway_designation: null // Attractions don't have highway designations
           }}
           map={map}
           onAttractionClick={onAttractionClick}
