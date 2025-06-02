@@ -27,7 +27,7 @@ export const useMapInitialization = ({
       return null;
     }
 
-    console.log('🗺️ MapCore: Initializing Google Map with continental US view');
+    console.log('🗺️ MapCore: Initializing Google Map with scroll zoom enabled');
 
     try {
       const map = new google.maps.Map(containerRef, {

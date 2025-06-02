@@ -11,7 +11,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
   const [currentZoom, setCurrentZoom] = useState(4);
   const [isZooming, setIsZooming] = useState(false);
 
-  // Sync zoom level with map and add debugging
+  // Sync zoom level with map
   useEffect(() => {
     if (!map || !isMapReady) {
       console.log('🎮 ZoomControls: Map not ready for zoom sync');
@@ -33,7 +33,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
       setCurrentZoom(initialZoom);
     }
 
-    // Listen for zoom changes from any source (user scroll, other controls, etc.)
+    // Listen for zoom changes
     const zoomListener = map.addListener('zoom_changed', updateZoomLevel);
 
     return () => {
@@ -43,22 +43,17 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     };
   }, [map, isMapReady]);
 
-  const handleZoomIn = useCallback(async (e: React.MouseEvent) => {
+  const handleZoomIn = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!map || !isMapReady || isZooming) {
-      console.log('🎮 ZoomControls: Zoom in blocked - map not ready or already zooming');
+      console.log('🎮 ZoomControls: Zoom in blocked');
       return;
     }
 
     const currentMapZoom = map.getZoom();
-    if (currentMapZoom === undefined) {
-      console.log('🎮 ZoomControls: Cannot get current zoom level');
-      return;
-    }
-
-    if (currentMapZoom >= 18) {
+    if (currentMapZoom === undefined || currentMapZoom >= 18) {
       console.log('🎮 ZoomControls: Already at maximum zoom');
       return;
     }
@@ -66,44 +61,28 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     console.log('🎮 ZoomControls: Zooming in from:', currentMapZoom);
     setIsZooming(true);
     
-    try {
-      const newZoom = Math.min(currentMapZoom + 1, 18);
-      console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
-      
-      // Use smoothed zoom animation
-      map.setZoom(newZoom);
-      
-      // Alternative approach - try setOptions if setZoom doesn't work
-      // map.setOptions({ zoom: newZoom });
-      
-      console.log('✅ ZoomControls: Zoom in command sent');
-    } catch (error) {
-      console.error('❌ ZoomControls: Error during zoom in:', error);
-    } finally {
-      // Reset zooming state after animation completes
-      setTimeout(() => {
-        setIsZooming(false);
-        console.log('🎮 ZoomControls: Zoom in operation completed');
-      }, 500);
-    }
+    const newZoom = Math.min(currentMapZoom + 1, 18);
+    console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
+    
+    map.setZoom(newZoom);
+    
+    // Reset zooming state
+    setTimeout(() => {
+      setIsZooming(false);
+    }, 500);
   }, [map, isMapReady, isZooming]);
 
-  const handleZoomOut = useCallback(async (e: React.MouseEvent) => {
+  const handleZoomOut = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!map || !isMapReady || isZooming) {
-      console.log('🎮 ZoomControls: Zoom out blocked - map not ready or already zooming');
+      console.log('🎮 ZoomControls: Zoom out blocked');
       return;
     }
 
     const currentMapZoom = map.getZoom();
-    if (currentMapZoom === undefined) {
-      console.log('🎮 ZoomControls: Cannot get current zoom level');
-      return;
-    }
-
-    if (currentMapZoom <= 3) {
+    if (currentMapZoom === undefined || currentMapZoom <= 3) {
       console.log('🎮 ZoomControls: Already at minimum zoom');
       return;
     }
@@ -111,41 +90,26 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     console.log('🎮 ZoomControls: Zooming out from:', currentMapZoom);
     setIsZooming(true);
     
-    try {
-      const newZoom = Math.max(currentMapZoom - 1, 3);
-      console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
-      
-      // Use smoothed zoom animation
-      map.setZoom(newZoom);
-      
-      console.log('✅ ZoomControls: Zoom out command sent');
-    } catch (error) {
-      console.error('❌ ZoomControls: Error during zoom out:', error);
-    } finally {
-      // Reset zooming state after animation completes
-      setTimeout(() => {
-        setIsZooming(false);
-        console.log('🎮 ZoomControls: Zoom out operation completed');
-      }, 500);
-    }
+    const newZoom = Math.max(currentMapZoom - 1, 3);
+    console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
+    
+    map.setZoom(newZoom);
+    
+    // Reset zooming state
+    setTimeout(() => {
+      setIsZooming(false);
+    }, 500);
   }, [map, isMapReady, isZooming]);
 
   // Don't render if map isn't ready
   if (!isMapReady || !map) {
-    console.log('🎮 ZoomControls: Not rendering - map not ready');
     return null;
   }
 
   const isZoomInDisabled = currentZoom >= 18 || isZooming;
   const isZoomOutDisabled = currentZoom <= 3 || isZooming;
 
-  console.log('🎮 ZoomControls: Rendering with state:', {
-    currentZoom: Math.round(currentZoom * 10) / 10,
-    isZoomInDisabled,
-    isZoomOutDisabled,
-    isZooming,
-    mapZoom: map.getZoom()
-  });
+  console.log('🎮 ZoomControls: Rendering with zoom:', currentZoom);
 
   return (
     <div 
@@ -172,7 +136,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
         <ZoomIn className={`h-6 w-6 text-gray-700 ${isZooming ? 'animate-pulse text-blue-600' : ''}`} />
       </button>
       
-      {/* Current Zoom Display with map sync indicator */}
+      {/* Current Zoom Display */}
       <div className="text-xs text-center font-bold py-2 px-3 bg-gray-50 rounded border min-h-[32px] flex items-center justify-center">
         <span className="text-gray-800">{Math.round(currentZoom * 10) / 10}</span>
         {isZooming && <span className="ml-1 text-blue-600 animate-pulse">•</span>}
@@ -193,11 +157,6 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
       >
         <ZoomOut className={`h-6 w-6 text-gray-700 ${isZooming ? 'animate-pulse text-blue-600' : ''}`} />
       </button>
-      
-      {/* Debug info (remove this in production) */}
-      <div className="text-xs text-gray-500 text-center">
-        Debug: {map.getZoom()?.toFixed(1)}
-      </div>
     </div>
   );
 };
