@@ -39,8 +39,7 @@ export const getDriveInMarkerIcon = (status?: string): google.maps.Icon => {
       </svg>
     `)}`,
     scaledSize: new google.maps.Size(28, 28),
-    anchor: new google.maps.Point(14, 14),
-    optimized: false
+    anchor: new google.maps.Point(14, 14)
   };
 };
 
