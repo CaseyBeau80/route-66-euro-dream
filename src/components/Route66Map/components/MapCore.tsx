@@ -53,7 +53,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render with ENHANCED zoom controls:', {
+  console.log('🗺️ MapCore render with WORKING zoom controls and scroll zoom:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -74,7 +74,7 @@ const MapCore: React.FC<MapCoreProps> = ({
         setShowScrollHint={setShowScrollHint}
       />
       
-      {/* Enhanced Zoom Controls with better positioning and event handling */}
+      {/* Working Zoom Controls with proper event handling */}
       {mapRef.current && isMapReady && (
         <div className="absolute inset-0 pointer-events-none z-[999]">
           <ZoomControls
@@ -84,16 +84,8 @@ const MapCore: React.FC<MapCoreProps> = ({
         </div>
       )}
       
-      {/* Scroll Zoom Hint Overlay */}
+      {/* Scroll Zoom Hint Overlay - only show if needed */}
       <ScrollZoomHint show={showScrollHint} />
-      
-      {/* Permanent zoom instruction indicator */}
-      <div className="absolute bottom-4 right-4 z-10 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-route66-vintage-yellow">⌨️</span>
-          <span>Ctrl + scroll to zoom</span>
-        </div>
-      </div>
       
       {/* Orange State Highlighting */}
       {mapRef.current && isMapReady && (

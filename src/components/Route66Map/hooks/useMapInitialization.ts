@@ -35,17 +35,17 @@ export const useMapInitialization = ({
         center: { lat: 39.0, lng: -98.0 },
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling: 'greedy',
-        zoomControl: true,
+        zoomControl: false, // Disable default zoom controls since we have custom ones
         mapTypeControl: false,
         scaleControl: true,
         streetViewControl: false,
         rotateControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        scrollwheel: false, // Disable default scrollwheel initially
+        scrollwheel: true, // Enable scroll wheel zoom
         restriction: mapRestrictions,
         minZoom: 3,
-        maxZoom: 10,
+        maxZoom: 18,
         styles: [
           {
             featureType: 'poi',
@@ -70,7 +70,7 @@ export const useMapInitialization = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      console.log('✅ Google Map initialized successfully');
+      console.log('✅ Google Map initialized successfully with scroll wheel enabled');
       onMapLoad(map);
       onMapReady();
 
