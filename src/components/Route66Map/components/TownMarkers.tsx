@@ -41,17 +41,59 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
     setWeatherRefreshKey(prev => prev + 1);
   };
 
-  const handleMarkerMouseOver = (markerId: string) => {
+  const triggerJiggleAnimation = (markerId: string) => {
     const markerInstance = markersRef.current[markerId];
     if (markerInstance) {
-      console.log(`🏘️ Town marker hover: ${towns[parseInt(markerId)]?.name} - triggering jiggle effect`);
+      console.log(`🏘️ Town marker jiggle: ${towns[parseInt(markerId)]?.name} - applying custom jiggle`);
       
-      // Use Google Maps bounce animation
-      markerInstance.setAnimation(google.maps.Animation.BOUNCE);
-      setTimeout(() => {
-        markerInstance.setAnimation(null);
-      }, 700);
+      // Find the marker's DOM element by getting its position and searching for nearby elements
+      const position = markerInstance.getPosition();
+      if (position) {
+        // Get the map instance from the marker
+        const map = markerInstance.getMap() as google.maps.Map;
+        if (map) {
+          const mapDiv = map.getDiv();
+          
+          // Use a more targeted approach to find the marker element
+          setTimeout(() => {
+            // Look for marker images in the map container
+            const markerElements = mapDiv.querySelectorAll('img[src*="data:image/svg+xml"]');
+            
+            // Apply jiggle animation to all found marker elements
+            // (this is a broad approach since we can't easily identify specific markers)
+            markerElements.forEach((element, index) => {
+              const imgElement = element as HTMLElement;
+              
+              // Check if this element is likely our marker by checking its position
+              const rect = imgElement.getBoundingClientRect();
+              const mapRect = mapDiv.getBoundingClientRect();
+              
+              // If the element is within the map bounds, apply the animation
+              if (rect.top >= mapRect.top && rect.bottom <= mapRect.bottom &&
+                  rect.left >= mapRect.left && rect.right <= mapRect.right) {
+                
+                console.log(`🎯 Applying jiggle to marker element ${index}`);
+                
+                // Apply the jiggle animation
+                imgElement.style.animation = 'none';
+                imgElement.offsetHeight; // Force reflow
+                imgElement.style.animation = 'marker-jiggle 0.8s ease-in-out';
+                
+                // Clean up animation after it completes
+                setTimeout(() => {
+                  imgElement.style.animation = '';
+                }, 800);
+              }
+            });
+          }, 50);
+        }
+      }
     }
+  };
+
+  const handleMarkerMouseOver = (markerId: string) => {
+    console.log(`🐭 Mouse over town marker: ${towns[parseInt(markerId)]?.name}`);
+    triggerJiggleAnimation(markerId);
   };
 
   return (
@@ -66,6 +108,7 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
             onLoad={(marker) => {
               // Store the marker reference when it loads
               markersRef.current[markerId] = marker;
+              console.log(`📍 Town marker loaded: ${town.name}`);
             }}
             onMouseOver={() => {
               handleMarkerMouseOver(markerId);
