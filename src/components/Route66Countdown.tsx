@@ -38,7 +38,7 @@ const Route66Countdown: React.FC = () => {
   }, []);
 
   return (
-    <div className="countdown-container max-w-4xl mx-auto p-8 rounded-lg relative overflow-hidden">
+    <div className="countdown-container w-full max-w-none mx-auto p-6 lg:p-8 rounded-lg relative overflow-hidden h-full">
       <CountdownBackground />
       <CountdownHeader />
       <CountdownDisplay timeLeft={timeLeft} />

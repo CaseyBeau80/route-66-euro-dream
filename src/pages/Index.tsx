@@ -5,6 +5,8 @@ import Route66Map from "../components/Route66Map";
 import ComprehensiveListings from "../components/ComprehensiveListings";
 import NavigationBar from "../components/NavigationBar";
 import Route66Countdown from "../components/Route66Countdown";
+import Route66FunFacts from "../components/Route66Countdown/Route66FunFacts";
+import MapLegend from "../components/Route66Countdown/MapLegend";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -55,7 +57,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Interactive Map Section - Moved back to original position */}
+      {/* Interactive Map Section */}
       <div className="w-full px-2 sm:px-3 py-3" id="map">
         <div className="relative w-full route66-authentic">
           <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80 vintage-paper-texture"></div>
@@ -93,17 +95,45 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Countdown Timer Section - Moved below the map */}
+      {/* Three-Column Countdown Section */}
       <div className="w-full px-4 py-8 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown">
-        <div className="max-w-4xl mx-auto">
-          <Route66Countdown />
+        <div className="max-w-7xl mx-auto">
+          {/* Desktop Three-Column Layout */}
+          <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+            {/* Left Column - Fun Facts */}
+            <div className="lg:col-span-3">
+              <Route66FunFacts />
+            </div>
+            
+            {/* Center Column - Countdown */}
+            <div className="lg:col-span-6">
+              <Route66Countdown />
+            </div>
+            
+            {/* Right Column - Map Legend */}
+            <div className="lg:col-span-3">
+              <MapLegend />
+            </div>
+          </div>
+
+          {/* Mobile/Tablet Stacked Layout */}
+          <div className="lg:hidden space-y-6">
+            {/* Countdown First on Mobile */}
+            <div>
+              <Route66Countdown />
+            </div>
+            
+            {/* Two-column grid for Fun Facts and Map Legend on tablets */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Route66FunFacts />
+              <MapLegend />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Comprehensive Listings Section */}
       <ComprehensiveListings />
-
-      {/* Footer remains as-is (not included here for brevity) */}
     </div>
   );
 };
