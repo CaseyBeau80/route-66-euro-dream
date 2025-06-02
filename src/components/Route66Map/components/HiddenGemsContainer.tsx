@@ -15,29 +15,29 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  // Enhanced drive-in detection
-  const driveInGems = hiddenGems.filter(gem => {
+  // REMOVED: Drive-in filtering since we now have a dedicated DriveInsContainer
+  // All hidden gems will be shown as regular gems
+  const nonDriveInGems = hiddenGems.filter(gem => {
     const title = gem.title.toLowerCase();
     const desc = gem.description?.toLowerCase() || '';
-    return title.includes('drive-in') || 
+    return !(title.includes('drive-in') || 
            title.includes('drive in') ||
            title.includes('theater') ||
            title.includes('theatre') ||
            desc.includes('drive-in') ||
            desc.includes('drive in') ||
            desc.includes('theater') ||
-           desc.includes('theatre');
+           desc.includes('theatre'));
   });
 
-  console.log(`🎬 Found ${driveInGems.length} drive-in theaters in hidden gems:`, driveInGems.map(d => d.title));
-  console.log(`🗺️ Rendering ${hiddenGems.length} total vintage Route 66 hidden gems on map with custom icons`);
+  console.log(`🗺️ HiddenGemsContainer: Rendering ${nonDriveInGems.length} NON-DRIVE-IN hidden gems (${hiddenGems.length - nonDriveInGems.length} drive-ins filtered out for dedicated system)`);
 
   return (
     <>
       {/* Render active gem overlay if one is selected */}
       {activeGem && (
         (() => {
-          const gem = hiddenGems.find(g => g.id === activeGem);
+          const gem = nonDriveInGems.find(g => g.id === activeGem);
           return gem ? (
             <HiddenGemCustomOverlay
               key={`hidden-gem-overlay-${gem.id}`}
@@ -50,8 +50,8 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
         })()
       )}
 
-      {/* Render all markers with hover functionality */}
-      {hiddenGems.map((gem) => (
+      {/* Render all NON-DRIVE-IN markers with hover functionality */}
+      {nonDriveInGems.map((gem) => (
         <HiddenGemCustomMarker
           key={`hidden-gem-marker-${gem.id}`}
           gem={gem}

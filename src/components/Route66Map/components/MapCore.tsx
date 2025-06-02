@@ -5,6 +5,7 @@ import DestinationCitiesRoute66Renderer from '../services/DestinationCitiesRoute
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
+import DriveInsContainer from './DriveIns/DriveInsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
 import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
@@ -58,7 +59,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - zoom controls removed from here:', {
+  console.log('🗺️ MapCore render with DEDICATED DRIVE-IN SYSTEM:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -114,7 +115,17 @@ const MapCore: React.FC<MapCoreProps> = ({
         />
       )}
 
-      {/* Hidden Gems */}
+      {/* DEDICATED DRIVE-IN THEATERS - Direct from drive_ins table */}
+      {mapRef.current && isMapReady && (
+        <DriveInsContainer
+          map={mapRef.current}
+          onDriveInClick={(driveIn) => {
+            console.log('🎬 Drive-in selected from dedicated system:', driveIn.name);
+          }}
+        />
+      )}
+
+      {/* Hidden Gems (NO LONGER includes drive-ins) */}
       {mapRef.current && isMapReady && (
         <HiddenGemsContainer map={mapRef.current} />
       )}
