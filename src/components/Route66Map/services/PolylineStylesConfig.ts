@@ -15,29 +15,29 @@ export class PolylineStylesConfig {
     };
   }
 
-  // FIXED: Properly dashed yellow center line for authentic Route 66 look
+  // FIXED: Truly dashed yellow center line for authentic Route 66 look
   static getCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
       strokeColor: '#FFD700', // Bright yellow
-      strokeOpacity: 0, // Make main stroke invisible to show only dashes
-      strokeWeight: 1,
+      strokeOpacity: 0, // Make main stroke completely invisible
+      strokeWeight: 0, // No base stroke weight
       clickable: false,
       draggable: false,
       editable: false,
       visible: true,
       zIndex: 100,
-      // PROMINENT DASHED PATTERN for clear road stripe visibility
+      // CLEAR DASHED PATTERN with visible spacing
       icons: [{
         icon: {
-          path: 'M 0,-2 0,2', // Dash line
+          path: 'M 0,-3 0,3', // Vertical dash line
           strokeOpacity: 1.0,
           strokeColor: '#FFD700',
-          strokeWeight: 4,
-          scale: 6
+          strokeWeight: 5, // Thick dashes
+          scale: 1 // Standard scale
         },
         offset: '0',
-        repeat: '35px' // Larger spacing for clear dashed appearance
+        repeat: '50px' // Large spacing for clearly visible dashes
       }]
     };
   }
@@ -90,29 +90,29 @@ export class PolylineStylesConfig {
     };
   }
 
-  // ENHANCED: Prominent dashed center line with clear road stripe pattern
+  // ENHANCED: Clearly visible dashed center line pattern
   static getIdealizedCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
       strokeColor: '#FFD700', // Bright gold yellow
       strokeOpacity: 0, // Make main stroke invisible
-      strokeWeight: 1,
+      strokeWeight: 0, // No base stroke
       clickable: false,
       draggable: false,
       editable: false,
       visible: true,
       zIndex: 100,
-      // CLEAR DASHED PATTERN for authentic road striping
+      // HIGHLY VISIBLE DASHED PATTERN
       icons: [{
         icon: {
-          path: 'M 0,-2 0,2',
+          path: 'M 0,-4 0,4', // Taller dash
           strokeOpacity: 1.0,
           strokeColor: '#FFD700',
-          strokeWeight: 5,
-          scale: 7
+          strokeWeight: 6, // Thick visible dashes
+          scale: 1
         },
         offset: '0',
-        repeat: '40px' // Large spacing for clear dashed road stripe effect
+        repeat: '70px' // Very large spacing for unmistakably dashed appearance
       }]
     };
   }
