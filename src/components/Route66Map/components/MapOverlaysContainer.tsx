@@ -54,12 +54,11 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
       )}
 
       {/* Route Statistics */}
-      {showRouteStats && (
-        <RouteStatsOverlay 
-          onToggle={onToggleRouteStats}
-          isDragging={isDragging}
-        />
-      )}
+      <RouteStatsOverlay 
+        showRouteStats={showRouteStats}
+        isMapReady={isMapReady}
+        onToggleRouteStats={onToggleRouteStats}
+      />
     </>
   );
 };
