@@ -74,14 +74,12 @@ const MapCore: React.FC<MapCoreProps> = ({
         setShowScrollHint={setShowScrollHint}
       />
       
-      {/* Working Zoom Controls with proper event handling */}
+      {/* Working Zoom Controls with proper pointer events */}
       {mapRef.current && isMapReady && (
-        <div className="absolute inset-0 pointer-events-none z-[999]">
-          <ZoomControls
-            map={mapRef.current}
-            isMapReady={isMapReady}
-          />
-        </div>
+        <ZoomControls
+          map={mapRef.current}
+          isMapReady={isMapReady}
+        />
       )}
       
       {/* Scroll Zoom Hint Overlay - only show if needed */}
