@@ -81,6 +81,9 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
     const handleMouseOver = () => {
       console.log(`🎯 Mouse over gem: ${gem.title} - triggering jiggle effect`);
       
+      // Get the map div container
+      const mapDiv = map.getDiv();
+      
       // Apply jiggle animation to the marker
       const markerImg = mapDiv.querySelector(`img[src*="${encodeURIComponent('ROUTE')}"]`);
       if (markerImg) {
