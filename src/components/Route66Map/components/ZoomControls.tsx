@@ -44,10 +44,9 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
   }, [map, isMapReady]);
 
   const handleZoomIn = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    // CRITICAL: Prevent all default behaviors that could trigger browser zoom
+    // Prevent all default behaviors that could trigger browser zoom
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
     
     if (!map || !isMapReady || isZooming) {
       console.log('🎮 ZoomControls: Zoom in blocked');
@@ -83,10 +82,9 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
   }, [map, isMapReady, isZooming]);
 
   const handleZoomOut = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    // CRITICAL: Prevent all default behaviors that could trigger browser zoom
+    // Prevent all default behaviors that could trigger browser zoom
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
     
     if (!map || !isMapReady || isZooming) {
       console.log('🎮 ZoomControls: Zoom out blocked');
