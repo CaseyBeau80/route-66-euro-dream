@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
@@ -7,6 +6,7 @@ import NavigationBar from "../components/NavigationBar";
 import Route66Countdown from "../components/Route66Countdown";
 import Route66FunFacts from "../components/Route66Countdown/Route66FunFacts";
 import MapLegend from "../components/Route66Countdown/MapLegend";
+import NostalgicRoute66Banner from "../components/Route66Map/components/NostalgicRoute66Banner";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -63,13 +63,7 @@ const Index = () => {
           <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80 vintage-paper-texture"></div>
           <div className="absolute -inset-1 bg-gradient-to-r from-route66-vintage-yellow via-route66-cream to-route66-vintage-yellow rounded-lg opacity-60"></div>
           <div className="relative bg-route66-cream rounded-lg p-2 border-4 border-route66-vintage-brown shadow-postcard vintage-paper-texture">
-            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-3 px-4 rounded-t-lg mb-2 travel-poster-edge">
-              <div className="flex items-center justify-center gap-4">
-                <img src="/lovable-uploads/cb155b0c-3bb5-4095-8150-9fb36bcb52b2.png" alt="Route 66 Shield" className="w-10 h-10 object-contain" />
-                <h2 className="font-travel text-lg font-bold tracking-wider text-center">ROUTE 66 INTERACTIVE MAP</h2>
-                <img src="/lovable-uploads/cb155b0c-3bb5-4095-8150-9fb36bcb52b2.png" alt="Route 66 Shield" className="w-10 h-10 object-contain" />
-              </div>
-            </div>
+            <NostalgicRoute66Banner />
             <Route66Map />
             <div className="mt-2 bg-route66-vintage-beige rounded-lg p-3 border-2 border-route66-vintage-brown vintage-paper-texture">
               <div className="flex flex-wrap justify-center gap-4 text-xs">
