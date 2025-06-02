@@ -83,7 +83,19 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
 
     const handleMouseOverEvent = (e: google.maps.MapMouseEvent) => {
       if (!isClicked) { // Only show hover if not clicked
-        console.log('🖱️ Mouse over attraction:', attraction.name);
+        console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering jiggle');
+        
+        // Add jiggle effect to marker
+        const mapDiv = map.getDiv();
+        const markerElements = mapDiv.querySelectorAll('[style*="cursor: pointer"]');
+        markerElements.forEach((element) => {
+          const htmlElement = element as HTMLElement;
+          htmlElement.style.animation = 'marker-jiggle 0.8s ease-in-out';
+          setTimeout(() => {
+            htmlElement.style.animation = '';
+          }, 800);
+        });
+
         if (e.domEvent && e.domEvent.target) {
           const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
           updatePosition(rect.left + rect.width / 2, rect.top);
@@ -123,7 +135,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     return () => {
       google.maps.event.clearInstanceListeners(marker);
     };
-  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked]);
+  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked, map]);
 
   const handleCloseClickableCard = () => {
     setIsClicked(false);

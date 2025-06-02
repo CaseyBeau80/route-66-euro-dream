@@ -40,6 +40,19 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
     setWeatherRefreshKey(prev => prev + 1);
   };
 
+  const handleMarkerMouseOver = (markerId: string) => {
+    console.log(`🏘️ Town marker hover: ${markerId} - triggering jiggle effect`);
+    
+    // Add jiggle animation to the marker
+    const markerElement = document.querySelector(`[title*="${towns[parseInt(markerId)]?.name}"]`);
+    if (markerElement) {
+      (markerElement as HTMLElement).style.animation = 'marker-jiggle 0.8s ease-in-out';
+      setTimeout(() => {
+        (markerElement as HTMLElement).style.animation = '';
+      }, 800);
+    }
+  };
+
   return (
     <>
       {towns.map((town, index) => {
@@ -49,6 +62,7 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
             key={`town-marker-${index}`}
             position={{ lat: town.latLng[0], lng: town.latLng[1] }}
             onClick={() => onMarkerClick(markerId)}
+            onMouseOver={() => handleMarkerMouseOver(markerId)}
             icon={{
               // Use a dark red pin marker similar to the reference image
               url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0I5MUMxQyIgZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODctMy4xMy03LTctN3ptMCAxMS41YTIuNSAyLjUgMCAwIDEgMC01IDIuNSAyLjUgMCAwIDEgMCA1eiIvPjwvc3ZnPg==',

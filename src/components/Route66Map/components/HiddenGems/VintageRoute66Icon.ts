@@ -60,7 +60,7 @@ export const createVintageRoute66Icon = () => {
 export const createDriveInIcon = () => {
   const iconSize = 32;
   const svgContent = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}" class="map-marker-jiggle">
       <!-- Main sign background (red/orange gradient) -->
       <rect x="4" y="6" width="24" height="20" 
             fill="#D2691E" 
