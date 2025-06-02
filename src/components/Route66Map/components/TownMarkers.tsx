@@ -41,14 +41,17 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
     setWeatherRefreshKey(prev => prev + 1);
   };
 
-  const handleMarkerMouseOver = (markerId: string, markerInstance: google.maps.Marker) => {
-    console.log(`🏘️ Town marker hover: ${towns[parseInt(markerId)]?.name} - triggering jiggle effect`);
-    
-    // Use Google Maps bounce animation
-    markerInstance.setAnimation(google.maps.Animation.BOUNCE);
-    setTimeout(() => {
-      markerInstance.setAnimation(null);
-    }, 700);
+  const handleMarkerMouseOver = (markerId: string) => {
+    const markerInstance = markersRef.current[markerId];
+    if (markerInstance) {
+      console.log(`🏘️ Town marker hover: ${towns[parseInt(markerId)]?.name} - triggering jiggle effect`);
+      
+      // Use Google Maps bounce animation
+      markerInstance.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => {
+        markerInstance.setAnimation(null);
+      }, 700);
+    }
   };
 
   return (
@@ -60,9 +63,12 @@ const TownMarkers: React.FC<TownMarkersProps> = ({
             key={`town-marker-${index}`}
             position={{ lat: town.latLng[0], lng: town.latLng[1] }}
             onClick={() => onMarkerClick(markerId)}
-            onMouseOver={(marker) => {
+            onLoad={(marker) => {
+              // Store the marker reference when it loads
               markersRef.current[markerId] = marker;
-              handleMarkerMouseOver(markerId, marker);
+            }}
+            onMouseOver={() => {
+              handleMarkerMouseOver(markerId);
             }}
             icon={{
               // Use a dark red pin marker similar to the reference image
