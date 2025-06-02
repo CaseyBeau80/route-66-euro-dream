@@ -29,7 +29,14 @@ export const useInstagramPosts = () => {
         }
 
         console.log(`✅ Successfully fetched ${data?.length || 0} Instagram posts`);
-        setPosts(data || []);
+        
+        // Type cast the data to match our InstagramPost interface
+        const typedPosts = (data || []).map(post => ({
+          ...post,
+          media_type: post.media_type as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
+        })) as InstagramPost[];
+        
+        setPosts(typedPosts);
       } catch (err) {
         console.error('❌ Unexpected error fetching Instagram posts:', err);
         setError('An unexpected error occurred while fetching posts');
