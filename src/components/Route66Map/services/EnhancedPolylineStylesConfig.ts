@@ -15,29 +15,29 @@ export class EnhancedPolylineStylesConfig {
     };
   }
 
-  // Enhanced dashed yellow center line with improved visibility
+  // FIXED: Enhanced dashed yellow center line with much more visible dashing
   static getEnhancedCenterLineOptions(): google.maps.PolylineOptions {
     return {
       geodesic: true,
       strokeColor: '#FFD700', // Bright gold yellow
-      strokeOpacity: 1.0,
-      strokeWeight: 4, // Thicker for better visibility
+      strokeOpacity: 0, // Make the main stroke invisible
+      strokeWeight: 1,
       clickable: false,
       draggable: false,
       editable: false,
       visible: true,
       zIndex: 100,
-      // Enhanced dashed pattern with better spacing
+      // ENHANCED dashed pattern with much larger dashes and gaps
       icons: [{
         icon: {
-          path: 'M 0,-2 0,2',
-          strokeOpacity: 1,
+          path: 'M 0,-3 0,3', // Taller dash line
+          strokeOpacity: 1.0,
           strokeColor: '#FFD700',
           strokeWeight: 4,
-          scale: 6
+          scale: 8 // Larger scale for more prominent dashes
         },
         offset: '0',
-        repeat: '30px' // Better spacing for dashed appearance
+        repeat: '40px' // Larger spacing between dashes for clear road stripe effect
       }]
     };
   }
