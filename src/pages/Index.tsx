@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
 import ComprehensiveListings from "../components/ComprehensiveListings";
 import NavigationBar from "../components/NavigationBar";
+import Route66Countdown from "../components/Route66Countdown";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -51,6 +52,13 @@ const Index = () => {
         <div className="absolute bottom-0 left-0 right-0 z-20">
           <div className="h-2 bg-route66-vintage-yellow opacity-80"></div>
           <div className="h-1 bg-white opacity-60"></div>
+        </div>
+      </div>
+
+      {/* Countdown Timer Section */}
+      <div className="w-full px-4 py-8 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown">
+        <div className="max-w-4xl mx-auto">
+          <Route66Countdown />
         </div>
       </div>
 
