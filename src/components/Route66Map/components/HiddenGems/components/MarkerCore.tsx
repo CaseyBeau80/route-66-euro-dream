@@ -27,8 +27,8 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
   useEffect(() => {
     if (!map || markerRef.current) return;
 
-    const isDriveIn = gem.title.toLowerCase().includes('drive-in');
-    console.log(`🎯 Creating ${isDriveIn ? 'ENHANCED DRIVE-IN' : 'hidden gem'} marker for: ${gem.title}`);
+    // Remove drive-in detection - all hidden gems are regular gems now
+    console.log(`💎 Creating hidden gem marker for: ${gem.title}`);
 
     const marker = new google.maps.Marker({
       position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
@@ -63,7 +63,7 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
 
     // Cleanup function
     return () => {
-      console.log(`🧹 Cleaning up ${isDriveIn ? 'DRIVE-IN' : 'hidden gem'} marker for: ${gem.title}`);
+      console.log(`🧹 Cleaning up hidden gem marker for: ${gem.title}`);
       
       listenersRef.current.forEach(listener => {
         google.maps.event.removeListener(listener);

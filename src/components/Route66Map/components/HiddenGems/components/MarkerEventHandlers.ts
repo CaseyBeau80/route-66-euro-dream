@@ -19,13 +19,10 @@ export const createMarkerEventHandlers = ({
   handleMouseEnter,
   handleMouseLeave
 }: MarkerEventHandlersConfig) => {
-  const isDriveIn = gem.title.toLowerCase().includes('drive-in') || 
-                   gem.title.toLowerCase().includes('drive in') ||
-                   gem.title.toLowerCase().includes('theater') ||
-                   gem.title.toLowerCase().includes('theatre');
-
+  // Remove drive-in detection - all hidden gems are regular gems now
+  
   const handleMouseOver = () => {
-    console.log(`🐭 Mouse over ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
+    console.log(`🐭 Mouse over hidden gem: ${gem.title}`);
     const screenPos = getMarkerScreenPosition(map, marker);
     if (screenPos) {
       updatePosition(screenPos.x, screenPos.y);
@@ -34,7 +31,7 @@ export const createMarkerEventHandlers = ({
   };
 
   const handleMouseOut = () => {
-    console.log(`🐭 Mouse out ${isDriveIn ? 'DRIVE-IN' : 'gem'}: ${gem.title}`);
+    console.log(`🐭 Mouse out hidden gem: ${gem.title}`);
     setTimeout(() => {
       handleMouseLeave(gem.title);
     }, 300);
