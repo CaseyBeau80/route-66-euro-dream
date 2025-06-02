@@ -85,16 +85,11 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       if (!isClicked) { // Only show hover if not clicked
         console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering jiggle');
         
-        // Add jiggle effect to marker
-        const mapDiv = map.getDiv();
-        const markerElements = mapDiv.querySelectorAll('[style*="cursor: pointer"]');
-        markerElements.forEach((element) => {
-          const htmlElement = element as HTMLElement;
-          htmlElement.style.animation = 'marker-jiggle 0.8s ease-in-out';
-          setTimeout(() => {
-            htmlElement.style.animation = '';
-          }, 800);
-        });
+        // Use Google Maps bounce animation
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+          marker.setAnimation(null);
+        }, 700);
 
         if (e.domEvent && e.domEvent.target) {
           const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();

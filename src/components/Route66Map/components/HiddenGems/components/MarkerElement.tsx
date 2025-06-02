@@ -18,6 +18,8 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
   onPositionUpdate,
   map
 }) => {
+  const markerRef = React.useRef<google.maps.Marker | null>(null);
+
   React.useEffect(() => {
     if (!map) return;
 
@@ -30,18 +32,7 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
       zIndex: 1000
     });
 
-    // Create a custom HTML overlay for hover effects
-    const markerOverlay = document.createElement('div');
-    markerOverlay.style.cssText = `
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      z-index: 999999;
-      background: transparent;
-      border-radius: 50%;
-      transition: transform 0.2s ease;
-    `;
+    markerRef.current = marker;
 
     // Function to get marker screen position
     const getMarkerScreenPosition = () => {
@@ -77,21 +68,53 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
       };
     };
 
+    // Trigger jiggle animation using Google Maps animation
+    const triggerJiggleAnimation = () => {
+      console.log(`🎯 Triggering jiggle animation for gem: ${gem.title}`);
+      
+      // Method 1: Use Google Maps bounce animation temporarily
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => {
+        marker.setAnimation(null);
+      }, 700);
+
+      // Method 2: Try to find and animate the marker element directly
+      setTimeout(() => {
+        const mapDiv = map.getDiv();
+        
+        // Look for all marker images in the map
+        const markerImages = mapDiv.querySelectorAll('img[src*="data:image/svg+xml"]');
+        console.log(`🔍 Found ${markerImages.length} marker images`);
+        
+        // Find our specific marker by checking if it's near our position
+        const markerPosition = getMarkerScreenPosition();
+        if (markerPosition) {
+          markerImages.forEach((img, index) => {
+            const imgElement = img as HTMLElement;
+            const rect = imgElement.getBoundingClientRect();
+            const distance = Math.sqrt(
+              Math.pow(rect.left - markerPosition.x, 2) + 
+              Math.pow(rect.top - markerPosition.y, 2)
+            );
+            
+            // If the image is within 50 pixels of our marker position, animate it
+            if (distance < 50) {
+              console.log(`🎯 Found matching marker image ${index}, applying jiggle`);
+              imgElement.style.animation = 'marker-jiggle 0.8s ease-in-out';
+              setTimeout(() => {
+                imgElement.style.animation = '';
+              }, 800);
+            }
+          });
+        }
+      }, 100);
+    };
+
     // Add hover effects to trigger jiggle animation
     const handleMouseOver = () => {
       console.log(`🎯 Mouse over gem: ${gem.title} - triggering jiggle effect`);
       
-      // Get the map div container
-      const mapDiv = map.getDiv();
-      
-      // Apply jiggle animation to the marker
-      const markerImg = mapDiv.querySelector(`img[src*="${encodeURIComponent('ROUTE')}"]`);
-      if (markerImg) {
-        markerImg.classList.add('animate-marker-jiggle');
-        setTimeout(() => {
-          markerImg.classList.remove('animate-marker-jiggle');
-        }, 800);
-      }
+      triggerJiggleAnimation();
 
       const screenPos = getMarkerScreenPosition();
       if (screenPos) {
