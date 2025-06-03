@@ -1,7 +1,7 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAttractionHover } from './hooks/useAttractionHover';
-import AttractionHoverCard from './AttractionHoverCard';
+import AttractionHoverPortal from './AttractionHoverPortal';
 import AttractionClickableCard from './AttractionClickableCard';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
@@ -29,11 +29,20 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     hoverPosition,
     handleMouseEnter,
     handleMouseLeave,
-    handleCardMouseEnter,
-    handleCardMouseLeave,
     updatePosition,
     cleanup
   } = useAttractionHover();
+
+  // Prevent hover card from disappearing when hovering over it
+  const handleCardMouseEnter = useCallback(() => {
+    console.log(`🐭 Mouse entered attraction hover card for: ${attraction.name} - keeping card visible`);
+    handleMouseEnter(attraction.name);
+  }, [handleMouseEnter, attraction.name]);
+
+  const handleCardMouseLeave = useCallback(() => {
+    console.log(`🐭 Mouse left attraction hover card for: ${attraction.name} - starting hide delay`);
+    handleMouseLeave(attraction.name);
+  }, [handleMouseLeave, attraction.name]);
 
   // Create marker element - NO INFO WINDOWS
   useEffect(() => {
@@ -148,7 +157,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     <>
       {/* Hover card - only show when hovering and not clicked */}
       {!isClicked && (
-        <AttractionHoverCard
+        <AttractionHoverPortal
           attraction={attraction}
           isVisible={isHovered}
           position={hoverPosition}
@@ -156,8 +165,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
             console.log('🌐 Opening attraction website:', website);
             window.open(website, '_blank', 'noopener,noreferrer');
           })}
-          onMouseEnter={() => handleCardMouseEnter(attraction.name)}
-          onMouseLeave={() => handleCardMouseLeave(attraction.name)}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
         />
       )}
 
