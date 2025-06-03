@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
 import { ImageOff, Play, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -38,56 +37,118 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
     }
   };
 
-  // Get comprehensive list of media URLs with better fallback strategy
+  // Enhanced URL generation with more fallback strategies
   const getMediaUrls = () => {
     const urls = [];
     
     if (post.media_type === 'CAROUSEL_ALBUM') {
       const carouselMedia = getCarouselMedia();
       
-      // Try carousel item URLs first
       if (carouselMedia.length > 0 && carouselMedia[currentCarouselIndex]) {
         const currentMedia = carouselMedia[currentCarouselIndex];
         
         console.log(`🔍 Carousel item ${currentCarouselIndex}:`, currentMedia);
         
-        // Add carousel item URLs
+        // Add carousel item URLs with variations
         if (currentMedia.media_url) {
           urls.push(currentMedia.media_url);
-          console.log(`📸 Added carousel media_url: ${currentMedia.media_url}`);
+          
+          // Add URL variations for carousel media
+          const variations = generateUrlVariations(currentMedia.media_url);
+          urls.push(...variations);
         }
         
         if (currentMedia.thumbnail_url && currentMedia.thumbnail_url !== currentMedia.media_url) {
           urls.push(currentMedia.thumbnail_url);
-          console.log(`🖼️ Added carousel thumbnail_url: ${currentMedia.thumbnail_url}`);
+          
+          const thumbnailVariations = generateUrlVariations(currentMedia.thumbnail_url);
+          urls.push(...thumbnailVariations);
         }
       }
     }
     
-    // ALWAYS add main post URLs as fallback (for both regular and carousel posts)
+    // Add main post URLs with variations
     if (post.media_url && !urls.includes(post.media_url)) {
       urls.push(post.media_url);
-      console.log(`📸 Added main media_url: ${post.media_url}`);
+      
+      const variations = generateUrlVariations(post.media_url);
+      urls.push(...variations);
     }
     
     if (post.thumbnail_url && post.thumbnail_url !== post.media_url && !urls.includes(post.thumbnail_url)) {
       urls.push(post.thumbnail_url);
-      console.log(`🖼️ Added main thumbnail_url: ${post.thumbnail_url}`);
+      
+      const thumbnailVariations = generateUrlVariations(post.thumbnail_url);
+      urls.push(...thumbnailVariations);
     }
     
-    // Try URL variations for better compatibility
-    if (post.media_url) {
-      const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
-      if (cleanUrl !== post.media_url && !urls.includes(cleanUrl)) {
-        urls.push(cleanUrl);
-        console.log(`🧹 Added cleaned URL: ${cleanUrl}`);
+    // Remove duplicates and filter out invalid URLs
+    const uniqueUrls = [...new Set(urls)].filter(url => url && url.trim() !== '' && isValidUrl(url));
+    console.log(`🎯 Generated ${uniqueUrls.length} unique URLs for post ${post.id}:`, uniqueUrls);
+    
+    return uniqueUrls;
+  };
+
+  // Generate URL variations to improve loading success
+  const generateUrlVariations = (originalUrl: string): string[] => {
+    if (!originalUrl || !originalUrl.includes('instagram.com')) {
+      return [];
+    }
+
+    const variations = [];
+    
+    try {
+      // Remove specific Instagram parameters that might cause issues
+      let cleanUrl = originalUrl
+        .replace(/&efg=[^&]*/, '')
+        .replace(/&_nc_ht=[^&]*/, '')
+        .replace(/&_nc_cat=[^&]*/, '')
+        .replace(/&_nc_oc=[^&]*/, '')
+        .replace(/&_nc_ohc=[^&]*/, '')
+        .replace(/&_nc_gid=[^&]*/, '')
+        .replace(/&edm=[^&]*/, '')
+        .replace(/&ccb=[^&]*/, '')
+        .replace(/&ig_cache_key=[^&]*/, '')
+        .replace(/&oh=[^&]*/, '')
+        .replace(/&oe=[^&]*/, '')
+        .replace(/&_nc_sid=[^&]*/, '')
+        .replace(/\?se=-1/, '')
+        .replace(/&stp=[^&]*/, '');
+
+      // Clean up multiple & or trailing &
+      cleanUrl = cleanUrl.replace(/&+/g, '&').replace(/&$/, '').replace(/\?&/, '?');
+      
+      if (cleanUrl !== originalUrl && !cleanUrl.endsWith('?')) {
+        variations.push(cleanUrl);
       }
+
+      // Try with different size parameters
+      if (originalUrl.includes('s1080x1080')) {
+        variations.push(originalUrl.replace('s1080x1080', 's640x640'));
+        variations.push(originalUrl.replace('s1080x1080', 's480x480'));
+      }
+
+      // Try without query parameters entirely
+      const urlWithoutQuery = originalUrl.split('?')[0];
+      if (urlWithoutQuery !== originalUrl) {
+        variations.push(urlWithoutQuery);
+      }
+
+    } catch (error) {
+      console.warn(`⚠️ Error generating URL variations for ${originalUrl}:`, error);
     }
-    
-    const finalUrls = urls.filter(url => url && url.trim() !== '');
-    console.log(`🎯 Final URL list for post ${post.id} (${post.media_type}):`, finalUrls);
-    
-    return finalUrls;
+
+    return variations;
+  };
+
+  // Validate URL format
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return url.startsWith('http') && url.includes('instagram.com');
+    } catch {
+      return false;
+    }
   };
 
   const mediaUrls = getMediaUrls();
@@ -97,7 +158,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const handleMediaLoad = () => {
     setImageLoading(false);
     setImageError(false);
-    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type}) using URL ${currentImageIndex + 1}/${mediaUrls.length}: ${mediaUrls[currentImageIndex]}`);
+    console.log(`✅ Successfully loaded media for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}: ${mediaUrls[currentImageIndex]}`);
   };
 
   const handleMediaError = () => {
@@ -162,7 +223,8 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
           <div className="text-center">
             <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm">No media URL available</p>
+            <p className="text-sm">No media available</p>
+            <p className="text-xs text-gray-400 mt-1">Instagram content unavailable</p>
           </div>
         </div>
       </div>
@@ -179,7 +241,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
                 <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
                 <p className="text-xs text-gray-500">
                   Loading {isVideo ? 'video' : 'image'}...
-                  {retryCount > 0 && <span className="block">Retry {retryCount}/{mediaUrls.length}</span>}
+                  {retryCount > 0 && <span className="block">Try {retryCount + 1}/{mediaUrls.length}</span>}
                 </p>
               </div>
             </div>
@@ -206,6 +268,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
               onLoad={handleMediaLoad}
               onError={handleMediaError}
               crossOrigin="anonymous"
+              loading="lazy"
             />
           )}
         </>
@@ -213,8 +276,11 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
           <div className="text-center p-4">
             <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm mb-2">{isVideo ? 'Video' : 'Image'} unavailable</p>
-            <p className="text-xs text-gray-400 mb-3">Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm mb-1">{isVideo ? 'Video' : 'Image'} unavailable</p>
+            <p className="text-xs text-gray-400 mb-3">
+              Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}
+            </p>
+            <p className="text-xs text-gray-400 mb-3">Instagram content may be restricted</p>
             <button
               onClick={handleRetry}
               className="flex items-center gap-1 text-xs bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded transition-colors mx-auto"
