@@ -71,11 +71,12 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
 
   const cardContent = (
     <div
-      className="fixed pointer-events-auto z-50"
+      className="fixed z-50"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
-        zIndex: 40000
+        zIndex: 40000,
+        pointerEvents: 'auto'
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -137,7 +138,7 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
             </div>
           )}
 
-          {/* Website button - same pattern as drive-in cards */}
+          {/* Website button - fully interactive */}
           {attractionWebsite && (
             <div className="mb-4">
               <button
@@ -147,7 +148,12 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
                   console.log('🌐 Attraction website button clicked for:', attraction.name, 'URL:', attractionWebsite);
                   onWebsiteClick?.(attractionWebsite);
                 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer pointer-events-auto"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 <ExternalLink className="h-4 w-4" />
                 Visit Website

@@ -6,6 +6,7 @@ export const useAttractionHover = () => {
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const showDelayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isCardHoveredRef = useRef(false);
 
   const handleMouseEnter = useCallback((attractionName?: string) => {
     // Clear any pending hide timeout
@@ -21,12 +22,12 @@ export const useAttractionHover = () => {
 
     console.log(`⏳ Starting hover delay for attraction: ${attractionName || 'unknown'}`);
     
-    // Reduced delay from 400ms to 200ms for faster response
+    // Faster response time for better UX
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`🎯 Hover started for attraction: ${attractionName || 'unknown'}`);
       setIsHovered(true);
       showDelayTimeoutRef.current = null;
-    }, 200);
+    }, 150);
   }, []);
 
   const handleMouseLeave = useCallback((attractionName?: string) => {
@@ -41,12 +42,44 @@ export const useAttractionHover = () => {
       clearTimeout(hoverTimeoutRef.current);
     }
     
-    // Extended delay from 300ms to 1000ms (1 second) to give users more time to move to the hover card
+    // Longer delay to allow moving to the card - only hide if card is not being hovered
+    hoverTimeoutRef.current = setTimeout(() => {
+      if (!isCardHoveredRef.current) {
+        console.log(`🎯 Hover ended for attraction: ${attractionName || 'unknown'}`);
+        setIsHovered(false);
+      }
+      hoverTimeoutRef.current = null;
+    }, 500);
+  }, []);
+
+  const handleCardMouseEnter = useCallback((attractionName?: string) => {
+    console.log(`🐭 Mouse entered attraction hover card for: ${attractionName || 'unknown'} - keeping card visible`);
+    isCardHoveredRef.current = true;
+    
+    // Clear any pending hide timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    
+    // Ensure card stays visible
+    setIsHovered(true);
+  }, []);
+
+  const handleCardMouseLeave = useCallback((attractionName?: string) => {
+    console.log(`🐭 Mouse left attraction hover card for: ${attractionName || 'unknown'} - starting hide delay`);
+    isCardHoveredRef.current = false;
+    
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    
+    // Shorter delay when leaving the card
     hoverTimeoutRef.current = setTimeout(() => {
       console.log(`🎯 Hover ended for attraction: ${attractionName || 'unknown'}`);
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 1000);
+    }, 300);
   }, []);
 
   const updatePosition = useCallback((x: number | null, y: number | null) => {
@@ -70,6 +103,7 @@ export const useAttractionHover = () => {
       clearTimeout(showDelayTimeoutRef.current);
       showDelayTimeoutRef.current = null;
     }
+    isCardHoveredRef.current = false;
     setIsHovered(false);
   }, []);
 
@@ -82,6 +116,7 @@ export const useAttractionHover = () => {
       clearTimeout(showDelayTimeoutRef.current);
       showDelayTimeoutRef.current = null;
     }
+    isCardHoveredRef.current = false;
     setIsHovered(false);
   }, []);
 
@@ -90,6 +125,8 @@ export const useAttractionHover = () => {
     hoverPosition,
     handleMouseEnter,
     handleMouseLeave,
+    handleCardMouseEnter,
+    handleCardMouseLeave,
     updatePosition,
     cleanup,
     clearHover
