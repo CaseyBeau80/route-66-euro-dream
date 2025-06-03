@@ -15,10 +15,10 @@ import { Link } from "react-router-dom";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
   
-  console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme and enhanced scroll experience");
+  console.log("🏠 Index page: Rendering with clean, readable design and strong contrast");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
