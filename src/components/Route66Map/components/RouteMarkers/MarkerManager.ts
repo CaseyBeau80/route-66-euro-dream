@@ -10,10 +10,12 @@ export class MarkerManager {
     map: google.maps.Map, 
     markerRefs: MarkerRefs
   ): void {
+    console.log('🎯 MarkerManager: Creating destination markers WITHOUT info windows');
     DestinationMarkerService.createDestinationMarkers(destinationCities, map, markerRefs);
   }
 
   static cleanupMarkers(markerRefs: MarkerRefs): void {
+    console.log('🧹 MarkerManager: Cleaning up all markers and info windows');
     MarkerCleanupService.cleanupMarkers(markerRefs);
   }
 }

@@ -7,6 +7,8 @@ export class MarkerCreator {
     map: google.maps.Map, 
     enhanced: boolean = false
   ): google.maps.Marker {
+    console.log('🎯 MarkerCreator: Creating highway marker WITHOUT info window');
+    
     const iconSize = enhanced ? { width: 80, height: 30 } : { width: 60, height: 20 };
     const fontSize = enhanced ? "8" : "10";
     
@@ -30,6 +32,8 @@ export class MarkerCreator {
   }
 
   static createStopMarker(stop: StopData, map: google.maps.Map): google.maps.Marker {
+    console.log('🎯 MarkerCreator: Creating stop marker WITHOUT info window');
+    
     return new google.maps.Marker({
       position: stop.position,
       map: map,

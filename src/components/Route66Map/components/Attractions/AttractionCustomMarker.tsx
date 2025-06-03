@@ -33,7 +33,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     cleanup
   } = useAttractionHover();
 
-  // Create marker element
+  // Create marker element - NO INFO WINDOWS
   useEffect(() => {
     if (!map || markerRef.current) return;
 
@@ -69,6 +69,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     return () => {
       cleanup();
       if (markerRef.current) {
+        // Clear all event listeners and info windows
+        google.maps.event.clearInstanceListeners(markerRef.current);
         markerRef.current.setMap(null);
         markerRef.current = null;
       }
@@ -76,7 +78,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     };
   }, [map, attraction, cleanup]);
 
-  // Add event listeners when marker is ready
+  // Add event listeners - NO INFO WINDOWS, ONLY HOVER AND CLICK CARDS
   useEffect(() => {
     if (!isMarkerReady || !markerRef.current) return;
 
@@ -121,14 +123,16 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       onAttractionClick(attraction);
     };
 
+    // Add event listeners - NO INFO WINDOW CREATION
     marker.addListener('mouseover', handleMouseOverEvent);
     marker.addListener('mouseout', handleMouseOutEvent);
     marker.addListener('click', handleClickEvent);
 
     return () => {
+      // Clean up all event listeners
       google.maps.event.clearInstanceListeners(marker);
     };
-  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked, map]);
+  }, [isMarkerReady, attraction, handleMouseEnter, handleMouseLeave, updatePosition, onAttractionClick, isClicked]);
 
   const handleCloseClickableCard = () => {
     setIsClicked(false);
