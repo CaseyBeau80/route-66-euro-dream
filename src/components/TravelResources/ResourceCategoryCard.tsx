@@ -11,16 +11,16 @@ type ResourceCategoryCardProps = {
 
 const ResourceCategoryCard = ({ category, index }: ResourceCategoryCardProps) => {
   return (
-    <Card key={index} className="border-0 shadow-sm h-full bg-white hover:shadow-md transition-shadow duration-300">
+    <Card key={index} className="border-2 border-gray-200 shadow-lg h-full bg-white hover:shadow-xl transition-shadow duration-300 hover:border-route66-red">
       <CardContent className="p-6 flex flex-col h-full">
-        <h3 className="text-lg font-bold text-route66-blue mb-3">{category.title}</h3>
-        <p className="text-route66-gray mb-6 flex-grow">{category.description}</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">{category.title}</h3>
+        <p className="text-gray-700 mb-6 flex-grow text-base leading-relaxed">{category.description}</p>
         <Button 
           variant="link" 
-          className="p-0 text-route66-red hover:text-route66-red/80 flex items-center justify-start"
+          className="p-0 text-route66-red hover:text-route66-red/80 flex items-center justify-start font-semibold"
         >
           {category.link}
-          <ArrowRight size={14} className="ml-1" />
+          <ArrowRight size={16} className="ml-2" />
         </Button>
       </CardContent>
     </Card>

@@ -7,8 +7,8 @@ type ResourceHeaderProps = {
 const ResourceHeader = ({ title, subtitle }: ResourceHeaderProps) => {
   return (
     <div className="text-center mb-12">
-      <h2 className="text-3xl font-route66 text-route66-red mb-2">{title}</h2>
-      <p className="text-route66-gray max-w-2xl mx-auto">{subtitle}</p>
+      <h2 className="text-4xl font-route66 text-gray-900 mb-4 font-bold">{title}</h2>
+      <p className="text-gray-800 max-w-2xl mx-auto text-xl font-semibold">{subtitle}</p>
     </div>
   );
 };

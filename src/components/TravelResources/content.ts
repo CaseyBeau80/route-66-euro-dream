@@ -3,12 +3,12 @@ import { ResourcesContentMap } from "./types";
 
 export const resourcesContent: ResourcesContentMap = {
   en: {
-    title: "What Europeans Should Know",
+    title: "What International Travelers Should Know",
     subtitle: "Essential information for international travelers on Route 66",
     categories: [
       {
         title: "Visa & Documentation",
-        description: "What Europeans need to know about ESTA, visas, and required travel documentation",
+        description: "What international travelers need to know about ESTA, visas, and required travel documentation",
         link: "Learn more about entry requirements"
       },
       {
@@ -37,12 +37,12 @@ export const resourcesContent: ResourcesContentMap = {
     ]
   },
   de: {
-    title: "Was Europäer wissen sollten",
+    title: "Was internationale Reisende wissen sollten",
     subtitle: "Wesentliche Informationen für internationale Reisende auf der Route 66",
     categories: [
       {
         title: "Visa & Dokumentation",
-        description: "Was Europäer über ESTA, Visa und erforderliche Reisedokumente wissen müssen",
+        description: "Was internationale Reisende über ESTA, Visa und erforderliche Reisedokumente wissen müssen",
         link: "Mehr über Einreisebestimmungen erfahren"
       },
       {
@@ -71,12 +71,12 @@ export const resourcesContent: ResourcesContentMap = {
     ]
   },
   fr: {
-    title: "Ce que les Européens devraient savoir",
+    title: "Ce que les voyageurs internationaux devraient savoir",
     subtitle: "Informations essentielles pour les voyageurs internationaux sur la Route 66",
     categories: [
       {
         title: "Visa et documentation",
-        description: "Ce que les Européens doivent savoir sur ESTA, les visas et les documents de voyage requis",
+        description: "Ce que les voyageurs internationaux doivent savoir sur ESTA, les visas et les documents de voyage requis",
         link: "En savoir plus sur les conditions d'entrée"
       },
       {
@@ -105,12 +105,12 @@ export const resourcesContent: ResourcesContentMap = {
     ]
   },
   nl: {
-    title: "Wat Europeanen moeten weten",
+    title: "Wat internationale reizigers moeten weten",
     subtitle: "Essentiële informatie voor internationale reizigers op Route 66",
     categories: [
       {
         title: "Visum & Documentatie",
-        description: "Wat Europeanen moeten weten over ESTA, visa en vereiste reisdocumenten",
+        description: "Wat internationale reizigers moeten weten over ESTA, visa en vereiste reisdocumenten",
         link: "Meer informatie over toegangseisen"
       },
       {
