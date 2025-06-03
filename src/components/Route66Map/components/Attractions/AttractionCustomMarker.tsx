@@ -138,6 +138,17 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     setIsClicked(false);
   };
 
+  // Prevent hover card from disappearing when hovering over it
+  const handleCardMouseEnter = () => {
+    console.log('🐭 Mouse entered attraction hover card for:', attraction.name, '- keeping card visible');
+    handleMouseEnter(attraction.name);
+  };
+
+  const handleCardMouseLeave = () => {
+    console.log('🐭 Mouse left attraction hover card for:', attraction.name, '- starting hide delay');
+    handleMouseLeave(attraction.name);
+  };
+
   if (!isMarkerReady) {
     return null;
   }
@@ -154,6 +165,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
             console.log('🌐 Opening attraction website:', website);
             window.open(website, '_blank', 'noopener,noreferrer');
           })}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
         />
       )}
 

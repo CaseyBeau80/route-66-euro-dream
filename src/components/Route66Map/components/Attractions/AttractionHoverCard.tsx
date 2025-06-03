@@ -5,18 +5,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Star, ExternalLink } from 'lucide-react';
 import { AttractionHoverProps } from './types';
 
-const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
+interface EnhancedAttractionHoverProps extends AttractionHoverProps {
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}
+
+const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
   attraction,
   isVisible,
   position,
-  onWebsiteClick
+  onWebsiteClick,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   // Enhanced position calculations similar to HoverCardPortal
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 320;
-    const cardHeight = 240; // Increased height to accommodate website button
+    const cardHeight = 280; // Increased height to accommodate website button and better spacing
     const padding = 20;
     const topOffset = 60;
 
@@ -64,12 +71,14 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
 
   const cardContent = (
     <div
-      className="fixed pointer-events-none"
+      className="fixed pointer-events-auto"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
         zIndex: 40000
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Card className="w-80 border-3 border-blue-600 bg-gradient-to-br from-blue-50 via-white to-blue-100 shadow-2xl overflow-hidden relative">
         {/* Vintage Route 66 decorative border */}
@@ -128,12 +137,17 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
             </div>
           )}
 
-          {/* Website button - clickable with pointer events */}
+          {/* Website button - fully clickable with pointer events */}
           {attractionWebsite && (
-            <div className="mb-4 pointer-events-auto">
+            <div className="mb-4">
               <button
-                onClick={() => onWebsiteClick?.(attractionWebsite)}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🌐 Website button clicked for:', attraction.name);
+                  onWebsiteClick?.(attractionWebsite);
+                }}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
               >
                 <ExternalLink className="h-4 w-4" />
                 Visit Website

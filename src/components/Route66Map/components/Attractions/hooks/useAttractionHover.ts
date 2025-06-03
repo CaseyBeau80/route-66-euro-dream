@@ -21,12 +21,12 @@ export const useAttractionHover = () => {
 
     console.log(`⏳ Starting hover delay for attraction: ${attractionName || 'unknown'}`);
     
-    // Add 400ms delay before showing the tooltip
+    // Reduced delay from 400ms to 200ms for faster response
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`🎯 Hover started for attraction: ${attractionName || 'unknown'}`);
       setIsHovered(true);
       showDelayTimeoutRef.current = null;
-    }, 400);
+    }, 200);
   }, []);
 
   const handleMouseLeave = useCallback((attractionName?: string) => {
@@ -40,11 +40,13 @@ export const useAttractionHover = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
+    
+    // Extended delay from 300ms to 1000ms (1 second) to give users more time to move to the hover card
     hoverTimeoutRef.current = setTimeout(() => {
       console.log(`🎯 Hover ended for attraction: ${attractionName || 'unknown'}`);
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 300);
+    }, 1000);
   }, []);
 
   const updatePosition = useCallback((x: number | null, y: number | null) => {
