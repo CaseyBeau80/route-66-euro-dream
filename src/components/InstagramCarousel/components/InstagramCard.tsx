@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
-import { Heart, MessageCircle, ExternalLink, ImageOff, Play } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, ImageOff, Play, RotateCcw } from 'lucide-react';
 
 interface InstagramCardProps {
   post: InstagramPost;
@@ -11,6 +11,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   const formatHashtags = (hashtags: string[] | null) => {
     if (!hashtags || hashtags.length === 0) return '';
@@ -31,17 +32,27 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
     return caption.substring(0, maxLength) + '...';
   };
 
-  // Get multiple URL options for fallback - prioritize media_url for better quality
+  // Get multiple URL options for fallback with more strategies
   const getMediaUrls = () => {
     const urls = [];
     
-    // Primary URL: media_url (better quality, more reliable)
+    // Strategy 1: Primary media_url
     if (post.media_url) {
       urls.push(post.media_url);
     }
-    // Fallback URL: thumbnail_url (if media_url fails)
+    
+    // Strategy 2: Thumbnail URL (often more reliable)
     if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
       urls.push(post.thumbnail_url);
+    }
+    
+    // Strategy 3: Try modifying URL parameters for better compatibility
+    if (post.media_url) {
+      // Remove some Instagram URL parameters that might cause issues
+      const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
+      if (cleanUrl !== post.media_url) {
+        urls.push(cleanUrl);
+      }
     }
     
     return urls.filter(url => url && url.trim() !== '');
@@ -52,7 +63,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
   const handleMediaLoad = () => {
     setImageLoading(false);
     setImageError(false);
-    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type})`);
+    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type}) using URL ${currentImageIndex + 1}/${mediaUrls.length}`);
   };
 
   const handleMediaError = () => {
@@ -63,11 +74,20 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
       console.log(`🔄 Trying fallback media ${currentImageIndex + 2}/${mediaUrls.length}`);
       setCurrentImageIndex(prev => prev + 1);
       setImageLoading(true);
+      setRetryCount(prev => prev + 1);
     } else {
-      console.log(`💥 All media URLs failed for post ${post.id}, showing placeholder`);
+      console.log(`💥 All ${mediaUrls.length} media URLs failed for post ${post.id}, showing placeholder`);
       setImageLoading(false);
       setImageError(true);
     }
+  };
+
+  const handleRetry = () => {
+    console.log(`🔄 Retrying media load for post ${post.id}`);
+    setCurrentImageIndex(0);
+    setImageError(false);
+    setImageLoading(true);
+    setRetryCount(0);
   };
 
   const getCurrentMediaUrl = () => {
@@ -84,7 +104,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
             <div className="text-center">
               <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">No media available</p>
+              <p className="text-sm">No media URL available</p>
             </div>
           </div>
         </div>
@@ -138,15 +158,18 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse z-10">
                 <div className="text-center">
-                  <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
-                  <p className="text-xs text-gray-500">Loading {isVideo ? 'video' : 'image'}...</p>
+                  <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
+                  <p className="text-xs text-gray-500">
+                    Loading {isVideo ? 'video' : 'image'}...
+                    {retryCount > 0 && <span className="block">Retry {retryCount}/{mediaUrls.length}</span>}
+                  </p>
                 </div>
               </div>
             )}
             
             {isVideo ? (
               <video 
-                key={`${post.id}-${currentImageIndex}`}
+                key={`${post.id}-${currentImageIndex}-${retryCount}`}
                 src={getCurrentMediaUrl()} 
                 className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                 onLoadedData={handleMediaLoad}
@@ -158,7 +181,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
               />
             ) : (
               <img 
-                key={`${post.id}-${currentImageIndex}`}
+                key={`${post.id}-${currentImageIndex}-${retryCount}`}
                 src={getCurrentMediaUrl()} 
                 alt={post.caption || 'Route 66 Instagram post'}
                 className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
@@ -170,10 +193,17 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-            <div className="text-center">
+            <div className="text-center p-4">
               <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">{isVideo ? 'Video' : 'Image'} unavailable</p>
-              <p className="text-xs text-gray-400 mt-1">Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}</p>
+              <p className="text-sm mb-2">{isVideo ? 'Video' : 'Image'} unavailable</p>
+              <p className="text-xs text-gray-400 mb-3">Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}</p>
+              <button
+                onClick={handleRetry}
+                className="flex items-center gap-1 text-xs bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded transition-colors mx-auto"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Retry
+              </button>
             </div>
           </div>
         )}
