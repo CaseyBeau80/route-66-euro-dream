@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,9 +46,16 @@ const InstagramCarousel = () => {
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <FixedHeaderSection />
+        <div className="text-center mb-12 bg-white p-8 rounded-xl shadow-2xl border-4 border-route66-red">
+          <h2 className="text-4xl font-route66 text-route66-red mb-4 font-bold">
+            Route 66 Adventures
+          </h2>
+          <p className="text-gray-900 max-w-2xl mx-auto text-xl font-semibold">
+            Discover authentic moments from the Mother Road through the eyes of fellow travelers
+          </p>
+        </div>
         
         {isLoading ? (
           <div className="flex justify-center items-center h-96">
