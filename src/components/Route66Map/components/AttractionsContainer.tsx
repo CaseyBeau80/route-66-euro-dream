@@ -30,7 +30,6 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState<number>(6);
-  const [isZoomStable, setIsZoomStable] = useState(true);
 
   // Fetch attractions from the attractions table
   useEffect(() => {
@@ -60,60 +59,62 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     fetchAttractions();
   }, []);
   
-  // Debounced zoom handling to prevent excessive re-renders
+  // Simplified zoom handling - no more aggressive debouncing that causes disappearing
   const handleZoomChange = useCallback(() => {
     if (!map) return;
     
-    setIsZoomStable(false);
     const newZoom = map.getZoom() || 6;
+    setCurrentZoom(newZoom);
     
-    // Debounce zoom updates
-    const timeoutId = setTimeout(() => {
-      setCurrentZoom(newZoom);
-      setIsZoomStable(true);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
+    console.log(`🔍 AttractionsContainer: Zoom changed to ${newZoom}`);
   }, [map]);
 
-  // Enhanced filtering based on zoom level
+  // More relaxed filtering - show more attractions at all zoom levels
   const filteredAttractions = useMemo(() => {
-    if (loading) return [];
+    if (loading) {
+      console.log('⏳ AttractionsContainer: Still loading attractions');
+      return [];
+    }
 
-    // Show more attractions at higher zoom levels
     let visibleAttractions = attractions;
 
-    if (currentZoom >= 8) {
+    // Simplified zoom-based filtering - less aggressive
+    if (currentZoom >= 7) {
       // High zoom: show all attractions
       visibleAttractions = attractions;
-    } else if (currentZoom >= 6) {
-      // Medium zoom: show featured attractions and every other attraction
+      console.log(`🎯 HIGH ZOOM (${currentZoom}): Showing ALL ${attractions.length} attractions`);
+    } else if (currentZoom >= 5) {
+      // Medium zoom: show featured + every other attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 2 === 0
       );
+      console.log(`🎯 MEDIUM ZOOM (${currentZoom}): Showing ${visibleAttractions.length} of ${attractions.length} attractions`);
     } else {
-      // Low zoom: show only featured attractions or every 3rd attraction
+      // Low zoom: show featured + every 3rd attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 3 === 0
       );
+      console.log(`🎯 LOW ZOOM (${currentZoom}): Showing ${visibleAttractions.length} of ${attractions.length} attractions`);
     }
-
-    console.log(`🎯 AttractionsContainer: Showing ${visibleAttractions.length} attractions (zoom: ${currentZoom}, total: ${attractions.length})`);
 
     return visibleAttractions;
   }, [attractions, currentZoom, loading]);
 
-  // Listen to zoom changes with debouncing
+  // Listen to zoom changes - simplified event handling
   useEffect(() => {
     if (!map) return;
 
+    console.log('🎯 AttractionsContainer: Setting up zoom listener');
+    
     const zoomListener = map.addListener('zoom_changed', handleZoomChange);
     
     // Set initial zoom
     const initialZoom = map.getZoom() || 6;
     setCurrentZoom(initialZoom);
+    console.log(`🎯 AttractionsContainer: Initial zoom set to ${initialZoom}`);
 
     return () => {
+      console.log('🧹 AttractionsContainer: Cleaning up zoom listener');
       google.maps.event.removeListener(zoomListener);
     };
   }, [map, handleZoomChange]);
@@ -124,12 +125,13 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     window.open(website, '_blank', 'noopener,noreferrer');
   }, []);
 
-  // Don't render markers during zoom transitions for better performance
-  if (!isZoomStable || loading) {
+  // Show loading state briefly but don't hide markers during zoom
+  if (loading && attractions.length === 0) {
+    console.log('⏳ AttractionsContainer: Initial loading state');
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: Rendering ${filteredAttractions.length} attractions from attractions table`);
+  console.log(`🎯 AttractionsContainer: RENDERING ${filteredAttractions.length} attractions (zoom: ${currentZoom}, total: ${attractions.length})`);
 
   return (
     <>
