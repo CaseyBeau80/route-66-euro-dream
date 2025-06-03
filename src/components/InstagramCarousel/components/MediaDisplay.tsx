@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
-import { ImageOff, Play, RotateCcw } from 'lucide-react';
+import { ImageOff, Play, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MediaDisplayProps {
   post: InstagramPost;
@@ -12,27 +12,70 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  // Get multiple URL options for fallback with more strategies
+  // Parse carousel media if available
+  const getCarouselMedia = () => {
+    if (post.media_type !== 'CAROUSEL_ALBUM' || !post.carousel_media) {
+      return [];
+    }
+    
+    try {
+      const carouselData = typeof post.carousel_media === 'string' 
+        ? JSON.parse(post.carousel_media) 
+        : post.carousel_media;
+      
+      return Array.isArray(carouselData) ? carouselData : [];
+    } catch (error) {
+      console.error('Failed to parse carousel media:', error);
+      return [];
+    }
+  };
+
+  // Get media URLs for current carousel item or single post
   const getMediaUrls = () => {
     const urls = [];
     
-    // Strategy 1: Primary media_url
-    if (post.media_url) {
-      urls.push(post.media_url);
-    }
-    
-    // Strategy 2: Thumbnail URL (often more reliable)
-    if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
-      urls.push(post.thumbnail_url);
-    }
-    
-    // Strategy 3: Try modifying URL parameters for better compatibility
-    if (post.media_url) {
-      // Remove some Instagram URL parameters that might cause issues
-      const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
-      if (cleanUrl !== post.media_url) {
-        urls.push(cleanUrl);
+    if (post.media_type === 'CAROUSEL_ALBUM') {
+      const carouselMedia = getCarouselMedia();
+      if (carouselMedia.length > 0 && carouselMedia[currentCarouselIndex]) {
+        const currentMedia = carouselMedia[currentCarouselIndex];
+        
+        // Strategy 1: Primary media_url from carousel item
+        if (currentMedia.media_url) {
+          urls.push(currentMedia.media_url);
+        }
+        
+        // Strategy 2: Thumbnail URL from carousel item
+        if (currentMedia.thumbnail_url && currentMedia.thumbnail_url !== currentMedia.media_url) {
+          urls.push(currentMedia.thumbnail_url);
+        }
+      }
+      
+      // Fallback to main post media
+      if (urls.length === 0) {
+        if (post.media_url) urls.push(post.media_url);
+        if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
+          urls.push(post.thumbnail_url);
+        }
+      }
+    } else {
+      // Strategy 1: Primary media_url
+      if (post.media_url) {
+        urls.push(post.media_url);
+      }
+      
+      // Strategy 2: Thumbnail URL (often more reliable)
+      if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
+        urls.push(post.thumbnail_url);
+      }
+      
+      // Strategy 3: Try modifying URL parameters for better compatibility
+      if (post.media_url) {
+        const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
+        if (cleanUrl !== post.media_url) {
+          urls.push(cleanUrl);
+        }
       }
     }
     
@@ -40,6 +83,8 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   };
 
   const mediaUrls = getMediaUrls();
+  const carouselMedia = getCarouselMedia();
+  const isCarousel = post.media_type === 'CAROUSEL_ALBUM' && carouselMedia.length > 1;
 
   const handleMediaLoad = () => {
     setImageLoading(false);
@@ -71,11 +116,34 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
     setRetryCount(0);
   };
 
+  const handleCarouselPrevious = () => {
+    setCurrentCarouselIndex(prev => prev > 0 ? prev - 1 : carouselMedia.length - 1);
+    setCurrentImageIndex(0);
+    setImageError(false);
+    setImageLoading(true);
+    setRetryCount(0);
+  };
+
+  const handleCarouselNext = () => {
+    setCurrentCarouselIndex(prev => prev < carouselMedia.length - 1 ? prev + 1 : 0);
+    setCurrentImageIndex(0);
+    setImageError(false);
+    setImageLoading(true);
+    setRetryCount(0);
+  };
+
   const getCurrentMediaUrl = () => {
     return mediaUrls[currentImageIndex] || '';
   };
 
-  const isVideo = post.media_type === 'VIDEO';
+  const getCurrentMediaType = () => {
+    if (post.media_type === 'CAROUSEL_ALBUM' && carouselMedia[currentCarouselIndex]) {
+      return carouselMedia[currentCarouselIndex].media_type || 'IMAGE';
+    }
+    return post.media_type;
+  };
+
+  const isVideo = getCurrentMediaType() === 'VIDEO';
 
   // If no valid media URLs, show error immediately
   if (mediaUrls.length === 0) {
@@ -109,7 +177,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
           
           {isVideo ? (
             <video 
-              key={`${post.id}-${currentImageIndex}-${retryCount}`}
+              key={`${post.id}-${currentCarouselIndex}-${currentImageIndex}-${retryCount}`}
               src={getCurrentMediaUrl()} 
               className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
               onLoadedData={handleMediaLoad}
@@ -121,7 +189,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
             />
           ) : (
             <img 
-              key={`${post.id}-${currentImageIndex}-${retryCount}`}
+              key={`${post.id}-${currentCarouselIndex}-${currentImageIndex}-${retryCount}`}
               src={getCurrentMediaUrl()} 
               alt={post.caption || 'Route 66 Instagram post'}
               className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
@@ -148,6 +216,43 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         </div>
       )}
       
+      {/* Carousel Navigation */}
+      {isCarousel && !imageError && (
+        <>
+          <button
+            onClick={handleCarouselPrevious}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1 rounded-full transition-all duration-200 z-20"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleCarouselNext}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1 rounded-full transition-all duration-200 z-20"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          
+          {/* Carousel Dots */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+            {carouselMedia.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentCarouselIndex(index);
+                  setCurrentImageIndex(0);
+                  setImageError(false);
+                  setImageLoading(true);
+                  setRetryCount(0);
+                }}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentCarouselIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+      
       {!imageError && (
         <>
           {isVideo && (
@@ -157,14 +262,14 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
               </div>
             </div>
           )}
-          {post.media_type === 'VIDEO' && (
+          {getCurrentMediaType() === 'VIDEO' && (
             <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
               VIDEO
             </div>
           )}
           {post.media_type === 'CAROUSEL_ALBUM' && (
             <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
-              📸+
+              📸 {currentCarouselIndex + 1}/{carouselMedia.length}
             </div>
           )}
           {post.is_featured && (

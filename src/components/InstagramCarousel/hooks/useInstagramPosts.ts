@@ -38,7 +38,19 @@ export const useInstagramPosts = () => {
             cleanMediaType = cleanMediaType.replace(/^"(.*)"$/, '$1') as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
           }
           
-          console.log(`📸 Post ${post.id}: ${cleanMediaType}, URL: ${post.media_url}`);
+          console.log(`📸 Post ${post.id}: ${cleanMediaType}, URL: ${post.media_url}${post.media_type === 'CAROUSEL_ALBUM' ? `, Carousel: ${post.carousel_media ? 'Yes' : 'No'}` : ''}`);
+          
+          // Log carousel media details for debugging
+          if (cleanMediaType === 'CAROUSEL_ALBUM' && post.carousel_media) {
+            try {
+              const carouselData = typeof post.carousel_media === 'string' 
+                ? JSON.parse(post.carousel_media) 
+                : post.carousel_media;
+              console.log(`🎠 Carousel post ${post.id} has ${Array.isArray(carouselData) ? carouselData.length : 0} media items`);
+            } catch (e) {
+              console.warn(`⚠️ Failed to parse carousel media for post ${post.id}:`, e);
+            }
+          }
           
           return {
             ...post,

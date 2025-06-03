@@ -11,36 +11,8 @@ interface InstagramCardProps {
 }
 
 const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
-  // Get multiple URL options for fallback with more strategies
-  const getMediaUrls = () => {
-    const urls = [];
-    
-    // Strategy 1: Primary media_url
-    if (post.media_url) {
-      urls.push(post.media_url);
-    }
-    
-    // Strategy 2: Thumbnail URL (often more reliable)
-    if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
-      urls.push(post.thumbnail_url);
-    }
-    
-    // Strategy 3: Try modifying URL parameters for better compatibility
-    if (post.media_url) {
-      // Remove some Instagram URL parameters that might cause issues
-      const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
-      if (cleanUrl !== post.media_url) {
-        urls.push(cleanUrl);
-      }
-    }
-    
-    return urls.filter(url => url && url.trim() !== '');
-  };
-
-  const mediaUrls = getMediaUrls();
-
-  // If no valid media URLs, show error immediately
-  if (mediaUrls.length === 0) {
+  // Basic validation - if no media_url at all, show error
+  if (!post.media_url && !post.thumbnail_url && (!post.carousel_media || post.carousel_media === '[]')) {
     return <ErrorPlaceholder post={post} />;
   }
 
