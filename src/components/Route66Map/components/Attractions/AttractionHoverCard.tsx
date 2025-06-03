@@ -16,7 +16,7 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 320;
-    const cardHeight = 200;
+    const cardHeight = 240; // Increased height to accommodate website button
     const padding = 20;
     const topOffset = 60;
 
@@ -52,6 +52,13 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
 
     return { left, top, display: 'block' };
   }, [isVisible, position, attraction.name]);
+
+  // Extract website from description if available
+  const attractionWebsite = useMemo(() => {
+    const descriptionText = attraction.description || '';
+    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
+    return websiteMatch ? websiteMatch[0] : null;
+  }, [attraction.description]);
 
   if (!isVisible) return null;
 
@@ -118,6 +125,19 @@ const AttractionHoverCard: React.FC<AttractionHoverProps> = ({
                   : attraction.description
                 }
               </p>
+            </div>
+          )}
+
+          {/* Website button - clickable with pointer events */}
+          {attractionWebsite && (
+            <div className="mb-4 pointer-events-auto">
+              <button
+                onClick={() => onWebsiteClick?.(attractionWebsite)}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Visit Website
+              </button>
             </div>
           )}
           
