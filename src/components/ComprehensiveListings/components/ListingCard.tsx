@@ -29,14 +29,14 @@ export const ListingCard = ({ item }: ListingCardProps) => {
   const handleWebsiteLinkClick = createWebsiteLinkClickHandler(item);
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-route66-gray/10">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 border-2 border-route66-red bg-white">
       <CardImage 
         item={item}
         onImageClick={handleImageClick}
         onContainerClick={handleContainerClick}
       />
       
-      <UICardContent className="p-5">
+      <UICardContent className="p-5 bg-white">
         <CardContent item={item} />
         <CardActions 
           item={item}

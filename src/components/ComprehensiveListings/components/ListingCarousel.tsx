@@ -79,9 +79,9 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-route66-gray/60">
-        <p className="text-lg">No {categoryTitle.toLowerCase()} found at the moment.</p>
-        <p className="text-sm">Check back soon for new additions!</p>
+      <div className="text-center py-12 text-gray-900">
+        <p className="text-lg font-semibold">No {categoryTitle.toLowerCase()} found at the moment.</p>
+        <p className="text-sm font-medium">Check back soon for new additions!</p>
       </div>
     );
   }
@@ -113,22 +113,22 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 hover:bg-white opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-route66-red hover:bg-route66-orange border-2 border-route66-vintage-brown shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
             onClick={scrollPrev}
             disabled={!canScrollPrev}
           >
-            <ChevronLeft className="h-5 w-5 text-gray-700" />
+            <ChevronLeft className="h-5 w-5 text-white" />
             <span className="sr-only">Previous items</span>
           </Button>
           
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 hover:bg-white opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-route66-red hover:bg-route66-orange border-2 border-route66-vintage-brown shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 opacity-0 group-hover:opacity-100 disabled:opacity-30 disabled:hover:scale-100 hidden md:flex"
             onClick={scrollNext}
             disabled={!canScrollNext}
           >
-            <ChevronRight className="h-5 w-5 text-gray-700" />
+            <ChevronRight className="h-5 w-5 text-white" />
             <span className="sr-only">Next items</span>
           </Button>
         </>
@@ -140,22 +140,22 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
           <Button
             variant="outline"
             size="sm"
-            className="h-11 px-4 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+            className="h-11 px-4 rounded-full bg-route66-red hover:bg-route66-orange border-2 border-route66-vintage-brown shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 text-white"
             onClick={scrollPrev}
             disabled={!canScrollPrev}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4 mr-1 text-white" />
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-11 px-4 rounded-full bg-white/95 backdrop-blur-sm border-gray-200/80 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+            className="h-11 px-4 rounded-full bg-route66-red hover:bg-route66-orange border-2 border-route66-vintage-brown shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 text-white"
             onClick={scrollNext}
             disabled={!canScrollNext}
           >
             Next
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-4 w-4 ml-1 text-white" />
           </Button>
         </div>
       )}
