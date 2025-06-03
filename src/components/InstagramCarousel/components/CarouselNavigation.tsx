@@ -1,33 +1,42 @@
 
 import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CarouselNavigationProps {
-  totalSlides: number;
-  currentIndex: number;
-  onSlideChange: (index: number) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
 }
 
 const CarouselNavigation: React.FC<CarouselNavigationProps> = ({
-  totalSlides,
-  currentIndex,
-  onSlideChange,
+  onPrevious,
+  onNext,
+  canGoPrevious,
+  canGoNext,
 }) => {
-  if (totalSlides <= 1) return null;
-
   return (
-    <div className="flex justify-center items-center gap-2 mt-6">
-      {Array.from({ length: totalSlides }, (_, index) => (
-        <button
-          key={index}
-          onClick={() => onSlideChange(index)}
-          className={`w-3 h-3 rounded-full transition-all duration-200 ${
-            index === currentIndex
-              ? 'bg-route66-vintage-yellow scale-125'
-              : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-          }`}
-          aria-label={`Go to slide ${index + 1}`}
-        />
-      ))}
+    <div className="flex justify-center items-center gap-4 mt-8">
+      <Button
+        onClick={onPrevious}
+        disabled={!canGoPrevious}
+        variant="outline"
+        size="icon"
+        className="rounded-full bg-white/90 border-2 border-route66-vintage-brown hover:bg-route66-vintage-yellow hover:border-route66-rust disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+      >
+        <ChevronLeft className="h-5 w-5 text-route66-vintage-brown" />
+      </Button>
+      
+      <Button
+        onClick={onNext}
+        disabled={!canGoNext}
+        variant="outline"
+        size="icon"
+        className="rounded-full bg-white/90 border-2 border-route66-vintage-brown hover:bg-route66-vintage-yellow hover:border-route66-rust disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+      >
+        <ChevronRight className="h-5 w-5 text-route66-vintage-brown" />
+      </Button>
     </div>
   );
 };
