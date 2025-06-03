@@ -157,20 +157,20 @@ const TollRoads = ({ language }: TollRoadsProps) => {
   const content = tollRoadsContent[language as keyof typeof tollRoadsContent] || tollRoadsContent.en;
   
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gradient-to-br from-route66-cream to-route66-tan">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-route66 text-route66-red mb-2">{content.title}</h2>
-          <p className="text-route66-gray max-w-2xl mx-auto">{content.subtitle}</p>
+          <h2 className="text-3xl font-route66 text-route66-red mb-4">{content.title}</h2>
+          <p className="text-route66-gray max-w-2xl mx-auto text-lg">{content.subtitle}</p>
         </div>
         
         {/* Main Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {content.sections.map((section, index) => (
-            <Card key={index} className="border-0 shadow-sm h-full bg-route66-cream/30 hover:shadow-md transition-shadow duration-300">
+            <Card key={index} className="border-2 border-route66-vintage-yellow/30 shadow-lg h-full bg-white hover:shadow-xl transition-all duration-300 hover:border-route66-vintage-yellow">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
+                  <div className="flex-shrink-0 mt-1 p-2 bg-route66-cream rounded-lg">
                     {section.icon}
                   </div>
                   <div>
@@ -184,25 +184,25 @@ const TollRoads = ({ language }: TollRoadsProps) => {
         </div>
         
         {/* Cost Breakdown Card */}
-        <Card className="border-2 border-route66-vintage-yellow bg-gradient-to-br from-route66-cream to-white shadow-lg">
+        <Card className="border-4 border-route66-red bg-gradient-to-br from-white to-route66-cream shadow-xl">
           <CardContent className="p-8">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-route66 text-route66-red mb-3">{content.estimatedCosts.title}</h3>
-              <p className="text-route66-gray max-w-3xl mx-auto">{content.estimatedCosts.description}</p>
+              <h3 className="text-2xl font-route66 text-route66-red mb-4">{content.estimatedCosts.title}</h3>
+              <p className="text-route66-gray max-w-3xl mx-auto text-lg">{content.estimatedCosts.description}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {content.estimatedCosts.details.map((detail, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-route66-vintage-yellow/30">
-                  <p className="text-sm font-semibold text-route66-blue text-center">{detail}</p>
+                <div key={index} className="bg-route66-vintage-yellow p-4 rounded-lg shadow-md border-2 border-route66-red">
+                  <p className="text-sm font-bold text-route66-blue text-center">{detail}</p>
                 </div>
               ))}
             </div>
             
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="mt-6 p-4 bg-amber-100 border-2 border-amber-400 rounded-lg">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800">
+                <p className="text-sm text-amber-800 font-medium">
                   <strong>Note:</strong> Toll costs can vary based on time of day, vehicle size, and payment method. Always check current rates before traveling.
                 </p>
               </div>
