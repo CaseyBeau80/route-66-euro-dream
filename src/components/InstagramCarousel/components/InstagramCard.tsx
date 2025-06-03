@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
-import { Heart, MessageCircle, ExternalLink, ImageOff } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, ImageOff, Play } from 'lucide-react';
 
 interface InstagramCardProps {
   post: InstagramPost;
@@ -31,8 +31,8 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
     return caption.substring(0, maxLength) + '...';
   };
 
-  // Get multiple image URL options for fallback - prioritize media_url for better quality
-  const getImageUrls = () => {
+  // Get multiple URL options for fallback - prioritize media_url for better quality
+  const getMediaUrls = () => {
     const urls = [];
     
     // Primary URL: media_url (better quality, more reliable)
@@ -47,42 +47,44 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
     return urls.filter(url => url && url.trim() !== '');
   };
 
-  const imageUrls = getImageUrls();
+  const mediaUrls = getMediaUrls();
 
-  const handleImageLoad = () => {
+  const handleMediaLoad = () => {
     setImageLoading(false);
     setImageError(false);
-    console.log(`✅ Successfully loaded image for post ${post.id}`);
+    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type})`);
   };
 
-  const handleImageError = () => {
-    console.error(`❌ Failed to load image ${currentImageIndex + 1}/${imageUrls.length} for post ${post.id}: ${imageUrls[currentImageIndex]}`);
+  const handleMediaError = () => {
+    console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${mediaUrls[currentImageIndex]}`);
     
-    // Try next image URL if available
-    if (currentImageIndex < imageUrls.length - 1) {
-      console.log(`🔄 Trying fallback image ${currentImageIndex + 2}/${imageUrls.length}`);
+    // Try next media URL if available
+    if (currentImageIndex < mediaUrls.length - 1) {
+      console.log(`🔄 Trying fallback media ${currentImageIndex + 2}/${mediaUrls.length}`);
       setCurrentImageIndex(prev => prev + 1);
       setImageLoading(true);
     } else {
-      console.log(`💥 All image URLs failed for post ${post.id}, showing placeholder`);
+      console.log(`💥 All media URLs failed for post ${post.id}, showing placeholder`);
       setImageLoading(false);
       setImageError(true);
     }
   };
 
-  const getCurrentImageUrl = () => {
-    return imageUrls[currentImageIndex] || '';
+  const getCurrentMediaUrl = () => {
+    return mediaUrls[currentImageIndex] || '';
   };
 
-  // If no valid image URLs, show error immediately
-  if (imageUrls.length === 0) {
+  const isVideo = post.media_type === 'VIDEO';
+
+  // If no valid media URLs, show error immediately
+  if (mediaUrls.length === 0) {
     return (
       <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
             <div className="text-center">
               <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">No image available</p>
+              <p className="text-sm">No media available</p>
             </div>
           </div>
         </div>
@@ -129,7 +131,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-      {/* Image */}
+      {/* Media */}
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         {!imageError ? (
           <>
@@ -137,32 +139,54 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
               <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse z-10">
                 <div className="text-center">
                   <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
-                  <p className="text-xs text-gray-500">Loading image...</p>
+                  <p className="text-xs text-gray-500">Loading {isVideo ? 'video' : 'image'}...</p>
                 </div>
               </div>
             )}
-            <img 
-              key={`${post.id}-${currentImageIndex}`}
-              src={getCurrentImageUrl()} 
-              alt={post.caption || 'Route 66 Instagram post'}
-              className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              crossOrigin="anonymous"
-            />
+            
+            {isVideo ? (
+              <video 
+                key={`${post.id}-${currentImageIndex}`}
+                src={getCurrentMediaUrl()} 
+                className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoadedData={handleMediaLoad}
+                onError={handleMediaError}
+                controls={false}
+                muted
+                playsInline
+                poster={post.thumbnail_url || undefined}
+              />
+            ) : (
+              <img 
+                key={`${post.id}-${currentImageIndex}`}
+                src={getCurrentMediaUrl()} 
+                alt={post.caption || 'Route 66 Instagram post'}
+                className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={handleMediaLoad}
+                onError={handleMediaError}
+                crossOrigin="anonymous"
+              />
+            )}
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
             <div className="text-center">
               <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">Image unavailable</p>
-              <p className="text-xs text-gray-400 mt-1">Tried {imageUrls.length} source{imageUrls.length !== 1 ? 's' : ''}</p>
+              <p className="text-sm">{isVideo ? 'Video' : 'Image'} unavailable</p>
+              <p className="text-xs text-gray-400 mt-1">Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
         )}
         
         {!imageError && (
           <>
+            {isVideo && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-black bg-opacity-50 rounded-full p-3">
+                  <Play className="w-8 h-8 text-white" fill="white" />
+                </div>
+              </div>
+            )}
             {post.media_type === 'VIDEO' && (
               <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
                 VIDEO
