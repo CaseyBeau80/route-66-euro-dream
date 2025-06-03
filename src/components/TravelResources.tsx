@@ -147,7 +147,11 @@ const resourcesContent = {
 };
 
 const TravelResources = ({ language }: TravelResourcesProps) => {
+  console.log("🚗 TravelResources: Rendering with language:", language);
+  
   const content = resourcesContent[language as keyof typeof resourcesContent] || resourcesContent.en;
+  
+  console.log("🚗 TravelResources: Content loaded:", content.title);
   
   return (
     <>
