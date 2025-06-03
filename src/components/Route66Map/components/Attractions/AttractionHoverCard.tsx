@@ -71,12 +71,11 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
 
   const cardContent = (
     <div
-      className="fixed z-50"
+      className="fixed z-50 pointer-events-auto"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
-        zIndex: 40000,
-        pointerEvents: 'auto'
+        zIndex: 40000
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -152,8 +151,7 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
-                style={{ pointerEvents: 'auto' }}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer pointer-events-auto"
               >
                 <ExternalLink className="h-4 w-4" />
                 Visit Website
