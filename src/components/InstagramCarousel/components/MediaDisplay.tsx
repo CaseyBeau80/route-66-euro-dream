@@ -25,61 +25,69 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         ? JSON.parse(post.carousel_media) 
         : post.carousel_media;
       
-      return Array.isArray(carouselData) ? carouselData : [];
+      if (Array.isArray(carouselData)) {
+        console.log(`🎠 Parsed ${carouselData.length} carousel items for post ${post.id}`);
+        return carouselData;
+      }
+      
+      console.warn(`⚠️ Carousel data is not an array for post ${post.id}:`, carouselData);
+      return [];
     } catch (error) {
-      console.error('Failed to parse carousel media:', error);
+      console.error(`❌ Failed to parse carousel media for post ${post.id}:`, error);
       return [];
     }
   };
 
-  // Get media URLs for current carousel item or single post
+  // Get comprehensive list of media URLs with better fallback strategy
   const getMediaUrls = () => {
     const urls = [];
     
     if (post.media_type === 'CAROUSEL_ALBUM') {
       const carouselMedia = getCarouselMedia();
+      
+      // Try carousel item URLs first
       if (carouselMedia.length > 0 && carouselMedia[currentCarouselIndex]) {
         const currentMedia = carouselMedia[currentCarouselIndex];
         
-        // Strategy 1: Primary media_url from carousel item
+        console.log(`🔍 Carousel item ${currentCarouselIndex}:`, currentMedia);
+        
+        // Add carousel item URLs
         if (currentMedia.media_url) {
           urls.push(currentMedia.media_url);
+          console.log(`📸 Added carousel media_url: ${currentMedia.media_url}`);
         }
         
-        // Strategy 2: Thumbnail URL from carousel item
         if (currentMedia.thumbnail_url && currentMedia.thumbnail_url !== currentMedia.media_url) {
           urls.push(currentMedia.thumbnail_url);
-        }
-      }
-      
-      // Fallback to main post media
-      if (urls.length === 0) {
-        if (post.media_url) urls.push(post.media_url);
-        if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
-          urls.push(post.thumbnail_url);
-        }
-      }
-    } else {
-      // Strategy 1: Primary media_url
-      if (post.media_url) {
-        urls.push(post.media_url);
-      }
-      
-      // Strategy 2: Thumbnail URL (often more reliable)
-      if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
-        urls.push(post.thumbnail_url);
-      }
-      
-      // Strategy 3: Try modifying URL parameters for better compatibility
-      if (post.media_url) {
-        const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
-        if (cleanUrl !== post.media_url) {
-          urls.push(cleanUrl);
+          console.log(`🖼️ Added carousel thumbnail_url: ${currentMedia.thumbnail_url}`);
         }
       }
     }
     
-    return urls.filter(url => url && url.trim() !== '');
+    // ALWAYS add main post URLs as fallback (for both regular and carousel posts)
+    if (post.media_url && !urls.includes(post.media_url)) {
+      urls.push(post.media_url);
+      console.log(`📸 Added main media_url: ${post.media_url}`);
+    }
+    
+    if (post.thumbnail_url && post.thumbnail_url !== post.media_url && !urls.includes(post.thumbnail_url)) {
+      urls.push(post.thumbnail_url);
+      console.log(`🖼️ Added main thumbnail_url: ${post.thumbnail_url}`);
+    }
+    
+    // Try URL variations for better compatibility
+    if (post.media_url) {
+      const cleanUrl = post.media_url.split('&efg=')[0].split('&_nc_ht=')[0];
+      if (cleanUrl !== post.media_url && !urls.includes(cleanUrl)) {
+        urls.push(cleanUrl);
+        console.log(`🧹 Added cleaned URL: ${cleanUrl}`);
+      }
+    }
+    
+    const finalUrls = urls.filter(url => url && url.trim() !== '');
+    console.log(`🎯 Final URL list for post ${post.id} (${post.media_type}):`, finalUrls);
+    
+    return finalUrls;
   };
 
   const mediaUrls = getMediaUrls();
@@ -89,11 +97,12 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const handleMediaLoad = () => {
     setImageLoading(false);
     setImageError(false);
-    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type}) using URL ${currentImageIndex + 1}/${mediaUrls.length}`);
+    console.log(`✅ Successfully loaded media for post ${post.id} (${post.media_type}) using URL ${currentImageIndex + 1}/${mediaUrls.length}: ${mediaUrls[currentImageIndex]}`);
   };
 
   const handleMediaError = () => {
-    console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${mediaUrls[currentImageIndex]}`);
+    const failedUrl = mediaUrls[currentImageIndex];
+    console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
     
     // Try next media URL if available
     if (currentImageIndex < mediaUrls.length - 1) {
@@ -147,6 +156,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
 
   // If no valid media URLs, show error immediately
   if (mediaUrls.length === 0) {
+    console.error(`❌ No valid media URLs found for post ${post.id}`);
     return (
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
