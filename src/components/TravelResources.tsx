@@ -13,7 +13,7 @@ const TravelResources = ({ language }: TravelResourcesProps) => {
   
   return (
     <>
-      <section id="resources" className="py-16 bg-route66-cream">
+      <section id="resources" className="py-16 bg-gray-100">
         <div className="container mx-auto px-4">
           <ResourceHeader 
             title={content.title} 

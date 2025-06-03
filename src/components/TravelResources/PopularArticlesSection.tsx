@@ -8,7 +8,7 @@ type PopularArticlesSectionProps = {
 
 const PopularArticlesSection = ({ title, articles }: PopularArticlesSectionProps) => {
   return (
-    <div className="bg-white p-8 rounded-xl shadow-xl border-3 border-route66-red">
+    <div className="bg-white p-8 rounded-xl shadow-2xl border-4 border-route66-red">
       <h3 className="text-2xl font-bold text-gray-900 mb-6 font-route66">{title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
         {articles.map((article, index) => (

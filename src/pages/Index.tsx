@@ -18,7 +18,7 @@ const Index = () => {
   console.log("🏠 Index page: Rendering with AUTHENTIC vintage travel poster theme and enhanced scroll experience");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-route66-cream via-route66-tan to-route66-vintage-beige vintage-paper-texture">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Navigation Bar */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
@@ -61,14 +61,14 @@ const Index = () => {
       </div>
 
       {/* Interactive Map Section */}
-      <div className="w-full px-2 sm:px-3 py-3" id="map">
+      <div className="w-full px-2 sm:px-3 py-3 bg-white" id="map">
         <div className="relative w-full route66-authentic">
-          <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80 vintage-paper-texture"></div>
+          <div className="absolute -inset-2 bg-gradient-to-r from-route66-vintage-brown via-route66-rust to-route66-vintage-brown rounded-xl opacity-80"></div>
           <div className="absolute -inset-1 bg-gradient-to-r from-route66-vintage-yellow via-route66-cream to-route66-vintage-yellow rounded-lg opacity-60"></div>
-          <div className="relative bg-route66-cream rounded-lg p-2 border-4 border-route66-vintage-brown shadow-postcard vintage-paper-texture">
+          <div className="relative bg-route66-cream rounded-lg p-2 border-4 border-route66-vintage-brown shadow-postcard">
             <NostalgicRoute66Banner />
             <Route66Map />
-            <div className="mt-2 bg-route66-vintage-beige rounded-lg p-3 border-2 border-route66-vintage-brown vintage-paper-texture">
+            <div className="mt-2 bg-route66-vintage-beige rounded-lg p-3 border-2 border-route66-vintage-brown">
               <div className="flex flex-wrap justify-center gap-4 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-route66-vintage-red rounded-full"></div>

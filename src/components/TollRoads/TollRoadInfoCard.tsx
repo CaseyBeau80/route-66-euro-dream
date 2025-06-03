@@ -11,7 +11,7 @@ const TollRoadInfoCard = ({ section }: TollRoadInfoCardProps) => {
     <Card className="border-4 border-route66-red shadow-2xl h-full bg-white hover:shadow-3xl transition-all duration-300 hover:border-route66-orange">
       <CardContent className="p-8">
         <div className="flex items-start gap-6">
-          <div className="flex-shrink-0 mt-1 p-4 bg-route66-red rounded-xl border-3 border-route66-vintage-brown shadow-lg">
+          <div className="flex-shrink-0 mt-1 p-4 bg-route66-red rounded-xl border-4 border-route66-vintage-brown shadow-lg">
             <div className="text-white text-2xl">
               {section.icon}
             </div>
