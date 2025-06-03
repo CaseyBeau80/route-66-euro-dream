@@ -1,13 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { InstagramPost } from '../types';
-import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, ImageOff } from 'lucide-react';
 
 interface InstagramCardProps {
   post: InstagramPost;
 }
 
 const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
   const formatHashtags = (hashtags: string[] | null) => {
     if (!hashtags || hashtags.length === 0) return '';
     return hashtags.map(tag => `#${tag}`).join(' ');
@@ -27,29 +30,67 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
     return caption.substring(0, maxLength) + '...';
   };
 
+  const handleImageLoad = () => {
+    setImageLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    console.error(`❌ Failed to load image for post ${post.id}: ${post.media_url}`);
+    setImageLoading(false);
+    setImageError(true);
+  };
+
+  const getImageUrl = () => {
+    return post.thumbnail_url || post.media_url;
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 vintage-paper-texture">
       {/* Image */}
-      <div className="relative aspect-square overflow-hidden">
-        <img 
-          src={post.thumbnail_url || post.media_url} 
-          alt={post.caption || 'Route 66 Instagram post'}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-        />
-        {post.media_type === 'VIDEO' && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
-            VIDEO
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
+        {!imageError ? (
+          <>
+            {imageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse">
+                <div className="w-8 h-8 bg-gray-300 rounded"></div>
+              </div>
+            )}
+            <img 
+              src={getImageUrl()} 
+              alt={post.caption || 'Route 66 Instagram post'}
+              className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+            <div className="text-center">
+              <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm">Image unavailable</p>
+            </div>
           </div>
         )}
-        {post.media_type === 'CAROUSEL_ALBUM' && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
-            📸+
-          </div>
-        )}
-        {post.is_featured && (
-          <div className="absolute top-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
-            ⭐ FEATURED
-          </div>
+        
+        {!imageError && (
+          <>
+            {post.media_type === 'VIDEO' && (
+              <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
+                VIDEO
+              </div>
+            )}
+            {post.media_type === 'CAROUSEL_ALBUM' && (
+              <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
+                📸+
+              </div>
+            )}
+            {post.is_featured && (
+              <div className="absolute top-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
+                ⭐ FEATURED
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -57,7 +98,7 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
       <div className="p-4">
         {/* Caption */}
         <p className="font-travel text-gray-800 text-sm leading-relaxed mb-3">
-          {truncateCaption(post.caption)}
+          {truncateCaption(post.caption) || 'No caption available'}
         </p>
 
         {/* Hashtags */}

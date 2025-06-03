@@ -30,11 +30,21 @@ export const useInstagramPosts = () => {
 
         console.log(`✅ Successfully fetched ${data?.length || 0} Instagram posts`);
         
-        // Type cast the data to match our InstagramPost interface
-        const typedPosts = (data || []).map(post => ({
-          ...post,
-          media_type: post.media_type as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
-        })) as InstagramPost[];
+        // Clean and type cast the data to fix parsing issues
+        const typedPosts = (data || []).map(post => {
+          // Remove extra quotes from media_type if they exist
+          let cleanMediaType = post.media_type;
+          if (typeof cleanMediaType === 'string') {
+            cleanMediaType = cleanMediaType.replace(/^"(.*)"$/, '$1') as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+          }
+          
+          console.log(`📸 Post ${post.id}: ${cleanMediaType}, URL: ${post.media_url}`);
+          
+          return {
+            ...post,
+            media_type: cleanMediaType
+          };
+        }) as InstagramPost[];
         
         setPosts(typedPosts);
       } catch (err) {
