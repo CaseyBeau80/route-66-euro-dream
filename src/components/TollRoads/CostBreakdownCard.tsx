@@ -9,11 +9,11 @@ type CostBreakdownCardProps = {
 
 const CostBreakdownCard = ({ estimatedCosts }: CostBreakdownCardProps) => {
   return (
-    <Card className="border-4 border-route66-red bg-gradient-to-br from-white to-route66-cream shadow-xl">
+    <Card className="border-4 border-route66-red bg-white shadow-xl">
       <CardContent className="p-8">
         <div className="text-center mb-6">
           <h3 className="text-2xl font-route66 text-route66-red mb-4">{estimatedCosts.title}</h3>
-          <p className="text-route66-gray max-w-3xl mx-auto text-lg">{estimatedCosts.description}</p>
+          <p className="text-gray-700 max-w-3xl mx-auto text-lg font-medium">{estimatedCosts.description}</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
