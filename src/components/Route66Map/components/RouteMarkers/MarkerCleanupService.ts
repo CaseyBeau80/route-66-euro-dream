@@ -27,7 +27,7 @@ export class MarkerCleanupService {
     const infoWindow = markerRefs.infoWindowsRef.current.get(marker);
     if (infoWindow) {
       infoWindow.close();
-      infoWindow.setMap(null);
+      // InfoWindow doesn't have setMap method, just close() is sufficient
     }
     
     // Clean up zoom listener if it exists
