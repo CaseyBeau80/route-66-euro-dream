@@ -23,7 +23,7 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 320;
-    const cardHeight = 280; // Increased height to accommodate website button and better spacing
+    const cardHeight = 280;
     const padding = 20;
     const topOffset = 60;
 
@@ -71,7 +71,7 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
 
   const cardContent = (
     <div
-      className="fixed pointer-events-auto"
+      className="fixed pointer-events-auto z-50"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
@@ -137,17 +137,17 @@ const AttractionHoverCard: React.FC<EnhancedAttractionHoverProps> = ({
             </div>
           )}
 
-          {/* Website button - fully clickable with pointer events */}
+          {/* Website button - same pattern as drive-in cards */}
           {attractionWebsite && (
             <div className="mb-4">
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🌐 Website button clicked for:', attraction.name);
+                  console.log('🌐 Attraction website button clicked for:', attraction.name, 'URL:', attractionWebsite);
                   onWebsiteClick?.(attractionWebsite);
                 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer pointer-events-auto"
               >
                 <ExternalLink className="h-4 w-4" />
                 Visit Website
