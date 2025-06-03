@@ -31,16 +31,17 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
     return caption.substring(0, maxLength) + '...';
   };
 
-  // Get multiple image URL options for fallback
+  // Get multiple image URL options for fallback - prioritize media_url for better quality
   const getImageUrls = () => {
     const urls = [];
     
-    // Primary URL (thumbnail if available, otherwise media_url)
-    if (post.thumbnail_url) {
-      urls.push(post.thumbnail_url);
-    }
+    // Primary URL: media_url (better quality, more reliable)
     if (post.media_url) {
       urls.push(post.media_url);
+    }
+    // Fallback URL: thumbnail_url (if media_url fails)
+    if (post.thumbnail_url && post.thumbnail_url !== post.media_url) {
+      urls.push(post.thumbnail_url);
     }
     
     return urls.filter(url => url && url.trim() !== '');
