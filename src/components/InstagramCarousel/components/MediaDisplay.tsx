@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
 import { RotateCcw } from 'lucide-react';
@@ -42,10 +41,13 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         const urlService = new EnhancedMediaUrlService(post);
         const data = await urlService.getOptimizedMediaUrls();
         
-        // Override the media type if our analysis suggests it's a video
-        if (analysis.isVideo && analysis.confidence >= 50) {
+        // Only override if we have high confidence AND the analysis suggests it's a video
+        if (analysis.isVideo && analysis.confidence >= 80 && analysis.suggestedMediaType === 'VIDEO') {
           data.mediaType = 'VIDEO';
-          console.log(`🎬 Overriding media type to VIDEO based on analysis (confidence: ${analysis.confidence}%)`);
+          console.log(`🎬 Overriding media type to VIDEO based on high-confidence analysis (confidence: ${analysis.confidence}%)`);
+        } else {
+          // Keep the original detection from the URL service
+          console.log(`📸 Keeping original media type detection: ${data.mediaType}`);
         }
         
         setMediaData(data);
@@ -57,17 +59,16 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         });
       } catch (error) {
         console.error(`❌ Failed to load enhanced media data for post ${post.id}:`, error);
-        // Fallback to basic detection
-        const analysis = EnhancedReelDetectionService.analyzePost(post);
+        // Fallback to simple detection
         const fallbackUrls = [post.media_url, post.thumbnail_url].filter(Boolean);
         setMediaData({
           urls: fallbackUrls,
-          mediaType: analysis.isVideo ? 'VIDEO' : 'IMAGE',
-          confidence: analysis.confidence
+          mediaType: post.media_type === 'VIDEO' ? 'VIDEO' : 'IMAGE', // Trust stored type for fallback
+          confidence: post.media_type === 'VIDEO' ? 100 : 50
         });
         console.log(`🔄 Using fallback media data for post ${post.id}:`, {
           urls: fallbackUrls,
-          mediaType: analysis.isVideo ? 'VIDEO' : 'IMAGE'
+          mediaType: post.media_type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
         });
       } finally {
         setIsLoadingUrls(false);
@@ -127,7 +128,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   }
 
   const isVideo = mediaData.mediaType === 'VIDEO';
-  const isHighConfidenceVideo = isVideo && mediaData.confidence >= 70;
+  const isHighConfidenceVideo = isVideo && mediaData.confidence >= 80;
 
   console.log(`🎬 MediaDisplay rendering for post ${post.id}:`, {
     isVideo,
