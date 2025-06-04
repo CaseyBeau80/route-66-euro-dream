@@ -18,7 +18,12 @@ const VideoHoverHandler: React.FC<VideoHoverHandlerProps> = ({
   const isHoveredRef = useRef(false);
 
   const handleMouseEnter = () => {
-    if (disabled) return;
+    if (disabled) {
+      console.log('🚫 Hover disabled');
+      return;
+    }
+    
+    console.log('🖱️ Mouse entered video area');
     
     // Clear any existing timeout
     if (hoverTimeoutRef.current) {
@@ -28,6 +33,7 @@ const VideoHoverHandler: React.FC<VideoHoverHandlerProps> = ({
     // Add a small delay to prevent accidental triggers
     hoverTimeoutRef.current = setTimeout(() => {
       if (!isHoveredRef.current) {
+        console.log('✅ Triggering hover start after delay');
         isHoveredRef.current = true;
         onHoverStart?.();
       }
@@ -35,7 +41,12 @@ const VideoHoverHandler: React.FC<VideoHoverHandlerProps> = ({
   };
 
   const handleMouseLeave = () => {
-    if (disabled) return;
+    if (disabled) {
+      console.log('🚫 Hover disabled on leave');
+      return;
+    }
+
+    console.log('🖱️ Mouse left video area');
 
     // Clear the hover timeout
     if (hoverTimeoutRef.current) {
@@ -44,6 +55,7 @@ const VideoHoverHandler: React.FC<VideoHoverHandlerProps> = ({
     }
 
     if (isHoveredRef.current) {
+      console.log('✅ Triggering hover end');
       isHoveredRef.current = false;
       onHoverEnd?.();
     }

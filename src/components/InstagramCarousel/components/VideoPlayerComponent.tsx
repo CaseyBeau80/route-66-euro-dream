@@ -34,40 +34,74 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
+
+  console.log(`🎬 VideoPlayerComponent initialized with src: ${src}`);
 
   const handleVideoLoad = () => {
-    console.log('✅ Video loaded successfully');
+    console.log('✅ Video loaded successfully:', src);
+    setCanPlay(true);
     onLoad?.();
   };
 
   const handleVideoError = () => {
-    console.error('❌ Video failed to load');
+    console.error('❌ Video failed to load:', src);
     onError?.();
   };
 
+  const handleVideoCanPlay = () => {
+    console.log('✅ Video can play:', src);
+    setCanPlay(true);
+  };
+
   const handlePlay = () => {
+    console.log('▶️ Video started playing');
     setIsPlaying(true);
     setHasStartedPlaying(true);
   };
 
   const handlePause = () => {
+    console.log('⏸️ Video paused');
     setIsPlaying(false);
   };
 
   const handleHoverStart = async () => {
+    console.log('🖱️ Hover started on video');
     setIsHovered(true);
-    if (videoRef.current && !isPlaying) {
+    
+    if (videoRef.current && !isPlaying && canPlay) {
       try {
+        console.log('🎬 Attempting to play video on hover...');
         await videoRef.current.play();
         console.log('🎬 Video started playing on hover');
       } catch (error) {
         console.warn('⚠️ Could not auto-play video on hover:', error);
+        // Try to load the video first
+        if (videoRef.current) {
+          videoRef.current.load();
+          setTimeout(async () => {
+            try {
+              await videoRef.current?.play();
+              console.log('🎬 Video started playing after reload');
+            } catch (retryError) {
+              console.warn('⚠️ Still could not play video after reload:', retryError);
+            }
+          }, 100);
+        }
       }
+    } else {
+      console.log('🚫 Cannot play video:', { 
+        hasVideo: !!videoRef.current, 
+        isPlaying, 
+        canPlay 
+      });
     }
   };
 
   const handleHoverEnd = () => {
+    console.log('🖱️ Hover ended on video');
     setIsHovered(false);
+    
     if (videoRef.current && isPlaying && hasStartedPlaying) {
       videoRef.current.pause();
       // Reset to beginning for next hover
@@ -78,6 +112,8 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
 
   const handleVideoClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('🖱️ Video clicked');
+    
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -88,26 +124,30 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
   };
 
   const handleReactVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error('❌ Video failed to load:', e);
+    console.error('❌ Video failed to load (React event):', e);
     onError?.();
   };
 
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
+      console.log('🔧 Setting up video event listeners');
+      
       video.addEventListener('loadeddata', handleVideoLoad);
+      video.addEventListener('canplay', handleVideoCanPlay);
       video.addEventListener('error', handleVideoError);
       video.addEventListener('play', handlePlay);
       video.addEventListener('pause', handlePause);
 
       return () => {
         video.removeEventListener('loadeddata', handleVideoLoad);
+        video.removeEventListener('canplay', handleVideoCanPlay);
         video.removeEventListener('error', handleVideoError);
         video.removeEventListener('play', handlePlay);
         video.removeEventListener('pause', handlePause);
       };
     }
-  }, []);
+  }, [src]);
 
   return (
     <VideoHoverHandler
@@ -128,6 +168,7 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
           preload={preload}
           onClick={handleVideoClick}
           onError={handleReactVideoError}
+          crossOrigin="anonymous"
         />
         
         {/* Play/Pause overlay - only show when not hovered and not playing */}
@@ -152,6 +193,13 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
         {isHovered && (
           <div className="absolute bottom-2 left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
             <span>🎬</span> HOVER TO LOOP
+          </div>
+        )}
+
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+            {isPlaying ? '▶️' : '⏸️'} {canPlay ? '✅' : '⏳'} {isHovered ? '🖱️' : ''}
           </div>
         )}
       </div>

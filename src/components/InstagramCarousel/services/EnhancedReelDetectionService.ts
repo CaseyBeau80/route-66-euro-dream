@@ -10,11 +10,12 @@ export class EnhancedReelDetectionService {
     /\.webm(\?|$)/i,
     /\.m4v(\?|$)/i,
     
-    // Instagram Reel URL patterns
+    // Instagram Reel URL patterns - enhanced
     /\/reel\//i,
     /\/reels\//i,
     /\/tv\//i,
     /\/stories\//i,
+    /\/p\/[A-Za-z0-9_-]+\//i, // Instagram post pattern that could be a reel
     
     // Video content indicators in URLs
     /video/i,
@@ -59,6 +60,26 @@ export class EnhancedReelDetectionService {
       isVideo = true;
     }
 
+    // Enhanced Instagram Reel detection based on permalink structure
+    if (post.permalink) {
+      // Check for Instagram post URL that could be a reel
+      const postUrlMatch = post.permalink.match(/instagram\.com\/p\/([A-Za-z0-9_-]+)/);
+      if (postUrlMatch) {
+        confidence = Math.max(confidence, 80);
+        detectionMethods.push('instagram_post_url_pattern');
+        isVideo = true;
+        console.log(`🎬 Instagram post URL detected, likely a Reel: ${post.permalink}`);
+      }
+      
+      // Direct reel URLs
+      if (post.permalink.includes('/reel/') || post.permalink.includes('/tv/')) {
+        confidence = Math.max(confidence, 95);
+        detectionMethods.push('permalink_reel');
+        isVideo = true;
+        console.log(`🎬 Direct Reel detected from permalink: ${post.permalink}`);
+      }
+    }
+
     // Analyze URLs for video patterns
     const urlsToCheck = [
       post.media_url,
@@ -88,15 +109,16 @@ export class EnhancedReelDetectionService {
     if (post.media_url && post.thumbnail_url && post.media_url !== post.thumbnail_url) {
       confidence = Math.max(confidence, 60);
       detectionMethods.push('dual_urls');
+      isVideo = true;
       console.log(`📹 Dual URLs detected - likely video content`);
     }
 
-    // Permalink analysis for Reel indicators
-    if (post.permalink && (post.permalink.includes('/reel/') || post.permalink.includes('/tv/'))) {
-      confidence = Math.max(confidence, 95);
-      detectionMethods.push('permalink_reel');
+    // Special case: if media_type is IMAGE but we have thumbnail_url, it's likely a video
+    if (post.media_type === 'IMAGE' && post.thumbnail_url && post.media_url !== post.thumbnail_url) {
+      confidence = Math.max(confidence, 85);
+      detectionMethods.push('image_with_thumbnail');
       isVideo = true;
-      console.log(`🎬 Reel detected from permalink: ${post.permalink}`);
+      console.log(`🎥 IMAGE type with separate thumbnail - likely misclassified video`);
     }
 
     // Caption analysis for video keywords

@@ -27,13 +27,33 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
       setIsLoadingUrls(true);
       try {
         console.log(`🔄 Loading enhanced media data for post ${post.id}`);
+        console.log(`📋 Post details:`, {
+          id: post.id,
+          media_type: post.media_type,
+          media_url: post.media_url,
+          thumbnail_url: post.thumbnail_url,
+          permalink: post.permalink
+        });
+        
+        // First, analyze the post to determine if it's a video
+        const analysis = EnhancedReelDetectionService.analyzePost(post);
+        console.log(`🔍 Post analysis:`, analysis);
+        
         const urlService = new EnhancedMediaUrlService(post);
         const data = await urlService.getOptimizedMediaUrls();
+        
+        // Override the media type if our analysis suggests it's a video
+        if (analysis.isVideo && analysis.confidence >= 50) {
+          data.mediaType = 'VIDEO';
+          console.log(`🎬 Overriding media type to VIDEO based on analysis (confidence: ${analysis.confidence}%)`);
+        }
+        
         setMediaData(data);
         console.log(`✅ Loaded enhanced media data for post ${post.id}:`, {
           urlCount: data.urls.length,
           mediaType: data.mediaType,
-          confidence: data.confidence
+          confidence: data.confidence,
+          urls: data.urls
         });
       } catch (error) {
         console.error(`❌ Failed to load enhanced media data for post ${post.id}:`, error);
@@ -45,7 +65,10 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
           mediaType: analysis.isVideo ? 'VIDEO' : 'IMAGE',
           confidence: analysis.confidence
         });
-        console.log(`🔄 Using fallback media data for post ${post.id}`);
+        console.log(`🔄 Using fallback media data for post ${post.id}:`, {
+          urls: fallbackUrls,
+          mediaType: analysis.isVideo ? 'VIDEO' : 'IMAGE'
+        });
       } finally {
         setIsLoadingUrls(false);
       }
@@ -105,6 +128,13 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
 
   const isVideo = mediaData.mediaType === 'VIDEO';
   const isHighConfidenceVideo = isVideo && mediaData.confidence >= 70;
+
+  console.log(`🎬 MediaDisplay rendering for post ${post.id}:`, {
+    isVideo,
+    isHighConfidenceVideo,
+    confidence: mediaData.confidence,
+    urlCount: mediaData.urls.length
+  });
 
   return (
     <div className="relative aspect-square overflow-hidden bg-gray-100 group">
