@@ -13,7 +13,7 @@ interface MapSectionProps {
 
 const MapSection = ({ isMapOpen, setIsMapOpen }: MapSectionProps) => {
   return (
-    <section className="w-full px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
+    <section className="w-full px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
       <div className="max-w-7xl mx-auto">
         {/* Clean Map Header */}
         <div className="text-center mb-16">
