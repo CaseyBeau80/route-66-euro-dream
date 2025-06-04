@@ -25,10 +25,12 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
+  const [loadAttempts, setLoadAttempts] = useState(0);
 
   useEffect(() => {
     setImageLoading(true);
     setShowPlaceholder(false);
+    setLoadAttempts(0);
   }, [currentImageIndex, retryCount]);
 
   // If no valid URLs available, show placeholder immediately
@@ -42,7 +44,8 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   }, [mediaUrls, post.id, onError]);
 
   const handleMediaLoad = () => {
-    console.log(`✅ Successfully loaded media for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}`);
+    const currentUrl = mediaUrls[currentImageIndex];
+    console.log(`✅ Successfully loaded ${isVideo ? 'video' : 'image'} for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}: ${currentUrl}`);
     setImageLoading(false);
     setShowPlaceholder(false);
     onLoad();
@@ -50,8 +53,11 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
 
   const handleMediaError = () => {
     const failedUrl = mediaUrls[currentImageIndex];
-    console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
-    console.error(`❌ This is likely due to Instagram CDN CORS restrictions`);
+    const newAttempts = loadAttempts + 1;
+    setLoadAttempts(newAttempts);
+    
+    console.error(`❌ Failed to load ${isVideo ? 'video' : 'image'} ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
+    console.error(`❌ This is likely due to Instagram CDN CORS restrictions (attempt ${newAttempts})`);
     
     // If this is the last URL, show placeholder
     if (currentImageIndex >= mediaUrls.length - 1) {
@@ -78,10 +84,12 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
         <div className="text-center text-white p-4">
           <div className="text-4xl mb-2">🛣️</div>
           <p className="text-sm font-bold mb-1">Route 66 Memory</p>
-          <p className="text-xs opacity-90">Instagram content protected</p>
+          <p className="text-xs opacity-90">
+            {isVideo ? 'Video content protected' : 'Instagram content protected'}
+          </p>
         </div>
         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-          Instagram Post
+          {isVideo ? 'Instagram Reel' : 'Instagram Post'}
         </div>
       </div>
     );
@@ -108,11 +116,15 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
           className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
           onLoadedData={handleMediaLoad}
           onError={handleMediaError}
-          controls={false}
+          controls
           muted
           playsInline
           poster={post.thumbnail_url || undefined}
-        />
+          preload="metadata"
+        >
+          <source src={getCurrentMediaUrl()} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       ) : (
         <img 
           key={`${post.id}-${currentImageIndex}-${retryCount}`}

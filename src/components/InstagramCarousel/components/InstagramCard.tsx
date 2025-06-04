@@ -5,6 +5,7 @@ import MediaDisplay from './MediaDisplay';
 import PostContent from './PostContent';
 import PostStats from './PostStats';
 import ErrorPlaceholder from './ErrorPlaceholder';
+import MediaDebugInfo from './MediaDebugInfo';
 
 interface InstagramCardProps {
   post: InstagramPost;
@@ -19,7 +20,13 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Media */}
-      <MediaDisplay post={post} />
+      <div className="relative">
+        <MediaDisplay post={post} />
+        {/* Debug info in development mode */}
+        {process.env.NODE_ENV === 'development' && (
+          <MediaDebugInfo post={post} />
+        )}
+      </div>
 
       {/* Content */}
       <div className="p-4">

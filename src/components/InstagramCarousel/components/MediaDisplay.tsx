@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
 import { RotateCcw } from 'lucide-react';
-import { MediaUrlGenerator } from './MediaUrlGenerator';
+import { EnhancedMediaUrlService } from '../services/EnhancedMediaUrlService';
+import { EnhancedReelDetectionService } from '../services/EnhancedReelDetectionService';
 import MediaLoader from './MediaLoader';
 
 interface MediaDisplayProps {
@@ -13,35 +14,44 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
-  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [mediaData, setMediaData] = useState<{
+    urls: string[];
+    mediaType: 'IMAGE' | 'VIDEO';
+    confidence: number;
+  } | null>(null);
   const [isLoadingUrls, setIsLoadingUrls] = useState(true);
 
-  const urlGenerator = new MediaUrlGenerator(post);
-  const currentMediaType = urlGenerator.getCurrentMediaType();
-  const isVideo = currentMediaType === 'VIDEO';
-  const isReel = isVideo && urlGenerator['isLikelyReel']?.();
-
-  // Load media URLs asynchronously
+  // Load media URLs asynchronously with enhanced detection
   useEffect(() => {
-    const loadMediaUrls = async () => {
+    const loadMediaData = async () => {
       setIsLoadingUrls(true);
       try {
-        console.log(`🔄 Loading media URLs for post ${post.id}`);
-        const urls = await urlGenerator.getMediaUrls();
-        setMediaUrls(urls);
-        console.log(`✅ Loaded ${urls.length} media URLs for post ${post.id}`);
+        console.log(`🔄 Loading enhanced media data for post ${post.id}`);
+        const urlService = new EnhancedMediaUrlService(post);
+        const data = await urlService.getOptimizedMediaUrls();
+        setMediaData(data);
+        console.log(`✅ Loaded enhanced media data for post ${post.id}:`, {
+          urlCount: data.urls.length,
+          mediaType: data.mediaType,
+          confidence: data.confidence
+        });
       } catch (error) {
-        console.error(`❌ Failed to load media URLs for post ${post.id}:`, error);
-        // Fall back to sync URLs
-        const syncUrls = urlGenerator.getMediaUrlsSync();
-        setMediaUrls(syncUrls);
-        console.log(`🔄 Using sync URLs as fallback for post ${post.id}: ${syncUrls.length} URLs`);
+        console.error(`❌ Failed to load enhanced media data for post ${post.id}:`, error);
+        // Fallback to basic detection
+        const analysis = EnhancedReelDetectionService.analyzePost(post);
+        const fallbackUrls = [post.media_url, post.thumbnail_url].filter(Boolean);
+        setMediaData({
+          urls: fallbackUrls,
+          mediaType: analysis.isVideo ? 'VIDEO' : 'IMAGE',
+          confidence: analysis.confidence
+        });
+        console.log(`🔄 Using fallback media data for post ${post.id}`);
       } finally {
         setIsLoadingUrls(false);
       }
     };
 
-    loadMediaUrls();
+    loadMediaData();
   }, [post.id, retryCount]);
 
   const handleMediaLoad = () => {
@@ -72,7 +82,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
-            <p className="text-xs text-gray-500">Loading media...</p>
+            <p className="text-xs text-gray-500">Analyzing media...</p>
           </div>
         </div>
       </div>
@@ -80,7 +90,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   }
 
   // If no valid media URLs, show Route 66 themed placeholder
-  if (mediaUrls.length === 0) {
+  if (!mediaData || mediaData.urls.length === 0) {
     console.error(`❌ No valid media URLs found for post ${post.id}`);
     return (
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown">
@@ -98,12 +108,15 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
     );
   }
 
+  const isVideo = mediaData.mediaType === 'VIDEO';
+  const isHighConfidenceVideo = isVideo && mediaData.confidence >= 70;
+
   return (
     <div className="relative aspect-square overflow-hidden bg-gray-100">
       {!imageError ? (
         <MediaLoader
           post={post}
-          mediaUrls={mediaUrls}
+          mediaUrls={mediaData.urls}
           currentImageIndex={currentImageIndex}
           isVideo={isVideo}
           onLoad={handleMediaLoad}
@@ -129,20 +142,27 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
       )}
       
       {/* Enhanced media type indicators */}
-      {isReel && (
+      {isHighConfidenceVideo && (
         <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
           <span>🎬</span> REEL
         </div>
       )}
       
-      {isVideo && !isReel && (
+      {isVideo && !isHighConfidenceVideo && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
           VIDEO
         </div>
       )}
+
+      {/* Show confidence indicator for debugging */}
+      {mediaData.confidence < 90 && (
+        <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+          {mediaData.confidence}% confidence
+        </div>
+      )}
       
       {post.is_featured && (
-        <div className="absolute top-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
+        <div className="absolute bottom-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
           ⭐ FEATURED
         </div>
       )}
