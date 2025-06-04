@@ -35,13 +35,6 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   useEffect(() => {
     if (!mediaUrls || mediaUrls.length === 0) {
       console.log(`📸 No media URLs for post ${post.id}, showing placeholder immediately`);
-      console.log(`📸 Post data for debugging:`, {
-        id: post.id,
-        media_type: post.media_type,
-        media_url: post.media_url,
-        thumbnail_url: post.thumbnail_url,
-        carousel_media: post.carousel_media
-      });
       setShowPlaceholder(true);
       setImageLoading(false);
       onError();
@@ -58,16 +51,17 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   const handleMediaError = () => {
     const failedUrl = mediaUrls[currentImageIndex];
     console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
+    console.error(`❌ This is likely due to Instagram CDN CORS restrictions`);
     
-    // If this is the last URL or we've tried a couple already, show placeholder
-    if (currentImageIndex >= mediaUrls.length - 1 || currentImageIndex >= 2) {
+    // If this is the last URL, show placeholder
+    if (currentImageIndex >= mediaUrls.length - 1) {
       console.log(`💥 Showing placeholder for post ${post.id} after ${currentImageIndex + 1} failed attempts`);
       setImageLoading(false);
       setShowPlaceholder(true);
       onError();
     } else {
       // Try next URL
-      console.log(`🔄 Trying fallback media ${currentImageIndex + 2}/${mediaUrls.length}`);
+      console.log(`🔄 Trying next media URL ${currentImageIndex + 2}/${mediaUrls.length}`);
       onImageIndexChange(currentImageIndex + 1);
       setImageLoading(true);
     }
@@ -84,7 +78,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
         <div className="text-center text-white p-4">
           <div className="text-4xl mb-2">🛣️</div>
           <p className="text-sm font-bold mb-1">Route 66 Memory</p>
-          <p className="text-xs opacity-90">Image from the road</p>
+          <p className="text-xs opacity-90">Instagram content protected</p>
         </div>
         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
           Instagram Post
@@ -129,6 +123,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
           onError={handleMediaError}
           crossOrigin="anonymous"
           loading="lazy"
+          referrerPolicy="no-referrer"
         />
       )}
     </>

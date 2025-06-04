@@ -1,11 +1,9 @@
 
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
-import { ImageOff, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { MediaUrlGenerator } from './MediaUrlGenerator';
 import MediaLoader from './MediaLoader';
-import CarouselControls from './CarouselControls';
-import MediaOverlays from './MediaOverlays';
 
 interface MediaDisplayProps {
   post: InstagramPost;
@@ -15,11 +13,9 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
-  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
 
-  const urlGenerator = new MediaUrlGenerator(post, currentCarouselIndex);
+  const urlGenerator = new MediaUrlGenerator(post);
   const mediaUrls = urlGenerator.getMediaUrls();
-  const carouselMedia = urlGenerator.getCarouselMedia();
   const currentMediaType = urlGenerator.getCurrentMediaType();
   const isVideo = currentMediaType === 'VIDEO';
 
@@ -37,28 +33,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
     console.log(`🔄 Retrying media load for post ${post.id}`);
     setCurrentImageIndex(0);
     setImageError(false);
-    setRetryCount(0);
-  };
-
-  const resetMediaState = () => {
-    setCurrentImageIndex(0);
-    setImageError(false);
-    setRetryCount(0);
-  };
-
-  const handleCarouselPrevious = () => {
-    setCurrentCarouselIndex(prev => prev > 0 ? prev - 1 : carouselMedia.length - 1);
-    resetMediaState();
-  };
-
-  const handleCarouselNext = () => {
-    setCurrentCarouselIndex(prev => prev < carouselMedia.length - 1 ? prev + 1 : 0);
-    resetMediaState();
-  };
-
-  const handleCarouselDotClick = (index: number) => {
-    setCurrentCarouselIndex(index);
-    resetMediaState();
+    setRetryCount(prev => prev + 1);
   };
 
   const handleImageIndexChange = (index: number) => {
@@ -87,39 +62,22 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   return (
     <div className="relative aspect-square overflow-hidden bg-gray-100">
       {!imageError ? (
-        <>
-          <MediaLoader
-            post={post}
-            mediaUrls={mediaUrls}
-            currentImageIndex={currentImageIndex}
-            isVideo={isVideo}
-            onLoad={handleMediaLoad}
-            onError={handleMediaError}
-            onImageIndexChange={handleImageIndexChange}
-            retryCount={retryCount}
-          />
-          
-          <CarouselControls
-            carouselMedia={carouselMedia}
-            currentCarouselIndex={currentCarouselIndex}
-            onPrevious={handleCarouselPrevious}
-            onNext={handleCarouselNext}
-            onDotClick={handleCarouselDotClick}
-          />
-          
-          <MediaOverlays
-            post={post}
-            currentMediaType={currentMediaType}
-            carouselMedia={carouselMedia}
-            currentCarouselIndex={currentCarouselIndex}
-          />
-        </>
+        <MediaLoader
+          post={post}
+          mediaUrls={mediaUrls}
+          currentImageIndex={currentImageIndex}
+          isVideo={isVideo}
+          onLoad={handleMediaLoad}
+          onError={handleMediaError}
+          onImageIndexChange={handleImageIndexChange}
+          retryCount={retryCount}
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown text-white">
           <div className="text-center p-4">
             <div className="text-4xl mb-2">🛣️</div>
             <p className="text-sm font-bold mb-1">Route 66 Memory</p>
-            <p className="text-xs opacity-90 mb-3">Original content unavailable</p>
+            <p className="text-xs opacity-90 mb-3">Instagram content unavailable</p>
             <button
               onClick={handleRetry}
               className="flex items-center gap-1 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded transition-colors mx-auto backdrop-blur-sm"
@@ -128,6 +86,19 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
               Try Again
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Simple media type indicator */}
+      {isVideo && (
+        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
+          VIDEO
+        </div>
+      )}
+      
+      {post.is_featured && (
+        <div className="absolute top-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
+          ⭐ FEATURED
         </div>
       )}
     </div>
