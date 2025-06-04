@@ -56,15 +56,6 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
       
       {/* Content overlay - positioned higher for better contrast */}
       <div className="relative z-20 flex flex-col items-center justify-start pt-16 h-full text-center px-4 max-w-6xl mx-auto">
-        {/* Modern Route 66 Shield */}
-        <div className="mb-8">
-          <div className="w-20 h-24 bg-white rounded-xl border-2 border-route66-border-strong shadow-2xl flex flex-col items-center justify-center transform hover:scale-105 transition-all duration-300 backdrop-blur-sm">
-            <div className="text-route66-text-muted text-xs font-bold tracking-wider uppercase">ROUTE</div>
-            <div className="text-route66-primary text-3xl font-black leading-none">66</div>
-            <div className="text-route66-text-muted text-[10px] font-semibold tracking-wide uppercase">MOTHER ROAD</div>
-          </div>
-        </div>
-
         {/* Enhanced typography with better contrast */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white drop-shadow-2xl max-w-5xl mx-auto">
           {content.title}
