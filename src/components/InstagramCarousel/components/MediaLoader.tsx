@@ -24,17 +24,27 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   retryCount
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
-  const [hasTriedAllUrls, setHasTriedAllUrls] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(false);
 
   useEffect(() => {
     setImageLoading(true);
-    setHasTriedAllUrls(false);
+    setShowPlaceholder(false);
   }, [currentImageIndex, retryCount]);
+
+  // If no valid URLs available, show placeholder immediately
+  useEffect(() => {
+    if (!mediaUrls || mediaUrls.length === 0) {
+      console.log(`📸 No media URLs for post ${post.id}, showing placeholder immediately`);
+      setShowPlaceholder(true);
+      setImageLoading(false);
+      onError();
+    }
+  }, [mediaUrls, post.id, onError]);
 
   const handleMediaLoad = () => {
     console.log(`✅ Successfully loaded media for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}`);
     setImageLoading(false);
-    setHasTriedAllUrls(false);
+    setShowPlaceholder(false);
     onLoad();
   };
 
@@ -42,16 +52,17 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
     const failedUrl = mediaUrls[currentImageIndex];
     console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
     
-    // Try next media URL if available
-    if (currentImageIndex < mediaUrls.length - 1) {
+    // If this is the last URL or we've tried a couple already, show placeholder
+    if (currentImageIndex >= mediaUrls.length - 1 || currentImageIndex >= 1) {
+      console.log(`💥 Showing placeholder for post ${post.id} after ${currentImageIndex + 1} failed attempts`);
+      setImageLoading(false);
+      setShowPlaceholder(true);
+      onError();
+    } else {
+      // Try next URL
       console.log(`🔄 Trying fallback media ${currentImageIndex + 2}/${mediaUrls.length}`);
       onImageIndexChange(currentImageIndex + 1);
       setImageLoading(true);
-    } else {
-      console.log(`💥 All ${mediaUrls.length} media URLs failed for post ${post.id}, using placeholder`);
-      setImageLoading(false);
-      setHasTriedAllUrls(true);
-      onError();
     }
   };
 
@@ -59,8 +70,8 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
     return mediaUrls[currentImageIndex] || '';
   };
 
-  // If all URLs failed, show a Route 66 themed placeholder
-  if (hasTriedAllUrls) {
+  // Show Route 66 themed placeholder
+  if (showPlaceholder || mediaUrls.length === 0) {
     return (
       <div className="w-full h-full relative bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown flex items-center justify-center">
         <div className="text-center text-white p-4">

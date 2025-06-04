@@ -34,7 +34,7 @@ export class MediaUrlGenerator {
     }
   }
 
-  // Simplified URL generation focusing on most reliable sources
+  // More conservative URL generation - only try the most reliable sources
   getMediaUrls(): string[] {
     const urls = [];
     
@@ -46,31 +46,24 @@ export class MediaUrlGenerator {
         
         console.log(`🔍 Carousel item ${this.currentCarouselIndex}:`, currentMedia);
         
-        // Prioritize thumbnail_url for carousel items as it's more likely to work
+        // Only try thumbnail_url for carousel items as it's most likely to work
         if (currentMedia.thumbnail_url) {
           urls.push(currentMedia.thumbnail_url);
-        }
-        
-        if (currentMedia.media_url && currentMedia.media_url !== currentMedia.thumbnail_url) {
-          urls.push(currentMedia.media_url);
         }
       }
     }
     
-    // Add main post URLs - prioritize thumbnail as it's more stable
+    // Add main post thumbnail URL only - it's the most stable
     if (this.post.thumbnail_url && !urls.includes(this.post.thumbnail_url)) {
       urls.push(this.post.thumbnail_url);
     }
     
-    if (this.post.media_url && this.post.media_url !== this.post.thumbnail_url && !urls.includes(this.post.media_url)) {
-      urls.push(this.post.media_url);
-    }
+    // Filter out invalid URLs and limit to 2 attempts max
+    const validUrls = urls.filter(url => url && url.trim() !== '' && this.isValidUrl(url)).slice(0, 2);
     
-    // Remove duplicates and filter out invalid URLs
-    const uniqueUrls = [...new Set(urls)].filter(url => url && url.trim() !== '' && this.isValidUrl(url));
-    console.log(`🎯 Generated ${uniqueUrls.length} URLs for post ${this.post.id}:`, uniqueUrls);
+    console.log(`🎯 Generated ${validUrls.length} URLs for post ${this.post.id}:`, validUrls);
     
-    return uniqueUrls;
+    return validUrls;
   }
 
   // Validate URL format
