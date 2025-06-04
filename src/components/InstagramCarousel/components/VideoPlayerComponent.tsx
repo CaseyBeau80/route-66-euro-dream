@@ -40,8 +40,8 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
     onLoad?.();
   };
 
-  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error('❌ Video failed to load:', e);
+  const handleVideoError = () => {
+    console.error('❌ Video failed to load');
     onError?.();
   };
 
@@ -87,6 +87,11 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
     }
   };
 
+  const handleReactVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error('❌ Video failed to load:', e);
+    onError?.();
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -122,6 +127,7 @@ const VideoPlayerComponent: React.FC<VideoPlayerComponentProps> = ({
           playsInline={playsInline}
           preload={preload}
           onClick={handleVideoClick}
+          onError={handleReactVideoError}
         />
         
         {/* Play/Pause overlay - only show when not hovered and not playing */}
