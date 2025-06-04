@@ -12,11 +12,13 @@ interface TripCalculatorResultsProps {
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
+  console.log('📊 Rendering Legacy Trip Results:', calculation);
+  
   return (
     <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
       <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
         <CardTitle className="font-route66 text-xl text-center">
-          YOUR ROUTE 66 ADVENTURE
+          LEGACY ROUTE 66 ADVENTURE
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
@@ -95,15 +97,20 @@ const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calcula
 };
 
 const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation, tripPlan }) => {
+  console.log('🎯 TripCalculatorResults render - tripPlan:', tripPlan, 'calculation:', calculation);
+  
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
+    console.log('✨ Rendering Enhanced Trip Results');
     return <EnhancedTripResults tripPlan={tripPlan} />;
   }
   
   if (calculation) {
+    console.log('📊 Rendering Legacy Trip Results');
     return <LegacyTripResults calculation={calculation} />;
   }
   
+  console.log('⚠️ No trip data to display');
   return null;
 };
 

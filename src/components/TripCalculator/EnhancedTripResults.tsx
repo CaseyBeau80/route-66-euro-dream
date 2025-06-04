@@ -30,6 +30,8 @@ const StopCard: React.FC<{ stop: TripStop }> = ({ stop }) => {
     }
   };
 
+  console.log('🎯 Rendering StopCard:', stop);
+
   return (
     <div className="flex items-start gap-3 p-3 bg-route66-cream rounded-lg border border-route66-tan">
       {stop.image_url && (
@@ -64,6 +66,8 @@ const StopCard: React.FC<{ stop: TripStop }> = ({ stop }) => {
 };
 
 const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
+  console.log('📅 Rendering DaySegmentCard:', segment);
+
   return (
     <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
       <CardHeader className="pb-3">
@@ -106,6 +110,8 @@ const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
 };
 
 const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) => {
+  console.log('✨ Rendering EnhancedTripResults with tripPlan:', tripPlan);
+  
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
 
   return (
@@ -128,6 +134,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) =
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-vintage-red">Starting Point</h3>
+              <p className="text-sm text-route66-vintage-brown">{tripPlan.dailySegments[0]?.startCity || "Unknown"}</p>
             </div>
             
             <div className="flex-shrink-0 text-center px-4">
@@ -148,6 +155,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) =
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-vintage-red">Destination</h3>
+              <p className="text-sm text-route66-vintage-brown">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
             </div>
           </div>
         </CardContent>
@@ -159,9 +167,15 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) =
           Daily Itinerary
         </h3>
         <div className="grid gap-4">
-          {tripPlan.dailySegments.map((segment) => (
-            <DaySegmentCard key={segment.day} segment={segment} />
-          ))}
+          {tripPlan.dailySegments.length > 0 ? (
+            tripPlan.dailySegments.map((segment) => (
+              <DaySegmentCard key={segment.day} segment={segment} />
+            ))
+          ) : (
+            <p className="text-center p-4 italic text-route66-vintage-brown">
+              No daily segments available for this trip plan.
+            </p>
+          )}
         </div>
       </div>
 

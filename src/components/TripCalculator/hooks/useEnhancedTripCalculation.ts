@@ -21,6 +21,8 @@ export const useEnhancedTripCalculation = () => {
 
   // Calculate intelligent trip plan
   const calculateTrip = async () => {
+    console.log('🔄 Enhanced trip calculation started with:', formData);
+    
     if (!formData.startLocation || !formData.endLocation || formData.travelDays <= 0) {
       toast({
         title: "Missing Information",
@@ -31,16 +33,16 @@ export const useEnhancedTripCalculation = () => {
     }
 
     setIsCalculating(true);
+    console.log('🚀 Starting Route66TripPlannerService.planTrip...');
     
     try {
-      console.log('🗺️ Starting enhanced trip calculation...');
-      
       const plan = await Route66TripPlannerService.planTrip(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays
       );
       
+      console.log('✅ Trip plan generated successfully:', plan);
       setTripPlan(plan);
       
       toast({

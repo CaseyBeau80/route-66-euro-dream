@@ -47,93 +47,118 @@ export class Route66TripPlannerService {
 
   private static async fetchAllStops(): Promise<TripStop[]> {
     const stops: TripStop[] = [];
+    console.log('🔄 Starting to fetch all stops from Supabase...');
 
     try {
       // Fetch Route 66 waypoints (major stops)
-      const { data: waypoints } = await supabase
+      console.log('📍 Fetching route66_waypoints...');
+      const { data: waypoints, error: waypointsError } = await supabase
         .from('route66_waypoints')
         .select('*')
         .order('sequence_order');
 
-      if (waypoints) {
-        stops.push(...waypoints.map(wp => ({
-          id: wp.id,
-          name: wp.name,
-          description: wp.description || 'Historic Route 66 waypoint',
-          city_name: wp.name,
-          state: wp.state,
-          image_url: wp.image_url,
-          latitude: wp.latitude,
-          longitude: wp.longitude,
-          category: 'route66_waypoint',
-          is_major_stop: wp.is_major_stop
-        })));
+      if (waypointsError) {
+        console.error('❌ Error fetching waypoints:', waypointsError);
+      } else {
+        console.log(`✅ Fetched ${waypoints?.length || 0} waypoints`);
+        if (waypoints) {
+          stops.push(...waypoints.map(wp => ({
+            id: wp.id,
+            name: wp.name,
+            description: wp.description || 'Historic Route 66 waypoint',
+            city_name: wp.name,
+            state: wp.state,
+            image_url: wp.image_url,
+            latitude: wp.latitude,
+            longitude: wp.longitude,
+            category: 'route66_waypoint',
+            is_major_stop: wp.is_major_stop
+          })));
+        }
       }
 
       // Fetch destination cities
-      const { data: cities } = await supabase
+      console.log('🏙️ Fetching destination_cities...');
+      const { data: cities, error: citiesError } = await supabase
         .from('destination_cities')
         .select('*')
         .order('name');
 
-      if (cities) {
-        stops.push(...cities.map(city => ({
-          id: city.id,
-          name: city.name,
-          description: city.description || 'Historic Route 66 destination',
-          city_name: city.name,
-          state: city.state,
-          image_url: city.image_url,
-          latitude: city.latitude,
-          longitude: city.longitude,
-          category: 'destination_city'
-        })));
+      if (citiesError) {
+        console.error('❌ Error fetching cities:', citiesError);
+      } else {
+        console.log(`✅ Fetched ${cities?.length || 0} destination cities`);
+        if (cities) {
+          stops.push(...cities.map(city => ({
+            id: city.id,
+            name: city.name,
+            description: city.description || 'Historic Route 66 destination',
+            city_name: city.name,
+            state: city.state,
+            image_url: city.image_url,
+            latitude: city.latitude,
+            longitude: city.longitude,
+            category: 'destination_city'
+          })));
+        }
       }
 
       // Fetch attractions
-      const { data: attractions } = await supabase
+      console.log('🎡 Fetching attractions...');
+      const { data: attractions, error: attractionsError } = await supabase
         .from('attractions')
         .select('*')
         .order('name');
 
-      if (attractions) {
-        stops.push(...attractions.map(attraction => ({
-          id: attraction.id,
-          name: attraction.name,
-          description: attraction.description || 'Route 66 attraction',
-          city_name: attraction.city_name,
-          state: attraction.state,
-          image_url: attraction.image_url,
-          latitude: attraction.latitude,
-          longitude: attraction.longitude,
-          category: attraction.category || 'attraction'
-        })));
+      if (attractionsError) {
+        console.error('❌ Error fetching attractions:', attractionsError);
+      } else {
+        console.log(`✅ Fetched ${attractions?.length || 0} attractions`);
+        if (attractions) {
+          stops.push(...attractions.map(attraction => ({
+            id: attraction.id,
+            name: attraction.name,
+            description: attraction.description || 'Route 66 attraction',
+            city_name: attraction.city_name,
+            state: attraction.state,
+            image_url: attraction.image_url,
+            latitude: attraction.latitude,
+            longitude: attraction.longitude,
+            category: attraction.category || 'attraction'
+          })));
+        }
       }
 
       // Fetch hidden gems
-      const { data: gems } = await supabase
+      console.log('💎 Fetching hidden_gems...');
+      const { data: gems, error: gemsError } = await supabase
         .from('hidden_gems')
         .select('*')
         .order('title');
 
-      if (gems) {
-        stops.push(...gems.map(gem => ({
-          id: gem.id,
-          name: gem.title,
-          description: gem.description || 'Hidden Route 66 gem',
-          city_name: gem.city_name,
-          state: 'Various',
-          image_url: gem.image_url,
-          latitude: gem.latitude,
-          longitude: gem.longitude,
-          category: 'hidden_gem'
-        })));
+      if (gemsError) {
+        console.error('❌ Error fetching hidden gems:', gemsError);
+      } else {
+        console.log(`✅ Fetched ${gems?.length || 0} hidden gems`);
+        if (gems) {
+          stops.push(...gems.map(gem => ({
+            id: gem.id,
+            name: gem.title,
+            description: gem.description || 'Hidden Route 66 gem',
+            city_name: gem.city_name,
+            state: 'Various',
+            image_url: gem.image_url,
+            latitude: gem.latitude,
+            longitude: gem.longitude,
+            category: 'hidden_gem'
+          })));
+        }
       }
 
-      console.log(`🛣️ Fetched ${stops.length} total stops for trip planning`);
+      console.log(`🛣️ Total stops fetched: ${stops.length}`);
       return stops;
     } catch (error) {
-      console.error('❌ Error fetching stops:', error);
+      console.error('❌ Error in fetchAllStops:', error);
       return [];
     }
   }
@@ -188,6 +213,7 @@ export class Route66TripPlannerService {
     console.log(`🗺️ Planning ${tripDays}-day trip from ${startCityName} to ${endCityName}`);
 
     const allStops = await this.fetchAllStops();
+    console.log(`📊 Total stops available for planning: ${allStops.length}`);
     
     // Find start and end stops
     const startStop = allStops.find(stop => 
@@ -200,17 +226,19 @@ export class Route66TripPlannerService {
       stop.city_name.toLowerCase().includes(endCityName.toLowerCase())
     );
 
+    console.log('🔍 Start stop found:', startStop);
+    console.log('🔍 End stop found:', endStop);
+
     if (!startStop || !endStop) {
       throw new Error(`Could not find stops for ${startCityName} or ${endCityName}`);
     }
-
-    console.log(`📍 Start: ${startStop.name} (${startStop.state})`);
-    console.log(`📍 End: ${endStop.name} (${endStop.state})`);
 
     const totalDistance = this.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
+
+    console.log(`📏 Total distance: ${totalDistance} miles`);
 
     // Get stops along the route
     const routeStops = this.getStopsAlongRoute(startStop, endStop, allStops);
@@ -235,9 +263,11 @@ export class Route66TripPlannerService {
         targetStop.latitude, targetStop.longitude
       );
 
+      console.log(`📅 Day ${day}: ${currentStop.city_name} to ${targetStop.city_name}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops`);
+
       dailySegments.push({
         day,
-        title: `Day ${day}: ${currentStop.city_name} to ${targetStop.city_name} – ${Math.round(segmentDistance)} miles`,
+        title: `Day ${day}: ${currentStop.city_name} to ${targetStop.city_name}`,
         startCity: currentStop.city_name,
         endCity: targetStop.city_name,
         approximateMiles: Math.round(segmentDistance),
@@ -254,7 +284,7 @@ export class Route66TripPlannerService {
       currentStop = targetStop;
     }
 
-    return {
+    const tripPlan = {
       title: `Route 66 Trip: ${startCityName} to ${endCityName}`,
       startCityImage: startStop.image_url,
       endCityImage: endStop.image_url,
@@ -262,6 +292,55 @@ export class Route66TripPlannerService {
       totalMiles: Math.round(totalDistance),
       dailySegments
     };
+
+    console.log('🎯 Final trip plan:', tripPlan);
+    return tripPlan;
+  }
+
+  private static findClosestStop(latitude: number, longitude: number, stops: TripStop[]): TripStop | null {
+    if (stops.length === 0) return null;
+
+    let closestStop = stops[0];
+    let minDistance = this.calculateDistance(latitude, longitude, stops[0].latitude, stops[0].longitude);
+
+    for (const stop of stops) {
+      const distance = this.calculateDistance(latitude, longitude, stop.latitude, stop.longitude);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestStop = stop;
+      }
+    }
+
+    return closestStop;
+  }
+
+  private static getStopsAlongRoute(startStop: TripStop, endStop: TripStop, allStops: TripStop[], maxStops: number = 50): TripStop[] {
+    // Calculate bearing from start to end
+    const bearing = Math.atan2(
+      endStop.longitude - startStop.longitude,
+      endStop.latitude - startStop.latitude
+    );
+
+    // Filter stops that are roughly between start and end points
+    const routeStops = allStops.filter(stop => {
+      const distanceFromStart = this.calculateDistance(startStop.latitude, startStop.longitude, stop.latitude, stop.longitude);
+      const distanceFromEnd = this.calculateDistance(stop.latitude, stop.longitude, endStop.latitude, endStop.longitude);
+      const totalDistance = this.calculateDistance(startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude);
+      
+      // Stop should be roughly on the path (within reasonable deviation)
+      return distanceFromStart + distanceFromEnd <= totalDistance * 1.3 && 
+             distanceFromStart > 0 && 
+             distanceFromEnd > 0;
+    });
+
+    // Sort by distance from start point
+    routeStops.sort((a, b) => {
+      const distA = this.calculateDistance(startStop.latitude, startStop.longitude, a.latitude, a.longitude);
+      const distB = this.calculateDistance(startStop.latitude, startStop.longitude, b.latitude, b.longitude);
+      return distA - distB;
+    });
+
+    return routeStops.slice(0, maxStops);
   }
 
   private static selectNextDayDestination(currentStop: TripStop, finalDestination: TripStop, availableStops: TripStop[], remainingDays: number): TripStop {
@@ -273,7 +352,7 @@ export class Route66TripPlannerService {
     const targetDailyDistance = totalRemainingDistance / remainingDays;
 
     // Find the stop closest to our target daily distance
-    let bestStop = availableStops[0];
+    let bestStop = availableStops[0] || finalDestination;
     let bestScore = Number.MAX_VALUE;
 
     for (const stop of availableStops) {
