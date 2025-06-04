@@ -17,11 +17,24 @@ export type EstimatedCosts = {
   details: string[];
 };
 
+export type TollRoadLink = {
+  name: string;
+  url: string;
+  description: string;
+};
+
+export type TollRoadLinks = {
+  title: string;
+  subtitle: string;
+  links: TollRoadLink[];
+};
+
 export type TollRoadsContent = {
   title: string;
   subtitle: string;
   sections: TollRoadSection[];
   estimatedCosts: EstimatedCosts;
+  tollRoadLinks: TollRoadLinks;
 };
 
 export type TollRoadsContentMap = {

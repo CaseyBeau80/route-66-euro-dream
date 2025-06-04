@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AlertTriangle, CreditCard, MapPin, Route } from "lucide-react";
+import { AlertTriangle, CreditCard, MapPin, Route, ExternalLink } from "lucide-react";
 import { TollRoadsContentMap } from "./types";
 
 export const tollRoadsContent: TollRoadsContentMap = {
@@ -38,6 +38,32 @@ export const tollRoadsContent: TollRoadsContentMap = {
         "Bridge tolls: $2-8 each",
         "Express lanes (optional): $1-5 per use"
       ]
+    },
+    tollRoadLinks: {
+      title: "Official Toll Road Websites",
+      subtitle: "Get current rates and payment information from official sources",
+      links: [
+        {
+          name: "Oklahoma Turnpike Authority",
+          url: "https://www.pikepass.com/",
+          description: "Official site for Oklahoma toll roads including I-44 Turner Turnpike"
+        },
+        {
+          name: "Illinois Tollway",
+          url: "https://www.illinoistollway.com/",
+          description: "Chicago area toll roads and I-PASS information"
+        },
+        {
+          name: "E-ZPass",
+          url: "https://www.e-zpassiag.com/",
+          description: "Multi-state electronic toll collection system"
+        },
+        {
+          name: "California FasTrak",
+          url: "https://www.bayareafastrak.org/",
+          description: "Electronic toll collection for California bridges and express lanes"
+        }
+      ]
     }
   },
   de: {
@@ -73,6 +99,32 @@ export const tollRoadsContent: TollRoadsContentMap = {
         "Oklahoma Turnpikes: $10-25",
         "Brückenmaut: $2-8 pro Brücke",
         "Expressspuren (optional): $1-5 pro Nutzung"
+      ]
+    },
+    tollRoadLinks: {
+      title: "Offizielle Mautstraßen-Websites",
+      subtitle: "Aktuelle Tarife und Zahlungsinformationen von offiziellen Quellen",
+      links: [
+        {
+          name: "Oklahoma Turnpike Authority",
+          url: "https://www.pikepass.com/",
+          description: "Offizielle Seite für Oklahoma Mautstraßen einschließlich I-44 Turner Turnpike"
+        },
+        {
+          name: "Illinois Tollway",
+          url: "https://www.illinoistollway.com/",
+          description: "Chicago Bereich Mautstraßen und I-PASS Informationen"
+        },
+        {
+          name: "E-ZPass",
+          url: "https://www.e-zpassiag.com/",
+          description: "Mehrstaat elektronisches Mauterfassungssystem"
+        },
+        {
+          name: "California FasTrak",
+          url: "https://www.bayareafastrak.org/",
+          description: "Elektronische Mauterfassung für Kalifornien Brücken und Expressspuren"
+        }
       ]
     }
   },
@@ -110,6 +162,32 @@ export const tollRoadsContent: TollRoadsContentMap = {
         "Péages de pont : $2-8 chacun",
         "Voies express (optionnel) : $1-5 par utilisation"
       ]
+    },
+    tollRoadLinks: {
+      title: "Sites web officiels des routes à péage",
+      subtitle: "Obtenez les tarifs actuels et les informations de paiement des sources officielles",
+      links: [
+        {
+          name: "Oklahoma Turnpike Authority",
+          url: "https://www.pikepass.com/",
+          description: "Site officiel pour les routes à péage de l'Oklahoma incluant l'I-44 Turner Turnpike"
+        },
+        {
+          name: "Illinois Tollway",
+          url: "https://www.illinoistollway.com/",
+          description: "Routes à péage de la région de Chicago et informations I-PASS"
+        },
+        {
+          name: "E-ZPass",
+          url: "https://www.e-zpassiag.com/",
+          description: "Système de collecte de péage électronique multi-états"
+        },
+        {
+          name: "California FasTrak",
+          url: "https://www.bayareafastrak.org/",
+          description: "Collecte de péage électronique pour les ponts et voies express de Californie"
+        }
+      ]
     }
   },
   nl: {
@@ -145,6 +223,32 @@ export const tollRoadsContent: TollRoadsContentMap = {
         "Oklahoma Turnpikes: $10-25",
         "Brugtol: $2-8 elk",
         "Express lanes (optioneel): $1-5 per gebruik"
+      ]
+    },
+    tollRoadLinks: {
+      title: "Officiële tolweg websites",
+      subtitle: "Krijg actuele tarieven en betaalinformatie van officiële bronnen",
+      links: [
+        {
+          name: "Oklahoma Turnpike Authority",
+          url: "https://www.pikepass.com/",
+          description: "Officiële site voor Oklahoma tolwegen inclusief I-44 Turner Turnpike"
+        },
+        {
+          name: "Illinois Tollway",
+          url: "https://www.illinoistollway.com/",
+          description: "Chicago gebied tolwegen en I-PASS informatie"
+        },
+        {
+          name: "E-ZPass",
+          url: "https://www.e-zpassiag.com/",
+          description: "Multi-staat elektronisch tolheffingssysteem"
+        },
+        {
+          name: "California FasTrak",
+          url: "https://www.bayareafastrak.org/",
+          description: "Elektronische tolheffing voor Californië bruggen en express lanes"
+        }
       ]
     }
   }

@@ -3,6 +3,7 @@ import { tollRoadsContent } from "./content";
 import { TollRoadsProps } from "./types";
 import TollRoadInfoCard from "./TollRoadInfoCard";
 import CostBreakdownCard from "./CostBreakdownCard";
+import TollRoadLinksCard from "./TollRoadLinksCard";
 
 const TollRoads = ({ language }: TollRoadsProps) => {
   const content = tollRoadsContent[language as keyof typeof tollRoadsContent] || tollRoadsContent.en;
@@ -23,7 +24,12 @@ const TollRoads = ({ language }: TollRoadsProps) => {
         </div>
         
         {/* Cost Breakdown Card */}
-        <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
+        <div className="mb-12">
+          <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
+        </div>
+        
+        {/* Toll Road Links Card */}
+        <TollRoadLinksCard tollRoadLinks={content.tollRoadLinks} />
       </div>
     </section>
   );
