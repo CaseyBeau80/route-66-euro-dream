@@ -1,9 +1,26 @@
 
-/* Route 66 Custom Colors and Variables */
+/* Route 66 Custom Colors and Variables - Updated with Classic Palette */
 :root {
+  /* Classic Route 66 Color Palette */
+  
+  /* Base colors - Deep asphalt gray/matte black */
+  --route66-dark: #1a1a1a;
+  --route66-asphalt: #2d2d2d;
+  --route66-charcoal: #404040;
+  
+  /* Background colors - Cream/vintage white */
+  --route66-cream: #faf8f3;
+  --route66-vintage-white: #f7f5f0;
+  --route66-warm-white: #fefcf8;
+  
+  /* Accent colors */
+  --route66-sky-blue: #4a90e2;
+  --route66-neon-red: #e74c3c;
+  --route66-sunshine-yellow: #f1c40f;
+  
+  /* Legacy colors (keeping for compatibility) */
   --route66-red: #D2001F;
   --route66-blue: #1E3A8A;
-  --route66-cream: #FDF6E3;
   --route66-tan: #D2B48C;
   --route66-gray: #4A5568;
   --route66-orange: #FF6B35;

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -53,21 +52,38 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Route 66 Theme Colors
-        "route66-red": "#D2041A",
-        "route66-blue": "#1E3A8A",
-        "route66-orange": "#FF6B35",
-        "route66-yellow": "#FFD700",
-        "route66-cream": "#F5F2EA",
-        "route66-tan": "#D2B48C",
-        "route66-gray": "#6B7280",
-        "route66-vintage-yellow": "#F4D03F",
-        "route66-vintage-red": "#C0392B",
-        "route66-vintage-blue": "#2E4A83",
-        "route66-vintage-brown": "#8B4513",
-        "route66-vintage-beige": "#F5F5DC",
-        "route66-vintage-turquoise": "#48CAE4",
-        "route66-rust": "#B7472A",
+        // Classic Route 66 Color Palette
+        "route66": {
+          // Base colors - Deep asphalt gray/matte black
+          "dark": "#1a1a1a",
+          "asphalt": "#2d2d2d",
+          "charcoal": "#404040",
+          
+          // Background colors - Cream/vintage white
+          "cream": "#faf8f3",
+          "vintage-white": "#f7f5f0",
+          "warm-white": "#fefcf8",
+          
+          // Accent colors
+          "sky-blue": "#4a90e2",
+          "neon-red": "#e74c3c",
+          "sunshine-yellow": "#f1c40f",
+          
+          // Additional classic colors (keeping existing for compatibility)
+          "red": "#D2041A",
+          "blue": "#1E3A8A",
+          "orange": "#FF6B35",
+          "yellow": "#FFD700",
+          "tan": "#D2B48C",
+          "gray": "#6B7280",
+          "vintage-yellow": "#F4D03F",
+          "vintage-red": "#C0392B",
+          "vintage-blue": "#2E4A83",
+          "vintage-brown": "#8B4513",
+          "vintage-beige": "#F5F5DC",
+          "vintage-turquoise": "#48CAE4",
+          "rust": "#B7472A",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
