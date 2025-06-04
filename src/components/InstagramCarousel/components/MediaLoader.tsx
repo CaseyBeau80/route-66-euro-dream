@@ -35,6 +35,13 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   useEffect(() => {
     if (!mediaUrls || mediaUrls.length === 0) {
       console.log(`📸 No media URLs for post ${post.id}, showing placeholder immediately`);
+      console.log(`📸 Post data for debugging:`, {
+        id: post.id,
+        media_type: post.media_type,
+        media_url: post.media_url,
+        thumbnail_url: post.thumbnail_url,
+        carousel_media: post.carousel_media
+      });
       setShowPlaceholder(true);
       setImageLoading(false);
       onError();
@@ -53,7 +60,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
     console.error(`❌ Failed to load media ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
     
     // If this is the last URL or we've tried a couple already, show placeholder
-    if (currentImageIndex >= mediaUrls.length - 1 || currentImageIndex >= 1) {
+    if (currentImageIndex >= mediaUrls.length - 1 || currentImageIndex >= 2) {
       console.log(`💥 Showing placeholder for post ${post.id} after ${currentImageIndex + 1} failed attempts`);
       setImageLoading(false);
       setShowPlaceholder(true);

@@ -34,9 +34,17 @@ export class MediaUrlGenerator {
     }
   }
 
-  // More conservative URL generation - only try the most reliable sources
+  // More comprehensive URL generation with better fallbacks
   getMediaUrls(): string[] {
     const urls = [];
+    
+    console.log(`🔍 Analyzing post ${this.post.id}:`, {
+      media_type: this.post.media_type,
+      has_media_url: !!this.post.media_url,
+      has_thumbnail_url: !!this.post.thumbnail_url,
+      has_carousel_media: !!this.post.carousel_media,
+      currentCarouselIndex: this.currentCarouselIndex
+    });
     
     if (this.post.media_type === 'CAROUSEL_ALBUM') {
       const carouselMedia = this.getCarouselMedia();
@@ -46,22 +54,38 @@ export class MediaUrlGenerator {
         
         console.log(`🔍 Carousel item ${this.currentCarouselIndex}:`, currentMedia);
         
-        // Only try thumbnail_url for carousel items as it's most likely to work
+        // Try both thumbnail_url and media_url for carousel items
         if (currentMedia.thumbnail_url) {
           urls.push(currentMedia.thumbnail_url);
+        }
+        if (currentMedia.media_url && currentMedia.media_url !== currentMedia.thumbnail_url) {
+          urls.push(currentMedia.media_url);
         }
       }
     }
     
-    // Add main post thumbnail URL only - it's the most stable
+    // Always try main post URLs as fallbacks
     if (this.post.thumbnail_url && !urls.includes(this.post.thumbnail_url)) {
       urls.push(this.post.thumbnail_url);
     }
     
-    // Filter out invalid URLs and limit to 2 attempts max
-    const validUrls = urls.filter(url => url && url.trim() !== '' && this.isValidUrl(url)).slice(0, 2);
+    if (this.post.media_url && !urls.includes(this.post.media_url)) {
+      urls.push(this.post.media_url);
+    }
+    
+    // Filter out invalid URLs and remove duplicates
+    const validUrls = urls.filter(url => url && url.trim() !== '' && this.isValidUrl(url));
     
     console.log(`🎯 Generated ${validUrls.length} URLs for post ${this.post.id}:`, validUrls);
+    
+    // If we still have no URLs, log detailed info for debugging
+    if (validUrls.length === 0) {
+      console.warn(`⚠️ No valid URLs found for post ${this.post.id}. Raw data:`, {
+        media_url: this.post.media_url,
+        thumbnail_url: this.post.thumbnail_url,
+        carousel_media: this.post.carousel_media
+      });
+    }
     
     return validUrls;
   }
@@ -69,8 +93,8 @@ export class MediaUrlGenerator {
   // Validate URL format
   private isValidUrl(url: string): boolean {
     try {
-      new URL(url);
-      return url.startsWith('http');
+      const validUrl = new URL(url);
+      return validUrl.protocol === 'http:' || validUrl.protocol === 'https:';
     } catch {
       return false;
     }
