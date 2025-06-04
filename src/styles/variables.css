@@ -53,4 +53,11 @@
   --route66-sky-blue: var(--route66-primary-light);
   --route66-neon-red: var(--route66-accent-red);
   --route66-sunshine-yellow: var(--route66-accent-yellow);
+  --route66-vintage-yellow: var(--route66-accent-yellow);
+  --route66-vintage-red: var(--route66-accent-red);
+  --route66-vintage-blue: var(--route66-primary);
+  --route66-vintage-brown: #92400e;
+  --route66-vintage-beige: #f5f5f4;
+  --route66-vintage-turquoise: #06b6d4;
+  --route66-rust: #dc2626;
 }

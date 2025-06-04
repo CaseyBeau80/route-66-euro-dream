@@ -26,7 +26,7 @@ const MapLegend: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 rounded-lg h-full bg-route66-background border border-route66-border">
+    <div className="p-6 rounded-2xl h-full bg-route66-background border border-route66-border">
       <h3 className="text-xl font-bold mb-6 text-center text-route66-text-primary">
         Map Legend
       </h3>
@@ -35,7 +35,7 @@ const MapLegend: React.FC = () => {
         {legendItems.map((item, index) => (
           <div 
             key={index}
-            className="flex items-start gap-3 p-3 rounded-lg transition-all duration-300 hover:bg-route66-hover cursor-default border border-route66-divider"
+            className="flex items-start gap-3 p-4 rounded-xl transition-all duration-300 hover:bg-route66-hover cursor-default border border-route66-divider hover:border-route66-border"
           >
             <div className="flex-shrink-0 flex items-center justify-center w-6 h-6">
               {item.icon}
@@ -53,14 +53,14 @@ const MapLegend: React.FC = () => {
       </div>
       
       {/* Navigation tip */}
-      <div className="mt-6 p-3 rounded-lg text-center bg-route66-background-alt border border-route66-border">
+      <div className="mt-6 p-4 rounded-xl text-center bg-route66-background-alt border border-route66-border">
         <p className="text-xs font-medium text-route66-text-secondary">
           💡 Ctrl + scroll to zoom map
         </p>
       </div>
       
       {/* Modern decorative elements */}
-      <div className="mt-4 flex justify-center items-center gap-2">
+      <div className="mt-6 flex justify-center items-center gap-2">
         <div className="w-8 h-1 bg-gradient-to-r from-route66-primary to-route66-primary-light rounded-full"></div>
         <div className="w-3 h-3 bg-route66-accent-orange rounded-full border border-route66-border"></div>
         <div className="w-8 h-1 bg-gradient-to-l from-route66-primary to-route66-primary-light rounded-full"></div>

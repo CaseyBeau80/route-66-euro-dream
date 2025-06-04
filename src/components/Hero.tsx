@@ -49,35 +49,35 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
         backgroundImage: "url('/lovable-uploads/ef90c3a0-71fe-4f68-8671-5a455d6e9bc1.png')"
       }}
     >
-      {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      {/* Modern overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60"></div>
       
       {/* Content overlay */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-        {/* Simplified Route 66 Shield */}
+        {/* Modern Route 66 Shield */}
         <div className="mb-8">
-          <div className="w-20 h-26 bg-white rounded-lg border-2 border-route66-primary shadow-2xl flex flex-col items-center justify-center">
-            <div className="text-route66-text-muted text-xs font-semibold tracking-wider">ROUTE</div>
-            <div className="text-route66-primary text-2xl font-black leading-none">66</div>
-            <div className="text-route66-text-muted text-[8px] font-medium">MOTHER ROAD</div>
+          <div className="w-24 h-32 bg-white/95 backdrop-blur-sm rounded-2xl border border-white/20 shadow-2xl flex flex-col items-center justify-center transform hover:scale-105 transition-all duration-300">
+            <div className="text-route66-text-muted text-sm font-bold tracking-wider">ROUTE</div>
+            <div className="text-route66-primary text-3xl font-black leading-none">66</div>
+            <div className="text-route66-text-muted text-xs font-semibold tracking-wide">MOTHER ROAD</div>
           </div>
         </div>
 
-        {/* Main heading */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 text-white drop-shadow-2xl">
+        {/* Modern heading with improved typography */}
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 text-white drop-shadow-2xl max-w-6xl mx-auto">
           {content.title}
         </h1>
         
-        {/* Subtitle */}
-        <p className="text-lg md:text-xl lg:text-2xl mb-8 text-white/90 leading-relaxed max-w-4xl mx-auto drop-shadow-lg">
+        {/* Refined subtitle */}
+        <p className="text-lg md:text-xl lg:text-2xl mb-12 text-white/95 leading-relaxed max-w-4xl mx-auto drop-shadow-lg font-medium">
           {content.subtitle}
         </p>
         
-        {/* Call to action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        {/* Modern call to action buttons */}
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <Button 
             size="lg" 
-            className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-lg py-6 px-12 transform hover:scale-105 transition-all duration-300 shadow-2xl font-semibold rounded-lg"
+            className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-lg py-6 px-12 transform hover:scale-105 transition-all duration-300 shadow-2xl font-semibold rounded-xl backdrop-blur-sm"
           >
             {content.cta}
             <ArrowRight className="ml-3" size={20} />
@@ -85,9 +85,9 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
           {onExploreMap && (
             <button 
               onClick={onExploreMap}
-              className="inline-flex items-center gap-2 text-white/90 font-semibold hover:text-white transition-colors duration-200 px-6 py-3 rounded-lg hover:bg-white/10 backdrop-blur-sm border border-white/20"
+              className="inline-flex items-center gap-3 text-white/95 font-semibold hover:text-white transition-colors duration-200 px-8 py-4 rounded-xl hover:bg-white/10 backdrop-blur-sm border border-white/20 hover:border-white/30"
             >
-              <span>{isMapOpen ? content.hideMap : content.exploreMap}</span>
+              <span className="text-lg">{isMapOpen ? content.hideMap : content.exploreMap}</span>
               {isMapOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
           )}

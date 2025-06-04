@@ -18,9 +18,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
-  const [isMapOpen, setIsMapOpen] = useState(true); // Map starts open by default
+  const [isMapOpen, setIsMapOpen] = useState(true);
   
-  console.log("🏠 Index page: Rendering with modern color scheme and enhanced map functionality");
+  console.log("🏠 Index page: Rendering with modern design system");
 
   return (
     <div className="min-h-screen bg-route66-background">
@@ -36,41 +36,45 @@ const Index = () => {
         />
       </div>
 
-      {/* Enhanced Interactive Map Section */}
-      <div className="w-full px-2 sm:px-3 py-8 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
+      {/* Modern Interactive Map Section */}
+      <section className="w-full px-4 sm:px-6 lg:px-8 py-16 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
         <div className="max-w-7xl mx-auto">
           {/* Modern Map Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-route66-text-primary mb-3">
-              Interactive Route 66 Map
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-route66-primary/10 text-route66-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              <MapPin className="w-4 h-4" />
+              Interactive Experience
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-route66-text-primary mb-6">
+              Explore Route 66
             </h2>
-            <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto">
-              Explore the legendary highway with our interactive map featuring historic towns, attractions, and hidden gems along America's Mother Road
+            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto leading-relaxed">
+              Navigate America's most iconic highway with our interactive map featuring historic towns, attractions, and hidden gems along the Mother Road
             </p>
           </div>
           
-          {/* Map Container with Modern Styling */}
+          {/* Map Container with Modern Design */}
           <div className="relative">
-            {/* Enhanced Map Display */}
+            {/* Map Display with smooth animations */}
             <div 
               className={`
-                transition-all duration-500 ease-in-out overflow-hidden
-                ${isMapOpen ? 'h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] opacity-100' : 'h-0 opacity-0'}
+                transition-all duration-700 ease-in-out overflow-hidden
+                ${isMapOpen ? 'h-[500px] md:h-[600px] lg:h-[700px] opacity-100' : 'h-0 opacity-0'}
               `}
             >
               <div className="relative h-full">
-                <div className="absolute -inset-1 bg-gradient-to-r from-route66-primary/20 via-route66-primary-light/10 to-route66-primary/20 rounded-xl blur-sm"></div>
-                <div className="relative bg-route66-background rounded-lg border-2 border-route66-border shadow-xl h-full">
+                <div className="absolute -inset-2 bg-gradient-to-r from-route66-primary/10 via-route66-primary-light/5 to-route66-primary/10 rounded-2xl blur-xl"></div>
+                <div className="relative bg-route66-background rounded-2xl border border-route66-border shadow-2xl h-full overflow-hidden">
                   <NostalgicRoute66Banner />
                   <Route66Map />
                 </div>
               </div>
             </div>
             
-            {/* Modern Floating Legend */}
+            {/* Modern Map Legend */}
             {isMapOpen && (
-              <div className="absolute bottom-4 right-4 w-80 z-20 hidden lg:block">
-                <div className="bg-route66-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-route66-border">
+              <div className="absolute bottom-6 right-6 w-80 z-20 hidden xl:block">
+                <div className="bg-route66-background/95 backdrop-blur-lg rounded-2xl shadow-xl border border-route66-border/50">
                   <MapLegend />
                 </div>
               </div>
@@ -79,22 +83,22 @@ const Index = () => {
           
           {/* Modern Map Controls */}
           {isMapOpen && (
-            <div className="mt-6 bg-route66-background rounded-lg p-4 border border-route66-border shadow-sm">
-              <div className="flex flex-wrap justify-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-route66-accent-red rounded-full shadow-sm"></div>
-                  <span className="text-route66-text-secondary font-medium">Historic Towns</span>
+            <div className="mt-8 bg-route66-background rounded-2xl p-6 border border-route66-border shadow-lg">
+              <div className="flex flex-wrap justify-center gap-8 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-route66-accent-red rounded-full shadow-sm border border-white"></div>
+                  <span className="text-route66-text-secondary font-semibold">Historic Towns</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-1 bg-route66-primary rounded-sm shadow-sm"></div>
-                  <span className="text-route66-text-secondary font-medium">Route 66 Path</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-2 bg-route66-primary rounded-sm shadow-sm"></div>
+                  <span className="text-route66-text-secondary font-semibold">Route 66 Path</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-route66-accent-orange rounded-full shadow-sm"></div>
-                  <span className="text-route66-text-secondary font-medium">Attractions</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-route66-accent-orange rounded-full shadow-sm border border-white"></div>
+                  <span className="text-route66-text-secondary font-semibold">Attractions</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-route66-primary text-sm">⌨️</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-route66-primary text-lg">⌨️</span>
                   <span className="text-route66-text-muted font-medium">Ctrl + scroll to zoom</span>
                 </div>
               </div>
@@ -103,18 +107,32 @@ const Index = () => {
           
           {/* Mobile Legend */}
           {isMapOpen && (
-            <div className="mt-6 lg:hidden">
-              <div className="bg-route66-background rounded-lg shadow-lg border border-route66-border">
+            <div className="mt-8 xl:hidden">
+              <div className="bg-route66-background rounded-2xl shadow-xl border border-route66-border">
                 <MapLegend />
               </div>
             </div>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* Modern Three-Column Countdown Section */}
-      <div className="w-full px-4 py-12 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background">
+      {/* Modern Countdown & Quick Facts Section */}
+      <section className="w-full px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background">
         <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-route66-accent-orange/10 text-route66-accent-orange px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              <Route className="w-4 h-4" />
+              Centennial Celebration
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-route66-text-primary mb-6">
+              100 Years of Adventure
+            </h2>
+            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto leading-relaxed">
+              Join us in celebrating a century of America's most beloved highway
+            </p>
+          </div>
+
           {/* Desktop Three-Column Layout */}
           <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
             {/* Left Column - Fun Facts */}
@@ -129,18 +147,18 @@ const Index = () => {
             
             {/* Right Column - Trip Planning */}
             <div className="lg:col-span-3">
-              <div className="p-6 rounded-xl bg-route66-background border border-route66-border shadow-lg">
-                <h3 className="text-xl font-bold text-route66-text-primary mb-4 text-center">
+              <div className="p-8 rounded-2xl bg-route66-background border border-route66-border shadow-xl">
+                <h3 className="text-2xl font-bold text-route66-text-primary mb-6 text-center">
                   Plan Your Journey
                 </h3>
-                <div className="space-y-4 text-center">
+                <div className="space-y-6 text-center">
                   <p className="text-route66-text-secondary leading-relaxed">
                     Ready to hit the road? Use our comprehensive trip calculator to plan your perfect Route 66 adventure.
                   </p>
                   <Link to="/trip-calculator">
-                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-3 rounded-lg transition-colors duration-200">
+                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-4 text-lg rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
                       Start Planning
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
                 </div>
@@ -148,28 +166,28 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Mobile/Tablet Stacked Layout */}
-          <div className="lg:hidden space-y-8">
+          {/* Mobile/Tablet Responsive Layout */}
+          <div className="lg:hidden space-y-12">
             {/* Countdown First on Mobile */}
             <div>
               <Route66Countdown />
             </div>
             
             {/* Two-column grid for Fun Facts and Trip Planning on tablets */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-8">
               <Route66FunFacts />
-              <div className="p-6 rounded-xl bg-route66-background border border-route66-border shadow-lg">
-                <h3 className="text-xl font-bold text-route66-text-primary mb-4 text-center">
+              <div className="p-8 rounded-2xl bg-route66-background border border-route66-border shadow-xl">
+                <h3 className="text-2xl font-bold text-route66-text-primary mb-6 text-center">
                   Plan Your Journey
                 </h3>
-                <div className="space-y-4 text-center">
+                <div className="space-y-6 text-center">
                   <p className="text-route66-text-secondary leading-relaxed">
                     Ready to hit the road? Use our comprehensive trip calculator to plan your perfect Route 66 adventure.
                   </p>
                   <Link to="/trip-calculator">
-                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-3 rounded-lg transition-colors duration-200">
+                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-4 text-lg rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
                       Start Planning
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
                 </div>
@@ -177,7 +195,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Instagram Carousel Section */}
       <SimpleInstagramCarousel />
