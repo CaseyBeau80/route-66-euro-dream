@@ -1,5 +1,1 @@
-
 project_id = "xbwaphzntaxmdfzfsmvt"
-
-[functions.instagram-proxy]
-verify_jwt = false
