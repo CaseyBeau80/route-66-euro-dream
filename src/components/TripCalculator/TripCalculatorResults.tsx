@@ -31,8 +31,11 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculati
             <div className="font-route66 text-2xl text-route66-vintage-red">
               {formatTime(calculation.totalDriveTime)}
             </div>
-            <div className="font-travel text-sm text-route66-vintage-brown">
+            <div className="font-travel text-xs text-route66-vintage-brown mb-1">
               Drive Time
+            </div>
+            <div className="font-travel text-xs text-route66-vintage-brown opacity-75">
+              ({calculation.totalDriveTime.toFixed(1)} hours)
             </div>
           </div>
           
