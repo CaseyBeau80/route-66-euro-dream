@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
 import { formatTime } from './utils/distanceCalculator';
-import { ExternalLink } from 'lucide-react';
 
 interface TripCalculatorResultsProps {
   calculation: TripCalculation;
@@ -78,29 +77,6 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculati
                 </span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Google Gemini AI Assistant */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-travel font-bold text-blue-900 mb-2">
-                🤖 Get AI-Powered Trip Advice
-              </h4>
-              <p className="text-sm text-blue-800 font-travel">
-                Chat with Google Gemini for personalized Route 66 recommendations, hidden gems, and travel tips!
-              </p>
-            </div>
-            <a
-              href="https://g.co/gemini/share/aded98924f33"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-travel font-bold transition-colors duration-200"
-            >
-              Chat with Gemini
-              <ExternalLink className="w-4 h-4" />
-            </a>
           </div>
         </div>
 
