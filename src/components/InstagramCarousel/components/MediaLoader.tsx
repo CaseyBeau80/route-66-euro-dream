@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import VideoPlayerComponent from './VideoPlayerComponent';
 
 interface MediaLoaderProps {
   post: InstagramPost;
@@ -110,21 +111,18 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             {isVideo ? (
-              <video 
+              <VideoPlayerComponent
                 key={`${post.id}-${currentImageIndex}-${retryCount}`}
-                src={getCurrentMediaUrl()} 
-                className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-                onLoadedData={handleMediaLoad}
-                onError={handleMediaError}
-                controls
-                muted
-                playsInline
+                src={getCurrentMediaUrl()}
                 poster={post.thumbnail_url || undefined}
+                className={`${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={handleMediaLoad}
+                onError={handleMediaError}
+                muted={true}
+                loop={true}
+                playsInline={true}
                 preload="metadata"
-              >
-                <source src={getCurrentMediaUrl()} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              />
             ) : (
               <img 
                 key={`${post.id}-${currentImageIndex}-${retryCount}`}
@@ -140,7 +138,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
             )}
           </TooltipTrigger>
           <TooltipContent>
-            <p>Click to view on Instagram</p>
+            <p>{isVideo ? 'Hover to loop • Click to view on Instagram' : 'Click to view on Instagram'}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
