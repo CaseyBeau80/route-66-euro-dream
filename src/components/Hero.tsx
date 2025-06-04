@@ -46,13 +46,15 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
     <div 
       className="relative w-full h-[70vh] bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{
-        backgroundImage: "url('/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png')"
+        backgroundImage: "url('https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/hero-images/route66-hero-header.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center center"
       }}
     >
-      {/* Modern subtle overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-route66-text-primary/10 via-route66-text-primary/20 to-route66-text-primary/30"></div>
+      {/* Enhanced dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
       
-      {/* Content overlay */}
+      {/* Content overlay - centered both vertically and horizontally */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto">
         {/* Modern Route 66 Shield */}
         <div className="mb-8">
@@ -63,7 +65,7 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
           </div>
         </div>
 
-        {/* Modern typography */}
+        {/* Enhanced typography with better contrast */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white drop-shadow-2xl max-w-5xl mx-auto">
           {content.title}
         </h1>
