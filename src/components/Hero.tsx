@@ -54,8 +54,8 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
       {/* Light dark overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
       
-      {/* Content overlay - centered both vertically and horizontally */}
-      <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto">
+      {/* Content overlay - positioned higher for better contrast */}
+      <div className="relative z-20 flex flex-col items-center justify-start pt-16 h-full text-center px-4 max-w-6xl mx-auto">
         {/* Modern Route 66 Shield */}
         <div className="mb-8">
           <div className="w-20 h-24 bg-white rounded-xl border-2 border-route66-border-strong shadow-2xl flex flex-col items-center justify-center transform hover:scale-105 transition-all duration-300 backdrop-blur-sm">
