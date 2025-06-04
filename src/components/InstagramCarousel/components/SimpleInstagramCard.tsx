@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
 import { InstagramPost } from '../types';
+import { EnhancedMediaUrlService } from '../services/EnhancedMediaUrlService';
 
 interface SimpleInstagramCardProps {
   post: InstagramPost;
@@ -12,6 +13,32 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
   const [isLiked, setIsLiked] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const [isVideo, setIsVideo] = useState(false);
+
+  // Load optimized media URLs
+  useEffect(() => {
+    const loadMediaUrls = async () => {
+      try {
+        console.log(`🔄 Loading optimized URLs for post ${post.id}`);
+        const urlService = new EnhancedMediaUrlService(post);
+        const mediaData = await urlService.getOptimizedMediaUrls();
+        
+        setMediaUrls(mediaData.urls);
+        setIsVideo(mediaData.mediaType === 'VIDEO');
+        
+        console.log(`✅ Loaded ${mediaData.urls.length} optimized URLs for post ${post.id}:`, mediaData.urls);
+      } catch (error) {
+        console.error(`❌ Failed to load optimized URLs for post ${post.id}:`, error);
+        // Fallback to basic URLs
+        const fallbackUrls = [post.thumbnail_url, post.media_url].filter(Boolean);
+        setMediaUrls(fallbackUrls);
+      }
+    };
+
+    loadMediaUrls();
+  }, [post.id]);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -26,15 +53,29 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
   };
 
   const handleImageLoad = () => {
-    console.log(`✅ Image loaded successfully for post ${post.id}: ${post.media_url}`);
+    console.log(`✅ Image loaded successfully for post ${post.id}: ${getCurrentImageUrl()}`);
     setIsLoading(false);
     setImageError(false);
   };
 
   const handleImageError = () => {
-    console.error(`❌ Image failed to load for post ${post.id}: ${post.media_url}`);
-    setIsLoading(false);
-    setImageError(true);
+    const currentUrl = getCurrentImageUrl();
+    console.error(`❌ Image failed to load for post ${post.id}: ${currentUrl}`);
+    
+    // Try next URL if available
+    if (currentUrlIndex < mediaUrls.length - 1) {
+      console.log(`🔄 Trying next URL (${currentUrlIndex + 2}/${mediaUrls.length})`);
+      setCurrentUrlIndex(currentUrlIndex + 1);
+      setIsLoading(true);
+    } else {
+      console.log(`💥 All URLs failed for post ${post.id}, showing fallback`);
+      setIsLoading(false);
+      setImageError(true);
+    }
+  };
+
+  const getCurrentImageUrl = () => {
+    return mediaUrls[currentUrlIndex] || '';
   };
 
   const formatDate = (timestamp: string) => {
@@ -49,37 +90,37 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
     return caption.length > maxLength ? caption.substring(0, maxLength) + '...' : caption;
   };
 
-  // Get the best available image URL
-  const getImageUrl = () => {
-    // Try thumbnail_url first, then media_url
-    return post.thumbnail_url || post.media_url;
-  };
-
-  const imageUrl = getImageUrl();
+  const currentImageUrl = getCurrentImageUrl();
 
   console.log(`🖼️ Rendering card for post ${post.id}:`, {
-    media_url: post.media_url,
-    thumbnail_url: post.thumbnail_url,
-    selected_url: imageUrl,
-    media_type: post.media_type
+    mediaUrlsCount: mediaUrls.length,
+    currentUrlIndex,
+    currentUrl: currentImageUrl,
+    isVideo,
+    isLoading,
+    imageError
   });
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
       {/* Media */}
       <div className="relative aspect-square overflow-hidden" onClick={handleCardClick}>
-        {!imageError && imageUrl ? (
+        {!imageError && currentImageUrl ? (
           <>
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse z-10">
                 <div className="text-center">
                   <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
                   <p className="text-xs text-gray-500">Loading image...</p>
+                  {mediaUrls.length > 1 && (
+                    <p className="text-xs text-gray-400">Try {currentUrlIndex + 1}/{mediaUrls.length}</p>
+                  )}
                 </div>
               </div>
             )}
             <img
-              src={imageUrl}
+              key={`${post.id}-${currentUrlIndex}`}
+              src={currentImageUrl}
               alt={post.caption || 'Route 66 Instagram post'}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onLoad={handleImageLoad}
@@ -95,7 +136,7 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
               <div className="text-4xl mb-2">🛣️</div>
               <p className="text-sm font-bold mb-1">Route 66 Memory</p>
               <p className="text-xs opacity-90">Content from the road</p>
-              {!imageUrl && (
+              {mediaUrls.length === 0 && (
                 <p className="text-xs opacity-75 mt-2">No image URL available</p>
               )}
             </div>
@@ -103,27 +144,27 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
         )}
         
         {/* Media type indicator */}
-        {post.media_type === 'VIDEO' && !imageError && imageUrl && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
-            VIDEO
+        {isVideo && !imageError && currentImageUrl && (
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+            <span>🎬</span> REEL
           </div>
         )}
         
-        {post.media_type === 'CAROUSEL_ALBUM' && !imageError && imageUrl && (
+        {post.media_type === 'CAROUSEL_ALBUM' && !imageError && currentImageUrl && (
           <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
             ALBUM
           </div>
         )}
         
         {/* Featured indicator */}
-        {post.is_featured && !imageError && imageUrl && (
+        {post.is_featured && !imageError && currentImageUrl && (
           <div className="absolute bottom-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
             ⭐ FEATURED
           </div>
         )}
         
         {/* External link overlay */}
-        {!imageError && imageUrl && (
+        {!imageError && currentImageUrl && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black bg-opacity-30 transition-opacity duration-300">
             <div className="bg-white bg-opacity-90 rounded-full p-2">
               <ExternalLink className="w-6 h-6 text-route66-rust" />
