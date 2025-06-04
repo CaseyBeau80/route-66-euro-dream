@@ -16,6 +16,11 @@ const PostStats: React.FC<PostStatsProps> = ({ post }) => {
     return count.toString();
   };
 
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the parent card click
+    window.open(post.permalink, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="space-y-3">
       {/* Stats and Link */}
@@ -31,15 +36,13 @@ const PostStats: React.FC<PostStatsProps> = ({ post }) => {
           </div>
         </div>
         
-        <a 
-          href={post.permalink}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button 
+          onClick={handleLinkClick}
           className="flex items-center gap-1 text-route66-rust hover:text-route66-vintage-brown transition-colors text-sm font-medium"
         >
           <ExternalLink className="w-4 h-4" />
           View
-        </a>
+        </button>
       </div>
 
       {/* Timestamp */}

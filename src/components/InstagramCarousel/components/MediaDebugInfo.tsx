@@ -10,10 +10,15 @@ interface MediaDebugInfoProps {
 const MediaDebugInfo: React.FC<MediaDebugInfoProps> = ({ post }) => {
   const [showDebug, setShowDebug] = useState(false);
   
+  const handleBtnClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the parent card click
+    setShowDebug(!showDebug);
+  };
+  
   if (!showDebug) {
     return (
       <button
-        onClick={() => setShowDebug(true)}
+        onClick={handleBtnClick}
         className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70"
       >
         Debug
@@ -24,9 +29,9 @@ const MediaDebugInfo: React.FC<MediaDebugInfoProps> = ({ post }) => {
   const analysis = EnhancedReelDetectionService.analyzePost(post);
 
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-90 text-white p-4 text-xs overflow-auto z-50">
+    <div className="absolute inset-0 bg-black bg-opacity-90 text-white p-4 text-xs overflow-auto z-50" onClick={e => e.stopPropagation()}>
       <button
-        onClick={() => setShowDebug(false)}
+        onClick={handleBtnClick}
         className="absolute top-2 right-2 bg-red-600 px-2 py-1 rounded text-xs"
       >
         Close

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MediaLoaderProps {
   post: InstagramPost;
@@ -57,7 +58,6 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
     setLoadAttempts(newAttempts);
     
     console.error(`❌ Failed to load ${isVideo ? 'video' : 'image'} ${currentImageIndex + 1}/${mediaUrls.length} for post ${post.id}: ${failedUrl}`);
-    console.error(`❌ This is likely due to Instagram CDN CORS restrictions (attempt ${newAttempts})`);
     
     // If this is the last URL, show placeholder
     if (currentImageIndex >= mediaUrls.length - 1) {
@@ -88,9 +88,6 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
             {isVideo ? 'Video content protected' : 'Instagram content protected'}
           </p>
         </div>
-        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-          {isVideo ? 'Instagram Reel' : 'Instagram Post'}
-        </div>
       </div>
     );
   }
@@ -109,35 +106,44 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
         </div>
       )}
       
-      {isVideo ? (
-        <video 
-          key={`${post.id}-${currentImageIndex}-${retryCount}`}
-          src={getCurrentMediaUrl()} 
-          className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-          onLoadedData={handleMediaLoad}
-          onError={handleMediaError}
-          controls
-          muted
-          playsInline
-          poster={post.thumbnail_url || undefined}
-          preload="metadata"
-        >
-          <source src={getCurrentMediaUrl()} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      ) : (
-        <img 
-          key={`${post.id}-${currentImageIndex}-${retryCount}`}
-          src={getCurrentMediaUrl()} 
-          alt={post.caption || 'Route 66 Instagram post'}
-          className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-          onLoad={handleMediaLoad}
-          onError={handleMediaError}
-          crossOrigin="anonymous"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-        />
-      )}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {isVideo ? (
+              <video 
+                key={`${post.id}-${currentImageIndex}-${retryCount}`}
+                src={getCurrentMediaUrl()} 
+                className={`w-full h-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoadedData={handleMediaLoad}
+                onError={handleMediaError}
+                controls
+                muted
+                playsInline
+                poster={post.thumbnail_url || undefined}
+                preload="metadata"
+              >
+                <source src={getCurrentMediaUrl()} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img 
+                key={`${post.id}-${currentImageIndex}-${retryCount}`}
+                src={getCurrentMediaUrl()} 
+                alt={post.caption || 'Route 66 Instagram post'}
+                className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={handleMediaLoad}
+                onError={handleMediaError}
+                crossOrigin="anonymous"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            )}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Click to view on Instagram</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </>
   );
 };

@@ -78,12 +78,10 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   // Show loading state while URLs are being fetched
   if (isLoadingUrls) {
     return (
-      <div className="relative aspect-square overflow-hidden bg-gray-200 animate-pulse">
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
-            <p className="text-xs text-gray-500">Analyzing media...</p>
-          </div>
+      <div className="relative aspect-square overflow-hidden bg-gray-200 animate-pulse flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
+          <p className="text-xs text-gray-500">Loading...</p>
         </div>
       </div>
     );
@@ -101,9 +99,6 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
             <p className="text-xs opacity-90">Content from the road</p>
           </div>
         </div>
-        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-          Instagram Post
-        </div>
       </div>
     );
   }
@@ -112,7 +107,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const isHighConfidenceVideo = isVideo && mediaData.confidence >= 70;
 
   return (
-    <div className="relative aspect-square overflow-hidden bg-gray-100">
+    <div className="relative aspect-square overflow-hidden bg-gray-100 group">
       {!imageError ? (
         <MediaLoader
           post={post}
@@ -142,26 +137,19 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
       )}
       
       {/* Enhanced media type indicators */}
-      {isHighConfidenceVideo && (
+      {isHighConfidenceVideo && !imageError && (
         <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
           <span>🎬</span> REEL
         </div>
       )}
       
-      {isVideo && !isHighConfidenceVideo && (
+      {isVideo && !isHighConfidenceVideo && !imageError && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
           VIDEO
         </div>
       )}
-
-      {/* Show confidence indicator for debugging */}
-      {mediaData.confidence < 90 && (
-        <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-          {mediaData.confidence}% confidence
-        </div>
-      )}
       
-      {post.is_featured && (
+      {post.is_featured && !imageError && (
         <div className="absolute bottom-2 left-2 bg-route66-vintage-yellow text-black px-2 py-1 rounded text-xs font-bold">
           ⭐ FEATURED
         </div>
