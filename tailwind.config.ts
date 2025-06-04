@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -52,37 +53,67 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Classic Route 66 Color Palette
+        // Modern Route 66 Color Palette
         "route66": {
-          // Base colors - Deep asphalt gray/matte black
-          "dark": "#1a1a1a",
-          "asphalt": "#2d2d2d",
-          "charcoal": "#404040",
+          // Primary Brand Colors
+          "primary": "#2563eb",
+          "primary-dark": "#1d4ed8",
+          "primary-light": "#3b82f6",
           
-          // Background colors - Cream/vintage white
-          "cream": "#faf8f3",
-          "vintage-white": "#f7f5f0",
-          "warm-white": "#fefcf8",
+          // Secondary Colors
+          "secondary": "#64748b",
+          "secondary-dark": "#475569",
+          "secondary-light": "#94a3b8",
           
-          // Accent colors
-          "sky-blue": "#4a90e2",
-          "neon-red": "#e74c3c",
-          "sunshine-yellow": "#f1c40f",
+          // Background Colors
+          "background": "#ffffff",
+          "background-alt": "#f8fafc",
+          "background-section": "#f1f5f9",
           
-          // Additional classic colors (keeping existing for compatibility)
-          "red": "#D2041A",
-          "blue": "#1E3A8A",
-          "orange": "#FF6B35",
-          "yellow": "#FFD700",
-          "tan": "#D2B48C",
-          "gray": "#6B7280",
-          "vintage-yellow": "#F4D03F",
-          "vintage-red": "#C0392B",
-          "vintage-blue": "#2E4A83",
-          "vintage-brown": "#8B4513",
-          "vintage-beige": "#F5F5DC",
-          "vintage-turquoise": "#48CAE4",
-          "rust": "#B7472A",
+          // Text Colors
+          "text-primary": "#0f172a",
+          "text-secondary": "#334155",
+          "text-muted": "#64748b",
+          
+          // Accent Colors
+          "accent-orange": "#f97316",
+          "accent-green": "#22c55e",
+          "accent-red": "#ef4444",
+          "accent-yellow": "#eab308",
+          
+          // Interactive States
+          "hover": "#f1f5f9",
+          "active": "#e2e8f0",
+          "focus": "#3b82f6",
+          
+          // Borders
+          "border": "#e2e8f0",
+          "border-strong": "#cbd5e1",
+          "divider": "#f1f5f9",
+          
+          // Legacy compatibility colors
+          "red": "#ef4444",
+          "blue": "#2563eb",
+          "orange": "#f97316",
+          "yellow": "#eab308",
+          "tan": "#f5f5f4",
+          "gray": "#64748b",
+          "cream": "#ffffff",
+          "dark": "#0f172a",
+          "asphalt": "#475569",
+          "charcoal": "#334155",
+          "vintage-white": "#f8fafc",
+          "warm-white": "#ffffff",
+          "sky-blue": "#3b82f6",
+          "neon-red": "#ef4444",
+          "sunshine-yellow": "#eab308",
+          "vintage-yellow": "#eab308",
+          "vintage-red": "#ef4444",
+          "vintage-blue": "#2563eb",
+          "vintage-brown": "#92400e",
+          "vintage-beige": "#f5f5f4",
+          "vintage-turquoise": "#06b6d4",
+          "rust": "#dc2626",
         },
       },
       borderRadius: {

@@ -20,14 +20,14 @@ const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
   const [isMapOpen, setIsMapOpen] = useState(true); // Map starts open by default
   
-  console.log("🏠 Index page: Rendering with new Route 66 color scheme and always-visible map");
+  console.log("🏠 Index page: Rendering with modern color scheme and enhanced map functionality");
 
   return (
-    <div className="min-h-screen bg-route66-cream">
-      {/* Navigation Bar with new color scheme */}
+    <div className="min-h-screen bg-route66-background">
+      {/* Navigation Bar with modern styling */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section with new design */}
+      {/* Hero Section with modern design */}
       <div className="relative pt-16">
         <Hero 
           language={language}
@@ -36,76 +36,75 @@ const Index = () => {
         />
       </div>
 
-      {/* Always Visible Interactive Map Section with floating legend */}
-      <div className="w-full px-2 sm:px-3 py-6 bg-gradient-to-br from-route66-vintage-white via-route66-cream to-route66-warm-white" id="map">
+      {/* Enhanced Interactive Map Section */}
+      <div className="w-full px-2 sm:px-3 py-8 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
         <div className="max-w-7xl mx-auto">
-          {/* Map Header */}
-          <div className="text-center mb-6">
-            <h2 className="font-route66 text-2xl md:text-3xl text-route66-neon-red mb-2">
-              INTERACTIVE ROUTE 66 MAP
+          {/* Modern Map Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-route66-text-primary mb-3">
+              Interactive Route 66 Map
             </h2>
-            <p className="font-travel text-route66-charcoal">
-              Click on states to explore historic towns and hidden gems along the Mother Road
+            <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto">
+              Explore the legendary highway with our interactive map featuring historic towns, attractions, and hidden gems along America's Mother Road
             </p>
           </div>
           
-          {/* Map Container with Floating Legend */}
+          {/* Map Container with Modern Styling */}
           <div className="relative">
-            {/* Map with controlled height based on toggle */}
+            {/* Enhanced Map Display */}
             <div 
               className={`
                 transition-all duration-500 ease-in-out overflow-hidden
                 ${isMapOpen ? 'h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] opacity-100' : 'h-0 opacity-0'}
               `}
             >
-              <div className="relative route66-authentic h-full">
-                <div className="absolute -inset-2 bg-gradient-to-r from-route66-asphalt via-route66-charcoal to-route66-asphalt rounded-xl opacity-80"></div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-route66-sunshine-yellow via-route66-cream to-route66-sunshine-yellow rounded-lg opacity-60"></div>
-                <div className="relative bg-route66-cream rounded-lg p-2 border-4 border-route66-asphalt shadow-postcard h-full">
+              <div className="relative h-full">
+                <div className="absolute -inset-1 bg-gradient-to-r from-route66-primary/20 via-route66-primary-light/10 to-route66-primary/20 rounded-xl blur-sm"></div>
+                <div className="relative bg-route66-background rounded-lg border-2 border-route66-border shadow-xl h-full">
                   <NostalgicRoute66Banner />
                   <Route66Map />
                 </div>
               </div>
             </div>
             
-            {/* Floating Legend - Bottom Right Corner */}
+            {/* Modern Floating Legend */}
             {isMapOpen && (
               <div className="absolute bottom-4 right-4 w-80 z-20 hidden lg:block">
-                <div className="bg-route66-vintage-white/95 backdrop-blur-sm rounded-lg shadow-xl border-2 border-route66-asphalt">
+                <div className="bg-route66-background/95 backdrop-blur-sm rounded-lg shadow-lg border border-route66-border">
                   <MapLegend />
                 </div>
               </div>
             )}
           </div>
           
-          {/* Map Controls with new colors */}
+          {/* Modern Map Controls */}
           {isMapOpen && (
-            <div className="mt-4 bg-route66-vintage-white rounded-lg p-3 border-2 border-route66-asphalt">
-              <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <div className="mt-6 bg-route66-background rounded-lg p-4 border border-route66-border shadow-sm">
+              <div className="flex flex-wrap justify-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-route66-neon-red rounded-full"></div>
-                  <span className="font-travel text-route66-charcoal">Historic Towns</span>
+                  <div className="w-3 h-3 bg-route66-accent-red rounded-full shadow-sm"></div>
+                  <span className="text-route66-text-secondary font-medium">Historic Towns</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-1 bg-route66-sky-blue rounded"></div>
-                  <span className="font-travel text-route66-charcoal">Route 66 Path</span>
+                  <div className="w-4 h-1 bg-route66-primary rounded-sm shadow-sm"></div>
+                  <span className="text-route66-text-secondary font-medium">Route 66 Path</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-route66-vintage-turquoise rounded-full"></div>
-                  <span className="font-travel text-route66-charcoal">Hidden Gems</span>
+                  <div className="w-3 h-3 bg-route66-accent-orange rounded-full shadow-sm"></div>
+                  <span className="text-route66-text-secondary font-medium">Attractions</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-route66-sunshine-yellow">⌨️</span>
-                  <span className="font-travel text-route66-charcoal">Ctrl + scroll to zoom</span>
+                  <span className="text-route66-primary text-sm">⌨️</span>
+                  <span className="text-route66-text-muted font-medium">Ctrl + scroll to zoom</span>
                 </div>
               </div>
             </div>
           )}
           
-          {/* Mobile Legend - shown below map controls on mobile when map is open */}
+          {/* Mobile Legend */}
           {isMapOpen && (
-            <div className="mt-4 lg:hidden">
-              <div className="bg-route66-vintage-white rounded-lg shadow-xl border-2 border-route66-asphalt">
+            <div className="mt-6 lg:hidden">
+              <div className="bg-route66-background rounded-lg shadow-lg border border-route66-border">
                 <MapLegend />
               </div>
             </div>
@@ -113,8 +112,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Three-Column Countdown Section with new color scheme */}
-      <div className="w-full px-4 py-8 bg-gradient-to-r from-route66-asphalt via-route66-charcoal to-route66-asphalt">
+      {/* Modern Three-Column Countdown Section */}
+      <div className="w-full px-4 py-12 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background">
         <div className="max-w-7xl mx-auto">
           {/* Desktop Three-Column Layout */}
           <div className="hidden lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
@@ -130,17 +129,18 @@ const Index = () => {
             
             {/* Right Column - Trip Planning */}
             <div className="lg:col-span-3">
-              <div className="p-6 rounded-lg bg-gradient-to-br from-route66-cream via-route66-vintage-white to-route66-warm-white border-4 border-route66-asphalt">
-                <h3 className="font-route66 text-xl text-route66-neon-red mb-4 text-center">
-                  TRIP PLANNING
+              <div className="p-6 rounded-xl bg-route66-background border border-route66-border shadow-lg">
+                <h3 className="text-xl font-bold text-route66-text-primary mb-4 text-center">
+                  Plan Your Journey
                 </h3>
                 <div className="space-y-4 text-center">
-                  <p className="font-travel text-route66-charcoal">
-                    Ready to hit the road? Use our trip calculator to plan your perfect Route 66 adventure.
+                  <p className="text-route66-text-secondary leading-relaxed">
+                    Ready to hit the road? Use our comprehensive trip calculator to plan your perfect Route 66 adventure.
                   </p>
                   <Link to="/trip-calculator">
-                    <Button className="w-full bg-route66-neon-red hover:bg-route66-neon-red/90 text-route66-cream border-2 border-route66-dark font-bold">
+                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-3 rounded-lg transition-colors duration-200">
                       Start Planning
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
@@ -149,7 +149,7 @@ const Index = () => {
           </div>
 
           {/* Mobile/Tablet Stacked Layout */}
-          <div className="lg:hidden space-y-6">
+          <div className="lg:hidden space-y-8">
             {/* Countdown First on Mobile */}
             <div>
               <Route66Countdown />
@@ -158,17 +158,18 @@ const Index = () => {
             {/* Two-column grid for Fun Facts and Trip Planning on tablets */}
             <div className="grid md:grid-cols-2 gap-6">
               <Route66FunFacts />
-              <div className="p-6 rounded-lg bg-gradient-to-br from-route66-cream via-route66-vintage-white to-route66-warm-white border-4 border-route66-asphalt">
-                <h3 className="font-route66 text-xl text-route66-neon-red mb-4 text-center">
-                  TRIP PLANNING
+              <div className="p-6 rounded-xl bg-route66-background border border-route66-border shadow-lg">
+                <h3 className="text-xl font-bold text-route66-text-primary mb-4 text-center">
+                  Plan Your Journey
                 </h3>
                 <div className="space-y-4 text-center">
-                  <p className="font-travel text-route66-charcoal">
-                    Ready to hit the road? Use our trip calculator to plan your perfect Route 66 adventure.
+                  <p className="text-route66-text-secondary leading-relaxed">
+                    Ready to hit the road? Use our comprehensive trip calculator to plan your perfect Route 66 adventure.
                   </p>
                   <Link to="/trip-calculator">
-                    <Button className="w-full bg-route66-neon-red hover:bg-route66-neon-red/90 text-route66-cream border-2 border-route66-dark font-bold">
+                    <Button className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white border-0 font-semibold py-3 rounded-lg transition-colors duration-200">
                       Start Planning
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>

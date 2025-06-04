@@ -1,34 +1,56 @@
 
-/* Route 66 Custom Colors and Variables - Updated with Classic Palette */
+/* Modern Route 66 Color Palette - Clean Contemporary Design */
 :root {
-  /* Classic Route 66 Color Palette */
+  /* Primary Brand Colors - Modern Blues and Grays */
+  --route66-primary: #2563eb;        /* Modern blue */
+  --route66-primary-dark: #1d4ed8;   /* Darker blue for hover states */
+  --route66-primary-light: #3b82f6;  /* Lighter blue for accents */
   
-  /* Base colors - Deep asphalt gray/matte black */
-  --route66-dark: #1a1a1a;
-  --route66-asphalt: #2d2d2d;
-  --route66-charcoal: #404040;
+  /* Secondary Colors - Clean Grays */
+  --route66-secondary: #64748b;      /* Slate gray */
+  --route66-secondary-dark: #475569;  /* Darker slate */
+  --route66-secondary-light: #94a3b8; /* Light slate */
   
-  /* Background colors - Cream/vintage white */
-  --route66-cream: #faf8f3;
-  --route66-vintage-white: #f7f5f0;
-  --route66-warm-white: #fefcf8;
+  /* Background Colors - Clean Whites and Light Grays */
+  --route66-background: #ffffff;      /* Pure white */
+  --route66-background-alt: #f8fafc;  /* Very light gray */
+  --route66-background-section: #f1f5f9; /* Section backgrounds */
   
-  /* Accent colors */
-  --route66-sky-blue: #4a90e2;
-  --route66-neon-red: #e74c3c;
-  --route66-sunshine-yellow: #f1c40f;
+  /* Text Colors - Modern Typography */
+  --route66-text-primary: #0f172a;    /* Dark slate for primary text */
+  --route66-text-secondary: #334155;  /* Medium slate for secondary text */
+  --route66-text-muted: #64748b;      /* Light slate for muted text */
   
-  /* Legacy colors (keeping for compatibility) */
-  --route66-red: #D2001F;
-  --route66-blue: #1E3A8A;
-  --route66-tan: #D2B48C;
-  --route66-gray: #4A5568;
-  --route66-orange: #FF6B35;
-  --route66-vintage-yellow: #F7DC6F;
-  --route66-vintage-blue: #5DADE2;
-  --route66-vintage-red: #E74C3C;
-  --route66-vintage-brown: #8B4513;
-  --route66-vintage-beige: #F5F5DC;
-  --route66-vintage-turquoise: #48CAE4;
-  --route66-rust: #B85450;
+  /* Accent Colors - Vibrant but Refined */
+  --route66-accent-orange: #f97316;   /* Modern orange */
+  --route66-accent-green: #22c55e;    /* Success green */
+  --route66-accent-red: #ef4444;      /* Error red */
+  --route66-accent-yellow: #eab308;   /* Warning yellow */
+  
+  /* Interactive States */
+  --route66-hover: #f1f5f9;          /* Light gray hover */
+  --route66-active: #e2e8f0;         /* Slightly darker active state */
+  --route66-focus: #3b82f6;          /* Blue focus ring */
+  
+  /* Borders and Dividers */
+  --route66-border: #e2e8f0;         /* Light gray borders */
+  --route66-border-strong: #cbd5e1;   /* Stronger borders */
+  --route66-divider: #f1f5f9;        /* Very light dividers */
+  
+  /* Legacy color mappings for backward compatibility */
+  --route66-red: var(--route66-accent-red);
+  --route66-blue: var(--route66-primary);
+  --route66-orange: var(--route66-accent-orange);
+  --route66-tan: #f5f5f4;
+  --route66-gray: var(--route66-secondary);
+  --route66-yellow: var(--route66-accent-yellow);
+  --route66-cream: var(--route66-background);
+  --route66-dark: var(--route66-text-primary);
+  --route66-asphalt: var(--route66-secondary-dark);
+  --route66-charcoal: var(--route66-text-secondary);
+  --route66-vintage-white: var(--route66-background-alt);
+  --route66-warm-white: var(--route66-background);
+  --route66-sky-blue: var(--route66-primary-light);
+  --route66-neon-red: var(--route66-accent-red);
+  --route66-sunshine-yellow: var(--route66-accent-yellow);
 }
