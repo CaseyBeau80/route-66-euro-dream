@@ -28,7 +28,7 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
       <SimplePostContent post={post} />
       
       {/* Actions */}
-      <div className="px-4 pb-4">
+      <div className="px-3 pb-2">
         <SimplePostActions post={post} onLike={onLike} />
       </div>
     </div>

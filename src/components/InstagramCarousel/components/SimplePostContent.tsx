@@ -13,17 +13,17 @@ const SimplePostContent: React.FC<SimplePostContentProps> = ({ post }) => {
   };
 
   return (
-    <div className="p-4">
+    <div className="px-3 py-2">
       {/* Caption */}
       {post.caption && (
-        <p className="text-gray-800 text-sm mb-3 leading-relaxed">
+        <p className="text-gray-800 text-sm mb-2 leading-normal">
           {truncateCaption(post.caption)}
         </p>
       )}
       
       {/* Location */}
       {post.location_name && (
-        <p className="text-gray-500 text-xs mb-3 flex items-center">
+        <p className="text-gray-500 text-xs mb-2 flex items-center">
           📍 {post.location_name}
         </p>
       )}
