@@ -297,52 +297,6 @@ export class Route66TripPlannerService {
     return tripPlan;
   }
 
-  private static findClosestStop(latitude: number, longitude: number, stops: TripStop[]): TripStop | null {
-    if (stops.length === 0) return null;
-
-    let closestStop = stops[0];
-    let minDistance = this.calculateDistance(latitude, longitude, stops[0].latitude, stops[0].longitude);
-
-    for (const stop of stops) {
-      const distance = this.calculateDistance(latitude, longitude, stop.latitude, stop.longitude);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestStop = stop;
-      }
-    }
-
-    return closestStop;
-  }
-
-  private static getStopsAlongRoute(startStop: TripStop, endStop: TripStop, allStops: TripStop[], maxStops: number = 50): TripStop[] {
-    // Calculate bearing from start to end
-    const bearing = Math.atan2(
-      endStop.longitude - startStop.longitude,
-      endStop.latitude - startStop.latitude
-    );
-
-    // Filter stops that are roughly between start and end points
-    const routeStops = allStops.filter(stop => {
-      const distanceFromStart = this.calculateDistance(startStop.latitude, startStop.longitude, stop.latitude, stop.longitude);
-      const distanceFromEnd = this.calculateDistance(stop.latitude, stop.longitude, endStop.latitude, endStop.longitude);
-      const totalDistance = this.calculateDistance(startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude);
-      
-      // Stop should be roughly on the path (within reasonable deviation)
-      return distanceFromStart + distanceFromEnd <= totalDistance * 1.3 && 
-             distanceFromStart > 0 && 
-             distanceFromEnd > 0;
-    });
-
-    // Sort by distance from start point
-    routeStops.sort((a, b) => {
-      const distA = this.calculateDistance(startStop.latitude, startStop.longitude, a.latitude, a.longitude);
-      const distB = this.calculateDistance(startStop.latitude, startStop.longitude, b.latitude, b.longitude);
-      return distA - distB;
-    });
-
-    return routeStops.slice(0, maxStops);
-  }
-
   private static selectNextDayDestination(currentStop: TripStop, finalDestination: TripStop, availableStops: TripStop[], remainingDays: number): TripStop {
     const totalRemainingDistance = this.calculateDistance(
       currentStop.latitude, currentStop.longitude,
