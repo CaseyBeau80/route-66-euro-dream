@@ -46,7 +46,7 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
     <div 
       className="relative w-full h-[70vh] bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{
-        backgroundImage: "url('/lovable-uploads/ef90c3a0-71fe-4f68-8671-5a455d6e9bc1.png')"
+        backgroundImage: "url('/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png')"
       }}
     >
       {/* Modern subtle overlay */}
