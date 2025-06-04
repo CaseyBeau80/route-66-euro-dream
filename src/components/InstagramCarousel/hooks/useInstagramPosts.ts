@@ -46,19 +46,28 @@ export const useInstagramPosts = () => {
 
   const updatePostLikes = async (postId: string) => {
     try {
-      // Find the post and increment likes locally first for immediate feedback
+      // Find the current post to get its current likes count
+      const currentPost = posts.find(post => post.id === postId);
+      if (!currentPost) {
+        console.error('❌ Post not found for likes update');
+        return;
+      }
+
+      const newLikesCount = currentPost.likes + 1;
+
+      // Update locally first for immediate feedback
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
-            ? { ...post, likes: post.likes + 1 }
+            ? { ...post, likes: newLikesCount }
             : post
         )
       );
 
-      // Update the database
+      // Update the database with the new likes count
       const { error } = await supabase
         .from('instagram_posts')
-        .update({ likes: supabase.raw('likes + 1') })
+        .update({ likes: newLikesCount })
         .eq('id', postId);
 
       if (error) {
@@ -67,7 +76,7 @@ export const useInstagramPosts = () => {
         setPosts(prevPosts => 
           prevPosts.map(post => 
             post.id === postId 
-              ? { ...post, likes: post.likes - 1 }
+              ? { ...post, likes: currentPost.likes }
               : post
           )
         );
