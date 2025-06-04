@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart, ExternalLink } from 'lucide-react';
 import { InstagramPost } from '../types';
 import { EnhancedMediaUrlService } from '../services/EnhancedMediaUrlService';
 
@@ -202,12 +202,6 @@ const SimpleInstagramCard: React.FC<SimpleInstagramCardProps> = ({ post, onLike 
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
               <span className="text-sm font-medium">{post.likes + (isLiked ? 1 : 0)}</span>
             </button>
-            
-            {/* Comments */}
-            <div className="flex items-center gap-1 text-gray-600">
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm">{post.comments_count || 0}</span>
-            </div>
           </div>
           
           {/* Date */}
