@@ -27,21 +27,19 @@ const Index = () => {
       {/* Navigation Bar with modern styling */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section with modern design */}
-      <div className="relative pt-16">
-        <Hero 
-          language={language}
-          onExploreMap={() => setIsMapOpen(!isMapOpen)}
-          isMapOpen={isMapOpen}
-        />
-      </div>
+      {/* Hero Section - no top padding needed as nav is absolute */}
+      <Hero 
+        language={language}
+        onExploreMap={() => setIsMapOpen(!isMapOpen)}
+        isMapOpen={isMapOpen}
+      />
 
-      {/* Modern Interactive Map Section */}
-      <section className="w-full px-4 sm:px-6 lg:px-8 py-16 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
+      {/* Interactive Map Section - improved spacing and visual hierarchy */}
+      <section className="w-full px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section" id="map">
         <div className="max-w-7xl mx-auto">
-          {/* Modern Map Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-route66-primary/10 text-route66-primary px-4 py-2 rounded-full text-sm font-semibold mb-4">
+          {/* Clean Map Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-route66-primary/10 text-route66-primary px-4 py-2 rounded-full text-sm font-semibold mb-6">
               <MapPin className="w-4 h-4" />
               Interactive Experience
             </div>
@@ -53,7 +51,7 @@ const Index = () => {
             </p>
           </div>
           
-          {/* Map Container with Modern Design */}
+          {/* Map Container with improved design */}
           <div className="relative">
             {/* Map Display with smooth animations */}
             <div 
@@ -63,7 +61,7 @@ const Index = () => {
               `}
             >
               <div className="relative h-full">
-                <div className="absolute -inset-2 bg-gradient-to-r from-route66-primary/10 via-route66-primary-light/5 to-route66-primary/10 rounded-2xl blur-xl"></div>
+                <div className="absolute -inset-4 bg-gradient-to-r from-route66-primary/5 via-route66-primary-light/10 to-route66-primary/5 rounded-3xl blur-2xl"></div>
                 <div className="relative bg-route66-background rounded-2xl border border-route66-border shadow-2xl h-full overflow-hidden">
                   <NostalgicRoute66Banner />
                   <Route66Map />
@@ -71,9 +69,9 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Modern Map Legend */}
+            {/* Map Legend - positioned better */}
             {isMapOpen && (
-              <div className="absolute bottom-6 right-6 w-80 z-20 hidden xl:block">
+              <div className="absolute bottom-8 right-8 w-80 z-20 hidden xl:block">
                 <div className="bg-route66-background/95 backdrop-blur-lg rounded-2xl shadow-xl border border-route66-border/50">
                   <MapLegend />
                 </div>
@@ -81,12 +79,12 @@ const Index = () => {
             )}
           </div>
           
-          {/* Modern Map Controls */}
+          {/* Map Controls - cleaner design */}
           {isMapOpen && (
-            <div className="mt-8 bg-route66-background rounded-2xl p-6 border border-route66-border shadow-lg">
+            <div className="mt-12 bg-route66-background rounded-2xl p-8 border border-route66-border shadow-lg">
               <div className="flex flex-wrap justify-center gap-8 text-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-route66-accent-red rounded-full shadow-sm border border-white"></div>
+                  <div className="w-4 h-4 bg-route66-accent-red rounded-full shadow-sm border-2 border-white"></div>
                   <span className="text-route66-text-secondary font-semibold">Historic Towns</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -94,7 +92,7 @@ const Index = () => {
                   <span className="text-route66-text-secondary font-semibold">Route 66 Path</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-route66-accent-orange rounded-full shadow-sm border border-white"></div>
+                  <div className="w-4 h-4 bg-route66-accent-orange rounded-full shadow-sm border-2 border-white"></div>
                   <span className="text-route66-text-secondary font-semibold">Attractions</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -116,12 +114,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Modern Countdown & Quick Facts Section */}
-      <section className="w-full px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background">
+      {/* Countdown & Quick Facts Section - improved spacing */}
+      <section className="w-full px-4 sm:px-6 lg:px-8 py-24 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-route66-accent-orange/10 text-route66-accent-orange px-4 py-2 rounded-full text-sm font-semibold mb-4">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 bg-route66-accent-orange/10 text-route66-accent-orange px-4 py-2 rounded-full text-sm font-semibold mb-6">
               <Route className="w-4 h-4" />
               Centennial Celebration
             </div>
