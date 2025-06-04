@@ -2,13 +2,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
+import { TripPlan } from './services/Route66TripPlannerService';
 import { formatTime } from './utils/distanceCalculator';
+import EnhancedTripResults from './EnhancedTripResults';
 
 interface TripCalculatorResultsProps {
-  calculation: TripCalculation;
+  calculation?: TripCalculation;
+  tripPlan?: TripPlan;
 }
 
-const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation }) => {
+const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
   return (
     <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
       <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
@@ -89,6 +92,19 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculati
       </CardContent>
     </Card>
   );
+};
+
+const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation, tripPlan }) => {
+  // Prioritize enhanced trip plan over legacy calculation
+  if (tripPlan) {
+    return <EnhancedTripResults tripPlan={tripPlan} />;
+  }
+  
+  if (calculation) {
+    return <LegacyTripResults calculation={calculation} />;
+  }
+  
+  return null;
 };
 
 export default TripCalculatorResults;
