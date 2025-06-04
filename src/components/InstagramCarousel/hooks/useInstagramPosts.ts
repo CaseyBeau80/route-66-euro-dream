@@ -14,11 +14,12 @@ export const useInstagramPosts = () => {
         setIsLoading(true);
         setError(null);
 
-        console.log('🎯 Fetching Instagram posts from Supabase...');
+        console.log('🎯 Fetching Route 66 relevant Instagram posts from Supabase...');
 
         const { data, error } = await supabase
           .from('instagram_posts')
           .select('*')
+          .eq('route66_relevant', true)
           .order('timestamp', { ascending: false })
           .limit(12);
 
@@ -28,44 +29,9 @@ export const useInstagramPosts = () => {
           return;
         }
 
-        console.log(`✅ Successfully fetched ${data?.length || 0} Instagram posts`);
+        console.log(`✅ Successfully fetched ${data?.length || 0} Route 66 relevant Instagram posts`);
         
-        // Clean and type cast the data to fix parsing issues
-        const typedPosts = (data || []).map(post => {
-          // Remove extra quotes from media_type if they exist
-          let cleanMediaType = post.media_type;
-          if (typeof cleanMediaType === 'string') {
-            cleanMediaType = cleanMediaType.replace(/^"(.*)"$/, '$1') as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
-          }
-          
-          console.log(`📸 Post ${post.id}: ${cleanMediaType}, URL: ${post.media_url}${post.media_type === 'CAROUSEL_ALBUM' ? `, Carousel: ${post.carousel_media ? 'Yes' : 'No'}` : ''}`);
-          
-          // Log carousel media details for debugging
-          if (cleanMediaType === 'CAROUSEL_ALBUM' && post.carousel_media) {
-            try {
-              const carouselData = typeof post.carousel_media === 'string' 
-                ? JSON.parse(post.carousel_media) 
-                : post.carousel_media;
-              console.log(`🎠 Carousel post ${post.id} has ${Array.isArray(carouselData) ? carouselData.length : 0} media items`);
-            } catch (e) {
-              console.warn(`⚠️ Failed to parse carousel media for post ${post.id}:`, e);
-            }
-          }
-          
-          return {
-            ...post,
-            media_type: cleanMediaType
-          };
-        }) as InstagramPost[];
-        
-        // Log video detection summary
-        const videoCount = typedPosts.filter(post => post.media_type === 'VIDEO').length;
-        const imageCount = typedPosts.filter(post => post.media_type === 'IMAGE').length;
-        const carouselCount = typedPosts.filter(post => post.media_type === 'CAROUSEL_ALBUM').length;
-        
-        console.log(`🎬 Media summary: ${videoCount} videos, ${imageCount} images, ${carouselCount} carousels`);
-        console.log('🎥 Video posts:', typedPosts.filter(post => post.media_type === 'VIDEO').map(p => ({ id: p.id, url: p.media_url })));
-        
+        const typedPosts = (data || []) as InstagramPost[];
         setPosts(typedPosts);
       } catch (err) {
         console.error('❌ Unexpected error fetching Instagram posts:', err);
@@ -78,5 +44,40 @@ export const useInstagramPosts = () => {
     fetchInstagramPosts();
   }, []);
 
-  return { posts, isLoading, error };
+  const updatePostLikes = async (postId: string) => {
+    try {
+      // Find the post and increment likes locally first for immediate feedback
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, likes: post.likes + 1 }
+            : post
+        )
+      );
+
+      // Update the database
+      const { error } = await supabase
+        .from('instagram_posts')
+        .update({ likes: supabase.raw('likes + 1') })
+        .eq('id', postId);
+
+      if (error) {
+        console.error('❌ Error updating post likes:', error);
+        // Revert the optimistic update on error
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, likes: post.likes - 1 }
+              : post
+          )
+        );
+      } else {
+        console.log('✅ Successfully updated post likes');
+      }
+    } catch (err) {
+      console.error('❌ Unexpected error updating likes:', err);
+    }
+  };
+
+  return { posts, isLoading, error, updatePostLikes };
 };

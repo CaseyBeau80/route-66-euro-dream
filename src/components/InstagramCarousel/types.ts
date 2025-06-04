@@ -2,20 +2,22 @@
 export interface InstagramPost {
   id: string;
   instagram_post_id: string;
-  caption: string | null;
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
   media_url: string;
-  thumbnail_url: string | null;
+  thumbnail_url?: string;
+  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  caption?: string;
   permalink: string;
   timestamp: string;
-  like_count: number | null;
-  comments_count: number | null;
-  is_featured: boolean | null;
-  hashtags: string[] | null;
-  mentions: string[] | null;
-  location_name: string | null;
-  location_id: string | null;
-  carousel_media: any | null;
+  like_count?: number;
+  comments_count?: number;
+  location_name?: string;
+  location_id?: string;
+  hashtags?: string[];
+  mentions?: string[];
+  carousel_media?: any;
+  is_featured?: boolean;
   created_at: string;
   updated_at: string;
+  route66_relevant: boolean;
+  likes: number;
 }

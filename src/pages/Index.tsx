@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Route66Map from "../components/Route66Map";
@@ -8,7 +7,7 @@ import Route66Countdown from "../components/Route66Countdown";
 import Route66FunFacts from "../components/Route66Countdown/Route66FunFacts";
 import MapLegend from "../components/Route66Countdown/MapLegend";
 import NostalgicRoute66Banner from "../components/Route66Map/components/NostalgicRoute66Banner";
-import InstagramCarousel from "../components/InstagramCarousel/InstagramCarousel";
+import SimpleInstagramCarousel from "../components/InstagramCarousel/components/SimpleInstagramCarousel";
 import TravelResources from "../components/TravelResources";
 import { Link } from "react-router-dom";
 
@@ -129,8 +128,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Instagram Carousel Section */}
-      <InstagramCarousel />
+      {/* Instagram Carousel Section - Updated to use SimpleInstagramCarousel */}
+      <SimpleInstagramCarousel />
 
       {/* Travel Resources Section (includes Toll Roads) */}
       <TravelResources language={language} />

@@ -239,12 +239,14 @@ export type Database = {
           instagram_post_id: string
           is_featured: boolean | null
           like_count: number | null
+          likes: number | null
           location_id: string | null
           location_name: string | null
           media_type: string
           media_url: string
           mentions: string[] | null
           permalink: string
+          route66_relevant: boolean | null
           thumbnail_url: string | null
           timestamp: string
           updated_at: string
@@ -259,12 +261,14 @@ export type Database = {
           instagram_post_id: string
           is_featured?: boolean | null
           like_count?: number | null
+          likes?: number | null
           location_id?: string | null
           location_name?: string | null
           media_type: string
           media_url: string
           mentions?: string[] | null
           permalink: string
+          route66_relevant?: boolean | null
           thumbnail_url?: string | null
           timestamp: string
           updated_at?: string
@@ -279,12 +283,14 @@ export type Database = {
           instagram_post_id?: string
           is_featured?: boolean | null
           like_count?: number | null
+          likes?: number | null
           location_id?: string | null
           location_name?: string | null
           media_type?: string
           media_url?: string
           mentions?: string[] | null
           permalink?: string
+          route66_relevant?: boolean | null
           thumbnail_url?: string | null
           timestamp?: string
           updated_at?: string
