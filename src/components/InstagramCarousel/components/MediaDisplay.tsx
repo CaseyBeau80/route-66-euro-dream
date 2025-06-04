@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
 import { RotateCcw } from 'lucide-react';
 import { MediaUrlGenerator } from './MediaUrlGenerator';
@@ -13,11 +13,35 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [isLoadingUrls, setIsLoadingUrls] = useState(true);
 
   const urlGenerator = new MediaUrlGenerator(post);
-  const mediaUrls = urlGenerator.getMediaUrls();
   const currentMediaType = urlGenerator.getCurrentMediaType();
   const isVideo = currentMediaType === 'VIDEO';
+
+  // Load media URLs asynchronously
+  useEffect(() => {
+    const loadMediaUrls = async () => {
+      setIsLoadingUrls(true);
+      try {
+        console.log(`🔄 Loading media URLs for post ${post.id}`);
+        const urls = await urlGenerator.getMediaUrls();
+        setMediaUrls(urls);
+        console.log(`✅ Loaded ${urls.length} media URLs for post ${post.id}`);
+      } catch (error) {
+        console.error(`❌ Failed to load media URLs for post ${post.id}:`, error);
+        // Fall back to sync URLs
+        const syncUrls = urlGenerator.getMediaUrlsSync();
+        setMediaUrls(syncUrls);
+        console.log(`🔄 Using sync URLs as fallback for post ${post.id}: ${syncUrls.length} URLs`);
+      } finally {
+        setIsLoadingUrls(false);
+      }
+    };
+
+    loadMediaUrls();
+  }, [post.id, retryCount]);
 
   const handleMediaLoad = () => {
     setImageError(false);
@@ -39,6 +63,20 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const handleImageIndexChange = (index: number) => {
     setCurrentImageIndex(index);
   };
+
+  // Show loading state while URLs are being fetched
+  if (isLoadingUrls) {
+    return (
+      <div className="relative aspect-square overflow-hidden bg-gray-200 animate-pulse">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
+            <p className="text-xs text-gray-500">Loading media...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If no valid media URLs, show Route 66 themed placeholder
   if (mediaUrls.length === 0) {
