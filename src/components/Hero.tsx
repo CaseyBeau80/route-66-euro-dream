@@ -46,12 +46,12 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
     <div 
       className="relative w-full h-[70vh] bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{
-        backgroundImage: "url('https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/hero-images/route66-hero-header.jpg')",
+        backgroundImage: "url('https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/website_header_Route66.png')",
         backgroundSize: "cover",
         backgroundPosition: "center center"
       }}
     >
-      {/* Enhanced dark overlay for better text readability */}
+      {/* Light dark overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
       
       {/* Content overlay - centered both vertically and horizontally */}
