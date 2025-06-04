@@ -58,6 +58,14 @@ export const useInstagramPosts = () => {
           };
         }) as InstagramPost[];
         
+        // Log video detection summary
+        const videoCount = typedPosts.filter(post => post.media_type === 'VIDEO').length;
+        const imageCount = typedPosts.filter(post => post.media_type === 'IMAGE').length;
+        const carouselCount = typedPosts.filter(post => post.media_type === 'CAROUSEL_ALBUM').length;
+        
+        console.log(`🎬 Media summary: ${videoCount} videos, ${imageCount} images, ${carouselCount} carousels`);
+        console.log('🎥 Video posts:', typedPosts.filter(post => post.media_type === 'VIDEO').map(p => ({ id: p.id, url: p.media_url })));
+        
         setPosts(typedPosts);
       } catch (err) {
         console.error('❌ Unexpected error fetching Instagram posts:', err);
