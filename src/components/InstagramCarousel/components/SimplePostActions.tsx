@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Heart } from 'lucide-react';
 import { InstagramPost } from '../types';
 
@@ -9,11 +9,8 @@ interface SimplePostActionsProps {
 }
 
 const SimplePostActions: React.FC<SimplePostActionsProps> = ({ post, onLike }) => {
-  const [isLiked, setIsLiked] = useState(false);
-
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
     onLike(post.id);
   };
 
@@ -30,12 +27,10 @@ const SimplePostActions: React.FC<SimplePostActionsProps> = ({ post, onLike }) =
         {/* Like button */}
         <button
           onClick={handleLike}
-          className={`flex items-center gap-1 transition-colors duration-200 ${
-            isLiked ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
-          }`}
+          className="flex items-center gap-1 transition-colors duration-200 text-gray-600 hover:text-red-500"
         >
-          <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-          <span className="text-sm font-medium">{post.likes + (isLiked ? 1 : 0)}</span>
+          <Heart className="w-5 h-5" />
+          <span className="text-sm font-medium">{post.likes}</span>
         </button>
       </div>
       
