@@ -19,6 +19,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
   const urlGenerator = new MediaUrlGenerator(post);
   const currentMediaType = urlGenerator.getCurrentMediaType();
   const isVideo = currentMediaType === 'VIDEO';
+  const isReel = isVideo && urlGenerator['isLikelyReel']?.();
 
   // Load media URLs asynchronously
   useEffect(() => {
@@ -127,8 +128,14 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
         </div>
       )}
       
-      {/* Simple media type indicator */}
-      {isVideo && (
+      {/* Enhanced media type indicators */}
+      {isReel && (
+        <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+          <span>🎬</span> REEL
+        </div>
+      )}
+      
+      {isVideo && !isReel && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs font-bold">
           VIDEO
         </div>
