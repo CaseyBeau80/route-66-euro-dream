@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Hero from "../components/Hero";
 import MapSection from "../components/MapSection";
 import CentennialSection from "../components/CentennialSection";
+import ComprehensiveListings from "../components/ComprehensiveListings";
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
@@ -24,14 +25,19 @@ const Index = () => {
         />
       </section>
 
-      {/* Interactive Map Section with fade-in */}
-      <FadeInSection id="map" delay={200}>
-        <MapSection isMapOpen={isMapOpen} setIsMapOpen={setIsMapOpen} />
+      {/* Countdown & Quick Facts Section with fade-in */}
+      <FadeInSection id="centennial" delay={200}>
+        <CentennialSection />
       </FadeInSection>
 
-      {/* Countdown & Quick Facts Section with fade-in */}
-      <FadeInSection id="centennial" delay={400}>
-        <CentennialSection />
+      {/* Route 66 Adventures Section (Comprehensive Listings) with fade-in */}
+      <FadeInSection id="adventures" delay={300}>
+        <ComprehensiveListings />
+      </FadeInSection>
+
+      {/* Interactive Map Section with fade-in - moved after centennial and listings */}
+      <FadeInSection id="map" delay={400}>
+        <MapSection isMapOpen={isMapOpen} setIsMapOpen={setIsMapOpen} />
       </FadeInSection>
 
       {/* Back to Top Button */}

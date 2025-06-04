@@ -88,8 +88,8 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
         </div>
       </div>
       
-      {/* Scroll Indicator */}
-      <ScrollIndicator targetId="map" />
+      {/* Scroll Indicator - now pointing to centennial section */}
+      <ScrollIndicator targetId="centennial" />
     </>
   );
 };
