@@ -25,11 +25,12 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
 
   const handleMediaLoad = () => {
     setImageError(false);
-    console.log(`✅ Successfully loaded media for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}: ${mediaUrls[currentImageIndex]}`);
+    console.log(`✅ Successfully loaded media for post ${post.id}`);
   };
 
   const handleMediaError = () => {
-    setRetryCount(prev => prev + 1);
+    console.log(`⚠️ Media error for post ${post.id}, showing fallback`);
+    setImageError(true);
   };
 
   const handleRetry = () => {
@@ -62,24 +63,22 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
 
   const handleImageIndexChange = (index: number) => {
     setCurrentImageIndex(index);
-    setRetryCount(prev => prev + 1);
   };
 
-  const handleFinalError = () => {
-    setImageError(true);
-  };
-
-  // If no valid media URLs, show error immediately
+  // If no valid media URLs, show Route 66 themed placeholder
   if (mediaUrls.length === 0) {
     console.error(`❌ No valid media URLs found for post ${post.id}`);
     return (
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
-        <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown">
+        <div className="w-full h-full flex items-center justify-center text-white">
           <div className="text-center">
-            <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm">No media available</p>
-            <p className="text-xs text-gray-400 mt-1">Instagram content unavailable</p>
+            <div className="text-4xl mb-2">🛣️</div>
+            <p className="text-sm font-bold mb-1">Route 66 Memory</p>
+            <p className="text-xs opacity-90">Content from the road</p>
           </div>
+        </div>
+        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+          Instagram Post
         </div>
       </div>
     );
@@ -95,7 +94,7 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
             currentImageIndex={currentImageIndex}
             isVideo={isVideo}
             onLoad={handleMediaLoad}
-            onError={handleFinalError}
+            onError={handleMediaError}
             onImageIndexChange={handleImageIndexChange}
             retryCount={retryCount}
           />
@@ -116,20 +115,17 @@ const MediaDisplay: React.FC<MediaDisplayProps> = ({ post }) => {
           />
         </>
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown text-white">
           <div className="text-center p-4">
-            <ImageOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm mb-1">{isVideo ? 'Video' : 'Image'} unavailable</p>
-            <p className="text-xs text-gray-400 mb-3">
-              Tried {mediaUrls.length} source{mediaUrls.length !== 1 ? 's' : ''}
-            </p>
-            <p className="text-xs text-gray-400 mb-3">Instagram content may be restricted</p>
+            <div className="text-4xl mb-2">🛣️</div>
+            <p className="text-sm font-bold mb-1">Route 66 Memory</p>
+            <p className="text-xs opacity-90 mb-3">Original content unavailable</p>
             <button
               onClick={handleRetry}
-              className="flex items-center gap-1 text-xs bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded transition-colors mx-auto"
+              className="flex items-center gap-1 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded transition-colors mx-auto backdrop-blur-sm"
             >
               <RotateCcw className="w-3 h-3" />
-              Retry
+              Try Again
             </button>
           </div>
         </div>

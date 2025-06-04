@@ -24,13 +24,17 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   retryCount
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
+  const [hasTriedAllUrls, setHasTriedAllUrls] = useState(false);
 
   useEffect(() => {
     setImageLoading(true);
+    setHasTriedAllUrls(false);
   }, [currentImageIndex, retryCount]);
 
   const handleMediaLoad = () => {
+    console.log(`✅ Successfully loaded media for post ${post.id} using URL ${currentImageIndex + 1}/${mediaUrls.length}`);
     setImageLoading(false);
+    setHasTriedAllUrls(false);
     onLoad();
   };
 
@@ -44,8 +48,9 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
       onImageIndexChange(currentImageIndex + 1);
       setImageLoading(true);
     } else {
-      console.log(`💥 All ${mediaUrls.length} media URLs failed for post ${post.id}, showing placeholder`);
+      console.log(`💥 All ${mediaUrls.length} media URLs failed for post ${post.id}, using placeholder`);
       setImageLoading(false);
+      setHasTriedAllUrls(true);
       onError();
     }
   };
@@ -53,6 +58,22 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
   const getCurrentMediaUrl = () => {
     return mediaUrls[currentImageIndex] || '';
   };
+
+  // If all URLs failed, show a Route 66 themed placeholder
+  if (hasTriedAllUrls) {
+    return (
+      <div className="w-full h-full relative bg-gradient-to-br from-route66-vintage-yellow via-route66-rust to-route66-vintage-brown flex items-center justify-center">
+        <div className="text-center text-white p-4">
+          <div className="text-4xl mb-2">🛣️</div>
+          <p className="text-sm font-bold mb-1">Route 66 Memory</p>
+          <p className="text-xs opacity-90">Image from the road</p>
+        </div>
+        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+          Instagram Post
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -62,7 +83,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
             <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2 animate-spin"></div>
             <p className="text-xs text-gray-500">
               Loading {isVideo ? 'video' : 'image'}...
-              {retryCount > 0 && <span className="block">Try {retryCount + 1}/{mediaUrls.length}</span>}
+              {retryCount > 0 && <span className="block">Try {currentImageIndex + 1}/{mediaUrls.length}</span>}
             </p>
           </div>
         </div>
