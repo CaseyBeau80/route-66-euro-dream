@@ -44,51 +44,50 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
   
   return (
     <div 
-      className="relative w-full h-[60vh] bg-cover bg-center bg-no-repeat overflow-hidden"
+      className="relative w-full h-[70vh] bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{
         backgroundImage: "url('/lovable-uploads/ef90c3a0-71fe-4f68-8671-5a455d6e9bc1.png')"
       }}
     >
-      {/* Lighter overlay for less prominence */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40"></div>
+      {/* Modern subtle overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-route66-text-primary/10 via-route66-text-primary/20 to-route66-text-primary/30"></div>
       
-      {/* Content overlay - more compact */}
+      {/* Content overlay */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto">
-        {/* Smaller Route 66 Shield */}
-        <div className="mb-6">
-          <div className="w-16 h-20 bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-xl flex flex-col items-center justify-center transform hover:scale-105 transition-all duration-300">
-            <div className="text-route66-text-muted text-[10px] font-bold tracking-wider">ROUTE</div>
-            <div className="text-route66-primary text-xl font-black leading-none">66</div>
-            <div className="text-route66-text-muted text-[8px] font-semibold tracking-wide">MOTHER ROAD</div>
+        {/* Modern Route 66 Shield */}
+        <div className="mb-8">
+          <div className="w-20 h-24 bg-white rounded-xl border-2 border-route66-border-strong shadow-2xl flex flex-col items-center justify-center transform hover:scale-105 transition-all duration-300 backdrop-blur-sm">
+            <div className="text-route66-text-muted text-xs font-bold tracking-wider uppercase">ROUTE</div>
+            <div className="text-route66-primary text-3xl font-black leading-none">66</div>
+            <div className="text-route66-text-muted text-[10px] font-semibold tracking-wide uppercase">MOTHER ROAD</div>
           </div>
         </div>
 
-        {/* More compact heading */}
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 text-white drop-shadow-xl max-w-4xl mx-auto">
+        {/* Modern typography */}
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white drop-shadow-2xl max-w-5xl mx-auto">
           {content.title}
         </h1>
         
-        {/* Smaller subtitle */}
-        <p className="text-base md:text-lg lg:text-xl mb-8 text-white/95 leading-relaxed max-w-3xl mx-auto drop-shadow-lg font-medium">
+        <p className="text-lg md:text-xl lg:text-2xl mb-10 text-white/95 leading-relaxed max-w-4xl mx-auto drop-shadow-lg font-medium">
           {content.subtitle}
         </p>
         
-        {/* Compact call to action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        {/* Modern call to action buttons */}
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <Button 
             size="lg" 
-            className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-base py-4 px-8 transform hover:scale-105 transition-all duration-300 shadow-xl font-semibold rounded-lg"
+            className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-lg py-6 px-10 transform hover:scale-105 transition-all duration-300 shadow-2xl font-semibold rounded-xl"
           >
             {content.cta}
-            <ArrowRight className="ml-2" size={18} />
+            <ArrowRight className="ml-3" size={20} />
           </Button>
           {onExploreMap && (
             <button 
               onClick={onExploreMap}
-              className="inline-flex items-center gap-2 text-white/95 font-semibold hover:text-white transition-colors duration-200 px-6 py-3 rounded-lg hover:bg-white/10 backdrop-blur-sm border border-white/20 hover:border-white/30"
+              className="inline-flex items-center gap-3 text-white/95 font-semibold hover:text-white transition-colors duration-200 px-8 py-4 rounded-xl hover:bg-white/10 backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
             >
-              <span className="text-base">{isMapOpen ? content.hideMap : content.exploreMap}</span>
-              {isMapOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              <span>{isMapOpen ? content.hideMap : content.exploreMap}</span>
+              {isMapOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
           )}
         </div>
