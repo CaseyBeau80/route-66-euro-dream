@@ -1,11 +1,11 @@
 
 import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
-import { TripPlanBuilder, TripPlan, DailySegment, SubStopTiming } from './planning/TripPlanBuilder';
+import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
 import { CityDisplayService } from './utils/CityDisplayService';
 
 // Re-export types for backward compatibility
-export type { TripStop, DailySegment, TripPlan, SubStopTiming };
+export type { TripStop, DailySegment, TripPlan, SegmentTiming };
 
 export class Route66TripPlannerService {
   static async planTrip(startCityName: string, endCityName: string, tripDays: number): Promise<TripPlan> {

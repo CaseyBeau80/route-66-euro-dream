@@ -1,6 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
+import { DriveTimeTarget } from './DriveTimeBalancingService';
+import { DestinationScoring } from './DestinationScoring';
 
 export class DestinationPriorityService {
   /**
@@ -19,7 +20,7 @@ export class DestinationPriorityService {
     console.log(`🏙️ Found ${destinationCities.length} destination cities to evaluate`);
 
     if (destinationCities.length > 0) {
-      const cityDestination = DriveTimeBalancingService.findBestDestinationByDriveTime(
+      const cityDestination = DestinationScoring.findBestDestinationByDriveTime(
         currentStop,
         destinationCities,
         driveTimeTarget
@@ -39,7 +40,7 @@ export class DestinationPriorityService {
     console.log(`🛤️ Found ${majorWaypoints.length} major waypoints to evaluate`);
 
     if (majorWaypoints.length > 0) {
-      const waypointDestination = DriveTimeBalancingService.findBestDestinationByDriveTime(
+      const waypointDestination = DestinationScoring.findBestDestinationByDriveTime(
         currentStop,
         majorWaypoints,
         driveTimeTarget
@@ -53,7 +54,7 @@ export class DestinationPriorityService {
 
     // Last resort: try all stops
     console.log(`🔄 Falling back to all stops for drive time selection`);
-    return DriveTimeBalancingService.findBestDestinationByDriveTime(
+    return DestinationScoring.findBestDestinationByDriveTime(
       currentStop,
       availableStops,
       driveTimeTarget
