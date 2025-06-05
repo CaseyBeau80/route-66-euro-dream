@@ -25,7 +25,7 @@ const Route66TripCalculator: React.FC = () => {
             🛣️ ROUTE 66 TRIP PLANNER
           </CardTitle>
           <p className="text-center text-route66-cream font-travel text-lg">
-            Plan your authentic Route 66 adventure with real stops and attractions
+            Turn your dream Route 66 road trip into a reality — plan every stop, uncover hidden gems, and hit the open road with confidence.
           </p>
         </CardHeader>
         <CardContent className="p-8">
