@@ -2,7 +2,7 @@
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class RouteOrderService {
-  // Route 66 order EXCLUDING Albuquerque (it's for Santa Fe branch only)
+  // Route 66 order INCLUDING Albuquerque in main route for Santa Fe branch flow
   private static readonly ROUTE_66_ORDER = [
     'Chicago',         // Starting point - Illinois
     'Joliet',          // Illinois
@@ -18,8 +18,10 @@ export class RouteOrderService {
     'Shamrock',        // Texas
     'Amarillo',
     'Tucumcari',       // New Mexico - BRANCH POINT for Santa Fe
-    'Santa Rosa',      // DIRECT CONNECTION to Gallup (NO Albuquerque in main route)
-    'Gallup',          // New Mexico/Arizona border - DIRECT from Santa Rosa
+    'Santa Rosa',      // BRANCH CONNECTION POINT
+    'Santa Fe',        // INCLUDED in main route for flowing branch
+    'Albuquerque',     // INCLUDED in main route for flowing branch
+    'Gallup',          // New Mexico/Arizona border - continues from Albuquerque
     'Holbrook',        // Arizona
     'Winslow',
     'Flagstaff',
@@ -37,48 +39,35 @@ export class RouteOrderService {
     santaFeCity: DestinationCity | null;
     albuquerqueCity: DestinationCity | null;
   } {
-    console.log('🔧 DEBUG: Starting city categorization - Albuquerque EXCLUDED from main route');
+    console.log('🔧 DEBUG: Starting city categorization - Albuquerque INCLUDED in main route for Santa Fe branch flow');
     console.log('🔧 DEBUG: Input cities:', cities.map(c => `${c.name}, ${c.state}`));
     
-    // Find Santa Fe
+    // Find Santa Fe and Albuquerque for reference (both will be in main route now)
     const santaFeCity = cities.find(city => 
       city.name.toLowerCase().includes('santa fe') && city.state === 'NM'
     ) || null;
 
-    // Find Albuquerque (for branch only, NOT main route)
     const albuquerqueCity = cities.find(city => 
       city.name.toLowerCase().includes('albuquerque') && city.state === 'NM'
     ) || null;
 
-    console.log('🔧 DEBUG: Branch cities found:', {
+    console.log('🔧 DEBUG: Santa Fe branch cities found in main route:', {
       santaFe: !!santaFeCity,
       albuquerque: !!albuquerqueCity
     });
 
-    // Get main route cities (excluding BOTH Santa Fe AND Albuquerque)
-    const mainRouteCandidates = cities.filter(city => {
-      const isSantaFe = city.name.toLowerCase().includes('santa fe') && city.state === 'NM';
-      const isAlbuquerque = city.name.toLowerCase().includes('albuquerque') && city.state === 'NM';
-      
-      if (isSantaFe) {
-        console.log('🔧 DEBUG: Excluding Santa Fe from main route:', city.name);
-      }
-      if (isAlbuquerque) {
-        console.log('🔧 DEBUG: Excluding Albuquerque from main route:', city.name);
-      }
-      
-      return !isSantaFe && !isAlbuquerque;
-    });
+    // ALL cities are now part of the main route (no exclusions)
+    const mainRouteCandidates = cities;
 
-    console.log('🔧 DEBUG: Main route candidates after exclusions:', 
+    console.log('🔧 DEBUG: All cities included in main route for flowing Santa Fe branch:', 
       mainRouteCandidates.map(c => `${c.name}, ${c.state}`)
     );
 
-    // Sort main route cities according to Route 66 order
+    // Sort all cities according to Route 66 order (including Santa Fe and Albuquerque)
     const orderedMainCities: DestinationCity[] = [];
     const usedCities = new Set<string>();
     
-    console.log('🛣️ MAIN ROUTE: Santa Rosa → Gallup DIRECT (NO Albuquerque)');
+    console.log('🛣️ MAIN ROUTE: Santa Rosa → Santa Fe → Albuquerque → Gallup FLOWING');
     
     for (const expectedCityName of this.ROUTE_66_ORDER) {
       let matchingCity: DestinationCity | undefined;
@@ -116,35 +105,49 @@ export class RouteOrderService {
         usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
         console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for main route position: ${expectedCityName}`);
         
-        // Special logging for critical connections
+        // Special logging for Santa Fe branch flow
         if (expectedCityName === 'Santa Rosa') {
-          console.log('🔧 DEBUG: Santa Rosa positioned for DIRECT connection to Gallup');
+          console.log('🔧 DEBUG: Santa Rosa positioned for FLOWING connection to Santa Fe');
+        }
+        if (expectedCityName === 'Santa Fe') {
+          console.log('🔧 DEBUG: Santa Fe positioned in MAIN ROUTE for flowing branch');
+        }
+        if (expectedCityName === 'Albuquerque') {
+          console.log('🔧 DEBUG: Albuquerque positioned in MAIN ROUTE for flowing branch');
         }
         if (expectedCityName === 'Gallup') {
-          console.log('🔧 DEBUG: Gallup positioned for DIRECT connection from Santa Rosa');
+          console.log('🔧 DEBUG: Gallup positioned for FLOWING connection from Albuquerque');
         }
       } else {
         console.warn(`⚠️ Could not find city for expected position: ${expectedCityName}`);
       }
     }
     
-    // Final validation
+    // Final validation of Santa Fe branch flow
     const santaRosaIndex = orderedMainCities.findIndex(city => 
       city.name.toLowerCase().includes('santa rosa')
+    );
+    const santaFeIndex = orderedMainCities.findIndex(city => 
+      city.name.toLowerCase().includes('santa fe')
+    );
+    const albuquerqueIndex = orderedMainCities.findIndex(city => 
+      city.name.toLowerCase().includes('albuquerque')
     );
     const gallupIndex = orderedMainCities.findIndex(city => 
       city.name.toLowerCase().includes('gallup')
     );
     
-    console.log('🔧 DEBUG: Route validation after ordering:', {
+    console.log('🔧 DEBUG: Santa Fe branch flow validation:', {
       totalCitiesOrdered: orderedMainCities.length,
-      albuquerquePresent: false, // Should be false now
       santaRosaIndex,
+      santaFeIndex,
+      albuquerqueIndex,
       gallupIndex,
-      directSantaRosaToGallup: santaRosaIndex !== -1 && gallupIndex !== -1 && Math.abs(gallupIndex - santaRosaIndex) === 1
+      flowingBranch: santaRosaIndex !== -1 && santaFeIndex !== -1 && albuquerqueIndex !== -1 && gallupIndex !== -1 &&
+                     santaFeIndex === santaRosaIndex + 1 && albuquerqueIndex === santaFeIndex + 1 && gallupIndex === albuquerqueIndex + 1
     });
     
-    console.log('🎯 Final route order EXCLUDES Albuquerque (for Santa Fe branch only)');
+    console.log('🎯 Final route order INCLUDES Santa Fe branch in main route for continuous flow');
     console.log('🔧 DEBUG: Final ordered cities:', 
       orderedMainCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
     );

@@ -15,8 +15,8 @@ export class DestinationCitiesRouteRenderer {
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
     try {
-      console.log('🛣️ FORCE RECREATING Route 66: Santa Rosa → Santa Fe branch, NO Albuquerque main route');
-      console.log('🔧 DEBUG: Starting route creation with cache clearing and force re-render');
+      console.log('🛣️ CREATING flowing Route 66 with integrated Santa Fe branch');
+      console.log('🔧 DEBUG: Starting flowing route creation with Santa Fe branch in main route');
       
       // Step 1: NUCLEAR cleanup with cache clearing
       await this.performNuclearCleanupWithCacheClearing();
@@ -24,13 +24,13 @@ export class DestinationCitiesRouteRenderer {
       // Step 2: Force recreation flag
       this.forceRecreateFlag = true;
       
-      // Step 3: Create the route using the refactored service
+      // Step 3: Create the flowing route with integrated Santa Fe branch
       await this.routeCreationService.createMainRoute(cities);
 
-      console.log('✅ HISTORICALLY ACCURATE Route 66 FORCE CREATED: Santa Rosa → Santa Fe branch, consistent road formatting');
+      console.log('✅ FLOWING Route 66 CREATED: Santa Rosa → Santa Fe → Albuquerque → Gallup continuous flow');
 
     } catch (error) {
-      console.error('❌ Error creating FORCE RECREATED Route 66:', error);
+      console.error('❌ Error creating flowing Route 66 with Santa Fe branch:', error);
       await this.cleanup();
       throw error;
     }
@@ -45,7 +45,7 @@ export class DestinationCitiesRouteRenderer {
   }
 
   async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up complete Route 66 with Santa Fe branch');
+    console.log('🧹 Cleaning up flowing Route 66 with integrated Santa Fe branch');
     this.routeCreationService.cleanup();
   }
 }
