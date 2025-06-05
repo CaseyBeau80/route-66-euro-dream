@@ -5,7 +5,7 @@ import { DriveTimeTarget, DriveTimeConstraints } from './DriveTimeConstraints';
 
 export class DestinationSelectionByDriveTime {
   /**
-   * Find best destination within drive time constraints with strong destination city preference
+   * Find best destination within drive time constraints with massive destination city preference
    */
   static findBestDestinationByDriveTime(
     currentStop: TripStop,
@@ -27,10 +27,8 @@ export class DestinationSelectionByDriveTime {
 
     console.log(`🏙️ Evaluating ${destinationCities.length} destination cities and ${otherStops.length} other stops`);
 
-    // Evaluate all stops but give massive preference to destination cities
-    const allStops = [...destinationCities, ...otherStops];
-
-    for (const stop of allStops) {
+    // Try destination cities first with MASSIVE preference
+    for (const stop of destinationCities) {
       const distance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         stop.latitude, stop.longitude
@@ -48,10 +46,58 @@ export class DestinationSelectionByDriveTime {
       let score = timeDiff;
 
       // MASSIVE bonus for destination cities - this is the key fix
-      if (stop.category === 'destination_city') {
-        score -= 10.0; // Huge preference for destination cities
-        console.log(`🏙️ Destination city ${stop.name}: score reduced by 10.0 (massive bonus)`);
+      score -= 15.0; // Enormous preference for destination cities
+
+      // Bonus for major stops
+      if (stop.is_major_stop) {
+        score -= 1.0;
       }
+
+      // Bonus for being in optimal range
+      if (driveTimeHours >= constraints.optimal.min && 
+          driveTimeHours <= constraints.optimal.max) {
+        score -= 0.5;
+      }
+
+      console.log(`🏙️ Destination city ${stop.name}: ${driveTimeHours.toFixed(1)}h drive, score: ${score.toFixed(2)} (MASSIVE BONUS APPLIED)`);
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestStop = stop;
+      }
+    }
+
+    // If we found a destination city, use it
+    if (bestStop) {
+      const distance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        bestStop.latitude, bestStop.longitude
+      );
+      const actualDriveTime = distance / avgSpeedMph;
+      
+      console.log(`✅ Selected destination city ${bestStop.name}: ${Math.round(distance)}mi, ${actualDriveTime.toFixed(1)}h drive`);
+      return bestStop;
+    }
+
+    // Only if no destination cities work, try other stops
+    console.log(`🔄 No destination cities available, trying other stops`);
+    
+    for (const stop of otherStops) {
+      const distance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+      
+      const driveTimeHours = distance / avgSpeedMph;
+      
+      // Skip if outside absolute constraints
+      if (driveTimeHours < driveTimeTarget.minHours || driveTimeHours > driveTimeTarget.maxHours) {
+        continue;
+      }
+
+      // Calculate score based on how close to target
+      const timeDiff = Math.abs(driveTimeHours - driveTimeTarget.targetHours);
+      let score = timeDiff;
 
       // Bonus for major stops
       if (stop.is_major_stop) {
@@ -85,5 +131,89 @@ export class DestinationSelectionByDriveTime {
     }
 
     return bestStop;
+  }
+
+  /**
+   * Validate geographic progression to ensure we're moving toward the destination
+   */
+  static validateGeographicProgression(
+    currentStop: TripStop,
+    candidateStop: TripStop,
+    finalDestination: TripStop
+  ): boolean {
+    const currentToFinal = DistanceCalculationService.calculateDistance(
+      currentStop.latitude, currentStop.longitude,
+      finalDestination.latitude, finalDestination.longitude
+    );
+
+    const candidateToFinal = DistanceCalculationService.calculateDistance(
+      candidateStop.latitude, candidateStop.longitude,
+      finalDestination.latitude, finalDestination.longitude
+    );
+
+    // Ensure we're getting closer to the final destination
+    return candidateToFinal < currentToFinal;
+  }
+
+  /**
+   * Find intermediate destinations to balance drive times
+   */
+  static findIntermediateDestinations(
+    startStop: TripStop,
+    endStop: TripStop,
+    availableStops: TripStop[],
+    totalDays: number
+  ): TripStop[] {
+    console.log(`🎯 Finding intermediate destinations for ${totalDays} days`);
+    
+    const destinations: TripStop[] = [];
+    let currentStop = startStop;
+    
+    // Calculate target distance per day
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+    
+    const targetDistancePerDay = totalDistance / totalDays;
+    
+    for (let day = 1; day < totalDays; day++) {
+      const targetDistance = targetDistancePerDay * day;
+      
+      // Find destination cities closest to target distance
+      const destinationCities = availableStops.filter(stop => 
+        stop.category === 'destination_city' && 
+        !destinations.some(dest => dest.id === stop.id)
+      );
+      
+      let bestDest: TripStop | null = null;
+      let bestScore = Number.MAX_VALUE;
+      
+      for (const city of destinationCities) {
+        const distanceFromStart = DistanceCalculationService.calculateDistance(
+          startStop.latitude, startStop.longitude,
+          city.latitude, city.longitude
+        );
+        
+        // Check geographic progression
+        if (!this.validateGeographicProgression(startStop, city, endStop)) {
+          continue;
+        }
+        
+        const score = Math.abs(distanceFromStart - targetDistance);
+        
+        if (score < bestScore) {
+          bestScore = score;
+          bestDest = city;
+        }
+      }
+      
+      if (bestDest) {
+        destinations.push(bestDest);
+        console.log(`📍 Day ${day + 1} destination: ${bestDest.name}`);
+      }
+    }
+    
+    return destinations;
   }
 }

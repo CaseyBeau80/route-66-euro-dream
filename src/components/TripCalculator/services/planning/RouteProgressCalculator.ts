@@ -15,9 +15,9 @@ export class RouteProgressCalculator {
     // Clamp progress to valid range
     const clampedProgress = Math.min(100, Math.max(0, progressPercent));
     
-    if (clampedProgress <= 15) return 'Illinois & Missouri';
-    if (clampedProgress <= 35) return 'Oklahoma & Texas';
-    if (clampedProgress <= 60) return 'New Mexico';
+    if (clampedProgress <= 20) return 'Illinois & Missouri';
+    if (clampedProgress <= 40) return 'Oklahoma & Texas';
+    if (clampedProgress <= 65) return 'New Mexico';
     if (clampedProgress <= 85) return 'Arizona';
     return 'California';
   }
@@ -32,21 +32,21 @@ export class RouteProgressCalculator {
   } {
     const clampedProgress = Math.min(100, Math.max(0, progressPercent));
     
-    if (clampedProgress <= 15) {
+    if (clampedProgress <= 20) {
       return {
         section: 'Illinois & Missouri',
         description: 'Beginning of the Mother Road',
         states: ['Illinois', 'Missouri']
       };
     }
-    if (clampedProgress <= 35) {
+    if (clampedProgress <= 40) {
       return {
         section: 'Oklahoma & Texas',
         description: 'Heart of Route 66',
         states: ['Oklahoma', 'Texas']
       };
     }
-    if (clampedProgress <= 60) {
+    if (clampedProgress <= 65) {
       return {
         section: 'New Mexico',
         description: 'Land of Enchantment',
@@ -65,5 +65,21 @@ export class RouteProgressCalculator {
       description: 'Pacific Coast Finale',
       states: ['California']
     };
+  }
+
+  /**
+   * Calculate accurate cumulative distance for route section determination
+   */
+  static calculateAccurateCumulativeDistance(
+    segmentIndex: number,
+    segments: Array<{ approximateMiles: number }>
+  ): number {
+    let cumulativeDistance = 0;
+    
+    for (let i = 0; i <= segmentIndex; i++) {
+      cumulativeDistance += segments[i]?.approximateMiles || 0;
+    }
+    
+    return cumulativeDistance;
   }
 }

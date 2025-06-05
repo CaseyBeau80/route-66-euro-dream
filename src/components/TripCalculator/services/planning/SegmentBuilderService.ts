@@ -11,7 +11,7 @@ import { DailySegment } from './DailySegmentCreator';
 
 export class SegmentBuilderService {
   /**
-   * Build daily segments from optimized destinations
+   * Build daily segments from optimized destinations with accurate route section calculation
    */
   static buildSegmentsFromDestinations(
     startStop: TripStop,
@@ -23,7 +23,6 @@ export class SegmentBuilderService {
   ): DailySegment[] {
     const dailySegments: DailySegment[] = [];
     let currentStop = startStop;
-    let cumulativeDistance = 0;
     let remainingStops = [...allStops];
 
     // Remove start and destinations from remaining stops to prevent duplication
@@ -81,9 +80,15 @@ export class SegmentBuilderService {
       // Get drive time category for this segment
       const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(totalSegmentDriveTime);
 
-      // Calculate route section based on cumulative progress
+      // Calculate accurate cumulative distance for route section
+      const previousSegments = dailySegments.map(s => ({ approximateMiles: s.approximateMiles }));
+      const cumulativeDistance = RouteProgressCalculator.calculateAccurateCumulativeDistance(
+        day - 1, 
+        [...previousSegments, { approximateMiles: Math.round(segmentDistance) }]
+      );
+      
       const progressPercent = RouteProgressCalculator.calculateCumulativeProgress(
-        cumulativeDistance + segmentDistance, 
+        cumulativeDistance, 
         totalDistance
       );
       const routeSection = RouteProgressCalculator.getRouteSection(progressPercent);
@@ -115,9 +120,8 @@ export class SegmentBuilderService {
       });
 
       currentStop = dayDestination;
-      cumulativeDistance += segmentDistance;
       
-      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops`);
+      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops, ${routeSection}`);
     }
 
     // Log final balance summary
