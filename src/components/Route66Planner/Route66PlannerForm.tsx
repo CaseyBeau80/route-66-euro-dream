@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Calendar, MapPin } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Zap } from 'lucide-react';
 import DestinationCitySelector from './DestinationCitySelector';
+import ApiKeyInput from './components/ApiKeyInput';
 import { PlannerFormData, TripItinerary } from './types';
 import { usePlannerService } from './hooks/usePlannerService';
+import { GoogleDistanceMatrixService } from './services/GoogleDistanceMatrixService';
 
 interface Route66PlannerFormProps {
   formData: PlannerFormData;
@@ -25,6 +27,7 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
   setIsPlanning
 }) => {
   const { planTrip } = usePlannerService();
+  const [showApiKeyInput, setShowApiKeyInput] = useState(!GoogleDistanceMatrixService.isAvailable());
 
   const handlePlanTrip = async () => {
     if (!formData.startDate || !formData.startCity || !formData.endCity) {
@@ -43,6 +46,7 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
   };
 
   const isFormValid = formData.startDate && formData.startCity && formData.endCity;
+  const hasApiKey = GoogleDistanceMatrixService.isAvailable();
 
   return (
     <div className="space-y-6">
@@ -50,6 +54,24 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
         <Calendar className="w-5 h-5" />
         <h2 className="text-xl">Plan Your Journey</h2>
       </div>
+
+      {/* API Key Configuration */}
+      {(!hasApiKey || showApiKeyInput) && (
+        <ApiKeyInput onApiKeySet={() => setShowApiKeyInput(false)} />
+      )}
+
+      {/* Enhanced Features Notice */}
+      {hasApiKey && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2 text-green-700 font-medium mb-2">
+            <Zap className="w-5 h-5" />
+            Enhanced Mode Activated
+          </div>
+          <p className="text-sm text-green-600">
+            Using Google Maps for accurate driving distances and real travel times!
+          </p>
+        </div>
+      )}
 
       {/* Start Date */}
       <div className="space-y-2">
@@ -192,8 +214,8 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
       {/* Info */}
       <div className="bg-[#f1f5f9] p-4 rounded-lg border border-[#e2e8f0]">
         <p className="text-sm text-[#1e293b] text-center">
-          🚗 <strong>Smart Planning:</strong> Our planner uses real Route 66 destination cities 
-          and attractions to create an authentic road trip experience with day-by-day itineraries!
+          🚗 <strong>Smart Planning:</strong> Our planner uses {hasApiKey ? 'Google Maps API for precise' : 'geographic calculations for estimated'} distances 
+          and Route 66 destination cities to create an authentic road trip experience!
         </p>
       </div>
     </div>
