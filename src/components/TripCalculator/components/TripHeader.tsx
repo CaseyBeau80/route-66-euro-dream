@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TripPlan } from '../services/Route66TripPlannerService';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 import ShareTripActions from '../ShareTripActions';
 
 interface TripHeaderProps {
@@ -11,6 +11,36 @@ interface TripHeaderProps {
 
 const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
+
+  // Calculate total drive time from daily segments
+  const totalDriveTimeHours = tripPlan.dailySegments.reduce((total, segment) => {
+    // Parse drive time from string format like "2.5 hours" or "2h 30m"
+    const timeStr = segment.drivingTime;
+    let hours = 0;
+    
+    if (timeStr.includes('hours')) {
+      hours = parseFloat(timeStr.split(' ')[0]);
+    } else if (timeStr.includes('h')) {
+      const parts = timeStr.split(' ');
+      hours = parseInt(parts[0].replace('h', ''));
+      if (parts[1] && parts[1].includes('m')) {
+        hours += parseInt(parts[1].replace('m', '')) / 60;
+      }
+    }
+    
+    return total + hours;
+  }, 0);
+
+  const formatDriveTime = (hours: number): string => {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    
+    if (minutes === 0) {
+      return `${wholeHours}h`;
+    } else {
+      return `${wholeHours}h ${minutes}m`;
+    }
+  };
 
   return (
     <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
@@ -34,11 +64,14 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
           </div>
           
           <div className="flex-shrink-0 text-center px-4">
-            <div className="bg-route66-red text-white rounded-full px-4 py-2 font-route66 text-lg">
+            <div className="bg-route66-red text-white rounded-full px-4 py-2 font-route66 text-lg mb-2">
               {tripPlan.totalDays} DAYS
             </div>
-            <div className="mt-2 text-route66-vintage-brown font-travel text-sm">
+            <div className="text-route66-vintage-brown font-travel text-sm mb-1">
               {tripPlan.totalMiles} miles
+            </div>
+            <div className="text-route66-vintage-blue font-travel text-sm font-semibold">
+              {formatDriveTime(totalDriveTimeHours)} drive time
             </div>
           </div>
           
