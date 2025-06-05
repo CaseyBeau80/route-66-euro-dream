@@ -1,14 +1,45 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Camera, Star } from 'lucide-react';
-import { TripPlan, DailySegment, TripStop } from './services/Route66TripPlannerService';
+import { MapPin, Clock, Camera, Star, ArrowRight } from 'lucide-react';
+import { TripPlan, DailySegment, TripStop, SubStopTiming } from './services/Route66TripPlannerService';
 import ShareTripActions from './ShareTripActions';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
 }
+
+const formatDriveTime = (hours: number): string => {
+  if (hours < 1) {
+    const minutes = Math.round(hours * 60);
+    return `${minutes}m`;
+  }
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+};
+
+const SubStopTimingCard: React.FC<{ timing: SubStopTiming }> = ({ timing }) => {
+  return (
+    <div className="flex items-center gap-2 p-2 bg-route66-vintage-beige rounded border border-route66-tan text-xs">
+      <div className="flex-1 text-route66-vintage-brown font-semibold">
+        {timing.fromStop.name}
+      </div>
+      <div className="flex items-center gap-1 text-route66-vintage-brown">
+        <ArrowRight className="h-3 w-3" />
+        <span className="font-mono">{timing.distanceMiles}mi</span>
+        <span className="text-route66-text-muted">•</span>
+        <Clock className="h-3 w-3" />
+        <span className="font-mono">{formatDriveTime(timing.driveTimeHours)}</span>
+      </div>
+      <div className="flex-1 text-right text-route66-vintage-brown font-semibold">
+        {timing.toStop.name}
+      </div>
+    </div>
+  );
+};
 
 const StopCard: React.FC<{ stop: TripStop }> = ({ stop }) => {
   const getCategoryColor = (category: string) => {
@@ -82,12 +113,27 @@ const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>~{segment.driveTimeHours} hours</span>
+            <span>~{formatDriveTime(segment.driveTimeHours)} total</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Drive Time Breakdown */}
+          {segment.subStopTimings && segment.subStopTimings.length > 0 && (
+            <div>
+              <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 text-sm">
+                Drive Time Breakdown
+              </h4>
+              <div className="space-y-1">
+                {segment.subStopTimings.map((timing, index) => (
+                  <SubStopTimingCard key={index} timing={timing} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recommended Stops */}
           <div>
             <h4 className="font-travel font-bold text-route66-vintage-brown mb-2">
               Recommended Stops ({segment.recommendedStops.length})
@@ -186,8 +232,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan, sha
       {/* Travel Tips */}
       <div className="mt-6 p-4 bg-route66-vintage-yellow rounded-lg border-2 border-route66-vintage-brown">
         <p className="text-sm text-route66-navy font-travel text-center">
-          💡 <strong>Smart Route Planning:</strong> This itinerary is based on actual Route 66 stops, 
-          attractions, and historic points of interest. Times may vary based on traffic and how long 
+          💡 <strong>Smart Route Planning:</strong> This itinerary shows drive times between each stop. 
+          Times are based on 55mph average speed and may vary based on traffic, road conditions, and how long 
           you spend at each location. Don't forget to check attraction hours and seasonal availability!
         </p>
       </div>

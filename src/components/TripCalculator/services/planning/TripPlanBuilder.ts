@@ -4,6 +4,13 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
 
+export interface SubStopTiming {
+  fromStop: TripStop;
+  toStop: TripStop;
+  distanceMiles: number;
+  driveTimeHours: number;
+}
+
 export interface DailySegment {
   day: number;
   title: string;
@@ -12,6 +19,7 @@ export interface DailySegment {
   approximateMiles: number;
   recommendedStops: TripStop[];
   driveTimeHours: number;
+  subStopTimings: SubStopTiming[];
 }
 
 export interface TripPlan {
@@ -70,6 +78,9 @@ export class TripPlanBuilder {
       const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
       const endCityDisplay = CityDisplayService.getCityDisplayName(targetStop);
 
+      // Calculate sub-stop timings
+      const subStopTimings = this.calculateSubStopTimings(currentStop, targetStop, segmentStops);
+
       console.log(`📅 Day ${day}: ${startCityDisplay} to ${endCityDisplay}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops`);
 
       dailySegments.push({
@@ -79,7 +90,8 @@ export class TripPlanBuilder {
         endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
-        driveTimeHours: Math.round((segmentDistance / 55) * 10) / 10 // Assuming 55 mph average
+        driveTimeHours: Math.round((segmentDistance / 55) * 10) / 10, // Assuming 55 mph average
+        subStopTimings
       });
 
       // Remove used stops from remaining
@@ -102,5 +114,41 @@ export class TripPlanBuilder {
       totalMiles: Math.round(totalDistance),
       dailySegments
     };
+  }
+
+  /**
+   * Calculate drive times between consecutive stops in a segment
+   */
+  private static calculateSubStopTimings(
+    startStop: TripStop,
+    endStop: TripStop,
+    segmentStops: TripStop[]
+  ): SubStopTiming[] {
+    const timings: SubStopTiming[] = [];
+    
+    // Create the full journey path: start -> segmentStops -> end
+    const fullPath = [startStop, ...segmentStops, endStop];
+    
+    // Calculate timing between each consecutive pair
+    for (let i = 0; i < fullPath.length - 1; i++) {
+      const fromStop = fullPath[i];
+      const toStop = fullPath[i + 1];
+      
+      const distance = DistanceCalculationService.calculateDistance(
+        fromStop.latitude, fromStop.longitude,
+        toStop.latitude, toStop.longitude
+      );
+      
+      const driveTime = distance / 55; // 55 mph average speed
+      
+      timings.push({
+        fromStop,
+        toStop,
+        distanceMiles: Math.round(distance * 10) / 10,
+        driveTimeHours: Math.round(driveTime * 10) / 10
+      });
+    }
+    
+    return timings;
   }
 }
