@@ -7,7 +7,7 @@ const CountdownFooter: React.FC = () => {
       className="relative z-10 mx-4 p-4 rounded-lg"
       style={{
         background: `
-          linear-gradient(135deg, #DC2626 0%, #EF4444 50%, #DC2626 100%),
+          linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #2563eb 100%),
           repeating-linear-gradient(
             90deg,
             transparent,
@@ -22,7 +22,7 @@ const CountdownFooter: React.FC = () => {
           inset 0 2px 8px rgba(255,255,255,0.2),
           inset 0 -2px 8px rgba(0,0,0,0.3),
           0 4px 12px rgba(0,0,0,0.4),
-          0 0 20px rgba(255, 255, 255, 0.3)
+          0 0 20px rgba(59, 130, 246, 0.3)
         `
       }}
     >
@@ -32,7 +32,7 @@ const CountdownFooter: React.FC = () => {
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#FFFFFF',
           textShadow: `
-            2px 2px 0px #1E40AF,
+            2px 2px 0px #334155,
             4px 4px 8px rgba(0,0,0,0.8),
             0 0 15px rgba(255, 255, 255, 0.8)
           `,
@@ -47,7 +47,7 @@ const CountdownFooter: React.FC = () => {
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#F8F9FA',
           textShadow: `
-            1px 1px 0px #1E40AF,
+            1px 1px 0px #334155,
             2px 2px 4px rgba(0,0,0,0.8),
             0 0 10px rgba(248, 249, 250, 0.6)
           `,

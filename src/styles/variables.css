@@ -21,11 +21,13 @@
   --route66-text-secondary: #334155;  /* Medium slate for secondary text */
   --route66-text-muted: #64748b;      /* Light slate for muted text */
   
-  /* Accent Colors - Vibrant but Refined */
-  --route66-accent-orange: #f97316;   /* Modern orange */
-  --route66-accent-green: #22c55e;    /* Success green */
-  --route66-accent-red: #ef4444;      /* Error red */
-  --route66-accent-yellow: #eab308;   /* Warning yellow */
+  /* Accent Colors - Minimal but Effective */
+  --route66-accent-blue: #3b82f6;     /* Primary accent blue */
+  --route66-accent-gray: #6b7280;     /* Neutral accent */
+  --route66-accent-light: #e5e7eb;    /* Light accent for borders */
+  --route66-accent-success: #10b981;  /* Success green (minimal use) */
+  --route66-accent-warning: #f59e0b;  /* Warning amber (minimal use) */
+  --route66-accent-error: #ef4444;    /* Error red (minimal use) */
   
   /* Interactive States */
   --route66-hover: #f1f5f9;          /* Light gray hover */
@@ -37,27 +39,27 @@
   --route66-border-strong: #cbd5e1;   /* Stronger borders */
   --route66-divider: #f1f5f9;        /* Very light dividers */
   
-  /* Legacy color mappings for backward compatibility */
-  --route66-red: var(--route66-accent-red);
-  --route66-blue: var(--route66-primary);
-  --route66-orange: var(--route66-accent-orange);
-  --route66-tan: #f5f5f4;
-  --route66-gray: var(--route66-secondary);
-  --route66-yellow: var(--route66-accent-yellow);
-  --route66-cream: var(--route66-background);
-  --route66-dark: var(--route66-text-primary);
-  --route66-asphalt: var(--route66-secondary-dark);
-  --route66-charcoal: var(--route66-text-secondary);
-  --route66-vintage-white: var(--route66-background-alt);
-  --route66-warm-white: var(--route66-background);
-  --route66-sky-blue: var(--route66-primary-light);
-  --route66-neon-red: var(--route66-accent-red);
-  --route66-sunshine-yellow: var(--route66-accent-yellow);
-  --route66-vintage-yellow: var(--route66-accent-yellow);
-  --route66-vintage-red: var(--route66-accent-red);
-  --route66-vintage-blue: var(--route66-primary);
-  --route66-vintage-brown: #92400e;
-  --route66-vintage-beige: #f5f5f4;
-  --route66-vintage-turquoise: #06b6d4;
-  --route66-rust: #dc2626;
+  /* Legacy color mappings for backward compatibility - NOW MAPPED TO MODERN COLORS */
+  --route66-red: var(--route66-accent-error);     /* Only for error states */
+  --route66-blue: var(--route66-primary);         /* Primary blue */
+  --route66-orange: var(--route66-accent-warning); /* Only for warnings */
+  --route66-tan: #f5f5f4;                         /* Neutral background */
+  --route66-gray: var(--route66-secondary);       /* Standard gray */
+  --route66-yellow: var(--route66-accent-warning); /* Warning color */
+  --route66-cream: var(--route66-background);     /* White background */
+  --route66-dark: var(--route66-text-primary);    /* Dark text */
+  --route66-asphalt: var(--route66-secondary-dark); /* Dark gray */
+  --route66-charcoal: var(--route66-text-secondary); /* Medium text */
+  --route66-vintage-white: var(--route66-background-alt); /* Light background */
+  --route66-warm-white: var(--route66-background); /* White */
+  --route66-sky-blue: var(--route66-primary-light); /* Light blue */
+  --route66-neon-red: var(--route66-accent-error); /* Error red */
+  --route66-sunshine-yellow: var(--route66-accent-warning); /* Warning */
+  --route66-vintage-yellow: var(--route66-accent-warning); /* Warning */
+  --route66-vintage-red: var(--route66-accent-error); /* Error */
+  --route66-vintage-blue: var(--route66-primary); /* Primary blue */
+  --route66-vintage-brown: #92400e;               /* Brown (minimal use) */
+  --route66-vintage-beige: #f5f5f4;              /* Neutral */
+  --route66-vintage-turquoise: var(--route66-primary-light); /* Light blue */
+  --route66-rust: var(--route66-accent-error);    /* Error red */
 }

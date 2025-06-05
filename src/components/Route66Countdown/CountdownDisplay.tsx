@@ -21,7 +21,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
           className="relative w-32 h-32 md:w-40 md:h-40 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
           style={{
             background: `
-              linear-gradient(135deg, #DC2626 0%, #DC2626CC 100%),
+              linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%),
               repeating-linear-gradient(
                 90deg,
                 transparent,
@@ -36,7 +36,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
               inset 0 2px 8px rgba(255,255,255,0.2),
               inset 0 -2px 8px rgba(0,0,0,0.3),
               0 4px 12px rgba(0,0,0,0.4),
-              0 0 20px rgba(255, 255, 255, 0.3)
+              0 0 20px rgba(59, 130, 246, 0.3)
             `
           }}
         >
@@ -61,8 +61,8 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
           className="text-xl md:text-2xl font-bold tracking-widest text-center mb-4"
           style={{
             fontFamily: "'Russo One', 'Arial Black', sans-serif",
-            color: '#1E40AF',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.6), 0 0 8px rgba(255, 255, 255, 0.4)',
+            color: '#2563eb',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.6), 0 0 8px rgba(37, 99, 235, 0.4)',
             letterSpacing: '0.15em'
           }}
         >
@@ -76,8 +76,8 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
           className="text-lg md:text-xl font-bold tracking-wide"
           style={{
             fontFamily: "'Russo One', 'Arial Black', sans-serif",
-            color: '#DC2626',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.6), 0 0 8px rgba(255, 255, 255, 0.4)',
+            color: '#334155',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.6), 0 0 8px rgba(51, 65, 85, 0.4)',
             letterSpacing: '0.1em'
           }}
         >

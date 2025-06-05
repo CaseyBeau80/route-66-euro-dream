@@ -6,11 +6,11 @@ const ComprehensiveListings = () => {
   const { categories } = useListingsData();
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-route66-background-section">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16 bg-white p-8 rounded-xl shadow-2xl border-4 border-route66-red">
-          <h1 className="text-4xl font-route66 text-route66-red mb-4 font-bold">Discover Route 66</h1>
-          <p className="text-xl text-gray-900 max-w-3xl mx-auto font-semibold">
+        <div className="text-center mb-16 bg-route66-background p-8 rounded-xl shadow-2xl border-4 border-route66-primary">
+          <h1 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">Discover Route 66</h1>
+          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
             Explore the complete collection of destinations, attractions, and hidden gems along America's most famous highway
           </p>
         </div>
