@@ -1,12 +1,14 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { WeatherData } from '@/components/Route66Map/components/weather/WeatherTypes';
 import { GeocodingService } from '../services/GeocodingService';
 import EnhancedWeatherApiKeyInput from '@/components/Route66Map/components/weather/EnhancedWeatherApiKeyInput';
-import WeatherLoading from './weather/WeatherLoading';
+import WeatherRequestDeduplicationService from './weather/WeatherRequestDeduplicationService';
+import EnhancedWeatherLoading from './weather/EnhancedWeatherLoading';
 import WeatherError from './weather/WeatherError';
+import WeatherFallback from './weather/WeatherFallback';
 import WeatherStatusBadge from './weather/WeatherStatusBadge';
 import CurrentWeatherDisplay from './weather/CurrentWeatherDisplay';
 import SeasonalWeatherDisplay from './weather/SeasonalWeatherDisplay';
@@ -20,9 +22,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [apiKeyRefreshTrigger, setApiKeyRefreshTrigger] = useState(0);
   
   const weatherService = EnhancedWeatherService.getInstance();
+  const deduplicationService = WeatherRequestDeduplicationService.getInstance();
+  const abortControllerRef = useRef<AbortController | null>(null);
   const hasApiKey = weatherService.hasApiKey();
 
   // Calculate the actual date for this segment
@@ -42,67 +47,106 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
     segmentDay: segment.day,
     hasWeatherData: !!weather,
     loading,
-    error
+    error,
+    retryCount
   });
 
-  const handleApiKeySet = () => {
+  const handleApiKeySet = useCallback(() => {
     console.log('🔑 SegmentWeatherWidget: Enhanced API key set, triggering refresh');
     setApiKeyRefreshTrigger(prev => prev + 1);
-  };
-  
-  useEffect(() => {
-    const fetchWeather = async () => {
-      console.log(`🌤️ SegmentWeatherWidget: fetchWeather called for ${segment.endCity}`, {
-        hasApiKey,
-        segmentDate,
-        daysFromNow
-      });
+    setRetryCount(0);
+    setError(null);
+  }, []);
 
-      // Don't fetch if no API key
-      if (!hasApiKey) {
-        console.log('🌤️ SegmentWeatherWidget: No API key, skipping fetch');
-        return;
+  const handleRetry = useCallback(() => {
+    console.log(`🔄 SegmentWeatherWidget: Retry requested for ${segment.endCity} (attempt ${retryCount + 1})`);
+    setRetryCount(prev => prev + 1);
+    setError(null);
+  }, [segment.endCity, retryCount]);
+
+  const handleTimeout = useCallback(() => {
+    console.log(`⏰ SegmentWeatherWidget: Request timeout for ${segment.endCity}`);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setLoading(false);
+    setError('Request timeout - please check your connection');
+  }, [segment.endCity]);
+  
+  const fetchWeather = useCallback(async () => {
+    console.log(`🌤️ SegmentWeatherWidget: fetchWeather called for ${segment.endCity}`, {
+      hasApiKey,
+      segmentDate,
+      daysFromNow,
+      retryCount
+    });
+
+    // Don't fetch if no API key
+    if (!hasApiKey) {
+      console.log('🌤️ SegmentWeatherWidget: No API key, skipping fetch');
+      return;
+    }
+    
+    const coordinates = GeocodingService.getCoordinatesForCity(segment.endCity);
+    if (!coordinates) {
+      console.warn(`🌤️ SegmentWeatherWidget: No coordinates found for ${segment.endCity}`);
+      setError(`No coordinates found for ${segment.endCity}`);
+      return;
+    }
+
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`🌤️ SegmentWeatherWidget: Starting deduplicated weather request for ${segment.endCity}`);
+      
+      const requestKey = `weather-${coordinates.lat}-${coordinates.lng}-${segment.endCity}`;
+      const weatherData = await deduplicationService.deduplicateRequest(
+        requestKey,
+        () => weatherService.getWeatherData(coordinates.lat, coordinates.lng, segment.endCity),
+        12000 // 12 second timeout per request
+      );
+      
+      console.log(`🌤️ SegmentWeatherWidget: Weather fetch result for ${segment.endCity}:`, weatherData);
+      
+      if (weatherData && !abortControllerRef.current?.signal.aborted) {
+        setWeather(weatherData);
+        setRetryCount(0); // Reset retry count on success
+        console.log(`✅ SegmentWeatherWidget: Weather data set for ${segment.endCity}`);
+      } else if (!abortControllerRef.current?.signal.aborted) {
+        console.warn(`❌ SegmentWeatherWidget: No weather data returned for ${segment.endCity}`);
+        setError('Unable to fetch weather data');
       }
-      
-      const coordinates = GeocodingService.getCoordinatesForCity(segment.endCity);
-      if (!coordinates) {
-        console.warn(`🌤️ SegmentWeatherWidget: No coordinates found for ${segment.endCity}`);
-        setError(`No coordinates found for ${segment.endCity}`);
-        return;
-      }
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        console.log(`🌤️ SegmentWeatherWidget: Fetching weather for ${segment.endCity}`, coordinates);
-        
-        const weatherData = await weatherService.getWeatherData(
-          coordinates.lat, 
-          coordinates.lng, 
-          segment.endCity
-        );
-        
-        console.log(`🌤️ SegmentWeatherWidget: Weather fetch result for ${segment.endCity}:`, weatherData);
-        
-        if (weatherData) {
-          setWeather(weatherData);
-          console.log(`✅ SegmentWeatherWidget: Weather data set for ${segment.endCity}`);
-        } else {
-          console.warn(`❌ SegmentWeatherWidget: No weather data returned for ${segment.endCity}`);
-          setError('Unable to fetch weather data');
-        }
-      } catch (err) {
+    } catch (err) {
+      if (!abortControllerRef.current?.signal.aborted) {
         console.error(`❌ SegmentWeatherWidget: Weather fetch error for ${segment.endCity}:`, err);
-        setError('Weather service temporarily unavailable');
-      } finally {
+        const errorMessage = err instanceof Error ? err.message : 'Weather service error';
+        setError(errorMessage);
+      }
+    } finally {
+      if (!abortControllerRef.current?.signal.aborted) {
         setLoading(false);
         console.log(`🌤️ SegmentWeatherWidget: Finished fetching weather for ${segment.endCity}`);
       }
-    };
-    
+    }
+  }, [segment.endCity, hasApiKey, retryCount, weatherService, deduplicationService]);
+
+  useEffect(() => {
     fetchWeather();
-  }, [segment.endCity, hasApiKey, apiKeyRefreshTrigger]);
+    
+    // Cleanup on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchWeather, apiKeyRefreshTrigger]);
 
   const renderWeatherContent = () => {
     console.log(`🌤️ SegmentWeatherWidget: renderWeatherContent for ${segment.endCity}`, {
@@ -111,7 +155,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       error,
       hasWeather: !!weather,
       segmentDate,
-      daysFromNow
+      daysFromNow,
+      retryCount
     });
 
     // No API key available - show enhanced input
@@ -125,13 +170,26 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       );
     }
 
-    // Loading state
+    // Loading state with timeout handling
     if (loading) {
-      console.log(`🌤️ SegmentWeatherWidget: Showing loading for ${segment.endCity}`);
-      return <WeatherLoading />;
+      console.log(`🌤️ SegmentWeatherWidget: Showing enhanced loading for ${segment.endCity}`);
+      return <EnhancedWeatherLoading onTimeout={handleTimeout} />;
     }
 
-    // Error state
+    // Show fallback UI for repeated failures or network errors
+    if (error && (retryCount >= 2 || error.includes('Failed to fetch') || error.includes('timeout'))) {
+      console.log(`🌤️ SegmentWeatherWidget: Showing fallback UI for ${segment.endCity} (retries: ${retryCount})`);
+      return (
+        <WeatherFallback 
+          cityName={segment.endCity}
+          segmentDate={segmentDate}
+          onRetry={handleRetry}
+          error={error}
+        />
+      );
+    }
+
+    // Regular error state for first attempts
     if (error) {
       console.log(`🌤️ SegmentWeatherWidget: Showing error for ${segment.endCity}:`, error);
       return <WeatherError error={error} />;
