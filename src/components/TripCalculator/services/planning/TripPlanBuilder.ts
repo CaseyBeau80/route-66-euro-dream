@@ -1,13 +1,12 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
 import { StopEnhancementService } from './StopEnhancementService';
-import { DailySegmentCreator, DailySegment } from './DailySegmentCreator';
+import { DailySegmentCreator, DailySegment, SubStopTiming } from './DailySegmentCreator';
 
 // Re-export types for backward compatibility
-export type { DailySegment, SubStopTiming } from './DailySegmentCreator';
+export type { DailySegment, SubStopTiming };
 
 export interface TripPlan {
   title: string;

@@ -7,6 +7,9 @@ import { DestinationSelectionService } from './DestinationSelectionService';
 import { SubStopTimingCalculator, SubStopTiming } from './SubStopTimingCalculator';
 import { RouteProgressCalculator } from './RouteProgressCalculator';
 
+// Export SubStopTiming for external use
+export type { SubStopTiming };
+
 export interface DailySegment {
   day: number;
   title: string;
