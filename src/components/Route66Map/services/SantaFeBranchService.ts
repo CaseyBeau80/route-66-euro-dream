@@ -88,7 +88,7 @@ export class SantaFeBranchService {
     console.log('🔧 DEBUG: Branch center line options:', {
       pathLength: branchCenterLineOptions.path.length,
       zIndex: branchCenterLineOptions.zIndex,
-      strokePattern: branchCenterLineOptions.strokePattern
+      hasIcons: !!branchCenterLineOptions.icons
     });
 
     this.santaFeBranchCenterLine = new google.maps.Polyline(branchCenterLineOptions);

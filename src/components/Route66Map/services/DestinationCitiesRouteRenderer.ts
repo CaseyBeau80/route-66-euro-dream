@@ -1,3 +1,4 @@
+
 import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
@@ -152,7 +153,7 @@ export class DestinationCitiesRouteRenderer {
       console.log('🔧 DEBUG: Creating center line with options:', {
         pathLength: centerLineOptions.path.length,
         zIndex: centerLineOptions.zIndex,
-        strokePattern: centerLineOptions.strokePattern
+        hasIcons: !!centerLineOptions.icons
       });
 
       this.centerLine = new google.maps.Polyline(centerLineOptions);
@@ -188,8 +189,6 @@ export class DestinationCitiesRouteRenderer {
         centerLineVisible: this.centerLine.getVisible(),
         mainPolylineMap: !!this.mainPolyline.getMap(),
         centerLineMap: !!this.centerLine.getMap(),
-        mainPolylineZIndex: this.mainPolyline.getZIndex(),
-        centerLineZIndex: this.centerLine.getZIndex(),
         pathLength: flowingMainPath.length,
         albuquerqueExcluded: !mainRouteCities.some(city => city.name.toLowerCase().includes('albuquerque')),
         santaRosaToGallupDirect: this.verifySantaRosaToGallupConnection(mainRouteCities),
