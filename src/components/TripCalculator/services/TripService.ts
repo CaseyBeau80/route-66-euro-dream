@@ -64,17 +64,30 @@ export class TripService {
     // Type assertion to convert from database format to our interface
     return {
       ...data,
-      trip_data: data.trip_data as TripPlan
+      trip_data: data.trip_data as unknown as TripPlan
     } as SavedTrip;
   }
 
   static async incrementViewCount(shareCode: string): Promise<void> {
     console.log('👁️ Incrementing view count for:', shareCode);
 
+    // First get the current view count
+    const { data: currentTrip, error: fetchError } = await supabase
+      .from('trips')
+      .select('view_count')
+      .eq('share_code', shareCode)
+      .single();
+
+    if (fetchError) {
+      console.error('❌ Error fetching current view count:', fetchError);
+      return;
+    }
+
+    // Then increment it
     const { error } = await supabase
       .from('trips')
       .update({ 
-        view_count: supabase.rpc('increment_view_count', { current_count: 1 }) 
+        view_count: (currentTrip?.view_count || 0) + 1
       })
       .eq('share_code', shareCode);
 
