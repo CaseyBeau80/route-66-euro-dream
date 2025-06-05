@@ -3,48 +3,21 @@ import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
 import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
+import { RouteOrderService } from './RouteOrderService';
+import { SantaFeBranchService } from './SantaFeBranchService';
+import { RouteCleanupService } from './RouteCleanupService';
+import { RouteBoundsService } from './RouteBoundsService';
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class DestinationCitiesRouteRenderer {
   private map: google.maps.Map;
   private mainPolyline: google.maps.Polyline | null = null;
   private centerLine: google.maps.Polyline | null = null;
-  private santaFeBranchPolyline: google.maps.Polyline | null = null;
-  private santaFeBranchCenterLine: google.maps.Polyline | null = null;
-
-  // Updated Route 66 order with Santa Fe branch integration
-  private readonly ROUTE_66_ORDER = [
-    'Chicago',         // Starting point - Illinois
-    'Joliet',          // Illinois
-    'Pontiac',         // CRITICAL: Pontiac, IL must be included
-    'Springfield_IL',  // Springfield, Illinois (first Springfield)
-    'St. Louis',       // Missouri border
-    'Cuba',            // Missouri
-    'Springfield_MO',  // Springfield, Missouri (second Springfield)
-    'Joplin',          // Missouri/Kansas border
-    'Tulsa',           // Oklahoma
-    'Oklahoma City',
-    'Elk City',        // Oklahoma/Texas border
-    'Shamrock',        // Texas
-    'Amarillo',
-    'Tucumcari',       // New Mexico - BRANCH POINT for Santa Fe
-    'Santa Rosa',
-    'Albuquerque',
-    'Gallup',          // New Mexico/Arizona border
-    'Holbrook',        // Arizona
-    'Winslow',
-    'Flagstaff',
-    'Williams',
-    'Seligman',
-    'Kingman',         // Arizona/California border
-    'Needles',         // California
-    'Barstow',
-    'San Bernardino',
-    'Santa Monica'     // End point
-  ];
+  private santaFeBranchService: SantaFeBranchService;
 
   constructor(map: google.maps.Map) {
     this.map = map;
+    this.santaFeBranchService = new SantaFeBranchService(map);
   }
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
@@ -60,7 +33,7 @@ export class DestinationCitiesRouteRenderer {
       }
 
       // Step 2: Sort cities according to the Route 66 order and identify Santa Fe
-      const { mainRouteCities, santaFeCity } = this.categorizeAndSortCities(cities);
+      const { mainRouteCities, santaFeCity } = RouteOrderService.categorizeAndSortCities(cities);
       
       console.log(`🗺️ FLOWING Route 66 main route (${mainRouteCities.length} cities):`, 
         mainRouteCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
@@ -110,7 +83,7 @@ export class DestinationCitiesRouteRenderer {
 
       // Step 7: Create Santa Fe branch if Santa Fe exists
       if (santaFeCity) {
-        await this.createSantaFeBranch(santaFeCity, mainRouteCities);
+        await this.santaFeBranchService.createSantaFeBranch(santaFeCity, mainRouteCities);
       }
 
       // Step 8: Verify polylines were created and are visible
@@ -121,7 +94,7 @@ export class DestinationCitiesRouteRenderer {
       console.log('🔍 Route polylines verification:', {
         mainPolylineVisible: this.mainPolyline.getVisible(),
         centerLineVisible: this.centerLine.getVisible(),
-        santaFeBranchVisible: this.santaFeBranchPolyline?.getVisible() || 'N/A',
+        santaFeBranchVisible: this.santaFeBranchService.getBranchPolylines().branchPolyline?.getVisible() || 'N/A',
         mainPolylineMap: !!this.mainPolyline.getMap(),
         centerLineMap: !!this.centerLine.getMap(),
         pathLength: flowingMainPath.length
@@ -133,13 +106,6 @@ export class DestinationCitiesRouteRenderer {
       GlobalPolylineCleaner.registerPolyline(this.mainPolyline);
       GlobalPolylineCleaner.registerPolyline(this.centerLine);
 
-      if (this.santaFeBranchPolyline && this.santaFeBranchCenterLine) {
-        RouteGlobalState.addPolylineSegment(this.santaFeBranchPolyline);
-        RouteGlobalState.addPolylineSegment(this.santaFeBranchCenterLine);
-        GlobalPolylineCleaner.registerPolyline(this.santaFeBranchPolyline);
-        GlobalPolylineCleaner.registerPolyline(this.santaFeBranchCenterLine);
-      }
-
       RouteGlobalState.setRouteCreated(true);
 
       console.log('✅ FLOWING CURVED Route 66 with Santa Fe branch created successfully');
@@ -147,7 +113,7 @@ export class DestinationCitiesRouteRenderer {
 
       // Step 10: Fit map to route bounds including branch
       const allCities = santaFeCity ? [...mainRouteCities, santaFeCity] : mainRouteCities;
-      this.fitMapToBounds(allCities.map(city => ({
+      RouteBoundsService.fitMapToBounds(this.map, allCities.map(city => ({
         lat: Number(city.latitude),
         lng: Number(city.longitude)
       })));
@@ -159,137 +125,7 @@ export class DestinationCitiesRouteRenderer {
     }
   }
 
-  private categorizeAndSortCities(cities: DestinationCity[]): {
-    mainRouteCities: DestinationCity[];
-    santaFeCity: DestinationCity | null;
-  } {
-    // Find Santa Fe
-    const santaFeCity = cities.find(city => 
-      city.name.toLowerCase().includes('santa fe') && city.state === 'NM'
-    ) || null;
-
-    // Get main route cities (excluding Santa Fe)
-    const mainRouteCandidates = cities.filter(city => 
-      !(city.name.toLowerCase().includes('santa fe') && city.state === 'NM')
-    );
-
-    // Sort main route cities according to Route 66 order
-    const orderedMainCities: DestinationCity[] = [];
-    const usedCities = new Set<string>();
-    
-    console.log('🔍 Available cities for main route matching:', mainRouteCandidates.map(c => `${c.name}, ${c.state}`));
-    
-    for (const expectedCityName of this.ROUTE_66_ORDER) {
-      let matchingCity: DestinationCity | undefined;
-      
-      // Handle Springfield special cases
-      if (expectedCityName === 'Springfield_IL') {
-        matchingCity = mainRouteCandidates.find(city => {
-          const cityKey = `${city.name}-${city.state}`;
-          return !usedCities.has(cityKey) && 
-                 city.name.toLowerCase().includes('springfield') && 
-                 city.state === 'IL';
-        });
-      } else if (expectedCityName === 'Springfield_MO') {
-        matchingCity = mainRouteCandidates.find(city => {
-          const cityKey = `${city.name}-${city.state}`;
-          return !usedCities.has(cityKey) && 
-                 city.name.toLowerCase().includes('springfield') && 
-                 city.state === 'MO';
-        });
-      } else {
-        // Find matching city (case insensitive, partial match)
-        matchingCity = mainRouteCandidates.find(city => {
-          const cityKey = `${city.name}-${city.state}`;
-          if (usedCities.has(cityKey)) return false;
-          
-          const cityName = city.name.toLowerCase();
-          const expectedName = expectedCityName.toLowerCase();
-          
-          return cityName.includes(expectedName) || expectedName.includes(cityName);
-        });
-      }
-      
-      if (matchingCity) {
-        orderedMainCities.push(matchingCity);
-        usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
-        console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for main route position: ${expectedCityName}`);
-      }
-    }
-    
-    return {
-      mainRouteCities: orderedMainCities,
-      santaFeCity
-    };
-  }
-
-  private async createSantaFeBranch(santaFeCity: DestinationCity, mainRouteCities: DestinationCity[]): Promise<void> {
-    console.log('🌟 Creating Santa Fe branch road segment');
-
-    // Find the closest connection point on main route (likely near Albuquerque or Santa Rosa)
-    const albuquerque = mainRouteCities.find(city => 
-      city.name.toLowerCase().includes('albuquerque')
-    );
-    const santaRosa = mainRouteCities.find(city => 
-      city.name.toLowerCase().includes('santa rosa')
-    );
-
-    // Use Albuquerque as primary connection point, Santa Rosa as fallback
-    const connectionPoint = albuquerque || santaRosa;
-
-    if (!connectionPoint) {
-      console.warn('⚠️ Could not find suitable connection point for Santa Fe branch');
-      return;
-    }
-
-    console.log(`🔗 Connecting Santa Fe to main route via ${connectionPoint.name}`);
-
-    // Create branch path: Connection Point -> Santa Fe -> Connection Point
-    const branchPath = [
-      { lat: Number(connectionPoint.latitude), lng: Number(connectionPoint.longitude) },
-      { lat: Number(santaFeCity.latitude), lng: Number(santaFeCity.longitude) },
-      { lat: Number(connectionPoint.latitude), lng: Number(connectionPoint.longitude) }
-    ];
-
-    // Create flowing curved branch path
-    const flowingBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(branchPath, 15);
-
-    console.log(`🌟 Creating Santa Fe branch with ${flowingBranchPath.length} smooth points`);
-
-    // Create branch polylines with slightly different styling
-    this.santaFeBranchPolyline = new google.maps.Polyline({
-      ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
-      strokeWeight: 8, // Slightly thinner for branch
-      strokeOpacity: 0.85, // Slightly more transparent
-      path: flowingBranchPath,
-      map: this.map,
-      zIndex: 45 // Slightly lower than main route
-    });
-
-    this.santaFeBranchCenterLine = new google.maps.Polyline({
-      ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
-      path: flowingBranchPath,
-      map: this.map,
-      zIndex: 95, // Slightly lower than main center line
-      icons: [{
-        icon: {
-          path: 'M 0,-3 0,3', // Slightly smaller dashes for branch
-          strokeOpacity: 0.9,
-          strokeColor: '#FFD700',
-          strokeWeight: 4, // Thinner dashes for branch
-          scale: 1
-        },
-        offset: '0',
-        repeat: '45px' // Slightly closer spacing for branch
-      }]
-    });
-
-    console.log('✅ Santa Fe branch road segment created successfully');
-  }
-
   private async performAggressiveCleanup(): Promise<void> {
-    console.log('🧹 AGGRESSIVE cleanup of existing polylines starting');
-    
     try {
       // Clean up any existing polylines from this instance
       if (this.mainPolyline) {
@@ -304,51 +140,15 @@ export class DestinationCitiesRouteRenderer {
         this.centerLine = null;
       }
 
-      if (this.santaFeBranchPolyline) {
-        this.santaFeBranchPolyline.setMap(null);
-        GlobalPolylineCleaner.unregisterPolyline(this.santaFeBranchPolyline);
-        this.santaFeBranchPolyline = null;
-      }
+      // Clean up Santa Fe branch
+      this.santaFeBranchService.cleanup();
 
-      if (this.santaFeBranchCenterLine) {
-        this.santaFeBranchCenterLine.setMap(null);
-        GlobalPolylineCleaner.unregisterPolyline(this.santaFeBranchCenterLine);
-        this.santaFeBranchCenterLine = null;
-      }
-
-      // Nuclear cleanup of all polylines
-      await GlobalPolylineCleaner.cleanupAllPolylines(this.map);
-      
-      // Clear global state
-      RouteGlobalState.clearAll();
-      
-      // Additional delay to ensure cleanup completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      console.log('✅ AGGRESSIVE cleanup completed');
+      // Perform global cleanup
+      await RouteCleanupService.performAggressiveCleanup(this.map);
       
     } catch (error) {
       console.error('❌ Error during aggressive cleanup:', error);
     }
-  }
-
-  private fitMapToBounds(routePath: google.maps.LatLngLiteral[]): void {
-    if (routePath.length === 0) return;
-
-    const bounds = new google.maps.LatLngBounds();
-    routePath.forEach(point => {
-      bounds.extend(new google.maps.LatLng(point.lat, point.lng));
-    });
-
-    // Add padding and fit bounds
-    this.map.fitBounds(bounds, {
-      top: 50,
-      right: 50,
-      bottom: 50,
-      left: 50
-    });
-
-    console.log('🗺️ Map bounds fitted to complete route including Santa Fe branch');
   }
 
   async cleanup(): Promise<void> {
@@ -366,16 +166,7 @@ export class DestinationCitiesRouteRenderer {
       this.centerLine = null;
     }
 
-    if (this.santaFeBranchPolyline) {
-      this.santaFeBranchPolyline.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.santaFeBranchPolyline);
-      this.santaFeBranchPolyline = null;
-    }
-
-    if (this.santaFeBranchCenterLine) {
-      this.santaFeBranchCenterLine.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.santaFeBranchCenterLine);
-      this.santaFeBranchCenterLine = null;
-    }
+    // Clean up Santa Fe branch
+    this.santaFeBranchService.cleanup();
   }
 }
