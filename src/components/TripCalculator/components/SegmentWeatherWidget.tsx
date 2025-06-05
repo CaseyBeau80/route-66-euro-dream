@@ -5,6 +5,7 @@ import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { WeatherService } from '@/components/Route66Map/services/WeatherService';
 import { WeatherData } from '@/components/Route66Map/components/weather/WeatherTypes';
 import { GeocodingService } from '../services/GeocodingService';
+import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
@@ -66,14 +67,24 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiKeyRefreshTrigger, setApiKeyRefreshTrigger] = useState(0);
   
   // Calculate the actual date for this segment
   const segmentDate = tripStartDate ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) : null;
   const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
   
+  // Check if API key is available
+  const weatherService = WeatherService.getInstance();
+  const hasApiKey = weatherService.hasApiKey();
+
+  const handleApiKeySet = () => {
+    console.log('🔑 SegmentWeatherWidget: API key set, triggering refresh');
+    setApiKeyRefreshTrigger(prev => prev + 1);
+  };
+  
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!segmentDate || daysFromNow === null) return;
+      if (!segmentDate || daysFromNow === null || !hasApiKey) return;
       
       // Only fetch real weather data for trips starting within 5 days
       if (daysFromNow > 5) return;
@@ -88,12 +99,6 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       setError(null);
       
       try {
-        const weatherService = WeatherService.getInstance();
-        if (!weatherService.hasApiKey()) {
-          setError('Weather API key not configured');
-          return;
-        }
-        
         const weatherData = await weatherService.getWeatherData(
           coordinates.lat, 
           coordinates.lng, 
@@ -114,7 +119,14 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
     };
     
     fetchWeather();
-  }, [segment.endCity, segmentDate, daysFromNow]);
+  }, [segment.endCity, segmentDate, daysFromNow, hasApiKey, apiKeyRefreshTrigger]);
+
+  const renderApiKeyInput = () => (
+    <SimpleWeatherApiKeyInput 
+      onApiKeySet={handleApiKeySet}
+      cityName={segment.endCity}
+    />
+  );
 
   const renderForecastUnavailable = () => (
     <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded border border-yellow-200">
@@ -260,8 +272,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
         </div>
       </div>
 
-      {/* Determine what weather content to show based on timing */}
-      {!segmentDate || daysFromNow === null ? (
+      {/* Determine what weather content to show */}
+      {!hasApiKey ? (
+        renderApiKeyInput()
+      ) : !segmentDate || daysFromNow === null ? (
         <div className="text-sm text-gray-500 italic">
           Set a trip start date to see weather information
         </div>
