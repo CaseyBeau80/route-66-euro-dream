@@ -1,4 +1,3 @@
-
 import { TripPlan } from './planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../types/costEstimator';
 
@@ -85,29 +84,29 @@ export class CostCalculationService {
       dailyCosts.push({
         day: segment.day || (index + 1),
         city: segment.destination?.city || segment.endCity || `Day ${index + 1}`,
-        gas: segmentGas,
-        accommodation,
-        meals,
-        attractions,
-        tolls,
-        dailyTotal: segmentGas + accommodation + meals + attractions + tolls
+        gas: Math.round(segmentGas),
+        accommodation: Math.round(accommodation),
+        meals: Math.round(meals),
+        attractions: Math.round(attractions),
+        tolls: Math.round(tolls),
+        dailyTotal: Math.round(segmentGas + accommodation + meals + attractions + tolls)
       });
     });
 
     const breakdown: CostBreakdown = {
-      gasCost: totalGas,
-      accommodationCost: totalAccommodation,
-      mealCost: totalMeals,
-      attractionCost: totalAttractions,
-      tollCost: totalTolls,
-      totalCost: totalGas + totalAccommodation + totalMeals + totalAttractions + totalTolls
+      gasCost: Math.round(totalGas),
+      accommodationCost: Math.round(totalAccommodation),
+      mealCost: Math.round(totalMeals),
+      attractionCost: Math.round(totalAttractions),
+      tollCost: Math.round(totalTolls),
+      totalCost: Math.round(totalGas + totalAccommodation + totalMeals + totalAttractions + totalTolls)
     };
 
     return {
       breakdown,
       dailyCosts,
-      perPersonCost: breakdown.totalCost / costData.groupSize,
-      averageDailyCost: breakdown.totalCost / segments.length
+      perPersonCost: Math.round(breakdown.totalCost / costData.groupSize),
+      averageDailyCost: Math.round(breakdown.totalCost / segments.length)
     };
   }
 

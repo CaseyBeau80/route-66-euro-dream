@@ -58,12 +58,12 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
     const totalCost = gasCost + accommodationCost + mealCost + attractionCost + tollCost;
 
     const breakdown: CostBreakdown = {
-      gasCost,
-      accommodationCost,
-      mealCost,
-      attractionCost,
-      tollCost,
-      totalCost
+      gasCost: Math.round(gasCost),
+      accommodationCost: Math.round(accommodationCost),
+      mealCost: Math.round(mealCost),
+      attractionCost: Math.round(attractionCost),
+      tollCost: Math.round(tollCost),
+      totalCost: Math.round(totalCost)
     };
 
     // Create daily costs breakdown
@@ -77,20 +77,20 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
       return {
         day: segment.day,
         city: `Day ${segment.day}`,
-        gas: dayGas,
-        accommodation: dayAccommodation,
-        meals: dayMeals,
-        attractions: dayAttractions,
-        tolls: dayTolls,
-        dailyTotal: dayGas + dayAccommodation + dayMeals + dayAttractions + dayTolls
+        gas: Math.round(dayGas),
+        accommodation: Math.round(dayAccommodation),
+        meals: Math.round(dayMeals),
+        attractions: Math.round(dayAttractions),
+        tolls: Math.round(dayTolls),
+        dailyTotal: Math.round(dayGas + dayAccommodation + dayMeals + dayAttractions + dayTolls)
       };
     });
 
     return {
       breakdown,
       dailyCosts,
-      perPersonCost: totalCost / costData.groupSize,
-      averageDailyCost: totalCost / tripDays
+      perPersonCost: Math.round(breakdown.totalCost / costData.groupSize),
+      averageDailyCost: Math.round(breakdown.totalCost / tripDays)
     };
   }, [tripPlan, costData]);
 
