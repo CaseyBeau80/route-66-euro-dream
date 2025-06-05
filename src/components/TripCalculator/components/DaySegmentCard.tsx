@@ -1,11 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock, Route, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { MapPin, Clock, Route, AlertTriangle, CheckCircle, Info, ChevronDown, ChevronUp, Map, BarChart3 } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SubStopTimingCard from './SubStopTimingCard';
 import StopCard from './StopCard';
 import DrivingTimeMessage from './DrivingTimeMessage';
+import SegmentMapView from './SegmentMapView';
+import SegmentDetailsBreakdown from './SegmentDetailsBreakdown';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -57,8 +61,10 @@ const getDriveTimeBadge = (category?: { category: string; message: string; color
 };
 
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustmentWarning = false }) => {
-  console.log('📅 Rendering DaySegmentCard:', segment);
-  console.log('🚗 Sub-stop timings:', segment.subStopTimings);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
+  console.log('📅 Rendering Enhanced DaySegmentCard:', segment);
 
   const hasValidTimings = segment.subStopTimings && Array.isArray(segment.subStopTimings) && segment.subStopTimings.length > 0;
   const isLongDriveDay = segment.approximateMiles > 500;
@@ -128,6 +134,35 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
           {/* Dynamic Driving Time Message */}
           <DrivingTimeMessage driveTimeHours={segment.driveTimeHours} />
 
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Collapsible open={isMapExpanded} onOpenChange={setIsMapExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Map className="h-4 w-4" />
+                  View Route Map
+                  {isMapExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3">
+                <SegmentMapView segment={segment} isExpanded={isMapExpanded} />
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Detailed Breakdown
+                  {isDetailsExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3">
+                <SegmentDetailsBreakdown segment={segment} isExpanded={isDetailsExpanded} />
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
           {/* Route Progression - Show drive times between stops */}
           {hasValidTimings ? (
             <div>
@@ -156,16 +191,21 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
             </div>
           )}
 
-          {/* Recommended Stops */}
+          {/* Recommended Stops Summary */}
           <div>
             <h4 className="font-travel font-bold text-route66-vintage-brown mb-2">
               Recommended Stops ({segment.recommendedStops.length})
             </h4>
             {segment.recommendedStops.length > 0 ? (
               <div className="space-y-2">
-                {segment.recommendedStops.map((stop) => (
+                {segment.recommendedStops.slice(0, 3).map((stop) => (
                   <StopCard key={stop.id} stop={stop} />
                 ))}
+                {segment.recommendedStops.length > 3 && (
+                  <div className="text-xs text-route66-vintage-brown italic">
+                    +{segment.recommendedStops.length - 3} more stops (view in detailed breakdown)
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-sm text-route66-vintage-brown italic">
