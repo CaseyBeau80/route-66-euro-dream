@@ -1,8 +1,8 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
+import { DestinationSelectionService } from './DestinationSelectionService';
 import { StopEnhancementService } from './StopEnhancementService';
 
 export interface SubStopTiming {
@@ -113,15 +113,14 @@ export class TripPlanBuilder {
       const remainingDistance = totalDistance - cumulativeDistance;
       const remainingDays = tripDays - day + 1;
       
-      // Select destination for this day with enhanced logic
+      // Select destination for this day with enhanced logic using the new service
       const dayDestination = isLastDay 
         ? endStop 
-        : this.selectOptimalDayDestination(
+        : DestinationSelectionService.selectOptimalDayDestination(
             currentStop, 
             endStop, 
             remainingStops, 
-            remainingDistance / remainingDays,
-            remainingDistance
+            remainingDistance / remainingDays
           );
 
       if (!dayDestination) continue;
@@ -188,50 +187,12 @@ export class TripPlanBuilder {
     targetDistance: number,
     remainingTotalDistance: number
   ): TripStop {
-    if (availableStops.length === 0) return finalDestination;
-
-    // Separate destination cities from other stops
-    const destinationCities = availableStops.filter(stop => 
-      stop.category === 'destination_city'
+    return DestinationSelectionService.selectOptimalDayDestination(
+      currentStop,
+      finalDestination,
+      availableStops,
+      targetDistance
     );
-    
-    const otherStops = availableStops.filter(stop => 
-      stop.category !== 'destination_city'
-    );
-
-    let bestStop = availableStops[0];
-    let bestScore = Number.MAX_VALUE;
-
-    // Prioritize destination cities
-    const candidateStops = destinationCities.length > 0 ? destinationCities : otherStops;
-
-    for (const stop of candidateStops) {
-      const distanceFromCurrent = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-
-      // Skip if too close or too far
-      if (distanceFromCurrent < 15 || distanceFromCurrent > 600) {
-        continue;
-      }
-
-      // Score based on how close to target distance
-      const distanceScore = Math.abs(distanceFromCurrent - targetDistance);
-      
-      // Massive bonus for destination cities
-      const destinationCityBonus = stop.category === 'destination_city' ? -300 : 0;
-      const majorStopBonus = stop.is_major_stop ? -150 : 0;
-      
-      const finalScore = distanceScore + destinationCityBonus + majorStopBonus;
-
-      if (finalScore < bestScore) {
-        bestScore = finalScore;
-        bestStop = stop;
-      }
-    }
-
-    return bestStop;
   }
 
   /**

@@ -6,7 +6,8 @@ import { TripDayCalculationService } from './TripDayCalculationService';
 import { SegmentValidationService } from './SegmentValidationService';
 
 // Re-export types and constants for backward compatibility
-export { RouteSection, ROUTE_SECTIONS } from './RouteSection';
+export type { RouteSection } from './RouteSection';
+export { ROUTE_SECTIONS } from './RouteSection';
 
 export class StopEnhancementService {
   /**
