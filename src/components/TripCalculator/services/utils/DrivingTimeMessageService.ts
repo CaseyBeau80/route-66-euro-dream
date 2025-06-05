@@ -29,22 +29,23 @@ export class DrivingTimeMessageService {
       };
     }
     
-    if (driveTimeHours >= 6 && driveTimeHours <= 7) {
+    if (driveTimeHours > 5 && driveTimeHours <= 7) {
       return {
         level: 'efficient',
         emoji: '🛻',
         title: 'Making good time.',
-        message: `You're covering some ground — but still have room for 1–2 must-see attractions and a good place to eat. We'll keep things exciting and efficient.`,
+        message: `You're covering some ground with ${driveTimeHours.toFixed(1)} hours of driving — but still have room for 2–3 must-see attractions and a good place to eat. We'll keep things exciting and efficient.`,
         recommendations: [
-          '1–2 key attractions',
+          '2–3 key attractions',
           'Meal stop',
-          'Strategic photo ops'
+          'Strategic photo ops',
+          'Route 66 waypoints'
         ],
-        maxStops: 2
+        maxStops: 3
       };
     }
     
-    // 8+ hours
+    // 7+ hours
     return {
       level: 'warrior',
       emoji: '🚗💨',

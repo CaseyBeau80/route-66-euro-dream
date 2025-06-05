@@ -20,7 +20,7 @@ export interface CuratedStopSelection {
 }
 
 export const DEFAULT_CURATION_CONFIG: StopCurationConfig = {
-  maxStops: 4,
+  maxStops: 3,
   attractionRatio: 0.6,
   preferDestinationCities: true,
   diversityBonus: true

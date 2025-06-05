@@ -24,6 +24,8 @@ export class SegmentStopCurator {
     );
     const expectedDriveTime = segmentDistance / 50; // 50 mph average
 
+    console.log(`🚗 Segment distance: ${segmentDistance.toFixed(1)} miles, expected drive time: ${expectedDriveTime.toFixed(1)} hours`);
+
     // Enhanced stop curation with intelligent categorization
     const curatedSelection = EnhancedSegmentStopSelector.selectCuratedStopsForSegment(
       currentStop,
@@ -31,8 +33,8 @@ export class SegmentStopCurator {
       remainingStops,
       expectedDriveTime,
       {
-        maxStops: 4,
-        attractionRatio: 0.6, // 60% attractions, 40% waypoints/gems
+        maxStops: expectedDriveTime <= 5 ? 4 : expectedDriveTime <= 7 ? 3 : 1,
+        attractionRatio: 0.6,
         preferDestinationCities: true,
         diversityBonus: true
       }
@@ -42,6 +44,7 @@ export class SegmentStopCurator {
     const segmentStops = EnhancedSegmentStopSelector.combineSelectedStops(curatedSelection);
 
     console.log(`✅ Curated ${segmentStops.length} stops for segment:`, {
+      driveTime: expectedDriveTime.toFixed(1) + 'h',
       attractions: curatedSelection.attractions.length,
       waypoints: curatedSelection.waypoints.length,
       hiddenGems: curatedSelection.hiddenGems.length,

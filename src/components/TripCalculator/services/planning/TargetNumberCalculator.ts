@@ -11,11 +11,19 @@ export class TargetNumberCalculator {
   ): TargetNumbers {
     // Adjust based on drive time - longer drives get fewer stops
     let adjustedMaxStops = config.maxStops;
-    if (expectedDriveTime > 6) {
-      adjustedMaxStops = Math.max(2, Math.floor(config.maxStops * 0.7));
-    } else if (expectedDriveTime < 3) {
-      adjustedMaxStops = Math.min(6, Math.floor(config.maxStops * 1.2));
+    
+    if (expectedDriveTime <= 5) {
+      // Scenic route - more stops
+      adjustedMaxStops = Math.min(4, Math.floor(config.maxStops * 1.3));
+    } else if (expectedDriveTime > 5 && expectedDriveTime <= 7) {
+      // Efficient route - moderate stops
+      adjustedMaxStops = 3;
+    } else {
+      // Warrior route - minimal stops  
+      adjustedMaxStops = Math.max(1, Math.floor(config.maxStops * 0.5));
     }
+    
+    console.log(`🎯 Drive time ${expectedDriveTime.toFixed(1)}h → ${adjustedMaxStops} max stops`);
     
     // Calculate attractions vs other stops
     const attractionCount = Math.round(adjustedMaxStops * config.attractionRatio);
@@ -26,7 +34,7 @@ export class TargetNumberCalculator {
     const hiddenGemCount = remainingStops - waypointCount;
     
     return {
-      attractions: attractionCount,
+      attractions: Math.max(1, attractionCount),
       waypoints: waypointCount,
       hiddenGems: hiddenGemCount
     };
