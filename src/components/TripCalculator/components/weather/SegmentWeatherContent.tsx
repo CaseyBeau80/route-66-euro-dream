@@ -3,9 +3,11 @@ import React from 'react';
 import EnhancedWeatherApiKeyInput from '@/components/Route66Map/components/weather/EnhancedWeatherApiKeyInput';
 import EnhancedWeatherLoading from './EnhancedWeatherLoading';
 import CurrentWeatherDisplay from './CurrentWeatherDisplay';
+import ForecastWeatherDisplay from './ForecastWeatherDisplay';
 import WeatherFallback from './WeatherFallback';
 import WeatherError from './WeatherError';
 import SeasonalWeatherDisplay from './SeasonalWeatherDisplay';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -37,7 +39,8 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     loading,
     error,
     hasWeather: !!weather,
-    retryCount
+    retryCount,
+    weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular'
   });
 
   // No API key - show input
@@ -58,7 +61,13 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   // Show weather data if available
   if (weather) {
     console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
-    return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    
+    // Check if this is forecast data (has isActualForecast property)
+    if (weather.isActualForecast !== undefined) {
+      return <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />;
+    } else {
+      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    }
   }
 
   // Show fallback for repeated errors

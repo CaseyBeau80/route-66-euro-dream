@@ -1,3 +1,4 @@
+
 import { useEffect, useCallback } from 'react';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { GeocodingService } from '../../../services/GeocodingService';
@@ -16,6 +17,7 @@ interface UseSegmentWeatherProps {
   setRetryCount: (count: number | ((prev: number) => number)) => void;
   mountedRef: React.MutableRefObject<boolean>;
   subscriberId: React.MutableRefObject<string>;
+  segmentDate?: Date | null;
 }
 
 export const useSegmentWeather = ({
@@ -30,7 +32,8 @@ export const useSegmentWeather = ({
   retryCount,
   setRetryCount,
   mountedRef,
-  subscriberId
+  subscriberId,
+  segmentDate
 }: UseSegmentWeatherProps) => {
   const weatherService = EnhancedWeatherService.getInstance();
   const deduplicationService = WeatherRequestDeduplicationService.getInstance();
@@ -70,12 +73,23 @@ export const useSegmentWeather = ({
     setError(null);
     
     try {
-      const requestKey = `weather-${coordinates.lat}-${coordinates.lng}`;
+      const requestKey = segmentDate 
+        ? `weather-forecast-${coordinates.lat}-${coordinates.lng}-${segmentDate.toISOString().split('T')[0]}`
+        : `weather-${coordinates.lat}-${coordinates.lng}`;
+      
       console.log(`🌤️ Starting weather fetch for ${segmentEndCity} with key: ${requestKey}`);
       
       const weatherData = await deduplicationService.deduplicateRequest(
         requestKey,
-        () => weatherService.getWeatherData(coordinates.lat, coordinates.lng, segmentEndCity),
+        () => {
+          if (segmentDate) {
+            // Use forecast service for dated weather
+            return weatherService.getWeatherForDate(coordinates.lat, coordinates.lng, segmentEndCity, segmentDate);
+          } else {
+            // Use regular weather service for current weather
+            return weatherService.getWeatherData(coordinates.lat, coordinates.lng, segmentEndCity);
+          }
+        },
         subscriberId.current,
         10000
       );
@@ -99,7 +113,7 @@ export const useSegmentWeather = ({
         setLoading(false);
       }
     }
-  }, [segmentEndCity, hasApiKey, weatherService, deduplicationService, setLoading, setError, setWeather, setRetryCount, mountedRef, subscriberId]);
+  }, [segmentEndCity, hasApiKey, segmentDate, weatherService, deduplicationService, setLoading, setError, setWeather, setRetryCount, mountedRef, subscriberId]);
 
   useEffect(() => {
     mountedRef.current = true;

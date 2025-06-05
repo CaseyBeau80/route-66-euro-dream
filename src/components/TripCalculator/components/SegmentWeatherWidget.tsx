@@ -35,6 +35,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const weatherHandlers = useSegmentWeather({
     segmentEndCity: segment.endCity,
     hasApiKey,
+    segmentDate,
     ...weatherState
   });
 
