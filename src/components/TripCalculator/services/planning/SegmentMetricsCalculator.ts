@@ -1,6 +1,5 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { RouteProgressCalculator } from './RouteProgressCalculator';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { DailySegment } from './DailySegmentCreator';
 
@@ -14,60 +13,40 @@ export class SegmentMetricsCalculator {
     totalDistance: number,
     dailySegments: DailySegment[]
   ): {
-    cumulativeDistance: number;
-    progressPercent: number;
     routeSection: string;
   } {
-    // Calculate accurate cumulative distance for route section
-    const previousSegments = dailySegments.map(s => ({ approximateMiles: s.approximateMiles }));
-    const cumulativeDistance = RouteProgressCalculator.calculateAccurateCumulativeDistance(
-      day - 1, 
-      [...previousSegments, { approximateMiles: Math.round(segmentDistance) }]
-    );
-    
-    const progressPercent = RouteProgressCalculator.calculateCumulativeProgress(
-      cumulativeDistance, 
-      totalDistance
-    );
-    const routeSection = RouteProgressCalculator.getRouteSection(progressPercent);
+    // Calculate cumulative distance up to this segment
+    const cumulativeDistance = dailySegments.reduce((total, segment) => total + segment.approximateMiles, 0) + segmentDistance;
+    const progressPercentage = (cumulativeDistance / totalDistance) * 100;
 
-    return {
-      cumulativeDistance,
-      progressPercent,
-      routeSection
-    };
+    let routeSection: string;
+    if (progressPercentage <= 33) {
+      routeSection = 'Early Route';
+    } else if (progressPercentage <= 66) {
+      routeSection = 'Mid Route';
+    } else {
+      routeSection = 'Final Stretch';
+    }
+
+    return { routeSection };
   }
 
   /**
-   * Create city display names for segment
+   * Create properly formatted city display names with state information
    */
-  static createCityDisplays(currentStop: TripStop, dayDestination: TripStop): {
+  static createCityDisplays(
+    startStop: TripStop,
+    endStop: TripStop
+  ): {
     startCityDisplay: string;
     endCityDisplay: string;
   } {
-    const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
-    const endCityDisplay = CityDisplayService.getCityDisplayName(dayDestination);
+    const startCityDisplay = CityDisplayService.getCityDisplayName(startStop);
+    const endCityDisplay = CityDisplayService.getCityDisplayName(endStop);
 
     return {
       startCityDisplay,
       endCityDisplay
     };
-  }
-
-  /**
-   * Validate segment creation
-   */
-  static validateSegment(
-    currentStop: TripStop,
-    dayDestination: TripStop,
-    day: number,
-    isLastDay: boolean
-  ): boolean {
-    // Validate destination
-    if (!dayDestination || currentStop.id === dayDestination.id) {
-      console.warn(`⚠️ Invalid destination for day ${day}`);
-      return false;
-    }
-    return true;
   }
 }

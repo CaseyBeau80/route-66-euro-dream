@@ -51,7 +51,7 @@ export class SegmentCreationLoop {
       if (segment) {
         dailySegments.push(segment);
 
-        // Update for next iteration
+        // Update for next iteration - use the actual segment stops that were selected
         workingRemainingStops = SegmentStopCurator.removeUsedStops(
           workingRemainingStops, 
           segment.recommendedStops
@@ -86,6 +86,8 @@ export class SegmentCreationLoop {
       remainingStops
     );
     
+    console.log(`🎯 Day ${day} curated ${segmentStops.length} stops:`, segmentStops.map(s => s.name));
+    
     // Calculate segment timings and drive time
     const { segmentTimings, totalSegmentDriveTime, segmentDistance } = 
       SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
@@ -101,7 +103,7 @@ export class SegmentCreationLoop {
       dailySegments
     );
 
-    // Create city display names
+    // Create city display names with state information
     const { startCityDisplay, endCityDisplay } = SegmentMetricsCalculator.createCityDisplays(
       currentStop, 
       dayDestination
@@ -116,7 +118,7 @@ export class SegmentCreationLoop {
       startCity: startCityDisplay,
       endCity: endCityDisplay,
       approximateMiles: Math.round(segmentDistance),
-      recommendedStops: segmentStops,
+      recommendedStops: segmentStops, // Use the curated stops
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
       subStopTimings: segmentTimings,
       routeSection,

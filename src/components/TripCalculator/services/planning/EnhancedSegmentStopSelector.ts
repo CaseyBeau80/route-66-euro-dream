@@ -21,6 +21,7 @@ export class EnhancedSegmentStopSelector {
     const finalConfig = { ...DEFAULT_CURATION_CONFIG, ...config };
     
     console.log(`🎯 Curating stops for segment: ${startStop.name} → ${endStop.name} (${finalConfig.maxStops} max stops)`);
+    console.log(`📊 Available stops for curation: ${availableStops.length}`);
     
     // Calculate segment distance and filter relevant stops
     const segmentDistance = DistanceCalculationService.calculateDistance(
@@ -36,11 +37,22 @@ export class EnhancedSegmentStopSelector {
       segmentDistance
     );
     
+    console.log(`🛣️ Route candidates found: ${routeCandidates.length}`);
+    
     // Categorize stops by type
     const categorizedStops = StopCategorizer.categorizeStops(routeCandidates);
     
+    console.log(`📂 Categorized stops:`, {
+      attractions: categorizedStops.attractions.length,
+      waypoints: categorizedStops.waypoints.length,
+      destinationCities: categorizedStops.destinationCities.length,
+      hiddenGems: categorizedStops.hiddenGems.length
+    });
+    
     // Calculate target numbers for each category
     const targetNumbers = TargetNumberCalculator.calculateTargetNumbers(finalConfig, expectedDriveTime);
+    
+    console.log(`🎯 Target numbers:`, targetNumbers);
     
     // Select best stops from each category
     const selectedStops = StopSelectionService.selectBestStopsFromCategories(

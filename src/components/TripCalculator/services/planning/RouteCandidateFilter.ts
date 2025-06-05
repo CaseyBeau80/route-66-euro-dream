@@ -4,7 +4,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 
 export class RouteCandidateFilter {
   /**
-   * Filter stops that are reasonably along the route
+   * Filter stops that are reasonable candidates along the route
    */
   static getRouteCandidates(
     startStop: TripStop,
@@ -12,27 +12,28 @@ export class RouteCandidateFilter {
     availableStops: TripStop[],
     segmentDistance: number
   ): TripStop[] {
+    const maxDetourDistance = Math.min(segmentDistance * 0.3, 100); // Max 30% detour or 100 miles
+    
     return availableStops.filter(stop => {
-      // Skip if it's the start or end stop
-      if (stop.id === startStop.id || stop.id === endStop.id) return false;
-      
-      const startToStop = DistanceCalculationService.calculateDistance(
+      // Calculate distance from start to stop
+      const distanceFromStart = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude,
         stop.latitude, stop.longitude
       );
-      const stopToEnd = DistanceCalculationService.calculateDistance(
+      
+      // Calculate distance from stop to end
+      const distanceToEnd = DistanceCalculationService.calculateDistance(
         stop.latitude, stop.longitude,
         endStop.latitude, endStop.longitude
       );
       
-      // Check if stop is roughly on the route path (allow some detour)
-      const totalViaStop = startToStop + stopToEnd;
-      const detourFactor = totalViaStop / segmentDistance;
+      // Total route distance if we visit this stop
+      const totalWithStop = distanceFromStart + distanceToEnd;
       
-      // More lenient filtering for longer segments, stricter for shorter ones
-      const maxDetourFactor = segmentDistance > 300 ? 1.2 : 1.15;
+      // Check if this is a reasonable detour
+      const detour = totalWithStop - segmentDistance;
       
-      return detourFactor <= maxDetourFactor && startToStop < segmentDistance * 0.8;
+      return detour <= maxDetourDistance;
     });
   }
 }

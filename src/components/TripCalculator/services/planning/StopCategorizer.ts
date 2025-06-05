@@ -4,40 +4,42 @@ import { TripStop } from '../data/SupabaseDataService';
 export interface CategorizedStops {
   attractions: TripStop[];
   waypoints: TripStop[];
-  hiddenGems: TripStop[];
   destinationCities: TripStop[];
+  hiddenGems: TripStop[];
 }
 
 export class StopCategorizer {
   /**
-   * Categorize stops by their type and priority
+   * Categorize stops by their type
    */
   static categorizeStops(stops: TripStop[]): CategorizedStops {
-    const attractions: TripStop[] = [];
-    const waypoints: TripStop[] = [];
-    const hiddenGems: TripStop[] = [];
-    const destinationCities: TripStop[] = [];
-
+    const categorized: CategorizedStops = {
+      attractions: [],
+      waypoints: [],
+      destinationCities: [],
+      hiddenGems: []
+    };
+    
     stops.forEach(stop => {
       switch (stop.category) {
         case 'attraction':
-          attractions.push(stop);
+          categorized.attractions.push(stop);
           break;
         case 'route66_waypoint':
-          waypoints.push(stop);
-          break;
-        case 'hidden_gem':
-          hiddenGems.push(stop);
+          categorized.waypoints.push(stop);
           break;
         case 'destination_city':
-          destinationCities.push(stop);
+          categorized.destinationCities.push(stop);
+          break;
+        case 'hidden_gem':
+          categorized.hiddenGems.push(stop);
           break;
         default:
-          // Default to waypoints for unknown categories
-          waypoints.push(stop);
+          // Default to waypoint for unknown categories
+          categorized.waypoints.push(stop);
       }
     });
-
-    return { attractions, waypoints, hiddenGems, destinationCities };
+    
+    return categorized;
   }
 }

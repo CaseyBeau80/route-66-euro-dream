@@ -15,6 +15,8 @@ export class SegmentStopCurator {
     segmentStops: TripStop[];
     curatedSelection: any;
   } {
+    console.log(`🎯 Starting curation for ${currentStop.name} → ${dayDestination.name} with ${remainingStops.length} available stops`);
+    
     // Calculate expected drive time for curation
     const segmentDistance = DistanceCalculationService.calculateDistance(
       currentStop.latitude, currentStop.longitude,
@@ -39,6 +41,13 @@ export class SegmentStopCurator {
     // Combine all selected stops for backward compatibility
     const segmentStops = EnhancedSegmentStopSelector.combineSelectedStops(curatedSelection);
 
+    console.log(`✅ Curated ${segmentStops.length} stops for segment:`, {
+      attractions: curatedSelection.attractions.length,
+      waypoints: curatedSelection.waypoints.length,
+      hiddenGems: curatedSelection.hiddenGems.length,
+      stopNames: segmentStops.map(s => s.name)
+    });
+
     return {
       segmentStops,
       curatedSelection
@@ -51,7 +60,10 @@ export class SegmentStopCurator {
   static removeUsedStops(remainingStops: TripStop[], usedStops: TripStop[]): TripStop[] {
     usedStops.forEach(stop => {
       const index = remainingStops.findIndex(s => s.id === stop.id);
-      if (index > -1) remainingStops.splice(index, 1);
+      if (index > -1) {
+        remainingStops.splice(index, 1);
+        console.log(`♻️ Removed used stop: ${stop.name}`);
+      }
     });
     return remainingStops;
   }

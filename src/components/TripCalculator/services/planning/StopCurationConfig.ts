@@ -1,18 +1,9 @@
 
-import { TripStop } from '../data/SupabaseDataService';
-
 export interface StopCurationConfig {
   maxStops: number;
-  attractionRatio: number; // 0.5 = 50% attractions, 50% waypoints
+  attractionRatio: number; // 0-1, percentage of attractions vs waypoints/gems
   preferDestinationCities: boolean;
   diversityBonus: boolean;
-}
-
-export interface CuratedStopSelection {
-  attractions: TripStop[];
-  waypoints: TripStop[];
-  hiddenGems: TripStop[];
-  totalSelected: number;
 }
 
 export interface TargetNumbers {
@@ -21,9 +12,16 @@ export interface TargetNumbers {
   hiddenGems: number;
 }
 
+export interface CuratedStopSelection {
+  attractions: any[];
+  waypoints: any[];
+  hiddenGems: any[];
+  totalSelected: number;
+}
+
 export const DEFAULT_CURATION_CONFIG: StopCurationConfig = {
   maxStops: 4,
-  attractionRatio: 0.6, // Prefer attractions slightly
+  attractionRatio: 0.6,
   preferDestinationCities: true,
   diversityBonus: true
 };
