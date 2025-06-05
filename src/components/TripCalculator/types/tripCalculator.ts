@@ -12,4 +12,5 @@ export interface TripFormData {
   endLocation: string;
   travelDays: number;
   dailyDrivingLimit: number; // Changed from number[] to number for simplicity
+  tripStartDate?: Date; // Added trip start date
 }

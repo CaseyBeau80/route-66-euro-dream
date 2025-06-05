@@ -12,11 +12,19 @@ interface CalendarExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   tripPlan: TripPlan;
+  tripStartDate?: Date;
 }
 
-const CalendarExportModal: React.FC<CalendarExportModalProps> = ({ isOpen, onClose, tripPlan }) => {
+const CalendarExportModal: React.FC<CalendarExportModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  tripPlan, 
+  tripStartDate 
+}) => {
   const [startDate, setStartDate] = useState<string>(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default to next week
+    tripStartDate 
+      ? tripStartDate.toISOString().split('T')[0]
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default to next week
   );
   const [isExporting, setIsExporting] = useState(false);
 
@@ -94,6 +102,9 @@ const CalendarExportModal: React.FC<CalendarExportModalProps> = ({ isOpen, onClo
           <div className="space-y-2">
             <Label htmlFor="start-date" className="font-travel font-semibold text-route66-vintage-brown">
               Trip Start Date
+              {tripStartDate && (
+                <span className="text-sm text-green-600 ml-2">(From your trip plan)</span>
+              )}
             </Label>
             <input
               id="start-date"

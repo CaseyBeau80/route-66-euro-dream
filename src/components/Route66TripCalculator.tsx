@@ -19,17 +19,11 @@ const Route66TripCalculator: React.FC = () => {
     isCalculateDisabled
   } = useEnhancedTripCalculation();
 
-  // Track the trip start date from the calendar export
-  const [tripStartDate, setTripStartDate] = useState<Date | null>(null);
-
   const handleNewTrip = () => {
     resetTrip();
-    setTripStartDate(null);
   };
 
   const handleTripCalculated = (newTripPlan: TripPlan) => {
-    // You can set a default trip start date here if needed
-    // For now, we'll leave it as null and let users set it in the calendar modal
     console.log('🧮 New trip calculated:', newTripPlan);
   };
 
@@ -63,7 +57,7 @@ const Route66TripCalculator: React.FC = () => {
           <EnhancedTripResults 
             tripPlan={tripPlan} 
             shareUrl={shareUrl} 
-            tripStartDate={tripStartDate}
+            tripStartDate={formData.tripStartDate}
           />
         </div>
       )}

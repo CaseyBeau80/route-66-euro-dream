@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from '../types/tripCalculator';
@@ -10,7 +11,8 @@ export const useEnhancedTripCalculation = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 0,
-    dailyDrivingLimit: 300 // Single number instead of array
+    dailyDrivingLimit: 300, // Single number instead of array
+    tripStartDate: undefined // Added trip start date
   });
   
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
