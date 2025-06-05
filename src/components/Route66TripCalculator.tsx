@@ -3,30 +3,27 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import TripCalculatorForm from './TripCalculator/TripCalculatorForm';
 import EnhancedTripResults from './TripCalculator/EnhancedTripResults';
-import { useTripCalculation } from './TripCalculator/hooks/useTripCalculation';
+import { useEnhancedTripCalculation } from './TripCalculator/hooks/useEnhancedTripCalculation';
 import { TripPlan } from './TripCalculator/services/planning/TripPlanBuilder';
 
 const Route66TripCalculator: React.FC = () => {
   const {
-    startCity,
-    setStartCity,
-    endCity,
-    setEndCity,
-    days,
-    setDays,
+    formData,
+    setFormData,
     tripPlan,
-    isLoading,
-    error,
     shareUrl,
+    availableEndLocations,
     calculateTrip,
-    resetForm
-  } = useTripCalculation();
+    resetTrip,
+    isCalculating,
+    isCalculateDisabled
+  } = useEnhancedTripCalculation();
 
   // Track the trip start date from the calendar export
   const [tripStartDate, setTripStartDate] = useState<Date | null>(null);
 
   const handleNewTrip = () => {
-    resetForm();
+    resetTrip();
     setTripStartDate(null);
   };
 
@@ -41,15 +38,12 @@ const Route66TripCalculator: React.FC = () => {
       {!tripPlan ? (
         <div className="text-center space-y-6">
           <TripCalculatorForm
-            startCity={startCity}
-            setStartCity={setStartCity}
-            endCity={endCity}
-            setEndCity={setEndCity}
-            days={days}
-            setDays={setDays}
+            formData={formData}
+            setFormData={setFormData}
             onCalculate={calculateTrip}
-            isLoading={isLoading}
-            error={error}
+            availableEndLocations={availableEndLocations}
+            isCalculateDisabled={isCalculateDisabled}
+            isCalculating={isCalculating}
           />
         </div>
       ) : (
