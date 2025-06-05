@@ -1,7 +1,6 @@
 
 import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
-import SimpleInstagramCarousel from "./InstagramCarousel/components/SimpleInstagramCarousel";
 import TravelResources from "./TravelResources";
 
 interface MainLayoutProps {
@@ -18,9 +17,6 @@ const MainLayout = ({ children, language, setLanguage }: MainLayoutProps) => {
       
       {/* Main Content */}
       {children}
-
-      {/* Instagram Carousel Section */}
-      <SimpleInstagramCarousel />
 
       {/* Travel Resources Section */}
       <TravelResources language={language} />
