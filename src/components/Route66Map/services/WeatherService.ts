@@ -1,4 +1,3 @@
-
 import { WeatherData, WeatherWithForecast } from './weather/WeatherServiceTypes';
 import { WeatherApiClient } from './weather/WeatherApiClient';
 import { WeatherDataProcessor } from './weather/WeatherDataProcessor';
@@ -21,7 +20,7 @@ export class WeatherService {
   }
 
   setApiKey(apiKey: string): void {
-    console.log('🔑 WeatherService: Setting new API key');
+    console.log('🔑 WeatherService: Setting new API key through service');
     this.apiKeyManager.setApiKey(apiKey);
   }
 
@@ -31,12 +30,10 @@ export class WeatherService {
     return hasKey;
   }
 
-  getDebugInfo(): { hasKey: boolean; keyLength: number | null } {
-    const apiKey = this.apiKeyManager.getApiKey();
-    return {
-      hasKey: !!apiKey,
-      keyLength: apiKey ? apiKey.length : null
-    };
+  getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null } {
+    const debugInfo = this.apiKeyManager.getDebugInfo();
+    console.log('🔍 WeatherService: Debug info requested:', debugInfo);
+    return debugInfo;
   }
 
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
