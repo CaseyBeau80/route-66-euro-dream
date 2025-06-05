@@ -39,7 +39,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
     tripStartDate,
     segmentDate,
     daysFromNow,
-    segmentDay: segment.day
+    segmentDay: segment.day,
+    hasWeatherData: !!weather,
+    loading,
+    error
   });
 
   const handleApiKeySet = () => {
@@ -91,7 +94,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
         }
       } catch (err) {
         console.error(`❌ SegmentWeatherWidget: Weather fetch error for ${segment.endCity}:`, err);
-        setError('Weather service unavailable');
+        setError('Weather service temporarily unavailable');
       } finally {
         setLoading(false);
         console.log(`🌤️ SegmentWeatherWidget: Finished fetching weather for ${segment.endCity}`);
@@ -134,13 +137,13 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       return <WeatherError error={error} />;
     }
 
-    // Successfully fetched current weather data
+    // PRIORITY 1: Show weather data if we have it (regardless of trip date)
     if (weather) {
       console.log(`✅ SegmentWeatherWidget: Showing current weather for ${segment.endCity}`, weather);
       return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
     }
 
-    // No trip start date set - show message
+    // PRIORITY 2: No trip start date set - show message
     if (!segmentDate || daysFromNow === null) {
       console.log(`🌤️ SegmentWeatherWidget: No trip date set for ${segment.endCity}`);
       return (
@@ -150,20 +153,20 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       );
     }
 
-    // Too far in the future - show seasonal estimate
+    // PRIORITY 3: Trip too far in the future - show seasonal estimate
     if (daysFromNow > 16) {
       console.log(`🌤️ SegmentWeatherWidget: Trip too far in future for ${segment.endCity}, showing seasonal`);
       return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
     }
 
-    // Beyond 5-day forecast range but within 16 days
+    // PRIORITY 4: Beyond 5-day forecast range but within 16 days
     if (daysFromNow > 5) {
       console.log(`🌤️ SegmentWeatherWidget: Trip beyond 5-day forecast for ${segment.endCity}`);
       const message = "Weather forecasts are only available for the next 5 days. Check closer to your travel date.";
       return <WeatherStatusBadge type="unavailable" description={message} />;
     }
 
-    // Fallback to seasonal display
+    // PRIORITY 5: Fallback to seasonal display
     console.log(`🌤️ SegmentWeatherWidget: Fallback to seasonal for ${segment.endCity}`);
     return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
   };
