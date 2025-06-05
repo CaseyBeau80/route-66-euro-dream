@@ -8,9 +8,44 @@ import WavingFlag from "./Route66Countdown/WavingFlag";
 import AnimatedConfetti from "./Route66Countdown/AnimatedConfetti";
 import { Star, Calendar, MapPin } from "lucide-react";
 
+interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
 const CentennialSection = () => {
   const [activeTab, setActiveTab] = useState<'facts' | 'timeline'>('facts');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  // Route 66 Centennial date - November 11, 2026
+  const centennialDate = new Date('2026-11-11T00:00:00');
+
+  // Calculate time remaining
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = centennialDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Trigger confetti animation periodically
   useEffect(() => {
@@ -104,7 +139,7 @@ const CentennialSection = () => {
           <div className="relative">
             <div className="absolute -inset-8 bg-gradient-to-r from-red-500/20 via-white/30 to-blue-500/20 rounded-3xl blur-3xl"></div>
             <div className="relative bg-black/60 backdrop-blur-lg rounded-2xl border-2 border-white/30 shadow-2xl p-8">
-              <CountdownDisplay />
+              <CountdownDisplay timeLeft={timeLeft} />
             </div>
           </div>
         </div>
