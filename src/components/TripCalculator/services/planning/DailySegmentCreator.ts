@@ -3,10 +3,11 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
-import { DestinationSelectionService } from './DestinationSelectionService';
 import { SubStopTimingCalculator, SubStopTiming } from './SubStopTimingCalculator';
 import { RouteProgressCalculator } from './RouteProgressCalculator';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
+import { EnhancedDestinationSelectionService } from './EnhancedDestinationSelectionService';
+import { BalanceQualityMetrics } from './BalanceQualityMetrics';
 
 // Export SubStopTiming for external use
 export type { SubStopTiming };
@@ -26,11 +27,12 @@ export interface DailySegment {
     message: string;
     color: string;
   };
+  balanceMetrics?: any;
 }
 
 export class DailySegmentCreator {
   /**
-   * Create daily segments with balanced drive time distribution and destination city priority
+   * Create daily segments with advanced drive time balancing
    */
   static createBalancedDailySegments(
     startStop: TripStop,
@@ -40,6 +42,7 @@ export class DailySegmentCreator {
     totalDistance: number
   ): DailySegment[] {
     console.log(`🎯 Creating balanced daily segments for ${tripDays} days, ${Math.round(totalDistance)} miles`);
+    console.log('🚀 Using enhanced drive time balancing system');
 
     // Calculate drive time targets for each day
     const driveTimeTargets = DriveTimeBalancingService.calculateDriveTimeTargets(
@@ -47,37 +50,56 @@ export class DailySegmentCreator {
       tripDays
     );
 
+    console.log(`📊 Drive time targets calculated:`, driveTimeTargets.map((t, i) => 
+      `Day ${i + 1}: ${t.targetHours.toFixed(1)}h (${t.minHours.toFixed(1)}-${t.maxHours.toFixed(1)}h)`
+    ));
+
+    // Use enhanced destination selection with advanced balancing
+    const enhancedResult = EnhancedDestinationSelectionService.selectBalancedDestinations(
+      startStop,
+      endStop,
+      [...enhancedStops], // Make a copy to avoid mutations
+      driveTimeTargets
+    );
+
+    console.log(`🎯 Enhanced destination selection complete:`);
+    console.log(`   - Balance Grade: ${enhancedResult.balanceMetrics.qualityGrade}`);
+    console.log(`   - Was Optimized: ${enhancedResult.wasOptimized}`);
+    console.log(`   - Iterations: ${enhancedResult.iterations}`);
+
+    // Build daily segments from selected destinations
+    const dailySegments = this.buildSegmentsFromDestinations(
+      startStop,
+      enhancedResult.destinations,
+      enhancedStops,
+      totalDistance,
+      driveTimeTargets,
+      enhancedResult.balanceMetrics
+    );
+
+    console.log(`✅ Created ${dailySegments.length} balanced daily segments`);
+    return dailySegments;
+  }
+
+  /**
+   * Build daily segments from optimized destinations
+   */
+  private static buildSegmentsFromDestinations(
+    startStop: TripStop,
+    destinations: TripStop[],
+    allStops: TripStop[],
+    totalDistance: number,
+    driveTimeTargets: DriveTimeTarget[],
+    balanceMetrics: any
+  ): DailySegment[] {
     const dailySegments: DailySegment[] = [];
     let currentStop = startStop;
-    let remainingStops = [...enhancedStops];
     let cumulativeDistance = 0;
+    let remainingStops = [...allStops];
 
-    console.log(`🏙️ Initial stops breakdown:`);
-    console.log(`- Destination cities: ${remainingStops.filter(s => s.category === 'destination_city').length}`);
-    console.log(`- Major waypoints: ${remainingStops.filter(s => s.category === 'route66_waypoint' && s.is_major_stop).length}`);
-    console.log(`- Other stops: ${remainingStops.filter(s => s.category !== 'destination_city' && !(s.category === 'route66_waypoint' && s.is_major_stop)).length}`);
-
-    for (let day = 1; day <= tripDays; day++) {
-      const isLastDay = day === tripDays;
+    for (let day = 1; day <= destinations.length; day++) {
+      const dayDestination = destinations[day - 1];
       const driveTimeTarget = driveTimeTargets[day - 1];
-      
-      console.log(`\n📅 Planning Day ${day}/${tripDays} with target ${driveTimeTarget.targetHours.toFixed(1)}h drive`);
-      
-      // Select destination for this day using enhanced destination city prioritization
-      const dayDestination = isLastDay 
-        ? endStop 
-        : DestinationSelectionService.selectOptimalDayDestination(
-            currentStop, 
-            endStop, 
-            remainingStops, 
-            0, // Not used in drive time mode
-            driveTimeTarget
-          );
-
-      if (!dayDestination) {
-        console.log(`❌ No destination found for day ${day}`);
-        continue;
-      }
 
       // Calculate distances and timings
       const segmentDistance = DistanceCalculationService.calculateDistance(
@@ -117,6 +139,9 @@ export class DailySegmentCreator {
       const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
       const endCityDisplay = CityDisplayService.getCityDisplayName(dayDestination);
 
+      // Include balance metrics on the first segment
+      const segmentBalanceMetrics = day === 1 ? balanceMetrics : undefined;
+
       dailySegments.push({
         day,
         title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
@@ -127,7 +152,8 @@ export class DailySegmentCreator {
         driveTimeHours: Math.round(finalDriveTime * 10) / 10,
         subStopTimings: subStopTimings,
         routeSection,
-        driveTimeCategory
+        driveTimeCategory,
+        balanceMetrics: segmentBalanceMetrics
       });
 
       // Update for next iteration - remove used stops
@@ -137,7 +163,7 @@ export class DailySegmentCreator {
       });
 
       // Remove the day destination from remaining stops if it's not the final destination
-      if (!isLastDay) {
+      if (day < destinations.length) {
         const destIndex = remainingStops.findIndex(s => s.id === dayDestination.id);
         if (destIndex > -1) remainingStops.splice(destIndex, 1);
       }
@@ -148,35 +174,14 @@ export class DailySegmentCreator {
       console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${finalDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops`);
     }
 
-    // Validate the balance
-    const segmentData = dailySegments.map(s => ({
-      distance: s.approximateMiles,
-      driveTimeHours: s.driveTimeHours
-    }));
-    
-    const validation = DriveTimeBalancingService.validateDriveTimeBalance(segmentData, driveTimeTargets);
-    
-    if (!validation.isBalanced) {
-      console.log('⚠️ Drive time balance issues:', validation.issues);
-      console.log('💡 Suggestions:', validation.suggestions);
-    } else {
-      console.log('✅ Drive times are well balanced across all days');
-    }
-
-    // Log final destination breakdown
-    const destinationCityCount = dailySegments.filter(s => {
-      const stops = [...s.recommendedStops];
-      return stops.some(stop => stop.category === 'destination_city') || 
-             s.endCity.includes('City') || s.endCity.includes('town'); // Basic heuristic
-    }).length;
-    
-    console.log(`🏙️ Final result: ${destinationCityCount} segments include destination cities`);
+    // Log final balance summary
+    console.log(`🎯 Final balance summary: ${BalanceQualityMetrics.getBalanceSummary(balanceMetrics)}`);
 
     return dailySegments;
   }
 
   /**
-   * Legacy method for backward compatibility - now uses balanced approach
+   * Legacy method for backward compatibility - now uses enhanced approach
    */
   static createSmartDailySegments(
     startStop: TripStop,
