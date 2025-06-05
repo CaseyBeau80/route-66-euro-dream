@@ -5,6 +5,7 @@ import { StopPrioritizationService } from './StopPrioritizationService';
 import { RouteDeduplicationService } from './RouteDeduplicationService';
 import { DestinationSelectionService } from './DestinationSelectionService';
 import { DrivingTimeMessageService } from '../utils/DrivingTimeMessageService';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export class RouteStopSelectionService {
   /**
@@ -70,7 +71,7 @@ export class RouteStopSelectionService {
 
     const selectedStops = prioritizedStops.slice(0, dynamicMaxStops);
     
-    const segmentDistance = require('../utils/DistanceCalculationService').DistanceCalculationService.calculateDistance(
+    const segmentDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
