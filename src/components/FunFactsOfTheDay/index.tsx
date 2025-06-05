@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import FunFactsHeader from './components/FunFactsHeader';
 import NewspaperClipping from './components/NewspaperClipping';
 import { DailyFactsService } from './services/DailyFactsService';
@@ -9,7 +10,7 @@ const FunFactsOfTheDay: React.FC = () => {
   const dailyFacts = DailyFactsService.getTodaysFacts();
 
   return (
-    <section className="py-16 bg-gradient-to-br from-amber-25 via-yellow-25 to-cream-50 relative overflow-hidden">
+    <section className="py-12 bg-gradient-to-br from-amber-25 via-yellow-25 to-cream-50 relative overflow-hidden">
       {/* Background texture */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-100/20 via-transparent to-yellow-100/20"></div>
@@ -20,25 +21,41 @@ const FunFactsOfTheDay: React.FC = () => {
         {/* Header */}
         <FunFactsHeader currentDate={dailyFacts.date} />
         
-        {/* Facts grid */}
+        {/* Carousel Container */}
         <Card className="bg-white/80 backdrop-blur-sm border-2 border-amber-200 shadow-xl">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {dailyFacts.facts.map((fact, index) => (
-                <NewspaperClipping
-                  key={fact.id}
-                  fact={fact}
-                  index={index}
-                />
-              ))}
-            </div>
+          <CardContent className="p-6">
+            <Carousel 
+              opts={{
+                align: "start",
+                loop: true,
+                skipSnaps: false,
+                dragFree: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {dailyFacts.facts.map((fact, index) => (
+                  <CarouselItem 
+                    key={fact.id} 
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
+                  >
+                    <NewspaperClipping
+                      fact={fact}
+                      index={index}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-2 bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-800" />
+              <CarouselNext className="right-2 bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-800" />
+            </Carousel>
             
             {/* Footer note */}
-            <div className="mt-8 pt-6 border-t border-amber-200/50 text-center">
+            <div className="mt-6 pt-4 border-t border-amber-200/50 text-center">
               <p className="text-sm text-gray-600 font-courier-prime">
                 ✨ Fresh facts every day from America's Mother Road ✨
               </p>
-              <p className="text-xs text-gray-500 mt-2 font-special-elite">
+              <p className="text-xs text-gray-500 mt-1 font-special-elite">
                 Come back tomorrow for five new discoveries!
               </p>
             </div>
