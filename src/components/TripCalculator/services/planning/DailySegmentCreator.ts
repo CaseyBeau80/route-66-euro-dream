@@ -84,7 +84,7 @@ export class DailySegmentCreator {
       destinations = [...destinations, ...additionalDests].slice(0, totalDays - 1);
     }
 
-    // Step 3: Build initial segments from destinations
+    // Step 3: Build initial segments from destinations (now includes endStop)
     console.log('📍 Phase 3: Building initial segments');
     let dailySegments = SegmentBuilderService.buildSegmentsFromDestinations(
       startStop,
@@ -92,7 +92,8 @@ export class DailySegmentCreator {
       validatedStops,
       totalDistance,
       driveTimeTargets,
-      { overallScore: 0, qualityGrade: 'C' }
+      { overallScore: 0, qualityGrade: 'C' },
+      endStop
     );
 
     // Step 4: Dynamic rebalancing to fix severe imbalances
@@ -119,6 +120,11 @@ export class DailySegmentCreator {
       if (!StopValidationService.validateSegmentTimings(segment.subStopTimings)) {
         console.error(`❌ Day ${segment.day} has circular reference issues`);
       }
+    }
+
+    // Final validation: ensure we have the correct number of segments
+    if (dailySegments.length !== totalDays) {
+      console.error(`❌ Expected ${totalDays} daily segments, but created ${dailySegments.length}`);
     }
 
     // Log final balance summary

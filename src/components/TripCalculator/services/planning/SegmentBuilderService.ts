@@ -19,19 +19,26 @@ export class SegmentBuilderService {
     allStops: TripStop[],
     totalDistance: number,
     driveTimeTargets: DriveTimeTarget[],
-    balanceMetrics: any
+    balanceMetrics: any,
+    endStop: TripStop
   ): DailySegment[] {
     const dailySegments: DailySegment[] = [];
     let currentStop = startStop;
     let remainingStops = [...allStops];
 
-    // Remove start and destinations from remaining stops to prevent duplication
+    // Remove start, destinations, and end stop from remaining stops to prevent duplication
     remainingStops = remainingStops.filter(stop => 
-      stop.id !== startStop.id && !destinations.some(dest => dest.id === stop.id)
+      stop.id !== startStop.id && 
+      stop.id !== endStop.id &&
+      !destinations.some(dest => dest.id === stop.id)
     );
 
-    for (let day = 1; day <= destinations.length; day++) {
-      const dayDestination = destinations[day - 1];
+    // Build all segments including the final one to endStop
+    const totalDays = destinations.length + 1;
+    
+    for (let day = 1; day <= totalDays; day++) {
+      const isLastDay = day === totalDays;
+      const dayDestination = isLastDay ? endStop : destinations[day - 1];
       const driveTimeTarget = driveTimeTargets[day - 1];
 
       // Validate destination
@@ -122,6 +129,11 @@ export class SegmentBuilderService {
       currentStop = dayDestination;
       
       console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops, ${routeSection}`);
+    }
+
+    // Validate we have the correct number of segments
+    if (dailySegments.length !== totalDays) {
+      console.error(`❌ Expected ${totalDays} segments, but created ${dailySegments.length}`);
     }
 
     // Log final balance summary
