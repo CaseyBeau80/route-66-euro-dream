@@ -11,13 +11,13 @@ const CountdownHeader: React.FC = () => {
           color: '#dc2626',
           textShadow: `
             3px 3px 0px #FFFFFF,
-            6px 6px 0px #7f1d1d,
+            6px 6px 0px #1d4ed8,
             9px 9px 10px rgba(0,0,0,0.5),
             0 0 20px rgba(220, 38, 38, 0.8),
-            0 0 40px rgba(127, 29, 29, 0.6)
+            0 0 40px rgba(29, 78, 216, 0.6)
           `,
           letterSpacing: '0.15em',
-          animation: 'neon-glow 2s ease-in-out infinite alternate'
+          animation: 'patriotic-glow 3s ease-in-out infinite alternate'
         }}
       >
         ROUTE 66
@@ -26,8 +26,13 @@ const CountdownHeader: React.FC = () => {
         className="countdown-element text-2xl md:text-3xl font-bold tracking-widest"
         style={{
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
-          color: '#7f1d1d',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.6), 0 0 10px rgba(127, 29, 29, 0.4)',
+          color: '#1d4ed8',
+          textShadow: `
+            2px 2px 0px #FFFFFF,
+            4px 4px 6px rgba(0,0,0,0.6),
+            0 0 15px rgba(29, 78, 216, 0.8),
+            0 0 25px rgba(220, 38, 38, 0.4)
+          `,
           letterSpacing: '0.2em'
         }}
       >

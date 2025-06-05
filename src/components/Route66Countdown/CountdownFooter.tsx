@@ -7,22 +7,23 @@ const CountdownFooter: React.FC = () => {
       className="countdown-element relative z-10 mx-4 p-4 rounded-lg"
       style={{
         background: `
-          linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #dc2626 100%),
+          linear-gradient(135deg, #dc2626 0%, #1d4ed8 50%, #dc2626 100%),
           repeating-linear-gradient(
             90deg,
             transparent,
             transparent 3px,
-            rgba(255,255,255,0.1) 3px,
-            rgba(255,255,255,0.1) 6px
+            rgba(255,255,255,0.15) 3px,
+            rgba(255,255,255,0.15) 6px
           )
         `,
         border: '3px solid',
-        borderImage: 'linear-gradient(135deg, #FFFFFF, #F3F4F6, #FFFFFF) 1',
+        borderImage: 'linear-gradient(135deg, #FFFFFF, #1d4ed8, #dc2626, #FFFFFF) 1',
         boxShadow: `
-          inset 0 2px 8px rgba(255,255,255,0.2),
+          inset 0 2px 8px rgba(255,255,255,0.25),
           inset 0 -2px 8px rgba(0,0,0,0.3),
           0 4px 12px rgba(0,0,0,0.4),
-          0 0 20px rgba(239, 68, 68, 0.3)
+          0 0 20px rgba(220, 38, 38, 0.4),
+          0 0 30px rgba(29, 78, 216, 0.3)
         `
       }}
     >
@@ -32,9 +33,11 @@ const CountdownFooter: React.FC = () => {
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#FFFFFF',
           textShadow: `
-            2px 2px 0px #7f1d1d,
-            4px 4px 8px rgba(0,0,0,0.8),
-            0 0 15px rgba(255, 255, 255, 0.8)
+            2px 2px 0px #000000,
+            4px 4px 0px #dc2626,
+            6px 6px 8px rgba(0,0,0,0.8),
+            0 0 15px rgba(255, 255, 255, 0.9),
+            0 0 20px rgba(29, 78, 216, 0.6)
           `,
           letterSpacing: '0.1em'
         }}
@@ -47,9 +50,11 @@ const CountdownFooter: React.FC = () => {
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#F8F9FA',
           textShadow: `
-            1px 1px 0px #7f1d1d,
-            2px 2px 4px rgba(0,0,0,0.8),
-            0 0 10px rgba(248, 249, 250, 0.6)
+            1px 1px 0px #000000,
+            2px 2px 0px #1d4ed8,
+            4px 4px 6px rgba(0,0,0,0.8),
+            0 0 12px rgba(248, 249, 250, 0.8),
+            0 0 18px rgba(220, 38, 38, 0.5)
           `,
           letterSpacing: '0.05em'
         }}
