@@ -1,6 +1,6 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { DriveTimeTarget } from './DriveTimeBalancingService';
+import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationScoring } from './DestinationScoring';
 
 export class DestinationPriorityService {
