@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import CountdownDisplay from "./Route66Countdown/CountdownDisplay";
-import Route66FunFacts from "./Route66Countdown/Route66FunFacts";
-import Route66Timeline from "./Route66Countdown/Route66Timeline";
+import HorizontalTimeline from "./Route66Countdown/HorizontalTimeline";
 import NostalgicBadge from "./Route66Countdown/NostalgicBadge";
 import WavingFlag from "./Route66Countdown/WavingFlag";
 import AnimatedConfetti from "./Route66Countdown/AnimatedConfetti";
-import { Star, Calendar, MapPin } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface TimeLeft {
   days: number;
@@ -16,7 +15,6 @@ interface TimeLeft {
 }
 
 const CentennialSection = () => {
-  const [activeTab, setActiveTab] = useState<'facts' | 'timeline'>('facts');
   const [showConfetti, setShowConfetti] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -144,75 +142,11 @@ const CentennialSection = () => {
           </div>
         </div>
 
-        {/* Enhanced Tab Navigation */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-2xl">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setActiveTab('facts')}
-                className={`
-                  px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center gap-3
-                  ${activeTab === 'facts' 
-                    ? 'bg-gradient-to-r from-red-600 to-blue-600 text-white shadow-lg scale-105' 
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }
-                `}
-                style={{
-                  fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                  textShadow: activeTab === 'facts' ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none'
-                }}
-              >
-                <MapPin className="w-5 h-5" />
-                Route 66 Facts
-              </button>
-              <button
-                onClick={() => setActiveTab('timeline')}
-                className={`
-                  px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center gap-3
-                  ${activeTab === 'timeline' 
-                    ? 'bg-gradient-to-r from-red-600 to-blue-600 text-white shadow-lg scale-105' 
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }
-                `}
-                style={{
-                  fontFamily: "'Russo One', 'Arial Black', sans-serif",
-                  textShadow: activeTab === 'timeline' ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none'
-                }}
-              >
-                <Calendar className="w-5 h-5" />
-                Historic Timeline
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area with Enhanced Styling */}
+        {/* Horizontal Timeline - Replacing tabbed content */}
         <div className="relative">
           <div className="absolute -inset-4 bg-gradient-to-r from-red-500/10 via-white/20 to-blue-500/10 rounded-3xl blur-2xl"></div>
-          <div 
-            className={`
-              relative transition-all duration-700 ease-in-out overflow-hidden rounded-2xl
-              ${activeTab === 'facts' ? 'opacity-100 max-h-[800px]' : 'opacity-0 max-h-0'}
-            `}
-          >
-            {activeTab === 'facts' && (
-              <div className="h-[600px]">
-                <Route66FunFacts />
-              </div>
-            )}
-          </div>
-          
-          <div 
-            className={`
-              relative transition-all duration-700 ease-in-out overflow-hidden rounded-2xl
-              ${activeTab === 'timeline' ? 'opacity-100 max-h-[800px]' : 'opacity-0 max-h-0'}
-            `}
-          >
-            {activeTab === 'timeline' && (
-              <div className="h-[600px]">
-                <Route66Timeline />
-              </div>
-            )}
+          <div className="relative">
+            <HorizontalTimeline />
           </div>
         </div>
 
