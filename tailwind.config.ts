@@ -116,8 +116,13 @@ const config: Config = {
           "vintage-beige": "#F9FAFB",
           "vintage-turquoise": "#6B8CFF",
           "rust": "#EF4444",
-          "navy": "#1F2937",
+          "navy": "#1B2951",
         },
+      },
+      fontFamily: {
+        'special-elite': ['Special Elite', 'monospace'],
+        'courier-prime': ['Courier Prime', 'monospace'],
+        'playfair': ['Playfair Display', 'serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
