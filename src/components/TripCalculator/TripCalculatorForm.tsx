@@ -1,18 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, MapPin, Clock, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { MapPin } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
 import { route66Towns } from '@/types/route66';
-import CostEstimatorForm from './components/CostEstimatorForm';
-import { useCostEstimator } from './hooks/useCostEstimator';
+import FormHeader from './components/FormHeader';
+import LocationSelectionForm from './components/LocationSelectionForm';
+import TripDateForm from './components/TripDateForm';
+import TripDurationForm from './components/TripDurationForm';
+import CostEstimatorSection from './components/CostEstimatorSection';
+import FormValidationHelper from './components/FormValidationHelper';
+import SmartPlanningInfo from './components/SmartPlanningInfo';
+import { useFormValidation } from './hooks/useFormValidation';
 
 interface TripCalculatorFormProps {
   formData: TripFormData;
@@ -31,28 +30,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   isCalculateDisabled,
   isCalculating
 }) => {
-  const [showCostEstimator, setShowCostEstimator] = useState(false);
-  
-  // Create a mock trip plan for cost estimation
-  const mockTripPlan = {
-    totalDistance: formData.travelDays * 300, // Estimate based on days
-    dailySegments: Array.from({ length: formData.travelDays }, (_, i) => ({
-      day: i + 1,
-      distance: 300,
-      drivingTime: 6
-    }))
-  };
-
-  const { costData, setCostData, costEstimate } = useCostEstimator(mockTripPlan);
-
-  // Enhanced form validation
-  const isFormValid = Boolean(
-    formData.startLocation && 
-    formData.endLocation && 
-    formData.travelDays && 
-    formData.travelDays > 0 &&
-    formData.startLocation !== formData.endLocation
-  );
+  const { isFormValid } = useFormValidation(formData);
 
   const handleCalculateClick = () => {
     console.log('🚗 Calculate button clicked', { formData, isFormValid, isCalculateDisabled });
@@ -82,165 +60,33 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center mb-6">
-        <Button 
-          onClick={handleCalculateClick}
-          disabled={!isFormValid || isCalculating}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 text-lg font-semibold rounded-lg"
-        >
-          {isCalculating ? 'Planning...' : 'Start Planning Your Trip'}
-        </Button>
-      </div>
+      <FormHeader 
+        onCalculate={handleCalculateClick}
+        isFormValid={isFormValid}
+        isCalculating={isCalculating}
+      />
 
       {/* Main Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Starting City */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Starting City</Label>
-          <Select 
-            value={formData.startLocation} 
-            onValueChange={(value) => {
-              console.log('🏁 Start location changed:', value);
-              setFormData({ ...formData, startLocation: value });
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose your starting point" />
-            </SelectTrigger>
-            <SelectContent>
-              {route66Towns.map((town) => (
-                <SelectItem key={town.name} value={town.name}>
-                  {town.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Destination City */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Destination City</Label>
-          <Select 
-            value={formData.endLocation} 
-            onValueChange={(value) => {
-              console.log('🎯 End location changed:', value);
-              setFormData({ ...formData, endLocation: value });
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose your destination" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableEndLocations.map((town) => (
-                <SelectItem key={town.name} value={town.name}>
-                  {town.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <LocationSelectionForm 
+        formData={formData}
+        setFormData={setFormData}
+        availableEndLocations={availableEndLocations}
+      />
 
       {/* Trip Start Date */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Trip Start Date (Optional)</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !formData.tripStartDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formData.tripStartDate ? format(formData.tripStartDate, "PPP") : "Pick a start date for weather forecasts"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={formData.tripStartDate}
-              onSelect={(date) => {
-                console.log('📅 Trip start date changed:', date);
-                setFormData({ ...formData, tripStartDate: date });
-              }}
-              disabled={(date) => date < new Date()}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-        <p className="text-xs text-gray-600">
-          Set a start date to see accurate weather forecasts for each day of your trip
-        </p>
-      </div>
+      <TripDateForm 
+        formData={formData}
+        setFormData={setFormData}
+      />
 
       {/* Trip Duration */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Trip Duration: {formData.travelDays} days</Label>
-        <Input
-          type="number"
-          min="1"
-          max="30"
-          value={formData.travelDays || ''}
-          onChange={(e) => {
-            const days = parseInt(e.target.value) || 0;
-            console.log('⏱️ Travel days changed:', days);
-            setFormData({ ...formData, travelDays: days });
-          }}
-          placeholder="Enter number of days (1-30)"
-          className="w-full"
-        />
-        <p className="text-xs text-blue-600">
-          How many days do you want to spend on your Route 66 adventure?
-        </p>
-      </div>
+      <TripDurationForm 
+        formData={formData}
+        setFormData={setFormData}
+      />
 
-      {/* Cost Estimator Toggle */}
-      <div className="space-y-4">
-        <Button
-          type="button"
-          onClick={() => setShowCostEstimator(!showCostEstimator)}
-          variant="outline"
-          className="w-full border-green-300 text-green-700 hover:bg-green-50"
-        >
-          <DollarSign className="mr-2 h-4 w-4" />
-          Cost Estimator (Optional Module)
-          {showCostEstimator ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-        </Button>
-
-        {/* Cost Estimator Form */}
-        {showCostEstimator && (
-          <div className="space-y-4">
-            <CostEstimatorForm 
-              costData={costData}
-              setCostData={setCostData}
-            />
-            
-            {/* Cost Preview */}
-            {costEstimate && formData.travelDays > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-semibold text-green-800 mb-2">Estimated Trip Cost</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-green-700">Total Cost:</span>
-                    <span className="font-bold text-green-800 ml-2">
-                      ${costEstimate.breakdown.totalCost.toFixed(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-green-700">Per Person:</span>
-                    <span className="font-bold text-green-800 ml-2">
-                      ${(costEstimate.breakdown.totalCost / costData.groupSize).toFixed(0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Cost Estimator Section */}
+      <CostEstimatorSection formData={formData} />
 
       {/* Plan Button */}
       <Button
@@ -253,29 +99,13 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       </Button>
 
       {/* Form Validation Helper */}
-      {!isFormValid && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-          <p className="text-sm text-yellow-800">
-            Please fill in: 
-            {!formData.startLocation && ' Starting City'}
-            {!formData.endLocation && ' Destination City'}
-            {!formData.travelDays && ' Trip Duration'}
-            {formData.startLocation === formData.endLocation && ' Different start and end cities'}
-          </p>
-        </div>
-      )}
+      <FormValidationHelper 
+        formData={formData}
+        isFormValid={isFormValid}
+      />
 
       {/* Smart Planning Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <div className="flex items-center justify-center gap-2 text-blue-800 mb-2">
-          <MapPin className="h-5 w-5" />
-          <span className="font-semibold">Smart Planning:</span>
-        </div>
-        <p className="text-sm text-blue-700">
-          Our planner uses real Route 66 attractions, hidden gems, and historic stops from our database to create an 
-          authentic road trip experience!
-        </p>
-      </div>
+      <SmartPlanningInfo />
     </div>
   );
 };
