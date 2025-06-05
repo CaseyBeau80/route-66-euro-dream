@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -9,6 +8,7 @@ import EnhancedTripResults from './EnhancedTripResults';
 interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
   tripPlan?: TripPlan;
+  shareUrl?: string | null;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -96,13 +96,13 @@ const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calcula
   );
 };
 
-const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation, tripPlan }) => {
-  console.log('🎯 TripCalculatorResults render - tripPlan:', tripPlan, 'calculation:', calculation);
+const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation, tripPlan, shareUrl }) => {
+  console.log('🎯 TripCalculatorResults render - tripPlan:', tripPlan, 'calculation:', calculation, 'shareUrl:', shareUrl);
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
     console.log('✨ Rendering Enhanced Trip Results');
-    return <EnhancedTripResults tripPlan={tripPlan} />;
+    return <EnhancedTripResults tripPlan={tripPlan} shareUrl={shareUrl} />;
   }
   
   if (calculation) {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from '../types/tripCalculator';
 import { Route66TripPlannerService, TripPlan } from '../services/Route66TripPlannerService';
+import { TripService } from '../services/TripService';
 import { toast } from '@/hooks/use-toast';
 
 export const useEnhancedTripCalculation = () => {
@@ -15,6 +16,7 @@ export const useEnhancedTripCalculation = () => {
   
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   // Get available end locations based on start location
   const availableEndLocations = route66Towns.filter(town => town.name !== formData.startLocation);
@@ -45,6 +47,18 @@ export const useEnhancedTripCalculation = () => {
       console.log('✅ Trip plan generated successfully:', plan);
       setTripPlan(plan);
       
+      // Auto-save the trip and get share URL
+      try {
+        const shareCode = await TripService.saveTrip(plan);
+        const generatedShareUrl = TripService.getShareUrl(shareCode);
+        setShareUrl(generatedShareUrl);
+        
+        console.log('✅ Trip auto-saved with share URL:', generatedShareUrl);
+      } catch (saveError) {
+        console.error('⚠️ Failed to auto-save trip:', saveError);
+        // Don't show error to user for auto-save failures
+      }
+      
       toast({
         title: "Trip Planned Successfully!",
         description: `Your ${formData.travelDays}-day Route 66 adventure has been planned with ${plan.dailySegments.length} daily segments.`,
@@ -67,6 +81,7 @@ export const useEnhancedTripCalculation = () => {
     formData,
     setFormData,
     tripPlan,
+    shareUrl,
     availableEndLocations,
     calculateTrip,
     isCalculating,

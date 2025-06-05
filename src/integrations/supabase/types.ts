@@ -345,6 +345,39 @@ export type Database = {
         }
         Relationships: []
       }
+      trips: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          share_code: string
+          title: string | null
+          trip_data: Json
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          share_code: string
+          title?: string | null
+          trip_data: Json
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          share_code?: string
+          title?: string | null
+          trip_data?: Json
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

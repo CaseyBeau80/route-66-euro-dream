@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TripCalculator from "./pages/TripCalculator";
 import CityPage from "./pages/CityPage";
+import TripDetailsPage from "./pages/TripDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/trip-calculator" element={<TripCalculator />} />
             <Route path="/city/:citySlug" element={<CityPage />} />
+            <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

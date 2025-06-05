@@ -10,6 +10,7 @@ const Route66TripCalculator: React.FC = () => {
     formData,
     setFormData,
     tripPlan,
+    shareUrl,
     availableEndLocations,
     calculateTrip,
     isCalculating,
@@ -40,7 +41,7 @@ const Route66TripCalculator: React.FC = () => {
       </Card>
 
       {tripPlan && (
-        <TripCalculatorResults tripPlan={tripPlan} />
+        <TripCalculatorResults tripPlan={tripPlan} shareUrl={shareUrl} />
       )}
     </div>
   );

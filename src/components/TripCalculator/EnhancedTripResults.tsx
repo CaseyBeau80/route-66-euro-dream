@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Camera, Star } from 'lucide-react';
 import { TripPlan, DailySegment, TripStop } from './services/Route66TripPlannerService';
+import ShareTripActions from './ShareTripActions';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
+  shareUrl?: string | null;
 }
 
 const StopCard: React.FC<{ stop: TripStop }> = ({ stop }) => {
@@ -109,7 +110,7 @@ const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
   );
 };
 
-const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) => {
+const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan, shareUrl }) => {
   console.log('✨ Rendering EnhancedTripResults with tripPlan:', tripPlan);
   
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
@@ -158,6 +159,9 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan }) =
               <p className="text-sm text-route66-vintage-brown">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
             </div>
           </div>
+
+          {/* Share Actions */}
+          <ShareTripActions shareUrl={shareUrl} tripTitle={tripPlan.title} />
         </CardContent>
       </Card>
 
