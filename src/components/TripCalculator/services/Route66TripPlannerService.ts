@@ -12,22 +12,39 @@ export class Route66TripPlannerService {
     const allStops = await SupabaseDataService.fetchAllStops();
     console.log(`📊 Total stops available for planning: ${allStops.length}`);
     
-    // Find start and end stops
-    const startStop = allStops.find(stop => 
-      stop.name.toLowerCase().includes(startCityName.toLowerCase()) ||
-      stop.city_name.toLowerCase().includes(startCityName.toLowerCase())
-    );
+    // Enhanced city matching function
+    const findCityStop = (cityName: string): TripStop | undefined => {
+      // Extract just the city name (remove state abbreviation)
+      const cityOnly = cityName.split(',')[0].trim().toLowerCase();
+      
+      console.log(`🔍 Searching for city: "${cityOnly}" from input: "${cityName}"`);
+      
+      // Log some sample stops to see the data structure
+      console.log('📋 Sample stops:', allStops.slice(0, 5).map(s => ({ name: s.name, city_name: s.city_name, state: s.state })));
+      
+      return allStops.find(stop => {
+        const stopNameMatch = stop.name.toLowerCase().includes(cityOnly);
+        const cityNameMatch = stop.city_name.toLowerCase().includes(cityOnly);
+        const exactNameMatch = stop.name.toLowerCase() === cityOnly;
+        const exactCityMatch = stop.city_name.toLowerCase() === cityOnly;
+        
+        return stopNameMatch || cityNameMatch || exactNameMatch || exactCityMatch;
+      });
+    };
     
-    const endStop = allStops.find(stop => 
-      stop.name.toLowerCase().includes(endCityName.toLowerCase()) ||
-      stop.city_name.toLowerCase().includes(endCityName.toLowerCase())
-    );
+    // Find start and end stops with enhanced matching
+    const startStop = findCityStop(startCityName);
+    const endStop = findCityStop(endCityName);
 
-    console.log('🔍 Start stop found:', startStop);
-    console.log('🔍 End stop found:', endStop);
+    console.log('🔍 Start stop found:', startStop ? { name: startStop.name, city_name: startStop.city_name, category: startStop.category } : 'NOT FOUND');
+    console.log('🔍 End stop found:', endStop ? { name: endStop.name, city_name: endStop.city_name, category: endStop.category } : 'NOT FOUND');
 
     if (!startStop || !endStop) {
-      throw new Error(`Could not find stops for ${startCityName} or ${endCityName}`);
+      // Provide more helpful error information
+      const availableCities = [...new Set(allStops.map(stop => stop.city_name))].sort();
+      console.log('📍 Available cities:', availableCities.slice(0, 20)); // Log first 20 cities
+      
+      throw new Error(`Could not find stops for ${startCityName} or ${endCityName}. Available cities include: ${availableCities.slice(0, 10).join(', ')}...`);
     }
 
     const tripPlan = TripPlanBuilder.buildTripPlan(
