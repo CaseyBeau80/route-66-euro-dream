@@ -2,21 +2,37 @@
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StopPrioritizationService } from './StopPrioritizationService';
+import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 
 export class DestinationSelectionService {
   /**
-   * Enhanced next day destination selection with destination city supremacy
+   * Enhanced next day destination selection with drive time balancing
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
     finalDestination: TripStop, 
     availableStops: TripStop[], 
-    remainingDays: number
+    remainingDays: number,
+    driveTimeTarget?: DriveTimeTarget
   ): TripStop {
     if (availableStops.length === 0 || remainingDays <= 1) {
       return finalDestination;
     }
 
+    // If we have a drive time target, use the balanced approach
+    if (driveTimeTarget) {
+      const balancedDestination = DriveTimeBalancingService.findBestDestinationByDriveTime(
+        currentStop,
+        availableStops,
+        driveTimeTarget
+      );
+      
+      if (balancedDestination) {
+        return balancedDestination;
+      }
+    }
+
+    // Fallback to distance-based selection
     const totalRemainingDistance = DistanceCalculationService.calculateDistance(
       currentStop.latitude, currentStop.longitude,
       finalDestination.latitude, finalDestination.longitude
@@ -84,17 +100,31 @@ export class DestinationSelectionService {
   }
 
   /**
-   * Select optimal destination for a day with destination city preference
+   * Select optimal destination for a day with drive time preference
    */
   static selectOptimalDayDestination(
     currentStop: TripStop,
     finalDestination: TripStop,
     availableStops: TripStop[],
-    targetDistance: number
+    targetDistance: number,
+    driveTimeTarget?: DriveTimeTarget
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
-    // Separate destination cities from other stops
+    // Try drive time balanced selection first
+    if (driveTimeTarget) {
+      const balancedDestination = DriveTimeBalancingService.findBestDestinationByDriveTime(
+        currentStop,
+        availableStops,
+        driveTimeTarget
+      );
+      
+      if (balancedDestination) {
+        return balancedDestination;
+      }
+    }
+
+    // Fallback to distance-based selection
     const destinationCities = availableStops.filter(stop => 
       stop.category === 'destination_city'
     );

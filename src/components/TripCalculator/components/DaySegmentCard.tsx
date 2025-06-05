@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock, Route, AlertTriangle } from 'lucide-react';
+import { MapPin, Clock, Route, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SubStopTimingCard from './SubStopTimingCard';
 import StopCard from './StopCard';
@@ -31,6 +31,31 @@ const getRouteSectionColor = (section?: string) => {
   }
 };
 
+const getDriveTimeBadge = (category?: { category: string; message: string; color: string }) => {
+  if (!category) return null;
+
+  const iconMap = {
+    short: <CheckCircle className="h-3 w-3" />,
+    optimal: <CheckCircle className="h-3 w-3" />,
+    long: <Clock className="h-3 w-3" />,
+    extreme: <AlertTriangle className="h-3 w-3" />
+  };
+
+  const bgColorMap = {
+    short: 'bg-green-100 border-green-200',
+    optimal: 'bg-blue-100 border-blue-200', 
+    long: 'bg-orange-100 border-orange-200',
+    extreme: 'bg-red-100 border-red-200'
+  };
+
+  return (
+    <div className={`px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${bgColorMap[category.category as keyof typeof bgColorMap]} ${category.color}`}>
+      {iconMap[category.category as keyof typeof iconMap]}
+      <span className="capitalize">{category.category}</span>
+    </div>
+  );
+};
+
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustmentWarning = false }) => {
   console.log('📅 Rendering DaySegmentCard:', segment);
   console.log('🚗 Sub-stop timings:', segment.subStopTimings);
@@ -45,11 +70,14 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
           <CardTitle className="font-route66 text-lg text-route66-vintage-red">
             {segment.title}
           </CardTitle>
-          {segment.routeSection && (
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getRouteSectionColor(segment.routeSection)}`}>
-              {segment.routeSection}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {segment.routeSection && (
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getRouteSectionColor(segment.routeSection)}`}>
+                {segment.routeSection}
+              </span>
+            )}
+            {getDriveTimeBadge(segment.driveTimeCategory)}
+          </div>
         </div>
         
         <div className="flex items-center gap-4 text-sm text-route66-vintage-brown">
@@ -69,13 +97,28 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
           )}
         </div>
 
+        {/* Drive Time Balance Message */}
+        {segment.driveTimeCategory && (
+          <div className={`mt-2 p-2 rounded border text-xs ${
+            segment.driveTimeCategory.category === 'optimal' ? 'bg-blue-50 border-blue-200 text-blue-800' :
+            segment.driveTimeCategory.category === 'short' ? 'bg-green-50 border-green-200 text-green-800' :
+            segment.driveTimeCategory.category === 'long' ? 'bg-orange-50 border-orange-200 text-orange-800' :
+            'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center gap-1">
+              <Info className="h-3 w-3" />
+              <span>{segment.driveTimeCategory.message}</span>
+            </div>
+          </div>
+        )}
+
         {showAdjustmentWarning && (
           <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
             <div className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
-              <span className="font-semibold">Trip Duration Adjusted</span>
+              <span className="font-semibold">Trip Duration Adjusted for Balanced Drive Times</span>
             </div>
-            <p className="text-xs mt-1">We've optimized your trip duration for safer daily driving distances.</p>
+            <p className="text-xs mt-1">We've optimized your trip duration for consistent daily driving experiences.</p>
           </div>
         )}
       </CardHeader>

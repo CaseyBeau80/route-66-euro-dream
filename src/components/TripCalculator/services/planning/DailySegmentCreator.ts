@@ -6,6 +6,7 @@ import { RouteStopSelectionService } from './RouteStopSelectionService';
 import { DestinationSelectionService } from './DestinationSelectionService';
 import { SubStopTimingCalculator, SubStopTiming } from './SubStopTimingCalculator';
 import { RouteProgressCalculator } from './RouteProgressCalculator';
+import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 
 // Export SubStopTiming for external use
 export type { SubStopTiming };
@@ -20,53 +21,69 @@ export interface DailySegment {
   driveTimeHours: number;
   subStopTimings: SubStopTiming[];
   routeSection?: string;
+  driveTimeCategory?: {
+    category: 'short' | 'optimal' | 'long' | 'extreme';
+    message: string;
+    color: string;
+  };
 }
 
 export class DailySegmentCreator {
   /**
-   * Create daily segments with smart distance distribution and destination city targeting
+   * Create daily segments with balanced drive time distribution
    */
-  static createSmartDailySegments(
+  static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
     enhancedStops: TripStop[],
     tripDays: number,
     totalDistance: number
   ): DailySegment[] {
+    console.log(`🎯 Creating balanced daily segments for ${tripDays} days, ${Math.round(totalDistance)} miles`);
+
+    // Calculate drive time targets for each day
+    const driveTimeTargets = DriveTimeBalancingService.calculateDriveTimeTargets(
+      totalDistance,
+      tripDays
+    );
+
     const dailySegments: DailySegment[] = [];
-    const targetDailyDistance = totalDistance / tripDays;
-    
     let currentStop = startStop;
     let remainingStops = [...enhancedStops];
     let cumulativeDistance = 0;
 
     for (let day = 1; day <= tripDays; day++) {
       const isLastDay = day === tripDays;
-      const remainingDistance = totalDistance - cumulativeDistance;
-      const remainingDays = tripDays - day + 1;
+      const driveTimeTarget = driveTimeTargets[day - 1];
       
-      // Select destination for this day with enhanced logic using the new service
+      // Select destination for this day using drive time balancing
       const dayDestination = isLastDay 
         ? endStop 
         : DestinationSelectionService.selectOptimalDayDestination(
             currentStop, 
             endStop, 
             remainingStops, 
-            remainingDistance / remainingDays
+            0, // Not used in drive time mode
+            driveTimeTarget
           );
 
       if (!dayDestination) continue;
 
-      // Calculate distances and timings first to get drive time
+      // Calculate distances and timings
       const segmentDistance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         dayDestination.latitude, dayDestination.longitude
       );
 
-      const estimatedDriveTime = segmentDistance / 50; // 50 mph average
+      const actualDriveTime = segmentDistance / 50; // 50 mph average
 
-      // Select stops for this segment with destination city priority and drive time consideration
-      const segmentStops = this.selectSegmentStops(currentStop, dayDestination, remainingStops, estimatedDriveTime);
+      // Select stops for this segment
+      const segmentStops = this.selectSegmentStops(
+        currentStop, 
+        dayDestination, 
+        remainingStops, 
+        actualDriveTime
+      );
       
       const subStopTimings = SubStopTimingCalculator.calculateValidSubStopTimings(
         currentStop, 
@@ -75,6 +92,10 @@ export class DailySegmentCreator {
       );
       
       const totalSegmentDriveTime = SubStopTimingCalculator.calculateTotalDriveTime(subStopTimings);
+      const finalDriveTime = totalSegmentDriveTime > 0 ? totalSegmentDriveTime : actualDriveTime;
+
+      // Get drive time category for this segment
+      const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(finalDriveTime);
 
       // Determine route section
       const progressPercent = RouteProgressCalculator.calculateCumulativeProgress(
@@ -93,9 +114,10 @@ export class DailySegmentCreator {
         endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
-        driveTimeHours: totalSegmentDriveTime > 0 ? totalSegmentDriveTime : Math.round((segmentDistance / 50) * 10) / 10,
+        driveTimeHours: Math.round(finalDriveTime * 10) / 10,
         subStopTimings: subStopTimings,
-        routeSection
+        routeSection,
+        driveTimeCategory
       });
 
       // Update for next iteration - remove used stops
@@ -113,14 +135,42 @@ export class DailySegmentCreator {
       currentStop = dayDestination;
       cumulativeDistance += segmentDistance;
       
-      console.log(`📅 Day ${day}: ${Math.round(segmentDistance)}mi (${routeSection}), ${segmentStops.length} stops, ${estimatedDriveTime.toFixed(1)}h drive`);
+      console.log(`📅 Day ${day}: ${Math.round(segmentDistance)}mi, ${finalDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops`);
+    }
+
+    // Validate the balance
+    const segmentData = dailySegments.map(s => ({
+      distance: s.approximateMiles,
+      driveTimeHours: s.driveTimeHours
+    }));
+    
+    const validation = DriveTimeBalancingService.validateDriveTimeBalance(segmentData, driveTimeTargets);
+    
+    if (!validation.isBalanced) {
+      console.log('⚠️ Drive time balance issues:', validation.issues);
+      console.log('💡 Suggestions:', validation.suggestions);
+    } else {
+      console.log('✅ Drive times are well balanced across all days');
     }
 
     return dailySegments;
   }
 
   /**
-   * Select appropriate stops for a segment with destination city priority and drive time consideration
+   * Legacy method for backward compatibility - now uses balanced approach
+   */
+  static createSmartDailySegments(
+    startStop: TripStop,
+    endStop: TripStop,
+    enhancedStops: TripStop[],
+    tripDays: number,
+    totalDistance: number
+  ): DailySegment[] {
+    return this.createBalancedDailySegments(startStop, endStop, enhancedStops, tripDays, totalDistance);
+  }
+
+  /**
+   * Select appropriate stops for a segment with drive time consideration
    */
   private static selectSegmentStops(
     startStop: TripStop,
