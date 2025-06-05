@@ -14,64 +14,72 @@ const PlanningDetailsSection: React.FC<PlanningDetailsSectionProps> = ({
   setFormData
 }) => {
   return (
-    <>
-      {/* Trip Duration */}
-      {formData.planningType === 'duration' && (
+    <div className="space-y-4">
+      {formData.planningType === 'duration' ? (
         <div className="space-y-2">
           <Label htmlFor="trip-duration" className="text-[#1e293b] font-semibold">
-            Trip Duration: {formData.tripDuration} days
+            Total Trip Duration (days)
           </Label>
           <Input
             id="trip-duration"
-            type="range"
-            min="3"
-            max="21"
+            type="number"
+            min="1"
+            max="30"
             value={formData.tripDuration}
-            onChange={(e) => setFormData({ ...formData, tripDuration: parseInt(e.target.value) })}
-            className="w-full"
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              tripDuration: parseInt(e.target.value) || 1 
+            })}
+            className="border-[#e2e8f0] focus:border-[#3b82f6]"
           />
-          <div className="flex justify-between text-sm text-[#64748b]">
-            <span>3 days</span>
-            <span>21 days</span>
-          </div>
         </div>
-      )}
-
-      {/* Daily Preferences */}
-      {formData.planningType === 'daily' && (
-        <div className="grid grid-cols-2 gap-4">
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="daily-hours" className="text-[#1e293b] font-semibold">
-              Hours per day
+              Daily Driving Hours
             </Label>
             <Input
               id="daily-hours"
               type="number"
-              min="3"
+              min="2"
               max="12"
               value={formData.dailyHours}
-              onChange={(e) => setFormData({ ...formData, dailyHours: parseInt(e.target.value) || 6 })}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                dailyHours: parseInt(e.target.value) || 6 
+              })}
               className="border-[#e2e8f0] focus:border-[#3b82f6]"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="daily-miles" className="text-[#1e293b] font-semibold">
-              Miles per day
+              Daily Miles Goal
             </Label>
             <Input
               id="daily-miles"
               type="number"
               min="100"
-              max="600"
-              step="50"
+              max="800"
               value={formData.dailyMiles}
-              onChange={(e) => setFormData({ ...formData, dailyMiles: parseInt(e.target.value) || 300 })}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                dailyMiles: parseInt(e.target.value) || 300 
+              })}
               className="border-[#e2e8f0] focus:border-[#3b82f6]"
             />
           </div>
         </div>
       )}
-    </>
+      
+      {/* Data refresh hint for debugging */}
+      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+        <p className="text-xs text-blue-600">
+          💡 <strong>Tip:</strong> If you don't see a city in the dropdown, it may need to be added to our destination cities database. 
+          Try refreshing the page to reload the latest city data.
+        </p>
+      </div>
+    </div>
   );
 };
 

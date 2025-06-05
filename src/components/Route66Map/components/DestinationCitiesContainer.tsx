@@ -40,8 +40,26 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
 
   console.log(`🏛️ Converted ${destinationCities.length} destination cities to waypoint format:`);
   destinationWaypoints.forEach((dest, index) => {
-    console.log(`  🏛️ ${index + 1}. ${dest.name} (${dest.state})`);
+    console.log(`  🏛️ ${index + 1}. ${dest.name} (${dest.state}) - Lat: ${dest.latitude}, Lng: ${dest.longitude}`);
   });
+
+  // Enhanced Santa Fe debugging
+  const santaFeInDestinations = destinationWaypoints.find(d => 
+    d.name.toLowerCase().includes('santa fe') ||
+    d.name.toLowerCase().includes('santa_fe')
+  );
+  
+  if (santaFeInDestinations) {
+    console.log(`🎯 SANTA FE MARKER READY:`, {
+      name: santaFeInDestinations.name,
+      state: santaFeInDestinations.state,
+      coordinates: `${santaFeInDestinations.latitude}, ${santaFeInDestinations.longitude}`,
+      coordinatesValid: !isNaN(santaFeInDestinations.latitude) && !isNaN(santaFeInDestinations.longitude),
+      willRenderMarker: !!map && !isLoading
+    });
+  } else {
+    console.error(`❌ SANTA FE NOT FOUND in converted waypoints!`);
+  }
 
   // Special check for Rolla - it should NOT be in destination cities
   const rollaInDestinations = destinationWaypoints.find(d => d.name.toLowerCase().includes('rolla'));
@@ -82,7 +100,7 @@ const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({
     return null;
   }
 
-  console.log(`🛡️ Rendering ${destinationWaypoints.length} ACTUAL destination city markers (Rolla should NOT be included)`);
+  console.log(`🛡️ Rendering ${destinationWaypoints.length} ACTUAL destination city markers (Santa Fe should be included)`);
 
   return (
     <>

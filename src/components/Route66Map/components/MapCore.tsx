@@ -8,6 +8,7 @@ import HiddenGemsContainer from './HiddenGemsContainer';
 import DriveInsContainer from './DriveIns/DriveInsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
+import MapDebugPanel from './MapDebugPanel';
 import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
@@ -133,6 +134,11 @@ const MapCore: React.FC<MapCoreProps> = ({
             console.log('💎 Hidden gem selected from hidden_gems table:', gem.title);
           }}
         />
+      )}
+
+      {/* Debug Panel - only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <MapDebugPanel map={mapRef.current} />
       )}
     </div>
   );

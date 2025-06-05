@@ -29,9 +29,37 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   } = useDestinationHover();
 
   useEffect(() => {
+    // Enhanced debugging for Santa Fe
+    const isSantaFe = destination.name.toLowerCase().includes('santa fe');
+    if (isSantaFe) {
+      console.log(`🎯 SANTA FE MARKER CREATION STARTING:`, {
+        name: destination.name,
+        state: destination.state,
+        latitude: destination.latitude,
+        longitude: destination.longitude,
+        mapReady: !!map,
+        googleMapsReady: !!(window.google?.maps)
+      });
+    }
+
     // Check if Google Maps API is available before proceeding
     if (!window.google?.maps || !map || !destination) {
-      console.log('⚠️ Google Maps API, map, or destination not available yet');
+      if (isSantaFe) {
+        console.error('❌ SANTA FE MARKER FAILED: Google Maps API, map, or destination not available', {
+          googleMaps: !!window.google?.maps,
+          map: !!map,
+          destination: !!destination
+        });
+      }
+      return;
+    }
+
+    // Validate coordinates
+    if (isNaN(destination.latitude) || isNaN(destination.longitude)) {
+      console.error(`❌ Invalid coordinates for ${destination.name}:`, {
+        latitude: destination.latitude,
+        longitude: destination.longitude
+      });
       return;
     }
 
@@ -39,11 +67,24 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     const marker = DestinationMarkerCreator.createMarker(destination, map);
     
     if (!marker) {
-      console.warn(`⚠️ Failed to create marker for ${destination.name}`);
+      if (isSantaFe) {
+        console.error(`❌ SANTA FE MARKER CREATION FAILED for ${destination.name}`);
+      } else {
+        console.warn(`⚠️ Failed to create marker for ${destination.name}`);
+      }
       return;
     }
 
     markerRef.current = marker;
+
+    if (isSantaFe) {
+      console.log(`✅ SANTA FE MARKER CREATED SUCCESSFULLY:`, {
+        name: destination.name,
+        markerType: 'content' in marker ? 'AdvancedMarker' : 'StandardMarker',
+        position: `${destination.latitude}, ${destination.longitude}`,
+        visible: 'getVisible' in marker ? marker.getVisible() : 'N/A'
+      });
+    }
 
     // Enhanced mouse enter handler with animation
     const enhancedMouseEnter = (name: string) => {
@@ -71,12 +112,19 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         onDestinationClick
       );
 
-      console.log(`✅ Wooden post marker created successfully for ${destination.name}`);
+      if (isSantaFe) {
+        console.log(`✅ SANTA FE EVENT LISTENERS ATTACHED for ${destination.name}`);
+      } else {
+        console.log(`✅ Wooden post marker created successfully for ${destination.name}`);
+      }
     } catch (eventError) {
       console.error(`❌ Error attaching events for ${destination.name}:`, eventError);
     }
 
     return () => {
+      if (isSantaFe) {
+        console.log(`🧹 SANTA FE MARKER CLEANUP for ${destination.name}`);
+      }
       DestinationMarkerCreator.cleanupMarker(markerRef.current, destination.name);
       markerRef.current = null;
       cleanup();
