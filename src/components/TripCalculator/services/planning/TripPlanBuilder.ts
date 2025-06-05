@@ -78,10 +78,10 @@ export class TripPlanBuilder {
       const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
       const endCityDisplay = CityDisplayService.getCityDisplayName(targetStop);
 
-      // Calculate sub-stop timings
+      // Calculate sub-stop timings - THIS IS THE KEY FIX
       const subStopTimings = this.calculateSubStopTimings(currentStop, targetStop, segmentStops);
-
-      console.log(`📅 Day ${day}: ${startCityDisplay} to ${endCityDisplay}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops`);
+      
+      console.log(`📅 Day ${day}: ${startCityDisplay} to ${endCityDisplay}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops, ${subStopTimings.length} sub-timings`);
 
       dailySegments.push({
         day,
@@ -91,7 +91,7 @@ export class TripPlanBuilder {
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
         driveTimeHours: Math.round((segmentDistance / 55) * 10) / 10, // Assuming 55 mph average
-        subStopTimings
+        subStopTimings // Make sure this is included
       });
 
       // Remove used stops from remaining
@@ -129,6 +129,8 @@ export class TripPlanBuilder {
     // Create the full journey path: start -> segmentStops -> end
     const fullPath = [startStop, ...segmentStops, endStop];
     
+    console.log(`🚗 Calculating sub-stop timings for path with ${fullPath.length} stops`);
+    
     // Calculate timing between each consecutive pair
     for (let i = 0; i < fullPath.length - 1; i++) {
       const fromStop = fullPath[i];
@@ -141,14 +143,19 @@ export class TripPlanBuilder {
       
       const driveTime = distance / 55; // 55 mph average speed
       
-      timings.push({
+      const timing: SubStopTiming = {
         fromStop,
         toStop,
         distanceMiles: Math.round(distance * 10) / 10,
         driveTimeHours: Math.round(driveTime * 10) / 10
-      });
+      };
+      
+      console.log(`⏱️ ${fromStop.name} to ${toStop.name}: ${timing.distanceMiles}mi, ${timing.driveTimeHours}h`);
+      
+      timings.push(timing);
     }
     
+    console.log(`✅ Generated ${timings.length} sub-stop timings`);
     return timings;
   }
 }

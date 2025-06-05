@@ -99,6 +99,7 @@ const StopCard: React.FC<{ stop: TripStop }> = ({ stop }) => {
 
 const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
   console.log('📅 Rendering DaySegmentCard:', segment);
+  console.log('🚗 Sub-stop timings:', segment.subStopTimings);
 
   return (
     <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
@@ -119,17 +120,25 @@ const DaySegmentCard: React.FC<{ segment: DailySegment }> = ({ segment }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Drive Time Breakdown */}
+          {/* Drive Time Breakdown - ALWAYS show if we have timings */}
           {segment.subStopTimings && segment.subStopTimings.length > 0 && (
             <div>
               <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 text-sm">
-                Drive Time Breakdown
+                Drive Time Breakdown ({segment.subStopTimings.length} segments)
               </h4>
               <div className="space-y-1">
                 {segment.subStopTimings.map((timing, index) => (
-                  <SubStopTimingCard key={index} timing={timing} />
+                  <SubStopTimingCard key={`${timing.fromStop.id}-${timing.toStop.id}-${index}`} timing={timing} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Debug info for troubleshooting */}
+          {(!segment.subStopTimings || segment.subStopTimings.length === 0) && (
+            <div className="p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+              <strong>Debug:</strong> No sub-stop timings available. 
+              Timings array: {segment.subStopTimings ? `length ${segment.subStopTimings.length}` : 'null/undefined'}
             </div>
           )}
 
