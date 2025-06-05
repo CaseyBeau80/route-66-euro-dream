@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import CompactCentennialButton from './CompactCentennialButton';
 
 interface ScrollIndicatorProps {
   targetId?: string;
@@ -46,17 +46,7 @@ const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({ targetId = 'centennia
 
   return (
     <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30 animate-bounce">
-      <button
-        onClick={scrollToSection}
-        className="group flex flex-col items-center gap-2 text-white/90 hover:text-white transition-all duration-300 bg-black/20 backdrop-blur-sm rounded-full p-4 hover:bg-black/30 border border-white/20"
-        aria-label="Scroll to 100 Years of Adventure section"
-      >
-        <span className="text-sm font-medium hidden sm:block">100 Years of Adventure</span>
-        <ChevronDown 
-          size={24} 
-          className="animate-pulse group-hover:scale-110 transition-transform duration-300" 
-        />
-      </button>
+      <CompactCentennialButton onClick={scrollToSection} />
     </div>
   );
 };
