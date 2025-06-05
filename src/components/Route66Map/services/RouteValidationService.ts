@@ -22,7 +22,7 @@ export class RouteValidationService {
     });
     
     if (hasAlbuquerqueInMain) {
-      console.error('❌ CRITICAL ERROR: Albuquerque found in main route - should be excluded');
+      console.error('❌ CRITICAL ERROR: Albuquerque found in main route - should be excluded for Santa Fe branch');
       return false;
     }
 
@@ -47,7 +47,7 @@ export class RouteValidationService {
       console.warn('⚠️ Santa Rosa to Gallup connection not direct');
     }
 
-    console.log('✅ Route validation passed');
+    console.log('✅ Route validation passed - Albuquerque correctly excluded from main route');
     return true;
   }
 

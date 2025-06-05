@@ -9,84 +9,78 @@ export class SantaFeBranchService {
   private map: google.maps.Map;
   private santaFeBranchPolyline: google.maps.Polyline | null = null;
   private santaFeBranchCenterLine: google.maps.Polyline | null = null;
-  private santaFeAlbuquerqueBranchPolyline: google.maps.Polyline | null = null;
-  private santaFeAlbuquerqueBranchCenterLine: google.maps.Polyline | null = null;
 
   constructor(map: google.maps.Map) {
     this.map = map;
   }
 
-  async createSantaFeBranch(santaFeCity: DestinationCity, mainRouteCities: DestinationCity[]): Promise<void> {
-    console.log('🌟 CREATING Santa Fe branch road segments - CONNECTING TO SANTA ROSA AND ALBUQUERQUE');
-    console.log('🔧 DEBUG: Santa Fe branch creation starting with enhanced validation');
+  async createSantaFeBranch(
+    santaFeCity: DestinationCity, 
+    albuquerqueCity: DestinationCity | null,
+    mainRouteCities: DestinationCity[]
+  ): Promise<void> {
+    console.log('🌟 CREATING Santa Fe branch: Santa Rosa → Santa Fe → Albuquerque');
+    console.log('🔧 DEBUG: Santa Fe branch creation with flowing connection');
 
-    // Find Santa Rosa as the PRIMARY connection point
+    // Find Santa Rosa as the connection point
     const santaRosa = mainRouteCities.find(city => 
       city.name.toLowerCase().includes('santa rosa')
     );
 
-    console.log('🔧 DEBUG: Santa Rosa search in main route cities:', {
+    console.log('🔧 DEBUG: Santa Rosa search for branch connection:', {
       found: !!santaRosa,
-      searchIn: mainRouteCities.map(c => c.name),
       santaRosaName: santaRosa?.name,
       santaRosaState: santaRosa?.state,
       santaRosaCoords: santaRosa ? `${santaRosa.latitude}, ${santaRosa.longitude}` : 'N/A'
     });
 
-    if (santaRosa) {
-      await this.createSantaFeToSantaRosaBranch(santaFeCity, santaRosa);
+    if (!santaRosa) {
+      console.error('❌ Could not find Santa Rosa for Santa Fe branch connection');
+      return;
     }
 
-    // Find Albuquerque for the new connection
-    const albuquerque = mainRouteCities.find(city => 
-      city.name.toLowerCase().includes('albuquerque')
-    );
-
-    console.log('🔧 DEBUG: Albuquerque search for Santa Fe connection:', {
-      found: !!albuquerque,
-      albuquerqueName: albuquerque?.name,
-      albuquerqueState: albuquerque?.state,
-      albuquerqueCoords: albuquerque ? `${albuquerque.latitude}, ${albuquerque.longitude}` : 'N/A'
-    });
-
-    if (albuquerque) {
-      await this.createSantaFeToAlbuquerqueBranch(santaFeCity, albuquerque);
+    if (!albuquerqueCity) {
+      console.warn('⚠️ Albuquerque not found - creating simple Santa Rosa → Santa Fe branch');
+      await this.createSimpleSantaFeBranch(santaFeCity, santaRosa);
+      return;
     }
 
-    if (!santaRosa && !albuquerque) {
-      console.warn('⚠️ Could not find Santa Rosa or Albuquerque for Santa Fe branch connections');
-      console.log('🔧 DEBUG: Available main route cities for connection:', 
-        mainRouteCities.map(c => `${c.name}, ${c.state}`)
-      );
-    }
+    // Create flowing branch path: Santa Rosa → Santa Fe → Albuquerque
+    await this.createFlowingSantaFeBranch(santaRosa, santaFeCity, albuquerqueCity);
   }
 
-  private async createSantaFeToSantaRosaBranch(santaFeCity: DestinationCity, santaRosa: DestinationCity): Promise<void> {
-    console.log(`🔗 CREATING Santa Fe to Santa Rosa connection (historical accuracy)`);
-    console.log('🔧 DEBUG: Santa Rosa connection details:', {
-      santaFeCoords: `${santaFeCity.latitude}, ${santaFeCity.longitude}`,
+  private async createFlowingSantaFeBranch(
+    santaRosa: DestinationCity,
+    santaFeCity: DestinationCity,
+    albuquerqueCity: DestinationCity
+  ): Promise<void> {
+    console.log('🔗 CREATING flowing Santa Fe branch: Santa Rosa → Santa Fe → Albuquerque');
+    console.log('🔧 DEBUG: Branch connection details:', {
       santaRosaCoords: `${santaRosa.latitude}, ${santaRosa.longitude}`,
-      distance: this.calculateDistance(santaFeCity, santaRosa)
+      santaFeCoords: `${santaFeCity.latitude}, ${santaFeCity.longitude}`,
+      albuquerqueCoords: `${albuquerqueCity.latitude}, ${albuquerqueCity.longitude}`,
+      santaRosaToSantaFe: this.calculateDistance(santaRosa, santaFeCity),
+      santaFeToAlbuquerque: this.calculateDistance(santaFeCity, albuquerqueCity)
     });
 
-    // Create branch path: Santa Rosa -> Santa Fe -> Santa Rosa
+    // Create flowing branch path: Santa Rosa → Santa Fe → Albuquerque
     const branchPath = [
       { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) },
       { lat: Number(santaFeCity.latitude), lng: Number(santaFeCity.longitude) },
-      { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) }
+      { lat: Number(albuquerqueCity.latitude), lng: Number(albuquerqueCity.longitude) }
     ];
 
-    // Create flowing curved branch path
-    const flowingBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(branchPath, 15);
+    // Create flowing curved branch path with more interpolation points for smoothness
+    const flowingBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(branchPath, 20);
 
-    console.log(`🌟 Creating Santa Fe to Santa Rosa branch with ${flowingBranchPath.length} smooth points`);
+    console.log(`🌟 Creating flowing Santa Fe branch with ${flowingBranchPath.length} smooth points`);
 
     // Create branch polylines
     const branchPolylineOptions = {
       ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
       path: flowingBranchPath,
       map: this.map,
-      zIndex: 50 + Date.now() % 100
+      zIndex: 60 + Date.now() % 100 // Higher zIndex for branch visibility
     };
 
     this.santaFeBranchPolyline = new google.maps.Polyline(branchPolylineOptions);
@@ -95,7 +89,7 @@ export class SantaFeBranchService {
       ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
       path: flowingBranchPath,
       map: this.map,
-      zIndex: 100 + Date.now() % 100
+      zIndex: 110 + Date.now() % 100 // Higher zIndex for center line
     };
 
     this.santaFeBranchCenterLine = new google.maps.Polyline(branchCenterLineOptions);
@@ -108,57 +102,51 @@ export class SantaFeBranchService {
       GlobalPolylineCleaner.registerPolyline(this.santaFeBranchCenterLine);
     }
 
-    console.log('✅ Santa Fe to Santa Rosa branch road segment created');
+    console.log('✅ Flowing Santa Fe branch created: Santa Rosa → Santa Fe → Albuquerque');
   }
 
-  private async createSantaFeToAlbuquerqueBranch(santaFeCity: DestinationCity, albuquerque: DestinationCity): Promise<void> {
-    console.log(`🔗 CREATING Santa Fe to Albuquerque connection`);
-    console.log('🔧 DEBUG: Albuquerque connection details:', {
-      santaFeCoords: `${santaFeCity.latitude}, ${santaFeCity.longitude}`,
-      albuquerqueCoords: `${albuquerque.latitude}, ${albuquerque.longitude}`,
-      distance: this.calculateDistance(santaFeCity, albuquerque)
-    });
-
-    // Create branch path: Santa Fe -> Albuquerque -> Santa Fe
-    const albuquerqueBranchPath = [
+  private async createSimpleSantaFeBranch(santaFeCity: DestinationCity, santaRosa: DestinationCity): Promise<void> {
+    console.log('🔗 CREATING simple Santa Fe branch: Santa Rosa → Santa Fe');
+    
+    // Create simple branch path: Santa Rosa → Santa Fe → Santa Rosa
+    const branchPath = [
+      { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) },
       { lat: Number(santaFeCity.latitude), lng: Number(santaFeCity.longitude) },
-      { lat: Number(albuquerque.latitude), lng: Number(albuquerque.longitude) },
-      { lat: Number(santaFeCity.latitude), lng: Number(santaFeCity.longitude) }
+      { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) }
     ];
 
-    // Create flowing curved branch path
-    const flowingAlbuquerqueBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(albuquerqueBranchPath, 15);
+    const flowingBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(branchPath, 15);
 
-    console.log(`🌟 Creating Santa Fe to Albuquerque branch with ${flowingAlbuquerqueBranchPath.length} smooth points`);
+    console.log(`🌟 Creating simple Santa Fe branch with ${flowingBranchPath.length} smooth points`);
 
-    // Create Albuquerque branch polylines
-    const albuquerqueBranchPolylineOptions = {
+    // Create branch polylines
+    const branchPolylineOptions = {
       ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
-      path: flowingAlbuquerqueBranchPath,
+      path: flowingBranchPath,
       map: this.map,
-      zIndex: 50 + Date.now() % 100
+      zIndex: 60 + Date.now() % 100
     };
 
-    this.santaFeAlbuquerqueBranchPolyline = new google.maps.Polyline(albuquerqueBranchPolylineOptions);
+    this.santaFeBranchPolyline = new google.maps.Polyline(branchPolylineOptions);
 
-    const albuquerqueBranchCenterLineOptions = {
+    const branchCenterLineOptions = {
       ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
-      path: flowingAlbuquerqueBranchPath,
+      path: flowingBranchPath,
       map: this.map,
-      zIndex: 100 + Date.now() % 100
+      zIndex: 110 + Date.now() % 100
     };
 
-    this.santaFeAlbuquerqueBranchCenterLine = new google.maps.Polyline(albuquerqueBranchCenterLineOptions);
+    this.santaFeBranchCenterLine = new google.maps.Polyline(branchCenterLineOptions);
 
     // Register with global state
-    if (this.santaFeAlbuquerqueBranchPolyline && this.santaFeAlbuquerqueBranchCenterLine) {
-      RouteGlobalState.addPolylineSegment(this.santaFeAlbuquerqueBranchPolyline);
-      RouteGlobalState.addPolylineSegment(this.santaFeAlbuquerqueBranchCenterLine);
-      GlobalPolylineCleaner.registerPolyline(this.santaFeAlbuquerqueBranchPolyline);
-      GlobalPolylineCleaner.registerPolyline(this.santaFeAlbuquerqueBranchCenterLine);
+    if (this.santaFeBranchPolyline && this.santaFeBranchCenterLine) {
+      RouteGlobalState.addPolylineSegment(this.santaFeBranchPolyline);
+      RouteGlobalState.addPolylineSegment(this.santaFeBranchCenterLine);
+      GlobalPolylineCleaner.registerPolyline(this.santaFeBranchPolyline);
+      GlobalPolylineCleaner.registerPolyline(this.santaFeBranchCenterLine);
     }
 
-    console.log('✅ Santa Fe to Albuquerque branch road segment created');
+    console.log('✅ Simple Santa Fe branch created: Santa Rosa → Santa Fe');
   }
 
   private calculateDistance(city1: DestinationCity, city2: DestinationCity): string {
@@ -182,14 +170,10 @@ export class SantaFeBranchService {
   getBranchPolylines(): { 
     branchPolyline: google.maps.Polyline | null; 
     branchCenterLine: google.maps.Polyline | null;
-    albuquerqueBranchPolyline: google.maps.Polyline | null;
-    albuquerqueBranchCenterLine: google.maps.Polyline | null;
   } {
     return {
       branchPolyline: this.santaFeBranchPolyline,
-      branchCenterLine: this.santaFeBranchCenterLine,
-      albuquerqueBranchPolyline: this.santaFeAlbuquerqueBranchPolyline,
-      albuquerqueBranchCenterLine: this.santaFeAlbuquerqueBranchCenterLine
+      branchCenterLine: this.santaFeBranchCenterLine
     };
   }
 
@@ -206,18 +190,6 @@ export class SantaFeBranchService {
       this.santaFeBranchCenterLine.setMap(null);
       GlobalPolylineCleaner.unregisterPolyline(this.santaFeBranchCenterLine);
       this.santaFeBranchCenterLine = null;
-    }
-
-    if (this.santaFeAlbuquerqueBranchPolyline) {
-      this.santaFeAlbuquerqueBranchPolyline.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.santaFeAlbuquerqueBranchPolyline);
-      this.santaFeAlbuquerqueBranchPolyline = null;
-    }
-
-    if (this.santaFeAlbuquerqueBranchCenterLine) {
-      this.santaFeAlbuquerqueBranchCenterLine.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.santaFeAlbuquerqueBranchCenterLine);
-      this.santaFeAlbuquerqueBranchCenterLine = null;
     }
   }
 }

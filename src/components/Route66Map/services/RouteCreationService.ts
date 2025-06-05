@@ -1,4 +1,3 @@
-
 import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
@@ -21,20 +20,22 @@ export class RouteCreationService {
   }
 
   async createMainRoute(cities: DestinationCity[]): Promise<void> {
-    console.log('🛣️ Creating main Route 66 with enhanced debugging');
+    console.log('🛣️ Creating main Route 66 with Santa Fe branch: Santa Rosa → Santa Fe → Albuquerque');
     
     if (cities.length < 2) {
       console.warn('⚠️ Need at least 2 cities to create a route');
       return;
     }
 
-    // Sort cities and validate historically accurate route
-    const { mainRouteCities, santaFeCity } = RouteOrderService.categorizeAndSortCities(cities);
+    // Sort cities and get both Santa Fe and Albuquerque for the branch
+    const { mainRouteCities, santaFeCity, albuquerqueCity } = RouteOrderService.categorizeAndSortCities(cities);
     
     console.log('🔧 DEBUG: Route categorization results:', {
       mainRouteCitiesCount: mainRouteCities.length,
       hasSantaFe: !!santaFeCity,
-      santaFeCityName: santaFeCity?.name
+      hasAlbuquerque: !!albuquerqueCity,
+      santaFeCityName: santaFeCity?.name,
+      albuquerqueCityName: albuquerqueCity?.name
     });
 
     // Validate the route
@@ -60,22 +61,27 @@ export class RouteCreationService {
 
     // Create Santa Fe branch if needed
     if (santaFeCity) {
-      console.log('🌟 Creating Santa Fe branch');
-      await this.santaFeBranchService.createSantaFeBranch(santaFeCity, mainRouteCities);
+      console.log('🌟 Creating Santa Fe branch: Santa Rosa → Santa Fe → Albuquerque');
+      await this.santaFeBranchService.createSantaFeBranch(santaFeCity, albuquerqueCity, mainRouteCities);
     }
 
     // Register with global state
     this.registerPolylinesWithGlobalState();
 
-    // Fit map to bounds
-    const allCities = santaFeCity ? [...mainRouteCities, santaFeCity] : mainRouteCities;
+    // Fit map to bounds (include all relevant cities)
+    const allCities = [
+      ...mainRouteCities,
+      ...(santaFeCity ? [santaFeCity] : []),
+      ...(albuquerqueCity ? [albuquerqueCity] : [])
+    ];
+    
     RouteBoundsService.fitMapToBounds(this.map, allCities.map(city => ({
       lat: Number(city.latitude),
       lng: Number(city.longitude)
     })));
 
     RouteGlobalState.setRouteCreated(true);
-    console.log('✅ Route 66 created successfully');
+    console.log('✅ Route 66 created successfully with Santa Fe branch');
   }
 
   private async createMainPolylines(flowingMainPath: google.maps.LatLngLiteral[]): Promise<void> {
