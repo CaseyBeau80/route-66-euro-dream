@@ -70,7 +70,7 @@ const AnimatedConfetti: React.FC = () => {
       ))}
 
       {/* Custom CSS for confetti animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes confetti-fall {
           0% {
             transform: translateY(-100vh) translateX(0) rotate(0deg);

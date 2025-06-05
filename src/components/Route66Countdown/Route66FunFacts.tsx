@@ -1,13 +1,12 @@
-
 import React from 'react';
-import { Car, Globe, Music, Road, Calendar } from 'lucide-react';
+import { Car, Globe, Music, Calendar } from 'lucide-react';
 
 const Route66FunFacts: React.FC = () => {
   const funFacts = [
     {
       title: "THE MOTHER ROAD",
       fact: "Route 66 was one of the original highways within the U.S. Highway System, established on November 11, 1926.",
-      icon: <Road className="w-8 h-8" />,
+      icon: <Car className="w-8 h-8" />,
       color: "from-red-500 to-red-700"
     },
     {

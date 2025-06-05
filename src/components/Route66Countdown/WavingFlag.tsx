@@ -69,7 +69,7 @@ const WavingFlag: React.FC = () => {
       </div>
 
       {/* Custom CSS for flag waving animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes flag-wave {
           0%, 100% {
             transform: rotateY(0deg) skewY(0deg);
