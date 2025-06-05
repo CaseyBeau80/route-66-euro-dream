@@ -16,6 +16,6 @@ export class RouteBoundsService {
       left: 50
     });
 
-    console.log('🗺️ Map bounds fitted to complete route including Santa Fe branch');
+    console.log('🗺️ Map bounds fitted to complete route: Santa Rosa → Santa Fe branch (no Albuquerque main route)');
   }
 }

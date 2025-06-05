@@ -1,4 +1,3 @@
-
 import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
@@ -22,7 +21,7 @@ export class DestinationCitiesRouteRenderer {
 
   async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
     try {
-      console.log('🛣️ Creating FLOWING CURVED Route 66 with Santa Fe branch from destination cities');
+      console.log('🛣️ Creating HISTORICALLY ACCURATE Route 66: Santa Rosa → Santa Fe branch, NO Albuquerque main route');
       
       // Step 1: Aggressive cleanup of any existing routes
       await this.performAggressiveCleanup();
@@ -32,20 +31,28 @@ export class DestinationCitiesRouteRenderer {
         return;
       }
 
-      // Step 2: Sort cities according to the Route 66 order and identify Santa Fe
+      // Step 2: Sort cities according to the UPDATED Route 66 order (no Albuquerque in main route)
       const { mainRouteCities, santaFeCity } = RouteOrderService.categorizeAndSortCities(cities);
       
-      console.log(`🗺️ FLOWING Route 66 main route (${mainRouteCities.length} cities):`, 
+      console.log(`🗺️ HISTORICALLY ACCURATE Route 66 main route (${mainRouteCities.length} cities):`, 
         mainRouteCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
       );
 
       if (santaFeCity) {
-        console.log(`🎯 Santa Fe branch identified: ${santaFeCity.name}, ${santaFeCity.state}`);
+        console.log(`🎯 Santa Fe branch identified: ${santaFeCity.name}, ${santaFeCity.state} → connects to SANTA ROSA`);
       }
 
       // Step 3: Verify we have Chicago and Santa Monica for main route
       const hasChicago = mainRouteCities.some(city => city.name.toLowerCase().includes('chicago'));
       const hasSantaMonica = mainRouteCities.some(city => city.name.toLowerCase().includes('santa monica'));
+      
+      // Verify Albuquerque is NOT in main route
+      const hasAlbuquerqueInMain = mainRouteCities.some(city => city.name.toLowerCase().includes('albuquerque'));
+      if (hasAlbuquerqueInMain) {
+        console.error('❌ CRITICAL: Albuquerque found in main route - should be excluded');
+      } else {
+        console.log('✅ CONFIRMED: Albuquerque correctly excluded from main route');
+      }
       
       if (!hasChicago || !hasSantaMonica) {
         console.error('❌ Missing critical endpoints:', { hasChicago, hasSantaMonica });
@@ -57,18 +64,18 @@ export class DestinationCitiesRouteRenderer {
         return;
       }
 
-      // Step 4: Create main route path
+      // Step 4: Create main route path (Santa Rosa → Gallup, skipping Albuquerque)
       const mainRoutePath = mainRouteCities.map(city => ({
         lat: Number(city.latitude),
         lng: Number(city.longitude)
       }));
 
-      // Step 5: Create FLOWING CURVED main path
+      // Step 5: Create FLOWING CURVED main path with CONSISTENT formatting
       const flowingMainPath = EnhancedPathInterpolationService.createFlowingCurvedPath(mainRoutePath, 25);
       
-      console.log(`🛣️ Creating main Route 66 with ${flowingMainPath.length} smooth points connecting ${mainRouteCities.length} cities`);
+      console.log(`🛣️ Creating UPDATED main Route 66 with ${flowingMainPath.length} smooth points connecting ${mainRouteCities.length} cities`);
 
-      // Step 6: Create main route polylines
+      // Step 6: Create main route polylines with ENHANCED consistent styling
       this.mainPolyline = new google.maps.Polyline({
         ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
         path: flowingMainPath,
@@ -81,8 +88,9 @@ export class DestinationCitiesRouteRenderer {
         map: this.map
       });
 
-      // Step 7: Create Santa Fe branch if Santa Fe exists
+      // Step 7: Create Santa Fe branch connected to SANTA ROSA (not Albuquerque)
       if (santaFeCity) {
+        console.log('🌟 Creating Santa Fe branch with SANTA ROSA connection (historical accuracy)');
         await this.santaFeBranchService.createSantaFeBranch(santaFeCity, mainRouteCities);
       }
 
@@ -91,13 +99,14 @@ export class DestinationCitiesRouteRenderer {
         throw new Error('Failed to create main route polylines');
       }
 
-      console.log('🔍 Route polylines verification:', {
+      console.log('🔍 Route polylines verification - UPDATED ROUTE:', {
         mainPolylineVisible: this.mainPolyline.getVisible(),
         centerLineVisible: this.centerLine.getVisible(),
         santaFeBranchVisible: this.santaFeBranchService.getBranchPolylines().branchPolyline?.getVisible() || 'N/A',
         mainPolylineMap: !!this.mainPolyline.getMap(),
         centerLineMap: !!this.centerLine.getMap(),
-        pathLength: flowingMainPath.length
+        pathLength: flowingMainPath.length,
+        albuquerqueExcluded: !mainRouteCities.some(city => city.name.toLowerCase().includes('albuquerque'))
       });
 
       // Step 9: Register with global state and global cleaner
@@ -108,10 +117,10 @@ export class DestinationCitiesRouteRenderer {
 
       RouteGlobalState.setRouteCreated(true);
 
-      console.log('✅ FLOWING CURVED Route 66 with Santa Fe branch created successfully');
+      console.log('✅ HISTORICALLY ACCURATE Route 66 created: Santa Rosa → Santa Fe branch, consistent road formatting');
       console.log(`📊 Global state updated: ${RouteGlobalState.getPolylineCount()} polylines registered`);
 
-      // Step 10: Fit map to route bounds including branch
+      // Step 10: Fit map to route bounds including Santa Fe branch (not Albuquerque)
       const allCities = santaFeCity ? [...mainRouteCities, santaFeCity] : mainRouteCities;
       RouteBoundsService.fitMapToBounds(this.map, allCities.map(city => ({
         lat: Number(city.latitude),
@@ -119,7 +128,7 @@ export class DestinationCitiesRouteRenderer {
       })));
 
     } catch (error) {
-      console.error('❌ Error creating Route 66 with Santa Fe branch:', error);
+      console.error('❌ Error creating historically accurate Route 66:', error);
       await this.cleanup();
       throw error;
     }

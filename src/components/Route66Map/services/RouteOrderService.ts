@@ -2,7 +2,7 @@
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class RouteOrderService {
-  // Updated Route 66 order with Santa Fe branch integration
+  // Updated Route 66 order with Santa Fe branch integration - ALBUQUERQUE REMOVED
   private static readonly ROUTE_66_ORDER = [
     'Chicago',         // Starting point - Illinois
     'Joliet',          // Illinois
@@ -18,9 +18,8 @@ export class RouteOrderService {
     'Shamrock',        // Texas
     'Amarillo',
     'Tucumcari',       // New Mexico - BRANCH POINT for Santa Fe
-    'Santa Rosa',
-    'Albuquerque',
-    'Gallup',          // New Mexico/Arizona border
+    'Santa Rosa',      // DIRECT CONNECTION - no Albuquerque
+    'Gallup',          // New Mexico/Arizona border - SKIP Albuquerque
     'Holbrook',        // Arizona
     'Winslow',
     'Flagstaff',
@@ -52,6 +51,7 @@ export class RouteOrderService {
     const usedCities = new Set<string>();
     
     console.log('🔍 Available cities for main route matching:', mainRouteCandidates.map(c => `${c.name}, ${c.state}`));
+    console.log('🛣️ UPDATED ROUTE: Albuquerque removed, Santa Rosa → Gallup direct connection');
     
     for (const expectedCityName of this.ROUTE_66_ORDER) {
       let matchingCity: DestinationCity | undefined;
@@ -90,6 +90,8 @@ export class RouteOrderService {
         console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for main route position: ${expectedCityName}`);
       }
     }
+    
+    console.log('🎯 Final route order excludes Albuquerque, connects Santa Rosa → Gallup directly');
     
     return {
       mainRouteCities: orderedMainCities,

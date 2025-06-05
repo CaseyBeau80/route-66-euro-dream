@@ -15,64 +15,45 @@ export class SantaFeBranchService {
   }
 
   async createSantaFeBranch(santaFeCity: DestinationCity, mainRouteCities: DestinationCity[]): Promise<void> {
-    console.log('🌟 Creating Santa Fe branch road segment');
+    console.log('🌟 Creating Santa Fe branch road segment - CONNECTING TO SANTA ROSA');
 
-    // Find the closest connection point on main route (likely near Albuquerque or Santa Rosa)
-    const albuquerque = mainRouteCities.find(city => 
-      city.name.toLowerCase().includes('albuquerque')
-    );
+    // Find Santa Rosa as the PRIMARY connection point (not Albuquerque)
     const santaRosa = mainRouteCities.find(city => 
       city.name.toLowerCase().includes('santa rosa')
     );
 
-    // Use Albuquerque as primary connection point, Santa Rosa as fallback
-    const connectionPoint = albuquerque || santaRosa;
-
-    if (!connectionPoint) {
-      console.warn('⚠️ Could not find suitable connection point for Santa Fe branch');
+    if (!santaRosa) {
+      console.warn('⚠️ Could not find Santa Rosa for Santa Fe branch connection');
       return;
     }
 
-    console.log(`🔗 Connecting Santa Fe to main route via ${connectionPoint.name}`);
+    console.log(`🔗 Connecting Santa Fe DIRECTLY to Santa Rosa (historical accuracy)`);
 
-    // Create branch path: Connection Point -> Santa Fe -> Connection Point
+    // Create branch path: Santa Rosa -> Santa Fe -> Santa Rosa
     const branchPath = [
-      { lat: Number(connectionPoint.latitude), lng: Number(connectionPoint.longitude) },
+      { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) },
       { lat: Number(santaFeCity.latitude), lng: Number(santaFeCity.longitude) },
-      { lat: Number(connectionPoint.latitude), lng: Number(connectionPoint.longitude) }
+      { lat: Number(santaRosa.latitude), lng: Number(santaRosa.longitude) }
     ];
 
-    // Create flowing curved branch path
+    // Create flowing curved branch path with same interpolation as main route
     const flowingBranchPath = EnhancedPathInterpolationService.createFlowingCurvedPath(branchPath, 15);
 
-    console.log(`🌟 Creating Santa Fe branch with ${flowingBranchPath.length} smooth points`);
+    console.log(`🌟 Creating Santa Fe branch with ${flowingBranchPath.length} smooth points connecting to Santa Rosa`);
 
-    // Create branch polylines with slightly different styling
+    // Create branch polylines with IDENTICAL styling to main route
     this.santaFeBranchPolyline = new google.maps.Polyline({
       ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
-      strokeWeight: 8, // Slightly thinner for branch
-      strokeOpacity: 0.85, // Slightly more transparent
       path: flowingBranchPath,
       map: this.map,
-      zIndex: 45 // Slightly lower than main route
+      zIndex: 50 // SAME zIndex as main route for consistency
     });
 
     this.santaFeBranchCenterLine = new google.maps.Polyline({
       ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
       path: flowingBranchPath,
       map: this.map,
-      zIndex: 95, // Slightly lower than main center line
-      icons: [{
-        icon: {
-          path: 'M 0,-3 0,3', // Slightly smaller dashes for branch
-          strokeOpacity: 0.9,
-          strokeColor: '#FFD700',
-          strokeWeight: 4, // Thinner dashes for branch
-          scale: 1
-        },
-        offset: '0',
-        repeat: '45px' // Slightly closer spacing for branch
-      }]
+      zIndex: 100 // SAME zIndex as main center line
     });
 
     // Register with global state and global cleaner
@@ -83,7 +64,7 @@ export class SantaFeBranchService {
       GlobalPolylineCleaner.registerPolyline(this.santaFeBranchCenterLine);
     }
 
-    console.log('✅ Santa Fe branch road segment created successfully');
+    console.log('✅ Santa Fe branch road segment created with IDENTICAL styling to main route, connected to Santa Rosa');
   }
 
   getBranchPolylines(): { branchPolyline: google.maps.Polyline | null; branchCenterLine: google.maps.Polyline | null } {
