@@ -112,18 +112,28 @@ export class SegmentCreationLoop {
     // Include balance metrics on the first segment
     const segmentBalanceMetrics = day === 1 ? balanceMetrics : undefined;
 
+    // Create attractions list from recommended stops
+    const attractions = segmentStops.map(stop => stop.name);
+
     return {
       day,
       title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
       startCity: startCityDisplay,
       endCity: endCityDisplay,
       approximateMiles: Math.round(segmentDistance),
-      recommendedStops: segmentStops, // Use the curated stops
+      distance: segmentDistance, // Add distance property
+      drivingTime: totalSegmentDriveTime, // Add drivingTime property
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
+      recommendedStops: segmentStops,
+      attractions, // Add attractions property
       subStopTimings: segmentTimings,
       routeSection,
       driveTimeCategory,
-      balanceMetrics: segmentBalanceMetrics
+      balanceMetrics: segmentBalanceMetrics,
+      destination: { // Add destination property
+        city: dayDestination.name,
+        state: dayDestination.state
+      }
     };
   }
 

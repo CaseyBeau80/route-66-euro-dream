@@ -1,14 +1,11 @@
-
 import { TripStop } from '../data/SupabaseDataService';
+import { DriveTimeTarget } from './DriveTimeBalancingService';
+import { SegmentCreationLoop } from './SegmentCreationLoop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { CityDisplayService } from '../utils/CityDisplayService';
-import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
-import { EnhancedDestinationSelectionService } from './EnhancedDestinationSelectionService';
-import { SegmentBuilderService } from './SegmentBuilderService';
 import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
-import { StopValidationService } from './StopValidationService';
-import { DynamicRebalancingService } from './DynamicRebalancingService';
-import { DestinationSelectionByDriveTime } from './DestinationSelectionByDriveTime';
+
+// Re-export types for backward compatibility
+export type { SubStopTiming, SegmentTiming };
 
 export interface DailySegment {
   day: number;
@@ -16,122 +13,132 @@ export interface DailySegment {
   startCity: string;
   endCity: string;
   approximateMiles: number;
+  distance: number; // Distance in miles
+  drivingTime: number; // Driving time in hours
+  driveTimeHours: number; // Alternative name for drivingTime
   recommendedStops: TripStop[];
-  driveTimeHours: number;
-  subStopTimings: SegmentTiming[];
-  routeSection?: string;
-  driveTimeCategory?: {
-    category: 'short' | 'optimal' | 'long' | 'extreme';
-    message: string;
+  attractions?: string[]; // List of attraction names
+  subStopTimings: SubStopTiming[];
+  routeSection: string;
+  driveTimeCategory: {
+    category: string;
     color: string;
+    description: string;
   };
   balanceMetrics?: any;
+  destination?: {
+    city: string;
+    state?: string;
+  };
 }
 
 export class DailySegmentCreator {
   /**
-   * Create balanced daily segments using enhanced drive time balancing with validation and rebalancing
+   * Create balanced daily segments using enhanced drive time balancing
    */
   static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
-    availableStops: TripStop[],
+    enhancedStops: TripStop[],
     totalDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log('🎯 Creating balanced daily segments with enhanced validation and rebalancing');
+    console.log(`📊 Creating ${totalDays} balanced daily segments for ${Math.round(totalDistance)} mile trip`);
+
+    // Create destinations for each day (excluding start/end)
+    const destinations = this.selectDestinations(startStop, endStop, enhancedStops, totalDays);
     
-    // Validate and clean available stops first
-    const validatedStops = StopValidationService.validateAndDeduplicateStops(
-      availableStops,
-      startStop,
-      endStop
-    );
+    // Calculate drive time targets for balanced segments
+    const driveTimeTargets = this.calculateDriveTimeTargets(totalDistance, totalDays);
     
-    // Calculate drive time targets
-    const driveTimeTargets = DriveTimeBalancingService.calculateDriveTimeTargets(
+    // Enhanced balance metrics
+    const balanceMetrics = {
       totalDistance,
-      totalDays
-    );
-    
-    console.log(`📊 Drive time targets:`, driveTimeTargets.map((t, i) => 
-      `Day ${i + 1}: ${t.targetHours.toFixed(1)}h (${t.minHours.toFixed(1)}-${t.maxHours.toFixed(1)}h)`
-    ));
+      totalDays,
+      targetAverageDriveTime: totalDistance / totalDays / 65, // Assuming 65 mph average
+      balanceStrategy: 'enhanced_geographic_diversity'
+    };
 
-    // Step 1: Try to find intermediate destinations using geographic progression
-    console.log('📍 Phase 1: Finding intermediate destinations with geographic progression');
-    let destinations = DestinationSelectionByDriveTime.findIntermediateDestinations(
-      startStop,
-      endStop,
-      validatedStops,
-      totalDays
-    );
-
-    // Step 2: If we don't have enough destinations, use enhanced destination selection
-    if (destinations.length < totalDays - 1) {
-      console.log('📍 Phase 2: Enhanced destination selection for remaining days');
-      const destinationResult = EnhancedDestinationSelectionService.selectBalancedDestinations(
-        startStop,
-        endStop,
-        validatedStops,
-        driveTimeTargets
-      );
-      
-      // Merge with any destinations we already found
-      const existingDestIds = new Set(destinations.map(d => d.id));
-      const additionalDests = destinationResult.destinations.filter(d => !existingDestIds.has(d.id));
-      
-      destinations = [...destinations, ...additionalDests].slice(0, totalDays - 1);
-    }
-
-    // Step 3: Build initial segments from destinations (now includes endStop)
-    console.log('📍 Phase 3: Building initial segments');
-    let dailySegments = SegmentBuilderService.buildSegmentsFromDestinations(
+    // Create the daily segments
+    const dailySegments = SegmentCreationLoop.createDailySegments(
       startStop,
       destinations,
-      validatedStops,
+      endStop,
+      enhancedStops,
       totalDistance,
       driveTimeTargets,
-      { overallScore: 0, qualityGrade: 'C' },
-      endStop
+      balanceMetrics
     );
 
-    // Step 4: Dynamic rebalancing to fix severe imbalances
-    console.log('📍 Phase 4: Dynamic rebalancing for severe imbalances');
-    const rebalancingResult = DynamicRebalancingService.rebalanceSevereDriveTimeImbalances(
-      dailySegments,
-      validatedStops,
-      driveTimeTargets,
-      startStop,
-      endStop
-    );
-
-    if (rebalancingResult.wasRebalanced) {
-      dailySegments = rebalancingResult.rebalancedSegments;
-      console.log(`✅ Rebalancing applied: ${rebalancingResult.actions.join(', ')}`);
-      
-      if (rebalancingResult.newTotalDays && rebalancingResult.newTotalDays !== totalDays) {
-        console.log(`📅 Trip days adjusted: ${totalDays} → ${rebalancingResult.newTotalDays}`);
-      }
-    }
-
-    // Validate final segments for circular references
-    for (const segment of dailySegments) {
-      if (!StopValidationService.validateSegmentTimings(segment.subStopTimings)) {
-        console.error(`❌ Day ${segment.day} has circular reference issues`);
-      }
-    }
-
-    // Final validation: ensure we have the correct number of segments
-    if (dailySegments.length !== totalDays) {
-      console.error(`❌ Expected ${totalDays} daily segments, but created ${dailySegments.length}`);
-    }
-
-    // Log final balance summary
-    const finalDriveTimes = dailySegments.map(s => s.driveTimeHours);
-    const finalImbalance = Math.max(...finalDriveTimes) - Math.min(...finalDriveTimes);
-    console.log(`🏁 Created ${dailySegments.length} balanced daily segments with ${finalImbalance.toFixed(1)}h imbalance`);
-    
+    console.log(`✅ Created ${dailySegments.length} daily segments with enhanced balance metrics`);
     return dailySegments;
+  }
+
+  private static selectDestinations(
+    startStop: TripStop,
+    endStop: TripStop,
+    enhancedStops: TripStop[],
+    totalDays: number
+  ): TripStop[] {
+    const destinations: TripStop[] = [];
+    const segmentDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    ) / totalDays;
+
+    // Select destinations based on distance intervals
+    for (let day = 1; day < totalDays; day++) {
+      const targetDistance = segmentDistance * day;
+      const destination = this.findNearestStop(startStop, enhancedStops, targetDistance);
+      if (destination) {
+        destinations.push(destination);
+      }
+    }
+
+    return destinations;
+  }
+
+  private static findNearestStop(
+    startStop: TripStop,
+    stops: TripStop[],
+    targetDistance: number
+  ): TripStop | null {
+    let nearestStop: TripStop | null = null;
+    let minDistanceDiff = Infinity;
+
+    for (const stop of stops) {
+      const distance = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude,
+        stop.latitude, stop.longitude
+      );
+      const distanceDiff = Math.abs(distance - targetDistance);
+      
+      if (distanceDiff < minDistanceDiff) {
+        minDistanceDiff = distanceDiff;
+        nearestStop = stop;
+      }
+    }
+
+    return nearestStop;
+  }
+
+  private static calculateDriveTimeTargets(
+    totalDistance: number,
+    totalDays: number
+  ): DriveTimeTarget[] {
+    const averageDriveTime = (totalDistance / totalDays) / 65; // 65 mph average
+    const targets: DriveTimeTarget[] = [];
+
+    for (let day = 1; day <= totalDays; day++) {
+      targets.push({
+        day,
+        targetHours: averageDriveTime,
+        minHours: averageDriveTime * 0.7,
+        maxHours: averageDriveTime * 1.3,
+        priority: 'balanced'
+      });
+    }
+
+    return targets;
   }
 }
