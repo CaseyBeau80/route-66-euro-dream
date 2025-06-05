@@ -50,14 +50,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Start Location */}
         <div className="space-y-2">
-          <Label htmlFor="start-location" className="text-route66-vintage-brown font-travel font-bold">
+          <Label htmlFor="start-location" className="text-route66-text-primary font-travel font-bold">
             Starting City
           </Label>
           <Select 
             value={formData.startLocation} 
             onValueChange={(value) => setFormData({ ...formData, startLocation: value, endLocation: '' })}
           >
-            <SelectTrigger className="border-route66-tan focus:border-route66-orange">
+            <SelectTrigger className="border-route66-border focus:border-route66-primary">
               <SelectValue placeholder="Choose your starting point" />
             </SelectTrigger>
             <SelectContent>
@@ -72,7 +72,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
 
         {/* End Location */}
         <div className="space-y-2">
-          <Label htmlFor="end-location" className="text-route66-vintage-brown font-travel font-bold">
+          <Label htmlFor="end-location" className="text-route66-text-primary font-travel font-bold">
             Destination City
           </Label>
           <Select 
@@ -80,7 +80,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             onValueChange={(value) => setFormData({ ...formData, endLocation: value })}
             disabled={!formData.startLocation}
           >
-            <SelectTrigger className="border-route66-tan focus:border-route66-orange">
+            <SelectTrigger className="border-route66-border focus:border-route66-primary">
               <SelectValue placeholder="Choose your destination" />
             </SelectTrigger>
             <SelectContent>
@@ -96,7 +96,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
 
       {/* Travel Days */}
       <div className="space-y-2">
-        <Label className="text-route66-vintage-brown font-travel font-bold">
+        <Label className="text-route66-text-primary font-travel font-bold">
           Trip Duration: {formData.travelDays || 0} {formData.travelDays === 1 ? 'day' : 'days'}
         </Label>
         <div className="px-3">
@@ -110,10 +110,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
               setFormData({ ...formData, travelDays: days });
             }}
             placeholder="Enter number of days (1-30)"
-            className="border-route66-tan focus:border-route66-orange"
+            className="border-route66-border focus:border-route66-primary"
           />
         </div>
-        <p className="text-sm text-route66-vintage-brown font-travel px-3">
+        <p className="text-sm text-route66-text-secondary font-travel px-3">
           How many days do you want to spend on your Route 66 adventure?
         </p>
       </div>
@@ -123,7 +123,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <Button 
           onClick={onCalculate}
           disabled={isCalculateDisabled || isCalculating}
-          className="w-full bg-route66-red hover:bg-route66-orange text-white font-route66 text-lg py-6 transition-all duration-300"
+          className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-route66 text-lg py-6 transition-all duration-300"
         >
           {isCalculating ? (
             <>
@@ -139,8 +139,8 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         </Button>
       </div>
 
-      <div className="bg-route66-vintage-yellow p-4 rounded-lg border border-route66-tan">
-        <p className="text-sm text-route66-navy font-travel text-center">
+      <div className="bg-route66-hover p-4 rounded-lg border border-route66-border">
+        <p className="text-sm text-route66-text-primary font-travel text-center">
           🚗 <strong>Smart Planning:</strong> Our planner uses real Route 66 attractions, hidden gems, 
           and historic stops from our database to create an authentic road trip experience!
         </p>

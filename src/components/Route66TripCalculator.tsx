@@ -19,12 +19,12 @@ const Route66TripCalculator: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-        <CardHeader className="bg-gradient-to-r from-route66-red to-route66-orange text-white">
+      <Card className="vintage-paper-texture border-2 border-route66-border">
+        <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white">
           <CardTitle className="font-route66 text-3xl text-center">
             🛣️ ROUTE 66 TRIP PLANNER
           </CardTitle>
-          <p className="text-center text-route66-cream font-travel text-lg">
+          <p className="text-center text-white font-travel text-lg">
             Turn your dream Route 66 road trip into a reality — plan every stop, uncover hidden gems, and hit the open road with confidence.
           </p>
         </CardHeader>
