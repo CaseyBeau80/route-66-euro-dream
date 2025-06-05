@@ -9,7 +9,6 @@ import WeatherRequestDeduplicationService from './weather/WeatherRequestDeduplic
 import EnhancedWeatherLoading from './weather/EnhancedWeatherLoading';
 import WeatherError from './weather/WeatherError';
 import WeatherFallback from './weather/WeatherFallback';
-import WeatherStatusBadge from './weather/WeatherStatusBadge';
 import CurrentWeatherDisplay from './weather/CurrentWeatherDisplay';
 import SeasonalWeatherDisplay from './weather/SeasonalWeatherDisplay';
 
@@ -23,11 +22,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [apiKeyRefreshTrigger, setApiKeyRefreshTrigger] = useState(0);
   
   const weatherService = EnhancedWeatherService.getInstance();
   const deduplicationService = WeatherRequestDeduplicationService.getInstance();
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+  const subscriberId = useRef(`widget-${segment.endCity}-${segment.day}-${Math.random()}`);
+
   const hasApiKey = weatherService.hasApiKey();
 
   // Calculate the actual date for this segment
@@ -39,129 +39,104 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
     : null;
 
-  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity}`, {
+  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     hasApiKey,
-    tripStartDate,
-    segmentDate,
-    daysFromNow,
-    segmentDay: segment.day,
-    hasWeatherData: !!weather,
+    hasWeather: !!weather,
     loading,
     error,
-    retryCount
+    segmentDate: segmentDate?.toISOString(),
+    daysFromNow,
+    subscriberId: subscriberId.current
   });
 
   const handleApiKeySet = useCallback(() => {
-    console.log('🔑 SegmentWeatherWidget: Enhanced API key set, triggering refresh');
-    setApiKeyRefreshTrigger(prev => prev + 1);
-    setRetryCount(0);
+    console.log('🔑 API key set, clearing error and retry count');
     setError(null);
+    setRetryCount(0);
   }, []);
 
   const handleRetry = useCallback(() => {
-    console.log(`🔄 SegmentWeatherWidget: Retry requested for ${segment.endCity} (attempt ${retryCount + 1})`);
+    console.log(`🔄 Retry requested for ${segment.endCity}`);
     setRetryCount(prev => prev + 1);
     setError(null);
-  }, [segment.endCity, retryCount]);
+  }, [segment.endCity]);
 
   const handleTimeout = useCallback(() => {
-    console.log(`⏰ SegmentWeatherWidget: Request timeout for ${segment.endCity}`);
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    console.log(`⏰ Timeout for ${segment.endCity}`);
     setLoading(false);
     setError('Request timeout - please check your connection');
   }, [segment.endCity]);
   
   const fetchWeather = useCallback(async () => {
-    console.log(`🌤️ SegmentWeatherWidget: fetchWeather called for ${segment.endCity}`, {
-      hasApiKey,
-      segmentDate,
-      daysFromNow,
-      retryCount
-    });
-
-    // Don't fetch if no API key
     if (!hasApiKey) {
-      console.log('🌤️ SegmentWeatherWidget: No API key, skipping fetch');
+      console.log(`🌤️ No API key for ${segment.endCity}, skipping fetch`);
       return;
     }
     
     const coordinates = GeocodingService.getCoordinatesForCity(segment.endCity);
     if (!coordinates) {
-      console.warn(`🌤️ SegmentWeatherWidget: No coordinates found for ${segment.endCity}`);
+      console.warn(`🌤️ No coordinates for ${segment.endCity}`);
       setError(`No coordinates found for ${segment.endCity}`);
       return;
     }
 
-    // Cancel any existing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`🌤️ SegmentWeatherWidget: Starting deduplicated weather request for ${segment.endCity}`);
+      const requestKey = `weather-${coordinates.lat}-${coordinates.lng}`;
+      console.log(`🌤️ Starting weather fetch for ${segment.endCity} with key: ${requestKey}`);
       
-      const requestKey = `weather-${coordinates.lat}-${coordinates.lng}-${segment.endCity}`;
       const weatherData = await deduplicationService.deduplicateRequest(
         requestKey,
         () => weatherService.getWeatherData(coordinates.lat, coordinates.lng, segment.endCity),
-        12000 // 12 second timeout per request
+        subscriberId.current,
+        10000
       );
       
-      console.log(`🌤️ SegmentWeatherWidget: Weather fetch result for ${segment.endCity}:`, weatherData);
-      
-      if (weatherData && !abortControllerRef.current?.signal.aborted) {
+      if (weatherData && mountedRef.current) {
+        console.log(`✅ Weather data received for ${segment.endCity}:`, weatherData);
         setWeather(weatherData);
-        setRetryCount(0); // Reset retry count on success
-        console.log(`✅ SegmentWeatherWidget: Weather data set for ${segment.endCity}`);
-      } else if (!abortControllerRef.current?.signal.aborted) {
-        console.warn(`❌ SegmentWeatherWidget: No weather data returned for ${segment.endCity}`);
+        setRetryCount(0);
+      } else if (mountedRef.current) {
+        console.warn(`❌ No weather data for ${segment.endCity}`);
         setError('Unable to fetch weather data');
       }
     } catch (err) {
-      if (!abortControllerRef.current?.signal.aborted) {
-        console.error(`❌ SegmentWeatherWidget: Weather fetch error for ${segment.endCity}:`, err);
+      if (mountedRef.current) {
+        console.error(`❌ Weather fetch error for ${segment.endCity}:`, err);
         const errorMessage = err instanceof Error ? err.message : 'Weather service error';
         setError(errorMessage);
       }
     } finally {
-      if (!abortControllerRef.current?.signal.aborted) {
+      if (mountedRef.current) {
         setLoading(false);
-        console.log(`🌤️ SegmentWeatherWidget: Finished fetching weather for ${segment.endCity}`);
       }
     }
-  }, [segment.endCity, hasApiKey, retryCount, weatherService, deduplicationService]);
+  }, [segment.endCity, hasApiKey, weatherService, deduplicationService]);
 
   useEffect(() => {
-    fetchWeather();
+    mountedRef.current = true;
+    if (hasApiKey) {
+      fetchWeather();
+    }
     
-    // Cleanup on unmount
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      mountedRef.current = false;
     };
-  }, [fetchWeather, apiKeyRefreshTrigger]);
+  }, [fetchWeather, hasApiKey, retryCount]);
 
   const renderWeatherContent = () => {
-    console.log(`🌤️ SegmentWeatherWidget: renderWeatherContent for ${segment.endCity}`, {
+    console.log(`🎨 Rendering content for ${segment.endCity}:`, {
       hasApiKey,
       loading,
       error,
       hasWeather: !!weather,
-      segmentDate,
-      daysFromNow,
       retryCount
     });
 
-    // No API key available - show enhanced input
+    // No API key - show input
     if (!hasApiKey) {
-      console.log(`🌤️ SegmentWeatherWidget: Showing API key input for ${segment.endCity}`);
       return (
         <EnhancedWeatherApiKeyInput 
           onApiKeySet={handleApiKeySet}
@@ -170,15 +145,19 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       );
     }
 
-    // Loading state with timeout handling
+    // Loading state
     if (loading) {
-      console.log(`🌤️ SegmentWeatherWidget: Showing enhanced loading for ${segment.endCity}`);
       return <EnhancedWeatherLoading onTimeout={handleTimeout} />;
     }
 
-    // Show fallback UI for repeated failures or network errors
-    if (error && (retryCount >= 2 || error.includes('Failed to fetch') || error.includes('timeout'))) {
-      console.log(`🌤️ SegmentWeatherWidget: Showing fallback UI for ${segment.endCity} (retries: ${retryCount})`);
+    // Show weather data if available
+    if (weather) {
+      console.log(`✨ Displaying weather for ${segment.endCity}:`, weather);
+      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    }
+
+    // Show fallback for repeated errors
+    if (error && (retryCount >= 2 || error.includes('timeout'))) {
       return (
         <WeatherFallback 
           cityName={segment.endCity}
@@ -189,44 +168,22 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       );
     }
 
-    // Regular error state for first attempts
+    // Show error
     if (error) {
-      console.log(`🌤️ SegmentWeatherWidget: Showing error for ${segment.endCity}:`, error);
       return <WeatherError error={error} />;
     }
 
-    // PRIORITY 1: Show weather data if we have it (regardless of trip date)
-    if (weather) {
-      console.log(`✅ SegmentWeatherWidget: Showing current weather for ${segment.endCity}`, weather);
-      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
-    }
-
-    // PRIORITY 2: No trip start date set - show message
-    if (!segmentDate || daysFromNow === null) {
-      console.log(`🌤️ SegmentWeatherWidget: No trip date set for ${segment.endCity}`);
-      return (
-        <div className="text-sm text-gray-500 italic">
-          Set a trip start date to see weather information
-        </div>
-      );
-    }
-
-    // PRIORITY 3: Trip too far in the future - show seasonal estimate
-    if (daysFromNow > 16) {
-      console.log(`🌤️ SegmentWeatherWidget: Trip too far in future for ${segment.endCity}, showing seasonal`);
+    // Show seasonal fallback
+    if (segmentDate) {
       return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
     }
 
-    // PRIORITY 4: Beyond 5-day forecast range but within 16 days
-    if (daysFromNow > 5) {
-      console.log(`🌤️ SegmentWeatherWidget: Trip beyond 5-day forecast for ${segment.endCity}`);
-      const message = "Weather forecasts are only available for the next 5 days. Check closer to your travel date.";
-      return <WeatherStatusBadge type="unavailable" description={message} />;
-    }
-
-    // PRIORITY 5: Fallback to seasonal display
-    console.log(`🌤️ SegmentWeatherWidget: Fallback to seasonal for ${segment.endCity}`);
-    return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
+    // Default message
+    return (
+      <div className="text-sm text-gray-500 italic">
+        Set a trip start date to see weather information
+      </div>
+    );
   };
 
   return (

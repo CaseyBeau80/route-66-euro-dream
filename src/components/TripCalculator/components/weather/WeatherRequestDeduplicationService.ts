@@ -2,13 +2,15 @@
 interface PendingRequest {
   promise: Promise<any>;
   timestamp: number;
+  subscribers: Set<string>;
 }
 
 class WeatherRequestDeduplicationService {
   private static instance: WeatherRequestDeduplicationService;
   private pendingRequests = new Map<string, PendingRequest>();
-  private readonly REQUEST_TIMEOUT = 10000; // 10 seconds
-  private readonly CACHE_DURATION = 30000; // 30 seconds
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private readonly REQUEST_TIMEOUT = 8000; // 8 seconds
+  private readonly CACHE_DURATION = 60000; // 60 seconds
 
   static getInstance(): WeatherRequestDeduplicationService {
     if (!WeatherRequestDeduplicationService.instance) {
@@ -20,27 +22,33 @@ class WeatherRequestDeduplicationService {
   async deduplicateRequest<T>(
     key: string,
     requestFn: () => Promise<T>,
+    subscriberId: string = 'default',
     timeoutMs: number = this.REQUEST_TIMEOUT
   ): Promise<T> {
-    console.log(`🔄 WeatherRequestDeduplication: Checking for existing request: ${key}`);
+    console.log(`🔄 WeatherDedup: Request for ${key} from subscriber ${subscriberId}`);
     
-    // Check if we have a pending request
-    const existing = this.pendingRequests.get(key);
-    if (existing) {
-      const age = Date.now() - existing.timestamp;
-      if (age < this.CACHE_DURATION) {
-        console.log(`♻️ WeatherRequestDeduplication: Reusing existing request for ${key} (age: ${age}ms)`);
-        return existing.promise;
-      } else {
-        console.log(`🗑️ WeatherRequestDeduplication: Cleaning up stale request for ${key} (age: ${age}ms)`);
-        this.pendingRequests.delete(key);
-      }
+    // Check cache first
+    const cached = this.cache.get(key);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+      console.log(`💾 WeatherDedup: Returning cached data for ${key}`);
+      return cached.data;
     }
 
-    // Create new request with timeout
-    console.log(`🆕 WeatherRequestDeduplication: Creating new request for ${key}`);
+    // Check for existing pending request
+    const existing = this.pendingRequests.get(key);
+    if (existing) {
+      console.log(`🔗 WeatherDedup: Joining existing request for ${key}`);
+      existing.subscribers.add(subscriberId);
+      return existing.promise;
+    }
+
+    // Create new request
+    console.log(`🆕 WeatherDedup: Creating new request for ${key}`);
+    const subscribers = new Set([subscriberId]);
+    
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
+        console.log(`⏰ WeatherDedup: Request timeout for ${key}`);
         this.pendingRequests.delete(key);
         reject(new Error(`Request timeout after ${timeoutMs}ms`));
       }, timeoutMs);
@@ -54,31 +62,41 @@ class WeatherRequestDeduplicationService {
     // Store the pending request
     this.pendingRequests.set(key, {
       promise: requestPromise,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      subscribers
     });
 
     try {
       const result = await requestPromise;
-      console.log(`✅ WeatherRequestDeduplication: Request completed successfully for ${key}`);
+      console.log(`✅ WeatherDedup: Request completed for ${key}, ${subscribers.size} subscribers`);
+      
+      // Cache the result
+      this.cache.set(key, {
+        data: result,
+        timestamp: Date.now()
+      });
+      
       return result;
     } catch (error) {
-      console.error(`❌ WeatherRequestDeduplication: Request failed for ${key}:`, error);
+      console.error(`❌ WeatherDedup: Request failed for ${key}:`, error);
       throw error;
     } finally {
-      // Clean up after request completes (success or failure)
-      setTimeout(() => {
-        this.pendingRequests.delete(key);
-      }, 1000); // Keep for 1 second to avoid immediate duplicate requests
+      // Clean up
+      this.pendingRequests.delete(key);
     }
   }
 
   clearCache(): void {
-    console.log('🧹 WeatherRequestDeduplication: Clearing all cached requests');
+    console.log('🧹 WeatherDedup: Clearing cache and pending requests');
     this.pendingRequests.clear();
+    this.cache.clear();
   }
 
-  getActiveRequestsCount(): number {
-    return this.pendingRequests.size;
+  getStats(): { pending: number; cached: number } {
+    return {
+      pending: this.pendingRequests.size,
+      cached: this.cache.size
+    };
   }
 }
 
