@@ -1,4 +1,6 @@
 
+import { CactiState } from './types/cactiTypes';
+
 export interface TriviaQuestion {
   id: string;
   question: string;
@@ -22,6 +24,7 @@ export interface GameState {
   }>;
   isGameComplete: boolean;
   showExplanation: boolean;
+  cactiState: CactiState;
 }
 
 export interface GameSession {

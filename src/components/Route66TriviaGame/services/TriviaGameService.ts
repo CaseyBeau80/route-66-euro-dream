@@ -1,6 +1,6 @@
-
 import { TriviaQuestion, GameSession, GameState } from '../types';
 import { triviaDatabase } from '../data/triviaDatabase';
+import { CactiRewardService } from './CactiRewardService';
 
 export class TriviaGameService {
   private static readonly QUESTIONS_PER_ROUND = 5;
@@ -20,7 +20,8 @@ export class TriviaGameService {
         score: 0,
         selectedAnswers: [],
         isGameComplete: false,
-        showExplanation: false
+        showExplanation: false,
+        cactiState: CactiRewardService.createInitialState()
       }
     };
   }
@@ -58,13 +59,19 @@ export class TriviaGameService {
 
     const newScore = session.gameState.score + (isCorrect ? 1 : 0);
     
+    // Update cacti state if answer is correct
+    const updatedCactiState = isCorrect 
+      ? CactiRewardService.updateForCorrectAnswer(session.gameState.cactiState)
+      : session.gameState.cactiState;
+    
     return {
       ...session,
       gameState: {
         ...session.gameState,
         selectedAnswers: updatedAnswers,
         score: newScore,
-        showExplanation: true
+        showExplanation: true,
+        cactiState: updatedCactiState
       }
     };
   }
@@ -76,13 +83,17 @@ export class TriviaGameService {
     const nextIndex = session.gameState.currentQuestionIndex + 1;
     const isLastQuestion = nextIndex >= session.questions.length;
     
+    // Hide cacti reward when moving to next question
+    const updatedCactiState = CactiRewardService.hideReward(session.gameState.cactiState);
+    
     return {
       ...session,
       gameState: {
         ...session.gameState,
         currentQuestionIndex: nextIndex,
         showExplanation: false,
-        isGameComplete: isLastQuestion
+        isGameComplete: isLastQuestion,
+        cactiState: updatedCactiState
       }
     };
   }

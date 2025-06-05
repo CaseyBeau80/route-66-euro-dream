@@ -5,6 +5,7 @@ import { TriviaGameService } from './services/TriviaGameService';
 import TriviaHeader from './components/TriviaHeader';
 import QuestionCard from './components/QuestionCard';
 import GameResults from './components/GameResults';
+import CactiGarden from './components/CactiGarden';
 import { Button } from '@/components/ui/button';
 
 const Route66TriviaGame: React.FC = () => {
@@ -67,6 +68,7 @@ const Route66TriviaGame: React.FC = () => {
               <div className="text-white/90 space-y-2 font-special-elite">
                 <p>• Answer 5 multiple-choice questions about Route 66</p>
                 <p>• Learn fun facts after each answer</p>
+                <p>• Grow your desert cactus with correct answers! 🌵</p>
                 <p>• Earn your Route 66 achievement badge!</p>
               </div>
             </div>
@@ -111,33 +113,54 @@ const Route66TriviaGame: React.FC = () => {
         />
         
         {gameSession.gameState.isGameComplete ? (
-          <GameResults
-            gameState={gameSession.gameState}
-            totalQuestions={gameSession.questions.length}
-            onPlayAgain={startNewGame}
-          />
-        ) : (
           <div className="space-y-6">
-            <QuestionCard
-              question={currentQuestion}
-              onSelectAnswer={selectAnswer}
-              selectedAnswer={currentAnswer?.selectedOption}
-              showExplanation={gameSession.gameState.showExplanation}
+            <GameResults
+              gameState={gameSession.gameState}
+              totalQuestions={gameSession.questions.length}
+              onPlayAgain={startNewGame}
             />
             
-            {gameSession.gameState.showExplanation && (
-              <div className="text-center">
-                <Button
-                  onClick={nextQuestion}
-                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                >
-                  {gameSession.gameState.currentQuestionIndex < gameSession.questions.length - 1 
-                    ? '🛣️ Next Question' 
-                    : '🏁 See Results'
-                  }
-                </Button>
-              </div>
-            )}
+            {/* Final cacti garden display */}
+            <CactiGarden
+              correctAnswers={gameSession.gameState.score}
+              totalQuestions={gameSession.questions.length}
+              showReward={false}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Question area - takes 2 columns on large screens */}
+            <div className="lg:col-span-2 space-y-6">
+              <QuestionCard
+                question={currentQuestion}
+                onSelectAnswer={selectAnswer}
+                selectedAnswer={currentAnswer?.selectedOption}
+                showExplanation={gameSession.gameState.showExplanation}
+              />
+              
+              {gameSession.gameState.showExplanation && (
+                <div className="text-center">
+                  <Button
+                    onClick={nextQuestion}
+                    className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    {gameSession.gameState.currentQuestionIndex < gameSession.questions.length - 1 
+                      ? '🛣️ Next Question' 
+                      : '🏁 See Results'
+                    }
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {/* Cacti garden - takes 1 column on large screens */}
+            <div className="lg:col-span-1">
+              <CactiGarden
+                correctAnswers={gameSession.gameState.score}
+                totalQuestions={gameSession.questions.length}
+                showReward={gameSession.gameState.cactiState.showReward}
+              />
+            </div>
           </div>
         )}
       </div>
