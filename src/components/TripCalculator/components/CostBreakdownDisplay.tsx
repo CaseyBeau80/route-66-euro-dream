@@ -62,7 +62,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               <div>
                 <div className="font-semibold text-blue-800">Gas Costs</div>
                 <div className="text-xl font-bold text-blue-700">
-                  {formatCurrency(breakdown.gasCosts)}
+                  {formatCurrency(breakdown.gasCost)}
                 </div>
               </div>
             </div>
@@ -72,7 +72,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               <div>
                 <div className="font-semibold text-purple-800">Hotels</div>
                 <div className="text-xl font-bold text-purple-700">
-                  {formatCurrency(breakdown.accommodationCosts)}
+                  {formatCurrency(breakdown.accommodationCost)}
                 </div>
               </div>
             </div>
@@ -82,30 +82,30 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               <div>
                 <div className="font-semibold text-orange-800">Meals</div>
                 <div className="text-xl font-bold text-orange-700">
-                  {formatCurrency(breakdown.mealCosts)}
+                  {formatCurrency(breakdown.mealCost)}
                 </div>
               </div>
             </div>
 
-            {breakdown.attractionCosts > 0 && (
+            {breakdown.attractionCost > 0 && (
               <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
                 <MapPin className="h-6 w-6 text-red-600" />
                 <div>
                   <div className="font-semibold text-red-800">Attractions</div>
                   <div className="text-xl font-bold text-red-700">
-                    {formatCurrency(breakdown.attractionCosts)}
+                    {formatCurrency(breakdown.attractionCost)}
                   </div>
                 </div>
               </div>
             )}
 
-            {breakdown.tollCosts > 0 && (
+            {breakdown.tollCost > 0 && (
               <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
                 <CreditCard className="h-6 w-6 text-yellow-600" />
                 <div>
                   <div className="font-semibold text-yellow-800">Tolls</div>
                   <div className="text-xl font-bold text-yellow-700">
-                    {formatCurrency(breakdown.tollCosts)}
+                    {formatCurrency(breakdown.tollCost)}
                   </div>
                 </div>
               </div>

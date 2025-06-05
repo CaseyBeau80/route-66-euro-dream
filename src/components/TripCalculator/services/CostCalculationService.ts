@@ -95,11 +95,11 @@ export class CostCalculationService {
     });
 
     const breakdown: CostBreakdown = {
-      gasCosts: totalGas,
-      accommodationCosts: totalAccommodation,
-      mealCosts: totalMeals,
-      attractionCosts: totalAttractions,
-      tollCosts: totalTolls,
+      gasCost: totalGas,
+      accommodationCost: totalAccommodation,
+      mealCost: totalMeals,
+      attractionCost: totalAttractions,
+      tollCost: totalTolls,
       totalCost: totalGas + totalAccommodation + totalMeals + totalAttractions + totalTolls
     };
 

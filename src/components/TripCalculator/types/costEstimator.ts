@@ -18,8 +18,20 @@ export interface CostBreakdown {
   totalCost: number;
 }
 
+export interface DailyCosts {
+  day: number;
+  city: string;
+  gas: number;
+  accommodation: number;
+  meals: number;
+  attractions: number;
+  tolls: number;
+  dailyTotal: number;
+}
+
 export interface CostEstimate {
   breakdown: CostBreakdown;
-  perPerson: number;
-  perDay: number;
+  dailyCosts: DailyCosts[];
+  perPersonCost: number;
+  averageDailyCost: number;
 }
