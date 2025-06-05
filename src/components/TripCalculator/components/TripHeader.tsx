@@ -14,21 +14,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
 
   // Calculate total drive time from daily segments
   const totalDriveTimeHours = tripPlan.dailySegments.reduce((total, segment) => {
-    // Parse drive time from string format like "2.5 hours" or "2h 30m"
-    const timeStr = segment.drivingTime;
-    let hours = 0;
-    
-    if (timeStr.includes('hours')) {
-      hours = parseFloat(timeStr.split(' ')[0]);
-    } else if (timeStr.includes('h')) {
-      const parts = timeStr.split(' ');
-      hours = parseInt(parts[0].replace('h', ''));
-      if (parts[1] && parts[1].includes('m')) {
-        hours += parseInt(parts[1].replace('m', '')) / 60;
-      }
-    }
-    
-    return total + hours;
+    return total + segment.driveTimeHours;
   }, 0);
 
   const formatDriveTime = (hours: number): string => {
