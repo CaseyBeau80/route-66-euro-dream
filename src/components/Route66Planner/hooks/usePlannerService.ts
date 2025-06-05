@@ -3,22 +3,35 @@ import { useState } from 'react';
 import { PlannerFormData, TripItinerary, DestinationCity, DaySegment } from '../types';
 import { useDestinationCities } from './useDestinationCities';
 import { supabase } from '@/integrations/supabase/client';
-import { EnhancedDistanceService } from '../services/EnhancedDistanceService';
+import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 export const usePlannerService = () => {
   const { destinationCities } = useDestinationCities();
   const [isLoading, setIsLoading] = useState(false);
 
   const calculateRouteStops = (startCity: string, endCity: string): DestinationCity[] => {
+    console.log(`🗺️ Calculating route stops from ${startCity} to ${endCity}`);
+    
     const startIndex = destinationCities.findIndex(city => city.name === startCity);
     const endIndex = destinationCities.findIndex(city => city.name === endCity);
     
-    if (startIndex === -1 || endIndex === -1) return [];
+    if (startIndex === -1 || endIndex === -1) {
+      console.error('❌ Start or end city not found in destination cities');
+      return [];
+    }
 
     const start = Math.min(startIndex, endIndex);
     const end = Math.max(startIndex, endIndex);
     
-    return destinationCities.slice(start, end + 1);
+    const routeStops = destinationCities.slice(start, end + 1);
+    
+    // If going backwards (higher index to lower), reverse the order
+    if (startIndex > endIndex) {
+      routeStops.reverse();
+    }
+    
+    console.log(`✅ Route calculated: ${routeStops.length} stops in correct sequence`);
+    return routeStops;
   };
 
   const fetchAttractions = async (cityName: string, state: string) => {
@@ -51,20 +64,49 @@ export const usePlannerService = () => {
         throw new Error('Invalid route selection');
       }
 
-      console.log(`🗺️ Planning trip from ${formData.startCity} to ${formData.endCity}`);
+      console.log(`🗺️ Planning trip from ${formData.startCity} to ${formData.endCity} with ${routeStops.length} stops`);
 
-      // Calculate enhanced route metrics
-      const routeMetrics = await EnhancedDistanceService.calculateRouteMetrics(routeStops);
-      const { totalDistance, totalDuration, isGoogleData, segments } = routeMetrics;
+      let totalDistance = 0;
+      let totalDuration = 0;
+      let isUsingGoogleData = false;
 
-      console.log(`📊 Route metrics: ${totalDistance} miles, ${EnhancedDistanceService.formatDuration(totalDuration)} (Google: ${isGoogleData})`);
+      // Calculate accurate distances using Google Distance Matrix API
+      if (GoogleDistanceMatrixService.isAvailable()) {
+        console.log('📊 Using Google Distance Matrix API for accurate calculations');
+        const routeMetrics = await GoogleDistanceMatrixService.calculateRouteDistances(routeStops);
+        totalDistance = routeMetrics.totalDistance;
+        totalDuration = routeMetrics.totalDuration;
+        isUsingGoogleData = true;
+      } else {
+        console.log('📏 Using fallback distance calculations (less accurate)');
+        // Fallback to simple distance calculation
+        for (let i = 0; i < routeStops.length - 1; i++) {
+          const current = routeStops[i];
+          const next = routeStops[i + 1];
+          
+          // Simple haversine distance
+          const R = 3959; // Earth's radius in miles
+          const dLat = (next.latitude - current.latitude) * Math.PI / 180;
+          const dLon = (next.longitude - current.longitude) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(current.latitude * Math.PI / 180) * Math.cos(next.latitude * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          
+          totalDistance += distance;
+          totalDuration += (distance / 55) * 3600; // Assume 55 mph average
+        }
+      }
+
+      console.log(`📊 Route metrics: ${Math.round(totalDistance)} miles, ${GoogleDistanceMatrixService.formatDuration(totalDuration)} (Google: ${isUsingGoogleData})`);
 
       // Determine trip days based on planning type
       let tripDays: number;
       if (formData.planningType === 'duration') {
         tripDays = formData.tripDuration;
       } else {
-        // Calculate days based on daily travel preferences using real durations
+        // Calculate days based on daily travel preferences
         const dailyDurationLimit = formData.dailyHours * 3600; // Convert hours to seconds
         const dailyDistanceLimit = formData.dailyMiles;
         
@@ -80,48 +122,82 @@ export const usePlannerService = () => {
 
       console.log(`📅 Planned for ${tripDays} days`);
 
-      // Create daily segments with enhanced timing
+      // Create daily segments with realistic distribution
       const dailySegments: DaySegment[] = [];
-      const segmentDuration = totalDuration / tripDays;
       const segmentDistance = totalDistance / tripDays;
-      let currentDuration = 0;
-      let currentDistance = 0;
+      const segmentDuration = totalDuration / tripDays;
+      
       let currentStopIndex = 0;
+      let accumulatedDistance = 0;
+      let accumulatedDuration = 0;
 
       for (let day = 1; day <= tripDays; day++) {
-        const targetDuration = currentDuration + segmentDuration;
-        const targetDistance = currentDistance + segmentDistance;
+        const targetDistance = day * segmentDistance;
+        const targetDuration = day * segmentDuration;
+        
         let nextStopIndex = currentStopIndex;
-        let accumulatedDuration = currentDuration;
-        let accumulatedDistance = currentDistance;
+        let tempDistance = accumulatedDistance;
+        let tempDuration = accumulatedDuration;
 
-        // Find the appropriate end city for this day using real segments
-        while (nextStopIndex < segments.length && accumulatedDuration < targetDuration) {
-          const segment = segments[nextStopIndex];
+        // Find the appropriate end city for this day
+        while (nextStopIndex < routeStops.length - 1 && 
+               (tempDistance < targetDistance || day === tripDays)) {
           
-          if (accumulatedDuration + segment.duration <= targetDuration || day === tripDays) {
-            accumulatedDuration += segment.duration;
-            accumulatedDistance += segment.distance;
-            nextStopIndex++;
-          } else {
+          if (day === tripDays) {
+            // Last day - go to final destination
+            nextStopIndex = routeStops.length - 1;
             break;
           }
-        }
-
-        // Ensure we reach the final destination on the last day
-        if (day === tripDays) {
-          nextStopIndex = routeStops.length - 1;
-          accumulatedDistance = totalDistance;
-          accumulatedDuration = totalDuration;
+          
+          nextStopIndex++;
+          
+          // Calculate distance to this stop
+          const current = routeStops[nextStopIndex - 1];
+          const next = routeStops[nextStopIndex];
+          
+          if (isUsingGoogleData && GoogleDistanceMatrixService.isAvailable()) {
+            try {
+              const segment = await GoogleDistanceMatrixService.calculateDistance(current, next);
+              tempDistance += segment.distance;
+              tempDuration += segment.duration;
+            } catch (error) {
+              console.error('Error calculating segment distance:', error);
+              // Fallback calculation
+              const R = 3959;
+              const dLat = (next.latitude - current.latitude) * Math.PI / 180;
+              const dLon = (next.longitude - current.longitude) * Math.PI / 180;
+              const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(current.latitude * Math.PI / 180) * Math.cos(next.latitude * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const distance = R * c;
+              tempDistance += distance;
+              tempDuration += (distance / 55) * 3600;
+            }
+          } else {
+            // Fallback calculation
+            const R = 3959;
+            const dLat = (next.latitude - current.latitude) * Math.PI / 180;
+            const dLon = (next.longitude - current.longitude) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(current.latitude * Math.PI / 180) * Math.cos(next.latitude * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            tempDistance += distance;
+            tempDuration += (distance / 55) * 3600;
+          }
+          
+          if (tempDistance >= targetDistance) break;
         }
 
         const startCity = routeStops[currentStopIndex];
-        const endCity = routeStops[Math.min(nextStopIndex, routeStops.length - 1)];
+        const endCity = routeStops[nextStopIndex];
         
         // Calculate day-specific metrics
-        const dayDistance = accumulatedDistance - currentDistance;
-        const dayDuration = accumulatedDuration - currentDuration;
-        const drivingTime = EnhancedDistanceService.formatDuration(dayDuration);
+        const dayDistance = tempDistance - accumulatedDistance;
+        const dayDuration = tempDuration - accumulatedDuration;
+        const drivingTime = GoogleDistanceMatrixService.formatDuration(dayDuration);
         
         // Get date for this day
         const date = new Date(formData.startDate);
@@ -138,12 +214,12 @@ export const usePlannerService = () => {
           distance: Math.round(dayDistance),
           drivingTime,
           attractions,
-          funFact: `Day ${day} of your Route 66 adventure!`
+          funFact: `Day ${day} of your Route 66 adventure through ${endCity.state}!`
         });
 
-        currentDistance = accumulatedDistance;
-        currentDuration = accumulatedDuration;
-        currentStopIndex = Math.min(nextStopIndex, routeStops.length - 1);
+        accumulatedDistance = tempDistance;
+        accumulatedDuration = tempDuration;
+        currentStopIndex = nextStopIndex;
 
         if (nextStopIndex >= routeStops.length - 1) break;
       }
@@ -154,19 +230,19 @@ export const usePlannerService = () => {
         lng: city.longitude
       }));
 
-      const totalDrivingTime = EnhancedDistanceService.formatDuration(totalDuration);
+      const totalDrivingTime = GoogleDistanceMatrixService.formatDuration(totalDuration);
 
       const itinerary: TripItinerary = {
         id: `trip-${Date.now()}`,
         startDate: formData.startDate,
         totalDays: tripDays,
-        totalDistance,
+        totalDistance: Math.round(totalDistance),
         totalDrivingTime,
         dailySegments,
         route
       };
 
-      console.log(`✅ Trip planned successfully: ${tripDays} days, ${totalDistance} miles`);
+      console.log(`✅ Trip planned successfully: ${tripDays} days, ${Math.round(totalDistance)} miles (Google: ${isUsingGoogleData})`);
 
       return itinerary;
     } finally {

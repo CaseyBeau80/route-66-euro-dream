@@ -54,47 +54,79 @@ export class GoogleDistanceMatrixService {
     }
 
     try {
-      const originStr = `${origin.latitude},${origin.longitude}`;
-      const destinationStr = `${destination.latitude},${destination.longitude}`;
+      // Use city name + state for more accurate results, fallback to coordinates
+      const originStr = `${origin.name}, ${origin.state}`;
+      const destinationStr = `${destination.name}, ${destination.state}`;
       
       const url = `https://maps.googleapis.com/maps/api/distancematrix/json?` +
         `origins=${encodeURIComponent(originStr)}&` +
         `destinations=${encodeURIComponent(destinationStr)}&` +
         `units=imperial&` +
         `mode=driving&` +
+        `avoid=highways&` + // Prefer scenic routes when possible
         `key=${apiKey}`;
 
-      console.log(`🗺️ Fetching distance from Google: ${origin.name} → ${destination.name}`);
+      console.log(`🗺️ Fetching Route 66 distance: ${origin.name}, ${origin.state} → ${destination.name}, ${destination.state}`);
       
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.status !== 'OK') {
-        throw new Error(`Distance Matrix API error: ${data.status}`);
+        console.warn(`⚠️ Distance Matrix API status: ${data.status}, falling back to coordinates`);
+        
+        // Fallback to coordinates if city names fail
+        const coordOriginStr = `${origin.latitude},${origin.longitude}`;
+        const coordDestinationStr = `${destination.latitude},${destination.longitude}`;
+        
+        const coordUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?` +
+          `origins=${encodeURIComponent(coordOriginStr)}&` +
+          `destinations=${encodeURIComponent(coordDestinationStr)}&` +
+          `units=imperial&` +
+          `mode=driving&` +
+          `avoid=highways&` +
+          `key=${apiKey}`;
+        
+        const coordResponse = await fetch(coordUrl);
+        const coordData = await coordResponse.json();
+        
+        if (coordData.status !== 'OK') {
+          throw new Error(`Distance Matrix API error: ${coordData.status}`);
+        }
+        
+        return this.processDistanceMatrixResponse(coordData, origin, destination);
       }
 
-      const element = data.rows[0].elements[0];
-      
-      if (element.status !== 'OK') {
-        throw new Error(`Route calculation failed: ${element.status}`);
-      }
-
-      const result: DistanceMatrixResult = {
-        distance: Math.round(element.distance.value * 0.000621371), // Convert meters to miles
-        duration: element.duration.value, // Already in seconds
-        status: 'OK'
-      };
-
-      // Cache the result
-      this.cache.set(cacheKey, result);
-      
-      console.log(`✅ Distance calculated: ${result.distance} miles, ${Math.round(result.duration / 60)} minutes`);
-      
-      return result;
+      return this.processDistanceMatrixResponse(data, origin, destination);
     } catch (error) {
-      console.error('Error calculating distance:', error);
+      console.error(`❌ Error calculating distance ${origin.name} → ${destination.name}:`, error);
       throw error;
     }
+  }
+
+  private static processDistanceMatrixResponse(
+    data: any, 
+    origin: DestinationCity, 
+    destination: DestinationCity
+  ): DistanceMatrixResult {
+    const element = data.rows[0].elements[0];
+    
+    if (element.status !== 'OK') {
+      throw new Error(`Route calculation failed: ${element.status} for ${origin.name} → ${destination.name}`);
+    }
+
+    const result: DistanceMatrixResult = {
+      distance: Math.round(element.distance.value * 0.000621371), // Convert meters to miles
+      duration: element.duration.value, // Already in seconds
+      status: 'OK'
+    };
+
+    // Cache the result
+    const cacheKey = this.getCacheKey(origin, destination);
+    this.cache.set(cacheKey, result);
+    
+    console.log(`✅ Route 66 segment: ${origin.name} → ${destination.name} = ${result.distance} miles, ${this.formatDuration(result.duration)}`);
+    
+    return result;
   }
 
   static async calculateRouteDistances(cities: DestinationCity[]): Promise<{
@@ -110,16 +142,33 @@ export class GoogleDistanceMatrixService {
     let totalDistance = 0;
     let totalDuration = 0;
 
-    console.log(`🛣️ Calculating route distances for ${cities.length} cities`);
+    console.log(`🛣️ Calculating Route 66 distances for ${cities.length} consecutive city pairs:`);
+    cities.forEach((city, i) => {
+      if (i < cities.length - 1) {
+        console.log(`   ${i + 1}. ${city.name}, ${city.state} → ${cities[i + 1].name}, ${cities[i + 1].state}`);
+      }
+    });
 
+    // Calculate distance for each consecutive city pair
     for (let i = 0; i < cities.length - 1; i++) {
-      const segment = await this.calculateDistance(cities[i], cities[i + 1]);
-      segments.push(segment);
-      totalDistance += segment.distance;
-      totalDuration += segment.duration;
+      try {
+        const segment = await this.calculateDistance(cities[i], cities[i + 1]);
+        segments.push(segment);
+        totalDistance += segment.distance;
+        totalDuration += segment.duration;
+        
+        // Small delay to respect API rate limits
+        if (i < cities.length - 2) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error) {
+        console.error(`❌ Failed to calculate segment ${cities[i].name} → ${cities[i + 1].name}:`, error);
+        // Continue with other segments even if one fails
+      }
     }
 
-    console.log(`🏁 Route calculation complete: ${totalDistance} miles, ${Math.round(totalDuration / 3600)}h ${Math.round((totalDuration % 3600) / 60)}m`);
+    const formattedDuration = this.formatDuration(totalDuration);
+    console.log(`🏁 Total Route 66 journey: ${totalDistance} miles, ${formattedDuration} drive time`);
 
     return {
       totalDistance,

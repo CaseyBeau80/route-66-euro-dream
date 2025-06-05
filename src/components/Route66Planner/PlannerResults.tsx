@@ -3,7 +3,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripItinerary } from './types';
-import { MapPin, Clock, Route, Share2, Calendar } from 'lucide-react';
+import { MapPin, Clock, Route, Share2, Calendar, Info } from 'lucide-react';
+import { GoogleDistanceMatrixService } from './services/GoogleDistanceMatrixService';
 
 interface PlannerResultsProps {
   itinerary: TripItinerary | null;
@@ -13,7 +14,7 @@ interface PlannerResultsProps {
 const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }) => {
   const shareItinerary = () => {
     if (itinerary) {
-      const shareText = `Check out my Route 66 itinerary: ${itinerary.totalDays} days, ${itinerary.totalDistance} miles!`;
+      const shareText = `Check out my Route 66 itinerary: ${itinerary.totalDays} days, ${itinerary.totalDistance} miles along the historic Mother Road!`;
       navigator.share?.({ 
         title: 'My Route 66 Trip', 
         text: shareText,
@@ -28,6 +29,7 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3b82f6] mx-auto mb-4"></div>
           <p className="text-[#64748b]">Planning your Route 66 adventure...</p>
+          <p className="text-xs text-[#94a3b8] mt-2">Calculating accurate distances along the Mother Road</p>
         </div>
       </div>
     );
@@ -38,11 +40,14 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <MapPin className="w-12 h-12 text-[#94a3b8] mx-auto mb-4" />
-          <p className="text-[#64748b]">Your itinerary will appear here once you plan your trip</p>
+          <p className="text-[#64748b]">Your Route 66 itinerary will appear here</p>
+          <p className="text-xs text-[#94a3b8] mt-2">Select your start and end cities to begin planning</p>
         </div>
       </div>
     );
   }
+
+  const isUsingGoogleData = GoogleDistanceMatrixService.isAvailable();
 
   return (
     <div className="space-y-6">
@@ -63,7 +68,7 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center mb-4">
             <div>
               <div className="text-2xl font-bold text-[#3b82f6]">{itinerary.totalDays}</div>
               <div className="text-sm text-[#64748b]">Days</div>
@@ -76,6 +81,20 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
               <div className="text-2xl font-bold text-[#3b82f6]">{itinerary.totalDrivingTime}</div>
               <div className="text-sm text-[#64748b]">Drive Time</div>
             </div>
+          </div>
+          
+          {/* Data Source Indicator */}
+          <div className={`flex items-center gap-2 p-2 rounded text-xs ${
+            isUsingGoogleData 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-amber-50 text-amber-700 border border-amber-200'
+          }`}>
+            <Info className="w-3 h-3" />
+            {isUsingGoogleData ? (
+              <span>✅ Distances calculated using Google Maps for accuracy</span>
+            ) : (
+              <span>📏 Using estimated distances - add Google Maps API key for precise calculations</span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -97,6 +116,9 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
                       Day {segment.day}: {segment.startCity.name} → {segment.endCity.name}
                     </h4>
                     <p className="text-sm text-[#64748b]">{segment.date}</p>
+                    <p className="text-xs text-[#94a3b8]">
+                      {segment.startCity.state} to {segment.endCity.state}
+                    </p>
                   </div>
                   <div className="text-right text-sm">
                     <div className="flex items-center gap-1 text-[#3b82f6]">
@@ -134,16 +156,20 @@ const PlannerResults: React.FC<PlannerResultsProps> = ({ itinerary, isPlanning }
         </div>
       </div>
 
-      {/* Centennial Countdown */}
+      {/* Route 66 Disclaimer */}
       <Card className="border-[#e2e8f0] bg-gradient-to-r from-[#f1f5f9] to-white">
-        <CardContent className="p-4 text-center">
-          <h4 className="font-semibold text-[#1e293b] mb-2">Route 66 Centennial</h4>
-          <p className="text-sm text-[#64748b]">
-            Celebrating 100 years on November 11, 2026
-          </p>
-          <p className="text-xs text-[#3b82f6] mt-1">
-            Your trip will be part of this historic celebration!
-          </p>
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <h4 className="font-semibold text-[#1e293b] mb-2">About This Route</h4>
+            <p className="text-sm text-[#64748b]">
+              🛣️ This itinerary follows the historic Route 66 path through destination cities, 
+              not modern interstate highways. Actual driving times may vary based on traffic, 
+              road conditions, and time spent at attractions.
+            </p>
+            <p className="text-xs text-[#3b82f6] mt-2">
+              📍 Celebrating the Mother Road's legacy - November 11, 2026 marks Route 66's centennial!
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
