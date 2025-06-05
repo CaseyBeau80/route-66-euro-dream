@@ -55,7 +55,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
       scrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-route66-vintage-yellow/20' 
+        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-route66-primary/20' 
         : 'bg-white/90 backdrop-blur-sm shadow-sm'
     }`}>
       <div className="container mx-auto px-4">
@@ -68,9 +68,9 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
                 alt="Route 66 logo" 
                 className="w-10 h-10 rounded-full object-cover transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
               />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-route66-vintage-yellow/20 to-route66-vintage-red/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-route66-primary/20 to-route66-primary-light/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <span className="font-route66 text-2xl text-route66-red group-hover:text-route66-vintage-red transition-colors duration-300">
+            <span className="font-route66 text-2xl text-route66-primary group-hover:text-route66-primary-dark transition-colors duration-300">
               ROUTE 66
             </span>
           </Link>
@@ -85,14 +85,14 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
                   to={item.href}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-300 group relative overflow-hidden ${
                     isActiveRoute(item.href)
-                      ? 'text-white bg-route66-red shadow-lg'
-                      : 'text-route66-gray hover:text-route66-red hover:bg-route66-cream'
+                      ? 'text-white bg-route66-primary shadow-lg'
+                      : 'text-route66-text-secondary hover:text-route66-primary hover:bg-route66-background-alt'
                   }`}
                 >
                   <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
                   <span className="relative z-10">{item.name}</span>
                   {!isActiveRoute(item.href) && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-route66-vintage-yellow to-route66-orange opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-route66-primary to-route66-primary-light opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full"></div>
                   )}
                 </Link>
               );
@@ -103,7 +103,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-route66-gray hover:text-route66-red transition-all duration-300 hover:scale-105"
+                className="text-route66-text-secondary hover:text-route66-primary transition-all duration-300 hover:scale-105"
                 onClick={() => document.getElementById('map')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 <MapPin size={18} className="mr-2" />
@@ -115,7 +115,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="flex items-center space-x-2 bg-route66-cream hover:bg-route66-vintage-yellow border border-route66-vintage-brown/20 transition-all duration-300">
+                  <NavigationMenuTrigger className="flex items-center space-x-2 bg-route66-background-alt hover:bg-route66-primary hover:text-white border border-route66-border transition-all duration-300">
                     <Globe size={16} />
                     <span>{languageOptions.find(l => l.code === language)?.flag}</span>
                     <span className="hidden sm:inline">{languageOptions.find(l => l.code === language)?.name}</span>
@@ -125,8 +125,8 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
                       {languageOptions.map((option) => (
                         <NavigationMenuLink
                           key={option.code}
-                          className={`flex items-center space-x-3 w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-200 hover:bg-route66-vintage-yellow/50 ${
-                            language === option.code ? 'bg-route66-vintage-yellow text-route66-vintage-brown font-medium' : 'text-route66-gray'
+                          className={`flex items-center space-x-3 w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-200 hover:bg-route66-primary/10 ${
+                            language === option.code ? 'bg-route66-primary text-white font-medium' : 'text-route66-text-secondary'
                           }`}
                           onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "nl")}
                         >
@@ -145,7 +145,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden text-route66-gray hover:text-route66-red transition-all duration-300"
+            className="lg:hidden text-route66-text-secondary hover:text-route66-primary transition-all duration-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <div className="relative w-6 h-6">
@@ -165,7 +165,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
         <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${
           isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}>
-          <div className="py-4 space-y-3 border-t border-route66-vintage-yellow/20 mt-4">
+          <div className="py-4 space-y-3 border-t border-route66-primary/20 mt-4">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -174,8 +174,8 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
                   to={item.href}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
                     isActiveRoute(item.href)
-                      ? 'text-white bg-route66-red shadow-md'
-                      : 'text-route66-gray hover:text-route66-red hover:bg-route66-cream'
+                      ? 'text-white bg-route66-primary shadow-md'
+                      : 'text-route66-text-secondary hover:text-route66-primary hover:bg-route66-background-alt'
                   }`}
                 >
                   <Icon size={20} />
@@ -184,8 +184,8 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
               );
             })}
 
-            <div className="border-t border-route66-vintage-yellow/20 pt-4 mt-4">
-              <p className="text-sm text-route66-gray mb-3 px-4 font-medium">Language</p>
+            <div className="border-t border-route66-primary/20 pt-4 mt-4">
+              <p className="text-sm text-route66-text-secondary mb-3 px-4 font-medium">Language</p>
               <div className="grid grid-cols-2 gap-2 px-4">
                 {languageOptions.map((option) => (
                   <button
@@ -193,8 +193,8 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
                     onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "nl")}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                       language === option.code
-                        ? 'bg-route66-vintage-yellow text-route66-vintage-brown shadow-md'
-                        : 'bg-route66-cream text-route66-gray hover:bg-route66-vintage-yellow/50'
+                        ? 'bg-route66-primary text-white shadow-md'
+                        : 'bg-route66-background-alt text-route66-text-secondary hover:bg-route66-primary/10'
                     }`}
                   >
                     <span>{option.flag}</span>
@@ -208,7 +208,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
       </div>
 
       {/* Decorative bottom border */}
-      <div className="h-1 bg-gradient-to-r from-route66-vintage-yellow via-route66-orange to-route66-vintage-red opacity-80"></div>
+      <div className="h-1 bg-gradient-to-r from-route66-primary via-route66-primary-light to-route66-primary opacity-80"></div>
     </nav>
   );
 };

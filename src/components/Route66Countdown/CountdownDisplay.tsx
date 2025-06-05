@@ -18,7 +18,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
       {/* Main Days Display */}
       <div className="flex flex-col items-center">
         <div 
-          className="relative w-32 h-32 md:w-40 md:h-40 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
+          className="countdown-element relative w-32 h-32 md:w-40 md:h-40 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
           style={{
             background: `
               linear-gradient(135deg, #dc2626 0%, #b91c1c 100%),
@@ -41,7 +41,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
           }}
         >
           <span 
-            className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-black tracking-wider"
+            className="countdown-element absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-black tracking-wider"
             style={{
               fontFamily: "'Black Ops One', 'Impact', sans-serif",
               color: '#FFFFFF',
@@ -58,7 +58,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
         </div>
         
         <span 
-          className="text-xl md:text-2xl font-bold tracking-widest text-center mb-4"
+          className="countdown-element text-xl md:text-2xl font-bold tracking-widest text-center mb-4"
           style={{
             fontFamily: "'Russo One', 'Arial Black', sans-serif",
             color: '#dc2626',
@@ -73,7 +73,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ timeLeft }) => {
       {/* Celebration Message */}
       <div className="text-center max-w-md">
         <p 
-          className="text-lg md:text-xl font-bold tracking-wide"
+          className="countdown-element text-lg md:text-xl font-bold tracking-wide"
           style={{
             fontFamily: "'Russo One', 'Arial Black', sans-serif",
             color: '#7f1d1d',

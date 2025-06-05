@@ -1,0 +1,43 @@
+
+@import './variables.css';
+@import './base.css';
+@import './typography.css';
+@import './components.css';
+@import './utilities.css';
+@import './animations.css';
+@import './enhanced-scrollbar.css';
+@import './tailwind-utilities.css';
+
+/* Global neon glow animation for Route 66 elements */
+@keyframes neon-glow {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.8)) drop-shadow(0 0 10px rgba(220, 38, 38, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 10px rgba(220, 38, 38, 1)) drop-shadow(0 0 20px rgba(220, 38, 38, 0.8));
+  }
+}
+
+/* Ensure modern blue theme is applied to core elements */
+body {
+  background-color: var(--route66-background);
+  color: var(--route66-text-primary);
+}
+
+/* Override any remaining vintage colors with modern blue theme */
+.text-route66-red:not(.countdown-element) {
+  color: var(--route66-primary) !important;
+}
+
+.bg-route66-red:not(.countdown-element) {
+  background-color: var(--route66-primary) !important;
+}
+
+.border-route66-red:not(.countdown-element) {
+  border-color: var(--route66-primary) !important;
+}
+
+/* Preserve countdown styling with special class */
+.countdown-element {
+  /* This class preserves red/white/blue patriotic styling for countdown */
+}

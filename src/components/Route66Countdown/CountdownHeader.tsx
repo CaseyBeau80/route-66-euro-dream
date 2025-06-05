@@ -5,7 +5,7 @@ const CountdownHeader: React.FC = () => {
   return (
     <div className="text-center mb-8 relative z-10">
       <h1 
-        className="text-5xl md:text-7xl font-black leading-none tracking-wider mb-4"
+        className="countdown-element text-5xl md:text-7xl font-black leading-none tracking-wider mb-4"
         style={{
           fontFamily: "'Black Ops One', 'Impact', sans-serif",
           color: '#dc2626',
@@ -23,7 +23,7 @@ const CountdownHeader: React.FC = () => {
         ROUTE 66
       </h1>
       <h2 
-        className="text-2xl md:text-3xl font-bold tracking-widest"
+        className="countdown-element text-2xl md:text-3xl font-bold tracking-widest"
         style={{
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#7f1d1d',

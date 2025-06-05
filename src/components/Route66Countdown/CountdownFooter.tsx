@@ -4,7 +4,7 @@ import React from 'react';
 const CountdownFooter: React.FC = () => {
   return (
     <div 
-      className="relative z-10 mx-4 p-4 rounded-lg"
+      className="countdown-element relative z-10 mx-4 p-4 rounded-lg"
       style={{
         background: `
           linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #dc2626 100%),
@@ -27,7 +27,7 @@ const CountdownFooter: React.FC = () => {
       }}
     >
       <p 
-        className="text-lg md:text-xl font-bold text-center tracking-wide mb-2"
+        className="countdown-element text-lg md:text-xl font-bold text-center tracking-wide mb-2"
         style={{
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#FFFFFF',
@@ -42,7 +42,7 @@ const CountdownFooter: React.FC = () => {
         CELEBRATING 100 YEARS • NOVEMBER 11, 2026
       </p>
       <p 
-        className="text-base md:text-lg text-center tracking-wide"
+        className="countdown-element text-base md:text-lg text-center tracking-wide"
         style={{
           fontFamily: "'Russo One', 'Arial Black', sans-serif",
           color: '#F8F9FA',
