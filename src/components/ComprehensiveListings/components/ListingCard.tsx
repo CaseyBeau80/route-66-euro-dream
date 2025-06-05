@@ -29,7 +29,7 @@ export const ListingCard = ({ item }: ListingCardProps) => {
   const handleWebsiteLinkClick = createWebsiteLinkClickHandler(item);
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-red bg-white shadow-lg hover:border-route66-orange">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark">
       <CardImage 
         item={item}
         onImageClick={handleImageClick}
