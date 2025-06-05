@@ -37,7 +37,7 @@ export interface TripPlan {
 
 export class TripPlanBuilder {
   /**
-   * Build a complete trip plan with enhanced segmentation and stop selection
+   * Build a complete trip plan with enhanced segmentation and destination city prioritization
    */
   static buildTripPlan(
     startStop: TripStop,
@@ -54,21 +54,21 @@ export class TripPlanBuilder {
 
     console.log(`📏 Total distance: ${totalDistance} miles`);
 
-    // Smart trip day calculation
+    // Smart trip day calculation with conservative limits
     const optimalDays = StopEnhancementService.calculateOptimalTripDays(totalDistance, requestedDays);
     const wasAdjusted = optimalDays !== requestedDays;
     
     if (wasAdjusted) {
-      console.log(`🔄 Adjusted trip from ${requestedDays} to ${optimalDays} days for better daily distances`);
+      console.log(`🔄 Adjusted trip from ${requestedDays} to ${optimalDays} days for comfortable daily distances`);
     }
 
-    // Get and enhance stops along the route
+    // Get and enhance stops along the route with destination city priority
     const routeStops = RouteStopSelectionService.getStopsAlongRoute(startStop, endStop, allStops);
     const enhancedStops = StopEnhancementService.ensureGeographicDiversity(startStop, endStop, routeStops);
     
-    console.log(`🛤️ Enhanced route: ${enhancedStops.length} diverse stops selected`);
+    console.log(`🛤️ Enhanced route: ${enhancedStops.length} diverse stops selected with destination city priority`);
 
-    // Plan daily segments with smart distribution
+    // Plan daily segments with smart distribution and destination city targeting
     const dailySegments = this.createSmartDailySegments(
       startStop,
       endStop,
@@ -92,7 +92,7 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Create daily segments with smart distance distribution
+   * Create daily segments with smart distance distribution and destination city targeting
    */
   private static createSmartDailySegments(
     startStop: TripStop,
@@ -110,25 +110,26 @@ export class TripPlanBuilder {
 
     for (let day = 1; day <= tripDays; day++) {
       const isLastDay = day === tripDays;
-      const targetCumulativeDistance = day * targetDailyDistance;
+      const remainingDistance = totalDistance - cumulativeDistance;
+      const remainingDays = tripDays - day + 1;
       
-      // Select destination for this day
+      // Select destination for this day with enhanced logic
       const dayDestination = isLastDay 
         ? endStop 
         : this.selectOptimalDayDestination(
             currentStop, 
             endStop, 
             remainingStops, 
-            targetCumulativeDistance - cumulativeDistance,
-            totalDistance - cumulativeDistance
+            remainingDistance / remainingDays,
+            remainingDistance
           );
 
       if (!dayDestination) continue;
 
-      // Select stops for this segment
+      // Select stops for this segment with destination city priority
       const segmentStops = this.selectSegmentStops(currentStop, dayDestination, remainingStops);
       
-      // Calculate distances and timings
+      // Calculate distances and timings with validation
       const segmentDistance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         dayDestination.latitude, dayDestination.longitude
@@ -151,16 +152,22 @@ export class TripPlanBuilder {
         endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
-        driveTimeHours: totalSegmentDriveTime > 0 ? totalSegmentDriveTime : Math.round((segmentDistance / 55) * 10) / 10,
+        driveTimeHours: totalSegmentDriveTime > 0 ? totalSegmentDriveTime : Math.round((segmentDistance / 50) * 10) / 10,
         subStopTimings: subStopTimings,
         routeSection
       });
 
-      // Update for next iteration
+      // Update for next iteration - remove used stops
       segmentStops.forEach(stop => {
         const index = remainingStops.findIndex(s => s.id === stop.id);
         if (index > -1) remainingStops.splice(index, 1);
       });
+
+      // Remove the day destination from remaining stops if it's not the final destination
+      if (!isLastDay) {
+        const destIndex = remainingStops.findIndex(s => s.id === dayDestination.id);
+        if (destIndex > -1) remainingStops.splice(destIndex, 1);
+      }
 
       currentStop = dayDestination;
       cumulativeDistance += segmentDistance;
@@ -172,7 +179,7 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Select optimal destination for a day based on distance targets
+   * Select optimal destination for a day with destination city preference
    */
   private static selectOptimalDayDestination(
     currentStop: TripStop,
@@ -183,25 +190,42 @@ export class TripPlanBuilder {
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
+    // Separate destination cities from other stops
+    const destinationCities = availableStops.filter(stop => 
+      stop.category === 'destination_city'
+    );
+    
+    const otherStops = availableStops.filter(stop => 
+      stop.category !== 'destination_city'
+    );
+
     let bestStop = availableStops[0];
     let bestScore = Number.MAX_VALUE;
 
-    for (const stop of availableStops) {
+    // Prioritize destination cities
+    const candidateStops = destinationCities.length > 0 ? destinationCities : otherStops;
+
+    for (const stop of candidateStops) {
       const distanceFromCurrent = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         stop.latitude, stop.longitude
       );
 
+      // Skip if too close or too far
+      if (distanceFromCurrent < 15 || distanceFromCurrent > 600) {
+        continue;
+      }
+
       // Score based on how close to target distance
       const distanceScore = Math.abs(distanceFromCurrent - targetDistance);
       
-      // Bonus for major stops and destination cities
-      const importanceBonus = (stop.is_major_stop ? -100 : 0) + 
-                             (stop.category === 'destination_city' ? -50 : 0);
+      // Massive bonus for destination cities
+      const destinationCityBonus = stop.category === 'destination_city' ? -300 : 0;
+      const majorStopBonus = stop.is_major_stop ? -150 : 0;
       
-      const finalScore = distanceScore + importanceBonus;
+      const finalScore = distanceScore + destinationCityBonus + majorStopBonus;
 
-      if (finalScore < bestScore && distanceFromCurrent >= 10) { // Minimum 10 miles
+      if (finalScore < bestScore) {
         bestScore = finalScore;
         bestStop = stop;
       }
@@ -211,18 +235,18 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Select appropriate stops for a segment
+   * Select appropriate stops for a segment with destination city priority
    */
   private static selectSegmentStops(
     startStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[]
   ): TripStop[] {
-    return RouteStopSelectionService.selectStopsForSegment(startStop, endStop, availableStops, 3);
+    return RouteStopSelectionService.selectStopsForSegment(startStop, endStop, availableStops, 2);
   }
 
   /**
-   * Calculate sub-stop timings with validation
+   * Calculate sub-stop timings with enhanced validation
    */
   private static calculateValidSubStopTimings(
     startStop: TripStop,
@@ -236,8 +260,8 @@ export class TripPlanBuilder {
       const fromStop = fullPath[i];
       const toStop = fullPath[i + 1];
       
-      // Validate segment before creating timing
-      if (!StopEnhancementService.isValidSegment(fromStop, toStop)) {
+      // Enhanced validation - skip if invalid segment
+      if (!StopEnhancementService.isValidSegment(fromStop, toStop, 5)) {
         console.log(`⚠️ Skipping invalid segment: ${fromStop.name} to ${toStop.name}`);
         continue;
       }
@@ -247,7 +271,13 @@ export class TripPlanBuilder {
         toStop.latitude, toStop.longitude
       );
       
-      const driveTime = distance / 55; // 55 mph average
+      // Skip segments that are too short
+      if (distance < 5) {
+        console.log(`⚠️ Skipping too short segment: ${distance.toFixed(1)} miles`);
+        continue;
+      }
+      
+      const driveTime = distance / 50; // 50 mph average for more realistic timing
       
       timings.push({
         fromStop,

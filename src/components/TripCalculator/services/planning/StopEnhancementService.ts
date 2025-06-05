@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
@@ -15,11 +16,11 @@ export class StopEnhancementService {
   ];
 
   /**
-   * Enhanced deduplication with major destination city protection
+   * Enhanced deduplication with strict major destination city protection
    */
   static deduplicateStops(stops: TripStop[]): TripStop[] {
     const deduplicated: TripStop[] = [];
-    const PROXIMITY_THRESHOLD_MILES = 8; // Slightly reduced for better precision
+    const PROXIMITY_THRESHOLD_MILES = 5; // Reduced for more precision
 
     for (const stop of stops) {
       let shouldSkip = false;
@@ -40,7 +41,7 @@ export class StopEnhancementService {
                          existing.image_url === stop.image_url;
 
         if (nameSimilar || (locationClose && sameImage)) {
-          // Enhanced logic: prioritize major destination cities
+          // ALWAYS prioritize destination cities over any other category
           const currentIsMajorCity = stop.category === 'destination_city';
           const existingIsMajorCity = existing.category === 'destination_city';
           
@@ -48,12 +49,12 @@ export class StopEnhancementService {
             // Replace existing with current major city
             const existingIndex = deduplicated.indexOf(existing);
             deduplicated[existingIndex] = stop;
-            console.log(`🏙️ Upgraded to major city: ${stop.name} replacing ${existing.name}`);
+            console.log(`🏙️ Upgraded to destination city: ${stop.name} replacing ${existing.name}`);
             shouldSkip = true;
             break;
           } else if (!currentIsMajorCity && existingIsMajorCity) {
             // Protect existing major city
-            console.log(`🏙️ Protecting major city: ${existing.name} over ${stop.name}`);
+            console.log(`🏙️ Protecting destination city: ${existing.name} over ${stop.name}`);
             shouldSkip = true;
             break;
           } else if (currentIsMajorCity && existingIsMajorCity) {
@@ -64,7 +65,7 @@ export class StopEnhancementService {
             if (currentPriority > existingPriority) {
               const existingIndex = deduplicated.indexOf(existing);
               deduplicated[existingIndex] = stop;
-              console.log(`🏙️ Higher priority major city: ${stop.name} over ${existing.name}`);
+              console.log(`🏙️ Higher priority destination city: ${stop.name} over ${existing.name}`);
               shouldSkip = true;
               break;
             } else {
@@ -72,19 +73,19 @@ export class StopEnhancementService {
               break;
             }
           } else {
-            // Regular deduplication for non-major cities
+            // Regular deduplication for non-destination cities
             shouldSkip = true;
             break;
           }
         } else if (locationClose) {
-          // Similar logic for location-based proximity without image/name match
+          // Location-based proximity without name/image match
           const currentIsMajorCity = stop.category === 'destination_city';
           const existingIsMajorCity = existing.category === 'destination_city';
           
           if (currentIsMajorCity && !existingIsMajorCity) {
             const existingIndex = deduplicated.indexOf(existing);
             deduplicated[existingIndex] = stop;
-            console.log(`🏙️ Location upgrade to major city: ${stop.name}`);
+            console.log(`🏙️ Location upgrade to destination city: ${stop.name}`);
             shouldSkip = true;
             break;
           } else if (!currentIsMajorCity && existingIsMajorCity) {
@@ -99,7 +100,7 @@ export class StopEnhancementService {
       }
     }
 
-    console.log(`🔧 Enhanced deduplication: ${stops.length} → ${deduplicated.length} stops (major cities protected)`);
+    console.log(`🔧 Enhanced deduplication: ${stops.length} → ${deduplicated.length} stops (destination cities protected)`);
     return deduplicated;
   }
 
@@ -109,23 +110,26 @@ export class StopEnhancementService {
   private static getMajorCityPriority(stop: TripStop): number {
     let priority = 0;
     
-    if (stop.category === 'destination_city') priority += 10;
-    if (stop.is_major_stop) priority += 5;
-    if (stop.category === 'route66_waypoint') priority += 3;
+    // Destination cities get massive priority boost
+    if (stop.category === 'destination_city') priority += 20;
+    if (stop.is_major_stop) priority += 10;
+    if (stop.category === 'route66_waypoint') priority += 5;
     
-    // Bonus for well-known Route 66 cities
+    // Bonus for well-known Route 66 destination cities
     const cityName = stop.name.toLowerCase();
-    if (cityName.includes('joplin') || cityName.includes('springfield') || 
-        cityName.includes('tulsa') || cityName.includes('oklahoma city') ||
-        cityName.includes('amarillo') || cityName.includes('flagstaff')) {
-      priority += 8;
+    if (cityName.includes('chicago') || cityName.includes('st. louis') || 
+        cityName.includes('springfield') || cityName.includes('tulsa') || 
+        cityName.includes('oklahoma city') || cityName.includes('amarillo') ||
+        cityName.includes('albuquerque') || cityName.includes('flagstaff') ||
+        cityName.includes('santa monica')) {
+      priority += 15;
     }
     
     return priority;
   }
 
   /**
-   * Enhanced geographic diversity with major city preference
+   * Enhanced geographic diversity with destination city preference and route ordering
    */
   static ensureGeographicDiversity(
     startStop: TripStop,
@@ -137,21 +141,29 @@ export class StopEnhancementService {
       endStop.latitude, endStop.longitude
     );
 
-    // Categorize stops by route section
-    const stopsBySection = this.categorizeStopsBySection(
+    // Sort stops by distance from start to ensure proper route progression
+    const routeOrderedStops = this.sortStopsByRouteProgression(
       startStop, endStop, availableStops, totalDistance
     );
 
-    // Ensure each section has at least one stop, prioritizing major cities
+    // Categorize stops by route section based on their position along the route
+    const stopsBySection = this.categorizeStopsBySection(
+      startStop, endStop, routeOrderedStops, totalDistance
+    );
+
+    // Ensure each section has destination cities first, then other stops
     const diverseStops: TripStop[] = [];
     
     for (const section of this.ROUTE_SECTIONS) {
       const sectionStops = stopsBySection[section.name] || [];
       if (sectionStops.length > 0) {
-        // Separate major cities from other stops
-        const majorCities = sectionStops.filter(stop => 
-          stop.category === 'destination_city' || 
-          (stop.category === 'route66_waypoint' && stop.is_major_stop)
+        // Separate destination cities from other stops
+        const destinationCities = sectionStops.filter(stop => 
+          stop.category === 'destination_city'
+        );
+        
+        const majorWaypoints = sectionStops.filter(stop => 
+          stop.category === 'route66_waypoint' && stop.is_major_stop
         );
         
         const otherStops = sectionStops.filter(stop => 
@@ -159,23 +171,63 @@ export class StopEnhancementService {
           !(stop.category === 'route66_waypoint' && stop.is_major_stop)
         );
 
-        // Always include at least one major city per section if available
-        if (majorCities.length > 0) {
-          const prioritizedMajorCities = this.prioritizeStops(majorCities);
-          diverseStops.push(...prioritizedMajorCities.slice(0, Math.max(1, Math.floor(majorCities.length * 0.8))));
+        // ALWAYS include ALL destination cities in each section
+        if (destinationCities.length > 0) {
+          const prioritizedDestinations = this.prioritizeStops(destinationCities);
+          diverseStops.push(...prioritizedDestinations);
+          console.log(`🏙️ Added ${prioritizedDestinations.length} destination cities to ${section.name}`);
         }
 
-        // Add some other stops but fewer than before
+        // Add major waypoints
+        if (majorWaypoints.length > 0) {
+          const prioritizedWaypoints = this.prioritizeStops(majorWaypoints);
+          diverseStops.push(...prioritizedWaypoints.slice(0, Math.max(1, Math.floor(majorWaypoints.length * 0.7))));
+        }
+
+        // Add limited other stops to avoid overcrowding
         if (otherStops.length > 0) {
           const prioritizedOtherStops = this.prioritizeStops(otherStops);
-          const maxOtherStops = Math.max(0, Math.floor(otherStops.length / 3));
+          const maxOtherStops = Math.max(1, Math.floor(otherStops.length / 4));
           diverseStops.push(...prioritizedOtherStops.slice(0, maxOtherStops));
         }
       }
     }
 
-    console.log(`🌍 Enhanced geographic diversity: ${diverseStops.length} stops with major city preference`);
+    console.log(`🌍 Enhanced geographic diversity: ${diverseStops.length} stops with destination city priority`);
     return this.deduplicateStops(diverseStops);
+  }
+
+  /**
+   * Sort stops by their progression along the route to prevent zigzagging
+   */
+  private static sortStopsByRouteProgression(
+    startStop: TripStop,
+    endStop: TripStop,
+    stops: TripStop[],
+    totalDistance: number
+  ): TripStop[] {
+    return stops.sort((a, b) => {
+      const progressA = this.calculateRouteProgress(startStop, endStop, a, totalDistance);
+      const progressB = this.calculateRouteProgress(startStop, endStop, b, totalDistance);
+      return progressA - progressB;
+    });
+  }
+
+  /**
+   * Calculate how far along the route (0-100%) a stop is positioned
+   */
+  private static calculateRouteProgress(
+    startStop: TripStop,
+    endStop: TripStop,
+    stop: TripStop,
+    totalDistance: number
+  ): number {
+    const distanceFromStart = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      stop.latitude, stop.longitude
+    );
+    
+    return Math.min(100, (distanceFromStart / totalDistance) * 100);
   }
 
   /**
@@ -194,12 +246,7 @@ export class StopEnhancementService {
     }
 
     for (const stop of stops) {
-      const distanceFromStart = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        stop.latitude, stop.longitude
-      );
-      
-      const progressPercent = (distanceFromStart / totalDistance) * 100;
+      const progressPercent = this.calculateRouteProgress(startStop, endStop, stop, totalDistance);
       
       for (const section of this.ROUTE_SECTIONS) {
         if (progressPercent >= section.startPercent && progressPercent < section.endPercent) {
@@ -213,12 +260,12 @@ export class StopEnhancementService {
   }
 
   /**
-   * Enhanced prioritization with major city emphasis
+   * Enhanced prioritization with destination city emphasis
    */
   private static prioritizeStops(stops: TripStop[]): TripStop[] {
     return stops.sort((a, b) => {
       const getPriority = (stop: TripStop): number => {
-        // Major destination cities get highest priority
+        // Destination cities get absolute highest priority
         if (stop.category === 'destination_city' && stop.is_major_stop) return 1;
         if (stop.category === 'destination_city') return 2;
         
@@ -237,17 +284,17 @@ export class StopEnhancementService {
   }
 
   /**
-   * Smart trip day calculation based on total distance
+   * Smart trip day calculation based on total distance with conservative limits
    */
   static calculateOptimalTripDays(totalDistanceMiles: number, requestedDays: number): number {
-    const MILES_PER_DAY_COMFORTABLE = 350;
-    const MILES_PER_DAY_MAXIMUM = 600;
+    const MILES_PER_DAY_COMFORTABLE = 300; // Reduced for better experience
+    const MILES_PER_DAY_MAXIMUM = 500; // Reduced maximum
     
     const milesPerDay = totalDistanceMiles / requestedDays;
     
     if (milesPerDay > MILES_PER_DAY_MAXIMUM) {
       const suggestedDays = Math.ceil(totalDistanceMiles / MILES_PER_DAY_COMFORTABLE);
-      console.log(`🚗 Adjusting trip from ${requestedDays} to ${suggestedDays} days for safer daily distances`);
+      console.log(`🚗 Adjusting trip from ${requestedDays} to ${suggestedDays} days for comfortable daily distances`);
       return suggestedDays;
     }
     
@@ -257,7 +304,7 @@ export class StopEnhancementService {
   /**
    * Validate segment to ensure it's meaningful
    */
-  static isValidSegment(fromStop: TripStop, toStop: TripStop, minDistanceMiles: number = 10): boolean {
+  static isValidSegment(fromStop: TripStop, toStop: TripStop, minDistanceMiles: number = 5): boolean {
     if (fromStop.id === toStop.id) {
       return false;
     }

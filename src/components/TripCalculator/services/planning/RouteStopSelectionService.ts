@@ -4,9 +4,9 @@ import { StopEnhancementService } from './StopEnhancementService';
 
 export class RouteStopSelectionService {
   /**
-   * Get stops that are along the route with enhanced filtering and major city prioritization
+   * Get stops that are along the route with strict destination city prioritization
    */
-  static getStopsAlongRoute(startStop: TripStop, endStop: TripStop, allStops: TripStop[], maxStops: number = 50): TripStop[] {
+  static getStopsAlongRoute(startStop: TripStop, endStop: TripStop, allStops: TripStop[], maxStops: number = 40): TripStop[] {
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude, 
       endStop.latitude, endStop.longitude
@@ -28,45 +28,45 @@ export class RouteStopSelectionService {
         endStop.latitude, endStop.longitude
       );
       
-      // More lenient tolerance for major cities
-      const isMajorCity = stop.category === 'destination_city' || stop.is_major_stop;
-      const tolerance = isMajorCity ? 1.5 : (totalDistance > 1000 ? 1.4 : 1.3);
+      // Much more lenient tolerance for destination cities
+      const isDestinationCity = stop.category === 'destination_city';
+      const tolerance = isDestinationCity ? 1.8 : (totalDistance > 1000 ? 1.4 : 1.3);
       const isOnRoute = distanceFromStart + distanceFromEnd <= totalDistance * tolerance;
       
-      // Reduced minimum distance for major cities to ensure they're included
-      const minDistance = isMajorCity ? 5 : 10;
+      // Very small minimum distance for destination cities
+      const minDistance = isDestinationCity ? 3 : 8;
       const farEnoughFromStart = distanceFromStart >= minDistance;
       const farEnoughFromEnd = distanceFromEnd >= minDistance;
       
       return isOnRoute && farEnoughFromStart && farEnoughFromEnd;
     });
 
-    // Enhanced prioritization with major city preference
-    const prioritizedStops = this.prioritizeStopsWithMajorCityPreference(routeStops, startStop);
+    // Enhanced prioritization with destination city supremacy
+    const prioritizedStops = this.prioritizeStopsWithDestinationCitySupremacy(routeStops, startStop);
     
-    // Deduplicate with major city protection
-    const deduplicatedStops = this.deduplicateWithMajorCityProtection(prioritizedStops);
+    // Deduplicate with destination city protection
+    const deduplicatedStops = this.deduplicateWithDestinationCityProtection(prioritizedStops);
 
     console.log(`🛤️ Route stops: ${deduplicatedStops.length} unique stops found along ${Math.round(totalDistance)}mi route`);
     return deduplicatedStops.slice(0, maxStops);
   }
 
   /**
-   * Enhanced prioritization that heavily favors major destination cities
+   * Prioritization that absolutely favors destination cities
    */
-  private static prioritizeStopsWithMajorCityPreference(stops: TripStop[], startStop: TripStop): TripStop[] {
+  private static prioritizeStopsWithDestinationCitySupremacy(stops: TripStop[], startStop: TripStop): TripStop[] {
     return stops.sort((a, b) => {
-      // Priority scoring system
+      // Priority scoring system with destination city supremacy
       const getPriorityScore = (stop: TripStop): number => {
         let score = 0;
         
-        // Major destination cities get highest priority
+        // Destination cities get overwhelming priority
         if (stop.category === 'destination_city') {
-          score += 1000;
-          if (stop.is_major_stop) score += 500; // Extra boost for major destination cities
+          score += 2000;
+          if (stop.is_major_stop) score += 1000; // Extra massive boost
         }
         
-        // Major waypoints get second highest priority
+        // Major waypoints get second priority
         if (stop.category === 'route66_waypoint' && stop.is_major_stop) {
           score += 800;
         }
@@ -76,9 +76,9 @@ export class RouteStopSelectionService {
           score += 600;
         }
         
-        // Attractions and hidden gems get lower priority
-        if (stop.category === 'attraction') score += 400;
-        if (stop.category === 'hidden_gem') score += 200;
+        // Attractions and hidden gems get much lower priority
+        if (stop.category === 'attraction') score += 200;
+        if (stop.category === 'hidden_gem') score += 100;
         
         return score;
       };
@@ -105,11 +105,11 @@ export class RouteStopSelectionService {
   }
 
   /**
-   * Deduplication that protects major destination cities
+   * Deduplication that absolutely protects destination cities
    */
-  private static deduplicateWithMajorCityProtection(stops: TripStop[]): TripStop[] {
+  private static deduplicateWithDestinationCityProtection(stops: TripStop[]): TripStop[] {
     const deduplicated: TripStop[] = [];
-    const PROXIMITY_THRESHOLD_MILES = 10; // Increased threshold for better deduplication
+    const PROXIMITY_THRESHOLD_MILES = 8;
 
     for (const stop of stops) {
       let shouldSkip = false;
@@ -121,24 +121,23 @@ export class RouteStopSelectionService {
         );
 
         if (distance < PROXIMITY_THRESHOLD_MILES) {
-          // If current stop is a major destination city and existing isn't, replace existing
-          const currentIsMajorCity = stop.category === 'destination_city';
-          const existingIsMajorCity = existing.category === 'destination_city';
+          const currentIsDestinationCity = stop.category === 'destination_city';
+          const existingIsDestinationCity = existing.category === 'destination_city';
           
-          if (currentIsMajorCity && !existingIsMajorCity) {
-            // Replace existing with current major city
+          if (currentIsDestinationCity && !existingIsDestinationCity) {
+            // ALWAYS replace non-destination city with destination city
             const existingIndex = deduplicated.indexOf(existing);
             deduplicated[existingIndex] = stop;
             shouldSkip = true;
-            console.log(`🏙️ Replaced ${existing.name} with major city ${stop.name}`);
+            console.log(`🏙️ Replaced ${existing.name} with destination city ${stop.name}`);
             break;
-          } else if (!currentIsMajorCity && existingIsMajorCity) {
-            // Keep existing major city, skip current
+          } else if (!currentIsDestinationCity && existingIsDestinationCity) {
+            // ALWAYS keep destination city, skip current
             shouldSkip = true;
-            console.log(`🏙️ Keeping major city ${existing.name} over ${stop.name}`);
+            console.log(`🏙️ Keeping destination city ${existing.name} over ${stop.name}`);
             break;
-          } else if (currentIsMajorCity && existingIsMajorCity) {
-            // Both are major cities, keep the one with higher priority
+          } else if (currentIsDestinationCity && existingIsDestinationCity) {
+            // Both are destination cities, keep the one with higher priority
             const currentPriority = stop.is_major_stop ? 2 : 1;
             const existingPriority = existing.is_major_stop ? 2 : 1;
             
@@ -146,14 +145,14 @@ export class RouteStopSelectionService {
               const existingIndex = deduplicated.indexOf(existing);
               deduplicated[existingIndex] = stop;
               shouldSkip = true;
-              console.log(`🏙️ Replaced major city ${existing.name} with higher priority ${stop.name}`);
+              console.log(`🏙️ Replaced destination city ${existing.name} with higher priority ${stop.name}`);
               break;
             } else {
               shouldSkip = true;
               break;
             }
           } else {
-            // Neither is major city, use existing logic
+            // Neither is destination city, use existing logic
             shouldSkip = true;
             break;
           }
@@ -165,12 +164,12 @@ export class RouteStopSelectionService {
       }
     }
 
-    console.log(`🔧 Deduplicated ${stops.length} stops to ${deduplicated.length} with major city protection`);
+    console.log(`🔧 Deduplicated ${stops.length} stops to ${deduplicated.length} with destination city protection`);
     return deduplicated;
   }
 
   /**
-   * Enhanced next day destination selection with major city preference
+   * Enhanced next day destination selection with destination city supremacy
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
@@ -188,13 +187,16 @@ export class RouteStopSelectionService {
     );
 
     const targetDailyDistance = totalRemainingDistance / remainingDays;
-    const minDailyDistance = 50;
-    const maxDailyDistance = 600;
+    const minDailyDistance = 30;
+    const maxDailyDistance = 500;
 
-    // Separate major cities from other stops
-    const majorCities = availableStops.filter(stop => 
-      stop.category === 'destination_city' || 
-      (stop.category === 'route66_waypoint' && stop.is_major_stop)
+    // Separate destination cities from other stops
+    const destinationCities = availableStops.filter(stop => 
+      stop.category === 'destination_city'
+    );
+    
+    const majorWaypoints = availableStops.filter(stop => 
+      stop.category === 'route66_waypoint' && stop.is_major_stop
     );
     
     const otherStops = availableStops.filter(stop => 
@@ -205,8 +207,9 @@ export class RouteStopSelectionService {
     let bestStop = availableStops[0] || finalDestination;
     let bestScore = Number.MAX_VALUE;
 
-    // Prioritize major cities first
-    const candidateStops = majorCities.length > 0 ? majorCities : otherStops;
+    // Absolutely prioritize destination cities first
+    const candidateStops = destinationCities.length > 0 ? destinationCities : 
+                          (majorWaypoints.length > 0 ? majorWaypoints : otherStops);
 
     for (const stop of candidateStops) {
       const distanceFromCurrent = DistanceCalculationService.calculateDistance(
@@ -223,16 +226,16 @@ export class RouteStopSelectionService {
         finalDestination.latitude, finalDestination.longitude
       );
 
-      // Enhanced scoring with major city bonuses
+      // Enhanced scoring with massive destination city bonuses
       const distanceScore = Math.abs(distanceFromCurrent - targetDailyDistance);
       const progressScore = distanceToFinal * 0.1;
       
-      // Significant bonuses for major cities
-      const majorCityBonus = stop.category === 'destination_city' ? -300 : 0;
-      const majorStopBonus = stop.is_major_stop ? -200 : 0;
+      // Massive bonuses for destination cities
+      const destinationCityBonus = stop.category === 'destination_city' ? -500 : 0;
+      const majorStopBonus = stop.is_major_stop ? -300 : 0;
       const waypointBonus = stop.category === 'route66_waypoint' ? -100 : 0;
 
-      const finalScore = distanceScore + progressScore + majorCityBonus + majorStopBonus + waypointBonus;
+      const finalScore = distanceScore + progressScore + destinationCityBonus + majorStopBonus + waypointBonus;
 
       if (finalScore < bestScore) {
         bestScore = finalScore;
@@ -245,7 +248,7 @@ export class RouteStopSelectionService {
   }
 
   /**
-   * Enhanced stop selection for segments with major city awareness
+   * Enhanced stop selection for segments with destination city awareness
    */
   static selectStopsForSegment(
     startStop: TripStop, 
@@ -269,24 +272,24 @@ export class RouteStopSelectionService {
         endStop.latitude, endStop.longitude
       );
       
-      // More lenient tolerance for major cities
-      const isMajorCity = stop.category === 'destination_city' || stop.is_major_stop;
-      const tolerance = isMajorCity ? 1.4 : (segmentDistance > 500 ? 1.3 : 1.2);
+      // Very lenient tolerance for destination cities
+      const isDestinationCity = stop.category === 'destination_city';
+      const tolerance = isDestinationCity ? 1.5 : (segmentDistance > 500 ? 1.3 : 1.2);
       const isInSegment = distFromStart + distFromEnd <= segmentDistance * tolerance;
       
-      // Reduced minimum distance for major cities
-      const minDistance = isMajorCity ? 5 : 10;
+      // Very small minimum distance for destination cities
+      const minDistance = isDestinationCity ? 3 : 8;
       const farEnoughFromStart = distFromStart >= minDistance;
       const farEnoughFromEnd = distFromEnd >= minDistance;
       
       return isInSegment && farEnoughFromStart && farEnoughFromEnd;
     });
 
-    // Use the enhanced deduplication with major city protection
-    const deduplicatedCandidates = this.deduplicateWithMajorCityProtection(candidateStops);
+    // Use the enhanced deduplication with destination city protection
+    const deduplicatedCandidates = this.deduplicateWithDestinationCityProtection(candidateStops);
 
-    // Enhanced prioritization with major city preference
-    const prioritizedStops = this.prioritizeStopsWithMajorCityPreference(deduplicatedCandidates, startStop);
+    // Enhanced prioritization with destination city supremacy
+    const prioritizedStops = this.prioritizeStopsWithDestinationCitySupremacy(deduplicatedCandidates, startStop);
 
     const selectedStops = prioritizedStops.slice(0, maxStops);
     console.log(`🎯 Segment stops: ${selectedStops.length}/${candidateStops.length} selected for ${Math.round(segmentDistance)}mi segment`);
