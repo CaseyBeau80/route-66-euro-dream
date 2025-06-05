@@ -1,11 +1,12 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
+import { SegmentTiming } from './SubStopTimingCalculator';
 
 // Re-export types for backward compatibility
-export type { SubStopTiming, SegmentTiming };
+export type { SegmentTiming };
 
 export interface DailySegment {
   day: number;
@@ -18,12 +19,12 @@ export interface DailySegment {
   driveTimeHours: number; // Alternative name for drivingTime
   recommendedStops: TripStop[];
   attractions?: string[]; // List of attraction names
-  subStopTimings: SubStopTiming[];
+  subStopTimings: SegmentTiming[]; // Changed from SubStopTiming to SegmentTiming
   routeSection: string;
   driveTimeCategory: {
     category: string;
     color: string;
-    description: string;
+    message: string; // Changed from description to message
   };
   balanceMetrics?: any;
   destination?: {
@@ -131,7 +132,7 @@ export class DailySegmentCreator {
 
     for (let day = 1; day <= totalDays; day++) {
       targets.push({
-        day,
+        day, // Add the day property
         targetHours: averageDriveTime,
         minHours: averageDriveTime * 0.7,
         maxHours: averageDriveTime * 1.3,

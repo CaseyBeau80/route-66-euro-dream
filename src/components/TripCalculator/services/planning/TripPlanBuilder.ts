@@ -8,10 +8,10 @@ import { DailySegmentCreator, DailySegment } from './DailySegmentCreator';
 import { TripPlanValidator } from './TripPlanValidator';
 import { DriveTimeAnalyzer } from './DriveTimeAnalyzer';
 import { TripDaysOptimizer } from './TripDaysOptimizer';
-import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
+import { SegmentTiming } from './SubStopTimingCalculator';
 
 // Re-export types for backward compatibility
-export type { DailySegment, SubStopTiming, SegmentTiming };
+export type { DailySegment, SegmentTiming };
 
 export interface TripPlan {
   title: string;

@@ -1,64 +1,68 @@
 
-import { TripStop } from '../data/SupabaseDataService';
-import { DriveTimeConstraints, DriveTimeTarget } from './DriveTimeConstraints';
-import { DriveTimeTargetCalculator } from './DriveTimeTargetCalculator';
-import { DestinationSelectionByDriveTime } from './DestinationSelectionByDriveTime';
-import { DriveTimeCategoryService } from './DriveTimeCategoryService';
-
-// Re-export types for backward compatibility
-export type { DriveTimeConstraints, DriveTimeTarget };
+export interface DriveTimeTarget {
+  day: number; // Add day property
+  targetHours: number;
+  minHours: number;
+  maxHours: number;
+  priority: 'short' | 'balanced' | 'long';
+}
 
 export class DriveTimeBalancingService {
   /**
-   * Calculate balanced drive time targets for trip days
-   */
-  static calculateDriveTimeTargets(
-    totalDistance: number,
-    totalDays: number,
-    avgSpeedMph: number = 50
-  ): DriveTimeTarget[] {
-    return DriveTimeTargetCalculator.calculateDriveTimeTargets(totalDistance, totalDays, avgSpeedMph);
-  }
-
-  /**
-   * Find best destination within drive time constraints with strong destination city preference
-   */
-  static findBestDestinationByDriveTime(
-    currentStop: TripStop,
-    availableStops: TripStop[],
-    driveTimeTarget: DriveTimeTarget,
-    avgSpeedMph: number = 50
-  ): TripStop | null {
-    return DestinationSelectionByDriveTime.findBestDestinationByDriveTime(
-      currentStop,
-      availableStops,
-      driveTimeTarget,
-      avgSpeedMph
-    );
-  }
-
-  /**
-   * Validate and adjust trip for balanced drive times
-   */
-  static validateDriveTimeBalance(
-    segments: Array<{ distance: number; driveTimeHours: number }>,
-    targets: DriveTimeTarget[]
-  ): {
-    isBalanced: boolean;
-    issues: string[];
-    suggestions: string[];
-  } {
-    return DriveTimeConstraints.validateDriveTimeBalance(segments, targets);
-  }
-
-  /**
-   * Get drive time category with message and styling
+   * Get drive time category with proper message property
    */
   static getDriveTimeCategory(driveTimeHours: number): {
-    category: 'short' | 'optimal' | 'long' | 'extreme';
-    message: string;
+    category: string;
     color: string;
+    message: string; // Changed from description to message
   } {
-    return DriveTimeCategoryService.getDriveTimeCategory(driveTimeHours);
+    if (driveTimeHours < 3) {
+      return {
+        category: 'short',
+        color: 'text-green-700',
+        message: 'Short drive day - perfect for exploring attractions along the way'
+      };
+    } else if (driveTimeHours <= 6) {
+      return {
+        category: 'optimal',
+        color: 'text-blue-700',
+        message: 'Optimal drive time - balanced between driving and sightseeing'
+      };
+    } else if (driveTimeHours <= 8) {
+      return {
+        category: 'long',
+        color: 'text-orange-700',
+        message: 'Long drive day - consider breaking up with more stops'
+      };
+    } else {
+      return {
+        category: 'extreme',
+        color: 'text-red-700',
+        message: 'Very long drive - recommend splitting this day'
+      };
+    }
+  }
+
+  /**
+   * Calculate balanced drive time targets
+   */
+  static calculateBalancedTargets(
+    totalDistance: number,
+    totalDays: number
+  ): DriveTimeTarget[] {
+    const averageDriveTime = (totalDistance / totalDays) / 65; // 65 mph average
+    const targets: DriveTimeTarget[] = [];
+
+    for (let day = 1; day <= totalDays; day++) {
+      targets.push({
+        day,
+        targetHours: averageDriveTime,
+        minHours: averageDriveTime * 0.7,
+        maxHours: averageDriveTime * 1.3,
+        priority: 'balanced'
+      });
+    }
+
+    return targets;
   }
 }
