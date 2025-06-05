@@ -1,50 +1,77 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import TripCalculatorForm from './TripCalculator/TripCalculatorForm';
-import TripCalculatorResults from './TripCalculator/TripCalculatorResults';
-import { useEnhancedTripCalculation } from './TripCalculator/hooks/useEnhancedTripCalculation';
+import EnhancedTripResults from './TripCalculator/EnhancedTripResults';
+import { useTripCalculation } from './TripCalculator/hooks/useTripCalculation';
+import { TripPlan } from './TripCalculator/services/planning/TripPlanBuilder';
 
 const Route66TripCalculator: React.FC = () => {
   const {
-    formData,
-    setFormData,
+    startCity,
+    setStartCity,
+    endCity,
+    setEndCity,
+    days,
+    setDays,
     tripPlan,
+    isLoading,
+    error,
     shareUrl,
-    availableEndLocations,
     calculateTrip,
-    resetTrip,
-    isCalculating,
-    isCalculateDisabled
-  } = useEnhancedTripCalculation();
+    resetForm
+  } = useTripCalculation();
+
+  // Track the trip start date from the calendar export
+  const [tripStartDate, setTripStartDate] = useState<Date | null>(null);
+
+  const handleNewTrip = () => {
+    resetForm();
+    setTripStartDate(null);
+  };
+
+  const handleTripCalculated = (newTripPlan: TripPlan) => {
+    // You can set a default trip start date here if needed
+    // For now, we'll leave it as null and let users set it in the calendar modal
+    console.log('🧮 New trip calculated:', newTripPlan);
+  };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <Card className="vintage-paper-texture border-2 border-route66-border">
-        <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white">
-          <CardTitle className="font-route66 text-3xl text-center">
-            🛣️ ROUTE 66 TRIP PLANNER
-          </CardTitle>
-          <p className="text-center text-white font-travel text-lg">
-            Turn your dream Route 66 road trip into a reality — plan every stop, uncover hidden gems, and hit the open road with confidence.
-          </p>
-        </CardHeader>
-        <CardContent className="p-8">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {!tripPlan ? (
+        <div className="text-center space-y-6">
           <TripCalculatorForm
-            formData={formData}
-            setFormData={setFormData}
+            startCity={startCity}
+            setStartCity={setStartCity}
+            endCity={endCity}
+            setEndCity={setEndCity}
+            days={days}
+            setDays={setDays}
             onCalculate={calculateTrip}
-            onReset={resetTrip}
-            availableEndLocations={availableEndLocations}
-            isCalculateDisabled={isCalculateDisabled}
-            isCalculating={isCalculating}
-            showResetButton={!!tripPlan}
+            isLoading={isLoading}
+            error={error}
           />
-        </CardContent>
-      </Card>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Plan Another Trip Button */}
+          <div className="text-center">
+            <Button
+              onClick={handleNewTrip}
+              variant="outline"
+              className="border-route66-vintage-brown text-route66-vintage-brown hover:bg-route66-vintage-brown hover:text-white"
+            >
+              Plan Another Trip
+            </Button>
+          </div>
 
-      {tripPlan && (
-        <TripCalculatorResults tripPlan={tripPlan} shareUrl={shareUrl} />
+          {/* Trip Results with Start Date */}
+          <EnhancedTripResults 
+            tripPlan={tripPlan} 
+            shareUrl={shareUrl} 
+            tripStartDate={tripStartDate}
+          />
+        </div>
       )}
     </div>
   );

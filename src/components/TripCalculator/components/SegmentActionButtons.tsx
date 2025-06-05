@@ -13,6 +13,7 @@ interface SegmentActionButtonsProps {
   setIsMapExpanded: (expanded: boolean) => void;
   isDetailsExpanded: boolean;
   setIsDetailsExpanded: (expanded: boolean) => void;
+  tripStartDate?: Date;
 }
 
 const SegmentActionButtons: React.FC<SegmentActionButtonsProps> = ({
@@ -20,8 +21,11 @@ const SegmentActionButtons: React.FC<SegmentActionButtonsProps> = ({
   isMapExpanded: isWeatherExpanded,
   setIsMapExpanded: setIsWeatherExpanded,
   isDetailsExpanded,
-  setIsDetailsExpanded
+  setIsDetailsExpanded,
+  tripStartDate
 }) => {
+  console.log('📅 SegmentActionButtons received tripStartDate:', tripStartDate);
+
   return (
     <div className="space-y-4">
       {/* Quick Action Buttons */}
@@ -35,7 +39,7 @@ const SegmentActionButtons: React.FC<SegmentActionButtonsProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3">
-            <SegmentWeatherWidget segment={segment} />
+            <SegmentWeatherWidget segment={segment} tripStartDate={tripStartDate} />
           </CollapsibleContent>
         </Collapsible>
 

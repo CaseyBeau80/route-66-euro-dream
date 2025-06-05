@@ -8,10 +8,16 @@ import { AlertTriangle, CheckCircle } from 'lucide-react';
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
+  tripStartDate?: Date;
 }
 
-const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan, shareUrl }) => {
+const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ 
+  tripPlan, 
+  shareUrl, 
+  tripStartDate 
+}) => {
   console.log('✨ Rendering EnhancedTripResults with tripPlan:', tripPlan);
+  console.log('📅 Trip start date:', tripStartDate);
 
   return (
     <div className="space-y-6">
@@ -47,6 +53,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({ tripPlan, sha
                 key={segment.day} 
                 segment={segment} 
                 showAdjustmentWarning={tripPlan.wasAdjusted && index === 0}
+                tripStartDate={tripStartDate}
               />
             ))
           ) : (

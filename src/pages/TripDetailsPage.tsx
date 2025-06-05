@@ -161,9 +161,13 @@ const TripDetailsPage: React.FC = () => {
               </div>
             </div>
             
-            {/* Trip Results */}
+            {/* Trip Results - Note: shared trips don't have a start date set */}
             <div className="bg-route66-background rounded-xl shadow-lg border border-route66-border p-6">
-              <EnhancedTripResults tripPlan={trip.trip_data} shareUrl={shareUrl} />
+              <EnhancedTripResults 
+                tripPlan={trip.trip_data} 
+                shareUrl={shareUrl}
+                tripStartDate={undefined}
+              />
             </div>
           </div>
         </div>

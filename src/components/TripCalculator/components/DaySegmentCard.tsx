@@ -12,13 +12,19 @@ import SegmentRecommendedStops from './SegmentRecommendedStops';
 interface DaySegmentCardProps {
   segment: DailySegment;
   showAdjustmentWarning?: boolean;
+  tripStartDate?: Date;
 }
 
-const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustmentWarning = false }) => {
+const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ 
+  segment, 
+  showAdjustmentWarning = false, 
+  tripStartDate 
+}) => {
   const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   console.log('📅 Rendering Enhanced DaySegmentCard with Weather Widget:', segment);
+  console.log('📅 Trip start date passed to DaySegmentCard:', tripStartDate);
 
   return (
     <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
@@ -39,6 +45,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
             setIsMapExpanded={setIsWeatherExpanded}
             isDetailsExpanded={isDetailsExpanded}
             setIsDetailsExpanded={setIsDetailsExpanded}
+            tripStartDate={tripStartDate}
           />
 
           {/* Route Progression */}
