@@ -1,6 +1,7 @@
 
 import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SubStopTiming } from './planning/TripPlanBuilder';
+import { TripPlanValidator } from './planning/TripPlanValidator';
 import { CityDisplayService } from './utils/CityDisplayService';
 
 // Re-export types for backward compatibility
@@ -85,40 +86,18 @@ export class Route66TripPlannerService {
       category: endStop.category 
     } : 'NOT FOUND');
 
-    if (!startStop || !endStop) {
-      // Enhanced error reporting with better suggestions
-      const availableCities = [...new Set(allStops.map(stop => CityDisplayService.getCityDisplayName(stop)))].sort();
-      const majorCities = availableCities.filter(city => 
-        city.includes('Chicago') || 
-        city.includes('St. Louis') || 
-        city.includes('Springfield') || 
-        city.includes('Tulsa') || 
-        city.includes('Oklahoma City') || 
-        city.includes('Amarillo') || 
-        city.includes('Albuquerque') || 
-        city.includes('Flagstaff') || 
-        city.includes('Santa Monica')
-      );
-      
-      console.log('📍 Major Route 66 cities available:', majorCities);
-      console.log('📍 Total cities available:', availableCities.length);
-      
-      const missingCities = [];
-      if (!startStop) missingCities.push(startCityName);
-      if (!endStop) missingCities.push(endCityName);
-      
-      throw new Error(`Could not find stops for: ${missingCities.join(' and ')}. 
-
-Available major Route 66 cities include: ${majorCities.slice(0, 8).join(', ')}.
-
-Please use the exact format: "City Name, STATE" (e.g., "Springfield, IL" not "Springfield, MO" for Illinois).
-
-Total cities available: ${availableCities.length}`);
-    }
-
-    const tripPlan = TripPlanBuilder.buildTripPlan(
+    // Validate stops using the new validator
+    const { startStop: validatedStartStop, endStop: validatedEndStop } = TripPlanValidator.validateStops(
       startStop,
       endStop,
+      startCityName,
+      endCityName,
+      allStops
+    );
+
+    const tripPlan = TripPlanBuilder.buildTripPlan(
+      validatedStartStop,
+      validatedEndStop,
       allStops,
       tripDays,
       startCityName,
@@ -127,8 +106,8 @@ Total cities available: ${availableCities.length}`);
 
     console.log('🎯 Final trip plan created with actual stop cities:', {
       title: tripPlan.title,
-      actualStartCity: CityDisplayService.getCityDisplayName(startStop),
-      actualEndCity: CityDisplayService.getCityDisplayName(endStop),
+      actualStartCity: CityDisplayService.getCityDisplayName(validatedStartStop),
+      actualEndCity: CityDisplayService.getCityDisplayName(validatedEndStop),
       inputStartCity: startCityName,
       inputEndCity: endCityName
     });
