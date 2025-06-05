@@ -1,7 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { DriveTimeTarget } from './DriveTimeBalancingService';
+import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationPriorityService } from './DestinationPriorityService';
 import { DistanceBasedDestinationService } from './DistanceBasedDestinationService';
 
