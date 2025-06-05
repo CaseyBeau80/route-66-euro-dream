@@ -1,6 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
 
 export interface DailySegment {
@@ -24,7 +25,7 @@ export interface TripPlan {
 
 export class TripPlanBuilder {
   /**
-   * Build a complete trip plan with daily segments
+   * Build a complete trip plan with daily segments using actual stop information
    */
   static buildTripPlan(
     startStop: TripStop,
@@ -40,12 +41,13 @@ export class TripPlanBuilder {
     );
 
     console.log(`📏 Total distance: ${totalDistance} miles`);
+    console.log(`🎯 Using actual stop cities: ${CityDisplayService.getCityDisplayName(startStop)} to ${CityDisplayService.getCityDisplayName(endStop)}`);
 
     // Get stops along the route
     const routeStops = RouteStopSelectionService.getStopsAlongRoute(startStop, endStop, allStops);
     console.log(`🛤️ Found ${routeStops.length} stops along the route`);
 
-    // Plan daily segments
+    // Plan daily segments using actual stop information
     const dailySegments: DailySegment[] = [];
     let currentStop = startStop;
     const remainingStops = [...routeStops];
@@ -64,13 +66,17 @@ export class TripPlanBuilder {
         targetStop.latitude, targetStop.longitude
       );
 
-      console.log(`📅 Day ${day}: ${currentStop.city_name} to ${targetStop.city_name}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops`);
+      // Use actual stop city information for segment titles and cities
+      const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
+      const endCityDisplay = CityDisplayService.getCityDisplayName(targetStop);
+
+      console.log(`📅 Day ${day}: ${startCityDisplay} to ${endCityDisplay}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops`);
 
       dailySegments.push({
         day,
-        title: `Day ${day}: ${currentStop.city_name} to ${targetStop.city_name}`,
-        startCity: currentStop.city_name,
-        endCity: targetStop.city_name,
+        title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
+        startCity: startCityDisplay,
+        endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
         driveTimeHours: Math.round((segmentDistance / 55) * 10) / 10 // Assuming 55 mph average
@@ -85,8 +91,11 @@ export class TripPlanBuilder {
       currentStop = targetStop;
     }
 
+    // Create trip title using actual stop information
+    const tripTitle = CityDisplayService.createTripTitle(startStop, endStop);
+
     return {
-      title: `Route 66 Trip: ${startCityName} to ${endCityName}`,
+      title: tripTitle,
       startCityImage: startStop.image_url,
       endCityImage: endStop.image_url,
       totalDays: tripDays,

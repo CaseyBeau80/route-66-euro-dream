@@ -1,6 +1,7 @@
 
 import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment } from './planning/TripPlanBuilder';
+import { CityDisplayService } from './utils/CityDisplayService';
 
 // Re-export types for backward compatibility
 export type { TripStop, DailySegment, TripPlan };
@@ -21,13 +22,6 @@ export class Route66TripPlannerService {
       
       console.log(`🔍 Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
       
-      // Log some sample stops to understand the data structure
-      console.log('📋 Sample stops:', allStops.slice(0, 5).map(s => ({ 
-        name: s.name, 
-        city_name: s.city_name, 
-        state: s.state 
-      })));
-      
       // Two-tier matching strategy
       let matchedStop: TripStop | undefined;
       
@@ -46,7 +40,7 @@ export class Route66TripPlannerService {
         });
         
         if (matchedStop) {
-          console.log(`✅ Found exact city+state match: ${matchedStop.name} in ${matchedStop.city_name}, ${matchedStop.state}`);
+          console.log(`✅ Found exact city+state match: ${matchedStop.name} in ${CityDisplayService.getCityDisplayName(matchedStop)}`);
           return matchedStop;
         }
       }
@@ -66,7 +60,7 @@ export class Route66TripPlannerService {
       });
       
       if (matchedStop) {
-        console.log(`⚠️ Found city-only match: ${matchedStop.name} in ${matchedStop.city_name}, ${matchedStop.state}`);
+        console.log(`⚠️ Found city-only match: ${matchedStop.name} in ${CityDisplayService.getCityDisplayName(matchedStop)}`);
         if (stateOnly && matchedStop.state.toLowerCase() !== stateOnly) {
           console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${matchedStop.state}`);
         }
@@ -81,21 +75,19 @@ export class Route66TripPlannerService {
 
     console.log('🔍 Start stop found:', startStop ? { 
       name: startStop.name, 
-      city_name: startStop.city_name, 
-      state: startStop.state,
+      city_display: CityDisplayService.getCityDisplayName(startStop),
       category: startStop.category 
     } : 'NOT FOUND');
     
     console.log('🔍 End stop found:', endStop ? { 
       name: endStop.name, 
-      city_name: endStop.city_name, 
-      state: endStop.state,
+      city_display: CityDisplayService.getCityDisplayName(endStop),
       category: endStop.category 
     } : 'NOT FOUND');
 
     if (!startStop || !endStop) {
       // Enhanced error reporting with better suggestions
-      const availableCities = [...new Set(allStops.map(stop => `${stop.city_name}, ${stop.state}`))].sort();
+      const availableCities = [...new Set(allStops.map(stop => CityDisplayService.getCityDisplayName(stop)))].sort();
       const majorCities = availableCities.filter(city => 
         city.includes('Chicago') || 
         city.includes('St. Louis') || 
@@ -133,7 +125,14 @@ Total cities available: ${availableCities.length}`);
       endCityName
     );
 
-    console.log('🎯 Final trip plan:', tripPlan);
+    console.log('🎯 Final trip plan created with actual stop cities:', {
+      title: tripPlan.title,
+      actualStartCity: CityDisplayService.getCityDisplayName(startStop),
+      actualEndCity: CityDisplayService.getCityDisplayName(endStop),
+      inputStartCity: startCityName,
+      inputEndCity: endCityName
+    });
+    
     return tripPlan;
   }
 }
