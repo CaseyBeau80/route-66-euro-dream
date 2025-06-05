@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { WeatherService } from '@/components/Route66Map/services/WeatherService';
+import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { WeatherData } from '@/components/Route66Map/components/weather/WeatherTypes';
 import { GeocodingService } from '../services/GeocodingService';
-import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
+import EnhancedWeatherApiKeyInput from '@/components/Route66Map/components/weather/EnhancedWeatherApiKeyInput';
 import WeatherLoading from './weather/WeatherLoading';
 import WeatherError from './weather/WeatherError';
 import WeatherStatusBadge from './weather/WeatherStatusBadge';
@@ -26,12 +26,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const segmentDate = tripStartDate ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) : null;
   const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
   
-  // Check if API key is available
-  const weatherService = WeatherService.getInstance();
+  // Check if API key is available using enhanced service
+  const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
   const handleApiKeySet = () => {
-    console.log('🔑 SegmentWeatherWidget: API key set, triggering refresh');
+    console.log('🔑 SegmentWeatherWidget: Enhanced API key set, triggering refresh');
     setApiKeyRefreshTrigger(prev => prev + 1);
   };
   
@@ -75,10 +75,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   }, [segment.endCity, segmentDate, daysFromNow, hasApiKey, apiKeyRefreshTrigger]);
 
   const renderWeatherContent = () => {
-    // No API key available
+    // No API key available - show enhanced input
     if (!hasApiKey) {
       return (
-        <SimpleWeatherApiKeyInput 
+        <EnhancedWeatherApiKeyInput 
           onApiKeySet={handleApiKeySet}
           cityName={segment.endCity}
         />

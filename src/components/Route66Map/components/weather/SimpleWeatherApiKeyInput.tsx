@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WeatherService } from '../../services/WeatherService';
@@ -19,6 +18,7 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [showEnhancedVersion, setShowEnhancedVersion] = useState(false);
 
   const showDebugInfo = () => {
     console.log('🔍 SimpleWeatherApiKeyInput: === FULL DEBUG SESSION START ===');
@@ -145,7 +145,7 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
       
       if (!verificationInfo.hasKey || verificationInfo.keyLength !== trimmedKey.length) {
         console.error('❌ Storage verification failed!', verificationInfo);
-        throw new Error('API key was not stored correctly. Please try again.');
+        throw new Error('API key was not stored correctly. Try using the enhanced version (Nuclear button).');
       }
       
       console.log('✅ API key set and verified successfully');
@@ -154,7 +154,13 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
       onApiKeySet();
     } catch (error) {
       console.error('❌ SimpleWeatherApiKeyInput: Error setting API key:', error);
-      setError(error instanceof Error ? error.message : 'Failed to set API key');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to set API key';
+      setError(errorMessage);
+      
+      // Suggest enhanced version for persistent issues
+      if (errorMessage.includes('not stored correctly')) {
+        setError(errorMessage + ' Please try the Nuclear cleanup button below.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -178,6 +184,27 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
     setTestResult(null);
     console.log('✅ All storage cleared');
   };
+
+  const switchToEnhancedVersion = () => {
+    console.log('💥 Switching to enhanced version for better corruption handling');
+    setShowEnhancedVersion(true);
+  };
+
+  // Import enhanced version dynamically
+  const [EnhancedWeatherApiKeyInput, setEnhancedWeatherApiKeyInput] = useState<React.ComponentType<any> | null>(null);
+
+  useEffect(() => {
+    // Dynamically import enhanced version when needed
+    if (showEnhancedVersion && !EnhancedWeatherApiKeyInput) {
+      import('./EnhancedWeatherApiKeyInput').then(module => {
+        setEnhancedWeatherApiKeyInput(() => module.default);
+      });
+    }
+  }, [showEnhancedVersion, EnhancedWeatherApiKeyInput]);
+
+  if (showEnhancedVersion && EnhancedWeatherApiKeyInput) {
+    return <EnhancedWeatherApiKeyInput onApiKeySet={onApiKeySet} cityName={cityName} />;
+  }
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
@@ -255,6 +282,17 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
             className="text-xs"
           >
             <RefreshCw className="w-3 h-3" />
+          </Button>
+          
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={switchToEnhancedVersion}
+            className="text-xs"
+            title="Switch to Enhanced Version with Nuclear Cleanup"
+          >
+            💥
           </Button>
         </div>
       </form>
