@@ -44,7 +44,7 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
     }
   };
 
-  const isFormValid = formData.startDate && formData.startCity && formData.endCity;
+  const isFormValid = Boolean(formData.startDate && formData.startCity && formData.endCity);
 
   return (
     <div className="space-y-6">
