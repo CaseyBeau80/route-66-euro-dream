@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { MapPin, Clock, Calendar, Users, Share2, DollarSign, ChevronDown, Chevro
 import SegmentWeatherWidget from './components/SegmentWeatherWidget';
 import CostEstimatorForm from './components/CostEstimatorForm';
 import CostBreakdownDisplay from './components/CostBreakdownDisplay';
+import TripAdjustmentNotice from './components/TripAdjustmentNotice';
 import { useCostEstimator } from './hooks/useCostEstimator';
 
 interface EnhancedTripResultsProps {
@@ -59,6 +61,15 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Trip Adjustment Notice */}
+      {tripPlan.wasAdjusted && tripPlan.originalDays && (
+        <TripAdjustmentNotice
+          originalDays={tripPlan.originalDays}
+          adjustedDays={tripPlan.totalDays}
+          driveTimeBalance={tripPlan.driveTimeBalance}
+        />
+      )}
+
       {/* Trip Overview Card */}
       <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
         <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
