@@ -6,28 +6,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TripCalculator from "./pages/TripCalculator";
-import CityPage from "./pages/CityPage";
-import TripDetailsPage from "./pages/TripDetailsPage";
+import Route66Planner from "./pages/Route66Planner";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/trip-calculator" element={<TripCalculator />} />
-            <Route path="/city/:citySlug" element={<CityPage />} />
-            <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/trip-calculator" element={<TripCalculator />} />
+          <Route path="/route66-planner" element={<Route66Planner />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
