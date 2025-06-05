@@ -9,7 +9,7 @@ export const useTripCalculation = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 0,
-    dailyDrivingLimit: [300]
+    dailyDrivingLimit: 300 // Single number instead of array
   });
   const [calculation, setCalculation] = useState<TripCalculation | null>(null);
 
@@ -51,7 +51,7 @@ export const useTripCalculation = () => {
       dailyDistances = Array(numberOfDays).fill(distancePerDay);
     } else {
       // Calculate based on daily driving limit
-      const maxDailyDistance = formData.dailyDrivingLimit[0];
+      const maxDailyDistance = formData.dailyDrivingLimit; // Now a single number
       numberOfDays = Math.ceil(totalDistance / maxDailyDistance);
       
       // Distribute distance across days
