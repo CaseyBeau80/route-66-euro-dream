@@ -25,7 +25,7 @@ export class TripService {
       .insert({
         title: title || tripPlan.title,
         description: description,
-        trip_data: tripPlan,
+        trip_data: tripPlan as any, // Cast to any to satisfy Json type requirement
         share_code: shareCode,
         view_count: 0
       })
@@ -60,7 +60,12 @@ export class TripService {
     }
 
     console.log('✅ Trip loaded successfully:', data);
-    return data as SavedTrip;
+    
+    // Type assertion to convert from database format to our interface
+    return {
+      ...data,
+      trip_data: data.trip_data as TripPlan
+    } as SavedTrip;
   }
 
   static async incrementViewCount(shareCode: string): Promise<void> {
@@ -68,7 +73,9 @@ export class TripService {
 
     const { error } = await supabase
       .from('trips')
-      .update({ view_count: supabase.sql`view_count + 1` })
+      .update({ 
+        view_count: supabase.rpc('increment_view_count', { current_count: 1 }) 
+      })
       .eq('share_code', shareCode);
 
     if (error) {
