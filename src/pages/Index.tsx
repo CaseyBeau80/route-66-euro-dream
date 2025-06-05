@@ -11,12 +11,13 @@ import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import SimpleInstagramCarousel from "../components/InstagramCarousel/components/SimpleInstagramCarousel";
 import FunFactsOfTheDay from "../components/FunFactsOfTheDay";
+import Route66TriviaGame from "../components/Route66TriviaGame";
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
   const [isMapOpen, setIsMapOpen] = useState(true);
   
-  console.log("🏠 Index page: Rendering with reorganized layout - Hero, Centennial, Fun Facts, Instagram, Map, Trip Planner, Adventures, Resources");
+  console.log("🏠 Index page: Rendering with reorganized layout - Hero, Centennial, Fun Facts, Trivia Game, Instagram, Map, Trip Planner, Adventures, Resources");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
@@ -39,8 +40,13 @@ const Index = () => {
         <FunFactsOfTheDay />
       </FadeInSection>
 
+      {/* Route 66 Trivia Game Section with fade-in */}
+      <FadeInSection id="trivia-game" delay={300}>
+        <Route66TriviaGame />
+      </FadeInSection>
+
       {/* Instagram Carousel Section with fade-in */}
-      <FadeInSection id="instagram" delay={300}>
+      <FadeInSection id="instagram" delay={350}>
         <SimpleInstagramCarousel />
       </FadeInSection>
 
