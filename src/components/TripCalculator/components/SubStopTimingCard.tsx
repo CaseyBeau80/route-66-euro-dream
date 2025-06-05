@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Clock, ArrowRight, MapPin } from 'lucide-react';
-import { SubStopTiming } from '../services/Route66TripPlannerService';
+import { SegmentTiming } from '../services/planning/SubStopTimingCalculator';
 
 interface SubStopTimingCardProps {
-  timing: SubStopTiming;
+  timing: SegmentTiming;
 }
 
 const formatDriveTime = (hours: number): string => {

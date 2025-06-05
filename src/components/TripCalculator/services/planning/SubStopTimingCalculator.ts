@@ -10,6 +10,13 @@ export interface SubStopTiming {
   recommendedStayDuration: number;
 }
 
+export interface SegmentTiming {
+  fromStop: TripStop;
+  toStop: TripStop;
+  distanceMiles: number;
+  driveTimeHours: number;
+}
+
 export class SubStopTimingCalculator {
   /**
    * Calculate valid sub-stop timings for a segment
@@ -57,6 +64,42 @@ export class SubStopTimingCalculator {
     }
 
     return timings;
+  }
+
+  /**
+   * Calculate segment timings for route progression display
+   */
+  static calculateSegmentTimings(
+    startStop: TripStop,
+    endStop: TripStop,
+    stops: TripStop[]
+  ): SegmentTiming[] {
+    const segmentTimings: SegmentTiming[] = [];
+    
+    // Create full route including start, intermediate stops, and end
+    const fullRoute = [startStop, ...stops, endStop];
+    
+    // Calculate timing between each consecutive pair
+    for (let i = 0; i < fullRoute.length - 1; i++) {
+      const fromStop = fullRoute[i];
+      const toStop = fullRoute[i + 1];
+      
+      const distance = DistanceCalculationService.calculateDistance(
+        fromStop.latitude, fromStop.longitude,
+        toStop.latitude, toStop.longitude
+      );
+      
+      const driveTime = distance / 50; // 50 mph average
+      
+      segmentTimings.push({
+        fromStop,
+        toStop,
+        distanceMiles: Math.round(distance),
+        driveTimeHours: Math.round(driveTime * 10) / 10
+      });
+    }
+    
+    return segmentTimings;
   }
 
   /**

@@ -4,13 +4,14 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { RouteStopSelectionService } from './RouteStopSelectionService';
 import { StopEnhancementService } from './StopEnhancementService';
-import { DailySegmentCreator, DailySegment, SubStopTiming } from './DailySegmentCreator';
+import { DailySegmentCreator, DailySegment } from './DailySegmentCreator';
 import { TripPlanValidator } from './TripPlanValidator';
 import { DriveTimeAnalyzer } from './DriveTimeAnalyzer';
 import { TripDaysOptimizer } from './TripDaysOptimizer';
+import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
 
 // Re-export types for backward compatibility
-export type { DailySegment, SubStopTiming };
+export type { DailySegment, SubStopTiming, SegmentTiming };
 
 export interface TripPlan {
   title: string;

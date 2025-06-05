@@ -2,7 +2,7 @@
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
-import { SubStopTimingCalculator } from './SubStopTimingCalculator';
+import { SubStopTimingCalculator, SegmentTiming } from './SubStopTimingCalculator';
 import { RouteProgressCalculator } from './RouteProgressCalculator';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 import { BalanceQualityMetrics } from './BalanceQualityMetrics';
@@ -47,13 +47,15 @@ export class SegmentBuilderService {
         actualDriveTime
       );
       
-      const subStopTimings = SubStopTimingCalculator.calculateValidSubStopTimings(
+      // Calculate segment timings for route progression display
+      const segmentTimings = SubStopTimingCalculator.calculateSegmentTimings(
         currentStop, 
         dayDestination, 
         segmentStops
       );
       
-      const totalSegmentDriveTime = SubStopTimingCalculator.calculateTotalDriveTime(subStopTimings);
+      // Calculate total drive time from segment timings
+      const totalSegmentDriveTime = segmentTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
       const finalDriveTime = totalSegmentDriveTime > 0 ? totalSegmentDriveTime : actualDriveTime;
 
       // Get drive time category for this segment
@@ -80,7 +82,7 @@ export class SegmentBuilderService {
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
         driveTimeHours: Math.round(finalDriveTime * 10) / 10,
-        subStopTimings: subStopTimings,
+        subStopTimings: segmentTimings,
         routeSection,
         driveTimeCategory,
         balanceMetrics: segmentBalanceMetrics

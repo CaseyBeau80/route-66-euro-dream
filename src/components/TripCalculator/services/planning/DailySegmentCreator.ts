@@ -5,14 +5,7 @@ import { CityDisplayService } from '../utils/CityDisplayService';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 import { EnhancedDestinationSelectionService } from './EnhancedDestinationSelectionService';
 import { SegmentBuilderService } from './SegmentBuilderService';
-
-export interface SubStopTiming {
-  stop: TripStop;
-  distanceFromStart: number;
-  cumulativeDriveTime: number;
-  estimatedArrival: string;
-  recommendedStayDuration: number;
-}
+import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
 
 export interface DailySegment {
   day: number;
@@ -22,7 +15,7 @@ export interface DailySegment {
   approximateMiles: number;
   recommendedStops: TripStop[];
   driveTimeHours: number;
-  subStopTimings: SubStopTiming[];
+  subStopTimings: SegmentTiming[];
   routeSection?: string;
   driveTimeCategory?: {
     category: 'short' | 'optimal' | 'long' | 'extreme';
