@@ -4,6 +4,7 @@ import { RouteStopFilteringService } from './RouteStopFilteringService';
 import { StopPrioritizationService } from './StopPrioritizationService';
 import { RouteDeduplicationService } from './RouteDeduplicationService';
 import { DestinationSelectionService } from './DestinationSelectionService';
+import { DrivingTimeMessageService } from '../utils/DrivingTimeMessageService';
 
 export class RouteStopSelectionService {
   /**
@@ -41,14 +42,23 @@ export class RouteStopSelectionService {
   }
 
   /**
-   * Enhanced stop selection for segments with destination city awareness
+   * Enhanced stop selection for segments with destination city awareness and driving time logic
    */
   static selectStopsForSegment(
     startStop: TripStop, 
     endStop: TripStop, 
     availableStops: TripStop[], 
-    maxStops: number
+    maxStops: number,
+    driveTimeHours?: number
   ): TripStop[] {
+    // Use dynamic max stops based on driving time if provided
+    let dynamicMaxStops = maxStops;
+    if (driveTimeHours) {
+      const messageData = DrivingTimeMessageService.getDrivingTimeMessage(driveTimeHours);
+      dynamicMaxStops = Math.min(maxStops, messageData.maxStops);
+      console.log(`🕒 Adjusted max stops from ${maxStops} to ${dynamicMaxStops} based on ${driveTimeHours.toFixed(1)}h drive time`);
+    }
+
     // Find stops between start and end for this segment
     const candidateStops = RouteStopFilteringService.getSegmentStops(startStop, endStop, availableStops);
 
@@ -58,14 +68,14 @@ export class RouteStopSelectionService {
     // Enhanced prioritization with destination city supremacy
     const prioritizedStops = StopPrioritizationService.prioritizeStopsWithDestinationCitySupremacy(deduplicatedCandidates, startStop);
 
-    const selectedStops = prioritizedStops.slice(0, maxStops);
+    const selectedStops = prioritizedStops.slice(0, dynamicMaxStops);
     
     const segmentDistance = require('../utils/DistanceCalculationService').DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
     
-    console.log(`🎯 Segment stops: ${selectedStops.length}/${candidateStops.length} selected for ${Math.round(segmentDistance)}mi segment`);
+    console.log(`🎯 Segment stops: ${selectedStops.length}/${candidateStops.length} selected for ${Math.round(segmentDistance)}mi segment (${driveTimeHours?.toFixed(1) || 'unknown'}h drive)`);
     
     return selectedStops;
   }

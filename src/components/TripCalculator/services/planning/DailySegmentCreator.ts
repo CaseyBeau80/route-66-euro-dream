@@ -57,15 +57,17 @@ export class DailySegmentCreator {
 
       if (!dayDestination) continue;
 
-      // Select stops for this segment with destination city priority
-      const segmentStops = this.selectSegmentStops(currentStop, dayDestination, remainingStops);
-      
-      // Calculate distances and timings with validation
+      // Calculate distances and timings first to get drive time
       const segmentDistance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         dayDestination.latitude, dayDestination.longitude
       );
 
+      const estimatedDriveTime = segmentDistance / 50; // 50 mph average
+
+      // Select stops for this segment with destination city priority and drive time consideration
+      const segmentStops = this.selectSegmentStops(currentStop, dayDestination, remainingStops, estimatedDriveTime);
+      
       const subStopTimings = SubStopTimingCalculator.calculateValidSubStopTimings(
         currentStop, 
         dayDestination, 
@@ -111,20 +113,21 @@ export class DailySegmentCreator {
       currentStop = dayDestination;
       cumulativeDistance += segmentDistance;
       
-      console.log(`📅 Day ${day}: ${Math.round(segmentDistance)}mi (${routeSection}), ${segmentStops.length} stops`);
+      console.log(`📅 Day ${day}: ${Math.round(segmentDistance)}mi (${routeSection}), ${segmentStops.length} stops, ${estimatedDriveTime.toFixed(1)}h drive`);
     }
 
     return dailySegments;
   }
 
   /**
-   * Select appropriate stops for a segment with destination city priority
+   * Select appropriate stops for a segment with destination city priority and drive time consideration
    */
   private static selectSegmentStops(
     startStop: TripStop,
     endStop: TripStop,
-    availableStops: TripStop[]
+    availableStops: TripStop[],
+    driveTimeHours: number
   ): TripStop[] {
-    return RouteStopSelectionService.selectStopsForSegment(startStop, endStop, availableStops, 2);
+    return RouteStopSelectionService.selectStopsForSegment(startStop, endStop, availableStops, 2, driveTimeHours);
   }
 }

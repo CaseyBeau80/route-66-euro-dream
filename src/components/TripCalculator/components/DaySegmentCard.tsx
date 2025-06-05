@@ -5,6 +5,7 @@ import { MapPin, Clock, Route, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SubStopTimingCard from './SubStopTimingCard';
 import StopCard from './StopCard';
+import DrivingTimeMessage from './DrivingTimeMessage';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -81,6 +82,9 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
       
       <CardContent>
         <div className="space-y-4">
+          {/* Dynamic Driving Time Message */}
+          <DrivingTimeMessage driveTimeHours={segment.driveTimeHours} />
+
           {/* Route Progression - Show drive times between stops */}
           {hasValidTimings ? (
             <div>
