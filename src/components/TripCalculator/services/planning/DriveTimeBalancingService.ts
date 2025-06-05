@@ -5,7 +5,7 @@ import { DriveTimeTargetCalculator } from './DriveTimeTargetCalculator';
 import { DestinationSelectionByDriveTime } from './DestinationSelectionByDriveTime';
 import { DriveTimeCategoryService } from './DriveTimeCategoryService';
 
-// Re-export types and constraints for backward compatibility
+// Re-export types for backward compatibility
 export type { DriveTimeConstraints, DriveTimeTarget };
 
 export class DriveTimeBalancingService {
@@ -51,6 +51,9 @@ export class DriveTimeBalancingService {
     return DriveTimeConstraints.validateDriveTimeBalance(segments, targets);
   }
 
+  /**
+   * Get drive time category with message and styling
+   */
   static getDriveTimeCategory(driveTimeHours: number): {
     category: 'short' | 'optimal' | 'long' | 'extreme';
     message: string;
