@@ -63,7 +63,7 @@ export class DriveTimeBalancingService {
   }
 
   /**
-   * Find best destination within drive time constraints
+   * Find best destination within drive time constraints with strong destination city preference
    */
   static findBestDestinationByDriveTime(
     currentStop: TripStop,
@@ -78,7 +78,16 @@ export class DriveTimeBalancingService {
 
     console.log(`🕒 Finding destination for ${driveTimeTarget.targetHours.toFixed(1)}h target (${driveTimeTarget.minHours.toFixed(1)}-${driveTimeTarget.maxHours.toFixed(1)}h range)`);
 
-    for (const stop of availableStops) {
+    // Separate destination cities from other stops for prioritization
+    const destinationCities = availableStops.filter(stop => stop.category === 'destination_city');
+    const otherStops = availableStops.filter(stop => stop.category !== 'destination_city');
+
+    console.log(`🏙️ Evaluating ${destinationCities.length} destination cities and ${otherStops.length} other stops`);
+
+    // Evaluate all stops but give massive preference to destination cities
+    const allStops = [...destinationCities, ...otherStops];
+
+    for (const stop of allStops) {
       const distance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         stop.latitude, stop.longitude
@@ -95,9 +104,10 @@ export class DriveTimeBalancingService {
       const timeDiff = Math.abs(driveTimeHours - driveTimeTarget.targetHours);
       let score = timeDiff;
 
-      // Bonus for destination cities
+      // MASSIVE bonus for destination cities - this is the key fix
       if (stop.category === 'destination_city') {
-        score -= 1.0; // Strong preference for destination cities
+        score -= 10.0; // Huge preference for destination cities
+        console.log(`🏙️ Destination city ${stop.name}: score reduced by 10.0 (massive bonus)`);
       }
 
       // Bonus for major stops
@@ -110,6 +120,8 @@ export class DriveTimeBalancingService {
           driveTimeHours <= this.DRIVE_TIME_CONSTRAINTS.optimal.max) {
         score -= 0.3;
       }
+
+      console.log(`📊 ${stop.name} (${stop.category}): ${driveTimeHours.toFixed(1)}h drive, score: ${score.toFixed(2)}`);
 
       if (score < bestScore) {
         bestScore = score;
@@ -125,6 +137,8 @@ export class DriveTimeBalancingService {
       const actualDriveTime = distance / avgSpeedMph;
       
       console.log(`✅ Selected ${bestStop.name} (${bestStop.category}): ${Math.round(distance)}mi, ${actualDriveTime.toFixed(1)}h drive`);
+    } else {
+      console.log(`❌ No suitable destination found within drive time constraints`);
     }
 
     return bestStop;
@@ -176,9 +190,6 @@ export class DriveTimeBalancingService {
     };
   }
 
-  /**
-   * Get drive time category for messaging
-   */
   static getDriveTimeCategory(driveTimeHours: number): {
     category: 'short' | 'optimal' | 'long' | 'extreme';
     message: string;
