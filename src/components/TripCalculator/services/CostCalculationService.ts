@@ -48,15 +48,20 @@ export class CostCalculationService {
     let totalAttractions = 0;
     let totalTolls = 0;
 
-    tripPlan.segments.forEach((segment, index) => {
-      const state = this.extractState(segment.endCity);
+    // Use dailySegments as primary property, with segments as fallback
+    const segments = tripPlan.dailySegments || tripPlan.segments || [];
+    
+    segments.forEach((segment, index) => {
+      // Extract state from the destination city
+      const state = this.extractStateFromCity(segment.destination?.city || segment.endCity || '');
       
-      // Gas costs
-      const segmentGas = (segment.distance / costData.mpg) * costData.gasPrice;
+      // Gas costs - calculate based on segment distance
+      const segmentDistance = segment.distance || 0;
+      const segmentGas = (segmentDistance / costData.mpg) * costData.gasPrice;
       totalGas += segmentGas;
 
       // Accommodation costs (except last day)
-      const accommodation = index < tripPlan.segments.length - 1 
+      const accommodation = index < segments.length - 1 
         ? this.ACCOMMODATION_RATES[costData.motelBudget] 
         : 0;
       totalAccommodation += accommodation;
@@ -78,8 +83,8 @@ export class CostCalculationService {
       totalTolls += tolls;
 
       dailyCosts.push({
-        day: segment.day,
-        city: segment.endCity,
+        day: segment.day || (index + 1),
+        city: segment.destination?.city || segment.endCity || `Day ${index + 1}`,
         gas: segmentGas,
         accommodation,
         meals,
@@ -102,11 +107,12 @@ export class CostCalculationService {
       breakdown,
       dailyCosts,
       perPersonCost: breakdown.totalCost / costData.groupSize,
-      averageDailyCost: breakdown.totalCost / tripPlan.segments.length
+      averageDailyCost: breakdown.totalCost / segments.length
     };
   }
 
-  private static extractState(cityName: string): string {
+  private static extractStateFromCity(cityName: string): string {
+    // Try to extract state from city name (e.g., "Chicago, IL")
     const stateMatch = cityName.match(/, ([A-Z]{2})$/);
     if (stateMatch) {
       const stateCode = stateMatch[1];
@@ -122,5 +128,9 @@ export class CostCalculationService {
       return stateMap[stateCode] || 'Unknown';
     }
     return 'Unknown';
+  }
+
+  private static extractState(cityName: string): string {
+    return this.extractStateFromCity(cityName);
   }
 }

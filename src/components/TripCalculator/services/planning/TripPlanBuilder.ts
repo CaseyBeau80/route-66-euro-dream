@@ -15,11 +15,16 @@ export type { DailySegment, SubStopTiming, SegmentTiming };
 
 export interface TripPlan {
   title: string;
+  startCity: string;
+  endCity: string;
   startCityImage?: string;
   endCityImage?: string;
   totalDays: number;
   totalMiles: number;
+  totalDistance: number; // Alias for totalMiles for compatibility
+  totalDrivingTime: number;
   dailySegments: DailySegment[];
+  segments: DailySegment[]; // Alias for dailySegments for compatibility
   wasAdjusted?: boolean;
   originalDays?: number;
   driveTimeBalance?: {
@@ -76,6 +81,9 @@ export class TripPlanBuilder {
       totalDistance
     );
 
+    // Calculate total driving time from segments
+    const totalDrivingTime = dailySegments.reduce((total, segment) => total + segment.drivingTime, 0);
+
     // Calculate enhanced drive time balance metrics
     const driveTimeBalance = DriveTimeAnalyzer.analyzeEnhancedDriveTimeBalance(dailySegments);
 
@@ -83,11 +91,16 @@ export class TripPlanBuilder {
 
     return {
       title: tripTitle,
+      startCity: CityDisplayService.getCityDisplayName(startStop),
+      endCity: CityDisplayService.getCityDisplayName(endStop),
       startCityImage: startStop.image_url,
       endCityImage: endStop.image_url,
       totalDays: optimalDays,
       totalMiles: Math.round(totalDistance),
+      totalDistance: Math.round(totalDistance), // Alias for compatibility
+      totalDrivingTime,
       dailySegments,
+      segments: dailySegments, // Alias for compatibility
       wasAdjusted,
       originalDays: wasAdjusted ? requestedDays : undefined,
       driveTimeBalance
