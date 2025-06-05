@@ -154,7 +154,7 @@ const SegmentDetailsBreakdown: React.FC<SegmentDetailsBreakdownProps> = ({
                         {timing.fromStop.name} → {timing.toStop.name}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {timing.distance.toFixed(1)} miles
+                        {timing.distanceMiles.toFixed(1)} miles
                       </div>
                     </div>
                   </div>

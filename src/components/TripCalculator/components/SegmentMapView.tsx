@@ -133,9 +133,9 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
         routePath.setMap(map);
       }
 
-      // Fit map to bounds
+      // Fit map to bounds with proper padding
       if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, { padding: 20 });
+        map.fitBounds(bounds, 20);
       }
 
       setIsMapLoaded(true);
