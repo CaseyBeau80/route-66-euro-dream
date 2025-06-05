@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameSession } from './types';
 import { TriviaGameService } from './services/TriviaGameService';
 import TriviaHeader from './components/TriviaHeader';
@@ -25,6 +25,11 @@ const Route66TriviaGame: React.FC = () => {
     
     const currentAnswer = updatedSession.gameState.selectedAnswers[updatedSession.gameState.selectedAnswers.length - 1];
     console.log(`🎯 Answer selected: ${option}, Correct: ${currentAnswer?.isCorrect}`);
+    
+    // Log if game auto-completed
+    if (updatedSession.gameState.isGameComplete) {
+      console.log('🏁 Game auto-completed after last question answered!');
+    }
   };
 
   const nextQuestion = () => {
@@ -142,16 +147,14 @@ const Route66TriviaGame: React.FC = () => {
                 showExplanation={gameSession.gameState.showExplanation}
               />
               
-              {gameSession.gameState.showExplanation && (
+              {/* Only show next button if explanation is shown and it's NOT the last question */}
+              {gameSession.gameState.showExplanation && !gameSession.gameState.isGameComplete && (
                 <div className="text-center">
                   <Button
                     onClick={nextQuestion}
                     className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                   >
-                    {gameSession.gameState.currentQuestionIndex < gameSession.questions.length - 1 
-                      ? '🛣️ Next Question' 
-                      : '🏁 See Results'
-                    }
+                    🛣️ Next Question
                   </Button>
                 </div>
               )}

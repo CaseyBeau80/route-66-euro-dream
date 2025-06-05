@@ -54,7 +54,7 @@ export class TriviaGameService {
   }
 
   /**
-   * Process answer selection with enhanced debugging
+   * Process answer selection with automatic game completion
    */
   static selectAnswer(
     session: GameSession,
@@ -90,9 +90,13 @@ export class TriviaGameService {
       ? CactiRewardService.updateForCorrectAnswer(session.gameState.cactiState)
       : session.gameState.cactiState;
     
+    // Check if this is the last question
+    const isLastQuestion = session.gameState.currentQuestionIndex >= session.questions.length - 1;
+    
     console.log('📊 Updated Game State:');
     console.log('New Score:', newScore);
     console.log('Total Answered:', updatedAnswers.length);
+    console.log('Is Last Question:', isLastQuestion);
     
     return {
       ...session,
@@ -101,6 +105,7 @@ export class TriviaGameService {
         selectedAnswers: updatedAnswers,
         score: newScore,
         showExplanation: true,
+        isGameComplete: isLastQuestion,
         cactiState: updatedCactiState
       }
     };
