@@ -1,21 +1,20 @@
 
 export class RouteProgressCalculator {
   /**
-   * Determine route section based on progress percentage
+   * Calculate cumulative progress percentage
    */
-  static getRouteSection(progressPercent: number): string {
-    if (progressPercent <= 33) return 'Early Route';
-    if (progressPercent <= 66) return 'Mid Route';
-    return 'Final Stretch';
+  static calculateCumulativeProgress(cumulativeDistance: number, totalDistance: number): number {
+    return Math.min(100, (cumulativeDistance / totalDistance) * 100);
   }
 
   /**
-   * Calculate cumulative progress along the route
+   * Get route section based on progress
    */
-  static calculateCumulativeProgress(
-    currentDistance: number,
-    totalDistance: number
-  ): number {
-    return (currentDistance / totalDistance) * 100;
+  static getRouteSection(progressPercent: number): string {
+    if (progressPercent <= 20) return 'Illinois & Missouri';
+    if (progressPercent <= 40) return 'Oklahoma & Texas';
+    if (progressPercent <= 70) return 'New Mexico';
+    if (progressPercent <= 90) return 'Arizona';
+    return 'California';
   }
 }

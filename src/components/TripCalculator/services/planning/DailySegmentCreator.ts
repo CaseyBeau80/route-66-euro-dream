@@ -1,13 +1,18 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { CityDisplayService } from '../utils/CityDisplayService';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 import { EnhancedDestinationSelectionService } from './EnhancedDestinationSelectionService';
 import { SegmentBuilderService } from './SegmentBuilderService';
-import { SubStopTiming } from './SubStopTimingCalculator';
 
-// Export SubStopTiming for external use
-export type { SubStopTiming };
+export interface SubStopTiming {
+  stop: TripStop;
+  distanceFromStart: number;
+  cumulativeDriveTime: number;
+  estimatedArrival: string;
+  recommendedStayDuration: number;
+}
 
 export interface DailySegment {
   day: number;
@@ -29,65 +34,49 @@ export interface DailySegment {
 
 export class DailySegmentCreator {
   /**
-   * Create daily segments with advanced drive time balancing
+   * Create balanced daily segments using enhanced drive time balancing
    */
   static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
-    enhancedStops: TripStop[],
-    tripDays: number,
+    availableStops: TripStop[],
+    totalDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log(`🎯 Creating balanced daily segments for ${tripDays} days, ${Math.round(totalDistance)} miles`);
-    console.log('🚀 Using enhanced drive time balancing system');
-
-    // Calculate drive time targets for each day
+    console.log('🎯 Creating balanced daily segments with enhanced drive time balancing');
+    
+    // Calculate drive time targets
     const driveTimeTargets = DriveTimeBalancingService.calculateDriveTimeTargets(
       totalDistance,
-      tripDays
+      totalDays
     );
-
-    console.log(`📊 Drive time targets calculated:`, driveTimeTargets.map((t, i) => 
+    
+    console.log(`📊 Drive time targets:`, driveTimeTargets.map((t, i) => 
       `Day ${i + 1}: ${t.targetHours.toFixed(1)}h (${t.minHours.toFixed(1)}-${t.maxHours.toFixed(1)}h)`
     ));
 
-    // Use enhanced destination selection with advanced balancing
-    const enhancedResult = EnhancedDestinationSelectionService.selectBalancedDestinations(
+    // Use enhanced destination selection for optimal balance
+    const destinationResult = EnhancedDestinationSelectionService.selectBalancedDestinations(
       startStop,
       endStop,
-      [...enhancedStops], // Make a copy to avoid mutations
+      availableStops,
       driveTimeTargets
     );
 
-    console.log(`🎯 Enhanced destination selection complete:`);
-    console.log(`   - Balance Grade: ${enhancedResult.balanceMetrics.qualityGrade}`);
-    console.log(`   - Was Optimized: ${enhancedResult.wasOptimized}`);
-    console.log(`   - Iterations: ${enhancedResult.iterations}`);
+    console.log(`✅ Enhanced destination selection complete with ${destinationResult.iterations} iterations`);
+    console.log(`📈 Balance Grade: ${destinationResult.balanceMetrics.qualityGrade}, Score: ${destinationResult.balanceMetrics.overallScore}/100`);
 
-    // Build daily segments from selected destinations
+    // Build segments from optimized destinations
     const dailySegments = SegmentBuilderService.buildSegmentsFromDestinations(
       startStop,
-      enhancedResult.destinations,
-      enhancedStops,
+      destinationResult.destinations,
+      availableStops,
       totalDistance,
       driveTimeTargets,
-      enhancedResult.balanceMetrics
+      destinationResult.balanceMetrics
     );
 
-    console.log(`✅ Created ${dailySegments.length} balanced daily segments`);
+    console.log(`🏁 Created ${dailySegments.length} balanced daily segments`);
     return dailySegments;
-  }
-
-  /**
-   * Legacy method for backward compatibility - now uses enhanced approach
-   */
-  static createSmartDailySegments(
-    startStop: TripStop,
-    endStop: TripStop,
-    enhancedStops: TripStop[],
-    tripDays: number,
-    totalDistance: number
-  ): DailySegment[] {
-    return this.createBalancedDailySegments(startStop, endStop, enhancedStops, tripDays, totalDistance);
   }
 }

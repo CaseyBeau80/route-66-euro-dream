@@ -35,7 +35,7 @@ export interface TripPlan {
 
 export class TripPlanBuilder {
   /**
-   * Build a complete trip plan with advanced drive time balancing
+   * Build a complete trip plan with enhanced drive time balancing
    */
   static buildTripPlan(
     startStop: TripStop,
@@ -66,7 +66,7 @@ export class TripPlanBuilder {
     
     console.log(`🛤️ Enhanced route: ${enhancedStops.length} diverse stops selected with destination city priority`);
 
-    // Plan daily segments with advanced drive time balancing
+    // Create balanced daily segments using the new enhanced system
     const dailySegments = DailySegmentCreator.createBalancedDailySegments(
       startStop,
       endStop,

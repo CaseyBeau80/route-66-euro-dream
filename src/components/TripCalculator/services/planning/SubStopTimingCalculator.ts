@@ -1,66 +1,106 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { StopEnhancementService } from './StopEnhancementService';
 
 export interface SubStopTiming {
-  fromStop: TripStop;
-  toStop: TripStop;
-  distanceMiles: number;
-  driveTimeHours: number;
+  stop: TripStop;
+  distanceFromStart: number;
+  cumulativeDriveTime: number;
+  estimatedArrival: string;
+  recommendedStayDuration: number;
 }
 
 export class SubStopTimingCalculator {
   /**
-   * Calculate sub-stop timings with enhanced validation
+   * Calculate valid sub-stop timings for a segment
    */
   static calculateValidSubStopTimings(
     startStop: TripStop,
     endStop: TripStop,
-    segmentStops: TripStop[]
+    stops: TripStop[]
   ): SubStopTiming[] {
+    if (stops.length === 0) return [];
+
     const timings: SubStopTiming[] = [];
-    const fullPath = [startStop, ...segmentStops, endStop];
-    
-    for (let i = 0; i < fullPath.length - 1; i++) {
-      const fromStop = fullPath[i];
-      const toStop = fullPath[i + 1];
-      
-      // Enhanced validation - skip if invalid segment
-      if (!StopEnhancementService.isValidSegment(fromStop, toStop, 5)) {
-        console.log(`⚠️ Skipping invalid segment: ${fromStop.name} to ${toStop.name}`);
-        continue;
-      }
-      
-      const distance = DistanceCalculationService.calculateDistance(
-        fromStop.latitude, fromStop.longitude,
-        toStop.latitude, toStop.longitude
+    let cumulativeDistance = 0;
+    let cumulativeDriveTime = 0;
+    let currentStop = startStop;
+
+    // Add each stop along the route
+    for (const stop of stops) {
+      const segmentDistance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
       );
       
-      // Skip segments that are too short
-      if (distance < 5) {
-        console.log(`⚠️ Skipping too short segment: ${distance.toFixed(1)} miles`);
-        continue;
-      }
-      
-      const driveTime = distance / 50; // 50 mph average for more realistic timing
-      
+      const segmentDriveTime = segmentDistance / 50; // 50 mph average
+      cumulativeDistance += segmentDistance;
+      cumulativeDriveTime += segmentDriveTime;
+
+      // Calculate estimated arrival time (starting at 8 AM)
+      const startHour = 8;
+      const arrivalHour = startHour + cumulativeDriveTime;
+      const estimatedArrival = this.formatTime(arrivalHour);
+
+      // Determine recommended stay duration based on stop type
+      const stayDuration = this.calculateStayDuration(stop);
+
       timings.push({
-        fromStop,
-        toStop,
-        distanceMiles: Math.round(distance * 10) / 10,
-        driveTimeHours: Math.round(driveTime * 10) / 10
+        stop,
+        distanceFromStart: cumulativeDistance,
+        cumulativeDriveTime,
+        estimatedArrival,
+        recommendedStayDuration: stayDuration
       });
+
+      currentStop = stop;
     }
-    
+
     return timings;
   }
 
   /**
-   * Calculate total drive time from timings
+   * Calculate total drive time including sub-stops
    */
-  static calculateTotalDriveTime(timings: SubStopTiming[]): number {
-    const totalTime = timings.reduce((total, timing) => total + timing.driveTimeHours, 0);
-    return totalTime > 0 ? totalTime : 0;
+  static calculateTotalDriveTime(subStopTimings: SubStopTiming[]): number {
+    if (subStopTimings.length === 0) return 0;
+    
+    const lastTiming = subStopTimings[subStopTimings.length - 1];
+    return lastTiming.cumulativeDriveTime;
+  }
+
+  /**
+   * Format time in 12-hour format
+   */
+  private static formatTime(hour: number): string {
+    const wholeHour = Math.floor(hour);
+    const minutes = Math.round((hour - wholeHour) * 60);
+    
+    let displayHour = wholeHour;
+    const period = displayHour >= 12 ? 'PM' : 'AM';
+    
+    if (displayHour > 12) displayHour -= 12;
+    if (displayHour === 0) displayHour = 12;
+    
+    const minuteString = minutes.toString().padStart(2, '0');
+    return `${displayHour}:${minuteString} ${period}`;
+  }
+
+  /**
+   * Calculate recommended stay duration based on stop type
+   */
+  private static calculateStayDuration(stop: TripStop): number {
+    switch (stop.category) {
+      case 'destination_city':
+        return 2.0; // 2 hours for destination cities
+      case 'attraction':
+        return 1.5; // 1.5 hours for attractions
+      case 'historic_site':
+        return 1.0; // 1 hour for historic sites
+      case 'drive_in_theater':
+        return 0.5; // 30 minutes for drive-ins (quick stop)
+      default:
+        return 1.0; // 1 hour default
+    }
   }
 }
