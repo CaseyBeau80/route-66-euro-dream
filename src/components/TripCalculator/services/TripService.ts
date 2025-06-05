@@ -20,82 +20,110 @@ export class TripService {
     // Generate a unique share code
     const shareCode = this.generateShareCode();
     
-    const { data, error } = await supabase
-      .from('trips')
-      .insert({
-        title: title || tripPlan.title,
-        description: description,
-        trip_data: tripPlan as any, // Cast to any to satisfy Json type requirement
-        share_code: shareCode,
-        view_count: 0
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .insert({
+          title: title || tripPlan.title,
+          description: description,
+          trip_data: tripPlan as any, // Cast to any to satisfy Json type requirement
+          share_code: shareCode,
+          view_count: 0
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('❌ Error saving trip:', error);
-      throw new Error(`Failed to save trip: ${error.message}`);
+      if (error) {
+        console.error('❌ Error saving trip:', error);
+        throw new Error(`Failed to save trip: ${error.message}`);
+      }
+
+      console.log('✅ Trip saved successfully:', data);
+      return shareCode;
+    } catch (error) {
+      console.error('❌ Unexpected error saving trip:', error);
+      throw new Error('Failed to save trip to database');
     }
-
-    console.log('✅ Trip saved successfully:', data);
-    return shareCode;
   }
 
   static async loadTripByShareCode(shareCode: string): Promise<SavedTrip> {
     console.log('📥 Loading trip by share code:', shareCode);
 
-    const { data, error } = await supabase
-      .from('trips')
-      .select('*')
-      .eq('share_code', shareCode)
-      .single();
-
-    if (error) {
-      console.error('❌ Error loading trip:', error);
-      throw new Error(`Failed to load trip: ${error.message}`);
+    if (!shareCode || shareCode.length !== 8) {
+      throw new Error('Invalid share code format');
     }
 
-    if (!data) {
-      throw new Error('Trip not found');
-    }
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('share_code', shareCode)
+        .single();
 
-    console.log('✅ Trip loaded successfully:', data);
-    
-    // Type assertion to convert from database format to our interface
-    return {
-      ...data,
-      trip_data: data.trip_data as unknown as TripPlan
-    } as SavedTrip;
+      if (error) {
+        console.error('❌ Error loading trip:', error);
+        throw new Error(`Failed to load trip: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Trip not found');
+      }
+
+      console.log('✅ Trip loaded successfully:', data);
+      
+      // Safe type assertion with validation
+      if (!data.trip_data || typeof data.trip_data !== 'object') {
+        throw new Error('Invalid trip data format');
+      }
+      
+      return {
+        ...data,
+        trip_data: data.trip_data as unknown as TripPlan
+      } as SavedTrip;
+    } catch (error) {
+      console.error('❌ Unexpected error loading trip:', error);
+      throw error instanceof Error ? error : new Error('Failed to load trip');
+    }
   }
 
   static async incrementViewCount(shareCode: string): Promise<void> {
     console.log('👁️ Incrementing view count for:', shareCode);
 
-    // First get the current view count
-    const { data: currentTrip, error: fetchError } = await supabase
-      .from('trips')
-      .select('view_count')
-      .eq('share_code', shareCode)
-      .single();
-
-    if (fetchError) {
-      console.error('❌ Error fetching current view count:', fetchError);
+    if (!shareCode) {
+      console.warn('⚠️ No share code provided for view count increment');
       return;
     }
 
-    // Then increment it
-    const { error } = await supabase
-      .from('trips')
-      .update({ 
-        view_count: (currentTrip?.view_count || 0) + 1
-      })
-      .eq('share_code', shareCode);
+    try {
+      // First get the current view count
+      const { data: currentTrip, error: fetchError } = await supabase
+        .from('trips')
+        .select('view_count')
+        .eq('share_code', shareCode)
+        .single();
 
-    if (error) {
-      console.error('❌ Error incrementing view count:', error);
-      // Don't throw error for view count increment failures
-    } else {
-      console.log('✅ View count incremented');
+      if (fetchError) {
+        console.error('❌ Error fetching current view count:', fetchError);
+        return;
+      }
+
+      // Then increment it
+      const { error } = await supabase
+        .from('trips')
+        .update({ 
+          view_count: (currentTrip?.view_count || 0) + 1
+        })
+        .eq('share_code', shareCode);
+
+      if (error) {
+        console.error('❌ Error incrementing view count:', error);
+        // Don't throw error for view count increment failures
+      } else {
+        console.log('✅ View count incremented');
+      }
+    } catch (error) {
+      console.error('❌ Unexpected error incrementing view count:', error);
+      // Don't throw error for view count failures
     }
   }
 
@@ -110,6 +138,9 @@ export class TripService {
   }
 
   static getShareUrl(shareCode: string): string {
+    if (!shareCode) {
+      throw new Error('Share code is required to generate URL');
+    }
     return `${window.location.origin}/trip/${shareCode}`;
   }
 }

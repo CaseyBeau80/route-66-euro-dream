@@ -11,7 +11,7 @@ export const useEnhancedTripCalculation = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 0,
-    dailyDrivingLimit: [300]
+    dailyDrivingLimit: 300 // Single number instead of array
   });
   
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
@@ -21,16 +21,52 @@ export const useEnhancedTripCalculation = () => {
   // Get available end locations based on start location
   const availableEndLocations = route66Towns.filter(town => town.name !== formData.startLocation);
 
+  // Validate form data
+  const validateFormData = (): boolean => {
+    if (!formData.startLocation) {
+      toast({
+        title: "Missing Start Location",
+        description: "Please select where you want to start your Route 66 journey.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.endLocation) {
+      toast({
+        title: "Missing Destination",
+        description: "Please select where you want to end your Route 66 journey.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (formData.travelDays <= 0 || formData.travelDays > 30) {
+      toast({
+        title: "Invalid Trip Duration",
+        description: "Please enter a trip duration between 1 and 30 days.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (formData.startLocation === formData.endLocation) {
+      toast({
+        title: "Invalid Route",
+        description: "Start and end locations cannot be the same.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   // Calculate intelligent trip plan
   const calculateTrip = async () => {
     console.log('🔄 Enhanced trip calculation started with:', formData);
     
-    if (!formData.startLocation || !formData.endLocation || formData.travelDays <= 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please select start location, end location, and number of travel days.",
-        variant: "destructive"
-      });
+    if (!validateFormData()) {
       return;
     }
 

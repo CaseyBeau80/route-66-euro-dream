@@ -11,5 +11,5 @@ export interface TripFormData {
   startLocation: string;
   endLocation: string;
   travelDays: number;
-  dailyDrivingLimit: number[];
+  dailyDrivingLimit: number; // Changed from number[] to number for simplicity
 }

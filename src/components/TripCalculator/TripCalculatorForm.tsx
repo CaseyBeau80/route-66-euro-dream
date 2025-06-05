@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Route66Town } from '@/types/route66';
 import { TripFormData } from './types/tripCalculator';
 import { Calculator, Loader2 } from 'lucide-react';
@@ -98,7 +97,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       {/* Travel Days */}
       <div className="space-y-2">
         <Label className="text-route66-vintage-brown font-travel font-bold">
-          Trip Duration: {formData.travelDays} {formData.travelDays === 1 ? 'day' : 'days'}
+          Trip Duration: {formData.travelDays || 0} {formData.travelDays === 1 ? 'day' : 'days'}
         </Label>
         <div className="px-3">
           <Input
@@ -106,7 +105,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             min="1"
             max="30"
             value={formData.travelDays || ''}
-            onChange={(e) => setFormData({ ...formData, travelDays: parseInt(e.target.value) || 0 })}
+            onChange={(e) => {
+              const days = parseInt(e.target.value) || 0;
+              setFormData({ ...formData, travelDays: days });
+            }}
             placeholder="Enter number of days (1-30)"
             className="border-route66-tan focus:border-route66-orange"
           />
