@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, MapPin } from 'lucide-react';
 import { SubStopTiming } from '../services/Route66TripPlannerService';
 
 interface SubStopTimingCardProps {
@@ -19,19 +19,32 @@ const formatDriveTime = (hours: number): string => {
 
 const SubStopTimingCard: React.FC<SubStopTimingCardProps> = ({ timing }) => {
   return (
-    <div className="flex items-center gap-2 p-2 bg-route66-vintage-beige rounded border border-route66-tan text-xs">
-      <div className="flex-1 text-route66-vintage-brown font-semibold">
-        {timing.fromStop.name}
+    <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-route66-vintage-brown shadow-sm">
+      {/* From Location */}
+      <div className="flex items-center gap-1 flex-1 min-w-0">
+        <MapPin className="h-3 w-3 text-route66-vintage-brown flex-shrink-0" />
+        <span className="text-xs font-semibold text-route66-vintage-brown truncate">
+          {timing.fromStop.name}
+        </span>
       </div>
-      <div className="flex items-center gap-1 text-route66-vintage-brown">
-        <ArrowRight className="h-3 w-3" />
-        <span className="font-mono">{timing.distanceMiles}mi</span>
-        <span className="text-route66-text-muted">•</span>
-        <Clock className="h-3 w-3" />
-        <span className="font-mono">{formatDriveTime(timing.driveTimeHours)}</span>
+      
+      {/* Drive Info */}
+      <div className="flex items-center gap-2 px-2 py-1 bg-route66-vintage-beige rounded border border-route66-tan">
+        <ArrowRight className="h-3 w-3 text-route66-vintage-brown" />
+        <div className="flex items-center gap-1 text-xs text-route66-vintage-brown">
+          <span className="font-mono font-bold">{timing.distanceMiles}mi</span>
+          <span className="text-route66-text-muted">•</span>
+          <Clock className="h-3 w-3" />
+          <span className="font-mono font-bold">{formatDriveTime(timing.driveTimeHours)}</span>
+        </div>
       </div>
-      <div className="flex-1 text-right text-route66-vintage-brown font-semibold">
-        {timing.toStop.name}
+      
+      {/* To Location */}
+      <div className="flex items-center gap-1 flex-1 min-w-0 justify-end">
+        <span className="text-xs font-semibold text-route66-vintage-brown truncate text-right">
+          {timing.toStop.name}
+        </span>
+        <MapPin className="h-3 w-3 text-route66-vintage-brown flex-shrink-0" />
       </div>
     </div>
   );

@@ -78,10 +78,13 @@ export class TripPlanBuilder {
       const startCityDisplay = CityDisplayService.getCityDisplayName(currentStop);
       const endCityDisplay = CityDisplayService.getCityDisplayName(targetStop);
 
-      // Calculate sub-stop timings - THIS IS THE KEY FIX
+      // Calculate sub-stop timings for this specific segment
       const subStopTimings = this.calculateSubStopTimings(currentStop, targetStop, segmentStops);
       
       console.log(`📅 Day ${day}: ${startCityDisplay} to ${endCityDisplay}, ${Math.round(segmentDistance)} miles, ${segmentStops.length} stops, ${subStopTimings.length} sub-timings`);
+
+      // Calculate total drive time for this segment
+      const totalSegmentDriveTime = subStopTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
 
       dailySegments.push({
         day,
@@ -90,8 +93,8 @@ export class TripPlanBuilder {
         endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
-        driveTimeHours: Math.round((segmentDistance / 55) * 10) / 10, // Assuming 55 mph average
-        subStopTimings // Make sure this is included
+        driveTimeHours: totalSegmentDriveTime > 0 ? totalSegmentDriveTime : Math.round((segmentDistance / 55) * 10) / 10,
+        subStopTimings: subStopTimings
       });
 
       // Remove used stops from remaining
@@ -126,10 +129,10 @@ export class TripPlanBuilder {
   ): SubStopTiming[] {
     const timings: SubStopTiming[] = [];
     
-    // Create the full journey path: start -> segmentStops -> end
+    // Always create the full journey path: start -> segmentStops -> end
     const fullPath = [startStop, ...segmentStops, endStop];
     
-    console.log(`🚗 Calculating sub-stop timings for path with ${fullPath.length} stops`);
+    console.log(`🚗 Calculating sub-stop timings for ${fullPath.length} stops:`, fullPath.map(s => s.name));
     
     // Calculate timing between each consecutive pair
     for (let i = 0; i < fullPath.length - 1; i++) {
@@ -155,7 +158,7 @@ export class TripPlanBuilder {
       timings.push(timing);
     }
     
-    console.log(`✅ Generated ${timings.length} sub-stop timings`);
+    console.log(`✅ Generated ${timings.length} sub-stop timings for this segment`);
     return timings;
   }
 }

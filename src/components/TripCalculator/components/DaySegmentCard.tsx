@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock, Route } from 'lucide-react';
 import { DailySegment } from '../services/Route66TripPlannerService';
 import SubStopTimingCard from './SubStopTimingCard';
 import StopCard from './StopCard';
@@ -24,6 +24,8 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment }) => {
   console.log('📅 Rendering DaySegmentCard:', segment);
   console.log('🚗 Sub-stop timings:', segment.subStopTimings);
 
+  const hasValidTimings = segment.subStopTimings && Array.isArray(segment.subStopTimings) && segment.subStopTimings.length > 0;
+
   return (
     <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
       <CardHeader className="pb-3">
@@ -43,25 +45,31 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Drive Time Breakdown - ALWAYS show if we have timings */}
-          {segment.subStopTimings && segment.subStopTimings.length > 0 && (
+          {/* Route Progression - Show drive times between stops */}
+          {hasValidTimings ? (
             <div>
-              <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 text-sm">
-                Drive Time Breakdown ({segment.subStopTimings.length} segments)
+              <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 text-sm flex items-center gap-1">
+                <Route className="h-4 w-4" />
+                Route Progression ({segment.subStopTimings.length} segments)
               </h4>
               <div className="space-y-1">
                 {segment.subStopTimings.map((timing, index) => (
-                  <SubStopTimingCard key={`${timing.fromStop.id}-${timing.toStop.id}-${index}`} timing={timing} />
+                  <SubStopTimingCard 
+                    key={`timing-${segment.day}-${index}-${timing.fromStop.id}-${timing.toStop.id}`} 
+                    timing={timing} 
+                  />
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Debug info for troubleshooting */}
-          {(!segment.subStopTimings || segment.subStopTimings.length === 0) && (
-            <div className="p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-              <strong>Debug:</strong> No sub-stop timings available. 
-              Timings array: {segment.subStopTimings ? `length ${segment.subStopTimings.length}` : 'null/undefined'}
+          ) : (
+            <div className="p-3 bg-route66-vintage-yellow rounded border border-route66-vintage-brown">
+              <div className="flex items-center gap-2 text-sm text-route66-vintage-brown">
+                <Route className="h-4 w-4" />
+                <span className="font-travel font-bold">Direct Route:</span>
+                <span>{segment.startCity} → {segment.endCity}</span>
+                <span className="text-route66-text-muted">•</span>
+                <span>{formatDriveTime(segment.driveTimeHours)}</span>
+              </div>
             </div>
           )}
 
