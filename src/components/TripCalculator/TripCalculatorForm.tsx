@@ -45,12 +45,50 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
 
   const { costData, setCostData, costEstimate } = useCostEstimator(mockTripPlan);
 
+  // Enhanced form validation
+  const isFormValid = Boolean(
+    formData.startLocation && 
+    formData.endLocation && 
+    formData.travelDays && 
+    formData.travelDays > 0 &&
+    formData.startLocation !== formData.endLocation
+  );
+
+  const handleCalculateClick = () => {
+    console.log('🚗 Calculate button clicked', { formData, isFormValid, isCalculateDisabled });
+    
+    if (!isFormValid) {
+      console.log('⚠️ Form validation failed', {
+        startLocation: formData.startLocation,
+        endLocation: formData.endLocation,
+        travelDays: formData.travelDays,
+        isFormValid
+      });
+      return;
+    }
+
+    if (isCalculating) {
+      console.log('⚠️ Already calculating, ignoring click');
+      return;
+    }
+
+    try {
+      onCalculate();
+    } catch (error) {
+      console.error('❌ Error during trip calculation:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center mb-6">
-        <Button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 text-lg font-semibold rounded-lg">
-          Start Planning Your Trip
+        <Button 
+          onClick={handleCalculateClick}
+          disabled={!isFormValid || isCalculating}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 text-lg font-semibold rounded-lg"
+        >
+          {isCalculating ? 'Planning...' : 'Start Planning Your Trip'}
         </Button>
       </div>
 
@@ -61,7 +99,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
           <Label className="text-sm font-medium">Starting City</Label>
           <Select 
             value={formData.startLocation} 
-            onValueChange={(value) => setFormData({ ...formData, startLocation: value })}
+            onValueChange={(value) => {
+              console.log('🏁 Start location changed:', value);
+              setFormData({ ...formData, startLocation: value });
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose your starting point" />
@@ -81,7 +122,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
           <Label className="text-sm font-medium">Destination City</Label>
           <Select 
             value={formData.endLocation} 
-            onValueChange={(value) => setFormData({ ...formData, endLocation: value })}
+            onValueChange={(value) => {
+              console.log('🎯 End location changed:', value);
+              setFormData({ ...formData, endLocation: value });
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose your destination" />
@@ -117,7 +161,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             <Calendar
               mode="single"
               selected={formData.tripStartDate}
-              onSelect={(date) => setFormData({ ...formData, tripStartDate: date })}
+              onSelect={(date) => {
+                console.log('📅 Trip start date changed:', date);
+                setFormData({ ...formData, tripStartDate: date });
+              }}
               disabled={(date) => date < new Date()}
               initialFocus
               className="p-3 pointer-events-auto"
@@ -137,7 +184,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
           min="1"
           max="30"
           value={formData.travelDays || ''}
-          onChange={(e) => setFormData({ ...formData, travelDays: parseInt(e.target.value) || 0 })}
+          onChange={(e) => {
+            const days = parseInt(e.target.value) || 0;
+            console.log('⏱️ Travel days changed:', days);
+            setFormData({ ...formData, travelDays: days });
+          }}
           placeholder="Enter number of days (1-30)"
           className="w-full"
         />
@@ -193,13 +244,26 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
 
       {/* Plan Button */}
       <Button
-        onClick={onCalculate}
-        disabled={isCalculateDisabled || isCalculating}
+        onClick={handleCalculateClick}
+        disabled={!isFormValid || isCalculating}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-lg font-semibold rounded-lg flex items-center justify-center gap-2"
       >
         <MapPin className="h-5 w-5" />
         {isCalculating ? 'Planning Your Route 66 Trip...' : 'Plan My Route 66 Trip'}
       </Button>
+
+      {/* Form Validation Helper */}
+      {!isFormValid && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+          <p className="text-sm text-yellow-800">
+            Please fill in: 
+            {!formData.startLocation && ' Starting City'}
+            {!formData.endLocation && ' Destination City'}
+            {!formData.travelDays && ' Trip Duration'}
+            {formData.startLocation === formData.endLocation && ' Different start and end cities'}
+          </p>
+        </div>
+      )}
 
       {/* Smart Planning Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">

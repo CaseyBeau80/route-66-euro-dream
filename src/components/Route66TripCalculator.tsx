@@ -20,11 +20,23 @@ const Route66TripCalculator: React.FC = () => {
   } = useEnhancedTripCalculation();
 
   const handleNewTrip = () => {
+    console.log('🔄 Starting new trip calculation');
     resetTrip();
   };
 
   const handleTripCalculated = (newTripPlan: TripPlan) => {
     console.log('🧮 New trip calculated:', newTripPlan);
+  };
+
+  const handleCalculateTrip = async () => {
+    console.log('🚗 Calculate trip handler called', { formData });
+    
+    try {
+      await calculateTrip();
+      console.log('✅ Trip calculation completed successfully');
+    } catch (error) {
+      console.error('❌ Trip calculation failed:', error);
+    }
   };
 
   return (
@@ -34,7 +46,7 @@ const Route66TripCalculator: React.FC = () => {
           <TripCalculatorForm
             formData={formData}
             setFormData={setFormData}
-            onCalculate={calculateTrip}
+            onCalculate={handleCalculateTrip}
             availableEndLocations={availableEndLocations}
             isCalculateDisabled={isCalculateDisabled}
             isCalculating={isCalculating}
