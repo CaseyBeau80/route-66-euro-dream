@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from '../types/tripCalculator';
@@ -20,6 +19,14 @@ export const useEnhancedTripCalculation = () => {
 
   // Get available end locations based on start location
   const availableEndLocations = route66Towns.filter(town => town.name !== formData.startLocation);
+
+  // Reset function to clear trip plan and allow new planning
+  const resetTrip = () => {
+    setTripPlan(null);
+    setShareUrl(null);
+    // Keep form data so users can easily modify and plan again
+    console.log('🔄 Trip reset - ready for new planning');
+  };
 
   // Validate form data
   const validateFormData = (): boolean => {
@@ -120,6 +127,7 @@ export const useEnhancedTripCalculation = () => {
     shareUrl,
     availableEndLocations,
     calculateTrip,
+    resetTrip,
     isCalculating,
     isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays <= 0
   };

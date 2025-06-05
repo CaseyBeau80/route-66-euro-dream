@@ -13,6 +13,7 @@ const Route66TripCalculator: React.FC = () => {
     shareUrl,
     availableEndLocations,
     calculateTrip,
+    resetTrip,
     isCalculating,
     isCalculateDisabled
   } = useEnhancedTripCalculation();
@@ -33,9 +34,11 @@ const Route66TripCalculator: React.FC = () => {
             formData={formData}
             setFormData={setFormData}
             onCalculate={calculateTrip}
+            onReset={resetTrip}
             availableEndLocations={availableEndLocations}
             isCalculateDisabled={isCalculateDisabled}
             isCalculating={isCalculating}
+            showResetButton={!!tripPlan}
           />
         </CardContent>
       </Card>

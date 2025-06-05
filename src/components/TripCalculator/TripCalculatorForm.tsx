@@ -6,24 +6,28 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Route66Town } from '@/types/route66';
 import { TripFormData } from './types/tripCalculator';
-import { Calculator, Loader2 } from 'lucide-react';
+import { Calculator, Loader2, RotateCcw } from 'lucide-react';
 
 interface TripCalculatorFormProps {
   formData: TripFormData;
   setFormData: (data: TripFormData) => void;
   onCalculate: () => void;
+  onReset?: () => void;
   availableEndLocations: Route66Town[];
   isCalculateDisabled: boolean;
   isCalculating?: boolean;
+  showResetButton?: boolean;
 }
 
 const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   formData,
   setFormData,
   onCalculate,
+  onReset,
   availableEndLocations,
   isCalculateDisabled,
-  isCalculating = false
+  isCalculating = false,
+  showResetButton = false
 }) => {
   const route66Towns = [
     { latLng: [41.8781, -87.6298] as [number, number], name: "Chicago, IL" },
@@ -118,8 +122,9 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         </p>
       </div>
 
-      {/* Calculate Button */}
-      <div className="pt-4">
+      {/* Action Buttons */}
+      <div className="pt-4 space-y-3">
+        {/* Main Action Button */}
         <Button 
           onClick={onCalculate}
           disabled={isCalculateDisabled || isCalculating}
@@ -130,6 +135,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Planning Your Route 66 Adventure...
             </>
+          ) : showResetButton ? (
+            <>
+              <Calculator className="mr-2 h-5 w-5" />
+              Plan Another Trip
+            </>
           ) : (
             <>
               <Calculator className="mr-2 h-5 w-5" />
@@ -137,6 +147,18 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             </>
           )}
         </Button>
+
+        {/* Reset Button (shown when there's a trip plan) */}
+        {showResetButton && onReset && (
+          <Button 
+            onClick={onReset}
+            variant="outline"
+            className="w-full border-route66-border text-route66-text-primary hover:bg-route66-hover font-travel"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Start Over with New Cities
+          </Button>
+        )}
       </div>
 
       <div className="bg-route66-hover p-4 rounded-lg border border-route66-border">
