@@ -3,6 +3,7 @@ import React from 'react';
 import { GameState } from '../types';
 import { TriviaGameService } from '../services/TriviaGameService';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface GameResultsProps {
   gameState: GameState;
@@ -15,9 +16,73 @@ const GameResults: React.FC<GameResultsProps> = ({
   totalQuestions,
   onPlayAgain
 }) => {
+  const { toast } = useToast();
   const scoreMessage = TriviaGameService.getScoreMessage(gameState.score, totalQuestions);
   const badge = TriviaGameService.getAchievementBadge(gameState.score, totalQuestions);
   const percentage = Math.round((gameState.score / totalQuestions) * 100);
+
+  const handleShareScore = async () => {
+    const shareText = `I just scored ${gameState.score}/${totalQuestions} (${percentage}%) on the Route 66 Trivia Game! 🛣️ Can you beat my score?`;
+    
+    // Try Web Share API first if available
+    if (navigator.share && navigator.canShare) {
+      try {
+        await navigator.share({
+          title: 'Route 66 Trivia Game Score',
+          text: shareText,
+          url: window.location.href
+        });
+        
+        toast({
+          title: "Score Shared! 🎉",
+          description: "Thanks for sharing your Route 66 knowledge!",
+        });
+        return;
+      } catch (error) {
+        // If user cancels sharing, don't show error
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        // Fall through to clipboard fallback for other errors
+        console.log('Web Share API failed, falling back to clipboard');
+      }
+    }
+    
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast({
+        title: "Score Copied! 📋",
+        description: "Your score has been copied to clipboard. Paste it anywhere to share!",
+      });
+    } catch (clipboardError) {
+      // Final fallback - create a text selection
+      const textArea = document.createElement('textarea');
+      textArea.value = shareText;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        toast({
+          title: "Score Ready to Share! 📝",
+          description: "Your score text has been selected. Press Ctrl+C (or Cmd+C) to copy!",
+        });
+      } catch (execError) {
+        toast({
+          title: "Share Your Score Manually 🏆",
+          description: shareText,
+          duration: 8000,
+        });
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    }
+  };
 
   return (
     <div className="text-center space-y-6">
@@ -60,15 +125,7 @@ const GameResults: React.FC<GameResultsProps> = ({
           
           <Button
             variant="outline"
-            onClick={() => {
-              const shareText = `I just scored ${gameState.score}/${totalQuestions} on the Route 66 Trivia Game! Can you beat my score? 🛣️`;
-              if (navigator.share) {
-                navigator.share({ text: shareText });
-              } else {
-                navigator.clipboard.writeText(shareText);
-                alert('Score copied to clipboard!');
-              }
-            }}
+            onClick={handleShareScore}
             className="border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white px-8 py-3 rounded-lg font-bold text-lg"
           >
             📱 Share Score
