@@ -24,16 +24,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     
     if (showExplanation) {
       if (option === question.correctAnswer) {
-        return `${baseClass} border-green-500 bg-green-100 text-green-800`;
+        return `${baseClass} border-green-500 bg-green-100 text-green-800 ring-2 ring-green-300`;
       } else if (option === selectedAnswer) {
-        return `${baseClass} border-red-500 bg-red-100 text-red-800`;
+        return `${baseClass} border-red-500 bg-red-100 text-red-800 ring-2 ring-red-300`;
       } else {
         return `${baseClass} border-gray-300 bg-gray-100 text-gray-600`;
       }
     }
     
     if (option === selectedAnswer) {
-      return `${baseClass} border-route66-primary bg-blue-100 text-blue-800`;
+      return `${baseClass} border-route66-primary bg-blue-100 text-blue-800 ring-2 ring-blue-300`;
     }
     
     return `${baseClass} border-gray-300 bg-gray-100 text-gray-600`;
@@ -48,11 +48,26 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     return '';
   };
 
+  const getOptionLabel = (option: 'a' | 'b' | 'c') => {
+    if (showExplanation && option === question.correctAnswer) {
+      return 'CORRECT';
+    } else if (showExplanation && option === selectedAnswer && option !== question.correctAnswer) {
+      return 'YOUR CHOICE';
+    }
+    return '';
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-200">
-      {/* Question */}
+      {/* Question Header with Category Badge */}
       <div className="mb-6">
-        <h3 className="text-xl font-playfair font-semibold text-route66-text-primary mb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-bold uppercase">
+            {question.category}
+          </span>
+          <span className="text-sm text-gray-500 font-mono">ID: {question.id}</span>
+        </div>
+        <h3 className="text-xl font-playfair font-semibold text-route66-text-primary">
           {question.question}
         </h3>
       </div>
@@ -75,12 +90,33 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   </span>
                   <span>{value}</span>
                 </div>
-                <span className="text-xl">{getOptionIcon(option)}</span>
+                <div className="flex items-center gap-2">
+                  {getOptionLabel(option) && (
+                    <span className="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-700">
+                      {getOptionLabel(option)}
+                    </span>
+                  )}
+                  <span className="text-xl">{getOptionIcon(option)}</span>
+                </div>
               </div>
             </button>
           );
         })}
       </div>
+      
+      {/* Answer Summary (shown after selection) */}
+      {selectedAnswer && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="text-sm text-blue-800">
+            <strong>Your answer:</strong> {selectedAnswer.toUpperCase()} - {question.options[selectedAnswer]}
+          </div>
+          {showExplanation && (
+            <div className="text-sm text-blue-700 mt-1">
+              <strong>Correct answer:</strong> {question.correctAnswer.toUpperCase()} - {question.options[question.correctAnswer]}
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Explanation */}
       {showExplanation && (

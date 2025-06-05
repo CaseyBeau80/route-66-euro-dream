@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { GameSession } from './types';
 import { TriviaGameService } from './services/TriviaGameService';
@@ -6,6 +5,7 @@ import TriviaHeader from './components/TriviaHeader';
 import QuestionCard from './components/QuestionCard';
 import GameResults from './components/GameResults';
 import CactiGarden from './components/CactiGarden';
+import DebugPanel from './components/DebugPanel';
 import { Button } from '@/components/ui/button';
 
 const Route66TriviaGame: React.FC = () => {
@@ -23,7 +23,8 @@ const Route66TriviaGame: React.FC = () => {
     const updatedSession = TriviaGameService.selectAnswer(gameSession, option);
     setGameSession(updatedSession);
     
-    console.log(`🎯 Answer selected: ${option}, Correct: ${updatedSession.gameState.selectedAnswers[updatedSession.gameState.selectedAnswers.length - 1]?.isCorrect}`);
+    const currentAnswer = updatedSession.gameState.selectedAnswers[updatedSession.gameState.selectedAnswers.length - 1];
+    console.log(`🎯 Answer selected: ${option}, Correct: ${currentAnswer?.isCorrect}`);
   };
 
   const nextQuestion = () => {
@@ -89,6 +90,9 @@ const Route66TriviaGame: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Debug Panel */}
+        <DebugPanel gameSession={gameSession} />
       </section>
     );
   }
@@ -164,6 +168,9 @@ const Route66TriviaGame: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Debug Panel */}
+      <DebugPanel gameSession={gameSession} />
     </section>
   );
 };

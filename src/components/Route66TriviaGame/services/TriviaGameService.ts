@@ -1,5 +1,5 @@
 import { TriviaQuestion, GameSession, GameState } from '../types';
-import { triviaDatabase } from '../data/triviaDatabase';
+import { triviaDatabase, validateTriviaDatabase } from '../data/triviaDatabase';
 import { CactiRewardService } from './CactiRewardService';
 
 export class TriviaGameService {
@@ -9,8 +9,23 @@ export class TriviaGameService {
    * Create a new game session with shuffled questions
    */
   static createNewSession(): GameSession {
+    // Validate database before creating session
+    const validation = validateTriviaDatabase();
+    if (!validation.isValid) {
+      console.error('🚨 Trivia Database Validation Failed:', validation.errors);
+    } else {
+      console.log('✅ Trivia Database Validation Passed');
+    }
+
     const shuffledQuestions = this.shuffleQuestions();
     const selectedQuestions = shuffledQuestions.slice(0, this.QUESTIONS_PER_ROUND);
+    
+    console.log('🎮 New Game Session Created:');
+    console.log('Selected Questions:', selectedQuestions.map(q => ({
+      id: q.id,
+      question: q.question.substring(0, 50) + '...',
+      correctAnswer: q.correctAnswer
+    })));
     
     return {
       sessionId: this.generateSessionId(),
@@ -39,7 +54,7 @@ export class TriviaGameService {
   }
 
   /**
-   * Process answer selection
+   * Process answer selection with enhanced debugging
    */
   static selectAnswer(
     session: GameSession,
@@ -47,6 +62,17 @@ export class TriviaGameService {
   ): GameSession {
     const currentQuestion = session.questions[session.gameState.currentQuestionIndex];
     const isCorrect = selectedOption === currentQuestion.correctAnswer;
+    
+    // Enhanced debugging
+    console.log('🎯 Answer Selection Debug:');
+    console.log('Question ID:', currentQuestion.id);
+    console.log('Question:', currentQuestion.question);
+    console.log('Selected Option:', selectedOption);
+    console.log('Selected Text:', currentQuestion.options[selectedOption]);
+    console.log('Correct Answer:', currentQuestion.correctAnswer);
+    console.log('Correct Text:', currentQuestion.options[currentQuestion.correctAnswer]);
+    console.log('Is Correct:', isCorrect);
+    console.log('---');
     
     const updatedAnswers = [
       ...session.gameState.selectedAnswers,
@@ -64,6 +90,10 @@ export class TriviaGameService {
       ? CactiRewardService.updateForCorrectAnswer(session.gameState.cactiState)
       : session.gameState.cactiState;
     
+    console.log('📊 Updated Game State:');
+    console.log('New Score:', newScore);
+    console.log('Total Answered:', updatedAnswers.length);
+    
     return {
       ...session,
       gameState: {
@@ -77,6 +107,26 @@ export class TriviaGameService {
   }
 
   /**
+   * Validate a specific question for debugging
+   */
+  static validateQuestion(question: TriviaQuestion): { isValid: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    if (!question.correctAnswer || !['a', 'b', 'c'].includes(question.correctAnswer)) {
+      issues.push(`Invalid correct answer: "${question.correctAnswer}"`);
+    }
+    
+    if (!question.options[question.correctAnswer]) {
+      issues.push(`Correct answer option "${question.correctAnswer}" does not exist in options`);
+    }
+    
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
+  }
+
+  /**
    * Move to next question
    */
   static nextQuestion(session: GameSession): GameSession {
@@ -85,6 +135,8 @@ export class TriviaGameService {
     
     // Hide cacti reward when moving to next question
     const updatedCactiState = CactiRewardService.hideReward(session.gameState.cactiState);
+    
+    console.log('➡️ Moving to next question:', nextIndex + 1, 'of', session.questions.length);
     
     return {
       ...session,

@@ -11,7 +11,7 @@ export const triviaDatabase: TriviaQuestion[] = [
       c: 'Cactus Car Corral'
     },
     correctAnswer: 'b',
-    explanation: 'Correct! This Amarillo icon has been graffiti-tagged by road-trippers since 1974.',
+    explanation: 'Correct! Cadillac Ranch in Amarillo has been graffiti-tagged by road-trippers since 1974.',
     category: 'attractions'
   },
   {
@@ -28,14 +28,14 @@ export const triviaDatabase: TriviaQuestion[] = [
   },
   {
     id: '3',
-    question: 'Which movie helped popularize the phrase "Get your kicks on Route 66"?',
+    question: 'Which song helped popularize the phrase "Get your kicks on Route 66"?',
     options: {
-      a: 'Easy Rider',
-      b: 'Cars',
-      c: 'The song came first!'
+      a: 'A song by Nat King Cole',
+      b: 'A song from the movie Cars',
+      c: 'A song from Easy Rider'
     },
-    correctAnswer: 'c',
-    explanation: 'Nice! The song "Route 66" by Nat King Cole came before the movies and made the phrase famous.',
+    correctAnswer: 'a',
+    explanation: 'Nice! The song "Route 66" by Nat King Cole made the phrase famous in 1946.',
     category: 'pop-culture'
   },
   {
@@ -183,3 +183,36 @@ export const triviaDatabase: TriviaQuestion[] = [
     category: 'attractions'
   }
 ];
+
+// Validation function to check database integrity
+export function validateTriviaDatabase(): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  triviaDatabase.forEach((question, index) => {
+    // Check if question has all required fields
+    if (!question.id) errors.push(`Question ${index + 1}: Missing ID`);
+    if (!question.question) errors.push(`Question ${index + 1}: Missing question text`);
+    if (!question.options.a) errors.push(`Question ${index + 1}: Missing option A`);
+    if (!question.options.b) errors.push(`Question ${index + 1}: Missing option B`);
+    if (!question.options.c) errors.push(`Question ${index + 1}: Missing option C`);
+    if (!['a', 'b', 'c'].includes(question.correctAnswer)) {
+      errors.push(`Question ${index + 1}: Invalid correct answer "${question.correctAnswer}"`);
+    }
+    if (!question.explanation) errors.push(`Question ${index + 1}: Missing explanation`);
+    if (!question.category) errors.push(`Question ${index + 1}: Missing category`);
+  });
+  
+  // Check for duplicate IDs
+  const ids = triviaDatabase.map(q => q.id);
+  const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
+  if (duplicateIds.length > 0) {
+    errors.push(`Duplicate question IDs found: ${duplicateIds.join(', ')}`);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+console.log('🔍 Trivia Database Validation:', validateTriviaDatabase());
