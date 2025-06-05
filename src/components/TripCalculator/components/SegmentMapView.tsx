@@ -104,7 +104,7 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
     if (mapRef.current && isLoaded) {
       const bounds = getMapBounds();
       if (bounds) {
-        mapRef.current.fitBounds(bounds, { padding: 20 });
+        mapRef.current.fitBounds(bounds, 20);
       }
     }
   }, [isLoaded, getMapBounds]);
