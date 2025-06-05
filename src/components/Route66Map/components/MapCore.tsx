@@ -36,17 +36,17 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [routeCleanupComplete, setRouteCleanupComplete] = useState(false);
 
-  // Enhanced map load handler with nuclear cleanup
+  // Enhanced map load handler - REDUCED cleanup to preserve route
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: Enhanced map load with nuclear cleanup starting');
+    console.log('🗺️ MapCore: Enhanced map load starting with MINIMAL cleanup');
     
-    // Perform nuclear cleanup of any existing polylines
+    // MINIMAL cleanup - only clear obvious duplicates, preserve main route
     try {
-      await GlobalPolylineCleaner.cleanupAllPolylines(map);
-      console.log('✅ Nuclear polyline cleanup completed successfully');
+      console.log('🧹 Performing minimal cleanup to preserve main route');
+      // Don't perform nuclear cleanup here - let the route renderer handle it
       setRouteCleanupComplete(true);
     } catch (error) {
-      console.error('❌ Error during nuclear cleanup:', error);
+      console.error('❌ Error during minimal cleanup:', error);
       setRouteCleanupComplete(true); // Continue anyway
     }
     
@@ -60,7 +60,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render with SEPARATE TABLES:', {
+  console.log('🗺️ MapCore render - ROUTE PRESERVATION MODE:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
@@ -89,10 +89,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* SINGLE ROUTE SYSTEM: Only DestinationCitiesRoute66Renderer is active */}
-      {mapRef.current && isMapReady && routeCleanupComplete && (
+      {/* ROUTE SYSTEM: DestinationCitiesRoute66Renderer with IMMEDIATE rendering */}
+      {mapRef.current && isMapReady && (
         <DestinationCitiesRoute66Renderer
-          key={`single-destination-route-${isMapReady}-${routeCleanupComplete}`}
+          key={`route-renderer-${isMapReady}`}
           map={mapRef.current}
           isMapReady={isMapReady}
         />
