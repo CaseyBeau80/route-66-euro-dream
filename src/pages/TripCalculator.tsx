@@ -68,11 +68,6 @@ const TripCalculator = () => {
             
             {/* Trip Calculator Container */}
             <div className="bg-white rounded-xl shadow-lg border border-route66-border p-6">
-              <div className="text-center mb-6">
-                <button className="bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200">
-                  Start Planning Your Trip
-                </button>
-              </div>
               <Route66TripCalculator />
             </div>
           </div>
