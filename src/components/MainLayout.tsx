@@ -1,7 +1,6 @@
 
 import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
-import TravelResources from "./TravelResources";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -17,9 +16,6 @@ const MainLayout = ({ children, language, setLanguage }: MainLayoutProps) => {
       
       {/* Main Content */}
       {children}
-
-      {/* Travel Resources Section */}
-      <TravelResources language={language} />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import MapSection from "../components/MapSection";
 import CentennialSection from "../components/CentennialSection";
 import ComprehensiveListings from "../components/ComprehensiveListings";
 import TripPlannerSection from "../components/TripPlannerSection";
+import TravelResources from "../components/TravelResources";
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
@@ -50,6 +51,11 @@ const Index = () => {
       {/* Route 66 Adventures Section with fade-in */}
       <FadeInSection id="adventures" delay={600}>
         <ComprehensiveListings />
+      </FadeInSection>
+
+      {/* Travel Resources Section with fade-in - moved to bottom */}
+      <FadeInSection id="resources" delay={700}>
+        <TravelResources language={language} />
       </FadeInSection>
 
       {/* Back to Top Button */}
