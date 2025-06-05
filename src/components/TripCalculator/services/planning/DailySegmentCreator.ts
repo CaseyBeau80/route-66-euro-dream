@@ -6,6 +6,7 @@ import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancing
 import { EnhancedDestinationSelectionService } from './EnhancedDestinationSelectionService';
 import { SegmentBuilderService } from './SegmentBuilderService';
 import { SubStopTiming, SegmentTiming } from './SubStopTimingCalculator';
+import { StopValidationService } from './StopValidationService';
 
 export interface DailySegment {
   day: number;
@@ -27,7 +28,7 @@ export interface DailySegment {
 
 export class DailySegmentCreator {
   /**
-   * Create balanced daily segments using enhanced drive time balancing
+   * Create balanced daily segments using enhanced drive time balancing with validation
    */
   static createBalancedDailySegments(
     startStop: TripStop,
@@ -36,7 +37,14 @@ export class DailySegmentCreator {
     totalDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log('🎯 Creating balanced daily segments with enhanced drive time balancing');
+    console.log('🎯 Creating balanced daily segments with enhanced validation');
+    
+    // Validate and clean available stops first
+    const validatedStops = StopValidationService.validateAndDeduplicateStops(
+      availableStops,
+      startStop,
+      endStop
+    );
     
     // Calculate drive time targets
     const driveTimeTargets = DriveTimeBalancingService.calculateDriveTimeTargets(
@@ -52,7 +60,7 @@ export class DailySegmentCreator {
     const destinationResult = EnhancedDestinationSelectionService.selectBalancedDestinations(
       startStop,
       endStop,
-      availableStops,
+      validatedStops,
       driveTimeTargets
     );
 
@@ -63,13 +71,20 @@ export class DailySegmentCreator {
     const dailySegments = SegmentBuilderService.buildSegmentsFromDestinations(
       startStop,
       destinationResult.destinations,
-      availableStops,
+      validatedStops,
       totalDistance,
       driveTimeTargets,
       destinationResult.balanceMetrics
     );
 
-    console.log(`🏁 Created ${dailySegments.length} balanced daily segments`);
+    // Validate final segments for circular references
+    for (const segment of dailySegments) {
+      if (!StopValidationService.validateSegmentTimings(segment.subStopTimings)) {
+        console.error(`❌ Day ${segment.day} has circular reference issues`);
+      }
+    }
+
+    console.log(`🏁 Created ${dailySegments.length} validated balanced daily segments`);
     return dailySegments;
   }
 }

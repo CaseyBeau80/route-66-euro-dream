@@ -67,7 +67,7 @@ export class SubStopTimingCalculator {
   }
 
   /**
-   * Calculate segment timings for route progression display
+   * Calculate segment timings for route progression display - FIXED to prevent circular references
    */
   static calculateSegmentTimings(
     startStop: TripStop,
@@ -84,10 +84,22 @@ export class SubStopTimingCalculator {
       const fromStop = fullRoute[i];
       const toStop = fullRoute[i + 1];
       
+      // Prevent self-referencing segments
+      if (fromStop.id === toStop.id) {
+        console.warn(`⚠️ Skipping self-referencing segment: ${fromStop.name}`);
+        continue;
+      }
+      
       const distance = DistanceCalculationService.calculateDistance(
         fromStop.latitude, fromStop.longitude,
         toStop.latitude, toStop.longitude
       );
+      
+      // Validate distance is reasonable
+      if (distance <= 0 || distance > 1000) {
+        console.warn(`⚠️ Invalid distance ${distance}mi between ${fromStop.name} and ${toStop.name}`);
+        continue;
+      }
       
       const driveTime = distance / 50; // 50 mph average
       
@@ -99,6 +111,7 @@ export class SubStopTimingCalculator {
       });
     }
     
+    console.log(`📊 Created ${segmentTimings.length} valid segment timings`);
     return segmentTimings;
   }
 

@@ -26,17 +26,26 @@ export class SegmentBuilderService {
     let cumulativeDistance = 0;
     let remainingStops = [...allStops];
 
+    // Remove start and destinations from remaining stops to prevent duplication
+    remainingStops = remainingStops.filter(stop => 
+      stop.id !== startStop.id && !destinations.some(dest => dest.id === stop.id)
+    );
+
     for (let day = 1; day <= destinations.length; day++) {
       const dayDestination = destinations[day - 1];
       const driveTimeTarget = driveTimeTargets[day - 1];
 
-      // Calculate distances and timings
+      // Validate destination
+      if (!dayDestination || currentStop.id === dayDestination.id) {
+        console.warn(`⚠️ Invalid destination for day ${day}`);
+        continue;
+      }
+
+      // Calculate direct distance between current stop and destination
       const segmentDistance = DistanceCalculationService.calculateDistance(
         currentStop.latitude, currentStop.longitude,
         dayDestination.latitude, dayDestination.longitude
       );
-
-      const actualDriveTime = segmentDistance / 50; // 50 mph average
 
       // Select stops for this segment
       const segmentStops = SegmentStopSelector.selectStopsForSegment(
@@ -44,7 +53,7 @@ export class SegmentBuilderService {
         dayDestination, 
         remainingStops, 
         2,
-        actualDriveTime
+        segmentDistance / 50 // Pass expected drive time
       );
       
       // Calculate segment timings for route progression display
@@ -54,14 +63,25 @@ export class SegmentBuilderService {
         segmentStops
       );
       
-      // Calculate total drive time from segment timings
-      const totalSegmentDriveTime = segmentTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
-      const finalDriveTime = totalSegmentDriveTime > 0 ? totalSegmentDriveTime : actualDriveTime;
+      // Calculate actual drive time from segment timings
+      let totalSegmentDriveTime = 0;
+      if (segmentTimings.length > 0) {
+        totalSegmentDriveTime = segmentTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
+      } else {
+        // Fallback to direct calculation if no timings
+        totalSegmentDriveTime = segmentDistance / 50; // 50 mph average
+      }
+
+      // Validate drive time is reasonable
+      if (totalSegmentDriveTime > 15) {
+        console.warn(`⚠️ Excessive drive time ${totalSegmentDriveTime.toFixed(1)}h for day ${day}, using direct route`);
+        totalSegmentDriveTime = segmentDistance / 50;
+      }
 
       // Get drive time category for this segment
-      const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(finalDriveTime);
+      const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(totalSegmentDriveTime);
 
-      // Determine route section
+      // Calculate route section based on cumulative progress
       const progressPercent = RouteProgressCalculator.calculateCumulativeProgress(
         cumulativeDistance + segmentDistance, 
         totalDistance
@@ -81,7 +101,7 @@ export class SegmentBuilderService {
         endCity: endCityDisplay,
         approximateMiles: Math.round(segmentDistance),
         recommendedStops: segmentStops,
-        driveTimeHours: Math.round(finalDriveTime * 10) / 10,
+        driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
         subStopTimings: segmentTimings,
         routeSection,
         driveTimeCategory,
@@ -94,16 +114,10 @@ export class SegmentBuilderService {
         if (index > -1) remainingStops.splice(index, 1);
       });
 
-      // Remove the day destination from remaining stops if it's not the final destination
-      if (day < destinations.length) {
-        const destIndex = remainingStops.findIndex(s => s.id === dayDestination.id);
-        if (destIndex > -1) remainingStops.splice(destIndex, 1);
-      }
-
       currentStop = dayDestination;
       cumulativeDistance += segmentDistance;
       
-      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${finalDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops`);
+      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops`);
     }
 
     // Log final balance summary
