@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import StateHighlighting from './StateHighlighting';
-import UltraSmoothRouteRenderer from '../services/UltraSmoothRouteRenderer';
 import HiddenGemsContainer from './HiddenGemsContainer';
 import EnhancedClusteringContainer from './clustering/EnhancedClusteringContainer';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
+import { DestinationCitiesRouteRenderer } from '../services/DestinationCitiesRouteRenderer';
+import { useDestinationCities } from '../hooks/useDestinationCities';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapLayersProps {
@@ -22,16 +23,35 @@ const MapLayers: React.FC<MapLayersProps> = ({
   onDestinationClick,
   onAttractionClick
 }) => {
+  const { destinationCities, isLoading } = useDestinationCities();
+
+  useEffect(() => {
+    if (!isMapReady || !map || isLoading || destinationCities.length === 0) {
+      return;
+    }
+
+    console.log('🛣️ MapLayers: Creating Route 66 from destination cities (PRIMARY DATA SOURCE)');
+    
+    const routeRenderer = new DestinationCitiesRouteRenderer(map);
+    
+    // Create the flowing route from destination cities
+    routeRenderer.createRoute66FromDestinations(destinationCities)
+      .then(() => {
+        console.log('✅ Route 66 created successfully from destination cities');
+      })
+      .catch((error) => {
+        console.error('❌ Error creating Route 66 from destination cities:', error);
+      });
+
+    return () => {
+      routeRenderer.cleanup();
+    };
+  }, [map, isMapReady, destinationCities, isLoading]);
+
   if (!isMapReady) return null;
 
   return (
     <>
-      {/* Render the ultra-smooth Route 66 with ~2000 interpolated points */}
-      <UltraSmoothRouteRenderer 
-        map={map}
-        isMapReady={isMapReady}
-      />
-      
       {/* Render Hidden Gems with hover cards */}
       <HiddenGemsContainer 
         map={map}

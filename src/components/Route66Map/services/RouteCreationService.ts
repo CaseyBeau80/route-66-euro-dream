@@ -3,8 +3,6 @@ import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
 import { RouteGlobalState } from './RouteGlobalState';
 import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
-import { RouteOrderService } from './RouteOrderService';
-import { RouteValidationService } from './RouteValidationService';
 import { RouteBoundsService } from './RouteBoundsService';
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
@@ -18,53 +16,51 @@ export class RouteCreationService {
   }
 
   async createMainRoute(cities: DestinationCity[]): Promise<void> {
-    console.log('🛣️ Creating flowing Route 66 with Santa Fe branch integrated into main route');
+    console.log('🛣️ Creating flowing Route 66 from destination cities (single data source)');
     
     if (cities.length < 2) {
       console.warn('⚠️ Need at least 2 cities to create a route');
       return;
     }
 
-    // Sort cities - now Santa Fe and Albuquerque are part of main route
-    const { mainRouteCities, santaFeCity, albuquerqueCity } = RouteOrderService.categorizeAndSortCities(cities);
-    
-    console.log('🔧 DEBUG: Route categorization results for flowing branch:', {
-      mainRouteCitiesCount: mainRouteCities.length,
-      hasSantaFeInMain: mainRouteCities.some(c => c.name.toLowerCase().includes('santa fe')),
-      hasAlbuquerqueInMain: mainRouteCities.some(c => c.name.toLowerCase().includes('albuquerque')),
-      santaFeCityName: santaFeCity?.name,
-      albuquerqueCityName: albuquerqueCity?.name
+    console.log('🔧 DEBUG: Creating route from destination cities:', {
+      citiesCount: cities.length,
+      firstCity: cities[0]?.name,
+      lastCity: cities[cities.length - 1]?.name
     });
 
-    // Validate the flowing route
-    const isValid = RouteValidationService.validateRoute(mainRouteCities, santaFeCity);
-    if (!isValid) {
-      console.error('❌ Route validation failed');
-      return;
-    }
-
-    // Create single flowing main route path (includes Santa Fe branch)
-    const mainRoutePath = mainRouteCities.map(city => ({
+    // Create main route path from destination cities
+    const mainRoutePath = cities.map(city => ({
       lat: Number(city.latitude),
       lng: Number(city.longitude)
     }));
 
-    // Create flowing curved path for the entire route including Santa Fe branch
+    // Validate coordinates
+    const invalidCoords = mainRoutePath.filter(point => 
+      isNaN(point.lat) || isNaN(point.lng) || point.lat === 0 || point.lng === 0
+    );
+    
+    if (invalidCoords.length > 0) {
+      console.error('❌ Invalid coordinates found:', invalidCoords);
+      return;
+    }
+
+    // Create flowing curved path for the entire route
     const flowingMainPath = EnhancedPathInterpolationService.createFlowingCurvedPath(mainRoutePath, 25);
     
-    console.log(`🛣️ Creating flowing Route 66 with integrated Santa Fe branch: ${flowingMainPath.length} smooth points`);
+    console.log(`🛣️ Creating flowing Route 66 with ${flowingMainPath.length} smooth points`);
 
-    // Create main route polylines (includes the flowing Santa Fe branch)
+    // Create main route polylines
     await this.createMainPolylines(flowingMainPath);
 
     // Register with global state
     this.registerPolylinesWithGlobalState();
 
-    // Fit map to bounds (all cities are now in main route)
+    // Fit map to bounds
     RouteBoundsService.fitMapToBounds(this.map, mainRoutePath);
 
     RouteGlobalState.setRouteCreated(true);
-    console.log('✅ Flowing Route 66 created successfully with integrated Santa Fe branch');
+    console.log('✅ Flowing Route 66 created successfully from destination cities');
   }
 
   private async createMainPolylines(flowingMainPath: google.maps.LatLngLiteral[]): Promise<void> {
