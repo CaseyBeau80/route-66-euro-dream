@@ -60,9 +60,9 @@ export class CostCalculationService {
       const segmentGas = (segmentDistance / costData.mpg) * costData.gasPrice;
       totalGas += segmentGas;
 
-      // Accommodation costs (except last day)
+      // Accommodation costs (except last day) - multiply by number of rooms
       const accommodation = index < segments.length - 1 
-        ? this.ACCOMMODATION_RATES[costData.motelBudget] 
+        ? this.ACCOMMODATION_RATES[costData.motelBudget] * costData.numberOfRooms
         : 0;
       totalAccommodation += accommodation;
 

@@ -16,6 +16,7 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
     gasPrice: 3.50,
     mpg: 25,
     groupSize: 2,
+    numberOfRooms: 1,
     motelBudget: 'mid-range',
     mealBudget: 'mid-range',
     includeAttractions: true,
@@ -32,13 +33,13 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
     const totalGallons = totalDistance / costData.mpg;
     const gasCost = totalGallons * costData.gasPrice;
 
-    // Accommodation costs
+    // Accommodation costs (multiply by number of rooms)
     const motelRates = {
       'budget': 65,
       'mid-range': 120,
       'luxury': 250
     };
-    const accommodationCost = (tripDays - 1) * motelRates[costData.motelBudget]; // -1 because last night is at destination
+    const accommodationCost = (tripDays - 1) * motelRates[costData.motelBudget] * costData.numberOfRooms;
 
     // Meal costs
     const mealRates = {
@@ -68,7 +69,7 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
     // Create daily costs breakdown
     const dailyCosts: DailyCosts[] = tripPlan.dailySegments.map((segment, index) => {
       const dayGas = (segment.distance / costData.mpg) * costData.gasPrice;
-      const dayAccommodation = index < tripPlan.dailySegments.length - 1 ? motelRates[costData.motelBudget] : 0;
+      const dayAccommodation = index < tripPlan.dailySegments.length - 1 ? motelRates[costData.motelBudget] * costData.numberOfRooms : 0;
       const dayMeals = mealRates[costData.mealBudget] * costData.groupSize;
       const dayAttractions = costData.includeAttractions ? 30 * costData.groupSize : 0;
       const dayTolls = costData.includeTolls ? 8 : 0;

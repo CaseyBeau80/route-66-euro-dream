@@ -3,6 +3,7 @@ export interface CostEstimatorData {
   gasPrice: number;
   mpg: number;
   groupSize: number;
+  numberOfRooms: number;
   motelBudget: 'budget' | 'mid-range' | 'luxury';
   mealBudget: 'budget' | 'mid-range' | 'fine-dining';
   includeAttractions: boolean;

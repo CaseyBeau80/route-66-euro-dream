@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CostEstimatorData } from '../types/costEstimator';
-import { DollarSign, Car, Bed, Utensils, MapPin, Users } from 'lucide-react';
+import { DollarSign, Car, Bed, Utensils, MapPin, Users, Home } from 'lucide-react';
 
 interface CostEstimatorFormProps {
   costData: CostEstimatorData;
@@ -56,24 +56,39 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCost
           </div>
         </div>
 
-        {/* Group Size */}
+        {/* Group Settings */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-green-600" />
             <Label className="font-semibold text-green-800">Group Settings</Label>
           </div>
           
-          <div>
-            <Label className="text-sm text-green-700">Group Size</Label>
-            <Input
-              type="number"
-              min="1"
-              max="8"
-              value={costData.groupSize}
-              onChange={(e) => setCostData({ ...costData, groupSize: parseInt(e.target.value) || 1 })}
-              className="border-green-300 focus:border-green-500"
-              placeholder="2"
-            />
+          <div className="space-y-3">
+            <div>
+              <Label className="text-sm text-green-700">Group Size</Label>
+              <Input
+                type="number"
+                min="1"
+                max="8"
+                value={costData.groupSize}
+                onChange={(e) => setCostData({ ...costData, groupSize: parseInt(e.target.value) || 1 })}
+                className="border-green-300 focus:border-green-500"
+                placeholder="2"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-sm text-green-700">Number of Rooms</Label>
+              <Input
+                type="number"
+                min="1"
+                max="4"
+                value={costData.numberOfRooms}
+                onChange={(e) => setCostData({ ...costData, numberOfRooms: parseInt(e.target.value) || 1 })}
+                className="border-green-300 focus:border-green-500"
+                placeholder="1"
+              />
+            </div>
           </div>
         </div>
 
