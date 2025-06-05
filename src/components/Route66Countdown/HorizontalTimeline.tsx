@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, MapPin, Star, Trophy, Music, Tv, Motorcycle } from 'lucide-react';
+import { Calendar, MapPin, Star, Trophy, Music, Tv, Bike } from 'lucide-react';
 
 const HorizontalTimeline: React.FC = () => {
   const milestones = [
@@ -71,9 +71,9 @@ const HorizontalTimeline: React.FC = () => {
         />
       </div>
 
-      {/* Header with motorcycle icon */}
+      {/* Header with bike icon */}
       <div className="relative z-10 flex items-center justify-center gap-4 mb-12">
-        <Motorcycle className="w-8 h-8 text-red-600" />
+        <Bike className="w-8 h-8 text-red-600" />
         <h3 
           className="text-4xl font-bold text-center text-red-600"
           style={{
@@ -87,7 +87,7 @@ const HorizontalTimeline: React.FC = () => {
         >
           ROUTE 66 TIMELINE
         </h3>
-        <Motorcycle className="w-8 h-8 text-blue-600" />
+        <Bike className="w-8 h-8 text-blue-600" />
       </div>
       
       {/* Timeline Container */}
