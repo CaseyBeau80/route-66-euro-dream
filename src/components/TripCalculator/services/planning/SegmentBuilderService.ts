@@ -6,12 +6,12 @@ import { SubStopTimingCalculator, SegmentTiming } from './SubStopTimingCalculato
 import { RouteProgressCalculator } from './RouteProgressCalculator';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 import { BalanceQualityMetrics } from './BalanceQualityMetrics';
-import { SegmentStopSelector } from './SegmentStopSelector';
+import { EnhancedSegmentStopSelector } from './EnhancedSegmentStopSelector';
 import { DailySegment } from './DailySegmentCreator';
 
 export class SegmentBuilderService {
   /**
-   * Build daily segments from optimized destinations with accurate route section calculation
+   * Build daily segments from optimized destinations with enhanced stop curation
    */
   static buildSegmentsFromDestinations(
     startStop: TripStop,
@@ -53,14 +53,23 @@ export class SegmentBuilderService {
         dayDestination.latitude, dayDestination.longitude
       );
 
-      // Select stops for this segment
-      const segmentStops = SegmentStopSelector.selectStopsForSegment(
-        currentStop, 
-        dayDestination, 
-        remainingStops, 
-        2,
-        segmentDistance / 50 // Pass expected drive time
+      // Enhanced stop curation with intelligent categorization
+      const expectedDriveTime = segmentDistance / 50; // 50 mph average
+      const curatedSelection = EnhancedSegmentStopSelector.selectCuratedStopsForSegment(
+        currentStop,
+        dayDestination,
+        remainingStops,
+        expectedDriveTime,
+        {
+          maxStops: 4,
+          attractionRatio: 0.6, // 60% attractions, 40% waypoints/gems
+          preferDestinationCities: true,
+          diversityBonus: true
+        }
       );
+
+      // Combine all selected stops for backward compatibility
+      const segmentStops = EnhancedSegmentStopSelector.combineSelectedStops(curatedSelection);
       
       // Calculate segment timings for route progression display
       const segmentTimings = SubStopTimingCalculator.calculateSegmentTimings(
@@ -128,7 +137,7 @@ export class SegmentBuilderService {
 
       currentStop = dayDestination;
       
-      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} stops, ${routeSection}`);
+      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${totalSegmentDriveTime.toFixed(1)}h drive (${driveTimeCategory.category}), ${segmentStops.length} curated stops (${curatedSelection.attractions.length}A/${curatedSelection.waypoints.length}W/${curatedSelection.hiddenGems.length}H), ${routeSection}`);
     }
 
     // Validate we have the correct number of segments
