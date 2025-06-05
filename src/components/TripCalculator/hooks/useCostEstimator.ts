@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { CostEstimatorData, CostBreakdown } from '../types/costEstimator';
+import { CostEstimatorData, CostBreakdown, CostEstimate, DailyCosts } from '../types/costEstimator';
 
 interface MockTripPlan {
   totalDistance: number;
@@ -22,7 +22,7 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
     includeTolls: false
   });
 
-  const costEstimate = useMemo(() => {
+  const costEstimate = useMemo((): CostEstimate | null => {
     if (!tripPlan || tripPlan.dailySegments.length === 0) return null;
 
     const totalDistance = tripPlan.totalDistance;
@@ -65,10 +65,31 @@ export const useCostEstimator = (tripPlan: MockTripPlan) => {
       totalCost
     };
 
+    // Create daily costs breakdown
+    const dailyCosts: DailyCosts[] = tripPlan.dailySegments.map((segment, index) => {
+      const dayGas = (segment.distance / costData.mpg) * costData.gasPrice;
+      const dayAccommodation = index < tripPlan.dailySegments.length - 1 ? motelRates[costData.motelBudget] : 0;
+      const dayMeals = mealRates[costData.mealBudget] * costData.groupSize;
+      const dayAttractions = costData.includeAttractions ? 30 * costData.groupSize : 0;
+      const dayTolls = costData.includeTolls ? 8 : 0;
+
+      return {
+        day: segment.day,
+        city: `Day ${segment.day}`,
+        gas: dayGas,
+        accommodation: dayAccommodation,
+        meals: dayMeals,
+        attractions: dayAttractions,
+        tolls: dayTolls,
+        dailyTotal: dayGas + dayAccommodation + dayMeals + dayAttractions + dayTolls
+      };
+    });
+
     return {
       breakdown,
-      perPerson: totalCost / costData.groupSize,
-      perDay: totalCost / tripDays
+      dailyCosts,
+      perPersonCost: totalCost / costData.groupSize,
+      averageDailyCost: totalCost / tripDays
     };
   }, [tripPlan, costData]);
 
