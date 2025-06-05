@@ -5,10 +5,11 @@ import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
 import TemperatureDisplay from './TemperatureDisplay';
 import WeatherStats from './WeatherStats';
+import SeasonalReferenceCard from './SeasonalReferenceCard';
 
 interface ForecastWeatherDisplayProps {
   weather: ForecastWeatherData;
-  segmentDate?: Date;
+  segmentDate?: Date | null;
 }
 
 const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({ 
@@ -20,6 +21,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     : null;
 
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
+  const isCurrentAsReference = !weather.isActualForecast && segmentDate;
 
   return (
     <div className="space-y-3">
@@ -51,6 +53,15 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       {!weather.isActualForecast && (
         <div className="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">
           ⚠️ Showing current conditions as reference. Actual forecast not available for this date.
+        </div>
+      )}
+
+      {isCurrentAsReference && (
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <SeasonalReferenceCard 
+            segmentDate={segmentDate}
+            cityName={weather.cityName}
+          />
         </div>
       )}
     </div>

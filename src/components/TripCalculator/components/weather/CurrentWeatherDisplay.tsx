@@ -5,16 +5,20 @@ import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
 import TemperatureDisplay from './TemperatureDisplay';
 import WeatherStats from './WeatherStats';
+import SeasonalReferenceCard from './SeasonalReferenceCard';
 
 interface CurrentWeatherDisplayProps {
   weather: WeatherData;
-  segmentDate?: Date;
+  segmentDate?: Date | null;
 }
 
 const CurrentWeatherDisplay: React.FC<CurrentWeatherDisplayProps> = ({ 
   weather, 
   segmentDate 
 }) => {
+  // Check if this is a future date (used as reference)
+  const isFutureReference = segmentDate && segmentDate.getTime() > Date.now();
+  
   return (
     <div className="space-y-3">
       <WeatherStatusBadge type="current" />
@@ -38,6 +42,15 @@ const CurrentWeatherDisplay: React.FC<CurrentWeatherDisplayProps> = ({
         humidity={weather.humidity}
         windSpeed={weather.windSpeed}
       />
+
+      {isFutureReference && (
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <SeasonalReferenceCard 
+            segmentDate={segmentDate}
+            cityName={weather.cityName}
+          />
+        </div>
+      )}
     </div>
   );
 };
