@@ -15,10 +15,10 @@ interface DaySegmentCardProps {
 }
 
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustmentWarning = false }) => {
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
-  console.log('📅 Rendering Enhanced DaySegmentCard:', segment);
+  console.log('📅 Rendering Enhanced DaySegmentCard with Weather Widget:', segment);
 
   return (
     <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
@@ -32,11 +32,11 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ segment, showAdjustment
           {/* Dynamic Driving Time Message */}
           <DrivingTimeMessage driveTimeHours={segment.driveTimeHours} />
 
-          {/* Action Buttons and Expandable Content */}
+          {/* Action Buttons and Expandable Content - Weather instead of Map */}
           <SegmentActionButtons
             segment={segment}
-            isMapExpanded={isMapExpanded}
-            setIsMapExpanded={setIsMapExpanded}
+            isMapExpanded={isWeatherExpanded}
+            setIsMapExpanded={setIsWeatherExpanded}
             isDetailsExpanded={isDetailsExpanded}
             setIsDetailsExpanded={setIsDetailsExpanded}
           />

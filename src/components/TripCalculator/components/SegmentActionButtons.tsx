@@ -2,9 +2,9 @@
 import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
-import { Map, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
+import { Cloud, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import SegmentMapView from './SegmentMapView';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 import SegmentDetailsBreakdown from './SegmentDetailsBreakdown';
 
 interface SegmentActionButtonsProps {
@@ -17,8 +17,8 @@ interface SegmentActionButtonsProps {
 
 const SegmentActionButtons: React.FC<SegmentActionButtonsProps> = ({
   segment,
-  isMapExpanded,
-  setIsMapExpanded,
+  isMapExpanded: isWeatherExpanded,
+  setIsMapExpanded: setIsWeatherExpanded,
   isDetailsExpanded,
   setIsDetailsExpanded
 }) => {
@@ -26,16 +26,16 @@ const SegmentActionButtons: React.FC<SegmentActionButtonsProps> = ({
     <div className="space-y-4">
       {/* Quick Action Buttons */}
       <div className="flex flex-wrap gap-2">
-        <Collapsible open={isMapExpanded} onOpenChange={setIsMapExpanded}>
+        <Collapsible open={isWeatherExpanded} onOpenChange={setIsWeatherExpanded}>
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Map className="h-4 w-4" />
-              View Route Map
-              {isMapExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              <Cloud className="h-4 w-4" />
+              Weather Forecast
+              {isWeatherExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3">
-            <SegmentMapView segment={segment} isExpanded={isMapExpanded} />
+            <SegmentWeatherWidget segment={segment} />
           </CollapsibleContent>
         </Collapsible>
 
