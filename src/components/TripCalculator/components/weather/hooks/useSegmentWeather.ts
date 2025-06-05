@@ -1,8 +1,7 @@
-
 import { useEffect, useCallback } from 'react';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { GeocodingService } from '../../../services/GeocodingService';
-import WeatherRequestDeduplicationService from '../WeatherRequestDeduplicationService';
+import WeatherRequestDeduplicationService from '../services/WeatherRequestDeduplicationService';
 
 interface UseSegmentWeatherProps {
   segmentEndCity: string;
