@@ -15,6 +15,8 @@ const SegmentDetailsBreakdown: React.FC<SegmentDetailsBreakdownProps> = ({
   segment, 
   isExpanded 
 }) => {
+  console.log('📊 SegmentDetailsBreakdown render - isExpanded:', isExpanded, 'segment:', segment.title);
+
   if (!isExpanded) return null;
 
   // Categorize recommended stops
@@ -24,6 +26,8 @@ const SegmentDetailsBreakdown: React.FC<SegmentDetailsBreakdownProps> = ({
     destinationCities: segment.recommendedStops.filter(stop => stop.category === 'destination_city'),
     hiddenGems: segment.recommendedStops.filter(stop => stop.category === 'hidden_gem')
   };
+
+  console.log('📊 Categorized stops:', categorizedStops);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -51,6 +55,8 @@ const SegmentDetailsBreakdown: React.FC<SegmentDetailsBreakdownProps> = ({
     stops: any[]
   ) => {
     if (stops.length === 0) return null;
+
+    console.log(`📊 Rendering ${categoryName} with ${stops.length} stops`);
 
     return (
       <div key={categoryKey} className="space-y-3">
@@ -140,35 +146,38 @@ const SegmentDetailsBreakdown: React.FC<SegmentDetailsBreakdownProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {segment.subStopTimings.map((timing, index) => (
-                <div 
-                  key={`${timing.fromStop.id}-${timing.toStop.id}-${index}`}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-route66-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
+              {segment.subStopTimings.map((timing, index) => {
+                console.log(`📊 Rendering timing ${index + 1}:`, timing);
+                return (
+                  <div 
+                    key={`${timing.fromStop.id}-${timing.toStop.id}-${index}`}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-route66-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">
+                          {timing.fromStop.name} → {timing.toStop.name}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {timing.distanceMiles.toFixed(1)} miles
+                        </div>
+                      </div>
                     </div>
-                    <div>
+                    <div className="text-right">
                       <div className="font-medium text-sm">
-                        {timing.fromStop.name} → {timing.toStop.name}
+                        {timing.driveTimeHours < 1 
+                          ? `${Math.round(timing.driveTimeHours * 60)}m`
+                          : `${timing.driveTimeHours.toFixed(1)}h`
+                        }
                       </div>
-                      <div className="text-xs text-gray-600">
-                        {timing.distanceMiles.toFixed(1)} miles
-                      </div>
+                      <div className="text-xs text-gray-600">Drive Time</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-medium text-sm">
-                      {timing.driveTimeHours < 1 
-                        ? `${Math.round(timing.driveTimeHours * 60)}m`
-                        : `${timing.driveTimeHours.toFixed(1)}h`
-                      }
-                    </div>
-                    <div className="text-xs text-gray-600">Drive Time</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

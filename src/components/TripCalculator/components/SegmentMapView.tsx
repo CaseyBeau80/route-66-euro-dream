@@ -17,13 +17,18 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
   useEffect(() => {
     if (!isExpanded || !mapRef.current) return;
 
+    console.log('🗺️ Attempting to initialize map for segment:', segment.title);
+
     // Check if Google Maps is available
-    if (typeof google === 'undefined' || !google.maps) {
-      setMapError('Google Maps not available');
+    if (typeof window === 'undefined' || typeof (window as any).google === 'undefined' || !(window as any).google.maps) {
+      console.warn('⚠️ Google Maps not available, showing fallback');
+      setMapError('Google Maps not available. Please ensure the Google Maps API is loaded.');
       return;
     }
 
     try {
+      const google = (window as any).google;
+      
       // Create map instance
       const map = new google.maps.Map(mapRef.current, {
         zoom: 8,
@@ -135,14 +140,15 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
 
       // Fit map to bounds with proper padding
       if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, 20);
+        map.fitBounds(bounds, { padding: 20 });
       }
 
       setIsMapLoaded(true);
       setMapError(null);
+      console.log('✅ Map initialized successfully for segment:', segment.title);
     } catch (error) {
-      console.error('Map initialization error:', error);
-      setMapError('Failed to initialize map');
+      console.error('❌ Map initialization error:', error);
+      setMapError('Failed to initialize map. Please check console for details.');
     }
   }, [isExpanded, segment]);
 
@@ -162,6 +168,9 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
             <div className="text-center">
               <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-600">{mapError}</p>
+              <p className="text-xs text-gray-500 mt-2">
+                Map functionality requires Google Maps API
+              </p>
             </div>
           </div>
         ) : (
