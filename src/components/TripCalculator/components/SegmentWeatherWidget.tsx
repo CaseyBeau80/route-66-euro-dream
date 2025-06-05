@@ -22,13 +22,25 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   const [error, setError] = useState<string | null>(null);
   const [apiKeyRefreshTrigger, setApiKeyRefreshTrigger] = useState(0);
   
-  // Calculate the actual date for this segment
-  const segmentDate = tripStartDate ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) : null;
-  const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
-  
-  // Check if API key is available using enhanced service
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
+
+  // Calculate the actual date for this segment
+  const segmentDate = tripStartDate 
+    ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) 
+    : null;
+  
+  const daysFromNow = segmentDate 
+    ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
+    : null;
+
+  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity}`, {
+    hasApiKey,
+    tripStartDate,
+    segmentDate,
+    daysFromNow,
+    segmentDay: segment.day
+  });
 
   const handleApiKeySet = () => {
     console.log('🔑 SegmentWeatherWidget: Enhanced API key set, triggering refresh');
@@ -37,14 +49,22 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!segmentDate || daysFromNow === null || !hasApiKey) return;
-      
-      // Only fetch real weather data for trips starting within 5 days
-      if (daysFromNow > 5) return;
+      console.log(`🌤️ SegmentWeatherWidget: fetchWeather called for ${segment.endCity}`, {
+        hasApiKey,
+        segmentDate,
+        daysFromNow
+      });
+
+      // Don't fetch if no API key
+      if (!hasApiKey) {
+        console.log('🌤️ SegmentWeatherWidget: No API key, skipping fetch');
+        return;
+      }
       
       const coordinates = GeocodingService.getCoordinatesForCity(segment.endCity);
       if (!coordinates) {
-        console.warn(`No coordinates found for ${segment.endCity}`);
+        console.warn(`🌤️ SegmentWeatherWidget: No coordinates found for ${segment.endCity}`);
+        setError(`No coordinates found for ${segment.endCity}`);
         return;
       }
       
@@ -52,31 +72,48 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       setError(null);
       
       try {
+        console.log(`🌤️ SegmentWeatherWidget: Fetching weather for ${segment.endCity}`, coordinates);
+        
         const weatherData = await weatherService.getWeatherData(
           coordinates.lat, 
           coordinates.lng, 
           segment.endCity
         );
         
+        console.log(`🌤️ SegmentWeatherWidget: Weather fetch result for ${segment.endCity}:`, weatherData);
+        
         if (weatherData) {
           setWeather(weatherData);
+          console.log(`✅ SegmentWeatherWidget: Weather data set for ${segment.endCity}`);
         } else {
+          console.warn(`❌ SegmentWeatherWidget: No weather data returned for ${segment.endCity}`);
           setError('Unable to fetch weather data');
         }
       } catch (err) {
-        console.error('Weather fetch error:', err);
+        console.error(`❌ SegmentWeatherWidget: Weather fetch error for ${segment.endCity}:`, err);
         setError('Weather service unavailable');
       } finally {
         setLoading(false);
+        console.log(`🌤️ SegmentWeatherWidget: Finished fetching weather for ${segment.endCity}`);
       }
     };
     
     fetchWeather();
-  }, [segment.endCity, segmentDate, daysFromNow, hasApiKey, apiKeyRefreshTrigger]);
+  }, [segment.endCity, hasApiKey, apiKeyRefreshTrigger]);
 
   const renderWeatherContent = () => {
+    console.log(`🌤️ SegmentWeatherWidget: renderWeatherContent for ${segment.endCity}`, {
+      hasApiKey,
+      loading,
+      error,
+      hasWeather: !!weather,
+      segmentDate,
+      daysFromNow
+    });
+
     // No API key available - show enhanced input
     if (!hasApiKey) {
+      console.log(`🌤️ SegmentWeatherWidget: Showing API key input for ${segment.endCity}`);
       return (
         <EnhancedWeatherApiKeyInput 
           onApiKeySet={handleApiKeySet}
@@ -85,8 +122,27 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
       );
     }
 
-    // No trip start date set
+    // Loading state
+    if (loading) {
+      console.log(`🌤️ SegmentWeatherWidget: Showing loading for ${segment.endCity}`);
+      return <WeatherLoading />;
+    }
+
+    // Error state
+    if (error) {
+      console.log(`🌤️ SegmentWeatherWidget: Showing error for ${segment.endCity}:`, error);
+      return <WeatherError error={error} />;
+    }
+
+    // Successfully fetched current weather data
+    if (weather) {
+      console.log(`✅ SegmentWeatherWidget: Showing current weather for ${segment.endCity}`, weather);
+      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    }
+
+    // No trip start date set - show message
     if (!segmentDate || daysFromNow === null) {
+      console.log(`🌤️ SegmentWeatherWidget: No trip date set for ${segment.endCity}`);
       return (
         <div className="text-sm text-gray-500 italic">
           Set a trip start date to see weather information
@@ -96,32 +152,20 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
 
     // Too far in the future - show seasonal estimate
     if (daysFromNow > 16) {
+      console.log(`🌤️ SegmentWeatherWidget: Trip too far in future for ${segment.endCity}, showing seasonal`);
       return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
     }
 
     // Beyond 5-day forecast range but within 16 days
     if (daysFromNow > 5) {
-      const message = daysFromNow > 16 
-        ? "Weather forecasts are only available for the next 16 days. Check closer to your travel date."
-        : "Weather forecasts are only available for the next 5 days. Check closer to your travel date.";
-      
+      console.log(`🌤️ SegmentWeatherWidget: Trip beyond 5-day forecast for ${segment.endCity}`);
+      const message = "Weather forecasts are only available for the next 5 days. Check closer to your travel date.";
       return <WeatherStatusBadge type="unavailable" description={message} />;
     }
 
-    // Within 5-day forecast range
-    if (loading) {
-      return <WeatherLoading />;
-    }
-
-    if (error) {
-      return <WeatherError error={error} />;
-    }
-
-    if (!weather) {
-      return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
-    }
-
-    return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    // Fallback to seasonal display
+    console.log(`🌤️ SegmentWeatherWidget: Fallback to seasonal for ${segment.endCity}`);
+    return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segment.endCity} />;
   };
 
   return (
