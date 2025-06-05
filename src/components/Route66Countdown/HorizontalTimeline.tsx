@@ -1,6 +1,20 @@
-
 import React from 'react';
-import { Calendar, MapPin, Star, Trophy, Music, Tv, Bike } from 'lucide-react';
+import { Calendar, MapPin, Star, Trophy, Music, Tv } from 'lucide-react';
+
+// Custom Motorcycle Icon Component
+const MotorcycleIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.44 9.03L15.41 5H11v2h3.59l2 2H5c-2.8 0-5 2.2-5 5s2.2 5 5 5c2.46 0 4.45-1.69 4.9-4h1.65l.95-.95c.54-.54.54-1.42 0-1.96L9.95 9.59l1.41-1.41 2.12 2.12c.54.54 1.42.54 1.96 0L17.9 7.84l1.41 1.41c.54.54 1.42.54 1.96 0 .54-.54.54-1.42 0-1.96L19.44 9.03zM5 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+    <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
+    <path d="M19 9c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+    <circle cx="19" cy="13" r="1" fill="currentColor"/>
+  </svg>
+);
 
 const HorizontalTimeline: React.FC = () => {
   const milestones = [
@@ -71,9 +85,9 @@ const HorizontalTimeline: React.FC = () => {
         />
       </div>
 
-      {/* Header with bike icon */}
+      {/* Header with motorcycle icon */}
       <div className="relative z-10 flex items-center justify-center gap-4 mb-12">
-        <Bike className="w-8 h-8 text-red-600" />
+        <MotorcycleIcon className="w-8 h-8 text-red-600" />
         <h3 
           className="text-4xl font-bold text-center text-red-600"
           style={{
@@ -87,7 +101,7 @@ const HorizontalTimeline: React.FC = () => {
         >
           ROUTE 66 TIMELINE
         </h3>
-        <Bike className="w-8 h-8 text-blue-600" />
+        <MotorcycleIcon className="w-8 h-8 text-blue-600" />
       </div>
       
       {/* Timeline Container */}
