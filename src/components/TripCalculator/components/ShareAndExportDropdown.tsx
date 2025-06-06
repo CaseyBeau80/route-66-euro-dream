@@ -48,9 +48,24 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
     
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+      
       toast({
-        title: "Link copied!",
+        title: "Link Copied!",
         description: "Trip link has been copied to your clipboard.",
         variant: "default"
       });
@@ -78,41 +93,11 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     setIsOpen(false);
   };
 
-  const handleAddToCalendar = () => {
+  const handleAddToGoogleCalendar = () => {
     if (!tripPlan || !tripStartDate) {
       toast({
         title: "Calendar Export Unavailable",
         description: "Trip plan and start date are required for calendar export.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const events = CalendarExportService.generateCalendarEvents(tripPlan, tripStartDate);
-      CalendarExportService.downloadICSFile(events, `${tripTitle.toLowerCase().replace(/\s+/g, '-')}.ics`);
-      
-      toast({
-        title: "Calendar Export Successful!",
-        description: "Your Route 66 trip has been downloaded as a calendar file.",
-        variant: "default"
-      });
-      setIsOpen(false);
-    } catch (error) {
-      console.error('Calendar export error:', error);
-      toast({
-        title: "Export Failed",
-        description: "Could not export calendar. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleAddToGoogleCalendar = () => {
-    if (!tripPlan || !tripStartDate) {
-      toast({
-        title: "Google Calendar Unavailable",
-        description: "Trip plan and start date are required for Google Calendar integration.",
         variant: "destructive"
       });
       return;
@@ -146,6 +131,36 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
   };
 
+  const handleDownloadICS = () => {
+    if (!tripPlan || !tripStartDate) {
+      toast({
+        title: "Calendar Export Unavailable",
+        description: "Trip plan and start date are required for calendar export.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const events = CalendarExportService.generateCalendarEvents(tripPlan, tripStartDate);
+      CalendarExportService.downloadICSFile(events, `${tripTitle.toLowerCase().replace(/\s+/g, '-')}.ics`);
+      
+      toast({
+        title: "Calendar File Downloaded!",
+        description: "Your Route 66 trip has been downloaded as a calendar file compatible with Apple Calendar and Outlook.",
+        variant: "default"
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Calendar export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Could not export calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handlePDFExport = () => {
     setIsOpen(false);
     setShowPDFModal(true);
@@ -163,7 +178,8 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           size={size}
           className="opacity-50 cursor-not-allowed"
         >
-          📤 Share or Export
+          <Share2 className="w-4 h-4 mr-2" />
+          Share & Export
         </Button>
       </div>
     );
@@ -176,60 +192,64 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           <Button
             variant={variant === 'primary' ? 'default' : 'outline'}
             size={size}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
           >
-            📤 Share or Export
+            <Share2 className="w-4 h-4" />
+            Share & Export
             <ChevronDown className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
         
         <DropdownMenuContent 
-          className="w-56 bg-white border border-gray-300 shadow-lg rounded-lg z-50"
+          className="w-64 bg-white border-2 border-blue-200 shadow-xl rounded-lg z-50"
           align="end"
           sideOffset={5}
         >
           <DropdownMenuItem
             onClick={handleCopyLink}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
-            <Copy className="w-4 h-4 text-gray-600" />
-            <span className="font-medium">Share Trip Link</span>
+            <Copy className="w-4 h-4 text-blue-600" />
+            <span className="font-medium text-gray-800">Copy Shareable Link</span>
           </DropdownMenuItem>
           
           <DropdownMenuItem
             onClick={handleShareViaEmail}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
-            <Mail className="w-4 h-4 text-gray-600" />
-            <span className="font-medium">Share via Email</span>
+            <Mail className="w-4 h-4 text-blue-600" />
+            <span className="font-medium text-gray-800">Share via Email</span>
           </DropdownMenuItem>
           
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="bg-blue-100" />
           
           <DropdownMenuItem
             onClick={handleAddToGoogleCalendar}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
             <Calendar className="w-4 h-4 text-blue-600" />
-            <span className="font-medium">Add to Google Calendar</span>
+            <span className="font-medium text-gray-800">Add to Google Calendar</span>
           </DropdownMenuItem>
           
           <DropdownMenuItem
-            onClick={handleAddToCalendar}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+            onClick={handleDownloadICS}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
-            <Calendar className="w-4 h-4 text-gray-600" />
-            <span className="font-medium">Download Calendar File</span>
+            <Download className="w-4 h-4 text-blue-600" />
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800">Download Calendar File</span>
+              <span className="text-xs text-gray-500">Apple Calendar & Outlook</span>
+            </div>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="bg-blue-100" />
           
           <DropdownMenuItem
             onClick={handlePDFExport}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
-            <Download className="w-4 h-4 text-gray-600" />
-            <span className="font-medium">Export Trip as PDF</span>
+            <Download className="w-4 h-4 text-blue-600" />
+            <span className="font-medium text-gray-800">Export Trip as PDF</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

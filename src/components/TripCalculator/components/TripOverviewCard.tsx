@@ -7,7 +7,7 @@ import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useCostEstimator } from '../hooks/useCostEstimator';
 import TripStatsGrid from './TripStatsGrid';
-import ShareTripButton from './ShareTripButton';
+import ShareAndExportDropdown from './ShareAndExportDropdown';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface TripOverviewCardProps {
@@ -57,6 +57,8 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
     }).format(amount);
   };
 
+  const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
+
   return (
     <Card className="vintage-paper-texture border-2 border-blue-200">
       <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700">
@@ -65,11 +67,12 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
             <MapPin className="h-6 w-6" />
             YOUR ROUTE 66 ADVENTURE
           </CardTitle>
-          <ShareTripButton
+          <ShareAndExportDropdown
             tripPlan={tripPlan}
             shareUrl={shareUrl}
+            tripTitle={tripTitle}
             tripStartDate={tripStartDate}
-            variant="primary"
+            variant="secondary"
             size="sm"
             className="flex-shrink-0"
           />
