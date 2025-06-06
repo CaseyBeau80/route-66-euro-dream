@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -369,8 +368,7 @@ export class DestinationFocusedPlanningService {
       maxTime <= 10 ? 'poor' : 'poor';
 
     const qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F' = 
-      balanceQuality === 'excellent' ? 'A' :
-      balanceQuality === 'good' ? 'B' :
+      balanceQuality === 'good' ? 'B' : // Changed from 'excellent' comparison
       balanceQuality === 'fair' ? 'C' :
       maxTime <= 10 ? 'D' : 'F';
 

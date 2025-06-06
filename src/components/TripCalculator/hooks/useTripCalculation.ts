@@ -9,7 +9,8 @@ export const useTripCalculation = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 0,
-    dailyDrivingLimit: 300 // Single number instead of array
+    dailyDrivingLimit: 300, // Single number instead of array
+    tripStyle: 'balanced' // Added trip style
   });
   const [calculation, setCalculation] = useState<TripCalculation | null>(null);
 

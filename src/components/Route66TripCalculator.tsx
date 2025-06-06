@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from './TripCalculator/types/tripCalculator';
@@ -44,7 +45,7 @@ const Route66TripCalculator: React.FC = () => {
 
   const getAvailableEndLocations = () => {
     // Filter out the selected start location from the available end locations
-    return route66Towns.filter(town => town !== formData.startLocation);
+    return route66Towns.filter(town => town.name !== formData.startLocation);
   };
 
   const handleShareTrip = async (tripPlan: TripPlan) => {

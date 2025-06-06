@@ -12,7 +12,8 @@ export const useEnhancedTripCalculation = () => {
     endLocation: '',
     travelDays: 0,
     dailyDrivingLimit: 300, // Single number instead of array
-    tripStartDate: undefined // Added trip start date
+    tripStartDate: undefined, // Added trip start date
+    tripStyle: 'balanced' // Added trip style
   });
   
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
@@ -86,7 +87,8 @@ export const useEnhancedTripCalculation = () => {
       const plan = await Route66TripPlannerService.planTrip(
         formData.startLocation,
         formData.endLocation,
-        formData.travelDays
+        formData.travelDays,
+        formData.tripStyle
       );
       
       console.log('✅ Trip plan generated successfully:', plan);

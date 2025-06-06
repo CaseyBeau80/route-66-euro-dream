@@ -1,6 +1,8 @@
+
 import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
+import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningService';
 import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
 
