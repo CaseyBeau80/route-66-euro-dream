@@ -5,6 +5,7 @@ import { TripFormData } from './TripCalculator/types/tripCalculator';
 import { UnifiedTripPlanningService, UnifiedPlanningResult } from './TripCalculator/services/planning/UnifiedTripPlanningService';
 import { TripService } from './TripCalculator/services/TripService';
 import { TripPlan } from './TripCalculator/services/planning/TripPlanBuilder';
+import { TripStop } from './TripCalculator/types/TripStop';
 import TripCalculatorForm from './TripCalculator/TripCalculatorForm';
 import EnhancedTripResults from './TripCalculator/EnhancedTripResults';
 import { toast } from '@/hooks/use-toast';
@@ -46,6 +47,28 @@ const Route66TripCalculator: React.FC = () => {
   const getAvailableEndLocations = () => {
     // Filter out the selected start location from the available end locations
     return route66Towns.filter(town => town.name !== formData.startLocation);
+  };
+
+  // Convert Route66Town to TripStop
+  const convertRoute66TownToTripStop = (town: typeof route66Towns[0]): TripStop => {
+    const [latitude, longitude] = town.latLng;
+    const parts = town.name.split(', ');
+    const cityName = parts[0];
+    const state = parts[1] || '';
+    
+    return {
+      id: `route66-${town.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`,
+      name: town.name,
+      description: `Historic Route 66 stop in ${town.name}`,
+      category: 'destination_city',
+      city_name: cityName,
+      city: cityName,
+      state: state,
+      latitude: latitude,
+      longitude: longitude,
+      is_major_stop: true,
+      is_official_destination: true
+    };
   };
 
   const handleShareTrip = async (tripPlan: TripPlan) => {
@@ -92,18 +115,25 @@ const Route66TripCalculator: React.FC = () => {
     try {
       console.log('🚗 Starting trip calculation with style:', formData.tripStyle);
 
-      // Find the actual TripStop objects from route66Towns
-      const startStop = route66Towns.find(town => town.name === formData.startLocation);
-      const endStop = route66Towns.find(town => town.name === formData.endLocation);
+      // Find the actual Route66Town objects from route66Towns
+      const startTown = route66Towns.find(town => town.name === formData.startLocation);
+      const endTown = route66Towns.find(town => town.name === formData.endLocation);
 
-      if (!startStop || !endStop) {
+      if (!startTown || !endTown) {
         throw new Error('Could not find start or end location in Route 66 towns data');
       }
+
+      // Convert Route66Town objects to TripStop objects
+      const startStop = convertRoute66TownToTripStop(startTown);
+      const endStop = convertRoute66TownToTripStop(endTown);
+      
+      // Convert all route66Towns to TripStop objects for the planning service
+      const allStops = route66Towns.map(convertRoute66TownToTripStop);
 
       const result = await UnifiedTripPlanningService.createTripPlan(
         startStop,
         endStop,
-        route66Towns,
+        allStops,
         formData.travelDays,
         formData.startLocation,
         formData.endLocation,
