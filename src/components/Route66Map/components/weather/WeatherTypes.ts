@@ -16,6 +16,8 @@ export interface ForecastDay {
   description: string;
   icon: string;
   precipitationChance?: string;
+  humidity: number;
+  windSpeed: number;
 }
 
 export interface WeatherData {

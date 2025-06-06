@@ -17,6 +17,8 @@ export interface ForecastDay {
   description: string;
   icon: string;
   precipitationChance?: string;
+  humidity: number;
+  windSpeed: number;
 }
 
 export interface WeatherWithForecast extends WeatherData {
@@ -42,11 +44,15 @@ export interface ForecastResponse {
     dt: number;
     main: {
       temp: number;
+      humidity: number;
     };
     weather: Array<{
       description: string;
       icon: string;
     }>;
+    wind?: {
+      speed: number;
+    };
     pop?: number; // probability of precipitation (0-1)
   }>;
 }
