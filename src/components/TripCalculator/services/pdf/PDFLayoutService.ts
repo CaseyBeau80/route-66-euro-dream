@@ -67,36 +67,81 @@ export class PDFLayoutService {
 
   generatePDFStyles(): string {
     return `
-      /* PDF-specific print styles */
+      /* Enhanced PDF-specific print styles with comprehensive overlay exclusion */
       @media print {
         @page {
           size: A4;
-          margin: 0.4in;
+          margin: 0.5in;
+        }
+        
+        /* Hide everything by default, then show only PDF content */
+        body * {
+          visibility: hidden;
+        }
+        
+        /* Show only PDF export content */
+        #pdf-export-content,
+        #pdf-export-content * {
+          visibility: visible !important;
+          display: block !important;
+        }
+        
+        /* Comprehensive modal and overlay hiding */
+        [role="dialog"],
+        [role="alertdialog"],
+        .dialog-overlay,
+        .modal-overlay,
+        .backdrop,
+        [data-radix-popper-content-wrapper],
+        [data-state="open"],
+        .fixed,
+        .absolute:not(#pdf-export-content):not(#pdf-export-content *),
+        nav,
+        .navbar,
+        .navigation,
+        .header:not(.pdf-header),
+        .footer:not(.pdf-footer),
+        button:not(.pdf-keep),
+        .share-button,
+        .export-button,
+        .dropdown-menu,
+        .tooltip,
+        .popover,
+        .toast,
+        .notification,
+        .overlay,
+        .modal,
+        .dialog,
+        .sheet,
+        .drawer,
+        .sidebar,
+        [data-interactive],
+        .hover-trigger,
+        .z-50,
+        .z-40,
+        .z-30 {
+          display: none !important;
+          visibility: hidden !important;
         }
         
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          line-height: 1.3;
-          color: #1f2937;
+          line-height: 1.4;
+          color: #1f2937 !important;
           background: white !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
           font-size: 12px;
-        }
-
-        /* Hide non-print elements */
-        .navbar, .header, .footer, .navigation, 
-        button:not(.pdf-keep), .tooltip, .dropdown,
-        .share-button, .export-button, .interactive,
-        [data-interactive], .hover-trigger,
-        [role="dialog"], .dialog-overlay {
-          display: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
         /* PDF Container Styling */
-        .pdf-export-container,
-        .trip-content,
-        [data-trip-content] {
+        #pdf-export-content {
+          position: static !important;
+          left: auto !important;
+          top: auto !important;
+          visibility: visible !important;
           width: 100% !important;
           max-width: none !important;
           background: white !important;
@@ -104,70 +149,78 @@ export class PDFLayoutService {
           margin: 0 !important;
         }
 
-        /* Card styling for PDF */
-        .pdf-export-container .card,
-        .trip-content .card,
-        [data-trip-content] .card {
+        .pdf-clean-container {
+          width: 100% !important;
+          max-width: none !important;
           background: white !important;
-          border: 1px solid #e5e7eb !important;
-          border-radius: 6px !important;
-          box-shadow: none !important;
-          margin-bottom: 1rem !important;
-          page-break-inside: avoid !important;
+          color: #1f2937 !important;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+          font-size: 12px !important;
+          line-height: 1.4 !important;
+          padding: 0.5in !important;
+          margin: 0 !important;
         }
 
-        /* Card headers and content */
-        .pdf-export-container .card-header,
-        .trip-content .card-header,
-        [data-trip-content] .card-header {
-          padding: 0.75rem !important;
-          border-bottom: 1px solid #e5e7eb !important;
-          background: #f9fafb !important;
-        }
-
-        .pdf-export-container .card-content,
-        .trip-content .card-content,
-        [data-trip-content] .card-content {
-          padding: 0.75rem !important;
-        }
-
-        /* Grid layouts */
-        .grid {
-          display: grid !important;
-          gap: 0.5rem !important;
-        }
-
-        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-
-        /* Typography improvements */
-        h1, h2, h3 {
-          font-size: 1.2rem !important;
-          font-weight: 600 !important;
-          margin-bottom: 0.5rem !important;
+        /* Enhanced Typography */
+        .pdf-clean-container h1 {
+          font-size: 24px !important;
+          font-weight: bold !important;
+          margin-bottom: 12px !important;
+          color: #1f2937 !important;
           page-break-after: avoid !important;
         }
 
-        h4, h5, h6 {
-          font-size: 1rem !important;
-          font-weight: 500 !important;
-          margin-bottom: 0.3rem !important;
+        .pdf-clean-container h2 {
+          font-size: 18px !important;
+          font-weight: 600 !important;
+          margin-bottom: 8px !important;
+          color: #374151 !important;
+          page-break-after: avoid !important;
         }
 
-        /* Text sizing */
-        .text-2xl { font-size: 1.3rem !important; }
-        .text-xl { font-size: 1.2rem !important; }
-        .text-lg { font-size: 1.1rem !important; }
-        .text-base { font-size: 1rem !important; }
-        .text-sm { font-size: 0.9rem !important; }
-        .text-xs { font-size: 0.8rem !important; }
+        .pdf-clean-container h3 {
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          margin-bottom: 6px !important;
+          color: #4b5563 !important;
+        }
+
+        /* Grid and Layout */
+        .grid {
+          display: grid !important;
+        }
+
+        .grid-cols-4 {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 12px !important;
+        }
+
+        .grid-cols-2 {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+        }
+
+        /* Enhanced Card Styling */
+        .pdf-clean-container .bg-gray-50 {
+          background-color: #f9fafb !important;
+          border: 1px solid #e5e7eb !important;
+          border-radius: 6px !important;
+          padding: 12px !important;
+        }
+
+        .pdf-clean-container .border {
+          border: 1px solid #e5e7eb !important;
+        }
+
+        .pdf-clean-container .rounded {
+          border-radius: 6px !important;
+        }
 
         /* Page Break Controls */
-        .no-page-break,
+        .pdf-header,
+        .pdf-overview,
         .pdf-day-segment,
-        .pdf-weather-card,
-        .pdf-legend,
-        .card {
+        .no-page-break {
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
@@ -180,98 +233,78 @@ export class PDFLayoutService {
           page-break-after: always !important;
         }
 
-        /* Day Segment Cards - Improved */
-        .pdf-day-segment {
-          background: white !important;
-          border: 1px solid #d1d5db !important;
-          border-radius: 4px !important;
-          margin-bottom: 0.75rem !important;
-          padding: 0.75rem !important;
-          box-shadow: none !important;
-        }
+        /* Spacing and Margins */
+        .mb-8 { margin-bottom: 24px !important; }
+        .mb-6 { margin-bottom: 18px !important; }
+        .mb-4 { margin-bottom: 12px !important; }
+        .mb-3 { margin-bottom: 9px !important; }
+        .mb-2 { margin-bottom: 6px !important; }
+        .mb-1 { margin-bottom: 3px !important; }
 
-        /* Weather Cards - Improved */
-        .pdf-weather-card {
-          background-color: #f0f9ff !important;
-          border: 1px solid #bae6fd !important;
-          border-radius: 4px !important;
-          margin-top: 0.5rem !important;
-          padding: 0.5rem !important;
-        }
+        .mt-12 { margin-top: 36px !important; }
+        .mt-8 { margin-top: 24px !important; }
+        .mt-4 { margin-top: 12px !important; }
+        .mt-2 { margin-top: 6px !important; }
+        .mt-1 { margin-top: 3px !important; }
 
-        /* Badges and Pills */
-        .pdf-day-badge,
-        .badge {
-          background-color: #e0e7ff !important;
-          color: #3730a3 !important;
-          font-size: 0.75rem !important;
-          font-weight: 500 !important;
-          padding: 0.2rem 0.4rem !important;
-          border-radius: 0.25rem !important;
-          display: inline-block !important;
-        }
+        .p-6 { padding: 18px !important; }
+        .p-4 { padding: 12px !important; }
+        .p-3 { padding: 9px !important; }
+        .p-2 { padding: 6px !important; }
 
-        /* Spacing improvements */
-        .space-y-6 > * + * { margin-top: 1rem !important; }
-        .space-y-4 > * + * { margin-top: 0.75rem !important; }
-        .space-y-3 > * + * { margin-top: 0.5rem !important; }
-        .space-y-2 > * + * { margin-top: 0.3rem !important; }
+        .pt-4 { padding-top: 12px !important; }
+        .pb-4 { padding-bottom: 12px !important; }
 
-        .gap-4 { gap: 0.75rem !important; }
-        .gap-3 { gap: 0.5rem !important; }
-        .gap-2 { gap: 0.3rem !important; }
+        /* Text Sizing */
+        .text-3xl { font-size: 24px !important; line-height: 1.2 !important; }
+        .text-2xl { font-size: 20px !important; line-height: 1.2 !important; }
+        .text-xl { font-size: 18px !important; line-height: 1.3 !important; }
+        .text-lg { font-size: 16px !important; line-height: 1.4 !important; }
+        .text-base { font-size: 14px !important; line-height: 1.4 !important; }
+        .text-sm { font-size: 12px !important; line-height: 1.3 !important; }
+        .text-xs { font-size: 10px !important; line-height: 1.2 !important; }
 
-        /* Padding improvements */
-        .p-6 { padding: 1rem !important; }
-        .p-4 { padding: 0.75rem !important; }
-        .p-3 { padding: 0.5rem !important; }
-        .p-2 { padding: 0.3rem !important; }
+        /* Colors */
+        .text-gray-800 { color: #1f2937 !important; }
+        .text-gray-700 { color: #374151 !important; }
+        .text-gray-600 { color: #4b5563 !important; }
+        .text-gray-500 { color: #6b7280 !important; }
+        .text-gray-400 { color: #9ca3af !important; }
+        .text-blue-600 { color: #2563eb !important; }
+        .text-blue-800 { color: #1e40af !important; }
 
-        .px-4 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
-        .py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        /* Borders */
+        .border-b-2 { border-bottom: 2px solid #e5e7eb !important; }
+        .border-t { border-top: 1px solid #e5e7eb !important; }
+        .border-b { border-bottom: 1px solid #e5e7eb !important; }
+        .border-blue-500 { border-color: #3b82f6 !important; }
+        .border-gray-200 { border-color: #e5e7eb !important; }
 
-        /* Margin improvements */
-        .mb-6 { margin-bottom: 1rem !important; }
-        .mb-4 { margin-bottom: 0.75rem !important; }
-        .mb-3 { margin-bottom: 0.5rem !important; }
-        .mb-2 { margin-bottom: 0.3rem !important; }
-
-        /* Legend styling */
-        .pdf-legend {
-          margin-top: 1rem !important;
-          padding: 0.75rem !important;
-          background-color: #f9fafb !important;
-          border: 1px solid #e5e7eb !important;
-          border-radius: 4px !important;
-          page-break-inside: avoid !important;
-          font-size: 0.8rem !important;
-        }
+        /* Utility Classes */
+        .text-center { text-align: center !important; }
+        .font-bold { font-weight: bold !important; }
+        .font-semibold { font-weight: 600 !important; }
+        .break-all { word-break: break-all !important; }
 
         /* Watermark */
-        .pdf-watermark {
+        .pdf-watermark-text {
           position: fixed !important;
           top: 50% !important;
           left: 50% !important;
           transform: translate(-50%, -50%) rotate(-45deg) !important;
-          font-size: 3rem !important;
-          color: rgba(0, 0, 0, 0.02) !important;
+          font-size: 72px !important;
+          color: rgba(0, 0, 0, 0.03) !important;
           z-index: -1 !important;
           pointer-events: none !important;
           font-weight: bold !important;
         }
 
-        /* Footer with page numbers */
+        /* Footer */
         .pdf-footer {
-          position: fixed !important;
-          bottom: 0.3in !important;
-          left: 0 !important;
-          right: 0 !important;
-          text-align: center !important;
-          font-size: 0.7rem !important;
-          color: #6b7280 !important;
+          margin-top: 36px !important;
+          padding-top: 12px !important;
           border-top: 1px solid #e5e7eb !important;
-          padding-top: 0.2rem !important;
-          background: white !important;
+          text-align: center !important;
         }
 
         /* Force background colors and borders to print */
@@ -280,47 +313,27 @@ export class PDFLayoutService {
           print-color-adjust: exact !important;
         }
 
-        /* Ensure text doesn't break awkwardly */
+        /* Ensure good text flow */
         p, li {
           orphans: 2 !important;
           widows: 2 !important;
         }
 
-        /* Icons sizing */
+        /* Icons */
         .lucide {
-          width: 1rem !important;
-          height: 1rem !important;
-        }
-
-        /* Remove absolute positioning for print */
-        .absolute {
-          position: static !important;
-        }
-
-        /* Weather icons and data */
-        .weather-icon {
+          width: 14px !important;
+          height: 14px !important;
           display: inline-block !important;
-          width: 1.2rem !important;
-          height: 1.2rem !important;
-          margin-right: 0.3rem !important;
         }
       }
 
-      /* Screen styles for preview */
+      /* Screen styles for PDF container (hidden by default) */
       @media screen {
-        .pdf-export-container {
-          background: #f9fafb;
-          min-height: 100vh;
-          padding: 1rem;
-        }
-        
-        .pdf-export-container > div {
-          max-width: 4xl;
-          margin: 0 auto;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          padding: 1.5rem;
+        #pdf-export-content {
+          position: absolute !important;
+          left: -9999px !important;
+          top: -9999px !important;
+          visibility: hidden !important;
         }
       }
     `;

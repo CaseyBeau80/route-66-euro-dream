@@ -10,8 +10,9 @@ import { Settings } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { PDFLayoutService } from '../../services/pdf/PDFLayoutService';
-import { PDFThemingService } from '../../services/pdf/PDFThemingService';
 import { toast } from '@/hooks/use-toast';
+import PDFContentRenderer from './PDFContentRenderer';
+import { createRoot } from 'react-dom/client';
 
 interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
@@ -32,128 +33,91 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting PDF export...');
+    console.log('🖨️ Starting clean PDF export...');
     setIsExporting(true);
     
     try {
-      const layoutService = PDFLayoutService.getInstance();
-      const themingService = PDFThemingService.getInstance();
+      // Step 1: Close modal first
+      onClose();
       
-      // Apply PDF styles and theme
-      layoutService.injectPDFStyles();
-      themingService.applyThemeToPDF(themingService.getRoute66Theme());
+      // Step 2: Wait for modal to close completely
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Find the main trip content using the data attribute
-      let contentContainer = document.querySelector('[data-trip-content="true"]') ||
-                            document.querySelector('.trip-content') ||
-                            document.querySelector('.enhanced-trip-results') ||
-                            document.querySelector('main') ||
-                            document.body;
-      
-      console.log('🔍 Found content container:', contentContainer?.className || 'body fallback');
-      
-      if (contentContainer) {
-        // Create a clean clone for PDF
-        const pdfClone = contentContainer.cloneNode(true) as HTMLElement;
-        
-        // Remove any interactive elements that shouldn't print
-        const interactiveElements = pdfClone.querySelectorAll(`
-          button:not(.pdf-keep), 
-          .hover-trigger, 
-          .tooltip, 
-          [data-interactive],
-          .dropdown-menu,
-          .share-button,
-          .export-button,
-          nav,
-          .navigation,
-          .navbar,
-          .header:not(.pdf-header),
-          .footer:not(.pdf-footer),
-          [role="dialog"],
-          .dialog-overlay
-        `);
-        
-        console.log('🧹 Removing', interactiveElements.length, 'interactive elements for PDF');
-        interactiveElements.forEach(el => el.remove());
-        
-        // Apply PDF-specific classes and styling
-        pdfClone.classList.add('pdf-export-container');
-        pdfClone.style.background = 'white';
-        pdfClone.style.color = 'black';
-        pdfClone.style.fontFamily = 'Arial, sans-serif';
-        
-        // Add custom title if specified
-        if (exportOptions.title) {
-          const titleElement = document.createElement('h1');
-          titleElement.textContent = exportOptions.title;
-          titleElement.style.cssText = `
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #1f2937;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 10px;
-          `;
-          pdfClone.insertBefore(titleElement, pdfClone.firstChild);
-        }
-        
-        // Add watermark if specified
-        if (exportOptions.watermark) {
-          const watermark = document.createElement('div');
-          watermark.className = 'pdf-watermark';
-          watermark.textContent = exportOptions.watermark;
-          watermark.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 4rem;
-            color: rgba(0, 0, 0, 0.03);
-            z-index: -1;
-            pointer-events: none;
-            font-weight: bold;
-          `;
-          pdfClone.appendChild(watermark);
-        }
-        
-        // Temporarily add to DOM for printing
-        document.body.appendChild(pdfClone);
-        
-        // Hide original content during print
-        const originalStyle = (contentContainer as HTMLElement).style.display;
-        (contentContainer as HTMLElement).style.display = 'none';
-        
-        // Small delay to ensure styles are applied
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        console.log('🖨️ Triggering browser print dialog...');
-        
-        // Trigger browser print dialog
-        window.print();
-        
-        // Clean up after print (or cancel)
-        setTimeout(() => {
-          document.body.removeChild(pdfClone);
-          (contentContainer as HTMLElement).style.display = originalStyle;
-          
-          // Cleanup styles
-          layoutService.removePDFStyles();
-          themingService.removeThemeStyles();
-          
-          console.log('🧹 PDF export cleanup completed');
-        }, 1000);
-        
-        toast({
-          title: "PDF Export Started",
-          description: "Your browser's print dialog should open. You can save as PDF from there.",
-          variant: "default"
-        });
-        
-      } else {
-        throw new Error('Could not find trip content to export');
+      // Step 3: Create or get the hidden PDF container
+      let pdfContainer = document.getElementById('pdf-export-content');
+      if (!pdfContainer) {
+        pdfContainer = document.createElement('div');
+        pdfContainer.id = 'pdf-export-content';
+        pdfContainer.style.cssText = `
+          position: absolute;
+          left: -9999px;
+          top: -9999px;
+          width: 8.5in;
+          background: white;
+          visibility: hidden;
+        `;
+        document.body.appendChild(pdfContainer);
       }
+      
+      // Step 4: Clear and populate PDF container with clean content
+      pdfContainer.innerHTML = '';
+      
+      // Create React root and render clean PDF content
+      const root = createRoot(pdfContainer);
+      root.render(
+        <PDFContentRenderer
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          exportOptions={exportOptions}
+          shareUrl={shareUrl}
+        />
+      );
+      
+      // Step 5: Wait for content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Step 6: Apply PDF styles
+      const layoutService = PDFLayoutService.getInstance();
+      layoutService.injectPDFStyles();
+      
+      // Step 7: Make PDF container visible for printing
+      pdfContainer.style.visibility = 'visible';
+      pdfContainer.style.position = 'static';
+      pdfContainer.style.left = 'auto';
+      pdfContainer.style.top = 'auto';
+      
+      // Step 8: Hide all other content during print
+      const originalContent = document.body.innerHTML;
+      const printContent = pdfContainer.outerHTML;
+      
+      // Replace body content with just the PDF content
+      document.body.innerHTML = printContent;
+      document.body.style.background = 'white';
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      
+      // Step 9: Trigger print
+      console.log('🖨️ Triggering browser print dialog...');
+      window.print();
+      
+      // Step 10: Restore original content after print
+      setTimeout(() => {
+        document.body.innerHTML = originalContent;
+        document.body.style.background = '';
+        document.body.style.margin = '';
+        document.body.style.padding = '';
+        
+        // Cleanup styles
+        layoutService.removePDFStyles();
+        
+        console.log('🧹 PDF export cleanup completed');
+      }, 1000);
+      
+      toast({
+        title: "PDF Export Started",
+        description: "Your browser's print dialog should open. You can save as PDF from there.",
+        variant: "default"
+      });
       
     } catch (error) {
       console.error('❌ PDF export failed:', error);
@@ -165,12 +129,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       
       // Cleanup on error
       const layoutService = PDFLayoutService.getInstance();
-      const themingService = PDFThemingService.getInstance();
       layoutService.removePDFStyles();
-      themingService.removeThemeStyles();
     } finally {
       setIsExporting(false);
-      onClose();
     }
   };
 
