@@ -15,6 +15,15 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   formatTime,
   formatCurrency
 }) => {
+  const formatCurrencyNoCents = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
@@ -40,7 +49,7 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
       
       <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
-          {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
+          {costEstimate ? formatCurrencyNoCents(costEstimate.breakdown.totalCost) : '--'}
         </div>
         <div className="font-travel text-sm text-route66-text-secondary">Est. Total Cost</div>
       </div>
