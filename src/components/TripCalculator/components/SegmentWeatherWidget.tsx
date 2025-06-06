@@ -4,8 +4,8 @@ import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { useSegmentWeatherState } from './weather/hooks/useSegmentWeatherState';
 import { useSegmentWeather } from './weather/hooks/useSegmentWeather';
-import SegmentWeatherHeader from './weather/SegmentWeatherHeader';
 import SegmentWeatherContent from './weather/SegmentWeatherContent';
+import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
@@ -39,14 +39,33 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
     ...weatherState
   });
 
-  return (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-      <SegmentWeatherHeader 
-        segmentEndCity={segment.endCity}
-        segmentDay={segment.day}
-        segmentDate={segmentDate}
-      />
+  // Card header content
+  const cardHeader = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="font-travel font-bold text-route66-vintage-brown">
+          Weather in {segment.endCity}
+        </h4>
+        <div className="text-xs text-route66-vintage-brown">
+          Day {segment.day}
+          {segmentDate && (
+            <div className="text-xs text-gray-600">
+              {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
+  return (
+    <EnhancedCollapsibleCard
+      title={cardHeader}
+      defaultExpanded={true}
+      className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
+      headerClassName="border-b border-blue-200"
+      contentClassName="pt-0"
+    >
       <SegmentWeatherContent
         hasApiKey={hasApiKey}
         loading={weatherState.loading}
@@ -59,7 +78,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
         onTimeout={weatherHandlers.handleTimeout}
         onRetry={weatherHandlers.handleRetry}
       />
-    </div>
+    </EnhancedCollapsibleCard>
   );
 };
 

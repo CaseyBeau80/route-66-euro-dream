@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import DaySegmentCard from './DaySegmentCard';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
+import CollapsibleCardGroup from './CollapsibleCardGroup';
 
 interface TripItineraryProps {
   tripPlan: TripPlan;
@@ -34,24 +35,28 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
             <TabsTrigger value="weather" className="text-sm">Weather Forecast</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="itinerary" className="space-y-4">
-            {tripPlan.segments.map((segment) => (
-              <DaySegmentCard
-                key={segment.day}
-                segment={segment}
-                tripStartDate={tripStartDate}
-              />
-            ))}
+          <TabsContent value="itinerary">
+            <CollapsibleCardGroup className="space-y-4">
+              {tripPlan.segments.map((segment) => (
+                <DaySegmentCard
+                  key={segment.day}
+                  segment={segment}
+                  tripStartDate={tripStartDate}
+                />
+              ))}
+            </CollapsibleCardGroup>
           </TabsContent>
           
-          <TabsContent value="weather" className="space-y-4">
-            {tripPlan.segments.map((segment) => (
-              <SegmentWeatherWidget
-                key={segment.day}
-                segment={segment}
-                tripStartDate={tripStartDate}
-              />
-            ))}
+          <TabsContent value="weather">
+            <CollapsibleCardGroup className="space-y-4">
+              {tripPlan.segments.map((segment) => (
+                <SegmentWeatherWidget
+                  key={segment.day}
+                  segment={segment}
+                  tripStartDate={tripStartDate}
+                />
+              ))}
+            </CollapsibleCardGroup>
           </TabsContent>
         </Tabs>
       </CardContent>
