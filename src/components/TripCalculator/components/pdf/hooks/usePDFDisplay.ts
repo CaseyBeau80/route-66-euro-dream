@@ -79,9 +79,11 @@ export const usePDFDisplay = () => {
           if (document.body.contains(closeButton)) {
             document.body.removeChild(closeButton);
           }
+          handleClosePreview();
         }, 300);
+      } else {
+        handleClosePreview();
       }
-      handleClosePreview();
     };
   };
 
