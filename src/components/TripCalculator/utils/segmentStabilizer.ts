@@ -20,16 +20,15 @@ export const createSegmentHash = (segment: DailySegment): string => {
     driveTimeHours: segment.driveTimeHours || 0,
     recommendedStopsCount: Array.isArray(segment.recommendedStops) ? segment.recommendedStops.length : 0,
     attractionsCount: Array.isArray(segment.attractions) ? segment.attractions.length : 0,
-    // Include stop names for change detection
+    // Include stop names for change detection - recommendedStops can be objects with name property
     stopNames: Array.isArray(segment.recommendedStops) 
       ? segment.recommendedStops.map(stop => 
           typeof stop === 'string' ? stop : (hasNameProperty(stop) ? stop.name : '')
         ).sort().join('|')
       : '',
+    // attractions is always string[] according to DailySegment interface
     attractionNames: Array.isArray(segment.attractions)
-      ? segment.attractions.map(attr => 
-          typeof attr === 'string' ? attr : (hasNameProperty(attr) ? attr.name : '')
-        ).sort().join('|')
+      ? segment.attractions.sort().join('|')
       : ''
   };
   
