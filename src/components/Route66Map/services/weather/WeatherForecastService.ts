@@ -13,7 +13,7 @@ export interface ForecastWeatherData extends WeatherData {
 
 export class WeatherForecastService {
   private apiClient: WeatherApiClient;
-  private readonly FORECAST_THRESHOLD_DAYS = 3; // Changed from 5 to 3 days
+  private readonly FORECAST_THRESHOLD_DAYS = 5; // Changed from 3 to 5 days
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
@@ -29,11 +29,11 @@ export class WeatherForecastService {
     
     console.log(`🌤️ WeatherForecastService: Getting weather for ${cityName} on ${targetDate.toDateString()}, ${daysFromNow} days from now`);
 
-    // If the date is within 3-day forecast range, get actual forecast
+    // If the date is within 5-day forecast range, get actual forecast
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
       return this.getActualForecast(lat, lng, cityName, targetDate, daysFromNow);
     } else {
-      // For dates beyond 3-day forecast range, return null to show "not available" message
+      // For dates beyond 5-day forecast range, return null to show "not available" message
       return this.getForecastNotAvailable(cityName, targetDate, daysFromNow);
     }
   }

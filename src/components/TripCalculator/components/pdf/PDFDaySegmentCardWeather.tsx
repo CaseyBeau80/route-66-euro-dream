@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { getHistoricalWeatherData } from '../weather/SeasonalWeatherService';
 
 interface PDFDaySegmentCardWeatherProps {
   weatherInfo: any;
@@ -47,11 +48,30 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
 
   // Helper function to find weather data for the specific trip date
   const getWeatherForTripDate = () => {
-    if (!weatherInfo || !segmentDate) return null;
+    if (!segmentDate) return null;
 
-    // If this is forecast data with isActualForecast property
-    if (weatherInfo.isActualForecast !== undefined) {
+    const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    
+    // If we have weather info and it's within forecast range
+    if (weatherInfo && weatherInfo.isActualForecast !== undefined) {
       return weatherInfo;
+    }
+
+    // For dates beyond 5 days, use historical data
+    if (daysFromNow > 5) {
+      const cityName = weatherInfo?.cityName || 'Route 66'; // Fallback city name
+      const historicalData = getHistoricalWeatherData(cityName, segmentDate);
+      
+      return {
+        highTemp: historicalData.high,
+        lowTemp: historicalData.low,
+        description: historicalData.condition,
+        icon: '🌡️', // Thermometer for historical
+        humidity: historicalData.humidity,
+        windSpeed: historicalData.windSpeed,
+        isActualForecast: false,
+        isHistorical: true
+      };
     }
 
     // For regular weather data, use as-is
@@ -59,11 +79,14 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
   };
 
   const tripDayWeather = getWeatherForTripDate();
+  const daysFromNow = segmentDate 
+    ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+    : null;
 
   return (
     <div className="pdf-weather-section mb-6 p-4 bg-blue-50 rounded border border-blue-200">
       <h6 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-1">
-        🌤️ Weather Forecast
+        🌤️ Weather Information
         {segmentDate && (
           <span className="text-xs text-blue-600 ml-2">
             ({segmentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })})
@@ -74,27 +97,34 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       {tripDayWeather ? (
         <div className="space-y-3">
           {/* Enhanced Weather Layout: Low | Icon | High */}
-          {tripDayWeather.isActualForecast && tripDayWeather.highTemp !== undefined && tripDayWeather.lowTemp !== undefined ? (
+          {tripDayWeather.highTemp !== undefined && tripDayWeather.lowTemp !== undefined ? (
             <div className="flex items-center justify-center gap-6 text-base bg-white rounded p-4 border border-gray-200">
               {/* Low Temperature */}
               <div className="text-center">
                 <div className="text-xl font-bold text-blue-600">{tripDayWeather.lowTemp}°F</div>
-                <div className="text-xs text-gray-500">Low</div>
+                <div className="text-xs text-gray-500">
+                  {tripDayWeather.isHistorical ? 'Typical Low' : 'Low'}
+                </div>
               </div>
               
-              {/* Weather Icon (Emoji) */}
+              {/* Weather Icon (Emoji or Thermometer for Historical) */}
               <div className="text-2xl">
-                {getWeatherEmoji(tripDayWeather.description, tripDayWeather.icon)}
+                {tripDayWeather.isHistorical ? 
+                  '🌡️' : 
+                  getWeatherEmoji(tripDayWeather.description, tripDayWeather.icon)
+                }
               </div>
               
               {/* High Temperature */}
               <div className="text-center">
                 <div className="text-xl font-bold text-red-600">{tripDayWeather.highTemp}°F</div>
-                <div className="text-xs text-gray-500">High</div>
+                <div className="text-xs text-gray-500">
+                  {tripDayWeather.isHistorical ? 'Typical High' : 'High'}
+                </div>
               </div>
             </div>
           ) : (
-            // Fallback for current temperature
+            // Fallback for current temperature only
             <div className="flex items-center justify-center gap-4 text-base bg-white rounded p-3">
               <div className="text-xl">
                 {getWeatherEmoji(tripDayWeather.description || tripDayWeather.weather?.[0]?.description, tripDayWeather.icon)}
@@ -128,10 +158,22 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
             )}
           </div>
 
-          {/* Note about forecast accuracy */}
-          {tripDayWeather.isActualForecast === false && (
-            <div className="text-xs text-gray-500 italic bg-gray-100 p-2 rounded">
-              ⚠️ Showing current conditions as reference. Check live weather before departure.
+          {/* Data Source Indicator */}
+          {tripDayWeather.isHistorical && (
+            <div className="text-xs text-blue-700 italic bg-blue-100 p-2 rounded flex items-center gap-1">
+              🟦 <span>Historical average - check live weather before departure</span>
+            </div>
+          )}
+          
+          {tripDayWeather.isActualForecast === true && daysFromNow && daysFromNow <= 5 && (
+            <div className="text-xs text-green-700 italic bg-green-100 p-2 rounded flex items-center gap-1">
+              🟩 <span>Weather forecast ({daysFromNow} days ahead)</span>
+            </div>
+          )}
+          
+          {tripDayWeather.isActualForecast === false && !tripDayWeather.isHistorical && (
+            <div className="text-xs text-yellow-700 italic bg-yellow-100 p-2 rounded flex items-center gap-1">
+              🟨 <span>Current conditions shown as reference - check live weather before departure</span>
             </div>
           )}
         </div>
