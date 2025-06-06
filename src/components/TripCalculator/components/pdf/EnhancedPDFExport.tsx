@@ -51,23 +51,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         // Apply PDF-specific classes
         pdfClone.classList.add('pdf-export-container');
         
-        // Add header if enabled
-        if (exportOptions.includeHeader) {
-          const headerData = layoutService.generatePDFHeader(tripPlan, exportOptions);
-          const header = document.createElement('div');
-          header.className = 'pdf-header no-page-break';
-          header.innerHTML = `
-            <div class="flex justify-between items-center p-4">
-              <div>
-                <h1 class="text-xl font-bold text-blue-800 mb-1">${headerData.title}</h1>
-                <p class="text-sm text-gray-600">${headerData.subtitle}</p>
-              </div>
-              <div class="text-xs text-gray-500">Generated ${headerData.date}</div>
-            </div>
-          `;
-          pdfClone.insertBefore(header, pdfClone.firstChild);
-        }
-        
         // Add watermark if specified
         if (exportOptions.watermark) {
           const watermark = document.createElement('div');
@@ -151,15 +134,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
           {/* Options */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="includeHeader"
-                checked={exportOptions.includeHeader}
-                onCheckedChange={(checked) => updateExportOption('includeHeader', !!checked)}
-              />
-              <Label htmlFor="includeHeader">Include Header</Label>
-            </div>
-
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includeQRCode"

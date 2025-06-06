@@ -6,7 +6,7 @@ export const usePDFExportOptions = () => {
   const [exportOptions, setExportOptions] = useState<PDFExportOptions>({
     format: 'full',
     includeWeather: true,
-    includeHeader: true,
+    includeHeader: false,
     includeFooter: true,
     includePageNumbers: true,
     includeQRCode: false,
@@ -29,7 +29,7 @@ export const usePDFExportOptions = () => {
     setExportOptions({
       format: 'full',
       includeWeather: true,
-      includeHeader: true,
+      includeHeader: false,
       includeFooter: true,
       includePageNumbers: true,
       includeQRCode: false,
