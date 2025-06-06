@@ -59,6 +59,17 @@ export const useCollapsibleState = ({
       // Only expand the first card (index 0) if user hasn't interacted
       if (cardIndex === 0 && !hasUserInteracted) {
         setIsExpanded(true);
+        
+        // Save the auto-expanded state to localStorage
+        if (tripId) {
+          localStorage.setItem(`trip-${tripId}-${sectionKey}-card-${cardIndex}`, JSON.stringify(true));
+        }
+        
+        // Dispatch event to update collapsed count immediately
+        const updateEvent = new CustomEvent('cardStateChanged', {
+          detail: { sectionKey, cardIndex, expanded: true }
+        });
+        window.dispatchEvent(updateEvent);
       }
     };
 

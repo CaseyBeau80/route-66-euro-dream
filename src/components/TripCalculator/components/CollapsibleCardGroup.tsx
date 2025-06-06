@@ -42,14 +42,32 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     }
   }, [tripId, sectionKey]);
 
+  // Calculate initial collapsed count based on localStorage
+  useEffect(() => {
+    if (tripId && totalCards > 0) {
+      let collapsed = 0;
+      for (let i = 0; i < totalCards; i++) {
+        const cardState = localStorage.getItem(`trip-${tripId}-${sectionKey}-card-${i}`);
+        if (cardState === null || !JSON.parse(cardState)) {
+          collapsed++;
+        }
+      }
+      setCollapsedCount(collapsed);
+    }
+  }, [tripId, sectionKey, totalCards]);
+
   // Auto-expand Day 1 on desktop if user hasn't interacted
   useEffect(() => {
     if (autoExpandFirstOnDesktop && !hasUserInteracted && window.innerWidth >= 768) {
-      // Dispatch event to expand only the first card
-      const event = new CustomEvent('autoExpandFirst', { 
-        detail: { sectionKey } 
-      });
-      window.dispatchEvent(event);
+      // Small delay to ensure cards are mounted
+      const timer = setTimeout(() => {
+        const event = new CustomEvent('autoExpandFirst', { 
+          detail: { sectionKey } 
+        });
+        window.dispatchEvent(event);
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey]);
 
@@ -58,7 +76,7 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     const handleCardStateChange = (event: CustomEvent) => {
       if (event.detail.sectionKey !== sectionKey) return;
       
-      // Count collapsed cards by checking localStorage
+      // Recalculate collapsed count from localStorage
       if (tripId) {
         let collapsed = 0;
         for (let i = 0; i < totalCards; i++) {
@@ -68,6 +86,9 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
           }
         }
         setCollapsedCount(collapsed);
+        
+        // Update allExpanded state based on actual card states
+        setAllExpanded(collapsed === 0);
       }
     };
 
@@ -109,8 +130,11 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
         <div className="text-sm text-gray-600">
-          {collapsedCount > 0 && (
+          {collapsedCount > 0 && totalCards > 0 && (
             <span>{collapsedCount} of {totalCards} collapsed</span>
+          )}
+          {collapsedCount === 0 && totalCards > 0 && (
+            <span>All expanded</span>
           )}
         </div>
         <Button
