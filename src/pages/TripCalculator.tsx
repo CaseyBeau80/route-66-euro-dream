@@ -2,7 +2,6 @@
 import { useState } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
-import UnitToggle from "@/components/UnitToggle";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
@@ -19,20 +18,7 @@ const TripCalculator = () => {
             {/* Modern Header with Blue Theme */}
             <div className="text-center mb-8">
               <div className="flex justify-center items-center gap-4 mb-6">
-                <div className="relative">
-                  <div className="w-20 h-26 bg-white rounded-lg border-2 border-route66-primary shadow-xl flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
-                    <div className="absolute inset-1 border border-route66-border rounded-md"></div>
-                    <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                      <div className="text-route66-text-muted text-xs font-semibold tracking-wider">ROUTE</div>
-                      <div className="text-route66-primary text-2xl font-black leading-none">66</div>
-                      <div className="text-route66-text-muted text-[8px] font-medium">TRIP PLANNER</div>
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 rounded-lg bg-route66-primary/20 opacity-20 blur-lg animate-pulse"></div>
-                </div>
-                
-                {/* Unit Toggle */}
-                <UnitToggle variant="compact" />
+                {/* Removed Route 66 shield icon and Unit Toggle */}
               </div>
               
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-4">
