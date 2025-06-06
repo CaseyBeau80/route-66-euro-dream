@@ -14,12 +14,20 @@ export interface UnifiedPlanningResult {
     isRecommended: boolean;
     summary: string;
     totalLongDrives: number;
+    consecutivePairs?: number;
+    optimizationScore?: number;
+  };
+  optimizationDetails?: {
+    consecutivePairs: number;
+    gapFillers: number;
+    adjustmentsMade: string[];
+    priorityScore: number;
   };
 }
 
 export class UnifiedTripPlanningService {
   /**
-   * Create a trip plan using the specified planning style
+   * Create a trip plan using the specified planning style with enhanced optimization
    */
   static createTripPlan(
     startStop: TripStop,
@@ -34,7 +42,7 @@ export class UnifiedTripPlanningService {
 
     if (tripStyle === 'destination-focused') {
       try {
-        const destinationResult = DestinationFocusedPlanningService.createDestinationFocusedPlan(
+        const destinationResult: DestinationFocusedResult = DestinationFocusedPlanningService.createDestinationFocusedPlan(
           startStop,
           endStop,
           allStops,
@@ -43,16 +51,28 @@ export class UnifiedTripPlanningService {
           inputEndCity
         );
 
-        console.log(`✅ Destination-focused plan created with ${destinationResult.warnings.length} warnings`);
+        console.log(`✅ Optimized destination-focused plan created with ${destinationResult.warnings.length} warnings`);
+
+        // Log optimization details
+        if (destinationResult.optimizationDetails) {
+          console.log(`🔗 Optimization results: ${destinationResult.optimizationDetails.consecutivePairs} consecutive pairs, ` +
+                     `${destinationResult.optimizationDetails.gapFillers} gap fillers, ` +
+                     `priority score: ${destinationResult.optimizationDetails.priorityScore}`);
+          
+          destinationResult.optimizationDetails.adjustmentsMade.forEach(adjustment => {
+            console.log(`📝 Adjustment: ${adjustment}`);
+          });
+        }
 
         return {
           tripPlan: destinationResult.tripPlan,
           tripStyle: 'destination-focused',
           warnings: destinationResult.warnings,
-          routeAssessment: destinationResult.routeAssessment
+          routeAssessment: destinationResult.routeAssessment,
+          optimizationDetails: destinationResult.optimizationDetails
         };
       } catch (error) {
-        console.error('❌ Destination-focused planning failed, falling back to balanced:', error);
+        console.error('❌ Optimized destination-focused planning failed, falling back to balanced:', error);
         
         // Fallback to balanced planning
         const balancedPlan = BalancedTripPlanningService.createBalancedPlan(
@@ -67,7 +87,7 @@ export class UnifiedTripPlanningService {
         return {
           tripPlan: balancedPlan,
           tripStyle: 'balanced',
-          warnings: ['Destination-focused planning failed, using balanced approach instead']
+          warnings: ['Optimized destination-focused planning failed, using balanced approach instead']
         };
       }
     } else {
@@ -98,23 +118,40 @@ export class UnifiedTripPlanningService {
       case 'balanced':
         return 'Balanced';
       case 'destination-focused':
-        return 'Destination-Focused';
+        return 'Heritage-Optimized Destination-Focused';
       default:
         return 'Unknown';
     }
   }
 
   /**
-   * Get trip style description
+   * Get trip style description with optimization context
    */
   static getTripStyleDescription(tripStyle: TripStyle): string {
     switch (tripStyle) {
       case 'balanced':
         return 'Evenly distributes driving time across all days for consistent daily travel';
       case 'destination-focused':
-        return 'Prioritizes major Route 66 destination cities as stopping points, drive times may vary';
+        return 'Prioritizes consecutive major Route 66 heritage cities, optimizing for authentic Mother Road experience';
       default:
         return 'Unknown trip style';
     }
+  }
+
+  /**
+   * Get optimization summary for UI display
+   */
+  static getOptimizationSummary(result: UnifiedPlanningResult): string | null {
+    if (!result.optimizationDetails) return null;
+
+    const { consecutivePairs, gapFillers, priorityScore } = result.optimizationDetails;
+    
+    if (consecutivePairs > 0) {
+      return `Route optimized with ${consecutivePairs} consecutive major city connections ` +
+             `${gapFillers > 0 ? `and ${gapFillers} strategic stops` : ''} ` +
+             `(Heritage Score: ${priorityScore}/100)`;
+    }
+    
+    return `Route includes ${gapFillers} strategic stops for drive time management`;
   }
 }

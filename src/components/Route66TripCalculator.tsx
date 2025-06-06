@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from './TripCalculator/types/tripCalculator';
@@ -163,6 +162,18 @@ const Route66TripCalculator: React.FC = () => {
         });
       }
 
+      // Show optimization success for destination-focused trips
+      if (result.optimizationDetails && result.tripStyle === 'destination-focused') {
+        const optimizationSummary = UnifiedTripPlanningService.getOptimizationSummary(result);
+        if (optimizationSummary) {
+          toast({
+            title: "Route Optimized!",
+            description: optimizationSummary,
+            variant: "default"
+          });
+        }
+      }
+
       console.log('✅ Trip calculation completed successfully');
     } catch (error) {
       console.error('❌ Trip calculation failed:', error);
@@ -196,10 +207,10 @@ const Route66TripCalculator: React.FC = () => {
       {/* Trip Results */}
       {tripPlan && (
         <div className="mt-8">
-          {/* Trip Style Indicator */}
+          {/* Enhanced Trip Style Indicator with Optimization Details */}
           {planningResult && (
-            <div className="mb-4 p-3 bg-route66-background-alt rounded-lg border border-route66-border">
-              <div className="flex items-center justify-between">
+            <div className="mb-4 p-4 bg-route66-background-alt rounded-lg border border-route66-border">
+              <div className="flex items-center justify-between mb-3">
                 <div>
                   <span className="text-sm font-medium text-route66-text-primary">
                     Trip Style: {UnifiedTripPlanningService.getTripStyleDisplayName(planningResult.tripStyle)}
@@ -215,11 +226,54 @@ const Route66TripCalculator: React.FC = () => {
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-orange-100 text-orange-800'
                     }`}>
-                      {planningResult.routeAssessment.isRecommended ? 'Recommended' : 'Challenging'}
+                      {planningResult.routeAssessment.isRecommended ? 'Optimized' : 'Challenging'}
                     </span>
                   </div>
                 )}
               </div>
+
+              {/* Optimization Details for Destination-Focused */}
+              {planningResult.optimizationDetails && planningResult.tripStyle === 'destination-focused' && (
+                <div className="border-t border-route66-border pt-3 mt-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-600">🔗</span>
+                      <span className="text-route66-text-secondary">
+                        {planningResult.optimizationDetails.consecutivePairs} Consecutive Heritage Cities
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">📍</span>
+                      <span className="text-route66-text-secondary">
+                        {planningResult.optimizationDetails.gapFillers} Strategic Stops
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-purple-600">⭐</span>
+                      <span className="text-route66-text-secondary">
+                        Heritage Score: {planningResult.optimizationDetails.priorityScore}/100
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Optimization Adjustments */}
+                  {planningResult.optimizationDetails.adjustmentsMade.length > 0 && (
+                    <div className="mt-3 p-2 bg-blue-50 rounded text-xs">
+                      <p className="font-medium text-blue-800 mb-1">Route Optimization:</p>
+                      <ul className="space-y-1">
+                        {planningResult.optimizationDetails.adjustmentsMade.slice(0, 2).map((adjustment, index) => (
+                          <li key={index} className="text-blue-700">• {adjustment}</li>
+                        ))}
+                        {planningResult.optimizationDetails.adjustmentsMade.length > 2 && (
+                          <li className="text-blue-600 italic">
+                            +{planningResult.optimizationDetails.adjustmentsMade.length - 2} more optimizations
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
