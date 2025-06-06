@@ -68,7 +68,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
   if (!stableSegments || stableSegments.length === 0) {
     return (
-      <div className="rounded-xl bg-white p-6 shadow-md">
+      <div className="rounded-xl bg-white p-6 shadow-md border border-route66-border">
         <div className="text-center p-8 bg-route66-background-alt rounded-lg border border-route66-border">
           <MapPin className="h-12 w-12 text-route66-text-secondary mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-route66-text-primary mb-2">
@@ -84,7 +84,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
   return (
     <ErrorBoundary context="TabbedItineraryView">
-      <div className="rounded-xl bg-white p-6 shadow-md">
+      <div className="rounded-xl bg-white p-6 shadow-md border border-route66-border">
         <ItineraryHeader 
           totalDays={totalDays}
           segmentsCount={stableSegments.length}

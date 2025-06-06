@@ -42,84 +42,65 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   const tripTitle = tripPlan?.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
 
   return (
-    <>
-      {/* Hidden PDF Export Container - positioned off-screen */}
-      <div 
-        id="pdf-export-content" 
-        className="fixed -left-[9999px] -top-[9999px] w-[8.5in] bg-white invisible"
-        style={{ 
-          position: 'absolute',
-          left: '-9999px',
-          top: '-9999px',
-          width: '8.5in',
-          background: 'white',
-          visibility: 'hidden'
-        }}
-      >
-        {/* This will be populated during PDF export */}
-      </div>
-
-      {/* Main Trip Content */}
-      <div className="space-y-6 trip-content" data-trip-content="true">
-        {/* Trip Overview Header */}
-        <Card className="border-route66-border bg-gradient-to-r from-route66-vintage-beige to-white">
-          <CardHeader className="text-center relative">
-            {/* Share and Export Button - Absolute positioned in top-right */}
-            <div className="absolute top-4 right-4">
-              <ShareAndExportDropdown
-                tripPlan={tripPlan}
-                shareUrl={shareUrl}
-                tripStartDate={tripStartDate}
-                tripTitle={tripTitle}
-                variant="primary"
-                size="sm"
-              />
+    <div className="space-y-6 trip-content" data-trip-content="true">
+      {/* Trip Overview Header */}
+      <Card className="border-route66-border bg-gradient-to-r from-route66-vintage-beige to-white">
+        <CardHeader className="text-center relative">
+          {/* Share and Export Button - Absolute positioned in top-right */}
+          <div className="absolute top-4 right-4">
+            <ShareAndExportDropdown
+              tripPlan={tripPlan}
+              shareUrl={shareUrl}
+              tripStartDate={tripStartDate}
+              tripTitle={tripTitle}
+              variant="primary"
+              size="sm"
+            />
+          </div>
+          
+          <CardTitle className="text-2xl font-travel text-route66-primary flex items-center justify-center gap-2">
+            <MapPin className="h-6 w-6" />
+            Your Route 66 Adventure
+          </CardTitle>
+          <p className="text-route66-text-secondary mt-2">
+            {tripPlan.startCity} → {tripPlan.endCity}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
+              <Calendar className="h-5 w-5 text-route66-primary mx-auto mb-1" />
+              <div className="text-sm font-semibold text-route66-text-primary">{tripPlan.totalDays} Days</div>
+              <div className="text-xs text-route66-text-secondary">Starting {formatStartDate(tripStartDate)}</div>
             </div>
             
-            <CardTitle className="text-2xl font-travel text-route66-primary flex items-center justify-center gap-2">
-              <MapPin className="h-6 w-6" />
-              Your Route 66 Adventure
-            </CardTitle>
-            <p className="text-route66-text-secondary mt-2">
-              {tripPlan.startCity} → {tripPlan.endCity}
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
-                <Calendar className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-                <div className="text-sm font-semibold text-route66-text-primary">{tripPlan.totalDays} Days</div>
-                <div className="text-xs text-route66-text-secondary">Starting {formatStartDate(tripStartDate)}</div>
-              </div>
-              
-              <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
-                <MapPin className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-                <div className="text-sm font-semibold text-route66-text-primary">{formatDistance(tripPlan.totalDistance)}</div>
-                <div className="text-xs text-route66-text-secondary">Total Distance</div>
-              </div>
-              
-              <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
-                <Clock className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-                <div className="text-sm font-semibold text-route66-text-primary">{formatTime(tripPlan.totalDrivingTime)}</div>
-                <div className="text-xs text-route66-text-secondary">Drive Time</div>
-              </div>
-              
-              <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
-                <DollarSign className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-                <div className="text-sm font-semibold text-route66-text-primary">--</div>
-                <div className="text-xs text-route66-text-secondary">Est. Cost</div>
-              </div>
+            <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
+              <MapPin className="h-5 w-5 text-route66-primary mx-auto mb-1" />
+              <div className="text-sm font-semibold text-route66-text-primary">{formatDistance(tripPlan.totalDistance)}</div>
+              <div className="text-xs text-route66-text-secondary">Total Distance</div>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
+              <Clock className="h-5 w-5 text-route66-primary mx-auto mb-1" />
+              <div className="text-sm font-semibold text-route66-text-primary">{formatTime(tripPlan.totalDrivingTime)}</div>
+              <div className="text-xs text-route66-text-secondary">Drive Time</div>
+            </div>
+            
+            <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
+              <DollarSign className="h-5 w-5 text-route66-primary mx-auto mb-1" />
+              <div className="text-sm font-semibold text-route66-text-primary">--</div>
+              <div className="text-xs text-route66-text-secondary">Est. Cost</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Daily Itinerary with Weather Integration */}
-        <TripItinerary 
-          tripPlan={tripPlan} 
-          tripStartDate={tripStartDate}
-        />
-      </div>
-    </>
+      {/* Daily Itinerary with Weather Integration */}
+      <TripItinerary 
+        tripPlan={tripPlan} 
+        tripStartDate={tripStartDate}
+      />
+    </div>
   );
 };
 
