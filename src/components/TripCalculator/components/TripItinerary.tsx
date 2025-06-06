@@ -17,7 +17,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
   // Use stable segments to prevent cascading re-renders
   const stableSegments = useStableSegments(tripPlan.segments || tripPlan.dailySegments || []);
   
-  console.log('📋 TripItinerary render with two-column layout:', {
+  console.log('📋 TripItinerary render with refined two-column layout:', {
     segmentsCount: stableSegments.length,
     tripStartDate: tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : 'Not set',
     totalDays: tripPlan.totalDays
@@ -40,23 +40,23 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
   return (
     <ErrorBoundary context="TripItinerary">
       <div className="space-y-6">
-        {/* Header */}
+        {/* Unified Header - Spans Both Columns */}
         <div className="bg-route66-background-alt rounded-lg border border-route66-border p-6">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-2">
             <Calendar className="h-6 w-6 text-route66-primary" />
             <h3 className="text-xl font-bold text-route66-text-primary">
               Daily Itinerary
             </h3>
-            <span className="text-sm text-route66-text-secondary">
-              Complete overview of your {tripPlan.totalDays}-day Route 66 adventure
-            </span>
           </div>
+          <p className="text-sm text-route66-text-secondary ml-9">
+            Complete overview of your {tripPlan.totalDays}-day Route 66 adventure
+          </p>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Two Column Layout with Aligned Day Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 auto-rows-fr">
           {/* Left Column - Route & Stops */}
-          <div className="lg:pr-3">
+          <div className="space-y-4">
             <ErrorBoundary context="RouteAndStopsColumn">
               <RouteAndStopsColumn
                 segments={stableSegments}
@@ -67,7 +67,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
           </div>
 
           {/* Right Column - Weather Forecast */}
-          <div className="lg:pl-3">
+          <div className="space-y-4">
             <ErrorBoundary context="WeatherForecastColumn">
               <WeatherForecastColumn
                 segments={stableSegments}

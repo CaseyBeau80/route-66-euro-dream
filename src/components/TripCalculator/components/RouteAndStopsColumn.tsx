@@ -24,22 +24,29 @@ const RouteAndStopsColumn: React.FC<RouteAndStopsColumnProps> = ({
   });
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold text-route66-text-primary mb-4">
-        Daily Route & Stops
-      </h3>
-      {stableSegments.map((segment, index) => (
-        <ErrorBoundary key={`route-segment-${segment.day}-${index}`} context={`RouteAndStopsColumn-Segment-${index}`}>
-          <DaySegmentCard 
-            segment={segment}
-            tripStartDate={tripStartDate}
-            cardIndex={index}
-            tripId={tripId}
-            sectionKey="route-stops"
-          />
-        </ErrorBoundary>
-      ))}
-    </div>
+    <>
+      {/* Subtle Column Label */}
+      <div className="mb-3">
+        <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
+          Route & Stops
+        </h4>
+      </div>
+      
+      {/* Day Cards */}
+      <div className="space-y-4">
+        {stableSegments.map((segment, index) => (
+          <ErrorBoundary key={`route-segment-${segment.day}-${index}`} context={`RouteAndStopsColumn-Segment-${index}`}>
+            <DaySegmentCard 
+              segment={segment}
+              tripStartDate={tripStartDate}
+              cardIndex={index}
+              tripId={tripId}
+              sectionKey="route-stops"
+            />
+          </ErrorBoundary>
+        ))}
+      </div>
+    </>
   );
 };
 
