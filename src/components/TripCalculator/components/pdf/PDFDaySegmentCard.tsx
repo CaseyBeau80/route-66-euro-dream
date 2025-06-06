@@ -109,7 +109,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               <div className="flex items-center justify-between text-sm bg-white rounded p-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
-                    {weatherInfo.temperature || 
+                    {weatherInfo.temperature ? Math.round(weatherInfo.temperature) :
                      weatherInfo.main?.temp ? Math.round(weatherInfo.main.temp) : 
                      weatherInfo.temp?.day ? Math.round(weatherInfo.temp.day) :
                      '--'}°F
@@ -135,8 +135,10 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
                     <div key={index} className="text-center p-2 bg-white rounded border text-xs">
                       <div className="font-medium text-gray-700">{day.date}</div>
                       <div className="text-blue-600 font-semibold">
-                        {day.temperature?.high || day.temp?.max ? Math.round(day.temp?.max || day.temperature.high) : '--'}°/
-                        {day.temperature?.low || day.temp?.min ? Math.round(day.temp?.min || day.temperature.low) : '--'}°
+                        {day.temperature?.high ? Math.round(day.temperature.high) :
+                         day.temp?.max ? Math.round(day.temp.max) : '--'}°/
+                        {day.temperature?.low ? Math.round(day.temperature.low) :
+                         day.temp?.min ? Math.round(day.temp.min) : '--'}°
                       </div>
                       <div className="text-gray-500 capitalize text-xs">
                         {day.description || day.weather?.[0]?.description || 'Clear'}
