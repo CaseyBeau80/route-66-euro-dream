@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
@@ -85,9 +84,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
               <div className="text-sm font-semibold text-gray-800">{tripPlan.totalDays} Days</div>
-              <div className="text-xs text-gray-600">
-                {tripStartDate ? `Starting ${formatStartDate(tripStartDate)}` : 'Duration'}
-              </div>
+              <div className="text-xs text-gray-600">Duration</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
