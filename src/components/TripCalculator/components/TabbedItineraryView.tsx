@@ -68,13 +68,13 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
   if (!stableSegments || stableSegments.length === 0) {
     return (
-      <div className="rounded-xl bg-white p-6 shadow-md border border-route66-border">
-        <div className="text-center p-8 bg-route66-background-alt rounded-lg border border-route66-border">
-          <MapPin className="h-12 w-12 text-route66-text-secondary mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-route66-text-primary mb-2">
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+        <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+          <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
             No Itinerary Available
           </h3>
-          <p className="text-route66-text-secondary">
+          <p className="text-gray-500">
             There was an issue generating your trip itinerary. Please try recalculating your trip.
           </p>
         </div>
@@ -84,7 +84,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
   return (
     <ErrorBoundary context="TabbedItineraryView">
-      <div className="rounded-xl bg-white p-6 shadow-md border border-route66-border">
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
         <ItineraryHeader 
           totalDays={totalDays}
           segmentsCount={stableSegments.length}
