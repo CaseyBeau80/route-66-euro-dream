@@ -6,17 +6,20 @@ import { TripPlan } from '../services/planning/TripPlanBuilder';
 import DaySegmentCard from './DaySegmentCard';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 import CollapsibleCardGroup from './CollapsibleCardGroup';
+import ShareTripButton from './ShareTripButton';
 
 interface TripItineraryProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   formatTime: (hours: number) => string;
+  shareUrl?: string | null;
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({
   tripPlan,
   tripStartDate,
-  formatTime
+  formatTime,
+  shareUrl
 }) => {
   // Generate a simple trip ID for localStorage
   const tripId = tripPlan ? `${tripPlan.startCity}-${tripPlan.endCity}-${tripPlan.totalDays}` : undefined;
@@ -79,6 +82,17 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
             </CollapsibleCardGroup>
           </TabsContent>
         </Tabs>
+
+        {/* Centered Share Trip Button */}
+        <div className="flex justify-center mt-6">
+          <ShareTripButton
+            tripPlan={tripPlan}
+            shareUrl={shareUrl}
+            tripStartDate={tripStartDate}
+            variant="primary"
+            size="default"
+          />
+        </div>
       </CardContent>
     </Card>
   );
