@@ -60,13 +60,13 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
               <Clock className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-              <div className="text-sm font-semibold text-route66-text-primary">{formatTime(tripPlan.totalDriveTime)}</div>
+              <div className="text-sm font-semibold text-route66-text-primary">{formatTime(tripPlan.totalDrivingTime)}</div>
               <div className="text-xs text-route66-text-secondary">Drive Time</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
               <DollarSign className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-              <div className="text-sm font-semibold text-route66-text-primary">${tripPlan.estimatedCost?.toFixed(0) || 'N/A'}</div>
+              <div className="text-sm font-semibold text-route66-text-primary">N/A</div>
               <div className="text-xs text-route66-text-secondary">Est. Cost</div>
             </div>
           </div>
