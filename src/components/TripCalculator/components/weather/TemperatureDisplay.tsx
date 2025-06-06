@@ -3,17 +3,13 @@ import React from 'react';
 import { useUnits } from '@/contexts/UnitContext';
 
 interface TemperatureDisplayProps {
-  type: 'current' | 'range';
+  type: 'current';
   currentTemp?: number;
-  highTemp?: number;
-  lowTemp?: number;
 }
 
 const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({ 
   type, 
-  currentTemp, 
-  highTemp, 
-  lowTemp 
+  currentTemp
 }) => {
   const { formatTemperature } = useUnits();
 
@@ -22,22 +18,6 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
       <div className="flex flex-col items-center justify-center bg-white rounded p-3">
         <div className="text-2xl font-bold text-blue-600 mb-1">{formatTemperature(currentTemp)}</div>
         <div className="text-xs text-gray-500">Current Temp</div>
-      </div>
-    );
-  }
-
-  if (type === 'range' && highTemp !== undefined && lowTemp !== undefined) {
-    return (
-      <div className="flex items-center justify-between bg-white rounded p-3 gap-4">
-        <div className="text-center flex-1">
-          <div className="text-xl font-bold text-red-600">{formatTemperature(highTemp)}</div>
-          <div className="text-xs text-gray-500">High</div>
-        </div>
-        <div className="text-gray-300">•</div>
-        <div className="text-center flex-1">
-          <div className="text-xl font-bold text-blue-600">{formatTemperature(lowTemp)}</div>
-          <div className="text-xs text-gray-500">Low</div>
-        </div>
       </div>
     );
   }
