@@ -23,11 +23,13 @@ export const usePDFDisplay = () => {
       flex items-center justify-center
       shadow-lg transition-all duration-200
       text-lg font-bold
+      hover:scale-105 active:scale-95
     `.replace(/\s+/g, ' ').trim();
 
     closeButton.onclick = () => {
       // Add fade-out animation before cleanup
       closeButton.style.opacity = '0';
+      closeButton.style.transform = 'scale(0.95)';
       setTimeout(() => {
         onClose();
         if (document.body.contains(closeButton)) {
@@ -68,10 +70,11 @@ export const usePDFDisplay = () => {
       }
     });
 
-    // Enhanced cleanup on print
+    // Enhanced cleanup on print with proper close button removal
     window.onafterprint = () => {
       if (document.body.contains(closeButton)) {
         closeButton.style.opacity = '0';
+        closeButton.style.transform = 'scale(0.95)';
         setTimeout(() => {
           if (document.body.contains(closeButton)) {
             document.body.removeChild(closeButton);

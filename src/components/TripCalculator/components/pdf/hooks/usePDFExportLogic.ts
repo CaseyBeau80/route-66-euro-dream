@@ -51,18 +51,30 @@ export const usePDFExportLogic = ({
     loadingBox.setAttribute("aria-live", "polite");
     loadingBox.className = `
       pdf-loading-overlay-js
-      fixed top-[72px] left-1/2 -translate-x-1/2 z-[9999]
-      bg-white/90 text-route66-orange-800 px-6 py-3
-      rounded-xl shadow-lg text-sm flex items-center gap-2
-      transition-opacity duration-300
+      fixed top-[80px] left-1/2 -translate-x-1/2 z-[9999]
+      bg-route66-orange-50 text-route66-orange-700 px-6 py-4
+      rounded-xl shadow-lg flex items-center gap-3
+      animate-fade-in transition-opacity duration-300
+      max-w-sm w-full mx-4
     `.replace(/\s+/g, ' ').trim();
 
     loadingBox.innerHTML = `
-      <div class="w-4 h-4 border-2 border-route66-orange-600 border-t-transparent rounded-full animate-spin"></div>
-      <span>Preparing your Route 66 trip PDF... Fetching weather and formatting content.</span>
+      <div class="w-4 h-4 border-2 border-route66-orange-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+      <div class="min-w-0">
+        <p class="font-semibold text-route66-orange-800">Preparing Route 66 PDF</p>
+        <p class="text-sm text-route66-orange-600">Loading weather and formatting itinerary for print...</p>
+      </div>
     `;
 
     document.body.appendChild(loadingBox);
+
+    // Add pulse animation fallback for loads >4 seconds
+    setTimeout(() => {
+      if (document.body.contains(loadingBox)) {
+        loadingBox.classList.add('animate-pulse');
+      }
+    }, 4000);
+
     return loadingBox;
   };
 

@@ -21,22 +21,22 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
     <div className="space-y-4">
       {/* Weather Loading Notice */}
       {weatherLoading && (
-        <div className="flex items-center gap-2 p-3 bg-route66-orange-50 border border-route66-orange-200 rounded">
-          <AlertCircle className="w-4 h-4 text-route66-orange-600" />
-          <span className="text-sm text-route66-orange-800">Loading weather data...</span>
+        <div className="flex items-center gap-2 p-3 bg-route66-orange-100 border border-route66-orange-300 rounded-lg">
+          <AlertCircle className="w-4 h-4 text-route66-orange-600 flex-shrink-0" />
+          <span className="text-sm text-route66-orange-800 font-medium">Loading weather data...</span>
         </div>
       )}
 
       {/* Export Format */}
       <div className="space-y-2">
-        <Label className="text-route66-orange-600 font-semibold">Export Format</Label>
+        <Label className="text-route66-orange-600 font-semibold text-sm">Export Format</Label>
         <Select 
           value={exportOptions.format} 
           onValueChange={(value: 'full' | 'summary' | 'route-only') => 
             updateExportOption('format', value)
           }
         >
-          <SelectTrigger>
+          <SelectTrigger className="text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -49,11 +49,12 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
 
       {/* Custom Title */}
       <div className="space-y-2">
-        <Label className="text-route66-orange-600 font-semibold">Custom Title (Optional)</Label>
+        <Label className="text-route66-orange-600 font-semibold text-sm">Custom Title (Optional)</Label>
         <Input
           placeholder="My Route 66 Adventure"
           value={exportOptions.title || ''}
           onChange={(e) => updateExportOption('title', e.target.value)}
+          className="text-sm"
         />
       </div>
 
@@ -65,28 +66,29 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
             checked={exportOptions.includeQRCode}
             onCheckedChange={(checked) => updateExportOption('includeQRCode', !!checked)}
           />
-          <Label htmlFor="includeQRCode" className="text-route66-orange-600 font-semibold">QR Code to Live Version</Label>
+          <Label htmlFor="includeQRCode" className="text-route66-orange-600 font-semibold text-sm">QR Code to Live Version</Label>
         </div>
       </div>
 
       {/* Watermark */}
       <div className="space-y-2">
-        <Label className="text-route66-orange-600 font-semibold">Watermark (Optional)</Label>
+        <Label className="text-route66-orange-600 font-semibold text-sm">Watermark (Optional)</Label>
         <Input
           placeholder="DRAFT, CONFIDENTIAL, etc."
           value={exportOptions.watermark || ''}
           onChange={(e) => updateExportOption('watermark', e.target.value)}
+          className="text-sm"
         />
       </div>
 
       {/* Instructions */}
-      <div className="p-3 bg-route66-orange-50 border border-route66-orange-200 rounded text-sm text-route66-orange-700">
-        <div className="font-medium mb-1 text-route66-orange-600">📋 Export Instructions:</div>
-        <ul className="text-xs space-y-1">
+      <div className="p-3 bg-route66-orange-100 border border-route66-orange-300 rounded-lg text-sm text-route66-orange-700">
+        <div className="font-semibold mb-2 text-route66-orange-600 text-sm">📋 Export Instructions:</div>
+        <ul className="text-xs space-y-1.5 leading-relaxed">
           <li>• Weather data loads automatically (may take a few seconds)</li>
           <li>• Weather forecast unavailable? Please check online before departure</li>
-          <li>• Press <kbd className="bg-route66-orange-200 px-1 rounded">ESC</kbd> to close PDF preview</li>
-          <li>• Use <kbd className="bg-route66-orange-200 px-1 rounded">Ctrl+P</kbd> to print or save as PDF</li>
+          <li>• Press <kbd className="bg-route66-orange-200 px-1.5 py-0.5 rounded text-xs font-mono">ESC</kbd> to close PDF preview</li>
+          <li>• Use <kbd className="bg-route66-orange-200 px-1.5 py-0.5 rounded text-xs font-mono">Ctrl+P</kbd> to print or save as PDF</li>
           <li>• Click the red close button to exit preview mode</li>
         </ul>
       </div>

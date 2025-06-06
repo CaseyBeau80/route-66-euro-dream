@@ -9,6 +9,7 @@ export const usePDFCleanup = () => {
     const closeButton = document.querySelector('.pdf-close-button-js');
     if (closeButton && document.body.contains(closeButton)) {
       (closeButton as HTMLElement).style.opacity = '0';
+      (closeButton as HTMLElement).style.transform = 'scale(0.95)';
       setTimeout(() => {
         if (document.body.contains(closeButton)) {
           document.body.removeChild(closeButton);
@@ -26,11 +27,13 @@ export const usePDFCleanup = () => {
       }, 300);
     }
     
-    // Restore original content
+    // Restore original content with staggered animation
     const originalChildren = Array.from(document.body.children);
-    originalChildren.forEach(child => {
+    originalChildren.forEach((child, index) => {
       if (child.id !== 'pdf-export-content') {
-        (child as HTMLElement).style.display = '';
+        setTimeout(() => {
+          (child as HTMLElement).style.display = '';
+        }, index * 50); // Staggered restoration for smooth effect
       }
     });
     
