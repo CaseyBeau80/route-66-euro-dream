@@ -1,102 +1,85 @@
 
 import { useState, useMemo } from 'react';
-import { CostEstimatorData, CostBreakdown, CostEstimate, DailyCosts } from '../types/costEstimator';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 
-interface MockTripPlan {
-  totalDistance: number;
-  dailySegments: Array<{
-    day: number;
-    distance: number;
-    drivingTime: number;
-  }>;
+export interface CostData {
+  groupSize: number;
+  hotelBudget: number;
+  gasPrice: number;
+  carMpg: number;
+  foodBudget: number;
+  activityBudget: number;
 }
 
-export const useCostEstimator = (tripPlan: MockTripPlan) => {
-  const [costData, setCostData] = useState<CostEstimatorData>({
-    gasPrice: 3.50,
-    mpg: 25,
+export interface CostEstimate {
+  totalCost: number;
+  gasoline: number;
+  hotels: number;
+  food: number;
+  activities: number;
+  perPersonCost: number;
+}
+
+// Mock interface for compatibility
+interface MockTripPlan {
+  totalDistance: number;
+  totalDays: number;
+  dailySegments: Array<{
+    day: number;
+    approximateMiles: number;
+    driveTimeHours: number;
+  }>;
+  driveTimeBalance: {
+    averageDriveTime: number;
+    balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  };
+}
+
+export const useCostEstimator = (tripPlan: TripPlan) => {
+  const [costData, setCostData] = useState<CostData>({
     groupSize: 2,
-    numberOfRooms: 1,
-    motelBudget: 'mid-range',
-    mealBudget: 'mid-range',
-    includeAttractions: true,
-    includeTolls: false
+    hotelBudget: 120,
+    gasPrice: 3.50,
+    carMpg: 25,
+    foodBudget: 50,
+    activityBudget: 30
   });
 
-  const costEstimate = useMemo((): CostEstimate | null => {
-    if (!tripPlan || tripPlan.dailySegments.length === 0) return null;
+  // Convert TripPlan to MockTripPlan for compatibility
+  const mockTripPlan: MockTripPlan = useMemo(() => ({
+    totalDistance: tripPlan.totalDistance,
+    totalDays: tripPlan.totalDays,
+    dailySegments: tripPlan.segments.map(segment => ({
+      day: segment.day,
+      approximateMiles: segment.approximateMiles,
+      driveTimeHours: segment.driveTimeHours
+    })),
+    driveTimeBalance: {
+      averageDriveTime: tripPlan.driveTimeBalance?.averageDriveTime || 6,
+      balanceQuality: tripPlan.driveTimeBalance?.balanceQuality || 'good'
+    }
+  }), [tripPlan]);
 
-    const totalDistance = tripPlan.totalDistance;
-    const tripDays = tripPlan.dailySegments.length;
+  const costEstimate = useMemo(() => {
+    if (!mockTripPlan) return null;
 
-    // Gas costs
-    const totalGallons = totalDistance / costData.mpg;
-    const gasCost = totalGallons * costData.gasPrice;
+    const gasoline = (mockTripPlan.totalDistance / costData.carMpg) * costData.gasPrice;
+    const hotels = (mockTripPlan.totalDays - 1) * costData.hotelBudget; // Assume hotel for all nights except last
+    const food = mockTripPlan.totalDays * costData.foodBudget * costData.groupSize;
+    const activities = mockTripPlan.totalDays * costData.activityBudget * costData.groupSize;
 
-    // Accommodation costs (multiply by number of rooms)
-    const motelRates = {
-      'budget': 65,
-      'mid-range': 120,
-      'luxury': 250
-    };
-    const accommodationCost = (tripDays - 1) * motelRates[costData.motelBudget] * costData.numberOfRooms;
-
-    // Meal costs
-    const mealRates = {
-      'budget': 45,
-      'mid-range': 85,
-      'fine-dining': 150
-    };
-    const mealCost = tripDays * mealRates[costData.mealBudget] * costData.groupSize;
-
-    // Attraction costs
-    const attractionCost = costData.includeAttractions ? tripDays * 30 * costData.groupSize : 0;
-
-    // Toll costs
-    const tollCost = costData.includeTolls ? tripDays * 8 : 0;
-
-    const totalCost = gasCost + accommodationCost + mealCost + attractionCost + tollCost;
-
-    const breakdown: CostBreakdown = {
-      gasCost: Math.round(gasCost),
-      accommodationCost: Math.round(accommodationCost),
-      mealCost: Math.round(mealCost),
-      attractionCost: Math.round(attractionCost),
-      tollCost: Math.round(tollCost),
-      totalCost: Math.round(totalCost)
-    };
-
-    // Create daily costs breakdown
-    const dailyCosts: DailyCosts[] = tripPlan.dailySegments.map((segment, index) => {
-      const dayGas = (segment.distance / costData.mpg) * costData.gasPrice;
-      const dayAccommodation = index < tripPlan.dailySegments.length - 1 ? motelRates[costData.motelBudget] * costData.numberOfRooms : 0;
-      const dayMeals = mealRates[costData.mealBudget] * costData.groupSize;
-      const dayAttractions = costData.includeAttractions ? 30 * costData.groupSize : 0;
-      const dayTolls = costData.includeTolls ? 8 : 0;
-
-      return {
-        day: segment.day,
-        city: `Day ${segment.day}`,
-        gas: Math.round(dayGas),
-        accommodation: Math.round(dayAccommodation),
-        meals: Math.round(dayMeals),
-        attractions: Math.round(dayAttractions),
-        tolls: Math.round(dayTolls),
-        dailyTotal: Math.round(dayGas + dayAccommodation + dayMeals + dayAttractions + dayTolls)
-      };
-    });
+    const totalCost = gasoline + hotels + food + activities;
+    const perPersonCost = totalCost / costData.groupSize;
 
     return {
-      breakdown,
-      dailyCosts,
-      perPersonCost: Math.round(breakdown.totalCost / costData.groupSize),
-      averageDailyCost: Math.round(breakdown.totalCost / tripDays)
+      totalCost,
+      gasoline,
+      hotels,
+      food,
+      activities,
+      perPersonCost
     };
-  }, [tripPlan, costData]);
+  }, [mockTripPlan, costData]);
 
-  return {
-    costData,
-    setCostData,
-    costEstimate
-  };
+  return { costData, setCostData, costEstimate };
 };

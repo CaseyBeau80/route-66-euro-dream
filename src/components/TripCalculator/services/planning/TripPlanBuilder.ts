@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -7,8 +8,16 @@ import { SegmentStopCurator } from './SegmentStopCurator';
 import { DestinationCityValidator } from './DestinationCityValidator';
 import { DriveTimeBalancer } from './DriveTimeBalancer';
 
+export interface SubStopTiming {
+  fromStop: TripStop;
+  toStop: TripStop;
+  distanceMiles: number;
+  driveTimeHours: number;
+}
+
 export interface DailySegment {
   day: number;
+  title?: string;
   startCity: string;
   endCity: string;
   distance?: number;
@@ -20,28 +29,42 @@ export interface DailySegment {
   driveTimeCategory?: {
     category: 'short' | 'optimal' | 'long' | 'extreme';
     message: string;
+    color?: string;
   };
   curatedStops?: {
     attractions: TripStop[];
     waypoints: TripStop[];
     hiddenGems: TripStop[];
   };
+  subStopTimings?: SubStopTiming[];
+  routeSection?: string;
+  drivingTime?: number;
 }
 
 export interface TripPlan {
   title: string;
   startCity: string;
   endCity: string;
+  startCityImage?: string;
+  endCityImage?: string;
   totalDays: number;
   originalDays?: number;
   totalDistance: number;
+  totalMiles?: number; // Alias for totalDistance
   totalDrivingTime: number;
   segments: DailySegment[];
+  dailySegments?: DailySegment[]; // Alias for segments
   wasAdjusted?: boolean;
   driveTimeBalance?: {
     isBalanced: boolean;
     averageDriveTime: number;
     reason?: string;
+    balanceQuality?: 'excellent' | 'good' | 'fair' | 'poor';
+    driveTimeRange?: { min: number; max: number };
+    qualityGrade?: 'A' | 'B' | 'C' | 'D' | 'F';
+    overallScore?: number;
+    variance?: number;
+    suggestions?: string[];
   };
 }
 
@@ -138,6 +161,17 @@ export class TripPlanBuilder {
         category: DriveTimeConstraints.getDriveTimeCategory(driveTimeHours)
       });
 
+      // Add color to drive time category
+      if (driveTimeCategory) {
+        const colorMap = {
+          short: 'text-green-800',
+          optimal: 'text-blue-800',
+          long: 'text-orange-800',
+          extreme: 'text-red-800'
+        };
+        driveTimeCategory.color = colorMap[driveTimeCategory.category] || 'text-gray-800';
+      }
+
       // Curate stops for this segment
       const { segmentStops, curatedSelection } = SegmentStopCurator.curateStopsForSegment(
         currentStop,
@@ -148,18 +182,53 @@ export class TripPlanBuilder {
       // Remove used stops from remaining stops
       SegmentStopCurator.removeUsedStops(remainingStops, segmentStops);
 
+      // Create sub-stop timings
+      const subStopTimings: SubStopTiming[] = [];
+      if (segmentStops.length > 0) {
+        let prevStop = currentStop;
+        for (const stop of segmentStops) {
+          const distance = DistanceCalculationService.calculateDistance(
+            prevStop.latitude, prevStop.longitude,
+            stop.latitude, stop.longitude
+          );
+          subStopTimings.push({
+            fromStop: prevStop,
+            toStop: stop,
+            distanceMiles: distance,
+            driveTimeHours: distance / 50
+          });
+          prevStop = stop;
+        }
+        // Final segment to destination
+        const finalDistance = DistanceCalculationService.calculateDistance(
+          prevStop.latitude, prevStop.longitude,
+          dayDestination.latitude, dayDestination.longitude
+        );
+        subStopTimings.push({
+          fromStop: prevStop,
+          toStop: dayDestination,
+          distanceMiles: finalDistance,
+          driveTimeHours: finalDistance / 50
+        });
+      }
+
       const segment: DailySegment = {
         day,
+        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(dayDestination)}`,
         startCity: CityDisplayService.getCityDisplayName(currentStop),
         endCity: CityDisplayService.getCityDisplayName(dayDestination),
         distance: segmentDistance,
         approximateMiles: Math.round(segmentDistance),
         driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+        drivingTime: parseFloat(driveTimeHours.toFixed(1)),
         destination: dayDestination,
         recommendedStops: segmentStops,
         attractions: segmentStops.map(stop => stop.name),
         driveTimeCategory,
-        curatedStops: curatedSelection
+        curatedStops: curatedSelection,
+        subStopTimings,
+        routeSection: day <= Math.ceil(actualDays / 3) ? 'Early Route' : 
+                     day <= Math.ceil(2 * actualDays / 3) ? 'Mid Route' : 'Final Stretch'
       };
 
       segments.push(segment);
@@ -179,13 +248,16 @@ export class TripPlanBuilder {
       totalDays: actualDays,
       originalDays: wasAdjusted ? requestedDays : undefined,
       totalDistance: Math.round(totalDistance),
+      totalMiles: Math.round(totalDistance),
       totalDrivingTime: parseFloat(totalDrivingTime.toFixed(1)),
       segments,
+      dailySegments: segments,
       wasAdjusted,
       driveTimeBalance: {
         isBalanced: distribution.isBalanced,
         averageDriveTime: distribution.averageDriveTime,
-        reason: wasAdjusted ? durationAnalysis.reason : undefined
+        reason: wasAdjusted ? durationAnalysis.reason : undefined,
+        balanceQuality: distribution.isBalanced ? 'excellent' : 'fair'
       }
     };
 

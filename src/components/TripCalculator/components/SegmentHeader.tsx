@@ -18,7 +18,7 @@ const getRouteSectionColor = (section?: string) => {
   }
 };
 
-const getDriveTimeBadge = (category?: { category: string; message: string; color: string }) => {
+const getDriveTimeBadge = (category?: { category: string; message: string; color?: string }) => {
   if (!category) return null;
 
   const iconMap = {
@@ -35,8 +35,18 @@ const getDriveTimeBadge = (category?: { category: string; message: string; color
     extreme: 'bg-red-100 border-red-200'
   };
 
+  const textColorMap = {
+    short: 'text-green-800',
+    optimal: 'text-blue-800',
+    long: 'text-orange-800',
+    extreme: 'text-red-800'
+  };
+
+  const bgColor = bgColorMap[category.category as keyof typeof bgColorMap] || 'bg-gray-100 border-gray-200';
+  const textColor = category.color || textColorMap[category.category as keyof typeof textColorMap] || 'text-gray-800';
+
   return (
-    <div className={`px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${bgColorMap[category.category as keyof typeof bgColorMap]} ${category.color}`}>
+    <div className={`px-2 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${bgColor} ${textColor}`}>
       {iconMap[category.category as keyof typeof iconMap]}
       <span className="capitalize">{category.category}</span>
     </div>
@@ -48,7 +58,7 @@ const SegmentHeader: React.FC<SegmentHeaderProps> = ({ segment, showAdjustmentWa
     <>
       <div className="flex items-center justify-between">
         <CardTitle className="font-route66 text-lg text-route66-vintage-red">
-          {segment.title}
+          {segment.title || `Day ${segment.day}: ${segment.startCity} → ${segment.endCity}`}
         </CardTitle>
         <div className="flex items-center gap-2">
           {segment.routeSection && (
