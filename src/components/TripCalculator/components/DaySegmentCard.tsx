@@ -27,7 +27,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 }) => {
   const { formatDistance } = useUnits();
   
-  console.log('🗓️ DaySegmentCard render:', segment.title, 'defaultExpanded: false');
+  console.log('🗓️ DaySegmentCard render:', segment.title, 'FORCE COLLAPSED - ignoring any defaultExpanded');
 
   // Calculate the date for this segment
   const getSegmentDate = () => {
@@ -162,7 +162,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     <TooltipProvider>
       <EnhancedCollapsibleCard
         title={cardHeader}
-        defaultExpanded={false}
+        defaultExpanded={false} // This will be ignored by force collapsed mode
         className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
         headerClassName="border-b border-gray-200"
         contentClassName="pt-0"

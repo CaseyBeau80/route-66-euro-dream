@@ -30,16 +30,18 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
   tripId,
   sectionKey = 'default'
 }) => {
+  // FORCE COLLAPSED: Always pass false, completely ignore defaultExpanded prop
   const { isExpanded, handleToggle } = useCollapsibleState({
     tripId,
     sectionKey,
     cardIndex,
-    defaultExpanded: false // Always pass false to ensure collapsed start
+    defaultExpanded: false // Force collapsed - ignore any defaultExpanded prop
   });
 
-  console.log(`🃏 EnhancedCollapsibleCard: Rendering ${sectionKey}-${cardIndex}`, {
+  console.log(`🃏 EnhancedCollapsibleCard: Force collapsed render ${sectionKey}-${cardIndex}`, {
     isExpanded,
-    forcedDefaultExpanded: false, // Now always false
+    ignoredDefaultExpanded: defaultExpanded, // Log what we're ignoring
+    forceCollapsed: true,
     tripId
   });
 

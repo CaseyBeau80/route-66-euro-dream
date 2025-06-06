@@ -14,51 +14,40 @@ export const useCollapsibleState = ({
   cardIndex,
   defaultExpanded = false
 }: UseCollapsibleStateProps) => {
-  // ALWAYS start with collapsed state (false) - completely ignore defaultExpanded
+  // FORCE COLLAPSED: Always start with false, completely ignore defaultExpanded and localStorage
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
-  console.log(`🔧 useCollapsibleState: Initializing for ${sectionKey}-${cardIndex}`, {
+  console.log(`🔧 useCollapsibleState: Force collapsed mode for ${sectionKey}-${cardIndex}`, {
     tripId,
     sectionKey,
     cardIndex,
-    forcedDefaultExpanded: false, // Always false now
+    forceCollapsed: true,
     initialIsExpanded: false
   });
 
-  // Load persisted state from localStorage only if user has interacted before
+  // Clear localStorage and force collapsed state on initialization
   useEffect(() => {
     if (tripId) {
       const cardKey = `trip-${tripId}-${sectionKey}-card-${cardIndex}`;
       const interactionKey = `trip-${tripId}-${sectionKey}-interacted`;
       
-      const savedState = localStorage.getItem(cardKey);
-      const savedInteraction = localStorage.getItem(interactionKey);
-      
-      console.log(`📂 Loading persisted state for ${sectionKey}-${cardIndex}:`, {
+      console.log(`🧹 Clearing localStorage entries for ${sectionKey}-${cardIndex}:`, {
         cardKey,
-        savedState,
-        savedInteraction,
-        currentExpanded: isExpanded
+        interactionKey
       });
       
-      // Only use saved state if user has previously interacted
-      if (savedInteraction !== null && JSON.parse(savedInteraction)) {
-        setHasUserInteracted(true);
-        if (savedState !== null) {
-          const parsedState = JSON.parse(savedState);
-          console.log(`📂 Setting expanded state from localStorage (user interacted): ${parsedState}`);
-          setIsExpanded(parsedState);
-        }
-      } else {
-        // No previous interaction - ensure collapsed and save initial state
-        console.log(`📂 No previous interaction, ensuring collapsed: false`);
-        setIsExpanded(false);
-        localStorage.setItem(cardKey, JSON.stringify(false));
-      }
+      // Clear any existing state and force collapsed
+      localStorage.removeItem(cardKey);
+      localStorage.removeItem(interactionKey);
+      localStorage.setItem(cardKey, JSON.stringify(false));
+      
+      console.log(`🔒 Force setting collapsed state: false`);
+      setIsExpanded(false);
+      setHasUserInteracted(false);
     } else {
-      // No tripId, always collapsed
-      console.log(`📂 No tripId, using collapsed: false`);
+      // No tripId, ensure collapsed
+      console.log(`🔒 No tripId, force collapsed: false`);
       setIsExpanded(false);
     }
   }, [tripId, sectionKey, cardIndex]);
@@ -117,9 +106,10 @@ export const useCollapsibleState = ({
     window.dispatchEvent(updateEvent);
   };
 
-  console.log(`🎛️ useCollapsibleState: Current state for ${sectionKey}-${cardIndex}:`, {
+  console.log(`🎛️ useCollapsibleState: Final state for ${sectionKey}-${cardIndex}:`, {
     isExpanded,
-    hasUserInteracted
+    hasUserInteracted,
+    forceCollapsed: true
   });
 
   return {
