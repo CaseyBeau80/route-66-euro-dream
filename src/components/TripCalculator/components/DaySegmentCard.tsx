@@ -31,15 +31,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 }) => {
   const { formatDistance } = useUnits();
   
-  // Validate segment data
-  const isValidSegment = DataValidationService.validateDailySegment(segment, 'DaySegmentCard.segment');
-  
-  if (!isValidSegment) {
+  // Validate segment data with proper type guard
+  if (!DataValidationService.validateDailySegment(segment, 'DaySegmentCard.segment')) {
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
           <p className="text-sm text-red-600">
-            Invalid segment data for Day {segment?.day || 'Unknown'}
+            Invalid segment data for Day {typeof segment === 'object' && segment && 'day' in segment ? segment.day : 'Unknown'}
           </p>
         </div>
       </ErrorBoundary>

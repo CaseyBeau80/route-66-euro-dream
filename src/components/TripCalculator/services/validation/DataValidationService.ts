@@ -48,7 +48,7 @@ export class DataValidationService {
   }
 
   /**
-   * Validate a daily segment
+   * Validate a daily segment - now properly typed as a type guard
    */
   static validateDailySegment(segment: any, context: string = 'DailySegment'): segment is DailySegment {
     if (!segment || typeof segment !== 'object') {
