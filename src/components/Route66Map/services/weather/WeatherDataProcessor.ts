@@ -52,11 +52,22 @@ export class WeatherDataProcessor {
         const temps = dayData.map(item => item.main.temp);
         const date = new Date(dateKey + 'T12:00:00'); // Use noon to avoid timezone issues
         
-        // Calculate precipitation chance (average of all forecasts for the day)
-        const precipChances = dayData.map(item => (item.pop || 0) * 100);
-        const avgPrecipChance = precipChances.length > 0 
-          ? Math.round(precipChances.reduce((sum, chance) => sum + chance, 0) / precipChances.length)
-          : 0;
+        // FIXED: Calculate precipitation chance properly
+        const precipChances = dayData.map(item => {
+          const popValue = item.pop || 0; // pop is 0-1 from API
+          console.log(`🌧️ Raw POP value for ${dateKey}:`, popValue);
+          return popValue * 100; // Convert to percentage
+        }).filter(chance => chance > 0); // Only include non-zero chances
+        
+        // Calculate actual precipitation chance - use max instead of average for better accuracy
+        const precipitationChance = precipChances.length > 0 
+          ? Math.round(Math.max(...precipChances))
+          : 0; // Default to 0% if no precipitation expected
+        
+        console.log(`🌧️ Calculated precipitation for ${dateKey}:`, {
+          rawChances: precipChances,
+          finalChance: precipitationChance + '%'
+        });
         
         // Calculate average humidity for the day
         const humidities = dayData.map(item => item.main.humidity);
@@ -88,7 +99,7 @@ export class WeatherDataProcessor {
           },
           description: midDayForecast.weather[0].description,
           icon: midDayForecast.weather[0].icon,
-          precipitationChance: avgPrecipChance.toString(),
+          precipitationChance: precipitationChance.toString(), // Properly calculated precipitation
           humidity: avgHumidity, // Real humidity data
           windSpeed: avgWindSpeed // Real wind speed data
         };
@@ -96,7 +107,7 @@ export class WeatherDataProcessor {
         console.log(`✅ Processed day ${index} with weather:`, { 
           high: highTemp, 
           low: lowTemp, 
-          precipitation: avgPrecipChance + '%',
+          precipitation: precipitationChance + '%',
           humidity: avgHumidity + '%',
           wind: avgWindSpeed + ' mph'
         });
