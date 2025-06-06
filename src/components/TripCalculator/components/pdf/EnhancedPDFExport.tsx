@@ -11,7 +11,6 @@ import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { PDFLayoutService } from '../../services/pdf/PDFLayoutService';
 import { PDFThemingService } from '../../services/pdf/PDFThemingService';
-import PDFItineraryView from './PDFItineraryView';
 
 interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
@@ -39,83 +38,53 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       layoutService.injectPDFStyles();
       themingService.applyThemeToPDF(themingService.getRoute66Theme());
       
-      // Generate header and footer data
-      const headerData = layoutService.generatePDFHeader(tripPlan, exportOptions);
-      const footerData = layoutService.generatePDFFooter(exportOptions, shareUrl);
-      
-      // Create PDF-specific content container
-      const pdfContainer = document.createElement('div');
-      pdfContainer.className = 'pdf-export-container';
-      
-      // Add header if enabled
-      if (exportOptions.includeHeader) {
-        const header = document.createElement('div');
-        header.className = 'pdf-header';
-        header.innerHTML = `
-          <div style="display: flex; justify-content: between; align-items: center;">
-            <div>
-              <h1 style="font-size: 1.25rem; font-weight: bold; color: #1d4ed8; margin: 0;">${headerData.title}</h1>
-              <p style="font-size: 0.875rem; color: #6b7280; margin: 0;">${headerData.subtitle}</p>
+      // Get the main itinerary view
+      const itineraryContainer = document.querySelector('.pdf-itinerary-container');
+      if (itineraryContainer) {
+        // Create a clean clone for PDF
+        const pdfClone = itineraryContainer.cloneNode(true) as HTMLElement;
+        
+        // Remove any interactive elements
+        const interactiveElements = pdfClone.querySelectorAll('button, .hover-trigger, .tooltip, [data-interactive]');
+        interactiveElements.forEach(el => el.remove());
+        
+        // Apply PDF-specific classes
+        pdfClone.classList.add('pdf-export-container');
+        
+        // Add header if enabled
+        if (exportOptions.includeHeader) {
+          const headerData = layoutService.generatePDFHeader(tripPlan, exportOptions);
+          const header = document.createElement('div');
+          header.className = 'pdf-header no-page-break';
+          header.innerHTML = `
+            <div class="flex justify-between items-center p-4">
+              <div>
+                <h1 class="text-xl font-bold text-blue-800 mb-1">${headerData.title}</h1>
+                <p class="text-sm text-gray-600">${headerData.subtitle}</p>
+              </div>
+              <div class="text-xs text-gray-500">Generated ${headerData.date}</div>
             </div>
-            <div style="text-align: right; font-size: 0.75rem; color: #6b7280;">
-              Generated ${headerData.date}
-            </div>
-          </div>
-        `;
-        pdfContainer.appendChild(header);
+          `;
+          pdfClone.insertBefore(header, pdfClone.firstChild);
+        }
+        
+        // Add watermark if specified
+        if (exportOptions.watermark) {
+          const watermark = document.createElement('div');
+          watermark.className = 'pdf-watermark';
+          watermark.textContent = exportOptions.watermark;
+          pdfClone.appendChild(watermark);
+        }
+        
+        // Temporarily add to DOM for printing
+        document.body.appendChild(pdfClone);
+        
+        // Trigger browser print dialog
+        window.print();
+        
+        // Clean up
+        document.body.removeChild(pdfClone);
       }
-      
-      // Add main content
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'pdf-content';
-      
-      // Render the PDF itinerary view into the content div
-      const segments = tripPlan.segments || tripPlan.dailySegments || [];
-      
-      // This is a simplified approach - in a real implementation, you'd want to use
-      // a more sophisticated PDF generation library like jsPDF or Puppeteer
-      contentDiv.innerHTML = `
-        <div class="pdf-itinerary-container">
-          <div class="pdf-tab-headers">
-            <div class="pdf-tab-header active">📍 Route & Stops</div>
-            ${exportOptions.format === 'full' ? '<div class="pdf-tab-header">🌤️ Weather Forecast</div>' : ''}
-          </div>
-          <div class="pdf-two-column-layout">
-            <div class="pdf-column-left">
-              <!-- Route content would be rendered here -->
-            </div>
-            ${exportOptions.format === 'full' ? '<div class="pdf-column-right"><!-- Weather content --></div>' : ''}
-          </div>
-        </div>
-      `;
-      
-      pdfContainer.appendChild(contentDiv);
-      
-      // Add footer if enabled
-      if (exportOptions.includeFooter) {
-        const footer = document.createElement('div');
-        footer.className = 'pdf-footer';
-        footer.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>${footerData.generatedText}</span>
-            ${footerData.pageNumbers ? '<span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>' : ''}
-          </div>
-        `;
-        pdfContainer.appendChild(footer);
-      }
-      
-      // Add watermark if specified
-      if (exportOptions.watermark) {
-        const watermark = document.createElement('div');
-        watermark.className = 'pdf-watermark';
-        watermark.textContent = exportOptions.watermark;
-        pdfContainer.appendChild(watermark);
-      }
-      
-      // Trigger browser print dialog
-      document.body.appendChild(pdfContainer);
-      window.print();
-      document.body.removeChild(pdfContainer);
       
       // Cleanup
       layoutService.removePDFStyles();
@@ -189,24 +158,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
                 onCheckedChange={(checked) => updateExportOption('includeHeader', !!checked)}
               />
               <Label htmlFor="includeHeader">Include Header</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="includeFooter"
-                checked={exportOptions.includeFooter}
-                onCheckedChange={(checked) => updateExportOption('includeFooter', !!checked)}
-              />
-              <Label htmlFor="includeFooter">Include Footer</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="includePageNumbers"
-                checked={exportOptions.includePageNumbers}
-                onCheckedChange={(checked) => updateExportOption('includePageNumbers', !!checked)}
-              />
-              <Label htmlFor="includePageNumbers">Page Numbers</Label>
             </div>
 
             <div className="flex items-center space-x-2">

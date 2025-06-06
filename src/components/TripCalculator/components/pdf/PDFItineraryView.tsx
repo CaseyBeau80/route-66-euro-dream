@@ -2,7 +2,6 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFRouteTabContent from './PDFRouteTabContent';
-import PDFWeatherTabContent from './PDFWeatherTabContent';
 
 interface PDFItineraryViewProps {
   segments: DailySegment[];
@@ -35,23 +34,32 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
   }
 
   return (
-    <div className="pdf-itinerary-container">
-      {/* PDF Tab Headers - Visual Only */}
-      <div className="pdf-tab-headers flex border-b border-gray-200 mb-6">
-        <div className="pdf-tab-header active bg-blue-50 border-t-2 border-blue-500 px-4 py-2 font-medium text-blue-700">
-          📍 Route & Stops
-        </div>
-        {exportFormat === 'full' && (
-          <div className="pdf-tab-header bg-gray-50 px-4 py-2 font-medium text-gray-600">
-            🌤️ Weather Forecast
+    <div className="pdf-itinerary-container bg-gray-50 min-h-screen p-6">
+      {/* Main Container - Match In-App Styling */}
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+        
+        {/* Trip Overview Header */}
+        <div className="mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Daily Route 66 Itinerary</h2>
+          <div className="flex gap-4 text-sm text-gray-600">
+            <span>📅 {totalDays} days</span>
+            <span>📍 {segments.length} destinations</span>
+            <span>🛣️ {Math.round(segments.reduce((total, seg) => total + (seg.distance || seg.approximateMiles || 0), 0))} miles</span>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Two-Column Layout */}
-      <div className="pdf-two-column-layout">
-        {/* Left Column - Route Content */}
-        <div className="pdf-column-left">
+        {/* PDF Tab Headers - Visual Only (Match In-App Style) */}
+        <div className="pdf-tab-headers border-b border-gray-200 mb-6">
+          <div className="flex space-x-0">
+            <div className="pdf-tab-header active bg-blue-50 border-t-2 border-blue-500 px-6 py-3 font-medium text-blue-700 rounded-t-lg">
+              📍 Route & Stops
+              {exportFormat !== 'route-only' && ' + Weather'}
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Segments Content */}
+        <div className="pdf-content">
           <PDFRouteTabContent
             segments={segments}
             tripStartDate={tripStartDate}
@@ -60,16 +68,36 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
           />
         </div>
 
-        {/* Right Column - Weather Content (Full Export Only) */}
-        {exportFormat === 'full' && (
-          <div className="pdf-column-right">
-            <PDFWeatherTabContent
-              segments={segments}
-              tripStartDate={tripStartDate}
-              tripId={tripId}
-            />
+        {/* PDF Legend */}
+        <div className="pdf-legend mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg no-page-break">
+          <h5 className="text-sm font-semibold text-gray-700 mb-3">Legend & Icons:</h5>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <span>📍</span>
+              <span>Destination City</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>🛣️</span>
+              <span>Route Distance</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>⏱️</span>
+              <span>Drive Time</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>🏛️</span>
+              <span>Historic Sites</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>🌤️</span>
+              <span>Weather Info</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>📅</span>
+              <span>Date</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

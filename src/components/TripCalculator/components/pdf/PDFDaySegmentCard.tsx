@@ -2,6 +2,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import PDFWeatherCard from './PDFWeatherCard';
 
 interface PDFDaySegmentCardProps {
   segment: DailySegment;
@@ -14,6 +15,8 @@ interface PDFDaySegmentCardProps {
 const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
   segment,
   tripStartDate,
+  cardIndex,
+  tripId,
   exportFormat
 }) => {
   const segmentDate = tripStartDate 
@@ -31,7 +34,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
   };
 
   return (
-    <div className="pdf-day-card border border-gray-200 rounded-lg p-4 mb-4 break-inside-avoid">
+    <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
       {/* Card Header */}
       <div className="pdf-card-header border-b border-gray-100 pb-3 mb-3">
         <div className="flex justify-between items-start">
@@ -75,7 +78,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
 
       {/* Recommended Stops (Summary and Full only) */}
       {exportFormat !== 'route-only' && segment.recommendedStops && segment.recommendedStops.length > 0 && (
-        <div className="pdf-recommended-stops">
+        <div className="pdf-recommended-stops mb-4">
           <h6 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
             🏛️ Recommended Stops
           </h6>
@@ -98,6 +101,16 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
             )}
           </ul>
         </div>
+      )}
+
+      {/* Weather Section (Full and Summary formats) */}
+      {exportFormat !== 'route-only' && (
+        <PDFWeatherCard
+          segment={segment}
+          tripStartDate={tripStartDate}
+          cardIndex={cardIndex}
+          tripId={tripId}
+        />
       )}
 
       {/* Drive Time Category */}
