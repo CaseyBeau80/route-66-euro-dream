@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useStableSegments } from '../hooks/useStableSegments';
 import DaySegmentCard from './DaySegmentCard';
-import WeatherForecastColumn from './WeatherForecastColumn';
 import ErrorBoundary from './ErrorBoundary';
 
 interface TripItineraryProps {
@@ -17,7 +16,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
   // Use stable segments to prevent cascading re-renders
   const stableSegments = useStableSegments(tripPlan.segments || tripPlan.dailySegments || []);
   
-  console.log('📋 TripItinerary render with two-column layout:', {
+  console.log('📋 TripItinerary render with single-column layout:', {
     segmentsCount: stableSegments.length,
     tripStartDate: tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : 'Not set',
     totalDays: tripPlan.totalDays
@@ -53,42 +52,19 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
           </div>
         </div>
 
-        {/* Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Route & Stops */}
-          <div className="space-y-4">
-            <div className="bg-route66-background-alt rounded-lg border border-route66-border p-4">
-              <h4 className="text-lg font-bold text-route66-text-primary mb-2">
-                Route & Stops
-              </h4>
-              <p className="text-sm text-route66-text-secondary">
-                Daily driving segments with recommended attractions and stops
-              </p>
-            </div>
-            
-            {stableSegments.map((segment, index) => (
-              <ErrorBoundary key={`segment-${segment.day}-${index}`} context={`TripItinerary-Segment-${index}`}>
-                <DaySegmentCard 
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  cardIndex={index}
-                  tripId={tripPlan.title || 'trip'}
-                  sectionKey="itinerary"
-                />
-              </ErrorBoundary>
-            ))}
-          </div>
-
-          {/* Right Column - Weather Forecast */}
-          <div className="space-y-4">
-            <ErrorBoundary context="WeatherForecastColumn">
-              <WeatherForecastColumn 
-                segments={stableSegments}
+        {/* Single Column Layout - Day Cards */}
+        <div className="space-y-4">
+          {stableSegments.map((segment, index) => (
+            <ErrorBoundary key={`segment-${segment.day}-${index}`} context={`TripItinerary-Segment-${index}`}>
+              <DaySegmentCard 
+                segment={segment}
                 tripStartDate={tripStartDate}
+                cardIndex={index}
                 tripId={tripPlan.title || 'trip'}
+                sectionKey="itinerary"
               />
             </ErrorBoundary>
-          </div>
+          ))}
         </div>
       </div>
     </ErrorBoundary>
