@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
@@ -5,7 +6,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { SegmentTiming, DailySegment, DriveTimeCategory } from './TripPlanBuilder';
 
 // Re-export types for backward compatibility
-export type { SegmentTiming };
+export type { SegmentTiming, DailySegment };
 
 // Define DailySegmentCreatorResult interface with more specific types
 export interface DailySegmentCreatorResult extends Omit<DailySegment, 'driveTimeCategory'> {

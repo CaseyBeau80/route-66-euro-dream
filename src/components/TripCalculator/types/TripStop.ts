@@ -13,7 +13,7 @@ export interface TripStop {
   is_major_stop?: boolean;
   is_official_destination?: boolean;
   // Add city property to satisfy destination interface
-  city?: string;
+  city: string;
 }
 
 // Type guard to validate TripStop objects

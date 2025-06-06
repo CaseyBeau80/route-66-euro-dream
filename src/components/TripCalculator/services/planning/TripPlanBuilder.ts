@@ -136,19 +136,22 @@ export class TripPlanBuilder {
     return this.tripPlan;
   }
 
-  // Adding the static buildTripPlan method that was missing
+  // Improved buildTripPlan method with proper array handling
   static buildTripPlan(
     startCity: string, 
     endCity: string, 
     startDate: Date, 
     totalDays: number, 
-    segments: DailySegment[], 
+    segments: DailySegment[] | undefined, 
     totalDistance: number
   ): TripPlan {
     const builder = new TripPlanBuilder(startCity, endCity, startDate, totalDays);
     builder.withTotalDistance(totalDistance);
     
-    segments.forEach(segment => {
+    // Ensure segments is an array before using forEach
+    const safeSegments = Array.isArray(segments) ? segments : [];
+    
+    safeSegments.forEach(segment => {
       builder.addSegment(segment);
     });
     

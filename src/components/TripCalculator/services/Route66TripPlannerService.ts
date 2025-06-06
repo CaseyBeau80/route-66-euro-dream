@@ -95,13 +95,15 @@ export class Route66TripPlannerService {
       allStops
     );
 
+    // Build the trip plan using the updated method and ensuring segments is an array
+    const segments: DailySegment[] = []; // Initialize an empty array for segments
     const tripPlan = TripPlanBuilder.buildTripPlan(
-      validatedStartStop,
-      validatedEndStop,
-      allStops,
+      CityDisplayService.getCityDisplayName(validatedStartStop),
+      CityDisplayService.getCityDisplayName(validatedEndStop),
+      new Date(),
       tripDays,
-      startCityName,
-      endCityName
+      segments,
+      calculateDistance(validatedStartStop, validatedEndStop)
     );
 
     console.log('🎯 Final trip plan created with actual stop cities:', {
@@ -113,5 +115,26 @@ export class Route66TripPlannerService {
     });
     
     return tripPlan;
+  }
+
+  // Helper function to calculate distance between stops
+  private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
+    // Simple distance calculation using latitude/longitude
+    const R = 3958.8; // Earth radius in miles
+    const lat1 = startStop.latitude;
+    const lon1 = startStop.longitude;
+    const lat2 = endStop.latitude;
+    const lon2 = endStop.longitude;
+    
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+      
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   }
 }
