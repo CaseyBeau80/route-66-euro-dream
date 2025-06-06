@@ -16,6 +16,16 @@ export class CostCalculationService {
     luxury: 150
   };
 
+  // Car rental rates per day by vehicle type
+  private static readonly CAR_RENTAL_RATES = {
+    economy: 35,
+    compact: 42,
+    'mid-size': 52,
+    'full-size': 65,
+    suv: 78,
+    luxury: 125
+  };
+
   // Average attraction costs per day by state
   private static readonly ATTRACTION_COSTS = {
     'Illinois': 25,
@@ -47,6 +57,7 @@ export class CostCalculationService {
     let totalMeals = 0;
     let totalAttractions = 0;
     let totalTolls = 0;
+    let totalCarRental = 0;
 
     // Use dailySegments as primary property, with segments as fallback
     const segments = tripPlan.dailySegments || tripPlan.segments || [];
@@ -71,6 +82,12 @@ export class CostCalculationService {
       const meals = this.MEAL_RATES[costData.mealBudget];
       totalMeals += meals;
 
+      // Car rental costs
+      const carRental = costData.includeCarRental 
+        ? this.CAR_RENTAL_RATES[costData.carRentalType]
+        : 0;
+      totalCarRental += carRental;
+
       // Attraction costs
       const attractions = costData.includeAttractions 
         ? (this.ATTRACTION_COSTS[state] || 25) 
@@ -89,9 +106,10 @@ export class CostCalculationService {
         gas: Math.round(segmentGas),
         accommodation: Math.round(accommodation),
         meals: Math.round(meals),
+        carRental: Math.round(carRental),
         attractions: Math.round(attractions),
         tolls: Math.round(tolls),
-        dailyTotal: Math.round(segmentGas + accommodation + meals + attractions + tolls)
+        dailyTotal: Math.round(segmentGas + accommodation + meals + carRental + attractions + tolls)
       });
     });
 
@@ -99,9 +117,10 @@ export class CostCalculationService {
       gasCost: Math.round(totalGas),
       accommodationCost: Math.round(totalAccommodation),
       mealCost: Math.round(totalMeals),
+      carRentalCost: Math.round(totalCarRental),
       attractionCost: Math.round(totalAttractions),
       tollCost: Math.round(totalTolls),
-      totalCost: Math.round(totalGas + totalAccommodation + totalMeals + totalAttractions + totalTolls)
+      totalCost: Math.round(totalGas + totalAccommodation + totalMeals + totalCarRental + totalAttractions + totalTolls)
     };
 
     return {

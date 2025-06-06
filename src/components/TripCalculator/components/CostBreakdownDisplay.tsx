@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CostEstimate } from '../types/costEstimator';
-import { DollarSign, Car, Bed, Utensils, MapPin, CreditCard, Users } from 'lucide-react';
+import { DollarSign, Car, Bed, Utensils, MapPin, CreditCard, Users, CarIcon } from 'lucide-react';
 
 interface CostBreakdownDisplayProps {
   costEstimate: CostEstimate;
@@ -89,6 +89,18 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               </div>
             </div>
 
+            {breakdown.carRentalCost > 0 && (
+              <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-lg">
+                <CarIcon className="h-6 w-6 text-indigo-600" />
+                <div>
+                  <div className="font-semibold text-indigo-800">Car Rental</div>
+                  <div className="text-xl font-bold text-indigo-700">
+                    {formatCurrency(breakdown.carRentalCost)}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {breakdown.attractionCost > 0 && (
               <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
                 <MapPin className="h-6 w-6 text-red-600" />
@@ -143,6 +155,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
                     <span>Gas: {formatCurrency(day.gas)}</span>
                     {day.accommodation > 0 && <span>Hotel: {formatCurrency(day.accommodation)}</span>}
                     <span>Meals: {formatCurrency(day.meals)}</span>
+                    {day.carRental > 0 && <span>Car Rental: {formatCurrency(day.carRental)}</span>}
                     {day.attractions > 0 && <span>Attractions: {formatCurrency(day.attractions)}</span>}
                     {day.tolls > 0 && <span>Tolls: {formatCurrency(day.tolls)}</span>}
                   </div>

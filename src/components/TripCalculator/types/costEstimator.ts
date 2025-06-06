@@ -8,6 +8,8 @@ export interface CostEstimatorData {
   mealBudget: 'budget' | 'mid-range' | 'fine-dining';
   includeAttractions: boolean;
   includeTolls: boolean;
+  includeCarRental: boolean;
+  carRentalType: 'economy' | 'compact' | 'mid-size' | 'full-size' | 'suv' | 'luxury';
 }
 
 export interface CostBreakdown {
@@ -16,6 +18,7 @@ export interface CostBreakdown {
   mealCost: number;
   attractionCost: number;
   tollCost: number;
+  carRentalCost: number;
   totalCost: number;
 }
 
@@ -27,6 +30,7 @@ export interface DailyCosts {
   meals: number;
   attractions: number;
   tolls: number;
+  carRental: number;
   dailyTotal: number;
 }
 

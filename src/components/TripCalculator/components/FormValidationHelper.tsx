@@ -13,14 +13,30 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 }) => {
   if (isFormValid) return null;
 
+  const missingFields = [];
+  
+  if (!formData.startLocation) {
+    missingFields.push('Starting City');
+  }
+  if (!formData.endLocation) {
+    missingFields.push('Destination City');
+  }
+  if (!formData.travelDays) {
+    missingFields.push('Trip Duration');
+  }
+  if (formData.startLocation === formData.endLocation && formData.startLocation && formData.endLocation) {
+    missingFields.push('Different start and end cities');
+  }
+
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+    <div 
+      className="bg-red-50 border border-red-200 rounded-lg p-4 text-center"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
       <p className="text-sm text-red-600 font-medium">
-        Please fill in: 
-        {!formData.startLocation && ' Starting City'}
-        {!formData.endLocation && ' Destination City'}
-        {!formData.travelDays && ' Trip Duration'}
-        {formData.startLocation === formData.endLocation && ' Different start and end cities'}
+        Please fill in: {missingFields.join(', ')}
       </p>
     </div>
   );

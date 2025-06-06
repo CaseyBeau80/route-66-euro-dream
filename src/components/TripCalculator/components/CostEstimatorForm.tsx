@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CostEstimatorData } from '../types/costEstimator';
-import { DollarSign, Car, Bed, Utensils, MapPin, Users, Home } from 'lucide-react';
+import { DollarSign, Car, Bed, Utensils, MapPin, Users, Home, CarIcon } from 'lucide-react';
 
 interface CostEstimatorFormProps {
   costData: CostEstimatorData;
@@ -13,6 +13,27 @@ interface CostEstimatorFormProps {
 }
 
 const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCostData }) => {
+  const [tempGroupSize, setTempGroupSize] = useState(costData.groupSize.toString());
+  const [tempRooms, setTempRooms] = useState(costData.numberOfRooms.toString());
+
+  const handleGroupSizeBlur = () => {
+    const value = parseInt(tempGroupSize);
+    if (!isNaN(value) && value >= 1) {
+      setCostData({ ...costData, groupSize: value });
+    } else {
+      setTempGroupSize(costData.groupSize.toString());
+    }
+  };
+
+  const handleRoomsBlur = () => {
+    const value = parseInt(tempRooms);
+    if (!isNaN(value) && value >= 1) {
+      setCostData({ ...costData, numberOfRooms: value });
+    } else {
+      setTempRooms(costData.numberOfRooms.toString());
+    }
+  };
+
   return (
     <div className="space-y-6 p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg border border-green-200">
       <div className="flex items-center gap-3 mb-4">
@@ -70,8 +91,9 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCost
                 type="number"
                 min="1"
                 max="8"
-                value={costData.groupSize}
-                onChange={(e) => setCostData({ ...costData, groupSize: parseInt(e.target.value) || 1 })}
+                value={tempGroupSize}
+                onChange={(e) => setTempGroupSize(e.target.value)}
+                onBlur={handleGroupSizeBlur}
                 className="border-green-300 focus:border-green-500"
                 placeholder="2"
               />
@@ -83,8 +105,9 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCost
                 type="number"
                 min="1"
                 max="4"
-                value={costData.numberOfRooms}
-                onChange={(e) => setCostData({ ...costData, numberOfRooms: parseInt(e.target.value) || 1 })}
+                value={tempRooms}
+                onChange={(e) => setTempRooms(e.target.value)}
+                onBlur={handleRoomsBlur}
                 className="border-green-300 focus:border-green-500"
                 placeholder="1"
               />
@@ -139,6 +162,51 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCost
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Car Rental Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="car-rental"
+            checked={costData.includeCarRental}
+            onCheckedChange={(checked) => 
+              setCostData({ ...costData, includeCarRental: !!checked })
+            }
+          />
+          <div className="flex items-center gap-2">
+            <CarIcon className="h-4 w-4 text-green-600" />
+            <Label htmlFor="car-rental" className="font-semibold text-green-800">
+              Include Car Rental
+            </Label>
+          </div>
+        </div>
+
+        {costData.includeCarRental && (
+          <div className="ml-6 space-y-3">
+            <div>
+              <Label className="text-sm text-green-700">Car Type</Label>
+              <Select 
+                value={costData.carRentalType} 
+                onValueChange={(value: 'economy' | 'compact' | 'mid-size' | 'full-size' | 'suv' | 'luxury') => 
+                  setCostData({ ...costData, carRentalType: value })
+                }
+              >
+                <SelectTrigger className="border-green-300 focus:border-green-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="economy">Economy ($35/day)</SelectItem>
+                  <SelectItem value="compact">Compact ($42/day)</SelectItem>
+                  <SelectItem value="mid-size">Mid-Size ($52/day)</SelectItem>
+                  <SelectItem value="full-size">Full-Size ($65/day)</SelectItem>
+                  <SelectItem value="suv">SUV ($78/day)</SelectItem>
+                  <SelectItem value="luxury">Luxury ($125/day)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Optional Costs */}
