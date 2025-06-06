@@ -16,7 +16,7 @@ const PDFWeatherLegend: React.FC<PDFWeatherLegendProps> = ({ className = '' }) =
         </div>
         <div className="flex items-center gap-1">
           <span>🟦</span>
-          <span>Historical Average (>5 days)</span>
+          <span>Historical Average ({'>'}5 days)</span>
         </div>
         <div className="flex items-center gap-1">
           <span>🟨</span>
