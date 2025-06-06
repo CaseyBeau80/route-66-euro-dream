@@ -18,6 +18,9 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
   tripStartDate,
   formatTime
 }) => {
+  // Generate a simple trip ID for localStorage
+  const tripId = tripPlan ? `${tripPlan.startCity}-${tripPlan.endCity}-${tripPlan.totalDays}` : undefined;
+
   return (
     <Card className="border-route66-border">
       <CardHeader className="pb-4">
@@ -36,24 +39,39 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
           </TabsList>
           
           <TabsContent value="itinerary">
-            <CollapsibleCardGroup className="space-y-4">
-              {tripPlan.segments.map((segment) => (
+            <CollapsibleCardGroup 
+              className="space-y-4"
+              tripId={tripId}
+              sectionKey="itinerary"
+              autoExpandFirstOnDesktop={true}
+            >
+              {tripPlan.segments.map((segment, index) => (
                 <DaySegmentCard
                   key={segment.day}
                   segment={segment}
                   tripStartDate={tripStartDate}
+                  cardIndex={index}
+                  tripId={tripId}
+                  sectionKey="itinerary"
                 />
               ))}
             </CollapsibleCardGroup>
           </TabsContent>
           
           <TabsContent value="weather">
-            <CollapsibleCardGroup className="space-y-4">
-              {tripPlan.segments.map((segment) => (
+            <CollapsibleCardGroup 
+              className="space-y-4"
+              tripId={tripId}
+              sectionKey="weather"
+            >
+              {tripPlan.segments.map((segment, index) => (
                 <SegmentWeatherWidget
                   key={segment.day}
                   segment={segment}
                   tripStartDate={tripStartDate}
+                  cardIndex={index}
+                  tripId={tripId}
+                  sectionKey="weather"
                 />
               ))}
             </CollapsibleCardGroup>

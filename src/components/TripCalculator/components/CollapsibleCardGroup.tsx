@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -7,20 +7,67 @@ interface CollapsibleCardGroupProps {
   children: React.ReactNode;
   showToggleAll?: boolean;
   className?: string;
+  tripId?: string;
+  sectionKey: string; // 'itinerary' or 'weather'
+  autoExpandFirstOnDesktop?: boolean;
 }
 
 const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
   children,
   showToggleAll = true,
-  className
+  className,
+  tripId,
+  sectionKey,
+  autoExpandFirstOnDesktop = false
 }) => {
-  const [allExpanded, setAllExpanded] = useState(true);
+  const [allExpanded, setAllExpanded] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+  // Load persisted state from localStorage
+  useEffect(() => {
+    if (tripId) {
+      const savedState = localStorage.getItem(`trip-${tripId}-${sectionKey}-expanded`);
+      const savedInteraction = localStorage.getItem(`trip-${tripId}-${sectionKey}-interacted`);
+      
+      if (savedState !== null) {
+        setAllExpanded(JSON.parse(savedState));
+      }
+      
+      if (savedInteraction !== null) {
+        setHasUserInteracted(JSON.parse(savedInteraction));
+      }
+    }
+  }, [tripId, sectionKey]);
+
+  // Auto-expand Day 1 on desktop if user hasn't interacted
+  useEffect(() => {
+    if (autoExpandFirstOnDesktop && !hasUserInteracted && window.innerWidth >= 768) {
+      // Dispatch event to expand only the first card
+      const event = new CustomEvent('autoExpandFirst', { 
+        detail: { sectionKey } 
+      });
+      window.dispatchEvent(event);
+    }
+  }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey]);
 
   const handleToggleAll = () => {
-    setAllExpanded(!allExpanded);
+    const newExpandedState = !allExpanded;
+    setAllExpanded(newExpandedState);
+    setHasUserInteracted(true);
+
+    // Save to localStorage
+    if (tripId) {
+      localStorage.setItem(`trip-${tripId}-${sectionKey}-expanded`, JSON.stringify(newExpandedState));
+      localStorage.setItem(`trip-${tripId}-${sectionKey}-interacted`, JSON.stringify(true));
+    }
+
     // Dispatch custom event to notify all collapsible cards
     const event = new CustomEvent('toggleAllCards', { 
-      detail: { expanded: !allExpanded } 
+      detail: { 
+        expanded: newExpandedState,
+        sectionKey,
+        userTriggered: true
+      } 
     });
     window.dispatchEvent(event);
   };

@@ -10,9 +10,18 @@ import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
   tripStartDate?: Date;
+  cardIndex?: number;
+  tripId?: string;
+  sectionKey?: string;
 }
 
-const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tripStartDate }) => {
+const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ 
+  segment, 
+  tripStartDate,
+  cardIndex = 0,
+  tripId,
+  sectionKey = 'weather'
+}) => {
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
@@ -61,10 +70,13 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ segment, tr
   return (
     <EnhancedCollapsibleCard
       title={cardHeader}
-      defaultExpanded={true}
+      defaultExpanded={false}
       className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
       headerClassName="border-b border-blue-200"
       contentClassName="pt-0"
+      cardIndex={cardIndex}
+      tripId={tripId}
+      sectionKey={sectionKey}
     >
       <SegmentWeatherContent
         hasApiKey={hasApiKey}

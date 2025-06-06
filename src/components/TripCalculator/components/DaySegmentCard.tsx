@@ -14,11 +14,17 @@ import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 interface DaySegmentCardProps {
   segment: DailySegment;
   tripStartDate?: Date;
+  cardIndex?: number;
+  tripId?: string;
+  sectionKey?: string;
 }
 
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ 
   segment, 
-  tripStartDate 
+  tripStartDate,
+  cardIndex = 0,
+  tripId,
+  sectionKey = 'itinerary'
 }) => {
   const { formatDistance } = useUnits();
   
@@ -157,10 +163,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     <TooltipProvider>
       <EnhancedCollapsibleCard
         title={cardHeader}
-        defaultExpanded={true}
+        defaultExpanded={false}
         className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
         headerClassName="border-b border-gray-200"
         contentClassName="pt-0"
+        cardIndex={cardIndex}
+        tripId={tripId}
+        sectionKey={sectionKey}
       >
         <div className="space-y-4">
           {/* Drive Time Message - Compact */}
