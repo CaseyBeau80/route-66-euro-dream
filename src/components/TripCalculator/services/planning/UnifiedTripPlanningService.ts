@@ -77,6 +77,7 @@ export class UnifiedTripPlanningService {
       title: `${inputStartCity} to ${inputEndCity} Road Trip`,
       startCity: inputStartCity,
       endCity: inputEndCity,
+      startDate: new Date(), // Add missing startDate
       totalDays: optimalDays,
       originalDays: wasAdjusted ? requestedDays : undefined,
       totalDistance: Math.round(totalDistance),

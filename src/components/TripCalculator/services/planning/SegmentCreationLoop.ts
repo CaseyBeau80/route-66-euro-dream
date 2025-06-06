@@ -1,11 +1,11 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
 import { SegmentStopCurator } from './SegmentStopCurator';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { SegmentMetricsCalculator } from './SegmentMetricsCalculator';
 import { SegmentValidationHelper } from './SegmentValidationHelper';
+import { RecommendedStop } from './TripPlanBuilder'; // Import RecommendedStop
 
 export class SegmentCreationLoop {
   /**
@@ -52,9 +52,19 @@ export class SegmentCreationLoop {
         dailySegments.push(segment);
 
         // Update for next iteration - use the actual segment stops that were selected
+        // Convert RecommendedStop to TripStop if needed
+        const tripStops = segment.recommendedStops?.map(stop => ({
+          ...stop,
+          description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
+          category: stop.category || 'attraction',
+          city_name: stop.city_name || 'Unknown',
+          city: stop.city || stop.city_name || 'Unknown',
+          state: stop.state || 'Unknown',
+        } as TripStop)) || [];
+        
         workingRemainingStops = SegmentStopCurator.removeUsedStops(
           workingRemainingStops, 
-          segment.recommendedStops
+          tripStops
         );
         currentStop = dayDestination;
 
@@ -93,7 +103,7 @@ export class SegmentCreationLoop {
       SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
 
     // Get drive time category for this segment
-    const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(totalSegmentDriveTime);
+    const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(totalSegmentDriveTime) as DriveTimeCategory;
 
     // Calculate route progression metrics
     const { routeSection } = SegmentMetricsCalculator.calculateRouteMetrics(

@@ -59,13 +59,13 @@ export interface DriveTimeCategory {
 export interface RecommendedStop {
   id: string;
   name: string;
-  description?: string;
+  description: string; // Changed from optional to required
   latitude: number;
   longitude: number;
   category?: string;
   city_name?: string;
   state?: string;
-  city?: string;
+  city: string; // Added to match TripStop
 }
 
 export interface SegmentTiming {

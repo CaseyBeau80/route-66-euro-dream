@@ -1,5 +1,5 @@
-
 import { DailySegment } from './DailySegmentCreator';
+import { DriveTimeCategory } from './TripPlanBuilder';
 
 export interface DriveTimeValidationResult {
   isValid: boolean;
@@ -82,11 +82,7 @@ export class DriveTimeValidationService {
   /**
    * Calculate drive time category for validation
    */
-  private static calculateDriveTimeCategory(driveTimeHours: number): {
-    category: string;
-    color: string;
-    message: string;
-  } {
+  private static calculateDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
     if (driveTimeHours < 3) {
       return {
         category: 'short',

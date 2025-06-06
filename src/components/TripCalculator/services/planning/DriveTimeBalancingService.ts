@@ -12,9 +12,9 @@ export class DriveTimeBalancingService {
    * Get drive time category with proper message property
    */
   static getDriveTimeCategory(driveTimeHours: number): {
-    category: string;
+    category: 'short' | 'optimal' | 'long' | 'extreme';
     color: string;
-    message: string; // Changed from description to message
+    message: string;
   } {
     if (driveTimeHours < 3) {
       return {

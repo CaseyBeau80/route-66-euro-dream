@@ -2,7 +2,8 @@
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SubStopTimingCalculator, SegmentTiming } from './SubStopTimingCalculator';
-import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
+import { DriveTimeBalancingService } from './DriveTimeBalancingService';
+import { DriveTimeCategory } from './TripPlanBuilder';
 
 export class SegmentTimingCalculator {
   /**
@@ -77,7 +78,7 @@ export class SegmentTimingCalculator {
   /**
    * Get drive time category for a segment
    */
-  static getDriveTimeCategory(totalSegmentDriveTime: number) {
-    return DriveTimeBalancingService.getDriveTimeCategory(totalSegmentDriveTime);
+  static getDriveTimeCategory(totalSegmentDriveTime: number): DriveTimeCategory {
+    return DriveTimeBalancingService.getDriveTimeCategory(totalSegmentDriveTime) as DriveTimeCategory;
   }
 }

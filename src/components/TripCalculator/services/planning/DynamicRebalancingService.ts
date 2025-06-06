@@ -3,6 +3,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment } from './DailySegmentCreator';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
+import { DriveTimeCategory } from './TripPlanBuilder';
 
 export class DynamicRebalancingService {
   static createRebalancedSegments(
@@ -21,7 +22,7 @@ export class DynamicRebalancingService {
     for (let day = 1; day <= totalDays; day++) {
       const segmentDistance = totalDistance / totalDays;
       const driveTime = segmentDistance / 65; // 65 mph average
-      const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(driveTime);
+      const driveTimeCategory = DriveTimeBalancingService.getDriveTimeCategory(driveTime) as DriveTimeCategory;
 
       segments.push({
         day,
