@@ -41,6 +41,86 @@ export class EnhancedWeatherService {
     return debugInfo;
   }
 
+  getEnhancedDebugInfo(): { 
+    hasKey: boolean; 
+    keyLength: number | null; 
+    keyPreview: string | null; 
+    corruptionAnalysis?: { isCorrupted: boolean; reason?: string }; 
+    storageAnalysis?: Array<{ key: string; hasValue: boolean; length: number; corruption?: { isCorrupted: boolean; reason?: string } }> 
+  } {
+    const basicInfo = this.getDebugInfo();
+    const apiKey = WeatherApiKeyManager.getApiKey();
+    
+    // Enhanced corruption analysis
+    const corruptionAnalysis = {
+      isCorrupted: false,
+      reason: undefined as string | undefined
+    };
+    
+    if (apiKey) {
+      if (apiKey.length < 32) {
+        corruptionAnalysis.isCorrupted = true;
+        corruptionAnalysis.reason = 'Key too short';
+      } else if (apiKey.length > 50) {
+        corruptionAnalysis.isCorrupted = true;
+        corruptionAnalysis.reason = 'Key too long';
+      } else if (!/^[a-zA-Z0-9]+$/.test(apiKey)) {
+        corruptionAnalysis.isCorrupted = true;
+        corruptionAnalysis.reason = 'Invalid characters detected';
+      }
+    }
+    
+    // Storage analysis
+    const storageAnalysis = [
+      {
+        key: 'localStorage.openweathermap_api_key',
+        hasValue: !!localStorage.getItem('openweathermap_api_key'),
+        length: localStorage.getItem('openweathermap_api_key')?.length || 0,
+        corruption: localStorage.getItem('openweathermap_api_key') ? 
+          { isCorrupted: false } : 
+          { isCorrupted: true, reason: 'No value found' }
+      }
+    ];
+    
+    console.log('🔍 EnhancedWeatherService: Enhanced debug info requested:', {
+      ...basicInfo,
+      corruptionAnalysis,
+      storageAnalysis
+    });
+    
+    return {
+      ...basicInfo,
+      corruptionAnalysis,
+      storageAnalysis
+    };
+  }
+
+  performNuclearCleanup(): void {
+    console.log('💥 EnhancedWeatherService: Performing nuclear cleanup');
+    
+    try {
+      // Clear all possible storage locations
+      localStorage.removeItem('openweathermap_api_key');
+      localStorage.removeItem('weather_api_key');
+      localStorage.removeItem('api_key');
+      
+      // Clear any cached weather data
+      const weatherCacheKeys = Object.keys(localStorage).filter(key => 
+        key.includes('weather') || key.includes('forecast')
+      );
+      
+      weatherCacheKeys.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`🧹 Cleared cache key: ${key}`);
+      });
+      
+      console.log('✅ EnhancedWeatherService: Nuclear cleanup completed successfully');
+    } catch (error) {
+      console.error('❌ EnhancedWeatherService: Error during nuclear cleanup:', error);
+      throw error;
+    }
+  }
+
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
     console.log(`🌤️ EnhancedWeatherService: Fetching weather for ${cityName} (${lat}, ${lng})`);
     
