@@ -72,7 +72,7 @@ const mockDestinationCities: TripStop[] = [
 console.log('🧪 Testing UnifiedTripPlanningService...');
 
 try {
-  const tripPlan = UnifiedTripPlanningService.createTripPlan(
+  const planningResult = UnifiedTripPlanningService.createTripPlan(
     mockStartStop,
     mockEndStop,
     mockDestinationCities,
@@ -82,8 +82,8 @@ try {
   );
 
   console.log('✅ Test passed: Trip plan created successfully');
-  console.log(`📊 Trip details: ${tripPlan.totalDays} days, ${tripPlan.totalDistance} miles`);
-  console.log(`⚖️ Balance: ${tripPlan.driveTimeBalance?.isBalanced ? 'BALANCED' : 'NEEDS WORK'}`);
+  console.log(`📊 Trip details: ${planningResult.tripPlan.totalDays} days, ${planningResult.tripPlan.totalDistance} miles`);
+  console.log(`⚖️ Balance: ${planningResult.tripPlan.driveTimeBalance?.isBalanced ? 'BALANCED' : 'NEEDS WORK'}`);
 } catch (error) {
   console.error('❌ Test failed:', error);
 }

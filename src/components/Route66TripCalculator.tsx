@@ -92,9 +92,17 @@ const Route66TripCalculator: React.FC = () => {
     try {
       console.log('🚗 Starting trip calculation with style:', formData.tripStyle);
 
+      // Find the actual TripStop objects from route66Towns
+      const startStop = route66Towns.find(town => town.name === formData.startLocation);
+      const endStop = route66Towns.find(town => town.name === formData.endLocation);
+
+      if (!startStop || !endStop) {
+        throw new Error('Could not find start or end location in Route 66 towns data');
+      }
+
       const result = await UnifiedTripPlanningService.createTripPlan(
-        formData.startLocation,
-        formData.endLocation,
+        startStop,
+        endStop,
         route66Towns,
         formData.travelDays,
         formData.startLocation,

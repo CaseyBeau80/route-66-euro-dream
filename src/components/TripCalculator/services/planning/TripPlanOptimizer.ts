@@ -101,7 +101,7 @@ export class TripPlanOptimizer {
     }
 
     // Create final trip plan with optimized days
-    const finalPlan = UnifiedTripPlanningService.createTripPlan(
+    const planningResult = UnifiedTripPlanningService.createTripPlan(
       startStop,
       endStop,
       allStops,
@@ -120,12 +120,12 @@ export class TripPlanOptimizer {
 
     // Update trip plan with optimization info
     const optimizedPlan: TripPlan = {
-      ...finalPlan,
+      ...planningResult.tripPlan,
       totalDays: currentDays,
       wasAdjusted: wasOptimized,
       originalDays: wasOptimized ? requestedDays : undefined,
       driveTimeBalance: {
-        ...finalPlan.driveTimeBalance,
+        ...planningResult.tripPlan.driveTimeBalance,
         isBalanced: balanceMetrics.isBalanced,
         averageDriveTime: balanceMetrics.averageDriveTime,
         balanceQuality: this.getBalanceQuality(balanceMetrics.maxDriveTime, balanceMetrics.violationCount),
