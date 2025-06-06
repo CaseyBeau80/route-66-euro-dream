@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, MapPin, Route, AlertTriangle, Calendar, Cloud } from 'lucide-react';
+import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -15,7 +15,6 @@ import SegmentRecommendedStops from './SegmentRecommendedStops';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -55,8 +54,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'with weather widget');
-  console.log("🌤️ DaySegmentCard: Rendering weather widget for segment:", stableSegment.endCity);
+  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'without weather widget');
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -207,54 +205,32 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
           sectionKey={sectionKey}
         >
           <div className="space-y-4">
-            {/* Side-by-side layout for main content and weather */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Main content (left side - 2/3 width on larger screens) */}
-              <div className="lg:col-span-2 space-y-4">
-                {/* Drive Time Message - Compact */}
-                {stableSegment.driveTimeCategory && stableSegment.driveTimeHours > 6 && (
-                  <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className={`h-4 w-4 mt-0.5 ${driveTimeStyle.text}`} />
-                      <div>
-                        <div className={`font-medium text-sm ${driveTimeStyle.text}`}>
-                          {stableSegment.driveTimeCategory.category.charAt(0).toUpperCase() + stableSegment.driveTimeCategory.category.slice(1)} Drive Day
-                        </div>
-                        <div className={`text-xs mt-1 ${driveTimeStyle.text}`}>
-                          {stableSegment.driveTimeCategory.message}
-                        </div>
-                      </div>
+            {/* Drive Time Message - Compact */}
+            {stableSegment.driveTimeCategory && stableSegment.driveTimeHours > 6 && (
+              <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className={`h-4 w-4 mt-0.5 ${driveTimeStyle.text}`} />
+                  <div>
+                    <div className={`font-medium text-sm ${driveTimeStyle.text}`}>
+                      {stableSegment.driveTimeCategory.category.charAt(0).toUpperCase() + stableSegment.driveTimeCategory.category.slice(1)} Drive Day
+                    </div>
+                    <div className={`text-xs mt-1 ${driveTimeStyle.text}`}>
+                      {stableSegment.driveTimeCategory.message}
                     </div>
                   </div>
-                )}
-
-                {/* Recommended Stops */}
-                <ErrorBoundary context={`SegmentRecommendedStops-Day${stableSegment.day}`}>
-                  <SegmentRecommendedStops segment={stableSegment} />
-                </ErrorBoundary>
-
-                {/* Route Progression */}
-                <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>
-                  <SegmentRouteProgression segment={stableSegment} />
-                </ErrorBoundary>
-              </div>
-
-              {/* Weather Widget (right side - 1/3 width on larger screens) */}
-              {tripStartDate && (
-                <div className="lg:col-span-1">
-                  <ErrorBoundary context={`SegmentWeather-Day${stableSegment.day}`}>
-                    <SegmentWeatherWidget 
-                      segment={stableSegment}
-                      tripStartDate={tripStartDate}
-                      cardIndex={cardIndex}
-                      tripId={tripId}
-                      sectionKey={`weather-${stableSegment.day}`}
-                      forceExpanded={true}
-                    />
-                  </ErrorBoundary>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Recommended Stops */}
+            <ErrorBoundary context={`SegmentRecommendedStops-Day${stableSegment.day}`}>
+              <SegmentRecommendedStops segment={stableSegment} />
+            </ErrorBoundary>
+
+            {/* Route Progression */}
+            <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>
+              <SegmentRouteProgression segment={stableSegment} />
+            </ErrorBoundary>
 
             {/* Debug Component - Production Safe */}
             <ErrorBoundary context={`DebugStopSelection-Day${stableSegment.day}`} silent={true}>
