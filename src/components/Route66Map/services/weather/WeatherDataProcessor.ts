@@ -56,18 +56,21 @@ export class WeatherDataProcessor {
           return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
         });
         
+        const highTemp = Math.round(Math.max(...temps));
+        const lowTemp = Math.round(Math.min(...temps));
+        
         const processedDay = {
           date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
           temperature: {
-            high: Math.round(Math.max(...temps)),
-            low: Math.round(Math.min(...temps))
+            high: highTemp,
+            low: lowTemp
           },
           description: midDayForecast.weather[0].description,
           icon: midDayForecast.weather[0].icon,
           precipitationChance: avgPrecipChance.toString()
         };
         
-        console.log(`✅ Processed day ${index}:`, processedDay);
+        console.log(`✅ Processed day ${index} with temps:`, { high: highTemp, low: lowTemp });
         return processedDay;
       });
   }

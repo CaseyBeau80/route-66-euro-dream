@@ -56,10 +56,15 @@ export class WeatherForecastService {
       const targetForecast = processedForecast[daysFromNow] || processedForecast[0];
       
       if (targetForecast) {
+        const highTemp = targetForecast.temperature.high;
+        const lowTemp = targetForecast.temperature.low;
+        
+        console.log(`🌡️ WeatherForecastService: Extracted temperatures - High: ${highTemp}°F, Low: ${lowTemp}°F`);
+        
         return {
-          temperature: Math.round((targetForecast.temperature.high + targetForecast.temperature.low) / 2),
-          highTemp: targetForecast.temperature.high,
-          lowTemp: targetForecast.temperature.low,
+          temperature: Math.round((highTemp + lowTemp) / 2),
+          highTemp: highTemp,
+          lowTemp: lowTemp,
           description: targetForecast.description,
           icon: targetForecast.icon,
           humidity: 50, // Default humidity for forecast

@@ -20,6 +20,15 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
 
+  console.log('🌤️ ForecastWeatherDisplay render:', {
+    hasHighTemp: weather.highTemp !== undefined,
+    hasLowTemp: weather.lowTemp !== undefined,
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
+    isActualForecast: weather.isActualForecast,
+    daysFromNow
+  });
+
   // Check if forecast is not available (beyond 3 days)
   if (!weather.isActualForecast && daysFromNow && daysFromNow > 3) {
     return (
@@ -76,7 +85,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Prioritize High/Low Temperature Display for Forecasts */}
+      {/* Temperature Display - Prioritize High/Low for forecasts */}
       {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
         <TemperatureDisplay 
           type="range"
