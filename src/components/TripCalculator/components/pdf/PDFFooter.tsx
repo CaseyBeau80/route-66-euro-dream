@@ -1,0 +1,48 @@
+
+import React from 'react';
+import { format } from 'date-fns';
+import { DailySegment } from '../../services/planning/TripPlanBuilder';
+
+interface PDFFooterProps {
+  shareUrl?: string;
+  enrichedSegments: DailySegment[];
+  includeQRCode: boolean;
+}
+
+const PDFFooter: React.FC<PDFFooterProps> = ({
+  shareUrl,
+  enrichedSegments,
+  includeQRCode
+}) => {
+  return (
+    <>
+      {/* QR Code Section */}
+      {includeQRCode && shareUrl && (
+        <div className="pdf-qr-section mt-8 p-4 bg-gray-50 rounded border text-center w-full">
+          <h3 className="text-base font-semibold text-gray-700 mb-2">View Live Version</h3>
+          <p className="text-sm text-gray-600 mb-2">Scan QR code or visit:</p>
+          <p className="text-sm text-blue-600 break-all">{shareUrl}</p>
+        </div>
+      )}
+
+      {/* PDF Footer */}
+      <div className="pdf-footer mt-12 pt-4 border-t border-gray-200 text-center w-full">
+        <p className="text-sm text-gray-500">
+          Generated from Route 66 Trip Planner • {format(new Date(), 'MMMM d, yyyy')}
+        </p>
+        {shareUrl && (
+          <p className="text-sm text-gray-400 mt-1 break-all">
+            Live version: {shareUrl}
+          </p>
+        )}
+        <p className="text-sm text-gray-400 mt-1">
+          Weather data: {
+            enrichedSegments.filter(s => s.weather || s.weatherData).length
+          } of {enrichedSegments.length} segments loaded
+        </p>
+      </div>
+    </>
+  );
+};
+
+export default PDFFooter;

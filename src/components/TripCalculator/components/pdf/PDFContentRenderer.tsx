@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { TripPlan, DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFItineraryView from './PDFItineraryView';
+import PDFHeader from './PDFHeader';
+import PDFOverview from './PDFOverview';
+import PDFFooter from './PDFFooter';
 import { PDFWeatherIntegrationService } from './PDFWeatherIntegrationService';
-import { format } from 'date-fns';
 
 interface PDFContentRendererProps {
   tripPlan: TripPlan;
@@ -72,27 +74,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
     enrichWithWeather();
   }, [tripPlan.segments, tripStartDate, exportOptions.format]);
 
-  // Simple distance formatting without context dependency
-  const formatDistance = (miles: number): string => {
-    return `${Math.round(miles)} mi`;
-  };
-
-  const formatTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
-  };
-
-  const formatStartDate = (date?: Date): string => {
-    if (!date) return 'Not specified';
-    return format(date, 'EEEE, MMMM d, yyyy');
-  };
-
   const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
-
-  // Weather service status for display
-  const weatherServiceStatus = PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 
-    (weatherLoading ? '⏳' : (weatherLoadingTimeout ? '⚠️' : '🌤️')) : '❌';
 
   console.log('📄 PDFContentRenderer: Rendering with enhanced segments:', {
     segmentsCount: enrichedSegments.length,
@@ -108,63 +90,21 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
       {/* Unified Container - Single max-w-6xl wrapper for entire content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         
-        {/* PDF Header */}
-        <div className="pdf-header mb-8 text-center border-b-2 border-blue-500 pb-4">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            {tripTitle}
-          </h1>
-          <p className="text-xl text-gray-600 mb-2">
-            {tripPlan.startCity} → {tripPlan.endCity}
-          </p>
-          <p className="text-base text-gray-500">
-            Generated on {format(new Date(), 'MMMM d, yyyy')}
-          </p>
-          
-          {/* Weather Loading Status */}
-          {weatherLoading && (
-            <p className="text-sm text-blue-600 mt-2">
-              ⏳ Loading weather data... (this may take up to 10 seconds)
-            </p>
-          )}
-          {weatherLoadingTimeout && (
-            <p className="text-sm text-orange-600 mt-2">
-              ⚠️ Weather data loading timed out - using seasonal fallbacks
-            </p>
-          )}
-        </div>
+        <PDFHeader
+          tripTitle={tripTitle}
+          startCity={tripPlan.startCity}
+          endCity={tripPlan.endCity}
+          weatherLoading={weatherLoading}
+          weatherLoadingTimeout={weatherLoadingTimeout}
+          watermark={exportOptions.watermark}
+        />
 
-        {/* Trip Overview Stats */}
-        <div className="pdf-overview mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Trip Overview</h2>
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full">
-            <div className="text-center p-4 bg-gray-50 rounded border">
-              <div className="text-xl font-bold text-blue-600">{tripPlan.totalDays}</div>
-              <div className="text-sm text-gray-600">Days</div>
-              <div className="text-sm text-gray-500 mt-1">Starting {formatStartDate(tripStartDate)}</div>
-            </div>
-            
-            <div className="text-center p-4 bg-gray-50 rounded border">
-              <div className="text-xl font-bold text-blue-600">{formatDistance(tripPlan.totalDistance)}</div>
-              <div className="text-sm text-gray-600">Total Distance</div>
-            </div>
-            
-            <div className="text-center p-4 bg-gray-50 rounded border">
-              <div className="text-xl font-bold text-blue-600">{formatTime(tripPlan.totalDrivingTime)}</div>
-              <div className="text-sm text-gray-600">Drive Time</div>
-            </div>
-            
-            <div className="text-center p-4 bg-gray-50 rounded border">
-              <div className="text-xl font-bold text-blue-600">{weatherServiceStatus}</div>
-              <div className="text-sm text-gray-600">
-                Weather {
-                  weatherLoading ? 'Loading' :
-                  weatherLoadingTimeout ? 'Timeout' :
-                  PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 'Available' : 'Unavailable'
-                }
-              </div>
-            </div>
-          </div>
-        </div>
+        <PDFOverview
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          weatherLoading={weatherLoading}
+          weatherLoadingTimeout={weatherLoadingTimeout}
+        />
 
         {/* Daily Itinerary with Enhanced Weather */}
         <PDFItineraryView
@@ -175,38 +115,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           exportFormat={exportOptions.format}
         />
 
-        {/* QR Code Section */}
-        {exportOptions.includeQRCode && shareUrl && (
-          <div className="pdf-qr-section mt-8 p-4 bg-gray-50 rounded border text-center w-full">
-            <h3 className="text-base font-semibold text-gray-700 mb-2">View Live Version</h3>
-            <p className="text-sm text-gray-600 mb-2">Scan QR code or visit:</p>
-            <p className="text-sm text-blue-600 break-all">{shareUrl}</p>
-          </div>
-        )}
-
-        {/* Watermark */}
-        {exportOptions.watermark && (
-          <div className="pdf-watermark-text fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 text-8xl text-gray-100 font-bold pointer-events-none z-0">
-            {exportOptions.watermark}
-          </div>
-        )}
-
-        {/* PDF Footer */}
-        <div className="pdf-footer mt-12 pt-4 border-t border-gray-200 text-center w-full">
-          <p className="text-sm text-gray-500">
-            Generated from Route 66 Trip Planner • {format(new Date(), 'MMMM d, yyyy')}
-          </p>
-          {shareUrl && (
-            <p className="text-sm text-gray-400 mt-1 break-all">
-              Live version: {shareUrl}
-            </p>
-          )}
-          <p className="text-sm text-gray-400 mt-1">
-            Weather data: {
-              enrichedSegments.filter(s => s.weather || s.weatherData).length
-            } of {enrichedSegments.length} segments loaded
-          </p>
-        </div>
+        <PDFFooter
+          shareUrl={shareUrl}
+          enrichedSegments={enrichedSegments}
+          includeQRCode={exportOptions.includeQRCode}
+        />
         
       </div>
     </div>
