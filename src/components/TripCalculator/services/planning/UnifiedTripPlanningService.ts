@@ -3,6 +3,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
 import { DailySegment, TripPlan } from './TripPlanBuilder';
+import { EnhancedDriveTimeBalancer } from './EnhancedDriveTimeBalancer';
 
 export class UnifiedTripPlanningService {
   private static readonly MIN_DRIVE_TIME = 3;
@@ -11,7 +12,7 @@ export class UnifiedTripPlanningService {
   private static readonly AVG_SPEED_MPH = 50;
 
   /**
-   * Create a complete trip plan with enhanced destination selection
+   * Create a complete trip plan with enhanced drive time balancing
    */
   static createTripPlan(
     startStop: TripStop,
@@ -21,7 +22,7 @@ export class UnifiedTripPlanningService {
     inputStartCity: string,
     inputEndCity: string
   ): TripPlan {
-    console.log(`🚗 Creating unified trip plan: ${inputStartCity} → ${inputEndCity} in ${requestedDays} days`);
+    console.log(`🚗 Creating balanced trip plan: ${inputStartCity} → ${inputEndCity} in ${requestedDays} days`);
 
     // Calculate total distance
     const totalDistance = DistanceCalculationService.calculateDistance(
@@ -31,13 +32,21 @@ export class UnifiedTripPlanningService {
 
     console.log(`📏 Total distance: ${totalDistance.toFixed(0)} miles`);
 
-    // Calculate optimal trip duration with proper constraints
-    const optimalDays = this.calculateOptimalTripDays(totalDistance, requestedDays);
+    // Use enhanced drive time balancer for optimal planning
+    const balanceAnalysis = EnhancedDriveTimeBalancer.analyzeAndBalance(
+      startStop,
+      endStop,
+      allStops,
+      requestedDays
+    );
+
+    const optimalDays = balanceAnalysis.recommendedDays;
     const wasAdjusted = optimalDays !== requestedDays;
 
     console.log(`📅 Days: requested ${requestedDays}, optimal ${optimalDays}, adjusted: ${wasAdjusted}`);
+    console.log(`⚖️ Balance quality: ${balanceAnalysis.isBalanced ? 'Balanced' : 'Needs attention'}, max drive: ${balanceAnalysis.maxDriveTime.toFixed(1)}h`);
 
-    // Use SegmentDestinationPlanner to select optimal destinations
+    // Use SegmentDestinationPlanner with the balanced number of days
     const destinations = SegmentDestinationPlanner.selectDailyDestinations(
       startStop,
       endStop,
@@ -47,8 +56,8 @@ export class UnifiedTripPlanningService {
 
     console.log(`🎯 ${SegmentDestinationPlanner.getSelectionSummary(destinations)}`);
 
-    // Create daily segments with enhanced stop curation
-    const segments = this.createDailySegments(
+    // Create daily segments with enhanced balance validation
+    const segments = this.createBalancedDailySegments(
       startStop,
       endStop,
       destinations,
@@ -56,8 +65,8 @@ export class UnifiedTripPlanningService {
       optimalDays
     );
 
-    // Calculate drive time balance metrics
-    const driveTimeBalance = this.calculateDriveTimeBalance(segments);
+    // Enhanced drive time balance metrics
+    const driveTimeBalance = this.calculateEnhancedDriveTimeBalance(segments, balanceAnalysis);
 
     // Calculate total metrics
     const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
@@ -77,42 +86,14 @@ export class UnifiedTripPlanningService {
       driveTimeBalance
     };
 
-    console.log(`✅ Trip plan completed: ${optimalDays} days, ${Math.round(totalDistance)}mi, ${totalDrivingTime.toFixed(1)}h`);
+    console.log(`✅ Balanced trip plan: ${optimalDays} days, ${Math.round(totalDistance)}mi, ${totalDrivingTime.toFixed(1)}h`);
     return tripPlan;
   }
 
   /**
-   * Calculate optimal trip days based on distance and drive time constraints
+   * Create daily segments with enhanced balance validation
    */
-  private static calculateOptimalTripDays(totalDistance: number, requestedDays: number): number {
-    const totalDriveTime = totalDistance / this.AVG_SPEED_MPH;
-    const averageDriveTimePerDay = totalDriveTime / requestedDays;
-
-    console.log(`⏱️ Drive time analysis: ${totalDriveTime.toFixed(1)}h total, ${averageDriveTimePerDay.toFixed(1)}h average`);
-
-    // If average drive time is too high, increase days
-    if (averageDriveTimePerDay > this.MAX_DRIVE_TIME) {
-      const minRequiredDays = Math.ceil(totalDriveTime / this.MAX_DRIVE_TIME);
-      console.log(`📈 Increasing days from ${requestedDays} to ${minRequiredDays} for safe driving`);
-      return minRequiredDays;
-    }
-
-    // If average drive time is too low for long trips, reduce days
-    if (averageDriveTimePerDay < this.MIN_DRIVE_TIME && requestedDays > 3) {
-      const maxReasonableDays = Math.floor(totalDriveTime / this.MIN_DRIVE_TIME);
-      const adjustedDays = Math.max(3, maxReasonableDays);
-      console.log(`📉 Reducing days from ${requestedDays} to ${adjustedDays} for reasonable segments`);
-      return adjustedDays;
-    }
-
-    // Otherwise, use requested days
-    return requestedDays;
-  }
-
-  /**
-   * Create daily segments with enhanced stop curation
-   */
-  private static createDailySegments(
+  private static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
     destinations: TripStop[],
@@ -126,7 +107,7 @@ export class UnifiedTripPlanningService {
     const usedStopIds = new Set([startStop.id, endStop.id, ...destinations.map(d => d.id)]);
     const remainingStops = allStops.filter(stop => !usedStopIds.has(stop.id));
 
-    console.log(`🎯 Creating segments with ${remainingStops.length} remaining stops for recommendations`);
+    console.log(`🎯 Creating balanced segments with ${remainingStops.length} remaining stops`);
 
     for (let day = 1; day <= totalDays; day++) {
       const isLastDay = day === totalDays;
@@ -139,6 +120,11 @@ export class UnifiedTripPlanningService {
       );
       const driveTimeHours = segmentDistance / this.AVG_SPEED_MPH;
 
+      // Validate drive time is within acceptable limits
+      if (driveTimeHours > this.MAX_DRIVE_TIME) {
+        console.warn(`⚠️ Day ${day}: Drive time ${driveTimeHours.toFixed(1)}h exceeds recommended maximum`);
+      }
+
       // Enhanced stop curation for this segment
       const segmentStops = this.curateEnhancedStopsForSegment(
         currentStop,
@@ -147,8 +133,8 @@ export class UnifiedTripPlanningService {
         Math.min(5, Math.floor(driveTimeHours) + 2)
       );
 
-      // Create drive time category
-      const driveTimeCategory = this.getDriveTimeCategory(driveTimeHours);
+      // Create drive time category with balance awareness
+      const driveTimeCategory = this.getEnhancedDriveTimeCategory(driveTimeHours);
 
       const segment: DailySegment = {
         day,
@@ -169,7 +155,7 @@ export class UnifiedTripPlanningService {
       segments.push(segment);
       currentStop = dayDestination;
 
-      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${driveTimeHours.toFixed(1)}h, ${segmentStops.length} stops`);
+      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name}, ${driveTimeHours.toFixed(1)}h ${driveTimeHours <= this.MAX_DRIVE_TIME ? '✅' : '⚠️'}`);
     }
 
     return segments;
@@ -263,40 +249,40 @@ export class UnifiedTripPlanningService {
   }
 
   /**
-   * Get drive time category with proper color coding
+   * Enhanced drive time category with balance awareness
    */
-  private static getDriveTimeCategory(driveTimeHours: number) {
+  private static getEnhancedDriveTimeCategory(driveTimeHours: number) {
     if (driveTimeHours <= 4) {
       return {
         category: 'short' as const,
-        message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace`,
+        message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace, plenty of time for attractions`,
         color: 'text-green-800'
       };
-    } else if (driveTimeHours <= 7) {
+    } else if (driveTimeHours <= 6) {
       return {
         category: 'optimal' as const,
-        message: `${driveTimeHours.toFixed(1)} hours - Good balance`,
+        message: `${driveTimeHours.toFixed(1)} hours - Perfect balance of driving and sightseeing`,
         color: 'text-blue-800'
       };
-    } else if (driveTimeHours <= 9) {
+    } else if (driveTimeHours <= 8) {
       return {
         category: 'long' as const,
-        message: `${driveTimeHours.toFixed(1)} hours - Long day`,
+        message: `${driveTimeHours.toFixed(1)} hours - Substantial day, but manageable`,
         color: 'text-orange-800'
       };
     } else {
       return {
         category: 'extreme' as const,
-        message: `${driveTimeHours.toFixed(1)} hours - Very long`,
+        message: `${driveTimeHours.toFixed(1)} hours - Very long day, consider adding stops`,
         color: 'text-red-800'
       };
     }
   }
 
   /**
-   * Calculate drive time balance metrics
+   * Calculate enhanced drive time balance metrics
    */
-  private static calculateDriveTimeBalance(segments: DailySegment[]) {
+  private static calculateEnhancedDriveTimeBalance(segments: DailySegment[], balanceAnalysis: any) {
     const driveTimes = segments.map(seg => seg.driveTimeHours);
     const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
     const variance = Math.sqrt(
@@ -305,16 +291,28 @@ export class UnifiedTripPlanningService {
 
     const minTime = Math.min(...driveTimes);
     const maxTime = Math.max(...driveTimes);
-    const isBalanced = variance <= 1.5 && maxTime <= this.MAX_DRIVE_TIME && minTime >= this.MIN_DRIVE_TIME;
+    const isBalanced = maxTime <= this.MAX_DRIVE_TIME && variance <= 1.5;
 
-    const balanceQuality: 'excellent' | 'good' | 'fair' | 'poor' = variance <= 1.0 ? 'excellent' :
-                          variance <= 1.5 ? 'good' :
-                          variance <= 2.0 ? 'fair' : 'poor';
+    const balanceQuality: 'excellent' | 'good' | 'fair' | 'poor' = 
+      isBalanced && maxTime <= 6 ? 'excellent' :
+      isBalanced && maxTime <= 8 ? 'good' :
+      maxTime <= 9 ? 'fair' : 'poor';
 
-    const qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F' = variance <= 1.0 ? 'A' :
-                        variance <= 1.5 ? 'B' :
-                        variance <= 2.0 ? 'C' :
-                        variance <= 2.5 ? 'D' : 'F';
+    const qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F' = 
+      balanceQuality === 'excellent' ? 'A' :
+      balanceQuality === 'good' ? 'B' :
+      balanceQuality === 'fair' ? 'C' :
+      maxTime <= 10 ? 'D' : 'F';
+
+    const overallScore = Math.max(0, 100 - (variance * 20) - Math.max(0, maxTime - 8) * 15);
+
+    const suggestions: string[] = [];
+    if (maxTime > this.MAX_DRIVE_TIME) {
+      suggestions.push(`Day with ${maxTime.toFixed(1)}h drive time should be shortened`);
+    }
+    if (variance > 2) {
+      suggestions.push('Consider redistributing stops for more consistent daily drive times');
+    }
 
     return {
       isBalanced,
@@ -323,7 +321,11 @@ export class UnifiedTripPlanningService {
       driveTimeRange: { min: minTime, max: maxTime },
       balanceQuality,
       qualityGrade,
-      overallScore: Math.max(0, 100 - (variance * 30))
+      overallScore: Math.round(overallScore),
+      suggestions,
+      reason: isBalanced ? 'Drive times are well balanced' : 
+              maxTime > this.MAX_DRIVE_TIME ? `Maximum drive time (${maxTime.toFixed(1)}h) exceeds recommended limit` :
+              'Drive time variance could be improved'
     };
   }
 }

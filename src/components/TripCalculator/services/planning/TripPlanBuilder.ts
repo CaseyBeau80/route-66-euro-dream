@@ -1,6 +1,6 @@
-
 import { TripStop, SupabaseDataService } from '../data/SupabaseDataService';
 import { UnifiedTripPlanningService } from './UnifiedTripPlanningService';
+import { TripPlanOptimizer } from './TripPlanOptimizer';
 
 export interface SubStopTiming {
   fromStop: TripStop;
@@ -71,7 +71,7 @@ export interface SegmentTiming {
 
 export class TripPlanBuilder {
   /**
-   * Enhanced trip plan building with destination city prioritization
+   * Enhanced trip plan building with drive time balancing and optimization
    */
   static buildTripPlan(
     startStop: TripStop,
@@ -81,7 +81,7 @@ export class TripPlanBuilder {
     inputStartCity: string,
     inputEndCity: string
   ): TripPlan {
-    console.log(`🏗️ TripPlanBuilder: Building enhanced trip plan`);
+    console.log(`🏗️ TripPlanBuilder: Building optimized trip plan with drive time balancing`);
     console.log(`📊 Available stops breakdown:`);
     
     // Log stop categories for debugging
@@ -90,9 +90,23 @@ export class TripPlanBuilder {
     
     console.log(`   🏙️ Official destination cities: ${officialDestinations.length}`);
     console.log(`   🎯 Recommended stops: ${recommendedStops.length}`);
-    
-    // Use the enhanced unified planning service
-    const tripPlan = UnifiedTripPlanningService.createTripPlan(
+
+    // Pre-flight validation
+    const feasibilityCheck = TripPlanOptimizer.validateTripFeasibility(
+      startStop,
+      endStop,
+      requestedDays
+    );
+
+    if (!feasibilityCheck.isFeasible) {
+      console.warn(`⚠️ Trip feasibility issues:`, feasibilityCheck.issues);
+      if (feasibilityCheck.recommendedDays) {
+        console.log(`💡 Recommended days: ${feasibilityCheck.recommendedDays}`);
+      }
+    }
+
+    // Use the enhanced optimizer for balanced trip planning
+    const optimizationResult = TripPlanOptimizer.optimizeTripPlan(
       startStop,
       endStop,
       allStops,
@@ -101,7 +115,15 @@ export class TripPlanBuilder {
       inputEndCity
     );
 
-    console.log(`🎉 Enhanced trip plan created with prioritized destination cities`);
-    return tripPlan;
+    // Log optimization results
+    if (optimizationResult.wasOptimized) {
+      console.log(`🔧 Trip optimized! Steps taken:`);
+      optimizationResult.optimizationSteps.forEach(step => console.log(`   • ${step}`));
+    }
+
+    console.log(`📈 Balance metrics:`, optimizationResult.balanceMetrics);
+    console.log(`🎉 Enhanced trip plan created with balanced drive times`);
+
+    return optimizationResult.finalPlan;
   }
 }
