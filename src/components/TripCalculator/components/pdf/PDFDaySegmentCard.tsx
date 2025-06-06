@@ -2,7 +2,6 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import PDFWeatherCard from './PDFWeatherCard';
 
 interface PDFDaySegmentCardProps {
   segment: DailySegment;
@@ -32,6 +31,8 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     const minutes = Math.round((hours - wholeHours) * 60);
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
+
+  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Weather data available:`, !!segment.weather);
 
   return (
     <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
@@ -76,6 +77,67 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         </div>
       )}
 
+      {/* Weather Section (Full and Summary formats) */}
+      {exportFormat !== 'route-only' && (
+        <div className="pdf-weather-section mb-4 p-3 bg-blue-50 rounded border border-blue-200">
+          <h6 className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-1">
+            🌤️ Weather Forecast
+          </h6>
+          
+          {segment.weather ? (
+            <div className="space-y-2">
+              {/* Current Weather */}
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">{segment.weather.temperature}°F</span>
+                  <span className="text-blue-600">•</span>
+                  <span className="capitalize">{segment.weather.description}</span>
+                </div>
+              </div>
+              
+              {/* 3-Day Forecast */}
+              {segment.weather.forecast && segment.weather.forecast.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {segment.weather.forecast.slice(0, 3).map((day, index) => (
+                    <div key={index} className="text-center p-2 bg-white rounded border text-xs">
+                      <div className="font-medium text-gray-700">{day.date}</div>
+                      <div className="text-blue-600 font-semibold">
+                        {day.temperature.high}°/{day.temperature.low}°
+                      </div>
+                      <div className="text-gray-500 capitalize text-xs">
+                        {day.description}
+                      </div>
+                      {day.precipitationChance && parseInt(day.precipitationChance) > 0 && (
+                        <div className="text-blue-500 text-xs">
+                          {day.precipitationChance}% rain
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Additional Weather Details */}
+              <div className="flex gap-4 text-xs text-gray-600 mt-2">
+                {segment.weather.humidity && (
+                  <span>💧 {segment.weather.humidity}% humidity</span>
+                )}
+                {segment.weather.windSpeed && (
+                  <span>💨 {segment.weather.windSpeed} mph wind</span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-sm text-gray-600">
+              <div>🌤️ Weather information</div>
+              <div className="text-xs text-gray-500 mt-1">
+                Check live weather before departure
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Recommended Stops (Summary and Full only) */}
       {exportFormat !== 'route-only' && segment.recommendedStops && segment.recommendedStops.length > 0 && (
         <div className="pdf-recommended-stops mb-4">
@@ -101,16 +163,6 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
             )}
           </ul>
         </div>
-      )}
-
-      {/* Weather Section (Full and Summary formats) */}
-      {exportFormat !== 'route-only' && (
-        <PDFWeatherCard
-          segment={segment}
-          tripStartDate={tripStartDate}
-          cardIndex={cardIndex}
-          tripId={tripId}
-        />
       )}
 
       {/* Drive Time Category */}

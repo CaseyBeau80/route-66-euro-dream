@@ -40,6 +40,12 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 
   const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
 
+  console.log('📄 PDFContentRenderer: Rendering with segments:', {
+    segmentsCount: tripPlan.segments?.length || 0,
+    exportFormat: exportOptions.format,
+    hasWeatherData: tripPlan.segments?.some(s => s.weather) || false
+  });
+
   return (
     <div className="pdf-clean-container bg-white text-black p-6 font-sans">
       {/* PDF Header */}
@@ -82,9 +88,9 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         </div>
       </div>
 
-      {/* Daily Itinerary */}
+      {/* Daily Itinerary with Weather */}
       <PDFItineraryView
-        segments={tripPlan.segments}
+        segments={tripPlan.segments || []}
         tripStartDate={tripStartDate}
         tripId={`pdf-${Date.now()}`}
         totalDays={tripPlan.totalDays}
