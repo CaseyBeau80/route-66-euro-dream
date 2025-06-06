@@ -32,7 +32,11 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
 
-  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Weather data available:`, !!segment.weather);
+  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Weather data details:`, {
+    hasWeather: !!segment.weather,
+    weatherData: segment.weather,
+    city: segment.endCity
+  });
 
   return (
     <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
@@ -87,12 +91,15 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
           {segment.weather ? (
             <div className="space-y-2">
               {/* Current Weather */}
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-1">
+              <div className="flex items-center justify-between text-sm bg-white rounded p-2">
+                <div className="flex items-center gap-2">
                   <span className="font-medium">{segment.weather.temperature}°F</span>
                   <span className="text-blue-600">•</span>
                   <span className="capitalize">{segment.weather.description}</span>
                 </div>
+                {segment.weather.humidity && (
+                  <span className="text-xs text-gray-600">💧 {segment.weather.humidity}%</span>
+                )}
               </div>
               
               {/* 3-Day Forecast */}
@@ -119,20 +126,29 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               
               {/* Additional Weather Details */}
               <div className="flex gap-4 text-xs text-gray-600 mt-2">
-                {segment.weather.humidity && (
-                  <span>💧 {segment.weather.humidity}% humidity</span>
-                )}
                 {segment.weather.windSpeed && (
                   <span>💨 {segment.weather.windSpeed} mph wind</span>
+                )}
+                {segment.weather.visibility && (
+                  <span>👁️ {segment.weather.visibility} mi visibility</span>
                 )}
               </div>
             </div>
           ) : (
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-gray-600 bg-white rounded p-3">
               <div>🌤️ Weather information</div>
               <div className="text-xs text-gray-500 mt-1">
                 Check live weather before departure
               </div>
+              {segmentDate && (
+                <div className="text-xs text-blue-600 mt-2">
+                  Expected season: {
+                    segmentDate.getMonth() >= 2 && segmentDate.getMonth() <= 4 ? 'Spring' :
+                    segmentDate.getMonth() >= 5 && segmentDate.getMonth() <= 7 ? 'Summer' :
+                    segmentDate.getMonth() >= 8 && segmentDate.getMonth() <= 10 ? 'Fall' : 'Winter'
+                  }
+                </div>
+              )}
             </div>
           )}
         </div>

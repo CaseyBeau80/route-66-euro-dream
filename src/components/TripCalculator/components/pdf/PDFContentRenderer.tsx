@@ -43,7 +43,14 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   console.log('📄 PDFContentRenderer: Rendering with segments:', {
     segmentsCount: tripPlan.segments?.length || 0,
     exportFormat: exportOptions.format,
-    hasWeatherData: tripPlan.segments?.some(s => s.weather) || false
+    hasWeatherData: tripPlan.segments?.some(s => s.weather) || false,
+    segmentWeatherDetails: tripPlan.segments?.map(s => ({
+      day: s.day,
+      city: s.endCity,
+      hasWeather: !!s.weather,
+      weatherTemp: s.weather?.temperature,
+      weatherDesc: s.weather?.description
+    }))
   });
 
   return (
