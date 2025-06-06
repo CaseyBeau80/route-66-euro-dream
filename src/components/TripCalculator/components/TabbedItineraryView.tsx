@@ -24,14 +24,47 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
   totalDays
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('route');
+  
+  // Debug: Log incoming segments before stabilization
+  console.log('🔍 TabbedItineraryView - RAW INCOMING SEGMENTS:', {
+    segmentsCount: segments?.length || 0,
+    totalDays,
+    rawSegments: segments?.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity })) || []
+  });
+  
   const stableSegments = useStableSegments(segments);
+  
+  // Debug: Log segments after stabilization
+  console.log('🔍 TabbedItineraryView - AFTER STABILIZATION:', {
+    originalCount: segments?.length || 0,
+    stableCount: stableSegments.length,
+    stableSegments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity }))
+  });
+  
+  // Debug: Check for missing days
+  const expectedDays = Array.from({ length: totalDays }, (_, i) => i + 1);
+  const actualDays = stableSegments.map(s => s.day).sort((a, b) => a - b);
+  const missingDays = expectedDays.filter(day => !actualDays.includes(day));
+  
+  if (missingDays.length > 0) {
+    console.error('❌ MISSING DAYS DETECTED:', {
+      expectedDays,
+      actualDays,
+      missingDays,
+      totalDays,
+      segmentsCount: stableSegments.length
+    });
+  }
   
   console.log('📱 TabbedItineraryView render:', {
     segmentsCount: stableSegments.length,
     activeTab,
     tripStartDate: tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : 'Not set',
     totalDays,
-    segmentDetails: stableSegments.map(s => ({ day: s.day, endCity: s.endCity }))
+    segmentDetails: stableSegments.map(s => ({ day: s.day, endCity: s.endCity })),
+    expectedDays,
+    actualDays,
+    missingDays
   });
 
   if (!stableSegments || stableSegments.length === 0) {
@@ -78,6 +111,9 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
           </div>
           <p className="text-sm text-route66-text-secondary ml-9">
             Complete overview of your {totalDays}-day Route 66 adventure ({stableSegments.length} segments loaded)
+            {missingDays.length > 0 && (
+              <span className="text-red-600 font-medium"> - Missing days: {missingDays.join(', ')}</span>
+            )}
           </p>
         </div>
 
