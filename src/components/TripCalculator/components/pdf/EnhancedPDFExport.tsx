@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, AlertCircle } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { toast } from '@/hooks/use-toast';
@@ -28,31 +29,80 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   onClose
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
-  // Debug trip plan data
-  console.log('🖨️ EnhancedPDFExport: Trip plan data:', {
-    segmentsCount: tripPlan.segments?.length || 0,
-    firstSegmentWeather: tripPlan.segments?.[0]?.weather,
-    firstSegmentWeatherData: tripPlan.segments?.[0]?.weatherData,
-    allSegmentKeys: tripPlan.segments?.[0] ? Object.keys(tripPlan.segments[0]) : []
-  });
+  // Add keyboard escape handler
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showPreview) {
+        handleClosePreview();
+      }
+    };
+
+    if (showPreview) {
+      document.addEventListener('keydown', handleKeyPress);
+      return () => document.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [showPreview]);
+
+  const handleClosePreview = () => {
+    console.log('🔄 Closing PDF preview and restoring UI...');
+    setShowPreview(false);
+    
+    // Restore original content
+    const originalChildren = Array.from(document.body.children);
+    originalChildren.forEach(child => {
+      if (child.id !== 'pdf-export-content') {
+        (child as HTMLElement).style.display = '';
+      }
+    });
+    
+    // Hide PDF content
+    const pdfContainer = document.getElementById('pdf-export-content');
+    if (pdfContainer) {
+      pdfContainer.style.cssText = `
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        visibility: hidden;
+      `;
+    }
+    
+    // Remove print styles
+    const printStyles = document.getElementById('pdf-print-styles');
+    if (printStyles) {
+      printStyles.remove();
+    }
+    
+    toast({
+      title: "PDF Preview Closed",
+      description: "Returned to normal view",
+      variant: "default"
+    });
+  };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting PDF export with PDFContentRenderer...');
+    console.log('🖨️ Starting enhanced PDF export with close mechanisms...');
     setIsExporting(true);
+    setWeatherLoading(true);
     
     try {
       // Step 1: Close modal first and wait for it to fully close
       onClose();
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log('📄 Creating PDF content with trip data:', {
-        segmentsCount: tripPlan.segments?.length || 0,
-        hasWeatherData: tripPlan.segments?.some(s => s.weather || s.weatherData) || false
+      // Step 2: Show weather loading toast
+      toast({
+        title: "Preparing PDF",
+        description: "Loading weather data and formatting content...",
+        variant: "default"
       });
       
-      // Step 2: Create a clean PDF container
+      console.log('📄 Creating PDF content with enhanced weather loading...');
+      
+      // Step 3: Create a clean PDF container
       let pdfContainer = document.getElementById('pdf-export-content');
       if (!pdfContainer) {
         pdfContainer = document.createElement('div');
@@ -60,7 +110,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         document.body.appendChild(pdfContainer);
       }
       
-      // Step 3: Style the container for PDF
+      // Step 4: Style the container for PDF
       pdfContainer.style.cssText = `
         position: absolute;
         left: -9999px;
@@ -75,7 +125,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         margin: 0;
       `;
       
-      // Step 4: Render PDFContentRenderer directly using React
+      // Step 5: Render PDFContentRenderer with timeout
       const root = ReactDOM.createRoot(pdfContainer);
       
       await new Promise<void>((resolve) => {
@@ -88,14 +138,15 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
           />
         );
         
-        // Wait for React to render
+        // Wait for React to render and weather to load
         setTimeout(() => {
-          console.log('✅ PDF content rendered successfully');
+          setWeatherLoading(false);
+          console.log('✅ PDF content rendered with weather data');
           resolve();
-        }, 100);
+        }, 3000); // Give weather API time to load
       });
       
-      // Step 5: Apply print styles
+      // Step 6: Add enhanced print styles with close button
       const printStyleId = 'pdf-print-styles';
       let printStyles = document.getElementById(printStyleId);
       if (!printStyles) {
@@ -105,7 +156,47 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       }
       
       printStyles.textContent = `
+        @media screen {
+          .pdf-close-button {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 10000 !important;
+            background: #dc2626 !important;
+            color: white !important;
+            border: none !important;
+            padding: 12px 20px !important;
+            border-radius: 6px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+            font-size: 14px !important;
+          }
+          
+          .pdf-close-button:hover {
+            background: #b91c1c !important;
+          }
+          
+          .pdf-instructions {
+            position: fixed !important;
+            top: 80px !important;
+            right: 20px !important;
+            z-index: 9999 !important;
+            background: rgba(0,0,0,0.8) !important;
+            color: white !important;
+            padding: 12px !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+            max-width: 200px !important;
+          }
+        }
+        
         @media print {
+          .pdf-close-button,
+          .pdf-instructions {
+            display: none !important;
+          }
+          
           @page {
             size: A4;
             margin: 0.5in;
@@ -180,61 +271,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
           .text-gray-600 { color: #4b5563 !important; }
           .text-gray-500 { color: #6b7280 !important; }
           
-          .bg-blue-50 { background-color: #eff6ff !important; }
-          .bg-blue-100 { background-color: #dbeafe !important; }
-          .border-blue-200 { border-color: #bfdbfe !important; }
-          .border-blue-500 { border-color: #3b82f6 !important; }
-          
-          .grid { display: grid !important; }
-          .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-          .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-          
-          .gap-4 { gap: 12px !important; }
-          .gap-3 { gap: 9px !important; }
-          .gap-2 { gap: 6px !important; }
-          
-          .p-6 { padding: 18px !important; }
-          .p-4 { padding: 12px !important; }
-          .p-3 { padding: 9px !important; }
-          .p-2 { padding: 6px !important; }
-          
-          .mb-8 { margin-bottom: 24px !important; }
-          .mb-6 { margin-bottom: 18px !important; }
-          .mb-4 { margin-bottom: 12px !important; }
-          .mb-3 { margin-bottom: 9px !important; }
-          .mb-2 { margin-bottom: 6px !important; }
-          .mb-1 { margin-bottom: 3px !important; }
-          
-          .mt-8 { margin-top: 24px !important; }
-          .mt-4 { margin-top: 12px !important; }
-          .mt-3 { margin-top: 9px !important; }
-          .mt-2 { margin-top: 6px !important; }
-          .mt-1 { margin-top: 3px !important; }
-          
-          .text-3xl { font-size: 24px !important; }
-          .text-2xl { font-size: 20px !important; }
-          .text-xl { font-size: 18px !important; }
-          .text-lg { font-size: 16px !important; }
-          .text-sm { font-size: 12px !important; }
-          .text-xs { font-size: 10px !important; }
-          
-          .font-bold { font-weight: bold !important; }
-          .font-semibold { font-weight: 600 !important; }
-          .font-medium { font-weight: 500 !important; }
-          
-          .text-center { text-align: center !important; }
-          .break-all { word-break: break-all !important; }
-          
-          .border-b-2 { border-bottom: 2px solid !important; }
-          .border-t { border-top: 1px solid !important; }
-          .border-b { border-bottom: 1px solid !important; }
-          
-          .space-y-4 > * + * { margin-top: 12px !important; }
-          .space-y-3 > * + * { margin-top: 9px !important; }
-          .space-y-2 > * + * { margin-top: 6px !important; }
-          .space-y-1 > * + * { margin-top: 3px !important; }
-          
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -242,7 +278,26 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         }
       `;
       
-      // Step 6: Make PDF container visible and trigger print
+      // Step 7: Add close button and instructions to PDF container
+      const closeButton = document.createElement('button');
+      closeButton.className = 'pdf-close-button';
+      closeButton.innerHTML = '✕ Close PDF Preview';
+      closeButton.onclick = handleClosePreview;
+      
+      const instructions = document.createElement('div');
+      instructions.className = 'pdf-instructions';
+      instructions.innerHTML = `
+        <div><strong>PDF Preview Mode</strong></div>
+        <div>• Press ESC to close</div>
+        <div>• Use Ctrl+P to print</div>
+        <div>• Click close button to exit</div>
+      `;
+      
+      pdfContainer.appendChild(closeButton);
+      pdfContainer.appendChild(instructions);
+      
+      // Step 8: Make PDF container visible and trigger preview
+      setShowPreview(true);
       pdfContainer.style.cssText = `
         position: static;
         left: auto;
@@ -265,39 +320,25 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         }
       });
       
-      // Trigger print
-      console.log('🖨️ Triggering browser print dialog...');
-      window.print();
-      
-      // Restore original content after print
+      // Add automatic timeout
       setTimeout(() => {
-        originalChildren.forEach(child => {
-          (child as HTMLElement).style.display = '';
-        });
-        
-        if (pdfContainer) {
-          pdfContainer.style.cssText = `
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            visibility: hidden;
-          `;
+        if (showPreview) {
+          console.log('⏰ Auto-closing PDF preview after 60 seconds');
+          handleClosePreview();
         }
-        
-        // Clean up React root
-        root.unmount();
-        
-        console.log('🧹 PDF export cleanup completed');
-      }, 1000);
+      }, 60000);
+      
+      console.log('🖨️ PDF preview ready. Use Ctrl+P to print or ESC to close.');
       
       toast({
-        title: "PDF Export Started",
-        description: "Your browser's print dialog should open. You can save as PDF from there.",
+        title: "PDF Preview Ready",
+        description: "Press Ctrl+P to print, ESC to close, or click the close button",
         variant: "default"
       });
       
     } catch (error) {
       console.error('❌ PDF export failed:', error);
+      handleClosePreview();
       toast({
         title: "PDF Export Failed",
         description: "Could not generate PDF. Please try again.",
@@ -305,6 +346,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       });
     } finally {
       setIsExporting(false);
+      setWeatherLoading(false);
     }
   };
 
@@ -322,6 +364,14 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Weather Loading Notice */}
+          {weatherLoading && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded">
+              <AlertCircle className="w-4 h-4 text-blue-600" />
+              <span className="text-sm text-blue-800">Loading weather data...</span>
+            </div>
+          )}
+
           {/* Export Format */}
           <div className="space-y-2">
             <Label>Export Format</Label>
@@ -374,13 +424,24 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             />
           </div>
 
+          {/* Instructions */}
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-600">
+            <div className="font-medium mb-1">📋 Export Instructions:</div>
+            <ul className="text-xs space-y-1">
+              <li>• Weather data loads automatically (may take a few seconds)</li>
+              <li>• Press <kbd className="bg-gray-200 px-1 rounded">ESC</kbd> to close PDF preview</li>
+              <li>• Use <kbd className="bg-gray-200 px-1 rounded">Ctrl+P</kbd> to print or save as PDF</li>
+              <li>• Click the red close button to exit preview mode</li>
+            </ul>
+          </div>
+
           {/* Export Button */}
           <Button
             onClick={handleExportPDF}
-            disabled={isExporting}
+            disabled={isExporting || !isTripComplete}
             className="w-full"
           >
-            {isExporting ? 'Preparing PDF...' : 'Export PDF'}
+            {isExporting ? 'Preparing PDF...' : 'Export PDF with Preview'}
           </Button>
         </div>
       </DialogContent>

@@ -25,6 +25,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 }) => {
   const [enrichedSegments, setEnrichedSegments] = useState<DailySegment[]>(tripPlan.segments || []);
   const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherLoadingTimeout, setWeatherLoadingTimeout] = useState(false);
 
   useEffect(() => {
     const enrichWithWeather = async () => {
@@ -32,8 +33,16 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         return;
       }
 
-      console.log('🌤️ PDFContentRenderer: Starting weather enrichment...');
+      console.log('🌤️ PDFContentRenderer: Starting enhanced weather enrichment with timeout...');
       setWeatherLoading(true);
+      setWeatherLoadingTimeout(false);
+
+      // Set timeout for weather loading
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Weather loading timeout reached (10 seconds)');
+        setWeatherLoadingTimeout(true);
+        setWeatherLoading(false);
+      }, 10000);
 
       try {
         const weatherEnrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
@@ -41,15 +50,19 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           tripStartDate
         );
         
-        console.log('✅ Weather enrichment completed:', {
+        clearTimeout(timeoutId);
+        
+        console.log('✅ Weather enrichment completed successfully:', {
           originalSegments: tripPlan.segments.length,
           enrichedSegments: weatherEnrichedSegments.length,
-          hasWeatherData: weatherEnrichedSegments.some(s => s.weather)
+          segmentsWithWeather: weatherEnrichedSegments.filter(s => s.weather || s.weatherData).length
         });
 
         setEnrichedSegments(weatherEnrichedSegments);
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('❌ Weather enrichment failed:', error);
+        // Use original segments with fallback seasonal data
         setEnrichedSegments(tripPlan.segments);
       } finally {
         setWeatherLoading(false);
@@ -77,18 +90,17 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 
   const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
 
-  console.log('📄 PDFContentRenderer: Rendering with segments:', {
+  // Weather service status for display
+  const weatherServiceStatus = PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 
+    (weatherLoading ? '⏳' : (weatherLoadingTimeout ? '⚠️' : '🌤️')) : '❌';
+
+  console.log('📄 PDFContentRenderer: Rendering with enhanced segments:', {
     segmentsCount: enrichedSegments.length,
     exportFormat: exportOptions.format,
-    hasWeatherData: enrichedSegments.some(s => s.weather) || false,
+    segmentsWithWeather: enrichedSegments.filter(s => s.weather || s.weatherData).length,
     weatherLoading,
-    segmentWeatherDetails: enrichedSegments.map(s => ({
-      day: s.day,
-      city: s.endCity,
-      hasWeather: !!s.weather,
-      weatherTemp: s.weather?.temperature,
-      weatherDesc: s.weather?.description
-    }))
+    weatherLoadingTimeout,
+    weatherServiceAvailable: PDFWeatherIntegrationService.isWeatherServiceAvailable()
   });
 
   return (
@@ -104,9 +116,16 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         <p className="text-sm text-gray-500">
           Generated on {format(new Date(), 'MMMM d, yyyy')}
         </p>
+        
+        {/* Weather Loading Status */}
         {weatherLoading && (
           <p className="text-xs text-blue-600 mt-2">
-            ⏳ Loading weather data...
+            ⏳ Loading weather data... (this may take up to 10 seconds)
+          </p>
+        )}
+        {weatherLoadingTimeout && (
+          <p className="text-xs text-orange-600 mt-2">
+            ⚠️ Weather data loading timed out - using seasonal fallbacks
           </p>
         )}
       </div>
@@ -132,15 +151,19 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           </div>
           
           <div className="text-center p-3 bg-gray-50 rounded border">
-            <div className="text-lg font-bold text-blue-600">
-              {PDFWeatherIntegrationService.isWeatherServiceAvailable() ? '🌤️' : '--'}
+            <div className="text-lg font-bold text-blue-600">{weatherServiceStatus}</div>
+            <div className="text-xs text-gray-600">
+              Weather {
+                weatherLoading ? 'Loading' :
+                weatherLoadingTimeout ? 'Timeout' :
+                PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 'Available' : 'Unavailable'
+              }
             </div>
-            <div className="text-xs text-gray-600">Weather</div>
           </div>
         </div>
       </div>
 
-      {/* Daily Itinerary with Weather */}
+      {/* Daily Itinerary with Enhanced Weather */}
       <PDFItineraryView
         segments={enrichedSegments}
         tripStartDate={tripStartDate}
@@ -175,6 +198,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
             Live version: {shareUrl}
           </p>
         )}
+        <p className="text-xs text-gray-400 mt-1">
+          Weather data: {
+            enrichedSegments.filter(s => s.weather || s.weatherData).length
+          } of {enrichedSegments.length} segments loaded
+        </p>
       </div>
     </div>
   );
