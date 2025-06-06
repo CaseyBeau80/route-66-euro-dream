@@ -169,11 +169,6 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
                   {stop.description && exportFormat === 'full' && (
                     <span className="text-gray-500"> - {stop.description}</span>
                   )}
-                  {stop.type && (
-                    <span className="ml-1 text-xs bg-gray-100 text-gray-600 px-1 rounded">
-                      {stop.type}
-                    </span>
-                  )}
                 </span>
               </li>
             ))}
