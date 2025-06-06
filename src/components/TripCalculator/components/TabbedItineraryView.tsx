@@ -147,8 +147,8 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
           </div>
         </div>
 
-        {/* Tab Content with Sliding Animation */}
-        <div className="relative overflow-hidden min-h-[400px]">
+        {/* Tab Content with Sliding Animation - REMOVED FIXED HEIGHT */}
+        <div className="relative overflow-hidden">
           {/* Route & Stops Content */}
           <div className={`
             absolute inset-0 transition-all duration-500 ease-in-out
