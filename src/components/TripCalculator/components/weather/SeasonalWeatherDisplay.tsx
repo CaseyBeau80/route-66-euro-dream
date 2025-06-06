@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useUnits } from '@/contexts/UnitContext';
 import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
 import TemperatureDisplay from './TemperatureDisplay';
@@ -15,6 +16,7 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
   segmentDate, 
   cityName 
 }) => {
+  const { formatSpeed } = useUnits();
   const seasonalData = getSeasonalWeatherData(cityName, segmentDate.getMonth() + 1);
   
   return (
@@ -40,10 +42,20 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
         lowTemp={seasonalData.low}
       />
 
-      <WeatherStats 
-        humidity={seasonalData.humidity}
-        windSpeed={seasonalData.windSpeed}
-      />
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="flex justify-between bg-white rounded p-1">
+          <span className="text-gray-600">
+            {seasonalData.humidity >= 50 ? 'Humidity:' : 'Avg Humidity:'}
+          </span>
+          <span className="font-semibold">{seasonalData.humidity}%</span>
+        </div>
+        <div className="flex justify-between bg-white rounded p-1">
+          <span className="text-gray-600">
+            {seasonalData.windSpeed >= 15 ? 'Wind:' : 'Avg Wind:'}
+          </span>
+          <span className="font-semibold">{formatSpeed(seasonalData.windSpeed)}</span>
+        </div>
+      </div>
     </div>
   );
 };

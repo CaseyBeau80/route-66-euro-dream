@@ -25,13 +25,15 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
   const isLongDriveDay = segment.approximateMiles > 500;
   const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300); // Estimate fuel stops every 300 miles
 
+  const segmentDistance = segment.distance || segment.approximateMiles;
+
   if (compact) {
     return (
       <TooltipProvider>
         <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span>{formatDistance(segment.approximateMiles)}</span>
+            <span>{formatDistance(segmentDistance)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
@@ -61,7 +63,7 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
         <div className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4 text-route66-primary" />
           <div>
-            <div className="font-medium text-route66-text-primary">{formatDistance(segment.approximateMiles)}</div>
+            <div className="font-medium text-route66-text-primary">{formatDistance(segmentDistance)}</div>
             <div className="text-xs text-route66-text-secondary">Total distance</div>
           </div>
         </div>

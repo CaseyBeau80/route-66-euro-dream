@@ -27,14 +27,18 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
     }).format(amount);
   };
 
+  // Extract distance value and unit separately for better display
+  const distanceDisplay = formatDistance(tripPlan.totalDistance);
+  const [distanceValue, distanceUnit] = distanceDisplay.split(' ');
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
-          {formatDistance(tripPlan.totalDistance).split(' ')[0]}
+          {distanceValue}
         </div>
         <div className="font-travel text-sm text-route66-text-secondary">
-          Total {formatDistance(tripPlan.totalDistance).split(' ')[1]}
+          Total {distanceUnit}
         </div>
       </div>
       
