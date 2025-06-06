@@ -53,26 +53,10 @@ export const useCollapsibleState = ({
       }
     };
 
-    const handleAutoExpandFirst = (event: CustomEvent) => {
-      if (event.detail.sectionKey !== sectionKey) return;
-      
-      // Only expand the first card (index 0) if user hasn't interacted
-      if (cardIndex === 0 && !hasUserInteracted) {
-        setIsExpanded(true);
-        
-        // Save the auto-expanded state to localStorage
-        if (tripId) {
-          localStorage.setItem(`trip-${tripId}-${sectionKey}-card-${cardIndex}`, JSON.stringify(true));
-        }
-      }
-    };
-
     window.addEventListener('toggleAllCards', handleToggleAll as EventListener);
-    window.addEventListener('autoExpandFirst', handleAutoExpandFirst as EventListener);
     
     return () => {
       window.removeEventListener('toggleAllCards', handleToggleAll as EventListener);
-      window.removeEventListener('autoExpandFirst', handleAutoExpandFirst as EventListener);
     };
   }, [sectionKey, cardIndex, hasUserInteracted, tripId]);
 

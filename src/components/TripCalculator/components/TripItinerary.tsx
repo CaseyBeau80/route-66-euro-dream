@@ -44,7 +44,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
               className="space-y-4"
               tripId={tripId}
               sectionKey="itinerary"
-              autoExpandFirstOnDesktop={true}
               totalCards={totalCards}
             >
               {tripPlan.segments.map((segment, index) => (

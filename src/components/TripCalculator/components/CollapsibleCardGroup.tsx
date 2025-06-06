@@ -9,7 +9,6 @@ interface CollapsibleCardGroupProps {
   className?: string;
   tripId?: string;
   sectionKey: string;
-  autoExpandFirstOnDesktop?: boolean;
   totalCards?: number;
 }
 
@@ -19,7 +18,6 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
   className,
   tripId,
   sectionKey,
-  autoExpandFirstOnDesktop = false,
   totalCards = 0
 }) => {
   const [allExpanded, setAllExpanded] = useState(false);
@@ -61,28 +59,6 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
   useEffect(() => {
     setCollapsedCount(calculateCollapsedCount());
   }, [tripId, sectionKey, totalCards]);
-
-  // Auto-expand Day 1 on desktop if user hasn't interacted
-  useEffect(() => {
-    if (autoExpandFirstOnDesktop && !hasUserInteracted && window.innerWidth >= 768 && totalCards > 0) {
-      // Small delay to ensure cards are mounted
-      const timer = setTimeout(() => {
-        const event = new CustomEvent('autoExpandFirst', { 
-          detail: { sectionKey } 
-        });
-        window.dispatchEvent(event);
-        
-        // Update the collapsed count after auto-expand
-        setTimeout(() => {
-          const newCollapsedCount = calculateCollapsedCount();
-          setCollapsedCount(newCollapsedCount);
-          setAllExpanded(newCollapsedCount === 0);
-        }, 50);
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey, totalCards]);
 
   // Listen for card state changes to update collapsed count
   useEffect(() => {
