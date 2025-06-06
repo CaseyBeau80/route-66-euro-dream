@@ -73,14 +73,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         availableEndLocations={availableEndLocations}
       />
 
-      {/* Trip Start Date */}
-      <TripDateForm 
+      {/* Trip Duration - moved above Trip Start Date */}
+      <TripDurationForm 
         formData={formData}
         setFormData={setFormData}
       />
 
-      {/* Trip Duration */}
-      <TripDurationForm 
+      {/* Trip Start Date */}
+      <TripDateForm 
         formData={formData}
         setFormData={setFormData}
       />

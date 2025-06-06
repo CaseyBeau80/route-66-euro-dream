@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -69,7 +70,7 @@ export class TripPlanBuilder {
     console.log(`📊 Trip days: requested ${requestedDays}, optimized ${optimizedDays}, adjusted: ${wasAdjusted}`);
 
     // Create enhanced stops array (filtered and enhanced for the route)
-    const enhancedStops = StopEnhancementService.enhanceStopsForRoute(
+    const enhancedStops = StopEnhancementService.enhanceStopsWithPrioritization(
       startStop,
       endStop,
       allStops,
@@ -106,9 +107,11 @@ export class TripPlanBuilder {
       title: `${inputStartCity} to ${inputEndCity} (${optimizedDays} days)`,
       startCity: inputStartCity,
       endCity: inputEndCity,
+      totalMiles: Math.round(totalDistance),
       totalDistance: Math.round(totalDistance),
       totalDrivingTime,
       totalDays: optimizedDays,
+      dailySegments: dailySegments,
       segments: dailySegments,
       wasAdjusted,
       originalDays: wasAdjusted ? requestedDays : undefined,
@@ -119,7 +122,7 @@ export class TripPlanBuilder {
     return tripPlan;
   }
 
-  private calculateDriveTimeBalance(dailySegments: DailySegment[]): {
+  private static calculateDriveTimeBalance(dailySegments: DailySegment[]): {
     isBalanced: boolean;
     averageDriveTime: number;
     driveTimeRange: { min: number; max: number };
@@ -144,56 +147,58 @@ export class TripPlanBuilder {
       balanceQuality,
       qualityGrade: this.getDriveTimeQualityGrade(averageDriveTime, driveTimeRange),
       overallScore: this.getOverallDriveTimeScore(averageDriveTime, driveTimeRange),
-      variance: this.getDriveTimeVariance(averageDriveTime, driveTimeRange),
+      variance: this.getDriveTimeVariance(dailySegments, averageDriveTime),
       suggestions: this.getDriveTimeBalanceSuggestions(averageDriveTime, driveTimeRange)
     };
   }
 
-  private getDriveTimeBalanceQuality(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'excellent' | 'good' | 'fair' | 'poor' {
-    if (averageDriveTime < driveTimeRange.min) {
-      return 'poor';
-    } else if (averageDriveTime < driveTimeRange.min + 10) {
-      return 'fair';
-    } else if (averageDriveTime < driveTimeRange.max - 10) {
-      return 'good';
-    } else {
-      return 'excellent';
-    }
+  private static getDriveTimeBalanceQuality(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'excellent' | 'good' | 'fair' | 'poor' {
+    const range = driveTimeRange.max - driveTimeRange.min;
+    if (range <= 1) return 'excellent';
+    if (range <= 2) return 'good';
+    if (range <= 3) return 'fair';
+    return 'poor';
   }
 
-  private getDriveTimeQualityGrade(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'A' | 'B' | 'C' | 'D' | 'F' {
-    if (averageDriveTime < driveTimeRange.min) {
-      return 'F';
-    } else if (averageDriveTime < driveTimeRange.min + 10) {
-      return 'D';
-    } else if (averageDriveTime < driveTimeRange.max - 10) {
-      return 'C';
-    } else {
-      return 'A';
-    }
+  private static getDriveTimeQualityGrade(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'A' | 'B' | 'C' | 'D' | 'F' {
+    const range = driveTimeRange.max - driveTimeRange.min;
+    if (range <= 1) return 'A';
+    if (range <= 2) return 'B';
+    if (range <= 3) return 'C';
+    if (range <= 4) return 'D';
+    return 'F';
   }
 
-  private getOverallDriveTimeScore(averageDriveTime: number, driveTimeRange: { min: number; max: number }): number {
-    const score = (averageDriveTime - driveTimeRange.min) / (driveTimeRange.max - driveTimeRange.min);
-    return Math.round(score * 100);
+  private static getOverallDriveTimeScore(averageDriveTime: number, driveTimeRange: { min: number; max: number }): number {
+    const range = driveTimeRange.max - driveTimeRange.min;
+    const score = Math.max(0, 100 - (range * 20));
+    return Math.round(score);
   }
 
-  private getDriveTimeVariance(averageDriveTime: number, driveTimeRange: { min: number; max: number }): number {
-    const variance = Math.max(...dailySegments.map(segment => Math.abs(segment.drivingTime - averageDriveTime)));
-    return Math.round(variance * 100);
+  private static getDriveTimeVariance(dailySegments: DailySegment[], averageDriveTime: number): number {
+    const variance = dailySegments.reduce((sum, segment) => {
+      return sum + Math.pow(segment.drivingTime - averageDriveTime, 2);
+    }, 0) / dailySegments.length;
+    return Math.round(variance * 100) / 100;
   }
 
-  private getDriveTimeBalanceSuggestions(averageDriveTime: number, driveTimeRange: { min: number; max: number }): string[] {
+  private static getDriveTimeBalanceSuggestions(averageDriveTime: number, driveTimeRange: { min: number; max: number }): string[] {
     const suggestions: string[] = [];
-    if (averageDriveTime < driveTimeRange.min) {
-      suggestions.push('Consider adding more stops to balance drive times.');
-    } else if (averageDriveTime < driveTimeRange.min + 10) {
-      suggestions.push('Consider adding more stops to balance drive times.');
-    } else if (averageDriveTime < driveTimeRange.max - 10) {
-      suggestions.push('Consider adding more stops to balance drive times.');
-    } else {
-      suggestions.push('Drive times are well-balanced.');
+    const range = driveTimeRange.max - driveTimeRange.min;
+    
+    if (range > 3) {
+      suggestions.push('Consider redistributing stops to balance daily drive times.');
     }
+    if (driveTimeRange.max > 8) {
+      suggestions.push('Some days have very long drive times. Consider adding an extra day.');
+    }
+    if (driveTimeRange.min < 2) {
+      suggestions.push('Some days have very short drive times. Consider combining with adjacent days.');
+    }
+    if (suggestions.length === 0) {
+      suggestions.push('Drive times are well-balanced across all days.');
+    }
+    
     return suggestions;
   }
 }

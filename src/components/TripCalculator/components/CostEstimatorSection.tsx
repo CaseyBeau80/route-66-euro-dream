@@ -34,7 +34,7 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData })
         className="w-full border-green-300 text-green-700 hover:bg-green-50"
       >
         <DollarSign className="mr-2 h-4 w-4" />
-        Cost Estimator (Optional Module)
+        Cost Estimator (Optional)
         {showCostEstimator ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
       </Button>
 
