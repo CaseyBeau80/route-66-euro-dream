@@ -5,11 +5,11 @@ export interface CostEstimatorData {
   groupSize: number;
   numberOfRooms: number;
   motelBudget: 'budget' | 'mid-range' | 'luxury';
-  mealBudget: 'budget' | 'mid-range' | 'fine-dining';
+  mealBudget: 'budget' | 'mid-range' | 'luxury';
   includeAttractions: boolean;
   includeTolls: boolean;
   includeCarRental: boolean;
-  carRentalType: 'economy' | 'compact' | 'mid-size' | 'full-size' | 'suv' | 'luxury';
+  carRentalType: 'compact' | 'mid-size' | 'full-size' | 'suv';
 }
 
 export interface CostBreakdown {
@@ -22,21 +22,8 @@ export interface CostBreakdown {
   totalCost: number;
 }
 
-export interface DailyCosts {
-  day: number;
-  city: string;
-  gas: number;
-  accommodation: number;
-  meals: number;
-  attractions: number;
-  tolls: number;
-  carRental: number;
-  dailyTotal: number;
-}
-
 export interface CostEstimate {
   breakdown: CostBreakdown;
-  dailyCosts: DailyCosts[];
   perPersonCost: number;
-  averageDailyCost: number;
+  dailyAverageCost: number;
 }

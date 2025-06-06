@@ -15,6 +15,8 @@ export interface TripPlan {
   segments?: DailySegment[];
   startCityImage?: string;
   endCityImage?: string;
+  tripStyle?: 'balanced' | 'destination-focused';
+  warnings?: string[];
   driveTimeBalance?: {
     isBalanced: boolean;
     averageDriveTime: number;

@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from './TripCalculator/types/tripCalculator';
-import { UnifiedTripPlanningService, UnifiedPlanningResult } from './TripCalculator/services/planning/UnifiedTripPlanningService';
+import { UnifiedTripPlanningService, TripPlanningResult } from './TripCalculator/services/planning/UnifiedTripPlanningService';
 import { TripService } from './TripCalculator/services/TripService';
 import { TripPlan } from './TripCalculator/services/planning/TripPlanBuilder';
 import { TripStop } from './TripCalculator/types/TripStop';
@@ -23,7 +24,7 @@ const Route66TripCalculator: React.FC = () => {
   const [tripPlan, setTripPlan] = useState<TripPlan | undefined>();
   const [isCalculating, setIsCalculating] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [planningResult, setPlanningResult] = useState<UnifiedPlanningResult | undefined>();
+  const [planningResult, setPlanningResult] = useState<TripPlanningResult | undefined>();
 
   useEffect(() => {
     // Load saved trip data from local storage on component mount
@@ -153,27 +154,6 @@ const Route66TripCalculator: React.FC = () => {
         });
       }
 
-      // Show route assessment for destination-focused trips
-      if (result.routeAssessment && !result.routeAssessment.isRecommended) {
-        toast({
-          title: "Route Assessment",
-          description: result.routeAssessment.summary,
-          variant: "destructive"
-        });
-      }
-
-      // Show optimization success for destination-focused trips
-      if (result.optimizationDetails && result.tripStyle === 'destination-focused') {
-        const optimizationSummary = UnifiedTripPlanningService.getOptimizationSummary(result);
-        if (optimizationSummary) {
-          toast({
-            title: "Route Optimized!",
-            description: optimizationSummary,
-            variant: "default"
-          });
-        }
-      }
-
       console.log('✅ Trip calculation completed successfully');
     } catch (error) {
       console.error('❌ Trip calculation failed:', error);
@@ -189,6 +169,22 @@ const Route66TripCalculator: React.FC = () => {
 
   const availableEndLocations = getAvailableEndLocations();
   const isCalculateDisabled = !formData.startLocation || !formData.endLocation || formData.travelDays < 1;
+
+  const getTripStyleDisplayName = (style: string) => {
+    switch (style) {
+      case 'balanced': return 'Balanced Experience';
+      case 'destination-focused': return 'Destination Focused';
+      default: return 'Custom Trip';
+    }
+  };
+
+  const getTripStyleDescription = (style: string) => {
+    switch (style) {
+      case 'balanced': return 'Perfect mix of driving time and sightseeing at each stop';
+      case 'destination-focused': return 'Prioritizes major heritage cities with strategic stops';
+      default: return 'Customized to your preferences';
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -207,73 +203,19 @@ const Route66TripCalculator: React.FC = () => {
       {/* Trip Results */}
       {tripPlan && (
         <div className="mt-8">
-          {/* Enhanced Trip Style Indicator with Optimization Details */}
+          {/* Enhanced Trip Style Indicator */}
           {planningResult && (
             <div className="mb-4 p-4 bg-route66-background-alt rounded-lg border border-route66-border">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <span className="text-sm font-medium text-route66-text-primary">
-                    Trip Style: {UnifiedTripPlanningService.getTripStyleDisplayName(planningResult.tripStyle)}
+                    Trip Style: {getTripStyleDisplayName(planningResult.tripStyle)}
                   </span>
                   <p className="text-xs text-route66-text-secondary mt-1">
-                    {UnifiedTripPlanningService.getTripStyleDescription(planningResult.tripStyle)}
+                    {getTripStyleDescription(planningResult.tripStyle)}
                   </p>
                 </div>
-                {planningResult.tripStyle === 'destination-focused' && planningResult.routeAssessment && (
-                  <div className="text-right">
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      planningResult.routeAssessment.isRecommended 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-orange-100 text-orange-800'
-                    }`}>
-                      {planningResult.routeAssessment.isRecommended ? 'Optimized' : 'Challenging'}
-                    </span>
-                  </div>
-                )}
               </div>
-
-              {/* Optimization Details for Destination-Focused */}
-              {planningResult.optimizationDetails && planningResult.tripStyle === 'destination-focused' && (
-                <div className="border-t border-route66-border pt-3 mt-3">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-600">🔗</span>
-                      <span className="text-route66-text-secondary">
-                        {planningResult.optimizationDetails.consecutivePairs} Consecutive Heritage Cities
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-600">📍</span>
-                      <span className="text-route66-text-secondary">
-                        {planningResult.optimizationDetails.gapFillers} Strategic Stops
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-purple-600">⭐</span>
-                      <span className="text-route66-text-secondary">
-                        Heritage Score: {planningResult.optimizationDetails.priorityScore}/100
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Optimization Adjustments */}
-                  {planningResult.optimizationDetails.adjustmentsMade.length > 0 && (
-                    <div className="mt-3 p-2 bg-blue-50 rounded text-xs">
-                      <p className="font-medium text-blue-800 mb-1">Route Optimization:</p>
-                      <ul className="space-y-1">
-                        {planningResult.optimizationDetails.adjustmentsMade.slice(0, 2).map((adjustment, index) => (
-                          <li key={index} className="text-blue-700">• {adjustment}</li>
-                        ))}
-                        {planningResult.optimizationDetails.adjustmentsMade.length > 2 && (
-                          <li className="text-blue-600 italic">
-                            +{planningResult.optimizationDetails.adjustmentsMade.length - 2} more optimizations
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
