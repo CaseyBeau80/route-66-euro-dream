@@ -3,6 +3,37 @@ import { TripStop } from '../data/SupabaseDataService';
 
 export class StopEnhancementService {
   /**
+   * Enhance stops with prioritization for trip planning
+   */
+  static enhanceStopsWithPrioritization(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    totalDays: number
+  ): TripStop[] {
+    console.log('🌟 Enhancing stops with prioritization for trip planning');
+    
+    // Filter out start and end stops from consideration
+    const routeStops = allStops.filter(stop => 
+      stop.id !== startStop.id && stop.id !== endStop.id
+    );
+
+    // Apply geographic diversity enhancement
+    const enhancedStops = this.ensureGeographicDiversity(
+      startStop,
+      endStop,
+      routeStops
+    );
+
+    // Limit stops based on trip duration
+    const maxStops = Math.min(totalDays * 3, enhancedStops.length);
+    const prioritizedStops = enhancedStops.slice(0, maxStops);
+
+    console.log(`✨ Enhanced selection: ${prioritizedStops.length} stops for ${totalDays}-day trip`);
+    return prioritizedStops;
+  }
+
+  /**
    * Ensure geographic diversity with destination city priority
    */
   static ensureGeographicDiversity(
