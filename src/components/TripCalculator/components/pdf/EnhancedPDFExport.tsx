@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { toast } from '@/hooks/use-toast';
@@ -30,6 +30,14 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
+  // Debug trip plan data
+  console.log('🖨️ EnhancedPDFExport: Trip plan data:', {
+    segmentsCount: tripPlan.segments?.length || 0,
+    firstSegmentWeather: tripPlan.segments?.[0]?.weather,
+    firstSegmentWeatherData: tripPlan.segments?.[0]?.weatherData,
+    allSegmentKeys: tripPlan.segments?.[0] ? Object.keys(tripPlan.segments[0]) : []
+  });
+
   const handleExportPDF = async () => {
     console.log('🖨️ Starting PDF export with PDFContentRenderer...');
     setIsExporting(true);
@@ -41,7 +49,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       
       console.log('📄 Creating PDF content with trip data:', {
         segmentsCount: tripPlan.segments?.length || 0,
-        hasWeatherData: tripPlan.segments?.some(s => s.weather) || false
+        hasWeatherData: tripPlan.segments?.some(s => s.weather || s.weatherData) || false
       });
       
       // Step 2: Create a clean PDF container
@@ -308,6 +316,13 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             <Settings className="w-5 h-5" />
             PDF Export Options
           </DialogTitle>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
         </DialogHeader>
         
         <div className="space-y-4">

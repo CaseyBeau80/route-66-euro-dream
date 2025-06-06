@@ -32,15 +32,26 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
 
-  // Debug weather data structure
-  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Full segment data:`, {
-    hasWeather: !!segment.weather,
-    weatherData: segment.weather,
+  // Comprehensive debug of segment data
+  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Complete segment inspection:`, {
+    segment: segment,
+    hasDirectWeather: !!segment.weather,
     hasWeatherData: !!segment.weatherData,
-    weatherDataContent: segment.weatherData,
-    city: segment.endCity,
-    allSegmentKeys: Object.keys(segment)
+    hasDestinationWeather: !!(segment.destination as any)?.weather,
+    hasDestinationWeatherData: !!(segment.destination as any)?.weatherData,
+    destinationObject: segment.destination,
+    allSegmentKeys: Object.keys(segment),
+    city: segment.endCity
   });
+
+  // Try to find weather data in multiple locations
+  const weatherInfo = segment.weather || 
+                     segment.weatherData || 
+                     (segment.destination as any)?.weather || 
+                     (segment.destination as any)?.weatherData ||
+                     null;
+
+  console.log(`🌤️ Weather info for Day ${segment.day}:`, weatherInfo);
 
   return (
     <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
@@ -92,43 +103,43 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
             🌤️ Weather Forecast
           </h6>
           
-          {/* Check multiple possible weather data locations */}
-          {(segment.weather || segment.weatherData) ? (
+          {weatherInfo ? (
             <div className="space-y-2">
-              {/* Current Weather - check both weather and weatherData properties */}
+              {/* Current Weather */}
               <div className="flex items-center justify-between text-sm bg-white rounded p-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
-                    {segment.weather?.temperature || 
-                     segment.weatherData?.temperature || 
-                     segment.weatherData?.main?.temp ? Math.round(segment.weatherData.main.temp) : '--'}°F
+                    {weatherInfo.temperature || 
+                     weatherInfo.main?.temp ? Math.round(weatherInfo.main.temp) : 
+                     weatherInfo.temp?.day ? Math.round(weatherInfo.temp.day) :
+                     '--'}°F
                   </span>
                   <span className="text-blue-600">•</span>
                   <span className="capitalize">
-                    {segment.weather?.description || 
-                     segment.weatherData?.description || 
-                     segment.weatherData?.weather?.[0]?.description || 
-                     'Clear skies'}
+                    {weatherInfo.description || 
+                     weatherInfo.weather?.[0]?.description || 
+                     'Partly cloudy'}
                   </span>
                 </div>
-                {(segment.weather?.humidity || segment.weatherData?.main?.humidity) && (
+                {(weatherInfo.humidity || weatherInfo.main?.humidity) && (
                   <span className="text-xs text-gray-600">
-                    💧 {segment.weather?.humidity || segment.weatherData?.main?.humidity}%
+                    💧 {weatherInfo.humidity || weatherInfo.main?.humidity}%
                   </span>
                 )}
               </div>
               
               {/* 3-Day Forecast if available */}
-              {segment.weather?.forecast && segment.weather.forecast.length > 0 && (
+              {weatherInfo.forecast && weatherInfo.forecast.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-2">
-                  {segment.weather.forecast.slice(0, 3).map((day, index) => (
+                  {weatherInfo.forecast.slice(0, 3).map((day: any, index: number) => (
                     <div key={index} className="text-center p-2 bg-white rounded border text-xs">
                       <div className="font-medium text-gray-700">{day.date}</div>
                       <div className="text-blue-600 font-semibold">
-                        {day.temperature.high}°/{day.temperature.low}°
+                        {day.temperature?.high || day.temp?.max ? Math.round(day.temp?.max || day.temperature.high) : '--'}°/
+                        {day.temperature?.low || day.temp?.min ? Math.round(day.temp?.min || day.temperature.low) : '--'}°
                       </div>
                       <div className="text-gray-500 capitalize text-xs">
-                        {day.description}
+                        {day.description || day.weather?.[0]?.description || 'Clear'}
                       </div>
                       {day.precipitationChance && parseInt(day.precipitationChance) > 0 && (
                         <div className="text-blue-500 text-xs">
@@ -142,11 +153,13 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               
               {/* Additional Weather Details */}
               <div className="flex gap-4 text-xs text-gray-600 mt-2">
-                {(segment.weather?.windSpeed || segment.weatherData?.wind?.speed) && (
-                  <span>💨 {segment.weather?.windSpeed || Math.round(segment.weatherData.wind.speed)} mph wind</span>
+                {(weatherInfo.windSpeed || weatherInfo.wind?.speed) && (
+                  <span>💨 {weatherInfo.windSpeed || Math.round(weatherInfo.wind.speed)} mph wind</span>
                 )}
-                {(segment.weather?.visibility || segment.weatherData?.visibility) && (
-                  <span>👁️ {segment.weather?.visibility || Math.round(segment.weatherData.visibility / 1000)} mi visibility</span>
+                {(weatherInfo.visibility) && (
+                  <span>👁️ {typeof weatherInfo.visibility === 'number' ? 
+                    Math.round(weatherInfo.visibility > 100 ? weatherInfo.visibility / 1000 : weatherInfo.visibility) 
+                    : weatherInfo.visibility} mi visibility</span>
                 )}
               </div>
             </div>
