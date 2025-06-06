@@ -4,7 +4,6 @@ import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
 import SegmentRouteProgression from './SegmentRouteProgression';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -58,17 +57,6 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         {/* Route Progression */}
         <ErrorBoundary context={`SegmentRouteProgression-Day${segment.day}`}>
           <SegmentRouteProgression segment={segment} />
-        </ErrorBoundary>
-
-        {/* Weather Forecast */}
-        <ErrorBoundary context={`SegmentWeather-Day${segment.day}`}>
-          <SegmentWeatherWidget 
-            segment={segment}
-            tripStartDate={tripStartDate}
-            cardIndex={cardIndex}
-            tripId={tripId}
-            sectionKey={sectionKey}
-          />
         </ErrorBoundary>
       </div>
 
