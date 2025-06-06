@@ -136,7 +136,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
             </div>
           ) : (
             <div className="text-center text-sm text-gray-600 bg-white rounded p-3">
-              <div>🌤️ Weather information</div>
+              <div>Weather data not available</div>
               <div className="text-xs text-gray-500 mt-1">
                 Check live weather before departure
               </div>
