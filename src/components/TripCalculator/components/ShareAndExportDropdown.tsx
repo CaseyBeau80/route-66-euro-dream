@@ -34,6 +34,16 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   size = 'default',
   className
 }) => {
+  console.log('🔽 ShareAndExportDropdown rendering with:', {
+    shareUrl,
+    tripTitle,
+    hasTripPlan: !!tripPlan,
+    tripStartDate,
+    variant,
+    size,
+    segmentsCount: tripPlan?.segments?.length || 0
+  });
+
   const [isOpen, setIsOpen] = useState(false);
   const [showPDFModal, setShowPDFModal] = useState(false);
 
@@ -170,6 +180,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
   if (!isTripComplete) {
+    console.log('⚠️ ShareAndExportDropdown: Trip not complete, showing disabled state');
     return (
       <div className={className}>
         <Button
@@ -184,6 +195,8 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
       </div>
     );
   }
+
+  console.log('✅ ShareAndExportDropdown: Rendering full dropdown');
 
   return (
     <div className={className}>

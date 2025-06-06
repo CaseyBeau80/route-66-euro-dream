@@ -20,6 +20,15 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
   size = 'default',
   className
 }) => {
+  console.log('🔄 ShareTripButton rendering with:', {
+    hasTripPlan: !!tripPlan,
+    shareUrl,
+    tripStartDate,
+    variant,
+    size,
+    segmentsCount: tripPlan?.segments?.length || 0
+  });
+
   const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
   return (
