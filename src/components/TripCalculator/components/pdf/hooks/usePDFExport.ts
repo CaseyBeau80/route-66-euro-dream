@@ -36,9 +36,10 @@ export const usePDFExport = ({
       }
     });
     
-    // Hide PDF content
+    // Hide PDF content and remove scaling
     const pdfContainer = document.getElementById('pdf-export-content');
     if (pdfContainer) {
+      pdfContainer.classList.remove('pdf-preview-visible');
       pdfContainer.style.cssText = `
         position: absolute;
         left: -9999px;
@@ -61,7 +62,7 @@ export const usePDFExport = ({
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with close mechanisms...');
+    console.log('🖨️ Starting enhanced PDF export with improved readability...');
     setIsExporting(true);
     setWeatherLoading(true);
     
@@ -73,11 +74,11 @@ export const usePDFExport = ({
       // Step 2: Show weather loading toast
       toast({
         title: "Preparing PDF",
-        description: "Loading weather data and formatting content...",
+        description: "Loading weather data and formatting content for enhanced readability...",
         variant: "default"
       });
       
-      console.log('📄 Creating PDF content with enhanced weather loading...');
+      console.log('📄 Creating PDF content with enhanced scaling and typography...');
       
       // Step 3: Create a clean PDF container
       let pdfContainer = document.getElementById('pdf-export-content');
@@ -87,16 +88,16 @@ export const usePDFExport = ({
         document.body.appendChild(pdfContainer);
       }
       
-      // Step 4: Style the container for PDF
+      // Step 4: Style the container for PDF with enhanced scaling
       pdfContainer.style.cssText = `
         position: absolute;
         left: -9999px;
         top: -9999px;
-        width: 8.5in;
+        width: 100%;
         background: white;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
+        font-size: 14px;
+        line-height: 1.5;
         color: #1f2937;
         padding: 0;
         margin: 0;
@@ -118,7 +119,7 @@ export const usePDFExport = ({
         // Wait for React to render and weather to load
         setTimeout(() => {
           setWeatherLoading(false);
-          console.log('✅ PDF content rendered with weather data');
+          console.log('✅ PDF content rendered with enhanced typography and weather data');
           resolve();
         }, 3000); // Give weather API time to load
       });
@@ -166,6 +167,15 @@ export const usePDFExport = ({
             font-size: 12px !important;
             max-width: 200px !important;
           }
+
+          #pdf-export-content.pdf-preview-visible {
+            transform: scale(1.1) !important;
+            transform-origin: top center !important;
+            margin: 20px auto !important;
+            padding: 40px !important;
+            max-width: none !important;
+            width: calc(100% - 80px) !important;
+          }
         }
         
         @media print {
@@ -190,10 +200,10 @@ export const usePDFExport = ({
           
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.4;
+            line-height: 1.5;
             color: #1f2937 !important;
             background: white !important;
-            font-size: 12px !important;
+            font-size: 14px !important;
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -205,8 +215,9 @@ export const usePDFExport = ({
             visibility: visible !important;
             width: 100% !important;
             background: white !important;
-            padding: 0.5in !important;
+            padding: 0.6in !important;
             margin: 0 !important;
+            transform: none !important;
           }
           
           .pdf-clean-container {
@@ -215,8 +226,8 @@ export const usePDFExport = ({
             background: white !important;
             color: #1f2937 !important;
             font-family: inherit !important;
-            font-size: 12px !important;
-            line-height: 1.4 !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
             padding: 0 !important;
             margin: 0 !important;
           }
@@ -238,7 +249,7 @@ export const usePDFExport = ({
           
           .rounded,
           .rounded-lg {
-            border-radius: 6px !important;
+            border-radius: 8px !important;
           }
           
           .text-blue-600 { color: #2563eb !important; }
@@ -264,7 +275,8 @@ export const usePDFExport = ({
       const instructions = document.createElement('div');
       instructions.className = 'pdf-instructions';
       instructions.innerHTML = `
-        <div><strong>PDF Preview Mode</strong></div>
+        <div><strong>Enhanced PDF Preview</strong></div>
+        <div>• 110% scaled for readability</div>
         <div>• Press ESC to close</div>
         <div>• Use Ctrl+P to print</div>
         <div>• Click close button to exit</div>
@@ -273,8 +285,9 @@ export const usePDFExport = ({
       pdfContainer.appendChild(closeButton);
       pdfContainer.appendChild(instructions);
       
-      // Step 8: Make PDF container visible and trigger preview
+      // Step 8: Make PDF container visible with enhanced scaling
       setShowPreview(true);
+      pdfContainer.classList.add('pdf-preview-visible');
       pdfContainer.style.cssText = `
         position: static;
         left: auto;
@@ -282,10 +295,10 @@ export const usePDFExport = ({
         width: 100%;
         background: white;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
+        font-size: 14px;
+        line-height: 1.5;
         color: #1f2937;
-        padding: 0.5in;
+        padding: 0;
         margin: 0;
       `;
       
@@ -305,11 +318,11 @@ export const usePDFExport = ({
         }
       }, 60000);
       
-      console.log('🖨️ PDF preview ready. Use Ctrl+P to print or ESC to close.');
+      console.log('🖨️ Enhanced PDF preview ready with 110% scaling and improved typography.');
       
       toast({
-        title: "PDF Preview Ready",
-        description: "Press Ctrl+P to print, ESC to close, or click the close button",
+        title: "Enhanced PDF Preview Ready",
+        description: "Scaled to 110% for better readability. Press Ctrl+P to print, ESC to close.",
         variant: "default"
       });
       

@@ -54,22 +54,22 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
   console.log(`🌤️ Weather info for Day ${segment.day}:`, weatherInfo);
 
   return (
-    <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+    <div className="pdf-day-segment no-page-break bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
       {/* Card Header */}
-      <div className="pdf-card-header border-b border-gray-100 pb-3 mb-3">
+      <div className="pdf-card-header border-b border-gray-100 pb-4 mb-4">
         <div className="flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="pdf-day-badge bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="pdf-day-badge bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
                 Day {segment.day}
               </span>
               <span className="text-blue-600">•</span>
-              <h5 className="font-semibold text-blue-800">
+              <h5 className="font-semibold text-blue-800 text-lg">
                 📍 {segment.endCity}
               </h5>
             </div>
             {segmentDate && (
-              <p className="text-xs text-gray-600">
+              <p className="text-sm text-gray-600">
                 📅 {format(segmentDate, 'EEEE, MMMM d')}
               </p>
             )}
@@ -78,12 +78,12 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
       </div>
 
       {/* Card Stats */}
-      <div className="pdf-card-stats grid grid-cols-2 gap-3 mb-3">
-        <div className="flex items-center gap-2 text-sm">
+      <div className="pdf-card-stats grid grid-cols-2 gap-4 mb-4">
+        <div className="flex items-center gap-2 text-base">
           <span className="text-blue-600">🛣️</span>
           <span className="font-medium">{Math.round(segment.distance || segment.approximateMiles || 0)} mi</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-base">
           <span className="text-blue-600">⏱️</span>
           <span className="font-medium">{formatTime(segment.driveTimeHours)}</span>
         </div>
@@ -91,22 +91,22 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
 
       {/* Route Description */}
       {segment.startCity && (
-        <div className="pdf-route-description text-sm text-gray-600 mb-3">
+        <div className="pdf-route-description text-base text-gray-600 mb-4">
           <strong>Route:</strong> {segment.startCity} → {segment.endCity}
         </div>
       )}
 
       {/* Weather Section (Full and Summary formats) */}
       {exportFormat !== 'route-only' && (
-        <div className="pdf-weather-section mb-4 p-3 bg-blue-50 rounded border border-blue-200">
-          <h6 className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-1">
+        <div className="pdf-weather-section mb-6 p-4 bg-blue-50 rounded border border-blue-200">
+          <h6 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-1">
             🌤️ Weather Forecast
           </h6>
           
           {weatherInfo ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {/* Current Weather */}
-              <div className="flex items-center justify-between text-sm bg-white rounded p-2">
+              <div className="flex items-center justify-between text-base bg-white rounded p-3">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
                     {weatherInfo.temperature ? Math.round(weatherInfo.temperature) :
@@ -122,7 +122,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
                   </span>
                 </div>
                 {(weatherInfo.humidity || weatherInfo.main?.humidity) && (
-                  <span className="text-xs text-gray-600">
+                  <span className="text-sm text-gray-600">
                     💧 {weatherInfo.humidity || weatherInfo.main?.humidity}%
                   </span>
                 )}
@@ -130,9 +130,9 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               
               {/* 3-Day Forecast if available */}
               {weatherInfo.forecast && weatherInfo.forecast.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-2">
+                <div className="grid grid-cols-3 gap-3 mt-3">
                   {weatherInfo.forecast.slice(0, 3).map((day: any, index: number) => (
-                    <div key={index} className="text-center p-2 bg-white rounded border text-xs">
+                    <div key={index} className="text-center p-3 bg-white rounded border text-sm">
                       <div className="font-medium text-gray-700">{day.date}</div>
                       <div className="text-blue-600 font-semibold">
                         {day.temperature?.high ? Math.round(day.temperature.high) :
@@ -140,11 +140,11 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
                         {day.temperature?.low ? Math.round(day.temperature.low) :
                          day.temp?.min ? Math.round(day.temp.min) : '--'}°
                       </div>
-                      <div className="text-gray-500 capitalize text-xs">
+                      <div className="text-gray-500 capitalize text-sm">
                         {day.description || day.weather?.[0]?.description || 'Clear'}
                       </div>
                       {day.precipitationChance && parseInt(day.precipitationChance) > 0 && (
-                        <div className="text-blue-500 text-xs">
+                        <div className="text-blue-500 text-sm">
                           {day.precipitationChance}% rain
                         </div>
                       )}
@@ -154,7 +154,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               )}
               
               {/* Additional Weather Details */}
-              <div className="flex gap-4 text-xs text-gray-600 mt-2">
+              <div className="flex gap-4 text-sm text-gray-600 mt-3">
                 {(weatherInfo.windSpeed || weatherInfo.wind?.speed) && (
                   <span>💨 {weatherInfo.windSpeed || Math.round(weatherInfo.wind.speed)} mph wind</span>
                 )}
@@ -166,13 +166,13 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               </div>
             </div>
           ) : (
-            <div className="text-center text-sm text-gray-600 bg-white rounded p-3">
+            <div className="text-center text-base text-gray-600 bg-white rounded p-4">
               <div>Weather data not available</div>
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-sm text-gray-500 mt-1">
                 Check live weather before departure
               </div>
               {segmentDate && (
-                <div className="text-xs text-blue-600 mt-2">
+                <div className="text-sm text-blue-600 mt-2">
                   Expected season: {
                     segmentDate.getMonth() >= 2 && segmentDate.getMonth() <= 4 ? 'Spring' :
                     segmentDate.getMonth() >= 5 && segmentDate.getMonth() <= 7 ? 'Summer' :
@@ -188,12 +188,12 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
       {/* Recommended Stops - Show ALL stops in PDF */}
       {exportFormat !== 'route-only' && segment.recommendedStops && segment.recommendedStops.length > 0 && (
         <div className="pdf-recommended-stops mb-4">
-          <h6 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+          <h6 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
             🏛️ Recommended Stops ({segment.recommendedStops.length} total)
           </h6>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {segment.recommendedStops.map((stop, index) => (
-              <li key={index} className="text-xs text-gray-600 flex items-start gap-2">
+              <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
                 <span className="text-blue-500 mt-0.5">•</span>
                 <span>
                   <strong>{stop.name}</strong>
@@ -209,10 +209,10 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
 
       {/* Drive Time Category */}
       {segment.driveTimeCategory && (
-        <div className="pdf-drive-time-category mt-3 pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-xs">
+        <div className="pdf-drive-time-category mt-4 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500">Driving intensity:</span>
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
+            <span className={`px-3 py-1 rounded text-sm font-medium ${
               segment.driveTimeCategory.category === 'short' ? 'bg-green-100 text-green-700' :
               segment.driveTimeCategory.category === 'optimal' ? 'bg-blue-100 text-blue-700' :
               segment.driveTimeCategory.category === 'long' ? 'bg-orange-100 text-orange-700' :

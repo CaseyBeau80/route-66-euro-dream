@@ -67,7 +67,7 @@ export class PDFLayoutService {
 
   generatePDFStyles(): string {
     return `
-      /* Enhanced PDF-specific print styles with comprehensive overlay exclusion */
+      /* Enhanced PDF-specific print styles with improved readability and scaling */
       @media print {
         @page {
           size: A4;
@@ -126,17 +126,17 @@ export class PDFLayoutService {
         
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          line-height: 1.4;
+          line-height: 1.5;
           color: #1f2937 !important;
           background: white !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
-          font-size: 12px;
+          font-size: 14px !important;
           margin: 0 !important;
           padding: 0 !important;
         }
 
-        /* PDF Container Styling */
+        /* PDF Container Styling with Enhanced Scaling */
         #pdf-export-content {
           position: static !important;
           left: auto !important;
@@ -147,6 +147,7 @@ export class PDFLayoutService {
           background: white !important;
           padding: 0 !important;
           margin: 0 !important;
+          transform: scale(1.0) !important;
         }
 
         .pdf-clean-container {
@@ -155,65 +156,98 @@ export class PDFLayoutService {
           background: white !important;
           color: #1f2937 !important;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-          font-size: 12px !important;
-          line-height: 1.4 !important;
-          padding: 0.5in !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          padding: 0.6in !important;
           margin: 0 !important;
         }
 
-        /* Enhanced Typography */
+        /* Enhanced Typography with Larger Font Sizes */
         .pdf-clean-container h1 {
-          font-size: 24px !important;
+          font-size: 30px !important;
           font-weight: bold !important;
-          margin-bottom: 12px !important;
+          margin-bottom: 16px !important;
           color: #1f2937 !important;
           page-break-after: avoid !important;
+          line-height: 1.3 !important;
         }
 
         .pdf-clean-container h2 {
-          font-size: 18px !important;
+          font-size: 22px !important;
           font-weight: 600 !important;
-          margin-bottom: 8px !important;
+          margin-bottom: 12px !important;
           color: #374151 !important;
           page-break-after: avoid !important;
+          line-height: 1.3 !important;
         }
 
         .pdf-clean-container h3 {
-          font-size: 14px !important;
+          font-size: 18px !important;
+          font-weight: 600 !important;
+          margin-bottom: 8px !important;
+          color: #4b5563 !important;
+          line-height: 1.4 !important;
+        }
+
+        .pdf-clean-container h4 {
+          font-size: 16px !important;
           font-weight: 600 !important;
           margin-bottom: 6px !important;
           color: #4b5563 !important;
+          line-height: 1.4 !important;
         }
 
-        /* Grid and Layout */
+        .pdf-clean-container h5 {
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          margin-bottom: 4px !important;
+          color: #6b7280 !important;
+          line-height: 1.4 !important;
+        }
+
+        .pdf-clean-container h6 {
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          margin-bottom: 4px !important;
+          color: #6b7280 !important;
+          line-height: 1.4 !important;
+        }
+
+        /* Grid and Layout with Better Spacing */
         .grid {
           display: grid !important;
         }
 
         .grid-cols-4 {
           grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-          gap: 12px !important;
+          gap: 16px !important;
         }
 
         .grid-cols-2 {
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          gap: 8px !important;
+          gap: 12px !important;
         }
 
-        /* Enhanced Card Styling */
+        .grid-cols-3 {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          gap: 10px !important;
+        }
+
+        /* Enhanced Card Styling with Better Padding */
         .pdf-clean-container .bg-gray-50 {
           background-color: #f9fafb !important;
           border: 1px solid #e5e7eb !important;
-          border-radius: 6px !important;
-          padding: 12px !important;
+          border-radius: 8px !important;
+          padding: 16px !important;
         }
 
         .pdf-clean-container .border {
           border: 1px solid #e5e7eb !important;
         }
 
-        .pdf-clean-container .rounded {
-          border-radius: 6px !important;
+        .pdf-clean-container .rounded,
+        .pdf-clean-container .rounded-lg {
+          border-radius: 8px !important;
         }
 
         /* Page Break Controls */
@@ -233,36 +267,37 @@ export class PDFLayoutService {
           page-break-after: always !important;
         }
 
-        /* Spacing and Margins */
-        .mb-8 { margin-bottom: 24px !important; }
-        .mb-6 { margin-bottom: 18px !important; }
-        .mb-4 { margin-bottom: 12px !important; }
-        .mb-3 { margin-bottom: 9px !important; }
-        .mb-2 { margin-bottom: 6px !important; }
-        .mb-1 { margin-bottom: 3px !important; }
+        /* Enhanced Spacing and Margins */
+        .mb-8 { margin-bottom: 32px !important; }
+        .mb-6 { margin-bottom: 24px !important; }
+        .mb-4 { margin-bottom: 16px !important; }
+        .mb-3 { margin-bottom: 12px !important; }
+        .mb-2 { margin-bottom: 8px !important; }
+        .mb-1 { margin-bottom: 4px !important; }
 
-        .mt-12 { margin-top: 36px !important; }
-        .mt-8 { margin-top: 24px !important; }
-        .mt-4 { margin-top: 12px !important; }
-        .mt-2 { margin-top: 6px !important; }
-        .mt-1 { margin-top: 3px !important; }
+        .mt-12 { margin-top: 48px !important; }
+        .mt-8 { margin-top: 32px !important; }
+        .mt-4 { margin-top: 16px !important; }
+        .mt-2 { margin-top: 8px !important; }
+        .mt-1 { margin-top: 4px !important; }
 
-        .p-6 { padding: 18px !important; }
-        .p-4 { padding: 12px !important; }
-        .p-3 { padding: 9px !important; }
-        .p-2 { padding: 6px !important; }
+        .p-6 { padding: 24px !important; }
+        .p-4 { padding: 16px !important; }
+        .p-3 { padding: 12px !important; }
+        .p-2 { padding: 8px !important; }
 
-        .pt-4 { padding-top: 12px !important; }
-        .pb-4 { padding-bottom: 12px !important; }
+        .pt-4 { padding-top: 16px !important; }
+        .pb-4 { padding-bottom: 16px !important; }
 
-        /* Text Sizing */
-        .text-3xl { font-size: 24px !important; line-height: 1.2 !important; }
-        .text-2xl { font-size: 20px !important; line-height: 1.2 !important; }
-        .text-xl { font-size: 18px !important; line-height: 1.3 !important; }
-        .text-lg { font-size: 16px !important; line-height: 1.4 !important; }
-        .text-base { font-size: 14px !important; line-height: 1.4 !important; }
-        .text-sm { font-size: 12px !important; line-height: 1.3 !important; }
-        .text-xs { font-size: 10px !important; line-height: 1.2 !important; }
+        /* Enhanced Text Sizing - Upgraded by one step */
+        .text-4xl { font-size: 30px !important; line-height: 1.2 !important; }
+        .text-3xl { font-size: 26px !important; line-height: 1.2 !important; }
+        .text-2xl { font-size: 22px !important; line-height: 1.3 !important; }
+        .text-xl { font-size: 20px !important; line-height: 1.3 !important; }
+        .text-lg { font-size: 18px !important; line-height: 1.4 !important; }
+        .text-base { font-size: 16px !important; line-height: 1.5 !important; }
+        .text-sm { font-size: 14px !important; line-height: 1.4 !important; }
+        .text-xs { font-size: 12px !important; line-height: 1.3 !important; }
 
         /* Colors */
         .text-gray-800 { color: #1f2937 !important; }
@@ -272,6 +307,7 @@ export class PDFLayoutService {
         .text-gray-400 { color: #9ca3af !important; }
         .text-blue-600 { color: #2563eb !important; }
         .text-blue-800 { color: #1e40af !important; }
+        .text-blue-700 { color: #1d4ed8 !important; }
 
         /* Borders */
         .border-b-2 { border-bottom: 2px solid #e5e7eb !important; }
@@ -279,12 +315,30 @@ export class PDFLayoutService {
         .border-b { border-bottom: 1px solid #e5e7eb !important; }
         .border-blue-500 { border-color: #3b82f6 !important; }
         .border-gray-200 { border-color: #e5e7eb !important; }
+        .border-blue-200 { border-color: #dbeafe !important; }
 
         /* Utility Classes */
         .text-center { text-align: center !important; }
         .font-bold { font-weight: bold !important; }
         .font-semibold { font-weight: 600 !important; }
+        .font-medium { font-weight: 500 !important; }
         .break-all { word-break: break-all !important; }
+        .uppercase { text-transform: uppercase !important; }
+        .capitalize { text-transform: capitalize !important; }
+
+        /* Background Colors */
+        .bg-blue-50 { background-color: #eff6ff !important; }
+        .bg-blue-100 { background-color: #dbeafe !important; }
+        .bg-green-100 { background-color: #dcfce7 !important; }
+        .bg-orange-100 { background-color: #fed7aa !important; }
+        .bg-red-100 { background-color: #fee2e2 !important; }
+
+        /* Text Colors for Badges */
+        .text-blue-800 { color: #1e40af !important; }
+        .text-blue-700 { color: #1d4ed8 !important; }
+        .text-green-700 { color: #15803d !important; }
+        .text-orange-700 { color: #c2410c !important; }
+        .text-red-700 { color: #b91c1c !important; }
 
         /* Watermark */
         .pdf-watermark-text {
@@ -301,8 +355,8 @@ export class PDFLayoutService {
 
         /* Footer */
         .pdf-footer {
-          margin-top: 36px !important;
-          padding-top: 12px !important;
+          margin-top: 48px !important;
+          padding-top: 16px !important;
           border-top: 1px solid #e5e7eb !important;
           text-align: center !important;
         }
@@ -321,19 +375,32 @@ export class PDFLayoutService {
 
         /* Icons */
         .lucide {
-          width: 14px !important;
-          height: 14px !important;
+          width: 16px !important;
+          height: 16px !important;
           display: inline-block !important;
         }
       }
 
-      /* Screen styles for PDF container (hidden by default) */
+      /* Screen styles for PDF container with enhanced scaling */
       @media screen {
         #pdf-export-content {
           position: absolute !important;
           left: -9999px !important;
           top: -9999px !important;
           visibility: hidden !important;
+        }
+
+        /* When PDF is visible, apply scaling */
+        #pdf-export-content.pdf-preview-visible {
+          position: static !important;
+          left: auto !important;
+          top: auto !important;
+          visibility: visible !important;
+          transform: scale(1.1) !important;
+          transform-origin: top center !important;
+          width: 100% !important;
+          margin: 0 auto !important;
+          padding: 20px !important;
         }
       }
     `;
