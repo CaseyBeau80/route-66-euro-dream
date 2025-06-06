@@ -27,6 +27,7 @@ const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
   tripStartDate 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPDFModal, setShowPDFModal] = useState(false);
 
   const handleCopyLink = async () => {
     if (!shareUrl) {
@@ -99,53 +100,13 @@ const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
     }
   };
 
-  const handleBasicPDFExport = () => {
-    console.log('🖨️ Starting basic PDF export via browser print...');
-    
-    // Add PDF-friendly styles temporarily
-    const style = document.createElement('style');
-    style.id = 'basic-pdf-styles';
-    style.textContent = `
-      @media print {
-        body * { visibility: hidden; }
-        .trip-content, .trip-content * { visibility: visible; }
-        .trip-content { position: absolute; left: 0; top: 0; width: 100%; }
-        button, .share-button, .export-button, nav, .navigation { display: none !important; }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Trigger print
-    window.print();
-    
-    // Clean up after print
-    setTimeout(() => {
-      const styleElement = document.getElementById('basic-pdf-styles');
-      if (styleElement) {
-        styleElement.remove();
-      }
-    }, 1000);
-    
-    toast({
-      title: "PDF Export Started",
-      description: "Your browser's print dialog should open. You can save as PDF from there.",
-      variant: "default"
-    });
-    
+  const handlePDFExport = () => {
     setIsOpen(false);
+    setShowPDFModal(true);
   };
 
   return (
     <div className="flex items-center gap-2">
-      {/* Enhanced PDF Export Button */}
-      {tripPlan && (
-        <EnhancedPDFExport
-          tripPlan={tripPlan}
-          tripStartDate={tripStartDate}
-          shareUrl={shareUrl || undefined}
-        />
-      )}
-
       {/* Share Dropdown */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
@@ -189,14 +150,25 @@ const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
           </DropdownMenuItem>
           
           <DropdownMenuItem
-            onClick={handleBasicPDFExport}
+            onClick={handlePDFExport}
             className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
           >
             <Download className="w-4 h-4 text-route66-vintage-brown" />
-            <span className="text-route66-vintage-brown font-medium">Quick Print/PDF</span>
+            <span className="text-route66-vintage-brown font-medium">Export Trip as PDF</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* PDF Export Modal */}
+      {showPDFModal && tripPlan && (
+        <EnhancedPDFExport
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          shareUrl={shareUrl || undefined}
+          isOpen={showPDFModal}
+          onClose={() => setShowPDFModal(false)}
+        />
+      )}
     </div>
   );
 };
