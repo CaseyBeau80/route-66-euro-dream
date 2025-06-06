@@ -105,8 +105,8 @@ export const useEnhancedTripCalculation = () => {
       }
       
       toast({
-        title: "Trip Planned Successfully!",
-        description: `Your ${formData.travelDays}-day Route 66 adventure has been planned with ${plan.dailySegments.length} daily segments.`,
+        title: "You're All Set!",
+        description: `Your ${formData.travelDays}-day Route 66 journey has been successfully planned.`,
         variant: "default"
       });
       
