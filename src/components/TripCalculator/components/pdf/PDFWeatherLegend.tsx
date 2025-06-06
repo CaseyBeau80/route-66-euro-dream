@@ -16,15 +16,17 @@ const PDFWeatherLegend: React.FC<PDFWeatherLegendProps> = ({ className = '' }) =
         </div>
         <div className="flex items-center gap-1">
           <span>🟦</span>
-          <span>Historical Average ({'>'}5 days)</span>
+          <span>Historical Average (typical for this date)</span>
         </div>
         <div className="flex items-center gap-1">
           <span>🟨</span>
           <span>Current/No data available</span>
         </div>
       </div>
-      <div className="text-xs text-gray-500 mt-2 italic">
-        💡 Check live weather conditions before departure for the most accurate information.
+      <div className="text-xs text-gray-500 mt-2 italic space-y-1">
+        <div>💡 Check live weather conditions before departure for the most accurate information.</div>
+        <div>📊 Historical data shows typical temperatures based on past weather for each date.</div>
+        <div>🌤️ Weather icons reflect expected conditions: ☀️ sunny, 🌧️ rain, ⛈️ storms, ❄️ snow, etc.</div>
       </div>
     </div>
   );
