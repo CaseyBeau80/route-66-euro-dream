@@ -9,19 +9,31 @@ interface EnhancedRecommendedStopsProps {
   maxStops?: number;
 }
 
+// Define proper types for stops to avoid TypeScript inference issues
+interface ValidatedStop {
+  id: string;
+  name: string;
+  category?: string;
+  city_name?: string;
+  state?: string;
+}
+
+// Type guard to check if an object has the required stop properties
+const isValidStopObject = (stop: any): stop is { name: string; id?: string; category?: string; city_name?: string; state?: string } => {
+  return stop != null && 
+         typeof stop === 'object' && 
+         'name' in stop && 
+         typeof stop.name === 'string' && 
+         stop.name.trim() !== '';
+};
+
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
   maxStops = 5  // Increased from 3 to 5 to show more stops
 }) => {
   // Get stops from multiple possible sources with enhanced validation
-  const getValidatedStops = () => {
-    const stops: Array<{
-      id: string;
-      name: string;
-      category?: string;
-      city_name?: string;
-      state?: string;
-    }> = [];
+  const getValidatedStops = (): ValidatedStop[] => {
+    const stops: ValidatedStop[] = [];
     
     console.log(`🔍 EnhancedRecommendedStops: Validating stops for Day ${segment.day}:`, {
       recommendedStops: segment.recommendedStops?.length || 0,
@@ -34,19 +46,17 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
       const validRecommendedStops = segment.recommendedStops
         .filter((stop, index) => {
-          const isValidObject = stop != null && typeof stop === 'object' && 'name' in stop;
-          const hasValidName = isValidObject && stop.name != null && stop.name.trim() !== '';
+          const isValid = isValidStopObject(stop);
           
           console.log(`🎯 Stop ${index + 1} validation:`, {
             stop: stop,
-            isValidObject,
-            hasValidName,
-            name: stop?.name
+            isValid,
+            name: isValid ? stop.name : 'invalid'
           });
           
-          return isValidObject && hasValidName;
+          return isValid;
         })
-        .map((stop, index) => ({
+        .map((stop, index): ValidatedStop => ({
           id: stop.id || `recommended-${index}-${Math.random()}`,
           name: stop.name,
           category: stop.category || 'attraction',
@@ -66,7 +76,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         .filter((attraction, index) => {
           const isValid = attraction != null && 
             (typeof attraction === 'string' ? attraction.trim() !== '' : 
-             (typeof attraction === 'object' && attraction.name && attraction.name.trim() !== ''));
+             isValidStopObject(attraction));
           
           console.log(`🎯 Attraction ${index + 1} validation:`, {
             attraction,
@@ -76,9 +86,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
           
           return isValid;
         })
-        .map((attraction, index) => ({
+        .map((attraction, index): ValidatedStop => ({
           id: `attraction-${index}-${Math.random()}`,
-          name: typeof attraction === 'string' ? attraction : (attraction as any).name || 'Unknown',
+          name: typeof attraction === 'string' ? attraction : attraction.name,
           category: 'attraction',
           city_name: segment.endCity,
           state: segment.destination?.state || 'Unknown'
