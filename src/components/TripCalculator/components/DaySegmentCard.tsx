@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -28,7 +27,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 }) => {
   const { formatDistance } = useUnits();
   
-  console.log('🗓️ DaySegmentCard render:', segment.title);
+  console.log('🗓️ DaySegmentCard render:', segment.title, 'defaultExpanded: false');
 
   // Calculate the date for this segment
   const getSegmentDate = () => {

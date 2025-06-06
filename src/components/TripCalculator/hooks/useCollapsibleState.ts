@@ -14,7 +14,7 @@ export const useCollapsibleState = ({
   cardIndex,
   defaultExpanded = false
 }: UseCollapsibleStateProps) => {
-  // Always start with collapsed state (false) - ignore defaultExpanded
+  // ALWAYS start with collapsed state (false) - completely ignore defaultExpanded
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
@@ -22,7 +22,7 @@ export const useCollapsibleState = ({
     tripId,
     sectionKey,
     cardIndex,
-    defaultExpanded: false, // Always false now
+    forcedDefaultExpanded: false, // Always false now
     initialIsExpanded: false
   });
 

@@ -34,12 +34,12 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
     tripId,
     sectionKey,
     cardIndex,
-    defaultExpanded
+    defaultExpanded: false // Always pass false to ensure collapsed start
   });
 
   console.log(`🃏 EnhancedCollapsibleCard: Rendering ${sectionKey}-${cardIndex}`, {
     isExpanded,
-    defaultExpanded,
+    forcedDefaultExpanded: false, // Now always false
     tripId
   });
 
@@ -57,7 +57,6 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
   return (
     <Collapsible 
       open={isExpanded}
-      defaultOpen={false}
       onOpenChange={onToggle}
       disabled={disabled}
       className={cn("w-full", className)}
