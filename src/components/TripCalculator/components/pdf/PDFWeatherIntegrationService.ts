@@ -1,50 +1,54 @@
 
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
+import { GeocodingService } from '../../services/GeocodingService';
 
 export class PDFWeatherIntegrationService {
   private static weatherService = EnhancedWeatherService.getInstance();
 
   /**
-   * Simple geocoding function to get approximate coordinates for major Route 66 cities
+   * Enhanced city coordinates lookup using GeocodingService
    */
   private static getCityCoordinates(cityName: string): { lat: number; lng: number } | null {
-    const cityCoords: Record<string, { lat: number; lng: number }> = {
-      'Chicago': { lat: 41.8781, lng: -87.6298 },
-      'St. Louis': { lat: 38.6270, lng: -90.1994 },
-      'Springfield': { lat: 39.7817, lng: -89.6501 },
-      'Joplin': { lat: 37.0842, lng: -94.5133 },
-      'Oklahoma City': { lat: 35.4676, lng: -97.5164 },
-      'Amarillo': { lat: 35.2220, lng: -101.8313 },
-      'Santa Fe': { lat: 35.6870, lng: -105.9378 },
-      'Albuquerque': { lat: 35.0844, lng: -106.6504 },
-      'Flagstaff': { lat: 35.1983, lng: -111.6513 },
-      'Kingman': { lat: 35.1894, lng: -114.0530 },
-      'Barstow': { lat: 34.8958, lng: -117.0228 },
-      'San Bernardino': { lat: 34.1083, lng: -117.2898 },
-      'Los Angeles': { lat: 34.0522, lng: -118.2437 },
-      'Santa Monica': { lat: 34.0195, lng: -118.4912 }
-    };
-
-    // Try exact match first
-    if (cityCoords[cityName]) {
-      return cityCoords[cityName];
+    console.log(`🗺️ PDFWeatherIntegrationService: Looking up coordinates for "${cityName}"`);
+    
+    // First try the comprehensive GeocodingService
+    let coordinates = GeocodingService.getCoordinatesForCity(cityName);
+    
+    if (coordinates) {
+      console.log(`✅ Found coordinates via GeocodingService for ${cityName}:`, coordinates);
+      return coordinates;
     }
 
-    // Try partial match (remove state abbreviations)
+    // Fallback: try cleaning up the city name and searching again
     const cleanCityName = cityName.split(',')[0].trim();
-    if (cityCoords[cleanCityName]) {
-      return cityCoords[cleanCityName];
-    }
-
-    // Try finding a partial match
-    for (const [city, coords] of Object.entries(cityCoords)) {
-      if (city.toLowerCase().includes(cleanCityName.toLowerCase()) || 
-          cleanCityName.toLowerCase().includes(city.toLowerCase())) {
-        return coords;
+    if (cleanCityName !== cityName) {
+      coordinates = GeocodingService.getCoordinatesForCity(cleanCityName);
+      if (coordinates) {
+        console.log(`✅ Found coordinates via cleaned name "${cleanCityName}":`, coordinates);
+        return coordinates;
       }
     }
 
+    // Additional fallback coordinates for commonly missed cities
+    const additionalCoords: Record<string, { lat: number; lng: number }> = {
+      'Tucumcari': { lat: 35.1717, lng: -103.7253 },
+      'Tulsa': { lat: 36.1540, lng: -95.9928 },
+      'Santa Rosa': { lat: 34.9381, lng: -104.6819 },
+      'Gallup': { lat: 35.5281, lng: -108.7426 },
+      'Winslow': { lat: 35.0242, lng: -110.7073 },
+      'Williams': { lat: 35.2494, lng: -112.1901 },
+      'Seligman': { lat: 35.3261, lng: -112.8721 },
+      'Needles': { lat: 34.8481, lng: -114.6144 },
+      'Victorville': { lat: 34.5362, lng: -117.2911 }
+    };
+
+    if (additionalCoords[cleanCityName]) {
+      console.log(`✅ Found coordinates via fallback for ${cleanCityName}:`, additionalCoords[cleanCityName]);
+      return additionalCoords[cleanCityName];
+    }
+
+    console.warn(`❌ No coordinates found for "${cityName}" after all attempts`);
     return null;
   }
 
@@ -64,13 +68,14 @@ export class PDFWeatherIntegrationService {
 
     const enrichedSegments: DailySegment[] = [];
 
-    for (const segment of segments) {
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
       try {
         const segmentDate = tripStartDate 
           ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) 
           : null;
 
-        console.log(`🌤️ Fetching weather for ${segment.endCity} on day ${segment.day}`);
+        console.log(`🌤️ Processing segment ${i + 1}/${segments.length}: ${segment.endCity} on day ${segment.day}`);
 
         // Extract city name from endCity (remove state if present)
         const cityName = segment.endCity.split(',')[0].trim();
@@ -88,6 +93,7 @@ export class PDFWeatherIntegrationService {
 
         if (segmentDate) {
           // Try to get weather for specific date
+          console.log(`🗓️ Fetching weather for ${cityName} on ${segmentDate.toDateString()}`);
           weatherData = await this.weatherService.getWeatherForDate(
             coordinates.lat, 
             coordinates.lng, 
@@ -96,6 +102,7 @@ export class PDFWeatherIntegrationService {
           );
         } else {
           // Get current weather
+          console.log(`🌤️ Fetching current weather for ${cityName}`);
           weatherData = await this.weatherService.getWeatherData(
             coordinates.lat, 
             coordinates.lng, 
@@ -109,8 +116,17 @@ export class PDFWeatherIntegrationService {
           weatherData: weatherData // Also store in weatherData for compatibility
         };
 
-        console.log(`✅ Weather data added for ${segment.endCity}:`, weatherData);
+        console.log(`✅ Weather data added for ${segment.endCity}:`, {
+          hasWeather: !!weatherData,
+          temperature: weatherData?.temperature,
+          description: weatherData?.description
+        });
         enrichedSegments.push(enrichedSegment);
+
+        // Add a small delay between API calls to avoid rate limiting
+        if (i < segments.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
       } catch (error) {
         console.error(`❌ Failed to fetch weather for ${segment.endCity}:`, error);
         // Add segment without weather data
@@ -118,6 +134,7 @@ export class PDFWeatherIntegrationService {
       }
     }
 
+    console.log(`🌤️ Weather enrichment completed. ${enrichedSegments.filter(s => s.weather).length}/${enrichedSegments.length} segments have weather data.`);
     return enrichedSegments;
   }
 
