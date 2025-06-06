@@ -11,9 +11,9 @@ interface EnhancedRecommendedStopsProps {
 
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
-  maxStops = 3 
+  maxStops = 5  // Increased from 3 to 5 to show more stops
 }) => {
-  // Get stops from multiple possible sources with validation
+  // Get stops from multiple possible sources with enhanced validation
   const getValidatedStops = () => {
     const stops: Array<{
       id: string;
@@ -23,35 +23,79 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
       state?: string;
     }> = [];
     
+    console.log(`🔍 EnhancedRecommendedStops: Validating stops for Day ${segment.day}:`, {
+      recommendedStops: segment.recommendedStops?.length || 0,
+      attractions: segment.attractions?.length || 0,
+      recommendedStopsData: segment.recommendedStops,
+      attractionsData: segment.attractions
+    });
+    
     // Primary source: recommendedStops array
     if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
       const validRecommendedStops = segment.recommendedStops
-        .filter((stop): stop is NonNullable<typeof stop> => stop != null && typeof stop === 'object' && 'name' in stop && stop.name != null)
-        .map(stop => ({
-          id: stop.id || `stop-${Math.random()}`,
+        .filter((stop, index) => {
+          const isValidObject = stop != null && typeof stop === 'object' && 'name' in stop;
+          const hasValidName = isValidObject && stop.name != null && stop.name.trim() !== '';
+          
+          console.log(`🎯 Stop ${index + 1} validation:`, {
+            stop: stop,
+            isValidObject,
+            hasValidName,
+            name: stop?.name
+          });
+          
+          return isValidObject && hasValidName;
+        })
+        .map((stop, index) => ({
+          id: stop.id || `recommended-${index}-${Math.random()}`,
           name: stop.name,
-          category: stop.category,
-          city_name: stop.city_name,
+          category: stop.category || 'attraction',
+          city_name: stop.city_name || stop.state,
           state: stop.state
         }));
+      
+      console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => s.name));
       stops.push(...validRecommendedStops);
     }
     
     // Fallback: attractions array (for backward compatibility)
     if (stops.length === 0 && segment.attractions && Array.isArray(segment.attractions)) {
+      console.log(`🔄 Falling back to attractions array:`, segment.attractions);
+      
       const attractionStops = segment.attractions
-        .filter((attraction): attraction is NonNullable<typeof attraction> => attraction != null)
+        .filter((attraction, index) => {
+          const isValid = attraction != null && 
+            (typeof attraction === 'string' ? attraction.trim() !== '' : 
+             (typeof attraction === 'object' && attraction.name && attraction.name.trim() !== ''));
+          
+          console.log(`🎯 Attraction ${index + 1} validation:`, {
+            attraction,
+            isValid,
+            type: typeof attraction
+          });
+          
+          return isValid;
+        })
         .map((attraction, index) => ({
-          id: `attraction-${index}`,
+          id: `attraction-${index}-${Math.random()}`,
           name: typeof attraction === 'string' ? attraction : (attraction as any).name || 'Unknown',
           category: 'attraction',
           city_name: segment.endCity,
           state: segment.destination?.state || 'Unknown'
         }));
+      
+      console.log(`✅ Valid attraction stops: ${attractionStops.length}`, attractionStops.map(s => s.name));
       stops.push(...attractionStops);
     }
     
-    return stops.filter(stop => stop.name && stop.name.trim() !== '');
+    // Remove duplicates based on name
+    const uniqueStops = stops.filter((stop, index, self) => 
+      index === self.findIndex(s => s.name.toLowerCase() === stop.name.toLowerCase())
+    );
+    
+    console.log(`🎯 Final unique stops: ${uniqueStops.length}`, uniqueStops.map(s => s.name));
+    
+    return uniqueStops;
   };
 
   const validStops = getValidatedStops();
@@ -67,6 +111,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         return <Utensils className="h-4 w-4" />;
       case 'lodging':
       case 'hotel':
+      case 'motel':
         return <Bed className="h-4 w-4" />;
       case 'scenic_viewpoint':
       case 'photo_opportunity':
@@ -87,20 +132,25 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'lodging':
       case 'hotel':
+      case 'motel':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'scenic_viewpoint':
       case 'photo_opportunity':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'destination_city':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'route66_waypoint':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  console.log('🎯 EnhancedRecommendedStops validation:', {
+  console.log('🎯 EnhancedRecommendedStops final render:', {
     segmentDay: segment.day,
-    originalRecommendedStops: segment.recommendedStops?.length || 0,
-    originalAttractions: segment.attractions?.length || 0,
-    validatedStops: validStops.length,
+    validatedStopsCount: validStops.length,
+    maxStopsLimit: maxStops,
+    willShowCount: Math.min(validStops.length, maxStops),
     stopNames: validStops.map(s => s.name)
   });
 
@@ -149,7 +199,10 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
           
           {validStops.length > maxStops && (
             <div className="text-xs text-route66-vintage-brown italic text-center p-3 bg-route66-background-alt rounded border border-route66-border">
-              +{validStops.length - maxStops} more stops available in detailed view
+              +{validStops.length - maxStops} more stops available
+              <div className="text-xs text-route66-text-secondary mt-1">
+                Expand card to see all recommended stops for this segment
+              </div>
             </div>
           )}
         </div>
