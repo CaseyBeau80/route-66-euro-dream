@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
+import { Clock, MapPin, Route, AlertTriangle, Calendar, Cloud } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -12,6 +12,7 @@ import { useStableDate } from '../hooks/useStableDate';
 import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
@@ -54,7 +55,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'without weather widget');
+  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -222,15 +223,37 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
               </div>
             )}
 
-            {/* Recommended Stops */}
-            <ErrorBoundary context={`SegmentRecommendedStops-Day${stableSegment.day}`}>
-              <SegmentRecommendedStops segment={stableSegment} />
-            </ErrorBoundary>
+            {/* Integrated Layout: Route Info & Weather */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left Column - Route & Stops */}
+              <div className="space-y-4">
+                {/* Recommended Stops */}
+                <ErrorBoundary context={`SegmentRecommendedStops-Day${stableSegment.day}`}>
+                  <SegmentRecommendedStops segment={stableSegment} />
+                </ErrorBoundary>
 
-            {/* Route Progression */}
-            <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>
-              <SegmentRouteProgression segment={stableSegment} />
-            </ErrorBoundary>
+                {/* Route Progression */}
+                <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>
+                  <SegmentRouteProgression segment={stableSegment} />
+                </ErrorBoundary>
+              </div>
+
+              {/* Right Column - Weather */}
+              {tripStartDate && (
+                <div className="space-y-4">
+                  <ErrorBoundary context={`SegmentWeather-Day${stableSegment.day}`}>
+                    <SegmentWeatherWidget 
+                      segment={stableSegment}
+                      tripStartDate={tripStartDate}
+                      cardIndex={cardIndex}
+                      tripId={tripId}
+                      sectionKey={`weather-${stableSegment.day}`}
+                      forceExpanded={false}
+                    />
+                  </ErrorBoundary>
+                </div>
+              )}
+            </div>
 
             {/* Debug Component - Production Safe */}
             <ErrorBoundary context={`DebugStopSelection-Day${stableSegment.day}`} silent={true}>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Cloud } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { useSegmentWeatherState } from './weather/hooks/useSegmentWeatherState';
@@ -35,7 +36,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
     : null;
 
-  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
+  console.log(`🌤️ SegmentWeatherWidget: Integrated rendering for ${segment.endCity} (Day ${segment.day})`, {
     hasApiKey,
     segmentDate: segmentDate?.toISOString(),
     daysFromNow,
@@ -50,56 +51,16 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // If forced to be expanded (like in overview), render without collapsible wrapper
-  if (forceExpanded) {
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h4 className="font-travel font-bold text-route66-vintage-brown">
-            Weather in {segment.endCity}
-          </h4>
-          <div className="text-xs text-route66-vintage-brown">
-            Day {segment.day}
-            {segmentDate && (
-              <div className="text-xs text-gray-600">
-                {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </div>
-            )}
-          </div>
-        </div>
-        <SegmentWeatherContent
-          hasApiKey={hasApiKey}
-          loading={weatherState.loading}
-          weather={weatherState.weather}
-          error={weatherState.error}
-          retryCount={weatherState.retryCount}
-          segmentEndCity={segment.endCity}
-          segmentDate={segmentDate}
-          onApiKeySet={weatherHandlers.handleApiKeySet}
-          onTimeout={weatherHandlers.handleTimeout}
-          onRetry={weatherHandlers.handleRetry}
-        />
-      </div>
-    );
-  }
-
-  // Regular collapsible version for segment cards
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 mb-3">
+          <Cloud className="h-5 w-5 text-blue-600" />
           <h4 className="font-travel font-bold text-route66-vintage-brown">
             Weather in {segment.endCity}
           </h4>
-          <div className="text-xs text-route66-vintage-brown">
-            Day {segment.day}
-            {segmentDate && (
-              <div className="text-xs text-gray-600">
-                {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </div>
-            )}
-          </div>
         </div>
+        
         <SegmentWeatherContent
           hasApiKey={hasApiKey}
           loading={weatherState.loading}
