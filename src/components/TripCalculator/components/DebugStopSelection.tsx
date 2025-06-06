@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Bug, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
@@ -24,29 +24,44 @@ interface ValidationResults {
 const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
+  const [validationResults, setValidationResults] = useState<ValidationResults>({
+    validStops: [],
+    userRelevantStops: [],
+    filteredOutStops: [],
+    rawDataSources: {
+      recommendedStops: 0,
+      attractions: 0
+    }
+  });
   
   if (process.env.NODE_ENV !== 'development') {
     return null; // Only show in development
   }
 
-  // Validate segment before processing
-  if (!DataValidationService.validateDailySegment(segment, 'DebugStopSelection')) {
-    return (
-      <div className="mt-4 p-3 bg-red-100 rounded-lg border border-red-300 text-xs">
-        <div className="flex items-center gap-2 text-red-700">
-          <AlertTriangle className="h-3 w-3" />
-          <span>Debug: Invalid segment data</span>
-        </div>
-      </div>
-    );
-  }
+  // Validate segment before processing - memoized to prevent recalculation
+  const isValidSegment = useMemo(() => {
+    return DataValidationService.validateDailySegment(segment, 'DebugStopSelection');
+  }, [segment]);
 
-  // Safe validation function with error handling
-  const getValidationResults = (): ValidationResults => {
+  // Move validation logic to useEffect to prevent render-phase state updates
+  useEffect(() => {
+    if (!isValidSegment) {
+      setValidationResults({
+        validStops: [],
+        userRelevantStops: [],
+        filteredOutStops: [],
+        rawDataSources: {
+          recommendedStops: 0,
+          attractions: 0
+        }
+      });
+      setDebugError('Invalid segment data');
+      return;
+    }
+
     try {
       console.log('🔍 DEBUG: Starting validation for segment:', segment.day);
       
-      // Use ES6 imports instead of require()
       let validStops: any[] = [];
       let userRelevantStops: any[] = [];
       let filteredOutStops: any[] = [];
@@ -100,19 +115,24 @@ const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
           : 0
       };
 
-      return {
+      setValidationResults({
         validStops,
         userRelevantStops,
         filteredOutStops,
         rawDataSources
-      };
+      });
+      
+      setDebugError(null); // Clear error on success
       
     } catch (error) {
       console.error('❌ DEBUG: Critical error in validation:', error);
-      ErrorHandlingService.logError(error as Error, 'DebugStopSelection.getValidationResults');
+      ErrorHandlingService.logError(error as Error, 'DebugStopSelection.useEffect');
       
-      // Return safe fallback data
-      return {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
+      setDebugError(errorMessage);
+      
+      // Set fallback data
+      setValidationResults({
         validStops: [],
         userRelevantStops: [],
         filteredOutStops: [],
@@ -120,30 +140,19 @@ const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
           recommendedStops: 0,
           attractions: 0
         }
-      };
+      });
     }
-  };
+  }, [segment, isValidSegment]);
 
-  // Get validation results with error boundary
-  let validationResults: ValidationResults;
-  try {
-    validationResults = getValidationResults();
-    setDebugError(null); // Clear any previous errors
-  } catch (error) {
-    console.error('❌ DEBUG: Failed to get validation results:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
-    setDebugError(errorMessage);
-    
-    // Fallback data for rendering
-    validationResults = {
-      validStops: [],
-      userRelevantStops: [],
-      filteredOutStops: [],
-      rawDataSources: {
-        recommendedStops: 0,
-        attractions: 0
-      }
-    };
+  if (!isValidSegment) {
+    return (
+      <div className="mt-4 p-3 bg-red-100 rounded-lg border border-red-300 text-xs">
+        <div className="flex items-center gap-2 text-red-700">
+          <AlertTriangle className="h-3 w-3" />
+          <span>Debug: Invalid segment data</span>
+        </div>
+      </div>
+    );
   }
 
   const { validStops, userRelevantStops, filteredOutStops, rawDataSources } = validationResults;
