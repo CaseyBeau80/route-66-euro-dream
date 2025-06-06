@@ -154,14 +154,14 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         </div>
       )}
 
-      {/* Recommended Stops (Summary and Full only) */}
+      {/* Recommended Stops - Show ALL stops in PDF */}
       {exportFormat !== 'route-only' && segment.recommendedStops && segment.recommendedStops.length > 0 && (
         <div className="pdf-recommended-stops mb-4">
           <h6 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-            🏛️ Recommended Stops
+            🏛️ Recommended Stops ({segment.recommendedStops.length} total)
           </h6>
           <ul className="space-y-1">
-            {segment.recommendedStops.slice(0, exportFormat === 'summary' ? 3 : 6).map((stop, index) => (
+            {segment.recommendedStops.map((stop, index) => (
               <li key={index} className="text-xs text-gray-600 flex items-start gap-2">
                 <span className="text-blue-500 mt-0.5">•</span>
                 <span>
@@ -169,14 +169,14 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
                   {stop.description && exportFormat === 'full' && (
                     <span className="text-gray-500"> - {stop.description}</span>
                   )}
+                  {stop.type && (
+                    <span className="ml-1 text-xs bg-gray-100 text-gray-600 px-1 rounded">
+                      {stop.type}
+                    </span>
+                  )}
                 </span>
               </li>
             ))}
-            {segment.recommendedStops.length > (exportFormat === 'summary' ? 3 : 6) && (
-              <li className="text-xs text-gray-500 italic">
-                +{segment.recommendedStops.length - (exportFormat === 'summary' ? 3 : 6)} more stops available
-              </li>
-            )}
           </ul>
         </div>
       )}

@@ -10,6 +10,8 @@ import { Settings } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { toast } from '@/hooks/use-toast';
+import PDFContentRenderer from './PDFContentRenderer';
+import ReactDOM from 'react-dom/client';
 
 interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
@@ -30,7 +32,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting PDF export...');
+    console.log('🖨️ Starting PDF export with PDFContentRenderer...');
     setIsExporting(true);
     
     try {
@@ -38,22 +40,12 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       onClose();
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Step 2: Find the main trip content
-      const tripContent = document.querySelector('[data-trip-content="true"]');
-      if (!tripContent) {
-        throw new Error('Trip content not found');
-      }
+      console.log('📄 Creating PDF content with trip data:', {
+        segmentsCount: tripPlan.segments?.length || 0,
+        hasWeatherData: tripPlan.segments?.some(s => s.weather) || false
+      });
       
-      // Step 3: Clone the content and clean it
-      const clonedContent = tripContent.cloneNode(true) as HTMLElement;
-      
-      // Remove interactive elements
-      const elementsToRemove = clonedContent.querySelectorAll(
-        'button, [role="dialog"], .dropdown, .modal, .share-button, .export-button'
-      );
-      elementsToRemove.forEach(el => el.remove());
-      
-      // Step 4: Create a clean PDF container
+      // Step 2: Create a clean PDF container
       let pdfContainer = document.getElementById('pdf-export-content');
       if (!pdfContainer) {
         pdfContainer = document.createElement('div');
@@ -61,7 +53,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         document.body.appendChild(pdfContainer);
       }
       
-      // Step 5: Style the container for PDF
+      // Step 3: Style the container for PDF
       pdfContainer.style.cssText = `
         position: absolute;
         left: -9999px;
@@ -72,34 +64,31 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         font-size: 12px;
         line-height: 1.4;
         color: #1f2937;
-        padding: 0.5in;
+        padding: 0;
+        margin: 0;
       `;
       
-      // Step 6: Add content to PDF container
-      const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+      // Step 4: Render PDFContentRenderer directly using React
+      const root = ReactDOM.createRoot(pdfContainer);
       
-      pdfContainer.innerHTML = `
-        <div class="pdf-header" style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #3b82f6; padding-bottom: 12px;">
-          <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 8px; color: #1f2937;">
-            ${tripTitle}
-          </h1>
-          <p style="font-size: 16px; color: #4b5563; margin-bottom: 4px;">
-            ${tripPlan.startCity} → ${tripPlan.endCity}
-          </p>
-          <p style="font-size: 12px; color: #6b7280;">
-            Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
-        ${clonedContent.innerHTML}
-        <div class="pdf-footer" style="margin-top: 36px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <p style="font-size: 10px; color: #6b7280;">
-            Generated from Route 66 Trip Planner • ${new Date().toLocaleDateString()}
-          </p>
-          ${shareUrl ? `<p style="font-size: 10px; color: #9ca3af; margin-top: 4px;">Live version: ${shareUrl}</p>` : ''}
-        </div>
-      `;
+      await new Promise<void>((resolve) => {
+        root.render(
+          <PDFContentRenderer
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
+            exportOptions={exportOptions}
+            shareUrl={shareUrl}
+          />
+        );
+        
+        // Wait for React to render
+        setTimeout(() => {
+          console.log('✅ PDF content rendered successfully');
+          resolve();
+        }, 100);
+      });
       
-      // Step 7: Apply print styles
+      // Step 5: Apply print styles
       const printStyleId = 'pdf-print-styles';
       let printStyles = document.getElementById(printStyleId);
       if (!printStyles) {
@@ -144,10 +133,109 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             padding: 0.5in !important;
             margin: 0 !important;
           }
+          
+          .pdf-clean-container {
+            width: 100% !important;
+            max-width: none !important;
+            background: white !important;
+            color: #1f2937 !important;
+            font-family: inherit !important;
+            font-size: 12px !important;
+            line-height: 1.4 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          
+          .pdf-day-segment,
+          .no-page-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          
+          .bg-gray-50 {
+            background-color: #f9fafb !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          
+          .border {
+            border: 1px solid #e5e7eb !important;
+          }
+          
+          .rounded,
+          .rounded-lg {
+            border-radius: 6px !important;
+          }
+          
+          .text-blue-600 { color: #2563eb !important; }
+          .text-blue-800 { color: #1e40af !important; }
+          .text-gray-800 { color: #1f2937 !important; }
+          .text-gray-700 { color: #374151 !important; }
+          .text-gray-600 { color: #4b5563 !important; }
+          .text-gray-500 { color: #6b7280 !important; }
+          
+          .bg-blue-50 { background-color: #eff6ff !important; }
+          .bg-blue-100 { background-color: #dbeafe !important; }
+          .border-blue-200 { border-color: #bfdbfe !important; }
+          .border-blue-500 { border-color: #3b82f6 !important; }
+          
+          .grid { display: grid !important; }
+          .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+          .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+          
+          .gap-4 { gap: 12px !important; }
+          .gap-3 { gap: 9px !important; }
+          .gap-2 { gap: 6px !important; }
+          
+          .p-6 { padding: 18px !important; }
+          .p-4 { padding: 12px !important; }
+          .p-3 { padding: 9px !important; }
+          .p-2 { padding: 6px !important; }
+          
+          .mb-8 { margin-bottom: 24px !important; }
+          .mb-6 { margin-bottom: 18px !important; }
+          .mb-4 { margin-bottom: 12px !important; }
+          .mb-3 { margin-bottom: 9px !important; }
+          .mb-2 { margin-bottom: 6px !important; }
+          .mb-1 { margin-bottom: 3px !important; }
+          
+          .mt-8 { margin-top: 24px !important; }
+          .mt-4 { margin-top: 12px !important; }
+          .mt-3 { margin-top: 9px !important; }
+          .mt-2 { margin-top: 6px !important; }
+          .mt-1 { margin-top: 3px !important; }
+          
+          .text-3xl { font-size: 24px !important; }
+          .text-2xl { font-size: 20px !important; }
+          .text-xl { font-size: 18px !important; }
+          .text-lg { font-size: 16px !important; }
+          .text-sm { font-size: 12px !important; }
+          .text-xs { font-size: 10px !important; }
+          
+          .font-bold { font-weight: bold !important; }
+          .font-semibold { font-weight: 600 !important; }
+          .font-medium { font-weight: 500 !important; }
+          
+          .text-center { text-align: center !important; }
+          .break-all { word-break: break-all !important; }
+          
+          .border-b-2 { border-bottom: 2px solid !important; }
+          .border-t { border-top: 1px solid !important; }
+          .border-b { border-bottom: 1px solid !important; }
+          
+          .space-y-4 > * + * { margin-top: 12px !important; }
+          .space-y-3 > * + * { margin-top: 9px !important; }
+          .space-y-2 > * + * { margin-top: 6px !important; }
+          .space-y-1 > * + * { margin-top: 3px !important; }
+          
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       `;
       
-      // Step 8: Make PDF container visible and trigger print
+      // Step 6: Make PDF container visible and trigger print
       pdfContainer.style.cssText = `
         position: static;
         left: auto;
@@ -159,6 +247,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         line-height: 1.4;
         color: #1f2937;
         padding: 0.5in;
+        margin: 0;
       `;
       
       // Hide all other content
@@ -187,6 +276,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             visibility: hidden;
           `;
         }
+        
+        // Clean up React root
+        root.unmount();
         
         console.log('🧹 PDF export cleanup completed');
       }, 1000);
