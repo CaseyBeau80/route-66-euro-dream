@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Camera, Utensils, Bed } from 'lucide-react';
@@ -86,13 +85,28 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
           
           return isValid;
         })
-        .map((attraction, index): ValidatedStop => ({
-          id: `attraction-${index}-${Math.random()}`,
-          name: typeof attraction === 'string' ? attraction : attraction.name,
-          category: 'attraction',
-          city_name: segment.endCity,
-          state: segment.destination?.state || 'Unknown'
-        }));
+        .map((attraction, index): ValidatedStop => {
+          // Handle both string and object attractions explicitly
+          if (typeof attraction === 'string') {
+            return {
+              id: `attraction-${index}-${Math.random()}`,
+              name: attraction,
+              category: 'attraction',
+              city_name: segment.endCity,
+              state: segment.destination?.state || 'Unknown'
+            };
+          } else {
+            // TypeScript now knows this is an object with name property due to our filter
+            const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string };
+            return {
+              id: `attraction-${index}-${Math.random()}`,
+              name: attractionObj.name,
+              category: 'attraction',
+              city_name: segment.endCity,
+              state: segment.destination?.state || 'Unknown'
+            };
+          }
+        });
       
       console.log(`✅ Valid attraction stops: ${attractionStops.length}`, attractionStops.map(s => s.name));
       stops.push(...attractionStops);
