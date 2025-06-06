@@ -21,12 +21,43 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   // Calculate end date if start date and travel days are available
   const calculateEndDate = () => {
     if (formData.tripStartDate && formData.travelDays > 0) {
-      return addDays(formData.tripStartDate, formData.travelDays - 1);
+      try {
+        // Ensure we have a valid Date object
+        let startDate: Date;
+        if (formData.tripStartDate instanceof Date) {
+          startDate = formData.tripStartDate;
+        } else {
+          startDate = new Date(formData.tripStartDate);
+        }
+        
+        // Validate the date
+        if (isNaN(startDate.getTime())) {
+          console.error('❌ TripDateForm: Invalid start date', formData.tripStartDate);
+          return null;
+        }
+        
+        return addDays(startDate, formData.travelDays - 1);
+      } catch (error) {
+        console.error('❌ TripDateForm: Error calculating end date:', error);
+        return null;
+      }
     }
     return null;
   };
 
   const endDate = calculateEndDate();
+
+  const handleDateSelect = (date: Date | undefined) => {
+    console.log('📅 Trip start date changed:', date);
+    
+    // Ensure we're setting a proper Date object or undefined
+    const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : undefined;
+    
+    setFormData({ 
+      ...formData, 
+      tripStartDate: validDate 
+    });
+  };
 
   return (
     <div className="space-y-2">
@@ -41,17 +72,33 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {formData.tripStartDate ? format(formData.tripStartDate, "PPP") : "Pick a start date for weather forecasts"}
+            {formData.tripStartDate ? (
+              (() => {
+                try {
+                  const displayDate = formData.tripStartDate instanceof Date 
+                    ? formData.tripStartDate 
+                    : new Date(formData.tripStartDate);
+                  
+                  if (isNaN(displayDate.getTime())) {
+                    return "Invalid date selected";
+                  }
+                  
+                  return format(displayDate, "PPP");
+                } catch (error) {
+                  console.error('❌ Error formatting date:', error);
+                  return "Invalid date selected";
+                }
+              })()
+            ) : (
+              "Pick a start date for weather forecasts"
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={formData.tripStartDate}
-            onSelect={(date) => {
-              console.log('📅 Trip start date changed:', date);
-              setFormData({ ...formData, tripStartDate: date });
-            }}
+            selected={formData.tripStartDate instanceof Date ? formData.tripStartDate : undefined}
+            onSelect={handleDateSelect}
             disabled={(date) => date < new Date()}
             initialFocus
             className="p-3 pointer-events-auto"

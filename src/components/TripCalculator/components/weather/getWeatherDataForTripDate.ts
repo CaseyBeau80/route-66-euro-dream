@@ -28,9 +28,33 @@ export const getWeatherDataForTripDate = async (
   tripDate: Date,
   coordinates?: { lat: number; lng: number }
 ): Promise<WeatherDisplayData | null> => {
-  const daysFromNow = Math.ceil((tripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  // Validate and ensure tripDate is a proper Date object
+  let validTripDate: Date;
+  try {
+    if (tripDate instanceof Date) {
+      if (isNaN(tripDate.getTime())) {
+        console.error('❌ getWeatherDataForTripDate: Invalid Date object provided', tripDate);
+        return null;
+      }
+      validTripDate = tripDate;
+    } else if (typeof tripDate === 'string') {
+      validTripDate = new Date(tripDate);
+      if (isNaN(validTripDate.getTime())) {
+        console.error('❌ getWeatherDataForTripDate: Invalid date string provided', tripDate);
+        return null;
+      }
+    } else {
+      console.error('❌ getWeatherDataForTripDate: tripDate is not a Date or string', { tripDate, type: typeof tripDate });
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ getWeatherDataForTripDate: Error processing date:', error, tripDate);
+    return null;
+  }
+
+  const daysFromNow = Math.ceil((validTripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🌤️ getWeatherDataForTripDate: ${cityName} for ${tripDate.toDateString()}, ${daysFromNow} days from now`);
+  console.log(`🌤️ getWeatherDataForTripDate: ${cityName} for ${validTripDate.toDateString()}, ${daysFromNow} days from now`);
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -58,7 +82,7 @@ export const getWeatherDataForTripDate = async (
         coords.lat,
         coords.lng,
         cityName,
-        tripDate
+        validTripDate
       );
       
       if (forecastData && forecastData.isActualForecast && forecastData.highTemp && forecastData.lowTemp) {
@@ -87,7 +111,7 @@ export const getWeatherDataForTripDate = async (
     
     // For dates beyond 5 days or if forecast failed, use historical data
     console.log(`📊 Using historical data for ${cityName} (${daysFromNow} days ahead)`);
-    const historicalData = getHistoricalWeatherData(cityName, tripDate);
+    const historicalData = getHistoricalWeatherData(cityName, validTripDate);
     
     const historicalDisplay = {
       lowTemp: historicalData.low,
@@ -118,7 +142,7 @@ export const getWeatherDataForTripDate = async (
     
     // Fallback to historical data
     console.log(`📊 Fallback to historical data for ${cityName}`);
-    const historicalData = getHistoricalWeatherData(cityName, tripDate);
+    const historicalData = getHistoricalWeatherData(cityName, validTripDate);
     
     return {
       lowTemp: historicalData.low,
