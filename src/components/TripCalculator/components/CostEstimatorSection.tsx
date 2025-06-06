@@ -69,8 +69,14 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
                   <div>Gas: ${costEstimate.breakdown.gasCost}</div>
                   <div>Hotels: ${costEstimate.breakdown.accommodationCost}</div>
                   <div>Meals: ${costEstimate.breakdown.mealCost}</div>
+                  {costEstimate.breakdown.carRentalCost > 0 && (
+                    <div>Car Rental: ${costEstimate.breakdown.carRentalCost}</div>
+                  )}
                   {costEstimate.breakdown.attractionCost > 0 && (
                     <div>Attractions: ${costEstimate.breakdown.attractionCost}</div>
+                  )}
+                  {costEstimate.breakdown.tollCost > 0 && (
+                    <div>Tolls: ${costEstimate.breakdown.tollCost}</div>
                   )}
                 </div>
               </div>
