@@ -3,6 +3,7 @@ import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
 import { CityDisplayService } from './utils/CityDisplayService';
+import { DistanceCalculationService } from './utils/DistanceCalculationService';
 
 // Re-export types for backward compatibility
 export type { TripStop, DailySegment, TripPlan, SegmentTiming };
@@ -135,26 +136,253 @@ export class Route66TripPlannerService {
       allStops
     );
 
-    // Build the trip plan using the updated method and ensuring segments is an array
-    const segments: DailySegment[] = []; // Initialize an empty array for segments
+    // Calculate total distance between start and end
+    const totalDistance = this.calculateDistance(validatedStartStop, validatedEndStop);
+    
+    // Create daily segments - NEW CODE
+    const dailySegments = this.generateDailySegments(
+      validatedStartStop, 
+      validatedEndStop, 
+      tripDays,
+      totalDistance,
+      allStops
+    );
+
+    // Build the trip plan with the generated segments
     const tripPlan = TripPlanBuilder.buildTripPlan(
       CityDisplayService.getCityDisplayName(validatedStartStop),
       CityDisplayService.getCityDisplayName(validatedEndStop),
       new Date(),
       tripDays,
-      segments,
-      Route66TripPlannerService.calculateDistance(validatedStartStop, validatedEndStop)
+      dailySegments,
+      totalDistance
     );
 
-    console.log('🎯 Final trip plan created with actual stop cities:', {
+    // Calculate total driving time
+    const totalDrivingTime = dailySegments.reduce((sum, segment) => sum + segment.driveTimeHours, 0);
+    tripPlan.totalDrivingTime = parseFloat(totalDrivingTime.toFixed(1));
+
+    console.log('🎯 Final trip plan created with segments:', {
       title: tripPlan.title,
       actualStartCity: CityDisplayService.getCityDisplayName(validatedStartStop),
       actualEndCity: CityDisplayService.getCityDisplayName(validatedEndStop),
       inputStartCity: startCityName,
-      inputEndCity: endCityName
+      inputEndCity: endCityName,
+      segmentsCount: dailySegments.length
     });
     
     return tripPlan;
+  }
+
+  // NEW METHOD: Generate daily segments for the trip
+  private static generateDailySegments(
+    startStop: TripStop, 
+    endStop: TripStop,
+    totalDays: number,
+    totalDistance: number,
+    allStops: TripStop[]
+  ): DailySegment[] {
+    console.log(`🔄 Generating ${totalDays} daily segments from ${startStop.name} to ${endStop.name}`);
+    
+    const segments: DailySegment[] = [];
+    const avgDistancePerDay = totalDistance / totalDays;
+    
+    // Find intermediate destination cities that would make good overnight stops
+    let potentialStops = allStops.filter(stop => 
+      stop.id !== startStop.id && 
+      stop.id !== endStop.id && 
+      (stop.is_major_stop || stop.category === 'destination_city')
+    );
+    
+    // Sort by distance from start (to ensure we follow geographic progression)
+    potentialStops = potentialStops.sort((a, b) => {
+      const distA = this.calculateDistance(startStop, a);
+      const distB = this.calculateDistance(startStop, b);
+      return distA - distB;
+    });
+    
+    // Select overnight stops based on total days
+    const overnightStops: TripStop[] = [];
+    
+    // For multi-day trips (more than 2 days), select intermediate stops
+    if (totalDays > 1) {
+      // We need (totalDays - 1) intermediate stops
+      const neededIntermediateStops = totalDays - 1;
+      
+      // Calculate ideal positions for stops (evenly spaced)
+      for (let i = 1; i <= neededIntermediateStops; i++) {
+        const idealDistance = (totalDistance * i) / totalDays;
+        
+        // Find closest stop to ideal position
+        let bestStop: TripStop | null = null;
+        let bestStopDiff = Number.MAX_VALUE;
+        
+        for (const stop of potentialStops) {
+          if (overnightStops.some(s => s.id === stop.id)) continue; // Skip already selected stops
+          
+          const stopDistance = this.calculateDistance(startStop, stop);
+          const diff = Math.abs(stopDistance - idealDistance);
+          
+          if (diff < bestStopDiff) {
+            bestStop = stop;
+            bestStopDiff = diff;
+          }
+        }
+        
+        if (bestStop) {
+          overnightStops.push(bestStop);
+        }
+      }
+    }
+    
+    // Sort overnight stops by distance from start
+    overnightStops.sort((a, b) => {
+      const distA = this.calculateDistance(startStop, a);
+      const distB = this.calculateDistance(startStop, b);
+      return distA - distB;
+    });
+    
+    console.log(`🏙️ Selected ${overnightStops.length} overnight stops:`, overnightStops.map(s => s.name));
+    
+    // Create segments based on start, overnight stops, and end
+    let currentStop = startStop;
+    
+    for (let day = 1; day <= totalDays; day++) {
+      // Determine end stop for this day's segment
+      const isLastDay = day === totalDays;
+      const dayEndStop = isLastDay ? endStop : overnightStops[day - 1];
+      
+      // Calculate segment distance
+      const segmentDistance = this.calculateDistance(currentStop, dayEndStop);
+      
+      // Calculate drive time (assume average speed of 50 mph on Route 66)
+      const driveTimeHours = segmentDistance / 50;
+      
+      // Find attractions along this segment
+      const segmentAttractions = this.findAttractionsForSegment(
+        currentStop, dayEndStop, allStops, 3
+      );
+      
+      // Determine drive time category
+      const driveTimeCategory = this.getDriveTimeCategory(driveTimeHours);
+      
+      // Create the segment
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(dayEndStop)}`,
+        startCity: CityDisplayService.getCityDisplayName(currentStop),
+        endCity: CityDisplayService.getCityDisplayName(dayEndStop),
+        distance: segmentDistance,
+        approximateMiles: Math.round(segmentDistance),
+        driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+        destination: {
+          city: dayEndStop.city_name,
+          state: dayEndStop.state
+        },
+        recommendedStops: segmentAttractions.map(stop => ({
+          id: stop.id,
+          name: stop.name,
+          description: stop.description,
+          latitude: stop.latitude,
+          longitude: stop.longitude,
+          category: stop.category,
+          city_name: stop.city_name,
+          state: stop.state,
+          city: stop.city || stop.city_name
+        })),
+        attractions: segmentAttractions.map(stop => stop.name),
+        driveTimeCategory: driveTimeCategory,
+        routeSection: day <= Math.ceil(totalDays / 3) ? 'Early Route' : 
+                     day <= Math.ceil(2 * totalDays / 3) ? 'Mid Route' : 'Final Stretch'
+      };
+      
+      segments.push(segment);
+      
+      // Update current stop for next iteration
+      currentStop = dayEndStop;
+    }
+    
+    console.log(`✅ Generated ${segments.length} daily segments`);
+    return segments;
+  }
+
+  // NEW METHOD: Find attractions along a segment
+  private static findAttractionsForSegment(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    maxAttractions: number
+  ): TripStop[] {
+    // Calculate the direct distance between start and end
+    const directDistance = this.calculateDistance(startStop, endStop);
+    
+    // Find attractions that are along the route (not too far off the direct path)
+    const attractions = allStops.filter(stop => {
+      // Skip the start and end stops
+      if (stop.id === startStop.id || stop.id === endStop.id) return false;
+      
+      // Skip overnight stops (destination cities) for clarity in the UI
+      if (stop.category === 'destination_city') return false;
+      
+      // Calculate distances
+      const distFromStart = this.calculateDistance(startStop, stop);
+      const distToEnd = this.calculateDistance(stop, endStop);
+      
+      // Triangle inequality - if the sum of distances through this stop is not much longer
+      // than the direct route, the stop is roughly along the path
+      const routeDeviation = (distFromStart + distToEnd) - directDistance;
+      const isOnRoute = routeDeviation < (directDistance * 0.2); // Within 20% deviation
+      
+      // Also check that the attraction is between the start and end (not past them)
+      const isBetween = distFromStart < directDistance && distToEnd < directDistance;
+      
+      return isOnRoute && isBetween;
+    });
+    
+    // Sort by priority (category) - always show important attractions first
+    const sortedAttractions = attractions.sort((a, b) => {
+      // Prioritize official Route 66 attractions
+      if (a.category === 'attraction' && b.category !== 'attraction') return -1;
+      if (b.category === 'attraction' && a.category !== 'attraction') return 1;
+      
+      // Then prioritize historic sites
+      if (a.category === 'historic_site' && b.category !== 'historic_site') return -1;
+      if (b.category === 'historic_site' && a.category !== 'historic_site') return 1;
+      
+      return 0;
+    });
+    
+    // Return limited number of attractions
+    return sortedAttractions.slice(0, maxAttractions);
+  }
+  
+  // NEW METHOD: Get drive time category based on hours
+  private static getDriveTimeCategory(driveTimeHours: number): { category: 'short' | 'optimal' | 'long' | 'extreme', message: string, color: string } {
+    if (driveTimeHours <= 4) {
+      return {
+        category: 'short',
+        message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace with plenty of time for attractions`,
+        color: 'text-green-800'
+      };
+    } else if (driveTimeHours <= 6) {
+      return {
+        category: 'optimal',
+        message: `${driveTimeHours.toFixed(1)} hours - Perfect balance of driving and exploration`,
+        color: 'text-blue-800'
+      };
+    } else if (driveTimeHours <= 8) {
+      return {
+        category: 'long',
+        message: `${driveTimeHours.toFixed(1)} hours - Substantial driving day, but manageable`,
+        color: 'text-orange-800'
+      };
+    } else {
+      return {
+        category: 'extreme',
+        message: `${driveTimeHours.toFixed(1)} hours - Very long driving day, consider breaking into multiple days`,
+        color: 'text-red-800'
+      };
+    }
   }
 
   // Helper function to calculate distance between stops
