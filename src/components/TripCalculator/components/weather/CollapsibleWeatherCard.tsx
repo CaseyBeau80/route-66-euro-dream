@@ -35,35 +35,35 @@ const CollapsibleWeatherCard: React.FC<CollapsibleWeatherCardProps> = ({
 
   return (
     <ErrorBoundary context={`CollapsibleWeatherCard-Day${segment.day}`}>
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="bg-blue-50/80 rounded-lg border border-blue-100/60 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm">
         {/* Header - Always Visible */}
         <div 
-          className="p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="p-4 border-b border-blue-100/40 cursor-pointer hover:bg-blue-100/40 transition-colors rounded-t-lg"
           onClick={toggleExpanded}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
+              <span className="text-sm font-medium text-blue-700 bg-blue-200/60 px-2 py-1 rounded border border-blue-200/80">
                 Day {segment.day}
               </span>
-              <span className="text-gray-300">•</span>
-              <h5 className="text-sm font-semibold text-route66-text-primary">
+              <span className="text-blue-300">•</span>
+              <h5 className="text-sm font-semibold text-blue-800">
                 {segment.endCity}
               </h5>
             </div>
             
             <div className="flex items-center gap-2">
               {segmentDate && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-blue-600">
                   <Calendar className="h-3 w-3" />
                   {format(segmentDate, 'EEE, MMM d')}
                 </div>
               )}
               
               {isExpanded ? (
-                <ChevronUp className="h-4 w-4 text-gray-500 transition-transform duration-200" />
+                <ChevronUp className="h-4 w-4 text-blue-600 transition-transform duration-200" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-gray-500 transition-transform duration-200" />
+                <ChevronDown className="h-4 w-4 text-blue-600 transition-transform duration-200" />
               )}
             </div>
           </div>
@@ -74,7 +74,7 @@ const CollapsibleWeatherCard: React.FC<CollapsibleWeatherCardProps> = ({
           overflow-hidden transition-all duration-300 ease-in-out
           ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
         `}>
-          <div className="p-4">
+          <div className="p-4 bg-blue-25/30 rounded-b-lg">
             <SegmentWeatherWidget
               segment={segment}
               tripStartDate={tripStartDate}
