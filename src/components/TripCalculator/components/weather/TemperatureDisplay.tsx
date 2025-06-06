@@ -19,11 +19,9 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
 
   if (type === 'current' && currentTemp !== undefined) {
     return (
-      <div className="flex items-center justify-center bg-white rounded p-2">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">{formatTemperature(currentTemp)}</div>
-          <div className="text-xs text-gray-500">Current Temp</div>
-        </div>
+      <div className="flex flex-col items-center justify-center bg-white rounded p-3">
+        <div className="text-2xl font-bold text-blue-600 mb-1">{formatTemperature(currentTemp)}</div>
+        <div className="text-xs text-gray-500">Current Temp</div>
       </div>
     );
   }

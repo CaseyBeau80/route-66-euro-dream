@@ -30,11 +30,12 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         daysFromNow={daysFromNow || undefined}
       />
       
-      <div className="flex items-center gap-3">
-        <WeatherIcon iconCode={weather.icon} description={weather.description} />
-        <div>
-          <div className="font-semibold text-gray-800 capitalize">{weather.description}</div>
-          <div className="text-sm text-gray-600">
+      {/* Weather Icon and Condition */}
+      <div className="flex flex-col items-center gap-2 mb-4">
+        <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-16 w-16 text-3xl" />
+        <div className="text-center">
+          <div className="font-semibold text-gray-800 capitalize text-sm">{weather.description}</div>
+          <div className="text-xs text-gray-600">
             {segmentDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </div>
         </div>

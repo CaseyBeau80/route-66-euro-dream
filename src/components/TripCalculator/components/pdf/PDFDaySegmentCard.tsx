@@ -111,7 +111,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               segment.driveTimeCategory.category === 'long' ? 'bg-orange-100 text-orange-700' :
               'bg-red-100 text-red-700'
             }`}>
-              {segment.driveTimeCategory.label}
+              {segment.driveTimeCategory.message}
             </span>
           </div>
         </div>
