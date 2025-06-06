@@ -6,6 +6,7 @@ import TripItinerary from './components/TripItinerary';
 import CostEstimatorForm from './components/CostEstimatorForm';
 import CostBreakdownDisplay from './components/CostBreakdownDisplay';
 import TripAdjustmentNotice from './components/TripAdjustmentNotice';
+import ShareTripButton from './components/ShareTripButton';
 import { useCostEstimator } from './hooks/useCostEstimator';
 
 interface EnhancedTripResultsProps {
@@ -111,6 +112,18 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
         tripStartDate={tripStartDate}
         formatTime={formatTime}
       />
+
+      {/* Secondary Share Button - Bottom of Results */}
+      <div className="flex justify-center pt-6 border-t border-route66-border">
+        <ShareTripButton
+          tripPlan={tripPlan}
+          shareUrl={shareUrl}
+          tripStartDate={tripStartDate}
+          variant="secondary"
+          size="default"
+          className="w-full max-w-xs"
+        />
+      </div>
     </div>
   );
 };

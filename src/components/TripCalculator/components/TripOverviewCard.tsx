@@ -6,7 +6,7 @@ import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp } from 'luc
 import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripStatsGrid from './TripStatsGrid';
-import ShareTripDropdown from './ShareTripDropdown';
+import ShareTripButton from './ShareTripButton';
 
 interface TripOverviewCardProps {
   tripPlan: TripPlan;
@@ -46,10 +46,20 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   return (
     <Card className="vintage-paper-texture border-2 border-route66-border">
       <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light">
-        <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2 text-white">
-          <MapPin className="h-6 w-6" />
-          YOUR ROUTE 66 ADVENTURE
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-route66 text-xl flex items-center gap-2 text-white">
+            <MapPin className="h-6 w-6" />
+            YOUR ROUTE 66 ADVENTURE
+          </CardTitle>
+          <ShareTripButton
+            tripPlan={tripPlan}
+            shareUrl={shareUrl}
+            tripStartDate={tripStartDate}
+            variant="primary"
+            size="sm"
+            className="flex-shrink-0"
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-6">
         <TripStatsGrid
@@ -95,16 +105,6 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
               <span>{formatTime(tripPlan.totalDrivingTime)} driving</span>
             </div>
           </div>
-        </div>
-
-        {/* Share Trip Dropdown */}
-        <div className="text-center">
-          <ShareTripDropdown
-            shareUrl={shareUrl}
-            tripTitle={tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
-            tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
-          />
         </div>
       </CardContent>
     </Card>
