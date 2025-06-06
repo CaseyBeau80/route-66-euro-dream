@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import SegmentWeatherWidget from '../SegmentWeatherWidget';
-import TemperatureDisplay from '../weather/TemperatureDisplay';
 import WeatherIcon from '../weather/WeatherIcon';
 
 interface PDFWeatherCardProps {
@@ -22,8 +20,9 @@ const PDFWeatherCard: React.FC<PDFWeatherCardProps> = ({
     ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000)
     : null;
 
-  // Extract weather data from the segment if available
-  const weatherData = segment.weather || {};
+  // Check if weather data exists in the segment
+  // Using optional chaining to safely access potentially undefined properties
+  const weatherData = segment.weatherData || {};
   const hasWeatherData = weatherData && (weatherData.main || weatherData.temp || weatherData.weather);
   
   // Format month and day for displaying the date
@@ -52,7 +51,7 @@ const PDFWeatherCard: React.FC<PDFWeatherCardProps> = ({
             <div className="flex items-center">
               <WeatherIcon 
                 iconCode={weatherData.weather?.[0]?.icon || '01d'} 
-                size="large"
+                className="h-12 w-12"
               />
               <div className="ml-2">
                 <div className="text-sm font-medium">
