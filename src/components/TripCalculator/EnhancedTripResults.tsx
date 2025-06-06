@@ -36,29 +36,25 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     <div className="space-y-6">
       {/* Trip Overview Header */}
       <Card className="border-route66-border bg-gradient-to-r from-route66-vintage-beige to-white">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-2xl font-travel text-route66-primary flex items-center justify-center gap-2">
-                <MapPin className="h-6 w-6" />
-                Your Route 66 Adventure
-              </CardTitle>
-              <p className="text-route66-text-secondary mt-2">
-                {tripPlan.startCity} → {tripPlan.endCity}
-              </p>
-            </div>
-            
-            {/* Share Trip Button - Top Right */}
-            <div className="flex-shrink-0">
-              <ShareTripButton
-                tripPlan={tripPlan}
-                shareUrl={shareUrl}
-                tripStartDate={tripStartDate}
-                variant="primary"
-                size="sm"
-              />
-            </div>
+        <CardHeader className="text-center relative">
+          {/* Share Trip Button - Absolute positioned in top-right */}
+          <div className="absolute top-4 right-4">
+            <ShareTripButton
+              tripPlan={tripPlan}
+              shareUrl={shareUrl}
+              tripStartDate={tripStartDate}
+              variant="primary"
+              size="sm"
+            />
           </div>
+          
+          <CardTitle className="text-2xl font-travel text-route66-primary flex items-center justify-center gap-2">
+            <MapPin className="h-6 w-6" />
+            Your Route 66 Adventure
+          </CardTitle>
+          <p className="text-route66-text-secondary mt-2">
+            {tripPlan.startCity} → {tripPlan.endCity}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
