@@ -3,6 +3,7 @@ import React from 'react';
 import { Calendar, MapPin, Clock, DollarSign } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useUnits } from '@/contexts/UnitContext';
+import { useCostEstimator } from '../hooks/useCostEstimator';
 import { formatTime } from './utils/itineraryCardUtils';
 
 interface ItineraryCardStatsProps {
@@ -11,6 +12,16 @@ interface ItineraryCardStatsProps {
 
 const ItineraryCardStats: React.FC<ItineraryCardStatsProps> = ({ tripPlan }) => {
   const { formatDistance } = useUnits();
+  const { costEstimate } = useCostEstimator(tripPlan);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
 
   return (
     <section aria-labelledby="trip-overview" className="mb-6">
@@ -53,7 +64,7 @@ const ItineraryCardStats: React.FC<ItineraryCardStatsProps> = ({ tripPlan }) => 
             <span className="text-sm font-medium text-blue-800">Est. Cost</span>
           </div>
           <div className="text-2xl font-bold text-blue-900">
-            <span className="text-lg">Coming Soon</span>
+            {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : 'Calculating...'}
           </div>
         </div>
       </div>

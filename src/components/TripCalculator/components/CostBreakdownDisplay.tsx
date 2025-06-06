@@ -24,7 +24,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
   return (
     <div className="space-y-6">
       {/* Total Cost Summary */}
-      <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white">
+      <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-6 w-6" />
@@ -53,7 +53,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-green-600" />
+            <CreditCard className="h-5 w-5 text-blue-600" />
             Cost Breakdown
           </CardTitle>
         </CardHeader>
@@ -69,32 +69,32 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
-              <Bed className="h-6 w-6 text-purple-600" />
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <Bed className="h-6 w-6 text-blue-600" />
               <div>
-                <div className="font-semibold text-purple-800">Hotels</div>
-                <div className="text-xl font-bold text-purple-700">
+                <div className="font-semibold text-blue-800">Hotels</div>
+                <div className="text-xl font-bold text-blue-700">
                   {formatCurrency(breakdown.accommodationCost)}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg">
-              <Utensils className="h-6 w-6 text-orange-600" />
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <Utensils className="h-6 w-6 text-blue-600" />
               <div>
-                <div className="font-semibold text-orange-800">Meals</div>
-                <div className="text-xl font-bold text-orange-700">
+                <div className="font-semibold text-blue-800">Meals</div>
+                <div className="text-xl font-bold text-blue-700">
                   {formatCurrency(breakdown.mealCost)}
                 </div>
               </div>
             </div>
 
             {breakdown.carRentalCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-lg">
-                <CarIcon className="h-6 w-6 text-indigo-600" />
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                <CarIcon className="h-6 w-6 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-indigo-800">Car Rental</div>
-                  <div className="text-xl font-bold text-indigo-700">
+                  <div className="font-semibold text-blue-800">Car Rental</div>
+                  <div className="text-xl font-bold text-blue-700">
                     {formatCurrency(breakdown.carRentalCost)}
                   </div>
                 </div>
@@ -102,11 +102,11 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {breakdown.attractionCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
-                <MapPin className="h-6 w-6 text-red-600" />
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                <MapPin className="h-6 w-6 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-red-800">Attractions</div>
-                  <div className="text-xl font-bold text-red-700">
+                  <div className="font-semibold text-blue-800">Attractions</div>
+                  <div className="text-xl font-bold text-blue-700">
                     {formatCurrency(breakdown.attractionCost)}
                   </div>
                 </div>
@@ -114,11 +114,11 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {breakdown.tollCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
-                <CreditCard className="h-6 w-6 text-yellow-600" />
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                <CreditCard className="h-6 w-6 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-yellow-800">Tolls</div>
-                  <div className="text-xl font-bold text-yellow-700">
+                  <div className="font-semibold text-blue-800">Tolls</div>
+                  <div className="text-xl font-bold text-blue-700">
                     {formatCurrency(breakdown.tollCost)}
                   </div>
                 </div>
@@ -126,11 +126,11 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {groupSize > 1 && (
-              <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                <Users className="h-6 w-6 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-green-800">Group Size</div>
-                  <div className="text-xl font-bold text-green-700">
+                  <div className="font-semibold text-blue-800">Group Size</div>
+                  <div className="text-xl font-bold text-blue-700">
                     {groupSize} people
                   </div>
                 </div>
@@ -148,10 +148,10 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
         <CardContent>
           <div className="space-y-3">
             {dailyCosts.map((day) => (
-              <div key={day.day} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={day.day} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <div className="flex-1">
                   <div className="font-semibold">Day {day.day} - {day.city}</div>
-                  <div className="text-sm text-gray-600 flex gap-4 mt-1">
+                  <div className="text-sm text-blue-600 flex gap-4 mt-1">
                     <span>Gas: {formatCurrency(day.gas)}</span>
                     {day.accommodation > 0 && <span>Hotel: {formatCurrency(day.accommodation)}</span>}
                     <span>Meals: {formatCurrency(day.meals)}</span>
@@ -160,7 +160,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
                     {day.tolls > 0 && <span>Tolls: {formatCurrency(day.tolls)}</span>}
                   </div>
                 </div>
-                <div className="text-lg font-bold text-green-600">
+                <div className="text-lg font-bold text-blue-600">
                   {formatCurrency(day.dailyTotal)}
                 </div>
               </div>

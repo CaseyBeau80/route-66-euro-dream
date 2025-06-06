@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp, Cloud } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { useCostEstimator } from '../hooks/useCostEstimator';
 import TripStatsGrid from './TripStatsGrid';
 import ShareTripButton from './ShareTripButton';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
@@ -13,11 +14,9 @@ interface TripOverviewCardProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
-  costEstimate: any;
   showCostEstimator: boolean;
   setShowCostEstimator: (show: boolean) => void;
   formatTime: (hours: number) => string;
-  formatCurrency: (amount: number) => string;
   formatDate: (date: Date) => string;
   handleShare: () => void;
 }
@@ -26,15 +25,15 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   tripPlan,
   shareUrl,
   tripStartDate,
-  costEstimate,
   showCostEstimator,
   setShowCostEstimator,
   formatTime,
-  formatCurrency,
   formatDate,
   handleShare
 }) => {
   console.log("🌤️ TripOverviewCard: Rendering with weather data for trip:", tripPlan.segments.length, "segments");
+  
+  const { costEstimate } = useCostEstimator(tripPlan);
   
   // Calculate end date
   const calculateEndDate = () => {
@@ -49,9 +48,18 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   // Get the last segment for destination weather
   const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
-    <Card className="vintage-paper-texture border-2 border-route66-border">
-      <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light">
+    <Card className="vintage-paper-texture border-2 border-blue-200">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="flex items-center justify-between">
           <CardTitle className="font-route66 text-xl flex items-center gap-2 text-white">
             <MapPin className="h-6 w-6" />
@@ -70,9 +78,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
       <CardContent className="p-6">
         <TripStatsGrid
           tripPlan={tripPlan}
-          costEstimate={costEstimate}
           formatTime={formatTime}
-          formatCurrency={formatCurrency}
         />
 
         {/* Weather Information Section - Now prominently displayed and always visible */}
@@ -100,7 +106,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           <Button
             onClick={() => setShowCostEstimator(!showCostEstimator)}
             variant="outline"
-            className="w-full border-route66-accent-success text-route66-accent-success hover:bg-route66-accent-success hover:text-white"
+            className="w-full border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
           >
             <DollarSign className="mr-2 h-4 w-4" />
             {showCostEstimator ? 'Hide' : 'Show'} Cost Estimator
@@ -130,6 +136,12 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
               <Clock className="h-4 w-4" />
               <span>{formatTime(tripPlan.totalDrivingTime)} driving</span>
             </div>
+            {costEstimate && (
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-4 w-4" />
+                <span>{formatCurrency(costEstimate.breakdown.totalCost)} estimated</span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

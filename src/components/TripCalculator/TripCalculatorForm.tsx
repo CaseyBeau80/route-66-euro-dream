@@ -104,8 +104,8 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <UnitSelector />
       </div>
 
-      {/* Cost Estimator Section */}
-      <CostEstimatorSection formData={formData} />
+      {/* Cost Estimator Section - Pass tripPlan for real data */}
+      <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
 
       {/* Form Validation Helper - moved above Plan button */}
       <FormValidationHelper 
