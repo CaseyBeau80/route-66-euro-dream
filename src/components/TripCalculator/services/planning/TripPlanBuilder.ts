@@ -2,6 +2,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { DriveTimeConstraints, DriveTimeTarget } from './DriveTimeConstraints';
+import { DriveTimeConstraintsService } from './DriveTimeConstraintsService';
 import { DestinationOptimizationService } from './DestinationOptimizationService';
 import { SegmentStopCurator } from './SegmentStopCurator';
 import { DestinationCityValidator } from './DestinationCityValidator';
@@ -86,26 +87,53 @@ export class TripPlanBuilder {
   ): TripPlan {
     console.log(`🗺️ Building trip plan from ${CityDisplayService.getCityDisplayName(startStop)} to ${CityDisplayService.getCityDisplayName(endStop)} in ${requestedDays} days`);
 
+    // Calculate total distance and validate feasibility
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    // Get day adjustment suggestions
+    const dayAdjustment = DriveTimeConstraintsService.suggestDayAdjustments(
+      totalDistance,
+      requestedDays
+    );
+
+    console.log(`📊 Day adjustment analysis:`, dayAdjustment);
+
+    // Use suggested days if significantly different
+    const adjustedDays = dayAdjustment.suggestedDays !== requestedDays ? 
+      dayAdjustment.suggestedDays : requestedDays;
+
     // Use enhanced drive time balancer for better route distribution
     const balancedRoute = EnhancedDriveTimeBalancer.createBalancedRoute(
       startStop,
       endStop,
       allStops,
-      requestedDays
+      adjustedDays
     );
 
-    console.log(`⚖️ Enhanced balancing result: ${balancedRoute.isWellBalanced ? 'WELL BALANCED' : 'NEEDS ADJUSTMENT'} (variance: ${balancedRoute.variance.toFixed(2)}h)`);
+    console.log(`⚖️ Enhanced balancing result: ${balancedRoute.isWellBalanced ? 'WELL BALANCED' : 'NEEDS IMPROVEMENT'}`);
+    console.log(`📊 Balancer details: strategy=${balancedRoute.balancingStrategy}, variance=${balancedRoute.variance.toFixed(2)}h`);
 
-    // Use balanced destinations or fall back to original logic
-    const selectedDestinations = balancedRoute.isWellBalanced 
-      ? balancedRoute.destinations 
-      : this.fallbackToOriginalLogic(startStop, endStop, allStops, requestedDays);
+    // Determine if we should use balanced results or fallback
+    let selectedDestinations: TripStop[];
+    let finalDays = adjustedDays;
+    
+    if (balancedRoute.isWellBalanced && balancedRoute.destinations.length > 0) {
+      selectedDestinations = balancedRoute.destinations;
+      finalDays = balancedRoute.destinations.length + 1;
+      console.log(`✅ Using enhanced balanced route with ${selectedDestinations.length} destinations`);
+    } else {
+      console.log('⚠️ Enhanced balancer did not produce satisfactory results, using improved fallback');
+      selectedDestinations = this.improvedFallbackLogic(startStop, endStop, allStops, adjustedDays);
+      finalDays = selectedDestinations.length + 1;
+    }
 
-    const actualDays = selectedDestinations.length + 1;
-    const wasAdjusted = actualDays !== requestedDays;
+    const wasAdjusted = finalDays !== requestedDays;
 
     if (wasAdjusted) {
-      console.log(`⚖️ Trip duration adjusted from ${requestedDays} to ${actualDays} days for better balance`);
+      console.log(`⚖️ Trip duration adjusted from ${requestedDays} to ${finalDays} days for better balance`);
     }
 
     // Filter stops to only include valid destination cities and relevant stops
@@ -120,15 +148,19 @@ export class TripPlanBuilder {
        stop.category === 'hidden_gem')
     );
 
-    console.log(`🎯 Using ${selectedDestinations.length} balanced destinations and ${relevantStops.length} remaining stops`);
+    console.log(`🎯 Using ${selectedDestinations.length} destinations and ${relevantStops.length} remaining stops`);
 
     const segments: DailySegment[] = [];
     let currentStop = startStop;
-    const remainingStops = [...relevantStops];
+    const remainingStops = allStops.filter(stop => 
+      stop.id !== startStop.id && 
+      stop.id !== endStop.id &&
+      !selectedDestinations.find(dest => dest.id === stop.id)
+    );
 
-    // Build daily segments using the balanced destinations
-    for (let day = 1; day <= actualDays; day++) {
-      const remainingDays = actualDays - day;
+    // Build daily segments using the selected destinations
+    for (let day = 1; day <= finalDays; day++) {
+      const remainingDays = finalDays - day;
 
       console.log(`\n📅 Planning Day ${day}`);
 
@@ -139,7 +171,7 @@ export class TripPlanBuilder {
         console.log(`🏁 Final day - going to ${CityDisplayService.getCityDisplayName(endStop)}`);
       } else {
         dayDestination = selectedDestinations[day - 1];
-        console.log(`🎯 Going to balanced destination: ${CityDisplayService.getCityDisplayName(dayDestination)}`);
+        console.log(`🎯 Going to destination: ${CityDisplayService.getCityDisplayName(dayDestination)}`);
       }
 
       // Calculate segment metrics
@@ -223,8 +255,8 @@ export class TripPlanBuilder {
         driveTimeCategory,
         curatedStops: curatedSelection,
         subStopTimings,
-        routeSection: day <= Math.ceil(actualDays / 3) ? 'Early Route' : 
-                     day <= Math.ceil(2 * actualDays / 3) ? 'Mid Route' : 'Final Stretch'
+        routeSection: day <= Math.ceil(finalDays / 3) ? 'Early Route' : 
+                     day <= Math.ceil(2 * finalDays / 3) ? 'Mid Route' : 'Final Stretch'
       };
 
       segments.push(segment);
@@ -233,9 +265,12 @@ export class TripPlanBuilder {
       console.log(`✅ Day ${day}: ${segment.startCity} → ${segment.endCity} (${Math.round(segmentDistance)}mi, ${driveTimeHours.toFixed(1)}h, ${segmentStops.length} stops)`);
     }
 
-    // Calculate total metrics
-    const totalDistance = segments.reduce((sum, seg) => sum + (seg.distance || 0), 0);
-    const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
+    // Validate the final trip balance
+    const balanceValidation = DriveTimeConstraintsService.validateTripBalance(segments);
+
+    // Calculate total metrics from segments
+    const actualTotalDistance = segments.reduce((sum, seg) => sum + (seg.distance || 0), 0);
+    const actualTotalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
 
     // Enhanced drive time balance analysis
     const driveTimes = segments.map(seg => seg.driveTimeHours);
@@ -244,49 +279,140 @@ export class TripPlanBuilder {
       driveTimes.reduce((sum, time) => sum + Math.pow(time - averageDriveTime, 2), 0) / driveTimes.length
     );
 
-    const isBalanced = variance <= 1.5 && driveTimes.every(time => time >= 4 && time <= 8);
-    const balanceQuality = variance <= 1.0 ? 'excellent' : variance <= 1.5 ? 'good' : variance <= 2.0 ? 'fair' : 'poor';
+    const isBalanced = balanceValidation.isValid;
+    const balanceQuality = balanceValidation.overallGrade === 'A' ? 'excellent' :
+                          balanceValidation.overallGrade === 'B' ? 'good' :
+                          balanceValidation.overallGrade === 'C' ? 'fair' : 'poor';
 
     const tripPlan: TripPlan = {
       title: `${inputStartCity} to ${inputEndCity} Road Trip`,
       startCity: inputStartCity,
       endCity: inputEndCity,
-      totalDays: actualDays,
+      totalDays: finalDays,
       originalDays: wasAdjusted ? requestedDays : undefined,
-      totalDistance: Math.round(totalDistance),
-      totalMiles: Math.round(totalDistance),
-      totalDrivingTime: parseFloat(totalDrivingTime.toFixed(1)),
+      totalDistance: Math.round(actualTotalDistance),
+      totalMiles: Math.round(actualTotalDistance),
+      totalDrivingTime: parseFloat(actualTotalDrivingTime.toFixed(1)),
       segments,
       dailySegments: segments,
       wasAdjusted,
       driveTimeBalance: {
         isBalanced,
         averageDriveTime: parseFloat(averageDriveTime.toFixed(1)),
-        reason: wasAdjusted ? `Balanced drive times (${variance.toFixed(1)}h variance)` : undefined,
+        reason: wasAdjusted ? `Balanced drive times (${variance.toFixed(1)}h variance, grade ${balanceValidation.overallGrade})` : undefined,
         balanceQuality,
         variance: parseFloat(variance.toFixed(1)),
         driveTimeRange: {
           min: Math.min(...driveTimes),
           max: Math.max(...driveTimes)
-        }
+        },
+        qualityGrade: balanceValidation.overallGrade,
+        overallScore: balanceValidation.balanceScore,
+        suggestions: balanceValidation.suggestions
       }
     };
 
     console.log(`🎯 Enhanced trip plan completed:`, {
-      totalDays: actualDays,
-      totalDistance: Math.round(totalDistance),
-      totalDrivingTime: totalDrivingTime.toFixed(1),
+      totalDays: finalDays,
+      totalDistance: Math.round(actualTotalDistance),
+      totalDrivingTime: actualTotalDrivingTime.toFixed(1),
       wasAdjusted,
       isBalanced,
       variance: variance.toFixed(1),
-      balanceQuality
+      balanceQuality,
+      qualityGrade: balanceValidation.overallGrade,
+      balanceScore: balanceValidation.balanceScore.toFixed(1),
+      segmentDriveTimes: driveTimes.map(t => `${t.toFixed(1)}h`)
     });
 
     return tripPlan;
   }
 
   /**
-   * Fallback to original destination selection logic
+   * IMPROVED: Enhanced fallback logic with better destination selection
+   */
+  private static improvedFallbackLogic(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    requestedDays: number
+  ): TripStop[] {
+    console.log('🔄 Using improved fallback destination selection logic');
+    
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    const validDestinationCities = DestinationCityValidator.filterValidDestinationCities(allStops);
+    const destinations: TripStop[] = [];
+    let currentStop = startStop;
+
+    // Use distance-based selection with geographic validation
+    for (let day = 1; day < requestedDays; day++) {
+      const remainingDays = requestedDays - day;
+      const targetSegmentDistance = (totalDistance * 0.8) / requestedDays; // Target slightly less than total/days
+      
+      // Filter candidates that haven't been used and make geographic progress
+      const availableCandidates = validDestinationCities.filter(stop => {
+        if (destinations.find(dest => dest.id === stop.id)) return false;
+        
+        const distanceToEnd = DistanceCalculationService.calculateDistance(
+          stop.latitude, stop.longitude,
+          endStop.latitude, endStop.longitude
+        );
+        
+        const currentToEndDistance = DistanceCalculationService.calculateDistance(
+          currentStop.latitude, currentStop.longitude,
+          endStop.latitude, endStop.longitude
+        );
+        
+        return distanceToEnd < currentToEndDistance; // Ensure progress toward destination
+      });
+
+      if (availableCandidates.length === 0) {
+        console.log(`⚠️ No valid candidates for day ${day}, ending destination selection`);
+        break;
+      }
+
+      // Find best candidate based on target distance and drive time
+      let bestCandidate = availableCandidates[0];
+      let bestScore = Number.MAX_VALUE;
+
+      for (const candidate of availableCandidates) {
+        const distance = DistanceCalculationService.calculateDistance(
+          currentStop.latitude, currentStop.longitude,
+          candidate.latitude, candidate.longitude
+        );
+        
+        const driveTime = distance / 50;
+        
+        // Score based on target distance and drive time constraints
+        const distanceScore = Math.abs(distance - targetSegmentDistance);
+        const driveTimeScore = Math.abs(driveTime - 6) * 20; // Prefer ~6 hour drives
+        
+        // Bonus for destination cities
+        const categoryBonus = candidate.category === 'destination_city' ? -100 : 0;
+        
+        const totalScore = distanceScore + driveTimeScore + categoryBonus;
+        
+        if (totalScore < bestScore) {
+          bestScore = totalScore;
+          bestCandidate = candidate;
+        }
+      }
+
+      destinations.push(bestCandidate);
+      currentStop = bestCandidate;
+      
+      console.log(`📍 Fallback Day ${day}: Selected ${bestCandidate.name} (${bestCandidate.category})`);
+    }
+
+    return destinations;
+  }
+
+  /**
+   * DEPRECATED: Keep for compatibility but prefer improved fallback
    */
   private static fallbackToOriginalLogic(
     startStop: TripStop,
@@ -294,35 +420,7 @@ export class TripPlanBuilder {
     allStops: TripStop[],
     requestedDays: number
   ): TripStop[] {
-    console.log('⚠️ Falling back to original destination selection logic');
-    
-    // Use the original DriveTimeBalancer logic as fallback
-    const distribution = DriveTimeBalancer.calculateOptimalDistribution(
-      startStop,
-      endStop,
-      requestedDays
-    );
-
-    const validDestinationCities = DestinationCityValidator.filterValidDestinationCities(allStops);
-    const destinations: TripStop[] = [];
-    let currentStop = startStop;
-
-    for (let day = 1; day < requestedDays; day++) {
-      const driveTimeTarget = distribution.dailyTargets[day - 1];
-      const remainingDays = requestedDays - day;
-
-      const dayDestination = DestinationOptimizationService.selectNextDayDestination(
-        currentStop,
-        endStop,
-        validDestinationCities.filter(stop => !destinations.find(dest => dest.id === stop.id)),
-        remainingDays,
-        driveTimeTarget
-      );
-
-      destinations.push(dayDestination);
-      currentStop = dayDestination;
-    }
-
-    return destinations;
+    console.log('⚠️ Using deprecated original destination selection logic');
+    return this.improvedFallbackLogic(startStop, endStop, allStops, requestedDays);
   }
 }

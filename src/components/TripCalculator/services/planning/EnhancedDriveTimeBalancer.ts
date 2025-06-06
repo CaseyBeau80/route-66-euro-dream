@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeTarget } from './DriveTimeConstraints';
@@ -10,6 +9,13 @@ export interface BalancedRoute {
   averageDriveTime: number;
   variance: number;
   isWellBalanced: boolean;
+  balancingStrategy?: string;
+  segmentDetails?: Array<{
+    from: string;
+    to: string;
+    distance: number;
+    driveTime: number;
+  }>;
 }
 
 export class EnhancedDriveTimeBalancer {
@@ -28,9 +34,10 @@ export class EnhancedDriveTimeBalancer {
     availableStops: TripStop[],
     requestedDays: number
   ): BalancedRoute {
-    console.log('🎯 Creating balanced route with consistent drive times');
+    console.log('🎯 Enhanced Drive Time Balancer: Creating balanced route');
+    console.log(`📊 Parameters: ${startStop.name} → ${endStop.name}, ${requestedDays} days, ${availableStops.length} available stops`);
 
-    // Calculate total distance and ideal distribution
+    // Calculate total distance and validate feasibility
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
@@ -39,61 +46,95 @@ export class EnhancedDriveTimeBalancer {
     const totalDriveTime = totalDistance / this.AVG_SPEED_MPH;
     const targetDailyTime = totalDriveTime / requestedDays;
 
-    console.log(`📊 Route analysis: ${totalDistance.toFixed(0)}mi total, ${totalDriveTime.toFixed(1)}h total drive time`);
+    console.log(`📏 Route metrics: ${totalDistance.toFixed(0)}mi total, ${totalDriveTime.toFixed(1)}h total`);
     console.log(`🎯 Target: ${targetDailyTime.toFixed(1)}h per day over ${requestedDays} days`);
+
+    // Validate if the target is reasonable
+    if (targetDailyTime < this.MIN_DAILY_HOURS) {
+      console.log('⚠️ Target drive time too short, adjusting days down');
+      const adjustedDays = Math.max(3, Math.ceil(totalDriveTime / this.MIN_DAILY_HOURS));
+      return this.createBalancedRoute(startStop, endStop, availableStops, adjustedDays);
+    }
+
+    if (targetDailyTime > this.MAX_DAILY_HOURS) {
+      console.log('⚠️ Target drive time too long, adjusting days up');
+      const adjustedDays = Math.ceil(totalDriveTime / this.MAX_DAILY_HOURS);
+      return this.createBalancedRoute(startStop, endStop, availableStops, adjustedDays);
+    }
 
     // Filter to destination cities for better route planning
     const destinationCities = availableStops.filter(stop => 
       stop.category === 'destination_city'
     );
 
-    // Try multiple balancing strategies
+    console.log(`🏙️ Found ${destinationCities.length} destination cities for balancing`);
+
+    // Try multiple balancing strategies in order of preference
     const strategies = [
-      () => this.balanceByOptimalDistribution(startStop, endStop, destinationCities, requestedDays),
-      () => this.balanceByProgressiveAdjustment(startStop, endStop, destinationCities, requestedDays),
-      () => this.balanceByEvenSpacing(startStop, endStop, destinationCities, requestedDays)
+      { name: 'Optimal Distribution', fn: () => this.balanceByOptimalDistribution(startStop, endStop, destinationCities, requestedDays) },
+      { name: 'Progressive Adjustment', fn: () => this.balanceByProgressiveAdjustment(startStop, endStop, destinationCities, requestedDays) },
+      { name: 'Even Spacing', fn: () => this.balanceByEvenSpacing(startStop, endStop, destinationCities, requestedDays) },
+      { name: 'Intermediate Injection', fn: () => this.balanceWithIntermediateInjection(startStop, endStop, destinationCities, requestedDays) }
     ];
 
     let bestRoute: BalancedRoute | null = null;
     let bestVariance = Number.MAX_VALUE;
 
-    for (let i = 0; i < strategies.length; i++) {
-      console.log(`🔄 Trying balancing strategy ${i + 1}/3`);
+    for (const strategy of strategies) {
+      console.log(`🔄 Trying strategy: ${strategy.name}`);
       try {
-        const route = strategies[i]();
+        const route = strategy.fn();
         if (route && route.variance < bestVariance) {
           bestRoute = route;
           bestVariance = route.variance;
-          console.log(`✅ Better balance found: ${route.variance.toFixed(2)}h variance`);
+          bestRoute.balancingStrategy = strategy.name;
+          console.log(`✅ Better balance found with ${strategy.name}: ${route.variance.toFixed(2)}h variance`);
           
-          // If we achieve good balance, use it
-          if (route.variance <= this.MAX_VARIANCE) {
-            console.log(`🎯 Excellent balance achieved with strategy ${i + 1}`);
+          // If we achieve excellent balance, use it
+          if (route.variance <= this.MAX_VARIANCE && route.isWellBalanced) {
+            console.log(`🎯 Excellent balance achieved with ${strategy.name}`);
             break;
           }
         }
       } catch (error) {
-        console.warn(`⚠️ Strategy ${i + 1} failed:`, error);
+        console.warn(`⚠️ Strategy ${strategy.name} failed:`, error);
       }
     }
 
-    return bestRoute || this.createFallbackRoute(startStop, endStop, destinationCities, requestedDays);
+    if (!bestRoute) {
+      console.log('⚠️ All strategies failed, creating fallback route');
+      bestRoute = this.createFallbackRoute(startStop, endStop, destinationCities, requestedDays);
+    }
+
+    // Add detailed segment information for debugging
+    bestRoute.segmentDetails = this.calculateSegmentDetails(startStop, bestRoute.destinations, endStop);
+
+    console.log(`✅ Final balanced route created:`, {
+      strategy: bestRoute.balancingStrategy,
+      variance: bestRoute.variance,
+      isWellBalanced: bestRoute.isWellBalanced,
+      segments: bestRoute.segmentDetails?.map(s => `${s.from} → ${s.to}: ${s.driveTime.toFixed(1)}h`)
+    });
+
+    return bestRoute;
   }
 
   /**
-   * Balance by optimal daily distance distribution
+   * NEW: Balance with intermediate destination injection for long segments
    */
-  private static balanceByOptimalDistribution(
+  private static balanceWithIntermediateInjection(
     startStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
     requestedDays: number
   ): BalancedRoute {
+    console.log('🔧 Using intermediate injection strategy');
+    
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
-
+    
     const targetDailyDistance = totalDistance / requestedDays;
     const destinations: TripStop[] = [];
     let currentStop = startStop;
@@ -102,38 +143,207 @@ export class EnhancedDriveTimeBalancer {
 
     for (let day = 1; day < requestedDays; day++) {
       const remainingDays = requestedDays - day;
-      const targetDistance = Math.min(
-        targetDailyDistance * 1.1, // Allow 10% variance
-        remainingDistance * 0.75 // Don't use more than 75% of remaining distance
-      );
+      
+      // Calculate ideal position for next destination
+      const progressRatio = day / requestedDays;
+      const idealDistance = totalDistance * progressRatio;
+      
+      // Find the best stop near the ideal position
+      let bestStop: TripStop | null = null;
+      let bestScore = Number.MAX_VALUE;
+      
+      for (const stop of workingStops) {
+        const distanceFromStart = DistanceCalculationService.calculateDistance(
+          startStop.latitude, startStop.longitude,
+          stop.latitude, stop.longitude
+        );
+        
+        const distanceFromCurrent = DistanceCalculationService.calculateDistance(
+          currentStop.latitude, currentStop.longitude,
+          stop.latitude, stop.longitude
+        );
+        
+        const distanceToEnd = DistanceCalculationService.calculateDistance(
+          stop.latitude, stop.longitude,
+          endStop.latitude, endStop.longitude
+        );
+        
+        // Ensure we're making progress toward the destination
+        const currentToEndDistance = DistanceCalculationService.calculateDistance(
+          currentStop.latitude, currentStop.longitude,
+          endStop.latitude, endStop.longitude
+        );
+        
+        if (distanceToEnd >= currentToEndDistance) continue; // Not making progress
+        
+        // Score based on how close to ideal position and drive time constraints
+        const positionScore = Math.abs(distanceFromStart - idealDistance);
+        const driveTimeScore = Math.abs(distanceFromCurrent / this.AVG_SPEED_MPH - this.TARGET_DAILY_HOURS) * 50;
+        
+        // Bonus for destination cities
+        const cityBonus = stop.category === 'destination_city' ? -100 : 0;
+        
+        const totalScore = positionScore + driveTimeScore + cityBonus;
+        
+        if (totalScore < bestScore) {
+          bestScore = totalScore;
+          bestStop = stop;
+        }
+      }
+      
+      if (!bestStop) {
+        console.log(`⚠️ No suitable stop found for day ${day}, breaking`);
+        break;
+      }
+      
+      destinations.push(bestStop);
+      currentStop = bestStop;
+      
+      // Remove used stop
+      const index = workingStops.findIndex(s => s.id === bestStop!.id);
+      if (index > -1) workingStops.splice(index, 1);
+      
+      console.log(`📍 Day ${day}: Selected ${bestStop.name} (${bestStop.category})`);
+    }
+
+    return this.calculateRouteMetrics(startStop, destinations, endStop);
+  }
+
+  /**
+   * IMPROVED: Balance by optimal daily distance distribution
+   */
+  private static balanceByOptimalDistribution(
+    startStop: TripStop,
+    endStop: TripStop,
+    availableStops: TripStop[],
+    requestedDays: number
+  ): BalancedRoute {
+    console.log('📐 Using optimal distribution strategy');
+    
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    const targetDailyDistance = totalDistance / requestedDays;
+    const destinations: TripStop[] = [];
+    let currentStop = startStop;
+    const workingStops = [...availableStops];
+
+    for (let day = 1; day < requestedDays; day++) {
+      const remainingDays = requestedDays - day;
+      
+      // Allow some flexibility in daily distance (±20%)
+      const minDailyDistance = targetDailyDistance * 0.8;
+      const maxDailyDistance = targetDailyDistance * 1.2;
+      
+      // If it's the last day before final destination, be more flexible
+      const isLastIntermediateDay = remainingDays === 1;
+      const finalMaxDistance = isLastIntermediateDay ? targetDailyDistance * 1.5 : maxDailyDistance;
 
       const nextStop = this.findOptimalStopByDistance(
         currentStop, 
+        endStop,
         workingStops, 
-        targetDistance
+        targetDailyDistance,
+        minDailyDistance,
+        finalMaxDistance
       );
 
-      if (!nextStop) break;
+      if (!nextStop) {
+        console.log(`⚠️ No suitable stop found for day ${day} with optimal distribution`);
+        break;
+      }
 
       destinations.push(nextStop);
       currentStop = nextStop;
 
-      // Update remaining distance
-      const usedDistance = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        currentStop.latitude, currentStop.longitude
-      );
-      remainingDistance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        endStop.latitude, endStop.longitude
-      );
-
       // Remove used stop
       const index = workingStops.findIndex(s => s.id === nextStop.id);
       if (index > -1) workingStops.splice(index, 1);
+      
+      const dayDistance = DistanceCalculationService.calculateDistance(
+        destinations.length > 1 ? destinations[destinations.length - 2].latitude : startStop.latitude,
+        destinations.length > 1 ? destinations[destinations.length - 2].longitude : startStop.longitude,
+        nextStop.latitude,
+        nextStop.longitude
+      );
+      
+      console.log(`📍 Day ${day}: ${nextStop.name} (${dayDistance.toFixed(0)}mi, ${(dayDistance/this.AVG_SPEED_MPH).toFixed(1)}h)`);
     }
 
     return this.calculateRouteMetrics(startStop, destinations, endStop);
+  }
+
+  /**
+   * IMPROVED: Find optimal stop by target distance with better constraints
+   */
+  private static findOptimalStopByDistance(
+    currentStop: TripStop,
+    endStop: TripStop,
+    availableStops: TripStop[],
+    targetDistance: number,
+    minDistance: number,
+    maxDistance: number
+  ): TripStop | null {
+    let bestStop: TripStop | null = null;
+    let bestScore = Number.MAX_VALUE;
+
+    const currentToEndDistance = DistanceCalculationService.calculateDistance(
+      currentStop.latitude, currentStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    for (const stop of availableStops) {
+      const distance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+
+      // Enforce distance constraints
+      if (distance < minDistance || distance > maxDistance) {
+        continue;
+      }
+
+      const distanceToEnd = DistanceCalculationService.calculateDistance(
+        stop.latitude, stop.longitude,
+        endStop.latitude, endStop.longitude
+      );
+
+      // CRITICAL: Ensure geographic progression
+      if (distanceToEnd >= currentToEndDistance) {
+        continue; // Not making progress toward destination
+      }
+
+      // Score based on distance from target
+      const distanceScore = Math.abs(distance - targetDistance);
+      let score = distanceScore;
+
+      // Massive bonus for destination cities
+      if (stop.category === 'destination_city') {
+        score -= 200;
+      }
+
+      // Bonus for major stops
+      if (stop.is_major_stop) {
+        score -= 100;
+      }
+
+      // Penalty for extreme drive times
+      const driveTime = distance / this.AVG_SPEED_MPH;
+      if (driveTime < this.MIN_DAILY_HOURS) {
+        score += 50;
+      } else if (driveTime > this.MAX_DAILY_HOURS) {
+        score += 150;
+      }
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestStop = stop;
+      }
+    }
+
+    return bestStop;
   }
 
   /**
@@ -206,49 +416,6 @@ export class EnhancedDriveTimeBalancer {
   }
 
   /**
-   * Find optimal stop by target distance
-   */
-  private static findOptimalStopByDistance(
-    currentStop: TripStop,
-    availableStops: TripStop[],
-    targetDistance: number
-  ): TripStop | null {
-    let bestStop: TripStop | null = null;
-    let bestScore = Number.MAX_VALUE;
-
-    for (const stop of availableStops) {
-      const distance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-
-      // Score based on distance from target
-      const distanceScore = Math.abs(distance - targetDistance);
-      let score = distanceScore;
-
-      // Bonus for destination cities
-      if (stop.category === 'destination_city') {
-        score -= 50;
-      }
-
-      // Penalty for very short or very long distances
-      const driveTime = distance / this.AVG_SPEED_MPH;
-      if (driveTime < this.MIN_DAILY_HOURS) {
-        score += 100;
-      } else if (driveTime > this.MAX_DAILY_HOURS) {
-        score += 200;
-      }
-
-      if (score < bestScore) {
-        bestScore = score;
-        bestStop = stop;
-      }
-    }
-
-    return bestStop;
-  }
-
-  /**
    * Adjust route to improve balance
    */
   private static adjustRouteForBalance(
@@ -294,7 +461,7 @@ export class EnhancedDriveTimeBalancer {
   }
 
   /**
-   * Calculate comprehensive route metrics
+   * IMPROVED: Calculate comprehensive route metrics with enhanced validation
    */
   private static calculateRouteMetrics(
     startStop: TripStop,
@@ -324,11 +491,21 @@ export class EnhancedDriveTimeBalancer {
       driveTimes.reduce((sum, time) => sum + Math.pow(time - averageDriveTime, 2), 0) / driveTimes.length
     );
 
-    const isWellBalanced = variance <= this.MAX_VARIANCE &&
-                          driveTimes.every(time => time >= this.MIN_DAILY_HOURS && time <= this.MAX_DAILY_HOURS);
+    // Enhanced balance validation
+    const hasExtremeSegments = driveTimes.some(time => time > this.MAX_DAILY_HOURS || time < this.MIN_DAILY_HOURS);
+    const hasReasonableVariance = variance <= this.MAX_VARIANCE;
+    const hasProgressiveFlow = this.validateProgressiveFlow(allStops);
 
-    console.log(`📊 Route metrics: ${driveTimes.map(t => t.toFixed(1)).join('h, ')}h drive times`);
-    console.log(`📊 Variance: ${variance.toFixed(2)}h, Well balanced: ${isWellBalanced}`);
+    const isWellBalanced = hasReasonableVariance && !hasExtremeSegments && hasProgressiveFlow;
+
+    console.log(`📊 Route metrics calculated:`, {
+      segments: driveTimes.map(t => `${t.toFixed(1)}h`),
+      variance: variance.toFixed(2),
+      hasExtremeSegments,
+      hasReasonableVariance,
+      hasProgressiveFlow,
+      isWellBalanced
+    });
 
     return {
       destinations,
@@ -341,7 +518,69 @@ export class EnhancedDriveTimeBalancer {
   }
 
   /**
-   * Create fallback route if balancing fails
+   * NEW: Validate that the route makes progressive geographic sense
+   */
+  private static validateProgressiveFlow(stops: TripStop[]): boolean {
+    if (stops.length < 3) return true;
+
+    const startStop = stops[0];
+    const endStop = stops[stops.length - 1];
+    
+    let previousDistanceToEnd = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    for (let i = 1; i < stops.length - 1; i++) {
+      const currentDistanceToEnd = DistanceCalculationService.calculateDistance(
+        stops[i].latitude, stops[i].longitude,
+        endStop.latitude, endStop.longitude
+      );
+
+      if (currentDistanceToEnd >= previousDistanceToEnd) {
+        console.log(`⚠️ Progressive flow violation at ${stops[i].name}: ${currentDistanceToEnd.toFixed(0)}mi vs ${previousDistanceToEnd.toFixed(0)}mi to end`);
+        return false;
+      }
+
+      previousDistanceToEnd = currentDistanceToEnd;
+    }
+
+    return true;
+  }
+
+  /**
+   * NEW: Calculate detailed segment information for debugging
+   */
+  private static calculateSegmentDetails(
+    startStop: TripStop,
+    destinations: TripStop[],
+    endStop: TripStop
+  ) {
+    const allStops = [startStop, ...destinations, endStop];
+    const segmentDetails = [];
+
+    for (let i = 0; i < allStops.length - 1; i++) {
+      const from = allStops[i];
+      const to = allStops[i + 1];
+      const distance = DistanceCalculationService.calculateDistance(
+        from.latitude, from.longitude,
+        to.latitude, to.longitude
+      );
+      const driveTime = distance / this.AVG_SPEED_MPH;
+
+      segmentDetails.push({
+        from: from.name,
+        to: to.name,
+        distance,
+        driveTime
+      });
+    }
+
+    return segmentDetails;
+  }
+
+  /**
+   * IMPROVED: Create fallback route with better validation
    */
   private static createFallbackRoute(
     startStop: TripStop,
@@ -349,13 +588,46 @@ export class EnhancedDriveTimeBalancer {
     availableStops: TripStop[],
     requestedDays: number
   ): BalancedRoute {
-    console.log('⚠️ Creating fallback route with basic distance division');
+    console.log('⚠️ Creating improved fallback route with basic distance division');
     
-    // Simple distance-based selection as fallback
-    const destinations = availableStops
-      .filter(stop => stop.category === 'destination_city')
-      .slice(0, requestedDays - 1);
+    // Use simple even distribution as last resort
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
 
-    return this.calculateRouteMetrics(startStop, destinations, endStop);
+    const targetSegmentDistance = totalDistance / requestedDays;
+    const destinations: TripStop[] = [];
+    
+    // Try to find destinations at roughly even intervals
+    for (let day = 1; day < requestedDays; day++) {
+      const targetDistanceFromStart = targetSegmentDistance * day;
+      
+      let closestStop = availableStops[0];
+      let closestDistance = Number.MAX_VALUE;
+      
+      for (const stop of availableStops) {
+        if (destinations.find(dest => dest.id === stop.id)) continue;
+        
+        const distanceFromStart = DistanceCalculationService.calculateDistance(
+          startStop.latitude, startStop.longitude,
+          stop.latitude, stop.longitude
+        );
+        
+        const diff = Math.abs(distanceFromStart - targetDistanceFromStart);
+        if (diff < closestDistance) {
+          closestDistance = diff;
+          closestStop = stop;
+        }
+      }
+      
+      if (closestStop && !destinations.find(dest => dest.id === closestStop.id)) {
+        destinations.push(closestStop);
+      }
+    }
+
+    const result = this.calculateRouteMetrics(startStop, destinations, endStop);
+    result.balancingStrategy = 'Fallback - Even Distribution';
+    return result;
   }
 }
