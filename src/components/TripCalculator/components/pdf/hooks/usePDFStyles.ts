@@ -1,4 +1,3 @@
-
 export const usePDFStyles = () => {
   const addPrintStyles = () => {
     const printStyleId = 'pdf-print-styles';
@@ -12,9 +11,9 @@ export const usePDFStyles = () => {
     printStyles.textContent = `
       @media screen {
         .pdf-close-button {
-          position: fixed !important;
-          top: 20px !important;
-          right: 20px !important;
+          position: absolute !important;
+          top: 10px !important;
+          right: 10px !important;
           z-index: 10000 !important;
           background: #dc2626 !important;
           color: white !important;
@@ -47,9 +46,9 @@ export const usePDFStyles = () => {
         }
         
         .pdf-instructions {
-          position: fixed !important;
-          top: 80px !important;
-          right: 20px !important;
+          position: absolute !important;
+          top: 70px !important;
+          right: 10px !important;
           z-index: 9999 !important;
           background: rgba(15, 23, 42, 0.95) !important;
           color: white !important;
@@ -72,6 +71,7 @@ export const usePDFStyles = () => {
         }
 
         #pdf-export-content.pdf-preview-visible {
+          position: relative !important;
           transform: scale(1.1) !important;
           transform-origin: top center !important;
           margin: 20px auto !important;
