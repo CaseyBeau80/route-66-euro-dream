@@ -61,6 +61,7 @@ export const getWeatherDataForTripDate = async (
       );
       
       if (forecastData && forecastData.isActualForecast && forecastData.highTemp && forecastData.lowTemp) {
+        console.log(`✅ Got actual forecast for ${cityName}:`, forecastData);
         return {
           lowTemp: forecastData.lowTemp,
           highTemp: forecastData.highTemp,
@@ -77,7 +78,7 @@ export const getWeatherDataForTripDate = async (
     }
     
     // For dates beyond 5 days or if forecast failed, use historical data
-    console.log(`📊 Using historical data for ${cityName}`);
+    console.log(`📊 Using historical data for ${cityName} (${daysFromNow} days ahead)`);
     const historicalData = getHistoricalWeatherData(cityName, tripDate);
     
     return {
@@ -90,13 +91,14 @@ export const getWeatherDataForTripDate = async (
       humidity: historicalData.humidity,
       windSpeed: historicalData.windSpeed,
       cityName: cityName,
-      isActualForecast: false
+      isActualForecast: false // This is key - marking it as NOT a forecast
     };
     
   } catch (error) {
     console.error('❌ Error getting weather data:', error);
     
     // Fallback to historical data
+    console.log(`📊 Fallback to historical data for ${cityName}`);
     const historicalData = getHistoricalWeatherData(cityName, tripDate);
     
     return {
@@ -109,7 +111,7 @@ export const getWeatherDataForTripDate = async (
       humidity: historicalData.humidity,
       windSpeed: historicalData.windSpeed,
       cityName: cityName,
-      isActualForecast: false
+      isActualForecast: false // This is key - marking it as NOT a forecast
     };
   }
 };
