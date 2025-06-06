@@ -70,7 +70,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   return (
     <EnhancedCollapsibleCard
       title={cardHeader}
-      defaultExpanded={false}
+      defaultExpanded={true}
       className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
       headerClassName="border-b border-blue-200"
       contentClassName="pt-0"

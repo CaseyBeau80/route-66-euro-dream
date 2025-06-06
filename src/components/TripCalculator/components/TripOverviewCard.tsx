@@ -75,20 +75,22 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatCurrency={formatCurrency}
         />
 
-        {/* Weather Information Section */}
+        {/* Weather Information Section - Now prominently displayed and expanded */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Cloud className="h-5 w-5 text-blue-600" />
               <h3 className="font-semibold text-gray-800">Destination Weather</h3>
             </div>
-            <SegmentWeatherWidget 
-              segment={lastSegment}
-              tripStartDate={tripStartDate}
-              cardIndex={0}
-              tripId="overview"
-              sectionKey="destination-weather"
-            />
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
+              <SegmentWeatherWidget 
+                segment={lastSegment}
+                tripStartDate={tripStartDate}
+                cardIndex={0}
+                tripId="overview"
+                sectionKey="destination-weather"
+              />
+            </div>
           </div>
         )}
 

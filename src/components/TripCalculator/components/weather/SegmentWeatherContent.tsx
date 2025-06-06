@@ -34,7 +34,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   onTimeout,
   onRetry
 }) => {
-  console.log(`🎨 Rendering content for ${segmentEndCity}:`, {
+  console.log(`🎨 SegmentWeatherContent for ${segmentEndCity}:`, {
     hasApiKey,
     loading,
     error,
@@ -43,18 +43,26 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular'
   });
 
-  // No API key - show input
+  // No API key - show input prominently
   if (!hasApiKey) {
+    console.log(`🔑 No API key for ${segmentEndCity}, showing input`);
     return (
-      <EnhancedWeatherApiKeyInput 
-        onApiKeySet={onApiKeySet}
-        cityName={segmentEndCity}
-      />
+      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="mb-3 text-sm text-yellow-800">
+          <p className="font-semibold">Weather API Key Required</p>
+          <p>Enter your OpenWeatherMap API key to see weather information</p>
+        </div>
+        <EnhancedWeatherApiKeyInput 
+          onApiKeySet={onApiKeySet}
+          cityName={segmentEndCity}
+        />
+      </div>
     );
   }
 
   // Loading state
   if (loading) {
+    console.log(`⏳ Loading weather for ${segmentEndCity}`);
     return <EnhancedWeatherLoading onTimeout={onTimeout} />;
   }
 
@@ -72,6 +80,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Show fallback for repeated errors
   if (error && (retryCount >= 2 || error.includes('timeout'))) {
+    console.log(`🔄 Showing fallback for ${segmentEndCity} after ${retryCount} retries`);
     return (
       <WeatherFallback 
         cityName={segmentEndCity}
@@ -84,18 +93,21 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Show error
   if (error) {
+    console.log(`❌ Showing error for ${segmentEndCity}:`, error);
     return <WeatherError error={error} />;
   }
 
   // Show seasonal fallback
   if (segmentDate) {
+    console.log(`🌱 Showing seasonal weather for ${segmentEndCity}`);
     return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segmentEndCity} />;
   }
 
   // Default message
+  console.log(`📅 No date set for ${segmentEndCity}, showing default message`);
   return (
-    <div className="text-sm text-gray-500 italic">
-      Set a trip start date to see weather information
+    <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded">
+      Set a trip start date to see weather information for {segmentEndCity}
     </div>
   );
 };
