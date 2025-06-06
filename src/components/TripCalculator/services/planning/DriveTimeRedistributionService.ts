@@ -1,8 +1,14 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { BalancingSegment } from './IterativeDriveTimeBalancer';
+
+export interface BalancingSegment {
+  startStop: TripStop;
+  endStop: TripStop;
+  distance: number;
+  driveTimeHours: number;
+  isFixed?: boolean;
+}
 
 export interface RedistributionAction {
   type: 'extend' | 'shorten' | 'swap';

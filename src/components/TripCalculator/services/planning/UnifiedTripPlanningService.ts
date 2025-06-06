@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -348,11 +349,11 @@ export class UnifiedTripPlanningService {
     const maxTime = Math.max(...driveTimes);
     const isBalanced = variance <= 1.5 && maxTime <= this.MAX_DRIVE_TIME && minTime >= this.MIN_DRIVE_TIME;
 
-    const balanceQuality = variance <= 1.0 ? 'excellent' :
+    const balanceQuality: 'excellent' | 'good' | 'fair' | 'poor' = variance <= 1.0 ? 'excellent' :
                           variance <= 1.5 ? 'good' :
                           variance <= 2.0 ? 'fair' : 'poor';
 
-    const qualityGrade = variance <= 1.0 ? 'A' :
+    const qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F' = variance <= 1.0 ? 'A' :
                         variance <= 1.5 ? 'B' :
                         variance <= 2.0 ? 'C' :
                         variance <= 2.5 ? 'D' : 'F';
