@@ -203,15 +203,20 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
                     </div>
                   </div>
                   
-                  {segment.attractions && segment.attractions.length > 0 && (
+                  {/* Show recommended stops - check both recommendedStops and attractions */}
+                  {((segment.recommendedStops && segment.recommendedStops.length > 0) || (segment.attractions && segment.attractions.length > 0)) && (
                     <div className="mt-3">
                       <h4 className="font-semibold text-sm text-gray-700 mb-2">
                         Recommended Stops:
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {segment.attractions.map((attraction, idx) => (
+                        {/* First try recommendedStops, then fall back to attractions */}
+                        {(segment.recommendedStops && segment.recommendedStops.length > 0 
+                          ? segment.recommendedStops.map(stop => stop.name)
+                          : segment.attractions || []
+                        ).map((stopName, idx) => (
                           <Badge key={idx} variant="secondary" className="text-xs">
-                            {attraction}
+                            {stopName}
                           </Badge>
                         ))}
                       </div>
