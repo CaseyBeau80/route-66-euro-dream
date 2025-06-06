@@ -14,15 +14,16 @@ export const useCollapsibleState = ({
   cardIndex,
   defaultExpanded = false
 }: UseCollapsibleStateProps) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  // Always start with collapsed state (false) - ignore defaultExpanded
+  const [isExpanded, setIsExpanded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   console.log(`🔧 useCollapsibleState: Initializing for ${sectionKey}-${cardIndex}`, {
     tripId,
     sectionKey,
     cardIndex,
-    defaultExpanded,
-    initialIsExpanded: isExpanded
+    defaultExpanded: false, // Always false now
+    initialIsExpanded: false
   });
 
   // Load persisted state from localStorage
@@ -41,28 +42,28 @@ export const useCollapsibleState = ({
         currentExpanded: isExpanded
       });
       
-      // If there's saved state, use it; otherwise use defaultExpanded (false)
+      // If there's saved state, use it; otherwise use false (collapsed)
       if (savedState !== null) {
         const parsedState = JSON.parse(savedState);
         console.log(`📂 Setting expanded state from localStorage: ${parsedState}`);
         setIsExpanded(parsedState);
       } else {
-        // Ensure we start with the correct default (collapsed)
-        console.log(`📂 No saved state, using default: ${defaultExpanded}`);
-        setIsExpanded(defaultExpanded);
-        // Save the initial state
-        localStorage.setItem(cardKey, JSON.stringify(defaultExpanded));
+        // Ensure we start collapsed
+        console.log(`📂 No saved state, using collapsed: false`);
+        setIsExpanded(false);
+        // Save the initial collapsed state
+        localStorage.setItem(cardKey, JSON.stringify(false));
       }
       
       if (savedInteraction !== null) {
         setHasUserInteracted(JSON.parse(savedInteraction));
       }
     } else {
-      // No tripId, just use the default
-      console.log(`📂 No tripId, using default expanded: ${defaultExpanded}`);
-      setIsExpanded(defaultExpanded);
+      // No tripId, always collapsed
+      console.log(`📂 No tripId, using collapsed: false`);
+      setIsExpanded(false);
     }
-  }, [tripId, sectionKey, cardIndex, defaultExpanded]);
+  }, [tripId, sectionKey, cardIndex]);
 
   // Handle group toggle events
   useEffect(() => {
@@ -129,11 +130,11 @@ export const useCollapsibleState = ({
         } catch (error) {
           console.warn(`🧹 Cleaning up corrupted localStorage entry: ${cardKey}`);
           localStorage.removeItem(cardKey);
-          setIsExpanded(defaultExpanded);
+          setIsExpanded(false);
         }
       }
     }
-  }, [tripId, sectionKey, cardIndex, defaultExpanded]);
+  }, [tripId, sectionKey, cardIndex]);
 
   console.log(`🎛️ useCollapsibleState: Current state for ${sectionKey}-${cardIndex}:`, {
     isExpanded,
