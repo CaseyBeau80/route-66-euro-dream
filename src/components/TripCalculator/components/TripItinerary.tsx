@@ -36,11 +36,17 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
   
   const stableSegments = useStableSegments(rawSegments);
   
+  // Extract start and end cities from trip plan
+  const startCity = tripPlan.startCity;
+  const endCity = tripPlan.endCity;
+  
   console.log('📋 TripItinerary render with tabbed interface:', {
     segmentsCount: stableSegments.length,
     tripStartDate: tripStartDate?.toISOString(),
     totalDays: tripPlan.totalDays,
-    finalSegments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity }))
+    finalSegments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity })),
+    startCity,
+    endCity
   });
 
   return (
@@ -52,6 +58,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
           tripId={tripPlan.title || 'trip'}
           totalDays={tripPlan.totalDays}
           onGenerateMissingDays={onGenerateMissingDays}
+          startCity={startCity}
+          endCity={endCity}
         />
       </div>
     </ErrorBoundary>

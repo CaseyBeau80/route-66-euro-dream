@@ -8,13 +8,17 @@ interface ItineraryHeaderProps {
   segmentsCount: number;
   missingDays: number[];
   onGenerateMissingDays?: (days: number[]) => void;
+  startCity?: string;
+  endCity?: string;
 }
 
 const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
   totalDays,
   segmentsCount,
   missingDays,
-  onGenerateMissingDays
+  onGenerateMissingDays,
+  startCity,
+  endCity
 }) => {
   return (
     <div className="mb-6">
@@ -25,7 +29,7 @@ const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         </h3>
       </div>
       
-      <div className="ml-9 space-y-2">
+      <div className="ml-9 space-y-3">
         <p className="text-sm text-route66-text-secondary">
           Complete overview of your {totalDays}-day Route 66 adventure ({segmentsCount} segments loaded)
         </p>
@@ -33,6 +37,9 @@ const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <MissingDaysDisplay 
           missingDays={missingDays}
           onGenerateMissingDays={onGenerateMissingDays}
+          totalDays={totalDays}
+          startCity={startCity}
+          endCity={endCity}
         />
       </div>
     </div>
