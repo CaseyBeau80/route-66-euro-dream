@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
 import { addDays, format } from 'date-fns';
+import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
@@ -18,6 +19,8 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   segment, 
   tripStartDate 
 }) => {
+  const { formatDistance } = useUnits();
+  
   console.log('🗓️ DaySegmentCard render:', segment.title);
 
   // Calculate the date for this segment
@@ -128,7 +131,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             <div className="flex items-center gap-4 text-sm text-route66-text-secondary py-2">
               <div className="flex items-center gap-1">
                 <Route className="h-4 w-4" />
-                <span>{Math.round(segment.distance || segment.approximateMiles)} miles</span>
+                <span>{formatDistance(segment.distance || segment.approximateMiles)}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />

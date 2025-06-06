@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useUnits } from '@/contexts/UnitContext';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 interface TripStatsGridProps {
@@ -15,6 +16,8 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   formatTime,
   formatCurrency
 }) => {
+  const { formatDistance } = useUnits();
+
   const formatCurrencyNoCents = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -28,9 +31,11 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
-          {Math.round(tripPlan.totalDistance)}
+          {formatDistance(tripPlan.totalDistance).split(' ')[0]}
         </div>
-        <div className="font-travel text-sm text-route66-text-secondary">Total Miles</div>
+        <div className="font-travel text-sm text-route66-text-secondary">
+          Total {formatDistance(tripPlan.totalDistance).split(' ')[1]}
+        </div>
       </div>
       
       <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
