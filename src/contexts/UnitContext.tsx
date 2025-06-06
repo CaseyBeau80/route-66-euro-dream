@@ -13,7 +13,7 @@ interface UnitContextType {
 
 const UnitContext = createContext<UnitContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'route66-unit-preferences';
+const STORAGE_KEY = 'route66_unit_preference';
 
 interface UnitProviderProps {
   children: ReactNode;
@@ -26,7 +26,10 @@ export const UnitProvider: React.FC<UnitProviderProps> = ({ children }) => {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        return parsed;
+        // Validate the stored data has the expected structure
+        if (parsed && typeof parsed === 'object' && parsed.system) {
+          return parsed;
+        }
       } catch (error) {
         console.warn('Failed to parse stored unit preferences:', error);
       }

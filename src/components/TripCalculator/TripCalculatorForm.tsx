@@ -11,6 +11,7 @@ import TripDurationForm from './components/TripDurationForm';
 import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
+import UnitSelector from './components/UnitSelector';
 import { useFormValidation } from './hooks/useFormValidation';
 
 interface TripCalculatorFormProps {
@@ -84,6 +85,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         formData={formData}
         setFormData={setFormData}
       />
+
+      {/* Unit Selector */}
+      <div className="p-4 bg-route66-background-alt rounded-lg border border-route66-border">
+        <UnitSelector />
+      </div>
 
       {/* Cost Estimator Section */}
       <CostEstimatorSection formData={formData} />
