@@ -7,7 +7,7 @@ import { DistanceBasedDestinationService } from './DistanceBasedDestinationServi
 
 export class DestinationOptimizationService {
   /**
-   * Enhanced next day destination selection with drive time balancing
+   * Enhanced next day destination selection with proper Route 66 geographic progression
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
@@ -20,20 +20,30 @@ export class DestinationOptimizationService {
       return finalDestination;
     }
 
-    // If we have a drive time target, use the balanced approach with destination city priority
-    if (driveTimeTarget) {
+    // Filter stops that are in the correct direction toward the final destination
+    const properDirectionStops = this.filterStopsInCorrectDirection(
+      currentStop,
+      finalDestination,
+      availableStops
+    );
+
+    console.log(`🧭 Filtered ${properDirectionStops.length} stops in correct direction from ${availableStops.length} total`);
+
+    // If we have a drive time target, use the balanced approach with geographic validation
+    if (driveTimeTarget && properDirectionStops.length > 0) {
       const balancedDestination = DestinationPriorityService.selectDestinationWithPriority(
         currentStop,
-        availableStops,
+        properDirectionStops,
         driveTimeTarget
       );
       
       if (balancedDestination) {
+        console.log(`✅ Selected destination with geographic validation: ${balancedDestination.name}`);
         return balancedDestination;
       }
     }
 
-    // Fallback to distance-based selection
+    // Fallback to distance-based selection with geographic constraints
     const totalRemainingDistance = DistanceCalculationService.calculateDistance(
       currentStop.latitude, currentStop.longitude,
       finalDestination.latitude, finalDestination.longitude
@@ -44,13 +54,59 @@ export class DestinationOptimizationService {
     return DistanceBasedDestinationService.selectDestinationByDistance(
       currentStop, 
       finalDestination, 
-      availableStops, 
+      properDirectionStops.length > 0 ? properDirectionStops : availableStops, 
       targetDailyDistance
     );
   }
 
   /**
-   * Select optimal destination for a day with drive time preference and destination city priority
+   * Filter stops that are geographically progressing toward the final destination
+   */
+  private static filterStopsInCorrectDirection(
+    currentStop: TripStop,
+    finalDestination: TripStop,
+    availableStops: TripStop[]
+  ): TripStop[] {
+    const currentToFinalDistance = DistanceCalculationService.calculateDistance(
+      currentStop.latitude, currentStop.longitude,
+      finalDestination.latitude, finalDestination.longitude
+    );
+
+    return availableStops.filter(stop => {
+      // Distance from current stop to this potential stop
+      const currentToStopDistance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+
+      // Distance from this potential stop to final destination
+      const stopToFinalDistance = DistanceCalculationService.calculateDistance(
+        stop.latitude, stop.longitude,
+        finalDestination.latitude, finalDestination.longitude
+      );
+
+      // The stop should be closer to the final destination than the current stop
+      // and should be making progress (not going backwards)
+      const makingProgress = stopToFinalDistance < currentToFinalDistance;
+      
+      // Also check that we're not making too little progress (avoiding very short hops)
+      const minimumProgress = currentToStopDistance >= 50; // At least 50 miles
+      
+      // Maximum reasonable daily distance
+      const maximumProgress = currentToStopDistance <= 500; // No more than 500 miles
+
+      const isValidDirection = makingProgress && minimumProgress && maximumProgress;
+
+      if (!isValidDirection) {
+        console.log(`🚫 Filtering out ${stop.name}: progress=${makingProgress}, minDist=${minimumProgress}, maxDist=${maximumProgress}`);
+      }
+
+      return isValidDirection;
+    });
+  }
+
+  /**
+   * Select optimal destination for a day with geographic validation
    */
   static selectOptimalDayDestination(
     currentStop: TripStop,
@@ -61,11 +117,20 @@ export class DestinationOptimizationService {
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
+    // First filter by geographic direction
+    const directionValidStops = this.filterStopsInCorrectDirection(
+      currentStop,
+      finalDestination,
+      availableStops
+    );
+
+    const candidateStops = directionValidStops.length > 0 ? directionValidStops : availableStops;
+
     // Try drive time balanced selection with destination city priority first
     if (driveTimeTarget) {
       const balancedDestination = DestinationPriorityService.selectDestinationWithPriority(
         currentStop,
-        availableStops,
+        candidateStops,
         driveTimeTarget
       );
       
@@ -78,7 +143,7 @@ export class DestinationOptimizationService {
     return DistanceBasedDestinationService.selectDestinationByDistance(
       currentStop, 
       finalDestination, 
-      availableStops, 
+      candidateStops, 
       targetDistance
     );
   }

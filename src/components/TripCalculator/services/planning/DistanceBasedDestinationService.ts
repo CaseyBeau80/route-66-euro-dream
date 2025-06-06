@@ -5,7 +5,7 @@ import { StopPrioritizationService } from './StopPrioritizationService';
 
 export class DistanceBasedDestinationService {
   /**
-   * Fallback distance-based selection with destination city priority
+   * Fallback distance-based selection with geographic validation and destination city priority
    */
   static selectDestinationByDistance(
     currentStop: TripStop,
@@ -13,8 +13,14 @@ export class DistanceBasedDestinationService {
     availableStops: TripStop[],
     targetDistance: number
   ): TripStop {
-    const minDailyDistance = 30;
+    const minDailyDistance = 50; // Increased minimum for meaningful progress
     const maxDailyDistance = 500;
+
+    // Calculate current distance to final destination for geographic validation
+    const currentToFinalDistance = DistanceCalculationService.calculateDistance(
+      currentStop.latitude, currentStop.longitude,
+      finalDestination.latitude, finalDestination.longitude
+    );
 
     // Separate destination cities from other stops
     const destinationCities = availableStops.filter(stop => 
@@ -52,14 +58,21 @@ export class DistanceBasedDestinationService {
         finalDestination.latitude, finalDestination.longitude
       );
 
+      // CRITICAL: Ensure geographic progression - the stop must be closer to final destination
+      const makingProgress = distanceToFinal < currentToFinalDistance;
+      if (!makingProgress) {
+        console.log(`🚫 Rejecting ${stop.name}: not making geographic progress (${distanceToFinal.toFixed(0)}mi vs ${currentToFinalDistance.toFixed(0)}mi to final)`);
+        continue;
+      }
+
       // Enhanced scoring with massive destination city bonuses
       const distanceScore = Math.abs(distanceFromCurrent - targetDistance);
-      const progressScore = distanceToFinal * 0.1;
+      const progressScore = distanceToFinal * 0.1; // Favor stops closer to final destination
       
       // Massive bonuses for destination cities
-      const destinationCityBonus = stop.category === 'destination_city' ? -500 : 0;
-      const majorStopBonus = stop.is_major_stop ? -300 : 0;
-      const waypointBonus = stop.category === 'route66_waypoint' ? -100 : 0;
+      const destinationCityBonus = stop.category === 'destination_city' ? -1000 : 0;
+      const majorStopBonus = stop.is_major_stop ? -500 : 0;
+      const waypointBonus = stop.category === 'route66_waypoint' ? -200 : 0;
 
       const finalScore = distanceScore + progressScore + destinationCityBonus + majorStopBonus + waypointBonus;
 
@@ -69,7 +82,7 @@ export class DistanceBasedDestinationService {
       }
     }
 
-    console.log(`🎯 Selected ${bestStop.name} (${bestStop.category}) as destination via distance-based selection`);
+    console.log(`🎯 Selected ${bestStop.name} (${bestStop.category}) as destination via distance-based selection with geographic validation`);
     return bestStop;
   }
 
