@@ -1,4 +1,3 @@
-
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { DeterministicIdGenerator } from '../../utils/deterministicId';
@@ -104,6 +103,7 @@ const convertStopToTripStop = (
       description: `Discover ${stop} along your Route 66 journey`,
       category: 'attraction',
       city_name: 'Unknown',
+      city: 'Unknown', // Add city property
       state: 'Unknown',
       latitude: 0,
       longitude: 0
@@ -124,6 +124,7 @@ const convertStopToTripStop = (
       description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
       category: stop.category || 'attraction',
       city_name: stop.city_name || 'Unknown',
+      city: stop.city || stop.city_name || 'Unknown', // Add city property
       state: stop.state || 'Unknown',
       latitude: stop.latitude || 0,
       longitude: stop.longitude || 0,
@@ -233,6 +234,7 @@ const createFallbackStops = (segment: DailySegment, segmentKey: string): TripSto
         description: 'A mysterious light phenomenon that has puzzled visitors for decades along Route 66',
         category: 'attraction',
         city_name: 'Joplin',
+        city: 'Joplin', // Add city property
         state: 'MO',
         latitude: 37.0262,
         longitude: -94.8591
@@ -242,6 +244,7 @@ const createFallbackStops = (segment: DailySegment, segmentKey: string): TripSto
         description: 'A beautiful park perfect for a Route 66 road trip break',
         category: 'attraction',
         city_name: 'Joplin',
+        city: 'Joplin', // Add city property
         state: 'MO',
         latitude: 37.0842,
         longitude: -94.5133
@@ -253,6 +256,7 @@ const createFallbackStops = (segment: DailySegment, segmentKey: string): TripSto
         description: 'Iconic Route 66 roadside attraction - a giant blue whale sculpture',
         category: 'attraction',
         city_name: 'Catoosa',
+        city: 'Catoosa', // Add city property
         state: 'OK',
         latitude: 36.1851,
         longitude: -95.7317
@@ -262,6 +266,7 @@ const createFallbackStops = (segment: DailySegment, segmentKey: string): TripSto
         description: 'Fascinating collection of hand-carved totem poles along Route 66',
         category: 'attraction',
         city_name: 'Foyil',
+        city: 'Foyil', // Add city property
         state: 'OK',
         latitude: 36.4395,
         longitude: -95.5122
@@ -271,6 +276,7 @@ const createFallbackStops = (segment: DailySegment, segmentKey: string): TripSto
         description: 'Towering statue celebrating Oklahoma\'s oil heritage',
         category: 'attraction',
         city_name: 'Tulsa',
+        city: 'Tulsa', // Add city property
         state: 'OK',
         latitude: 36.1540,
         longitude: -95.9928

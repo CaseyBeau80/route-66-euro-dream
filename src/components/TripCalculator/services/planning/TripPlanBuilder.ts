@@ -22,6 +22,7 @@ export interface TripPlan {
     suggestions?: string[];
   };
   originalDays?: number;
+  wasAdjusted?: boolean;
 }
 
 export interface DailySegment {
@@ -44,6 +45,8 @@ export interface DailySegment {
   destination?: {
     city: string;
     state?: string;
+    city_name?: string;
+    name?: string;
   };
 }
 
@@ -60,6 +63,9 @@ export interface RecommendedStop {
   latitude: number;
   longitude: number;
   category?: string;
+  city_name?: string;
+  state?: string;
+  city?: string;
 }
 
 export interface SegmentTiming {

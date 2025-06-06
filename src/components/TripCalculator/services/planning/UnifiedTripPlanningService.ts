@@ -1,8 +1,9 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
-import { DailySegment, TripPlan } from './TripPlanBuilder';
+import { DailySegment, TripPlan, DriveTimeCategory } from './TripPlanBuilder';
 import { EnhancedDriveTimeBalancer } from './EnhancedDriveTimeBalancer';
 
 export class UnifiedTripPlanningService {
@@ -72,6 +73,7 @@ export class UnifiedTripPlanningService {
     const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
 
     const tripPlan: TripPlan = {
+      id: `trip-${Math.random().toString(36).substring(2, 9)}`,
       title: `${inputStartCity} to ${inputEndCity} Road Trip`,
       startCity: inputStartCity,
       endCity: inputEndCity,
@@ -82,7 +84,6 @@ export class UnifiedTripPlanningService {
       totalDrivingTime: parseFloat(totalDrivingTime.toFixed(1)),
       segments,
       dailySegments: segments,
-      wasAdjusted,
       driveTimeBalance
     };
 
@@ -144,7 +145,12 @@ export class UnifiedTripPlanningService {
         distance: segmentDistance,
         approximateMiles: Math.round(segmentDistance),
         driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
-        destination: dayDestination,
+        destination: {
+          city: dayDestination.city || dayDestination.city_name,
+          state: dayDestination.state,
+          city_name: dayDestination.city_name,
+          name: dayDestination.name
+        },
         recommendedStops: segmentStops,
         attractions: segmentStops.map(stop => stop.name),
         driveTimeCategory,
@@ -251,28 +257,28 @@ export class UnifiedTripPlanningService {
   /**
    * Enhanced drive time category with balance awareness
    */
-  private static getEnhancedDriveTimeCategory(driveTimeHours: number) {
+  private static getEnhancedDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
     if (driveTimeHours <= 4) {
       return {
-        category: 'short' as const,
+        category: 'short',
         message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace, plenty of time for attractions`,
         color: 'text-green-800'
       };
     } else if (driveTimeHours <= 6) {
       return {
-        category: 'optimal' as const,
+        category: 'optimal',
         message: `${driveTimeHours.toFixed(1)} hours - Perfect balance of driving and sightseeing`,
         color: 'text-blue-800'
       };
     } else if (driveTimeHours <= 8) {
       return {
-        category: 'long' as const,
+        category: 'long',
         message: `${driveTimeHours.toFixed(1)} hours - Substantial day, but manageable`,
         color: 'text-orange-800'
       };
     } else {
       return {
-        category: 'extreme' as const,
+        category: 'extreme',
         message: `${driveTimeHours.toFixed(1)} hours - Very long day, consider adding stops`,
         color: 'text-red-800'
       };

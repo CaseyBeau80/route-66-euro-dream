@@ -1,12 +1,9 @@
 
 import { DriveTimeConstraints } from './DriveTimeConstraints';
+import { DriveTimeCategory } from './TripPlanBuilder';
 
 export class DriveTimeCategoryService {
-  static getDriveTimeCategory(driveTimeHours: number): {
-    category: 'short' | 'optimal' | 'long' | 'extreme';
-    message: string;
-    color: string;
-  } {
+  static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
     const constraints = DriveTimeConstraints.CONSTRAINTS;
     
     if (driveTimeHours < constraints.optimalMinHours) {

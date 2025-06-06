@@ -103,7 +103,7 @@ export class Route66TripPlannerService {
       new Date(),
       tripDays,
       segments,
-      calculateDistance(validatedStartStop, validatedEndStop)
+      Route66TripPlannerService.calculateDistance(validatedStartStop, validatedEndStop)
     );
 
     console.log('🎯 Final trip plan created with actual stop cities:', {
