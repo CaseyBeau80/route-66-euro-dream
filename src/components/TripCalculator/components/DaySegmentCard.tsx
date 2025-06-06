@@ -14,6 +14,7 @@ import SegmentRecommendedStops from './SegmentRecommendedStops';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -53,7 +54,8 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'FORCE COLLAPSED');
+  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'with weather widget');
+  console.log("🌤️ DaySegmentCard: Rendering weather widget for segment:", stableSegment.endCity);
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -219,6 +221,19 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Weather Widget - Now prominently displayed */}
+            {tripStartDate && (
+              <ErrorBoundary context={`SegmentWeather-Day${stableSegment.day}`}>
+                <SegmentWeatherWidget 
+                  segment={stableSegment}
+                  tripStartDate={tripStartDate}
+                  cardIndex={cardIndex}
+                  tripId={tripId}
+                  sectionKey={`weather-${stableSegment.day}`}
+                />
+              </ErrorBoundary>
             )}
 
             {/* Recommended Stops */}

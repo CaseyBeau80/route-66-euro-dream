@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp, Cloud } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripStatsGrid from './TripStatsGrid';
 import ShareTripButton from './ShareTripButton';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface TripOverviewCardProps {
   tripPlan: TripPlan;
@@ -33,6 +34,8 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   formatDate,
   handleShare
 }) => {
+  console.log("🌤️ TripOverviewCard: Rendering with weather data for trip:", tripPlan.segments.length, "segments");
+  
   // Calculate end date
   const calculateEndDate = () => {
     if (tripStartDate && tripPlan.segments.length > 0) {
@@ -42,6 +45,9 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   };
 
   const endDate = calculateEndDate();
+
+  // Get the last segment for destination weather
+  const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
   return (
     <Card className="vintage-paper-texture border-2 border-route66-border">
@@ -68,6 +74,23 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatTime={formatTime}
           formatCurrency={formatCurrency}
         />
+
+        {/* Weather Information Section */}
+        {tripStartDate && lastSegment && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Cloud className="h-5 w-5 text-blue-600" />
+              <h3 className="font-semibold text-gray-800">Destination Weather</h3>
+            </div>
+            <SegmentWeatherWidget 
+              segment={lastSegment}
+              tripStartDate={tripStartDate}
+              cardIndex={0}
+              tripId="overview"
+              sectionKey="destination-weather"
+            />
+          </div>
+        )}
 
         {/* Cost Estimator Toggle */}
         <div className="mb-6">
