@@ -22,7 +22,7 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
 
   if (!segments || segments.length === 0) {
     return (
-      <div className="pdf-content text-center p-8">
+      <div className="pdf-content text-center p-8 w-full">
         <h3 className="text-lg font-semibold text-gray-600 mb-2">
           No Itinerary Available
         </h3>
@@ -34,12 +34,12 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
   }
 
   return (
-    <div className="pdf-itinerary-container bg-gray-50 min-h-screen p-6">
-      {/* Main Container - Match In-App Styling */}
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+    <div className="pdf-itinerary-container w-full">
+      {/* Main Container - Simplified without redundant wrappers */}
+      <div className="w-full bg-white rounded-xl shadow-md p-6">
         
         {/* Trip Overview Header */}
-        <div className="mb-6 pb-4 border-b border-gray-200">
+        <div className="mb-6 pb-4 border-b border-gray-200 w-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Daily Route 66 Itinerary</h2>
           <div className="flex gap-4 text-sm text-gray-600">
             <span>📅 {totalDays} days</span>
@@ -49,7 +49,7 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
         </div>
 
         {/* PDF Tab Headers - Visual Only (Match In-App Style) */}
-        <div className="pdf-tab-headers border-b border-gray-200 mb-6">
+        <div className="pdf-tab-headers border-b border-gray-200 mb-6 w-full">
           <div className="flex space-x-0">
             <div className="pdf-tab-header active bg-blue-50 border-t-2 border-blue-500 px-6 py-3 font-medium text-blue-700 rounded-t-lg">
               📍 Route & Stops
@@ -59,7 +59,7 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
         </div>
 
         {/* Daily Segments Content */}
-        <div className="pdf-content">
+        <div className="pdf-content w-full">
           <PDFRouteTabContent
             segments={segments}
             tripStartDate={tripStartDate}
@@ -69,9 +69,9 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
         </div>
 
         {/* PDF Legend */}
-        <div className="pdf-legend mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg no-page-break">
+        <div className="pdf-legend mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg no-page-break w-full">
           <h5 className="text-sm font-semibold text-gray-700 mb-3">Legend & Icons:</h5>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600 w-full">
             <div className="flex items-center gap-2">
               <span>📍</span>
               <span>Destination City</span>
