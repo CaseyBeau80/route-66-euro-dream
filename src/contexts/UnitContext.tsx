@@ -35,7 +35,7 @@ export const UnitProvider: React.FC<UnitProviderProps> = ({ children }) => {
       }
     }
     
-    // Default to Imperial instead of locale-based detection
+    // Default to Imperial units always
     return UnitConversionService.getUnitPreferences('imperial');
   });
 
