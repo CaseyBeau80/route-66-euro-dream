@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
 import TripCalculator from "./pages/TripCalculator";
+import TripDetailsPage from "./pages/TripDetailsPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/trip-calculator" element={<TripCalculator />} />
+              <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

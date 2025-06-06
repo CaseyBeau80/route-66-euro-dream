@@ -17,16 +17,28 @@ const TripDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔍 TripDetailsPage: shareCode from URL params:', { shareCode });
+    
     const loadTrip = async () => {
+      // Validate shareCode exists and has correct format
       if (!shareCode) {
-        setError('Invalid share code');
+        console.error('❌ TripDetailsPage: No shareCode provided in URL');
+        setError('Invalid share code - no code provided');
+        setLoading(false);
+        return;
+      }
+
+      if (shareCode.length !== 8) {
+        console.error('❌ TripDetailsPage: Invalid shareCode format:', shareCode);
+        setError('Invalid share code format - must be 8 characters');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('🔍 Loading trip with share code:', shareCode);
+        console.log('🔍 TripDetailsPage: Loading trip with share code:', shareCode);
         const tripData = await TripService.loadTripByShareCode(shareCode);
+        console.log('✅ TripDetailsPage: Trip loaded successfully:', tripData.title);
         setTrip(tripData);
         
         // Increment view count
@@ -36,20 +48,31 @@ const TripDetailsPage: React.FC = () => {
         setTrip(prev => prev ? { ...prev, view_count: prev.view_count + 1 } : null);
         
       } catch (err) {
-        console.error('❌ Error loading trip:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load trip');
+        console.error('❌ TripDetailsPage: Error loading trip:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load trip';
+        setError(errorMessage);
+        
+        // Show user-friendly toast
         toast({
           title: "Trip Not Found",
           description: "The requested trip could not be found. It may have been removed or the link is invalid.",
           variant: "destructive"
         });
+        
+        // Redirect to trip calculator after a delay if trip not found
+        if (errorMessage.includes('not found')) {
+          setTimeout(() => {
+            console.log('🔄 TripDetailsPage: Redirecting to trip calculator due to trip not found');
+            navigate('/trip-calculator');
+          }, 3000);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadTrip();
-  }, [shareCode]);
+  }, [shareCode, navigate]);
 
   if (loading) {
     return (
@@ -61,6 +84,9 @@ const TripDetailsPage: React.FC = () => {
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-route66-primary mx-auto mb-4"></div>
               <h2 className="text-2xl font-bold text-route66-text-primary mb-2">Loading Trip...</h2>
               <p className="text-route66-text-secondary">Please wait while we fetch your Route 66 adventure.</p>
+              {shareCode && (
+                <p className="text-sm text-route66-text-muted mt-2">Trip ID: {shareCode}</p>
+              )}
             </div>
           </div>
         </div>
@@ -80,13 +106,25 @@ const TripDetailsPage: React.FC = () => {
                 <p className="text-route66-text-secondary mb-6">
                   {error || 'The requested trip could not be found. It may have been removed or the link is invalid.'}
                 </p>
-                <Button
-                  onClick={() => navigate('/trip-calculator')}
-                  className="bg-route66-primary hover:bg-route66-rust text-white font-bold py-3 px-6 rounded-lg"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Plan a New Trip
-                </Button>
+                {shareCode && (
+                  <p className="text-sm text-route66-text-muted mb-4">Requested Trip ID: {shareCode}</p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => navigate('/trip-calculator')}
+                    className="bg-route66-primary hover:bg-route66-rust text-white font-bold py-3 px-6 rounded-lg"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Plan a New Trip
+                  </Button>
+                  <Button
+                    onClick={() => navigate('/')}
+                    variant="outline"
+                    className="border-route66-vintage-brown text-route66-vintage-brown hover:bg-route66-vintage-brown hover:text-white font-bold py-3 px-6 rounded-lg"
+                  >
+                    Back to Home
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
