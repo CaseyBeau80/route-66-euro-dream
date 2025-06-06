@@ -1,11 +1,11 @@
-import { TripStop } from '../data/SupabaseDataService';
+
+import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
+import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { SegmentStopCurator } from './SegmentStopCurator';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { SegmentMetricsCalculator } from './SegmentMetricsCalculator';
 import { SegmentValidationHelper } from './SegmentValidationHelper';
-import { RecommendedStop } from './TripPlanBuilder'; // Import RecommendedStop
 
 export class SegmentCreationLoop {
   /**
@@ -125,6 +125,19 @@ export class SegmentCreationLoop {
     // Create attractions list from recommended stops
     const attractions = segmentStops.map(stop => stop.name);
 
+    // Convert TripStop[] to RecommendedStop[] to satisfy type requirements
+    const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
+      id: stop.id,
+      name: stop.name,
+      description: stop.description,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      category: stop.category,
+      city_name: stop.city_name,
+      state: stop.state,
+      city: stop.city || stop.city_name || 'Unknown'
+    }));
+
     return {
       day,
       title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
@@ -134,7 +147,7 @@ export class SegmentCreationLoop {
       distance: segmentDistance, // Add distance property
       drivingTime: totalSegmentDriveTime, // Add drivingTime property
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
-      recommendedStops: segmentStops,
+      recommendedStops, // Use the converted stops
       attractions, // Add attractions property
       subStopTimings: segmentTimings,
       routeSection,

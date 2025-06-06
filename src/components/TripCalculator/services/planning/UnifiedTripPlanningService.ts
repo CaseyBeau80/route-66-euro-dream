@@ -1,9 +1,8 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
-import { DailySegment, TripPlan, DriveTimeCategory } from './TripPlanBuilder';
+import { DailySegment, TripPlan, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { EnhancedDriveTimeBalancer } from './EnhancedDriveTimeBalancer';
 
 export class UnifiedTripPlanningService {
@@ -176,7 +175,7 @@ export class UnifiedTripPlanningService {
     endStop: TripStop,
     availableStops: TripStop[],
     maxStops: number
-  ): TripStop[] {
+  ): RecommendedStop[] {
     const segmentDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
@@ -234,7 +233,18 @@ export class UnifiedTripPlanningService {
       }
     }
 
-    return selectedStops;
+    // Convert TripStops to RecommendedStops
+    return selectedStops.map(stop => ({
+      id: stop.id,
+      name: stop.name,
+      description: stop.description,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      category: stop.category,
+      city_name: stop.city_name,
+      state: stop.state,
+      city: stop.city || stop.city_name || 'Unknown'
+    }));
   }
 
   /**

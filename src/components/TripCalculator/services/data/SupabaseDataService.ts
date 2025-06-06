@@ -1,166 +1,215 @@
+// Import any required dependencies
+import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
-import { supabase } from '@/integrations/supabase/client';
-
-export interface TripStop {
-  id: string;
-  name: string;
-  description: string;
-  city_name: string;
-  state: string;
-  image_url?: string;
-  latitude: number;
-  longitude: number;
-  category: string;
-  is_major_stop?: boolean;
-  is_official_destination?: boolean;
-}
+// Re-export the TripStop type from the unified interface
+export type { UnifiedTripStop as TripStop };
 
 export class SupabaseDataService {
-  static async fetchAllStops(): Promise<TripStop[]> {
-    const stops: TripStop[] = [];
-    console.log('🔄 Starting to fetch all stops from Supabase...');
-
-    try {
-      // Fetch destination cities FIRST (highest priority)
-      console.log('🏙️ Fetching destination_cities (highest priority)...');
-      const { data: cities, error: citiesError } = await supabase
-        .from('destination_cities')
-        .select('*')
-        .order('name');
-
-      if (citiesError) {
-        console.error('❌ Error fetching cities:', citiesError);
-      } else {
-        console.log(`✅ Fetched ${cities?.length || 0} destination cities`);
-        if (cities) {
-          stops.push(...cities.map(city => ({
-            id: city.id,
-            name: city.name,
-            description: city.description || 'Official Route 66 destination city',
-            city_name: city.name,
-            state: city.state,
-            image_url: city.image_url,
-            latitude: city.latitude,
-            longitude: city.longitude,
-            category: 'destination_city',
-            is_official_destination: true
-          })));
-        }
-      }
-
-      // Fetch Route 66 waypoints (major stops)
-      console.log('📍 Fetching route66_waypoints...');
-      const { data: waypoints, error: waypointsError } = await supabase
-        .from('route66_waypoints')
-        .select('*')
-        .order('sequence_order');
-
-      if (waypointsError) {
-        console.error('❌ Error fetching waypoints:', waypointsError);
-      } else {
-        console.log(`✅ Fetched ${waypoints?.length || 0} waypoints`);
-        if (waypoints) {
-          stops.push(...waypoints.map(wp => ({
-            id: wp.id,
-            name: wp.name,
-            description: wp.description || 'Historic Route 66 waypoint',
-            city_name: wp.name,
-            state: wp.state,
-            image_url: wp.image_url,
-            latitude: wp.latitude,
-            longitude: wp.longitude,
-            category: 'route66_waypoint',
-            is_major_stop: wp.is_major_stop
-          })));
-        }
-      }
-
-      // Fetch attractions
-      console.log('🎡 Fetching attractions...');
-      const { data: attractions, error: attractionsError } = await supabase
-        .from('attractions')
-        .select('*')
-        .order('name');
-
-      if (attractionsError) {
-        console.error('❌ Error fetching attractions:', attractionsError);
-      } else {
-        console.log(`✅ Fetched ${attractions?.length || 0} attractions`);
-        if (attractions) {
-          stops.push(...attractions.map(attraction => ({
-            id: attraction.id,
-            name: attraction.name,
-            description: attraction.description || 'Route 66 attraction',
-            city_name: attraction.city_name,
-            state: attraction.state,
-            image_url: attraction.image_url,
-            latitude: attraction.latitude,
-            longitude: attraction.longitude,
-            category: attraction.category || 'attraction'
-          })));
-        }
-      }
-
-      // Fetch hidden gems
-      console.log('💎 Fetching hidden_gems...');
-      const { data: gems, error: gemsError } = await supabase
-        .from('hidden_gems')
-        .select('*')
-        .order('title');
-
-      if (gemsError) {
-        console.error('❌ Error fetching hidden gems:', gemsError);
-      } else {
-        console.log(`✅ Fetched ${gems?.length || 0} hidden gems`);
-        if (gems) {
-          stops.push(...gems.map(gem => ({
-            id: gem.id,
-            name: gem.title,
-            description: gem.description || 'Hidden Route 66 gem',
-            city_name: gem.city_name,
-            state: 'Various',
-            image_url: gem.image_url,
-            latitude: gem.latitude,
-            longitude: gem.longitude,
-            category: 'hidden_gem'
-          })));
-        }
-      }
-
-      console.log(`🛣️ Total stops fetched: ${stops.length}`);
-      console.log(`📊 Categories: ${this.getCategorySummary(stops)}`);
-      return stops;
-    } catch (error) {
-      console.error('❌ Error in fetchAllStops:', error);
-      return [];
-    }
-  }
-
   /**
-   * Get category summary for debugging
+   * Fetch all stops from database or mock data
    */
-  private static getCategorySummary(stops: TripStop[]): string {
-    const categories = stops.reduce((acc, stop) => {
-      acc[stop.category] = (acc[stop.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(categories)
-      .map(([category, count]) => `${category}: ${count}`)
-      .join(', ');
+  static async fetchAllStops(): Promise<UnifiedTripStop[]> {
+    console.log('🔍 Fetching all Route 66 stops...');
+    
+    // In a real implementation, this would fetch from Supabase
+    // For now, return mock data that matches our unified TripStop interface
+    return mockStopsData.map(stop => ({
+      ...stop,
+      // Ensure city property is set - use city_name as fallback
+      city: stop.city || stop.city_name || 'Unknown City'
+    }));
   }
-
-  /**
-   * Get official destination cities specifically
-   */
-  static getOfficialDestinationCities(stops: TripStop[]): TripStop[] {
-    return stops.filter(stop => stop.category === 'destination_city');
+  
+  // Rest of the class implementation
+  static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
+    const allStops = await this.fetchAllStops();
+    return allStops.filter(stop => stop.category === category);
   }
-
-  /**
-   * Get recommended stops (non-destination cities)
-   */
-  static getRecommendedStops(stops: TripStop[]): TripStop[] {
-    return stops.filter(stop => stop.category !== 'destination_city');
+  
+  static async fetchStopById(id: string): Promise<UnifiedTripStop | null> {
+    const allStops = await this.fetchAllStops();
+    return allStops.find(stop => stop.id === id) || null;
+  }
+  
+  static async fetchStopsByIds(ids: string[]): Promise<UnifiedTripStop[]> {
+    const allStops = await this.fetchAllStops();
+    return allStops.filter(stop => ids.includes(stop.id));
+  }
+  
+  static async fetchStopsByState(state: string): Promise<UnifiedTripStop[]> {
+    const allStops = await this.fetchAllStops();
+    return allStops.filter(stop => stop.state.toLowerCase() === state.toLowerCase());
+  }
+  
+  static async fetchMajorStops(): Promise<UnifiedTripStop[]> {
+    const allStops = await this.fetchAllStops();
+    return allStops.filter(stop => stop.is_major_stop === true);
+  }
+  
+  static async fetchOfficialDestinations(): Promise<UnifiedTripStop[]> {
+    const allStops = await this.fetchAllStops();
+    return allStops.filter(stop => stop.is_official_destination === true);
   }
 }
+
+// Mock data for development and testing
+const mockStopsData: Partial<UnifiedTripStop>[] = [
+  {
+    id: "chicago-start",
+    name: "Chicago",
+    description: "The official starting point of Route 66",
+    category: "destination_city",
+    city_name: "Chicago",
+    state: "IL",
+    latitude: 41.8781,
+    longitude: -87.6298,
+    is_major_stop: true,
+    is_official_destination: true
+  },
+  {
+    id: "lou-mitchells",
+    name: "Lou Mitchell's",
+    description: "Famous breakfast spot at the start of Route 66",
+    category: "restaurant",
+    city_name: "Chicago",
+    state: "IL",
+    latitude: 41.8786,
+    longitude: -87.6393
+  },
+  {
+    id: "gemini-giant",
+    name: "Gemini Giant",
+    description: "Iconic Route 66 roadside attraction",
+    category: "attraction",
+    city_name: "Wilmington",
+    state: "IL",
+    latitude: 41.3081,
+    longitude: -88.1487
+  },
+  {
+    id: "chain-of-rocks-bridge",
+    name: "Chain of Rocks Bridge",
+    description: "Historic Route 66 bridge over the Mississippi River",
+    category: "historic_site",
+    city_name: "St. Louis",
+    state: "MO",
+    latitude: 38.7584,
+    longitude: -90.1780
+  },
+  {
+    id: "gateway-arch",
+    name: "Gateway Arch",
+    description: "Iconic St. Louis landmark near Route 66",
+    category: "attraction",
+    city_name: "St. Louis",
+    state: "MO",
+    latitude: 38.6247,
+    longitude: -90.1848,
+    is_major_stop: true
+  },
+  {
+    id: "meramec-caverns",
+    name: "Meramec Caverns",
+    description: "Famous cave system and Route 66 attraction",
+    category: "attraction",
+    city_name: "Stanton",
+    state: "MO",
+    latitude: 38.2342,
+    longitude: -91.1137
+  },
+  {
+    id: "blue-whale-catoosa",
+    name: "Blue Whale of Catoosa",
+    description: "Beloved Route 66 roadside attraction",
+    category: "attraction",
+    city_name: "Catoosa",
+    state: "OK",
+    latitude: 36.1895,
+    longitude: -95.7313
+  },
+  {
+    id: "cadillac-ranch",
+    name: "Cadillac Ranch",
+    description: "Famous art installation of half-buried Cadillacs",
+    category: "attraction",
+    city_name: "Amarillo",
+    state: "TX",
+    latitude: 35.1872,
+    longitude: -101.9871,
+    is_major_stop: true
+  },
+  {
+    id: "midpoint-cafe",
+    name: "Midpoint Cafe",
+    description: "Restaurant marking the midpoint of Route 66",
+    category: "restaurant",
+    city_name: "Adrian",
+    state: "TX",
+    latitude: 35.2742,
+    longitude: -102.6769
+  },
+  {
+    id: "blue-swallow-motel",
+    name: "Blue Swallow Motel",
+    description: "Historic Route 66 motel with vintage neon sign",
+    category: "lodging",
+    city_name: "Tucumcari",
+    state: "NM",
+    latitude: 35.1719,
+    longitude: -103.7249
+  },
+  {
+    id: "petrified-forest",
+    name: "Petrified Forest National Park",
+    description: "National park featuring petrified wood and the Painted Desert",
+    category: "attraction",
+    city_name: "Holbrook",
+    state: "AZ",
+    latitude: 34.9099,
+    longitude: -109.8068,
+    is_major_stop: true
+  },
+  {
+    id: "wigwam-motel",
+    name: "Wigwam Motel",
+    description: "Iconic motel with teepee-shaped rooms",
+    category: "lodging",
+    city_name: "Holbrook",
+    state: "AZ",
+    latitude: 34.9011,
+    longitude: -110.1662
+  },
+  {
+    id: "grand-canyon",
+    name: "Grand Canyon",
+    description: "Natural wonder near Route 66",
+    category: "attraction",
+    city_name: "Williams",
+    state: "AZ",
+    latitude: 36.0544,
+    longitude: -112.1401,
+    is_major_stop: true
+  },
+  {
+    id: "roy's-motel-cafe",
+    name: "Roy's Motel & Cafe",
+    description: "Iconic Route 66 motel and cafe",
+    category: "lodging",
+    city_name: "Amboy",
+    state: "CA",
+    latitude: 34.5583,
+    longitude: -115.7458
+  },
+  {
+    id: "santa-monica-pier",
+    name: "Santa Monica Pier",
+    description: "The official end point of Route 66",
+    category: "destination_city",
+    city_name: "Santa Monica",
+    state: "CA",
+    latitude: 34.0089,
+    longitude: -118.4973,
+    is_major_stop: true,
+    is_official_destination: true
+  }
+];

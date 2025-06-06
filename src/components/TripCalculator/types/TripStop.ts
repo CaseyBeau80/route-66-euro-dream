@@ -27,7 +27,8 @@ export const isTripStop = (obj: any): obj is TripStop => {
     typeof obj.city_name === 'string' &&
     typeof obj.state === 'string' &&
     typeof obj.latitude === 'number' &&
-    typeof obj.longitude === 'number';
+    typeof obj.longitude === 'number' &&
+    typeof obj.city === 'string'; // Add check for city property
 };
 
 // Converter function to ensure objects match TripStop interface
@@ -38,7 +39,7 @@ export const convertToTripStop = (obj: any): TripStop => {
     description: obj.description || `Discover ${obj.name || 'this location'} along your Route 66 journey`,
     category: obj.category || 'attraction',
     city_name: obj.city_name || 'Unknown',
-    city: obj.city || obj.city_name || 'Unknown', // Add city property
+    city: obj.city || obj.city_name || 'Unknown', // Ensure city property is set
     state: obj.state || 'Unknown',
     latitude: obj.latitude || 0,
     longitude: obj.longitude || 0,
