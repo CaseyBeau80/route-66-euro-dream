@@ -9,6 +9,7 @@ export interface ForecastWeatherData extends WeatherData {
   isActualForecast: boolean;
   highTemp?: number;
   lowTemp?: number;
+  precipitationChance?: number;
 }
 
 export class WeatherForecastService {
@@ -59,8 +60,17 @@ export class WeatherForecastService {
       if (targetForecast) {
         const highTemp = targetForecast.temperature.high;
         const lowTemp = targetForecast.temperature.low;
+        const precipChance = parseInt(targetForecast.precipitationChance) || 0;
+        const humidity = targetForecast.humidity || 50;
+        const windSpeed = targetForecast.windSpeed || 0;
         
-        console.log(`🌡️ WeatherForecastService: Extracted temperatures - High: ${highTemp}°F, Low: ${lowTemp}°F`);
+        console.log(`🌡️ WeatherForecastService: Extracted real forecast data for ${cityName}:`, {
+          high: highTemp + '°F',
+          low: lowTemp + '°F',
+          precipitation: precipChance + '%',
+          humidity: humidity + '%',
+          wind: windSpeed + ' mph'
+        });
         
         return {
           temperature: Math.round((highTemp + lowTemp) / 2),
@@ -68,8 +78,9 @@ export class WeatherForecastService {
           lowTemp: lowTemp,
           description: targetForecast.description,
           icon: targetForecast.icon,
-          humidity: 50, // Default humidity for forecast
-          windSpeed: 8, // Default wind speed for forecast
+          humidity: humidity, // Real humidity from API
+          windSpeed: windSpeed, // Real wind speed from API
+          precipitationChance: precipChance, // Real precipitation chance from API
           cityName: cityName,
           forecast: processedForecast,
           forecastDate: targetDate,
@@ -97,6 +108,7 @@ export class WeatherForecastService {
       icon: '01d',
       humidity: 0,
       windSpeed: 0,
+      precipitationChance: 0,
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,

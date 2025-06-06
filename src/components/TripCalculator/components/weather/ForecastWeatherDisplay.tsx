@@ -29,7 +29,10 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     daysFromNow,
     cityName: weather.cityName,
     description: weather.description,
-    source: (weather as any).source
+    source: (weather as any).source,
+    humidity: weather.humidity,
+    windSpeed: weather.windSpeed,
+    precipitationChance: weather.precipitationChance
   });
 
   // Check if we should show historical data based on multiple conditions
@@ -52,7 +55,8 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         highTemp: historicalData.high,
         description: historicalData.condition,
         humidity: historicalData.humidity,
-        windSpeed: historicalData.windSpeed
+        windSpeed: historicalData.windSpeed,
+        precipitationChance: historicalData.precipitationChance
       };
       console.log('📊 Enhanced weather with historical data:', displayData);
     }
@@ -102,6 +106,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         <WeatherStats 
           humidity={displayData.humidity}
           windSpeed={displayData.windSpeed}
+          precipitationChance={displayData.precipitationChance}
         />
 
         <div className="text-xs text-blue-700 italic bg-blue-50 p-2 rounded">
@@ -172,6 +177,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       <WeatherStats 
         humidity={weather.humidity}
         windSpeed={weather.windSpeed}
+        precipitationChance={weather.precipitationChance}
       />
 
       {!weather.isActualForecast && daysFromNow && daysFromNow <= 5 && (

@@ -3,16 +3,25 @@ import { WeatherData, ForecastDay, WeatherWithForecast, OpenWeatherResponse, For
 
 export class WeatherDataProcessor {
   static processCurrentWeather(data: OpenWeatherResponse, cityName: string): WeatherData {
-    console.log('🔄 WeatherDataProcessor: Processing current weather data');
+    console.log('🔄 WeatherDataProcessor: Processing current weather data for', cityName);
+    console.log('🌤️ Raw weather data:', {
+      temp: data.main.temp,
+      humidity: data.main.humidity,
+      windSpeed: data.wind?.speed,
+      description: data.weather[0].description
+    });
     
-    return {
+    const processedWeather = {
       temperature: Math.round(data.main.temp),
       description: data.weather[0].description,
       icon: data.weather[0].icon,
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind?.speed || 0),
+      humidity: data.main.humidity, // Real humidity from API
+      windSpeed: Math.round(data.wind?.speed || 0), // Real wind speed from API
       cityName: cityName
     };
+    
+    console.log('✅ Processed current weather:', processedWeather);
+    return processedWeather;
   }
 
   static processForecastData(forecastData: ForecastResponse): ForecastDay[] {
@@ -49,6 +58,18 @@ export class WeatherDataProcessor {
           ? Math.round(precipChances.reduce((sum, chance) => sum + chance, 0) / precipChances.length)
           : 0;
         
+        // Calculate average humidity for the day
+        const humidities = dayData.map(item => item.main.humidity);
+        const avgHumidity = humidities.length > 0
+          ? Math.round(humidities.reduce((sum, humidity) => sum + humidity, 0) / humidities.length)
+          : 50;
+        
+        // Calculate average wind speed for the day
+        const windSpeeds = dayData.map(item => item.wind?.speed || 0);
+        const avgWindSpeed = windSpeeds.length > 0
+          ? Math.round(windSpeeds.reduce((sum, speed) => sum + speed, 0) / windSpeeds.length)
+          : 0;
+        
         // Find the most representative forecast (closest to midday)
         const midDayForecast = dayData.reduce((closest, current) => {
           const currentHour = new Date(current.dt * 1000).getHours();
@@ -67,10 +88,18 @@ export class WeatherDataProcessor {
           },
           description: midDayForecast.weather[0].description,
           icon: midDayForecast.weather[0].icon,
-          precipitationChance: avgPrecipChance.toString()
+          precipitationChance: avgPrecipChance.toString(),
+          humidity: avgHumidity, // Real humidity data
+          windSpeed: avgWindSpeed // Real wind speed data
         };
         
-        console.log(`✅ Processed day ${index} with temps:`, { high: highTemp, low: lowTemp });
+        console.log(`✅ Processed day ${index} with weather:`, { 
+          high: highTemp, 
+          low: lowTemp, 
+          precipitation: avgPrecipChance + '%',
+          humidity: avgHumidity + '%',
+          wind: avgWindSpeed + ' mph'
+        });
         return processedDay;
       });
   }
@@ -80,12 +109,12 @@ export class WeatherDataProcessor {
     forecastData: ForecastResponse, 
     cityName: string
   ): WeatherWithForecast {
-    console.log('🔄 WeatherDataProcessor: Processing weather with forecast data');
+    console.log('🔄 WeatherDataProcessor: Processing weather with forecast data for', cityName);
     
     const currentWeather = this.processCurrentWeather(currentData, cityName);
     const forecast = this.processForecastData(forecastData);
     
-    console.log('✅ WeatherDataProcessor: Final processed data:', {
+    console.log('✅ WeatherDataProcessor: Final processed data for', cityName, {
       current: currentWeather,
       forecastCount: forecast.length
     });
