@@ -7,17 +7,23 @@ interface SegmentRecommendedStopsProps {
   segment: DailySegment;
 }
 
-// Define proper types for stops to avoid TypeScript inference issues
+// Define proper types for stops to match TripStop interface
 interface ValidatedStop {
   id: string;
   name: string;
-  category?: string;
-  city_name?: string;
-  state?: string;
+  description: string;
+  city_name: string;
+  state: string;
+  image_url?: string;
+  latitude: number;
+  longitude: number;
+  category: string;
+  is_major_stop?: boolean;
+  is_official_destination?: boolean;
 }
 
 // Type guard to check if an object has the required stop properties
-const isValidStopObject = (stop: any): stop is { name: string; id?: string; category?: string; city_name?: string; state?: string } => {
+const isValidStopObject = (stop: any): stop is { name: string; id?: string; category?: string; city_name?: string; state?: string; description?: string; latitude?: number; longitude?: number; image_url?: string } => {
   return stop != null && 
          typeof stop === 'object' && 
          'name' in stop && 
@@ -54,9 +60,13 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
         .map((stop, index): ValidatedStop => ({
           id: stop.id || `recommended-${index}-${Math.random()}`,
           name: stop.name,
+          description: stop.description || 'Route 66 stop',
           category: stop.category || 'attraction',
-          city_name: stop.city_name || stop.state,
-          state: stop.state
+          city_name: stop.city_name || stop.state || 'Unknown',
+          state: stop.state || 'Unknown',
+          image_url: stop.image_url,
+          latitude: stop.latitude || 0,
+          longitude: stop.longitude || 0
         }));
       
       console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => s.name));
@@ -87,19 +97,26 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
             return {
               id: `attraction-${index}-${Math.random()}`,
               name: attraction,
+              description: 'Route 66 attraction',
               category: 'attraction',
-              city_name: segment.endCity,
-              state: segment.destination?.state || 'Unknown'
+              city_name: segment.endCity || 'Unknown',
+              state: segment.destination?.state || 'Unknown',
+              latitude: 0,
+              longitude: 0
             };
           } else {
             // TypeScript now knows this is an object with name property due to our filter
-            const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string };
+            const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string; description?: string; latitude?: number; longitude?: number; image_url?: string };
             return {
               id: `attraction-${index}-${Math.random()}`,
               name: attractionObj.name,
-              category: 'attraction',
-              city_name: segment.endCity,
-              state: segment.destination?.state || 'Unknown'
+              description: attractionObj.description || 'Route 66 attraction',
+              category: attractionObj.category || 'attraction',
+              city_name: attractionObj.city_name || segment.endCity || 'Unknown',
+              state: attractionObj.state || segment.destination?.state || 'Unknown',
+              image_url: attractionObj.image_url,
+              latitude: attractionObj.latitude || 0,
+              longitude: attractionObj.longitude || 0
             };
           }
         });
