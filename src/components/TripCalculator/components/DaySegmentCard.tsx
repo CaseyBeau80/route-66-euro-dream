@@ -9,6 +9,7 @@ import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
+import DebugStopSelection from './DebugStopSelection';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -190,6 +191,11 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 
           {/* Recommended Stops */}
           <SegmentRecommendedStops segment={segment} />
+
+          {/* Debug Component - Only in Development */}
+          {process.env.NODE_ENV === 'development' && (
+            <DebugStopSelection segment={segment} />
+          )}
 
           {/* Route Progression */}
           <SegmentRouteProgression segment={segment} />

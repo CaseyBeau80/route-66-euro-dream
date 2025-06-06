@@ -2,7 +2,7 @@
 import { ValidatedStop, isValidStopObject } from '../types/stopTypes';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
-// Filter function to exclude route66_waypoint categories from user display
+// EXPANDED filter function to include more user-relevant categories
 export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
   const userRelevantCategories = [
     'attraction',
@@ -10,21 +10,54 @@ export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
     'diner',
     'motel',
     'museum',
-    'destination_city'
+    'destination_city',
+    'restaurant',
+    'lodging',
+    'hotel',
+    'historic_site',
+    'scenic_viewpoint',
+    'photo_opportunity',
+    'landmark',
+    'cultural_site'
   ];
   
   return userRelevantCategories.includes(stop.category || '');
+};
+
+// ENHANCED geographic filtering with more generous boundaries
+export const isGeographicallyRelevant = (
+  stop: ValidatedStop,
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+  segmentDistance: number
+): boolean => {
+  const distanceFromStart = Math.sqrt(
+    Math.pow(stop.latitude - startLat, 2) + Math.pow(stop.longitude - startLng, 2)
+  ) * 69; // Rough miles conversion
+  
+  const distanceFromEnd = Math.sqrt(
+    Math.pow(stop.latitude - endLat, 2) + Math.pow(stop.longitude - endLng, 2)
+  ) * 69;
+  
+  // More generous geographic boundaries
+  const maxDetourDistance = Math.max(segmentDistance * 0.5, 150); // At least 150 miles or 50% of segment
+  const totalViaStop = distanceFromStart + distanceFromEnd;
+  const detour = totalViaStop - segmentDistance;
+  
+  return detour <= maxDetourDistance && distanceFromStart <= segmentDistance * 1.2;
 };
 
 // Get validated stops from multiple possible sources with enhanced validation
 export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
   const stops: ValidatedStop[] = [];
   
-  console.log(`🔍 EnhancedRecommendedStops: Validating stops for Day ${segment.day}:`, {
+  console.log(`🔍 ENHANCED VALIDATION: Day ${segment.day}:`, {
     recommendedStops: segment.recommendedStops?.length || 0,
     attractions: segment.attractions?.length || 0,
-    recommendedStopsData: segment.recommendedStops,
-    attractionsData: segment.attractions
+    startCity: segment.startCity,
+    endCity: segment.endCity
   });
   
   // Primary source: recommendedStops array
@@ -36,7 +69,8 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
         console.log(`🎯 Stop ${index + 1} validation:`, {
           stop: stop,
           isValid,
-          name: isValid ? stop.name : 'invalid'
+          name: isValid ? stop.name : 'invalid',
+          category: isValid ? stop.category : 'unknown'
         });
         
         return isValid;
@@ -49,7 +83,7 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
         state: stop.state
       }));
     
-    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => s.name));
+    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => `${s.name} (${s.category})`));
     stops.push(...validRecommendedStops);
   }
   
@@ -87,9 +121,9 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
           return {
             id: `attraction-${index}-${Math.random()}`,
             name: attractionObj.name,
-            category: 'attraction',
-            city_name: segment.endCity,
-            state: segment.destination?.state || 'Unknown'
+            category: attractionObj.category || 'attraction',
+            city_name: attractionObj.city_name || segment.endCity,
+            state: attractionObj.state || segment.destination?.state || 'Unknown'
           };
         }
       });
@@ -98,12 +132,79 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
     stops.push(...attractionStops);
   }
   
+  // FALLBACK: If still no stops, create synthetic ones based on known Route 66 attractions
+  if (stops.length === 0) {
+    console.log(`🚨 NO STOPS FOUND - Creating fallback stops for ${segment.startCity} → ${segment.endCity}`);
+    
+    const fallbackStops = createFallbackStops(segment);
+    console.log(`🔄 Created ${fallbackStops.length} fallback stops:`, fallbackStops.map(s => s.name));
+    stops.push(...fallbackStops);
+  }
+  
   // Remove duplicates based on name
   const uniqueStops = stops.filter((stop, index, self) => 
     index === self.findIndex(s => s.name.toLowerCase() === stop.name.toLowerCase())
   );
   
-  console.log(`🎯 Final unique stops: ${uniqueStops.length}`, uniqueStops.map(s => s.name));
+  console.log(`🎯 Final unique stops: ${uniqueStops.length}`, uniqueStops.map(s => `${s.name} (${s.category})`));
   
   return uniqueStops;
+};
+
+// Create fallback stops for segments with no data
+const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
+  const route66Attractions: Record<string, ValidatedStop[]> = {
+    'joplin': [
+      {
+        id: 'fallback-joplin-1',
+        name: 'Spook Light',
+        category: 'attraction',
+        city_name: 'Joplin',
+        state: 'MO'
+      },
+      {
+        id: 'fallback-joplin-2',
+        name: 'Schifferdecker Park',
+        category: 'attraction',
+        city_name: 'Joplin',
+        state: 'MO'
+      }
+    ],
+    'oklahoma': [
+      {
+        id: 'fallback-ok-1',
+        name: 'Blue Whale of Catoosa',
+        category: 'attraction',
+        city_name: 'Catoosa',
+        state: 'OK'
+      },
+      {
+        id: 'fallback-ok-2',
+        name: 'Totem Pole Park',
+        category: 'attraction',
+        city_name: 'Foyil',
+        state: 'OK'
+      },
+      {
+        id: 'fallback-ok-3',
+        name: 'Golden Driller',
+        category: 'attraction',
+        city_name: 'Tulsa',
+        state: 'OK'
+      }
+    ]
+  };
+  
+  const startKey = segment.startCity.toLowerCase();
+  const endKey = segment.endCity.toLowerCase();
+  
+  const relevantStops: ValidatedStop[] = [];
+  
+  // Check for regional matches
+  if (startKey.includes('joplin') || endKey.includes('oklahoma')) {
+    relevantStops.push(...(route66Attractions.joplin || []));
+    relevantStops.push(...(route66Attractions.oklahoma || []));
+  }
+  
+  return relevantStops.slice(0, 3); // Limit to 3 fallback stops
 };
