@@ -37,7 +37,14 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
     defaultExpanded
   });
 
+  console.log(`🃏 EnhancedCollapsibleCard: Rendering ${sectionKey}-${cardIndex}`, {
+    isExpanded,
+    defaultExpanded,
+    tripId
+  });
+
   const onToggle = (newState: boolean) => {
+    console.log(`🔄 EnhancedCollapsibleCard: Toggle triggered for ${sectionKey}-${cardIndex}: ${isExpanded} → ${newState}`);
     handleToggle(newState);
     
     // Dispatch event to update collapsed count
@@ -49,7 +56,8 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
 
   return (
     <Collapsible 
-      open={isExpanded} 
+      open={isExpanded}
+      defaultOpen={false}
       onOpenChange={onToggle}
       disabled={disabled}
       className={cn("w-full", className)}

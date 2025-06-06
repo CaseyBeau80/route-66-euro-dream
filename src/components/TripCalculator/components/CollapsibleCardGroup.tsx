@@ -24,11 +24,43 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [collapsedCount, setCollapsedCount] = useState(totalCards);
 
+  console.log(`📊 CollapsibleCardGroup: Initializing ${sectionKey}`, {
+    tripId,
+    sectionKey,
+    totalCards,
+    initialCollapsedCount: collapsedCount
+  });
+
+  // Calculate collapsed count from localStorage or default state
+  const calculateCollapsedCount = () => {
+    if (tripId && totalCards > 0) {
+      let collapsed = 0;
+      for (let i = 0; i < totalCards; i++) {
+        const cardState = localStorage.getItem(`trip-${tripId}-${sectionKey}-card-${i}`);
+        // If no saved state exists, card should be collapsed (default: false)
+        // If saved state exists, parse it
+        const isExpanded = cardState !== null ? JSON.parse(cardState) : false;
+        if (!isExpanded) {
+          collapsed++;
+        }
+      }
+      console.log(`📊 Calculated collapsed count for ${sectionKey}: ${collapsed}/${totalCards}`);
+      return collapsed;
+    }
+    // If no tripId, all cards start collapsed
+    return totalCards;
+  };
+
   // Load persisted state from localStorage
   useEffect(() => {
     if (tripId) {
       const savedState = localStorage.getItem(`trip-${tripId}-${sectionKey}-expanded`);
       const savedInteraction = localStorage.getItem(`trip-${tripId}-${sectionKey}-interacted`);
+      
+      console.log(`📂 Loading group state for ${sectionKey}:`, {
+        savedState,
+        savedInteraction
+      });
       
       if (savedState !== null) {
         setAllExpanded(JSON.parse(savedState));
@@ -40,24 +72,34 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     }
   }, [tripId, sectionKey]);
 
-  // Calculate collapsed count from localStorage
-  const calculateCollapsedCount = () => {
+  // Initial collapsed count calculation and cleanup
+  useEffect(() => {
+    // Clean up any corrupted localStorage entries first
     if (tripId && totalCards > 0) {
-      let collapsed = 0;
       for (let i = 0; i < totalCards; i++) {
-        const cardState = localStorage.getItem(`trip-${tripId}-${sectionKey}-card-${i}`);
-        if (cardState === null || !JSON.parse(cardState)) {
-          collapsed++;
+        const cardKey = `trip-${tripId}-${sectionKey}-card-${i}`;
+        const cardState = localStorage.getItem(cardKey);
+        
+        if (cardState !== null) {
+          try {
+            JSON.parse(cardState);
+          } catch (error) {
+            console.warn(`🧹 Cleaning up corrupted localStorage entry: ${cardKey}`);
+            localStorage.removeItem(cardKey);
+          }
         }
       }
-      return collapsed;
     }
-    return totalCards;
-  };
-
-  // Initial collapsed count calculation
-  useEffect(() => {
-    setCollapsedCount(calculateCollapsedCount());
+    
+    // Calculate the actual collapsed count
+    const newCollapsedCount = calculateCollapsedCount();
+    setCollapsedCount(newCollapsedCount);
+    setAllExpanded(newCollapsedCount === 0);
+    
+    console.log(`📊 Initial state calculated for ${sectionKey}:`, {
+      collapsedCount: newCollapsedCount,
+      allExpanded: newCollapsedCount === 0
+    });
   }, [tripId, sectionKey, totalCards]);
 
   // Listen for card state changes to update collapsed count
@@ -65,10 +107,17 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     const handleCardStateChange = (event: CustomEvent) => {
       if (event.detail.sectionKey !== sectionKey) return;
       
+      console.log(`📊 Card state change detected for ${sectionKey}:`, event.detail);
+      
       // Recalculate collapsed count from localStorage
       const newCollapsedCount = calculateCollapsedCount();
       setCollapsedCount(newCollapsedCount);
       setAllExpanded(newCollapsedCount === 0);
+      
+      console.log(`📊 Updated group state for ${sectionKey}:`, {
+        collapsedCount: newCollapsedCount,
+        allExpanded: newCollapsedCount === 0
+      });
     };
 
     window.addEventListener('cardStateChanged', handleCardStateChange as EventListener);
@@ -80,6 +129,8 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
 
   const handleToggleAll = () => {
     const newExpandedState = !allExpanded;
+    console.log(`🔄 Toggle all for ${sectionKey}: ${allExpanded} → ${newExpandedState}`);
+    
     setAllExpanded(newExpandedState);
     setHasUserInteracted(true);
     setCollapsedCount(newExpandedState ? 0 : totalCards);
@@ -88,6 +139,8 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     if (tripId) {
       localStorage.setItem(`trip-${tripId}-${sectionKey}-expanded`, JSON.stringify(newExpandedState));
       localStorage.setItem(`trip-${tripId}-${sectionKey}-interacted`, JSON.stringify(true));
+      
+      console.log(`💾 Saved group toggle state for ${sectionKey}: expanded=${newExpandedState}`);
     }
 
     // Dispatch custom event to notify all collapsible cards
