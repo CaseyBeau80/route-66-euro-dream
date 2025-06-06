@@ -13,6 +13,7 @@ interface SegmentWeatherWidgetProps {
   tripId?: string;
   sectionKey?: string;
   forceExpanded?: boolean;
+  isCollapsible?: boolean;
 }
 
 const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ 
@@ -21,7 +22,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   cardIndex = 0,
   tripId,
   sectionKey = 'weather',
-  forceExpanded = false
+  forceExpanded = false,
+  isCollapsible = false
 }) => {
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
@@ -35,11 +37,13 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
     : null;
 
-  console.log(`🌤️ SegmentWeatherWidget: Column rendering for ${segment.endCity} (Day ${segment.day})`, {
+  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     hasApiKey,
     segmentDate: segmentDate?.toISOString(),
     daysFromNow,
-    forceExpanded
+    forceExpanded,
+    isCollapsible,
+    sectionKey
   });
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
@@ -51,7 +55,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   });
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${isCollapsible ? 'bg-gray-50 rounded-lg p-3' : ''}`}>
       <SegmentWeatherContent
         hasApiKey={hasApiKey}
         loading={weatherState.loading}

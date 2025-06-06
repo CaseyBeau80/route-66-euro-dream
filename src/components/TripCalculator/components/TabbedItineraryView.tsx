@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { useStableSegments } from '../hooks/useStableSegments';
 import DaySegmentCard from './DaySegmentCard';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
+import CollapsibleWeatherCard from './weather/CollapsibleWeatherCard';
 import ErrorBoundary from './ErrorBoundary';
 
 interface TabbedItineraryViewProps {
@@ -68,7 +68,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
     <ErrorBoundary context="TabbedItineraryView">
       <div className="rounded-xl bg-white p-6 shadow-md">
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="h-6 w-6 text-route66-primary" />
             <h3 className="text-xl font-bold text-route66-text-primary">
@@ -81,135 +81,106 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-gray-200">
-          <div className="flex space-x-0 relative">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200
-                    ${isActive 
-                      ? 'border-route66-primary text-route66-primary bg-route66-accent-light/20' 
-                      : 'border-transparent text-route66-text-secondary hover:text-route66-text-primary hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.id === 'route' ? 'Route' : 'Weather'}</span>
-                </button>
-              );
-            })}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <div className="flex space-x-0">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-all duration-200 relative
+                      ${isActive 
+                        ? 'border-route66-primary text-route66-primary bg-route66-accent-light/10' 
+                        : 'border-transparent text-route66-text-secondary hover:text-route66-text-primary hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.id === 'route' ? 'Route' : 'Weather'}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="relative">
+        {/* Tab Content with Sliding Animation */}
+        <div className="relative overflow-hidden min-h-[400px]">
           {/* Route & Stops Content */}
           <div className={`
-            transition-all duration-300 ease-in-out
+            absolute inset-0 transition-all duration-500 ease-in-out
             ${activeTab === 'route' 
-              ? 'opacity-100 translate-x-0 relative' 
-              : 'opacity-0 translate-x-4 absolute inset-0 pointer-events-none'
+              ? 'translate-x-0 opacity-100' 
+              : '-translate-x-full opacity-0 pointer-events-none'
             }
           `}>
-            {activeTab === 'route' && (
-              <div className="space-y-4">
-                <div className="mb-3">
-                  <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-                    Route & Recommended Stops
-                  </h4>
-                </div>
-                
-                {stableSegments.map((segment, index) => (
-                  <ErrorBoundary key={`route-segment-${segment.day}-${index}`} context={`RouteTab-Segment-${index}`}>
-                    <DaySegmentCard 
-                      segment={segment}
-                      tripStartDate={tripStartDate}
-                      cardIndex={index}
-                      tripId={tripId}
-                      sectionKey="route-tab"
-                    />
-                  </ErrorBoundary>
-                ))}
+            <div className="space-y-4">
+              <div className="mb-3">
+                <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
+                  Route & Recommended Stops
+                </h4>
               </div>
-            )}
+              
+              {stableSegments.map((segment, index) => (
+                <ErrorBoundary key={`route-segment-${segment.day}-${index}`} context={`RouteTab-Segment-${index}`}>
+                  <DaySegmentCard 
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    cardIndex={index}
+                    tripId={tripId}
+                    sectionKey="route-tab"
+                  />
+                </ErrorBoundary>
+              ))}
+            </div>
           </div>
 
           {/* Weather Forecast Content */}
           <div className={`
-            transition-all duration-300 ease-in-out
+            absolute inset-0 transition-all duration-500 ease-in-out
             ${activeTab === 'weather' 
-              ? 'opacity-100 translate-x-0 relative' 
-              : 'opacity-0 -translate-x-4 absolute inset-0 pointer-events-none'
+              ? 'translate-x-0 opacity-100' 
+              : 'translate-x-full opacity-0 pointer-events-none'
             }
           `}>
-            {activeTab === 'weather' && (
-              <div className="space-y-4">
-                <div className="mb-3">
-                  <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-                    Daily Weather Forecast
-                  </h4>
-                </div>
-
-                {!tripStartDate ? (
-                  <div className="bg-gray-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
-                    <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h5 className="text-lg font-semibold text-gray-600 mb-2">
-                      Weather Forecast
-                    </h5>
-                    <p className="text-gray-500 text-sm">
-                      Set a trip start date to see weather forecasts for your journey
-                    </p>
-                  </div>
-                ) : (
-                  stableSegments.map((segment, index) => {
-                    const segmentDate = new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-                    
-                    return (
-                      <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherTab-Segment-${index}`}>
-                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow min-h-[200px]">
-                          {/* Day Header */}
-                          <div className="p-4 border-b border-gray-100">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
-                                  Day {segment.day}
-                                </span>
-                                <span className="text-gray-300">•</span>
-                                <h5 className="text-sm font-semibold text-route66-text-primary">
-                                  {segment.endCity}
-                                </h5>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {format(segmentDate, 'EEE, MMM d')}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Weather Content */}
-                          <div className="p-4">
-                            <SegmentWeatherWidget
-                              segment={segment}
-                              tripStartDate={tripStartDate}
-                              cardIndex={index}
-                              tripId={tripId}
-                              sectionKey="weather-tab"
-                              forceExpanded={true}
-                            />
-                          </div>
-                        </div>
-                      </ErrorBoundary>
-                    );
-                  })
-                )}
+            <div className="space-y-4">
+              <div className="mb-3">
+                <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
+                  Daily Weather Forecast
+                </h4>
               </div>
-            )}
+
+              {!tripStartDate ? (
+                <div className="bg-gray-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
+                  <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h5 className="text-lg font-semibold text-gray-600 mb-2">
+                    Weather Forecast
+                  </h5>
+                  <p className="text-gray-500 text-sm">
+                    Set a trip start date to see weather forecasts for your journey
+                  </p>
+                </div>
+              ) : (
+                stableSegments.map((segment, index) => (
+                  <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherTab-Segment-${index}`}>
+                    <CollapsibleWeatherCard
+                      segment={segment}
+                      tripStartDate={tripStartDate}
+                      cardIndex={index}
+                      tripId={tripId}
+                      sectionKey="weather-tab"
+                      defaultExpanded={index === 0} // First card expanded by default
+                    />
+                  </ErrorBoundary>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
