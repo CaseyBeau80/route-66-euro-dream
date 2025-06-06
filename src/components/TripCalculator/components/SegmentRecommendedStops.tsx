@@ -8,21 +8,6 @@ interface SegmentRecommendedStopsProps {
   segment: DailySegment;
 }
 
-// Define proper types for stops to match TripStop interface
-interface ValidatedStop {
-  id: string;
-  name: string;
-  description: string;
-  city_name: string;
-  state: string;
-  image_url?: string;
-  latitude: number;
-  longitude: number;
-  category: string;
-  is_major_stop?: boolean;
-  is_official_destination?: boolean;
-}
-
 const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segment }) => {
   // Use the centralized validation logic from stopValidation.ts
   const validStops = getValidatedStops(segment);

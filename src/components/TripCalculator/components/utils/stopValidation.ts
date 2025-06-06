@@ -93,11 +93,13 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
       .map((stop, index): ValidatedStop => ({
         id: stop.id || `recommended-${index}-${Math.random()}`,
         name: stop.name,
+        description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
         category: stop.category || 'attraction',
-        city_name: stop.city_name || stop.state,
-        state: stop.state,
+        city_name: stop.city_name || stop.state || 'Unknown',
+        state: stop.state || 'Unknown',
         latitude: stop.latitude || 0,
-        longitude: stop.longitude || 0
+        longitude: stop.longitude || 0,
+        image_url: stop.image_url
       }));
     
     console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => `${s.name} (${s.category})`));
@@ -128,23 +130,26 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
           return {
             id: `attraction-${index}-${Math.random()}`,
             name: attraction,
+            description: `Discover ${attraction} along your Route 66 journey`,
             category: 'attraction',
-            city_name: segment.endCity,
+            city_name: segment.endCity || 'Unknown',
             state: 'Unknown',
             latitude: 0,
             longitude: 0
           };
         } else {
           // TypeScript now knows this is an object with name property due to our filter
-          const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string; latitude?: number; longitude?: number };
+          const attractionObj = attraction as { name: string; id?: string; description?: string; category?: string; city_name?: string; state?: string; latitude?: number; longitude?: number; image_url?: string };
           return {
             id: `attraction-${index}-${Math.random()}`,
             name: attractionObj.name,
+            description: attractionObj.description || `Discover ${attractionObj.name} along your Route 66 journey`,
             category: attractionObj.category || 'attraction',
-            city_name: attractionObj.city_name || segment.endCity,
+            city_name: attractionObj.city_name || segment.endCity || 'Unknown',
             state: attractionObj.state || 'Unknown',
             latitude: attractionObj.latitude || 0,
-            longitude: attractionObj.longitude || 0
+            longitude: attractionObj.longitude || 0,
+            image_url: attractionObj.image_url
           };
         }
       });
@@ -179,6 +184,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
       {
         id: 'fallback-joplin-1',
         name: 'Spook Light',
+        description: 'A mysterious light phenomenon that has puzzled visitors for decades along Route 66',
         category: 'attraction',
         city_name: 'Joplin',
         state: 'MO',
@@ -188,6 +194,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
       {
         id: 'fallback-joplin-2',
         name: 'Schifferdecker Park',
+        description: 'A beautiful park perfect for a Route 66 road trip break',
         category: 'attraction',
         city_name: 'Joplin',
         state: 'MO',
@@ -199,6 +206,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
       {
         id: 'fallback-ok-1',
         name: 'Blue Whale of Catoosa',
+        description: 'Iconic Route 66 roadside attraction - a giant blue whale sculpture',
         category: 'attraction',
         city_name: 'Catoosa',
         state: 'OK',
@@ -208,6 +216,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
       {
         id: 'fallback-ok-2',
         name: 'Totem Pole Park',
+        description: 'Fascinating collection of hand-carved totem poles along Route 66',
         category: 'attraction',
         city_name: 'Foyil',
         state: 'OK',
@@ -217,6 +226,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
       {
         id: 'fallback-ok-3',
         name: 'Golden Driller',
+        description: 'Towering statue celebrating Oklahoma\'s oil heritage',
         category: 'attraction',
         city_name: 'Tulsa',
         state: 'OK',
