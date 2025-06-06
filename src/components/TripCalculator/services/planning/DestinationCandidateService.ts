@@ -26,6 +26,12 @@ export class DestinationCandidateService {
     targetDistanceFromStart: number,
     isOfficialDestination: boolean
   ): SegmentDestination | null {
+    // Add null safety check
+    if (!currentStop || !endStop || !candidate) {
+      console.log('⚠️ Null safety check failed in scoreDestinationCandidate');
+      return null;
+    }
+
     const distanceFromStart = DistanceCalculationService.calculateDistance(
       currentStop.latitude, currentStop.longitude,
       candidate.latitude, candidate.longitude
@@ -63,7 +69,7 @@ export class DestinationCandidateService {
   }
 
   /**
-   * Select the best destination for a specific day
+   * Select the best destination for a specific day with enhanced null safety
    */
   static selectBestDestinationForDay(
     currentStop: TripStop,
@@ -73,13 +79,23 @@ export class DestinationCandidateService {
     alreadySelected: TripStop[],
     targetDistanceFromStart: number
   ): TripStop | null {
+    // Add comprehensive null safety checks
+    if (!currentStop || !endStop) {
+      console.log('⚠️ Current or end stop is null/undefined');
+      return null;
+    }
+
+    if (!officialDestinations) officialDestinations = [];
+    if (!otherStops) otherStops = [];
+    if (!alreadySelected) alreadySelected = [];
+
     // Filter out already selected destinations
     const availableOfficials = officialDestinations.filter(dest => 
-      !alreadySelected.some(selected => selected.id === dest.id)
+      dest && !alreadySelected.some(selected => selected && selected.id === dest.id)
     );
     
     const availableOthers = otherStops.filter(stop => 
-      !alreadySelected.some(selected => selected.id === stop.id)
+      stop && !alreadySelected.some(selected => selected && selected.id === stop.id)
     );
 
     // Score all candidates
@@ -87,6 +103,8 @@ export class DestinationCandidateService {
 
     // Score official destination cities (higher priority)
     for (const destination of availableOfficials) {
+      if (!destination) continue;
+      
       const scored = this.scoreDestinationCandidate(
         currentStop,
         endStop,
@@ -105,6 +123,8 @@ export class DestinationCandidateService {
       console.log(`⚠️ No suitable official destinations found, considering other stops`);
       
       for (const stop of availableOthers) {
+        if (!stop) continue;
+        
         const scored = this.scoreDestinationCandidate(
           currentStop,
           endStop,
@@ -128,6 +148,21 @@ export class DestinationCandidateService {
       return best.stop;
     }
 
-    return null;
+    // If no candidates found, return a safe fallback
+    console.log(`⚠️ No suitable candidates found, using fallback logic`);
+    
+    // Try to find any destination city that's not already selected
+    const fallbackDestination = officialDestinations.find(dest => 
+      dest && !alreadySelected.some(selected => selected && selected.id === dest.id)
+    );
+    
+    if (fallbackDestination) {
+      console.log(`🔄 Using fallback destination: ${fallbackDestination.name}`);
+      return fallbackDestination;
+    }
+
+    // Last resort - return end stop if nothing else works
+    console.log(`🚨 Last resort: using end stop as destination`);
+    return endStop;
   }
 }
