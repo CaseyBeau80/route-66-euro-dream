@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
+import { DistanceEstimationService } from '../services/utils/DistanceEstimationService';
+import TripStyleHelperMessage from './TripStyleHelperMessage';
 
 interface TripStyleSelectorProps {
   formData: TripFormData;
@@ -21,6 +23,38 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
       tripStyle: value
     });
   };
+
+  // Calculate estimated days for helper message
+  const shouldShowHelperMessage = () => {
+    // Only show for destination-focused trips
+    if (formData.tripStyle !== 'destination-focused') return false;
+    
+    // Need both start and end locations
+    if (!formData.startLocation || !formData.endLocation) return false;
+    
+    // Need valid travel days
+    if (!formData.travelDays || formData.travelDays <= 0) return false;
+    
+    const estimatedDays = DistanceEstimationService.estimateTripDays(
+      formData.startLocation,
+      formData.endLocation
+    );
+    
+    // Show message if actual days is less than estimated days
+    return estimatedDays !== null && formData.travelDays < estimatedDays;
+  };
+
+  const getEstimatedDays = () => {
+    if (!formData.startLocation || !formData.endLocation) return null;
+    
+    return DistanceEstimationService.estimateTripDays(
+      formData.startLocation,
+      formData.endLocation
+    );
+  };
+
+  const showHelper = shouldShowHelperMessage();
+  const estimatedDays = getEstimatedDays();
 
   return (
     <Card className="border-route66-border bg-route66-background">
@@ -66,6 +100,14 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
             </div>
           </div>
         </RadioGroup>
+
+        {/* Helper Message */}
+        {showHelper && estimatedDays && (
+          <TripStyleHelperMessage 
+            estimatedDays={estimatedDays}
+            actualDays={formData.travelDays}
+          />
+        )}
       </CardContent>
     </Card>
   );
