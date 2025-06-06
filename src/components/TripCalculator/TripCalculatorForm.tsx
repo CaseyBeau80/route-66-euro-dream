@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
 import { route66Towns } from '@/types/route66';
+import { TripPlan } from './services/planning/TripPlanBuilder';
 import FormHeader from './components/FormHeader';
 import LocationSelectionForm from './components/LocationSelectionForm';
 import TripDateForm from './components/TripDateForm';
@@ -12,6 +13,7 @@ import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
 import UnitSelector from './components/UnitSelector';
+import ShareTripButton from './components/ShareTripButton';
 import { useFormValidation } from './hooks/useFormValidation';
 
 interface TripCalculatorFormProps {
@@ -21,6 +23,8 @@ interface TripCalculatorFormProps {
   availableEndLocations: typeof route66Towns;
   isCalculateDisabled: boolean;
   isCalculating: boolean;
+  tripPlan?: TripPlan;
+  shareUrl?: string | null;
 }
 
 const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
@@ -29,7 +33,9 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   onCalculate,
   availableEndLocations,
   isCalculateDisabled,
-  isCalculating
+  isCalculating,
+  tripPlan,
+  shareUrl
 }) => {
   const { isFormValid } = useFormValidation(formData);
 
@@ -103,6 +109,20 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <MapPin className="h-5 w-5" />
         {isCalculating ? 'Planning Your Route 66 Trip...' : 'Plan My Route 66 Trip'}
       </Button>
+
+      {/* Share Trip Button - only show if form is valid */}
+      {isFormValid && (
+        <div className="mt-4">
+          <ShareTripButton
+            tripPlan={tripPlan}
+            shareUrl={shareUrl}
+            tripStartDate={formData.tripStartDate}
+            variant="secondary"
+            size="default"
+            className="w-full"
+          />
+        </div>
+      )}
 
       {/* Form Validation Helper */}
       <FormValidationHelper 

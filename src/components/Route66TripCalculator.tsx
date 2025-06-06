@@ -50,6 +50,8 @@ const Route66TripCalculator: React.FC = () => {
             availableEndLocations={availableEndLocations}
             isCalculateDisabled={isCalculateDisabled}
             isCalculating={isCalculating}
+            tripPlan={tripPlan}
+            shareUrl={shareUrl}
           />
         </div>
       ) : (
