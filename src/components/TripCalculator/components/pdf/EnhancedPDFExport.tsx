@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -117,8 +116,8 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         // Temporarily add to DOM for printing
         document.body.appendChild(pdfClone);
         
-        // Hide original content during print
-        const originalStyle = contentContainer.style.display;
+        // Hide original content during print - FIX: Cast to HTMLElement
+        const originalStyle = (contentContainer as HTMLElement).style.display;
         (contentContainer as HTMLElement).style.display = 'none';
         
         // Small delay to ensure styles are applied
