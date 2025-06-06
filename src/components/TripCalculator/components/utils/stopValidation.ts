@@ -63,6 +63,18 @@ export const isGeographicallyRelevant = (
   return detour <= maxDetourDistance && distanceFromStart <= segmentDistance * 1.2;
 };
 
+// Type guard for validating stop data
+const isValidStopData = (stop: any): stop is { name: string } | string => {
+  if (typeof stop === 'string') {
+    return stop.trim() !== '';
+  }
+  return stop != null && 
+         typeof stop === 'object' && 
+         'name' in stop && 
+         typeof stop.name === 'string' && 
+         stop.name.trim() !== '';
+};
+
 // Get validated stops from multiple possible sources with enhanced validation
 export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   const stops: TripStop[] = [];
@@ -78,15 +90,13 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
     const validRecommendedStops = segment.recommendedStops
       .filter((stop, index) => {
-        const isValid = stop != null && 
-          (typeof stop === 'string' ? stop.trim() !== '' : 
-           (typeof stop === 'object' && stop.name && typeof stop.name === 'string'));
+        const isValid = isValidStopData(stop);
         
         console.log(`🎯 Stop ${index + 1} validation:`, {
           stop: stop,
           isValid,
           name: isValid ? (typeof stop === 'string' ? stop : stop.name) : 'invalid',
-          category: typeof stop === 'object' ? stop.category : 'unknown'
+          category: typeof stop === 'object' && stop && 'category' in stop ? stop.category : 'unknown'
         });
         
         return isValid;
@@ -104,6 +114,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
             longitude: 0
           });
         } else {
+          // TypeScript now knows stop is an object with name property
           return convertToTripStop({
             ...stop,
             id: stop.id || `recommended-${index}-${Math.random()}`
@@ -121,9 +132,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
     
     const attractionStops = segment.attractions
       .filter((attraction, index) => {
-        const isValid = attraction != null && 
-          (typeof attraction === 'string' ? attraction.trim() !== '' : 
-           (typeof attraction === 'object' && attraction.name && typeof attraction.name === 'string'));
+        const isValid = isValidStopData(attraction);
         
         console.log(`🎯 Attraction ${index + 1} validation:`, {
           attraction,
@@ -146,6 +155,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
             longitude: 0
           });
         } else {
+          // TypeScript now knows attraction is an object with name property
           return convertToTripStop({
             ...attraction,
             id: `attraction-${index}-${Math.random()}`
