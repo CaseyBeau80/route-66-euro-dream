@@ -11,66 +11,6 @@ export const usePDFStyles = () => {
     
     printStyles.textContent = `
       @media screen {
-        .pdf-close-button {
-          position: fixed !important;
-          top: 20px !important;
-          right: 20px !important;
-          z-index: 10000 !important;
-          background: #dc2626 !important;
-          color: white !important;
-          border: none !important;
-          padding: 16px 24px !important;
-          border-radius: 8px !important;
-          font-weight: 600 !important;
-          cursor: pointer !important;
-          box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4) !important;
-          font-size: 16px !important;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-          transition: all 0.2s ease !important;
-          display: flex !important;
-          align-items: center !important;
-          gap: 8px !important;
-          min-width: 140px !important;
-          justify-content: center !important;
-          width: fit-content !important;
-        }
-        
-        .pdf-close-button:hover {
-          background: #b91c1c !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 12px 35px rgba(220, 38, 38, 0.5) !important;
-        }
-        
-        .pdf-close-button:active {
-          transform: translateY(0) !important;
-          box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4) !important;
-        }
-        
-        .pdf-instructions {
-          position: fixed !important;
-          top: 90px !important;
-          right: 20px !important;
-          z-index: 9999 !important;
-          background: rgba(15, 23, 42, 0.95) !important;
-          color: white !important;
-          padding: 16px !important;
-          border-radius: 8px !important;
-          font-size: 13px !important;
-          max-width: 220px !important;
-          backdrop-filter: blur(8px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-          width: fit-content !important;
-        }
-
-        .pdf-instructions div {
-          margin-bottom: 4px !important;
-        }
-
-        .pdf-instructions div:last-child {
-          margin-bottom: 0 !important;
-        }
-
         #pdf-export-content.pdf-preview-visible {
           position: static !important;
           transform: scale(1.1) !important;
@@ -83,11 +23,6 @@ export const usePDFStyles = () => {
       }
       
       @media print {
-        .pdf-close-button,
-        .pdf-instructions {
-          display: none !important;
-        }
-        
         @page {
           size: A4;
           margin: 0.5in;

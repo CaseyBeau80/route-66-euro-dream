@@ -34,10 +34,52 @@ export const usePDFExportLogic = ({
   const { addPrintStyles } = usePDFStyles();
   const { showPDFPreview } = usePDFDisplay();
 
+  const showPDFLoadingMessage = (): HTMLDivElement => {
+    // Remove any existing loading message to prevent stacking
+    const existingLoading = document.querySelector('.pdf-loading-overlay-js');
+    if (existingLoading) {
+      document.body.removeChild(existingLoading);
+    }
+
+    const loadingBox = document.createElement("div");
+    loadingBox.setAttribute("role", "status");
+    loadingBox.setAttribute("aria-live", "polite");
+    loadingBox.className = `
+      pdf-loading-overlay-js
+      fixed top-[72px] left-1/2 -translate-x-1/2 z-[9999]
+      bg-white/90 text-gray-800 px-6 py-3
+      rounded-xl shadow-lg text-sm flex items-center gap-2
+      transition-opacity duration-300
+    `.replace(/\s+/g, ' ').trim();
+
+    loadingBox.innerHTML = `
+      <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <span>Preparing your trip PDF... Fetching weather and formatting content.</span>
+    `;
+
+    document.body.appendChild(loadingBox);
+    return loadingBox;
+  };
+
+  const removePDFLoadingMessage = (loadingBox: HTMLDivElement) => {
+    if (loadingBox && document.body.contains(loadingBox)) {
+      // Add fade-out animation
+      loadingBox.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(loadingBox)) {
+          document.body.removeChild(loadingBox);
+        }
+      }, 300);
+    }
+  };
+
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with improved readability...');
+    console.log('🖨️ Starting enhanced PDF export with improved UX...');
     setIsExporting(true);
     setWeatherLoading(true);
+    
+    // Show loading message immediately
+    const loadingBox = showPDFLoadingMessage();
     
     try {
       // Step 1: Close modal first and wait for it to fully close
@@ -61,14 +103,17 @@ export const usePDFExportLogic = ({
       
       setWeatherLoading(false);
       
-      // Step 4: Add enhanced print styles
+      // Step 4: Remove loading message
+      removePDFLoadingMessage(loadingBox);
+      
+      // Step 5: Add enhanced print styles
       addPrintStyles();
       
-      // Step 5: Show PDF preview
+      // Step 6: Show PDF preview with programmatic close button
       setShowPreview(true);
       showPDFPreview(pdfContainer, handleClosePreview);
       
-      // Step 6: Add automatic timeout
+      // Step 7: Add automatic timeout
       setTimeout(() => {
         if (showPreview) {
           console.log('⏰ Auto-closing PDF preview after 60 seconds');
@@ -76,16 +121,17 @@ export const usePDFExportLogic = ({
         }
       }, 60000);
       
-      console.log('🖨️ Enhanced PDF preview ready with 110% scaling and improved typography.');
+      console.log('🖨️ Enhanced PDF preview ready with programmatic controls.');
       
       toast({
         title: "Enhanced PDF Preview Ready",
-        description: "Scaled to 110% for better readability. Press Ctrl+P to print, ESC to close.",
+        description: "Scaled to 110% for better readability. Press Ctrl+P to print, click red X to close.",
         variant: "default"
       });
       
     } catch (error) {
       console.error('❌ PDF export failed:', error);
+      removePDFLoadingMessage(loadingBox);
       handleClosePreview();
       toast({
         title: "PDF Export Failed",

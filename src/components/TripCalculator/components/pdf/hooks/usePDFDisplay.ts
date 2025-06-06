@@ -1,30 +1,39 @@
 
 export const usePDFDisplay = () => {
+  const showPDFCloseButton = (onClose: () => void): HTMLButtonElement => {
+    // Remove any existing close button to prevent stacking
+    const existingButton = document.querySelector('.pdf-close-button-js');
+    if (existingButton) {
+      document.body.removeChild(existingButton);
+    }
+
+    const closeButton = document.createElement("button");
+    closeButton.innerHTML = "✕";
+    closeButton.setAttribute("aria-label", "Close PDF Preview");
+    closeButton.className = `
+      pdf-close-button-js
+      fixed top-6 right-6 z-[10000]
+      bg-red-500 hover:bg-red-600
+      text-white rounded-full w-10 h-10
+      flex items-center justify-center
+      shadow-lg transition-all duration-200
+      text-lg font-bold
+    `.replace(/\s+/g, ' ').trim();
+
+    closeButton.onclick = () => {
+      onClose();
+      if (document.body.contains(closeButton)) {
+        document.body.removeChild(closeButton);
+      }
+    };
+
+    document.body.appendChild(closeButton);
+    return closeButton;
+  };
+
   const showPDFPreview = (pdfContainer: HTMLElement, handleClosePreview: () => void) => {
-    // Add close button and instructions to PDF container
-    const closeButton = document.createElement('button');
-    closeButton.className = 'pdf-close-button';
-    closeButton.innerHTML = `
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-      Close PDF Preview
-    `;
-    closeButton.onclick = handleClosePreview;
-    
-    const instructions = document.createElement('div');
-    instructions.className = 'pdf-instructions';
-    instructions.innerHTML = `
-      <div style="font-weight: 600; margin-bottom: 8px; color: #e2e8f0;">📄 PDF Preview</div>
-      <div>• 110% scaled for readability</div>
-      <div>• Press <kbd style="background: rgba(255,255,255,0.2); padding: 2px 4px; border-radius: 3px; font-size: 11px;">ESC</kbd> to close</div>
-      <div>• Use <kbd style="background: rgba(255,255,255,0.2); padding: 2px 4px; border-radius: 3px; font-size: 11px;">Ctrl+P</kbd> to print</div>
-      <div>• Click red button to exit</div>
-    `;
-    
-    pdfContainer.appendChild(closeButton);
-    pdfContainer.appendChild(instructions);
+    // Create close button programmatically
+    const closeButton = showPDFCloseButton(handleClosePreview);
     
     // Make PDF container visible with enhanced scaling
     pdfContainer.classList.add('pdf-preview-visible');
@@ -45,11 +54,19 @@ export const usePDFDisplay = () => {
     // Hide all other content
     const originalChildren = Array.from(document.body.children);
     originalChildren.forEach(child => {
-      if (child.id !== 'pdf-export-content') {
+      if (child.id !== 'pdf-export-content' && !child.classList.contains('pdf-close-button-js')) {
         (child as HTMLElement).style.display = 'none';
       }
     });
+
+    // Add cleanup on print
+    window.onafterprint = () => {
+      if (document.body.contains(closeButton)) {
+        document.body.removeChild(closeButton);
+      }
+      handleClosePreview();
+    };
   };
 
-  return { showPDFPreview };
+  return { showPDFPreview, showPDFCloseButton };
 };

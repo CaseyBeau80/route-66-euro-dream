@@ -5,6 +5,17 @@ export const usePDFCleanup = () => {
   const cleanupPDFPreview = () => {
     console.log('🔄 Cleaning up PDF preview and restoring UI...');
     
+    // Remove programmatically created elements
+    const closeButton = document.querySelector('.pdf-close-button-js');
+    if (closeButton && document.body.contains(closeButton)) {
+      document.body.removeChild(closeButton);
+    }
+    
+    const loadingOverlay = document.querySelector('.pdf-loading-overlay-js');
+    if (loadingOverlay && document.body.contains(loadingOverlay)) {
+      document.body.removeChild(loadingOverlay);
+    }
+    
     // Restore original content
     const originalChildren = Array.from(document.body.children);
     originalChildren.forEach(child => {
@@ -30,6 +41,9 @@ export const usePDFCleanup = () => {
     if (printStyles) {
       printStyles.remove();
     }
+    
+    // Clear print handlers
+    window.onafterprint = null;
     
     toast({
       title: "PDF Preview Closed",
