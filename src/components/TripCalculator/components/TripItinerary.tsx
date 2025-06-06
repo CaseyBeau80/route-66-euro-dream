@@ -20,6 +20,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
 }) => {
   // Generate a simple trip ID for localStorage
   const tripId = tripPlan ? `${tripPlan.startCity}-${tripPlan.endCity}-${tripPlan.totalDays}` : undefined;
+  const totalCards = tripPlan?.segments?.length || 0;
 
   return (
     <Card className="border-route66-border">
@@ -44,6 +45,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
               tripId={tripId}
               sectionKey="itinerary"
               autoExpandFirstOnDesktop={true}
+              totalCards={totalCards}
             >
               {tripPlan.segments.map((segment, index) => (
                 <DaySegmentCard
@@ -63,6 +65,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
               className="space-y-4"
               tripId={tripId}
               sectionKey="weather"
+              totalCards={totalCards}
             >
               {tripPlan.segments.map((segment, index) => (
                 <SegmentWeatherWidget

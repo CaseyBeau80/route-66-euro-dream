@@ -8,8 +8,9 @@ interface CollapsibleCardGroupProps {
   showToggleAll?: boolean;
   className?: string;
   tripId?: string;
-  sectionKey: string; // 'itinerary' or 'weather'
+  sectionKey: string;
   autoExpandFirstOnDesktop?: boolean;
+  totalCards?: number;
 }
 
 const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
@@ -18,10 +19,12 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
   className,
   tripId,
   sectionKey,
-  autoExpandFirstOnDesktop = false
+  autoExpandFirstOnDesktop = false,
+  totalCards = 0
 }) => {
   const [allExpanded, setAllExpanded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [collapsedCount, setCollapsedCount] = useState(totalCards);
 
   // Load persisted state from localStorage
   useEffect(() => {
@@ -50,10 +53,36 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     }
   }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey]);
 
+  // Listen for card state changes to update collapsed count
+  useEffect(() => {
+    const handleCardStateChange = (event: CustomEvent) => {
+      if (event.detail.sectionKey !== sectionKey) return;
+      
+      // Count collapsed cards by checking localStorage
+      if (tripId) {
+        let collapsed = 0;
+        for (let i = 0; i < totalCards; i++) {
+          const cardState = localStorage.getItem(`trip-${tripId}-${sectionKey}-card-${i}`);
+          if (cardState === null || !JSON.parse(cardState)) {
+            collapsed++;
+          }
+        }
+        setCollapsedCount(collapsed);
+      }
+    };
+
+    window.addEventListener('cardStateChanged', handleCardStateChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('cardStateChanged', handleCardStateChange as EventListener);
+    };
+  }, [tripId, sectionKey, totalCards]);
+
   const handleToggleAll = () => {
     const newExpandedState = !allExpanded;
     setAllExpanded(newExpandedState);
     setHasUserInteracted(true);
+    setCollapsedCount(newExpandedState ? 0 : totalCards);
 
     // Save to localStorage
     if (tripId) {
@@ -78,7 +107,12 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
 
   return (
     <div className={className}>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-600">
+          {collapsedCount > 0 && (
+            <span>{collapsedCount} of {totalCards} collapsed</span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"
