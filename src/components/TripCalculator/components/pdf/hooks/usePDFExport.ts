@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import PDFContentRenderer from '../PDFContentRenderer';
