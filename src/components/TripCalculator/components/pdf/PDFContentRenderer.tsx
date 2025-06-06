@@ -3,7 +3,6 @@ import React from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import PDFItineraryView from './PDFItineraryView';
 import { format } from 'date-fns';
-import { useUnits } from '@/contexts/UnitContext';
 
 interface PDFContentRendererProps {
   tripPlan: TripPlan;
@@ -23,7 +22,10 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   exportOptions,
   shareUrl
 }) => {
-  const { formatDistance } = useUnits();
+  // Simple distance formatting without context dependency
+  const formatDistance = (miles: number): string => {
+    return `${Math.round(miles)} mi`;
+  };
 
   const formatTime = (hours: number): string => {
     const wholeHours = Math.floor(hours);

@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Settings } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
-import { PDFLayoutService } from '../../services/pdf/PDFLayoutService';
 import { toast } from '@/hooks/use-toast';
 
 interface EnhancedPDFExportProps {
@@ -35,37 +34,34 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
     setIsExporting(true);
     
     try {
-      // Step 1: Close modal first
+      // Step 1: Close modal first and wait for it to fully close
       onClose();
-      
-      // Step 2: Wait for modal to close completely
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Step 3: Find the trip content to copy
+      // Step 2: Find the main trip content
       const tripContent = document.querySelector('[data-trip-content="true"]');
       if (!tripContent) {
         throw new Error('Trip content not found');
       }
       
-      // Step 4: Create or get the hidden PDF container
+      // Step 3: Clone the content and clean it
+      const clonedContent = tripContent.cloneNode(true) as HTMLElement;
+      
+      // Remove interactive elements
+      const elementsToRemove = clonedContent.querySelectorAll(
+        'button, [role="dialog"], .dropdown, .modal, .share-button, .export-button'
+      );
+      elementsToRemove.forEach(el => el.remove());
+      
+      // Step 4: Create a clean PDF container
       let pdfContainer = document.getElementById('pdf-export-content');
       if (!pdfContainer) {
         pdfContainer = document.createElement('div');
         pdfContainer.id = 'pdf-export-content';
-        pdfContainer.className = 'pdf-container';
         document.body.appendChild(pdfContainer);
       }
       
-      // Step 5: Clone and clean the content
-      const clonedContent = tripContent.cloneNode(true) as HTMLElement;
-      
-      // Remove interactive elements from cloned content
-      const elementsToRemove = clonedContent.querySelectorAll(
-        'button, .dropdown, [role="dialog"], [role="alertdialog"], .modal, .overlay, .share-button, .export-button'
-      );
-      elementsToRemove.forEach(el => el.remove());
-      
-      // Step 6: Style the PDF container
+      // Step 5: Style the container for PDF
       pdfContainer.style.cssText = `
         position: absolute;
         left: -9999px;
@@ -79,11 +75,13 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         padding: 0.5in;
       `;
       
-      // Step 7: Add PDF-specific content
+      // Step 6: Add content to PDF container
+      const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+      
       pdfContainer.innerHTML = `
         <div class="pdf-header" style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #3b82f6; padding-bottom: 12px;">
           <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 8px; color: #1f2937;">
-            ${exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
+            ${tripTitle}
           </h1>
           <p style="font-size: 16px; color: #4b5563; margin-bottom: 4px;">
             ${tripPlan.startCity} → ${tripPlan.endCity}
@@ -101,11 +99,55 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         </div>
       `;
       
-      // Step 8: Apply PDF styles
-      const layoutService = PDFLayoutService.getInstance();
-      layoutService.injectPDFStyles();
+      // Step 7: Apply print styles
+      const printStyleId = 'pdf-print-styles';
+      let printStyles = document.getElementById(printStyleId);
+      if (!printStyles) {
+        printStyles = document.createElement('style');
+        printStyles.id = printStyleId;
+        document.head.appendChild(printStyles);
+      }
       
-      // Step 9: Make PDF container visible for printing
+      printStyles.textContent = `
+        @media print {
+          @page {
+            size: A4;
+            margin: 0.5in;
+          }
+          
+          body * {
+            visibility: hidden;
+          }
+          
+          #pdf-export-content,
+          #pdf-export-content * {
+            visibility: visible !important;
+          }
+          
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.4;
+            color: #1f2937 !important;
+            background: white !important;
+            font-size: 12px;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          #pdf-export-content {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            visibility: visible !important;
+            width: 100% !important;
+            background: white !important;
+            padding: 0.5in !important;
+            margin: 0 !important;
+          }
+        }
+      `;
+      
+      // Step 8: Make PDF container visible and trigger print
       pdfContainer.style.cssText = `
         position: static;
         left: auto;
@@ -119,28 +161,24 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         padding: 0.5in;
       `;
       
-      // Step 10: Hide all other content during print
-      const originalDisplay = document.body.style.display;
+      // Hide all other content
       const originalChildren = Array.from(document.body.children);
-      
-      // Hide all children except PDF container
       originalChildren.forEach(child => {
         if (child.id !== 'pdf-export-content') {
           (child as HTMLElement).style.display = 'none';
         }
       });
       
-      // Step 11: Trigger print
+      // Trigger print
       console.log('🖨️ Triggering browser print dialog...');
       window.print();
       
-      // Step 12: Restore original content after print
+      // Restore original content after print
       setTimeout(() => {
         originalChildren.forEach(child => {
           (child as HTMLElement).style.display = '';
         });
         
-        // Hide PDF container again
         if (pdfContainer) {
           pdfContainer.style.cssText = `
             position: absolute;
@@ -149,9 +187,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             visibility: hidden;
           `;
         }
-        
-        // Cleanup styles
-        layoutService.removePDFStyles();
         
         console.log('🧹 PDF export cleanup completed');
       }, 1000);
@@ -169,10 +204,6 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         description: "Could not generate PDF. Please try again.",
         variant: "destructive"
       });
-      
-      // Cleanup on error
-      const layoutService = PDFLayoutService.getInstance();
-      layoutService.removePDFStyles();
     } finally {
       setIsExporting(false);
     }
