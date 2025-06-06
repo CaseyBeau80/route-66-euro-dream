@@ -43,4 +43,4 @@ export class PDFLayoutService {
 }
 
 // Re-export types for backward compatibility
-export { PDFExportOptions, PDFHeaderData, PDFFooterData } from './PDFTypesService';
+export type { PDFExportOptions, PDFHeaderData, PDFFooterData } from './PDFTypesService';
