@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -5,11 +6,13 @@ import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { DataValidationService } from '../services/validation/DataValidationService';
 import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import DebugStopSelection from './DebugStopSelection';
+import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -28,19 +31,39 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 }) => {
   const { formatDistance } = useUnits();
   
+  // Validate segment data
+  const isValidSegment = DataValidationService.validateDailySegment(segment, 'DaySegmentCard.segment');
+  
+  if (!isValidSegment) {
+    return (
+      <ErrorBoundary context="DaySegmentCard-Invalid">
+        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+          <p className="text-sm text-red-600">
+            Invalid segment data for Day {segment?.day || 'Unknown'}
+          </p>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+  
   console.log('🗓️ DaySegmentCard render:', segment.title, 'FORCE COLLAPSED - ignoring any defaultExpanded');
 
-  // Calculate the date for this segment
+  // Calculate the date for this segment with error handling
   const getSegmentDate = () => {
-    if (tripStartDate) {
-      return addDays(tripStartDate, segment.day - 1);
+    try {
+      if (tripStartDate) {
+        return addDays(tripStartDate, segment.day - 1);
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error calculating segment date:', error);
+      return null;
     }
-    return null;
   };
 
   const segmentDate = getSegmentDate();
 
-  // Get drive time category styling
+  // Get drive time category styling with error handling
   const getDriveTimeStyle = () => {
     if (!segment.driveTimeCategory) return { 
       bg: 'bg-gray-100', 
@@ -48,36 +71,50 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       border: 'border-gray-300' 
     };
     
-    switch (segment.driveTimeCategory.category) {
-      case 'short':
-        return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-      case 'optimal':
-        return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-      case 'long':
-        return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
-      case 'extreme':
-        return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
-      default:
-        return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
+    try {
+      switch (segment.driveTimeCategory.category) {
+        case 'short':
+          return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
+        case 'optimal':
+          return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
+        case 'long':
+          return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
+        case 'extreme':
+          return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
+        default:
+          return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
+      }
+    } catch (error) {
+      console.error('❌ Error getting drive time style:', error);
+      return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
   };
 
   const driveTimeStyle = getDriveTimeStyle();
 
-  // Format drive time
+  // Format drive time with error handling
   const formatDriveTime = (hours: number): string => {
-    if (hours < 1) {
-      const minutes = Math.round(hours * 60);
-      return `${minutes}m`;
+    try {
+      if (typeof hours !== 'number' || isNaN(hours) || hours < 0) {
+        return '0h';
+      }
+      
+      if (hours < 1) {
+        const minutes = Math.round(hours * 60);
+        return `${minutes}m`;
+      }
+      const wholeHours = Math.floor(hours);
+      const minutes = Math.round((hours - wholeHours) * 60);
+      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    } catch (error) {
+      console.error('❌ Error formatting drive time:', error);
+      return '0h';
     }
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
 
   const segmentDistance = segment.distance || segment.approximateMiles;
 
-  // Card header content
+  // Card header content with error handling
   const cardHeader = (
     <div className="space-y-3">
       <div className="flex items-start justify-between">
@@ -160,48 +197,56 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   );
 
   return (
-    <TooltipProvider>
-      <EnhancedCollapsibleCard
-        title={cardHeader}
-        defaultExpanded={false} // This will be ignored by force collapsed mode
-        className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
-        headerClassName="border-b border-gray-200"
-        contentClassName="pt-0"
-        cardIndex={cardIndex}
-        tripId={tripId}
-        sectionKey={sectionKey}
-      >
-        <div className="space-y-4">
-          {/* Drive Time Message - Compact */}
-          {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
-            <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
-              <div className="flex items-start gap-2">
-                <AlertTriangle className={`h-4 w-4 mt-0.5 ${driveTimeStyle.text}`} />
-                <div>
-                  <div className={`font-medium text-sm ${driveTimeStyle.text}`}>
-                    {segment.driveTimeCategory.category.charAt(0).toUpperCase() + segment.driveTimeCategory.category.slice(1)} Drive Day
-                  </div>
-                  <div className={`text-xs mt-1 ${driveTimeStyle.text}`}>
-                    {segment.driveTimeCategory.message}
+    <ErrorBoundary context={`DaySegmentCard-Day${segment.day}`}>
+      <TooltipProvider>
+        <EnhancedCollapsibleCard
+          title={cardHeader}
+          defaultExpanded={false}
+          className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
+          headerClassName="border-b border-gray-200"
+          contentClassName="pt-0"
+          cardIndex={cardIndex}
+          tripId={tripId}
+          sectionKey={sectionKey}
+        >
+          <div className="space-y-4">
+            {/* Drive Time Message - Compact */}
+            {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
+              <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className={`h-4 w-4 mt-0.5 ${driveTimeStyle.text}`} />
+                  <div>
+                    <div className={`font-medium text-sm ${driveTimeStyle.text}`}>
+                      {segment.driveTimeCategory.category.charAt(0).toUpperCase() + segment.driveTimeCategory.category.slice(1)} Drive Day
+                    </div>
+                    <div className={`text-xs mt-1 ${driveTimeStyle.text}`}>
+                      {segment.driveTimeCategory.message}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Recommended Stops */}
-          <SegmentRecommendedStops segment={segment} />
+            {/* Recommended Stops */}
+            <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
+              <SegmentRecommendedStops segment={segment} />
+            </ErrorBoundary>
 
-          {/* Debug Component - Only in Development */}
-          {process.env.NODE_ENV === 'development' && (
-            <DebugStopSelection segment={segment} />
-          )}
+            {/* Debug Component - Only in Development */}
+            {process.env.NODE_ENV === 'development' && (
+              <ErrorBoundary context={`DebugStopSelection-Day${segment.day}`}>
+                <DebugStopSelection segment={segment} />
+              </ErrorBoundary>
+            )}
 
-          {/* Route Progression */}
-          <SegmentRouteProgression segment={segment} />
-        </div>
-      </EnhancedCollapsibleCard>
-    </TooltipProvider>
+            {/* Route Progression */}
+            <ErrorBoundary context={`SegmentRouteProgression-Day${segment.day}`}>
+              <SegmentRouteProgression segment={segment} />
+            </ErrorBoundary>
+          </div>
+        </EnhancedCollapsibleCard>
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 };
 
