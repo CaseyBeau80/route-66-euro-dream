@@ -2,13 +2,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { getValidatedStops, isUserRelevantStop } from './utils/stopValidation';
 import { EnhancedStopSelectionService } from '../services/planning/EnhancedStopSelectionService';
 import { SupabaseDataService } from '../services/data/SupabaseDataService';
 import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
-import { DataValidationService } from '../services/validation/DataValidationService';
 import { TripStop, convertToTripStop } from '../types/TripStop';
 import { useStableSegment } from '../hooks/useStableSegments';
+import { useOptimizedValidation } from '../hooks/useOptimizedValidation';
 import StopItem from './StopItem';
 import StopsEmpty from './StopsEmpty';
 import ErrorBoundary from './ErrorBoundary';
@@ -25,6 +24,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   // Use stable segment to prevent infinite re-renders
   const stableSegment = useStableSegment(segment);
   
+  // Use optimized validation to prevent multiple validation calls
+  const { validStops, userRelevantStops, isValid } = useOptimizedValidation(stableSegment);
+  
   const [enhancedStops, setEnhancedStops] = useState<TripStop[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,33 +36,10 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const startCity = stableSegment?.startCity || '';
   const endCity = stableSegment?.endCity || '';
   
-  // Validate segment data
-  const isValidSegment = useMemo(() => 
-    DataValidationService.validateDailySegment(stableSegment, 'EnhancedRecommendedStops.segment'),
-    [stableSegment]
-  );
-  
-  // Get validated stops with stable dependencies
-  const { validStops, userRelevantStops } = useMemo(() => {
-    if (!isValidSegment) {
-      return { validStops: [], userRelevantStops: [] };
-    }
-    
-    try {
-      const valid = getValidatedStops(stableSegment);
-      const userRelevant = valid.filter(isUserRelevantStop);
-      return { validStops: valid, userRelevantStops: userRelevant };
-    } catch (error) {
-      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.getValidatedStops');
-      console.error('❌ Error getting validated stops:', error);
-      return { validStops: [], userRelevantStops: [] };
-    }
-  }, [isValidSegment, stableSegment]);
-  
   // Check if enhanced selection is needed using primitive values
   const shouldTriggerEnhanced = useMemo(() => 
-    userRelevantStops.length < 2 && startCity !== '' && endCity !== '',
-    [userRelevantStops.length, startCity, endCity]
+    isValid && userRelevantStops.length < 2 && startCity !== '' && endCity !== '',
+    [isValid, userRelevantStops.length, startCity, endCity]
   );
   
   // Enhanced selection with stable dependencies
@@ -134,7 +113,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     tryEnhancedSelection();
   }, [tryEnhancedSelection]);
   
-  // Combine and deduplicate stops
+  // Combine and deduplicate stops with memoization
   const finalStops = useMemo(() => {
     const combinedStops = [...userRelevantStops];
     
@@ -167,7 +146,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     stopNames: finalStops.map(s => s.name)
   });
 
-  if (!isValidSegment) {
+  if (!isValid) {
     return (
       <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
         <p className="text-sm text-red-600">

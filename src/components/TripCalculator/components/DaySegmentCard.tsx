@@ -3,11 +3,12 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { DataValidationService } from '../services/validation/DataValidationService';
 import { useStableSegment } from '../hooks/useStableSegments';
+import { useStableDate } from '../hooks/useStableDate';
 import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
@@ -35,11 +36,9 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable segment to prevent cascading re-renders
   const stableSegment = useStableSegment(segment);
   
-  // Get day for error message before validation
-  const segmentDay = typeof stableSegment === 'object' && stableSegment && 'day' in stableSegment ? stableSegment.day : 'Unknown';
-  
-  // Validate segment data with proper type guard
+  // Early return for invalid segments
   if (!DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
+    const segmentDay = typeof stableSegment === 'object' && stableSegment && 'day' in stableSegment ? stableSegment.day : 'Unknown';
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -51,25 +50,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     );
   }
   
-  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'FORCE COLLAPSED - ignoring any defaultExpanded');
+  // Use stable date calculation
+  const segmentDate = useStableDate(tripStartDate, stableSegment.day);
+  
+  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'FORCE COLLAPSED');
 
-  // Calculate the date for this segment with error handling
-  const getSegmentDate = () => {
-    try {
-      if (tripStartDate) {
-        return addDays(tripStartDate, stableSegment.day - 1);
-      }
-      return null;
-    } catch (error) {
-      console.error('❌ Error calculating segment date:', error);
-      return null;
-    }
-  };
-
-  const segmentDate = getSegmentDate();
-
-  // Get drive time category styling with error handling
-  const getDriveTimeStyle = () => {
+  // Memoized drive time styling to prevent recalculation
+  const driveTimeStyle = React.useMemo(() => {
     if (!stableSegment.driveTimeCategory) return { 
       bg: 'bg-gray-100', 
       text: 'text-gray-700', 
@@ -93,13 +80,12 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       console.error('❌ Error getting drive time style:', error);
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
-  };
+  }, [stableSegment.driveTimeCategory]);
 
-  const driveTimeStyle = getDriveTimeStyle();
-
-  // Format drive time with error handling
-  const formatDriveTime = (hours: number): string => {
+  // Memoized drive time formatting
+  const formattedDriveTime = React.useMemo(() => {
     try {
+      const hours = stableSegment.driveTimeHours;
       if (typeof hours !== 'number' || isNaN(hours) || hours < 0) {
         return '0h';
       }
@@ -115,12 +101,15 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       console.error('❌ Error formatting drive time:', error);
       return '0h';
     }
-  };
+  }, [stableSegment.driveTimeHours]);
 
-  const segmentDistance = stableSegment.distance || stableSegment.approximateMiles;
+  // Memoized segment distance
+  const segmentDistance = React.useMemo(() => {
+    return stableSegment.distance || stableSegment.approximateMiles;
+  }, [stableSegment.distance, stableSegment.approximateMiles]);
 
   // Card header content with error handling
-  const cardHeader = (
+  const cardHeader = React.useMemo(() => (
     <div className="space-y-3">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -188,7 +177,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         <div className="flex items-center gap-1">
           <Clock className="h-4 w-4" />
           <span className={stableSegment.driveTimeHours > 7 ? driveTimeStyle.text : ''}>
-            {formatDriveTime(stableSegment.driveTimeHours)} driving
+            {formattedDriveTime} driving
           </span>
         </div>
         {stableSegment.driveTimeHours > 7 && (
@@ -199,7 +188,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         )}
       </div>
     </div>
-  );
+  ), [stableSegment, segmentDate, driveTimeStyle, formatDistance, segmentDistance, formattedDriveTime]);
 
   return (
     <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>

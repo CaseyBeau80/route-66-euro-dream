@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface UseCollapsibleStateProps {
   tripId?: string;
@@ -14,9 +14,13 @@ export const useCollapsibleState = ({
   cardIndex,
   defaultExpanded = false
 }: UseCollapsibleStateProps) => {
-  // FORCE COLLAPSED: Always start with false, completely ignore defaultExpanded and localStorage
+  // FORCE COLLAPSED: Always start with false, completely ignore defaultExpanded
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Prevent event spam with refs
+  const eventThrottleRef = useRef<NodeJS.Timeout>();
+  const lastEventTimeRef = useRef<number>(0);
 
   console.log(`🔧 useCollapsibleState: Force collapsed mode for ${sectionKey}-${cardIndex}`, {
     tripId,
@@ -32,39 +36,47 @@ export const useCollapsibleState = ({
       const cardKey = `trip-${tripId}-${sectionKey}-card-${cardIndex}`;
       const interactionKey = `trip-${tripId}-${sectionKey}-interacted`;
       
-      console.log(`🧹 Clearing localStorage entries for ${sectionKey}-${cardIndex}:`, {
-        cardKey,
-        interactionKey
-      });
+      console.log(`🧹 Clearing localStorage entries for ${sectionKey}-${cardIndex}`);
       
       // Clear any existing state and force collapsed
       localStorage.removeItem(cardKey);
       localStorage.removeItem(interactionKey);
       localStorage.setItem(cardKey, JSON.stringify(false));
       
-      console.log(`🔒 Force setting collapsed state: false`);
       setIsExpanded(false);
       setHasUserInteracted(false);
     } else {
-      // No tripId, ensure collapsed
-      console.log(`🔒 No tripId, force collapsed: false`);
       setIsExpanded(false);
     }
   }, [tripId, sectionKey, cardIndex]);
 
-  // Handle group toggle events
-  useEffect(() => {
-    const handleToggleAll = (event: CustomEvent) => {
-      if (event.detail.sectionKey && event.detail.sectionKey !== sectionKey) return;
+  // Throttled event handler to prevent spam
+  const handleToggleAll = useCallback((event: CustomEvent) => {
+    const now = Date.now();
+    const timeSinceLastEvent = now - lastEventTimeRef.current;
+    
+    // Throttle events to max 1 per 100ms
+    if (timeSinceLastEvent < 100) {
+      console.log(`🚫 Event throttled for ${sectionKey}-${cardIndex}`);
+      return;
+    }
+    
+    if (event.detail.sectionKey && event.detail.sectionKey !== sectionKey) return;
+    
+    console.log(`🔄 Group toggle received for ${sectionKey}-${cardIndex}:`, event.detail);
+    
+    lastEventTimeRef.current = now;
+    setIsExpanded(event.detail.expanded);
+    
+    if (event.detail.userTriggered) {
+      setHasUserInteracted(true);
       
-      console.log(`🔄 Group toggle received for ${sectionKey}-${cardIndex}:`, event.detail);
+      // Debounce localStorage writes
+      if (eventThrottleRef.current) {
+        clearTimeout(eventThrottleRef.current);
+      }
       
-      setIsExpanded(event.detail.expanded);
-      
-      if (event.detail.userTriggered) {
-        setHasUserInteracted(true);
-        
-        // Save individual card state
+      eventThrottleRef.current = setTimeout(() => {
         if (tripId) {
           const cardKey = `trip-${tripId}-${sectionKey}-card-${cardIndex}`;
           const interactionKey = `trip-${tripId}-${sectionKey}-interacted`;
@@ -72,45 +84,60 @@ export const useCollapsibleState = ({
           localStorage.setItem(interactionKey, JSON.stringify(true));
           console.log(`💾 Saved group toggle state: ${cardKey} = ${event.detail.expanded}`);
         }
-      }
-    };
+      }, 50);
+    }
+  }, [sectionKey, cardIndex, hasUserInteracted, tripId]);
 
+  useEffect(() => {
     window.addEventListener('toggleAllCards', handleToggleAll as EventListener);
     
     return () => {
       window.removeEventListener('toggleAllCards', handleToggleAll as EventListener);
+      if (eventThrottleRef.current) {
+        clearTimeout(eventThrottleRef.current);
+      }
     };
-  }, [sectionKey, cardIndex, hasUserInteracted, tripId]);
+  }, [handleToggleAll]);
 
-  const handleToggle = (newState: boolean) => {
+  const handleToggle = useCallback((newState: boolean) => {
     console.log(`🎯 Individual toggle for ${sectionKey}-${cardIndex}: ${isExpanded} → ${newState}`);
     
     setIsExpanded(newState);
     setHasUserInteracted(true);
     
-    // Save to localStorage
-    if (tripId) {
-      const cardKey = `trip-${tripId}-${sectionKey}-card-${cardIndex}`;
-      const interactionKey = `trip-${tripId}-${sectionKey}-interacted`;
-      
-      localStorage.setItem(cardKey, JSON.stringify(newState));
-      localStorage.setItem(interactionKey, JSON.stringify(true));
-      
-      console.log(`💾 Saved individual toggle state: ${cardKey} = ${newState}`);
+    // Debounce localStorage and event dispatching
+    if (eventThrottleRef.current) {
+      clearTimeout(eventThrottleRef.current);
     }
+    
+    eventThrottleRef.current = setTimeout(() => {
+      // Save to localStorage
+      if (tripId) {
+        const cardKey = `trip-${tripId}-${sectionKey}-card-${cardIndex}`;
+        const interactionKey = `trip-${tripId}-${sectionKey}-interacted`;
+        
+        localStorage.setItem(cardKey, JSON.stringify(newState));
+        localStorage.setItem(interactionKey, JSON.stringify(true));
+        
+        console.log(`💾 Saved individual toggle state: ${cardKey} = ${newState}`);
+      }
 
-    // Dispatch event to update collapsed count immediately
-    const updateEvent = new CustomEvent('cardStateChanged', {
-      detail: { sectionKey, cardIndex, expanded: newState }
-    });
-    window.dispatchEvent(updateEvent);
-  };
+      // Dispatch event to update collapsed count
+      const updateEvent = new CustomEvent('cardStateChanged', {
+        detail: { sectionKey, cardIndex, expanded: newState }
+      });
+      window.dispatchEvent(updateEvent);
+    }, 50);
+  }, [isExpanded, sectionKey, cardIndex, tripId]);
 
-  console.log(`🎛️ useCollapsibleState: Final state for ${sectionKey}-${cardIndex}:`, {
-    isExpanded,
-    hasUserInteracted,
-    forceCollapsed: true
-  });
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (eventThrottleRef.current) {
+        clearTimeout(eventThrottleRef.current);
+      }
+    };
+  }, []);
 
   return {
     isExpanded,

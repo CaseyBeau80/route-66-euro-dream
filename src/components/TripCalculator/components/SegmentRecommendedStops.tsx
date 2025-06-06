@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { getValidatedStops, isUserRelevantStop } from './utils/stopValidation';
+import { useOptimizedValidation } from '../hooks/useOptimizedValidation';
 import StopCard from './StopCard';
 
 interface SegmentRecommendedStopsProps {
@@ -9,18 +9,28 @@ interface SegmentRecommendedStopsProps {
 }
 
 const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segment }) => {
-  // Use the centralized validation logic from stopValidation.ts
-  const validStops = getValidatedStops(segment);
-  const userRelevantStops = validStops.filter(isUserRelevantStop);
+  // Use optimized validation to prevent multiple validation calls
+  const { validStops, userRelevantStops, isValid } = useOptimizedValidation(segment);
   
   console.log('🎯 SegmentRecommendedStops filtering:', {
     segmentDay: segment.day,
+    isValid,
     totalValidatedStops: validStops.length,
     userRelevantStops: userRelevantStops.length,
     filteredOutStops: validStops.length - userRelevantStops.length,
     userStopNames: userRelevantStops.map(s => s.name),
-    filteredCategories: validStops.filter(s => !isUserRelevantStop(s)).map(s => s.category)
+    filteredCategories: validStops.filter(s => !userRelevantStops.includes(s)).map(s => s.category)
   });
+
+  if (!isValid) {
+    return (
+      <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+        <p className="text-sm text-red-600">
+          Unable to load stops due to invalid segment data
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
