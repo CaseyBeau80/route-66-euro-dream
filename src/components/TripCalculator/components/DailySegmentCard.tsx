@@ -1,17 +1,30 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { addDays, format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 interface DailySegmentCardProps {
   segment: DailySegment;
   formatTime: (hours: number) => string;
+  tripStartDate?: Date;
 }
 
 const DailySegmentCard: React.FC<DailySegmentCardProps> = ({
   segment,
-  formatTime
+  formatTime,
+  tripStartDate
 }) => {
+  // Calculate the date for this segment
+  const getSegmentDate = () => {
+    if (tripStartDate) {
+      return addDays(tripStartDate, segment.day - 1);
+    }
+    return null;
+  };
+
+  const segmentDate = getSegmentDate();
+
   return (
     <div className="border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
@@ -19,6 +32,11 @@ const DailySegmentCard: React.FC<DailySegmentCardProps> = ({
           <Badge variant="outline" className="font-bold">
             Day {segment.day}
           </Badge>
+          {segmentDate && (
+            <div className="text-sm text-gray-600">
+              {format(segmentDate, 'EEE, MMM d')}
+            </div>
+          )}
           <div>
             <div className="font-semibold">{segment.startCity} → {segment.endCity}</div>
             <div className="text-sm text-gray-600">

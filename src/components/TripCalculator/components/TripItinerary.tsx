@@ -37,6 +37,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
                 key={segment.day}
                 segment={segment}
                 formatTime={formatTime}
+                tripStartDate={tripStartDate}
               />
             ))}
           </TabsContent>
