@@ -137,6 +137,9 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             segment={stableSegment}
             tripStartDate={tripStartDate}
             driveTimeStyle={driveTimeStyle}
+            cardIndex={cardIndex}
+            tripId={tripId}
+            sectionKey={sectionKey}
           />
         </EnhancedCollapsibleCard>
       </TooltipProvider>

@@ -38,9 +38,9 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
 
   return (
     <ErrorBoundary context="TripItinerary">
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="bg-route66-background-alt rounded-lg border border-route66-border p-6">
+        <div className="bg-route66-background-alt rounded-lg border border-route66-border p-6 mb-2">
           <div className="flex items-center gap-3 mb-4">
             <Calendar className="h-6 w-6 text-route66-primary" />
             <h3 className="text-xl font-bold text-route66-text-primary">

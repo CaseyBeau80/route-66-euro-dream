@@ -16,12 +16,18 @@ interface DaySegmentCardContentProps {
     text: string;
     border: string;
   };
+  cardIndex?: number;
+  tripId?: string;
+  sectionKey?: string;
 }
 
 const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   segment,
   tripStartDate,
-  driveTimeStyle
+  driveTimeStyle,
+  cardIndex = 0,
+  tripId,
+  sectionKey = 'itinerary'
 }) => {
   return (
     <div className="space-y-4">
@@ -59,6 +65,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           <SegmentWeatherWidget 
             segment={segment}
             tripStartDate={tripStartDate}
+            cardIndex={cardIndex}
+            tripId={tripId}
+            sectionKey={sectionKey}
           />
         </ErrorBoundary>
       </div>
