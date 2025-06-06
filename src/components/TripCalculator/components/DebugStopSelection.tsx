@@ -4,6 +4,7 @@ import { Bug, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
 import { DataValidationService } from '../services/validation/DataValidationService';
+import { getValidatedStops, isUserRelevantStop } from './utils/stopValidation';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DebugStopSelectionProps {
@@ -45,25 +46,11 @@ const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
     try {
       console.log('🔍 DEBUG: Starting validation for segment:', segment.day);
       
-      // Import validation functions with try-catch
-      let getValidatedStops: any = null;
-      let isUserRelevantStop: any = null;
-      
-      try {
-        const validationModule = require('./utils/stopValidation');
-        getValidatedStops = validationModule.getValidatedStops;
-        isUserRelevantStop = validationModule.isUserRelevantStop;
-      } catch (importError) {
-        console.error('❌ DEBUG: Failed to import validation functions:', importError);
-        throw new Error('Validation functions not available');
-      }
-
-      if (!getValidatedStops || !isUserRelevantStop) {
-        throw new Error('Validation functions not properly exported');
-      }
-
-      // Get validated stops with error handling
+      // Use ES6 imports instead of require()
       let validStops: any[] = [];
+      let userRelevantStops: any[] = [];
+      let filteredOutStops: any[] = [];
+      
       try {
         validStops = getValidatedStops(segment) || [];
         console.log('✅ DEBUG: Got validated stops:', validStops.length);
@@ -74,9 +61,6 @@ const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
       }
 
       // Filter user-relevant stops with error handling
-      let userRelevantStops: any[] = [];
-      let filteredOutStops: any[] = [];
-      
       try {
         userRelevantStops = validStops.filter(stop => {
           try {

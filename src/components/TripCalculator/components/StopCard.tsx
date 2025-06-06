@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Camera, Star } from 'lucide-react';
-import { TripStop } from '../services/Route66TripPlannerService';
+import { TripStop } from '../types/TripStop';
 
 interface StopCardProps {
   stop: TripStop;
@@ -28,8 +28,6 @@ const StopCard: React.FC<StopCardProps> = ({ stop }) => {
       default: return <MapPin className="h-3 w-3" />;
     }
   };
-
-  console.log('🎯 Rendering StopCard:', stop);
 
   return (
     <div className="flex items-start gap-3 p-3 bg-route66-cream rounded-lg border border-route66-tan">

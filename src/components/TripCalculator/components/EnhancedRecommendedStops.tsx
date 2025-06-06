@@ -1,12 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { getValidatedStops, isUserRelevantStop } from './utils/stopValidation';
 import { EnhancedStopSelectionService } from '../services/planning/EnhancedStopSelectionService';
-import { SupabaseDataService, TripStop } from '../services/data/SupabaseDataService';
+import { SupabaseDataService } from '../services/data/SupabaseDataService';
 import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
 import { DataValidationService } from '../services/validation/DataValidationService';
+import { TripStop, convertToTripStop } from '../types/TripStop';
 import StopItem from './StopItem';
 import StopsEmpty from './StopsEmpty';
 import ErrorBoundary from './ErrorBoundary';
@@ -25,140 +26,127 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const [error, setError] = useState<string | null>(null);
   
   // Validate segment data
-  const isValidSegment = DataValidationService.validateDailySegment(segment, 'EnhancedRecommendedStops.segment');
+  const isValidSegment = useMemo(() => 
+    DataValidationService.validateDailySegment(segment, 'EnhancedRecommendedStops.segment'),
+    [segment]
+  );
   
-  if (!isValidSegment) {
-    console.error('❌ Invalid segment data provided to EnhancedRecommendedStops');
-    return (
-      <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-        <p className="text-sm text-red-600">
-          Unable to load stops due to invalid segment data
-        </p>
-      </div>
-    );
-  }
-
-  // Get standard validated stops with error handling
-  let validStops: TripStop[] = [];
-  let userRelevantStops: TripStop[] = [];
+  // Memoize validated stops to prevent re-renders
+  const { validStops, userRelevantStops } = useMemo(() => {
+    if (!isValidSegment) {
+      return { validStops: [], userRelevantStops: [] };
+    }
+    
+    try {
+      const valid = getValidatedStops(segment);
+      const userRelevant = valid.filter(isUserRelevantStop);
+      return { validStops: valid, userRelevantStops: userRelevant };
+    } catch (error) {
+      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.getValidatedStops');
+      console.error('❌ Error getting validated stops:', error);
+      return { validStops: [], userRelevantStops: [] };
+    }
+  }, [segment, isValidSegment]);
   
-  try {
-    validStops = getValidatedStops(segment);
-    userRelevantStops = validStops.filter(isUserRelevantStop);
-  } catch (error) {
-    ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.getValidatedStops');
-    console.error('❌ Error getting validated stops:', error);
-  }
+  // Memoize the enhanced selection trigger
+  const shouldTriggerEnhanced = useMemo(() => 
+    userRelevantStops.length < 2 && segment.startCity && segment.endCity,
+    [userRelevantStops.length, segment.startCity, segment.endCity]
+  );
   
   // Enhanced selection with comprehensive error handling
-  useEffect(() => {
-    const tryEnhancedSelection = async () => {
-      if (userRelevantStops.length >= 2 || !segment.startCity || !segment.endCity) {
+  const tryEnhancedSelection = useCallback(async () => {
+    if (!shouldTriggerEnhanced) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${segment.startCity} → ${segment.endCity}`);
+      
+      // Create mock start/end stops for the enhanced selection
+      const startStop: TripStop = convertToTripStop({
+        id: 'temp-start',
+        name: segment.startCity,
+        description: 'Start location',
+        city_name: segment.startCity,
+        state: 'Unknown',
+        latitude: 0,
+        longitude: 0,
+        category: 'destination_city'
+      });
+      
+      const endStop: TripStop = convertToTripStop({
+        id: 'temp-end',
+        name: segment.endCity,
+        description: 'End location',
+        city_name: segment.endCity,
+        state: 'Unknown',
+        latitude: 0,
+        longitude: 0,
+        category: 'destination_city'
+      });
+      
+      const allStops = await ErrorHandlingService.handleAsyncError(
+        () => SupabaseDataService.fetchAllStops(),
+        'EnhancedRecommendedStops.fetchAllStops',
+        []
+      );
+      
+      if (!allStops || allStops.length === 0) {
+        console.warn('⚠️ No stops data available for enhanced selection');
         return;
       }
       
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${segment.startCity} → ${segment.endCity}`);
-        
-        // Create mock start/end stops for the enhanced selection
-        const startStop: TripStop = {
-          id: 'temp-start',
-          name: segment.startCity,
-          description: 'Start location',
-          city_name: segment.startCity,
-          state: 'Unknown',
-          latitude: 0,
-          longitude: 0,
-          category: 'destination_city'
-        };
-        
-        const endStop: TripStop = {
-          id: 'temp-end',
-          name: segment.endCity,
-          description: 'End location',
-          city_name: segment.endCity,
-          state: 'Unknown',
-          latitude: 0,
-          longitude: 0,
-          category: 'destination_city'
-        };
-        
-        const allStops = await ErrorHandlingService.handleAsyncError(
-          () => SupabaseDataService.fetchAllStops(),
-          'EnhancedRecommendedStops.fetchAllStops',
-          []
-        );
-        
-        if (!allStops || allStops.length === 0) {
-          console.warn('⚠️ No stops data available for enhanced selection');
-          return;
-        }
-        
-        const enhanced = await ErrorHandlingService.handleAsyncError(
-          () => EnhancedStopSelectionService.selectStopsForSegment(
-            startStop, endStop, allStops, maxStops
-          ),
-          'EnhancedRecommendedStops.selectStopsForSegment',
-          []
-        );
-        
-        if (enhanced && enhanced.length > 0) {
-          console.log(`✅ Enhanced selection found ${enhanced.length} stops`);
-          // Validate enhanced stops before setting state
-          const validatedEnhanced = DataValidationService.validateTripStops(enhanced, 'EnhancedSelection');
-          setEnhancedStops(validatedEnhanced);
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.tryEnhancedSelection');
-        setError(`Failed to load enhanced stops: ${errorMessage}`);
-        console.error('❌ Enhanced selection failed:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    tryEnhancedSelection();
-  }, [segment.startCity, segment.endCity, userRelevantStops.length, maxStops]);
-  
-  // Combine and deduplicate stops with error handling
-  const combinedStops = [...userRelevantStops];
-  
-  try {
-    enhancedStops.forEach(enhancedStop => {
-      if (!DataValidationService.validateTripStop(enhancedStop, 'EnhancedStop')) {
-        return; // Skip invalid stops
-      }
-      
-      const alreadyExists = combinedStops.some(stop => 
-        stop.name.toLowerCase() === enhancedStop.name.toLowerCase()
+      const enhanced = await ErrorHandlingService.handleAsyncError(
+        () => EnhancedStopSelectionService.selectStopsForSegment(
+          startStop, endStop, allStops, maxStops
+        ),
+        'EnhancedRecommendedStops.selectStopsForSegment',
+        []
       );
       
-      if (!alreadyExists) {
-        combinedStops.push({
-          id: enhancedStop.id,
-          name: enhancedStop.name,
-          description: enhancedStop.description || `Discover ${enhancedStop.name} along your Route 66 journey`,
-          category: enhancedStop.category,
-          city_name: enhancedStop.city_name,
-          state: enhancedStop.state,
-          latitude: enhancedStop.latitude || 0,
-          longitude: enhancedStop.longitude || 0,
-          image_url: enhancedStop.image_url,
-          is_major_stop: enhancedStop.is_major_stop,
-          is_official_destination: enhancedStop.is_official_destination
-        });
+      if (enhanced && enhanced.length > 0) {
+        console.log(`✅ Enhanced selection found ${enhanced.length} stops`);
+        // Convert to unified TripStop format
+        const convertedEnhanced = enhanced.map(stop => convertToTripStop(stop));
+        setEnhancedStops(convertedEnhanced);
       }
-    });
-  } catch (error) {
-    ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.combineStops');
-    console.error('❌ Error combining stops:', error);
-  }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.tryEnhancedSelection');
+      setError(`Failed to load enhanced stops: ${errorMessage}`);
+      console.error('❌ Enhanced selection failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [shouldTriggerEnhanced, segment.startCity, segment.endCity, maxStops]);
   
-  const finalStops = combinedStops.slice(0, maxStops);
+  useEffect(() => {
+    tryEnhancedSelection();
+  }, [tryEnhancedSelection]);
+  
+  // Combine and deduplicate stops with error handling
+  const finalStops = useMemo(() => {
+    const combinedStops = [...userRelevantStops];
+    
+    try {
+      enhancedStops.forEach(enhancedStop => {
+        const alreadyExists = combinedStops.some(stop => 
+          stop.name.toLowerCase() === enhancedStop.name.toLowerCase()
+        );
+        
+        if (!alreadyExists) {
+          combinedStops.push(enhancedStop);
+        }
+      });
+    } catch (error) {
+      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.combineStops');
+      console.error('❌ Error combining stops:', error);
+    }
+    
+    return combinedStops.slice(0, maxStops);
+  }, [userRelevantStops, enhancedStops, maxStops]);
 
   console.log('🎯 EnhancedRecommendedStops final result:', {
     segmentDay: segment.day,
@@ -170,6 +158,16 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     error,
     stopNames: finalStops.map(s => s.name)
   });
+
+  if (!isValidSegment) {
+    return (
+      <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+        <p className="text-sm text-red-600">
+          Unable to load stops due to invalid segment data
+        </p>
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary context="EnhancedRecommendedStops">
@@ -190,7 +188,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         {finalStops.length > 0 ? (
           <div className="space-y-3">
             {finalStops.map((stop, index) => (
-              <ErrorBoundary key={stop.id || `stop-${index}`} context={`StopItem-${index}`}>
+              <ErrorBoundary key={stop.id} context={`StopItem-${index}`}>
                 <StopItem stop={stop} index={index} />
               </ErrorBoundary>
             ))}

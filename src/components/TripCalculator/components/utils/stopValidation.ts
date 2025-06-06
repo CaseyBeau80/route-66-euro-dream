@@ -1,9 +1,9 @@
 
-import { ValidatedStop, isValidStopObject } from '../types/stopTypes';
+import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
 // EXPANDED filter function to include more user-relevant categories
-export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
+export const isUserRelevantStop = (stop: TripStop): boolean => {
   const userRelevantCategories = [
     'attraction',
     'hidden_gem', 
@@ -19,7 +19,6 @@ export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
     'photo_opportunity',
     'landmark',
     'cultural_site',
-    // Add the exact categories we see in the database
     'Museum',
     'Diner',
     'Attraction',
@@ -36,7 +35,7 @@ export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
 
 // ENHANCED geographic filtering with more generous boundaries
 export const isGeographicallyRelevant = (
-  stop: ValidatedStop,
+  stop: TripStop,
   startLat: number,
   startLng: number,
   endLat: number,
@@ -65,8 +64,8 @@ export const isGeographicallyRelevant = (
 };
 
 // Get validated stops from multiple possible sources with enhanced validation
-export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
-  const stops: ValidatedStop[] = [];
+export const getValidatedStops = (segment: DailySegment): TripStop[] => {
+  const stops: TripStop[] = [];
   
   console.log(`🔍 ENHANCED VALIDATION: Day ${segment.day}:`, {
     recommendedStops: segment.recommendedStops?.length || 0,
@@ -79,30 +78,40 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
   if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
     const validRecommendedStops = segment.recommendedStops
       .filter((stop, index) => {
-        const isValid = isValidStopObject(stop);
+        const isValid = stop != null && 
+          (typeof stop === 'string' ? stop.trim() !== '' : 
+           (typeof stop === 'object' && stop.name && typeof stop.name === 'string'));
         
         console.log(`🎯 Stop ${index + 1} validation:`, {
           stop: stop,
           isValid,
-          name: isValid ? stop.name : 'invalid',
-          category: isValid ? stop.category : 'unknown'
+          name: isValid ? (typeof stop === 'string' ? stop : stop.name) : 'invalid',
+          category: typeof stop === 'object' ? stop.category : 'unknown'
         });
         
         return isValid;
       })
-      .map((stop, index): ValidatedStop => ({
-        id: stop.id || `recommended-${index}-${Math.random()}`,
-        name: stop.name,
-        description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
-        category: stop.category || 'attraction',
-        city_name: stop.city_name || stop.state || 'Unknown',
-        state: stop.state || 'Unknown',
-        latitude: stop.latitude || 0,
-        longitude: stop.longitude || 0,
-        image_url: stop.image_url
-      }));
+      .map((stop, index): TripStop => {
+        if (typeof stop === 'string') {
+          return convertToTripStop({
+            name: stop,
+            id: `recommended-${index}-${Math.random()}`,
+            description: `Discover ${stop} along your Route 66 journey`,
+            category: 'attraction',
+            city_name: segment.endCity || 'Unknown',
+            state: 'Unknown',
+            latitude: 0,
+            longitude: 0
+          });
+        } else {
+          return convertToTripStop({
+            ...stop,
+            id: stop.id || `recommended-${index}-${Math.random()}`
+          });
+        }
+      });
     
-    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => `${s.name} (${s.category})`));
+    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`);
     stops.push(...validRecommendedStops);
   }
   
@@ -114,7 +123,7 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
       .filter((attraction, index) => {
         const isValid = attraction != null && 
           (typeof attraction === 'string' ? attraction.trim() !== '' : 
-           isValidStopObject(attraction));
+           (typeof attraction === 'object' && attraction.name && typeof attraction.name === 'string'));
         
         console.log(`🎯 Attraction ${index + 1} validation:`, {
           attraction,
@@ -124,37 +133,27 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
         
         return isValid;
       })
-      .map((attraction, index): ValidatedStop => {
-        // Handle both string and object attractions explicitly
+      .map((attraction, index): TripStop => {
         if (typeof attraction === 'string') {
-          return {
-            id: `attraction-${index}-${Math.random()}`,
+          return convertToTripStop({
             name: attraction,
+            id: `attraction-${index}-${Math.random()}`,
             description: `Discover ${attraction} along your Route 66 journey`,
             category: 'attraction',
             city_name: segment.endCity || 'Unknown',
             state: 'Unknown',
             latitude: 0,
             longitude: 0
-          };
+          });
         } else {
-          // TypeScript now knows this is an object with name property due to our filter
-          const attractionObj = attraction as { name: string; id?: string; description?: string; category?: string; city_name?: string; state?: string; latitude?: number; longitude?: number; image_url?: string };
-          return {
-            id: `attraction-${index}-${Math.random()}`,
-            name: attractionObj.name,
-            description: attractionObj.description || `Discover ${attractionObj.name} along your Route 66 journey`,
-            category: attractionObj.category || 'attraction',
-            city_name: attractionObj.city_name || segment.endCity || 'Unknown',
-            state: attractionObj.state || 'Unknown',
-            latitude: attractionObj.latitude || 0,
-            longitude: attractionObj.longitude || 0,
-            image_url: attractionObj.image_url
-          };
+          return convertToTripStop({
+            ...attraction,
+            id: `attraction-${index}-${Math.random()}`
+          });
         }
       });
     
-    console.log(`✅ Valid attraction stops: ${attractionStops.length}`, attractionStops.map(s => s.name));
+    console.log(`✅ Valid attraction stops: ${attractionStops.length}`);
     stops.push(...attractionStops);
   }
   
@@ -178,8 +177,8 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
 };
 
 // Create fallback stops for segments with no data
-const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
-  const route66Attractions: Record<string, ValidatedStop[]> = {
+const createFallbackStops = (segment: DailySegment): TripStop[] => {
+  const route66Attractions: Record<string, TripStop[]> = {
     'joplin': [
       {
         id: 'fallback-joplin-1',
@@ -239,7 +238,7 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
   const startKey = segment.startCity.toLowerCase();
   const endKey = segment.endCity.toLowerCase();
   
-  const relevantStops: ValidatedStop[] = [];
+  const relevantStops: TripStop[] = [];
   
   // Check for regional matches
   if (startKey.includes('joplin') || endKey.includes('oklahoma')) {
