@@ -1,9 +1,12 @@
 
 export const usePDFDisplay = () => {
   const showPDFCloseButton = (onClose: () => void): HTMLButtonElement => {
+    console.log('🔄 Creating PDF close button with enhanced styling...');
+    
     // Remove any existing close button to prevent stacking
     const existingButton = document.querySelector('.pdf-close-button-js');
     if (existingButton) {
+      console.log('🗑️ Removing existing close button');
       (existingButton as HTMLElement).style.opacity = '0';
       setTimeout(() => {
         if (document.body.contains(existingButton)) {
@@ -15,34 +18,64 @@ export const usePDFDisplay = () => {
     const closeButton = document.createElement("button");
     closeButton.innerHTML = "✕";
     closeButton.setAttribute("aria-label", "Close PDF Preview");
-    closeButton.className = `
-      pdf-close-button-js
-      fixed top-6 right-10 z-[10000]
-      bg-red-500 hover:bg-red-600
-      text-white rounded-full w-10 h-10
-      flex items-center justify-center
-      shadow-lg transition-all duration-200
-      text-lg font-bold
-      hover:scale-105 active:scale-95
-    `.replace(/\s+/g, ' ').trim();
+    closeButton.className = "pdf-close-button-js";
+    
+    // Use inline styles for maximum reliability
+    closeButton.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 40px;
+      z-index: 10000;
+      background-color: #EF4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      opacity: 1;
+      transform: scale(1);
+    `;
+
+    // Enhanced hover effects
+    closeButton.onmouseenter = () => {
+      closeButton.style.backgroundColor = '#DC2626';
+      closeButton.style.transform = 'scale(1.05)';
+    };
+
+    closeButton.onmouseleave = () => {
+      closeButton.style.backgroundColor = '#EF4444';
+      closeButton.style.transform = 'scale(1)';
+    };
 
     closeButton.onclick = () => {
+      console.log('❌ Close button clicked - starting cleanup animation');
       // Add fade-out animation before cleanup
       closeButton.style.opacity = '0';
       closeButton.style.transform = 'scale(0.95)';
       setTimeout(() => {
-        onClose();
         if (document.body.contains(closeButton)) {
           document.body.removeChild(closeButton);
         }
+        onClose();
       }, 300);
     };
 
     document.body.appendChild(closeButton);
+    console.log('✅ PDF close button created and attached');
     return closeButton;
   };
 
   const showPDFPreview = (pdfContainer: HTMLElement, handleClosePreview: () => void) => {
+    console.log('📄 Showing PDF preview with enhanced Route 66 styling...');
+    
     // Create close button programmatically
     const closeButton = showPDFCloseButton(handleClosePreview);
     
@@ -57,9 +90,11 @@ export const usePDFDisplay = () => {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
       line-height: 1.5;
-      color: #1f2937;
+      color: #1F2937;
       padding: 0;
       margin: 0;
+      transform: scale(1.1);
+      transform-origin: top center;
     `;
     
     // Hide all other content
@@ -72,6 +107,7 @@ export const usePDFDisplay = () => {
 
     // Enhanced cleanup on print with proper close button removal
     window.onafterprint = () => {
+      console.log('🖨️ Print completed - cleaning up PDF preview');
       if (document.body.contains(closeButton)) {
         closeButton.style.opacity = '0';
         closeButton.style.transform = 'scale(0.95)';
@@ -85,6 +121,8 @@ export const usePDFDisplay = () => {
         handleClosePreview();
       }
     };
+
+    console.log('✅ PDF preview setup complete');
   };
 
   return { showPDFPreview, showPDFCloseButton };

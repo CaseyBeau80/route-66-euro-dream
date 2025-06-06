@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -53,7 +52,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Modern Blue Route 66 Color Palette - Updated
+        // Modern Blue Route 66 Color Palette - Updated with complete orange scale
         "route66": {
           // Primary Brand Colors - Blue Theme
           "primary": "#4F7CFF",
@@ -93,16 +92,20 @@ const config: Config = {
           "border-strong": "#D1D5DB",
           "divider": "#F3F4F6",
           
-          // Orange Colors - Enhanced for PDF Export UX
+          // Complete Orange Scale - Enhanced for PDF Export UX
           "orange": "#EA580C",
-          "orange-50": "#fff7ed",
+          "orange-50": "#FFF7ED",
+          "orange-100": "#FFEDD5",
+          "orange-200": "#FED7AA",
+          "orange-300": "#FDBA74",
+          "orange-400": "#FB923C",
+          "orange-500": "#F97316",
+          "orange-600": "#EA580C",
+          "orange-700": "#C2410C",
+          "orange-800": "#9A3412",
+          "orange-900": "#7C2D12",
           "orange-light": "#FB923C",
-          "orange-200": "#fed7aa",
-          "orange-300": "#fdba74",
           "orange-dark": "#C2410C",
-          "orange-600": "#ea580c",
-          "orange-700": "#c2410c",
-          "orange-800": "#9a3412",
           "yellow": "#EAB308",
           "yellow-light": "#FDE047",
           

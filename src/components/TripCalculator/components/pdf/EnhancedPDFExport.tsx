@@ -50,9 +50,20 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="fixed left-1/2 top-[12%] -translate-x-1/2 z-[10000] max-w-lg w-full px-4 sm:px-6 py-5 bg-route66-orange-50 border border-route66-orange-300 text-route66-orange-700 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="fixed left-1/2 top-[12%] -translate-x-1/2 z-[10000] max-w-lg w-full px-4 sm:px-6 py-5 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
+        style={{
+          backgroundColor: '#FFF7ED',
+          borderColor: '#FDBA74',
+          borderWidth: '2px',
+          color: '#9A3412'
+        }}
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-route66-orange-600 font-semibold text-base sm:text-lg">
+          <DialogTitle 
+            className="flex items-center gap-2 font-semibold text-base sm:text-lg"
+            style={{ color: '#EA580C' }}
+          >
             <Settings className="w-5 h-5" />
             PDF Export Options
           </DialogTitle>
@@ -68,7 +79,22 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         <Button
           onClick={handleExportPDF}
           disabled={isExporting || !isTripComplete}
-          className="w-full bg-route66-orange-600 hover:bg-route66-orange-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
+          className="w-full font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
+          style={{
+            backgroundColor: isExporting || !isTripComplete ? '#9CA3AF' : '#EA580C',
+            color: 'white',
+            opacity: isExporting || !isTripComplete ? 0.6 : 1
+          }}
+          onMouseEnter={(e) => {
+            if (!isExporting && isTripComplete) {
+              e.currentTarget.style.backgroundColor = '#C2410C';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isExporting && isTripComplete) {
+              e.currentTarget.style.backgroundColor = '#EA580C';
+            }
+          }}
         >
           {isExporting ? 'Preparing PDF...' : 'Export PDF with Preview'}
         </Button>
