@@ -7,6 +7,7 @@ import { addDays, format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { DataValidationService } from '../services/validation/DataValidationService';
+import { useStableSegment } from '../hooks/useStableSegments';
 import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
@@ -31,11 +32,14 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 }) => {
   const { formatDistance } = useUnits();
   
+  // Use stable segment to prevent cascading re-renders
+  const stableSegment = useStableSegment(segment);
+  
   // Get day for error message before validation
-  const segmentDay = typeof segment === 'object' && segment && 'day' in segment ? segment.day : 'Unknown';
+  const segmentDay = typeof stableSegment === 'object' && stableSegment && 'day' in stableSegment ? stableSegment.day : 'Unknown';
   
   // Validate segment data with proper type guard
-  if (!DataValidationService.validateDailySegment(segment, 'DaySegmentCard.segment')) {
+  if (!DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -47,13 +51,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     );
   }
   
-  console.log('🗓️ DaySegmentCard render:', segment.title, 'FORCE COLLAPSED - ignoring any defaultExpanded');
+  console.log('🗓️ DaySegmentCard render:', stableSegment.title, 'FORCE COLLAPSED - ignoring any defaultExpanded');
 
   // Calculate the date for this segment with error handling
   const getSegmentDate = () => {
     try {
       if (tripStartDate) {
-        return addDays(tripStartDate, segment.day - 1);
+        return addDays(tripStartDate, stableSegment.day - 1);
       }
       return null;
     } catch (error) {
@@ -66,14 +70,14 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
 
   // Get drive time category styling with error handling
   const getDriveTimeStyle = () => {
-    if (!segment.driveTimeCategory) return { 
+    if (!stableSegment.driveTimeCategory) return { 
       bg: 'bg-gray-100', 
       text: 'text-gray-700', 
       border: 'border-gray-300' 
     };
     
     try {
-      switch (segment.driveTimeCategory.category) {
+      switch (stableSegment.driveTimeCategory.category) {
         case 'short':
           return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
         case 'optimal':
@@ -113,7 +117,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   };
 
-  const segmentDistance = segment.distance || segment.approximateMiles;
+  const segmentDistance = stableSegment.distance || stableSegment.approximateMiles;
 
   // Card header content with error handling
   const cardHeader = (
@@ -122,7 +126,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <Badge variant="outline" className="text-xs font-medium border-route66-border">
-              Day {segment.day}
+              Day {stableSegment.day}
             </Badge>
             {segmentDate && (
               <div className="flex items-center gap-1 text-xs text-route66-text-secondary">
@@ -132,13 +136,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             )}
           </div>
           <div className="font-route66 text-lg text-route66-text-primary font-semibold truncate">
-            {segment.startCity} → {segment.endCity}
+            {stableSegment.startCity} → {stableSegment.endCity}
           </div>
         </div>
         
         {/* Right-aligned tags */}
         <div className="flex items-center gap-2 ml-4">
-          {segment.routeSection && (
+          {stableSegment.routeSection && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -146,7 +150,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
                     variant="outline" 
                     className="text-xs border-route66-accent-light text-route66-text-secondary"
                   >
-                    {segment.routeSection}
+                    {stableSegment.routeSection}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -157,17 +161,17 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
           )}
           
           {/* Drive Time Status Pill */}
-          {segment.driveTimeCategory && (
+          {stableSegment.driveTimeCategory && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
                   <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${driveTimeStyle.bg} ${driveTimeStyle.text} ${driveTimeStyle.border}`}>
                     <Clock className="h-3 w-3" />
-                    <span className="capitalize">{segment.driveTimeCategory.category}</span>
+                    <span className="capitalize">{stableSegment.driveTimeCategory.category}</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{segment.driveTimeCategory.message}</p>
+                  <p>{stableSegment.driveTimeCategory.message}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -183,11 +187,11 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         </div>
         <div className="flex items-center gap-1">
           <Clock className="h-4 w-4" />
-          <span className={segment.driveTimeHours > 7 ? driveTimeStyle.text : ''}>
-            {formatDriveTime(segment.driveTimeHours)} driving
+          <span className={stableSegment.driveTimeHours > 7 ? driveTimeStyle.text : ''}>
+            {formatDriveTime(stableSegment.driveTimeHours)} driving
           </span>
         </div>
-        {segment.driveTimeHours > 7 && (
+        {stableSegment.driveTimeHours > 7 && (
           <div className="flex items-center gap-1 text-orange-600">
             <AlertTriangle className="h-4 w-4" />
             <span className="text-xs font-medium">Long Drive Day</span>
@@ -198,7 +202,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   );
 
   return (
-    <ErrorBoundary context={`DaySegmentCard-Day${segment.day}`}>
+    <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
       <TooltipProvider>
         <EnhancedCollapsibleCard
           title={cardHeader}
@@ -212,16 +216,16 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         >
           <div className="space-y-4">
             {/* Drive Time Message - Compact */}
-            {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
+            {stableSegment.driveTimeCategory && stableSegment.driveTimeHours > 6 && (
               <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
                 <div className="flex items-start gap-2">
                   <AlertTriangle className={`h-4 w-4 mt-0.5 ${driveTimeStyle.text}`} />
                   <div>
                     <div className={`font-medium text-sm ${driveTimeStyle.text}`}>
-                      {segment.driveTimeCategory.category.charAt(0).toUpperCase() + segment.driveTimeCategory.category.slice(1)} Drive Day
+                      {stableSegment.driveTimeCategory.category.charAt(0).toUpperCase() + stableSegment.driveTimeCategory.category.slice(1)} Drive Day
                     </div>
                     <div className={`text-xs mt-1 ${driveTimeStyle.text}`}>
-                      {segment.driveTimeCategory.message}
+                      {stableSegment.driveTimeCategory.message}
                     </div>
                   </div>
                 </div>
@@ -229,20 +233,20 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             )}
 
             {/* Recommended Stops */}
-            <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
-              <SegmentRecommendedStops segment={segment} />
+            <ErrorBoundary context={`SegmentRecommendedStops-Day${stableSegment.day}`}>
+              <SegmentRecommendedStops segment={stableSegment} />
             </ErrorBoundary>
 
             {/* Debug Component - Only in Development */}
             {process.env.NODE_ENV === 'development' && (
-              <ErrorBoundary context={`DebugStopSelection-Day${segment.day}`}>
-                <DebugStopSelection segment={segment} />
+              <ErrorBoundary context={`DebugStopSelection-Day${stableSegment.day}`}>
+                <DebugStopSelection segment={stableSegment} />
               </ErrorBoundary>
             )}
 
             {/* Route Progression */}
-            <ErrorBoundary context={`SegmentRouteProgression-Day${segment.day}`}>
-              <SegmentRouteProgression segment={segment} />
+            <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>
+              <SegmentRouteProgression segment={stableSegment} />
             </ErrorBoundary>
           </div>
         </EnhancedCollapsibleCard>
