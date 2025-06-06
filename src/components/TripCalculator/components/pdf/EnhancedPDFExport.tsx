@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings, X } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { toast } from '@/hooks/use-toast';
@@ -305,20 +304,10 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              PDF Export Options
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-6 w-6 p-0 hover:bg-gray-100"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            PDF Export Options
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
