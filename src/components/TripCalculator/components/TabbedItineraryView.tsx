@@ -42,13 +42,13 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
     stableSegments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity }))
   });
   
-  // Debug: Check for missing days
+  // Calculate missing days
   const expectedDays = Array.from({ length: totalDays }, (_, i) => i + 1);
   const actualDays = stableSegments.map(s => s.day).sort((a, b) => a - b);
   const missingDays = expectedDays.filter(day => !actualDays.includes(day));
   
   if (missingDays.length > 0) {
-    console.error('❌ MISSING DAYS DETECTED:', {
+    console.warn('⚠️ MISSING DAYS DETECTED:', {
       expectedDays,
       actualDays,
       missingDays,
@@ -101,19 +101,23 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
         {/* Tab Content */}
         <div className="mt-4">
-          <RouteTabContent
-            segments={stableSegments}
-            tripStartDate={tripStartDate}
-            tripId={tripId}
-            isVisible={activeTab === 'route'}
-          />
+          {activeTab === 'route' && (
+            <RouteTabContent
+              segments={stableSegments}
+              tripStartDate={tripStartDate}
+              tripId={tripId}
+              isVisible={true}
+            />
+          )}
 
-          <WeatherTabContent
-            segments={stableSegments}
-            tripStartDate={tripStartDate}
-            tripId={tripId}
-            isVisible={activeTab === 'weather'}
-          />
+          {activeTab === 'weather' && (
+            <WeatherTabContent
+              segments={stableSegments}
+              tripStartDate={tripStartDate}
+              tripId={tripId}
+              isVisible={true}
+            />
+          )}
         </div>
       </div>
     </ErrorBoundary>

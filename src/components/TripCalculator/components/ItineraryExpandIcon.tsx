@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ItineraryExpandIconProps {
   isExpanded: boolean;
-  onClick: () => void;
+  onClick: (e?: React.MouseEvent) => void;
 }
 
 const ItineraryExpandIcon: React.FC<ItineraryExpandIconProps> = ({
@@ -14,6 +14,12 @@ const ItineraryExpandIcon: React.FC<ItineraryExpandIconProps> = ({
   onClick
 }) => {
   const isMobile = useIsMobile();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick(e);
+  };
 
   const IconWithAnimation = () => (
     <div className="flex items-center gap-2">
@@ -33,7 +39,7 @@ const ItineraryExpandIcon: React.FC<ItineraryExpandIconProps> = ({
   if (isMobile) {
     return (
       <button
-        onClick={onClick}
+        onClick={handleClick}
         className="flex items-center gap-2 px-3 py-1 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
         aria-label={isExpanded ? 'Hide details' : 'View details'}
       >
@@ -46,7 +52,7 @@ const ItineraryExpandIcon: React.FC<ItineraryExpandIconProps> = ({
     <Tooltip>
       <TooltipTrigger asChild>
         <button
-          onClick={onClick}
+          onClick={handleClick}
           className="p-1 rounded-md hover:bg-gray-100 transition-colors"
           aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
         >

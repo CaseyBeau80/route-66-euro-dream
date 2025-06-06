@@ -30,18 +30,17 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
   tripId,
   sectionKey = 'default'
 }) => {
-  // FORCE COLLAPSED: Always pass false, completely ignore defaultExpanded prop
+  // Use the collapsible state hook
   const { isExpanded, handleToggle } = useCollapsibleState({
     tripId,
     sectionKey,
     cardIndex,
-    defaultExpanded: false // Force collapsed - ignore any defaultExpanded prop
+    defaultExpanded: false // Start collapsed for better UX
   });
 
-  console.log(`🃏 EnhancedCollapsibleCard: Force collapsed render ${sectionKey}-${cardIndex}`, {
+  console.log(`🃏 EnhancedCollapsibleCard: Render ${sectionKey}-${cardIndex}`, {
     isExpanded,
-    ignoredDefaultExpanded: defaultExpanded, // Log what we're ignoring
-    forceCollapsed: true,
+    defaultExpanded,
     tripId
   });
 
@@ -54,10 +53,6 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
       detail: { sectionKey, cardIndex, expanded: newState }
     });
     window.dispatchEvent(event);
-  };
-
-  const handleExpandClick = () => {
-    onToggle(!isExpanded);
   };
 
   return (
@@ -84,7 +79,10 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
         <div className="ml-3 flex-shrink-0">
           <ItineraryExpandIcon 
             isExpanded={isExpanded}
-            onClick={handleExpandClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(!isExpanded);
+            }}
           />
         </div>
       </CollapsibleTrigger>
