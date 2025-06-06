@@ -6,6 +6,8 @@ export interface ValidatedStop {
   category?: string;
   city_name?: string;
   state?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Type guard to check if an object has the required stop properties
@@ -14,7 +16,9 @@ export const isValidStopObject = (stop: any): stop is {
   id?: string; 
   category?: string; 
   city_name?: string; 
-  state?: string 
+  state?: string;
+  latitude?: number;
+  longitude?: number;
 } => {
   return stop != null && 
          typeof stop === 'object' && 

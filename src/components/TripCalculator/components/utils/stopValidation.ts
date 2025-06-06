@@ -33,6 +33,11 @@ export const isGeographicallyRelevant = (
   endLng: number,
   segmentDistance: number
 ): boolean => {
+  // Only check geographic relevance if coordinates are available
+  if (!stop.latitude || !stop.longitude) {
+    return true; // Include stops without coordinates by default
+  }
+  
   const distanceFromStart = Math.sqrt(
     Math.pow(stop.latitude - startLat, 2) + Math.pow(stop.longitude - startLng, 2)
   ) * 69; // Rough miles conversion
@@ -80,7 +85,9 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
         name: stop.name,
         category: stop.category || 'attraction',
         city_name: stop.city_name || stop.state,
-        state: stop.state
+        state: stop.state,
+        latitude: stop.latitude || 0,
+        longitude: stop.longitude || 0
       }));
     
     console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`, validRecommendedStops.map(s => `${s.name} (${s.category})`));
@@ -113,17 +120,21 @@ export const getValidatedStops = (segment: DailySegment): ValidatedStop[] => {
             name: attraction,
             category: 'attraction',
             city_name: segment.endCity,
-            state: segment.destination?.state || 'Unknown'
+            state: 'Unknown',
+            latitude: 0,
+            longitude: 0
           };
         } else {
           // TypeScript now knows this is an object with name property due to our filter
-          const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string };
+          const attractionObj = attraction as { name: string; id?: string; category?: string; city_name?: string; state?: string; latitude?: number; longitude?: number };
           return {
             id: `attraction-${index}-${Math.random()}`,
             name: attractionObj.name,
             category: attractionObj.category || 'attraction',
             city_name: attractionObj.city_name || segment.endCity,
-            state: attractionObj.state || segment.destination?.state || 'Unknown'
+            state: attractionObj.state || 'Unknown',
+            latitude: attractionObj.latitude || 0,
+            longitude: attractionObj.longitude || 0
           };
         }
       });
@@ -160,14 +171,18 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
         name: 'Spook Light',
         category: 'attraction',
         city_name: 'Joplin',
-        state: 'MO'
+        state: 'MO',
+        latitude: 37.0262,
+        longitude: -94.8591
       },
       {
         id: 'fallback-joplin-2',
         name: 'Schifferdecker Park',
         category: 'attraction',
         city_name: 'Joplin',
-        state: 'MO'
+        state: 'MO',
+        latitude: 37.0842,
+        longitude: -94.5133
       }
     ],
     'oklahoma': [
@@ -176,21 +191,27 @@ const createFallbackStops = (segment: DailySegment): ValidatedStop[] => {
         name: 'Blue Whale of Catoosa',
         category: 'attraction',
         city_name: 'Catoosa',
-        state: 'OK'
+        state: 'OK',
+        latitude: 36.1851,
+        longitude: -95.7317
       },
       {
         id: 'fallback-ok-2',
         name: 'Totem Pole Park',
         category: 'attraction',
         city_name: 'Foyil',
-        state: 'OK'
+        state: 'OK',
+        latitude: 36.4395,
+        longitude: -95.5122
       },
       {
         id: 'fallback-ok-3',
         name: 'Golden Driller',
         category: 'attraction',
         city_name: 'Tulsa',
-        state: 'OK'
+        state: 'OK',
+        latitude: 36.1540,
+        longitude: -95.9928
       }
     ]
   };

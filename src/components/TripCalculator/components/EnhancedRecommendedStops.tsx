@@ -38,9 +38,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
             name: segment.startCity,
             description: 'Start location',
             city_name: segment.startCity,
-            state: segment.origin?.state || 'Unknown',
-            latitude: segment.origin?.latitude || 0,
-            longitude: segment.origin?.longitude || 0,
+            state: 'Unknown', // Use default since origin doesn't exist
+            latitude: 0, // Use default coordinates
+            longitude: 0,
             category: 'destination_city'
           };
           
@@ -49,9 +49,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
             name: segment.endCity,
             description: 'End location',
             city_name: segment.endCity,
-            state: segment.destination?.state || 'Unknown',
-            latitude: segment.destination?.latitude || 0,
-            longitude: segment.destination?.longitude || 0,
+            state: 'Unknown', // Use default since destination doesn't exist
+            latitude: 0, // Use default coordinates
+            longitude: 0,
             category: 'destination_city'
           };
           
