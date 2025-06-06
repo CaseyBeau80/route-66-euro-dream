@@ -33,7 +33,7 @@ export const useCollapsibleState = ({
     }
   }, [tripId, sectionKey, cardIndex]);
 
-  // Handle group toggle and auto-expand events
+  // Handle group toggle events
   useEffect(() => {
     const handleToggleAll = (event: CustomEvent) => {
       if (event.detail.sectionKey && event.detail.sectionKey !== sectionKey) return;
@@ -64,12 +64,6 @@ export const useCollapsibleState = ({
         if (tripId) {
           localStorage.setItem(`trip-${tripId}-${sectionKey}-card-${cardIndex}`, JSON.stringify(true));
         }
-        
-        // Dispatch event to update collapsed count immediately
-        const updateEvent = new CustomEvent('cardStateChanged', {
-          detail: { sectionKey, cardIndex, expanded: true }
-        });
-        window.dispatchEvent(updateEvent);
       }
     };
 
@@ -91,6 +85,12 @@ export const useCollapsibleState = ({
       localStorage.setItem(`trip-${tripId}-${sectionKey}-card-${cardIndex}`, JSON.stringify(newState));
       localStorage.setItem(`trip-${tripId}-${sectionKey}-interacted`, JSON.stringify(true));
     }
+
+    // Dispatch event to update collapsed count immediately
+    const updateEvent = new CustomEvent('cardStateChanged', {
+      detail: { sectionKey, cardIndex, expanded: newState }
+    });
+    window.dispatchEvent(updateEvent);
   };
 
   return {

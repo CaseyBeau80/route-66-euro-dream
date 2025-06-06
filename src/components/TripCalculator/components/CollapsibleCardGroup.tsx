@@ -42,8 +42,8 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
     }
   }, [tripId, sectionKey]);
 
-  // Calculate initial collapsed count based on localStorage
-  useEffect(() => {
+  // Calculate collapsed count from localStorage
+  const calculateCollapsedCount = () => {
     if (tripId && totalCards > 0) {
       let collapsed = 0;
       for (let i = 0; i < totalCards; i++) {
@@ -52,24 +52,37 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
           collapsed++;
         }
       }
-      setCollapsedCount(collapsed);
+      return collapsed;
     }
+    return totalCards;
+  };
+
+  // Initial collapsed count calculation
+  useEffect(() => {
+    setCollapsedCount(calculateCollapsedCount());
   }, [tripId, sectionKey, totalCards]);
 
   // Auto-expand Day 1 on desktop if user hasn't interacted
   useEffect(() => {
-    if (autoExpandFirstOnDesktop && !hasUserInteracted && window.innerWidth >= 768) {
+    if (autoExpandFirstOnDesktop && !hasUserInteracted && window.innerWidth >= 768 && totalCards > 0) {
       // Small delay to ensure cards are mounted
       const timer = setTimeout(() => {
         const event = new CustomEvent('autoExpandFirst', { 
           detail: { sectionKey } 
         });
         window.dispatchEvent(event);
+        
+        // Update the collapsed count after auto-expand
+        setTimeout(() => {
+          const newCollapsedCount = calculateCollapsedCount();
+          setCollapsedCount(newCollapsedCount);
+          setAllExpanded(newCollapsedCount === 0);
+        }, 50);
       }, 100);
       
       return () => clearTimeout(timer);
     }
-  }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey]);
+  }, [autoExpandFirstOnDesktop, hasUserInteracted, sectionKey, totalCards]);
 
   // Listen for card state changes to update collapsed count
   useEffect(() => {
@@ -77,19 +90,9 @@ const CollapsibleCardGroup: React.FC<CollapsibleCardGroupProps> = ({
       if (event.detail.sectionKey !== sectionKey) return;
       
       // Recalculate collapsed count from localStorage
-      if (tripId) {
-        let collapsed = 0;
-        for (let i = 0; i < totalCards; i++) {
-          const cardState = localStorage.getItem(`trip-${tripId}-${sectionKey}-card-${i}`);
-          if (cardState === null || !JSON.parse(cardState)) {
-            collapsed++;
-          }
-        }
-        setCollapsedCount(collapsed);
-        
-        // Update allExpanded state based on actual card states
-        setAllExpanded(collapsed === 0);
-      }
+      const newCollapsedCount = calculateCollapsedCount();
+      setCollapsedCount(newCollapsedCount);
+      setAllExpanded(newCollapsedCount === 0);
     };
 
     window.addEventListener('cardStateChanged', handleCardStateChange as EventListener);
