@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import DailySegmentCard from './DailySegmentCard';
+import DaySegmentCard from './DaySegmentCard';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface TripItineraryProps {
@@ -32,11 +32,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
           </TabsList>
           
           <TabsContent value="itinerary" className="space-y-4 mt-6">
-            {tripPlan.segments.map((segment, index) => (
-              <DailySegmentCard
+            {tripPlan.segments.map((segment) => (
+              <DaySegmentCard
                 key={segment.day}
                 segment={segment}
-                formatTime={formatTime}
                 tripStartDate={tripStartDate}
               />
             ))}
