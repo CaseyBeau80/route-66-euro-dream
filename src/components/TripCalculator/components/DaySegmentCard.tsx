@@ -47,7 +47,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
+  console.log('🗓️ DaySegmentCard render (Route & Stops only):', stableSegment.title);
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -135,9 +135,6 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
         >
           <DaySegmentCardContent 
             segment={stableSegment}
-            tripStartDate={tripStartDate}
-            cardIndex={cardIndex}
-            tripId={tripId}
             driveTimeStyle={driveTimeStyle}
           />
         </EnhancedCollapsibleCard>

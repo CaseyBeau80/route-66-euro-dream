@@ -4,15 +4,11 @@ import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
 import SegmentRouteProgression from './SegmentRouteProgression';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardContentProps {
   segment: DailySegment;
-  tripStartDate?: Date;
-  cardIndex: number;
-  tripId?: string;
   driveTimeStyle: {
     bg: string;
     text: string;
@@ -22,9 +18,6 @@ interface DaySegmentCardContentProps {
 
 const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   segment,
-  tripStartDate,
-  cardIndex,
-  tripId,
   driveTimeStyle
 }) => {
   return (
@@ -46,36 +39,17 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Integrated Layout: Route Info & Weather */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left Column - Route & Stops */}
-        <div className="space-y-4">
-          {/* Recommended Stops */}
-          <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
-            <SegmentRecommendedStops segment={segment} />
-          </ErrorBoundary>
+      {/* Route & Stops Content */}
+      <div className="space-y-4">
+        {/* Recommended Stops */}
+        <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
+          <SegmentRecommendedStops segment={segment} />
+        </ErrorBoundary>
 
-          {/* Route Progression */}
-          <ErrorBoundary context={`SegmentRouteProgression-Day${segment.day}`}>
-            <SegmentRouteProgression segment={segment} />
-          </ErrorBoundary>
-        </div>
-
-        {/* Right Column - Weather */}
-        {tripStartDate && (
-          <div className="space-y-4">
-            <ErrorBoundary context={`SegmentWeather-Day${segment.day}`}>
-              <SegmentWeatherWidget 
-                segment={segment}
-                tripStartDate={tripStartDate}
-                cardIndex={cardIndex}
-                tripId={tripId}
-                sectionKey={`weather-${segment.day}`}
-                forceExpanded={false}
-              />
-            </ErrorBoundary>
-          </div>
-        )}
+        {/* Route Progression */}
+        <ErrorBoundary context={`SegmentRouteProgression-Day${segment.day}`}>
+          <SegmentRouteProgression segment={segment} />
+        </ErrorBoundary>
       </div>
 
       {/* Debug Component - Production Safe */}
