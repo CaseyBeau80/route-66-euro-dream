@@ -3,11 +3,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import ItineraryCard from '../ItineraryCard';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 
-// Mock the UnitContext for Storybook
-const mockUnitContext = {
-  formatDistance: (distance: number) => `${distance} mi`
-};
-
 const meta: Meta<typeof ItineraryCard> = {
   title: 'TripCalculator/Components/ItineraryCard',
   component: ItineraryCard,
