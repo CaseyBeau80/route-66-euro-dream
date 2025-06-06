@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
 import ShareAndExportDropdown from './components/ShareAndExportDropdown';
+import GoogleCalendarButton from './components/GoogleCalendarButton';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 
@@ -81,8 +81,17 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             </div>
           </div>
 
-          {/* Share and Export Button - Moved below stats */}
-          <div className="text-center">
+          {/* Share and Export Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <GoogleCalendarButton
+              tripPlan={tripPlan}
+              tripStartDate={tripStartDate}
+              shareUrl={shareUrl}
+              variant="outline"
+              size="default"
+              className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+            />
+            
             <ShareAndExportDropdown
               tripPlan={tripPlan}
               shareUrl={shareUrl}

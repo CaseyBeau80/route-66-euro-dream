@@ -11,6 +11,7 @@ import {
 import { Share2, ChevronDown, Copy, Mail, Calendar, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { CalendarExportService } from '../services/CalendarExportService';
+import { GoogleCalendarService } from '../services/GoogleCalendarService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 
@@ -107,6 +108,44 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
   };
 
+  const handleAddToGoogleCalendar = () => {
+    if (!tripPlan || !tripStartDate) {
+      toast({
+        title: "Google Calendar Unavailable",
+        description: "Trip plan and start date are required for Google Calendar integration.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      GoogleCalendarService.trackCalendarClick(tripPlan);
+      
+      const calendarUrl = GoogleCalendarService.createTripCalendarUrl(
+        tripPlan,
+        tripStartDate,
+        shareUrl || undefined,
+        { useUTC: false, trackAnalytics: true }
+      );
+
+      window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+      
+      toast({
+        title: "Opening Google Calendar",
+        description: "Your Route 66 trip event is being added to Google Calendar.",
+        variant: "default"
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Google Calendar integration error:', error);
+      toast({
+        title: "Google Calendar Failed",
+        description: "Could not add trip to Google Calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handlePDFExport = () => {
     setIsOpen(false);
     setShowPDFModal(true);
@@ -165,12 +204,22 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
             <span className="font-medium">Share via Email</span>
           </DropdownMenuItem>
           
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem
+            onClick={handleAddToGoogleCalendar}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+          >
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <span className="font-medium">Add to Google Calendar</span>
+          </DropdownMenuItem>
+          
           <DropdownMenuItem
             onClick={handleAddToCalendar}
             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
           >
             <Calendar className="w-4 h-4 text-gray-600" />
-            <span className="font-medium">Add to Calendar</span>
+            <span className="font-medium">Download Calendar File</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
