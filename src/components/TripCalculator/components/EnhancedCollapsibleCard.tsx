@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { useCollapsibleState } from '../hooks/useCollapsibleState';
+import ItineraryExpandIcon from './ItineraryExpandIcon';
 
 interface EnhancedCollapsibleCardProps {
   children: React.ReactNode;
@@ -56,6 +56,10 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
     window.dispatchEvent(event);
   };
 
+  const handleExpandClick = () => {
+    onToggle(!isExpanded);
+  };
+
   return (
     <Collapsible 
       open={isExpanded}
@@ -78,11 +82,10 @@ const EnhancedCollapsibleCard: React.FC<EnhancedCollapsibleCardProps> = ({
           {title}
         </div>
         <div className="ml-3 flex-shrink-0">
-          {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-gray-500 transition-all duration-200 group-hover:text-gray-700" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-gray-500 transition-all duration-200 group-hover:text-gray-700" />
-          )}
+          <ItineraryExpandIcon 
+            isExpanded={isExpanded}
+            onClick={handleExpandClick}
+          />
         </div>
       </CollapsibleTrigger>
       

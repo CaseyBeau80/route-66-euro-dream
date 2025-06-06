@@ -1,17 +1,20 @@
 
 import React from 'react';
 import { Calendar } from 'lucide-react';
+import MissingDaysDisplay from './MissingDaysDisplay';
 
 interface ItineraryHeaderProps {
   totalDays: number;
   segmentsCount: number;
   missingDays: number[];
+  onGenerateMissingDays?: (days: number[]) => void;
 }
 
 const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
   totalDays,
   segmentsCount,
-  missingDays
+  missingDays,
+  onGenerateMissingDays
 }) => {
   return (
     <div className="mb-6">
@@ -21,12 +24,17 @@ const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
           Daily Itinerary
         </h3>
       </div>
-      <p className="text-sm text-route66-text-secondary ml-9">
-        Complete overview of your {totalDays}-day Route 66 adventure ({segmentsCount} segments loaded)
-        {missingDays.length > 0 && (
-          <span className="text-red-600 font-medium"> - Missing days: {missingDays.join(', ')}</span>
-        )}
-      </p>
+      
+      <div className="ml-9 space-y-2">
+        <p className="text-sm text-route66-text-secondary">
+          Complete overview of your {totalDays}-day Route 66 adventure ({segmentsCount} segments loaded)
+        </p>
+        
+        <MissingDaysDisplay 
+          missingDays={missingDays}
+          onGenerateMissingDays={onGenerateMissingDays}
+        />
+      </div>
     </div>
   );
 };

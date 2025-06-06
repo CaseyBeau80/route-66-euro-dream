@@ -14,13 +14,15 @@ interface TabbedItineraryViewProps {
   tripStartDate?: Date;
   tripId?: string;
   totalDays: number;
+  onGenerateMissingDays?: (missingDays: number[]) => void;
 }
 
 const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
   segments,
   tripStartDate,
   tripId,
-  totalDays
+  totalDays,
+  onGenerateMissingDays
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('route');
   
@@ -89,6 +91,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
           totalDays={totalDays}
           segmentsCount={stableSegments.length}
           missingDays={missingDays}
+          onGenerateMissingDays={onGenerateMissingDays}
         />
 
         <TabNavigation 

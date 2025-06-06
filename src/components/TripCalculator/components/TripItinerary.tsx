@@ -8,9 +8,14 @@ import ErrorBoundary from './ErrorBoundary';
 interface TripItineraryProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
+  onGenerateMissingDays?: (missingDays: number[]) => void;
 }
 
-const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
+const TripItinerary: React.FC<TripItineraryProps> = ({ 
+  tripPlan, 
+  tripStartDate,
+  onGenerateMissingDays 
+}) => {
   // Debug: Log the raw trip plan data
   console.log('📋 TripItinerary - RAW TRIP PLAN:', {
     totalDays: tripPlan.totalDays,
@@ -46,6 +51,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
           tripStartDate={tripStartDate}
           tripId={tripPlan.title || 'trip'}
           totalDays={tripPlan.totalDays}
+          onGenerateMissingDays={onGenerateMissingDays}
         />
       </div>
     </ErrorBoundary>
