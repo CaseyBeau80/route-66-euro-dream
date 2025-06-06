@@ -3,6 +3,9 @@ export interface DriveTimeConstraints {
   optimal: { min: number; max: number };
   acceptable: { min: number; max: number };
   absolute: { min: number; max: number };
+  short: { min: number; max: number };
+  long: { min: number; max: number };
+  extreme: { min: number; max: number };
 }
 
 export interface DriveTimeTarget {
@@ -17,8 +20,63 @@ export class DriveTimeConstraints {
   static readonly CONSTRAINTS: DriveTimeConstraints = {
     optimal: { min: 4, max: 6 },     // Sweet spot for comfortable driving
     acceptable: { min: 3, max: 7.5 }, // Acceptable range
-    absolute: { min: 2.5, max: 8 }   // Hard limits
+    absolute: { min: 2.5, max: 8 },   // Hard limits
+    short: { min: 2.5, max: 4 },      // Short driving days
+    long: { min: 6, max: 8 },         // Long driving days
+    extreme: { min: 8, max: 10 }      // Extreme driving days
   };
+
+  /**
+   * Get drive time category based on hours
+   */
+  static getDriveTimeCategory(hours: number): 'short' | 'optimal' | 'long' | 'extreme' {
+    const constraints = this.CONSTRAINTS;
+    
+    if (hours <= constraints.short.max) return 'short';
+    if (hours <= constraints.optimal.max) return 'optimal';
+    if (hours <= constraints.long.max) return 'long';
+    return 'extreme';
+  }
+
+  /**
+   * Categorize a segment based on timing
+   */
+  static categorizeSegment(timing: {
+    targetHours: number;
+    minHours: number;
+    maxHours: number;
+    category: 'short' | 'optimal' | 'long' | 'extreme';
+  }): {
+    category: 'short' | 'optimal' | 'long' | 'extreme';
+    message: string;
+    color?: string;
+  } {
+    const messages = {
+      short: 'A quick and easy driving day with plenty of time for stops',
+      optimal: 'Perfect balance of driving time and sightseeing opportunities',
+      long: 'A substantial driving day but still manageable',
+      extreme: 'An intensive driving day - consider breaking it up'
+    };
+
+    return {
+      category: timing.category,
+      message: messages[timing.category],
+      color: this.getCategoryColor(timing.category)
+    };
+  }
+
+  /**
+   * Get color for drive time category
+   */
+  private static getCategoryColor(category: 'short' | 'optimal' | 'long' | 'extreme'): string {
+    const colorMap = {
+      short: 'text-green-800',
+      optimal: 'text-blue-800',
+      long: 'text-orange-800',
+      extreme: 'text-red-800'
+    };
+    return colorMap[category];
+  }
 
   /**
    * Validate and adjust trip for balanced drive times

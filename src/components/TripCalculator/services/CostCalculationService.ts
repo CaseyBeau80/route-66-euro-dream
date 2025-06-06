@@ -1,3 +1,4 @@
+
 import { TripPlan } from './planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../types/costEstimator';
 
@@ -51,8 +52,9 @@ export class CostCalculationService {
     const segments = tripPlan.dailySegments || tripPlan.segments || [];
     
     segments.forEach((segment, index) => {
-      // Extract state from the destination city
-      const state = this.extractStateFromCity(segment.destination?.city || segment.endCity || '');
+      // Extract state from the destination city name or use city_name from destination
+      const cityName = segment.destination?.city_name || segment.destination?.name || segment.endCity || '';
+      const state = this.extractStateFromCity(cityName);
       
       // Gas costs - calculate based on segment distance
       const segmentDistance = segment.distance || 0;
@@ -83,7 +85,7 @@ export class CostCalculationService {
 
       dailyCosts.push({
         day: segment.day || (index + 1),
-        city: segment.destination?.city || segment.endCity || `Day ${index + 1}`,
+        city: segment.destination?.city_name || segment.endCity || `Day ${index + 1}`,
         gas: Math.round(segmentGas),
         accommodation: Math.round(accommodation),
         meals: Math.round(meals),
@@ -127,9 +129,5 @@ export class CostCalculationService {
       return stateMap[stateCode] || 'Unknown';
     }
     return 'Unknown';
-  }
-
-  private static extractState(cityName: string): string {
-    return this.extractStateFromCity(cityName);
   }
 }
