@@ -33,7 +33,8 @@ export class WeatherForecastService {
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
       return this.getActualForecast(lat, lng, cityName, targetDate, daysFromNow);
     } else {
-      // For dates beyond 5-day forecast range, return null to show "not available" message
+      // For dates beyond 5-day forecast range, return a clear "not available" result
+      console.log(`🚫 WeatherForecastService: Date beyond ${this.FORECAST_THRESHOLD_DAYS}-day threshold, returning forecast not available`);
       return this.getForecastNotAvailable(cityName, targetDate, daysFromNow);
     }
   }
@@ -87,7 +88,9 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date, 
     daysFromNow: number
-  ): ForecastWeatherData | null {
+  ): ForecastWeatherData {
+    console.log(`📅 WeatherForecastService: Returning forecast not available for ${cityName} (${daysFromNow} days ahead)`);
+    
     return {
       temperature: 0,
       description: 'Forecast not available',
@@ -97,7 +100,7 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false,
+      isActualForecast: false, // Key: this flags it as not a real forecast
       highTemp: undefined,
       lowTemp: undefined
     };
