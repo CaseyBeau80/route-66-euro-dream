@@ -1,4 +1,5 @@
-import { TripStop } from '../data/SupabaseDataService';
+
+import { TripStop, SupabaseDataService } from '../data/SupabaseDataService';
 import { UnifiedTripPlanningService } from './UnifiedTripPlanningService';
 
 export interface SubStopTiming {
@@ -70,7 +71,7 @@ export interface SegmentTiming {
 
 export class TripPlanBuilder {
   /**
-   * Build trip plan using the new unified service
+   * Enhanced trip plan building with destination city prioritization
    */
   static buildTripPlan(
     startStop: TripStop,
@@ -80,10 +81,18 @@ export class TripPlanBuilder {
     inputStartCity: string,
     inputEndCity: string
   ): TripPlan {
-    console.log(`🗺️ Building trip plan using unified service`);
+    console.log(`🏗️ TripPlanBuilder: Building enhanced trip plan`);
+    console.log(`📊 Available stops breakdown:`);
     
-    // Use the new unified service for all trip planning
-    return UnifiedTripPlanningService.createTripPlan(
+    // Log stop categories for debugging
+    const officialDestinations = SupabaseDataService.getOfficialDestinationCities(allStops);
+    const recommendedStops = SupabaseDataService.getRecommendedStops(allStops);
+    
+    console.log(`   🏙️ Official destination cities: ${officialDestinations.length}`);
+    console.log(`   🎯 Recommended stops: ${recommendedStops.length}`);
+    
+    // Use the enhanced unified planning service
+    const tripPlan = UnifiedTripPlanningService.createTripPlan(
       startStop,
       endStop,
       allStops,
@@ -91,7 +100,8 @@ export class TripPlanBuilder {
       inputStartCity,
       inputEndCity
     );
-  }
 
-  // Remove deprecated methods - keeping only the main buildTripPlan method
+    console.log(`🎉 Enhanced trip plan created with prioritized destination cities`);
+    return tripPlan;
+  }
 }

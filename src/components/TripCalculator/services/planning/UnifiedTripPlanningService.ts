@@ -1,7 +1,7 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
+import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
 import { DailySegment, TripPlan } from './TripPlanBuilder';
 
 export class UnifiedTripPlanningService {
@@ -11,7 +11,7 @@ export class UnifiedTripPlanningService {
   private static readonly AVG_SPEED_MPH = 50;
 
   /**
-   * Create a complete trip plan with proper drive time balancing
+   * Create a complete trip plan with enhanced destination selection
    */
   static createTripPlan(
     startStop: TripStop,
@@ -37,15 +37,17 @@ export class UnifiedTripPlanningService {
 
     console.log(`📅 Days: requested ${requestedDays}, optimal ${optimalDays}, adjusted: ${wasAdjusted}`);
 
-    // Select intermediate destinations
-    const destinations = this.selectIntermediateDestinations(
+    // Use SegmentDestinationPlanner to select optimal destinations
+    const destinations = SegmentDestinationPlanner.selectDailyDestinations(
       startStop,
       endStop,
       allStops,
       optimalDays
     );
 
-    // Create daily segments
+    console.log(`🎯 ${SegmentDestinationPlanner.getSelectionSummary(destinations)}`);
+
+    // Create daily segments with enhanced stop curation
     const segments = this.createDailySegments(
       startStop,
       endStop,
@@ -108,95 +110,7 @@ export class UnifiedTripPlanningService {
   }
 
   /**
-   * Select intermediate destinations for balanced drive times
-   */
-  private static selectIntermediateDestinations(
-    startStop: TripStop,
-    endStop: TripStop,
-    allStops: TripStop[],
-    totalDays: number
-  ): TripStop[] {
-    const totalDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-
-    // Filter to valid destination cities
-    const destinationCities = allStops.filter(stop => 
-      stop.category === 'destination_city' &&
-      stop.id !== startStop.id &&
-      stop.id !== endStop.id
-    );
-
-    console.log(`🏙️ Found ${destinationCities.length} destination cities for selection`);
-
-    const destinations: TripStop[] = [];
-    let currentStop = startStop;
-    const targetDailyDistance = totalDistance / totalDays;
-
-    // Select destinations for each intermediate day
-    for (let day = 1; day < totalDays; day++) {
-      const targetDistanceFromStart = targetDailyDistance * day;
-      
-      let bestDestination: TripStop | null = null;
-      let bestScore = Number.MAX_VALUE;
-
-      for (const city of destinationCities) {
-        // Skip if already selected
-        if (destinations.find(dest => dest.id === city.id)) continue;
-
-        const distanceFromStart = DistanceCalculationService.calculateDistance(
-          startStop.latitude, startStop.longitude,
-          city.latitude, city.longitude
-        );
-
-        const distanceToEnd = DistanceCalculationService.calculateDistance(
-          city.latitude, city.longitude,
-          endStop.latitude, endStop.longitude
-        );
-
-        const currentToEndDistance = DistanceCalculationService.calculateDistance(
-          currentStop.latitude, currentStop.longitude,
-          endStop.latitude, endStop.longitude
-        );
-
-        // Ensure geographic progression
-        if (distanceToEnd >= currentToEndDistance) continue;
-
-        // Score based on distance from target position
-        const positionScore = Math.abs(distanceFromStart - targetDistanceFromStart);
-        
-        // Score based on drive time from current position
-        const distanceFromCurrent = DistanceCalculationService.calculateDistance(
-          currentStop.latitude, currentStop.longitude,
-          city.latitude, city.longitude
-        );
-        const driveTime = distanceFromCurrent / this.AVG_SPEED_MPH;
-        const driveTimeScore = Math.abs(driveTime - this.IDEAL_DRIVE_TIME) * 20;
-
-        const totalScore = positionScore + driveTimeScore;
-
-        if (totalScore < bestScore) {
-          bestScore = totalScore;
-          bestDestination = city;
-        }
-      }
-
-      if (bestDestination) {
-        destinations.push(bestDestination);
-        currentStop = bestDestination;
-        console.log(`📍 Day ${day}: Selected ${bestDestination.name}`);
-      } else {
-        console.log(`⚠️ No suitable destination found for day ${day}`);
-        break;
-      }
-    }
-
-    return destinations;
-  }
-
-  /**
-   * Create daily segments with curated stops
+   * Create daily segments with enhanced stop curation
    */
   private static createDailySegments(
     startStop: TripStop,
@@ -212,6 +126,8 @@ export class UnifiedTripPlanningService {
     const usedStopIds = new Set([startStop.id, endStop.id, ...destinations.map(d => d.id)]);
     const remainingStops = allStops.filter(stop => !usedStopIds.has(stop.id));
 
+    console.log(`🎯 Creating segments with ${remainingStops.length} remaining stops for recommendations`);
+
     for (let day = 1; day <= totalDays; day++) {
       const isLastDay = day === totalDays;
       const dayDestination = isLastDay ? endStop : destinations[day - 1];
@@ -223,12 +139,12 @@ export class UnifiedTripPlanningService {
       );
       const driveTimeHours = segmentDistance / this.AVG_SPEED_MPH;
 
-      // Curate stops for this segment (simplified)
-      const segmentStops = this.curateStopsForSegment(
+      // Enhanced stop curation for this segment
+      const segmentStops = this.curateEnhancedStopsForSegment(
         currentStop,
         dayDestination,
         remainingStops,
-        Math.min(3, Math.floor(driveTimeHours))
+        Math.min(5, Math.floor(driveTimeHours) + 2)
       );
 
       // Create drive time category
@@ -253,16 +169,16 @@ export class UnifiedTripPlanningService {
       segments.push(segment);
       currentStop = dayDestination;
 
-      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi, ${driveTimeHours.toFixed(1)}h, ${segmentStops.length} stops`);
+      console.log(`✅ Day ${day}: ${Math.round(segmentDistance)}mi to ${dayDestination.name} (${dayDestination.category}), ${driveTimeHours.toFixed(1)}h, ${segmentStops.length} stops`);
     }
 
     return segments;
   }
 
   /**
-   * Curate stops for a segment (simplified approach)
+   * Enhanced stop curation focusing on route alignment and quality
    */
-  private static curateStopsForSegment(
+  private static curateEnhancedStopsForSegment(
     startStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
@@ -273,7 +189,7 @@ export class UnifiedTripPlanningService {
       endStop.latitude, endStop.longitude
     );
 
-    // Score stops based on proximity to route
+    // Score stops based on multiple factors
     const scoredStops = availableStops.map(stop => {
       const distanceFromStart = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude,
@@ -286,22 +202,64 @@ export class UnifiedTripPlanningService {
 
       // Route alignment score (triangle inequality check)
       const routeDeviation = (distanceFromStart + distanceToEnd) - segmentDistance;
-      const alignmentScore = Math.max(0, 100 - routeDeviation);
+      const alignmentScore = Math.max(0, 50 - routeDeviation);
 
-      // Category bonus
-      const categoryBonus = stop.category === 'attraction' ? 20 :
-                           stop.category === 'historic_site' ? 15 :
-                           stop.category === 'hidden_gem' ? 10 : 0;
+      // Position score - prefer stops in middle third of segment
+      const positionRatio = distanceFromStart / segmentDistance;
+      const positionScore = positionRatio >= 0.2 && positionRatio <= 0.8 ? 20 : 0;
 
-      return {
-        stop,
-        score: alignmentScore + categoryBonus
-      };
+      // Category priority score
+      const categoryScore = this.getCategoryPriorityScore(stop.category);
+
+      // State relevance bonus
+      const stateBonus = (stop.state === startStop.state || stop.state === endStop.state) ? 10 : 0;
+
+      const totalScore = alignmentScore + positionScore + categoryScore + stateBonus;
+
+      return { stop, score: totalScore };
     });
 
-    // Sort by score and take the best ones
-    scoredStops.sort((a, b) => b.score - a.score);
-    return scoredStops.slice(0, maxStops).map(item => item.stop);
+    // Filter out poorly aligned stops and sort by score
+    const wellAlignedStops = scoredStops
+      .filter(item => item.score > 20) // Minimum quality threshold
+      .sort((a, b) => b.score - a.score);
+
+    // Ensure category diversity in selection
+    const selectedStops: TripStop[] = [];
+    const categoryCount: Record<string, number> = {};
+
+    for (const item of wellAlignedStops) {
+      if (selectedStops.length >= maxStops) break;
+
+      const category = item.stop.category;
+      const currentCount = categoryCount[category] || 0;
+      const maxPerCategory = Math.ceil(maxStops / 3); // Limit per category
+
+      if (currentCount < maxPerCategory) {
+        selectedStops.push(item.stop);
+        categoryCount[category] = currentCount + 1;
+      }
+    }
+
+    return selectedStops;
+  }
+
+  /**
+   * Get category priority score for enhanced curation
+   */
+  private static getCategoryPriorityScore(category: string): number {
+    switch (category) {
+      case 'route66_waypoint':
+        return 30;
+      case 'attraction':
+        return 25;
+      case 'historic_site':
+        return 20;
+      case 'hidden_gem':
+        return 15;
+      default:
+        return 10;
+    }
   }
 
   /**

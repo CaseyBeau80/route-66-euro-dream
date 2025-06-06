@@ -12,6 +12,7 @@ export interface TripStop {
   longitude: number;
   category: string;
   is_major_stop?: boolean;
+  is_official_destination?: boolean;
 }
 
 export class SupabaseDataService {
@@ -20,6 +21,33 @@ export class SupabaseDataService {
     console.log('🔄 Starting to fetch all stops from Supabase...');
 
     try {
+      // Fetch destination cities FIRST (highest priority)
+      console.log('🏙️ Fetching destination_cities (highest priority)...');
+      const { data: cities, error: citiesError } = await supabase
+        .from('destination_cities')
+        .select('*')
+        .order('name');
+
+      if (citiesError) {
+        console.error('❌ Error fetching cities:', citiesError);
+      } else {
+        console.log(`✅ Fetched ${cities?.length || 0} destination cities`);
+        if (cities) {
+          stops.push(...cities.map(city => ({
+            id: city.id,
+            name: city.name,
+            description: city.description || 'Official Route 66 destination city',
+            city_name: city.name,
+            state: city.state,
+            image_url: city.image_url,
+            latitude: city.latitude,
+            longitude: city.longitude,
+            category: 'destination_city',
+            is_official_destination: true
+          })));
+        }
+      }
+
       // Fetch Route 66 waypoints (major stops)
       console.log('📍 Fetching route66_waypoints...');
       const { data: waypoints, error: waypointsError } = await supabase
@@ -43,32 +71,6 @@ export class SupabaseDataService {
             longitude: wp.longitude,
             category: 'route66_waypoint',
             is_major_stop: wp.is_major_stop
-          })));
-        }
-      }
-
-      // Fetch destination cities
-      console.log('🏙️ Fetching destination_cities...');
-      const { data: cities, error: citiesError } = await supabase
-        .from('destination_cities')
-        .select('*')
-        .order('name');
-
-      if (citiesError) {
-        console.error('❌ Error fetching cities:', citiesError);
-      } else {
-        console.log(`✅ Fetched ${cities?.length || 0} destination cities`);
-        if (cities) {
-          stops.push(...cities.map(city => ({
-            id: city.id,
-            name: city.name,
-            description: city.description || 'Historic Route 66 destination',
-            city_name: city.name,
-            state: city.state,
-            image_url: city.image_url,
-            latitude: city.latitude,
-            longitude: city.longitude,
-            category: 'destination_city'
           })));
         }
       }
@@ -126,10 +128,39 @@ export class SupabaseDataService {
       }
 
       console.log(`🛣️ Total stops fetched: ${stops.length}`);
+      console.log(`📊 Categories: ${this.getCategorySummary(stops)}`);
       return stops;
     } catch (error) {
       console.error('❌ Error in fetchAllStops:', error);
       return [];
     }
+  }
+
+  /**
+   * Get category summary for debugging
+   */
+  private static getCategorySummary(stops: TripStop[]): string {
+    const categories = stops.reduce((acc, stop) => {
+      acc[stop.category] = (acc[stop.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(categories)
+      .map(([category, count]) => `${category}: ${count}`)
+      .join(', ');
+  }
+
+  /**
+   * Get official destination cities specifically
+   */
+  static getOfficialDestinationCities(stops: TripStop[]): TripStop[] {
+    return stops.filter(stop => stop.category === 'destination_city');
+  }
+
+  /**
+   * Get recommended stops (non-destination cities)
+   */
+  static getRecommendedStops(stops: TripStop[]): TripStop[] {
+    return stops.filter(stop => stop.category !== 'destination_city');
   }
 }
