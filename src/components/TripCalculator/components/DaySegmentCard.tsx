@@ -36,9 +36,10 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable segment to prevent cascading re-renders
   const stableSegment = useStableSegment(segment);
   
-  // Early return for invalid segments
-  if (!DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
-    const segmentDay = typeof stableSegment === 'object' && stableSegment && 'day' in stableSegment ? stableSegment.day : 'Unknown';
+  // Early return for invalid segments with proper type checking
+  if (!stableSegment || !DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
+    // Safe access to day property with fallback
+    const segmentDay = stableSegment?.day ?? (segment?.day ?? 'Unknown');
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
