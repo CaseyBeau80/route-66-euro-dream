@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
@@ -43,9 +44,9 @@ const CollapsibleWeatherCard: React.FC<CollapsibleWeatherCardProps> = ({
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-blue-700 bg-blue-200/60 px-2 py-1 rounded border border-blue-200/80">
+              <Badge variant="outline" className="text-xs font-medium border-route66-border">
                 Day {segment.day}
-              </span>
+              </Badge>
               <span className="text-blue-300">•</span>
               <h5 className="text-sm font-semibold text-blue-800">
                 {segment.endCity}
