@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DailySegment } from '../../../services/planning/TripPlanBuilder';
+import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
 interface PDFDaySegmentCardStopsProps {
   segment: DailySegment;
