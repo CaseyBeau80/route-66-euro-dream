@@ -2,6 +2,13 @@
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 /**
+ * Type guard to check if an item has a name property
+ */
+const hasNameProperty = (item: any): item is { name: string } => {
+  return item && typeof item === 'object' && 'name' in item && typeof item.name === 'string';
+};
+
+/**
  * Creates a stable hash from segment data to detect actual changes
  */
 export const createSegmentHash = (segment: DailySegment): string => {
@@ -16,12 +23,12 @@ export const createSegmentHash = (segment: DailySegment): string => {
     // Include stop names for change detection
     stopNames: Array.isArray(segment.recommendedStops) 
       ? segment.recommendedStops.map(stop => 
-          typeof stop === 'string' ? stop : (stop?.name || '')
+          typeof stop === 'string' ? stop : (hasNameProperty(stop) ? stop.name : '')
         ).sort().join('|')
       : '',
     attractionNames: Array.isArray(segment.attractions)
       ? segment.attractions.map(attr => 
-          typeof attr === 'string' ? attr : (attr?.name || '')
+          typeof attr === 'string' ? attr : (hasNameProperty(attr) ? attr.name : '')
         ).sort().join('|')
       : ''
   };

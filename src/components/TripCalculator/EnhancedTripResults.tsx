@@ -89,8 +89,6 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       <TripItinerary 
         tripPlan={tripPlan} 
         tripStartDate={tripStartDate}
-        formatTime={formatTime}
-        shareUrl={shareUrl}
       />
     </div>
   );
