@@ -1,16 +1,15 @@
+
 import { WeatherData, WeatherWithForecast } from './WeatherServiceTypes';
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
-import { EnhancedWeatherApiKeyManager } from './EnhancedWeatherApiKeyManager';
+import { WeatherApiKeyManager } from './WeatherApiKeyManager';
 import { WeatherForecastService, ForecastWeatherData } from './WeatherForecastService';
 
 export class EnhancedWeatherService {
   private static instance: EnhancedWeatherService;
-  private apiKeyManager: EnhancedWeatherApiKeyManager;
 
   private constructor() {
-    this.apiKeyManager = new EnhancedWeatherApiKeyManager();
-    console.log('🌤️ EnhancedWeatherService: Service initialized with enhanced key management');
+    console.log('🌤️ EnhancedWeatherService: Service initialized');
   }
 
   static getInstance(): EnhancedWeatherService {
@@ -23,7 +22,7 @@ export class EnhancedWeatherService {
   setApiKey(apiKey: string): void {
     console.log('🔑 EnhancedWeatherService: Setting new API key through enhanced service');
     try {
-      this.apiKeyManager.setApiKey(apiKey);
+      WeatherApiKeyManager.setApiKey(apiKey);
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Failed to set API key:', error);
       throw error;
@@ -31,46 +30,30 @@ export class EnhancedWeatherService {
   }
 
   hasApiKey(): boolean {
-    const hasKey = this.apiKeyManager.hasApiKey();
+    const hasKey = WeatherApiKeyManager.hasApiKey();
     console.log(`🔑 EnhancedWeatherService: hasApiKey() = ${hasKey}`);
     return hasKey;
   }
 
-  performNuclearCleanup(): void {
-    console.log('💥 EnhancedWeatherService: Performing nuclear cleanup');
-    this.apiKeyManager.performNuclearCleanup();
-  }
-
-  getEnhancedDebugInfo(): any {
-    const debugInfo = this.apiKeyManager.getEnhancedDebugInfo();
-    console.log('🔍 EnhancedWeatherService: Enhanced debug info requested:', debugInfo);
-    return debugInfo;
-  }
-
-  // Legacy compatibility method
   getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null } {
-    const enhanced = this.getEnhancedDebugInfo();
-    return {
-      hasKey: enhanced.hasKey,
-      keyLength: enhanced.keyLength,
-      keyPreview: enhanced.keyPreview
-    };
+    const debugInfo = WeatherApiKeyManager.getDebugInfo();
+    console.log('🔍 EnhancedWeatherService: Debug info requested:', debugInfo);
+    return debugInfo;
   }
 
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
     console.log(`🌤️ EnhancedWeatherService: Fetching weather for ${cityName} (${lat}, ${lng})`);
     
-    // Enhanced validation with automatic corruption cleanup
-    if (!this.apiKeyManager.validateApiKey()) {
-      console.warn('❌ EnhancedWeatherService: Invalid or corrupted API key detected');
-      const debugInfo = this.getEnhancedDebugInfo();
-      console.warn('❌ EnhancedWeatherService: Enhanced debug info:', debugInfo);
+    if (!WeatherApiKeyManager.validateApiKey()) {
+      console.warn('❌ EnhancedWeatherService: Invalid or missing API key');
+      const debugInfo = this.getDebugInfo();
+      console.warn('❌ EnhancedWeatherService: Debug info:', debugInfo);
       return null;
     }
 
-    const apiKey = this.apiKeyManager.getApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey) {
-      console.error('❌ EnhancedWeatherService: API key is null after enhanced validation');
+      console.error('❌ EnhancedWeatherService: API key is null after validation');
       return null;
     }
 
@@ -85,13 +68,6 @@ export class EnhancedWeatherService {
       return weatherData;
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Error fetching weather data:', error);
-      if (error instanceof Error) {
-        console.error('❌ EnhancedWeatherService: Error message:', error.message);
-        if (error.message.includes('Invalid API key')) {
-          console.error('❌ EnhancedWeatherService: API key is invalid - performing nuclear cleanup');
-          this.performNuclearCleanup();
-        }
-      }
       return null;
     }
   }
@@ -99,17 +75,16 @@ export class EnhancedWeatherService {
   async getWeatherForDate(lat: number, lng: number, cityName: string, targetDate: Date): Promise<ForecastWeatherData | null> {
     console.log(`🌤️ EnhancedWeatherService: Fetching weather for ${cityName} on ${targetDate.toDateString()}`);
     
-    // Enhanced validation with automatic corruption cleanup
-    if (!this.apiKeyManager.validateApiKey()) {
-      console.warn('❌ EnhancedWeatherService: Invalid or corrupted API key detected');
-      const debugInfo = this.getEnhancedDebugInfo();
-      console.warn('❌ EnhancedWeatherService: Enhanced debug info:', debugInfo);
+    if (!WeatherApiKeyManager.validateApiKey()) {
+      console.warn('❌ EnhancedWeatherService: Invalid or missing API key');
+      const debugInfo = this.getDebugInfo();
+      console.warn('❌ EnhancedWeatherService: Debug info:', debugInfo);
       return null;
     }
 
-    const apiKey = this.apiKeyManager.getApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey) {
-      console.error('❌ EnhancedWeatherService: API key is null after enhanced validation');
+      console.error('❌ EnhancedWeatherService: API key is null after validation');
       return null;
     }
 
@@ -121,13 +96,6 @@ export class EnhancedWeatherService {
       return forecastData;
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Error fetching forecast data:', error);
-      if (error instanceof Error) {
-        console.error('❌ EnhancedWeatherService: Error message:', error.message);
-        if (error.message.includes('Invalid API key')) {
-          console.error('❌ EnhancedWeatherService: API key is invalid - performing nuclear cleanup');
-          this.performNuclearCleanup();
-        }
-      }
       return null;
     }
   }
@@ -135,17 +103,16 @@ export class EnhancedWeatherService {
   async getWeatherWithForecast(lat: number, lng: number, cityName: string): Promise<WeatherWithForecast | null> {
     console.log(`🌤️ EnhancedWeatherService: Fetching weather with forecast for ${cityName} (${lat}, ${lng})`);
     
-    // Enhanced validation with automatic corruption cleanup
-    if (!this.apiKeyManager.validateApiKey()) {
-      console.warn('❌ EnhancedWeatherService: Invalid or corrupted API key detected');
-      const debugInfo = this.getEnhancedDebugInfo();
-      console.warn('❌ EnhancedWeatherService: Enhanced debug info:', debugInfo);
+    if (!WeatherApiKeyManager.validateApiKey()) {
+      console.warn('❌ EnhancedWeatherService: Invalid or missing API key');
+      const debugInfo = this.getDebugInfo();
+      console.warn('❌ EnhancedWeatherService: Debug info:', debugInfo);
       return null;
     }
 
-    const apiKey = this.apiKeyManager.getApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey) {
-      console.error('❌ EnhancedWeatherService: API key is null after enhanced validation');
+      console.error('❌ EnhancedWeatherService: API key is null after validation');
       return null;
     }
 
@@ -165,13 +132,6 @@ export class EnhancedWeatherService {
       return weatherWithForecast;
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Error fetching weather with forecast:', error);
-      if (error instanceof Error) {
-        console.error('❌ EnhancedWeatherService: Error message:', error.message);
-        if (error.message.includes('Invalid API key')) {
-          console.error('❌ EnhancedWeatherService: API key is invalid - performing nuclear cleanup');
-          this.performNuclearCleanup();
-        }
-      }
       return null;
     }
   }

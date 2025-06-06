@@ -1,3 +1,4 @@
+
 import { WeatherData, WeatherWithForecast } from './weather/WeatherServiceTypes';
 import { WeatherApiClient } from './weather/WeatherApiClient';
 import { WeatherDataProcessor } from './weather/WeatherDataProcessor';
@@ -5,10 +6,8 @@ import { WeatherApiKeyManager } from './weather/WeatherApiKeyManager';
 
 export class WeatherService {
   private static instance: WeatherService;
-  private apiKeyManager: WeatherApiKeyManager;
 
   private constructor() {
-    this.apiKeyManager = new WeatherApiKeyManager();
     console.log('🌤️ WeatherService: Service initialized');
   }
 
@@ -21,17 +20,17 @@ export class WeatherService {
 
   setApiKey(apiKey: string): void {
     console.log('🔑 WeatherService: Setting new API key through service');
-    this.apiKeyManager.setApiKey(apiKey);
+    WeatherApiKeyManager.setApiKey(apiKey);
   }
 
   hasApiKey(): boolean {
-    const hasKey = this.apiKeyManager.hasApiKey();
+    const hasKey = WeatherApiKeyManager.hasApiKey();
     console.log(`🔑 WeatherService: hasApiKey() = ${hasKey}`);
     return hasKey;
   }
 
   getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null } {
-    const debugInfo = this.apiKeyManager.getDebugInfo();
+    const debugInfo = WeatherApiKeyManager.getDebugInfo();
     console.log('🔍 WeatherService: Debug info requested:', debugInfo);
     return debugInfo;
   }
@@ -39,17 +38,14 @@ export class WeatherService {
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
     console.log(`🌤️ WeatherService: Fetching weather for ${cityName} (${lat}, ${lng})`);
     
-    // Refresh API key from localStorage before making request
-    this.apiKeyManager.refreshApiKey();
-    
-    if (!this.apiKeyManager.validateApiKey()) {
+    if (!WeatherApiKeyManager.validateApiKey()) {
       console.warn('❌ WeatherService: Invalid or missing API key');
       const debugInfo = this.getDebugInfo();
       console.warn('❌ WeatherService: Debug info:', debugInfo);
       return null;
     }
 
-    const apiKey = this.apiKeyManager.getApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey) {
       console.error('❌ WeatherService: API key is null after validation');
       return null;
@@ -79,17 +75,14 @@ export class WeatherService {
   async getWeatherWithForecast(lat: number, lng: number, cityName: string): Promise<WeatherWithForecast | null> {
     console.log(`🌤️ WeatherService: Fetching weather with forecast for ${cityName} (${lat}, ${lng})`);
     
-    // Refresh API key from localStorage before making request
-    this.apiKeyManager.refreshApiKey();
-    
-    if (!this.apiKeyManager.validateApiKey()) {
+    if (!WeatherApiKeyManager.validateApiKey()) {
       console.warn('❌ WeatherService: Invalid or missing API key');
       const debugInfo = this.getDebugInfo();
       console.warn('❌ WeatherService: Debug info:', debugInfo);
       return null;
     }
 
-    const apiKey = this.apiKeyManager.getApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey) {
       console.error('❌ WeatherService: API key is null after validation');
       return null;
