@@ -5,7 +5,6 @@ import { EnhancedWeatherService } from '@/components/Route66Map/services/weather
 import { useSegmentWeatherState } from './weather/hooks/useSegmentWeatherState';
 import { useSegmentWeather } from './weather/hooks/useSegmentWeather';
 import SegmentWeatherContent from './weather/SegmentWeatherContent';
-import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
@@ -13,6 +12,7 @@ interface SegmentWeatherWidgetProps {
   cardIndex?: number;
   tripId?: string;
   sectionKey?: string;
+  forceExpanded?: boolean;
 }
 
 const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ 
@@ -20,7 +20,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   tripStartDate,
   cardIndex = 0,
   tripId,
-  sectionKey = 'weather'
+  sectionKey = 'weather',
+  forceExpanded = false
 }) => {
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
@@ -37,7 +38,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     hasApiKey,
     segmentDate: segmentDate?.toISOString(),
-    daysFromNow
+    daysFromNow,
+    forceExpanded
   });
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
@@ -48,49 +50,70 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // Card header content
-  const cardHeader = (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h4 className="font-travel font-bold text-route66-vintage-brown">
-          Weather in {segment.endCity}
-        </h4>
-        <div className="text-xs text-route66-vintage-brown">
-          Day {segment.day}
-          {segmentDate && (
-            <div className="text-xs text-gray-600">
-              {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </div>
-          )}
+  // If forced to be expanded (like in overview), render without collapsible wrapper
+  if (forceExpanded) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-travel font-bold text-route66-vintage-brown">
+            Weather in {segment.endCity}
+          </h4>
+          <div className="text-xs text-route66-vintage-brown">
+            Day {segment.day}
+            {segmentDate && (
+              <div className="text-xs text-gray-600">
+                {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </div>
+            )}
+          </div>
         </div>
+        <SegmentWeatherContent
+          hasApiKey={hasApiKey}
+          loading={weatherState.loading}
+          weather={weatherState.weather}
+          error={weatherState.error}
+          retryCount={weatherState.retryCount}
+          segmentEndCity={segment.endCity}
+          segmentDate={segmentDate}
+          onApiKeySet={weatherHandlers.handleApiKeySet}
+          onTimeout={weatherHandlers.handleTimeout}
+          onRetry={weatherHandlers.handleRetry}
+        />
+      </div>
+    );
+  }
+
+  // Regular collapsible version for segment cards
+  return (
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-travel font-bold text-route66-vintage-brown">
+            Weather in {segment.endCity}
+          </h4>
+          <div className="text-xs text-route66-vintage-brown">
+            Day {segment.day}
+            {segmentDate && (
+              <div className="text-xs text-gray-600">
+                {segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </div>
+            )}
+          </div>
+        </div>
+        <SegmentWeatherContent
+          hasApiKey={hasApiKey}
+          loading={weatherState.loading}
+          weather={weatherState.weather}
+          error={weatherState.error}
+          retryCount={weatherState.retryCount}
+          segmentEndCity={segment.endCity}
+          segmentDate={segmentDate}
+          onApiKeySet={weatherHandlers.handleApiKeySet}
+          onTimeout={weatherHandlers.handleTimeout}
+          onRetry={weatherHandlers.handleRetry}
+        />
       </div>
     </div>
-  );
-
-  return (
-    <EnhancedCollapsibleCard
-      title={cardHeader}
-      defaultExpanded={true}
-      className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
-      headerClassName="border-b border-blue-200"
-      contentClassName="pt-0"
-      cardIndex={cardIndex}
-      tripId={tripId}
-      sectionKey={sectionKey}
-    >
-      <SegmentWeatherContent
-        hasApiKey={hasApiKey}
-        loading={weatherState.loading}
-        weather={weatherState.weather}
-        error={weatherState.error}
-        retryCount={weatherState.retryCount}
-        segmentEndCity={segment.endCity}
-        segmentDate={segmentDate}
-        onApiKeySet={weatherHandlers.handleApiKeySet}
-        onTimeout={weatherHandlers.handleTimeout}
-        onRetry={weatherHandlers.handleRetry}
-      />
-    </EnhancedCollapsibleCard>
   );
 };
 

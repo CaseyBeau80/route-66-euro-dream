@@ -75,7 +75,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatCurrency={formatCurrency}
         />
 
-        {/* Weather Information Section - Now prominently displayed and expanded */}
+        {/* Weather Information Section - Now prominently displayed and always visible */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
@@ -89,6 +89,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
                 cardIndex={0}
                 tripId="overview"
                 sectionKey="destination-weather"
+                forceExpanded={true}
               />
             </div>
           </div>

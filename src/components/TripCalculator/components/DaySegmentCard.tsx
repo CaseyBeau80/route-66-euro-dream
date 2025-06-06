@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, MapPin, Route, AlertTriangle, Calendar } from 'lucide-react';
+import { Clock, MapPin, Route, AlertTriangle, Calendar, Cloud } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -223,16 +224,23 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
               </div>
             )}
 
-            {/* Weather Widget - Now prominently displayed */}
+            {/* Weather Widget - Now prominently displayed and always visible */}
             {tripStartDate && (
               <ErrorBoundary context={`SegmentWeather-Day${stableSegment.day}`}>
-                <SegmentWeatherWidget 
-                  segment={stableSegment}
-                  tripStartDate={tripStartDate}
-                  cardIndex={cardIndex}
-                  tripId={tripId}
-                  sectionKey={`weather-${stableSegment.day}`}
-                />
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Cloud className="h-4 w-4 text-blue-600" />
+                    <h4 className="font-semibold text-gray-800 text-sm">Weather</h4>
+                  </div>
+                  <SegmentWeatherWidget 
+                    segment={stableSegment}
+                    tripStartDate={tripStartDate}
+                    cardIndex={cardIndex}
+                    tripId={tripId}
+                    sectionKey={`weather-${stableSegment.day}`}
+                    forceExpanded={true}
+                  />
+                </div>
               </ErrorBoundary>
             )}
 
