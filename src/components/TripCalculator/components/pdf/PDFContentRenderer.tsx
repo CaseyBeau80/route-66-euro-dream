@@ -106,6 +106,37 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           weatherLoadingTimeout={weatherLoadingTimeout}
         />
 
+        {/* Single Legend Section - Remove any duplicate legends */}
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg border">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Legend & Icons:</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+              <span>Destination City</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600">🗺️</span>
+              <span>Route Distance</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-purple-600">⏱️</span>
+              <span>Drive Time</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600">🏛️</span>
+              <span>Historic Sites</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-orange-600">☁️</span>
+              <span>Weather Info</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600">📅</span>
+              <span>Date</span>
+            </div>
+          </div>
+        </div>
+
         {/* Daily Itinerary with Enhanced Weather */}
         <PDFItineraryView
           segments={enrichedSegments}
