@@ -1,13 +1,25 @@
+
 import { DestinationCity } from '@/components/Route66Planner/types';
 
 export interface TripPlan {
   id: string;
+  title?: string;
   startCity: string;
   endCity: string;
   startDate: Date;
   totalDays: number;
   totalDistance: number;
+  totalDrivingTime?: number;
+  totalMiles?: number;
   dailySegments: DailySegment[];
+  segments?: DailySegment[];
+  startCityImage?: string;
+  endCityImage?: string;
+  driveTimeBalance?: {
+    isBalanced: boolean;
+    averageDriveTime: number;
+    balanceQuality: string;
+  };
 }
 
 export interface DailySegment {
@@ -19,8 +31,18 @@ export interface DailySegment {
   driveTimeHours: number;
   driveTimeCategory?: DriveTimeCategory;
   recommendedStops?: RecommendedStop[];
-  weatherData?: any; // Adding weatherData field to fix the type error
+  weatherData?: any; // Weather data field
   weather?: any;
+  title?: string;
+  routeSection?: string;
+  subStopTimings?: any[];
+  attractions?: string[] | any[];
+  drivingTime?: number;
+  balanceMetrics?: any;
+  destination?: {
+    city: string;
+    state?: string;
+  };
 }
 
 export interface DriveTimeCategory {
@@ -33,6 +55,7 @@ export interface RecommendedStop {
   description?: string;
   latitude: number;
   longitude: number;
+  category?: string;
 }
 
 export class TripPlanBuilder {
@@ -75,8 +98,30 @@ export class TripPlanBuilder {
     return this;
   }
 
+  withTitle(title: string): TripPlanBuilder {
+    this.tripPlan.title = title;
+    return this;
+  }
+
+  withTotalDrivingTime(totalDrivingTime: number): TripPlanBuilder {
+    this.tripPlan.totalDrivingTime = totalDrivingTime;
+    return this;
+  }
+
+  withStartCityImage(imageUrl: string): TripPlanBuilder {
+    this.tripPlan.startCityImage = imageUrl;
+    return this;
+  }
+
+  withEndCityImage(imageUrl: string): TripPlanBuilder {
+    this.tripPlan.endCityImage = imageUrl;
+    return this;
+  }
+
   build(): TripPlan {
     this.tripPlan.dailySegments = this.dailySegments;
+    this.tripPlan.segments = this.dailySegments; // Ensure both properties point to the same data
+    this.tripPlan.totalMiles = Math.round(this.tripPlan.totalDistance); // Set totalMiles as rounded totalDistance
     return this.tripPlan;
   }
 

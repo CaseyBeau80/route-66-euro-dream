@@ -3,22 +3,20 @@ import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTiming } from './SubStopTimingCalculator';
+import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
 
 // Re-export types for backward compatibility
 export type { SegmentTiming };
 
-export interface DailySegment {
-  day: number;
+// Define DailySegment interface here for compatibility
+// with the existing implementation
+export interface DailySegmentCreatorResult extends DailySegment {
   title: string;
-  startCity: string;
-  endCity: string;
-  approximateMiles: number;
   distance: number; // Distance in miles
   drivingTime: number; // Driving time in hours
-  driveTimeHours: number; // Alternative name for drivingTime
   recommendedStops: TripStop[];
-  attractions?: string[]; // List of attraction names
-  subStopTimings: SegmentTiming[]; // Changed from SubStopTiming to SegmentTiming
+  attractions?: string[] | any[]; // List of attraction names
+  subStopTimings: SegmentTiming[]; // Timings for sub-stops
   routeSection: string;
   driveTimeCategory: {
     category: string;
@@ -83,7 +81,7 @@ export class DailySegmentCreator {
   private static validateAndFixSegmentData(segments: DailySegment[]): DailySegment[] {
     return segments.map(segment => {
       // Calculate realistic drive time based on distance
-      const realisticDriveTime = this.calculateRealisticDriveTime(segment.distance || segment.approximateMiles);
+      const realisticDriveTime = this.calculateRealisticDriveTime(segment.distance || segment.approximateMiles || 0);
       
       // Use the more realistic value between calculated and existing
       const currentDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
@@ -97,13 +95,28 @@ export class DailySegmentCreator {
         validatedDriveTime = currentDriveTime;
       }
 
+      // Set default title if missing
+      const title = segment.title || `Day ${segment.day}: ${segment.startCity} to ${segment.endCity}`;
+
       return {
         ...segment,
+        title,
         drivingTime: validatedDriveTime,
         driveTimeHours: validatedDriveTime,
         // Ensure distance is consistent
         distance: Math.max(segment.distance || segment.approximateMiles || 0, 1),
-        approximateMiles: Math.round(segment.distance || segment.approximateMiles || 0)
+        approximateMiles: Math.round(segment.distance || segment.approximateMiles || 0),
+        // Ensure these properties exist with at least empty arrays
+        subStopTimings: segment.subStopTimings || [],
+        attractions: segment.attractions || [],
+        // Ensure routeSection exists 
+        routeSection: segment.routeSection || `Route 66 - Day ${segment.day}`,
+        // Ensure driveTimeCategory has required structure
+        driveTimeCategory: segment.driveTimeCategory || {
+          category: 'optimal',
+          message: 'Optimal driving time',
+          color: 'blue'
+        }
       };
     });
   }
