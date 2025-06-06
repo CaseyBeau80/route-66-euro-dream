@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '../types/tripCalculator';
 
@@ -18,6 +18,16 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
+  // Calculate end date if start date and travel days are available
+  const calculateEndDate = () => {
+    if (formData.tripStartDate && formData.travelDays > 0) {
+      return addDays(formData.tripStartDate, formData.travelDays - 1);
+    }
+    return null;
+  };
+
+  const endDate = calculateEndDate();
+
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">Trip Start Date (Optional)</Label>
@@ -48,6 +58,19 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
           />
         </PopoverContent>
       </Popover>
+      
+      {/* Display calculated end date */}
+      {endDate && (
+        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="text-sm font-medium text-blue-800">
+            Trip End Date: {format(endDate, 'EEEE, MMMM do, yyyy')}
+          </div>
+          <div className="text-xs text-blue-600 mt-1">
+            Your {formData.travelDays}-day adventure will end on this date
+          </div>
+        </div>
+      )}
+      
       <p className="text-xs text-gray-600">
         Set a start date to see accurate weather forecasts for each day of your trip
       </p>
