@@ -1,5 +1,4 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DailySegment, TripPlan } from '../planning/TripPlanBuilder';
 import { ErrorHandlingService } from '../error/ErrorHandlingService';
 

@@ -1,4 +1,3 @@
-
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
@@ -19,13 +18,19 @@ export const isUserRelevantStop = (stop: TripStop): boolean => {
     'photo_opportunity',
     'landmark',
     'cultural_site',
+    'venue',
+    'music venue',
+    'quirky',
     'Museum',
     'Diner',
     'Attraction',
     'Hidden Gem',
     'Restaurant',
     'Motel',
-    'Hotel'
+    'Hotel',
+    'Venue',
+    'Music Venue',
+    'Quirky'
   ];
   
   // Make the comparison case-insensitive
@@ -63,8 +68,8 @@ export const isGeographicallyRelevant = (
   return detour <= maxDetourDistance && distanceFromStart <= segmentDistance * 1.2;
 };
 
-// Type guard for validating stop data
-const isValidStopData = (stop: any): stop is { name: string } | string => {
+// Enhanced type guard for validating stop data with better TypeScript support
+const isValidStopData = (stop: any): stop is (string | { name: string; [key: string]: any }) => {
   if (typeof stop === 'string') {
     return stop.trim() !== '';
   }
@@ -73,6 +78,38 @@ const isValidStopData = (stop: any): stop is { name: string } | string => {
          'name' in stop && 
          typeof stop.name === 'string' && 
          stop.name.trim() !== '';
+};
+
+// Safe conversion helper to avoid spread operator issues
+const convertStopToTripStop = (stop: string | { name: string; [key: string]: any }, index: number, fallbackCategory: string): TripStop => {
+  if (typeof stop === 'string') {
+    return convertToTripStop({
+      name: stop,
+      id: `${fallbackCategory}-${index}-${Math.random()}`,
+      description: `Discover ${stop} along your Route 66 journey`,
+      category: 'attraction',
+      city_name: 'Unknown',
+      state: 'Unknown',
+      latitude: 0,
+      longitude: 0
+    });
+  } else {
+    // Manually copy properties to avoid TypeScript spread issues
+    const baseStop = {
+      name: stop.name,
+      id: stop.id || `${fallbackCategory}-${index}-${Math.random()}`,
+      description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
+      category: stop.category || 'attraction',
+      city_name: stop.city_name || 'Unknown',
+      state: stop.state || 'Unknown',
+      latitude: stop.latitude || 0,
+      longitude: stop.longitude || 0,
+      image_url: stop.image_url,
+      is_major_stop: stop.is_major_stop,
+      is_official_destination: stop.is_official_destination
+    };
+    return convertToTripStop(baseStop);
+  }
 };
 
 // Get validated stops from multiple possible sources with enhanced validation
@@ -101,26 +138,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((stop, index): TripStop => {
-        if (typeof stop === 'string') {
-          return convertToTripStop({
-            name: stop,
-            id: `recommended-${index}-${Math.random()}`,
-            description: `Discover ${stop} along your Route 66 journey`,
-            category: 'attraction',
-            city_name: segment.endCity || 'Unknown',
-            state: 'Unknown',
-            latitude: 0,
-            longitude: 0
-          });
-        } else {
-          // TypeScript now knows stop is an object with name property
-          return convertToTripStop({
-            ...stop,
-            id: stop.id || `recommended-${index}-${Math.random()}`
-          });
-        }
-      });
+      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended'));
     
     console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`);
     stops.push(...validRecommendedStops);
@@ -142,26 +160,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((attraction, index): TripStop => {
-        if (typeof attraction === 'string') {
-          return convertToTripStop({
-            name: attraction,
-            id: `attraction-${index}-${Math.random()}`,
-            description: `Discover ${attraction} along your Route 66 journey`,
-            category: 'attraction',
-            city_name: segment.endCity || 'Unknown',
-            state: 'Unknown',
-            latitude: 0,
-            longitude: 0
-          });
-        } else {
-          // TypeScript now knows attraction is an object with name property
-          return convertToTripStop({
-            ...attraction,
-            id: `attraction-${index}-${Math.random()}`
-          });
-        }
-      });
+      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction'));
     
     console.log(`✅ Valid attraction stops: ${attractionStops.length}`);
     stops.push(...attractionStops);

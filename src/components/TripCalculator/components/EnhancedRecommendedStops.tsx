@@ -17,6 +17,11 @@ interface EnhancedRecommendedStopsProps {
   maxStops?: number;
 }
 
+// Create a stable segment key for memoization
+const createSegmentKey = (segment: DailySegment): string => {
+  return `${segment.day}-${segment.startCity}-${segment.endCity}-${segment.recommendedStops?.length || 0}-${segment.attractions?.length || 0}`;
+};
+
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
   maxStops = 5
@@ -25,10 +30,19 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Create stable segment key for memoization
+  const segmentKey = useMemo(() => createSegmentKey(segment), [
+    segment.day,
+    segment.startCity,
+    segment.endCity,
+    segment.recommendedStops?.length,
+    segment.attractions?.length
+  ]);
+  
   // Validate segment data
   const isValidSegment = useMemo(() => 
     DataValidationService.validateDailySegment(segment, 'EnhancedRecommendedStops.segment'),
-    [segment]
+    [segmentKey] // Use stable key instead of segment object
   );
   
   // Memoize validated stops to prevent re-renders
@@ -46,11 +60,11 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
       console.error('❌ Error getting validated stops:', error);
       return { validStops: [], userRelevantStops: [] };
     }
-  }, [segment, isValidSegment]);
+  }, [isValidSegment, segmentKey]); // Use stable key
   
-  // Memoize the enhanced selection trigger
+  // Memoize the enhanced selection trigger with stable dependencies
   const shouldTriggerEnhanced = useMemo(() => 
-    userRelevantStops.length < 2 && segment.startCity && segment.endCity,
+    userRelevantStops.length < 2 && !!segment.startCity && !!segment.endCity,
     [userRelevantStops.length, segment.startCity, segment.endCity]
   );
   
@@ -188,7 +202,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         {finalStops.length > 0 ? (
           <div className="space-y-3">
             {finalStops.map((stop, index) => (
-              <ErrorBoundary key={stop.id} context={`StopItem-${index}`}>
+              <ErrorBoundary key={`${stop.id}-${index}`} context={`StopItem-${index}`}>
                 <StopItem stop={stop} index={index} />
               </ErrorBoundary>
             ))}
