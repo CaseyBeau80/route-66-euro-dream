@@ -21,31 +21,24 @@ interface UnitProviderProps {
 
 export const UnitProvider: React.FC<UnitProviderProps> = ({ children }) => {
   const [preferences, setPreferences] = useState<UnitPreferences>(() => {
-    // Try to load from localStorage
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        // Validate the stored data has the expected structure
-        if (parsed && typeof parsed === 'object' && parsed.system) {
-          return parsed;
-        }
-      } catch (error) {
-        console.warn('Failed to parse stored unit preferences:', error);
-      }
-    }
+    // Clear any existing localStorage to force Imperial default
+    localStorage.removeItem(STORAGE_KEY);
     
-    // Default to Imperial units always
-    return UnitConversionService.getUnitPreferences('imperial');
+    // Always start with Imperial units
+    const imperialPrefs = UnitConversionService.getUnitPreferences('imperial');
+    console.log('🔧 UnitProvider initialized with Imperial units:', imperialPrefs);
+    return imperialPrefs;
   });
 
   // Save to localStorage whenever preferences change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+    console.log('💾 Unit preferences saved to localStorage:', preferences);
   }, [preferences]);
 
   const setUnitSystem = (system: UnitSystem) => {
     const newPreferences = UnitConversionService.getUnitPreferences(system);
+    console.log('🔄 Unit system changed to:', system, newPreferences);
     setPreferences(newPreferences);
   };
 
