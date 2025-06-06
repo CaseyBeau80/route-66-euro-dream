@@ -18,10 +18,20 @@ export const isUserRelevantStop = (stop: ValidatedStop): boolean => {
     'scenic_viewpoint',
     'photo_opportunity',
     'landmark',
-    'cultural_site'
+    'cultural_site',
+    // Add the exact categories we see in the database
+    'Museum',
+    'Diner',
+    'Attraction',
+    'Hidden Gem',
+    'Restaurant',
+    'Motel',
+    'Hotel'
   ];
   
-  return userRelevantCategories.includes(stop.category || '');
+  // Make the comparison case-insensitive
+  const stopCategory = (stop.category || '').toLowerCase();
+  return userRelevantCategories.some(cat => cat.toLowerCase() === stopCategory);
 };
 
 // ENHANCED geographic filtering with more generous boundaries
