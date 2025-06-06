@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Camera, Utensils, Bed } from 'lucide-react';
@@ -24,6 +25,20 @@ const isValidStopObject = (stop: any): stop is { name: string; id?: string; cate
          'name' in stop && 
          typeof stop.name === 'string' && 
          stop.name.trim() !== '';
+};
+
+// Filter function to exclude route66_waypoint categories from user display
+const isUserRelevantStop = (stop: ValidatedStop): boolean => {
+  const userRelevantCategories = [
+    'attraction',
+    'hidden_gem', 
+    'diner',
+    'motel',
+    'museum',
+    'destination_city'
+  ];
+  
+  return userRelevantCategories.includes(stop.category || '');
 };
 
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
@@ -123,6 +138,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   };
 
   const validStops = getValidatedStops();
+  
+  // Filter out route66_waypoint categories for user display
+  const userRelevantStops = validStops.filter(isUserRelevantStop);
 
   // Get appropriate icon for stop category
   const getStopIcon = (category?: string) => {
@@ -163,31 +181,34 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
         return 'bg-green-100 text-green-800 border-green-200';
       case 'destination_city':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'route66_waypoint':
+      case 'hidden_gem':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  console.log('🎯 EnhancedRecommendedStops final render:', {
+  console.log('🎯 EnhancedRecommendedStops filtering:', {
     segmentDay: segment.day,
-    validatedStopsCount: validStops.length,
+    totalValidatedStops: validStops.length,
+    userRelevantStops: userRelevantStops.length,
+    filteredOutStops: validStops.length - userRelevantStops.length,
     maxStopsLimit: maxStops,
-    willShowCount: Math.min(validStops.length, maxStops),
-    stopNames: validStops.map(s => s.name)
+    willShowCount: Math.min(userRelevantStops.length, maxStops),
+    userStopNames: userRelevantStops.map(s => s.name),
+    filteredCategories: validStops.filter(s => !isUserRelevantStop(s)).map(s => s.category)
   });
 
   return (
     <div>
       <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
         <MapPin className="h-4 w-4" />
-        Recommended Stops ({validStops.length})
+        Recommended Stops ({userRelevantStops.length})
       </h4>
       
-      {validStops.length > 0 ? (
+      {userRelevantStops.length > 0 ? (
         <div className="space-y-3">
-          {validStops.slice(0, maxStops).map((stop, index) => (
+          {userRelevantStops.slice(0, maxStops).map((stop, index) => (
             <div 
               key={stop.id || `stop-${index}`}
               className="flex items-center gap-3 p-3 bg-white rounded-lg border border-route66-border hover:shadow-sm transition-shadow"
@@ -221,9 +242,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
             </div>
           ))}
           
-          {validStops.length > maxStops && (
+          {userRelevantStops.length > maxStops && (
             <div className="text-xs text-route66-vintage-brown italic text-center p-3 bg-route66-background-alt rounded border border-route66-border">
-              +{validStops.length - maxStops} more stops available
+              +{userRelevantStops.length - maxStops} more stops available
               <div className="text-xs text-route66-text-secondary mt-1">
                 Expand card to see all recommended stops for this segment
               </div>

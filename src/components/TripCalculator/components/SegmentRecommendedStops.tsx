@@ -31,6 +31,20 @@ const isValidStopObject = (stop: any): stop is { name: string; id?: string; cate
          stop.name.trim() !== '';
 };
 
+// Filter function to exclude route66_waypoint categories from user display
+const isUserRelevantStop = (stop: ValidatedStop): boolean => {
+  const userRelevantCategories = [
+    'attraction',
+    'hidden_gem', 
+    'diner',
+    'motel',
+    'museum',
+    'destination_city'
+  ];
+  
+  return userRelevantCategories.includes(stop.category);
+};
+
 const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segment }) => {
   // Get validated stops from multiple possible sources with enhanced validation
   const getValidatedStops = (): ValidatedStop[] => {
@@ -136,21 +150,27 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
   };
 
   const validStops = getValidatedStops();
-
-  console.log('🎯 SegmentRecommendedStops final render:', {
+  
+  // Filter out route66_waypoint categories for user display
+  const userRelevantStops = validStops.filter(isUserRelevantStop);
+  
+  console.log('🎯 SegmentRecommendedStops filtering:', {
     segmentDay: segment.day,
-    validatedStopsCount: validStops.length,
-    stopNames: validStops.map(s => s.name)
+    totalValidatedStops: validStops.length,
+    userRelevantStops: userRelevantStops.length,
+    filteredOutStops: validStops.length - userRelevantStops.length,
+    userStopNames: userRelevantStops.map(s => s.name),
+    filteredCategories: validStops.filter(s => !isUserRelevantStop(s)).map(s => s.category)
   });
 
   return (
     <div>
       <h4 className="font-travel font-bold text-route66-vintage-brown mb-2">
-        Recommended Stops ({validStops.length})
+        Recommended Stops ({userRelevantStops.length})
       </h4>
-      {validStops.length > 0 ? (
+      {userRelevantStops.length > 0 ? (
         <div className="space-y-2">
-          {validStops.map((stop) => (
+          {userRelevantStops.map((stop) => (
             <StopCard key={stop.id} stop={stop} />
           ))}
         </div>
