@@ -1,3 +1,4 @@
+
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -61,7 +62,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data for development and testing
+// Mock data for development and testing - EXPANDED with more Illinois cities
 const mockStopsData: Partial<UnifiedTripStop>[] = [
   {
     id: "chicago-start",
@@ -69,7 +70,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "The official starting point of Route 66",
     category: "destination_city",
     city_name: "Chicago",
-    city: "Chicago", // Add city field to match the interface
+    city: "Chicago",
     state: "IL",
     latitude: 41.8781,
     longitude: -87.6298,
@@ -77,12 +78,71 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     is_official_destination: true
   },
   {
+    id: "joliet-il",
+    name: "Joliet",
+    description: "Historic Route 66 city in Illinois",
+    category: "destination_city",
+    city_name: "Joliet",
+    city: "Joliet",
+    state: "IL",
+    latitude: 41.5250,
+    longitude: -88.0817,
+    is_major_stop: true
+  },
+  {
+    id: "springfield-il",
+    name: "Springfield",
+    description: "Illinois state capital and major Route 66 destination",
+    category: "destination_city",
+    city_name: "Springfield",
+    city: "Springfield",
+    state: "IL",
+    latitude: 39.7817,
+    longitude: -89.6501,
+    is_major_stop: true
+  },
+  {
+    id: "pontiac-il",
+    name: "Pontiac",
+    description: "Historic Route 66 town in Illinois",
+    category: "destination_city",
+    city_name: "Pontiac",
+    city: "Pontiac",
+    state: "IL",
+    latitude: 40.8808,
+    longitude: -88.6298,
+    is_major_stop: true
+  },
+  {
+    id: "bloomington-il",
+    name: "Bloomington",
+    description: "Twin city with Normal, important Route 66 stop",
+    category: "destination_city",
+    city_name: "Bloomington",
+    city: "Bloomington",
+    state: "IL",
+    latitude: 40.4842,
+    longitude: -88.9934,
+    is_major_stop: true
+  },
+  {
+    id: "litchfield-il",
+    name: "Litchfield",
+    description: "Classic Route 66 town in Illinois",
+    category: "destination_city",
+    city_name: "Litchfield",
+    city: "Litchfield",
+    state: "IL",
+    latitude: 39.1753,
+    longitude: -89.6542
+  },
+  {
     id: "lou-mitchells",
     name: "Lou Mitchell's",
     description: "Famous breakfast spot at the start of Route 66",
     category: "restaurant",
     city_name: "Chicago",
-    city: "Chicago", // Add city field to match the interface
+    city: "Chicago",
     state: "IL",
     latitude: 41.8786,
     longitude: -87.6393
@@ -122,6 +182,18 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     is_major_stop: true
   },
   {
+    id: "st-louis-mo",
+    name: "St. Louis",
+    description: "Gateway to the West with historic Route 66 landmarks",
+    category: "destination_city",
+    city_name: "St. Louis",
+    city: "St. Louis",
+    state: "MO",
+    latitude: 38.6270,
+    longitude: -90.1994,
+    is_major_stop: true
+  },
+  {
     id: "meramec-caverns",
     name: "Meramec Caverns",
     description: "Famous cave system and Route 66 attraction",
@@ -144,6 +216,30 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     longitude: -95.7313
   },
   {
+    id: "oklahoma-city-ok",
+    name: "Oklahoma City",
+    description: "Capital city of Oklahoma with Route 66 heritage",
+    category: "destination_city",
+    city_name: "Oklahoma City",
+    city: "Oklahoma City",
+    state: "OK",
+    latitude: 35.4676,
+    longitude: -97.5164,
+    is_major_stop: true
+  },
+  {
+    id: "tulsa-ok",
+    name: "Tulsa",
+    description: "Oil capital with rich Route 66 history",
+    category: "destination_city",
+    city_name: "Tulsa",
+    city: "Tulsa",
+    state: "OK",
+    latitude: 36.1540,
+    longitude: -95.9928,
+    is_major_stop: true
+  },
+  {
     id: "cadillac-ranch",
     name: "Cadillac Ranch",
     description: "Famous art installation of half-buried Cadillacs",
@@ -153,6 +249,18 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     state: "TX",
     latitude: 35.1872,
     longitude: -101.9871,
+    is_major_stop: true
+  },
+  {
+    id: "amarillo-tx",
+    name: "Amarillo",
+    description: "Texas Panhandle city famous for Cadillac Ranch",
+    category: "destination_city",
+    city_name: "Amarillo",
+    city: "Amarillo",
+    state: "TX",
+    latitude: 35.2220,
+    longitude: -101.8313,
     is_major_stop: true
   },
   {
@@ -178,6 +286,18 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     longitude: -103.7249
   },
   {
+    id: "albuquerque-nm",
+    name: "Albuquerque",
+    description: "High desert city with vibrant Route 66 culture",
+    category: "destination_city",
+    city_name: "Albuquerque",
+    city: "Albuquerque",
+    state: "NM",
+    latitude: 35.0844,
+    longitude: -106.6504,
+    is_major_stop: true
+  },
+  {
     id: "petrified-forest",
     name: "Petrified Forest National Park",
     description: "National park featuring petrified wood and the Painted Desert",
@@ -199,6 +319,18 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     state: "AZ",
     latitude: 34.9011,
     longitude: -110.1662
+  },
+  {
+    id: "flagstaff-az",
+    name: "Flagstaff",
+    description: "Mountain city and gateway to Grand Canyon",
+    category: "destination_city",
+    city_name: "Flagstaff",
+    city: "Flagstaff",
+    state: "AZ",
+    latitude: 35.1983,
+    longitude: -111.6513,
+    is_major_stop: true
   },
   {
     id: "grand-canyon",
@@ -233,6 +365,19 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     state: "CA",
     latitude: 34.0089,
     longitude: -118.4973,
+    is_major_stop: true,
+    is_official_destination: true
+  },
+  {
+    id: "los-angeles-ca",
+    name: "Los Angeles",
+    description: "The City of Angels - Western terminus of Route 66",
+    category: "destination_city",
+    city_name: "Los Angeles",
+    city: "Los Angeles",
+    state: "CA",
+    latitude: 34.0522,
+    longitude: -118.2437,
     is_major_stop: true,
     is_official_destination: true
   }

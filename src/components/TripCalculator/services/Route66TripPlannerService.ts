@@ -14,7 +14,7 @@ export class Route66TripPlannerService {
     const allStops = await SupabaseDataService.fetchAllStops();
     console.log(`📊 Total stops available for planning: ${allStops.length}`);
     
-    // Enhanced city matching function with proper city/state parsing
+    // Enhanced city matching function with improved fuzzy matching
     const findCityStop = (cityName: string): TripStop | undefined => {
       // Parse city and state from input (e.g., "Springfield, IL" or "Chicago, IL")
       const parts = cityName.split(',').map(part => part.trim());
@@ -23,51 +23,91 @@ export class Route66TripPlannerService {
       
       console.log(`🔍 Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
       
-      // Two-tier matching strategy
-      let matchedStop: TripStop | undefined;
-      
       // Tier 1: Exact city + state matching (most precise)
       if (stateOnly) {
-        matchedStop = allStops.find(stop => {
+        const exactMatch = allStops.find(stop => {
           const stopCity = stop.city_name.toLowerCase();
           const stopState = stop.state.toLowerCase();
+          const stopName = stop.name.toLowerCase();
           
           // Check for exact matches with city and state
           const exactCityStateMatch = stopCity === cityOnly && stopState === stateOnly;
-          const cityContainsAndStateExact = stopCity.includes(cityOnly) && stopState === stateOnly;
-          const nameContainsAndStateExact = stop.name.toLowerCase().includes(cityOnly) && stopState === stateOnly;
+          const nameExactStateMatch = stopName === cityOnly && stopState === stateOnly;
           
-          return exactCityStateMatch || cityContainsAndStateExact || nameContainsAndStateExact;
+          return exactCityStateMatch || nameExactStateMatch;
         });
         
-        if (matchedStop) {
-          console.log(`✅ Found exact city+state match: ${matchedStop.name} in ${CityDisplayService.getCityDisplayName(matchedStop)}`);
-          return matchedStop;
+        if (exactMatch) {
+          console.log(`✅ Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
+          return exactMatch;
+        }
+
+        // Try partial matches with correct state
+        const partialMatch = allStops.find(stop => {
+          const stopCity = stop.city_name.toLowerCase();
+          const stopState = stop.state.toLowerCase();
+          const stopName = stop.name.toLowerCase();
+          
+          if (stopState !== stateOnly) return false;
+          
+          const cityContains = stopCity.includes(cityOnly) || cityOnly.includes(stopCity);
+          const nameContains = stopName.includes(cityOnly) || cityOnly.includes(stopName);
+          
+          return cityContains || nameContains;
+        });
+        
+        if (partialMatch) {
+          console.log(`✅ Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
+          return partialMatch;
         }
       }
       
-      // Tier 2: City-only matching (fallback)
-      matchedStop = allStops.find(stop => {
+      // Tier 2: City-only matching (fallback) - prioritize destination cities
+      const cityOnlyMatches = allStops.filter(stop => {
         const stopCity = stop.city_name.toLowerCase();
         const stopName = stop.name.toLowerCase();
         
-        // Prioritize exact matches
+        // Exact matches first
         if (stopCity === cityOnly || stopName === cityOnly) {
           return true;
         }
         
         // Then partial matches
-        return stopCity.includes(cityOnly) || stopName.includes(cityOnly);
+        return stopCity.includes(cityOnly) || stopName.includes(cityOnly) || 
+               cityOnly.includes(stopCity) || cityOnly.includes(stopName);
       });
-      
-      if (matchedStop) {
-        console.log(`⚠️ Found city-only match: ${matchedStop.name} in ${CityDisplayService.getCityDisplayName(matchedStop)}`);
-        if (stateOnly && matchedStop.state.toLowerCase() !== stateOnly) {
-          console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${matchedStop.state}`);
+
+      if (cityOnlyMatches.length > 0) {
+        // Prioritize destination cities, then major stops
+        const destinationCity = cityOnlyMatches.find(stop => stop.category === 'destination_city');
+        if (destinationCity) {
+          console.log(`✅ Found destination city match: ${destinationCity.name} in ${CityDisplayService.getCityDisplayName(destinationCity)}`);
+          if (stateOnly && destinationCity.state.toLowerCase() !== stateOnly) {
+            console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${destinationCity.state}`);
+          }
+          return destinationCity;
         }
+
+        const majorStop = cityOnlyMatches.find(stop => stop.is_major_stop);
+        if (majorStop) {
+          console.log(`✅ Found major stop match: ${majorStop.name} in ${CityDisplayService.getCityDisplayName(majorStop)}`);
+          if (stateOnly && majorStop.state.toLowerCase() !== stateOnly) {
+            console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${majorStop.state}`);
+          }
+          return majorStop;
+        }
+
+        // Return first match
+        const firstMatch = cityOnlyMatches[0];
+        console.log(`⚠️ Found city-only match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
+        if (stateOnly && firstMatch.state.toLowerCase() !== stateOnly) {
+          console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
+        }
+        return firstMatch;
       }
       
-      return matchedStop;
+      console.log(`❌ No match found for "${cityName}"`);
+      return undefined;
     };
     
     // Find start and end stops with enhanced matching
