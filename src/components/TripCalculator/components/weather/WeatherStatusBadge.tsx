@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Thermometer, Eye, AlertTriangle, Calendar } from 'lucide-react';
+import { Thermometer, Eye, AlertTriangle, Calendar, Clock } from 'lucide-react';
 
 interface WeatherStatusBadgeProps {
-  type: 'current' | 'forecast' | 'seasonal' | 'unavailable';
+  type: 'current' | 'forecast' | 'seasonal' | 'unavailable' | 'forecast-not-available';
   description?: string;
   dateString?: string;
   daysFromNow?: number;
@@ -31,10 +31,22 @@ const WeatherStatusBadge: React.FC<WeatherStatusBadgeProps> = ({
       <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
         <Calendar className="h-4 w-4 text-green-600" />
         <div className="text-xs text-green-800">
-          <span className="font-semibold">Weather forecast</span> - 
+          <span className="font-semibold">Forecast</span> - 
           {daysFromNow !== undefined && daysFromNow === 0 ? ' Today' : 
            daysFromNow !== undefined && daysFromNow === 1 ? ' Tomorrow' :
            daysFromNow !== undefined ? ` ${daysFromNow} days ahead` : ' Future date'}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'forecast-not-available') {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-orange-50 rounded border border-orange-200">
+        <Clock className="h-5 w-5 text-orange-600" />
+        <div className="text-sm text-orange-800">
+          <p className="font-semibold">Forecast not yet available</p>
+          <p className="text-xs">Please check again closer to your trip date (within 3 days)</p>
         </div>
       </div>
     );

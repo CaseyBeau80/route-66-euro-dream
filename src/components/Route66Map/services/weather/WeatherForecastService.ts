@@ -7,11 +7,13 @@ export interface ForecastWeatherData extends WeatherData {
   forecast: ForecastDay[];
   forecastDate: Date;
   isActualForecast: boolean;
+  highTemp?: number;
+  lowTemp?: number;
 }
 
 export class WeatherForecastService {
   private apiClient: WeatherApiClient;
-  private readonly FORECAST_THRESHOLD_DAYS = 5;
+  private readonly FORECAST_THRESHOLD_DAYS = 3; // Changed from 5 to 3 days
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
@@ -27,12 +29,12 @@ export class WeatherForecastService {
     
     console.log(`🌤️ WeatherForecastService: Getting weather for ${cityName} on ${targetDate.toDateString()}, ${daysFromNow} days from now`);
 
-    // If the date is within forecast range, get actual forecast
+    // If the date is within 3-day forecast range, get actual forecast
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
       return this.getActualForecast(lat, lng, cityName, targetDate, daysFromNow);
     } else {
-      // For dates beyond forecast range, get current weather but mark it appropriately
-      return this.getCurrentWeatherAsReference(lat, lng, cityName, targetDate);
+      // For dates beyond 3-day forecast range, return null to show "not available" message
+      return this.getForecastNotAvailable(cityName, targetDate, daysFromNow);
     }
   }
 
@@ -56,6 +58,8 @@ export class WeatherForecastService {
       if (targetForecast) {
         return {
           temperature: Math.round((targetForecast.temperature.high + targetForecast.temperature.low) / 2),
+          highTemp: targetForecast.temperature.high,
+          lowTemp: targetForecast.temperature.low,
           description: targetForecast.description,
           icon: targetForecast.icon,
           humidity: 50, // Default humidity for forecast
@@ -66,8 +70,7 @@ export class WeatherForecastService {
           isActualForecast: true
         };
       } else {
-        // Fallback to current weather if no forecast available
-        return this.getCurrentWeatherAsReference(lat, lng, cityName, targetDate);
+        return null;
       }
     } catch (error) {
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
@@ -75,28 +78,23 @@ export class WeatherForecastService {
     }
   }
 
-  private async getCurrentWeatherAsReference(
-    lat: number, 
-    lng: number, 
+  private getForecastNotAvailable(
     cityName: string, 
-    targetDate: Date
-  ): Promise<ForecastWeatherData | null> {
-    try {
-      const currentData = await this.apiClient.getCurrentWeather(lat, lng);
-      
-      console.log(`📍 WeatherForecastService: Got current weather as reference for ${cityName}`);
-      
-      const weatherData = WeatherDataProcessor.processCurrentWeather(currentData, cityName);
-      
-      return {
-        ...weatherData,
-        forecast: [],
-        forecastDate: targetDate,
-        isActualForecast: false
-      };
-    } catch (error) {
-      console.error('❌ WeatherForecastService: Error getting current weather as reference:', error);
-      return null;
-    }
+    targetDate: Date, 
+    daysFromNow: number
+  ): ForecastWeatherData | null {
+    return {
+      temperature: 0,
+      description: 'Forecast not available',
+      icon: '01d',
+      humidity: 0,
+      windSpeed: 0,
+      cityName: cityName,
+      forecast: [],
+      forecastDate: targetDate,
+      isActualForecast: false,
+      highTemp: undefined,
+      lowTemp: undefined
+    };
   }
 }

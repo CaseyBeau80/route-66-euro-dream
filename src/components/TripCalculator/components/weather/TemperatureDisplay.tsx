@@ -28,14 +28,15 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
 
   if (type === 'range' && highTemp !== undefined && lowTemp !== undefined) {
     return (
-      <div className="flex items-center justify-between bg-white rounded p-2">
-        <div className="text-center">
-          <div className="text-lg font-bold text-red-600">{formatTemperature(highTemp)}</div>
-          <div className="text-xs text-gray-500">Typical High</div>
+      <div className="flex items-center justify-between bg-white rounded p-3 gap-4">
+        <div className="text-center flex-1">
+          <div className="text-xl font-bold text-red-600">{formatTemperature(highTemp)}</div>
+          <div className="text-xs text-gray-500">High</div>
         </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-600">{formatTemperature(lowTemp)}</div>
-          <div className="text-xs text-gray-500">Typical Low</div>
+        <div className="text-gray-300">•</div>
+        <div className="text-center flex-1">
+          <div className="text-xl font-bold text-blue-600">{formatTemperature(lowTemp)}</div>
+          <div className="text-xs text-gray-500">Low</div>
         </div>
       </div>
     );

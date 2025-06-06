@@ -20,8 +20,43 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
 
+  // Check if forecast is not available (beyond 3 days)
+  if (!weather.isActualForecast && daysFromNow && daysFromNow > 3) {
+    return (
+      <div className="space-y-3">
+        <WeatherStatusBadge 
+          type="forecast-not-available"
+          daysFromNow={daysFromNow}
+        />
+        
+        <div className="text-center p-4 bg-gray-50 rounded">
+          <div className="text-gray-600 mb-2">
+            Trip date: {segmentDate?.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </div>
+          <div className="text-sm text-gray-500">
+            Weather forecasts are only available 3 days in advance. 
+            Check back closer to your departure date for accurate weather information.
+          </div>
+        </div>
+
+        {segmentDate && (
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <SeasonalReferenceCard 
+              segmentDate={segmentDate}
+              cityName={weather.cityName}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
-  const isCurrentAsReference = !weather.isActualForecast && segmentDate;
 
   return (
     <div className="space-y-3">
@@ -41,28 +76,28 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      <TemperatureDisplay 
-        type="current"
-        currentTemp={weather.temperature}
-      />
+      {/* Prioritize High/Low Temperature Display for Forecasts */}
+      {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
+        <TemperatureDisplay 
+          type="range"
+          highTemp={weather.highTemp}
+          lowTemp={weather.lowTemp}
+        />
+      ) : (
+        <TemperatureDisplay 
+          type="current"
+          currentTemp={weather.temperature}
+        />
+      )}
 
       <WeatherStats 
         humidity={weather.humidity}
         windSpeed={weather.windSpeed}
       />
 
-      {!weather.isActualForecast && (
+      {!weather.isActualForecast && daysFromNow && daysFromNow <= 3 && (
         <div className="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">
           ⚠️ Showing current conditions as reference. Actual forecast not available for this date.
-        </div>
-      )}
-
-      {isCurrentAsReference && (
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <SeasonalReferenceCard 
-            segmentDate={segmentDate}
-            cityName={weather.cityName}
-          />
         </div>
       )}
     </div>
