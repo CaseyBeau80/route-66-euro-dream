@@ -11,7 +11,7 @@ export const useCostEstimator = (tripPlan?: TripPlan) => {
     groupSize: 2,
     numberOfRooms: 1,
     motelBudget: 'mid-range',
-    mealBudget: 'mid-range',
+    mealBudget: 'midrange',
     includeAttractions: true,
     includeTolls: true,
     includeCarRental: false,

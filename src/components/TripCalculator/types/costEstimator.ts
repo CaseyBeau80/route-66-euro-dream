@@ -5,7 +5,7 @@ export interface CostEstimatorData {
   groupSize: number;
   numberOfRooms: number;
   motelBudget: 'budget' | 'mid-range' | 'luxury';
-  mealBudget: 'budget' | 'mid-range' | 'luxury';
+  mealBudget: 'budget' | 'midrange' | 'fine';
   includeAttractions: boolean;
   includeTolls: boolean;
   includeCarRental: boolean;

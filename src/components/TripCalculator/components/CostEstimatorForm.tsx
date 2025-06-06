@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -132,7 +131,7 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({
         </div>
         <Select
           value={costData.mealBudget}
-          onValueChange={(value: 'budget' | 'mid-range' | 'luxury') => setCostData({
+          onValueChange={(value: 'budget' | 'midrange' | 'fine') => setCostData({
             ...costData,
             mealBudget: value
           })}
@@ -141,9 +140,9 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="budget">Budget ($25-35/day)</SelectItem>
-            <SelectItem value="mid-range">Mid-Range ($35-60/day)</SelectItem>
-            <SelectItem value="luxury">Fine Dining ($60+/day)</SelectItem>
+            <SelectItem value="budget">Budget ($40–55/day)</SelectItem>
+            <SelectItem value="midrange">Mid-Range ($60–80/day)</SelectItem>
+            <SelectItem value="fine">Fine Dining ($90+/day)</SelectItem>
           </SelectContent>
         </Select>
       </div>

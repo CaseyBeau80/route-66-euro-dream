@@ -1,4 +1,3 @@
-
 import { TripPlan } from './planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../types/costEstimator';
 
@@ -11,9 +10,9 @@ export class CostCalculationService {
   };
 
   private static readonly MEAL_RATES = {
-    budget: 45,
-    'mid-range': 85,
-    luxury: 150
+    budget: 48,
+    midrange: 70,
+    fine: 95
   };
 
   // Car rental rates per day by vehicle type
