@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
@@ -56,7 +55,7 @@ export class DailySegmentCreator {
     const balanceMetrics = {
       totalDistance,
       totalDays,
-      targetAverageDriveTime: totalDistance / totalDays / 65, // Assuming 65 mph average
+      targetAverageDriveTime: totalDistance / totalDays / 60, // Using 60 mph for realistic average
       balanceStrategy: 'enhanced_geographic_diversity'
     };
 
@@ -79,18 +78,23 @@ export class DailySegmentCreator {
   }
 
   /**
-   * Validate and fix segment data for consistency
+   * Validate and fix segment data for consistency - IMPROVED VALIDATION
    */
   private static validateAndFixSegmentData(segments: DailySegment[]): DailySegment[] {
     return segments.map(segment => {
-      // Ensure drivingTime and driveTimeHours are consistent
-      const normalizedDriveTime = Math.max(segment.drivingTime || 0, 0.5); // Minimum 30 minutes
+      // Calculate realistic drive time based on distance
+      const realisticDriveTime = this.calculateRealisticDriveTime(segment.distance || segment.approximateMiles);
       
-      // Validate drive time is reasonable (max 12 hours per day)
-      const validatedDriveTime = Math.min(normalizedDriveTime, 12);
+      // Use the more realistic value between calculated and existing
+      const currentDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
+      let validatedDriveTime = realisticDriveTime;
       
-      if (validatedDriveTime !== normalizedDriveTime) {
-        console.warn(`⚠️ Day ${segment.day}: Adjusted excessive drive time from ${normalizedDriveTime.toFixed(1)}h to ${validatedDriveTime.toFixed(1)}h`);
+      // If current drive time seems unrealistic (too high), use calculated
+      if (currentDriveTime > realisticDriveTime * 2) {
+        console.warn(`⚠️ Day ${segment.day}: Correcting excessive drive time from ${currentDriveTime.toFixed(1)}h to ${validatedDriveTime.toFixed(1)}h for ${segment.distance}mi`);
+      } else if (currentDriveTime > 0 && Math.abs(currentDriveTime - realisticDriveTime) < 2) {
+        // If current time is reasonable and close to calculated, keep it
+        validatedDriveTime = currentDriveTime;
       }
 
       return {
@@ -98,10 +102,30 @@ export class DailySegmentCreator {
         drivingTime: validatedDriveTime,
         driveTimeHours: validatedDriveTime,
         // Ensure distance is consistent
-        distance: Math.max(segment.distance || 0, 1),
-        approximateMiles: Math.round(segment.distance || 0)
+        distance: Math.max(segment.distance || segment.approximateMiles || 0, 1),
+        approximateMiles: Math.round(segment.distance || segment.approximateMiles || 0)
       };
     });
+  }
+
+  /**
+   * Calculate realistic drive time based on distance
+   */
+  private static calculateRealisticDriveTime(distance: number): number {
+    let avgSpeed: number;
+    
+    if (distance < 50) {
+      avgSpeed = 45; // Urban/city driving
+    } else if (distance < 150) {
+      avgSpeed = 55; // Mixed roads
+    } else {
+      avgSpeed = 65; // Highway
+    }
+    
+    const baseTime = distance / avgSpeed;
+    const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
+    
+    return Math.max(baseTime * bufferMultiplier, 0.5);
   }
 
   private static selectDestinations(
@@ -161,8 +185,8 @@ export class DailySegmentCreator {
     totalDistance: number,
     totalDays: number
   ): DriveTimeTarget[] {
-    // Use more realistic speed calculation
-    const averageDriveTime = totalDistance / totalDays / 50; // 50 mph realistic average
+    // Use realistic speed calculation - 60 mph average for Route 66
+    const averageDriveTime = totalDistance / totalDays / 60;
     const targets: DriveTimeTarget[] = [];
 
     for (let day = 1; day <= totalDays; day++) {
@@ -170,7 +194,7 @@ export class DailySegmentCreator {
         day,
         targetHours: averageDriveTime,
         minHours: Math.max(averageDriveTime * 0.7, 1.0), // Minimum 1 hour
-        maxHours: Math.min(averageDriveTime * 1.3, 8.0), // Maximum 8 hours
+        maxHours: Math.min(averageDriveTime * 1.3, 6.0), // Maximum 6 hours
         priority: 'balanced'
       });
     }

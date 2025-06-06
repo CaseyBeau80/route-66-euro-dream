@@ -46,7 +46,7 @@ export class SubStopTimingCalculator {
         continue;
       }
       
-      const segmentDriveTime = segmentDistance / 50; // 50 mph average
+      const segmentDriveTime = this.calculateRealisticDriveTime(segmentDistance);
       cumulativeDistance += segmentDistance;
       cumulativeDriveTime += segmentDriveTime;
 
@@ -107,7 +107,7 @@ export class SubStopTimingCalculator {
         continue;
       }
       
-      // Use more realistic drive time calculation with speed limits
+      // Use corrected realistic drive time calculation
       const driveTime = this.calculateRealisticDriveTime(distance);
       
       segmentTimings.push({
@@ -123,26 +123,31 @@ export class SubStopTimingCalculator {
   }
 
   /**
-   * Calculate realistic drive time based on distance and road conditions
+   * Calculate realistic drive time based on distance and road conditions - FIXED CALCULATION
    */
   private static calculateRealisticDriveTime(distance: number): number {
-    // Use different speeds based on distance (shorter segments often have lower speeds)
+    // Use appropriate speeds based on Route 66 conditions
     let avgSpeed: number;
     
     if (distance < 50) {
-      avgSpeed = 40; // Urban/city driving with stops
+      avgSpeed = 45; // Urban/city driving with stops and traffic lights
     } else if (distance < 150) {
-      avgSpeed = 50; // Mixed highway/rural
+      avgSpeed = 55; // Mixed highway/rural roads
     } else {
-      avgSpeed = 60; // Highway driving
+      avgSpeed = 65; // Highway driving on interstates
     }
     
+    // Calculate base time in hours
     const baseTime = distance / avgSpeed;
     
-    // Add buffer time for stops, traffic, etc. (10-20% depending on distance)
-    const bufferMultiplier = distance < 100 ? 1.2 : 1.1;
+    // Add minimal buffer for stops (5-10% depending on distance)
+    const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
     
-    return Math.max(baseTime * bufferMultiplier, 0.5); // Minimum 30 minutes
+    // Return the calculated time, ensuring minimum of 0.5 hours (30 minutes)
+    const finalTime = Math.max(baseTime * bufferMultiplier, 0.5);
+    
+    console.log(`🚗 Drive time for ${distance} miles: ${finalTime.toFixed(2)} hours at avg ${avgSpeed} mph`);
+    return finalTime;
   }
 
   /**
