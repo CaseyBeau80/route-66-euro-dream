@@ -3,22 +3,6 @@ import { useState, useMemo } from 'react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate } from '../types/costEstimator';
 
-export interface CostData {
-  groupSize: number;
-  hotelBudget: number;
-  gasPrice: number;
-  carMpg: number;
-  foodBudget: number;
-  activityBudget: number;
-  // Additional properties to match CostEstimatorData
-  mpg: number;
-  numberOfRooms: number;
-  motelBudget: 'budget' | 'mid-range' | 'luxury';
-  mealBudget: 'budget' | 'mid-range' | 'fine-dining';
-  includeAttractions: boolean;
-  includeTolls: boolean;
-}
-
 // Mock interface for compatibility
 interface MockTripPlan {
   totalDistance: number;
@@ -35,15 +19,10 @@ interface MockTripPlan {
 }
 
 export const useCostEstimator = (tripPlan: TripPlan) => {
-  const [costData, setCostData] = useState<CostData>({
-    groupSize: 2,
-    hotelBudget: 120,
+  const [costData, setCostData] = useState<CostEstimatorData>({
     gasPrice: 3.50,
-    carMpg: 25,
-    foodBudget: 50,
-    activityBudget: 30,
-    // Additional properties
     mpg: 25,
+    groupSize: 2,
     numberOfRooms: 1,
     motelBudget: 'mid-range',
     mealBudget: 'mid-range',
@@ -83,10 +62,10 @@ export const useCostEstimator = (tripPlan: TripPlan) => {
   const costEstimate = useMemo(() => {
     if (!mockTripPlan || mockTripPlan.totalDays === 0) return null;
 
-    const gasoline = (mockTripPlan.totalDistance / costData.carMpg) * costData.gasPrice;
-    const hotels = (mockTripPlan.totalDays - 1) * costData.hotelBudget;
-    const food = mockTripPlan.totalDays * costData.foodBudget * costData.groupSize;
-    const activities = mockTripPlan.totalDays * costData.activityBudget * costData.groupSize;
+    const gasoline = (mockTripPlan.totalDistance / costData.mpg) * costData.gasPrice;
+    const hotels = (mockTripPlan.totalDays - 1) * 120; // Default hotel cost
+    const food = mockTripPlan.totalDays * 85 * costData.groupSize; // Default meal cost
+    const activities = mockTripPlan.totalDays * 30 * costData.groupSize; // Default activity cost
 
     const totalCost = gasoline + hotels + food + activities;
     const perPersonCost = totalCost / costData.groupSize;
@@ -105,14 +84,14 @@ export const useCostEstimator = (tripPlan: TripPlan) => {
         day: segment.day,
         city: `Day ${segment.day}`,
         gas: Math.round(gasoline / mockTripPlan.totalDays),
-        accommodation: index < mockTripPlan.totalDays - 1 ? costData.hotelBudget : 0,
-        meals: costData.foodBudget * costData.groupSize,
-        attractions: costData.activityBudget * costData.groupSize,
+        accommodation: index < mockTripPlan.totalDays - 1 ? 120 : 0,
+        meals: 85 * costData.groupSize,
+        attractions: 30 * costData.groupSize,
         tolls: 0,
         dailyTotal: Math.round((gasoline / mockTripPlan.totalDays) + 
-                              (index < mockTripPlan.totalDays - 1 ? costData.hotelBudget : 0) + 
-                              (costData.foodBudget * costData.groupSize) + 
-                              (costData.activityBudget * costData.groupSize))
+                              (index < mockTripPlan.totalDays - 1 ? 120 : 0) + 
+                              (85 * costData.groupSize) + 
+                              (30 * costData.groupSize))
       })),
       perPersonCost: Math.round(perPersonCost),
       averageDailyCost: Math.round(totalCost / mockTripPlan.totalDays)

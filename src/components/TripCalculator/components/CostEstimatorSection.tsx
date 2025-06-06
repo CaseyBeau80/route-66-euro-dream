@@ -5,6 +5,7 @@ import { DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import CostEstimatorForm from './CostEstimatorForm';
 import { useCostEstimator } from '../hooks/useCostEstimator';
 import { TripFormData } from '../types/tripCalculator';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 interface CostEstimatorSectionProps {
   formData: TripFormData;
@@ -13,14 +14,29 @@ interface CostEstimatorSectionProps {
 const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData }) => {
   const [showCostEstimator, setShowCostEstimator] = useState(false);
   
-  // Create a mock trip plan for cost estimation
-  const mockTripPlan = {
+  // Create a complete mock trip plan for cost estimation
+  const mockTripPlan: TripPlan = {
+    title: `${formData.startLocation} to ${formData.endLocation} Road Trip`,
+    startCity: formData.startLocation,
+    endCity: formData.endLocation,
+    totalDays: formData.travelDays,
     totalDistance: formData.travelDays * 300, // Estimate based on days
-    dailySegments: Array.from({ length: formData.travelDays }, (_, i) => ({
+    totalDrivingTime: formData.travelDays * 6, // Estimate 6 hours per day
+    segments: Array.from({ length: formData.travelDays }, (_, i) => ({
       day: i + 1,
+      title: `Day ${i + 1}`,
+      startCity: i === 0 ? formData.startLocation : `Stop ${i}`,
+      endCity: i === formData.travelDays - 1 ? formData.endLocation : `Stop ${i + 1}`,
+      approximateMiles: 300,
+      driveTimeHours: 6,
       distance: 300,
       drivingTime: 6
-    }))
+    })),
+    driveTimeBalance: {
+      isBalanced: true,
+      averageDriveTime: 6,
+      balanceQuality: 'good'
+    }
   };
 
   const { costData, setCostData, costEstimate } = useCostEstimator(mockTripPlan);

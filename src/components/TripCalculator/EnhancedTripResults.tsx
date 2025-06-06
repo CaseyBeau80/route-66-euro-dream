@@ -57,14 +57,20 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     }
   };
 
+  // Ensure driveTimeBalance has required balanceQuality property
+  const adjustmentDriveTimeBalance = tripPlan.driveTimeBalance ? {
+    averageDriveTime: tripPlan.driveTimeBalance.averageDriveTime,
+    balanceQuality: tripPlan.driveTimeBalance.balanceQuality || 'good' as const
+  } : undefined;
+
   return (
     <div className="space-y-6">
       {/* Trip Adjustment Notice */}
-      {tripPlan.wasAdjusted && tripPlan.originalDays && (
+      {tripPlan.wasAdjusted && tripPlan.originalDays && adjustmentDriveTimeBalance && (
         <TripAdjustmentNotice
           originalDays={tripPlan.originalDays}
           adjustedDays={tripPlan.totalDays}
-          driveTimeBalance={tripPlan.driveTimeBalance}
+          driveTimeBalance={adjustmentDriveTimeBalance}
         />
       )}
 
