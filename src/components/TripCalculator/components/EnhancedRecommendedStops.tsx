@@ -15,26 +15,43 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
 }) => {
   // Get stops from multiple possible sources with validation
   const getValidatedStops = () => {
-    const stops = [];
+    const stops: Array<{
+      id: string;
+      name: string;
+      category?: string;
+      city_name?: string;
+      state?: string;
+    }> = [];
     
     // Primary source: recommendedStops array
     if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
-      stops.push(...segment.recommendedStops.filter(stop => stop && stop.name));
+      const validRecommendedStops = segment.recommendedStops
+        .filter((stop): stop is NonNullable<typeof stop> => stop != null && typeof stop === 'object' && 'name' in stop && stop.name != null)
+        .map(stop => ({
+          id: stop.id || `stop-${Math.random()}`,
+          name: stop.name,
+          category: stop.category,
+          city_name: stop.city_name,
+          state: stop.state
+        }));
+      stops.push(...validRecommendedStops);
     }
     
     // Fallback: attractions array (for backward compatibility)
     if (stops.length === 0 && segment.attractions && Array.isArray(segment.attractions)) {
-      const attractionStops = segment.attractions.map((attraction, index) => ({
-        id: `attraction-${index}`,
-        name: typeof attraction === 'string' ? attraction : attraction.name || 'Unknown',
-        category: 'attraction',
-        city_name: segment.endCity,
-        state: segment.destination?.state || 'Unknown'
-      }));
+      const attractionStops = segment.attractions
+        .filter((attraction): attraction is NonNullable<typeof attraction> => attraction != null)
+        .map((attraction, index) => ({
+          id: `attraction-${index}`,
+          name: typeof attraction === 'string' ? attraction : (attraction as any).name || 'Unknown',
+          category: 'attraction',
+          city_name: segment.endCity,
+          state: segment.destination?.state || 'Unknown'
+        }));
       stops.push(...attractionStops);
     }
     
-    return stops.filter(stop => stop && stop.name && stop.name.trim() !== '');
+    return stops.filter(stop => stop.name && stop.name.trim() !== '');
   };
 
   const validStops = getValidatedStops();
