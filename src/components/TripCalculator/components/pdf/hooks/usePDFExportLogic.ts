@@ -35,63 +35,88 @@ export const usePDFExportLogic = ({
   const { showPDFPreview } = usePDFDisplay();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
+    console.log('🔄 Creating Route 66 PDF loading overlay...');
+    
     // Remove any existing loading message to prevent stacking
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
-      (existingLoading as HTMLElement).style.opacity = '0';
-      setTimeout(() => {
-        if (document.body.contains(existingLoading)) {
-          document.body.removeChild(existingLoading);
-        }
-      }, 300);
+      console.log('🧹 Removing existing loading overlay');
+      existingLoading.remove();
     }
 
     const loadingBox = document.createElement("div");
     loadingBox.setAttribute("role", "status");
     loadingBox.setAttribute("aria-live", "polite");
-    loadingBox.className = `
-      pdf-loading-overlay-js
-      fixed top-[80px] left-1/2 -translate-x-1/2 z-[9999]
-      bg-route66-orange-50 text-route66-orange-700 px-6 py-4
-      rounded-xl shadow-lg flex items-center gap-3
-      animate-fade-in transition-opacity duration-300
-      max-w-sm w-full mx-4
-    `.replace(/\s+/g, ' ').trim();
+    loadingBox.className = "pdf-loading-overlay-js";
+    
+    // Use inline styles for reliable positioning and blue theme
+    loadingBox.style.cssText = `
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: #eff6ff;
+      color: #1e40af;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 400px;
+      width: calc(100% - 32px);
+      margin: 0 16px;
+      animation: fade-in-pdf 0.3s ease-out forwards;
+    `;
 
     loadingBox.innerHTML = `
-      <div class="w-4 h-4 border-2 border-route66-orange-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-      <div class="min-w-0">
-        <p class="font-semibold text-route66-orange-800">Preparing Route 66 PDF</p>
-        <p class="text-sm text-route66-orange-600">Loading weather and formatting itinerary for print...</p>
+      <div style="
+        width: 16px;
+        height: 16px;
+        border: 2px solid #1d4ed8;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        flex-shrink: 0;
+      "></div>
+      <div style="min-width: 0;">
+        <p style="font-weight: 600; color: #1e3a8a; margin: 0 0 4px 0;">Preparing Route 66 PDF</p>
+        <p style="font-size: 14px; color: #1e40af; margin: 0;">Loading weather data and formatting content...</p>
       </div>
     `;
 
     document.body.appendChild(loadingBox);
 
-    // Add pulse animation fallback for loads >4 seconds
+    // Add jiggle animation after initial fade-in
     setTimeout(() => {
       if (document.body.contains(loadingBox)) {
-        loadingBox.classList.add('animate-pulse');
+        loadingBox.style.animation = 'fade-in-pdf 0.3s ease-out forwards, pdf-jiggle 1.2s ease-in-out infinite';
       }
-    }, 4000);
+    }, 300);
 
+    console.log('✅ Route 66 PDF loading overlay created');
     return loadingBox;
   };
 
   const removePDFLoadingMessage = (loadingBox: HTMLDivElement) => {
     if (loadingBox && document.body.contains(loadingBox)) {
-      // Add fade-out animation
+      console.log('🧹 Removing PDF loading overlay with fade-out');
+      loadingBox.style.animation = 'none';
       loadingBox.style.opacity = '0';
+      loadingBox.style.transform = 'translateX(-50%) scale(0.95)';
+      loadingBox.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+      
       setTimeout(() => {
         if (document.body.contains(loadingBox)) {
-          document.body.removeChild(loadingBox);
+          loadingBox.remove();
         }
       }, 300);
     }
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with Route 66 branding...');
+    console.log('🖨️ Starting enhanced Route 66 PDF export with blue branding...');
     setIsExporting(true);
     setWeatherLoading(true);
     
@@ -138,11 +163,11 @@ export const usePDFExportLogic = ({
         }
       }, 60000);
       
-      console.log('🖨️ Enhanced Route 66 PDF preview ready with 110% scaling.');
+      console.log('🖨️ Enhanced Route 66 PDF preview ready with improved styling.');
       
       toast({
         title: "Route 66 PDF Preview Ready",
-        description: "Scaled to 110% for better readability. Press Ctrl+P to print, click red X to close.",
+        description: "Press Ctrl+P to print, click red X to close.",
         variant: "default"
       });
       

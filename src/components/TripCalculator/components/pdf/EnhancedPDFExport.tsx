@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Settings, X } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { usePDFExport } from './hooks/usePDFExport';
@@ -50,13 +50,23 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="fixed left-1/2 top-[12%] -translate-x-1/2 z-[10000] max-w-lg w-full px-4 sm:px-6 py-5 bg-route66-orange-50 border border-route66-orange-300 text-route66-orange-700 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-labelledby="pdf-export-title"
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-route66-orange-600 font-semibold text-base sm:text-lg">
+          <DialogTitle id="pdf-export-title" className="flex items-center gap-2 text-blue-700 font-semibold text-base sm:text-lg">
             <Settings className="w-5 h-5" />
             PDF Export Options
           </DialogTitle>
         </DialogHeader>
+
+        {/* Custom Close Button */}
+        <DialogClose className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
         
         <PDFExportOptionsForm
           exportOptions={exportOptions}
@@ -68,7 +78,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         <Button
           onClick={handleExportPDF}
           disabled={isExporting || !isTripComplete}
-          className="w-full bg-route66-orange-600 hover:bg-route66-orange-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
         >
           {isExporting ? 'Preparing PDF...' : 'Export PDF with Preview'}
         </Button>

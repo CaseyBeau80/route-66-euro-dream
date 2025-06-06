@@ -8,21 +8,23 @@ export const usePDFCleanup = () => {
     // Remove programmatically created elements with fade-out
     const closeButton = document.querySelector('.pdf-close-button-js');
     if (closeButton && document.body.contains(closeButton)) {
+      console.log('🧹 Removing PDF close button');
       (closeButton as HTMLElement).style.opacity = '0';
       (closeButton as HTMLElement).style.transform = 'scale(0.95)';
       setTimeout(() => {
         if (document.body.contains(closeButton)) {
-          document.body.removeChild(closeButton);
+          closeButton.remove();
         }
       }, 300);
     }
     
     const loadingOverlay = document.querySelector('.pdf-loading-overlay-js');
     if (loadingOverlay && document.body.contains(loadingOverlay)) {
+      console.log('🧹 Removing loading overlay');
       (loadingOverlay as HTMLElement).style.opacity = '0';
       setTimeout(() => {
         if (document.body.contains(loadingOverlay)) {
-          document.body.removeChild(loadingOverlay);
+          loadingOverlay.remove();
         }
       }, 300);
     }
@@ -63,6 +65,8 @@ export const usePDFCleanup = () => {
       description: "Returned to normal view. Weather forecast unavailable? Check online before departure.",
       variant: "default"
     });
+
+    console.log('✅ PDF preview cleanup completed');
   };
 
   return { cleanupPDFPreview };

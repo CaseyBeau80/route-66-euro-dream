@@ -1,48 +1,74 @@
 
 export const usePDFDisplay = () => {
   const showPDFCloseButton = (onClose: () => void): HTMLButtonElement => {
+    console.log('❌ Creating PDF preview close button...');
+    
     // Remove any existing close button to prevent stacking
     const existingButton = document.querySelector('.pdf-close-button-js');
     if (existingButton) {
-      (existingButton as HTMLElement).style.opacity = '0';
-      setTimeout(() => {
-        if (document.body.contains(existingButton)) {
-          document.body.removeChild(existingButton);
-        }
-      }, 300);
+      console.log('🧹 Removing existing close button');
+      existingButton.remove();
     }
 
     const closeButton = document.createElement("button");
     closeButton.innerHTML = "✕";
     closeButton.setAttribute("aria-label", "Close PDF Preview");
-    closeButton.className = `
-      pdf-close-button-js
-      fixed top-6 right-10 z-[10000]
-      bg-red-500 hover:bg-red-600
-      text-white rounded-full w-10 h-10
-      flex items-center justify-center
-      shadow-lg transition-all duration-200
-      text-lg font-bold
-      hover:scale-105 active:scale-95
-    `.replace(/\s+/g, ' ').trim();
+    closeButton.className = "pdf-close-button-js";
+    
+    // Use inline styles for reliable positioning and visibility
+    closeButton.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 40px;
+      z-index: 10000;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+
+    // Add hover effects programmatically
+    closeButton.onmouseenter = () => {
+      closeButton.style.background = '#dc2626';
+      closeButton.style.transform = 'scale(1.05)';
+    };
+    
+    closeButton.onmouseleave = () => {
+      closeButton.style.background = '#ef4444';
+      closeButton.style.transform = 'scale(1)';
+    };
 
     closeButton.onclick = () => {
-      // Add fade-out animation before cleanup
+      console.log('❌ PDF close button clicked');
       closeButton.style.opacity = '0';
       closeButton.style.transform = 'scale(0.95)';
       setTimeout(() => {
         onClose();
         if (document.body.contains(closeButton)) {
-          document.body.removeChild(closeButton);
+          closeButton.remove();
         }
       }, 300);
     };
 
     document.body.appendChild(closeButton);
+    console.log('✅ PDF close button created and positioned');
     return closeButton;
   };
 
   const showPDFPreview = (pdfContainer: HTMLElement, handleClosePreview: () => void) => {
+    console.log('📄 Showing PDF preview with blue branding...');
+    
     // Create close button programmatically
     const closeButton = showPDFCloseButton(handleClosePreview);
     
@@ -77,7 +103,7 @@ export const usePDFDisplay = () => {
         closeButton.style.transform = 'scale(0.95)';
         setTimeout(() => {
           if (document.body.contains(closeButton)) {
-            document.body.removeChild(closeButton);
+            closeButton.remove();
           }
           handleClosePreview();
         }, 300);
@@ -85,6 +111,8 @@ export const usePDFDisplay = () => {
         handleClosePreview();
       }
     };
+
+    console.log('✅ PDF preview displayed with blue theme');
   };
 
   return { showPDFPreview, showPDFCloseButton };
