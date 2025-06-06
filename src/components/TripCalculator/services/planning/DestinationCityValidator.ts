@@ -2,244 +2,127 @@
 import { TripStop } from '../data/SupabaseDataService';
 
 export class DestinationCityValidator {
-  // Manual exclusion list for cities that shouldn't be treated as major destinations
-  private static EXCLUDED_CITIES = new Set([
-    'galena',
-    'commerce',
-    'riverton',
-    'baxter springs',
-    'quapaw',
-    'miami',
-    'vinita',
-    'afton',
-    'chelsea',
-    'foyil',
-    'claremore',
-    'catoosa',
-    'verdigris',
-    'inola',
-    'sequoyah',
-    'sallisaw',
-    'roland',
-    'muldrow',
-    'arkoma',
-    'spiro',
-    'panama',
-    'pocola',
-    'heavener',
-    'howe',
-    'poteau',
-    'wister',
-    'talihina',
-    'clayton',
-    'daisy',
-    'rattan',
-    'snow',
-    'antlers',
-    'sardis',
-    'albion',
-    'robbers cave',
-    'wilburton',
-    'hartshorne',
-    'mcalester',
-    'krebs',
-    'pittsburg',
-    'kiowa',
-    'savoy',
-    'crowder',
-    'canadian',
-    'eufaula',
-    'checotah',
-    'henryetta',
-    'weleetka',
-    'okemah',
-    'boley',
-    'prague',
-    'stroud',
-    'davenport',
-    'chandler',
-    'wellston',
-    'luther',
-    'arcadia',
-    'edmond'
+  private static readonly MAJOR_DESTINATION_CITIES = new Set([
+    'Chicago', 'St. Louis', 'Oklahoma City', 'Amarillo', 'Albuquerque', 
+    'Flagstaff', 'Las Vegas', 'Los Angeles', 'Santa Monica', 'Barstow',
+    'Needles', 'Winslow', 'Gallup', 'Santa Fe', 'Tucumcari', 'Elk City',
+    'Clinton', 'Joplin', 'Springfield', 'Lebanon', 'Cuba', 'Pontiac',
+    'Bloomington', 'Lincoln', 'Litchfield', 'Staunton', 'Edwardsville'
   ]);
 
-  // Minimum population threshold for destination cities
-  private static MIN_POPULATION = 15000;
-
-  // Known major Route 66 destination cities (manually curated)
-  private static MAJOR_DESTINATIONS = new Set([
-    'chicago',
-    'st. louis',
-    'springfield',
-    'joplin',
-    'tulsa',
-    'oklahoma city',
-    'amarillo',
-    'albuquerque',
-    'santa fe',
-    'flagstaff',
-    'kingman',
-    'barstow',
-    'san bernardino',
-    'los angeles',
-    'santa monica',
-    'peoria',
-    'bloomington',
-    'pontiac',
-    'joliet',
-    'normal',
-    'lebanon',
-    'rolla',
-    'carthage',
-    'webb city',
-    'sapulpa',
-    'stroud',
-    'yukon',
-    'el reno',
-    'clinton',
-    'elk city',
-    'sayre',
-    'shamrock',
-    'mclean',
-    'groom',
-    'panhandle',
-    'conway',
-    'vega',
-    'adrian',
-    'tucumcari',
-    'santa rosa',
-    'las vegas',
-    'romeroville',
-    'glorieta',
-    'lamy',
-    'moriarty',
-    'tijeras',
-    'laguna',
-    'grants',
-    'gallup',
-    'lupton',
-    'chambers',
-    'holbrook',
-    'winslow',
-    'winona',
-    'two guns',
-    'meteor city',
-    'diablo canyon',
-    'canyon diablo',
-    'williams',
-    'ash fork',
-    'seligman',
-    'peach springs',
-    'truxton',
-    'valentine',
-    'hackberry',
-    'yucca',
-    'topock',
-    'golden shores',
-    'oatman',
-    'needles',
-    'goffs',
-    'fenner',
-    'essex',
-    'amboy',
-    'bagdad',
-    'siberia',
-    'klamer',
-    'daggett',
-    'newberry springs',
-    'yermo',
-    'oro grande',
-    'victorville',
-    'hesperia',
-    'cajon',
-    'devore',
-    'rancho cucamonga',
-    'upland',
-    'claremont',
-    'la verne',
-    'san dimas',
-    'glendora',
-    'azusa',
-    'duarte',
-    'monrovia',
-    'arcadia',
-    'pasadena'
+  private static readonly IMPORTANCE_SCORES = new Map([
+    ['Chicago', 100],
+    ['St. Louis', 95],
+    ['Oklahoma City', 90],
+    ['Amarillo', 85],
+    ['Albuquerque', 90],
+    ['Flagstaff', 85],
+    ['Las Vegas', 80],
+    ['Los Angeles', 100],
+    ['Santa Monica', 95],
+    ['Barstow', 70],
+    ['Needles', 65],
+    ['Winslow', 75],
+    ['Gallup', 70],
+    ['Santa Fe', 80],
+    ['Tucumcari', 65],
+    ['Elk City', 60],
+    ['Clinton', 65],
+    ['Joplin', 70],
+    ['Springfield', 75],
+    ['Lebanon', 60],
+    ['Cuba', 55],
+    ['Pontiac', 70],
+    ['Bloomington', 65],
+    ['Lincoln', 60],
+    ['Litchfield', 55],
+    ['Staunton', 55],
+    ['Edwardsville', 50]
   ]);
 
   /**
-   * Validate if a stop should be treated as a major destination city
+   * Filter and validate destination cities
    */
-  static isValidDestinationCity(stop: TripStop): boolean {
-    const cityName = stop.city_name.toLowerCase().trim();
-    const stopName = stop.name.toLowerCase().trim();
-
-    // Check exclusion list first
-    if (this.EXCLUDED_CITIES.has(cityName) || this.EXCLUDED_CITIES.has(stopName)) {
-      console.log(`🚫 Excluding ${stop.name} from destination cities (in exclusion list)`);
-      return false;
-    }
-
-    // Check if it's a manually curated major destination
-    if (this.MAJOR_DESTINATIONS.has(cityName) || this.MAJOR_DESTINATIONS.has(stopName)) {
-      console.log(`✅ ${stop.name} is a validated major destination city`);
-      return true;
-    }
-
-    // For destination_city category, apply additional validation
-    if (stop.category === 'destination_city') {
-      // Check population if available (you may need to add this field to your database)
-      // For now, we'll use a heuristic based on the exclusion and inclusion lists
-      const isSmallTown = this.EXCLUDED_CITIES.has(cityName);
-      
-      if (isSmallTown) {
-        console.log(`🚫 ${stop.name} appears to be a small town, not a major destination`);
-        return false;
-      }
-
-      console.log(`✅ ${stop.name} validated as destination city`);
-      return true;
-    }
-
-    return false;
+  static filterValidDestinationCities(destinationCities: TripStop[]): TripStop[] {
+    return destinationCities.filter(city => this.isValidDestinationCity(city));
   }
 
   /**
-   * Filter stops to only include valid destination cities
+   * Check if a city is a valid destination city
    */
-  static filterValidDestinationCities(stops: TripStop[]): TripStop[] {
-    return stops.filter(stop => {
-      if (stop.category !== 'destination_city') return false;
-      return this.isValidDestinationCity(stop);
-    });
+  static isValidDestinationCity(city: TripStop): boolean {
+    if (!city || !city.name) return false;
+    
+    // Must be categorized as destination city
+    if (city.category !== 'destination_city') return false;
+    
+    // Must have valid coordinates
+    if (!city.latitude || !city.longitude) return false;
+    
+    // Check if it's a recognized major destination
+    const cityName = this.normalizeCityName(city.name);
+    
+    return this.MAJOR_DESTINATION_CITIES.has(cityName) || 
+           city.is_major_stop === true ||
+           this.hasHighImportanceIndicators(city);
   }
 
   /**
-   * Get importance score for a destination city (higher = more important)
+   * Get importance score for a destination city
    */
-  static getDestinationImportanceScore(stop: TripStop): number {
-    const cityName = stop.city_name.toLowerCase().trim();
-    const stopName = stop.name.toLowerCase().trim();
+  static getDestinationImportanceScore(city: TripStop): number {
+    const cityName = this.normalizeCityName(city.name);
+    const baseScore = this.IMPORTANCE_SCORES.get(cityName) || 40;
+    
+    // Bonuses for additional indicators
+    let bonus = 0;
+    if (city.is_major_stop) bonus += 20;
+    if (city.description?.includes('historic')) bonus += 10;
+    if (city.description?.includes('Route 66')) bonus += 15;
+    
+    return Math.min(100, baseScore + bonus);
+  }
 
-    // Major metropolitan areas get highest scores
-    const majorMetros = ['chicago', 'st. louis', 'tulsa', 'oklahoma city', 'amarillo', 'albuquerque', 'flagstaff', 'los angeles', 'santa monica'];
-    if (majorMetros.some(metro => cityName.includes(metro) || stopName.includes(metro))) {
-      return 100;
-    }
+  /**
+   * Normalize city name for comparison
+   */
+  private static normalizeCityName(name: string): string {
+    return name
+      .replace(/,.*$/, '') // Remove state/country part
+      .trim()
+      .replace(/\s+/g, ' '); // Normalize whitespace
+  }
 
-    // Important Route 66 cities get high scores
-    const importantCities = ['springfield', 'joplin', 'santa fe', 'kingman', 'barstow', 'san bernardino'];
-    if (importantCities.some(city => cityName.includes(city) || stopName.includes(city))) {
-      return 80;
-    }
+  /**
+   * Check for high importance indicators
+   */
+  private static hasHighImportanceIndicators(city: TripStop): boolean {
+    if (!city.description) return false;
+    
+    const description = city.description.toLowerCase();
+    const importanceKeywords = [
+      'major city', 'state capital', 'historic route 66', 'mother road',
+      'famous', 'iconic', 'legendary', 'birthplace', 'terminus'
+    ];
+    
+    return importanceKeywords.some(keyword => description.includes(keyword));
+  }
 
-    // Regional centers get medium scores
-    const regionalCenters = ['peoria', 'bloomington', 'pontiac', 'lebanon', 'rolla', 'carthage', 'sapulpa'];
-    if (regionalCenters.some(center => cityName.includes(center) || stopName.includes(center))) {
-      return 60;
-    }
-
-    // Default score for other destination cities
-    return 40;
+  /**
+   * Sort destination cities by importance and route position
+   */
+  static sortDestinationCitiesByPriority(
+    cities: TripStop[],
+    currentStop: TripStop,
+    finalDestination: TripStop
+  ): TripStop[] {
+    return cities
+      .map(city => ({
+        city,
+        importance: this.getDestinationImportanceScore(city),
+        // Add geographic sorting logic here if needed
+      }))
+      .sort((a, b) => b.importance - a.importance)
+      .map(item => item.city);
   }
 }
