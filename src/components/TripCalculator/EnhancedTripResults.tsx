@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
 
@@ -40,6 +40,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return format(date, 'EEEE, MMMM d, yyyy');
   };
 
+  const calculateEndDate = (): Date | null => {
+    if (!tripStartDate) return null;
+    return addDays(tripStartDate, tripPlan.totalDays - 1);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -48,6 +53,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       maximumFractionDigits: 0
     }).format(amount);
   };
+
+  const endDate = calculateEndDate();
 
   return (
     <div className="space-y-6 trip-content" data-trip-content="true">
@@ -58,16 +65,29 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             <MapPin className="h-6 w-6" />
             Your Route 66 Adventure
           </CardTitle>
-          <p className="text-gray-600 mt-2">
-            {tripPlan.startCity} → {tripPlan.endCity}
-          </p>
+          <div className="text-gray-600 mt-2 space-y-1">
+            <p>{tripPlan.startCity} → {tripPlan.endCity}</p>
+            {tripStartDate && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 text-sm">
+                <span>Starts: {formatStartDate(tripStartDate)}</span>
+                {endDate && (
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <span>Ends: {formatStartDate(endDate)}</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
               <div className="text-sm font-semibold text-gray-800">{tripPlan.totalDays} Days</div>
-              <div className="text-xs text-gray-600">Starting {formatStartDate(tripStartDate)}</div>
+              <div className="text-xs text-gray-600">
+                {tripStartDate ? `Starting ${formatStartDate(tripStartDate)}` : 'Duration'}
+              </div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
