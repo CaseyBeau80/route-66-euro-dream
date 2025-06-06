@@ -13,7 +13,7 @@ export const usePDFStyles = () => {
     printStyles.textContent = `
       @media screen {
         .pdf-close-button {
-          position: fixed !important;
+          position: sticky !important;
           top: 20px !important;
           right: 120px !important;
           z-index: 10000 !important;
@@ -33,6 +33,9 @@ export const usePDFStyles = () => {
           gap: 8px !important;
           min-width: 140px !important;
           justify-content: center !important;
+          float: right !important;
+          margin-left: auto !important;
+          margin-bottom: 10px !important;
         }
         
         .pdf-close-button:hover {
@@ -47,7 +50,7 @@ export const usePDFStyles = () => {
         }
         
         .pdf-instructions {
-          position: fixed !important;
+          position: sticky !important;
           top: 80px !important;
           right: 120px !important;
           z-index: 9999 !important;
@@ -60,6 +63,9 @@ export const usePDFStyles = () => {
           backdrop-filter: blur(8px) !important;
           border: 1px solid rgba(255, 255, 255, 0.1) !important;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          float: right !important;
+          margin-left: auto !important;
+          margin-bottom: 10px !important;
         }
 
         .pdf-instructions div {
