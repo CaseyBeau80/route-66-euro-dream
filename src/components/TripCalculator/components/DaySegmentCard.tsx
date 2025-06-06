@@ -23,7 +23,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       <CardContent className="p-6">
         <div className="space-y-4">
           {/* Segment Header */}
-          <SegmentHeader segment={segment} tripStartDate={tripStartDate} />
+          <SegmentHeader segment={segment} />
           
           {/* Segment Statistics */}
           <SegmentStats segment={segment} />
