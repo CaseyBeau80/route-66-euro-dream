@@ -1,4 +1,3 @@
-
 import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
@@ -9,8 +8,13 @@ import { DistanceCalculationService } from './utils/DistanceCalculationService';
 export type { TripStop, DailySegment, TripPlan, SegmentTiming };
 
 export class Route66TripPlannerService {
-  static async planTrip(startCityName: string, endCityName: string, tripDays: number): Promise<TripPlan> {
-    console.log(`🗺️ Planning ${tripDays}-day trip from ${startCityName} to ${endCityName}`);
+  static async planTrip(
+    startCityName: string, 
+    endCityName: string, 
+    tripDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): Promise<TripPlan> {
+    console.log(`🗺️ Planning ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
 
     const allStops = await SupabaseDataService.fetchAllStops();
     console.log(`📊 Total stops available for planning: ${allStops.length}`);
@@ -136,42 +140,25 @@ export class Route66TripPlannerService {
       allStops
     );
 
-    // Calculate total distance between start and end
-    const totalDistance = this.calculateDistance(validatedStartStop, validatedEndStop);
-    
-    // Create daily segments - NEW CODE
-    const dailySegments = this.generateDailySegments(
-      validatedStartStop, 
-      validatedEndStop, 
+    // Use UnifiedTripPlanningService with the specified trip style
+    const planningResult = UnifiedTripPlanningService.createTripPlan(
+      validatedStartStop,
+      validatedEndStop,
+      allStops,
       tripDays,
-      totalDistance,
-      allStops
+      startCityName,
+      endCityName,
+      tripStyle
     );
 
-    // Build the trip plan with the generated segments
-    const tripPlan = TripPlanBuilder.buildTripPlan(
-      CityDisplayService.getCityDisplayName(validatedStartStop),
-      CityDisplayService.getCityDisplayName(validatedEndStop),
-      new Date(),
-      tripDays,
-      dailySegments,
-      totalDistance
-    );
-
-    // Calculate total driving time
-    const totalDrivingTime = dailySegments.reduce((sum, segment) => sum + segment.driveTimeHours, 0);
-    tripPlan.totalDrivingTime = parseFloat(totalDrivingTime.toFixed(1));
-
-    console.log('🎯 Final trip plan created with segments:', {
-      title: tripPlan.title,
-      actualStartCity: CityDisplayService.getCityDisplayName(validatedStartStop),
-      actualEndCity: CityDisplayService.getCityDisplayName(validatedEndStop),
-      inputStartCity: startCityName,
-      inputEndCity: endCityName,
-      segmentsCount: dailySegments.length
+    console.log('🎯 Final trip plan created:', {
+      title: planningResult.tripPlan.title,
+      tripStyle: planningResult.tripStyle,
+      warnings: planningResult.warnings?.length || 0,
+      segmentsCount: planningResult.tripPlan.segments.length
     });
     
-    return tripPlan;
+    return planningResult.tripPlan;
   }
 
   // NEW METHOD: Generate daily segments for the trip

@@ -9,6 +9,7 @@ import FormHeader from './components/FormHeader';
 import LocationSelectionForm from './components/LocationSelectionForm';
 import TripDateForm from './components/TripDateForm';
 import TripDurationForm from './components/TripDurationForm';
+import TripStyleSelector from './components/TripStyleSelector';
 import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
@@ -78,6 +79,12 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         formData={formData}
         setFormData={setFormData}
         availableEndLocations={availableEndLocations}
+      />
+
+      {/* Trip Style Selector - NEW */}
+      <TripStyleSelector 
+        formData={formData}
+        setFormData={setFormData}
       />
 
       {/* Trip Duration - moved above Trip Start Date */}
