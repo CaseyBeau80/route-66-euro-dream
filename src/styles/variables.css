@@ -39,13 +39,18 @@
   --route66-border-strong: #D1D5DB;   /* Stronger borders */
   --route66-divider: #F3F4F6;        /* Very light dividers */
   
+  /* Orange Colors - Fixed for proper gradient display */
+  --route66-orange: #EA580C;         /* True orange color */
+  --route66-orange-light: #FB923C;   /* Light orange */
+  --route66-orange-dark: #C2410C;    /* Dark orange */
+  --route66-yellow: #EAB308;         /* True yellow color */
+  --route66-yellow-light: #FDE047;   /* Light yellow */
+  
   /* Legacy color mappings for backward compatibility */
   --route66-red: var(--route66-accent-error);
   --route66-blue: var(--route66-primary);
-  --route66-orange: var(--route66-accent-warning);
   --route66-tan: #F9FAFB;
   --route66-gray: var(--route66-secondary);
-  --route66-yellow: var(--route66-accent-warning);
   --route66-cream: var(--route66-background);
   --route66-dark: var(--route66-text-primary);
   --route66-asphalt: var(--route66-secondary-dark);
@@ -55,8 +60,8 @@
   --route66-sky-blue: var(--route66-primary-light);
   --route66-neon-red: var(--route66-accent-error);
   --route66-sunshine-yellow: var(--route66-accent-warning);
-  --route66-vintage-yellow: var(--route66-accent-warning);
-  --route66-vintage-red: var(--route66-accent-error);
+  --route66-vintage-yellow: var(--route66-yellow);
+  --route66-vintage-red: var(--route66-primary);  /* Changed to blue */
   --route66-vintage-blue: var(--route66-primary);
   --route66-vintage-brown: #78716C;
   --route66-vintage-beige: #F9FAFB;

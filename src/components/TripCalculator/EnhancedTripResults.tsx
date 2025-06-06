@@ -72,7 +72,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
       {/* Trip Overview Card */}
       <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-        <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow">
+        <CardHeader className="bg-gradient-to-r from-orange-600 to-yellow-500">
           <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2 text-white">
             <MapPin className="h-6 w-6" />
             YOUR ROUTE 66 ADVENTURE
@@ -81,28 +81,28 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
-              <div className="font-route66 text-2xl text-route66-vintage-red">
+              <div className="font-route66 text-2xl text-route66-primary">
                 {Math.round(tripPlan.totalDistance)}
               </div>
               <div className="font-travel text-sm text-route66-vintage-brown">Total Miles</div>
             </div>
             
             <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
-              <div className="font-route66 text-2xl text-route66-vintage-red">
+              <div className="font-route66 text-2xl text-route66-primary">
                 {formatTime(tripPlan.totalDrivingTime)}
               </div>
               <div className="font-travel text-sm text-route66-vintage-brown">Drive Time</div>
             </div>
             
             <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
-              <div className="font-route66 text-2xl text-route66-vintage-red">
+              <div className="font-route66 text-2xl text-route66-primary">
                 {tripPlan.segments.length}
               </div>
               <div className="font-travel text-sm text-route66-vintage-brown">Days</div>
             </div>
             
             <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
-              <div className="font-route66 text-2xl text-route66-vintage-red">
+              <div className="font-route66 text-2xl text-route66-primary">
                 {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
               </div>
               <div className="font-travel text-sm text-route66-vintage-brown">Est. Total Cost</div>

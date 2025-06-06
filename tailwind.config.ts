@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -53,7 +52,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Modern Blue Route 66 Color Palette
+        // Modern Blue Route 66 Color Palette - Updated
         "route66": {
           // Primary Brand Colors - Blue Theme
           "primary": "#4F7CFF",
@@ -93,11 +92,16 @@ const config: Config = {
           "border-strong": "#D1D5DB",
           "divider": "#F3F4F6",
           
-          // Legacy compatibility colors - updated to blue theme
+          // Orange Colors - Fixed for proper gradient
+          "orange": "#EA580C",
+          "orange-light": "#FB923C",
+          "orange-dark": "#C2410C",
+          "yellow": "#EAB308",
+          "yellow-light": "#FDE047",
+          
+          // Legacy compatibility colors - updated
           "red": "#EF4444",
           "blue": "#4F7CFF",
-          "orange": "#F59E0B",
-          "yellow": "#F59E0B",
           "tan": "#F9FAFB",
           "gray": "#6B7280",
           "cream": "#ffffff",
@@ -109,8 +113,8 @@ const config: Config = {
           "sky-blue": "#6B8CFF",
           "neon-red": "#EF4444",
           "sunshine-yellow": "#F59E0B",
-          "vintage-yellow": "#F59E0B",
-          "vintage-red": "#EF4444",
+          "vintage-yellow": "#EAB308",
+          "vintage-red": "#4F7CFF",  // Changed to blue instead of red
           "vintage-blue": "#4F7CFF",
           "vintage-brown": "#78716C",
           "vintage-beige": "#F9FAFB",
