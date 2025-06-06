@@ -4,7 +4,7 @@ import { TripStop } from '../../data/SupabaseDataService';
 
 // Mock data for testing
 const mockStartStop: TripStop = {
-  id: 1,
+  id: '1',
   name: 'Chicago',
   state: 'IL',
   latitude: 41.8781,
@@ -14,7 +14,7 @@ const mockStartStop: TripStop = {
 };
 
 const mockEndStop: TripStop = {
-  id: 2,
+  id: '2',
   name: 'Los Angeles',
   state: 'CA',
   latitude: 34.0522,
@@ -25,7 +25,7 @@ const mockEndStop: TripStop = {
 
 const mockDestinationCities: TripStop[] = [
   {
-    id: 3,
+    id: '3',
     name: 'St. Louis',
     state: 'MO',
     latitude: 38.6270,
@@ -34,7 +34,7 @@ const mockDestinationCities: TripStop[] = [
     is_major_stop: true
   },
   {
-    id: 4,
+    id: '4',
     name: 'Oklahoma City',
     state: 'OK',
     latitude: 35.4676,
@@ -43,7 +43,7 @@ const mockDestinationCities: TripStop[] = [
     is_major_stop: true
   },
   {
-    id: 5,
+    id: '5',
     name: 'Albuquerque',
     state: 'NM',
     latitude: 35.0844,
