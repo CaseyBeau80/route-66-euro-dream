@@ -4,7 +4,12 @@ export const usePDFDisplay = () => {
     // Remove any existing close button to prevent stacking
     const existingButton = document.querySelector('.pdf-close-button-js');
     if (existingButton) {
-      document.body.removeChild(existingButton);
+      existingButton.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(existingButton)) {
+          document.body.removeChild(existingButton);
+        }
+      }, 300);
     }
 
     const closeButton = document.createElement("button");
@@ -12,7 +17,7 @@ export const usePDFDisplay = () => {
     closeButton.setAttribute("aria-label", "Close PDF Preview");
     closeButton.className = `
       pdf-close-button-js
-      fixed top-6 right-6 z-[10000]
+      fixed top-6 right-10 z-[10000]
       bg-red-500 hover:bg-red-600
       text-white rounded-full w-10 h-10
       flex items-center justify-center
@@ -21,10 +26,14 @@ export const usePDFDisplay = () => {
     `.replace(/\s+/g, ' ').trim();
 
     closeButton.onclick = () => {
-      onClose();
-      if (document.body.contains(closeButton)) {
-        document.body.removeChild(closeButton);
-      }
+      // Add fade-out animation before cleanup
+      closeButton.style.opacity = '0';
+      setTimeout(() => {
+        onClose();
+        if (document.body.contains(closeButton)) {
+          document.body.removeChild(closeButton);
+        }
+      }, 300);
     };
 
     document.body.appendChild(closeButton);
@@ -59,10 +68,15 @@ export const usePDFDisplay = () => {
       }
     });
 
-    // Add cleanup on print
+    // Enhanced cleanup on print
     window.onafterprint = () => {
       if (document.body.contains(closeButton)) {
-        document.body.removeChild(closeButton);
+        closeButton.style.opacity = '0';
+        setTimeout(() => {
+          if (document.body.contains(closeButton)) {
+            document.body.removeChild(closeButton);
+          }
+        }, 300);
       }
       handleClosePreview();
     };

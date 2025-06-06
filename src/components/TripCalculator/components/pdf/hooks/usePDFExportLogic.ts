@@ -38,7 +38,12 @@ export const usePDFExportLogic = ({
     // Remove any existing loading message to prevent stacking
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
-      document.body.removeChild(existingLoading);
+      existingLoading.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(existingLoading)) {
+          document.body.removeChild(existingLoading);
+        }
+      }, 300);
     }
 
     const loadingBox = document.createElement("div");
@@ -47,14 +52,14 @@ export const usePDFExportLogic = ({
     loadingBox.className = `
       pdf-loading-overlay-js
       fixed top-[72px] left-1/2 -translate-x-1/2 z-[9999]
-      bg-white/90 text-gray-800 px-6 py-3
+      bg-white/90 text-route66-orange-800 px-6 py-3
       rounded-xl shadow-lg text-sm flex items-center gap-2
       transition-opacity duration-300
     `.replace(/\s+/g, ' ').trim();
 
     loadingBox.innerHTML = `
-      <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <span>Preparing your trip PDF... Fetching weather and formatting content.</span>
+      <div class="w-4 h-4 border-2 border-route66-orange-600 border-t-transparent rounded-full animate-spin"></div>
+      <span>Preparing your Route 66 trip PDF... Fetching weather and formatting content.</span>
     `;
 
     document.body.appendChild(loadingBox);
@@ -74,7 +79,7 @@ export const usePDFExportLogic = ({
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with improved UX...');
+    console.log('🖨️ Starting enhanced PDF export with Route 66 branding...');
     setIsExporting(true);
     setWeatherLoading(true);
     
@@ -86,9 +91,9 @@ export const usePDFExportLogic = ({
       onClose();
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Step 2: Show weather loading toast
+      // Step 2: Show weather loading toast with Route 66 branding
       toast({
-        title: "Preparing PDF",
+        title: "Preparing Route 66 PDF",
         description: "Loading weather data and formatting content for enhanced readability...",
         variant: "default"
       });
@@ -103,7 +108,7 @@ export const usePDFExportLogic = ({
       
       setWeatherLoading(false);
       
-      // Step 4: Remove loading message
+      // Step 4: Remove loading message with fade-out
       removePDFLoadingMessage(loadingBox);
       
       // Step 5: Add enhanced print styles
@@ -113,7 +118,7 @@ export const usePDFExportLogic = ({
       setShowPreview(true);
       showPDFPreview(pdfContainer, handleClosePreview);
       
-      // Step 7: Add automatic timeout
+      // Step 7: Add automatic timeout with better messaging
       setTimeout(() => {
         if (showPreview) {
           console.log('⏰ Auto-closing PDF preview after 60 seconds');
@@ -121,10 +126,10 @@ export const usePDFExportLogic = ({
         }
       }, 60000);
       
-      console.log('🖨️ Enhanced PDF preview ready with programmatic controls.');
+      console.log('🖨️ Enhanced Route 66 PDF preview ready with 110% scaling.');
       
       toast({
-        title: "Enhanced PDF Preview Ready",
+        title: "Route 66 PDF Preview Ready",
         description: "Scaled to 110% for better readability. Press Ctrl+P to print, click red X to close.",
         variant: "default"
       });
@@ -135,7 +140,7 @@ export const usePDFExportLogic = ({
       handleClosePreview();
       toast({
         title: "PDF Export Failed",
-        description: "Could not generate PDF. Please try again.",
+        description: "Could not generate PDF. Weather forecast unavailable - please check online before departure.",
         variant: "destructive"
       });
     } finally {

@@ -21,15 +21,15 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
     <div className="space-y-4">
       {/* Weather Loading Notice */}
       {weatherLoading && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded">
-          <AlertCircle className="w-4 h-4 text-blue-600" />
-          <span className="text-sm text-blue-800">Loading weather data...</span>
+        <div className="flex items-center gap-2 p-3 bg-route66-orange-50 border border-route66-orange-200 rounded">
+          <AlertCircle className="w-4 h-4 text-route66-orange-600" />
+          <span className="text-sm text-route66-orange-800">Loading weather data...</span>
         </div>
       )}
 
       {/* Export Format */}
       <div className="space-y-2">
-        <Label>Export Format</Label>
+        <Label className="text-route66-orange-600 font-semibold">Export Format</Label>
         <Select 
           value={exportOptions.format} 
           onValueChange={(value: 'full' | 'summary' | 'route-only') => 
@@ -49,7 +49,7 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
 
       {/* Custom Title */}
       <div className="space-y-2">
-        <Label>Custom Title (Optional)</Label>
+        <Label className="text-route66-orange-600 font-semibold">Custom Title (Optional)</Label>
         <Input
           placeholder="My Route 66 Adventure"
           value={exportOptions.title || ''}
@@ -65,13 +65,13 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
             checked={exportOptions.includeQRCode}
             onCheckedChange={(checked) => updateExportOption('includeQRCode', !!checked)}
           />
-          <Label htmlFor="includeQRCode">QR Code to Live Version</Label>
+          <Label htmlFor="includeQRCode" className="text-route66-orange-600 font-semibold">QR Code to Live Version</Label>
         </div>
       </div>
 
       {/* Watermark */}
       <div className="space-y-2">
-        <Label>Watermark (Optional)</Label>
+        <Label className="text-route66-orange-600 font-semibold">Watermark (Optional)</Label>
         <Input
           placeholder="DRAFT, CONFIDENTIAL, etc."
           value={exportOptions.watermark || ''}
@@ -80,12 +80,13 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
       </div>
 
       {/* Instructions */}
-      <div className="p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-600">
-        <div className="font-medium mb-1">📋 Export Instructions:</div>
+      <div className="p-3 bg-route66-orange-50 border border-route66-orange-200 rounded text-sm text-route66-orange-700">
+        <div className="font-medium mb-1 text-route66-orange-600">📋 Export Instructions:</div>
         <ul className="text-xs space-y-1">
           <li>• Weather data loads automatically (may take a few seconds)</li>
-          <li>• Press <kbd className="bg-gray-200 px-1 rounded">ESC</kbd> to close PDF preview</li>
-          <li>• Use <kbd className="bg-gray-200 px-1 rounded">Ctrl+P</kbd> to print or save as PDF</li>
+          <li>• Weather forecast unavailable? Please check online before departure</li>
+          <li>• Press <kbd className="bg-route66-orange-200 px-1 rounded">ESC</kbd> to close PDF preview</li>
+          <li>• Use <kbd className="bg-route66-orange-200 px-1 rounded">Ctrl+P</kbd> to print or save as PDF</li>
           <li>• Click the red close button to exit preview mode</li>
         </ul>
       </div>

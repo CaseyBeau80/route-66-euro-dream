@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -92,10 +93,16 @@ const config: Config = {
           "border-strong": "#D1D5DB",
           "divider": "#F3F4F6",
           
-          // Orange Colors - Fixed for proper gradient
+          // Orange Colors - Enhanced for PDF Export UX
           "orange": "#EA580C",
+          "orange-50": "#fff7ed",
           "orange-light": "#FB923C",
+          "orange-200": "#fed7aa",
+          "orange-300": "#fdba74",
           "orange-dark": "#C2410C",
+          "orange-600": "#ea580c",
+          "orange-700": "#c2410c",
+          "orange-800": "#9a3412",
           "yellow": "#EAB308",
           "yellow-light": "#FDE047",
           

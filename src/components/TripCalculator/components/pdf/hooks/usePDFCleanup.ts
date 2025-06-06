@@ -3,17 +3,27 @@ import { toast } from '@/hooks/use-toast';
 
 export const usePDFCleanup = () => {
   const cleanupPDFPreview = () => {
-    console.log('🔄 Cleaning up PDF preview and restoring UI...');
+    console.log('🔄 Cleaning up Route 66 PDF preview and restoring UI...');
     
-    // Remove programmatically created elements
+    // Remove programmatically created elements with fade-out
     const closeButton = document.querySelector('.pdf-close-button-js');
     if (closeButton && document.body.contains(closeButton)) {
-      document.body.removeChild(closeButton);
+      (closeButton as HTMLElement).style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(closeButton)) {
+          document.body.removeChild(closeButton);
+        }
+      }, 300);
     }
     
     const loadingOverlay = document.querySelector('.pdf-loading-overlay-js');
     if (loadingOverlay && document.body.contains(loadingOverlay)) {
-      document.body.removeChild(loadingOverlay);
+      (loadingOverlay as HTMLElement).style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(loadingOverlay)) {
+          document.body.removeChild(loadingOverlay);
+        }
+      }, 300);
     }
     
     // Restore original content
@@ -46,8 +56,8 @@ export const usePDFCleanup = () => {
     window.onafterprint = null;
     
     toast({
-      title: "PDF Preview Closed",
-      description: "Returned to normal view",
+      title: "Route 66 PDF Preview Closed",
+      description: "Returned to normal view. Weather forecast unavailable? Check online before departure.",
       variant: "default"
     });
   };

@@ -50,9 +50,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto my-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="fixed left-1/2 top-[12%] -translate-x-1/2 z-[10000] max-w-lg w-full px-6 py-5 bg-route66-orange-50 border border-route66-orange-300 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-route66-orange-600 font-semibold">
             <Settings className="w-5 h-5" />
             PDF Export Options
           </DialogTitle>
@@ -68,7 +68,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         <Button
           onClick={handleExportPDF}
           disabled={isExporting || !isTripComplete}
-          className="w-full"
+          className="w-full bg-route66-orange-600 hover:bg-route66-orange-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
         >
           {isExporting ? 'Preparing PDF...' : 'Export PDF with Preview'}
         </Button>
