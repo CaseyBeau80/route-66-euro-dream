@@ -1,244 +1,223 @@
 
-import React, { useState } from 'react';
-import { Label } from '@/components/ui/label';
+import React from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Car, Users, Bed, Utensils, MapPin, DollarSign } from 'lucide-react';
 import { CostEstimatorData } from '../types/costEstimator';
-import { DollarSign, Car, Bed, Utensils, MapPin, Users, Home, CarIcon } from 'lucide-react';
 
 interface CostEstimatorFormProps {
   costData: CostEstimatorData;
   setCostData: (data: CostEstimatorData) => void;
 }
 
-const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({ costData, setCostData }) => {
-  const [tempGroupSize, setTempGroupSize] = useState(costData.groupSize.toString());
-  const [tempRooms, setTempRooms] = useState(costData.numberOfRooms.toString());
-
-  const handleGroupSizeBlur = () => {
-    const value = parseInt(tempGroupSize);
-    if (!isNaN(value) && value >= 1) {
-      setCostData({ ...costData, groupSize: value });
-    } else {
-      setTempGroupSize(costData.groupSize.toString());
-    }
-  };
-
-  const handleRoomsBlur = () => {
-    const value = parseInt(tempRooms);
-    if (!isNaN(value) && value >= 1) {
-      setCostData({ ...costData, numberOfRooms: value });
-    } else {
-      setTempRooms(costData.numberOfRooms.toString());
-    }
-  };
-
+const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({
+  costData,
+  setCostData
+}) => {
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg border border-green-200">
-      <div className="flex items-center gap-3 mb-4">
-        <DollarSign className="h-6 w-6 text-green-600" />
-        <h3 className="text-lg font-bold text-green-800">Cost Estimator</h3>
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <DollarSign className="h-5 w-5 text-blue-600" />
+        <h3 className="font-semibold text-blue-800">Cost Estimator</h3>
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Gas Settings */}
+        {/* Vehicle & Gas Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Car className="h-4 w-4 text-green-600" />
-            <Label className="font-semibold text-green-800">Vehicle & Gas</Label>
+          <div className="flex items-center gap-2 mb-3">
+            <Car className="h-4 w-4 text-blue-600" />
+            <h4 className="font-medium text-blue-700">Vehicle & Gas</h4>
           </div>
           
-          <div className="space-y-3">
-            <div>
-              <Label className="text-sm text-green-700">Gas Price ($/gallon)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={costData.gasPrice}
-                onChange={(e) => setCostData({ ...costData, gasPrice: parseFloat(e.target.value) || 0 })}
-                className="border-green-300 focus:border-green-500"
-                placeholder="3.50"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-sm text-green-700">Vehicle MPG</Label>
-              <Input
-                type="number"
-                min="1"
-                value={costData.mpg}
-                onChange={(e) => setCostData({ ...costData, mpg: parseInt(e.target.value) || 0 })}
-                className="border-green-300 focus:border-green-500"
-                placeholder="25"
-              />
-            </div>
+          <div>
+            <Label htmlFor="gasPrice" className="text-blue-700">Gas Price ($/gallon)</Label>
+            <Input
+              id="gasPrice"
+              type="number"
+              step="0.10"
+              value={costData.gasPrice}
+              onChange={(e) => setCostData({
+                ...costData,
+                gasPrice: parseFloat(e.target.value) || 0
+              })}
+              className="border-blue-300 focus:border-blue-500"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="mpg" className="text-blue-700">Vehicle MPG</Label>
+            <Input
+              id="mpg"
+              type="number"
+              value={costData.mpg}
+              onChange={(e) => setCostData({
+                ...costData,
+                mpg: parseInt(e.target.value) || 0
+              })}
+              className="border-blue-300 focus:border-blue-500"
+            />
           </div>
         </div>
 
-        {/* Group Settings */}
+        {/* Group Settings Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-green-600" />
-            <Label className="font-semibold text-green-800">Group Settings</Label>
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="h-4 w-4 text-blue-600" />
+            <h4 className="font-medium text-blue-700">Group Settings</h4>
           </div>
           
-          <div className="space-y-3">
-            <div>
-              <Label className="text-sm text-green-700">Group Size</Label>
-              <Input
-                type="number"
-                min="1"
-                max="8"
-                value={tempGroupSize}
-                onChange={(e) => setTempGroupSize(e.target.value)}
-                onBlur={handleGroupSizeBlur}
-                className="border-green-300 focus:border-green-500"
-                placeholder="2"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-sm text-green-700">Number of Rooms</Label>
-              <Input
-                type="number"
-                min="1"
-                max="4"
-                value={tempRooms}
-                onChange={(e) => setTempRooms(e.target.value)}
-                onBlur={handleRoomsBlur}
-                className="border-green-300 focus:border-green-500"
-                placeholder="1"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Accommodation Budget */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Bed className="h-4 w-4 text-green-600" />
-            <Label className="font-semibold text-green-800">Accommodation Budget</Label>
+          <div>
+            <Label htmlFor="groupSize" className="text-blue-700">Group Size</Label>
+            <Input
+              id="groupSize"
+              type="number"
+              min="1"
+              value={costData.groupSize}
+              onChange={(e) => setCostData({
+                ...costData,
+                groupSize: parseInt(e.target.value) || 1
+              })}
+              className="border-blue-300 focus:border-blue-500"
+            />
           </div>
           
-          <Select 
-            value={costData.motelBudget} 
-            onValueChange={(value: 'budget' | 'mid-range' | 'luxury') => 
-              setCostData({ ...costData, motelBudget: value })
-            }
-          >
-            <SelectTrigger className="border-green-300 focus:border-green-500">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="budget">Budget ($65/night)</SelectItem>
-              <SelectItem value="mid-range">Mid-Range ($120/night)</SelectItem>
-              <SelectItem value="luxury">Luxury ($250/night)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Meal Budget */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Utensils className="h-4 w-4 text-green-600" />
-            <Label className="font-semibold text-green-800">Meal Budget</Label>
+          <div>
+            <Label htmlFor="numberOfRooms" className="text-blue-700">Number of Rooms</Label>
+            <Input
+              id="numberOfRooms"
+              type="number"
+              min="1"
+              value={costData.numberOfRooms}
+              onChange={(e) => setCostData({
+                ...costData,
+                numberOfRooms: parseInt(e.target.value) || 1
+              })}
+              className="border-blue-300 focus:border-blue-500"
+            />
           </div>
-          
-          <Select 
-            value={costData.mealBudget} 
-            onValueChange={(value: 'budget' | 'mid-range' | 'fine-dining') => 
-              setCostData({ ...costData, mealBudget: value })
-            }
-          >
-            <SelectTrigger className="border-green-300 focus:border-green-500">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="budget">Budget ($45/day)</SelectItem>
-              <SelectItem value="mid-range">Mid-Range ($85/day)</SelectItem>
-              <SelectItem value="fine-dining">Fine Dining ($150/day)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
-      {/* Car Rental Section */}
-      <div className="space-y-4">
+      {/* Accommodation Budget */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Bed className="h-4 w-4 text-blue-600" />
+          <h4 className="font-medium text-blue-700">Accommodation Budget</h4>
+        </div>
+        <Select
+          value={costData.motelBudget}
+          onValueChange={(value: 'budget' | 'mid-range' | 'luxury') => setCostData({
+            ...costData,
+            motelBudget: value
+          })}
+        >
+          <SelectTrigger className="border-blue-300 focus:border-blue-500">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="budget">Budget ($60-80/night)</SelectItem>
+            <SelectItem value="mid-range">Mid-Range ($80-120/night)</SelectItem>
+            <SelectItem value="luxury">Luxury ($120+/night)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Meal Budget */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Utensils className="h-4 w-4 text-blue-600" />
+          <h4 className="font-medium text-blue-700">Meal Budget</h4>
+        </div>
+        <Select
+          value={costData.mealBudget}
+          onValueChange={(value: 'budget' | 'mid-range' | 'luxury') => setCostData({
+            ...costData,
+            mealBudget: value
+          })}
+        >
+          <SelectTrigger className="border-blue-300 focus:border-blue-500">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="budget">Budget ($25-35/day)</SelectItem>
+            <SelectItem value="mid-range">Mid-Range ($35-60/day)</SelectItem>
+            <SelectItem value="luxury">Fine Dining ($60+/day)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Car Rental Option */}
+      <div className="mt-6">
         <div className="flex items-center space-x-2">
           <Checkbox
-            id="car-rental"
+            id="includeCarRental"
             checked={costData.includeCarRental}
-            onCheckedChange={(checked) => 
-              setCostData({ ...costData, includeCarRental: !!checked })
-            }
+            onCheckedChange={(checked) => setCostData({
+              ...costData,
+              includeCarRental: checked === true
+            })}
           />
-          <div className="flex items-center gap-2">
-            <CarIcon className="h-4 w-4 text-green-600" />
-            <Label htmlFor="car-rental" className="font-semibold text-green-800">
-              Include Car Rental
-            </Label>
-          </div>
+          <Label htmlFor="includeCarRental" className="text-blue-700">Include Car Rental</Label>
         </div>
 
         {costData.includeCarRental && (
-          <div className="ml-6 space-y-3">
-            <div>
-              <Label className="text-sm text-green-700">Car Type</Label>
-              <Select 
-                value={costData.carRentalType} 
-                onValueChange={(value: 'economy' | 'compact' | 'mid-size' | 'full-size' | 'suv' | 'luxury') => 
-                  setCostData({ ...costData, carRentalType: value })
-                }
-              >
-                <SelectTrigger className="border-green-300 focus:border-green-500">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="economy">Economy ($35/day)</SelectItem>
-                  <SelectItem value="compact">Compact ($42/day)</SelectItem>
-                  <SelectItem value="mid-size">Mid-Size ($52/day)</SelectItem>
-                  <SelectItem value="full-size">Full-Size ($65/day)</SelectItem>
-                  <SelectItem value="suv">SUV ($78/day)</SelectItem>
-                  <SelectItem value="luxury">Luxury ($125/day)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="mt-3">
+            <Label className="text-blue-700">Car Type</Label>
+            <Select
+              value={costData.carRentalType}
+              onValueChange={(value: 'compact' | 'mid-size' | 'full-size' | 'suv') => setCostData({
+                ...costData,
+                carRentalType: value
+              })}
+            >
+              <SelectTrigger className="border-blue-300 focus:border-blue-500">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="compact">Compact ($35/day)</SelectItem>
+                <SelectItem value="mid-size">Mid-Size ($45/day)</SelectItem>
+                <SelectItem value="full-size">Full-Size ($55/day)</SelectItem>
+                <SelectItem value="suv">SUV ($70/day)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>
 
-      {/* Optional Costs */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-green-600" />
-          <Label className="font-semibold text-green-800">Optional Expenses</Label>
+      {/* Optional Expenses */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="h-4 w-4 text-blue-600" />
+          <h4 className="font-medium text-blue-700">Optional Expenses</h4>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="attractions"
+              id="includeAttractions"
               checked={costData.includeAttractions}
-              onCheckedChange={(checked) => 
-                setCostData({ ...costData, includeAttractions: !!checked })
-              }
+              onCheckedChange={(checked) => setCostData({
+                ...costData,
+                includeAttractions: checked === true
+              })}
             />
-            <Label htmlFor="attractions" className="text-sm text-green-700">
+            <Label htmlFor="includeAttractions" className="text-blue-700">
               Include attraction/entrance fees ($20-45/day)
             </Label>
           </div>
           
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="tolls"
+              id="includeTolls"
               checked={costData.includeTolls}
-              onCheckedChange={(checked) => 
-                setCostData({ ...costData, includeTolls: !!checked })
-              }
+              onCheckedChange={(checked) => setCostData({
+                ...costData,
+                includeTolls: checked === true
+              })}
             />
-            <Label htmlFor="tolls" className="text-sm text-green-700">
+            <Label htmlFor="includeTolls" className="text-blue-700">
               Include toll road costs ($0-15/day)
             </Label>
           </div>

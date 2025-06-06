@@ -2,36 +2,146 @@
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class RouteOrderService {
-  // Route 66 order INCLUDING Albuquerque in main route for Santa Fe branch flow
+  // CORRECTED Route 66 order - Chicago to Santa Monica (WEST TO EAST CORRECTED)
   private static readonly ROUTE_66_ORDER = [
     'Chicago',         // Starting point - Illinois
-    'Joliet',          // Illinois
-    'Pontiac',         // CRITICAL: Pontiac, IL must be included
+    'Joliet',          // Illinois  
+    'Wilmington',      // Illinois
+    'Braidwood',       // Illinois
+    'Pontiac',         // Illinois - CRITICAL: Include Pontiac
+    'Bloomington',     // Illinois
     'Springfield_IL',  // Springfield, Illinois (first Springfield)
+    'Litchfield',      // Illinois
+    'Hamel',           // Illinois
     'St. Louis',       // Missouri border
+    'Pacific',         // Missouri
+    'Sullivan',        // Missouri
+    'Bourbon',         // Missouri
     'Cuba',            // Missouri
+    'Rolla',           // Missouri
+    'Lebanon',         // Missouri
     'Springfield_MO',  // Springfield, Missouri (second Springfield)
+    'Carthage',        // Missouri
     'Joplin',          // Missouri/Kansas border
+    'Galena',          // Kansas
+    'Riverton',        // Kansas
+    'Baxter Springs',  // Kansas
+    'Commerce',        // Oklahoma
+    'Miami',           // Oklahoma
+    'Vinita',          // Oklahoma
+    'Chelsea',         // Oklahoma
+    'Claremore',       // Oklahoma
+    'Catoosa',         // Oklahoma
     'Tulsa',           // Oklahoma
-    'Oklahoma City',
+    'Sapulpa',         // Oklahoma
+    'Stroud',          // Oklahoma
+    'Chandler',        // Oklahoma
+    'Arcadia',         // Oklahoma
+    'Oklahoma City',   // Oklahoma
+    'El Reno',         // Oklahoma
+    'Hydro',           // Oklahoma
+    'Weatherford',     // Oklahoma
+    'Clinton',         // Oklahoma
+    'Canute',          // Oklahoma
     'Elk City',        // Oklahoma/Texas border
+    'Sayre',           // Oklahoma
+    'Erick',           // Oklahoma
+    'Texola',          // Oklahoma
     'Shamrock',        // Texas
-    'Amarillo',
+    'McLean',          // Texas
+    'Groom',           // Texas
+    'Conway',          // Texas
+    'Amarillo',        // Texas
+    'Wildorado',       // Texas
+    'Vega',            // Texas
+    'Adrian',          // Texas
+    'Glenrio',         // Texas/New Mexico border
+    'San Jon',         // New Mexico
     'Tucumcari',       // New Mexico - BRANCH POINT for Santa Fe
+    'Montoya',         // New Mexico
+    'Newkirk',         // New Mexico
+    'Cuervo',          // New Mexico
     'Santa Rosa',      // BRANCH CONNECTION POINT
-    'Santa Fe',        // INCLUDED in main route for flowing branch
-    'Albuquerque',     // INCLUDED in main route for flowing branch
-    'Gallup',          // New Mexico/Arizona border - continues from Albuquerque
+    'Romeroville',     // New Mexico (on Santa Fe branch)
+    'Pecos',           // New Mexico (on Santa Fe branch)
+    'Glorieta',        // New Mexico (on Santa Fe branch)
+    'Santa Fe',        // SANTA FE BRANCH - Historical capital
+    'La Bajada',       // New Mexico (rejoining route)
+    'Santo Domingo',   // New Mexico (rejoining route)
+    'Algodones',       // New Mexico (rejoining route)
+    'Bernalillo',      // New Mexico (rejoining route)
+    'Albuquerque',     // New Mexico - Major junction
+    'Los Lunas',       // New Mexico
+    'Belen',           // New Mexico
+    'Rio Puerco',      // New Mexico
+    'Laguna',          // New Mexico
+    'Budville',        // New Mexico
+    'Cubero',          // New Mexico
+    'San Fidel',       // New Mexico
+    'McCarty',         // New Mexico
+    'Grants',          // New Mexico
+    'Milan',           // New Mexico
+    'Prewitt',         // New Mexico
+    'Thoreau',         // New Mexico
+    'Continental Divide', // New Mexico
+    'Gallup',          // New Mexico/Arizona border
+    'Manuelito',       // New Mexico
+    'Lupton',          // Arizona
+    'Houck',           // Arizona
+    'Sanders',         // Arizona
+    'Chambers',        // Arizona
+    'Navajo',          // Arizona
+    'Joseph City',     // Arizona
     'Holbrook',        // Arizona
-    'Winslow',
-    'Flagstaff',
-    'Williams',
-    'Seligman',
+    'Sun Valley',      // Arizona
+    'Winslow',         // Arizona
+    'Winona',          // Arizona
+    'Flagstaff',       // Arizona
+    'Bellemont',       // Arizona
+    'Williams',        // Arizona
+    'Ash Fork',        // Arizona
+    'Crookton Road',   // Arizona
+    'Seligman',        // Arizona
+    'Peach Springs',   // Arizona
+    'Truxton',         // Arizona
+    'Valentine',       // Arizona
+    'Hackberry',       // Arizona
     'Kingman',         // Arizona/California border
+    'Oatman',          // Arizona
+    'Topock',          // Arizona
     'Needles',         // California
-    'Barstow',
-    'San Bernardino',
-    'Santa Monica'     // End point
+    'Goffs',           // California
+    'Fenner',          // California
+    'Essex',           // California
+    'Chambless',       // California
+    'Amboy',           // California
+    'Bagdad',          // California
+    'Ludlow',          // California
+    'Newberry Springs', // California
+    'Daggett',         // California
+    'Barstow',         // California
+    'Lenwood',         // California
+    'Hodge',           // California
+    'Helendale',       // California
+    'Oro Grande',      // California
+    'Victorville',     // California
+    'Cajon Pass',      // California
+    'San Bernardino',  // California
+    'Rialto',          // California
+    'Fontana',         // California
+    'Rancho Cucamonga', // California
+    'Upland',          // California
+    'Claremont',       // California
+    'La Verne',        // California
+    'San Dimas',       // California
+    'Glendora',        // California
+    'Azusa',           // California
+    'Duarte',          // California
+    'Monrovia',        // California
+    'Arcadia',         // California
+    'Pasadena',        // California
+    'Los Angeles',     // California
+    'Santa Monica'     // End point - Pacific Ocean
   ];
 
   static categorizeAndSortCities(cities: DestinationCity[]): {
@@ -39,10 +149,10 @@ export class RouteOrderService {
     santaFeCity: DestinationCity | null;
     albuquerqueCity: DestinationCity | null;
   } {
-    console.log('🔧 DEBUG: Starting city categorization - Albuquerque INCLUDED in main route for Santa Fe branch flow');
+    console.log('🔧 DEBUG: CORRECTED Route 66 ordering - Chicago to Santa Monica with proper Santa Fe branch');
     console.log('🔧 DEBUG: Input cities:', cities.map(c => `${c.name}, ${c.state}`));
     
-    // Find Santa Fe and Albuquerque for reference (both will be in main route now)
+    // Find Santa Fe and Albuquerque for reference
     const santaFeCity = cities.find(city => 
       city.name.toLowerCase().includes('santa fe') && city.state === 'NM'
     ) || null;
@@ -51,23 +161,19 @@ export class RouteOrderService {
       city.name.toLowerCase().includes('albuquerque') && city.state === 'NM'
     ) || null;
 
-    console.log('🔧 DEBUG: Santa Fe branch cities found in main route:', {
+    console.log('🔧 DEBUG: Santa Fe branch cities found:', {
       santaFe: !!santaFeCity,
       albuquerque: !!albuquerqueCity
     });
 
-    // ALL cities are now part of the main route (no exclusions)
+    // ALL cities are part of the main route
     const mainRouteCandidates = cities;
 
-    console.log('🔧 DEBUG: All cities included in main route for flowing Santa Fe branch:', 
-      mainRouteCandidates.map(c => `${c.name}, ${c.state}`)
-    );
-
-    // Sort all cities according to Route 66 order (including Santa Fe and Albuquerque)
+    // Sort all cities according to CORRECTED Route 66 order
     const orderedMainCities: DestinationCity[] = [];
     const usedCities = new Set<string>();
     
-    console.log('🛣️ MAIN ROUTE: Santa Rosa → Santa Fe → Albuquerque → Gallup FLOWING');
+    console.log('🛣️ CORRECTED ROUTE: Chicago → Joliet → Pontiac → Springfield IL → St. Louis → Springfield MO → Joplin → Tulsa → Oklahoma City → Elk City → Amarillo → Tucumcari → Santa Rosa → Santa Fe → Albuquerque → Gallup → Flagstaff → Williams → Kingman → Barstow → San Bernardino → Santa Monica');
     
     for (const expectedCityName of this.ROUTE_66_ORDER) {
       let matchingCity: DestinationCity | undefined;
@@ -103,51 +209,27 @@ export class RouteOrderService {
       if (matchingCity) {
         orderedMainCities.push(matchingCity);
         usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
-        console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for main route position: ${expectedCityName}`);
+        console.log(`✅ Found ${matchingCity.name} (${matchingCity.state}) for position: ${expectedCityName}`);
         
         // Special logging for Santa Fe branch flow
         if (expectedCityName === 'Santa Rosa') {
-          console.log('🔧 DEBUG: Santa Rosa positioned for FLOWING connection to Santa Fe');
+          console.log('🔧 DEBUG: Santa Rosa positioned for connection to Santa Fe');
         }
         if (expectedCityName === 'Santa Fe') {
-          console.log('🔧 DEBUG: Santa Fe positioned in MAIN ROUTE for flowing branch');
+          console.log('🔧 DEBUG: Santa Fe positioned in MAIN ROUTE');
         }
         if (expectedCityName === 'Albuquerque') {
-          console.log('🔧 DEBUG: Albuquerque positioned in MAIN ROUTE for flowing branch');
+          console.log('🔧 DEBUG: Albuquerque positioned in MAIN ROUTE');
         }
         if (expectedCityName === 'Gallup') {
-          console.log('🔧 DEBUG: Gallup positioned for FLOWING connection from Albuquerque');
+          console.log('🔧 DEBUG: Gallup positioned after Albuquerque');
         }
       } else {
         console.warn(`⚠️ Could not find city for expected position: ${expectedCityName}`);
       }
     }
     
-    // Final validation of Santa Fe branch flow
-    const santaRosaIndex = orderedMainCities.findIndex(city => 
-      city.name.toLowerCase().includes('santa rosa')
-    );
-    const santaFeIndex = orderedMainCities.findIndex(city => 
-      city.name.toLowerCase().includes('santa fe')
-    );
-    const albuquerqueIndex = orderedMainCities.findIndex(city => 
-      city.name.toLowerCase().includes('albuquerque')
-    );
-    const gallupIndex = orderedMainCities.findIndex(city => 
-      city.name.toLowerCase().includes('gallup')
-    );
-    
-    console.log('🔧 DEBUG: Santa Fe branch flow validation:', {
-      totalCitiesOrdered: orderedMainCities.length,
-      santaRosaIndex,
-      santaFeIndex,
-      albuquerqueIndex,
-      gallupIndex,
-      flowingBranch: santaRosaIndex !== -1 && santaFeIndex !== -1 && albuquerqueIndex !== -1 && gallupIndex !== -1 &&
-                     santaFeIndex === santaRosaIndex + 1 && albuquerqueIndex === santaFeIndex + 1 && gallupIndex === albuquerqueIndex + 1
-    });
-    
-    console.log('🎯 Final route order INCLUDES Santa Fe branch in main route for continuous flow');
+    console.log('🎯 CORRECTED Route 66 order with proper Chicago to Santa Monica flow');
     console.log('🔧 DEBUG: Final ordered cities:', 
       orderedMainCities.map((city, index) => `${index + 1}. ${city.name}, ${city.state}`)
     );

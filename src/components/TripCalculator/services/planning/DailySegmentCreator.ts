@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
@@ -31,27 +32,28 @@ export interface DailySegmentCreatorResult extends Omit<DailySegment, 'driveTime
 export class DailySegmentCreator {
   /**
    * Create balanced daily segments using enhanced drive time balancing
+   * FIXED: Use the actual trip days requested, not auto-calculated
    */
   static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
     enhancedStops: TripStop[],
-    totalDays: number,
+    requestedTotalDays: number, // Use the REQUESTED days, not calculated
     totalDistance: number
   ): DailySegment[] {
-    console.log(`📊 Creating ${totalDays} balanced daily segments for ${Math.round(totalDistance)} mile trip`);
+    console.log(`📊 Creating ${requestedTotalDays} balanced daily segments for ${Math.round(totalDistance)} mile trip (USING REQUESTED DAYS)`);
 
     // Create destinations for each day (excluding start/end)
-    const destinations = this.selectDestinations(startStop, endStop, enhancedStops, totalDays);
+    const destinations = this.selectDestinations(startStop, endStop, enhancedStops, requestedTotalDays);
     
     // Calculate drive time targets for balanced segments
-    const driveTimeTargets = this.calculateDriveTimeTargets(totalDistance, totalDays);
+    const driveTimeTargets = this.calculateDriveTimeTargets(totalDistance, requestedTotalDays);
     
     // Enhanced balance metrics
     const balanceMetrics = {
       totalDistance,
-      totalDays,
-      targetAverageDriveTime: totalDistance / totalDays / 60, // Using 60 mph for realistic average
+      totalDays: requestedTotalDays, // Use requested days
+      targetAverageDriveTime: totalDistance / requestedTotalDays / 60, // Using 60 mph for realistic average
       balanceStrategy: 'enhanced_geographic_diversity'
     };
 
@@ -69,7 +71,7 @@ export class DailySegmentCreator {
     // Post-process segments to ensure data consistency
     const validatedSegments = this.validateAndFixSegmentData(dailySegments);
 
-    console.log(`✅ Created ${validatedSegments.length} daily segments with enhanced balance metrics`);
+    console.log(`✅ Created ${validatedSegments.length} daily segments with enhanced balance metrics (REQUESTED: ${requestedTotalDays} days)`);
     return validatedSegments;
   }
 

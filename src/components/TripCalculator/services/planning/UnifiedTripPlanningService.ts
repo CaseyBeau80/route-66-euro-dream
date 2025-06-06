@@ -1,157 +1,172 @@
 
-import { TripStop } from '../data/SupabaseDataService';
-import { TripPlan } from './TripPlanBuilder';
-import { BalancedTripPlanningService } from './BalancedTripPlanningService';
-import { DestinationFocusedPlanningService, DestinationFocusedResult } from './DestinationFocusedPlanningService';
+import { TripStop } from '../../types/TripStop';
+import { TripPlan, DailySegment } from './TripPlanBuilder';
+import { DailySegmentCreator } from './DailySegmentCreator';
+import { CityDisplayService } from '../utils/CityDisplayService';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
-export type TripStyle = 'balanced' | 'destination-focused';
-
-export interface UnifiedPlanningResult {
+export interface TripPlanningResult {
   tripPlan: TripPlan;
-  tripStyle: TripStyle;
+  tripStyle: string;
   warnings?: string[];
-  routeAssessment?: {
-    isRecommended: boolean;
-    summary: string;
-    totalLongDrives: number;
-    consecutivePairs?: number;
-    optimizationScore?: number;
-  };
-  optimizationDetails?: {
-    consecutivePairs: number;
-    gapFillers: number;
-    adjustmentsMade: string[];
-    priorityScore: number;
-  };
 }
 
 export class UnifiedTripPlanningService {
   /**
-   * Create a trip plan using the specified planning style with enhanced optimization
+   * Create a comprehensive trip plan with proper day calculation
    */
   static createTripPlan(
     startStop: TripStop,
     endStop: TripStop,
     allStops: TripStop[],
-    requestedDays: number,
-    inputStartCity: string,
-    inputEndCity: string,
-    tripStyle: TripStyle = 'balanced'
-  ): UnifiedPlanningResult {
-    console.log(`🚗 Creating ${tripStyle} trip plan: ${inputStartCity} → ${inputEndCity} in ${requestedDays} days`);
+    requestedTripDays: number, // Use the REQUESTED days
+    startCityName: string,
+    endCityName: string,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): TripPlanningResult {
+    console.log(`🎯 Creating ${tripStyle} trip plan for ${requestedTripDays} days from ${startCityName} to ${endCityName}`);
 
-    if (tripStyle === 'destination-focused') {
-      try {
-        const destinationResult: DestinationFocusedResult = DestinationFocusedPlanningService.createDestinationFocusedPlan(
-          startStop,
-          endStop,
-          allStops,
-          requestedDays,
-          inputStartCity,
-          inputEndCity
-        );
+    // Calculate total distance for the trip
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude,
+      startStop.longitude,
+      endStop.latitude,
+      endStop.longitude
+    );
 
-        console.log(`✅ Optimized destination-focused plan created with ${destinationResult.warnings.length} warnings`);
+    console.log(`📏 Total trip distance: ${Math.round(totalDistance)} miles`);
 
-        // Log optimization details
-        if (destinationResult.optimizationDetails) {
-          console.log(`🔗 Optimization results: ${destinationResult.optimizationDetails.consecutivePairs} consecutive pairs, ` +
-                     `${destinationResult.optimizationDetails.gapFillers} gap fillers, ` +
-                     `priority score: ${destinationResult.optimizationDetails.priorityScore}`);
-          
-          destinationResult.optimizationDetails.adjustmentsMade.forEach(adjustment => {
-            console.log(`📝 Adjustment: ${adjustment}`);
-          });
-        }
+    // Filter stops for this route (between start and end geographically)
+    const routeStops = this.filterStopsForRoute(startStop, endStop, allStops);
+    console.log(`🛣️ Found ${routeStops.length} stops along the route`);
 
-        return {
-          tripPlan: destinationResult.tripPlan,
-          tripStyle: 'destination-focused',
-          warnings: destinationResult.warnings,
-          routeAssessment: destinationResult.routeAssessment,
-          optimizationDetails: destinationResult.optimizationDetails
-        };
-      } catch (error) {
-        console.error('❌ Optimized destination-focused planning failed, falling back to balanced:', error);
-        
-        // Fallback to balanced planning
-        const balancedPlan = BalancedTripPlanningService.createBalancedPlan(
-          startStop,
-          endStop,
-          allStops,
-          requestedDays,
-          inputStartCity,
-          inputEndCity
-        );
+    // Create daily segments using the REQUESTED trip days
+    const dailySegments = DailySegmentCreator.createBalancedDailySegments(
+      startStop,
+      endStop,
+      routeStops,
+      requestedTripDays, // Pass the exact requested days
+      totalDistance
+    );
 
-        return {
-          tripPlan: balancedPlan,
-          tripStyle: 'balanced',
-          warnings: ['Optimized destination-focused planning failed, using balanced approach instead']
-        };
+    // Calculate total driving time (more realistic calculation)
+    const totalDrivingTime = dailySegments.reduce(
+      (total, segment) => total + (segment.drivingTime || segment.driveTimeHours || 0),
+      0
+    );
+
+    console.log(`⏱️ Total driving time: ${totalDrivingTime.toFixed(1)} hours`);
+
+    // Create city display names
+    const startCityDisplay = CityDisplayService.getCityDisplayName(startStop);
+    const endCityDisplay = CityDisplayService.getCityDisplayName(endStop);
+
+    // Create the trip plan
+    const tripPlan: TripPlan = {
+      title: `${startCityDisplay} to ${endCityDisplay} Route 66 Adventure`,
+      startCity: startCityDisplay,
+      endCity: endCityDisplay,
+      totalDistance: Math.round(totalDistance),
+      totalDays: requestedTripDays, // Use REQUESTED days
+      totalDrivingTime: totalDrivingTime,
+      segments: dailySegments,
+      dailySegments: dailySegments, // Legacy compatibility
+      tripStyle,
+      warnings: this.generateTripWarnings(dailySegments, tripStyle)
+    };
+
+    console.log(`✅ Trip plan created: ${tripPlan.totalDays} days, ${tripPlan.segments.length} segments, ${Math.round(tripPlan.totalDistance)} miles`);
+
+    return {
+      tripPlan,
+      tripStyle,
+      warnings: tripPlan.warnings
+    };
+  }
+
+  /**
+   * Filter stops that are geographically between start and end points
+   */
+  private static filterStopsForRoute(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[]
+  ): TripStop[] {
+    // Calculate the direct distance between start and end
+    const directDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude,
+      startStop.longitude,
+      endStop.latitude,
+      endStop.longitude
+    );
+
+    // Filter stops that are roughly along the route
+    return allStops.filter(stop => {
+      // Skip start and end stops
+      if (stop.id === startStop.id || stop.id === endStop.id) {
+        return false;
       }
-    } else {
-      // Balanced planning
-      const balancedPlan = BalancedTripPlanningService.createBalancedPlan(
-        startStop,
-        endStop,
-        allStops,
-        requestedDays,
-        inputStartCity,
-        inputEndCity
+
+      // Calculate distances
+      const distanceFromStart = DistanceCalculationService.calculateDistance(
+        startStop.latitude,
+        startStop.longitude,
+        stop.latitude,
+        stop.longitude
       );
 
-      console.log(`✅ Balanced plan created successfully`);
+      const distanceToEnd = DistanceCalculationService.calculateDistance(
+        stop.latitude,
+        stop.longitude,
+        endStop.latitude,
+        endStop.longitude
+      );
 
-      return {
-        tripPlan: balancedPlan,
-        tripStyle: 'balanced'
-      };
-    }
+      // Check if the stop is roughly along the path (triangle inequality)
+      const routeDeviation = (distanceFromStart + distanceToEnd) - directDistance;
+      const isOnRoute = routeDeviation < (directDistance * 0.3); // Within 30% deviation
+
+      // Also ensure the stop is between start and end (not beyond either)
+      const isBetween = distanceFromStart < directDistance * 1.1 && distanceToEnd < directDistance * 1.1;
+
+      return isOnRoute && isBetween;
+    });
   }
 
   /**
-   * Get trip style display name
+   * Generate warnings based on trip characteristics
    */
-  static getTripStyleDisplayName(tripStyle: TripStyle): string {
-    switch (tripStyle) {
-      case 'balanced':
-        return 'Balanced';
-      case 'destination-focused':
-        return 'Heritage-Optimized Destination-Focused';
-      default:
-        return 'Unknown';
-    }
-  }
+  private static generateTripWarnings(
+    segments: DailySegment[],
+    tripStyle: string
+  ): string[] {
+    const warnings: string[] = [];
 
-  /**
-   * Get trip style description with optimization context
-   */
-  static getTripStyleDescription(tripStyle: TripStyle): string {
-    switch (tripStyle) {
-      case 'balanced':
-        return 'Evenly distributes driving time across all days for consistent daily travel';
-      case 'destination-focused':
-        return 'Prioritizes consecutive major Route 66 heritage cities, optimizing for authentic Mother Road experience';
-      default:
-        return 'Unknown trip style';
-    }
-  }
+    // Check for very long driving days
+    const longDays = segments.filter(segment => 
+      (segment.drivingTime || segment.driveTimeHours || 0) > 6
+    );
 
-  /**
-   * Get optimization summary for UI display
-   */
-  static getOptimizationSummary(result: UnifiedPlanningResult): string | null {
-    if (!result.optimizationDetails) return null;
-
-    const { consecutivePairs, gapFillers, priorityScore } = result.optimizationDetails;
-    
-    if (consecutivePairs > 0) {
-      return `Route optimized with ${consecutivePairs} consecutive major city connections ` +
-             `${gapFillers > 0 ? `and ${gapFillers} strategic stops` : ''} ` +
-             `(Heritage Score: ${priorityScore}/100)`;
+    if (longDays.length > 0) {
+      warnings.push(
+        `${longDays.length} day(s) have over 6 hours of driving. Consider adding rest stops or extending your trip.`
+      );
     }
-    
-    return `Route includes ${gapFillers} strategic stops for drive time management`;
+
+    // Check for very short trip
+    if (segments.length < 3) {
+      warnings.push(
+        'This is a short trip. Consider extending to fully experience Route 66 attractions.'
+      );
+    }
+
+    // Style-specific warnings
+    if (tripStyle === 'destination-focused' && segments.length > 7) {
+      warnings.push(
+        'Destination-focused trips work best with fewer days. Consider a balanced approach for longer trips.'
+      );
+    }
+
+    return warnings;
   }
 }
