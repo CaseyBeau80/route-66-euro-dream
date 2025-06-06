@@ -9,19 +9,19 @@ export class DriveTimeCategoryService {
   } {
     const constraints = DriveTimeConstraints.CONSTRAINTS;
     
-    if (driveTimeHours < constraints.optimal.min) {
+    if (driveTimeHours < constraints.optimalMinHours) {
       return {
         category: 'short',
         message: 'Short driving day - great for exploring stops!',
         color: 'text-green-600'
       };
-    } else if (driveTimeHours <= constraints.optimal.max) {
+    } else if (driveTimeHours <= constraints.optimalMaxHours) {
       return {
         category: 'optimal',
         message: 'Perfect driving time for a comfortable day',
         color: 'text-blue-600'
       };
-    } else if (driveTimeHours <= constraints.absolute.max) {
+    } else if (driveTimeHours <= constraints.absoluteMaxHours) {
       return {
         category: 'long',
         message: 'Longer driving day - plan for more rest stops',

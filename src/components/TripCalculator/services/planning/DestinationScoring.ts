@@ -65,8 +65,8 @@ export class DestinationScoring {
       }
 
       // Bonus for being in optimal range
-      if (driveTimeHours >= constraints.optimal.min && 
-          driveTimeHours <= constraints.optimal.max) {
+      if (driveTimeHours >= constraints.optimalMinHours && 
+          driveTimeHours <= constraints.optimalMaxHours) {
         score -= 1.0;
       }
 
@@ -116,8 +116,8 @@ export class DestinationScoring {
       }
 
       // Bonus for being in optimal range
-      if (driveTimeHours >= constraints.optimal.min && 
-          driveTimeHours <= constraints.optimal.max) {
+      if (driveTimeHours >= constraints.optimalMinHours && 
+          driveTimeHours <= constraints.optimalMaxHours) {
         score -= 0.5;
       }
 

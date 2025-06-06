@@ -22,19 +22,19 @@ export class DriveTimeTargetCalculator {
       let targetHours = baseTargetHours;
       
       // Adjust for optimal range if possible
-      if (baseTargetHours < constraints.optimal.min) {
-        targetHours = constraints.optimal.min;
-      } else if (baseTargetHours > constraints.optimal.max) {
-        targetHours = constraints.optimal.max;
+      if (baseTargetHours < constraints.optimalMinHours) {
+        targetHours = constraints.optimalMinHours;
+      } else if (baseTargetHours > constraints.optimalMaxHours) {
+        targetHours = constraints.optimalMaxHours;
       }
 
-      const isOptimal = targetHours >= constraints.optimal.min && 
-                       targetHours <= constraints.optimal.max;
+      const isOptimal = targetHours >= constraints.optimalMinHours && 
+                       targetHours <= constraints.optimalMaxHours;
 
       targets.push({
         targetHours,
-        minHours: Math.max(constraints.absolute.min, targetHours * 0.7),
-        maxHours: Math.min(constraints.absolute.max, targetHours * 1.3),
+        minHours: Math.max(constraints.minimumHours, targetHours * 0.7),
+        maxHours: Math.min(constraints.absoluteMaxHours, targetHours * 1.3),
         isOptimal
       });
     }

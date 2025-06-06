@@ -38,18 +38,18 @@ export class DriveTimeBalancer {
     });
 
     // Check if the average drive time is within acceptable ranges
-    const isBalanced = averageDriveTime >= constraints.optimal.min && 
-                      averageDriveTime <= constraints.optimal.max;
+    const isBalanced = averageDriveTime >= constraints.optimalMinHours && 
+                      averageDriveTime <= constraints.optimalMaxHours;
 
     const dailyTargets: DriveTimeTarget[] = [];
 
-    if (isBalanced && averageDriveTime <= constraints.optimal.max) {
+    if (isBalanced && averageDriveTime <= constraints.optimalMaxHours) {
       // If average is optimal, distribute evenly
       for (let day = 1; day <= totalDays; day++) {
         dailyTargets.push({
           targetHours: averageDriveTime,
-          minHours: Math.max(constraints.optimal.min, averageDriveTime - 1.5),
-          maxHours: Math.min(constraints.optimal.max, averageDriveTime + 1.5),
+          minHours: Math.max(constraints.optimalMinHours, averageDriveTime - 1.5),
+          maxHours: Math.min(constraints.optimalMaxHours, averageDriveTime + 1.5),
           isOptimal: true
         });
       }
@@ -97,20 +97,20 @@ export class DriveTimeBalancer {
       }
 
       // Ensure we don't exceed constraints
-      targetHours = Math.max(constraints.optimal.min, 
-                   Math.min(constraints.optimal.max, targetHours));
+      targetHours = Math.max(constraints.optimalMinHours, 
+                   Math.min(constraints.optimalMaxHours, targetHours));
 
       // Adjust for remaining time
       if (remainingDays === 1) {
         targetHours = remainingTime; // Last day gets whatever is left
       }
 
-      const isOptimal = targetHours >= constraints.optimal.min && targetHours <= constraints.optimal.max;
+      const isOptimal = targetHours >= constraints.optimalMinHours && targetHours <= constraints.optimalMaxHours;
 
       targets.push({
         targetHours,
-        minHours: Math.max(constraints.optimal.min, targetHours - 1.5),
-        maxHours: Math.min(constraints.optimal.max, targetHours + 1.5),
+        minHours: Math.max(constraints.optimalMinHours, targetHours - 1.5),
+        maxHours: Math.min(constraints.optimalMaxHours, targetHours + 1.5),
         isOptimal
       });
 
@@ -150,13 +150,13 @@ export class DriveTimeBalancer {
     let suggestedDays = requestedDays;
     let reason = '';
 
-    if (averageDriveTime > constraints.extreme.max) {
+    if (averageDriveTime > constraints.absoluteMaxHours) {
       // Too much driving per day, need more days
-      suggestedDays = Math.ceil(totalDriveTime / constraints.optimal.max);
+      suggestedDays = Math.ceil(totalDriveTime / constraints.optimalMaxHours);
       reason = `Drive time too long (${averageDriveTime.toFixed(1)}h/day average). Suggested ${suggestedDays} days for better balance.`;
-    } else if (averageDriveTime < constraints.optimal.min && requestedDays > 3) {
+    } else if (averageDriveTime < constraints.optimalMinHours && requestedDays > 3) {
       // Too little driving per day, could use fewer days
-      suggestedDays = Math.max(3, Math.ceil(totalDriveTime / constraints.optimal.min));
+      suggestedDays = Math.max(3, Math.ceil(totalDriveTime / constraints.optimalMinHours));
       reason = `Drive time very short (${averageDriveTime.toFixed(1)}h/day average). Could complete in ${suggestedDays} days.`;
     }
 
