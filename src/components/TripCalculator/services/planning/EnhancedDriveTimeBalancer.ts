@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
@@ -41,7 +40,7 @@ export class EnhancedDriveTimeBalancer {
   private static readonly AVG_SPEED_MPH = 50;
 
   /**
-   * Analyze and balance drive times for a trip
+   * Analyze and balance drive times for a trip with aggressive optimization
    */
   static analyzeAndBalance(
     startStop: TripStop,
@@ -58,32 +57,34 @@ export class EnhancedDriveTimeBalancer {
 
     console.log(`📏 Total distance: ${totalDistance.toFixed(0)} miles`);
 
+    // Calculate what the optimal days should be based on distance
+    const totalDriveTime = totalDistance / this.AVG_SPEED_MPH;
+    const theoreticalOptimalDays = Math.ceil(totalDriveTime / this.CONSTRAINTS.optimalDailyHours);
+    const minimumSafeDays = Math.ceil(totalDriveTime / this.CONSTRAINTS.maxDailyHours);
+
+    console.log(`📊 Drive time analysis: ${totalDriveTime.toFixed(1)}h total`);
+    console.log(`📊 Theoretical optimal: ${theoreticalOptimalDays} days, minimum safe: ${minimumSafeDays} days`);
+
     // Initial analysis with requested days
     let currentAnalysis = this.analyzeWithDays(startStop, endStop, allStops, requestedDays);
     const adjustmentsMade: string[] = [];
 
-    // If not balanced, try to optimize
-    if (!currentAnalysis.isBalanced) {
-      console.log(`⚠️ Initial analysis shows ${currentAnalysis.violationCount} violations`);
+    // If the analysis shows problems, calculate better days
+    if (!currentAnalysis.isBalanced || currentAnalysis.maxDriveTime > this.CONSTRAINTS.maxDailyHours) {
+      console.log(`⚠️ Initial analysis problematic: max ${currentAnalysis.maxDriveTime.toFixed(1)}h, violations: ${currentAnalysis.violationCount}`);
       
-      // Try increasing days gradually
-      const optimizedDays = this.calculateOptimalDays(totalDistance, requestedDays);
-      
-      if (optimizedDays > requestedDays) {
-        console.log(`📈 Trying ${optimizedDays} days instead of ${requestedDays}`);
-        currentAnalysis = this.analyzeWithDays(startStop, endStop, allStops, optimizedDays);
-        adjustmentsMade.push(`Increased trip duration from ${requestedDays} to ${optimizedDays} days`);
-        
-        // If still not balanced, try one more day
-        if (!currentAnalysis.isBalanced && currentAnalysis.maxDriveTime > this.CONSTRAINTS.maxDailyHours) {
-          console.log(`🔄 Still not balanced, trying ${optimizedDays + 1} days`);
-          const finalAnalysis = this.analyzeWithDays(startStop, endStop, allStops, optimizedDays + 1);
-          
-          if (finalAnalysis.isBalanced || finalAnalysis.maxDriveTime < currentAnalysis.maxDriveTime) {
-            currentAnalysis = finalAnalysis;
-            adjustmentsMade[0] = `Increased trip duration from ${requestedDays} to ${optimizedDays + 1} days`;
-          }
-        }
+      // Use the safer calculation - ensure we don't exceed max drive time
+      const betterDays = Math.max(
+        minimumSafeDays,
+        theoreticalOptimalDays,
+        requestedDays + 1 // At minimum, add one day if there are issues
+      );
+
+      if (betterDays > requestedDays) {
+        console.log(`📈 Recalculating with ${betterDays} days for better balance`);
+        currentAnalysis = this.analyzeWithDays(startStop, endStop, allStops, betterDays);
+        currentAnalysis.recommendedDays = betterDays;
+        adjustmentsMade.push(`Increased trip duration from ${requestedDays} to ${betterDays} days for safer drive times`);
       }
     }
 

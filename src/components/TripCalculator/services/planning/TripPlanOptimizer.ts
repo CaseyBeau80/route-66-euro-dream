@@ -18,10 +18,12 @@ export interface OptimizationResult {
 }
 
 export class TripPlanOptimizer {
-  private static readonly MAX_OPTIMIZATION_ATTEMPTS = 3;
+  private static readonly MAX_OPTIMIZATION_ATTEMPTS = 5;
+  private static readonly MAX_DRIVE_TIME = 8;
+  private static readonly OPTIMAL_DRIVE_TIME = 6;
 
   /**
-   * Optimize trip plan for balanced drive times
+   * Optimize trip plan for balanced drive times with aggressive balancing
    */
   static optimizeTripPlan(
     startStop: TripStop,
@@ -31,68 +33,95 @@ export class TripPlanOptimizer {
     inputStartCity: string,
     inputEndCity: string
   ): OptimizationResult {
-    console.log(`🔧 TripPlanOptimizer: Starting optimization for ${requestedDays} days`);
+    console.log(`🔧 TripPlanOptimizer: Starting aggressive optimization for ${requestedDays} days`);
 
     const optimizationSteps: string[] = [];
     let wasOptimized = false;
 
-    // Step 1: Analyze current plan with drive time balancer
-    const balanceAnalysis = EnhancedDriveTimeBalancer.analyzeAndBalance(
-      startStop,
-      endStop,
-      allStops,
-      requestedDays
-    );
-
-    // Log analysis results
-    console.log(`📊 Balance analysis: ${balanceAnalysis.isBalanced ? '✅ Balanced' : '❌ Needs optimization'}`);
-    console.log(`📈 Max drive time: ${balanceAnalysis.maxDriveTime.toFixed(1)}h, Violations: ${balanceAnalysis.violationCount}`);
-
-    // Determine optimal days
-    let finalDays = requestedDays;
-    if (!balanceAnalysis.isBalanced) {
-      finalDays = balanceAnalysis.recommendedDays;
+    // Pre-flight check for obvious issues
+    const feasibilityCheck = this.validateTripFeasibility(startStop, endStop, requestedDays);
+    
+    if (!feasibilityCheck.isFeasible) {
+      console.log(`⚠️ Trip not feasible with ${requestedDays} days, using recommended ${feasibilityCheck.recommendedDays}`);
+      requestedDays = feasibilityCheck.recommendedDays || requestedDays + 2;
       wasOptimized = true;
-      optimizationSteps.push(`Adjusted trip duration from ${requestedDays} to ${finalDays} days for better balance`);
+      optimizationSteps.push(`Increased days from original request due to excessive drive times`);
     }
 
-    // Step 2: Create optimized trip plan
+    // Iterative optimization approach
+    let currentDays = requestedDays;
+    let bestAnalysis: BalanceResult | null = null;
+    let attempts = 0;
+
+    while (attempts < this.MAX_OPTIMIZATION_ATTEMPTS) {
+      console.log(`🔄 Optimization attempt ${attempts + 1} with ${currentDays} days`);
+      
+      const analysis = EnhancedDriveTimeBalancer.analyzeAndBalance(
+        startStop,
+        endStop,
+        allStops,
+        currentDays
+      );
+
+      console.log(`📊 Analysis: max drive ${analysis.maxDriveTime.toFixed(1)}h, violations: ${analysis.violationCount}`);
+
+      // Check if this is acceptable
+      if (analysis.maxDriveTime <= this.MAX_DRIVE_TIME && analysis.violationCount === 0) {
+        console.log(`✅ Found balanced solution with ${currentDays} days`);
+        bestAnalysis = analysis;
+        break;
+      }
+
+      // If still too long, add another day
+      if (analysis.maxDriveTime > this.MAX_DRIVE_TIME) {
+        console.log(`❌ Still too long (${analysis.maxDriveTime.toFixed(1)}h max), adding another day`);
+        currentDays++;
+        wasOptimized = true;
+        attempts++;
+      } else {
+        // This is the best we can do
+        bestAnalysis = analysis;
+        break;
+      }
+    }
+
+    if (!bestAnalysis) {
+      // Fallback - use last analysis
+      bestAnalysis = EnhancedDriveTimeBalancer.analyzeAndBalance(
+        startStop,
+        endStop,
+        allStops,
+        currentDays
+      );
+    }
+
+    // Record optimization steps
+    if (currentDays !== requestedDays) {
+      optimizationSteps.push(`Adjusted trip from ${requestedDays} to ${currentDays} days for balanced drive times`);
+    }
+
+    // Create final trip plan with optimized days
     const finalPlan = UnifiedTripPlanningService.createTripPlan(
       startStop,
       endStop,
       allStops,
-      finalDays,
+      currentDays,
       inputStartCity,
       inputEndCity
     );
 
-    // Step 3: Validate final plan
-    const validation = EnhancedDriveTimeBalancer.validateTripPlan(
-      balanceAnalysis.segments
-    );
-
-    if (!validation.isValid) {
-      optimizationSteps.push(`Validation found ${validation.violations.length} issues`);
-      validation.recommendations.forEach(rec => optimizationSteps.push(`Recommendation: ${rec}`));
-    }
-
-    // Step 4: Apply any adjustments made by the balancer
-    if (balanceAnalysis.adjustmentsMade.length > 0) {
-      optimizationSteps.push(...balanceAnalysis.adjustmentsMade);
-      wasOptimized = true;
-    }
-
     // Final metrics
     const balanceMetrics = {
-      isBalanced: balanceAnalysis.isBalanced,
-      averageDriveTime: Math.round(balanceAnalysis.averageDriveTime * 10) / 10,
-      maxDriveTime: Math.round(balanceAnalysis.maxDriveTime * 10) / 10,
-      violationCount: balanceAnalysis.violationCount
+      isBalanced: bestAnalysis.maxDriveTime <= this.MAX_DRIVE_TIME,
+      averageDriveTime: Math.round(bestAnalysis.averageDriveTime * 10) / 10,
+      maxDriveTime: Math.round(bestAnalysis.maxDriveTime * 10) / 10,
+      violationCount: bestAnalysis.violationCount
     };
 
     // Update trip plan with optimization info
     const optimizedPlan: TripPlan = {
       ...finalPlan,
+      totalDays: currentDays,
       wasAdjusted: wasOptimized,
       originalDays: wasOptimized ? requestedDays : undefined,
       driveTimeBalance: {
@@ -100,11 +129,13 @@ export class TripPlanOptimizer {
         isBalanced: balanceMetrics.isBalanced,
         averageDriveTime: balanceMetrics.averageDriveTime,
         balanceQuality: this.getBalanceQuality(balanceMetrics.maxDriveTime, balanceMetrics.violationCount),
-        suggestions: validation.recommendations
+        suggestions: bestAnalysis.violationCount > 0 ? 
+          [`Consider adding stops to break up ${balanceMetrics.maxDriveTime.toFixed(1)}h drive days`] : []
       }
     };
 
     console.log(`🎯 Optimization complete: ${wasOptimized ? 'Plan optimized' : 'No optimization needed'}`);
+    console.log(`📈 Final metrics: ${currentDays} days, max ${balanceMetrics.maxDriveTime}h, avg ${balanceMetrics.averageDriveTime}h`);
     
     return {
       finalPlan: optimizedPlan,
@@ -148,10 +179,13 @@ export class TripPlanOptimizer {
     const totalDriveTime = totalDistance / 50; // 50 mph average
     const avgDailyDriveTime = totalDriveTime / requestedDays;
 
+    console.log(`🔍 Feasibility check: ${totalDistance.toFixed(0)}mi in ${requestedDays} days = ${avgDailyDriveTime.toFixed(1)}h/day avg`);
+
     // Check if trip is feasible with requested days
-    if (avgDailyDriveTime > 10) {
+    if (avgDailyDriveTime > this.MAX_DRIVE_TIME) {
       issues.push(`Average ${avgDailyDriveTime.toFixed(1)}h/day exceeds safe driving limits`);
-      const recommendedDays = Math.ceil(totalDriveTime / 8);
+      const recommendedDays = Math.ceil(totalDriveTime / this.OPTIMAL_DRIVE_TIME);
+      console.log(`❌ Not feasible: recommending ${recommendedDays} days instead`);
       return {
         isFeasible: false,
         issues,
@@ -159,10 +193,11 @@ export class TripPlanOptimizer {
       };
     }
 
-    if (avgDailyDriveTime > 8) {
+    if (avgDailyDriveTime > 7) {
       issues.push(`Average ${avgDailyDriveTime.toFixed(1)}h/day is quite long but manageable`);
     }
 
+    console.log(`✅ Feasible with ${requestedDays} days`);
     return {
       isFeasible: true,
       issues
