@@ -14,9 +14,18 @@ export class SupabaseDataService {
     // In a real implementation, this would fetch from Supabase
     // For now, return mock data that matches our unified TripStop interface
     return mockStopsData.map(stop => ({
-      ...stop,
-      // Ensure city property is set - use city_name as fallback
-      city: stop.city || stop.city_name || 'Unknown City'
+      id: stop.id || `stop-${Math.random()}`,
+      name: stop.name || 'Unknown Stop',
+      description: stop.description || `Discover ${stop.name || 'this location'} along your Route 66 journey`,
+      category: stop.category || 'attraction',
+      city_name: stop.city_name || 'Unknown',
+      city: stop.city || stop.city_name || 'Unknown City',
+      state: stop.state || 'Unknown',
+      latitude: stop.latitude || 0,
+      longitude: stop.longitude || 0,
+      image_url: stop.image_url,
+      is_major_stop: stop.is_major_stop,
+      is_official_destination: stop.is_official_destination
     }));
   }
   
@@ -60,6 +69,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "The official starting point of Route 66",
     category: "destination_city",
     city_name: "Chicago",
+    city: "Chicago", // Add city field to match the interface
     state: "IL",
     latitude: 41.8781,
     longitude: -87.6298,
@@ -72,6 +82,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Famous breakfast spot at the start of Route 66",
     category: "restaurant",
     city_name: "Chicago",
+    city: "Chicago", // Add city field to match the interface
     state: "IL",
     latitude: 41.8786,
     longitude: -87.6393
@@ -82,6 +93,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Iconic Route 66 roadside attraction",
     category: "attraction",
     city_name: "Wilmington",
+    city: "Wilmington",
     state: "IL",
     latitude: 41.3081,
     longitude: -88.1487
@@ -92,6 +104,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Historic Route 66 bridge over the Mississippi River",
     category: "historic_site",
     city_name: "St. Louis",
+    city: "St. Louis",
     state: "MO",
     latitude: 38.7584,
     longitude: -90.1780
@@ -102,6 +115,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Iconic St. Louis landmark near Route 66",
     category: "attraction",
     city_name: "St. Louis",
+    city: "St. Louis",
     state: "MO",
     latitude: 38.6247,
     longitude: -90.1848,
@@ -113,6 +127,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Famous cave system and Route 66 attraction",
     category: "attraction",
     city_name: "Stanton",
+    city: "Stanton",
     state: "MO",
     latitude: 38.2342,
     longitude: -91.1137
@@ -123,6 +138,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Beloved Route 66 roadside attraction",
     category: "attraction",
     city_name: "Catoosa",
+    city: "Catoosa",
     state: "OK",
     latitude: 36.1895,
     longitude: -95.7313
@@ -133,6 +149,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Famous art installation of half-buried Cadillacs",
     category: "attraction",
     city_name: "Amarillo",
+    city: "Amarillo",
     state: "TX",
     latitude: 35.1872,
     longitude: -101.9871,
@@ -144,6 +161,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Restaurant marking the midpoint of Route 66",
     category: "restaurant",
     city_name: "Adrian",
+    city: "Adrian",
     state: "TX",
     latitude: 35.2742,
     longitude: -102.6769
@@ -154,6 +172,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Historic Route 66 motel with vintage neon sign",
     category: "lodging",
     city_name: "Tucumcari",
+    city: "Tucumcari",
     state: "NM",
     latitude: 35.1719,
     longitude: -103.7249
@@ -164,6 +183,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "National park featuring petrified wood and the Painted Desert",
     category: "attraction",
     city_name: "Holbrook",
+    city: "Holbrook",
     state: "AZ",
     latitude: 34.9099,
     longitude: -109.8068,
@@ -175,6 +195,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Iconic motel with teepee-shaped rooms",
     category: "lodging",
     city_name: "Holbrook",
+    city: "Holbrook",
     state: "AZ",
     latitude: 34.9011,
     longitude: -110.1662
@@ -185,6 +206,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Natural wonder near Route 66",
     category: "attraction",
     city_name: "Williams",
+    city: "Williams",
     state: "AZ",
     latitude: 36.0544,
     longitude: -112.1401,
@@ -196,6 +218,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "Iconic Route 66 motel and cafe",
     category: "lodging",
     city_name: "Amboy",
+    city: "Amboy",
     state: "CA",
     latitude: 34.5583,
     longitude: -115.7458
@@ -206,6 +229,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "The official end point of Route 66",
     category: "destination_city",
     city_name: "Santa Monica",
+    city: "Santa Monica",
     state: "CA",
     latitude: 34.0089,
     longitude: -118.4973,

@@ -12,7 +12,8 @@ const mockStartStop: TripStop = {
   category: 'destination_city',
   is_major_stop: true,
   description: 'The Windy City - Starting point of historic Route 66',
-  city_name: 'Chicago'
+  city_name: 'Chicago',
+  city: 'Chicago' // Add the required city property
 };
 
 const mockEndStop: TripStop = {
@@ -24,7 +25,8 @@ const mockEndStop: TripStop = {
   category: 'destination_city',
   is_major_stop: true,
   description: 'The City of Angels - Western terminus of Route 66',
-  city_name: 'Los Angeles'
+  city_name: 'Los Angeles',
+  city: 'Los Angeles' // Add the required city property
 };
 
 const mockDestinationCities: TripStop[] = [
@@ -37,7 +39,8 @@ const mockDestinationCities: TripStop[] = [
     category: 'destination_city',
     is_major_stop: true,
     description: 'Gateway to the West with historic Route 66 landmarks',
-    city_name: 'St. Louis'
+    city_name: 'St. Louis',
+    city: 'St. Louis' // Add the required city property
   },
   {
     id: '4',
@@ -48,7 +51,8 @@ const mockDestinationCities: TripStop[] = [
     category: 'destination_city',
     is_major_stop: true,
     description: 'Capital city of Oklahoma with Route 66 heritage',
-    city_name: 'Oklahoma City'
+    city_name: 'Oklahoma City',
+    city: 'Oklahoma City' // Add the required city property
   },
   {
     id: '5',
@@ -59,7 +63,8 @@ const mockDestinationCities: TripStop[] = [
     category: 'destination_city',
     is_major_stop: true,
     description: 'High desert city with vibrant Route 66 culture',
-    city_name: 'Albuquerque'
+    city_name: 'Albuquerque',
+    city: 'Albuquerque' // Add the required city property
   }
 ];
 
