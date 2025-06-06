@@ -41,9 +41,11 @@ export default meta;
 type Story = StoryObj<typeof ItineraryCard>;
 
 const mockTripPlan: TripPlan = {
+  id: 'story-trip-1',
   title: 'Chicago to Los Angeles Route 66 Trip',
   startCity: 'Chicago, IL',
   endCity: 'Los Angeles, CA',
+  startDate: new Date('2024-06-01'),
   totalDays: 7,
   totalDistance: 2400,
   totalDrivingTime: 36,
@@ -94,6 +96,7 @@ export const ShortTrip: Story = {
   args: {
     tripPlan: {
       ...mockTripPlan,
+      id: 'story-trip-2',
       totalDays: 3,
       totalDistance: 800,
       totalDrivingTime: 12,
@@ -109,6 +112,7 @@ export const LongTrip: Story = {
   args: {
     tripPlan: {
       ...mockTripPlan,
+      id: 'story-trip-3',
       totalDays: 14,
       totalDistance: 2500,
       totalDrivingTime: 45,

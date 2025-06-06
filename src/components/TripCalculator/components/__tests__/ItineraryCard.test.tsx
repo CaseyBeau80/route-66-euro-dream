@@ -26,9 +26,11 @@ vi.mock('date-fns', () => ({
 
 describe('ItineraryCard', () => {
   const mockTripPlan: TripPlan = {
+    id: 'test-trip-1',
     title: 'Chicago to Los Angeles Route 66 Trip',
     startCity: 'Chicago, IL',
     endCity: 'Los Angeles, CA',
+    startDate: new Date('2024-06-01'),
     totalDays: 7,
     totalDistance: 2400,
     totalDrivingTime: 36,
