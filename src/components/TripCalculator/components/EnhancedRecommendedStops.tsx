@@ -85,9 +85,15 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
       combinedStops.push({
         id: enhancedStop.id,
         name: enhancedStop.name,
+        description: enhancedStop.description || `Discover ${enhancedStop.name} along your Route 66 journey`,
         category: enhancedStop.category,
         city_name: enhancedStop.city_name,
-        state: enhancedStop.state
+        state: enhancedStop.state,
+        latitude: enhancedStop.latitude || 0,
+        longitude: enhancedStop.longitude || 0,
+        image_url: enhancedStop.image_url,
+        is_major_stop: enhancedStop.is_major_stop,
+        is_official_destination: enhancedStop.is_official_destination
       });
     }
   });
