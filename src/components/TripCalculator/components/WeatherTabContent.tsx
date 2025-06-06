@@ -2,7 +2,7 @@
 import React from 'react';
 import { Cloud } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import CollapsibleWeatherCard from './weather/CollapsibleWeatherCard';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 import ErrorBoundary from './ErrorBoundary';
 
 interface WeatherTabContentProps {
@@ -56,14 +56,26 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
         console.log(`🌤️ Rendering weather segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
         return (
           <ErrorBoundary key={`weather-segment-${segment.day}-${segment.endCity}-${index}`} context={`WeatherTab-Segment-${index}`}>
-            <CollapsibleWeatherCard
-              segment={segment}
-              tripStartDate={tripStartDate}
-              cardIndex={index}
-              tripId={tripId}
-              sectionKey="weather-tab"
-              defaultExpanded={index === 0} // First card expanded by default
-            />
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
+                  Day {segment.day}
+                </span>
+                <h5 className="text-lg font-semibold text-route66-text-primary">
+                  Weather in {segment.endCity}
+                </h5>
+              </div>
+              
+              <SegmentWeatherWidget
+                segment={segment}
+                tripStartDate={tripStartDate}
+                cardIndex={index}
+                tripId={tripId}
+                sectionKey="weather-tab"
+                forceExpanded={true}
+                isCollapsible={false}
+              />
+            </div>
           </ErrorBoundary>
         );
       })}
