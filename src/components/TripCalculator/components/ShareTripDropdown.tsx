@@ -11,6 +11,7 @@ import { Share2, ChevronDown, Copy, Mail, Calendar, Download } from 'lucide-reac
 import { toast } from '@/hooks/use-toast';
 import { CalendarExportService } from '../services/CalendarExportService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
+import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 
 interface ShareTripDropdownProps {
   shareUrl?: string | null;
@@ -98,62 +99,74 @@ const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
     }
   };
 
-  const handleExportPDF = () => {
+  const handleBasicPDFExport = () => {
     window.print();
     setIsOpen(false);
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
-          aria-label="Share trip options"
-        >
-          <Share2 className="w-4 h-4" />
-          Share Trip
-          <ChevronDown className="w-4 h-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        className="w-56 bg-white border border-route66-tan shadow-lg rounded-lg z-50"
-        align="end"
-        sideOffset={5}
-      >
-        <DropdownMenuItem
-          onClick={handleCopyLink}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-        >
-          <Copy className="w-4 h-4 text-route66-vintage-brown" />
-          <span className="text-route66-vintage-brown font-medium">Copy Trip Link</span>
-        </DropdownMenuItem>
+    <div className="flex items-center gap-2">
+      {/* Enhanced PDF Export Button */}
+      {tripPlan && (
+        <EnhancedPDFExport
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          shareUrl={shareUrl || undefined}
+        />
+      )}
+
+      {/* Share Dropdown */}
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
+            aria-label="Share trip options"
+          >
+            <Share2 className="w-4 h-4" />
+            Share Trip
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
         
-        <DropdownMenuItem
-          onClick={handleShareViaEmail}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
+        <DropdownMenuContent 
+          className="w-56 bg-white border border-route66-tan shadow-lg rounded-lg z-50"
+          align="end"
+          sideOffset={5}
         >
-          <Mail className="w-4 h-4 text-route66-vintage-brown" />
-          <span className="text-route66-vintage-brown font-medium">Share via Email</span>
-        </DropdownMenuItem>
-        
-        <DropdownMenuItem
-          onClick={handleAddToCalendar}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-        >
-          <Calendar className="w-4 h-4 text-route66-vintage-brown" />
-          <span className="text-route66-vintage-brown font-medium">Add to Calendar</span>
-        </DropdownMenuItem>
-        
-        <DropdownMenuItem
-          onClick={handleExportPDF}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-        >
-          <Download className="w-4 h-4 text-route66-vintage-brown" />
-          <span className="text-route66-vintage-brown font-medium">Export PDF</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem
+            onClick={handleCopyLink}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
+          >
+            <Copy className="w-4 h-4 text-route66-vintage-brown" />
+            <span className="text-route66-vintage-brown font-medium">Copy Trip Link</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem
+            onClick={handleShareViaEmail}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
+          >
+            <Mail className="w-4 h-4 text-route66-vintage-brown" />
+            <span className="text-route66-vintage-brown font-medium">Share via Email</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem
+            onClick={handleAddToCalendar}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
+          >
+            <Calendar className="w-4 h-4 text-route66-vintage-brown" />
+            <span className="text-route66-vintage-brown font-medium">Add to Calendar</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem
+            onClick={handleBasicPDFExport}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
+          >
+            <Download className="w-4 h-4 text-route66-vintage-brown" />
+            <span className="text-route66-vintage-brown font-medium">Basic PDF Export</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 
