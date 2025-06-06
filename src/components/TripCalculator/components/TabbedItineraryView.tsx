@@ -30,7 +30,8 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
     segmentsCount: stableSegments.length,
     activeTab,
     tripStartDate: tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : 'Not set',
-    totalDays
+    totalDays,
+    segmentDetails: stableSegments.map(s => ({ day: s.day, endCity: s.endCity }))
   });
 
   if (!stableSegments || stableSegments.length === 0) {
@@ -76,7 +77,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
             </h3>
           </div>
           <p className="text-sm text-route66-text-secondary ml-9">
-            Complete overview of your {totalDays}-day Route 66 adventure
+            Complete overview of your {totalDays}-day Route 66 adventure ({stableSegments.length} segments loaded)
           </p>
         </div>
 
@@ -127,17 +128,20 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
                 </h4>
               </div>
               
-              {stableSegments.map((segment, index) => (
-                <ErrorBoundary key={`route-segment-${segment.day}-${index}`} context={`RouteTab-Segment-${index}`}>
-                  <DaySegmentCard 
-                    segment={segment}
-                    tripStartDate={tripStartDate}
-                    cardIndex={index}
-                    tripId={tripId}
-                    sectionKey="route-tab"
-                  />
-                </ErrorBoundary>
-              ))}
+              {stableSegments.map((segment, index) => {
+                console.log(`🗺️ Rendering route segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
+                return (
+                  <ErrorBoundary key={`route-segment-${segment.day}-${segment.endCity}-${index}`} context={`RouteTab-Segment-${index}`}>
+                    <DaySegmentCard 
+                      segment={segment}
+                      tripStartDate={tripStartDate}
+                      cardIndex={index}
+                      tripId={tripId}
+                      sectionKey="route-tab"
+                    />
+                  </ErrorBoundary>
+                );
+              })}
             </div>
           </div>
 
@@ -167,18 +171,21 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
                   </p>
                 </div>
               ) : (
-                stableSegments.map((segment, index) => (
-                  <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherTab-Segment-${index}`}>
-                    <CollapsibleWeatherCard
-                      segment={segment}
-                      tripStartDate={tripStartDate}
-                      cardIndex={index}
-                      tripId={tripId}
-                      sectionKey="weather-tab"
-                      defaultExpanded={index === 0} // First card expanded by default
-                    />
-                  </ErrorBoundary>
-                ))
+                stableSegments.map((segment, index) => {
+                  console.log(`🌤️ Rendering weather segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
+                  return (
+                    <ErrorBoundary key={`weather-segment-${segment.day}-${segment.endCity}-${index}`} context={`WeatherTab-Segment-${index}`}>
+                      <CollapsibleWeatherCard
+                        segment={segment}
+                        tripStartDate={tripStartDate}
+                        cardIndex={index}
+                        tripId={tripId}
+                        sectionKey="weather-tab"
+                        defaultExpanded={index === 0} // First card expanded by default
+                      />
+                    </ErrorBoundary>
+                  );
+                })
               )}
             </div>
           </div>
