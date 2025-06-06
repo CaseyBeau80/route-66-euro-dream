@@ -18,20 +18,23 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
   formatTime
 }) => {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-route66-border">
+      <CardHeader className="pb-4">
         <CardTitle className="font-travel text-route66-text-primary">
           Daily Itinerary
         </CardTitle>
+        <p className="text-sm text-route66-text-secondary">
+          Streamlined overview of your {tripPlan.totalDays}-day Route 66 adventure
+        </p>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="itinerary" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="itinerary">Route & Stops</TabsTrigger>
-            <TabsTrigger value="weather">Weather Forecast</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="itinerary" className="text-sm">Route & Stops</TabsTrigger>
+            <TabsTrigger value="weather" className="text-sm">Weather Forecast</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="itinerary" className="space-y-4 mt-6">
+          <TabsContent value="itinerary" className="space-y-4">
             {tripPlan.segments.map((segment) => (
               <DaySegmentCard
                 key={segment.day}
@@ -41,7 +44,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
             ))}
           </TabsContent>
           
-          <TabsContent value="weather" className="space-y-4 mt-6">
+          <TabsContent value="weather" className="space-y-4">
             {tripPlan.segments.map((segment) => (
               <SegmentWeatherWidget
                 key={segment.day}
