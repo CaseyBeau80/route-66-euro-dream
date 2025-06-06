@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
@@ -7,6 +8,7 @@ import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import GoogleCalendarButton from './components/GoogleCalendarButton';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
+import { useCostEstimator } from './hooks/useCostEstimator';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
@@ -20,22 +22,33 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripStartDate
 }) => {
   const { formatDistance } = useUnits();
+  const { costEstimate } = useCostEstimator(tripPlan);
 
-  console.log("🌤️ EnhancedTripResults: Rendering with weather data for trip:", {
+  console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
     segmentsCount: tripPlan.segments.length,
     hasStartDate: !!tripStartDate,
+    hasCostEstimate: !!costEstimate,
     startDate: tripStartDate?.toISOString()
   });
 
   const formatTime = (hours: number): string => {
     const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
+    const minutes = Math.round((wholeHours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
   };
 
   const formatStartDate = (date?: Date): string => {
     if (!date) return 'Not specified';
     return format(date, 'EEEE, MMMM d, yyyy');
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   // Generate trip title for sharing
@@ -76,7 +89,9 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
               <DollarSign className="h-5 w-5 text-orange-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">--</div>
+              <div className="text-sm font-semibold text-gray-800">
+                {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
+              </div>
               <div className="text-xs text-gray-600">Est. Cost</div>
             </div>
           </div>

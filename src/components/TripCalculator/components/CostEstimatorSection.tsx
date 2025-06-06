@@ -17,6 +17,12 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
   
   const { costData, setCostData, costEstimate } = useCostEstimator(tripPlan);
 
+  console.log('💰 CostEstimatorSection rendering:', {
+    hasTripPlan: !!tripPlan,
+    hasCostEstimate: !!costEstimate,
+    travelDays: formData.travelDays
+  });
+
   return (
     <div className="space-y-4">
       <Button
@@ -39,7 +45,7 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
           />
           
           {/* Cost Preview */}
-          {costEstimate && formData.travelDays > 0 && (
+          {costEstimate && tripPlan && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-semibold text-blue-800 mb-2">Estimated Trip Cost</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -56,6 +62,27 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
                   </span>
                 </div>
               </div>
+              
+              {/* Additional breakdown */}
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <div className="grid grid-cols-2 gap-2 text-xs text-blue-600">
+                  <div>Gas: ${costEstimate.breakdown.gasCost}</div>
+                  <div>Hotels: ${costEstimate.breakdown.accommodationCost}</div>
+                  <div>Meals: ${costEstimate.breakdown.mealCost}</div>
+                  {costEstimate.breakdown.attractionCost > 0 && (
+                    <div>Attractions: ${costEstimate.breakdown.attractionCost}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Message when no trip plan */}
+          {showCostEstimator && !tripPlan && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-700 text-center">
+                Plan your trip first to see cost estimates
+              </p>
             </div>
           )}
         </div>

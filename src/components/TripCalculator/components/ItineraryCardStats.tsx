@@ -23,6 +23,8 @@ const ItineraryCardStats: React.FC<ItineraryCardStatsProps> = ({ tripPlan }) => 
     }).format(amount);
   };
 
+  console.log('💰 ItineraryCardStats rendering with cost estimate:', costEstimate);
+
   return (
     <section aria-labelledby="trip-overview" className="mb-6">
       <h3 id="trip-overview" className="sr-only">Trip Overview</h3>
@@ -64,7 +66,7 @@ const ItineraryCardStats: React.FC<ItineraryCardStatsProps> = ({ tripPlan }) => 
             <span className="text-sm font-medium text-blue-800">Est. Cost</span>
           </div>
           <div className="text-2xl font-bold text-blue-900">
-            {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : 'Calculating...'}
+            {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
           </div>
         </div>
       </div>

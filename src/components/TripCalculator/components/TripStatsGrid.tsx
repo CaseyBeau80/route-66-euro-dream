@@ -29,6 +29,8 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const distanceDisplay = formatDistance(tripPlan.totalDistance);
   const [distanceValue, distanceUnit] = distanceDisplay.split(' ');
 
+  console.log('💰 TripStatsGrid rendering with cost estimate:', costEstimate);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -49,14 +51,14 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
       
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="font-route66 text-2xl text-blue-600">
-          {tripPlan.segments.length}
+          {tripPlan.segments?.length || tripPlan.totalDays}
         </div>
         <div className="font-travel text-sm text-blue-700">Days</div>
       </div>
       
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="font-route66 text-2xl text-blue-600">
-          {costEstimate ? formatCurrencyNoCents(costEstimate.breakdown.totalCost) : 'Calculating...'}
+          {costEstimate ? formatCurrencyNoCents(costEstimate.breakdown.totalCost) : '--'}
         </div>
         <div className="font-travel text-sm text-blue-700">Est. Total Cost</div>
       </div>

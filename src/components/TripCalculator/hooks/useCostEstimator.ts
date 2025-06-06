@@ -19,12 +19,33 @@ export const useCostEstimator = (tripPlan?: TripPlan) => {
   });
 
   const costEstimate = useMemo(() => {
-    if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
+    if (!tripPlan) {
+      console.log('💰 No trip plan provided to cost estimator');
       return null;
     }
 
-    console.log('💰 Calculating costs for trip plan:', tripPlan);
-    return CostCalculationService.calculateCosts(tripPlan, costData);
+    // Check for segments in either property
+    const segments = tripPlan.segments || tripPlan.dailySegments || [];
+    
+    if (segments.length === 0) {
+      console.log('💰 No segments found in trip plan');
+      return null;
+    }
+
+    console.log('💰 Calculating costs for trip plan:', {
+      segmentsCount: segments.length,
+      totalDays: tripPlan.totalDays,
+      costData
+    });
+
+    try {
+      const estimate = CostCalculationService.calculateCosts(tripPlan, costData);
+      console.log('💰 Cost calculation result:', estimate);
+      return estimate;
+    } catch (error) {
+      console.error('💰 Error calculating costs:', error);
+      return null;
+    }
   }, [tripPlan, costData]);
 
   return { costData, setCostData, costEstimate };
