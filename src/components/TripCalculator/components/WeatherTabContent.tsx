@@ -18,44 +18,12 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
   tripId,
   isVisible
 }) => {
-  if (!tripStartDate) {
-    return (
-      <div className={`
-        absolute inset-0 transition-all duration-500 ease-in-out
-        ${isVisible 
-          ? 'translate-x-0 opacity-100' 
-          : 'translate-x-full opacity-0 pointer-events-none'
-        }
-      `}>
-        <div className="space-y-4">
-          <div className="mb-3">
-            <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-              Daily Weather Forecast
-            </h4>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
-            <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h5 className="text-lg font-semibold text-gray-600 mb-2">
-              Weather Forecast
-            </h5>
-            <p className="text-gray-500 text-sm">
-              Set a trip start date to see weather forecasts for your journey
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  if (!isVisible) {
+    return null;
   }
 
-  return (
-    <div className={`
-      absolute inset-0 transition-all duration-500 ease-in-out
-      ${isVisible 
-        ? 'translate-x-0 opacity-100' 
-        : 'translate-x-full opacity-0 pointer-events-none'
-      }
-    `}>
+  if (!tripStartDate) {
+    return (
       <div className="space-y-4">
         <div className="mb-3">
           <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
@@ -63,22 +31,42 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
           </h4>
         </div>
 
-        {segments.map((segment, index) => {
-          console.log(`🌤️ Rendering weather segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
-          return (
-            <ErrorBoundary key={`weather-segment-${segment.day}-${segment.endCity}-${index}`} context={`WeatherTab-Segment-${index}`}>
-              <CollapsibleWeatherCard
-                segment={segment}
-                tripStartDate={tripStartDate}
-                cardIndex={index}
-                tripId={tripId}
-                sectionKey="weather-tab"
-                defaultExpanded={index === 0} // First card expanded by default
-              />
-            </ErrorBoundary>
-          );
-        })}
+        <div className="bg-gray-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
+          <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h5 className="text-lg font-semibold text-gray-600 mb-2">
+            Weather Forecast
+          </h5>
+          <p className="text-gray-500 text-sm">
+            Set a trip start date to see weather forecasts for your journey
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="mb-3">
+        <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
+          Daily Weather Forecast
+        </h4>
+      </div>
+
+      {segments.map((segment, index) => {
+        console.log(`🌤️ Rendering weather segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
+        return (
+          <ErrorBoundary key={`weather-segment-${segment.day}-${segment.endCity}-${index}`} context={`WeatherTab-Segment-${index}`}>
+            <CollapsibleWeatherCard
+              segment={segment}
+              tripStartDate={tripStartDate}
+              cardIndex={index}
+              tripId={tripId}
+              sectionKey="weather-tab"
+              defaultExpanded={index === 0} // First card expanded by default
+            />
+          </ErrorBoundary>
+        );
+      })}
     </div>
   );
 };

@@ -96,8 +96,8 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
           onTabChange={setActiveTab}
         />
 
-        {/* Tab Content with Sliding Animation */}
-        <div className="relative overflow-hidden">
+        {/* Tab Content */}
+        <div className="mt-4">
           <RouteTabContent
             segments={stableSegments}
             tripStartDate={tripStartDate}
