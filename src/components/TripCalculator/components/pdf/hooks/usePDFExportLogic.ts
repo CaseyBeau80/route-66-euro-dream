@@ -38,7 +38,7 @@ export const usePDFExportLogic = ({
     // Remove any existing loading message to prevent stacking
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
-      existingLoading.style.opacity = '0';
+      (existingLoading as HTMLElement).style.opacity = '0';
       setTimeout(() => {
         if (document.body.contains(existingLoading)) {
           document.body.removeChild(existingLoading);
@@ -140,7 +140,7 @@ export const usePDFExportLogic = ({
       handleClosePreview();
       toast({
         title: "PDF Export Failed",
-        description: "Could not generate PDF. Weather forecast unavailable - please check online before departure.",
+        description: "Weather forecast unavailable - please check online before departure.",
         variant: "destructive"
       });
     } finally {

@@ -4,7 +4,7 @@ export const usePDFDisplay = () => {
     // Remove any existing close button to prevent stacking
     const existingButton = document.querySelector('.pdf-close-button-js');
     if (existingButton) {
-      existingButton.style.opacity = '0';
+      (existingButton as HTMLElement).style.opacity = '0';
       setTimeout(() => {
         if (document.body.contains(existingButton)) {
           document.body.removeChild(existingButton);
