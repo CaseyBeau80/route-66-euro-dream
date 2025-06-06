@@ -34,19 +34,6 @@ const PDFRouteTabContent: React.FC<PDFRouteTabContentProps> = ({
           exportFormat={exportFormat}
         />
       ))}
-
-      {/* PDF Legend */}
-      <div className="pdf-legend mt-6 p-3 bg-gray-50 border border-gray-200 rounded">
-        <h5 className="text-xs font-semibold text-gray-700 mb-2">Icon Legend:</h5>
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-          <div>📍 Destination City</div>
-          <div>🛣️ Route Distance</div>
-          <div>⏱️ Drive Time</div>
-          <div>🏛️ Historic Sites</div>
-          <div>🍔 Dining</div>
-          <div>⛽ Gas Stations</div>
-        </div>
-      </div>
     </div>
   );
 };
