@@ -27,13 +27,19 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     lowTemp: weather.lowTemp,
     isActualForecast: weather.isActualForecast,
     daysFromNow,
-    cityName: weather.cityName
+    cityName: weather.cityName,
+    description: weather.description
   });
 
-  // If forecast is not available (beyond 5 days) or explicitly not a forecast, show historical data
-  if ((!weather.isActualForecast && daysFromNow && daysFromNow > 5) || 
-      (weather.description === 'Forecast not available' && segmentDate)) {
-    
+  // Show historical data if: 
+  // 1. It's explicitly not a forecast (isActualForecast: false), OR
+  // 2. It's beyond 5 days from now, OR  
+  // 3. The description indicates forecast is not available
+  const shouldShowHistorical = !weather.isActualForecast || 
+                              (daysFromNow && daysFromNow > 5) || 
+                              weather.description === 'Forecast not available';
+
+  if (shouldShowHistorical && segmentDate) {
     console.log(`📊 Displaying historical data for ${weather.cityName} (${daysFromNow} days ahead)`);
     
     // Get historical weather data for this date
