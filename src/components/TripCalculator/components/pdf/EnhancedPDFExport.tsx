@@ -117,7 +117,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             line-height: 1.4;
             color: #1f2937 !important;
             background: white !important;
-            font-size: 12px;
+            font-size: 12px !important;
             margin: 0 !important;
             padding: 0 !important;
           }
