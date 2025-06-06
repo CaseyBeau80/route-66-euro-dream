@@ -1,5 +1,7 @@
+
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import { DeterministicIdGenerator } from '../../utils/deterministicId';
 
 // EXPANDED filter function to include more user-relevant categories
 export const isUserRelevantStop = (stop: TripStop): boolean => {
@@ -80,12 +82,25 @@ const isValidStopData = (stop: any): stop is (string | { name: string; [key: str
          stop.name.trim() !== '';
 };
 
-// Safe conversion helper to avoid spread operator issues
-const convertStopToTripStop = (stop: string | { name: string; [key: string]: any }, index: number, fallbackCategory: string): TripStop => {
+// Safe conversion helper with DETERMINISTIC ID generation
+const convertStopToTripStop = (
+  stop: string | { name: string; [key: string]: any }, 
+  index: number, 
+  fallbackCategory: string,
+  segmentKey?: string
+): TripStop => {
   if (typeof stop === 'string') {
+    // Generate deterministic ID based on stop name, index, category, and segment
+    const deterministicId = DeterministicIdGenerator.generateId(
+      fallbackCategory, 
+      stop, 
+      index, 
+      segmentKey || 'unknown'
+    );
+    
     return convertToTripStop({
       name: stop,
-      id: `${fallbackCategory}-${index}-${Math.random()}`,
+      id: deterministicId,
       description: `Discover ${stop} along your Route 66 journey`,
       category: 'attraction',
       city_name: 'Unknown',
@@ -94,10 +109,18 @@ const convertStopToTripStop = (stop: string | { name: string; [key: string]: any
       longitude: 0
     });
   } else {
+    // Generate deterministic ID for object stops
+    const deterministicId = stop.id || DeterministicIdGenerator.generateId(
+      fallbackCategory,
+      stop.name,
+      index,
+      segmentKey || 'unknown'
+    );
+    
     // Manually copy properties to avoid TypeScript spread issues
     const baseStop = {
       name: stop.name,
-      id: stop.id || `${fallbackCategory}-${index}-${Math.random()}`,
+      id: deterministicId,
       description: stop.description || `Discover ${stop.name} along your Route 66 journey`,
       category: stop.category || 'attraction',
       city_name: stop.city_name || 'Unknown',
@@ -112,15 +135,31 @@ const convertStopToTripStop = (stop: string | { name: string; [key: string]: any
   }
 };
 
+// Create stable segment key for memoization (moved from EnhancedRecommendedStops)
+export const createStableSegmentKey = (segment: DailySegment): string => {
+  // Use only stable, primitive values for the key
+  const stableProps = {
+    day: segment.day || 0,
+    startCity: segment.startCity || '',
+    endCity: segment.endCity || '',
+    recommendedStopsCount: Array.isArray(segment.recommendedStops) ? segment.recommendedStops.length : 0,
+    attractionsCount: Array.isArray(segment.attractions) ? segment.attractions.length : 0
+  };
+  
+  return `seg-${stableProps.day}-${stableProps.startCity}-${stableProps.endCity}-r${stableProps.recommendedStopsCount}-a${stableProps.attractionsCount}`;
+};
+
 // Get validated stops from multiple possible sources with enhanced validation
 export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   const stops: TripStop[] = [];
+  const segmentKey = createStableSegmentKey(segment);
   
   console.log(`🔍 ENHANCED VALIDATION: Day ${segment.day}:`, {
     recommendedStops: segment.recommendedStops?.length || 0,
     attractions: segment.attractions?.length || 0,
     startCity: segment.startCity,
-    endCity: segment.endCity
+    endCity: segment.endCity,
+    segmentKey
   });
   
   // Primary source: recommendedStops array
@@ -138,7 +177,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended'));
+      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey));
     
     console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`);
     stops.push(...validRecommendedStops);
@@ -160,7 +199,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction'));
+      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey));
     
     console.log(`✅ Valid attraction stops: ${attractionStops.length}`);
     stops.push(...attractionStops);
@@ -170,7 +209,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   if (stops.length === 0) {
     console.log(`🚨 NO STOPS FOUND - Creating fallback stops for ${segment.startCity} → ${segment.endCity}`);
     
-    const fallbackStops = createFallbackStops(segment);
+    const fallbackStops = createFallbackStops(segment, segmentKey);
     console.log(`🔄 Created ${fallbackStops.length} fallback stops:`, fallbackStops.map(s => s.name));
     stops.push(...fallbackStops);
   }
@@ -186,11 +225,10 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
 };
 
 // Create fallback stops for segments with no data
-const createFallbackStops = (segment: DailySegment): TripStop[] => {
-  const route66Attractions: Record<string, TripStop[]> = {
+const createFallbackStops = (segment: DailySegment, segmentKey: string): TripStop[] => {
+  const route66Attractions: Record<string, Omit<TripStop, 'id'>[]> = {
     'joplin': [
       {
-        id: 'fallback-joplin-1',
         name: 'Spook Light',
         description: 'A mysterious light phenomenon that has puzzled visitors for decades along Route 66',
         category: 'attraction',
@@ -200,7 +238,6 @@ const createFallbackStops = (segment: DailySegment): TripStop[] => {
         longitude: -94.8591
       },
       {
-        id: 'fallback-joplin-2',
         name: 'Schifferdecker Park',
         description: 'A beautiful park perfect for a Route 66 road trip break',
         category: 'attraction',
@@ -212,7 +249,6 @@ const createFallbackStops = (segment: DailySegment): TripStop[] => {
     ],
     'oklahoma': [
       {
-        id: 'fallback-ok-1',
         name: 'Blue Whale of Catoosa',
         description: 'Iconic Route 66 roadside attraction - a giant blue whale sculpture',
         category: 'attraction',
@@ -222,7 +258,6 @@ const createFallbackStops = (segment: DailySegment): TripStop[] => {
         longitude: -95.7317
       },
       {
-        id: 'fallback-ok-2',
         name: 'Totem Pole Park',
         description: 'Fascinating collection of hand-carved totem poles along Route 66',
         category: 'attraction',
@@ -232,7 +267,6 @@ const createFallbackStops = (segment: DailySegment): TripStop[] => {
         longitude: -95.5122
       },
       {
-        id: 'fallback-ok-3',
         name: 'Golden Driller',
         description: 'Towering statue celebrating Oklahoma\'s oil heritage',
         category: 'attraction',
@@ -251,8 +285,17 @@ const createFallbackStops = (segment: DailySegment): TripStop[] => {
   
   // Check for regional matches
   if (startKey.includes('joplin') || endKey.includes('oklahoma')) {
-    relevantStops.push(...(route66Attractions.joplin || []));
-    relevantStops.push(...(route66Attractions.oklahoma || []));
+    const joplinStops = route66Attractions.joplin?.map((stop, index) => ({
+      ...stop,
+      id: DeterministicIdGenerator.generateId('fallback-joplin', stop.name, index, segmentKey)
+    })) || [];
+    
+    const oklahomaStops = route66Attractions.oklahoma?.map((stop, index) => ({
+      ...stop,
+      id: DeterministicIdGenerator.generateId('fallback-oklahoma', stop.name, index, segmentKey)
+    })) || [];
+    
+    relevantStops.push(...joplinStops, ...oklahomaStops);
   }
   
   return relevantStops.slice(0, 3); // Limit to 3 fallback stops

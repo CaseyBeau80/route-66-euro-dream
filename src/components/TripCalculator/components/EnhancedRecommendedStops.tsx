@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { getValidatedStops, isUserRelevantStop } from './utils/stopValidation';
+import { getValidatedStops, isUserRelevantStop, createStableSegmentKey } from './utils/stopValidation';
 import { EnhancedStopSelectionService } from '../services/planning/EnhancedStopSelectionService';
 import { SupabaseDataService } from '../services/data/SupabaseDataService';
 import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
@@ -17,11 +17,6 @@ interface EnhancedRecommendedStopsProps {
   maxStops?: number;
 }
 
-// Create a stable segment key for memoization
-const createSegmentKey = (segment: DailySegment): string => {
-  return `${segment.day}-${segment.startCity}-${segment.endCity}-${segment.recommendedStops?.length || 0}-${segment.attractions?.length || 0}`;
-};
-
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
   maxStops = 5
@@ -30,8 +25,8 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Create stable segment key for memoization
-  const segmentKey = useMemo(() => createSegmentKey(segment), [
+  // Create stable segment key for memoization - moved to utility
+  const segmentKey = useMemo(() => createStableSegmentKey(segment), [
     segment.day,
     segment.startCity,
     segment.endCity,
@@ -39,13 +34,13 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     segment.attractions?.length
   ]);
   
-  // Validate segment data
+  // Validate segment data with stable dependencies
   const isValidSegment = useMemo(() => 
     DataValidationService.validateDailySegment(segment, 'EnhancedRecommendedStops.segment'),
     [segmentKey] // Use stable key instead of segment object
   );
   
-  // Memoize validated stops to prevent re-renders
+  // Memoize validated stops to prevent re-renders with stable dependencies
   const { validStops, userRelevantStops } = useMemo(() => {
     if (!isValidSegment) {
       return { validStops: [], userRelevantStops: [] };
@@ -62,13 +57,18 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     }
   }, [isValidSegment, segmentKey]); // Use stable key
   
-  // Memoize the enhanced selection trigger with stable dependencies
+  // Stable values for enhanced selection trigger
+  const startCity = segment.startCity || '';
+  const endCity = segment.endCity || '';
+  const userRelevantStopsCount = userRelevantStops.length;
+  
+  // Memoize the enhanced selection trigger with STABLE dependencies
   const shouldTriggerEnhanced = useMemo(() => 
-    userRelevantStops.length < 2 && !!segment.startCity && !!segment.endCity,
-    [userRelevantStops.length, segment.startCity, segment.endCity]
+    userRelevantStopsCount < 2 && startCity !== '' && endCity !== '',
+    [userRelevantStopsCount, startCity, endCity] // All primitive, stable values
   );
   
-  // Enhanced selection with comprehensive error handling
+  // Enhanced selection with stable useCallback dependencies
   const tryEnhancedSelection = useCallback(async () => {
     if (!shouldTriggerEnhanced) return;
     
@@ -76,14 +76,14 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     setError(null);
     
     try {
-      console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${segment.startCity} → ${segment.endCity}`);
+      console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${startCity} → ${endCity}`);
       
       // Create mock start/end stops for the enhanced selection
       const startStop: TripStop = convertToTripStop({
-        id: 'temp-start',
-        name: segment.startCity,
+        id: `temp-start-${segmentKey}`, // Use stable segment key
+        name: startCity,
         description: 'Start location',
-        city_name: segment.startCity,
+        city_name: startCity,
         state: 'Unknown',
         latitude: 0,
         longitude: 0,
@@ -91,10 +91,10 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
       });
       
       const endStop: TripStop = convertToTripStop({
-        id: 'temp-end',
-        name: segment.endCity,
+        id: `temp-end-${segmentKey}`, // Use stable segment key
+        name: endCity,
         description: 'End location',
-        city_name: segment.endCity,
+        city_name: endCity,
         state: 'Unknown',
         latitude: 0,
         longitude: 0,
@@ -134,13 +134,13 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [shouldTriggerEnhanced, segment.startCity, segment.endCity, maxStops]);
+  }, [shouldTriggerEnhanced, startCity, endCity, maxStops, segmentKey]); // All stable dependencies
   
   useEffect(() => {
     tryEnhancedSelection();
   }, [tryEnhancedSelection]);
   
-  // Combine and deduplicate stops with error handling
+  // Combine and deduplicate stops with stable dependencies
   const finalStops = useMemo(() => {
     const combinedStops = [...userRelevantStops];
     
@@ -164,7 +164,8 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
 
   console.log('🎯 EnhancedRecommendedStops final result:', {
     segmentDay: segment.day,
-    route: `${segment.startCity} → ${segment.endCity}`,
+    route: `${startCity} → ${endCity}`,
+    segmentKey,
     originalStops: userRelevantStops.length,
     enhancedStops: enhancedStops.length,
     finalStops: finalStops.length,
