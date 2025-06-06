@@ -1,57 +1,37 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import DrivingTimeMessage from './DrivingTimeMessage';
 import SegmentHeader from './SegmentHeader';
 import SegmentStats from './SegmentStats';
-import SegmentActionButtons from './SegmentActionButtons';
-import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
+import SegmentRouteProgression from './SegmentRouteProgression';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
-  showAdjustmentWarning?: boolean;
   tripStartDate?: Date;
 }
 
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ 
   segment, 
-  showAdjustmentWarning = false, 
   tripStartDate 
 }) => {
-  const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-
-  console.log('📅 Rendering Enhanced DaySegmentCard with Weather Widget:', segment);
-  console.log('📅 Trip start date passed to DaySegmentCard:', tripStartDate);
+  console.log('🗓️ DaySegmentCard render:', segment.title);
 
   return (
-    <Card className="border-2 border-route66-vintage-brown bg-route66-vintage-beige">
-      <CardHeader className="pb-3">
-        <SegmentHeader segment={segment} showAdjustmentWarning={showAdjustmentWarning} />
-        <SegmentStats segment={segment} />
-      </CardHeader>
-      
-      <CardContent>
+    <Card className="border border-route66-border shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
         <div className="space-y-4">
-          {/* Dynamic Driving Time Message */}
-          <DrivingTimeMessage driveTimeHours={segment.driveTimeHours} />
-
-          {/* Action Buttons and Expandable Content - Weather instead of Map */}
-          <SegmentActionButtons
-            segment={segment}
-            isMapExpanded={isWeatherExpanded}
-            setIsMapExpanded={setIsWeatherExpanded}
-            isDetailsExpanded={isDetailsExpanded}
-            setIsDetailsExpanded={setIsDetailsExpanded}
-            tripStartDate={tripStartDate}
-          />
-
+          {/* Segment Header */}
+          <SegmentHeader segment={segment} tripStartDate={tripStartDate} />
+          
+          {/* Segment Statistics */}
+          <SegmentStats segment={segment} />
+          
           {/* Route Progression */}
           <SegmentRouteProgression segment={segment} />
-
-          {/* Recommended Stops Summary */}
+          
+          {/* Recommended Stops */}
           <SegmentRecommendedStops segment={segment} />
         </div>
       </CardContent>
