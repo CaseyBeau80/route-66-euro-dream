@@ -110,16 +110,15 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         {isCalculating ? 'Planning Your Route 66 Trip...' : 'Plan My Route 66 Trip'}
       </Button>
 
-      {/* Share Trip Button - only show if form is valid */}
+      {/* Share Trip Button - centered and only show if form is valid */}
       {isFormValid && (
-        <div className="mt-4">
+        <div className="flex justify-center mt-4">
           <ShareTripButton
             tripPlan={tripPlan}
             shareUrl={shareUrl}
             tripStartDate={formData.tripStartDate}
             variant="secondary"
             size="default"
-            className="w-full"
           />
         </div>
       )}

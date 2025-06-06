@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useUnits } from '@/contexts/UnitContext';
 
 interface WeatherStatsProps {
   humidity: number;
@@ -7,6 +8,8 @@ interface WeatherStatsProps {
 }
 
 const WeatherStats: React.FC<WeatherStatsProps> = ({ humidity, windSpeed }) => {
+  const { formatSpeed } = useUnits();
+
   return (
     <div className="grid grid-cols-2 gap-2 text-xs">
       <div className="flex justify-between bg-white rounded p-1">
@@ -19,7 +22,7 @@ const WeatherStats: React.FC<WeatherStatsProps> = ({ humidity, windSpeed }) => {
         <span className="text-gray-600">
           {windSpeed >= 15 ? 'Wind:' : 'Avg Wind:'}
         </span>
-        <span className="font-semibold">{windSpeed} mph</span>
+        <span className="font-semibold">{formatSpeed(windSpeed)}</span>
       </div>
     </div>
   );
