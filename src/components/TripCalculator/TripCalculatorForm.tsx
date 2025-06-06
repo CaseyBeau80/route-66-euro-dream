@@ -14,7 +14,6 @@ import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
 import UnitSelector from './components/UnitSelector';
-import ShareTripButton from './components/ShareTripButton';
 import { useFormValidation } from './hooks/useFormValidation';
 
 interface TripCalculatorFormProps {
@@ -122,19 +121,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <MapPin className="h-5 w-5" />
         {isCalculating ? 'Planning Your Route 66 Trip...' : 'Plan My Route 66 Trip'}
       </Button>
-
-      {/* Share Trip Button - only show if there's actually a trip plan */}
-      {tripPlan && (
-        <div className="flex justify-center mt-4">
-          <ShareTripButton
-            tripPlan={tripPlan}
-            shareUrl={shareUrl}
-            tripStartDate={formData.tripStartDate}
-            variant="secondary"
-            size="default"
-          />
-        </div>
-      )}
 
       {/* Smart Planning Info */}
       <SmartPlanningInfo />

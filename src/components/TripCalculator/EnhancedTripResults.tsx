@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
+import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
@@ -54,6 +56,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   };
 
   const endDate = calculateEndDate();
+  const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
   return (
     <div className="space-y-6 trip-content" data-trip-content="true">
@@ -108,7 +111,17 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             </div>
           </div>
 
-          {/* Removed the old Share and Export Actions section completely */}
+          {/* Share and Export Actions */}
+          <div className="flex justify-center mt-4">
+            <ShareAndExportDropdown
+              shareUrl={shareUrl}
+              tripTitle={tripTitle}
+              tripPlan={tripPlan}
+              tripStartDate={tripStartDate}
+              variant="primary"
+              size="default"
+            />
+          </div>
         </CardContent>
       </Card>
 
