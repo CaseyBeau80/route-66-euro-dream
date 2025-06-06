@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { TripPlan, DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFItineraryView from './PDFItineraryView';
@@ -106,7 +105,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           weatherLoadingTimeout={weatherLoadingTimeout}
         />
 
-        {/* Single Legend Section - Remove any duplicate legends */}
+        {/* Main Legend Section - Keep only this one */}
         <div className="mb-8 p-4 bg-gray-50 rounded-lg border">
           <h3 className="text-lg font-bold text-gray-800 mb-4">Legend & Icons:</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">

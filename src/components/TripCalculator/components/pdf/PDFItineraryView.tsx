@@ -67,37 +67,6 @@ const PDFItineraryView: React.FC<PDFItineraryViewProps> = ({
             exportFormat={exportFormat}
           />
         </div>
-
-        {/* PDF Legend */}
-        <div className="pdf-legend mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg no-page-break w-full">
-          <h5 className="text-sm font-semibold text-gray-700 mb-3">Legend & Icons:</h5>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600 w-full">
-            <div className="flex items-center gap-2">
-              <span>📍</span>
-              <span>Destination City</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>🛣️</span>
-              <span>Route Distance</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>⏱️</span>
-              <span>Drive Time</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>🏛️</span>
-              <span>Historic Sites</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>🌤️</span>
-              <span>Weather Info</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>📅</span>
-              <span>Date</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
