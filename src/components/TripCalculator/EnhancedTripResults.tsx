@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
+import { MapPin, Clock, Calendar, DollarSign, Cloud } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
 import ShareTripButton from './components/ShareTripButton';
+import SegmentWeatherWidget from './components/SegmentWeatherWidget';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 
@@ -21,6 +22,12 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
+  console.log("🌤️ EnhancedTripResults: Rendering with weather data for trip:", {
+    segmentsCount: tripPlan.segments.length,
+    hasStartDate: !!tripStartDate,
+    startDate: tripStartDate?.toISOString()
+  });
+
   const formatTime = (hours: number): string => {
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
@@ -31,6 +38,9 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     if (!date) return 'Not specified';
     return format(date, 'EEEE, MMMM d, yyyy');
   };
+
+  // Get the last segment for destination weather
+  const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
   return (
     <div className="space-y-6">
@@ -57,7 +67,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
               <Calendar className="h-5 w-5 text-route66-primary mx-auto mb-1" />
               <div className="text-sm font-semibold text-route66-text-primary">{tripPlan.totalDays} Days</div>
@@ -82,10 +92,30 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <div className="text-xs text-route66-text-secondary">Est. Cost</div>
             </div>
           </div>
+
+          {/* Weather Information Section - Prominently displayed */}
+          {tripStartDate && lastSegment && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Cloud className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-800">Destination Weather</h3>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
+                <SegmentWeatherWidget 
+                  segment={lastSegment}
+                  tripStartDate={tripStartDate}
+                  cardIndex={0}
+                  tripId="enhanced-results"
+                  sectionKey="destination-weather"
+                  forceExpanded={true}
+                />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Daily Itinerary */}
+      {/* Daily Itinerary - NOW WITH PROPER TRIP START DATE */}
       <TripItinerary 
         tripPlan={tripPlan} 
         tripStartDate={tripStartDate}

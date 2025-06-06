@@ -40,7 +40,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     error,
     hasWeather: !!weather,
     retryCount,
-    weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular'
+    weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular',
+    segmentDate: segmentDate?.toISOString()
+  });
+
+  // Weather Card Render Check debugging
+  console.log("WeatherCard Render Check:", segmentEndCity, weather, {
+    hasApiKey,
+    loading,
+    error,
+    segmentDate: segmentDate?.toISOString()
   });
 
   // No API key - show input prominently
@@ -50,7 +59,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="mb-3 text-sm text-yellow-800">
           <p className="font-semibold">Weather API Key Required</p>
-          <p>Enter your OpenWeatherMap API key to see weather information</p>
+          <p>Enter your OpenWeatherMap API key to see weather information for {segmentEndCity}</p>
         </div>
         <EnhancedWeatherApiKeyInput 
           onApiKeySet={onApiKeySet}
@@ -103,11 +112,14 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segmentEndCity} />;
   }
 
-  // Default message
+  // Default message with debugging
   console.log(`📅 No date set for ${segmentEndCity}, showing default message`);
   return (
     <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded">
       Set a trip start date to see weather information for {segmentEndCity}
+      <div className="text-xs mt-2 text-gray-400">
+        Debug: hasApiKey={hasApiKey.toString()}, loading={loading.toString()}, error={error || 'none'}
+      </div>
     </div>
   );
 };

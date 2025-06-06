@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -9,6 +10,7 @@ interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
   tripPlan?: TripPlan;
   shareUrl?: string | null;
+  tripStartDate?: Date;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -96,13 +98,24 @@ const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calcula
   );
 };
 
-const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ calculation, tripPlan, shareUrl }) => {
-  console.log('🎯 TripCalculatorResults render - tripPlan:', tripPlan, 'calculation:', calculation, 'shareUrl:', shareUrl);
+const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ 
+  calculation, 
+  tripPlan, 
+  shareUrl, 
+  tripStartDate 
+}) => {
+  console.log('🎯 TripCalculatorResults render - tripPlan:', !!tripPlan, 'calculation:', !!calculation, 'shareUrl:', shareUrl, 'tripStartDate:', tripStartDate?.toISOString());
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results');
-    return <EnhancedTripResults tripPlan={tripPlan} shareUrl={shareUrl} />;
+    console.log('✨ Rendering Enhanced Trip Results with tripStartDate:', tripStartDate?.toISOString());
+    return (
+      <EnhancedTripResults 
+        tripPlan={tripPlan} 
+        shareUrl={shareUrl} 
+        tripStartDate={tripStartDate}
+      />
+    );
   }
   
   if (calculation) {
