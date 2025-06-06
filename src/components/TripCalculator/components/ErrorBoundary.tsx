@@ -8,6 +8,7 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   context?: string;
+  silent?: boolean; // New prop for silent debug component failures
 }
 
 interface State {
@@ -53,6 +54,13 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Silent fallback for debug components in production
+      if (this.props.silent || 
+          (this.props.context && this.props.context.includes('Debug')) ||
+          process.env.NODE_ENV === 'production') {
+        return this.props.fallback || null;
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }

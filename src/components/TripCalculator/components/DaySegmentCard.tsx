@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,7 +12,7 @@ import SegmentStats from './SegmentStats';
 import SegmentRouteProgression from './SegmentRouteProgression';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
-import DebugStopSelection from './DebugStopSelection';
+import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardProps {
@@ -227,12 +226,10 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
               <SegmentRecommendedStops segment={stableSegment} />
             </ErrorBoundary>
 
-            {/* Debug Component - Only in Development */}
-            {process.env.NODE_ENV === 'development' && (
-              <ErrorBoundary context={`DebugStopSelection-Day${stableSegment.day}`}>
-                <DebugStopSelection segment={stableSegment} />
-              </ErrorBoundary>
-            )}
+            {/* Debug Component - Production Safe */}
+            <ErrorBoundary context={`DebugStopSelection-Day${stableSegment.day}`} silent={true}>
+              <DebugStopSelectionWrapper segment={stableSegment} />
+            </ErrorBoundary>
 
             {/* Route Progression */}
             <ErrorBoundary context={`SegmentRouteProgression-Day${stableSegment.day}`}>

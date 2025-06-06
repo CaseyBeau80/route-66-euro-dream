@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Bug, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -33,7 +32,7 @@ const DebugStopSelection: React.FC<DebugStopSelectionProps> = ({ segment }) => {
       attractions: 0
     }
   });
-  
+
   if (process.env.NODE_ENV !== 'development') {
     return null; // Only show in development
   }
