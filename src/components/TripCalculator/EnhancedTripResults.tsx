@@ -39,7 +39,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 trip-content" data-trip-content="true">
       {/* Trip Overview Header */}
       <Card className="border-route66-border bg-gradient-to-r from-route66-vintage-beige to-white">
         <CardHeader className="text-center relative">

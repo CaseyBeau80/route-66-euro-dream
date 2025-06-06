@@ -11,6 +11,7 @@ import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { PDFLayoutService } from '../../services/pdf/PDFLayoutService';
 import { PDFThemingService } from '../../services/pdf/PDFThemingService';
+import { toast } from '@/hooks/use-toast';
 
 interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
@@ -28,6 +29,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
   const handleExportPDF = async () => {
+    console.log('🖨️ Starting PDF export...');
     setIsExporting(true);
     
     try {
@@ -38,43 +40,130 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       layoutService.injectPDFStyles();
       themingService.applyThemeToPDF(themingService.getRoute66Theme());
       
-      // Get the main itinerary view
-      const itineraryContainer = document.querySelector('.pdf-itinerary-container');
-      if (itineraryContainer) {
+      // Find the main trip content - look for various possible containers
+      let contentContainer = document.querySelector('.trip-itinerary-container') ||
+                            document.querySelector('[data-trip-content]') ||
+                            document.querySelector('.space-y-6') ||
+                            document.querySelector('.enhanced-trip-results') ||
+                            document.querySelector('main') ||
+                            document.body;
+      
+      console.log('🔍 Found content container:', contentContainer?.className || 'body fallback');
+      
+      if (contentContainer) {
         // Create a clean clone for PDF
-        const pdfClone = itineraryContainer.cloneNode(true) as HTMLElement;
+        const pdfClone = contentContainer.cloneNode(true) as HTMLElement;
         
-        // Remove any interactive elements
-        const interactiveElements = pdfClone.querySelectorAll('button, .hover-trigger, .tooltip, [data-interactive]');
+        // Remove any interactive elements that shouldn't print
+        const interactiveElements = pdfClone.querySelectorAll(`
+          button:not(.pdf-keep), 
+          .hover-trigger, 
+          .tooltip, 
+          [data-interactive],
+          .dropdown-menu,
+          .share-button,
+          .export-button,
+          nav,
+          .navigation,
+          .navbar,
+          .header:not(.pdf-header),
+          .footer:not(.pdf-footer)
+        `);
+        
+        console.log('🧹 Removing', interactiveElements.length, 'interactive elements for PDF');
         interactiveElements.forEach(el => el.remove());
         
-        // Apply PDF-specific classes
+        // Apply PDF-specific classes and styling
         pdfClone.classList.add('pdf-export-container');
+        pdfClone.style.background = 'white';
+        pdfClone.style.color = 'black';
+        pdfClone.style.fontFamily = 'Arial, sans-serif';
+        
+        // Add custom title if specified
+        if (exportOptions.title) {
+          const titleElement = document.createElement('h1');
+          titleElement.textContent = exportOptions.title;
+          titleElement.style.cssText = `
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 10px;
+          `;
+          pdfClone.insertBefore(titleElement, pdfClone.firstChild);
+        }
         
         // Add watermark if specified
         if (exportOptions.watermark) {
           const watermark = document.createElement('div');
           watermark.className = 'pdf-watermark';
           watermark.textContent = exportOptions.watermark;
+          watermark.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 4rem;
+            color: rgba(0, 0, 0, 0.03);
+            z-index: -1;
+            pointer-events: none;
+            font-weight: bold;
+          `;
           pdfClone.appendChild(watermark);
         }
         
         // Temporarily add to DOM for printing
         document.body.appendChild(pdfClone);
         
+        // Hide original content during print
+        const originalStyle = contentContainer.style.display;
+        (contentContainer as HTMLElement).style.display = 'none';
+        
+        // Small delay to ensure styles are applied
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        console.log('🖨️ Triggering browser print dialog...');
+        
         // Trigger browser print dialog
         window.print();
         
-        // Clean up
-        document.body.removeChild(pdfClone);
+        // Clean up after print (or cancel)
+        setTimeout(() => {
+          document.body.removeChild(pdfClone);
+          (contentContainer as HTMLElement).style.display = originalStyle;
+          
+          // Cleanup styles
+          layoutService.removePDFStyles();
+          themingService.removeThemeStyles();
+          
+          console.log('🧹 PDF export cleanup completed');
+        }, 1000);
+        
+        toast({
+          title: "PDF Export Started",
+          description: "Your browser's print dialog should open. You can save as PDF from there.",
+          variant: "default"
+        });
+        
+      } else {
+        throw new Error('Could not find trip content to export');
       }
       
-      // Cleanup
+    } catch (error) {
+      console.error('❌ PDF export failed:', error);
+      toast({
+        title: "PDF Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Cleanup on error
+      const layoutService = PDFLayoutService.getInstance();
+      const themingService = PDFThemingService.getInstance();
       layoutService.removePDFStyles();
       themingService.removeThemeStyles();
-      
-    } catch (error) {
-      console.error('PDF export failed:', error);
     } finally {
       setIsExporting(false);
       setIsDialogOpen(false);
@@ -160,7 +249,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             disabled={isExporting}
             className="w-full"
           >
-            {isExporting ? 'Generating PDF...' : 'Export PDF'}
+            {isExporting ? 'Preparing PDF...' : 'Export PDF'}
           </Button>
         </div>
       </DialogContent>
