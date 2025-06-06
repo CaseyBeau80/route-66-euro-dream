@@ -10,6 +10,7 @@ import SegmentHeader from './SegmentHeader';
 import SegmentStats from './SegmentStats';
 import SegmentActionButtons from './SegmentActionButtons';
 import SegmentRouteProgression from './SegmentRouteProgression';
+import EnhancedRecommendedStops from './EnhancedRecommendedStops';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -126,58 +127,8 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       
       <CardContent>
         <div className="space-y-4">
-          {/* Enhanced Recommended Stops */}
-          <div>
-            <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Recommended Stops ({segment.recommendedStops?.length || 0})
-            </h4>
-            
-            {segment.recommendedStops && segment.recommendedStops.length > 0 ? (
-              <div className="space-y-2">
-                {segment.recommendedStops.slice(0, 3).map((stop, index) => (
-                  <div 
-                    key={stop.id || index} 
-                    className="flex items-center gap-3 p-3 bg-white rounded-lg border border-route66-border"
-                  >
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-route66-primary rounded-full flex items-center justify-center">
-                        <MapPin className="h-4 w-4 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-route66-text-primary text-sm">
-                        {stop.name}
-                      </div>
-                      {stop.city_name && (
-                        <div className="text-xs text-route66-text-secondary">
-                          {stop.city_name}, {stop.state}
-                        </div>
-                      )}
-                      {stop.category && (
-                        <Badge variant="outline" className="text-xs mt-1">
-                          {stop.category}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {segment.recommendedStops.length > 3 && (
-                  <div className="text-xs text-route66-vintage-brown italic text-center p-2 bg-route66-background-alt rounded">
-                    +{segment.recommendedStops.length - 3} more stops available
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
-                <MapPin className="h-8 w-8 text-route66-text-secondary mx-auto mb-2" />
-                <p className="text-sm text-route66-vintage-brown italic">
-                  Direct drive - no specific stops planned for this segment
-                </p>
-              </div>
-            )}
-          </div>
+          {/* Enhanced Recommended Stops using the dedicated component */}
+          <EnhancedRecommendedStops segment={segment} maxStops={3} />
 
           {/* Action Buttons and Expandable Content */}
           <SegmentActionButtons

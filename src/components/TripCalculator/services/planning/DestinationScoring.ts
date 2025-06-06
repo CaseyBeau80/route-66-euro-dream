@@ -5,7 +5,7 @@ import { DriveTimeTarget, DriveTimeConstraints } from './DriveTimeConstraints';
 
 export class DestinationScoring {
   /**
-   * Find best destination within drive time constraints with massive destination city preference
+   * Find best destination within drive time constraints with MASSIVE destination city preference
    */
   static findBestDestinationByDriveTime(
     currentStop: TripStop,
@@ -46,17 +46,17 @@ export class DestinationScoring {
       let score = timeDiff;
 
       // MASSIVE bonus for destination cities - this is the key fix
-      score -= 15.0; // Enormous preference for destination cities
+      score -= 20.0; // Enormous preference for destination cities - increased from 15.0
 
       // Bonus for major stops
       if (stop.is_major_stop) {
-        score -= 1.0;
+        score -= 2.0; // Increased from 1.0
       }
 
       // Bonus for being in optimal range
       if (driveTimeHours >= constraints.optimal.min && 
           driveTimeHours <= constraints.optimal.max) {
-        score -= 0.5;
+        score -= 1.0; // Increased from 0.5
       }
 
       console.log(`🏙️ Destination city ${stop.name}: ${driveTimeHours.toFixed(1)}h drive, score: ${score.toFixed(2)} (MASSIVE BONUS APPLIED)`);
@@ -101,13 +101,13 @@ export class DestinationScoring {
 
       // Bonus for major stops
       if (stop.is_major_stop) {
-        score -= 0.5;
+        score -= 1.0; // Increased from 0.5
       }
 
       // Bonus for being in optimal range
       if (driveTimeHours >= constraints.optimal.min && 
           driveTimeHours <= constraints.optimal.max) {
-        score -= 0.3;
+        score -= 0.5; // Increased from 0.3
       }
 
       console.log(`📊 ${stop.name} (${stop.category}): ${driveTimeHours.toFixed(1)}h drive, score: ${score.toFixed(2)}`);
