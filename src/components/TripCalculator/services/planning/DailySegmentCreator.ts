@@ -71,8 +71,37 @@ export class DailySegmentCreator {
       balanceMetrics
     );
 
-    console.log(`✅ Created ${dailySegments.length} daily segments with enhanced balance metrics`);
-    return dailySegments;
+    // Post-process segments to ensure data consistency
+    const validatedSegments = this.validateAndFixSegmentData(dailySegments);
+
+    console.log(`✅ Created ${validatedSegments.length} daily segments with enhanced balance metrics`);
+    return validatedSegments;
+  }
+
+  /**
+   * Validate and fix segment data for consistency
+   */
+  private static validateAndFixSegmentData(segments: DailySegment[]): DailySegment[] {
+    return segments.map(segment => {
+      // Ensure drivingTime and driveTimeHours are consistent
+      const normalizedDriveTime = Math.max(segment.drivingTime || 0, 0.5); // Minimum 30 minutes
+      
+      // Validate drive time is reasonable (max 12 hours per day)
+      const validatedDriveTime = Math.min(normalizedDriveTime, 12);
+      
+      if (validatedDriveTime !== normalizedDriveTime) {
+        console.warn(`⚠️ Day ${segment.day}: Adjusted excessive drive time from ${normalizedDriveTime.toFixed(1)}h to ${validatedDriveTime.toFixed(1)}h`);
+      }
+
+      return {
+        ...segment,
+        drivingTime: validatedDriveTime,
+        driveTimeHours: validatedDriveTime,
+        // Ensure distance is consistent
+        distance: Math.max(segment.distance || 0, 1),
+        approximateMiles: Math.round(segment.distance || 0)
+      };
+    });
   }
 
   private static selectDestinations(
@@ -82,20 +111,25 @@ export class DailySegmentCreator {
     totalDays: number
   ): TripStop[] {
     const destinations: TripStop[] = [];
-    const segmentDistance = DistanceCalculationService.calculateDistance(
+    
+    // Calculate total distance for the trip
+    const totalTripDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
-    ) / totalDays;
+    );
+    
+    const segmentDistance = totalTripDistance / totalDays;
 
     // Select destinations based on distance intervals
     for (let day = 1; day < totalDays; day++) {
       const targetDistance = segmentDistance * day;
       const destination = this.findNearestStop(startStop, enhancedStops, targetDistance);
-      if (destination) {
+      if (destination && !destinations.find(d => d.id === destination.id)) {
         destinations.push(destination);
       }
     }
 
+    console.log(`📍 Selected ${destinations.length} destinations for ${totalDays}-day trip`);
     return destinations;
   }
 
@@ -127,15 +161,16 @@ export class DailySegmentCreator {
     totalDistance: number,
     totalDays: number
   ): DriveTimeTarget[] {
-    const averageDriveTime = (totalDistance / totalDays) / 65; // 65 mph average
+    // Use more realistic speed calculation
+    const averageDriveTime = totalDistance / totalDays / 50; // 50 mph realistic average
     const targets: DriveTimeTarget[] = [];
 
     for (let day = 1; day <= totalDays; day++) {
       targets.push({
-        day, // Add the day property
+        day,
         targetHours: averageDriveTime,
-        minHours: averageDriveTime * 0.7,
-        maxHours: averageDriveTime * 1.3,
+        minHours: Math.max(averageDriveTime * 0.7, 1.0), // Minimum 1 hour
+        maxHours: Math.min(averageDriveTime * 1.3, 8.0), // Maximum 8 hours
         priority: 'balanced'
       });
     }

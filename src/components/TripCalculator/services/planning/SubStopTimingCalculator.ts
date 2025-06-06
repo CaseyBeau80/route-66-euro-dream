@@ -40,6 +40,12 @@ export class SubStopTimingCalculator {
         stop.latitude, stop.longitude
       );
       
+      // Validate distance is reasonable (not negative or excessive)
+      if (segmentDistance <= 0 || segmentDistance > 500) {
+        console.warn(`⚠️ Invalid segment distance ${segmentDistance}mi between ${currentStop.name} and ${stop.name}, skipping`);
+        continue;
+      }
+      
       const segmentDriveTime = segmentDistance / 50; // 50 mph average
       cumulativeDistance += segmentDistance;
       cumulativeDriveTime += segmentDriveTime;
@@ -101,7 +107,8 @@ export class SubStopTimingCalculator {
         continue;
       }
       
-      const driveTime = distance / 50; // 50 mph average
+      // Use more realistic drive time calculation with speed limits
+      const driveTime = this.calculateRealisticDriveTime(distance);
       
       segmentTimings.push({
         fromStop,
@@ -113,6 +120,29 @@ export class SubStopTimingCalculator {
     
     console.log(`📊 Created ${segmentTimings.length} valid segment timings`);
     return segmentTimings;
+  }
+
+  /**
+   * Calculate realistic drive time based on distance and road conditions
+   */
+  private static calculateRealisticDriveTime(distance: number): number {
+    // Use different speeds based on distance (shorter segments often have lower speeds)
+    let avgSpeed: number;
+    
+    if (distance < 50) {
+      avgSpeed = 40; // Urban/city driving with stops
+    } else if (distance < 150) {
+      avgSpeed = 50; // Mixed highway/rural
+    } else {
+      avgSpeed = 60; // Highway driving
+    }
+    
+    const baseTime = distance / avgSpeed;
+    
+    // Add buffer time for stops, traffic, etc. (10-20% depending on distance)
+    const bufferMultiplier = distance < 100 ? 1.2 : 1.1;
+    
+    return Math.max(baseTime * bufferMultiplier, 0.5); // Minimum 30 minutes
   }
 
   /**

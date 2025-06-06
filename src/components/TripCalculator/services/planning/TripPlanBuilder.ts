@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -8,6 +7,7 @@ import { DailySegmentCreator, DailySegment } from './DailySegmentCreator';
 import { TripPlanValidator } from './TripPlanValidator';
 import { DriveTimeAnalyzer } from './DriveTimeAnalyzer';
 import { TripDaysOptimizer } from './TripDaysOptimizer';
+import { DriveTimeValidationService } from './DriveTimeValidationService';
 import { SegmentTiming } from './SubStopTimingCalculator';
 
 // Re-export types for backward compatibility
@@ -48,62 +48,152 @@ export class TripPlanBuilder {
     endStop: TripStop,
     allStops: TripStop[],
     requestedDays: number,
-    startCityName: string,
-    endCityName: string
+    inputStartCity: string,
+    inputEndCity: string
   ): TripPlan {
+    console.log(`🏗️ Building ${requestedDays}-day trip plan from ${startStop.name} to ${endStop.name}`);
+
+    // Calculate total distance
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
 
-    console.log(`📏 Total distance: ${totalDistance} miles`);
+    // Optimize trip days for balanced driving
+    const optimizedDays = TripDaysOptimizer.calculateOptimalDaysForBalancedDriving(
+      totalDistance,
+      requestedDays
+    );
 
-    // Smart trip day calculation with drive time considerations
-    const optimalDays = TripDaysOptimizer.calculateOptimalDaysForBalancedDriving(totalDistance, requestedDays);
-    const wasAdjusted = optimalDays !== requestedDays;
-    
-    if (wasAdjusted) {
-      console.log(`🔄 Adjusted trip from ${requestedDays} to ${optimalDays} days for balanced drive times`);
-    }
+    const wasAdjusted = optimizedDays !== requestedDays;
+    console.log(`📊 Trip days: requested ${requestedDays}, optimized ${optimizedDays}, adjusted: ${wasAdjusted}`);
 
-    // Get and enhance stops along the route with destination city priority
-    const routeStops = RouteStopSelectionService.getStopsAlongRoute(startStop, endStop, allStops);
-    const enhancedStops = StopEnhancementService.ensureGeographicDiversity(startStop, endStop, routeStops);
-    
-    console.log(`🛤️ Enhanced route: ${enhancedStops.length} diverse stops selected with destination city priority`);
+    // Create enhanced stops array (filtered and enhanced for the route)
+    const enhancedStops = StopEnhancementService.enhanceStopsForRoute(
+      startStop,
+      endStop,
+      allStops,
+      optimizedDays
+    );
 
-    // Create balanced daily segments using the new enhanced system
-    const dailySegments = DailySegmentCreator.createBalancedDailySegments(
+    // Create daily segments
+    let dailySegments = DailySegmentCreator.createBalancedDailySegments(
       startStop,
       endStop,
       enhancedStops,
-      optimalDays,
+      optimizedDays,
       totalDistance
     );
 
+    // Validate and fix drive times
+    const validationResult = DriveTimeValidationService.validateAndFixDriveTimes(dailySegments);
+    
+    if (!validationResult.isValid && validationResult.adjustedSegments) {
+      console.log('🔧 Applied drive time corrections:', validationResult.issues);
+      dailySegments = validationResult.adjustedSegments;
+    }
+
     // Calculate total driving time from segments
-    const totalDrivingTime = dailySegments.reduce((total, segment) => total + segment.drivingTime, 0);
+    const totalDrivingTime = dailySegments.reduce((total, segment) => {
+      return total + (segment.drivingTime || 0);
+    }, 0);
 
-    // Calculate enhanced drive time balance metrics
-    const driveTimeBalance = DriveTimeAnalyzer.analyzeEnhancedDriveTimeBalance(dailySegments);
+    // Calculate drive time balance metrics
+    const driveTimeBalance = this.calculateDriveTimeBalance(dailySegments);
 
-    const tripTitle = CityDisplayService.createTripTitle(startStop, endStop);
-
-    return {
-      title: tripTitle,
-      startCity: CityDisplayService.getCityDisplayName(startStop),
-      endCity: CityDisplayService.getCityDisplayName(endStop),
-      startCityImage: startStop.image_url,
-      endCityImage: endStop.image_url,
-      totalDays: optimalDays,
-      totalMiles: Math.round(totalDistance),
-      totalDistance: Math.round(totalDistance), // Alias for compatibility
+    // Build the complete trip plan
+    const tripPlan: TripPlan = {
+      title: `${inputStartCity} to ${inputEndCity} (${optimizedDays} days)`,
+      startCity: inputStartCity,
+      endCity: inputEndCity,
+      totalDistance: Math.round(totalDistance),
       totalDrivingTime,
-      dailySegments,
-      segments: dailySegments, // Alias for compatibility
+      totalDays: optimizedDays,
+      segments: dailySegments,
       wasAdjusted,
       originalDays: wasAdjusted ? requestedDays : undefined,
       driveTimeBalance
     };
+
+    console.log(`✅ Trip plan completed: ${tripPlan.totalDistance} miles, ${tripPlan.totalDrivingTime.toFixed(1)}h driving`);
+    return tripPlan;
+  }
+
+  private calculateDriveTimeBalance(dailySegments: DailySegment[]): {
+    isBalanced: boolean;
+    averageDriveTime: number;
+    driveTimeRange: { min: number; max: number };
+    balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
+    qualityGrade?: 'A' | 'B' | 'C' | 'D' | 'F';
+    overallScore?: number;
+    variance?: number;
+    suggestions?: string[];
+  } {
+    const totalDrivingTime = dailySegments.reduce((total, segment) => total + segment.drivingTime, 0);
+    const averageDriveTime = totalDrivingTime / dailySegments.length;
+    const driveTimeRange = {
+      min: Math.min(...dailySegments.map(segment => segment.drivingTime)),
+      max: Math.max(...dailySegments.map(segment => segment.drivingTime))
+    };
+    const balanceQuality = this.getDriveTimeBalanceQuality(averageDriveTime, driveTimeRange);
+
+    return {
+      isBalanced: balanceQuality === 'excellent',
+      averageDriveTime,
+      driveTimeRange,
+      balanceQuality,
+      qualityGrade: this.getDriveTimeQualityGrade(averageDriveTime, driveTimeRange),
+      overallScore: this.getOverallDriveTimeScore(averageDriveTime, driveTimeRange),
+      variance: this.getDriveTimeVariance(averageDriveTime, driveTimeRange),
+      suggestions: this.getDriveTimeBalanceSuggestions(averageDriveTime, driveTimeRange)
+    };
+  }
+
+  private getDriveTimeBalanceQuality(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'excellent' | 'good' | 'fair' | 'poor' {
+    if (averageDriveTime < driveTimeRange.min) {
+      return 'poor';
+    } else if (averageDriveTime < driveTimeRange.min + 10) {
+      return 'fair';
+    } else if (averageDriveTime < driveTimeRange.max - 10) {
+      return 'good';
+    } else {
+      return 'excellent';
+    }
+  }
+
+  private getDriveTimeQualityGrade(averageDriveTime: number, driveTimeRange: { min: number; max: number }): 'A' | 'B' | 'C' | 'D' | 'F' {
+    if (averageDriveTime < driveTimeRange.min) {
+      return 'F';
+    } else if (averageDriveTime < driveTimeRange.min + 10) {
+      return 'D';
+    } else if (averageDriveTime < driveTimeRange.max - 10) {
+      return 'C';
+    } else {
+      return 'A';
+    }
+  }
+
+  private getOverallDriveTimeScore(averageDriveTime: number, driveTimeRange: { min: number; max: number }): number {
+    const score = (averageDriveTime - driveTimeRange.min) / (driveTimeRange.max - driveTimeRange.min);
+    return Math.round(score * 100);
+  }
+
+  private getDriveTimeVariance(averageDriveTime: number, driveTimeRange: { min: number; max: number }): number {
+    const variance = Math.max(...dailySegments.map(segment => Math.abs(segment.drivingTime - averageDriveTime)));
+    return Math.round(variance * 100);
+  }
+
+  private getDriveTimeBalanceSuggestions(averageDriveTime: number, driveTimeRange: { min: number; max: number }): string[] {
+    const suggestions: string[] = [];
+    if (averageDriveTime < driveTimeRange.min) {
+      suggestions.push('Consider adding more stops to balance drive times.');
+    } else if (averageDriveTime < driveTimeRange.min + 10) {
+      suggestions.push('Consider adding more stops to balance drive times.');
+    } else if (averageDriveTime < driveTimeRange.max - 10) {
+      suggestions.push('Consider adding more stops to balance drive times.');
+    } else {
+      suggestions.push('Drive times are well-balanced.');
+    }
+    return suggestions;
   }
 }

@@ -72,8 +72,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
       {/* Trip Overview Card */}
       <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-        <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
-          <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2">
+        <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow">
+          <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2 text-white">
             <MapPin className="h-6 w-6" />
             YOUR ROUTE 66 ADVENTURE
           </CardTitle>
