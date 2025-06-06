@@ -17,32 +17,32 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
+      <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
           {Math.round(tripPlan.totalDistance)}
         </div>
-        <div className="font-travel text-sm text-route66-vintage-brown">Total Miles</div>
+        <div className="font-travel text-sm text-route66-text-secondary">Total Miles</div>
       </div>
       
-      <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
+      <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
           {formatTime(tripPlan.totalDrivingTime)}
         </div>
-        <div className="font-travel text-sm text-route66-vintage-brown">Drive Time</div>
+        <div className="font-travel text-sm text-route66-text-secondary">Drive Time</div>
       </div>
       
-      <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
+      <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
           {tripPlan.segments.length}
         </div>
-        <div className="font-travel text-sm text-route66-vintage-brown">Days</div>
+        <div className="font-travel text-sm text-route66-text-secondary">Days</div>
       </div>
       
-      <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
+      <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
         <div className="font-route66 text-2xl text-route66-primary">
           {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
         </div>
-        <div className="font-travel text-sm text-route66-vintage-brown">Est. Total Cost</div>
+        <div className="font-travel text-sm text-route66-text-secondary">Est. Total Cost</div>
       </div>
     </div>
   );

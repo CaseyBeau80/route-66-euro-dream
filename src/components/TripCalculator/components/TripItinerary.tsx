@@ -20,7 +20,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-travel text-route66-vintage-brown">
+        <CardTitle className="font-travel text-route66-text-primary">
           Daily Itinerary
         </CardTitle>
       </CardHeader>

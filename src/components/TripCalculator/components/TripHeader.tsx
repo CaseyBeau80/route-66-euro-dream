@@ -34,8 +34,8 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
 
   return (
     <>
-      <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-        <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
+      <Card className="vintage-paper-texture border-2 border-route66-border">
+        <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white">
           <CardTitle className="font-route66 text-2xl text-center">
             {tripPlan.title}
           </CardTitle>
@@ -47,21 +47,21 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
                 <img 
                   src={tripPlan.startCityImage || fallbackImage} 
                   alt="Start City"
-                  className="w-full h-32 object-cover rounded-lg border-2 border-route66-vintage-brown"
+                  className="w-full h-32 object-cover rounded-lg border-2 border-route66-border"
                 />
               </div>
-              <h3 className="font-route66 text-lg text-route66-vintage-red">Starting Point</h3>
-              <p className="text-sm text-route66-vintage-brown">{tripPlan.dailySegments[0]?.startCity || "Unknown"}</p>
+              <h3 className="font-route66 text-lg text-route66-primary">Starting Point</h3>
+              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[0]?.startCity || "Unknown"}</p>
             </div>
             
             <div className="flex-shrink-0 text-center px-4">
-              <div className="bg-route66-red text-white rounded-full px-4 py-2 font-route66 text-lg mb-2">
+              <div className="bg-route66-primary text-white rounded-full px-4 py-2 font-route66 text-lg mb-2">
                 {tripPlan.totalDays} DAYS
               </div>
-              <div className="text-route66-vintage-brown font-travel text-sm mb-1">
+              <div className="text-route66-text-secondary font-travel text-sm mb-1">
                 {tripPlan.totalMiles} miles
               </div>
-              <div className="text-route66-vintage-blue font-travel text-sm font-semibold">
+              <div className="text-route66-primary font-travel text-sm font-semibold">
                 {formatDriveTime(totalDriveTimeHours)} drive time
               </div>
             </div>
@@ -71,11 +71,11 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
                 <img 
                   src={tripPlan.endCityImage || fallbackImage} 
                   alt="End City"
-                  className="w-full h-32 object-cover rounded-lg border-2 border-route66-vintage-brown"
+                  className="w-full h-32 object-cover rounded-lg border-2 border-route66-border"
                 />
               </div>
-              <h3 className="font-route66 text-lg text-route66-vintage-red">Destination</h3>
-              <p className="text-sm text-route66-vintage-brown">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
+              <h3 className="font-route66 text-lg text-route66-primary">Destination</h3>
+              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
             </div>
           </div>
 
@@ -83,7 +83,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
           <div className="flex justify-center mb-4">
             <Button
               onClick={() => setIsCalendarModalOpen(true)}
-              className="bg-route66-vintage-blue hover:bg-route66-navy text-white font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
+              className="bg-route66-primary hover:bg-route66-primary-dark text-white font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
             >
               <Calendar className="w-4 h-4" />
               Export to Calendar

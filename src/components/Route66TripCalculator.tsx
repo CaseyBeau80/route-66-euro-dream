@@ -59,7 +59,7 @@ const Route66TripCalculator: React.FC = () => {
             <Button
               onClick={handleNewTrip}
               variant="outline"
-              className="border-route66-vintage-brown text-route66-vintage-brown hover:bg-route66-vintage-brown hover:text-white"
+              className="border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white"
             >
               Plan Another Trip
             </Button>

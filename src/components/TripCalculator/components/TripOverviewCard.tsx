@@ -32,8 +32,8 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   handleShare
 }) => {
   return (
-    <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-      <CardHeader className="bg-gradient-to-r from-orange-600 to-yellow-500">
+    <Card className="vintage-paper-texture border-2 border-route66-border">
+      <CardHeader className="bg-gradient-to-r from-route66-primary to-route66-primary-light">
         <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2 text-white">
           <MapPin className="h-6 w-6" />
           YOUR ROUTE 66 ADVENTURE
@@ -52,7 +52,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           <Button
             onClick={() => setShowCostEstimator(!showCostEstimator)}
             variant="outline"
-            className="w-full border-green-300 text-green-700 hover:bg-green-50"
+            className="w-full border-route66-accent-success text-route66-accent-success hover:bg-route66-accent-success hover:text-white"
           >
             <DollarSign className="mr-2 h-4 w-4" />
             {showCostEstimator ? 'Hide' : 'Show'} Cost Estimator
@@ -62,10 +62,10 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
 
         {/* Route Summary */}
         <div className="text-center mb-6">
-          <h3 className="font-travel font-bold text-route66-vintage-brown text-lg mb-2">
+          <h3 className="font-travel font-bold text-route66-text-primary text-lg mb-2">
             Your Journey: {tripPlan.startCity} → {tripPlan.endCity}
           </h3>
-          <div className="flex justify-center items-center gap-4 text-sm text-route66-vintage-brown">
+          <div className="flex justify-center items-center gap-4 text-sm text-route66-text-secondary">
             {tripStartDate && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -83,7 +83,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           <div className="text-center">
             <Button 
               onClick={handleShare}
-              className="bg-route66-vintage-brown hover:bg-route66-vintage-brown/90 text-white"
+              className="bg-route66-primary hover:bg-route66-primary-dark text-white"
             >
               <Share2 className="mr-2 h-4 w-4" />
               Share Trip Plan
