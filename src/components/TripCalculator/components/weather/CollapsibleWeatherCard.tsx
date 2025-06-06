@@ -44,7 +44,7 @@ const CollapsibleWeatherCard: React.FC<CollapsibleWeatherCardProps> = ({
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs font-medium border-route66-border">
+              <Badge variant="outline" className="text-xs font-medium border-route66-border text-blue-700">
                 Day {segment.day}
               </Badge>
               <span className="text-blue-300">•</span>
