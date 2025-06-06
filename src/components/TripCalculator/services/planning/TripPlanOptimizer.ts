@@ -3,6 +3,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { TripPlan } from './TripPlanBuilder';
 import { EnhancedDriveTimeBalancer, BalanceResult } from './EnhancedDriveTimeBalancer';
 import { UnifiedTripPlanningService } from './UnifiedTripPlanningService';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export interface OptimizationResult {
   finalPlan: TripPlan;
@@ -140,7 +141,10 @@ export class TripPlanOptimizer {
   } {
     const issues: string[] = [];
     
-    const totalDistance = EnhancedDriveTimeBalancer['calculateDistance'](startStop, endStop);
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
     const totalDriveTime = totalDistance / 50; // 50 mph average
     const avgDailyDriveTime = totalDriveTime / requestedDays;
 
