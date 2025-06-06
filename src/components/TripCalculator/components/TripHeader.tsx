@@ -4,15 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import ShareTripActions from '../ShareTripActions';
+import ShareTripDropdown from './ShareTripDropdown';
 import CalendarExportModal from './CalendarExportModal';
 
 interface TripHeaderProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
+  tripStartDate?: Date;
 }
 
-const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
+const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDate }) => {
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
 
@@ -90,8 +91,15 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
             </Button>
           </div>
 
-          {/* Share Actions */}
-          <ShareTripActions shareUrl={shareUrl} tripTitle={tripPlan.title} />
+          {/* Share Trip Dropdown */}
+          <div className="flex justify-center">
+            <ShareTripDropdown
+              shareUrl={shareUrl}
+              tripTitle={tripPlan.title}
+              tripPlan={tripPlan}
+              tripStartDate={tripStartDate}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -100,6 +108,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl }) => {
         isOpen={isCalendarModalOpen}
         onClose={() => setIsCalendarModalOpen(false)}
         tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
       />
     </>
   );

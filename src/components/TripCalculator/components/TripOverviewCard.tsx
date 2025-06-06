@@ -2,10 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, Calendar, Share2, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripStatsGrid from './TripStatsGrid';
+import ShareTripDropdown from './ShareTripDropdown';
 
 interface TripOverviewCardProps {
   tripPlan: TripPlan;
@@ -96,17 +97,15 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           </div>
         </div>
 
-        {shareUrl && (
-          <div className="text-center">
-            <Button 
-              onClick={handleShare}
-              className="bg-route66-primary hover:bg-route66-primary-dark text-white"
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              Share Trip Plan
-            </Button>
-          </div>
-        )}
+        {/* Share Trip Dropdown */}
+        <div className="text-center">
+          <ShareTripDropdown
+            shareUrl={shareUrl}
+            tripTitle={tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
+          />
+        </div>
       </CardContent>
     </Card>
   );
