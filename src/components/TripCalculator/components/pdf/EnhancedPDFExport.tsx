@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Download, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
 import { PDFLayoutService } from '../../services/pdf/PDFLayoutService';
@@ -16,14 +17,17 @@ interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   shareUrl?: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   tripPlan,
   tripStartDate,
-  shareUrl
+  shareUrl,
+  isOpen,
+  onClose
 }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { exportOptions, updateExportOption } = usePDFExportOptions();
 
@@ -39,10 +43,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       layoutService.injectPDFStyles();
       themingService.applyThemeToPDF(themingService.getRoute66Theme());
       
-      // Find the main trip content - look for various possible containers
-      let contentContainer = document.querySelector('.trip-itinerary-container') ||
-                            document.querySelector('[data-trip-content]') ||
-                            document.querySelector('.space-y-6') ||
+      // Find the main trip content using the data attribute
+      let contentContainer = document.querySelector('[data-trip-content="true"]') ||
+                            document.querySelector('.trip-content') ||
                             document.querySelector('.enhanced-trip-results') ||
                             document.querySelector('main') ||
                             document.body;
@@ -66,7 +69,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
           .navigation,
           .navbar,
           .header:not(.pdf-header),
-          .footer:not(.pdf-footer)
+          .footer:not(.pdf-footer),
+          [role="dialog"],
+          .dialog-overlay
         `);
         
         console.log('🧹 Removing', interactiveElements.length, 'interactive elements for PDF');
@@ -116,7 +121,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         // Temporarily add to DOM for printing
         document.body.appendChild(pdfClone);
         
-        // Hide original content during print - FIX: Cast to HTMLElement
+        // Hide original content during print
         const originalStyle = (contentContainer as HTMLElement).style.display;
         (contentContainer as HTMLElement).style.display = 'none';
         
@@ -165,22 +170,12 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       themingService.removeThemeStyles();
     } finally {
       setIsExporting(false);
-      setIsDialogOpen(false);
+      onClose();
     }
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Export PDF
-        </Button>
-      </DialogTrigger>
-      
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

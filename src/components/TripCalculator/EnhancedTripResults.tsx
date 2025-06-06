@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
-import ShareTripButton from './components/ShareTripButton';
+import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import { format } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 
@@ -38,17 +38,21 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return format(date, 'EEEE, MMMM d, yyyy');
   };
 
+  // Generate trip title for sharing
+  const tripTitle = tripPlan?.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+
   return (
     <div className="space-y-6 trip-content" data-trip-content="true">
       {/* Trip Overview Header */}
       <Card className="border-route66-border bg-gradient-to-r from-route66-vintage-beige to-white">
         <CardHeader className="text-center relative">
-          {/* Share Trip Button - Absolute positioned in top-right */}
+          {/* Share and Export Button - Absolute positioned in top-right */}
           <div className="absolute top-4 right-4">
-            <ShareTripButton
+            <ShareAndExportDropdown
               tripPlan={tripPlan}
               shareUrl={shareUrl}
               tripStartDate={tripStartDate}
+              tripTitle={tripTitle}
               variant="primary"
               size="sm"
             />
@@ -84,7 +88,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-route66-border">
               <DollarSign className="h-5 w-5 text-route66-primary mx-auto mb-1" />
-              <div className="text-sm font-semibold text-route66-text-primary">N/A</div>
+              <div className="text-sm font-semibold text-route66-text-primary">--</div>
               <div className="text-xs text-route66-text-secondary">Est. Cost</div>
             </div>
           </div>
