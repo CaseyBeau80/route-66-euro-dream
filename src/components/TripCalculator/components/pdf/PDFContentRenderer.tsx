@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import React, { useEffect, useState } from 'react';
+import { TripPlan, DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFItineraryView from './PDFItineraryView';
+import { PDFWeatherIntegrationService } from './PDFWeatherIntegrationService';
 import { format } from 'date-fns';
 
 interface PDFContentRendererProps {
@@ -22,6 +23,42 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   exportOptions,
   shareUrl
 }) => {
+  const [enrichedSegments, setEnrichedSegments] = useState<DailySegment[]>(tripPlan.segments || []);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+
+  useEffect(() => {
+    const enrichWithWeather = async () => {
+      if (exportOptions.format === 'route-only' || !tripPlan.segments) {
+        return;
+      }
+
+      console.log('🌤️ PDFContentRenderer: Starting weather enrichment...');
+      setWeatherLoading(true);
+
+      try {
+        const weatherEnrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+          tripPlan.segments,
+          tripStartDate
+        );
+        
+        console.log('✅ Weather enrichment completed:', {
+          originalSegments: tripPlan.segments.length,
+          enrichedSegments: weatherEnrichedSegments.length,
+          hasWeatherData: weatherEnrichedSegments.some(s => s.weather)
+        });
+
+        setEnrichedSegments(weatherEnrichedSegments);
+      } catch (error) {
+        console.error('❌ Weather enrichment failed:', error);
+        setEnrichedSegments(tripPlan.segments);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    enrichWithWeather();
+  }, [tripPlan.segments, tripStartDate, exportOptions.format]);
+
   // Simple distance formatting without context dependency
   const formatDistance = (miles: number): string => {
     return `${Math.round(miles)} mi`;
@@ -41,10 +78,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
 
   console.log('📄 PDFContentRenderer: Rendering with segments:', {
-    segmentsCount: tripPlan.segments?.length || 0,
+    segmentsCount: enrichedSegments.length,
     exportFormat: exportOptions.format,
-    hasWeatherData: tripPlan.segments?.some(s => s.weather) || false,
-    segmentWeatherDetails: tripPlan.segments?.map(s => ({
+    hasWeatherData: enrichedSegments.some(s => s.weather) || false,
+    weatherLoading,
+    segmentWeatherDetails: enrichedSegments.map(s => ({
       day: s.day,
       city: s.endCity,
       hasWeather: !!s.weather,
@@ -66,6 +104,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         <p className="text-sm text-gray-500">
           Generated on {format(new Date(), 'MMMM d, yyyy')}
         </p>
+        {weatherLoading && (
+          <p className="text-xs text-blue-600 mt-2">
+            ⏳ Loading weather data...
+          </p>
+        )}
       </div>
 
       {/* Trip Overview Stats */}
@@ -89,15 +132,17 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           </div>
           
           <div className="text-center p-3 bg-gray-50 rounded border">
-            <div className="text-lg font-bold text-blue-600">--</div>
-            <div className="text-xs text-gray-600">Est. Cost</div>
+            <div className="text-lg font-bold text-blue-600">
+              {PDFWeatherIntegrationService.isWeatherServiceAvailable() ? '🌤️' : '--'}
+            </div>
+            <div className="text-xs text-gray-600">Weather</div>
           </div>
         </div>
       </div>
 
       {/* Daily Itinerary with Weather */}
       <PDFItineraryView
-        segments={tripPlan.segments || []}
+        segments={enrichedSegments}
         tripStartDate={tripStartDate}
         tripId={`pdf-${Date.now()}`}
         totalDays={tripPlan.totalDays}
