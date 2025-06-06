@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { TripPlan, DailySegment } from './TripPlanBuilder';
 import { DailySegmentCreator } from './DailySegmentCreator';
@@ -61,11 +60,13 @@ export class UnifiedTripPlanningService {
     const startCityDisplay = CityDisplayService.getCityDisplayName(startStop);
     const endCityDisplay = CityDisplayService.getCityDisplayName(endStop);
 
-    // Create the trip plan
+    // Create the trip plan with all required properties
     const tripPlan: TripPlan = {
+      id: this.generateTripId(),
       title: `${startCityDisplay} to ${endCityDisplay} Route 66 Adventure`,
       startCity: startCityDisplay,
       endCity: endCityDisplay,
+      startDate: new Date(), // Add required startDate property
       totalDistance: Math.round(totalDistance),
       totalDays: requestedTripDays, // Use REQUESTED days
       totalDrivingTime: totalDrivingTime,
@@ -82,6 +83,13 @@ export class UnifiedTripPlanningService {
       tripStyle,
       warnings: tripPlan.warnings
     };
+  }
+
+  /**
+   * Generate a unique trip ID
+   */
+  private static generateTripId(): string {
+    return `trip-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   }
 
   /**
