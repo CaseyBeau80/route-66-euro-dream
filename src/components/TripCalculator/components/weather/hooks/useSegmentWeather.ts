@@ -1,6 +1,6 @@
 
 import { useEffect, useCallback } from 'react';
-import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
+import { getWeatherDataForTripDate } from '../getWeatherDataForTripDate';
 import { GeocodingService } from '../../../services/GeocodingService';
 import WeatherRequestDeduplicationService from '../services/WeatherRequestDeduplicationService';
 
@@ -35,7 +35,6 @@ export const useSegmentWeather = ({
   subscriberId,
   segmentDate
 }: UseSegmentWeatherProps) => {
-  const weatherService = EnhancedWeatherService.getInstance();
   const deduplicationService = WeatherRequestDeduplicationService.getInstance();
 
   const handleApiKeySet = useCallback(() => {
@@ -83,11 +82,12 @@ export const useSegmentWeather = ({
         requestKey,
         () => {
           if (segmentDate) {
-            // Use forecast service for dated weather
-            return weatherService.getWeatherForDate(coordinates.lat, coordinates.lng, segmentEndCity, segmentDate);
+            // Use the centralized weather utility that handles historical vs forecast
+            console.log(`🌤️ Using getWeatherDataForTripDate for ${segmentEndCity} on ${segmentDate.toDateString()}`);
+            return getWeatherDataForTripDate(segmentEndCity, segmentDate, coordinates);
           } else {
-            // Use regular weather service for current weather
-            return weatherService.getWeatherData(coordinates.lat, coordinates.lng, segmentEndCity);
+            // For current weather, fall back to the original approach
+            return getWeatherDataForTripDate(segmentEndCity, new Date(), coordinates);
           }
         },
         subscriberId.current,
@@ -95,7 +95,13 @@ export const useSegmentWeather = ({
       );
       
       if (weatherData && mountedRef.current) {
-        console.log(`✅ Weather data received for ${segmentEndCity}:`, weatherData);
+        console.log(`✅ Weather data received for ${segmentEndCity}:`, {
+          isActualForecast: weatherData.isActualForecast,
+          source: weatherData.source,
+          lowTemp: weatherData.lowTemp,
+          highTemp: weatherData.highTemp,
+          hasHistoricalData: !!(weatherData.lowTemp && weatherData.highTemp)
+        });
         setWeather(weatherData);
         setRetryCount(0);
       } else if (mountedRef.current) {
@@ -113,7 +119,7 @@ export const useSegmentWeather = ({
         setLoading(false);
       }
     }
-  }, [segmentEndCity, hasApiKey, segmentDate, weatherService, deduplicationService, setLoading, setError, setWeather, setRetryCount, mountedRef, subscriberId]);
+  }, [segmentEndCity, hasApiKey, segmentDate, setLoading, setError, setWeather, setRetryCount, mountedRef, subscriberId, deduplicationService]);
 
   useEffect(() => {
     mountedRef.current = true;

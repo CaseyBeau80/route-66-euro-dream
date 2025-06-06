@@ -28,23 +28,37 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     isActualForecast: weather.isActualForecast,
     daysFromNow,
     cityName: weather.cityName,
-    description: weather.description
+    description: weather.description,
+    source: (weather as any).source
   });
 
-  // Show historical data if: 
-  // 1. It's explicitly not a forecast (isActualForecast: false), OR
-  // 2. It's beyond 5 days from now, OR  
-  // 3. The description indicates forecast is not available
+  // Check if we should show historical data based on multiple conditions
   const shouldShowHistorical = !weather.isActualForecast || 
                               (daysFromNow && daysFromNow > 5) || 
-                              weather.description === 'Forecast not available';
+                              weather.description === 'Forecast not available' ||
+                              (weather as any).source === 'historical';
+
+  // Get historical data if needed
+  let displayData = weather;
+  if (shouldShowHistorical && segmentDate) {
+    console.log(`📊 Preparing historical display for ${weather.cityName} (${daysFromNow} days ahead)`);
+    
+    // Check if we already have historical temp data, otherwise fetch it
+    if (!weather.lowTemp || !weather.highTemp) {
+      const historicalData = getHistoricalWeatherData(weather.cityName, segmentDate);
+      displayData = {
+        ...weather,
+        lowTemp: historicalData.low,
+        highTemp: historicalData.high,
+        description: historicalData.condition,
+        humidity: historicalData.humidity,
+        windSpeed: historicalData.windSpeed
+      };
+      console.log('📊 Enhanced weather with historical data:', displayData);
+    }
+  }
 
   if (shouldShowHistorical && segmentDate) {
-    console.log(`📊 Displaying historical data for ${weather.cityName} (${daysFromNow} days ahead)`);
-    
-    // Get historical weather data for this date
-    const historicalData = getHistoricalWeatherData(weather.cityName, segmentDate);
-    
     return (
       <div className="space-y-3">
         <WeatherStatusBadge 
@@ -53,35 +67,41 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         />
         
         <div className="text-center mb-4">
-          <div className="font-semibold text-gray-800 capitalize text-sm">{historicalData.condition}</div>
+          <div className="font-semibold text-gray-800 capitalize text-sm">{displayData.description}</div>
           <div className="text-xs text-gray-600">
             {segmentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </div>
         </div>
 
         {/* Historical Temperature Layout: Low | Thermometer | High */}
-        <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-lg border border-gray-200 md:gap-6">
-          {/* Low Temperature */}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{historicalData.low}°</div>
-            <div className="text-xs text-gray-500">Typical Low</div>
+        {displayData.lowTemp !== undefined && displayData.highTemp !== undefined ? (
+          <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-lg border border-gray-200 md:gap-6">
+            {/* Low Temperature */}
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{displayData.lowTemp}°</div>
+              <div className="text-xs text-gray-500">Typical Low</div>
+            </div>
+            
+            {/* Thermometer Icon for Historical */}
+            <div className="flex-shrink-0">
+              <div className="text-4xl">🌡️</div>
+            </div>
+            
+            {/* High Temperature */}
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{displayData.highTemp}°</div>
+              <div className="text-xs text-gray-500">Typical High</div>
+            </div>
           </div>
-          
-          {/* Thermometer Icon for Historical */}
-          <div className="flex-shrink-0">
-            <div className="text-4xl">🌡️</div>
+        ) : (
+          <div className="text-center p-4 bg-gray-50 rounded">
+            <div className="text-gray-600">Historical data not available</div>
           </div>
-          
-          {/* High Temperature */}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{historicalData.high}°</div>
-            <div className="text-xs text-gray-500">Typical High</div>
-          </div>
-        </div>
+        )}
 
         <WeatherStats 
-          humidity={historicalData.humidity}
-          windSpeed={historicalData.windSpeed}
+          humidity={displayData.humidity}
+          windSpeed={displayData.windSpeed}
         />
 
         <div className="text-xs text-blue-700 italic bg-blue-50 p-2 rounded">
