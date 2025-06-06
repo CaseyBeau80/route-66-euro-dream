@@ -2,15 +2,13 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { SegmentTiming } from './SubStopTimingCalculator';
-import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
+import { SegmentTiming, DailySegment, DriveTimeCategory } from './TripPlanBuilder';
 
 // Re-export types for backward compatibility
 export type { SegmentTiming };
 
-// Define DailySegment interface here for compatibility
-// with the existing implementation
-export interface DailySegmentCreatorResult extends DailySegment {
+// Define DailySegmentCreatorResult interface with more specific types
+export interface DailySegmentCreatorResult extends Omit<DailySegment, 'driveTimeCategory'> {
   title: string;
   distance: number; // Distance in miles
   drivingTime: number; // Driving time in hours
@@ -19,7 +17,7 @@ export interface DailySegmentCreatorResult extends DailySegment {
   subStopTimings: SegmentTiming[]; // Timings for sub-stops
   routeSection: string;
   driveTimeCategory: {
-    category: string;
+    category: 'short' | 'optimal' | 'long' | 'extreme';
     color: string;
     message: string; // Changed from description to message
   };

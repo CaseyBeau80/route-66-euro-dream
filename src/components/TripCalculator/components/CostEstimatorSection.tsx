@@ -16,12 +16,24 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData })
   
   // Create a complete mock trip plan for cost estimation
   const mockTripPlan: TripPlan = {
+    id: `trip-${Math.random().toString(36).substring(2, 9)}`,
     title: `${formData.startLocation} to ${formData.endLocation} Road Trip`,
     startCity: formData.startLocation,
     endCity: formData.endLocation,
+    startDate: formData.tripStartDate || new Date(),
     totalDays: formData.travelDays,
     totalDistance: formData.travelDays * 300, // Estimate based on days
     totalDrivingTime: formData.travelDays * 6, // Estimate 6 hours per day
+    dailySegments: Array.from({ length: formData.travelDays }, (_, i) => ({
+      day: i + 1,
+      title: `Day ${i + 1}`,
+      startCity: i === 0 ? formData.startLocation : `Stop ${i}`,
+      endCity: i === formData.travelDays - 1 ? formData.endLocation : `Stop ${i + 1}`,
+      approximateMiles: 300,
+      driveTimeHours: 6,
+      distance: 300,
+      drivingTime: 6
+    })),
     segments: Array.from({ length: formData.travelDays }, (_, i) => ({
       day: i + 1,
       title: `Day ${i + 1}`,
@@ -35,7 +47,7 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData })
     driveTimeBalance: {
       isBalanced: true,
       averageDriveTime: 6,
-      balanceQuality: 'good'
+      balanceQuality: "good"
     }
   };
 

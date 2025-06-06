@@ -18,8 +18,10 @@ export interface TripPlan {
   driveTimeBalance?: {
     isBalanced: boolean;
     averageDriveTime: number;
-    balanceQuality: string;
+    balanceQuality: "excellent" | "good" | "fair" | "poor";
+    suggestions?: string[];
   };
+  originalDays?: number;
 }
 
 export interface DailySegment {
@@ -48,14 +50,23 @@ export interface DailySegment {
 export interface DriveTimeCategory {
   category: 'short' | 'optimal' | 'long' | 'extreme';
   message: string;
+  color?: string;
 }
 
 export interface RecommendedStop {
+  id: string;
   name: string;
   description?: string;
   latitude: number;
   longitude: number;
   category?: string;
+}
+
+export interface SegmentTiming {
+  fromStop: any;
+  toStop: any;
+  distance: number;
+  drivingTime: number;
 }
 
 export class TripPlanBuilder {
@@ -123,6 +134,25 @@ export class TripPlanBuilder {
     this.tripPlan.segments = this.dailySegments; // Ensure both properties point to the same data
     this.tripPlan.totalMiles = Math.round(this.tripPlan.totalDistance); // Set totalMiles as rounded totalDistance
     return this.tripPlan;
+  }
+
+  // Adding the static buildTripPlan method that was missing
+  static buildTripPlan(
+    startCity: string, 
+    endCity: string, 
+    startDate: Date, 
+    totalDays: number, 
+    segments: DailySegment[], 
+    totalDistance: number
+  ): TripPlan {
+    const builder = new TripPlanBuilder(startCity, endCity, startDate, totalDays);
+    builder.withTotalDistance(totalDistance);
+    
+    segments.forEach(segment => {
+      builder.addSegment(segment);
+    });
+    
+    return builder.build();
   }
 
   private generateId(): string {

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Marker, Polyline } from '@react-google-maps/api';
-import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import { DailySegment, RecommendedStop } from '../../services/planning/TripPlanBuilder';
 import { createStartMarkerIcon, createEndMarkerIcon, createStopMarkerIcon } from './MapMarkerIcons';
 
 interface MapMarkersProps {
@@ -36,17 +36,23 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ segment }) => {
       />
 
       {/* Recommended Stop Markers */}
-      {segment.recommendedStops.map((stop, index) => (
-        <Marker
-          key={stop.id}
-          position={{
-            lat: stop.latitude,
-            lng: stop.longitude
-          }}
-          title={stop.name}
-          icon={createStopMarkerIcon(index)}
-        />
-      ))}
+      {segment.recommendedStops?.map((stop, index) => {
+        // Ensure stop has an id property
+        const stopWithId = stop as RecommendedStop & { id?: string };
+        const stopId = stopWithId.id || `stop-${index}`;
+        
+        return (
+          <Marker
+            key={stopId}
+            position={{
+              lat: stop.latitude,
+              lng: stop.longitude
+            }}
+            title={stop.name}
+            icon={createStopMarkerIcon(index)}
+          />
+        );
+      })}
 
       {/* Route Path */}
       <Polyline
@@ -55,7 +61,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ segment }) => {
             lat: segment.subStopTimings[0].fromStop.latitude,
             lng: segment.subStopTimings[0].fromStop.longitude
           },
-          ...segment.recommendedStops.map(stop => ({
+          ...(segment.recommendedStops || []).map(stop => ({
             lat: stop.latitude,
             lng: stop.longitude
           })),

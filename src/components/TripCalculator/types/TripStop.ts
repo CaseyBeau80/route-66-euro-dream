@@ -12,6 +12,8 @@ export interface TripStop {
   image_url?: string;
   is_major_stop?: boolean;
   is_official_destination?: boolean;
+  // Add city property to satisfy destination interface
+  city?: string;
 }
 
 // Type guard to validate TripStop objects
@@ -36,6 +38,7 @@ export const convertToTripStop = (obj: any): TripStop => {
     description: obj.description || `Discover ${obj.name || 'this location'} along your Route 66 journey`,
     category: obj.category || 'attraction',
     city_name: obj.city_name || 'Unknown',
+    city: obj.city || obj.city_name || 'Unknown', // Add city property
     state: obj.state || 'Unknown',
     latitude: obj.latitude || 0,
     longitude: obj.longitude || 0,
