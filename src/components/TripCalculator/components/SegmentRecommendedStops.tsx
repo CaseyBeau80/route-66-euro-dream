@@ -136,15 +136,10 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
   };
 
   const validStops = getValidatedStops();
-  const maxDisplayed = 3;
-  const additionalStopsCount = Math.max(0, validStops.length - maxDisplayed);
 
   console.log('🎯 SegmentRecommendedStops final render:', {
     segmentDay: segment.day,
     validatedStopsCount: validStops.length,
-    maxDisplayed,
-    additionalStopsCount,
-    willShowAdditionalText: additionalStopsCount > 0,
     stopNames: validStops.map(s => s.name)
   });
 
@@ -155,14 +150,9 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
       </h4>
       {validStops.length > 0 ? (
         <div className="space-y-2">
-          {validStops.slice(0, maxDisplayed).map((stop) => (
+          {validStops.map((stop) => (
             <StopCard key={stop.id} stop={stop} />
           ))}
-          {additionalStopsCount > 0 && (
-            <div className="text-xs text-route66-vintage-brown italic">
-              +{additionalStopsCount} more stops (view in detailed breakdown)
-            </div>
-          )}
         </div>
       ) : (
         <p className="text-sm text-route66-vintage-brown italic">
