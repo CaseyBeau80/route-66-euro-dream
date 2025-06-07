@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TripService } from '../TripCalculator/services/TripService';
 import { TripPlan } from '../TripCalculator/services/planning/TripPlanBuilder';
 import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
@@ -12,6 +12,10 @@ import { toast } from '@/hooks/use-toast';
 const Route66TripCalculator: React.FC = () => {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   
+  useEffect(() => {
+    console.log('🎯 Route66TripCalculator component mounted');
+  }, []);
+
   const {
     formData,
     setFormData,
@@ -29,6 +33,7 @@ const Route66TripCalculator: React.FC = () => {
 
   const handleShareTrip = async (tripPlan: TripPlan) => {
     try {
+      console.log('🔗 Attempting to share trip...');
       const shareCode = await TripService.saveTrip(tripPlan);
       if (shareCode) {
         const newShareUrl = TripService.getShareUrl(shareCode);
@@ -45,7 +50,7 @@ const Route66TripCalculator: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error sharing trip:', error);
+      console.error('❌ Error sharing trip:', error);
       toast({
         title: "Sharing Error",
         description: "An error occurred while sharing the trip.",
@@ -55,11 +60,24 @@ const Route66TripCalculator: React.FC = () => {
   };
 
   const handleCalculateTrip = async () => {
-    setShareUrl(null);
-    await calculateTrip(formData);
+    try {
+      console.log('🚗 Starting trip calculation...');
+      setShareUrl(null);
+      await calculateTrip(formData);
+      console.log('✅ Trip calculation completed');
+    } catch (error) {
+      console.error('❌ Error in handleCalculateTrip:', error);
+    }
   };
 
   const availableEndLocations = getAvailableEndLocations();
+
+  console.log('🎯 Route66TripCalculator render state:', {
+    hasFormData: !!formData,
+    hasTripPlan: !!tripPlan,
+    isCalculating,
+    availableEndLocationsCount: availableEndLocations.length
+  });
 
   return (
     <div className="space-y-8">

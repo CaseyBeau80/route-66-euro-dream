@@ -1,10 +1,31 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+
+  useEffect(() => {
+    console.log('🚗 TripCalculator page mounted');
+    
+    // Check for any critical errors on mount
+    const handleError = (event: ErrorEvent) => {
+      console.error('❌ Critical error in TripCalculator:', event.error);
+    };
+    
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('❌ Unhandled promise rejection in TripCalculator:', event.reason);
+    };
+    
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
