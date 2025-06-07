@@ -6,7 +6,7 @@ const Logo = () => {
     <Link to="/" className="flex items-center space-x-3 group">
       <div className="relative">
         <img 
-          src="/lovable-uploads/35742d8b-3598-4ccd-9786-d18ad8c5f18f.png" 
+          src="/lovable-uploads/79d1bcf2-04dd-4206-8f0b-14e6cdce4cdc.png" 
           alt="Ramble Route 66 logo" 
           className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
         />
