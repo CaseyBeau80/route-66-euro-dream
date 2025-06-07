@@ -23,11 +23,29 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
 
+  // Safely convert tripStartDate to a valid Date object
+  const validTripStartDate = React.useMemo(() => {
+    if (!tripStartDate) return undefined;
+    
+    // If it's already a Date object, check if it's valid
+    if (tripStartDate instanceof Date) {
+      return isNaN(tripStartDate.getTime()) ? undefined : tripStartDate;
+    }
+    
+    // If it's a string, try to parse it
+    if (typeof tripStartDate === 'string') {
+      const parsed = new Date(tripStartDate);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    }
+    
+    return undefined;
+  }, [tripStartDate]);
+
   console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
     segmentsCount: tripPlan.segments.length,
-    hasStartDate: !!tripStartDate,
+    hasStartDate: !!validTripStartDate,
     hasCostEstimate: !!costEstimate,
-    startDate: tripStartDate?.toISOString()
+    startDate: validTripStartDate?.toISOString()
   });
 
   const formatTime = (hours: number): string => {
@@ -42,8 +60,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   };
 
   const calculateEndDate = (): Date | null => {
-    if (!tripStartDate) return null;
-    return addDays(tripStartDate, tripPlan.totalDays - 1);
+    if (!validTripStartDate) return null;
+    return addDays(validTripStartDate, tripPlan.totalDays - 1);
   };
 
   const formatCurrency = (amount: number) => {
@@ -69,9 +87,9 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
           </CardTitle>
           <div className="text-gray-600 mt-2 space-y-1">
             <p>{tripPlan.startCity} → {tripPlan.endCity}</p>
-            {tripStartDate && (
+            {validTripStartDate && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 text-sm">
-                <span>Starts: {formatStartDate(tripStartDate)}</span>
+                <span>Starts: {formatStartDate(validTripStartDate)}</span>
                 {endDate && (
                   <>
                     <span className="hidden sm:inline">•</span>
@@ -117,7 +135,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               shareUrl={shareUrl}
               tripTitle={tripTitle}
               tripPlan={tripPlan}
-              tripStartDate={tripStartDate}
+              tripStartDate={validTripStartDate}
               variant="primary"
               size="default"
             />
@@ -128,7 +146,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       {/* Daily Itinerary with Weather Integration */}
       <TripItinerary 
         tripPlan={tripPlan} 
-        tripStartDate={tripStartDate}
+        tripStartDate={validTripStartDate}
       />
     </div>
   );
