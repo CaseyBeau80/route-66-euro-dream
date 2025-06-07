@@ -4,8 +4,8 @@ import NavigationBar from "./NavigationBar";
 
 interface MainLayoutProps {
   children: ReactNode;
-  language: "en" | "de" | "fr" | "nl";
-  setLanguage: (language: "en" | "de" | "fr" | "nl") => void;
+  language: "en" | "de" | "fr" | "pt";
+  setLanguage: (language: "en" | "de" | "fr" | "pt") => void;
 }
 
 const MainLayout = ({ children, language, setLanguage }: MainLayoutProps) => {

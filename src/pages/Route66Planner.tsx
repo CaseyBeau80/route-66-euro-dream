@@ -6,7 +6,7 @@ import PlannerResults from '@/components/Route66Planner/PlannerResults';
 import { PlannerFormData, TripItinerary } from '@/components/Route66Planner/types';
 
 const Route66Planner = () => {
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt">("en");
   const [formData, setFormData] = useState<PlannerFormData>({
     startDate: '',
     startCity: '',

@@ -4,7 +4,7 @@ import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
 
 const TripCalculator = () => {
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt">("en");
 
   useEffect(() => {
     console.log('🚗 TripCalculator page mounted');
