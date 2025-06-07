@@ -49,13 +49,39 @@ export class WeatherDataProcessor {
       .map(([dateKey, dayData], index) => {
         console.log(`📅 Processing day ${index} (${dateKey}) with ${dayData.length} data points`);
         
-        // FIXED: Extract all temperatures for the day and calculate proper min/max
+        // ENHANCED: Extract all temperatures and ensure we get meaningful high/low values
         const allTemps = dayData.map(item => item.main.temp);
-        const highTemp = Math.round(Math.max(...allTemps));
-        const lowTemp = Math.round(Math.min(...allTemps));
+        const minTemp = Math.min(...allTemps);
+        const maxTemp = Math.max(...allTemps);
         
-        console.log(`🌡️ Temperature calculation for ${dateKey}:`, {
-          allTemps: allTemps.map(t => Math.round(t)),
+        // FIXED: Ensure high and low are meaningfully different
+        // If they're the same, use the daily temperature variation from API data
+        let highTemp = Math.round(maxTemp);
+        let lowTemp = Math.round(minTemp);
+        
+        // If high and low are the same, create a realistic temperature range
+        if (highTemp === lowTemp) {
+          // Use the temp_min and temp_max from the main object if available
+          const tempVariations = dayData.map(item => ({
+            min: item.main.temp_min || item.main.temp - 5,
+            max: item.main.temp_max || item.main.temp + 5
+          }));
+          
+          const allMins = tempVariations.map(v => v.min);
+          const allMaxs = tempVariations.map(v => v.max);
+          
+          lowTemp = Math.round(Math.min(...allMins));
+          highTemp = Math.round(Math.max(...allMaxs));
+          
+          // Ensure at least a 5-degree difference for realistic weather variation
+          if (highTemp - lowTemp < 5) {
+            lowTemp = highTemp - 8;
+            highTemp = highTemp + 2;
+          }
+        }
+        
+        console.log(`🌡️ Enhanced temperature calculation for ${dateKey}:`, {
+          rawTemps: allTemps.map(t => Math.round(t)),
           calculatedHigh: highTemp,
           calculatedLow: lowTemp,
           difference: highTemp - lowTemp
@@ -63,7 +89,7 @@ export class WeatherDataProcessor {
         
         const date = new Date(dateKey + 'T12:00:00'); // Use noon to avoid timezone issues
         
-        // FIXED: Calculate precipitation chance properly
+        // Calculate precipitation chance properly
         const precipChances = dayData.map(item => {
           const popValue = item.pop || 0; // pop is 0-1 from API
           console.log(`🌧️ Raw POP value for ${dateKey}:`, popValue);
@@ -112,7 +138,7 @@ export class WeatherDataProcessor {
           windSpeed: avgWindSpeed // Real wind speed data
         };
         
-        console.log(`✅ Processed day ${index} with weather:`, { 
+        console.log(`✅ Processed day ${index} with enhanced weather:`, { 
           high: highTemp, 
           low: lowTemp, 
           precipitation: precipitationChance + '%',

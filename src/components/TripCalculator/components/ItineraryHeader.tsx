@@ -31,7 +31,7 @@ const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
       
       <div className="ml-9 space-y-3">
         <p className="text-sm text-route66-text-secondary">
-          Complete overview of your {totalDays}-day Route 66 adventure ({segmentsCount} segments loaded)
+          Complete overview of your {totalDays}-day Route 66 adventure
         </p>
         
         <MissingDaysDisplay 

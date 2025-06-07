@@ -28,7 +28,7 @@ const RouteAndStopsColumn: React.FC<RouteAndStopsColumnProps> = ({
       {/* Subtle Column Label */}
       <div className="mb-3">
         <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-          Route & Stops
+          Route & Recommended Stops
         </h4>
       </div>
       
