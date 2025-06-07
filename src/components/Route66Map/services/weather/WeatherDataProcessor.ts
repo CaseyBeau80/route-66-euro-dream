@@ -49,7 +49,18 @@ export class WeatherDataProcessor {
       .map(([dateKey, dayData], index) => {
         console.log(`📅 Processing day ${index} (${dateKey}) with ${dayData.length} data points`);
         
-        const temps = dayData.map(item => item.main.temp);
+        // FIXED: Extract all temperatures for the day and calculate proper min/max
+        const allTemps = dayData.map(item => item.main.temp);
+        const highTemp = Math.round(Math.max(...allTemps));
+        const lowTemp = Math.round(Math.min(...allTemps));
+        
+        console.log(`🌡️ Temperature calculation for ${dateKey}:`, {
+          allTemps: allTemps.map(t => Math.round(t)),
+          calculatedHigh: highTemp,
+          calculatedLow: lowTemp,
+          difference: highTemp - lowTemp
+        });
+        
         const date = new Date(dateKey + 'T12:00:00'); // Use noon to avoid timezone issues
         
         // FIXED: Calculate precipitation chance properly
@@ -88,9 +99,6 @@ export class WeatherDataProcessor {
           return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
         });
         
-        const highTemp = Math.round(Math.max(...temps));
-        const lowTemp = Math.round(Math.min(...temps));
-        
         const processedDay = {
           date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
           temperature: {
@@ -109,7 +117,8 @@ export class WeatherDataProcessor {
           low: lowTemp, 
           precipitation: precipitationChance + '%',
           humidity: avgHumidity + '%',
-          wind: avgWindSpeed + ' mph'
+          wind: avgWindSpeed + ' mph',
+          tempDifference: highTemp - lowTemp + '°F'
         });
         return processedDay;
       });
@@ -127,7 +136,12 @@ export class WeatherDataProcessor {
     
     console.log('✅ WeatherDataProcessor: Final processed data for', cityName, {
       current: currentWeather,
-      forecastCount: forecast.length
+      forecastCount: forecast.length,
+      firstForecastDay: forecast[0] ? {
+        high: forecast[0].temperature.high,
+        low: forecast[0].temperature.low,
+        difference: forecast[0].temperature.high - forecast[0].temperature.low
+      } : 'none'
     });
     
     return {

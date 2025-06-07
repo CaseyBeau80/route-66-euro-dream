@@ -26,6 +26,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     hasLowTemp: weather.lowTemp !== undefined,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
+    tempDifference: weather.highTemp && weather.lowTemp ? weather.highTemp - weather.lowTemp : 'unknown',
     isActualForecast: weather.isActualForecast,
     daysFromNow,
     cityName: weather.cityName,
@@ -48,7 +49,8 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     console.log(`📊 Preparing historical display for ${weather.cityName} (${daysFromNow} days ahead)`);
     
     // Check if we already have historical temp data, otherwise fetch it
-    if (!weather.lowTemp || !weather.highTemp) {
+    if (!weather.lowTemp || !weather.highTemp || weather.lowTemp === weather.highTemp) {
+      console.log(`🔄 Fetching fresh historical data for ${weather.cityName} due to missing or identical temps`);
       const historicalData = getHistoricalWeatherData(weather.cityName, segmentDate);
       displayData = {
         ...weather,
@@ -59,7 +61,11 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         windSpeed: historicalData.windSpeed,
         precipitationChance: historicalData.precipitationChance
       };
-      console.log('📊 Enhanced weather with historical data:', displayData);
+      console.log('📊 Enhanced weather with historical data:', {
+        low: displayData.lowTemp,
+        high: displayData.highTemp,
+        difference: displayData.highTemp - displayData.lowTemp
+      });
     }
   }
 
@@ -78,51 +84,46 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
           </div>
         </div>
 
-        {/* Historical Temperature Layout: Low | Thermometer | High with Inline Details */}
+        {/* Historical Temperature Layout: [💧] [Low] [🌡️] [High] [💨] */}
         {displayData.lowTemp !== undefined && displayData.highTemp !== undefined ? (
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
+            <div className="flex items-center justify-center gap-3 md:gap-4">
+              {/* Humidity */}
+              {displayData.humidity !== undefined && displayData.humidity > 0 && (
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">💧</span>
+                  <div className="text-xs font-medium text-blue-600">{displayData.humidity}%</div>
+                </div>
+              )}
+              
               {/* Low Temperature */}
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{displayData.lowTemp}°</div>
-                <div className="text-xs text-gray-500">Typical Low</div>
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-lg font-bold text-blue-600">{displayData.lowTemp}°</div>
+                <div className="text-xs text-gray-500">Low</div>
               </div>
               
               {/* Thermometer Icon for Historical */}
-              <div className="flex-shrink-0">
-                <div className="text-4xl">🌡️</div>
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-2xl">🌡️</div>
+                <div className="text-xs text-gray-500">Avg</div>
               </div>
               
               {/* High Temperature */}
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{displayData.highTemp}°</div>
-                <div className="text-xs text-gray-500">Typical High</div>
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-lg font-bold text-red-600">{displayData.highTemp}°</div>
+                <div className="text-xs text-gray-500">High</div>
               </div>
+              
+              {/* Wind Speed */}
+              {displayData.windSpeed !== undefined && displayData.windSpeed > 0 && (
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">💨</span>
+                  <div className="text-xs font-medium text-gray-600">
+                    {formatSpeed ? formatSpeed(displayData.windSpeed) : `${displayData.windSpeed} mph`}
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {/* Inline Weather Details */}
-            {(displayData.humidity || displayData.windSpeed || displayData.precipitationChance) && (
-              <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
-                {displayData.precipitationChance !== undefined && displayData.precipitationChance > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span>💧</span>
-                    <span>{displayData.precipitationChance}%</span>
-                  </div>
-                )}
-                {!displayData.precipitationChance && displayData.humidity !== undefined && displayData.humidity > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span>💧</span>
-                    <span>{displayData.humidity}%</span>
-                  </div>
-                )}
-                {displayData.windSpeed !== undefined && displayData.windSpeed > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span>💨</span>
-                    <span>{formatSpeed ? formatSpeed(displayData.windSpeed) : `${displayData.windSpeed} mph`}</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         ) : (
           <div className="text-center p-4 bg-gray-50 rounded">
@@ -164,51 +165,50 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Temperature Layout: Low | Icon | High with Inline Details */}
+      {/* Enhanced Temperature Layout: [💧] [Low] [Icon] [High] [💨] */}
       {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
+          <div className="flex items-center justify-center gap-3 md:gap-4">
+            {/* Humidity */}
+            {(weather.humidity !== undefined && weather.humidity > 0) || (weather.precipitationChance !== undefined && weather.precipitationChance > 0) ? (
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-lg">💧</span>
+                <div className="text-xs font-medium text-blue-600">
+                  {weather.precipitationChance !== undefined && weather.precipitationChance > 0 
+                    ? `${weather.precipitationChance}%` 
+                    : `${weather.humidity}%`}
+                </div>
+              </div>
+            ) : null}
+            
             {/* Low Temperature */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{weather.lowTemp}°</div>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-lg font-bold text-blue-600">{weather.lowTemp}°</div>
               <div className="text-xs text-gray-500">Low</div>
             </div>
             
             {/* Weather Icon */}
-            <div className="flex-shrink-0">
-              <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12 md:h-16 md:w-16" />
+            <div className="flex flex-col items-center gap-1">
+              <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-8 w-8 text-2xl" />
+              <div className="text-xs text-gray-500">Now</div>
             </div>
             
             {/* High Temperature */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{weather.highTemp}°</div>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-lg font-bold text-red-600">{weather.highTemp}°</div>
               <div className="text-xs text-gray-500">High</div>
             </div>
+            
+            {/* Wind Speed */}
+            {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-lg">💨</span>
+                <div className="text-xs font-medium text-gray-600">
+                  {formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}
+                </div>
+              </div>
+            )}
           </div>
-          
-          {/* Inline Weather Details */}
-          {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
-            <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
-              {weather.precipitationChance !== undefined && weather.precipitationChance > 0 && (
-                <div className="flex items-center gap-1">
-                  <span>💧</span>
-                  <span>{weather.precipitationChance}%</span>
-                </div>
-              )}
-              {!weather.precipitationChance && weather.humidity !== undefined && weather.humidity > 0 && (
-                <div className="flex items-center gap-1">
-                  <span>💧</span>
-                  <span>{weather.humidity}%</span>
-                </div>
-              )}
-              {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
-                <div className="flex items-center gap-1">
-                  <span>💨</span>
-                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}</span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       ) : (
         // Fallback for current temperature
