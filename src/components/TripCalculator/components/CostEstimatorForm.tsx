@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +16,16 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({
   costData,
   setCostData
 }) => {
+  // Auto-select Mid-Size car rental when toggle is enabled
+  useEffect(() => {
+    if (costData.includeCarRental && costData.carRentalType === 'compact') {
+      setCostData({
+        ...costData,
+        carRentalType: 'full-size' // This corresponds to "Full-Size ($55/day)" in the UI
+      });
+    }
+  }, [costData.includeCarRental, costData.carRentalType, setCostData]);
+
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
       <div className="flex items-center gap-2 mb-4">

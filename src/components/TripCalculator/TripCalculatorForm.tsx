@@ -40,7 +40,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   const { isFormValid } = useFormValidation(formData);
 
   const handleCalculateClick = () => {
-    console.log('🚗 Calculate button clicked', { formData, isFormValid, isCalculateDisabled });
+    console.log('🚗 Plan button clicked', { formData, isFormValid, isCalculateDisabled });
     
     if (!isFormValid) {
       console.log('⚠️ Form validation failed', {

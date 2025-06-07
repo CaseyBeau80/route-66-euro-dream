@@ -143,6 +143,12 @@ const Route66TripCalculator: React.FC = () => {
       setPlanningResult(result);
       setTripPlan(result.tripPlan);
 
+      // Show success toast notification
+      toast({
+        title: "Trip Plan Created Successfully!",
+        description: `Your ${formData.travelDays}-day Route 66 adventure from ${formData.startLocation} to ${formData.endLocation} is ready to explore.`,
+      });
+
       // Show warnings if any
       if (result.warnings && result.warnings.length > 0) {
         result.warnings.forEach(warning => {

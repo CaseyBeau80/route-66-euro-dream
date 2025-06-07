@@ -3,9 +3,9 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
-import WeatherStats from './WeatherStats';
 import SeasonalReferenceCard from './SeasonalReferenceCard';
 import { getHistoricalWeatherData } from './SeasonalWeatherService';
+import { useUnits } from '@/contexts/UnitContext';
 
 interface ForecastWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -16,6 +16,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   weather, 
   segmentDate 
 }) => {
+  const { formatSpeed } = useUnits();
   const daysFromNow = segmentDate 
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
@@ -77,37 +78,57 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
           </div>
         </div>
 
-        {/* Historical Temperature Layout: Low | Thermometer | High */}
+        {/* Historical Temperature Layout: Low | Thermometer | High with Details */}
         {displayData.lowTemp !== undefined && displayData.highTemp !== undefined ? (
-          <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-lg border border-gray-200 md:gap-6">
-            {/* Low Temperature */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{displayData.lowTemp}°</div>
-              <div className="text-xs text-gray-500">Typical Low</div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
+              {/* Low Temperature */}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{displayData.lowTemp}°</div>
+                <div className="text-xs text-gray-500">Typical Low</div>
+              </div>
+              
+              {/* Thermometer Icon for Historical */}
+              <div className="flex-shrink-0">
+                <div className="text-4xl">🌡️</div>
+              </div>
+              
+              {/* High Temperature */}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{displayData.highTemp}°</div>
+                <div className="text-xs text-gray-500">Typical High</div>
+              </div>
             </div>
             
-            {/* Thermometer Icon for Historical */}
-            <div className="flex-shrink-0">
-              <div className="text-4xl">🌡️</div>
-            </div>
-            
-            {/* High Temperature */}
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{displayData.highTemp}°</div>
-              <div className="text-xs text-gray-500">Typical High</div>
-            </div>
+            {/* Weather Details inside the white card */}
+            {(displayData.humidity || displayData.windSpeed || displayData.precipitationChance) && (
+              <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+                {displayData.precipitationChance !== undefined && displayData.precipitationChance > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span>💧</span>
+                    <span>{displayData.precipitationChance}% rain</span>
+                  </div>
+                )}
+                {!displayData.precipitationChance && displayData.humidity !== undefined && displayData.humidity > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span>💧</span>
+                    <span>{displayData.humidity}% humidity</span>
+                  </div>
+                )}
+                {displayData.windSpeed !== undefined && displayData.windSpeed > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span>💨</span>
+                    <span>{formatSpeed ? formatSpeed(displayData.windSpeed) : `${displayData.windSpeed} mph`} wind</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center p-4 bg-gray-50 rounded">
             <div className="text-gray-600">Historical data not available</div>
           </div>
         )}
-
-        <WeatherStats 
-          humidity={displayData.humidity}
-          windSpeed={displayData.windSpeed}
-          precipitationChance={displayData.precipitationChance}
-        />
 
         <div className="text-xs text-blue-700 italic bg-blue-50 p-2 rounded">
           📊 Historical average temperatures for this date in {weather.cityName}. Check live weather closer to your trip.
@@ -143,42 +164,88 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Temperature Layout: Low | Icon | High */}
+      {/* Enhanced Temperature Layout: Low | Icon | High with Details */}
       {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
-        <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-lg border border-gray-200 md:gap-6">
-          {/* Low Temperature */}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{weather.lowTemp}°</div>
-            <div className="text-xs text-gray-500">Low</div>
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
+            {/* Low Temperature */}
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{weather.lowTemp}°</div>
+              <div className="text-xs text-gray-500">Low</div>
+            </div>
+            
+            {/* Weather Icon */}
+            <div className="flex-shrink-0">
+              <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12 md:h-16 md:w-16" />
+            </div>
+            
+            {/* High Temperature */}
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{weather.highTemp}°</div>
+              <div className="text-xs text-gray-500">High</div>
+            </div>
           </div>
           
-          {/* Weather Icon */}
-          <div className="flex-shrink-0">
-            <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12 md:h-16 md:w-16" />
-          </div>
-          
-          {/* High Temperature */}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{weather.highTemp}°</div>
-            <div className="text-xs text-gray-500">High</div>
-          </div>
+          {/* Weather Details inside the white card */}
+          {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
+            <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+              {weather.precipitationChance !== undefined && weather.precipitationChance > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💧</span>
+                  <span>{weather.precipitationChance}% rain</span>
+                </div>
+              )}
+              {!weather.precipitationChance && weather.humidity !== undefined && weather.humidity > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💧</span>
+                  <span>{weather.humidity}% humidity</span>
+                </div>
+              )}
+              {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💨</span>
+                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         // Fallback for current temperature
-        <div className="flex items-center justify-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
-          <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12" />
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{weather.temperature}°</div>
-            <div className="text-xs text-gray-500">Current</div>
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-center gap-4">
+            <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12" />
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{weather.temperature}°</div>
+              <div className="text-xs text-gray-500">Current</div>
+            </div>
           </div>
+          
+          {/* Weather Details inside the white card */}
+          {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
+            <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2 mt-3">
+              {weather.precipitationChance !== undefined && weather.precipitationChance > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💧</span>
+                  <span>{weather.precipitationChance}% rain</span>
+                </div>
+              )}
+              {!weather.precipitationChance && weather.humidity !== undefined && weather.humidity > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💧</span>
+                  <span>{weather.humidity}% humidity</span>
+                </div>
+              )}
+              {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
+                <div className="flex items-center gap-1">
+                  <span>💨</span>
+                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
-
-      <WeatherStats 
-        humidity={weather.humidity}
-        windSpeed={weather.windSpeed}
-        precipitationChance={weather.precipitationChance}
-      />
 
       {!weather.isActualForecast && daysFromNow && daysFromNow <= 5 && (
         <div className="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">

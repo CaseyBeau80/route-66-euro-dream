@@ -3,9 +3,8 @@ import React from 'react';
 import { WeatherData } from '@/components/Route66Map/components/weather/WeatherTypes';
 import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
-import TemperatureDisplay from './TemperatureDisplay';
-import WeatherStats from './WeatherStats';
 import SeasonalReferenceCard from './SeasonalReferenceCard';
+import { useUnits } from '@/contexts/UnitContext';
 
 interface CurrentWeatherDisplayProps {
   weather: WeatherData;
@@ -16,6 +15,8 @@ const CurrentWeatherDisplay: React.FC<CurrentWeatherDisplayProps> = ({
   weather, 
   segmentDate 
 }) => {
+  const { formatSpeed } = useUnits();
+  
   // Check if this is a future date (used as reference)
   const isFutureReference = segmentDate && segmentDate.getTime() > Date.now();
   
@@ -34,15 +35,31 @@ const CurrentWeatherDisplay: React.FC<CurrentWeatherDisplayProps> = ({
         </div>
       </div>
 
-      <TemperatureDisplay 
-        type="current"
-        currentTemp={weather.temperature}
-      />
-
-      <WeatherStats 
-        humidity={weather.humidity}
-        windSpeed={weather.windSpeed}
-      />
+      {/* Current Temperature with Details inside white card */}
+      <div className="bg-white rounded p-4 border border-gray-200">
+        <div className="text-center mb-3">
+          <div className="text-2xl font-bold text-blue-600">{weather.temperature}°</div>
+          <div className="text-xs text-gray-500">Current Temp</div>
+        </div>
+        
+        {/* Weather Details inside the white card */}
+        {(weather.humidity || weather.windSpeed) && (
+          <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+            {weather.humidity !== undefined && weather.humidity > 0 && (
+              <div className="flex items-center gap-1">
+                <span>💧</span>
+                <span>{weather.humidity}% humidity</span>
+              </div>
+            )}
+            {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
+              <div className="flex items-center gap-1">
+                <span>💨</span>
+                <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {isFutureReference && (
         <div className="mt-4 pt-3 border-t border-gray-200">

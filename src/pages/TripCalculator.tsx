@@ -50,13 +50,13 @@ const TripCalculator = () => {
                 
                 <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="text-route66-primary text-2xl mb-2">🧮</div>
-                  <h3 className="font-bold text-route66-text-primary mb-2">Cost Calculator</h3>
+                  <h3 className="font-bold text-route66-text-primary mb-2">Trip Planner</h3>
                   <p className="text-sm text-route66-text-secondary">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
                 </div>
               </div>
             </div>
             
-            {/* Trip Calculator Container */}
+            {/* Trip Planner Container */}
             <div className="bg-white rounded-xl shadow-lg border border-route66-border p-6">
               <Route66TripCalculator />
             </div>
