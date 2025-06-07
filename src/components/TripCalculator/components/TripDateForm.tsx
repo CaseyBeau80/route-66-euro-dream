@@ -18,25 +18,29 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
+  // Ensure tripStartDate is always a Date object or undefined
+  const ensureDateObject = (date: Date | string | undefined): Date | undefined => {
+    if (!date) return undefined;
+    
+    if (date instanceof Date) {
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    
+    if (typeof date === 'string') {
+      const parsed = new Date(date);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    }
+    
+    return undefined;
+  };
+
+  const tripStartDate = ensureDateObject(formData.tripStartDate);
+
   // Calculate end date if start date and travel days are available
   const calculateEndDate = () => {
-    if (formData.tripStartDate && formData.travelDays > 0) {
+    if (tripStartDate && formData.travelDays > 0) {
       try {
-        // Ensure we have a valid Date object
-        let startDate: Date;
-        if (formData.tripStartDate instanceof Date) {
-          startDate = formData.tripStartDate;
-        } else {
-          startDate = new Date(formData.tripStartDate);
-        }
-        
-        // Validate the date
-        if (isNaN(startDate.getTime())) {
-          console.error('❌ TripDateForm: Invalid start date', formData.tripStartDate);
-          return null;
-        }
-        
-        return addDays(startDate, formData.travelDays - 1);
+        return addDays(tripStartDate, formData.travelDays - 1);
       } catch (error) {
         console.error('❌ TripDateForm: Error calculating end date:', error);
         return null;
@@ -68,27 +72,12 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",
-              !formData.tripStartDate && "text-muted-foreground"
+              !tripStartDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {formData.tripStartDate ? (
-              (() => {
-                try {
-                  const displayDate = formData.tripStartDate instanceof Date 
-                    ? formData.tripStartDate 
-                    : new Date(formData.tripStartDate);
-                  
-                  if (isNaN(displayDate.getTime())) {
-                    return "Invalid date selected";
-                  }
-                  
-                  return format(displayDate, "PPP");
-                } catch (error) {
-                  console.error('❌ Error formatting date:', error);
-                  return "Invalid date selected";
-                }
-              })()
+            {tripStartDate ? (
+              format(tripStartDate, "PPP")
             ) : (
               "Pick a start date for weather forecasts"
             )}
@@ -97,7 +86,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={formData.tripStartDate instanceof Date ? formData.tripStartDate : undefined}
+            selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={(date) => date < new Date()}
             initialFocus

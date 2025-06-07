@@ -25,7 +25,7 @@ export interface WeatherDisplayData {
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
-  tripDate: Date,
+  tripDate: Date | string,
   coordinates?: { lat: number; lng: number }
 ): Promise<WeatherDisplayData | null> => {
   // Validate and ensure tripDate is a proper Date object

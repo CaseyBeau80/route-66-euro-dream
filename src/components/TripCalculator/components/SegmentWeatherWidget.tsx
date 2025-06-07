@@ -8,7 +8,7 @@ import SegmentWeatherContent from './weather/SegmentWeatherContent';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
-  tripStartDate?: Date;
+  tripStartDate?: Date | string;
   cardIndex?: number;
   tripId?: string;
   sectionKey?: string;
@@ -28,7 +28,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
-  // Safely calculate the actual date for this segment
+  // Safely convert tripStartDate to Date object and calculate the actual date for this segment
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
       console.log('🌤️ SegmentWeatherWidget: No tripStartDate provided');
@@ -36,7 +36,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
     
     try {
-      // Validate that tripStartDate is actually a Date object
+      // Ensure we have a valid Date object
       let validStartDate: Date;
       
       if (tripStartDate instanceof Date) {
@@ -60,7 +60,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       
       if (isNaN(calculatedDate.getTime())) {
         console.error('❌ SegmentWeatherWidget: Calculated date is invalid', { 
-          validStartDate: validStartDate.toISOString(), 
+          validStartDate: validStartDate instanceof Date ? validStartDate.toISOString() : 'not a date', 
           segmentDay: segment.day, 
           calculatedDate 
         });
@@ -68,7 +68,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       }
       
       console.log('🌤️ SegmentWeatherWidget: Calculated valid segment date', {
-        startDate: validStartDate.toISOString(),
+        startDate: validStartDate instanceof Date ? validStartDate.toISOString() : 'not a date',
         segmentDay: segment.day,
         calculatedDate: calculatedDate.toISOString()
       });

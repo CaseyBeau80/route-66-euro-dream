@@ -9,7 +9,7 @@ import ErrorBoundary from './ErrorBoundary';
 
 interface WeatherForecastColumnProps {
   segments: DailySegment[];
-  tripStartDate?: Date;
+  tripStartDate?: Date | string;
   tripId?: string;
 }
 
@@ -20,7 +20,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
 }) => {
   const stableSegments = useStableSegments(segments);
 
-  // Validate tripStartDate before using it
+  // Validate and convert tripStartDate to Date object
   const validTripStartDate = React.useMemo(() => {
     if (!tripStartDate) {
       return null;
