@@ -1,5 +1,6 @@
+
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Map } from "lucide-react";
 import ScrollIndicator from "./ScrollIndicator";
 
 type HeroProps = {
@@ -80,6 +81,7 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
                 onClick={onExploreMap}
                 className="inline-flex items-center gap-3 text-white/95 font-semibold hover:text-white transition-colors duration-200 px-8 py-4 rounded-xl hover:bg-white/10 backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
               >
+                <Map size={20} />
                 <span>{isMapOpen ? content.hideMap : content.exploreMap}</span>
                 {isMapOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </button>
