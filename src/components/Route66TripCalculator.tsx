@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from './TripCalculator/types/tripCalculator';
@@ -158,6 +159,17 @@ const Route66TripCalculator: React.FC = () => {
           });
         });
       }
+
+      // Auto-scroll to trip results after successful calculation
+      setTimeout(() => {
+        const tripResultsElement = document.getElementById('trip-results');
+        if (tripResultsElement) {
+          tripResultsElement.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
 
       console.log('✅ Trip calculation completed successfully');
     } catch (error) {

@@ -77,7 +77,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
   return (
-    <div className="space-y-6 trip-content" data-trip-content="true">
+    <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
       {/* Trip Overview Header - Updated to Blue Theme */}
       <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
         <CardHeader className="text-center pb-4">

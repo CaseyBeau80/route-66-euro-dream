@@ -37,7 +37,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
 
   const navigationItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Trip Planner", href: "/trip-calculator", icon: Calculator },
+    { name: "Trip Planner", href: "/trip-calculator", icon: MapPin },
   ];
 
   const languageOptions = [
