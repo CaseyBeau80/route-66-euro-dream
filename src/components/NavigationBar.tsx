@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, MapPin, Calculator, Home, Globe } from "lucide-react";
@@ -38,7 +37,7 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
 
   const navigationItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Trip Calculator", href: "/trip-calculator", icon: Calculator },
+    { name: "Trip Planner", href: "/trip-calculator", icon: Calculator },
   ];
 
   const languageOptions = [
