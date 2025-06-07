@@ -34,22 +34,12 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
           return null;
         }
         validDate = baseDate;
-      } else if (typeof baseDate === 'string') {
-        // Try to parse string date
-        validDate = new Date(baseDate);
-        if (isNaN(validDate.getTime())) {
-          console.error('❌ useStableDate: Invalid date string provided', { 
-            baseDate, 
-            parsedDate: validDate,
-            parsedTime: validDate.getTime()
-          });
-          return null;
-        }
       } else {
-        console.error('❌ useStableDate: baseDate is not a Date or string', { 
+        // Handle non-Date types (shouldn't happen with our type signature, but for safety)
+        console.error('❌ useStableDate: baseDate is not a Date instance', { 
           baseDate, 
           type: typeof baseDate,
-          constructor: baseDate?.constructor?.name
+          constructorName: baseDate?.constructor?.name || 'unknown'
         });
         return null;
       }
