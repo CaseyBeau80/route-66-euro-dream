@@ -96,6 +96,16 @@ export const usePDFDisplay = () => {
       }
     });
 
+    // Scroll to top of the document after showing PDF
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth'
+      });
+      console.log('📄 Scrolled to top of PDF preview');
+    }, 100);
+
     // Enhanced cleanup on print with proper close button removal
     window.onafterprint = () => {
       if (document.body.contains(closeButton)) {
