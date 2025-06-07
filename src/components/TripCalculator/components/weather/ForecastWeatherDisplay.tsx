@@ -78,7 +78,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
           </div>
         </div>
 
-        {/* Historical Temperature Layout: Low | Thermometer | High with Details */}
+        {/* Historical Temperature Layout: Low | Thermometer | High with Inline Details */}
         {displayData.lowTemp !== undefined && displayData.highTemp !== undefined ? (
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
@@ -100,25 +100,25 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
               </div>
             </div>
             
-            {/* Weather Details inside the white card */}
+            {/* Inline Weather Details */}
             {(displayData.humidity || displayData.windSpeed || displayData.precipitationChance) && (
-              <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+              <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
                 {displayData.precipitationChance !== undefined && displayData.precipitationChance > 0 && (
                   <div className="flex items-center gap-1">
                     <span>💧</span>
-                    <span>{displayData.precipitationChance}% rain</span>
+                    <span>{displayData.precipitationChance}%</span>
                   </div>
                 )}
                 {!displayData.precipitationChance && displayData.humidity !== undefined && displayData.humidity > 0 && (
                   <div className="flex items-center gap-1">
                     <span>💧</span>
-                    <span>{displayData.humidity}% humidity</span>
+                    <span>{displayData.humidity}%</span>
                   </div>
                 )}
                 {displayData.windSpeed !== undefined && displayData.windSpeed > 0 && (
                   <div className="flex items-center gap-1">
                     <span>💨</span>
-                    <span>{formatSpeed ? formatSpeed(displayData.windSpeed) : `${displayData.windSpeed} mph`} wind</span>
+                    <span>{formatSpeed ? formatSpeed(displayData.windSpeed) : `${displayData.windSpeed} mph`}</span>
                   </div>
                 )}
               </div>
@@ -164,7 +164,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Temperature Layout: Low | Icon | High with Details */}
+      {/* Enhanced Temperature Layout: Low | Icon | High with Inline Details */}
       {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center justify-center gap-4 mb-3 md:gap-6">
@@ -186,25 +186,25 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
             </div>
           </div>
           
-          {/* Weather Details inside the white card */}
+          {/* Inline Weather Details */}
           {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
-            <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+            <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
               {weather.precipitationChance !== undefined && weather.precipitationChance > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💧</span>
-                  <span>{weather.precipitationChance}% rain</span>
+                  <span>{weather.precipitationChance}%</span>
                 </div>
               )}
               {!weather.precipitationChance && weather.humidity !== undefined && weather.humidity > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💧</span>
-                  <span>{weather.humidity}% humidity</span>
+                  <span>{weather.humidity}%</span>
                 </div>
               )}
               {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💨</span>
-                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}</span>
                 </div>
               )}
             </div>
@@ -213,7 +213,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       ) : (
         // Fallback for current temperature
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 mb-3">
             <WeatherIcon iconCode={weather.icon} description={weather.description} className="h-12 w-12" />
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{weather.temperature}°</div>
@@ -221,25 +221,25 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
             </div>
           </div>
           
-          {/* Weather Details inside the white card */}
+          {/* Inline Weather Details */}
           {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
-            <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2 mt-3">
+            <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
               {weather.precipitationChance !== undefined && weather.precipitationChance > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💧</span>
-                  <span>{weather.precipitationChance}% rain</span>
+                  <span>{weather.precipitationChance}%</span>
                 </div>
               )}
               {!weather.precipitationChance && weather.humidity !== undefined && weather.humidity > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💧</span>
-                  <span>{weather.humidity}% humidity</span>
+                  <span>{weather.humidity}%</span>
                 </div>
               )}
               {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
                 <div className="flex items-center gap-1">
                   <span>💨</span>
-                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+                  <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}</span>
                 </div>
               )}
             </div>

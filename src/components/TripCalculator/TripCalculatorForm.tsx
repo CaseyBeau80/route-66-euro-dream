@@ -112,14 +112,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         isFormValid={isFormValid}
       />
 
-      {/* Plan Button */}
+      {/* Plan Button - Updated text */}
       <Button
         onClick={handleCalculateClick}
         disabled={!isFormValid || isCalculating}
         className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-lg font-semibold rounded-lg flex items-center justify-center gap-2"
       >
         <MapPin className="h-5 w-5" />
-        {isCalculating ? 'Planning Your Route 66 Trip...' : 'Plan My Route 66 Trip'}
+        {isCalculating ? 'Planning Your Route 66 Adventure...' : 'Plan My Route 66 Adventure'}
       </Button>
 
       {/* Smart Planning Info */}

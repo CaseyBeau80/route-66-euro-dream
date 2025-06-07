@@ -35,26 +35,26 @@ const CurrentWeatherDisplay: React.FC<CurrentWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Current Temperature with Details inside white card */}
+      {/* Current Temperature with Inline Details */}
       <div className="bg-white rounded p-4 border border-gray-200">
         <div className="text-center mb-3">
           <div className="text-2xl font-bold text-blue-600">{weather.temperature}°</div>
           <div className="text-xs text-gray-500">Current Temp</div>
         </div>
         
-        {/* Weather Details inside the white card */}
+        {/* Inline Weather Details */}
         {(weather.humidity || weather.windSpeed) && (
-          <div className="flex justify-between text-sm text-gray-600 bg-gray-50 rounded p-2">
+          <div className="flex justify-center items-center gap-4 text-sm text-gray-600">
             {weather.humidity !== undefined && weather.humidity > 0 && (
               <div className="flex items-center gap-1">
                 <span>💧</span>
-                <span>{weather.humidity}% humidity</span>
+                <span>{weather.humidity}%</span>
               </div>
             )}
             {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
               <div className="flex items-center gap-1">
                 <span>💨</span>
-                <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`} wind</span>
+                <span>{formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}</span>
               </div>
             )}
           </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from './TripCalculator/types/tripCalculator';
@@ -145,8 +144,8 @@ const Route66TripCalculator: React.FC = () => {
 
       // Show success toast notification
       toast({
-        title: "Trip Plan Created Successfully!",
-        description: `Your ${formData.travelDays}-day Route 66 adventure from ${formData.startLocation} to ${formData.endLocation} is ready to explore.`,
+        title: "🎉 Trip Plan Created!",
+        description: `Your ${formData.travelDays}-day Route 66 adventure from ${formData.startLocation} to ${formData.endLocation} is ready to explore!`,
       });
 
       // Show warnings if any

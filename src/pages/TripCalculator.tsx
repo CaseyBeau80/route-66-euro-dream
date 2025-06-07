@@ -15,7 +15,7 @@ const TripCalculator = () => {
       <div className="pt-20 pb-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            {/* Modern Header with Blue Theme */}
+            {/* Modern Header with Blue Theme - Updated title */}
             <div className="text-center mb-8">
               <div className="flex justify-center items-center gap-4 mb-6">
                 {/* Removed Route 66 shield icon and Unit Toggle */}
