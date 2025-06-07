@@ -9,10 +9,22 @@ interface SegmentRouteProgressionProps {
 }
 
 const SegmentRouteProgression: React.FC<SegmentRouteProgressionProps> = ({ segment }) => {
-  const hasValidTimings = segment.subStopTimings && Array.isArray(segment.subStopTimings) && segment.subStopTimings.length > 0;
+  const hasValidTimings = segment.subStopTimings && 
+                         Array.isArray(segment.subStopTimings) && 
+                         segment.subStopTimings.length > 0 &&
+                         segment.subStopTimings.some(timing => timing && timing.fromStop && timing.toStop);
 
-  // Only show route progression if there are actual sub-stop timings
+  console.log('🛣️ SegmentRouteProgression render check:', {
+    segmentDay: segment.day,
+    hasSubStopTimings: !!segment.subStopTimings,
+    subStopTimingsLength: segment.subStopTimings?.length || 0,
+    hasValidTimings,
+    willRender: hasValidTimings
+  });
+
+  // Completely hide the component if there are no valid sub-stop timings
   if (!hasValidTimings) {
+    console.log('🚫 SegmentRouteProgression: No valid timings, not rendering anything');
     return null;
   }
 
