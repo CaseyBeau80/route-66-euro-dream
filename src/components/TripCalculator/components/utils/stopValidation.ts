@@ -1,9 +1,8 @@
-
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { DeterministicIdGenerator } from '../../utils/deterministicId';
 
-// ENHANCED filter function to include more user-relevant categories
+// EXPANDED filter function to include more user-relevant categories
 export const isUserRelevantStop = (stop: TripStop): boolean => {
   const userRelevantCategories = [
     'attraction',
@@ -40,72 +39,34 @@ export const isUserRelevantStop = (stop: TripStop): boolean => {
   return userRelevantCategories.some(cat => cat.toLowerCase() === stopCategory);
 };
 
-// ENHANCED geographic filtering with proper route direction checking
+// ENHANCED geographic filtering with more generous boundaries
 export const isGeographicallyRelevant = (
   stop: TripStop,
-  startCity: string,
-  endCity: string,
-  startLat?: number,
-  startLng?: number,
-  endLat?: number,
-  endLng?: number
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+  segmentDistance: number
 ): boolean => {
-  // Skip geographic validation if coordinates are missing
-  if (!stop.latitude || !stop.longitude || !startLat || !startLng || !endLat || !endLng) {
-    // For stops without coordinates, do basic city name filtering
-    const stopCityName = stop.city_name?.toLowerCase() || stop.name?.toLowerCase() || '';
-    const startCityName = startCity.toLowerCase();
-    const endCityName = endCity.toLowerCase();
-    
-    // Don't include the start city as a stop (like Chicago when starting from Joliet)
-    if (stopCityName.includes(startCityName.split(',')[0]) || startCityName.includes(stopCityName)) {
-      console.log(`🚫 Filtering out start city stop: ${stop.name} (matches start city ${startCity})`);
-      return false;
-    }
-    
-    return true;
+  // Only check geographic relevance if coordinates are available
+  if (!stop.latitude || !stop.longitude) {
+    return true; // Include stops without coordinates by default
   }
   
-  // Calculate distances
   const distanceFromStart = Math.sqrt(
-    Math.pow((stop.latitude - startLat) * 69, 2) + Math.pow((stop.longitude - startLng) * 69, 2)
-  );
+    Math.pow(stop.latitude - startLat, 2) + Math.pow(stop.longitude - startLng, 2)
+  ) * 69; // Rough miles conversion
   
   const distanceFromEnd = Math.sqrt(
-    Math.pow((stop.latitude - endLat) * 69, 2) + Math.pow((stop.longitude - endLng) * 69, 2)
-  );
+    Math.pow(stop.latitude - endLat, 2) + Math.pow(stop.longitude - endLng, 2)
+  ) * 69;
   
-  const directDistance = Math.sqrt(
-    Math.pow((endLat - startLat) * 69, 2) + Math.pow((endLng - startLng) * 69, 2)
-  );
-  
-  // Check if stop is roughly along the route using triangle inequality
+  // More generous geographic boundaries
+  const maxDetourDistance = Math.max(segmentDistance * 0.5, 150); // At least 150 miles or 50% of segment
   const totalViaStop = distanceFromStart + distanceFromEnd;
-  const detourFactor = totalViaStop / directDistance;
+  const detour = totalViaStop - segmentDistance;
   
-  // More strict filtering - stop should be roughly along the path
-  const isAlongRoute = detourFactor <= 1.3; // Allow max 30% detour
-  
-  // Also check that we're moving in the right direction
-  const movingTowardDestination = distanceFromStart < directDistance && distanceFromEnd < directDistance;
-  
-  // Don't include stops that are too close to the start (like Chicago when starting from Joliet)
-  const notTooCloseToStart = distanceFromStart > 20; // At least 20 miles from start
-  
-  const isValid = isAlongRoute && movingTowardDestination && notTooCloseToStart;
-  
-  console.log(`🔍 Geographic validation for ${stop.name}:`, {
-    distanceFromStart: Math.round(distanceFromStart),
-    distanceFromEnd: Math.round(distanceFromEnd),
-    directDistance: Math.round(directDistance),
-    detourFactor: detourFactor.toFixed(2),
-    isAlongRoute,
-    movingTowardDestination,
-    notTooCloseToStart,
-    isValid
-  });
-  
-  return isValid;
+  return detour <= maxDetourDistance && distanceFromStart <= segmentDistance * 1.2;
 };
 
 // Enhanced type guard for validating stop data with better TypeScript support
@@ -189,42 +150,6 @@ export const createStableSegmentKey = (segment: DailySegment): string => {
   return `seg-${stableProps.day}-${stableProps.startCity}-${stableProps.endCity}-r${stableProps.recommendedStopsCount}-a${stableProps.attractionsCount}`;
 };
 
-// Helper function to extract coordinates from city names or stops
-const getCoordinatesFromSegment = (segment: DailySegment): {
-  startLat?: number, startLng?: number, endLat?: number, endLng?: number
-} => {
-  // Try to extract coordinates from recommended stops that match start/end cities
-  if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
-    const startCityName = segment.startCity?.split(',')[0]?.toLowerCase();
-    const endCityName = segment.endCity?.split(',')[0]?.toLowerCase();
-    
-    let startCoords: { lat?: number, lng?: number } = {};
-    let endCoords: { lat?: number, lng?: number } = {};
-    
-    for (const stop of segment.recommendedStops) {
-      if (typeof stop === 'object' && stop.latitude && stop.longitude) {
-        const stopCityName = stop.city_name?.toLowerCase() || stop.name?.toLowerCase();
-        
-        if (stopCityName?.includes(startCityName) && !startCoords.lat) {
-          startCoords = { lat: stop.latitude, lng: stop.longitude };
-        }
-        if (stopCityName?.includes(endCityName) && !endCoords.lat) {
-          endCoords = { lat: stop.latitude, lng: stop.longitude };
-        }
-      }
-    }
-    
-    return {
-      startLat: startCoords.lat,
-      startLng: startCoords.lng,
-      endLat: endCoords.lat,
-      endLng: endCoords.lng
-    };
-  }
-  
-  return {};
-};
-
 // Get validated stops from multiple possible sources with enhanced validation
 export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   const stops: TripStop[] = [];
@@ -237,9 +162,6 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
     endCity: segment.endCity,
     segmentKey
   });
-  
-  // Get coordinates for geographic filtering
-  const { startLat, startLng, endLat, endLng } = getCoordinatesFromSegment(segment);
   
   // Primary source: recommendedStops array
   if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
@@ -256,27 +178,9 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey))
-      .filter(stop => {
-        // Apply geographic filtering
-        const isGeographicallyValid = isGeographicallyRelevant(
-          stop,
-          segment.startCity || '',
-          segment.endCity || '',
-          startLat,
-          startLng,
-          endLat,
-          endLng
-        );
-        
-        if (!isGeographicallyValid) {
-          console.log(`🚫 Filtering out geographically irrelevant stop: ${stop.name}`);
-        }
-        
-        return isGeographicallyValid;
-      });
+      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey));
     
-    console.log(`✅ Valid recommended stops after geographic filtering: ${validRecommendedStops.length}`);
+    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`);
     stops.push(...validRecommendedStops);
   }
   
@@ -296,27 +200,9 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey))
-      .filter(stop => {
-        // Apply geographic filtering to attractions as well
-        const isGeographicallyValid = isGeographicallyRelevant(
-          stop,
-          segment.startCity || '',
-          segment.endCity || '',
-          startLat,
-          startLng,
-          endLat,
-          endLng
-        );
-        
-        if (!isGeographicallyValid) {
-          console.log(`🚫 Filtering out geographically irrelevant attraction: ${stop.name}`);
-        }
-        
-        return isGeographicallyValid;
-      });
+      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey));
     
-    console.log(`✅ Valid attraction stops after geographic filtering: ${attractionStops.length}`);
+    console.log(`✅ Valid attraction stops: ${attractionStops.length}`);
     stops.push(...attractionStops);
   }
   
