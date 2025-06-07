@@ -20,26 +20,21 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
     }
     
     try {
-      // Ensure baseDate is actually a valid Date object
-      let validDate: Date;
-      
-      if (baseDate instanceof Date) {
-        // Check if it's a valid date
-        if (isNaN(baseDate.getTime())) {
-          console.error('❌ useStableDate: Invalid Date object provided', { 
-            baseDate, 
-            getTime: 'NaN',
-            toString: baseDate.toString()
-          });
-          return null;
-        }
-        validDate = baseDate;
-      } else {
-        // Handle non-Date types (shouldn't happen with our type signature, but for safety)
+      // At this point, baseDate is truthy, so check if it's a valid Date object
+      if (!(baseDate instanceof Date)) {
         console.error('❌ useStableDate: baseDate is not a Date instance', { 
           baseDate, 
-          type: typeof baseDate,
-          constructorName: baseDate?.constructor?.name || 'unknown'
+          type: typeof baseDate
+        });
+        return null;
+      }
+      
+      // Check if it's a valid date
+      if (isNaN(baseDate.getTime())) {
+        console.error('❌ useStableDate: Invalid Date object provided', { 
+          baseDate, 
+          getTime: 'NaN',
+          toString: baseDate.toString()
         });
         return null;
       }
@@ -54,12 +49,12 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      const resultDate = addDays(validDate, dayOffset - 1);
+      const resultDate = addDays(baseDate, dayOffset - 1);
       
       // Final validation of result
       if (isNaN(resultDate.getTime())) {
         console.error('❌ useStableDate: Calculated date is invalid', {
-          validDate: validDate.toISOString(),
+          baseDate: baseDate.toISOString(),
           dayOffset,
           resultDate,
           resultTime: resultDate.getTime()
@@ -68,7 +63,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
       }
       
       console.log('🗓️ useStableDate: Successfully calculated date', {
-        baseDate: validDate.toISOString(),
+        baseDate: baseDate.toISOString(),
         dayOffset,
         resultDate: resultDate.toISOString()
       });
