@@ -1,10 +1,10 @@
 
 import { useState, useCallback } from 'react';
 import { route66Towns } from '@/types/route66';
-import { TripFormData } from '../types/tripCalculator';
-import { UnifiedTripPlanningService, TripPlanningResult } from '../services/planning/UnifiedTripPlanningService';
-import { TripPlan } from '../services/planning/TripPlanBuilder';
-import { TripStop } from '../types/TripStop';
+import { TripFormData } from '../../TripCalculator/types/tripCalculator';
+import { UnifiedTripPlanningService, TripPlanningResult } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
+import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
+import { TripStop } from '../../TripCalculator/types/TripStop';
 import { toast } from '@/hooks/use-toast';
 
 export const useTripCalculation = () => {

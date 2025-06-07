@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
-import { TripFormData } from '../types/tripCalculator';
+import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 
 export const useFormData = () => {
   const [formData, setFormData] = useState<TripFormData>({

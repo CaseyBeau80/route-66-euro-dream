@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TripPlanningResult } from '../services/planning/UnifiedTripPlanningService';
+import { TripPlanningResult } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
 import { getTripStyleDisplayName, getTripStyleDescription } from '../utils/tripStyleUtils';
 
 interface TripStyleIndicatorProps {

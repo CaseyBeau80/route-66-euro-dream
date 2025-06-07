@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { TripService } from './services/TripService';
-import { TripPlan } from './services/planning/TripPlanBuilder';
-import TripCalculatorForm from './TripCalculatorForm';
-import EnhancedTripResults from './EnhancedTripResults';
+import { TripService } from '../TripCalculator/services/TripService';
+import { TripPlan } from '../TripCalculator/services/planning/TripPlanBuilder';
+import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
+import EnhancedTripResults from '../TripCalculator/EnhancedTripResults';
 import TripStyleIndicator from './components/TripStyleIndicator';
 import { useFormData } from './hooks/useFormData';
 import { useTripCalculation } from './hooks/useTripCalculation';
