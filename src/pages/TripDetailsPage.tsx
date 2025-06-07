@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar } from 'lucide-react';
@@ -11,7 +10,7 @@ import { toast } from '@/hooks/use-toast';
 const TripDetailsPage: React.FC = () => {
   const { shareCode } = useParams<{ shareCode: string }>();
   const navigate = useNavigate();
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt">("en");
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   const [trip, setTrip] = useState<SavedTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

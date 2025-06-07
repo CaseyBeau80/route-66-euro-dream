@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ type MobileNavigationProps = {
   setIsMenuOpen: (open: boolean) => void;
   isActiveRoute: (href: string) => boolean;
   language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "pt") => void;
+  setLanguage: (lang: "en" | "de" | "fr" | "pt-BR") => void;
 };
 
 const MobileNavigation = ({ 
@@ -68,7 +69,7 @@ const MobileNavigation = ({
               {languageOptions.map((option) => (
                 <button
                   key={option.code}
-                  onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "pt")}
+                  onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "pt-BR")}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     language === option.code
                       ? 'bg-route66-primary text-white shadow-md'

@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import LanguageSelector from "./LanguageSelector";
 type DesktopNavigationProps = {
   isActiveRoute: (href: string) => boolean;
   language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "pt") => void;
+  setLanguage: (lang: "en" | "de" | "fr" | "pt-BR") => void;
 };
 
 const DesktopNavigation = ({ isActiveRoute, language, setLanguage }: DesktopNavigationProps) => {

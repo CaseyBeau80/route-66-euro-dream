@@ -1,3 +1,4 @@
+
 import { useNavigationState } from "./hooks/useNavigationState";
 import Logo from "./components/Logo";
 import DesktopNavigation from "./components/DesktopNavigation";
@@ -5,7 +6,7 @@ import MobileNavigation from "./components/MobileNavigation";
 
 type NavigationBarProps = {
   language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "pt") => void;
+  setLanguage: (lang: "en" | "de" | "fr" | "pt-BR") => void;
 };
 
 const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
