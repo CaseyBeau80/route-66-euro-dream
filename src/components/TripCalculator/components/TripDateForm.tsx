@@ -63,6 +63,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
+  // Get today's date without time for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">Trip Start Date (Optional)</Label>
@@ -88,7 +92,11 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             mode="single"
             selected={tripStartDate}
             onSelect={handleDateSelect}
-            disabled={(date) => date < new Date()}
+            disabled={(date) => {
+              const checkDate = new Date(date);
+              checkDate.setHours(0, 0, 0, 0);
+              return checkDate < today;
+            }}
             initialFocus
             className="p-3 pointer-events-auto"
           />
