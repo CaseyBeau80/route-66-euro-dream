@@ -28,10 +28,58 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
-  // Calculate the actual date for this segment
-  const segmentDate = tripStartDate 
-    ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000) 
-    : null;
+  // Safely calculate the actual date for this segment
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate) {
+      console.log('🌤️ SegmentWeatherWidget: No tripStartDate provided');
+      return null;
+    }
+    
+    try {
+      // Validate that tripStartDate is actually a Date object
+      let validStartDate: Date;
+      
+      if (tripStartDate instanceof Date) {
+        if (isNaN(tripStartDate.getTime())) {
+          console.error('❌ SegmentWeatherWidget: Invalid Date object provided', tripStartDate);
+          return null;
+        }
+        validStartDate = tripStartDate;
+      } else if (typeof tripStartDate === 'string') {
+        validStartDate = new Date(tripStartDate);
+        if (isNaN(validStartDate.getTime())) {
+          console.error('❌ SegmentWeatherWidget: Invalid date string provided', tripStartDate);
+          return null;
+        }
+      } else {
+        console.error('❌ SegmentWeatherWidget: tripStartDate is not a Date or string', { tripStartDate, type: typeof tripStartDate });
+        return null;
+      }
+      
+      const calculatedDate = new Date(validStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+      
+      if (isNaN(calculatedDate.getTime())) {
+        console.error('❌ SegmentWeatherWidget: Calculated date is invalid', { 
+          validStartDate: validStartDate.toISOString(), 
+          segmentDay: segment.day, 
+          calculatedDate 
+        });
+        return null;
+      }
+      
+      console.log('🌤️ SegmentWeatherWidget: Calculated valid segment date', {
+        startDate: validStartDate.toISOString(),
+        segmentDay: segment.day,
+        calculatedDate: calculatedDate.toISOString()
+      });
+      
+      return calculatedDate;
+      
+    } catch (error) {
+      console.error('❌ SegmentWeatherWidget: Error calculating segment date:', error, { tripStartDate, segmentDay: segment.day });
+      return null;
+    }
+  }, [tripStartDate, segment.day]);
   
   const daysFromNow = segmentDate 
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 

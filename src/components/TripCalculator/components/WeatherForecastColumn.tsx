@@ -20,12 +20,43 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
 }) => {
   const stableSegments = useStableSegments(segments);
 
+  // Validate tripStartDate before using it
+  const validTripStartDate = React.useMemo(() => {
+    if (!tripStartDate) {
+      return null;
+    }
+    
+    try {
+      if (tripStartDate instanceof Date) {
+        if (isNaN(tripStartDate.getTime())) {
+          console.error('❌ WeatherForecastColumn: Invalid Date object provided', tripStartDate);
+          return null;
+        }
+        return tripStartDate;
+      } else if (typeof tripStartDate === 'string') {
+        const parsed = new Date(tripStartDate);
+        if (isNaN(parsed.getTime())) {
+          console.error('❌ WeatherForecastColumn: Invalid date string provided', tripStartDate);
+          return null;
+        }
+        return parsed;
+      } else {
+        console.error('❌ WeatherForecastColumn: tripStartDate is not a Date or string', { tripStartDate, type: typeof tripStartDate });
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ WeatherForecastColumn: Error validating tripStartDate:', error, tripStartDate);
+      return null;
+    }
+  }, [tripStartDate]);
+
   console.log('🌤️ WeatherForecastColumn render:', {
     segmentsCount: stableSegments.length,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: validTripStartDate?.toISOString(),
+    originalTripStartDate: tripStartDate
   });
 
-  if (!tripStartDate) {
+  if (!validTripStartDate) {
     return (
       <>
         {/* Subtle Column Label */}
@@ -60,7 +91,25 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
       {/* Day Cards */}
       <div className="space-y-4">
         {stableSegments.map((segment, index) => {
-          const segmentDate = addDays(tripStartDate, segment.day - 1);
+          let segmentDate: Date | null = null;
+          
+          try {
+            segmentDate = addDays(validTripStartDate, segment.day - 1);
+            
+            if (isNaN(segmentDate.getTime())) {
+              console.error('❌ WeatherForecastColumn: Invalid calculated date for segment', { 
+                segment: segment.day, 
+                startDate: validTripStartDate.toISOString() 
+              });
+              segmentDate = null;
+            }
+          } catch (error) {
+            console.error('❌ WeatherForecastColumn: Error calculating segment date:', error, { 
+              segment: segment.day, 
+              startDate: validTripStartDate 
+            });
+            segmentDate = null;
+          }
           
           return (
             <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherForecastColumn-Segment-${index}`}>
@@ -77,9 +126,11 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
                         {segment.endCity}
                       </h5>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      {format(segmentDate, 'EEE, MMM d')}
-                    </span>
+                    {segmentDate && (
+                      <span className="text-xs text-gray-500">
+                        {format(segmentDate, 'EEE, MMM d')}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -87,7 +138,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
                 <div className="p-4">
                   <SegmentWeatherWidget
                     segment={segment}
-                    tripStartDate={tripStartDate}
+                    tripStartDate={validTripStartDate}
                     cardIndex={index}
                     tripId={tripId}
                     sectionKey="weather-column"
