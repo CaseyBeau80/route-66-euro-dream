@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { route66Towns } from '@/types/route66';
-import { TripFormData } from './TripCalculator/types/tripCalculator';
-import { UnifiedTripPlanningService, TripPlanningResult } from './TripCalculator/services/planning/UnifiedTripPlanningService';
-import { TripService } from './TripCalculator/services/TripService';
-import { TripPlan } from './TripCalculator/services/planning/TripPlanBuilder';
-import { TripStop } from './TripCalculator/types/TripStop';
-import TripCalculatorForm from './TripCalculator/TripCalculatorForm';
-import EnhancedTripResults from './TripCalculator/EnhancedTripResults';
+import { TripFormData } from './types/tripCalculator';
+import { UnifiedTripPlanningService, TripPlanningResult } from './services/planning/UnifiedTripPlanningService';
+import { TripService } from './services/TripService';
+import { TripPlan } from './services/planning/TripPlanBuilder';
+import { TripStop } from './types/TripStop';
+import TripCalculatorForm from './TripCalculatorForm';
+import EnhancedTripResults from './EnhancedTripResults';
 import { toast } from '@/hooks/use-toast';
 
 const Route66TripCalculator: React.FC = () => {
