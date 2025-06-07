@@ -354,6 +354,7 @@ export type Database = {
           title: string | null
           trip_data: Json
           updated_at: string
+          user_id: string | null
           view_count: number
         }
         Insert: {
@@ -364,6 +365,7 @@ export type Database = {
           title?: string | null
           trip_data: Json
           updated_at?: string
+          user_id?: string | null
           view_count?: number
         }
         Update: {
@@ -374,6 +376,7 @@ export type Database = {
           title?: string | null
           trip_data?: Json
           updated_at?: string
+          user_id?: string | null
           view_count?: number
         }
         Relationships: []
