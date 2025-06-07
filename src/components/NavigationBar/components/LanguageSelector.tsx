@@ -12,7 +12,7 @@ import { languageOptions } from "../constants/navigationConfig";
 
 type LanguageSelectorProps = {
   language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "nl") => void;
+  setLanguage: (lang: "en" | "de" | "fr" | "pt") => void;
 };
 
 const LanguageSelector = ({ language, setLanguage }: LanguageSelectorProps) => {
@@ -33,7 +33,7 @@ const LanguageSelector = ({ language, setLanguage }: LanguageSelectorProps) => {
                   className={`flex items-center space-x-3 w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-200 hover:bg-route66-primary/10 ${
                     language === option.code ? 'bg-route66-primary text-white font-medium' : 'text-route66-text-secondary'
                   }`}
-                  onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "nl")}
+                  onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "pt")}
                 >
                   <span className="text-lg">{option.flag}</span>
                   <span>{option.name}</span>
