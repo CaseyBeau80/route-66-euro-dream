@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AlertTriangle, Plus, Info, X, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -34,6 +33,8 @@ const MissingDaysDisplay: React.FC<MissingDaysDisplayProps> = ({
     
     if (missingCount === 1) {
       return `Don't worry! Day ${missingDays[0]} is missing because we're still perfecting our Route 66 planning for certain segments${routeInfo}. Your trip will still be amazing, and you can add your own plans for this day.`;
+    } else if (missingCount === 2) {
+      return `A couple of days (${missingDays.join(', ')}) are missing from your itinerary${routeInfo}. This often happens when destinations are very close together or far apart. Your adventure will still be incredible!`;
     } else if (missingCount <= 3) {
       return `A few days (${missingDays.join(', ')}) are missing from your itinerary${routeInfo}. This often happens when destinations are very close together or far apart. Your adventure will still be incredible!`;
     } else if (missingCount <= 5) {
