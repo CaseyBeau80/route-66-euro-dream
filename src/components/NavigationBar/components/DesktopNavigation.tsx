@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import { Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navigationItems } from "../constants/navigationConfig";
 import LanguageSelector from "./LanguageSelector";
@@ -43,7 +43,7 @@ const DesktopNavigation = ({ isActiveRoute, language, setLanguage }: DesktopNavi
           className="text-route66-text-secondary hover:text-route66-primary transition-all duration-300 hover:scale-105"
           onClick={() => document.getElementById('map')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <MapPin size={18} className="mr-2" />
+          <Map size={18} className="mr-2" />
           Explore Map
         </Button>
       </div>
