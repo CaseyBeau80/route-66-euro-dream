@@ -14,7 +14,7 @@ import FunFactsOfTheDay from "../components/FunFactsOfTheDay";
 import Route66TriviaGame from "../components/Route66TriviaGame";
 
 const Index = () => {
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "nl">("en");
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt">("en");
   const [isMapOpen, setIsMapOpen] = useState(true);
   
   console.log("🏠 Index page: Rendering with reorganized layout - Hero, Centennial, Fun Facts, Trivia Game, Instagram, Map, Trip Planner, Adventures, Resources");
