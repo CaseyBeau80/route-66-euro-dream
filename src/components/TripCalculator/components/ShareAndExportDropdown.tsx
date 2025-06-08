@@ -39,7 +39,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   className,
   onShareUrlGenerated
 }) => {
-  console.log('🔽 ShareAndExportDropdown rendering with:', {
+  console.log('🔽 ShareAndExportDropdown ENHANCED rendering with:', {
     shareUrl,
     tripTitle,
     hasTripPlan: !!tripPlan,
@@ -231,7 +231,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     );
   }
 
-  console.log('✅ ShareAndExportDropdown: Rendering full dropdown');
+  console.log('✅ ShareAndExportDropdown ENHANCED: Rendering full dropdown with new styling');
 
   return (
     <div className={className}>
@@ -240,123 +240,165 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           <Button
             variant={variant === 'primary' ? 'default' : 'outline'}
             size={size}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 font-medium"
+            className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-semibold tracking-wide"
             disabled={isAutoSaving}
           >
             {isAutoSaving ? (
               <>
-                <Save className="w-4 h-4 animate-spin" />
-                Saving...
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                  Saving...
+                </span>
               </>
             ) : (
               <>
-                <Share2 className="w-4 h-4" />
-                Share & Export
-                <ChevronDown className="w-4 h-4" />
+                <Share2 className="w-4 h-4 mr-2" />
+                <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                  Share & Export
+                </span>
+                <ChevronDown className="w-4 h-4 ml-2" />
               </>
             )}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 hover:opacity-10 transition-opacity duration-300 transform skew-x-12"></div>
           </Button>
         </DropdownMenuTrigger>
         
         <DropdownMenuContent 
-          className="w-72 bg-white border-2 border-blue-200 shadow-xl rounded-xl z-50 p-2"
+          className="w-80 bg-white/95 backdrop-blur-lg border-2 border-blue-200/50 shadow-2xl rounded-2xl z-50 p-0 overflow-hidden"
           align="end"
-          sideOffset={8}
+          sideOffset={12}
         >
-          {/* Share Options Section */}
-          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Link className="w-4 h-4 text-blue-600" />
-              Share Your Trip
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-blue-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Share2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800 text-lg leading-tight">Share Your Adventure</h3>
+                <p className="text-sm text-gray-600 leading-tight">Export and share your Route 66 journey</p>
+              </div>
             </div>
-          </DropdownMenuLabel>
-          
-          <DropdownMenuItem
-            onClick={handleCopyLink}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
-          >
-            <Copy className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800 text-sm">
-                {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
-              </span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                Get a link to share your complete itinerary with others
-              </span>
-            </div>
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem
-            onClick={handleShareViaEmail}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
-          >
-            <Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800 text-sm">Share via Email</span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                Send your trip plan directly to friends and family
-              </span>
-            </div>
-          </DropdownMenuItem>
-          
-          <DropdownMenuSeparator className="bg-gray-200 my-2" />
-          
-          {/* Export Options Section */}
-          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              Calendar & Planning
-            </div>
-          </DropdownMenuLabel>
-          
-          <DropdownMenuItem
-            onClick={handleAddToGoogleCalendar}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
-          >
-            <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800 text-sm">Add to Google Calendar</span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                Create calendar events for your Route 66 adventure
-              </span>
-            </div>
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem
-            onClick={handleDownloadICS}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
-          >
-            <Download className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800 text-sm">Download Calendar File</span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                Compatible with Apple Calendar, Outlook, and other apps
-              </span>
-            </div>
-          </DropdownMenuItem>
+          </div>
 
-          <DropdownMenuSeparator className="bg-gray-200 my-2" />
-          
-          {/* Document Export Section */}
-          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-600" />
-              Export Options
+          <div className="p-2">
+            {/* Share Options Section */}
+            <div className="mb-1">
+              <DropdownMenuLabel className="text-sm font-bold text-gray-700 px-4 py-3 bg-gradient-to-r from-blue-50 to-transparent">
+                <div className="flex items-center gap-2">
+                  <Link className="w-4 h-4 text-blue-600" />
+                  Share Your Trip
+                </div>
+              </DropdownMenuLabel>
+              
+              <DropdownMenuItem
+                onClick={handleCopyLink}
+                className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-purple-200 transition-all duration-200">
+                  <Copy className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-base leading-tight">
+                    {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    Get a link to share your complete itinerary with others
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem
+                onClick={handleShareViaEmail}
+                className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg flex items-center justify-center group-hover:from-green-200 group-hover:to-blue-200 transition-all duration-200">
+                  <Mail className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-base leading-tight">Share via Email</div>
+                  <div className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    Send your trip plan directly to friends and family
+                  </div>
+                </div>
+              </DropdownMenuItem>
             </div>
-          </DropdownMenuLabel>
-          
-          <DropdownMenuItem
-            onClick={handlePDFExport}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
-          >
-            <Download className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800 text-sm">Export Trip as PDF</span>
-              <span className="text-xs text-gray-500 mt-0.5">
-                Create a beautiful printable version of your itinerary
-              </span>
+            
+            <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-200 to-transparent my-3" />
+            
+            {/* Calendar Export Section */}
+            <div className="mb-1">
+              <DropdownMenuLabel className="text-sm font-bold text-gray-700 px-4 py-3 bg-gradient-to-r from-purple-50 to-transparent">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-600" />
+                  Calendar & Planning
+                </div>
+              </DropdownMenuLabel>
+              
+              <DropdownMenuItem
+                onClick={handleAddToGoogleCalendar}
+                className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex items-center justify-center group-hover:from-purple-200 group-hover:to-pink-200 transition-all duration-200">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-base leading-tight">Add to Google Calendar</div>
+                  <div className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    Create calendar events for your Route 66 adventure
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem
+                onClick={handleDownloadICS}
+                className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-lg flex items-center justify-center group-hover:from-orange-200 group-hover:to-red-200 transition-all duration-200">
+                  <Download className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-base leading-tight">Download Calendar File</div>
+                  <div className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    Compatible with Apple Calendar, Outlook, and other apps
+                  </div>
+                </div>
+              </DropdownMenuItem>
             </div>
-          </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-gray-200 to-transparent my-3" />
+            
+            {/* Document Export Section */}
+            <div className="mb-1">
+              <DropdownMenuLabel className="text-sm font-bold text-gray-700 px-4 py-3 bg-gradient-to-r from-green-50 to-transparent">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-green-600" />
+                  Export Options
+                </div>
+              </DropdownMenuLabel>
+              
+              <DropdownMenuItem
+                onClick={handlePDFExport}
+                className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-teal-100 rounded-lg flex items-center justify-center group-hover:from-green-200 group-hover:to-teal-200 transition-all duration-200">
+                  <FileText className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-base leading-tight">Export Trip as PDF</div>
+                  <div className="text-sm text-gray-600 mt-1 leading-relaxed">
+                    Create a beautiful printable version of your itinerary
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500 text-center leading-relaxed">
+              Powered by Ramble 66 - Your Route 66 Adventure Starts Here
+            </p>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
 
