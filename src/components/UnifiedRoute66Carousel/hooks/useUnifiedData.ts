@@ -174,7 +174,12 @@ export const useUnifiedData = () => {
     });
   };
 
-  const hasActiveFilters = filters.type !== 'all' || filters.state || filters.city || filters.search;
+  const hasActiveFilters = Boolean(
+    filters.type !== 'all' || 
+    filters.state || 
+    filters.city || 
+    filters.search
+  );
 
   return {
     items: filteredItems,
