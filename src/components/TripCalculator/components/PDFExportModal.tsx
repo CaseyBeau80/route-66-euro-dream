@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Printer, X, AlertCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Printer, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { usePDFExport } from './pdf/hooks/usePDFExport';
 import { usePDFKeyboardHandlers } from './pdf/hooks/usePDFKeyboardHandlers';
@@ -45,6 +46,8 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     isExporting,
     showPreview,
     weatherLoading,
+    weatherLoadingStatus,
+    weatherLoadingProgress,
     enrichedTripPlan,
     handleClosePreview,
     handleExportPDF
@@ -80,7 +83,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     window.print();
   };
 
-  // Handle export button click with enhanced debugging
+  // Handle export button click with bulletproof validation
   const handleExportClick = () => {
     console.log('🚀 PDF Export Button Clicked!');
     console.log('📊 Export State:', {
@@ -94,6 +97,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     
     if (!isTripComplete) {
       console.error('❌ Cannot export: Trip not complete');
+      alert('Cannot export PDF: Please create a trip plan first.');
       return;
     }
     
@@ -102,7 +106,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       return;
     }
     
-    console.log('✅ Calling handleExportPDF...');
+    console.log('✅ Calling bulletproof handleExportPDF...');
     handleExportPDF();
   };
 
@@ -207,11 +211,18 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 />
               </div>
 
-              {/* Weather Loading Status */}
+              {/* Enhanced Weather Loading Status */}
               {weatherLoading && (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-sm text-blue-800 font-medium">Loading enhanced weather data...</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 animate-spin" />
+                    <div className="flex-1">
+                      <div className="text-sm text-blue-800 font-medium mb-1">
+                        {weatherLoadingStatus || 'Loading enhanced weather data...'}
+                      </div>
+                      <Progress value={weatherLoadingProgress} className="h-2" />
+                    </div>
+                  </div>
                 </div>
               )}
 
