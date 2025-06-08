@@ -33,11 +33,6 @@ const CentennialDataProvider: React.FC<CentennialDataProviderProps> = ({ childre
   const { easterEggActive } = useKonamiCode();
   const { currentFact } = useRotatingFacts();
 
-  // Don't render anything until mounted to prevent hydration issues
-  if (!mounted) {
-    return null;
-  }
-
   const centennialCards = createCentennialCardsData(timeLeft, currentFact);
 
   const value: CentennialDataContextType = {

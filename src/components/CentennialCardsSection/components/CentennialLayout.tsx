@@ -8,7 +8,18 @@ import BottomCelebrationElements from './BottomCelebrationElements';
 import { useCentennialData } from './CentennialDataProvider';
 
 const CentennialLayout: React.FC = () => {
-  const { easterEggActive, centennialCards } = useCentennialData();
+  const { easterEggActive, centennialCards, mounted } = useCentennialData();
+
+  // Don't render anything until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center py-16">
+          <div className="animate-pulse">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
