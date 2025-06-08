@@ -25,7 +25,6 @@ export const triviaCardData: CentennialCardData = {
         
         {/* Content with enhanced visibility */}
         <div className="relative z-20">
-          <div className="text-2xl font-bold text-purple-800 mb-2">🧠</div>
           <div className="text-sm text-purple-700 font-medium mb-2">
             Test Your Route 66 Knowledge
           </div>

@@ -16,8 +16,8 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
   content: (
     <div className="text-center space-y-3 relative" aria-label="Countdown to Route 66's centennial birthday">
       <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative overflow-hidden min-h-[140px] flex flex-col justify-center">
-        {/* Birthday cake illustration - background only */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none" aria-hidden="true">
+        {/* Birthday cake illustration - background only, moved lower */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none" aria-hidden="true" style={{ transform: 'translateY(20px)' }}>
           <div className="relative scale-[1.8]">
             <div className="flex flex-col items-center">
               {/* Top tier - smallest */}
@@ -50,36 +50,36 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
           </div>
         </div>
         
-        {/* Candles positioned correctly on TOP of the top tier */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        {/* Candles positioned correctly on TOP of the top tier, moved higher */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10" style={{ transform: 'translateY(5px)' }}>
           <div className="relative scale-[1.8]">
-            {/* Position candles directly above the top tier of the cake */}
-            <div className="absolute -top-[2.75rem] left-1/2 transform -translate-x-1/2 flex gap-1.5 opacity-100">
+            {/* Position candles higher above the top tier of the cake */}
+            <div className="absolute -top-[3.5rem] left-1/2 transform -translate-x-1/2 flex gap-1.5 opacity-100">
               <div className="flex flex-col items-center">
-                {/* Flame with enhanced visibility */}
-                <div className="relative opacity-100 z-10">
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg"></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
+                {/* Flame with enhanced visibility, moved higher */}
+                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-1.5 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg"></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
                 </div>
                 {/* Candle body - positioned to sit directly on top tier */}
                 <div className="w-2 h-3 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                <div className="relative opacity-100 z-10">
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
+                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-1.5 h-5 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.4s'}}></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
                 </div>
                 <div className="w-2 h-3 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                <div className="relative opacity-100 z-10">
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
+                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-1.5 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.8s'}}></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
+                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
                 </div>
                 <div className="w-2 h-3 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
               </div>

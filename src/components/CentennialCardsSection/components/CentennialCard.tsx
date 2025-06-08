@@ -2,8 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface CentennialCardProps {
   id: string;
@@ -28,7 +27,6 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
   route,
   content,
   accentColor,
-  buttonText,
   sparkleColor,
   index
 }) => {
@@ -126,21 +124,9 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         </div>
 
         {/* Description */}
-        <p className="text-sm text-slate-600 line-clamp-3 group-hover:text-slate-700 transition-colors duration-300 mb-4">
+        <p className="text-sm text-slate-600 line-clamp-3 group-hover:text-slate-700 transition-colors duration-300">
           {description}
         </p>
-
-        {/* Action Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full min-h-[40px] py-2 border-2 border-blue-300 text-blue-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-600 transition-colors duration-200 group/button font-medium"
-          aria-label={`${buttonText} for ${title}`}
-          disabled={id === 'countdown'}
-        >
-          <span>{buttonText}</span>
-          <ArrowRight className="h-4 w-4 ml-2 group-hover/button:translate-x-1 transition-transform duration-300" />
-        </Button>
       </CardContent>
     </Card>
   );
