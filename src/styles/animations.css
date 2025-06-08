@@ -191,21 +191,21 @@
     transform: translateY(0);
   }
   40% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   60% {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
   }
 }
 
 @keyframes birthday-sparkle {
   0%, 100% {
-    opacity: 0;
-    transform: scale(0.5) rotate(0deg);
+    opacity: 0.3;
+    transform: scale(0.8) rotate(0deg);
   }
   50% {
     opacity: 1;
-    transform: scale(1) rotate(180deg);
+    transform: scale(1.2) rotate(180deg);
   }
 }
 
@@ -217,6 +217,27 @@
   100% {
     transform: translateY(100vh) rotate(720deg);
     opacity: 0;
+  }
+}
+
+@keyframes birthday-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(251, 146, 60, 0.6), 
+                0 0 40px rgba(239, 68, 68, 0.3);
+  }
+}
+
+@keyframes birthday-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
   }
 }
 
@@ -282,11 +303,19 @@
 }
 
 .animate-birthday-sparkle {
-  animation: birthday-sparkle 1.5s ease-in-out infinite;
+  animation: birthday-sparkle 2s ease-in-out infinite;
 }
 
 .animate-birthday-confetti {
   animation: birthday-confetti 3s linear infinite;
+}
+
+.animate-birthday-glow {
+  animation: birthday-glow 3s ease-in-out infinite;
+}
+
+.animate-birthday-pulse {
+  animation: birthday-pulse 2s ease-in-out infinite;
 }
 
 /* Utility animations */
