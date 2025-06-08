@@ -16,17 +16,17 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
   content: (
     <div className="text-center space-y-3 relative" aria-label="Countdown to Route 66's centennial birthday">
       <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative overflow-hidden min-h-[140px] flex flex-col justify-center">
-        {/* Birthday cake illustration - 30% bigger */}
+        {/* Birthday cake illustration - 30% bigger with tighter layer spacing */}
         <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none" aria-hidden="true" style={{ transform: 'translateY(20px)' }}>
           <div className="relative">
             <div className="flex flex-col items-center">
               {/* Top tier - 30% bigger */}
-              <div className="w-10 h-4 bg-gradient-to-b from-pink-200 via-pink-300 to-pink-400 rounded-lg border border-pink-400 mb-1 relative shadow-sm">
+              <div className="w-10 h-4 bg-gradient-to-b from-pink-200 via-pink-300 to-pink-400 rounded-lg border border-pink-400 mb-0.5 relative shadow-sm">
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-t-lg"></div>
               </div>
               
               {/* Middle tier - 30% bigger */}
-              <div className="w-16 h-5 bg-gradient-to-b from-pink-300 via-pink-400 to-pink-500 rounded-lg border border-pink-500 mb-1 relative shadow-md">
+              <div className="w-16 h-5 bg-gradient-to-b from-pink-300 via-pink-400 to-pink-500 rounded-lg border border-pink-500 mb-0.5 relative shadow-md">
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-200 to-rose-200 rounded-t-lg"></div>
                 <div className="absolute left-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
                 <div className="absolute right-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
