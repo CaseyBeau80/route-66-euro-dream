@@ -47,7 +47,7 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
 
   return (
     <Card
-      className={`group h-full overflow-hidden bg-white/90 backdrop-blur-sm border-2 border-blue-200 hover:border-blue-300 cursor-pointer relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
+      className={`group h-full overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 cursor-pointer relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
       onClick={() => handleCardClick(route)}
       style={{
         animationDelay: `${index * 150}ms`
@@ -99,24 +99,24 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
       </div>
 
       {/* Header with Icon */}
-      <div className="bg-gradient-to-r from-blue-50 to-slate-50 p-4 border-b border-blue-100">
+      <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-4 border-b border-slate-200">
         <div className="flex items-center gap-3 mb-2">
-          <div className="text-blue-600 group-hover:scale-110 transition-transform duration-300 motion-safe:group-hover:rotate-12 motion-reduce:group-hover:rotate-0">
+          <div className="text-blue-700 group-hover:scale-110 transition-transform duration-300 motion-safe:group-hover:rotate-12 motion-reduce:group-hover:rotate-0">
             {icon}
           </div>
-          <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+          <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">
             {subtitle}
           </div>
         </div>
         <h3 
           id={`card-title-${id}`}
-          className="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors duration-300"
+          className="font-bold text-lg text-slate-800 group-hover:text-blue-800 transition-colors duration-300"
         >
           {title}
         </h3>
       </div>
 
-      <CardContent className="p-4 flex flex-col">
+      <CardContent className="p-4 flex flex-col h-full">
         {/* Dynamic Content */}
         <div className="mb-4 flex-1">
           {content}
@@ -132,7 +132,7 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="w-full min-h-[44px] py-2 border-blue-300 text-blue-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 hover:text-white hover:border-blue-500 transition-all duration-300 group/button font-medium"
+            className="w-full h-11 py-2 border-2 border-blue-300 text-blue-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-600 transition-all duration-300 group/button font-medium"
             aria-label={`${buttonText} for ${title}`}
           >
             <span>{buttonText}</span>
