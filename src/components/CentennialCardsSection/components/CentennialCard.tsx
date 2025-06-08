@@ -35,29 +35,32 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
   const navigate = useNavigate();
 
   const handleCardClick = (route: string) => {
-    navigate(route);
+    // Make countdown card non-clickable for navigation
+    if (id !== 'countdown') {
+      navigate(route);
+    }
   };
 
   const getAriaLabel = () => {
     if (id === 'countdown') {
-      return `Birthday countdown card - Navigate to ${title} with cake celebration theme`;
+      return `Birthday countdown card - ${title} with cake celebration theme`;
     }
     return `Navigate to ${title} - ${description}`;
   };
 
   return (
     <Card
-      className={`group h-full overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 cursor-pointer relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
+      className={`group h-full overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 ${id !== 'countdown' ? 'cursor-pointer' : ''} relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in min-h-[28rem]`}
       onClick={() => handleCardClick(route)}
       style={{
         animationDelay: `${index * 150}ms`
       }}
       role="region"
       aria-labelledby={`card-title-${id}`}
-      tabIndex={0}
+      tabIndex={id !== 'countdown' ? 0 : -1}
       aria-label={getAriaLabel()}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (id !== 'countdown' && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
           handleCardClick(route);
         }
@@ -128,12 +131,13 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         </p>
 
         {/* Action Button - Consistent height and alignment */}
-        <div className="mt-auto">
+        <div className="mt-auto py-4">
           <Button
             variant="outline"
             size="sm"
-            className="w-full h-11 py-2 border-2 border-blue-300 text-blue-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-600 transition-all duration-300 group/button font-medium"
+            className="w-full min-h-[44px] py-2 border-2 border-blue-300 text-blue-800 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-600 transition-colors duration-200 group/button font-medium"
             aria-label={`${buttonText} for ${title}`}
+            disabled={id === 'countdown'}
           >
             <span>{buttonText}</span>
             <ArrowRight className="h-4 w-4 ml-2 group-hover/button:translate-x-1 transition-transform duration-300" />

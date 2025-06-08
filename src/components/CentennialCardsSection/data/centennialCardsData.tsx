@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, Book, Brain, Cake } from 'lucide-react';
 
@@ -20,22 +21,20 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     buttonText: 'Join the Countdown',
     sparkleColor: 'text-pink-400',
     content: (
-      <div className="text-center space-y-3 relative">
+      <div className="text-center space-y-3 relative" aria-label="Countdown to Route 66's centennial birthday">
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative overflow-hidden">
-          {/* Large birthday cake illustration with candles - all in background */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+          {/* Large birthday cake illustration - background only */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none" aria-hidden="true">
             <div className="relative scale-[2.5]">
               <div className="flex flex-col items-center">
                 {/* Top tier - smallest */}
                 <div className="w-10 h-3 bg-gradient-to-b from-pink-200 via-pink-300 to-pink-400 rounded-lg border border-pink-400 mb-0.5 relative shadow-sm">
-                  {/* Top tier frosting detail */}
                   <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-t-lg"></div>
                   <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-pink-100 rounded-full transform -translate-x-1/2"></div>
                 </div>
                 
                 {/* Middle tier */}
                 <div className="w-14 h-4 bg-gradient-to-b from-pink-300 via-pink-400 to-pink-500 rounded-lg border border-pink-500 mb-0.5 relative shadow-md">
-                  {/* Middle tier decorations */}
                   <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-200 to-rose-200 rounded-t-lg"></div>
                   <div className="absolute left-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
                   <div className="absolute right-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
@@ -44,7 +43,6 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                 
                 {/* Bottom tier - largest */}
                 <div className="w-16 h-5 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600 rounded-lg border border-pink-600 relative shadow-lg">
-                  {/* Bottom tier elaborate frosting */}
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-lg"></div>
                   <div className="absolute left-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
                   <div className="absolute right-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
@@ -54,12 +52,20 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                 </div>
               </div>
               
-              {/* Three candles positioned on top of the cake - now in background with cake */}
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 flex gap-1 pointer-events-none">
+              {/* Enhanced glow effect for cake */}
+              <div className="absolute inset-0 bg-gradient-radial from-pink-200/30 via-rose-200/15 to-transparent rounded-full blur-lg -z-10 motion-safe:animate-birthday-glow motion-reduce:animate-none scale-150"></div>
+            </div>
+          </div>
+          
+          {/* Candles and flames - positioned on top of cake, outside opacity wrapper, z-10 */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="relative scale-[2.5]">
+              {/* Three candles positioned on top of the top tier */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 flex gap-1 opacity-100">
                 <div className="flex flex-col items-center">
                   {/* Flame with enhanced visibility and realistic glow */}
-                  <div className="relative">
-                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg"></div>
+                  <div className="relative opacity-100 z-10">
+                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg"></div>
                     <div className="absolute inset-0 w-1 h-3 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
                     <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
@@ -68,8 +74,8 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                 </div>
                 
                 <div className="flex flex-col items-center">
-                  <div className="relative">
-                    <div className="w-1 h-3 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.4s'}}></div>
+                  <div className="relative opacity-100 z-10">
+                    <div className="w-1 h-3 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.4s'}}></div>
                     <div className="absolute inset-0 w-1 h-3 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
                     <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
@@ -77,22 +83,19 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                 </div>
                 
                 <div className="flex flex-col items-center">
-                  <div className="relative">
-                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.8s'}}></div>
+                  <div className="relative opacity-100 z-10">
+                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.8s'}}></div>
                     <div className="absolute inset-0 w-1 h-3 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
                     <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
                   <div className="w-1.5 h-4 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
                 </div>
               </div>
-              
-              {/* Enhanced glow effect for larger cake */}
-              <div className="absolute inset-0 bg-gradient-radial from-pink-200/30 via-rose-200/15 to-transparent rounded-full blur-lg -z-10 motion-safe:animate-birthday-glow motion-reduce:animate-none scale-150"></div>
             </div>
           </div>
           
           {/* Content with enhanced visibility */}
-          <div className="relative z-10">
+          <div className="relative z-20">
             <div className="text-3xl font-black text-pink-700 mb-1 tracking-wide drop-shadow-sm">
               {timeLeft.days}
             </div>

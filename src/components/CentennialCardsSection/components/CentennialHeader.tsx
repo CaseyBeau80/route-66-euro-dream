@@ -35,8 +35,8 @@ const CentennialHeader: React.FC = () => {
       </h2>
 
       {/* Get Your Kicks callout */}
-      <div className="mb-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
-        <p className="text-sm italic text-slate-600 tracking-wider font-medium">
+      <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+        <p className="text-sm italic text-muted-foreground tracking-wider font-medium">
           Get your kicks on Route 66 🎶
         </p>
       </div>
