@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Book, Brain, Cake } from 'lucide-react';
 
@@ -22,14 +21,15 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     sparkleColor: 'text-pink-400',
     content: (
       <div className="text-center space-y-3 relative">
-        {/* Animated Birthday Cake Background */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-          <div className="text-6xl motion-safe:animate-birthday-pulse motion-reduce:animate-none">🎂</div>
-        </div>
-        
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative z-10">
-          <div className="text-3xl font-black text-pink-700 mb-1 tracking-wide">
-            {timeLeft.days}
+          {/* Birthday cake behind days */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
+              <div className="text-6xl">🎂</div>
+            </div>
+            <div className="text-3xl font-black text-pink-700 mb-1 tracking-wide relative z-10">
+              {timeLeft.days}
+            </div>
           </div>
           <div className="text-xs font-semibold text-pink-600 uppercase tracking-wider mb-2">
             Days Remaining
