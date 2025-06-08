@@ -53,7 +53,7 @@ export const uploadPhotoChallenge = async (
         stop_id: stopId,
         trip_id: tripId,
         user_session_id: userSessionId,
-        moderation_result: moderationResult
+        moderation_result: moderationResult as any // Cast to Json type
       })
       .select()
       .single();
@@ -91,11 +91,7 @@ export const insertModerationResult = async (
       .from('moderation_results')
       .insert({
         photo_id: photoId,
-        adult: moderationResult.adult,
-        spoof: moderationResult.spoof,
-        medical: moderationResult.medical,
-        violence: moderationResult.violence,
-        racy: moderationResult.racy
+        result: moderationResult as any // Cast to Json type
       });
 
     if (error) {
