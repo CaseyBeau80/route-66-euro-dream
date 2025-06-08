@@ -9,7 +9,7 @@ import CactiGarden from './components/CactiGarden';
 import { Button } from '@/components/ui/button';
 
 // Only import DebugPanel in development
-const DebugPanel = process.env.NODE_ENV === 'development' 
+const DebugPanel = import.meta.env.DEV 
   ? React.lazy(() => import('./components/DebugPanel'))
   : null;
 
@@ -102,7 +102,7 @@ const Route66TriviaGame: React.FC = () => {
         </div>
 
         {/* Debug Panel - Only in development */}
-        {process.env.NODE_ENV === 'development' && DebugPanel && (
+        {import.meta.env.DEV && DebugPanel && (
           <React.Suspense fallback={null}>
             <DebugPanel gameSession={gameSession} />
           </React.Suspense>
@@ -182,7 +182,7 @@ const Route66TriviaGame: React.FC = () => {
       </div>
 
       {/* Debug Panel - Only in development */}
-      {process.env.NODE_ENV === 'development' && DebugPanel && (
+      {import.meta.env.DEV && DebugPanel && (
         <React.Suspense fallback={null}>
           <DebugPanel gameSession={gameSession} />
         </React.Suspense>
