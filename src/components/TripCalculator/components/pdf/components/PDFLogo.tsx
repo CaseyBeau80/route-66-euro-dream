@@ -14,7 +14,7 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ className = "", showFallback = false 
           <div className="text-4xl font-bold text-route66-primary leading-none">
             RAMBLE
           </div>
-          <div className="text-4xl font-bold text-blue-600 leading-none">
+          <div className="text-4xl font-bold text-route66-primary leading-none">
             66
           </div>
         </div>
@@ -40,7 +40,7 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ className = "", showFallback = false 
               <div class="ramble-66-text-logo">
                 <div class="flex items-center gap-1 mb-1">
                   <div class="text-4xl font-bold text-route66-primary leading-none">RAMBLE</div>
-                  <div class="text-4xl font-bold text-blue-600 leading-none">66</div>
+                  <div class="text-4xl font-bold text-route66-primary leading-none">66</div>
                 </div>
                 <div class="text-xs text-route66-text-secondary font-medium tracking-wider">ROUTE 66 TRIP PLANNER</div>
               </div>

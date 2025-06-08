@@ -41,7 +41,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
         <span className={`font-bold text-route66-primary ${sizeClasses[size]}`}>
           RAMBLE
         </span>
-        <span className={`font-bold text-blue-600 ${sizeClasses[size]}`}>
+        <span className={`font-bold text-route66-primary ${sizeClasses[size]}`}>
           66
         </span>
       </div>
@@ -58,7 +58,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
           <div className={`font-bold text-route66-primary leading-none ${sizeClasses[size]}`}>
             RAMBLE
           </div>
-          <div className={`font-bold text-blue-600 leading-none ${sizeClasses[size]}`}>
+          <div className={`font-bold text-route66-primary leading-none ${sizeClasses[size]}`}>
             66
           </div>
         </div>
