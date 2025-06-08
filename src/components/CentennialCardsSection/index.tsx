@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, BookOpen, Trophy, ArrowRight, Star } from 'lucide-react';
@@ -24,6 +25,7 @@ interface CentennialCard {
 }
 
 const CentennialCardsSection: React.FC = () => {
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Route 66 Centennial date - November 11, 2026
@@ -154,52 +156,56 @@ const CentennialCardsSection: React.FC = () => {
   ];
 
   const handleCardClick = (route: string) => {
-    // For now, scroll to existing sections on the same page
-    const sectionMap: { [key: string]: string } = {
-      '/countdown': 'centennial',
-      '/timeline': 'centennial',
-      '/fun-facts': 'fun-facts',
-      '/trivia': 'trivia-game'
-    };
-    
-    const targetSection = sectionMap[route];
-    if (targetSection) {
-      const element = document.getElementById(targetSection);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
+    navigate(route);
   };
 
   return (
-    <section className="py-20 lg:py-24 bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
+    <section className="relative py-20 lg:py-24 overflow-hidden">
+      {/* Celebratory Background - Full Width */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-white to-blue-600 opacity-95">
+        {/* Patriotic Pattern Overlay */}
         <div 
-          className="w-full h-full"
+          className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `
-              linear-gradient(45deg, rgba(220, 38, 38, 0.1) 25%, transparent 25%),
-              linear-gradient(-45deg, rgba(29, 78, 216, 0.1) 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, rgba(220, 38, 38, 0.1) 75%),
-              linear-gradient(-45deg, transparent 75%, rgba(29, 78, 216, 0.1) 75%)
+              linear-gradient(45deg, rgba(220, 38, 38, 0.3) 25%, transparent 25%),
+              linear-gradient(-45deg, rgba(29, 78, 216, 0.3) 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, rgba(220, 38, 38, 0.3) 75%),
+              linear-gradient(-45deg, transparent 75%, rgba(29, 78, 216, 0.3) 75%)
             `,
             backgroundSize: '60px 60px',
             backgroundPosition: '0 0, 0 30px, 30px -30px, -30px 0px'
           }}
         />
+        
+        {/* Confetti Effect */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className={`absolute w-2 h-2 ${i % 3 === 0 ? 'bg-red-500' : i % 3 === 1 ? 'bg-blue-500' : 'bg-yellow-400'} rotate-45 animate-pulse`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Enhanced Header */}
+        {/* Centered Header */}
         <div className="text-center mb-16">
-          {/* Patriotic Badge */}
+          {/* Tagline Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 via-white to-blue-600 text-route66-text-primary px-6 py-3 rounded-full text-sm font-bold mb-8 shadow-2xl border-2 border-white">
             <Star className="w-5 h-5 text-yellow-500 fill-current" />
             CENTENNIAL CELEBRATION
             <Star className="w-5 h-5 text-yellow-500 fill-current" />
           </div>
 
+          {/* Main Title */}
           <h2 
             className="text-4xl md:text-6xl lg:text-7xl font-black text-center mb-6 leading-tight"
             style={{
@@ -222,20 +228,21 @@ const CentennialCardsSection: React.FC = () => {
             ROUTE 66 CENTENNIAL
           </h2>
           
-          <p className="text-xl md:text-2xl text-route66-text-secondary max-w-4xl mx-auto leading-relaxed font-semibold">
+          {/* Subtitle */}
+          <p className="text-xl md:text-2xl text-route66-text-primary max-w-4xl mx-auto leading-relaxed font-semibold">
             Celebrating 100 years of America's most iconic highway
           </p>
         </div>
 
-        {/* Enhanced Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        {/* 4-Card Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {centennialCards.map((card) => (
             <Card
               key={card.id}
-              className={`h-full overflow-hidden hover:shadow-2xl transition-all duration-500 group border-2 ${card.accentColor} bg-route66-background hover:scale-[1.02] cursor-pointer relative`}
+              className={`h-full overflow-hidden hover:shadow-2xl transition-all duration-500 group border-2 ${card.accentColor} bg-white hover:scale-[1.02] cursor-pointer relative`}
               onClick={() => handleCardClick(card.route)}
             >
-              {/* Enhanced Icon Header with Gradient */}
+              {/* Icon Header with Gradient */}
               <div className={`relative h-32 bg-gradient-to-br ${card.gradient} flex flex-col items-center justify-center text-white overflow-hidden`}>
                 {/* Animated Background */}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500"></div>
@@ -255,7 +262,7 @@ const CentennialCardsSection: React.FC = () => {
               </div>
 
               <CardContent className="p-6 flex-1 flex flex-col">
-                {/* Enhanced Title */}
+                {/* Title */}
                 <h3 className="font-bold text-lg text-route66-text-primary mb-3 line-clamp-2 group-hover:text-route66-primary transition-colors duration-300">
                   {card.title}
                 </h3>
@@ -270,7 +277,7 @@ const CentennialCardsSection: React.FC = () => {
                   {card.description}
                 </p>
 
-                {/* Enhanced Action Button */}
+                {/* Action Button */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -282,29 +289,6 @@ const CentennialCardsSection: React.FC = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {/* Enhanced Bottom CTA */}
-        <div className="text-center">
-          <div className="inline-block relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-route66-accent-red/20 via-route66-accent-gold/20 to-route66-primary/20 rounded-2xl blur-xl"></div>
-            <div className="relative bg-route66-background border-2 border-route66-border rounded-xl p-8 shadow-xl">
-              <p className="text-route66-text-muted mb-6 text-lg">
-                Be part of the Route 66 Centennial celebration
-              </p>
-              <Button
-                className="bg-gradient-to-r from-route66-primary to-route66-primary-dark text-white hover:from-route66-primary-dark hover:to-route66-primary transition-all duration-300 shadow-lg hover:shadow-xl px-10 py-4 text-xl font-bold border-2 border-white/20"
-                onClick={() => {
-                  const element = document.getElementById('centennial');
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                Join the Celebration
-              </Button>
-            </div>
-          </div>
         </div>
 
         {/* Decorative Elements */}
