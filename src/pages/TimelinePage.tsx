@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '../components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const TimelinePage = () => {
+  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
+
   return (
-    <MainLayout>
+    <MainLayout language={language} setLanguage={setLanguage}>
       <div className="pt-20 min-h-screen bg-route66-background-section">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
