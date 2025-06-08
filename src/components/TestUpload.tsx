@@ -3,9 +3,8 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload } from 'lucide-react';
+import { Camera, Route } from 'lucide-react';
 import { usePhotoUpload } from './TestUpload/hooks/usePhotoUpload';
-import { ApiKeyInput } from './TestUpload/components/ApiKeyInput';
 import { FileUploadInput } from './TestUpload/components/FileUploadInput';
 import { StatusAlert } from './TestUpload/components/StatusAlert';
 import { LoadingSpinner } from './TestUpload/components/LoadingSpinner';
@@ -13,17 +12,21 @@ import { ModerationResults } from './TestUpload/components/ModerationResults';
 import { UploadedImageDisplay } from './TestUpload/components/UploadedImageDisplay';
 
 export default function TestUpload() {
-  const [apiKey, setApiKey] = useState('');
   const {
     status,
     loading,
     moderationResults,
     photoUrl,
-    handleUpload
+    handleUpload,
+    resetUpload
   } = usePhotoUpload();
 
   const handleFileSelect = (file: File) => {
-    handleUpload(file, apiKey);
+    handleUpload(file);
+  };
+
+  const handleReplacePhoto = () => {
+    resetUpload();
   };
 
   return (
@@ -31,23 +34,20 @@ export default function TestUpload() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Photo Challenge Upload Test (Edge Function)
+            <Camera className="h-5 w-5" />
+            Route 66 Photo Spot Challenge
           </CardTitle>
           <CardDescription>
-            Test the server-side photo moderation system with Google Cloud Vision API
+            Share your Route 66 adventure photos! Upload images from your journey along the historic highway.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ApiKeyInput
-            apiKey={apiKey}
-            onChange={setApiKey}
-          />
-
-          <FileUploadInput
-            onFileSelect={handleFileSelect}
-            disabled={loading}
-          />
+          {!photoUrl && (
+            <FileUploadInput
+              onFileSelect={handleFileSelect}
+              disabled={loading}
+            />
+          )}
 
           <StatusAlert status={status} />
 
@@ -57,7 +57,10 @@ export default function TestUpload() {
 
       <ModerationResults results={moderationResults} />
 
-      <UploadedImageDisplay photoUrl={photoUrl} />
+      <UploadedImageDisplay 
+        photoUrl={photoUrl} 
+        onReplacePhoto={handleReplacePhoto}
+      />
     </div>
   );
 }

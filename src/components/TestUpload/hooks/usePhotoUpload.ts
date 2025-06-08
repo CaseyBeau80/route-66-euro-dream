@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface ModerationResults {
   adult: string;
@@ -14,26 +14,38 @@ export const usePhotoUpload = () => {
   const [loading, setLoading] = useState(false);
   const [moderationResults, setModerationResults] = useState<ModerationResults | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  const handleUpload = async (file: File, apiKey: string) => {
-    if (!apiKey.trim()) {
-      setStatus('❌ Please enter your Google Cloud Vision API key');
-      return;
-    }
+  const scrollToResults = () => {
+    setTimeout(() => {
+      if (resultsRef.current) {
+        resultsRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }, 100);
+  };
 
+  const resetUpload = () => {
+    setStatus('');
+    setModerationResults(null);
+    setPhotoUrl('');
+  };
+
+  const handleUpload = async (file: File) => {
     try {
       setLoading(true);
-      setStatus('🔍 Analyzing image for content moderation...');
+      setStatus('📸 Processing your Route 66 photo...');
       setModerationResults(null);
       setPhotoUrl('');
 
       // Create FormData for multipart/form-data request
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('apiKey', apiKey);
-      formData.append('tripId', 'demo-trip');
-      formData.append('stopId', 'tulsa');
-      formData.append('userSessionId', 'test-session-' + Date.now());
+      formData.append('tripId', 'route66-challenge');
+      formData.append('stopId', 'photo-spot');
+      formData.append('userSessionId', 'challenge-session-' + Date.now());
 
       console.log('Sending request to Edge Function...');
 
@@ -60,10 +72,12 @@ export const usePhotoUpload = () => {
         
         if (result.allowed) {
           setPhotoUrl(result.photoUrl);
-          setStatus('✅ Upload successful! Image passed moderation and was saved.');
+          setStatus('🎉 Amazing! Your Route 66 photo has been successfully uploaded and is now part of the challenge!');
         } else {
-          setStatus('❌ Image rejected: Content does not meet safety guidelines');
+          setStatus('📝 Your photo needs some adjustments to meet our community guidelines. Please try a different image!');
         }
+        
+        scrollToResults();
       } else {
         setStatus(`❌ Upload failed: ${result.error}`);
       }
@@ -81,6 +95,8 @@ export const usePhotoUpload = () => {
     loading,
     moderationResults,
     photoUrl,
-    handleUpload
+    handleUpload,
+    resetUpload,
+    resultsRef
   };
 };

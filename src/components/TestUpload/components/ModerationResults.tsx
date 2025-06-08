@@ -1,5 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, CheckCircle } from 'lucide-react';
+import { forwardRef } from 'react';
 
 interface ModerationResultsData {
   adult: string;
@@ -28,55 +30,87 @@ const getStatusColor = (level: string) => {
   }
 };
 
-export const ModerationResults = ({ results }: ModerationResultsProps) => {
-  if (!results) return null;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Moderation Results</CardTitle>
-        <CardDescription>
-          Google Cloud Vision SafeSearch Analysis (from Edge Function)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-medium">Adult:</span>
-              <span className={getStatusColor(results.adult)}>
-                {results.adult}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Violence:</span>
-              <span className={getStatusColor(results.violence)}>
-                {results.violence}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Racy:</span>
-              <span className={getStatusColor(results.racy)}>
-                {results.racy}
-              </span>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-medium">Spoof:</span>
-              <span className={getStatusColor(results.spoof)}>
-                {results.spoof}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Medical:</span>
-              <span className={getStatusColor(results.medical)}>
-                {results.medical}
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+const getStatusIcon = (level: string) => {
+  switch (level) {
+    case 'VERY_UNLIKELY':
+    case 'UNLIKELY':
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    default:
+      return <Shield className="h-4 w-4 text-muted-foreground" />;
+  }
 };
+
+export const ModerationResults = forwardRef<HTMLDivElement, ModerationResultsProps>(
+  ({ results }, ref) => {
+    if (!results) return null;
+
+    return (
+      <Card ref={ref}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Content Safety Check
+          </CardTitle>
+          <CardDescription>
+            Automated content analysis to ensure community-friendly photos
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(results.adult)}
+                  <span className="font-medium">Adult Content:</span>
+                </div>
+                <span className={`font-semibold ${getStatusColor(results.adult)}`}>
+                  {results.adult}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(results.violence)}
+                  <span className="font-medium">Violence:</span>
+                </div>
+                <span className={`font-semibold ${getStatusColor(results.violence)}`}>
+                  {results.violence}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(results.racy)}
+                  <span className="font-medium">Racy Content:</span>
+                </div>
+                <span className={`font-semibold ${getStatusColor(results.racy)}`}>
+                  {results.racy}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(results.spoof)}
+                  <span className="font-medium">Spoof/Fake:</span>
+                </div>
+                <span className={`font-semibold ${getStatusColor(results.spoof)}`}>
+                  {results.spoof}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(results.medical)}
+                  <span className="font-medium">Medical:</span>
+                </div>
+                <span className={`font-semibold ${getStatusColor(results.medical)}`}>
+                  {results.medical}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+
+ModerationResults.displayName = 'ModerationResults';

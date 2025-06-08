@@ -9,41 +9,40 @@ export default function TestUploadPage() {
       <div className="container mx-auto py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold">📤 Photo Moderation Test (Edge Function)</h1>
+            <h1 className="text-4xl font-bold">📸 Route 66 Photo Spot Challenge</h1>
             <p className="text-lg text-muted-foreground">
-              Test the server-side Google Cloud Vision API integration via Supabase Edge Function
+              Share your journey along America's Main Street with fellow travelers
             </p>
           </div>
           
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-blue-800">Edge Function Integration</h2>
+            <h2 className="text-xl font-semibold text-blue-800">How It Works</h2>
             <div className="space-y-2 text-blue-700">
-              <p>1. Images are sent to your deployed Supabase Edge Function</p>
-              <p>2. Server-side moderation using Google Cloud Vision API</p>
-              <p>3. Automatic upload to Supabase storage if approved</p>
-              <p>4. Data insertion into photo_challenges table</p>
-              <p>5. Complete JSON response with results</p>
+              <p>📷 Upload photos from your Route 66 adventure</p>
+              <p>🔍 Automatic content moderation for community safety</p>
+              <p>✨ Instant upload to your Route 66 photo collection</p>
+              <p>🏆 Join thousands of travelers sharing their Route 66 memories</p>
             </div>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-green-800">Test Configuration</h2>
-            <div className="space-y-2 text-green-700">
-              <p>• Trip ID: hardcoded to "demo-trip"</p>
-              <p>• Stop ID: hardcoded to "tulsa"</p>
-              <p>• User Session: auto-generated with timestamp</p>
-              <p>• Only requires Google Cloud Vision API key input</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 space-y-4">
+            <h2 className="text-xl font-semibold text-amber-800">Photo Guidelines</h2>
+            <div className="space-y-2 text-amber-700">
+              <p>• Capture iconic Route 66 landmarks, signs, and attractions</p>
+              <p>• Share scenic highway views and historic stops</p>
+              <p>• Include roadside diners, motels, and vintage Americana</p>
+              <p>• Keep content family-friendly and appropriate for all ages</p>
             </div>
           </div>
 
           <TestUpload />
           
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800">Edge Function Endpoint</h2>
-            <p className="text-gray-600 mb-4">Your Edge Function URL:</p>
-            <code className="bg-gray-800 text-gray-100 p-4 rounded-lg block text-sm">
-              https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/moderate-and-upload
-            </code>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4 text-center">
+            <h2 className="text-xl font-semibold text-green-800">Start Your Route 66 Journey</h2>
+            <p className="text-green-700">
+              Ready to explore? Plan your Route 66 adventure and discover iconic stops, 
+              hidden gems, and must-see attractions along America's most famous highway.
+            </p>
           </div>
         </div>
       </div>
