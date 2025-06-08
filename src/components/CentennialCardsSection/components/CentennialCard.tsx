@@ -101,9 +101,9 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         )}
       </div>
 
-      {/* Header with Icon */}
+      {/* Header with Icon - Centered */}
       <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-4 border-b border-slate-200">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center justify-center gap-3 mb-2">
           <div className="text-blue-700 group-hover:scale-110 transition-transform duration-300 motion-safe:group-hover:rotate-12 motion-reduce:group-hover:rotate-0">
             {icon}
           </div>
@@ -113,7 +113,7 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         </div>
         <h3 
           id={`card-title-${id}`}
-          className="font-bold text-lg text-slate-800 group-hover:text-blue-800 transition-colors duration-300"
+          className="font-bold text-lg text-slate-800 group-hover:text-blue-800 transition-colors duration-300 text-center"
         >
           {title}
         </h3>
