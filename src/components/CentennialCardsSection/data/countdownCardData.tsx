@@ -50,38 +50,48 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
           </div>
         </div>
         
-        {/* Candles with flames positioned correctly on TOP of the top tier, moved higher */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10" style={{ transform: 'translateY(5px)' }}>
-          <div className="relative scale-[1.8]">
-            {/* Position candles higher above the top tier of the cake */}
-            <div className="absolute -top-[3.5rem] left-1/2 transform -translate-x-1/2 flex gap-1.5 opacity-100">
+        {/* ENHANCED CANDLES WITH LARGE VISIBLE FLAMES - positioned prominently */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30" style={{ transform: 'translateY(-10px)' }}>
+          <div className="relative scale-[2.2]">
+            {/* Position candles much higher and make flames very visible */}
+            <div className="absolute -top-[4rem] left-1/2 transform -translate-x-1/2 flex gap-2 opacity-100">
               <div className="flex flex-col items-center">
-                {/* Flame with enhanced visibility, moved higher */}
-                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
-                  <div className="w-1.5 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg"></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
+                {/* LARGE VISIBLE FLAME #1 - Enhanced size and brightness */}
+                <div className="relative opacity-100 z-30" style={{ transform: 'translateY(-12px)' }}>
+                  <div className="w-3 h-8 bg-gradient-to-t from-orange-500 via-yellow-400 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-xl border border-orange-300"></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-yellow-300 rounded-full blur-[2px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-white rounded-full blur-[3px] opacity-70"></div>
+                  {/* Inner bright core */}
+                  <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-yellow-100 rounded-full opacity-90"></div>
                 </div>
-                {/* Candle body - positioned to sit directly on top tier */}
-                <div className="w-2 h-3 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
+                {/* Candle body */}
+                <div className="w-2.5 h-4 bg-gradient-to-b from-blue-200 to-blue-400 rounded-sm border border-blue-500 shadow-md"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
-                  <div className="w-1.5 h-5 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
+                {/* LARGE VISIBLE FLAME #2 - Enhanced size and brightness */}
+                <div className="relative opacity-100 z-30" style={{ transform: 'translateY(-12px)' }}>
+                  <div className="w-3 h-8 bg-gradient-to-t from-red-500 via-orange-400 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-xl border border-red-300" style={{animationDelay: '0.4s'}}></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-orange-300 rounded-full blur-[2px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-white rounded-full blur-[3px] opacity-70"></div>
+                  {/* Inner bright core */}
+                  <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-yellow-100 rounded-full opacity-90"></div>
                 </div>
-                <div className="w-2 h-3 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
+                {/* Candle body */}
+                <div className="w-2.5 h-4 bg-gradient-to-b from-pink-200 to-pink-400 rounded-sm border border-pink-500 shadow-md"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                <div className="relative opacity-100 z-10" style={{ transform: 'translateY(-8px)' }}>
-                  <div className="w-1.5 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-lg" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-5 bg-white rounded-full blur-[2px] opacity-60"></div>
+                {/* LARGE VISIBLE FLAME #3 - Enhanced size and brightness */}
+                <div className="relative opacity-100 z-30" style={{ transform: 'translateY(-12px)' }}>
+                  <div className="w-3 h-8 bg-gradient-to-t from-orange-500 via-yellow-400 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none shadow-xl border border-orange-300" style={{animationDelay: '0.8s'}}></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-yellow-200 rounded-full blur-[2px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
+                  <div className="absolute inset-0 w-3 h-8 bg-white rounded-full blur-[3px] opacity-70"></div>
+                  {/* Inner bright core */}
+                  <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-white rounded-full opacity-100"></div>
                 </div>
-                <div className="w-2 h-3 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
+                {/* Candle body */}
+                <div className="w-2.5 h-4 bg-gradient-to-b from-green-200 to-green-400 rounded-sm border border-green-500 shadow-md"></div>
               </div>
             </div>
           </div>
