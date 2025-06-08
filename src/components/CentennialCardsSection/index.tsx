@@ -25,6 +25,17 @@ const CentennialCardsSection: React.FC = () => {
   return (
     <section 
       className="relative py-16 sm:py-20 bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50 overflow-hidden"
+      style={{
+        background: `
+          linear-gradient(135deg, 
+            #FFF9F0 0%, 
+            #F2F8FF 25%, 
+            #F0F9FF 50%, 
+            #F2F8FF 75%, 
+            #FFF9F0 100%
+          )
+        `
+      }}
       role="region"
       aria-labelledby="centennial-heading"
     >
@@ -38,7 +49,7 @@ const CentennialCardsSection: React.FC = () => {
         {/* Festive Header */}
         <CentennialHeader />
 
-        {/* 4-Card Grid */}
+        {/* 4-Card Grid with consistent spacing */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {centennialCards.map((card, index) => (
             <CentennialCard

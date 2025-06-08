@@ -38,17 +38,24 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
     navigate(route);
   };
 
+  const getAriaLabel = () => {
+    if (id === 'countdown') {
+      return `Birthday countdown card - Navigate to ${title} with cake celebration theme`;
+    }
+    return `Navigate to ${title} - ${description}`;
+  };
+
   return (
     <Card
-      key={id}
       className={`group h-full overflow-hidden bg-white/90 backdrop-blur-sm border-2 border-blue-200 hover:border-blue-300 cursor-pointer relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
       onClick={() => handleCardClick(route)}
       style={{
         animationDelay: `${index * 150}ms`
       }}
-      role="button"
+      role="region"
+      aria-labelledby={`card-title-${id}`}
       tabIndex={0}
-      aria-label={`Navigate to ${title} - ${description}`}
+      aria-label={getAriaLabel()}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -56,12 +63,12 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         }
       }}
     >
-      {/* Hover Sparkle Effect */}
+      {/* Hover Sparkle Effect with reduced motion consideration */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <Sparkles
             key={i}
-            className={`absolute w-3 h-3 ${sparkleColor} animate-birthday-sparkle`}
+            className={`absolute w-3 h-3 ${sparkleColor} motion-safe:animate-birthday-sparkle motion-reduce:hidden`}
             style={{
               left: `${20 + Math.random() * 60}%`,
               top: `${20 + Math.random() * 60}%`,
@@ -69,24 +76,47 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
             }}
           />
         ))}
+        
+        {/* Special cake sparkles for countdown card */}
+        {id === 'countdown' && (
+          <div className="absolute inset-0">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={`cake-sparkle-${i}`}
+                className="absolute text-yellow-400 text-sm motion-safe:animate-ping motion-reduce:hidden"
+                style={{
+                  left: `${30 + Math.random() * 40}%`,
+                  top: `${30 + Math.random() * 40}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: '2s'
+                }}
+              >
+                ✨
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Header with Icon */}
       <div className="bg-gradient-to-r from-blue-50 to-slate-50 p-4 border-b border-blue-100">
         <div className="flex items-center gap-3 mb-2">
-          <div className="text-blue-600 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-12">
+          <div className="text-blue-600 group-hover:scale-110 transition-transform duration-300 motion-safe:group-hover:rotate-12 motion-reduce:group-hover:rotate-0">
             {icon}
           </div>
           <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
             {subtitle}
           </div>
         </div>
-        <h3 className="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors duration-300">
+        <h3 
+          id={`card-title-${id}`}
+          className="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors duration-300"
+        >
           {title}
         </h3>
       </div>
 
-      <CardContent className="p-4 flex-1 flex flex-col">
+      <CardContent className="p-4 flex flex-col">
         {/* Dynamic Content */}
         <div className="mb-4 flex-1">
           {content}
@@ -97,16 +127,18 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
           {description}
         </p>
 
-        {/* Action Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full border-blue-300 text-blue-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 hover:text-white hover:border-blue-500 transition-all duration-300 group/button font-medium"
-          aria-label={`${buttonText} for ${title}`}
-        >
-          <span>{buttonText}</span>
-          <ArrowRight className="h-4 w-4 ml-2 group-hover/button:translate-x-1 transition-transform duration-300" />
-        </Button>
+        {/* Action Button - Consistent height and alignment */}
+        <div className="mt-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full min-h-[44px] py-2 border-blue-300 text-blue-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-500 hover:text-white hover:border-blue-500 transition-all duration-300 group/button font-medium"
+            aria-label={`${buttonText} for ${title}`}
+          >
+            <span>{buttonText}</span>
+            <ArrowRight className="h-4 w-4 ml-2 group-hover/button:translate-x-1 transition-transform duration-300" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
