@@ -1,7 +1,7 @@
 
 export const usePDFStyles = () => {
   const addPrintStyles = () => {
-    console.log('📄 Adding enhanced PDF print styles...');
+    console.log('📄 Adding enhanced PDF print styles with Route 66 branding...');
     
     const existingStyles = document.getElementById('pdf-print-styles');
     if (existingStyles) {
@@ -71,42 +71,78 @@ export const usePDFStyles = () => {
           background: white !important;
         }
         
-        /* Header styling */
+        /* Header styling with Route 66 branding */
         .pdf-header {
           text-align: center !important;
           margin-bottom: 24px !important;
           padding-bottom: 16px !important;
-          border-bottom: 2px solid #3b82f6 !important;
+          border-bottom: 2px solid #d97706 !important;
           page-break-inside: avoid !important;
         }
         
         .pdf-header h1 {
           font-size: 20px !important;
           font-weight: bold !important;
-          color: #1e3a8a !important;
+          color: #b91c1c !important;
           margin: 8px 0 !important;
         }
         
-        /* Logo styling */
-        .pdf-logo {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          gap: 8px !important;
-          margin-bottom: 16px !important;
-        }
-        
+        /* Enhanced branding styles */
         .ramble-66-text-logo {
           text-align: center !important;
         }
         
-        /* Trip overview */
+        .font-route66 {
+          font-family: 'Georgia', serif !important;
+          font-weight: bold !important;
+        }
+        
+        .font-travel {
+          font-family: 'Times New Roman', serif !important;
+        }
+        
+        /* Route 66 color scheme */
+        .text-route66-primary,
+        .text-route66-vintage-red {
+          color: #b91c1c !important;
+        }
+        
+        .text-route66-vintage-brown {
+          color: #92400e !important;
+        }
+        
+        .text-route66-navy {
+          color: #1e3a8a !important;
+        }
+        
+        .bg-route66-cream,
+        .bg-route66-vintage-beige {
+          background: #fef3c7 !important;
+        }
+        
+        .bg-route66-vintage-yellow {
+          background: #fde047 !important;
+        }
+        
+        .bg-route66-primary {
+          background: #d97706 !important;
+        }
+        
+        .border-route66-vintage-brown {
+          border-color: #92400e !important;
+        }
+        
+        .border-route66-tan {
+          border-color: #d6d3d1 !important;
+        }
+        
+        /* Trip overview styling */
         .pdf-trip-overview {
           display: block !important;
           margin-bottom: 24px !important;
           padding: 16px !important;
-          background: #f8fafc !important;
-          border: 1px solid #e2e8f0 !important;
+          background: #fef3c7 !important;
+          border: 2px solid #92400e !important;
           border-radius: 8px !important;
           page-break-inside: avoid !important;
         }
@@ -116,68 +152,68 @@ export const usePDFStyles = () => {
           width: 23% !important;
           margin: 1% !important;
           text-align: center !important;
-          padding: 8px !important;
-          border: 1px solid #d1d5db !important;
-          border-radius: 4px !important;
+          padding: 12px !important;
+          border: 2px solid #d6d3d1 !important;
+          border-radius: 6px !important;
           background: white !important;
           vertical-align: top !important;
         }
         
-        /* Day segments */
+        /* Day segments with enhanced styling */
         .pdf-day-segment {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-bottom: 16px !important;
-          padding: 12px !important;
+          margin-bottom: 20px !important;
+          padding: 16px !important;
           border: 1px solid #e5e7eb !important;
-          border-radius: 6px !important;
+          border-radius: 8px !important;
           background: white !important;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
         }
         
-        /* Weather sections */
-        .pdf-weather-section,
-        .pdf-weather-info {
-          background: #f0f9ff !important;
-          border: 1px solid #bfdbfe !important;
-          border-radius: 4px !important;
-          padding: 8px !important;
-          margin: 6px 0 !important;
+        /* Weather sections with enhanced styling */
+        .pdf-weather-section {
+          background: #dbeafe !important;
+          border: 1px solid #93c5fd !important;
+          border-radius: 6px !important;
+          padding: 12px !important;
+          margin: 8px 0 !important;
           page-break-inside: avoid !important;
         }
         
-        /* Footer */
+        /* Footer with Route 66 branding */
         .pdf-footer {
-          margin-top: 24px !important;
-          padding-top: 16px !important;
-          border-top: 1px solid #e5e7eb !important;
+          margin-top: 32px !important;
+          padding-top: 20px !important;
+          border-top: 2px solid #d97706 !important;
           text-align: center !important;
-          font-size: 9px !important;
+          font-size: 10px !important;
           color: #6b7280 !important;
           page-break-inside: avoid !important;
         }
         
         .pdf-footer a {
-          color: #2563eb !important;
+          color: #b91c1c !important;
           text-decoration: underline !important;
+          font-weight: bold !important;
         }
         
         /* Typography fixes */
         h1, h2, h3, h4, h5, h6 {
           break-after: avoid !important;
           page-break-after: avoid !important;
-          color: #1e3a8a !important;
           margin: 8px 0 !important;
         }
         
-        /* Color corrections */
+        /* Enhanced color corrections for Route 66 theme */
         .text-blue-600,
         .text-blue-700,
         .text-blue-800 {
-          color: #1e3a8a !important;
+          color: #1d4ed8 !important;
         }
         
         .bg-blue-50 {
-          background: #f0f9ff !important;
+          background: #dbeafe !important;
         }
         
         .border-blue-200 {
@@ -195,11 +231,21 @@ export const usePDFStyles = () => {
           margin: 1% !important;
           vertical-align: top !important;
         }
+        
+        /* QR Code section styling */
+        .pdf-qr-section {
+          background: #fef3c7 !important;
+          border: 2px solid #92400e !important;
+          border-radius: 8px !important;
+          padding: 16px !important;
+          margin: 16px 0 !important;
+          page-break-inside: avoid !important;
+        }
       }
     `;
     
     document.head.appendChild(style);
-    console.log('✅ Enhanced PDF print styles added');
+    console.log('✅ Enhanced PDF print styles with Route 66 branding added');
   };
 
   const removePrintStyles = () => {

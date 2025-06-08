@@ -18,10 +18,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   exportOptions,
   shareUrl
 }) => {
-  console.log('📄 PDFContentRenderer: Rendering PDF content with', {
+  console.log('📄 PDFContentRenderer: Rendering enhanced PDF content with', {
     segmentsCount: tripPlan.segments?.length || 0,
     exportFormat: exportOptions.format,
-    hasStartDate: !!tripStartDate
+    hasStartDate: !!tripStartDate,
+    title: exportOptions.title
   });
 
   // Filter segments with enriched weather data
@@ -29,41 +30,66 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
     segment && segment.day && segment.endCity
   ) || [];
 
+  const defaultTitle = `Route 66 Adventure: ${tripPlan.startCity} to ${tripPlan.endCity}`;
+
   return (
-    <div className="pdf-content bg-white min-h-screen" style={{ padding: '40px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      {/* PDF Header with Branding */}
+    <div className="pdf-content bg-white min-h-screen" style={{ 
+      padding: '32px', 
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      lineHeight: '1.4'
+    }}>
+      {/* Enhanced PDF Header with Ramble 66 Branding */}
       <PDFHeader
-        title={exportOptions.title || `Route 66 Trip: ${tripPlan.startCity} to ${tripPlan.endCity}`}
+        title={exportOptions.title || defaultTitle}
         tripPlan={tripPlan}
         tripStartDate={tripStartDate}
       />
 
-      {/* Trip Overview */}
-      <div className="pdf-trip-overview no-page-break mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-        <h2 className="text-xl font-bold text-blue-800 mb-4">Trip Overview</h2>
+      {/* Enhanced Trip Overview with Route 66 Styling */}
+      <div className="pdf-trip-overview no-page-break mb-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown">
+        <h2 className="text-xl font-bold text-route66-vintage-red mb-4 font-route66 text-center">
+          🛣️ YOUR ROUTE 66 JOURNEY OVERVIEW
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
-            <div className="font-bold text-blue-700 text-lg">{tripPlan.startCity}</div>
-            <div className="text-gray-600 text-xs mt-1">Starting Point</div>
+          <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+            <div className="font-bold text-route66-primary text-lg font-route66">{tripPlan.startCity}</div>
+            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Starting Point</div>
           </div>
-          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
-            <div className="font-bold text-blue-700 text-lg">{tripPlan.endCity}</div>
-            <div className="text-gray-600 text-xs mt-1">Destination</div>
+          <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+            <div className="font-bold text-route66-primary text-lg font-route66">{tripPlan.endCity}</div>
+            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Destination</div>
           </div>
-          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
-            <div className="font-bold text-blue-700 text-lg">{tripPlan.totalDays}</div>
-            <div className="text-gray-600 text-xs mt-1">Days</div>
+          <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+            <div className="font-bold text-route66-vintage-red text-lg font-route66">{tripPlan.totalDays}</div>
+            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Adventure Days</div>
           </div>
-          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
-            <div className="font-bold text-blue-700 text-lg">{Math.round(tripPlan.totalDistance)}</div>
-            <div className="text-gray-600 text-xs mt-1">Miles</div>
+          <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+            <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(tripPlan.totalDistance)}</div>
+            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Historic Miles</div>
           </div>
+        </div>
+        
+        {/* Journey Description */}
+        <div className="mt-4 p-4 bg-route66-vintage-yellow rounded border border-route66-tan text-center">
+          <p className="text-sm text-route66-navy font-travel">
+            <strong>🗺️ Experience America's Main Street:</strong> This carefully planned itinerary takes you through 
+            the heart of Route 66, featuring historic landmarks, classic diners, vintage motels, and unforgettable 
+            roadside attractions that define the spirit of the open road.
+          </p>
         </div>
       </div>
 
-      {/* Daily Segments */}
+      {/* Daily Itinerary */}
       <div className="pdf-segments">
-        <h2 className="text-xl font-bold text-blue-800 mb-6 border-b-2 border-blue-200 pb-2">Daily Itinerary</h2>
+        <div className="mb-6 text-center p-4 bg-route66-primary rounded">
+          <h2 className="text-xl font-bold text-white mb-2 font-route66">
+            📅 DAILY ITINERARY
+          </h2>
+          <p className="text-route66-cream text-sm font-travel">
+            Your day-by-day guide to the ultimate Route 66 adventure
+          </p>
+        </div>
+        
         {enrichedSegments.map((segment, index) => (
           <PDFDaySegmentCard
             key={`day-${segment.day}`}
@@ -75,18 +101,45 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         ))}
       </div>
 
-      {/* PDF Footer */}
+      {/* Travel Tips Section */}
+      {exportOptions.format === 'full' && (
+        <div className="mt-8 p-6 bg-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown">
+          <h3 className="text-lg font-bold text-route66-vintage-red mb-4 font-route66 text-center">
+            🛣️ ROUTE 66 TRAVEL TIPS
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="p-3 bg-white rounded border border-route66-tan">
+              <h4 className="font-semibold text-route66-navy mb-2">📱 Planning</h4>
+              <ul className="text-route66-vintage-brown space-y-1 text-xs">
+                <li>• Download offline maps as cell service can be spotty</li>
+                <li>• Book accommodations in advance, especially in summer</li>
+                <li>• Check attraction hours before visiting</li>
+              </ul>
+            </div>
+            <div className="p-3 bg-white rounded border border-route66-tan">
+              <h4 className="font-semibold text-route66-navy mb-2">🚗 Driving</h4>
+              <ul className="text-route66-vintage-brown space-y-1 text-xs">
+                <li>• Keep your gas tank at least half full</li>
+                <li>• Pack emergency supplies and water</li>
+                <li>• Take frequent breaks to avoid fatigue</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced PDF Footer */}
       <PDFFooter
         shareUrl={shareUrl}
         enrichedSegments={enrichedSegments}
         includeQRCode={exportOptions.includeQRCode}
       />
 
-      {/* Watermark */}
+      {/* Watermark with Route 66 Styling */}
       {exportOptions.watermark && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
           <div 
-            className="text-gray-200 font-bold opacity-10 transform rotate-45"
+            className="text-route66-vintage-brown font-route66 opacity-10 transform rotate-45"
             style={{ fontSize: '120px', zIndex: 1 }}
           >
             {exportOptions.watermark}
