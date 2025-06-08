@@ -2,9 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
-import ShareTripPreview from './ShareTripPreview';
 import ShareTripOptions from './ShareTripOptions';
-import ShareTripStats from './ShareTripStats';
+import ShareTripItineraryView from './ShareTripItineraryView';
 
 interface ShareTripModalContentProps {
   tripPlan: TripPlan;
@@ -76,7 +75,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-blue-600 mb-1">{tripPlan.totalDays}</div>
             <div className="text-sm text-gray-600">Days</div>
-            <div className="text-xs text-gray-500 mt-1">Starting Not specified</div>
+            <div className="text-xs text-gray-500 mt-1">Starting {tripStartDate ? tripStartDate.toLocaleDateString() : 'Not specified'}</div>
           </div>
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
@@ -127,59 +126,13 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
         </div>
       </div>
 
-      {/* Daily Itinerary Preview */}
+      {/* Complete Daily Itinerary - Now shows all days like PDF */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Daily Route 66 Itinerary</h2>
-        <div className="flex gap-4 text-sm text-gray-600 mb-6">
-          <span>📅 {tripPlan.totalDays} days</span>
-          <span>📍 {tripPlan.segments?.length || 0} destinations</span>
-          <span>🛣️ {Math.round(totalDistance)} miles</span>
-        </div>
-
-        {/* Tab Header - Visual Only */}
-        <div className="border-b border-gray-200 mb-6">
-          <div className="flex space-x-0">
-            <div className="bg-blue-50 border-t-2 border-blue-500 px-6 py-3 font-medium text-blue-700 rounded-t-lg">
-              📍 Route & Stops + Weather
-            </div>
-          </div>
-        </div>
-
-        {/* Sample day preview */}
-        {tripPlan.segments && tripPlan.segments.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
-                Day 1
-              </span>
-              <span className="text-red-600">•</span>
-              <h4 className="text-lg font-semibold text-gray-800">
-                {tripPlan.segments[0].endCity}
-              </h4>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-600">🗺️</span>
-                <span>{Math.round(tripPlan.segments[0].distance || 0)} mi</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-purple-600">⏱️</span>
-                <span>{Math.round((tripPlan.segments[0].driveTimeHours || 0) * 60)}m</span>
-              </div>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              <strong>Route:</strong> {tripPlan.segments[0].startCity} → {tripPlan.segments[0].endCity}
-            </div>
-            
-            {tripPlan.segments.length > 1 && (
-              <div className="mt-3 text-sm text-gray-500">
-                ... and {tripPlan.segments.length - 1} more day{tripPlan.segments.length > 2 ? 's' : ''}
-              </div>
-            )}
-          </div>
-        )}
+        <ShareTripItineraryView
+          segments={tripPlan.segments || []}
+          tripStartDate={tripStartDate}
+          totalDays={tripPlan.totalDays}
+        />
       </div>
 
       {/* Sharing Options */}
