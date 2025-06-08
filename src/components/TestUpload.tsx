@@ -2,8 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { moderateImage, convertFileToBase64 } from '@/services/googleVisionService';
-import { uploadPhotoChallenge } from '@/services/photoChallengeService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +21,6 @@ export default function TestUpload() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState('');
-  const [stopId, setStopId] = useState('test-stop-001');
   const [moderationResults, setModerationResults] = useState<ModerationResults | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
 
@@ -36,51 +33,51 @@ export default function TestUpload() {
       return;
     }
 
-    if (!stopId.trim()) {
-      setStatus('❌ Please enter a stop ID');
-      return;
-    }
-
     try {
       setLoading(true);
       setStatus('🔍 Analyzing image for content moderation...');
       setModerationResults(null);
       setPhotoUrl('');
 
-      // Convert file to base64
-      const base64Image = await convertFileToBase64(file);
-      
-      // Moderate the image
-      const moderationResult = await moderateImage(base64Image, apiKey);
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('apiKey', apiKey);
+      formData.append('tripId', 'demo-trip');
+      formData.append('stopId', 'tulsa');
+      formData.append('userSessionId', 'test-session-' + Date.now());
 
-      if (moderationResult.error) {
-        setStatus(`❌ Moderation failed: ${moderationResult.error}`);
-        return;
+      console.log('Sending request to Edge Function...');
+
+      // Call the Supabase Edge Function
+      const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/moderate-and-upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo`
+        }
+      });
+
+      console.log('Edge Function response status:', response.status);
+
+      const result = await response.json();
+      console.log('Edge Function response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      setModerationResults(moderationResult.results);
-
-      if (!moderationResult.isAllowed) {
-        setStatus('❌ Image rejected: Content does not meet safety guidelines');
-        return;
-      }
-
-      setStatus('✅ Image passed moderation, uploading to storage...');
-
-      // Upload to Supabase if moderation passed
-      const uploadResult = await uploadPhotoChallenge(
-        file,
-        stopId,
-        moderationResult.results,
-        undefined, // tripId
-        'test-session-' + Date.now() // userSessionId
-      );
-
-      if (uploadResult.success && uploadResult.photoUrl) {
-        setPhotoUrl(uploadResult.photoUrl);
-        setStatus('✅ Upload successful! Image saved to photo challenges.');
+      if (result.success) {
+        setModerationResults(result.moderationResults);
+        
+        if (result.allowed) {
+          setPhotoUrl(result.photoUrl);
+          setStatus('✅ Upload successful! Image passed moderation and was saved.');
+        } else {
+          setStatus('❌ Image rejected: Content does not meet safety guidelines');
+        }
       } else {
-        setStatus(`❌ Upload failed: ${uploadResult.error}`);
+        setStatus(`❌ Upload failed: ${result.error}`);
       }
 
     } catch (error: any) {
@@ -112,10 +109,10 @@ export default function TestUpload() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Photo Challenge Upload Test
+            Photo Challenge Upload Test (Edge Function)
           </CardTitle>
           <CardDescription>
-            Test the photo moderation system with Google Cloud Vision API
+            Test the server-side photo moderation system with Google Cloud Vision API
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -131,17 +128,6 @@ export default function TestUpload() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stopId">Stop ID</Label>
-            <Input
-              id="stopId"
-              type="text"
-              placeholder="Enter stop ID"
-              value={stopId}
-              onChange={(e) => setStopId(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="fileUpload">Select Image (JPG or PNG)</Label>
             <Input
               id="fileUpload"
@@ -150,6 +136,9 @@ export default function TestUpload() {
               onChange={handleUpload}
               disabled={loading}
             />
+            <p className="text-sm text-muted-foreground">
+              Trip ID: demo-trip | Stop ID: tulsa
+            </p>
           </div>
 
           {status && (
@@ -165,7 +154,7 @@ export default function TestUpload() {
           {loading && (
             <div className="flex items-center justify-center p-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2">Processing...</span>
+              <span className="ml-2">Processing via Edge Function...</span>
             </div>
           )}
         </CardContent>
@@ -176,7 +165,7 @@ export default function TestUpload() {
           <CardHeader>
             <CardTitle>Moderation Results</CardTitle>
             <CardDescription>
-              Google Cloud Vision SafeSearch Analysis
+              Google Cloud Vision SafeSearch Analysis (from Edge Function)
             </CardDescription>
           </CardHeader>
           <CardContent>
