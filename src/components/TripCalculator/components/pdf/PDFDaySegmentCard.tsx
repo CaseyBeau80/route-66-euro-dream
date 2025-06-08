@@ -90,18 +90,18 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
       {/* Route Details */}
       {exportFormat !== 'route-only' && (
         <div className="space-y-4">
-          {/* Destinations */}
-          {segment.destinations && segment.destinations.length > 0 && (
+          {/* Recommended Stops - Using the correct property name */}
+          {segment.stops && segment.stops.length > 0 && (
             <div className="mb-4">
               <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                🎯 Key Destinations
+                🎯 Recommended Stops
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {segment.destinations.slice(0, 4).map((dest, index) => (
+                {segment.stops.slice(0, 4).map((stop, index) => (
                   <div key={index} className="text-sm p-2 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-700">{dest.name}</div>
-                    {dest.description && (
-                      <div className="text-xs text-gray-600 mt-1">{dest.description}</div>
+                    <div className="font-medium text-gray-700">{stop.name || stop.title}</div>
+                    {stop.description && (
+                      <div className="text-xs text-gray-600 mt-1">{stop.description}</div>
                     )}
                   </div>
                 ))}
@@ -118,7 +118,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {segment.attractions.slice(0, 4).map((attraction, index) => (
                   <div key={index} className="text-sm p-2 bg-orange-50 rounded border border-orange-200">
-                    <div className="font-medium text-orange-700">{attraction.name}</div>
+                    <div className="font-medium text-orange-700">{attraction.name || attraction.title}</div>
                     {attraction.description && (
                       <div className="text-xs text-orange-600 mt-1">{attraction.description}</div>
                     )}
