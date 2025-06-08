@@ -1,4 +1,3 @@
-
 import { DestinationCity } from '@/components/Route66Planner/types';
 
 export interface TripPlan {
@@ -83,6 +82,8 @@ export interface SegmentTiming {
   toStop: any;
   distance: number;
   drivingTime: number;
+  distanceMiles: number;
+  driveTimeHours: number;
 }
 
 export class TripPlanBuilder {

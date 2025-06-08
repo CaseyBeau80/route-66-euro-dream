@@ -122,8 +122,13 @@ export class SegmentCreationLoop {
     // Include balance metrics on the first segment
     const segmentBalanceMetrics = day === 1 ? balanceMetrics : undefined;
 
-    // Create attractions list from recommended stops
-    const attractions = segmentStops.map(stop => stop.name);
+    // Create attractions list with proper object structure
+    const attractions = segmentStops.map(stop => ({
+      name: stop.name,
+      title: stop.name,
+      description: stop.description,
+      city: stop.city || stop.city_name
+    }));
 
     // Convert TripStop[] to RecommendedStop[] to satisfy type requirements
     const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
@@ -148,7 +153,7 @@ export class SegmentCreationLoop {
       drivingTime: totalSegmentDriveTime, // Add drivingTime property
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
       recommendedStops, // Use the converted stops
-      attractions, // Add attractions property
+      attractions, // Use proper object structure
       subStopTimings: segmentTimings,
       routeSection,
       driveTimeCategory,
@@ -171,3 +176,4 @@ export class SegmentCreationLoop {
     console.log(`✅ Day ${day}: ${segment.approximateMiles}mi to ${dayDestination.name} (${dayDestination.category}), ${segment.driveTimeHours}h drive (${segment.driveTimeCategory.category}), ${segment.recommendedStops.length} curated stops, ${segment.routeSection}`);
   }
 }
+

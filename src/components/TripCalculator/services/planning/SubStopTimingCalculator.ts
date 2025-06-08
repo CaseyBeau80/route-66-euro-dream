@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
@@ -13,6 +12,8 @@ export interface SubStopTiming {
 export interface SegmentTiming {
   fromStop: TripStop;
   toStop: TripStop;
+  distance: number;
+  drivingTime: number;
   distanceMiles: number;
   driveTimeHours: number;
 }
@@ -113,6 +114,8 @@ export class SubStopTimingCalculator {
       segmentTimings.push({
         fromStop,
         toStop,
+        distance: Math.round(distance),
+        drivingTime: Math.round(driveTime * 10) / 10,
         distanceMiles: Math.round(distance),
         driveTimeHours: Math.round(driveTime * 10) / 10
       });

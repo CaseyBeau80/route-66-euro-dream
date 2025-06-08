@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
@@ -8,13 +7,18 @@ import { SegmentTiming, DailySegment, DriveTimeCategory, RecommendedStop } from 
 // Re-export types for backward compatibility
 export type { SegmentTiming, DailySegment };
 
-// Redefine DailySegmentCreatorResult with compatible types
+// Updated DailySegmentCreatorResult with compatible types
 export interface DailySegmentCreatorResult extends Omit<DailySegment, 'driveTimeCategory'> {
   title: string;
   distance: number; // Distance in miles
   drivingTime: number; // Driving time in hours
   recommendedStops: RecommendedStop[]; // Change from TripStop[] to RecommendedStop[]
-  attractions?: string[] | any[]; // List of attraction names
+  attractions?: Array<{
+    name?: string;
+    title?: string;
+    description?: string;
+    city?: string;
+  }>; // Updated to match DailySegment interface
   subStopTimings: SegmentTiming[]; // Timings for sub-stops
   routeSection: string;
   driveTimeCategory: {
