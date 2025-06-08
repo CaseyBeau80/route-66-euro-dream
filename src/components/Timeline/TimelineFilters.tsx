@@ -1,12 +1,21 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Highway, Music, Heart } from 'lucide-react';
 import { categoryLabels } from '../../data/timelineData';
 
 interface TimelineFiltersProps {
   selectedCategory: string | null;
   onCategoryChange: (category: string | null) => void;
 }
+
+const categoryIcons = {
+  establishment: Highway,
+  cultural: Music,
+  decline: Heart,
+  revival: Sparkles
+} as const;
 
 export const TimelineFilters: React.FC<TimelineFiltersProps> = ({
   selectedCategory,
@@ -19,21 +28,32 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = ({
       <Button
         variant={selectedCategory === null ? "default" : "outline"}
         onClick={() => onCategoryChange(null)}
-        className="text-sm"
+        className="text-sm bg-route66-primary hover:bg-route66-primary-dark text-white border-route66-primary hover:border-route66-primary-dark"
       >
+        <Sparkles className="w-4 h-4 mr-2" />
         All Eras
       </Button>
       
-      {categories.map((category) => (
-        <Button
-          key={category}
-          variant={selectedCategory === category ? "default" : "outline"}
-          onClick={() => onCategoryChange(category)}
-          className="text-sm"
-        >
-          {categoryLabels[category]}
-        </Button>
-      ))}
+      {categories.map((category) => {
+        const IconComponent = categoryIcons[category];
+        const isSelected = selectedCategory === category;
+        
+        return (
+          <Button
+            key={category}
+            variant={isSelected ? "default" : "outline"}
+            onClick={() => onCategoryChange(category)}
+            className={`text-sm ${
+              isSelected 
+                ? 'bg-route66-primary hover:bg-route66-primary-dark text-white border-route66-primary'
+                : 'border-route66-border hover:bg-route66-hover hover:border-route66-primary text-route66-text-primary'
+            }`}
+          >
+            <IconComponent className="w-4 h-4 mr-2" />
+            {categoryLabels[category]}
+          </Button>
+        );
+      })}
     </div>
   );
 };

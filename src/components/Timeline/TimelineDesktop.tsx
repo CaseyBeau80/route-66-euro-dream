@@ -38,8 +38,12 @@ export const TimelineDesktop: React.FC<TimelineDesktopProps> = ({ milestones }) 
 
   return (
     <div className="relative">
-      {/* Vertical timeline line */}
-      <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-route66-primary via-route66-accent-gold to-route66-primary h-full rounded-full"></div>
+      {/* Animated vertical timeline line */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full rounded-full overflow-hidden">
+        <div className="w-full h-full bg-gradient-to-b from-route66-primary via-route66-accent-gold to-route66-primary animate-subtle-gradient bg-[length:100%_200%] opacity-90"></div>
+        {/* Sparkle effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent animate-highway-blink opacity-30"></div>
+      </div>
       
       {/* Timeline entries */}
       <div className="space-y-0">
