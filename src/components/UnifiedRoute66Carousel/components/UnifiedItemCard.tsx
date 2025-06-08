@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ExternalLink, MapPin, Calendar } from 'lucide-react';
+import { ExternalLink, MapPin, Calendar, ImageIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UnifiedRoute66Item } from '../types';
@@ -34,6 +34,15 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const fallbackImage = '/lovable-uploads/79d1bcf2-04dd-4206-8f0b-14e6cdce4cdc.png';
   const imageUrl = item.thumbnail_url || item.image_url || fallbackImage;
 
+  const handleMapClick = () => {
+    if (item.latitude && item.longitude) {
+      // Enhanced Google Maps search using place name and coordinates
+      const placeName = encodeURIComponent(`${item.name}, ${item.city_name}${item.state ? `, ${item.state}` : ''}`);
+      const url = `https://www.google.com/maps/search/${placeName}/@${item.latitude},${item.longitude},15z`;
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background hover:scale-[1.02]">
       {/* Image Section */}
@@ -54,10 +63,13 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           />
         )}
         
-        {/* Loading/Error Fallback */}
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-route66-background-section animate-pulse flex items-center justify-center">
-            <div className="text-route66-text-muted">Loading...</div>
+        {/* Enhanced Loading/Error Fallback */}
+        {(!imageLoaded || imageError) && (
+          <div className="absolute inset-0 bg-route66-background-section/80 flex flex-col items-center justify-center text-route66-text-muted">
+            <ImageIcon className="h-8 w-8 mb-2 opacity-50" />
+            <span className="text-sm font-medium">
+              {imageError ? 'Image not available' : 'Loading...'}
+            </span>
           </div>
         )}
 
@@ -122,13 +134,13 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 mt-auto">
+        {/* Consistent Action Buttons */}
+        <div className="grid grid-cols-2 gap-2 mt-auto">
           {item.website && (
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
+              className="h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
               onClick={() => window.open(item.website!, '_blank')}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -139,11 +151,8 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
-              onClick={() => {
-                const url = `https://www.google.com/maps?q=${item.latitude},${item.longitude}`;
-                window.open(url, '_blank');
-              }}
+              className="h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
+              onClick={handleMapClick}
             >
               <MapPin className="h-4 w-4 mr-1" />
               Map

@@ -95,31 +95,34 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
             hasActiveFilters={hasActiveFilters}
           />
         ) : (
-          <Carousel
-            opts={{
-              align: "start",
-              loop: false,
-            }}
-            className="w-full"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex gap-3">
-                <CarouselPrevious className="relative translate-x-0 translate-y-0 bg-route66-background border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm" />
-                <CarouselNext className="relative translate-x-0 translate-y-0 bg-route66-background border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm" />
+          <div className="relative">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: false,
+              }}
+              className="w-full"
+            >
+              {/* Enhanced Navigation Controls - positioned outside carousel */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex gap-4">
+                  <CarouselPrevious className="relative translate-x-0 translate-y-0 h-12 w-12 rounded-lg bg-route66-background border-2 border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-lg hover:shadow-xl" />
+                  <CarouselNext className="relative translate-x-0 translate-y-0 h-12 w-12 rounded-lg bg-route66-background border-2 border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-lg hover:shadow-xl" />
+                </div>
               </div>
-            </div>
 
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {items.map((item) => (
-                <CarouselItem
-                  key={item.id}
-                  className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                >
-                  <UnifiedItemCard item={item} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {items.map((item) => (
+                  <CarouselItem
+                    key={item.id}
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  >
+                    <UnifiedItemCard item={item} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
         )}
       </div>
     </section>
