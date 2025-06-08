@@ -10,11 +10,6 @@ import CelebrationEffects from './components/CelebrationEffects';
 import EnhancedProgressIndicator from './components/EnhancedProgressIndicator';
 import { Button } from '@/components/ui/button';
 
-// Only import DebugPanel in development
-const DebugPanel = import.meta.env.DEV 
-  ? React.lazy(() => import('./components/DebugPanel'))
-  : null;
-
 const Route66TriviaGame: React.FC = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -203,13 +198,6 @@ const Route66TriviaGame: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Debug Panel - Only in development */}
-        {import.meta.env.DEV && DebugPanel && (
-          <React.Suspense fallback={null}>
-            <DebugPanel gameSession={gameSession} />
-          </React.Suspense>
-        )}
       </section>
     );
   }
@@ -298,13 +286,6 @@ const Route66TriviaGame: React.FC = () => {
         score={gameSession.gameState.score}
         totalQuestions={gameSession.questions.length}
       />
-
-      {/* Debug Panel - Only in development */}
-      {import.meta.env.DEV && DebugPanel && (
-        <React.Suspense fallback={null}>
-          <DebugPanel gameSession={gameSession} />
-        </React.Suspense>
-      )}
     </section>
   );
 };
