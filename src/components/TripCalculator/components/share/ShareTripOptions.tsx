@@ -22,7 +22,7 @@ const ShareTripOptions: React.FC<ShareTripOptionsProps> = ({
   onShareViaEmail
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
       <div className="bg-white rounded-xl p-6 border border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Link className="w-5 h-5 text-blue-600" />

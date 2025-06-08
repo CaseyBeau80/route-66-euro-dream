@@ -41,17 +41,146 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Trip Preview Section */}
-      <ShareTripPreview 
-        tripPlan={tripPlan} 
-        tripStartDate={tripStartDate}
-        currentShareUrl={currentShareUrl}
-      />
+  const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+  const totalDistance = tripPlan.segments?.reduce((sum, segment) => sum + (segment.distance || 0), 0) || 0;
+  const totalDuration = tripPlan.segments?.reduce((sum, segment) => {
+    const driveTime = segment.driveTimeHours || segment.drivingTime || 0;
+    const durationInMinutes = segment.driveTimeHours ? segment.driveTimeHours * 60 : (segment.drivingTime || 0);
+    return sum + durationInMinutes;
+  }, 0) || 0;
+  const durationHours = Math.round(totalDuration / 60 * 10) / 10;
 
-      {/* Trip Statistics */}
-      <ShareTripStats tripPlan={tripPlan} />
+  return (
+    <div className="bg-white text-black font-sans">
+      {/* Header Section - Matching PDF Style */}
+      <div className="text-center mb-8 pb-6 border-b-2 border-blue-500">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="text-blue-600 font-bold text-lg">RAMBLE 66</div>
+          <div className="text-sm text-gray-500">ROUTE 66 TRIP PLANNER</div>
+        </div>
+        
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">{tripTitle}</h1>
+        <p className="text-lg text-gray-600">{tripPlan.startCity} → {tripPlan.endCity}</p>
+        <p className="text-sm text-gray-500 mt-2">
+          Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+        <p className="text-blue-600 text-sm mt-1">
+          Planned with Ramble 66 - Your Route 66 Adventure Starts Here
+        </p>
+      </div>
+
+      {/* Trip Overview Section - Matching PDF Style */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Trip Overview</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600 mb-1">{tripPlan.totalDays}</div>
+            <div className="text-sm text-gray-600">Days</div>
+            <div className="text-xs text-gray-500 mt-1">Starting Not specified</div>
+          </div>
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600 mb-1">{Math.round(totalDistance)} mi</div>
+            <div className="text-sm text-gray-600">Total Distance</div>
+          </div>
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600 mb-1">{durationHours}h {Math.round((totalDuration % 60))}m</div>
+            <div className="text-sm text-gray-600">Drive Time</div>
+          </div>
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-orange-600 mb-1">☀️</div>
+            <div className="text-sm text-gray-600">Weather Available</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Legend Section - Matching PDF Style */}
+      <div className="mb-8 p-4 bg-gray-50 rounded-lg border">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">Legend & Icons:</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+            <span>Destination City</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600">🗺️</span>
+            <span>Route Distance</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-purple-600">⏱️</span>
+            <span>Drive Time</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">🏛️</span>
+            <span>Historic Sites</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-orange-600">☁️</span>
+            <span>Weather Info</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600">📅</span>
+            <span>Date</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Itinerary Preview */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Daily Route 66 Itinerary</h2>
+        <div className="flex gap-4 text-sm text-gray-600 mb-6">
+          <span>📅 {tripPlan.totalDays} days</span>
+          <span>📍 {tripPlan.segments?.length || 0} destinations</span>
+          <span>🛣️ {Math.round(totalDistance)} miles</span>
+        </div>
+
+        {/* Tab Header - Visual Only */}
+        <div className="border-b border-gray-200 mb-6">
+          <div className="flex space-x-0">
+            <div className="bg-blue-50 border-t-2 border-blue-500 px-6 py-3 font-medium text-blue-700 rounded-t-lg">
+              📍 Route & Stops + Weather
+            </div>
+          </div>
+        </div>
+
+        {/* Sample day preview */}
+        {tripPlan.segments && tripPlan.segments.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
+                Day 1
+              </span>
+              <span className="text-red-600">•</span>
+              <h4 className="text-lg font-semibold text-gray-800">
+                {tripPlan.segments[0].endCity}
+              </h4>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🗺️</span>
+                <span>{Math.round(tripPlan.segments[0].distance || 0)} mi</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-purple-600">⏱️</span>
+                <span>{Math.round((tripPlan.segments[0].driveTimeHours || 0) * 60)}m</span>
+              </div>
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              <strong>Route:</strong> {tripPlan.segments[0].startCity} → {tripPlan.segments[0].endCity}
+            </div>
+            
+            {tripPlan.segments.length > 1 && (
+              <div className="mt-3 text-sm text-gray-500">
+                ... and {tripPlan.segments.length - 1} more day{tripPlan.segments.length > 2 ? 's' : ''}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Sharing Options */}
       <ShareTripOptions
@@ -62,6 +191,19 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
         onCopyLink={onCopyLink}
         onShareViaEmail={onShareViaEmail}
       />
+
+      {/* Footer - Matching PDF Style */}
+      <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+        <p>
+          Generated from Route 66 Trip Planner • 
+          Visit <span className="text-blue-600">ramble66.com</span> to plan your own adventure
+        </p>
+        {currentShareUrl && (
+          <p className="mt-2 font-mono text-xs break-all text-blue-600">
+            {currentShareUrl}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
