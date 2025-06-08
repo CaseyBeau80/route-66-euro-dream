@@ -8,7 +8,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 interface CentennialCardProps {
   id: string;
   title: string;
-  subtitle: string;
+  subtitle: string | React.ReactNode;
   description: string;
   icon: React.ReactNode;
   route: string;
