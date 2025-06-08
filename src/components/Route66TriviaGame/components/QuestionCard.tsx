@@ -168,13 +168,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           </div>
         </div>
       )}
-      
-      {/* Keyboard hints */}
-      {!selectedAnswer && (
-        <div className="mt-4 text-center text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
-          💡 Keyboard shortcuts: Press <kbd className="bg-white px-1 rounded border">1</kbd>, <kbd className="bg-white px-1 rounded border">2</kbd>, <kbd className="bg-white px-1 rounded border">3</kbd> or <kbd className="bg-white px-1 rounded border">A</kbd>, <kbd className="bg-white px-1 rounded border">B</kbd>, <kbd className="bg-white px-1 rounded border">C</kbd> to answer
-        </div>
-      )}
     </div>
   );
 };
