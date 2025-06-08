@@ -9,7 +9,7 @@ export class CactiRewardService {
     return {
       currentStage: 0,
       correctAnswers: 0,
-      unlockedStages: [CACTUS_GROWTH_STAGES[0]], // Start with seed stage
+      unlockedStages: [CACTUS_GROWTH_STAGES[0]], // Start with seedling stage
       showReward: false
     };
   }
@@ -60,24 +60,40 @@ export class CactiRewardService {
   }
 
   /**
-   * Get achievement message based on growth
+   * Get desert-themed achievement message based on growth
    */
   static getAchievementMessage(correctAnswers: number): string {
     const stage = this.getCurrentStage(correctAnswers);
     
     switch (stage.id) {
       case 'sprout':
-        return "🌱 Your first sprout appears in the desert soil!";
-      case 'young':
-        return "🌵 A young cactus emerges under the Arizona sun!";
-      case 'mature':
-        return "🌵 Your cactus stands tall like a Route 66 sentinel!";
-      case 'blooming':
-        return "🌸 Beautiful desert blooms crown your magnificent cactus!";
-      case 'master':
-        return "👑 You've grown the ultimate Route 66 desert guardian!";
+        return "🌱 Your first desert sprout emerges from the Arizona soil!";
+      case 'barrel':
+        return "🌵 A sturdy barrel cactus takes root in the Sonoran Desert!";
+      case 'cholla':
+        return "🌵 You've grown as resilient as the jumping cholla of New Mexico!";
+      case 'prickly-pear':
+        return "🌺 Beautiful desert blooms crown your Texas Panhandle knowledge!";
+      case 'saguaro':
+        return "👑 You've become a majestic Saguaro sentinel of Route 66 wisdom!";
       default:
-        return "🌱 Every desert journey begins with a single seed...";
+        return "🌱 Every desert journey begins with a seed in the Mojave sand...";
     }
+  }
+
+  /**
+   * Get regional context for current stage
+   */
+  static getRegionalContext(correctAnswers: number): string {
+    const stage = this.getCurrentStage(correctAnswers);
+    return stage.region;
+  }
+
+  /**
+   * Get desert-themed flavor text
+   */
+  static getFlavorText(correctAnswers: number): string {
+    const stage = this.getCurrentStage(correctAnswers);
+    return stage.flavorText;
   }
 }
