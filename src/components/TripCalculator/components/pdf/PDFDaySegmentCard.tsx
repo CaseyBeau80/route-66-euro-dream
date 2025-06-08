@@ -3,7 +3,7 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
 import PDFDaySegmentCardStats from './PDFDaySegmentCardStats';
-import PDFDaySegmentCardWeather from './PDFDaySegmentCardWeather';
+import PDFSegmentWeatherForecast from './PDFSegmentWeatherForecast';
 import PDFDaySegmentCardStops from './PDFDaySegmentCardStops';
 import PDFDaySegmentCardFooter from './PDFDaySegmentCardFooter';
 
@@ -26,26 +26,17 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000)
     : null;
 
-  // Comprehensive debug of segment data
-  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Complete segment inspection:`, {
-    segment: segment,
+  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Rendering with forecast-only approach:`, {
     hasDirectWeather: !!segment.weather,
     hasWeatherData: !!segment.weatherData,
-    hasDestinationWeather: !!(segment.destination as any)?.weather,
-    hasDestinationWeatherData: !!(segment.destination as any)?.weatherData,
-    destinationObject: segment.destination,
-    allSegmentKeys: Object.keys(segment),
-    city: segment.endCity
+    city: segment.endCity,
+    exportFormat
   });
 
-  // Try to find weather data in multiple locations
-  const weatherInfo = segment.weather || 
-                     segment.weatherData || 
-                     (segment.destination as any)?.weather || 
-                     (segment.destination as any)?.weatherData ||
-                     null;
+  // Extract weather data - prioritize the enriched data
+  const weatherData = segment.weather || segment.weatherData || null;
 
-  console.log(`🌤️ Weather info for Day ${segment.day}:`, weatherInfo);
+  console.log(`🌤️ Weather data for Day ${segment.day} (${segment.endCity}):`, weatherData);
 
   const distance = segment.distance || segment.approximateMiles || 0;
 
@@ -64,9 +55,10 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         endCity={segment.endCity}
       />
 
-      <PDFDaySegmentCardWeather
-        weatherInfo={weatherInfo}
+      <PDFSegmentWeatherForecast
+        forecastData={weatherData}
         segmentDate={segmentDate}
+        cityName={segment.endCity}
         exportFormat={exportFormat}
       />
 

@@ -35,7 +35,7 @@ export const usePDFExportLogic = ({
   const { addPrintStyles, removePrintStyles } = usePDFStyles();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
-    console.log('🔄 Creating PDF loading overlay...');
+    console.log('🔄 Creating enhanced PDF loading overlay...');
     
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
@@ -82,6 +82,9 @@ export const usePDFExportLogic = ({
         <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.4;">
           Loading trip details and weather forecasts for PDF export...
         </p>
+        <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+          This may take a moment as we gather live weather data
+        </div>
       </div>
     `;
 
@@ -104,7 +107,7 @@ export const usePDFExportLogic = ({
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export...');
+    console.log('🖨️ Starting enhanced PDF export with weather preloading...');
     setIsExporting(true);
     setWeatherLoading(true);
     
@@ -114,12 +117,12 @@ export const usePDFExportLogic = ({
       // Step 1: Show initial toast
       toast({
         title: "Generating PDF Export",
-        description: "Creating your printable Route 66 itinerary with live weather data...",
+        description: "Preparing your Route 66 itinerary with live weather forecasts...",
         variant: "default"
       });
       
-      // Step 2: Create PDF container with trip data
-      console.log('📄 Creating PDF container...');
+      // Step 2: Create PDF container with preloaded weather data
+      console.log('📄 Creating PDF container with weather preloading...');
       const pdfContainer = await createPDFContainer({
         tripPlan,
         tripStartDate,
@@ -132,10 +135,12 @@ export const usePDFExportLogic = ({
       // Step 3: Verify content was rendered properly
       const hasContent = pdfContainer.innerHTML.trim().length > 100;
       const segmentElements = pdfContainer.querySelectorAll('.pdf-day-segment');
+      const weatherElements = pdfContainer.querySelectorAll('.pdf-weather-section');
       
-      console.log('📄 Content verification:', {
+      console.log('📄 Final content verification:', {
         hasContent,
         segmentCount: segmentElements.length,
+        weatherSections: weatherElements.length,
         expectedSegments: tripPlan.segments?.length || 0
       });
       
@@ -146,8 +151,8 @@ export const usePDFExportLogic = ({
       // Step 4: Add print styles
       addPrintStyles();
       
-      // Step 5: Wait a moment for final rendering
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Step 5: Wait for final rendering and styles to apply
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       setWeatherLoading(false);
       removePDFLoadingMessage(loadingBox);
@@ -161,7 +166,7 @@ export const usePDFExportLogic = ({
         
         toast({
           title: "PDF Ready for Download!",
-          description: "Your Route 66 itinerary is ready. The print dialog will open automatically - choose 'Save as PDF' to download.",
+          description: "Your Route 66 itinerary with weather forecasts is ready. The print dialog will open automatically.",
           variant: "default",
         });
         
@@ -189,10 +194,10 @@ export const usePDFExportLogic = ({
         
       }, 800);
       
-      console.log('✅ PDF export completed successfully');
+      console.log('✅ Enhanced PDF export completed successfully');
       
     } catch (error) {
-      console.error('❌ PDF export failed:', error);
+      console.error('❌ Enhanced PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
       removePrintStyles();
       
