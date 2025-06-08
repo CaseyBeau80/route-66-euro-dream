@@ -107,23 +107,19 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
 
         {/* Tab Content */}
         <div className="mt-4">
-          {activeTab === 'route' && (
-            <RouteTabContent
-              segments={stableSegments}
-              tripStartDate={tripStartDate}
-              tripId={tripId}
-              isVisible={true}
-            />
-          )}
+          <RouteTabContent
+            segments={stableSegments}
+            tripStartDate={tripStartDate}
+            tripId={tripId}
+            isVisible={activeTab === 'route'}
+          />
 
-          {activeTab === 'weather' && (
-            <WeatherTabContent
-              segments={stableSegments}
-              tripStartDate={tripStartDate}
-              tripId={tripId}
-              isVisible={true}
-            />
-          )}
+          <WeatherTabContent
+            segments={stableSegments}
+            tripStartDate={tripStartDate}
+            tripId={tripId}
+            isVisible={activeTab === 'weather'}
+          />
         </div>
       </div>
     </ErrorBoundary>
