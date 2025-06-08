@@ -41,8 +41,8 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
               </div>
             </div>
             
-            {/* Candles with flames - 30% bigger and positioned above cake */}
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 flex gap-3">
+            {/* Candles with flames - 30% bigger and positioned above cake with tighter spacing */}
+            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 flex gap-1.5">
               <div className="flex flex-col items-center">
                 {/* Flame - 30% bigger */}
                 <div className="w-1.5 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none"></div>
