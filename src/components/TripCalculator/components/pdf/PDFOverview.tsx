@@ -2,7 +2,6 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
-import { PDFWeatherIntegrationService } from './PDFWeatherIntegrationService';
 
 interface PDFOverviewProps {
   tripPlan: TripPlan;
@@ -33,8 +32,7 @@ const PDFOverview: React.FC<PDFOverviewProps> = ({
   };
 
   // Weather service status for display
-  const weatherServiceStatus = PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 
-    (weatherLoading ? '⏳' : (weatherLoadingTimeout ? '⚠️' : '🌤️')) : '❌';
+  const weatherServiceStatus = weatherLoading ? '⏳' : (weatherLoadingTimeout ? '⚠️' : '🌤️');
 
   return (
     <div className="pdf-overview mb-8">
@@ -62,7 +60,7 @@ const PDFOverview: React.FC<PDFOverviewProps> = ({
             Weather {
               weatherLoading ? 'Loading' :
               weatherLoadingTimeout ? 'Timeout' :
-              PDFWeatherIntegrationService.isWeatherServiceAvailable() ? 'Available' : 'Unavailable'
+              'Available'
             }
           </div>
         </div>

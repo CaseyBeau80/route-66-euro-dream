@@ -1,6 +1,6 @@
 
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { getWeatherDataForTripDate } from '../../services/weather/WeatherServiceCore';
+import { getWeatherDataForTripDate } from '../weather/getWeatherDataForTripDate';
 
 export class PDFWeatherIntegrationService {
   static async enrichSegmentsWithWeather(
