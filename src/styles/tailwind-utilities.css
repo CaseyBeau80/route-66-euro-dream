@@ -1,36 +1,87 @@
 
-/* Custom Tailwind Utility Extensions */
+/* Tailwind CSS Utility Overrides for Route 66 Deep Blue Theme */
 
-/* Remove duplicate Route 66 variables since they're already in variables.css */
-
-/* Duplicate utility classes removed - they're already in utilities.css */
-
-/* Keep only Tailwind-specific animations that extend the framework */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Primary color utilities */
+.text-primary {
+  color: var(--route66-primary) !important;
 }
 
-@keyframes slow-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+.bg-primary {
+  background-color: var(--route66-primary) !important;
 }
 
-.animate-fade-in {
-  animation: fade-in 1s ease-out forwards;
-  opacity: 0;
+.border-primary {
+  border-color: var(--route66-primary) !important;
 }
 
-.animate-slow-pulse {
-  animation: slow-pulse 3s ease-in-out infinite;
+/* Blue color overrides - force deep blue everywhere */
+.text-blue-500,
+.text-blue-600,
+.text-blue-700,
+.text-blue-800,
+.text-blue-900 {
+  color: var(--route66-primary) !important;
+}
+
+.bg-blue-500,
+.bg-blue-600,
+.bg-blue-700,
+.bg-blue-800,
+.bg-blue-900 {
+  background-color: var(--route66-primary) !important;
+}
+
+.border-blue-500,
+.border-blue-600,
+.border-blue-700,
+.border-blue-800,
+.border-blue-900 {
+  border-color: var(--route66-primary) !important;
+}
+
+/* Hover states */
+.hover\:bg-blue-600:hover,
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-800:hover {
+  background-color: var(--route66-primary-dark) !important;
+}
+
+.hover\:text-blue-600:hover,
+.hover\:text-blue-700:hover,
+.hover\:text-blue-800:hover {
+  color: var(--route66-primary-dark) !important;
+}
+
+/* Focus states */
+.focus\:ring-blue-500:focus,
+.focus\:ring-blue-600:focus {
+  box-shadow: 0 0 0 3px rgba(27, 41, 81, 0.1) !important;
+}
+
+.focus\:border-blue-500:focus,
+.focus\:border-blue-600:focus {
+  border-color: var(--route66-primary) !important;
+}
+
+/* Gradient from/to overrides */
+.from-blue-600,
+.from-blue-700 {
+  --tw-gradient-from: var(--route66-primary) !important;
+}
+
+.to-blue-600,
+.to-blue-700 {
+  --tw-gradient-to: var(--route66-primary) !important;
+}
+
+/* Ring colors */
+.ring-blue-500,
+.ring-blue-600 {
+  --tw-ring-color: rgba(27, 41, 81, 0.5) !important;
+}
+
+/* Accent colors for interactive elements */
+.accent-blue-500,
+.accent-blue-600 {
+  accent-color: var(--route66-primary) !important;
 }
