@@ -2,6 +2,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import SegmentWeatherWidget from '../SegmentWeatherWidget';
 
 interface ShareTripDaySegmentCardProps {
   segment: DailySegment;
@@ -65,12 +66,14 @@ const ShareTripDaySegmentCard: React.FC<ShareTripDaySegmentCardProps> = ({
         <strong>Route:</strong> {segment.startCity} → {segment.endCity}
       </div>
 
-      {/* Weather Placeholder */}
-      <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-3">
-        <div className="flex items-center gap-2 text-sm text-blue-700">
-          <span>🌤️</span>
-          <span>Weather information available in live version</span>
-        </div>
+      {/* Weather Widget */}
+      <div className="mb-3">
+        <SegmentWeatherWidget
+          segment={segment}
+          tripStartDate={tripStartDate}
+          forceExpanded={false}
+          isCollapsible={false}
+        />
       </div>
 
       {/* Recommended Stops */}

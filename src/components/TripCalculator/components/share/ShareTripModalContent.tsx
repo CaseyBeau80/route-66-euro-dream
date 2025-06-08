@@ -43,11 +43,9 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
   const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
   const totalDistance = tripPlan.segments?.reduce((sum, segment) => sum + (segment.distance || 0), 0) || 0;
   const totalDuration = tripPlan.segments?.reduce((sum, segment) => {
-    const driveTime = segment.driveTimeHours || segment.drivingTime || 0;
-    const durationInMinutes = segment.driveTimeHours ? segment.driveTimeHours * 60 : (segment.drivingTime || 0);
-    return sum + durationInMinutes;
+    const driveTime = segment.driveTimeHours || 0;
+    return sum + driveTime;
   }, 0) || 0;
-  const durationHours = Math.round(totalDuration / 60 * 10) / 10;
 
   return (
     <div className="bg-white text-black font-sans">
@@ -75,22 +73,29 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-blue-600 mb-1">{tripPlan.totalDays}</div>
             <div className="text-sm text-gray-600">Days</div>
-            <div className="text-xs text-gray-500 mt-1">Starting {tripStartDate ? tripStartDate.toLocaleDateString() : 'Not specified'}</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {tripStartDate ? `Starting ${tripStartDate.toLocaleDateString()}` : 'Date not set'}
+            </div>
           </div>
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{Math.round(totalDistance)} mi</div>
-            <div className="text-sm text-gray-600">Total Distance</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">{Math.round(totalDistance)}</div>
+            <div className="text-sm text-gray-600">Miles</div>
+            <div className="text-xs text-gray-500 mt-1">Total Distance</div>
           </div>
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{durationHours}h {Math.round((totalDuration % 60))}m</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">{Math.round(totalDuration)}h</div>
             <div className="text-sm text-gray-600">Drive Time</div>
+            <div className="text-xs text-gray-500 mt-1">Estimated</div>
           </div>
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-orange-600 mb-1">☀️</div>
-            <div className="text-sm text-gray-600">Weather Available</div>
+            <div className="text-sm text-gray-600">Weather</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {tripStartDate ? 'Live Forecast' : 'Set Date for Forecast'}
+            </div>
           </div>
         </div>
       </div>
