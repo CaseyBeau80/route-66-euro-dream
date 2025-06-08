@@ -35,10 +35,10 @@ export default function TestUpload() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            Route 66 Photo Spot Challenge
+            Route 66 Media Upload Challenge
           </CardTitle>
           <CardDescription>
-            Share your Route 66 adventure photos! Upload images from your journey along the historic highway.
+            Share your Route 66 adventure content! Upload photos, videos, or travel planning materials from your journey along the historic highway.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
