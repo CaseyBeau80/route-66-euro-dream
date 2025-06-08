@@ -104,7 +104,13 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   shareUrl, 
   tripStartDate 
 }) => {
-  console.log('🎯 TripCalculatorResults render - tripPlan:', !!tripPlan, 'calculation:', !!calculation, 'shareUrl:', shareUrl, 'tripStartDate:', tripStartDate?.toISOString());
+  console.log('🎯 TripCalculatorResults render:', {
+    hasTripPlan: !!tripPlan,
+    hasCalculation: !!calculation,
+    shareUrl,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateType: typeof tripStartDate
+  });
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {

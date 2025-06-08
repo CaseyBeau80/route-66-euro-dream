@@ -28,6 +28,13 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
+  console.log(`🌤️ SegmentWeatherWidget: Input validation for ${segment.endCity}:`, {
+    tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
+    tripStartDateType: typeof tripStartDate,
+    segmentDay: segment.day,
+    hasApiKey
+  });
+
   // Safely convert tripStartDate to Date object and calculate the actual date for this segment
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
@@ -44,7 +51,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
           console.error('❌ SegmentWeatherWidget: Invalid Date object provided', tripStartDate);
           return null;
         }
-        validStartDate = tripStartDate;
+        validStartDate = new Date(tripStartDate); // Create a new Date to avoid mutation
       } else if (typeof tripStartDate === 'string') {
         validStartDate = new Date(tripStartDate);
         if (isNaN(validStartDate.getTime())) {
@@ -60,15 +67,15 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       
       if (isNaN(calculatedDate.getTime())) {
         console.error('❌ SegmentWeatherWidget: Calculated date is invalid', { 
-          validStartDate: validStartDate instanceof Date ? validStartDate.toISOString() : 'not a date', 
+          validStartDate: validStartDate.toISOString(), 
           segmentDay: segment.day, 
           calculatedDate 
         });
         return null;
       }
       
-      console.log('🌤️ SegmentWeatherWidget: Calculated valid segment date', {
-        startDate: validStartDate instanceof Date ? validStartDate.toISOString() : 'not a date',
+      console.log('✅ SegmentWeatherWidget: Valid segment date calculated', {
+        startDate: validStartDate.toISOString(),
         segmentDay: segment.day,
         calculatedDate: calculatedDate.toISOString()
       });
@@ -85,7 +92,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
     : null;
 
-  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
+  console.log(`🌤️ SegmentWeatherWidget: Final state for ${segment.endCity} (Day ${segment.day})`, {
     hasApiKey,
     segmentDate: segmentDate?.toISOString(),
     daysFromNow,
