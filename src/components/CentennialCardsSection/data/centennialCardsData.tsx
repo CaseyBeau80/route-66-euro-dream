@@ -57,11 +57,11 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
             </div>
           </div>
           
-          {/* Candles positioned on top of the top tier - positioned correctly above the cake */}
+          {/* Candles positioned correctly on TOP of the top tier */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div className="relative scale-[1.8]">
-              {/* Three candles positioned properly on top of the top tier */}
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 flex gap-1.5 opacity-100">
+              {/* Position candles directly above the top tier of the cake */}
+              <div className="absolute -top-[2.75rem] left-1/2 transform -translate-x-1/2 flex gap-1.5 opacity-100">
                 <div className="flex flex-col items-center">
                   {/* Flame with enhanced visibility */}
                   <div className="relative opacity-100 z-10">
@@ -69,8 +69,8 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                     <div className="absolute inset-0 w-1.5 h-4 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
                     <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
-                  {/* Candle body */}
-                  <div className="w-2 h-5 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
+                  {/* Candle body - positioned to sit directly on top tier */}
+                  <div className="w-2 h-3 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
                 </div>
                 
                 <div className="flex flex-col items-center">
@@ -79,7 +79,7 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                     <div className="absolute inset-0 w-1.5 h-4 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
                     <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
-                  <div className="w-2 h-5 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
+                  <div className="w-2 h-3 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
                 </div>
                 
                 <div className="flex flex-col items-center">
@@ -88,7 +88,7 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                     <div className="absolute inset-0 w-1.5 h-4 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
                     <div className="absolute inset-0 w-1.5 h-4 bg-white rounded-full blur-[2px] opacity-60"></div>
                   </div>
-                  <div className="w-2 h-5 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
+                  <div className="w-2 h-3 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
                 </div>
               </div>
             </div>
@@ -157,10 +157,10 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     content: (
       <div className="text-center space-y-3">
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-300 min-h-[140px] flex flex-col justify-center">
-          <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">
+          <div className="text-xs font-medium text-green-600 uppercase tracking-wide mb-2">
             Today's Route 66 Fact
           </div>
-          <p className="text-sm text-green-800 font-medium leading-relaxed line-clamp-3">
+          <p className="text-sm text-green-800 font-bold leading-relaxed line-clamp-3">
             {currentFact}
           </p>
         </div>
