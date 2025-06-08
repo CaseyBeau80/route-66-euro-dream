@@ -66,14 +66,15 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
   // Check if trip is complete
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
+  // Don't render modal when PDF preview is active to prevent hijacking
   if (showPreview) {
-    return null; // PDF preview is handled by the hook
+    return null;
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen && !showPreview} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-labelledby="pdf-export-title"
       >
@@ -84,7 +85,6 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Custom Close Button */}
         <DialogClose className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -160,15 +160,15 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 </div>
               )}
 
-              {/* Instructions */}
+              {/* Updated Instructions */}
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
                 <div className="font-semibold mb-2 text-blue-700 text-sm">📋 PDF Export Instructions:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed">
-                  <li>• Click "Generate PDF" to create your printable itinerary</li>
-                  <li>• A preview will open where you can review the content</li>
-                  <li>• Press Ctrl+P (or Cmd+P on Mac) to open the print dialog</li>
+                  <li>• Click "Generate PDF" to prepare your printable itinerary</li>
+                  <li>• The browser's print dialog will open automatically</li>
                   <li>• Choose "Save as PDF" as your destination to download the file</li>
                   <li>• Weather data is loaded for enhanced trip planning</li>
+                  <li>• The export modal will close during the print process</li>
                 </ul>
               </div>
             </div>
@@ -179,7 +179,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               disabled={isExporting || !isTripComplete}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
             >
-              {isExporting ? 'Generating PDF...' : 'Generate PDF Preview'}
+              {isExporting ? 'Preparing PDF...' : 'Generate PDF Export'}
             </Button>
           </>
         )}

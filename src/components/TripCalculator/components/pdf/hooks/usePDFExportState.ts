@@ -6,6 +6,12 @@ export const usePDFExportState = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
 
+  console.log('📄 usePDFExportState:', {
+    isExporting,
+    showPreview,
+    weatherLoading
+  });
+
   return {
     isExporting,
     setIsExporting,

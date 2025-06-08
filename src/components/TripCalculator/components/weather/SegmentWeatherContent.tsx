@@ -98,20 +98,19 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <WeatherError error={error} />;
   }
 
-  // Show seasonal fallback
+  // Show seasonal fallback when date is available but no API key or data
   if (segmentDate) {
     console.log(`🌱 Showing seasonal weather for ${segmentEndCity}`);
     return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segmentEndCity} />;
   }
 
-  // Default message for weather tab
-  console.log(`📅 No date set for ${segmentEndCity}, showing weather tab message`);
+  // Default message when no date is set
+  console.log(`📅 No date set for ${segmentEndCity}, showing prompt message`);
   return (
-    <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
-      <div className="text-blue-600 text-4xl mb-3">🌤️</div>
-      <h6 className="text-lg font-semibold text-blue-800 mb-2">Weather Information</h6>
-      <p className="text-sm text-blue-700">
-        Weather forecast for {segmentEndCity} will appear here once a trip start date is set
+    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="text-gray-400 text-3xl mb-2">🌤️</div>
+      <p className="text-sm text-gray-600">
+        Weather information will appear when a trip start date is set
       </p>
     </div>
   );

@@ -28,16 +28,15 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const weatherService = EnhancedWeatherService.getInstance();
   const hasApiKey = weatherService.hasApiKey();
 
-  console.log(`🌤️ SegmentWeatherWidget: Input validation for ${segment.endCity}:`, {
+  console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
     tripStartDateType: typeof tripStartDate,
-    segmentDay: segment.day,
     hasApiKey,
     sectionKey,
     forceExpanded
   });
 
-  // Safely convert tripStartDate to Date object and calculate the actual date for this segment
+  // Calculate the actual date for this segment
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
       console.log('🌤️ SegmentWeatherWidget: No tripStartDate provided');
@@ -45,7 +44,6 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
     
     try {
-      // Ensure we have a valid Date object
       let validStartDate: Date;
       
       if (tripStartDate instanceof Date) {
@@ -53,7 +51,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
           console.error('❌ SegmentWeatherWidget: Invalid Date object provided', tripStartDate);
           return null;
         }
-        validStartDate = new Date(tripStartDate); // Create a new Date to avoid mutation
+        validStartDate = new Date(tripStartDate);
       } else if (typeof tripStartDate === 'string') {
         validStartDate = new Date(tripStartDate);
         if (isNaN(validStartDate.getTime())) {
@@ -89,19 +87,6 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       return null;
     }
   }, [tripStartDate, segment.day]);
-  
-  const daysFromNow = segmentDate 
-    ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) 
-    : null;
-
-  console.log(`🌤️ SegmentWeatherWidget: Final state for ${segment.endCity} (Day ${segment.day})`, {
-    hasApiKey,
-    segmentDate: segmentDate?.toISOString(),
-    daysFromNow,
-    forceExpanded,
-    isCollapsible,
-    sectionKey
-  });
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
   const weatherHandlers = useSegmentWeather({
@@ -111,11 +96,21 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // For weather tab, don't wrap in collapsible container
+  // Mark this element with weather loaded attribute for PDF export
+  React.useEffect(() => {
+    if (weatherState.weather && !weatherState.loading) {
+      // This helps the PDF export system know when weather data is ready
+      const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
+      if (element) {
+        element.setAttribute('data-weather-loaded', 'true');
+      }
+    }
+  }, [weatherState.weather, weatherState.loading, segment.day]);
+
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
   return (
-    <div className={`space-y-3 ${containerClass}`}>
+    <div className={`space-y-3 ${containerClass}`} data-segment-day={segment.day}>
       <SegmentWeatherContent
         hasApiKey={hasApiKey}
         loading={weatherState.loading}

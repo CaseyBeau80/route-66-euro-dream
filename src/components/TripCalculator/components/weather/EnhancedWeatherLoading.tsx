@@ -1,48 +1,34 @@
 
-import React, { useState, useEffect } from 'react';
-import { Cloud, AlertTriangle } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Cloud } from 'lucide-react';
 
 interface EnhancedWeatherLoadingProps {
-  onTimeout?: () => void;
+  onTimeout: () => void;
   timeoutMs?: number;
 }
 
-const EnhancedWeatherLoading: React.FC<EnhancedWeatherLoadingProps> = ({ 
-  onTimeout, 
-  timeoutMs = 15000 
+const EnhancedWeatherLoading: React.FC<EnhancedWeatherLoadingProps> = ({
+  onTimeout,
+  timeoutMs = 10000
 }) => {
-  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
-
   useEffect(() => {
-    const warningTimer = setTimeout(() => {
-      setShowTimeoutWarning(true);
-    }, timeoutMs * 0.7); // Show warning at 70% of timeout
-
-    const timeoutTimer = setTimeout(() => {
-      if (onTimeout) {
-        onTimeout();
-      }
+    const timeout = setTimeout(() => {
+      console.log('⏰ Weather loading timed out');
+      onTimeout();
     }, timeoutMs);
 
-    return () => {
-      clearTimeout(warningTimer);
-      clearTimeout(timeoutTimer);
-    };
+    return () => clearTimeout(timeout);
   }, [onTimeout, timeoutMs]);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-sm text-gray-500 p-2">
-        <Cloud className="w-4 h-4 animate-pulse" />
-        <span>Loading current weather...</span>
-      </div>
-      
-      {showTimeoutWarning && (
-        <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800">
-          <AlertTriangle className="w-4 h-4" />
-          <span className="text-xs">Weather service taking longer than expected...</span>
+    <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="flex items-center gap-3 text-blue-600">
+        <Cloud className="w-5 h-5 animate-pulse" />
+        <div className="text-sm">
+          <div className="font-medium">Loading weather data...</div>
+          <div className="text-xs text-blue-500 mt-1">This may take a few seconds</div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

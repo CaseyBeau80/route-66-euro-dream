@@ -3,7 +3,6 @@ import { toast } from '@/hooks/use-toast';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { usePDFContainer } from './usePDFContainer';
 import { usePDFStyles } from './usePDFStyles';
-import { usePDFDisplay } from './usePDFDisplay';
 
 interface UsePDFExportLogicProps {
   tripPlan: TripPlan;
@@ -32,12 +31,10 @@ export const usePDFExportLogic = ({
 }: UsePDFExportLogicProps) => {
   const { createPDFContainer } = usePDFContainer();
   const { addPrintStyles } = usePDFStyles();
-  const { showPDFPreview } = usePDFDisplay();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
-    console.log('🔄 Creating enhanced PDF loading overlay...');
+    console.log('🔄 Creating PDF loading overlay...');
     
-    // Remove any existing loading message
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
       existingLoading.remove();
@@ -78,10 +75,10 @@ export const usePDFExportLogic = ({
       "></div>
       <div>
         <h3 style="font-weight: bold; color: #1e3a8a; margin: 0 0 8px 0; font-size: 18px;">
-          Preparing Route 66 PDF
+          Preparing PDF Export
         </h3>
         <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.4;">
-          Loading weather data and formatting your itinerary for print...
+          Loading weather data and formatting your Route 66 itinerary...
         </p>
       </div>
     `;
@@ -104,76 +101,23 @@ export const usePDFExportLogic = ({
     }
   };
 
-  const isolatePDFContainer = async (pdfContainer: HTMLElement): Promise<void> => {
-    console.log('🔒 Isolating PDF container for print...');
-    
-    // Step 1: Hide all other content
-    const bodyChildren = Array.from(document.body.children);
-    const hiddenElements: HTMLElement[] = [];
-    
-    bodyChildren.forEach((child) => {
-      if (child !== pdfContainer && child.id !== 'pdf-export-content') {
-        const element = child as HTMLElement;
-        if (element.style.display !== 'none') {
-          element.dataset.originalDisplay = element.style.display || 'block';
-          element.style.display = 'none';
-          hiddenElements.push(element);
-        }
-      }
-    });
-    
-    // Step 2: Make PDF container the only visible content
-    pdfContainer.style.cssText = `
-      position: static !important;
-      left: auto !important;
-      top: auto !important;
-      visibility: visible !important;
-      display: block !important;
-      width: 100% !important;
-      height: auto !important;
-      margin: 0 !important;
-      padding: 20px !important;
-      background: white !important;
-      color: #000 !important;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-      font-size: 14px !important;
-      line-height: 1.5 !important;
-    `;
-    
-    // Step 3: Store cleanup function
-    (pdfContainer as any)._restoreVisibility = () => {
-      console.log('🔓 Restoring page visibility after print...');
-      hiddenElements.forEach((element) => {
-        const originalDisplay = element.dataset.originalDisplay || 'block';
-        element.style.display = originalDisplay;
-        delete element.dataset.originalDisplay;
-      });
-    };
-    
-    console.log('✅ PDF container isolated, ready for print');
-  };
-
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with container isolation...');
+    console.log('🖨️ Starting PDF export...');
     setIsExporting(true);
     setWeatherLoading(true);
     
     const loadingBox = showPDFLoadingMessage();
     
     try {
-      // Step 1: Close modal and wait
-      onClose();
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Step 2: Show initial toast
+      // Step 1: Show initial toast with updated message
       toast({
-        title: "Preparing Route 66 PDF",
-        description: "Loading weather data and formatting content...",
+        title: "Generating PDF Export",
+        description: "Loading weather data and preparing your Route 66 itinerary...",
         variant: "default"
       });
       
-      // Step 3: Create PDF container with enhanced weather loading
-      console.log('📄 Creating PDF container with weather data...');
+      // Step 2: Create PDF container with weather data
+      console.log('📄 Creating PDF container...');
       const pdfContainer = await createPDFContainer({
         tripPlan,
         tripStartDate,
@@ -181,47 +125,48 @@ export const usePDFExportLogic = ({
         shareUrl
       });
       
-      // Step 4: Wait for weather data to fully load
-      console.log('🌤️ Waiting for weather data to load...');
+      // Step 3: Wait for weather data to load
+      console.log('🌤️ Waiting for weather data...');
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       setWeatherLoading(false);
       removePDFLoadingMessage(loadingBox);
       
-      // Step 5: Add enhanced print styles
+      // Step 4: Add print styles
       addPrintStyles();
       
-      // Step 6: Isolate PDF container for print
-      await isolatePDFContainer(pdfContainer);
+      // Step 5: Close the modal BEFORE opening print dialog
+      onClose();
       
-      // Step 7: Set preview state and show container
-      setShowPreview(true);
-      
-      // Step 8: Show success toast and auto-open print dialog
-      toast({
-        title: "PDF Ready!",
-        description: "Press Ctrl+P (or Cmd+P on Mac) to print or save as PDF.",
-        variant: "default",
-      });
-      
-      // Step 9: Auto-open print dialog after brief delay
+      // Step 6: Brief delay then open print dialog
       setTimeout(() => {
         console.log('🖨️ Opening print dialog...');
+        toast({
+          title: "PDF Ready!",
+          description: "Press Ctrl+P (or Cmd+P on Mac) to print or save as PDF.",
+          variant: "default",
+        });
+        
+        // Auto-open print dialog
         window.print();
-      }, 1000);
-      
-      // Step 10: Auto cleanup after 60 seconds
-      setTimeout(() => {
-        if (showPreview) {
-          console.log('⏰ Auto-closing PDF preview after timeout');
+        
+        // Cleanup after print dialog closes
+        const cleanup = () => {
           handleClosePreview();
-        }
-      }, 60000);
+        };
+        
+        // Listen for print events
+        window.addEventListener('afterprint', cleanup, { once: true });
+        
+        // Fallback cleanup after 30 seconds
+        setTimeout(cleanup, 30000);
+        
+      }, 500);
       
-      console.log('✅ Enhanced PDF export completed successfully');
+      console.log('✅ PDF export completed successfully');
       
     } catch (error) {
-      console.error('❌ Enhanced PDF export failed:', error);
+      console.error('❌ PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
       handleClosePreview();
       
