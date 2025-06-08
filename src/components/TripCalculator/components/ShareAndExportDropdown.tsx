@@ -294,15 +294,15 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
                 onClick={handleCopyLink}
                 className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
               >
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-purple-200 transition-all duration-200">
-                  <Copy className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-teal-100 rounded-lg flex items-center justify-center group-hover:from-green-200 group-hover:to-teal-200 transition-all duration-200">
+                  <Copy className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-800 text-base leading-tight">
                     {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
                   </div>
                   <div className="text-sm text-gray-600 mt-1 leading-relaxed">
-                    Get a link to share your complete itinerary with others
+                    Create a beautiful printable version of your itinerary
                   </div>
                 </div>
               </DropdownMenuItem>
