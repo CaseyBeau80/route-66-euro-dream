@@ -26,7 +26,7 @@ export const useTripAutoSaveBeforeShare = () => {
       const shareCode = await TripService.saveTrip(
         tripPlan,
         tripPlan.title,
-        `Route 66 trip from ${tripPlan.segments?.[0]?.startLocation || 'Start'} to ${tripPlan.segments?.[tripPlan.segments.length - 1]?.endLocation || 'End'}`
+        `Route 66 trip from ${tripPlan.segments?.[0]?.startCity || 'Start'} to ${tripPlan.segments?.[tripPlan.segments.length - 1]?.endCity || 'End'}`
       );
 
       toast({
