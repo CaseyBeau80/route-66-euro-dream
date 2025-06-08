@@ -76,12 +76,28 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
 
   // Handle printing from preview
   const handlePrintFromPreview = () => {
+    console.log('🖨️ Print button clicked from preview');
     window.print();
+  };
+
+  // Handle export button click with debugging
+  const handleExportClick = () => {
+    console.log('🚀 Export PDF button clicked', {
+      isTripComplete,
+      segmentCount: tripPlan?.segments?.length || 0,
+      tripStartDate: tripStartDate?.toISOString(),
+      exportOptions
+    });
+    handleExportPDF();
   };
 
   // Show PDF Preview with enhanced trip plan if available
   if (showPreview) {
     const displayTripPlan = enrichedTripPlan || tripPlan;
+    console.log('📄 Showing PDF preview with plan:', {
+      segmentCount: displayTripPlan.segments?.length || 0,
+      hasWeatherData: displayTripPlan.segments?.some(s => s.weather || s.weatherData) || false
+    });
     
     return (
       <PDFPreviewContainer
@@ -198,11 +214,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
             </div>
 
             <Button
-              onClick={handleExportPDF}
+              onClick={handleExportClick}
               disabled={isExporting || !isTripComplete}
               className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
-              {isExporting ? 'Preparing Enhanced PDF...' : 'Generate Enhanced PDF Export'}
+              {isExporting ? 'Preparing Enhanced PDF...' : 'Export PDF with Preview'}
             </Button>
           </>
         )}

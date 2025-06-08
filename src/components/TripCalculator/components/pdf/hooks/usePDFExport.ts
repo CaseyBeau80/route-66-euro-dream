@@ -32,16 +32,26 @@ export const usePDFExport = ({
     setWeatherLoading(true);
 
     try {
-      // Enrich segments with weather data using UI logic
-      const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
-        tripPlan.segments || [],
-        tripStartDate
-      );
+      // Always start with the original trip plan
+      let enrichedPlan = { ...tripPlan };
 
-      const enrichedPlan = {
-        ...tripPlan,
-        segments: enrichedSegments
-      };
+      try {
+        // Attempt to enrich segments with weather data
+        console.log('🌤️ Attempting to enrich segments with weather data...');
+        const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+          tripPlan.segments || [],
+          tripStartDate
+        );
+
+        enrichedPlan = {
+          ...tripPlan,
+          segments: enrichedSegments
+        };
+        console.log('✅ Weather enrichment completed successfully');
+      } catch (weatherError) {
+        console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
+        // Continue with original plan if weather fails
+      }
 
       setEnrichedTripPlan(enrichedPlan);
       setWeatherLoading(false);
@@ -54,6 +64,11 @@ export const usePDFExport = ({
     } catch (error) {
       console.error('❌ PDF export failed:', error);
       setWeatherLoading(false);
+      
+      // Fallback: show preview with original trip plan
+      setEnrichedTripPlan(tripPlan);
+      addPrintStyles();
+      setShowPreview(true);
     } finally {
       setIsExporting(false);
     }
