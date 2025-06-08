@@ -98,5 +98,5 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
         </div>
       </div>
     )
-  );
+  };
 };
