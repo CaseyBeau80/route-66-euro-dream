@@ -18,15 +18,29 @@ export const usePDFContainer = () => {
     exportOptions,
     shareUrl
   }: UsePDFContainerProps) => {
-    console.log('📄 Creating PDF content with enhanced scaling and typography...');
+    console.log('📄 createPDFContainer: Starting PDF content creation with enhanced logging...');
+    console.log('📄 Trip data validation:', {
+      tripPlanExists: !!tripPlan,
+      hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
+      segmentsCount: tripPlan.segments?.length || 0,
+      startCity: tripPlan.startCity,
+      endCity: tripPlan.endCity,
+      totalDays: tripPlan.totalDays,
+      exportFormat: exportOptions.format
+    });
     
     // Create a clean PDF container
     let pdfContainer = document.getElementById('pdf-export-content');
-    if (!pdfContainer) {
-      pdfContainer = document.createElement('div');
-      pdfContainer.id = 'pdf-export-content';
-      document.body.appendChild(pdfContainer);
+    if (pdfContainer) {
+      console.log('📄 Removing existing PDF container');
+      pdfContainer.remove();
     }
+    
+    pdfContainer = document.createElement('div');
+    pdfContainer.id = 'pdf-export-content';
+    document.body.appendChild(pdfContainer);
+    
+    console.log('📄 Created new PDF container element');
     
     // Style the container for PDF with enhanced scaling
     pdfContainer.style.cssText = `
@@ -43,8 +57,12 @@ export const usePDFContainer = () => {
       margin: 0;
     `;
     
+    console.log('📄 Applied container styles');
+    
     // Render PDFContentRenderer
     const root = ReactDOM.createRoot(pdfContainer);
+    
+    console.log('📄 Creating React root and rendering PDFContentRenderer...');
     
     await new Promise<void>((resolve) => {
       root.render(
@@ -56,9 +74,16 @@ export const usePDFContainer = () => {
         })
       );
       
+      console.log('📄 PDFContentRenderer rendered, waiting for completion...');
+      
       // Wait for React to render and weather to load
       setTimeout(() => {
-        console.log('✅ PDF content rendered with enhanced typography and weather data');
+        console.log('✅ PDF content rendering completed with enhanced typography and weather data');
+        console.log('📄 Final container verification:', {
+          containerExists: !!document.getElementById('pdf-export-content'),
+          containerHasContent: !!pdfContainer?.innerHTML,
+          contentLength: pdfContainer?.innerHTML?.length || 0
+        });
         resolve();
       }, 3000); // Give weather API time to load
     });

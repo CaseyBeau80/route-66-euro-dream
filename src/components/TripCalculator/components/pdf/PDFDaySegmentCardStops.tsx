@@ -11,28 +11,55 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
   segment,
   exportFormat
 }) => {
-  if (exportFormat === 'route-only' || !segment.recommendedStops || segment.recommendedStops.length === 0) {
+  // Skip stops for route-only format
+  if (exportFormat === 'route-only') {
     return null;
   }
 
+  const stops = segment.stops || [];
+  const attractions = segment.attractions || [];
+  
+  // Combine all points of interest
+  const allStops = [...stops, ...attractions];
+
+  if (allStops.length === 0) {
+    return (
+      <div className="pdf-stops-section mb-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">🏛️ Attractions & Stops</h4>
+        <p className="text-sm text-gray-500">No specific stops listed for this segment</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="pdf-recommended-stops mb-4">
-      <h6 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-        🏛️ Recommended Stops ({segment.recommendedStops.length} total)
-      </h6>
-      <ul className="space-y-2">
-        {segment.recommendedStops.map((stop, index) => (
-          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-            <span className="text-blue-500 mt-0.5">•</span>
-            <span>
-              <strong>{stop.name}</strong>
-              {stop.description && exportFormat === 'full' && (
-                <span className="text-gray-500"> - {stop.description}</span>
+    <div className="pdf-stops-section mb-4">
+      <h4 className="text-sm font-semibold text-gray-700 mb-3">🏛️ Attractions & Stops</h4>
+      <div className="space-y-2">
+        {allStops.slice(0, exportFormat === 'summary' ? 3 : 6).map((stop, index) => (
+          <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm">
+            <span className="text-gray-600 mt-0.5">📍</span>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-gray-800 truncate">
+                {stop.name || stop.title || 'Historic Stop'}
+              </div>
+              {stop.description && (
+                <div className="text-gray-600 text-xs mt-1 line-clamp-2">
+                  {stop.description}
+                </div>
               )}
-            </span>
-          </li>
+              {stop.city && (
+                <div className="text-gray-500 text-xs">📍 {stop.city}</div>
+              )}
+            </div>
+          </div>
         ))}
-      </ul>
+        
+        {allStops.length > (exportFormat === 'summary' ? 3 : 6) && (
+          <div className="text-xs text-gray-500 text-center py-1">
+            + {allStops.length - (exportFormat === 'summary' ? 3 : 6)} more stops available
+          </div>
+        )}
+      </div>
     </div>
   );
 };

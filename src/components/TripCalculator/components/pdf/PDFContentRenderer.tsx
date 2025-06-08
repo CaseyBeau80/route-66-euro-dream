@@ -29,9 +29,19 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherLoadingTimeout, setWeatherLoadingTimeout] = useState(false);
 
+  console.log('📄 PDFContentRenderer: Starting render with props:', {
+    tripPlanExists: !!tripPlan,
+    hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
+    segmentsCount: tripPlan.segments?.length || 0,
+    exportFormat: exportOptions.format,
+    tripStartDate: tripStartDate?.toISOString(),
+    shareUrl: !!shareUrl
+  });
+
   useEffect(() => {
     const enrichWithWeather = async () => {
       if (exportOptions.format === 'route-only' || !tripPlan.segments) {
+        console.log('📄 Skipping weather enrichment - route-only format or no segments');
         return;
       }
 
@@ -76,15 +86,14 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 
   const tripTitle = exportOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
 
-  console.log('📄 PDFContentRenderer: Rendering with enhanced segments:', {
+  console.log('📄 PDFContentRenderer: Final render state:', {
     segmentsCount: enrichedSegments.length,
     exportFormat: exportOptions.format,
     segmentsWithWeather: enrichedSegments.filter(s => s.weather || s.weatherData).length,
     weatherLoading,
     weatherLoadingTimeout,
     weatherServiceAvailable: PDFWeatherIntegrationService.isWeatherServiceAvailable(),
-    tripPlanExists: !!tripPlan,
-    hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0)
+    tripTitle
   });
 
   // Debug: Check if we have valid trip data
@@ -101,6 +110,8 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
       </div>
     );
   }
+
+  console.log('✅ PDFContentRenderer: Rendering complete PDF with all components');
 
   return (
     <div className="pdf-clean-container bg-white text-black font-sans min-h-screen">

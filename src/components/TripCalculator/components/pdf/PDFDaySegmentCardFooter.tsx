@@ -9,23 +9,35 @@ interface PDFDaySegmentCardFooterProps {
 const PDFDaySegmentCardFooter: React.FC<PDFDaySegmentCardFooterProps> = ({
   segment
 }) => {
-  if (!segment.driveTimeCategory) {
+  const hasNotes = segment.notes && segment.notes.length > 0;
+  const hasRecommendations = segment.recommendations && segment.recommendations.length > 0;
+
+  if (!hasNotes && !hasRecommendations) {
     return null;
   }
 
   return (
-    <div className="pdf-drive-time-category mt-4 pt-3 border-t border-gray-100">
-      <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-500">Driving intensity:</span>
-        <span className={`px-3 py-1 rounded text-sm font-medium ${
-          segment.driveTimeCategory.category === 'short' ? 'bg-green-100 text-green-700' :
-          segment.driveTimeCategory.category === 'optimal' ? 'bg-blue-100 text-blue-700' :
-          segment.driveTimeCategory.category === 'long' ? 'bg-orange-100 text-orange-700' :
-          'bg-red-100 text-red-700'
-        }`}>
-          {segment.driveTimeCategory.message}
-        </span>
-      </div>
+    <div className="pdf-day-footer pt-3 border-t border-gray-200">
+      {hasNotes && (
+        <div className="mb-2">
+          <h5 className="text-xs font-semibold text-gray-700 mb-1">📝 Notes:</h5>
+          <p className="text-xs text-gray-600">{segment.notes}</p>
+        </div>
+      )}
+      
+      {hasRecommendations && (
+        <div>
+          <h5 className="text-xs font-semibold text-gray-700 mb-1">💡 Recommendations:</h5>
+          <ul className="text-xs text-gray-600 space-y-1">
+            {segment.recommendations.slice(0, 3).map((rec, index) => (
+              <li key={index} className="flex items-start gap-1">
+                <span className="text-gray-400">•</span>
+                <span>{rec}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

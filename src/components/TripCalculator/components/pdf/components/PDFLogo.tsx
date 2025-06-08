@@ -2,52 +2,27 @@
 import React from 'react';
 
 interface PDFLogoProps {
-  className?: string;
   showFallback?: boolean;
 }
 
-const PDFLogo: React.FC<PDFLogoProps> = ({ className = "", showFallback = false }) => {
-  if (showFallback) {
-    return (
-      <div className={`pdf-logo-fallback ${className}`}>
-        <div className="ramble-66-text-logo flex items-center gap-1">
-          <div className="text-4xl font-bold text-route66-primary leading-none">
-            RAMBLE
-          </div>
-          <div className="text-4xl font-bold text-route66-primary leading-none">
-            66
-          </div>
-        </div>
-        <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-1">
-          ROUTE 66 TRIP PLANNER
-        </div>
-      </div>
-    );
-  }
-
+const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
   return (
-    <div className={`pdf-logo ${className}`}>
-      <img 
-        src="/assets/branding/ramble66-logo.png" 
-        alt="Ramble 66 - Route 66 Trip Planner" 
-        className="h-12 w-auto object-contain"
-        onError={(e) => {
-          // Show fallback text logo if image fails to load
-          const target = e.target as HTMLImageElement;
-          const parent = target.parentElement;
-          if (parent) {
-            parent.innerHTML = `
-              <div class="ramble-66-text-logo">
-                <div class="flex items-center gap-1 mb-1">
-                  <div class="text-4xl font-bold text-route66-primary leading-none">RAMBLE</div>
-                  <div class="text-4xl font-bold text-route66-primary leading-none">66</div>
-                </div>
-                <div class="text-xs text-route66-text-secondary font-medium tracking-wider">ROUTE 66 TRIP PLANNER</div>
-              </div>
-            `;
-          }
-        }}
-      />
+    <div className="pdf-logo flex items-center gap-2">
+      {showFallback ? (
+        <>
+          <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded flex items-center justify-center">
+            <span className="text-white font-bold text-sm">R66</span>
+          </div>
+          <div className="text-sm">
+            <div className="font-bold text-blue-800">Ramble 66</div>
+            <div className="text-xs text-blue-600">Route 66 Trip Planner</div>
+          </div>
+        </>
+      ) : (
+        <div className="w-16 h-10 bg-gray-200 rounded flex items-center justify-center">
+          <span className="text-gray-500 text-xs">Logo</span>
+        </div>
+      )}
     </div>
   );
 };

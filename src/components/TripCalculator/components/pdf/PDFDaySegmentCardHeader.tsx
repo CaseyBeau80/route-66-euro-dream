@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 interface PDFDaySegmentCardHeaderProps {
   day: number;
   endCity: string;
-  segmentDate: Date | null;
+  segmentDate?: Date | null;
 }
 
 const PDFDaySegmentCardHeader: React.FC<PDFDaySegmentCardHeaderProps> = ({
@@ -14,25 +14,27 @@ const PDFDaySegmentCardHeader: React.FC<PDFDaySegmentCardHeaderProps> = ({
   segmentDate
 }) => {
   return (
-    <div className="pdf-card-header border-b border-gray-100 pb-4 mb-4">
-      <div className="flex justify-between items-start">
+    <div className="pdf-day-header flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold text-sm">
+          {day}
+        </div>
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="pdf-day-badge bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
-              Day {day}
-            </span>
-            <span className="text-blue-600">•</span>
-            <h5 className="font-semibold text-blue-800 text-lg">
-              📍 {endCity}
-            </h5>
-          </div>
-          {segmentDate && (
-            <p className="text-sm text-gray-600">
-              📅 {format(segmentDate, 'EEEE, MMMM d')}
-            </p>
-          )}
+          <h3 className="text-lg font-bold text-gray-800">Day {day}</h3>
+          <p className="text-sm text-gray-600">Destination: {endCity}</p>
         </div>
       </div>
+      
+      {segmentDate && (
+        <div className="text-right">
+          <p className="text-sm font-medium text-gray-700">
+            📅 {format(segmentDate, 'EEEE')}
+          </p>
+          <p className="text-xs text-gray-500">
+            {format(segmentDate, 'MMM d, yyyy')}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
