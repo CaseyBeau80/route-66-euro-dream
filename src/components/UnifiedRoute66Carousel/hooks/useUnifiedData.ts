@@ -25,7 +25,7 @@ export const useUnifiedData = () => {
       // Fetch all three data types in parallel
       const [attractionsResult, driveInsResult, hiddenGemsResult] = await Promise.all([
         supabase.from('attractions').select('*').order('name'),
-        supabase.from('drive_ins').select('*').order('name'),
+        supabase.from('drive_ins').select('*').order('title'),
         supabase.from('hidden_gems').select('*').order('title')
       ]);
 
@@ -49,7 +49,7 @@ export const useUnifiedData = () => {
             tags: [], // Default empty array since not in DB
             founded_year: undefined, // Not available in DB
             year_opened: undefined, // Not available in DB
-            featured: Boolean(attraction.featured), // Ensure boolean
+            featured: Boolean(attraction.featured) && attraction.featured !== 'false', // Ensure proper boolean conversion
             slug: attraction.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
@@ -72,7 +72,7 @@ export const useUnifiedData = () => {
             category: 'drive_ins',
             tags: [], // Default empty array since not in DB
             year_opened: driveIn.year_opened,
-            featured: Boolean(driveIn.featured), // Ensure boolean
+            featured: Boolean(driveIn.featured) && driveIn.featured !== 'false', // Ensure proper boolean conversion
             slug: driveIn.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
@@ -92,7 +92,7 @@ export const useUnifiedData = () => {
             longitude: gem.longitude,
             category: 'hidden_gems',
             tags: [],
-            featured: false,
+            featured: false, // Hidden gems don't have featured field
             slug: gem.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
