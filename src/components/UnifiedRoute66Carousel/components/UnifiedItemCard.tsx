@@ -35,7 +35,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const imageUrl = item.thumbnail_url || item.image_url || fallbackImage;
 
   return (
-    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background">
+    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background hover:scale-[1.02]">
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden bg-route66-background-section">
         {!imageError && (
@@ -62,19 +62,19 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
         )}
 
         {/* Category Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getCategoryColor(item.category)}`}>
           {getCategoryLabel(item.category)}
         </div>
 
         {/* Featured Badge */}
         {item.featured && (
-          <div className="absolute top-3 right-3 bg-route66-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium border border-route66-accent-gold/20">
+          <div className="absolute top-3 right-3 bg-route66-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium border border-route66-accent-gold/20 backdrop-blur-sm">
             Featured
           </div>
         )}
       </div>
 
-      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col">
+      <CardContent className="p-5 flex-1 flex flex-col">
         {/* Title */}
         <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 group-hover:text-route66-primary transition-colors">
           {item.name}
@@ -128,7 +128,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
+              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
               onClick={() => window.open(item.website!, '_blank')}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -139,7 +139,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
+              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
               onClick={() => {
                 const url = `https://www.google.com/maps?q=${item.latitude},${item.longitude}`;
                 window.open(url, '_blank');

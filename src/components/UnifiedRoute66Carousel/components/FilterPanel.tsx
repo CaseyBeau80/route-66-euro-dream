@@ -28,25 +28,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   totalCount
 }) => {
   return (
-    <div className="bg-route66-background-alt rounded-xl p-4 sm:p-6 border border-route66-border mb-6 sm:mb-8">
-      {/* Filter Controls */}
-      <div className="space-y-4">
-        {/* Primary Filter Row */}
-        <div className="flex flex-wrap gap-3 items-center">
+    <div className="bg-route66-background-alt rounded-xl p-6 border border-route66-border mb-8 shadow-sm">
+      <div className="space-y-6">
+        {/* Filter Controls Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Type Filter */}
-          <div className="min-w-0 flex-shrink-0">
-            <label className="block text-sm font-medium text-route66-text-primary mb-2">
-              Type
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-route66-text-primary block">
+              Category
             </label>
             <Select
               value={filters.type}
               onValueChange={(value) => onFiltersChange({ type: value as FilterState['type'] })}
             >
-              <SelectTrigger className="w-full sm:w-[180px] bg-route66-background border-route66-border hover:border-route66-primary transition-colors">
-                <SelectValue placeholder="All Types" />
+              <SelectTrigger className="w-full bg-route66-background border-route66-border hover:border-route66-primary/50 focus:border-route66-primary transition-all duration-200">
+                <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="attractions">Historic Attractions</SelectItem>
                 <SelectItem value="drive_ins">Drive-In Theaters</SelectItem>
                 <SelectItem value="hidden_gems">Hidden Gems</SelectItem>
@@ -55,15 +54,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           {/* State Filter */}
-          <div className="min-w-0 flex-shrink-0">
-            <label className="block text-sm font-medium text-route66-text-primary mb-2">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-route66-text-primary block">
               State
             </label>
             <Select
               value={filters.state || "all-states"}
               onValueChange={(value) => onFiltersChange({ state: value === "all-states" ? "" : value })}
             >
-              <SelectTrigger className="w-full sm:w-[150px] bg-route66-background border-route66-border hover:border-route66-primary transition-colors">
+              <SelectTrigger className="w-full bg-route66-background border-route66-border hover:border-route66-primary/50 focus:border-route66-primary transition-all duration-200">
                 <SelectValue placeholder="All States" />
               </SelectTrigger>
               <SelectContent>
@@ -76,15 +75,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           {/* City Filter */}
-          <div className="min-w-0 flex-shrink-0">
-            <label className="block text-sm font-medium text-route66-text-primary mb-2">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-route66-text-primary block">
               City
             </label>
             <Select
               value={filters.city || "all-cities"}
               onValueChange={(value) => onFiltersChange({ city: value === "all-cities" ? "" : value })}
             >
-              <SelectTrigger className="w-full sm:w-[150px] bg-route66-background border-route66-border hover:border-route66-primary transition-colors">
+              <SelectTrigger className="w-full bg-route66-background border-route66-border hover:border-route66-primary/50 focus:border-route66-primary transition-all duration-200">
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
@@ -96,37 +95,34 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </Select>
           </div>
 
-          {/* Reset Button */}
-          {hasActiveFilters && (
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onResetFilters}
-                className="mt-6 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset
-              </Button>
+          {/* Results Count */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-route66-text-primary block">
+              Results
+            </label>
+            <div className="flex items-center h-10 px-3 py-2 bg-route66-background-section border border-route66-border rounded-md">
+              <span className="text-sm font-medium text-route66-text-primary">
+                {filteredCount} of {totalCount}
+              </span>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Search and Results Row */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        {/* Search and Reset Row */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
           {/* Search Field */}
-          <div className="relative flex-1 max-w-md">
-            <label className="block text-sm font-medium text-route66-text-primary mb-2">
+          <div className="flex-1 space-y-2">
+            <label className="text-sm font-semibold text-route66-text-primary block">
               Search
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-route66-text-muted h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search Route 66 attractions and locations..."
+                placeholder="Search Route 66 locations..."
                 value={filters.search}
                 onChange={(e) => onFiltersChange({ search: e.target.value })}
-                className="pl-10 pr-10 bg-route66-background border-route66-border focus:border-route66-primary transition-colors"
+                className="pl-10 pr-10 bg-route66-background border-route66-border hover:border-route66-primary/50 focus:border-route66-primary transition-all duration-200"
               />
               {filters.search && (
                 <Button
@@ -141,19 +137,22 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </div>
 
-          {/* Results Count */}
-          <div className="flex items-end">
-            <div className="bg-route66-background px-4 py-2 rounded-lg border border-route66-border mt-6">
-              <span className="text-sm font-medium text-route66-text-primary">
-                {filteredCount} of {totalCount} locations
-              </span>
-            </div>
-          </div>
+          {/* Reset Button */}
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              onClick={onResetFilters}
+              className="border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Clear Filters
+            </Button>
+          )}
         </div>
 
         {/* Active Filters */}
         {hasActiveFilters && (
-          <div className="pt-2 border-t border-route66-divider">
+          <div className="pt-4 border-t border-route66-divider">
             <div className="flex flex-wrap gap-2">
               {filters.type !== 'all' && (
                 <div className="flex items-center gap-1 bg-route66-primary/10 text-route66-primary px-3 py-1 rounded-full text-sm border border-route66-primary/20">
