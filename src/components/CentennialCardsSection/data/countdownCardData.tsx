@@ -50,7 +50,7 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
           </div>
         </div>
         
-        {/* Candles positioned correctly on TOP of the top tier, moved higher */}
+        {/* Candles with flames positioned correctly on TOP of the top tier, moved higher */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10" style={{ transform: 'translateY(5px)' }}>
           <div className="relative scale-[1.8]">
             {/* Position candles higher above the top tier of the cake */}
