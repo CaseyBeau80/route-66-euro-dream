@@ -113,7 +113,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               onMouseLeave={() => setHoveredOption(null)}
               disabled={!!selectedAnswer}
               className={getOptionClass(option)}
-              aria-label={`Option ${key.toUpperCase()}: ${value}`}
               tabIndex={selectedAnswer ? -1 : 0}
             >
               {/* Hover shine effect */}
