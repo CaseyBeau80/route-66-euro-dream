@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -266,7 +265,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
             onClick={handleCopyLink}
             className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
-            <Download className="w-4 h-4 text-blue-600" />
+            <Copy className="w-4 h-4 text-blue-600" />
             <span className="font-medium text-gray-800">
               {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
             </span>
