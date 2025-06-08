@@ -16,73 +16,52 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
   content: (
     <div className="text-center space-y-3 relative" aria-label="Countdown to Route 66's centennial birthday">
       <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative overflow-hidden min-h-[140px] flex flex-col justify-center">
-        {/* Birthday cake illustration - background only, tighter layers and 25% bigger */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none" aria-hidden="true" style={{ transform: 'translateY(30px)' }}>
-          <div className="relative scale-[1.5]">
+        {/* Birthday cake illustration - simplified and better positioned */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none" aria-hidden="true" style={{ transform: 'translateY(20px)' }}>
+          <div className="relative">
             <div className="flex flex-col items-center">
-              {/* Top tier - smallest, tighter spacing */}
-              <div className="w-10 h-4 bg-gradient-to-b from-pink-200 via-pink-300 to-pink-400 rounded-lg border border-pink-400 mb-0.5 relative shadow-sm">
+              {/* Top tier */}
+              <div className="w-8 h-3 bg-gradient-to-b from-pink-200 via-pink-300 to-pink-400 rounded-lg border border-pink-400 mb-1 relative shadow-sm">
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-t-lg"></div>
-                <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-pink-100 rounded-full transform -translate-x-1/2"></div>
               </div>
               
-              {/* Middle tier - tighter spacing */}
-              <div className="w-15 h-5 bg-gradient-to-b from-pink-300 via-pink-400 to-pink-500 rounded-lg border border-pink-500 mb-0.5 relative shadow-md">
+              {/* Middle tier */}
+              <div className="w-12 h-4 bg-gradient-to-b from-pink-300 via-pink-400 to-pink-500 rounded-lg border border-pink-500 mb-1 relative shadow-md">
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-pink-200 to-rose-200 rounded-t-lg"></div>
                 <div className="absolute left-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
                 <div className="absolute right-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
-                <div className="absolute left-1/2 top-0.5 w-1 h-0.5 bg-pink-100 rounded-full transform -translate-x-1/2"></div>
               </div>
               
-              {/* Bottom tier - largest, no margin bottom for tighter spacing */}
-              <div className="w-20 h-6 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600 rounded-lg border border-pink-600 relative shadow-lg">
+              {/* Bottom tier */}
+              <div className="w-16 h-5 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600 rounded-lg border border-pink-600 relative shadow-lg">
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-lg"></div>
                 <div className="absolute left-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
                 <div className="absolute right-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
                 <div className="absolute left-1/2 top-0.5 w-1.5 h-0.5 bg-pink-100 rounded-full transform -translate-x-1/2"></div>
-                <div className="absolute left-3 top-2 w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
-                <div className="absolute right-3 top-2 w-0.5 h-0.5 bg-pink-300 rounded-full"></div>
               </div>
             </div>
             
-            {/* Enhanced glow effect for cake */}
-            <div className="absolute inset-0 bg-gradient-radial from-pink-200/30 via-rose-200/15 to-transparent rounded-full blur-lg -z-10 motion-safe:animate-birthday-glow motion-reduce:animate-none scale-150"></div>
-          </div>
-        </div>
-        
-        {/* CANDLES WITH FLAMES - positioned higher and smaller, background and transparent */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50" aria-hidden="true" style={{ transform: 'translateY(5px)' }}>
-          <div className="relative scale-[1.25]">
-            {/* Position candles above the cake - moved higher */}
-            <div className="absolute -top-[2.5rem] left-1/2 transform -translate-x-1/2 flex gap-1.5">
+            {/* Simple candles with flames - positioned above cake */}
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 flex gap-2">
               <div className="flex flex-col items-center">
-                {/* Flame #1 - smaller and higher */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none"></div>
-                  <div className="absolute inset-0 w-1.5 h-3 bg-yellow-200 rounded-full blur-[1px] opacity-60"></div>
-                </div>
-                {/* Candle body - smaller */}
-                <div className="w-1.5 h-2 bg-gradient-to-b from-blue-300 to-blue-500 rounded-sm"></div>
+                {/* Flame */}
+                <div className="w-1 h-2 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none"></div>
+                {/* Candle */}
+                <div className="w-1 h-3 bg-blue-400 rounded-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                {/* Flame #2 - smaller and higher */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-3 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-3 bg-orange-200 rounded-full blur-[1px] opacity-60" style={{animationDelay: '0.4s'}}></div>
-                </div>
-                {/* Candle body - smaller */}
-                <div className="w-1.5 h-2 bg-gradient-to-b from-pink-300 to-pink-500 rounded-sm"></div>
+                {/* Flame */}
+                <div className="w-1 h-2 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.5s'}}></div>
+                {/* Candle */}
+                <div className="w-1 h-3 bg-pink-400 rounded-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                {/* Flame #3 - smaller and higher */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-3 bg-yellow-100 rounded-full blur-[1px] opacity-60" style={{animationDelay: '0.8s'}}></div>
-                </div>
-                {/* Candle body - smaller */}
-                <div className="w-1.5 h-2 bg-gradient-to-b from-green-300 to-green-500 rounded-sm"></div>
+                {/* Flame */}
+                <div className="w-1 h-2 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '1s'}}></div>
+                {/* Candle */}
+                <div className="w-1 h-3 bg-green-400 rounded-sm"></div>
               </div>
             </div>
           </div>
