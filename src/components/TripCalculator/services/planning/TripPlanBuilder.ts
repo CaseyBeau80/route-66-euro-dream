@@ -1,3 +1,4 @@
+
 import { DestinationCity } from '@/components/Route66Planner/types';
 
 export interface TripPlan {
@@ -28,6 +29,7 @@ export interface TripPlan {
 
 export interface DailySegment {
   day: number;
+  title?: string;
   startCity: string;
   endCity: string;
   distance: number;
@@ -50,6 +52,12 @@ export interface DailySegment {
   }>;
   notes?: string;
   recommendations?: string[];
+  driveTimeCategory?: DriveTimeCategory;
+  routeSection?: string;
+  recommendedStops?: RecommendedStop[];
+  subStopTimings?: SegmentTiming[];
+  balanceMetrics?: any;
+  drivingTime?: number;
 }
 
 export interface DriveTimeCategory {
