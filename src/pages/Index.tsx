@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import Hero from "../components/Hero";
 import MapSection from "../components/MapSection";
-import CentennialSection from "../components/CentennialSection";
 import CentennialCardsSection from "../components/CentennialCardsSection";
 import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
 import TripPlannerSection from "../components/TripPlannerSection";
@@ -11,14 +10,12 @@ import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import SimpleInstagramCarousel from "../components/InstagramCarousel/components/SimpleInstagramCarousel";
-import FunFactsOfTheDay from "../components/FunFactsOfTheDay";
-import Route66TriviaGame from "../components/Route66TriviaGame";
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   const [isMapOpen, setIsMapOpen] = useState(true);
   
-  console.log("🏠 Index page: Rendering with unified Route 66 carousel and centennial cards section");
+  console.log("🏠 Index page: Rendering with unified centennial design");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
@@ -31,48 +28,33 @@ const Index = () => {
         />
       </section>
 
-      {/* Centennial Countdown Section with fade-in */}
+      {/* Unified Centennial Cards Section with fade-in */}
       <FadeInSection id="centennial" delay={200}>
-        <CentennialSection />
-      </FadeInSection>
-
-      {/* New Centennial Cards Section with fade-in */}
-      <FadeInSection id="centennial-cards" delay={250}>
         <CentennialCardsSection />
       </FadeInSection>
 
-      {/* Fun Facts of the Day Section with fade-in */}
-      <FadeInSection id="fun-facts" delay={300}>
-        <FunFactsOfTheDay />
-      </FadeInSection>
-
-      {/* Route 66 Trivia Game Section with fade-in */}
-      <FadeInSection id="trivia-game" delay={350}>
-        <Route66TriviaGame />
-      </FadeInSection>
-
       {/* Instagram Carousel Section with fade-in */}
-      <FadeInSection id="instagram" delay={400}>
+      <FadeInSection id="instagram" delay={300}>
         <SimpleInstagramCarousel />
       </FadeInSection>
 
       {/* Interactive Map Section with fade-in */}
-      <FadeInSection id="map" delay={450}>
+      <FadeInSection id="map" delay={350}>
         <MapSection isMapOpen={isMapOpen} setIsMapOpen={setIsMapOpen} />
       </FadeInSection>
 
       {/* Trip Planner Section with fade-in */}
-      <FadeInSection id="trip-planner" delay={500}>
+      <FadeInSection id="trip-planner" delay={400}>
         <TripPlannerSection />
       </FadeInSection>
 
       {/* Unified Route 66 Carousel Section with fade-in */}
-      <FadeInSection id="explore-route66" delay={550}>
+      <FadeInSection id="explore-route66" delay={450}>
         <UnifiedRoute66Carousel />
       </FadeInSection>
 
       {/* Travel Resources Section with fade-in - moved to bottom */}
-      <FadeInSection id="resources" delay={600}>
+      <FadeInSection id="resources" delay={500}>
         <TravelResources language={language} />
       </FadeInSection>
 
