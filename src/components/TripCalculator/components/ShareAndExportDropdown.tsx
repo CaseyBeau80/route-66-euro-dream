@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +16,7 @@ import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { TripService } from '../services/TripService';
 import { useTripAutoSaveBeforeShare } from '../hooks/useTripAutoSaveBeforeShare';
 import EnhancedPDFExport from './pdf/EnhancedPDFExport';
+import ShareTripModal from './ShareTripModal';
 
 interface ShareAndExportDropdownProps {
   shareUrl?: string | null;
@@ -51,6 +51,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
 
   const [isOpen, setIsOpen] = useState(false);
   const [showPDFModal, setShowPDFModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const { saveBeforeShare, isAutoSaving } = useTripAutoSaveBeforeShare();
 
   const ensureShareUrl = async (): Promise<string | null> => {
@@ -81,6 +82,11 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
 
     return null;
+  };
+
+  const handleShareTrip = () => {
+    setIsOpen(false);
+    setShowShareModal(true);
   };
 
   const handleCopyLink = async () => {
@@ -291,18 +297,18 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
               </DropdownMenuLabel>
               
               <DropdownMenuItem
-                onClick={handleCopyLink}
+                onClick={handleShareTrip}
                 className="flex items-start gap-4 px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-all duration-200 rounded-xl mx-2 my-1 group"
               >
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-purple-200 transition-all duration-200">
-                  <Copy className="w-5 h-5 text-blue-600" />
+                  <Link className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-800 text-base leading-tight">
-                    {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
+                    Save Trip & Share
                   </div>
                   <div className="text-sm text-gray-600 mt-1 leading-relaxed">
-                    Get a link to share your complete itinerary with others
+                    Comprehensive sharing options with detailed preview
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -401,6 +407,18 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Share Trip Modal */}
+      {showShareModal && tripPlan && (
+        <ShareTripModal
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          shareUrl={shareUrl || undefined}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onShareUrlGenerated={onShareUrlGenerated}
+        />
+      )}
 
       {/* PDF Export Modal */}
       {showPDFModal && tripPlan && (
