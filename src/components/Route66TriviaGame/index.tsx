@@ -27,6 +27,12 @@ const Route66TriviaGame: React.FC = () => {
     console.log('🎮 Route 66 Trivia: Starting new game session with 5 questions');
   };
 
+  const handleQuitGame = () => {
+    setGameSession(null);
+    setShowCelebration(false);
+    console.log('🚪 Route 66 Trivia: Player quit the game');
+  };
+
   const selectAnswer = (option: 'a' | 'b' | 'c') => {
     if (!gameSession) return;
     
@@ -69,7 +75,7 @@ const Route66TriviaGame: React.FC = () => {
     }, 300);
   };
 
-  // Keyboard navigation
+  // Enhanced keyboard navigation with quit and restart shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!gameSession) {
@@ -77,6 +83,20 @@ const Route66TriviaGame: React.FC = () => {
           e.preventDefault();
           startNewGame();
         }
+        return;
+      }
+
+      // Quit game with Q key
+      if (e.key.toLowerCase() === 'q' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        handleQuitGame();
+        return;
+      }
+
+      // Restart game with R key
+      if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        startNewGame();
         return;
       }
 
@@ -156,7 +176,7 @@ const Route66TriviaGame: React.FC = () => {
                 </p>
                 <div className="mt-4 p-3 bg-amber-500/20 rounded-lg border border-amber-300/30">
                   <p className="text-amber-200 text-sm">
-                    💡 Use keyboard shortcuts: Press 1-3 or A-C to answer, Enter/Space to continue
+                    💡 Use keyboard shortcuts: Press 1-3 or A-C to answer, Enter/Space to continue, R to restart, Q to quit
                   </p>
                 </div>
               </div>
@@ -208,10 +228,12 @@ const Route66TriviaGame: React.FC = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
-        {/* Enhanced progress indicator */}
+        {/* Enhanced progress indicator with game controls */}
         <EnhancedProgressIndicator 
           gameState={gameSession.gameState} 
-          totalQuestions={gameSession.questions.length} 
+          totalQuestions={gameSession.questions.length}
+          onRestart={startNewGame}
+          onQuit={handleQuitGame}
         />
         
         {gameSession.gameState.isGameComplete ? (

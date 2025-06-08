@@ -1,21 +1,26 @@
 
 import React from 'react';
 import { GameState } from '../types';
+import GameControls from './GameControls';
 
 interface EnhancedProgressIndicatorProps {
   gameState: GameState;
   totalQuestions: number;
+  onRestart?: () => void;
+  onQuit?: () => void;
 }
 
 const EnhancedProgressIndicator: React.FC<EnhancedProgressIndicatorProps> = ({ 
   gameState, 
-  totalQuestions 
+  totalQuestions,
+  onRestart,
+  onQuit
 }) => {
   const currentProgress = ((gameState.currentQuestionIndex + 1) / totalQuestions) * 100;
   
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/20">
-      {/* Question counter with milestone indicators */}
+      {/* Question counter with milestone indicators and game controls */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-white font-courier-prime text-sm">
@@ -25,10 +30,37 @@ const EnhancedProgressIndicator: React.FC<EnhancedProgressIndicatorProps> = ({
             <span className="text-yellow-400 animate-bounce">🔥</span>
           )}
         </div>
-        <div className="text-white font-bold">
-          Score: {gameState.score}/{totalQuestions}
+        
+        <div className="flex items-center gap-4">
+          <div className="text-white font-bold">
+            Score: {gameState.score}/{totalQuestions}
+          </div>
+          
+          {/* Game Controls */}
+          {onRestart && onQuit && (
+            <GameControls
+              onRestart={onRestart}
+              onQuit={onQuit}
+              currentScore={gameState.score}
+              totalQuestions={totalQuestions}
+              className="hidden sm:flex"
+            />
+          )}
         </div>
       </div>
+      
+      {/* Mobile game controls */}
+      {onRestart && onQuit && (
+        <div className="sm:hidden mb-3">
+          <GameControls
+            onRestart={onRestart}
+            onQuit={onQuit}
+            currentScore={gameState.score}
+            totalQuestions={totalQuestions}
+            className="flex justify-center"
+          />
+        </div>
+      )}
       
       {/* Enhanced progress bar */}
       <div className="relative w-full h-3 bg-white/20 rounded-full overflow-hidden">
