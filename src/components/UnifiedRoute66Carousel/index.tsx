@@ -103,11 +103,16 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
               }}
               className="w-full"
             >
-              {/* Enhanced Navigation Controls - positioned outside carousel */}
-              <div className="flex items-center justify-between mb-6">
+              {/* Enhanced Navigation Controls with Route 66 Styling */}
+              <div className="flex items-center justify-between mb-8">
                 <div className="flex gap-4">
-                  <CarouselPrevious className="relative translate-x-0 translate-y-0 h-12 w-12 rounded-lg bg-route66-background border-2 border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-lg hover:shadow-xl" />
-                  <CarouselNext className="relative translate-x-0 translate-y-0 h-12 w-12 rounded-lg bg-route66-background border-2 border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-lg hover:shadow-xl" />
+                  <CarouselPrevious className="relative translate-x-0 translate-y-0 h-14 w-14 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-3 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl" />
+                  <CarouselNext className="relative translate-x-0 translate-y-0 h-14 w-14 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-3 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl" />
+                </div>
+                
+                {/* Navigation Hint */}
+                <div className="hidden sm:block text-sm text-route66-text-muted font-medium">
+                  Use arrows to browse more locations →
                 </div>
               </div>
 

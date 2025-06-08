@@ -45,8 +45,8 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
 
   return (
     <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background hover:scale-[1.02]">
-      {/* Image Section */}
-      <div className="relative h-48 overflow-hidden bg-route66-background-section">
+      {/* Image Section with Enhanced Placeholder */}
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt">
         {!imageError && (
           <img
             src={imageUrl}
@@ -63,12 +63,17 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           />
         )}
         
-        {/* Enhanced Loading/Error Fallback */}
+        {/* Enhanced Loading/Error Fallback with Route 66 Theme */}
         {(!imageLoaded || imageError) && (
-          <div className="absolute inset-0 bg-route66-background-section/80 flex flex-col items-center justify-center text-route66-text-muted">
-            <ImageIcon className="h-8 w-8 mb-2 opacity-50" />
-            <span className="text-sm font-medium">
-              {imageError ? 'Image not available' : 'Loading...'}
+          <div className="absolute inset-0 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background flex flex-col items-center justify-center text-route66-text-muted border-2 border-dashed border-route66-divider">
+            <div className="bg-route66-background rounded-full p-3 mb-2 shadow-sm">
+              <ImageIcon className="h-8 w-8 opacity-60" />
+            </div>
+            <span className="text-sm font-medium text-center px-4">
+              {imageError ? 'Image not available' : 'Loading image...'}
+            </span>
+            <span className="text-xs text-route66-text-muted mt-1 opacity-75">
+              Route 66 {getCategoryLabel(item.category)}
             </span>
           </div>
         )}
@@ -134,13 +139,13 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           </div>
         )}
 
-        {/* Consistent Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 mt-auto">
+        {/* Enhanced Action Buttons - Consistent Layout */}
+        <div className="flex gap-2 mt-auto">
           {item.website && (
             <Button
               variant="outline"
               size="sm"
-              className="h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
+              className="flex-1 h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
               onClick={() => window.open(item.website!, '_blank')}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -151,7 +156,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
+              className="flex-1 h-9 border-route66-primary/30 text-route66-primary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm font-medium"
               onClick={handleMapClick}
             >
               <MapPin className="h-4 w-4 mr-1" />
