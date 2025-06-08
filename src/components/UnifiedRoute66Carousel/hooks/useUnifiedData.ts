@@ -49,7 +49,7 @@ export const useUnifiedData = () => {
             tags: [], // Default empty array since not in DB
             founded_year: undefined, // Not available in DB
             year_opened: undefined, // Not available in DB
-            featured: Boolean(attraction.featured) && attraction.featured !== 'false', // Ensure proper boolean conversion
+            featured: attraction.featured === true || attraction.featured === 'true',
             slug: attraction.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
@@ -72,7 +72,7 @@ export const useUnifiedData = () => {
             category: 'drive_ins',
             tags: [], // Default empty array since not in DB
             year_opened: driveIn.year_opened,
-            featured: Boolean(driveIn.featured) && driveIn.featured !== 'false', // Ensure proper boolean conversion
+            featured: driveIn.featured === true || driveIn.featured === 'true',
             slug: driveIn.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
