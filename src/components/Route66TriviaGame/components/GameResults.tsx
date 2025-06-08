@@ -47,11 +47,11 @@ const GameResults: React.FC<GameResultsProps> = ({
   }, [gameState.score]);
 
   const getBadgeColor = () => {
-    if (percentage === 100) return 'from-yellow-400 to-yellow-600';
-    if (percentage >= 80) return 'from-blue-400 to-blue-600';
-    if (percentage >= 60) return 'from-green-400 to-green-600';
-    if (percentage >= 40) return 'from-purple-400 to-purple-600';
-    return 'from-gray-400 to-gray-600';
+    if (percentage === 100) return 'from-amber-400 to-yellow-500'; // Gold for perfect
+    if (percentage >= 80) return 'from-orange-400 to-red-500'; // Sunset orange-red for excellent
+    if (percentage >= 60) return 'from-yellow-500 to-orange-500'; // Desert yellow-orange for good
+    if (percentage >= 40) return 'from-orange-600 to-amber-600'; // Burnt orange for fair
+    return 'from-amber-700 to-orange-800'; // Deep desert tones for needs improvement
   };
 
   const getScoreEmoji = () => {
@@ -150,23 +150,25 @@ const GameResults: React.FC<GameResultsProps> = ({
               {percentage}% Correct
             </div>
             
-            {/* Visual score bar */}
+            {/* Visual score bar with desert sunset colors */}
             <div className="w-full max-w-md mx-auto mt-4">
-              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-amber-100 rounded-full overflow-hidden border border-orange-200">
                 <div 
-                  className={`h-full bg-gradient-to-r ${getBadgeColor()} transition-all duration-1000 ease-out`}
+                  className={`h-full bg-gradient-to-r ${getBadgeColor()} transition-all duration-1000 ease-out relative`}
                   style={{ 
                     width: showStatsAnimation ? `${percentage}%` : '0%',
                     transitionDelay: '0.5s'
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse opacity-50" />
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Enhanced achievement badge */}
+          {/* Enhanced achievement badge with desert colors */}
           <div className={`mb-6 animate-scale-in`} style={{ animationDelay: '0.8s' }}>
-            <div className={`inline-block bg-gradient-to-r ${getBadgeColor()} text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg relative`}>
+            <div className={`inline-block bg-gradient-to-r ${getBadgeColor()} text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg relative motion-safe:animate-pulse`}>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shield-shine rounded-full" />
               <span className="relative flex items-center gap-2">
                 🏆 {badge}
