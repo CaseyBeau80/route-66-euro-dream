@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { X, Printer } from 'lucide-react';
+import { X, Printer, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PDFContentRenderer from './PDFContentRenderer';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
@@ -10,6 +10,7 @@ interface PDFPreviewContainerProps {
   tripStartDate?: Date;
   exportOptions: any;
   shareUrl?: string;
+  weatherTimeout?: boolean;
   onClose: () => void;
   onPrint: () => void;
 }
@@ -19,6 +20,7 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
   tripStartDate,
   exportOptions,
   shareUrl,
+  weatherTimeout = false,
   onClose,
   onPrint
 }) => {
@@ -45,6 +47,12 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
               <p className="text-sm text-route66-cream font-travel">
                 Review your Route 66 itinerary before printing
               </p>
+              {weatherTimeout && (
+                <div className="flex items-center gap-1 text-xs text-route66-vintage-yellow mt-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Weather timeout - using seasonal estimates
+                </div>
+              )}
             </div>
           </div>
           
@@ -90,7 +98,7 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
             <div className="flex justify-center gap-4 text-xs text-route66-navy">
               <span>🖨️ Optimized for Letter size (8.5" x 11")</span>
               <span>🎨 Enhanced Route 66 branding included</span>
-              <span>🌤️ Live weather data integrated</span>
+              <span>{weatherTimeout ? '📊 Seasonal weather estimates' : '🌤️ Live weather data integrated'}</span>
             </div>
           </div>
         </div>

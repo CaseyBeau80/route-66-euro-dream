@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Printer, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Printer, X, AlertCircle, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { usePDFExport } from './pdf/hooks/usePDFExport';
 import { usePDFKeyboardHandlers } from './pdf/hooks/usePDFKeyboardHandlers';
@@ -48,6 +48,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     weatherLoading,
     weatherLoadingStatus,
     weatherLoadingProgress,
+    weatherTimeout,
     enrichedTripPlan,
     handleClosePreview,
     handleExportPDF
@@ -83,7 +84,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     window.print();
   };
 
-  // Handle export button click with bulletproof validation
+  // Handle export button click with comprehensive validation
   const handleExportClick = () => {
     console.log('🚀 PDF Export Button Clicked!');
     console.log('📊 Export State:', {
@@ -106,8 +107,21 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       return;
     }
     
-    console.log('✅ Calling bulletproof handleExportPDF...');
+    console.log('✅ Calling guaranteed handleExportPDF...');
     handleExportPDF();
+  };
+
+  // Weather service status for display
+  const getWeatherStatusIcon = () => {
+    if (weatherLoading) return <Clock className="w-4 h-4 text-blue-600 animate-spin" />;
+    if (weatherTimeout) return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+    return <CheckCircle className="w-4 h-4 text-green-600" />;
+  };
+
+  const getWeatherStatusText = () => {
+    if (weatherLoading) return 'Loading...';
+    if (weatherTimeout) return 'Timeout - Using Estimates';
+    return 'Available';
   };
 
   // Show PDF Preview with enhanced trip plan if available
@@ -115,7 +129,8 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     const displayTripPlan = enrichedTripPlan || tripPlan;
     console.log('📄 Showing PDF preview with plan:', {
       segmentCount: displayTripPlan.segments?.length || 0,
-      hasWeatherData: displayTripPlan.segments?.some(s => s.weather || s.weatherData) || false
+      hasWeatherData: displayTripPlan.segments?.some(s => s.weather || s.weatherData) || false,
+      weatherTimeout
     });
     
     return (
@@ -124,6 +139,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
+        weatherTimeout={weatherTimeout}
         onClose={handleClosePreview}
         onPrint={handlePrintFromPreview}
       />
@@ -211,18 +227,24 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 />
               </div>
 
-              {/* Enhanced Weather Loading Status */}
-              {weatherLoading && (
+              {/* Enhanced Weather Status Display */}
+              {(weatherLoading || weatherTimeout) && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 animate-spin" />
+                    {getWeatherStatusIcon()}
                     <div className="flex-1">
                       <div className="text-sm text-blue-800 font-medium mb-1">
-                        {weatherLoadingStatus || 'Loading enhanced weather data...'}
+                        {weatherLoadingStatus || 'Processing weather data...'}
                       </div>
                       <Progress value={weatherLoadingProgress} className="h-2" />
                     </div>
                   </div>
+                  
+                  {weatherTimeout && (
+                    <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+                      ⏱️ Weather data timed out. Preview includes seasonal estimates for reference.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -230,10 +252,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               <div className="p-3 bg-route66-vintage-beige border border-route66-tan rounded-lg text-sm text-route66-navy">
                 <div className="font-semibold mb-2 text-route66-vintage-red text-sm font-route66">🛣️ Enhanced PDF Features:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed text-route66-vintage-brown">
-                  <li>• Live weather forecast integration for accurate trip planning</li>
+                  <li>• Guaranteed instant preview opening for fast review</li>
+                  <li>• Live weather data when available (6-second timeout)</li>
+                  <li>• Seasonal weather estimates as intelligent fallback</li>
                   <li>• Enhanced Route 66 branding and nostalgic styling</li>
                   <li>• Optimized layout matching your final itinerary</li>
-                  <li>• Clear data source indicators for weather information</li>
                   <li>• Print-ready format with professional presentation</li>
                 </ul>
               </div>
@@ -244,7 +267,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               disabled={isExporting || !isTripComplete}
               className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
-              {isExporting ? 'Preparing Enhanced PDF...' : 'Export PDF with Preview'}
+              {isExporting ? 'Opening Preview...' : 'Export PDF with Preview'}
             </Button>
           </>
         )}

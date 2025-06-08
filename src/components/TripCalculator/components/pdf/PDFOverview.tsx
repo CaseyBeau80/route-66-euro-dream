@@ -32,7 +32,17 @@ const PDFOverview: React.FC<PDFOverviewProps> = ({
   };
 
   // Weather service status for display
-  const weatherServiceStatus = weatherLoading ? '⏳' : (weatherLoadingTimeout ? '⚠️' : '🌤️');
+  const getWeatherServiceStatus = () => {
+    if (weatherLoading) return '⏳';
+    if (weatherLoadingTimeout) return '📊';
+    return '🌤️';
+  };
+
+  const getWeatherStatusText = () => {
+    if (weatherLoading) return 'Loading';
+    if (weatherLoadingTimeout) return 'Estimates';
+    return 'Available';
+  };
 
   return (
     <div className="pdf-overview mb-8">
@@ -55,14 +65,13 @@ const PDFOverview: React.FC<PDFOverviewProps> = ({
         </div>
         
         <div className="text-center p-4 bg-gray-50 rounded border">
-          <div className="text-xl font-bold text-blue-600">{weatherServiceStatus}</div>
+          <div className="text-xl font-bold text-blue-600">{getWeatherServiceStatus()}</div>
           <div className="text-sm text-gray-600">
-            Weather {
-              weatherLoading ? 'Loading' :
-              weatherLoadingTimeout ? 'Timeout' :
-              'Available'
-            }
+            Weather {getWeatherStatusText()}
           </div>
+          {weatherLoadingTimeout && (
+            <div className="text-xs text-gray-500 mt-1">Seasonal data</div>
+          )}
         </div>
       </div>
     </div>
