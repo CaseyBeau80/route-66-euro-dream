@@ -155,7 +155,16 @@ export const usePDFExportLogic = ({
       setShowPreview(true);
       showPDFPreview(pdfContainer, handleClosePreview);
       
-      // Step 7: Add automatic timeout with better messaging
+      // Step 7: Add instructions for saving PDF
+      setTimeout(() => {
+        toast({
+          title: "PDF Ready to Save!",
+          description: "Press Ctrl+P (or Cmd+P on Mac) to open print dialog, then choose 'Save as PDF' or select your printer.",
+          variant: "default",
+        });
+      }, 1000);
+      
+      // Step 8: Add automatic timeout with better messaging
       setTimeout(() => {
         if (showPreview) {
           console.log('⏰ Auto-closing PDF preview after 60 seconds');
@@ -165,19 +174,13 @@ export const usePDFExportLogic = ({
       
       console.log('🖨️ Enhanced Route 66 PDF preview ready with improved styling.');
       
-      toast({
-        title: "Route 66 PDF Preview Ready",
-        description: "Press Ctrl+P to print, click red X to close.",
-        variant: "default"
-      });
-      
     } catch (error) {
       console.error('❌ PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
       handleClosePreview();
       toast({
         title: "PDF Export Failed",
-        description: "Weather forecast unavailable - please check online before departure.",
+        description: "There was an issue generating the PDF. Please try again.",
         variant: "destructive"
       });
     } finally {
