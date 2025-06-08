@@ -3,13 +3,11 @@ export const usePDFStyles = () => {
   const addPrintStyles = () => {
     console.log('📄 Adding enhanced PDF print styles...');
     
-    // Remove any existing print styles
     const existingStyles = document.getElementById('pdf-print-styles');
     if (existingStyles) {
       existingStyles.remove();
     }
 
-    // Create comprehensive print styles
     const style = document.createElement('style');
     style.id = 'pdf-print-styles';
     style.textContent = `
@@ -53,12 +51,17 @@ export const usePDFStyles = () => {
           z-index: auto !important;
         }
         
-        /* Hide overlay elements during print */
+        /* Hide UI elements during print */
         .pdf-close-button-js,
         .pdf-loading-overlay-js,
         [role="dialog"],
         .fixed,
-        .absolute {
+        .absolute,
+        nav,
+        header,
+        footer:not(.pdf-footer),
+        .sidebar,
+        .modal {
           display: none !important;
           visibility: hidden !important;
         }
@@ -81,7 +84,7 @@ export const usePDFStyles = () => {
           line-height: 1.4 !important;
         }
         
-        /* Day segment cards with proper page breaks */
+        /* Page break controls */
         .pdf-day-segment {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
@@ -92,10 +95,10 @@ export const usePDFStyles = () => {
           background: white !important;
         }
         
-        /* Prevent page breaks within key sections */
         .no-page-break,
         .pdf-header,
         .pdf-trip-overview,
+        .pdf-weather-section,
         .pdf-weather-info {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
@@ -116,12 +119,6 @@ export const usePDFStyles = () => {
           margin-bottom: 8px !important;
         }
         
-        .pdf-header .subtitle {
-          font-size: 16px !important;
-          color: #6b7280 !important;
-          margin-bottom: 4px !important;
-        }
-        
         /* Trip overview grid */
         .pdf-trip-overview {
           display: grid !important;
@@ -138,47 +135,14 @@ export const usePDFStyles = () => {
           background: #f9fafb !important;
         }
         
-        /* Day segment headers */
-        .pdf-day-header {
-          margin-bottom: 16px !important;
-          padding-bottom: 8px !important;
-          border-bottom: 1px solid #e5e7eb !important;
-        }
-        
-        .pdf-day-header h3 {
-          font-size: 18px !important;
-          font-weight: bold !important;
-          color: #1f2937 !important;
-          margin: 0 !important;
-        }
-        
-        /* Weather cards */
-        .pdf-weather-card {
+        /* Weather styling */
+        .pdf-weather-section,
+        .pdf-weather-info {
           background: #f0f9ff !important;
           border: 1px solid #bfdbfe !important;
           border-radius: 6px !important;
           padding: 12px !important;
           margin: 8px 0 !important;
-        }
-        
-        /* Stops and attractions */
-        .pdf-stops-section {
-          margin-top: 16px !important;
-        }
-        
-        .pdf-stop-item {
-          margin-bottom: 8px !important;
-          padding: 8px !important;
-          background: #f9fafb !important;
-          border-radius: 4px !important;
-          border-left: 3px solid #3b82f6 !important;
-        }
-        
-        /* Typography improvements */
-        h1, h2, h3, h4, h5, h6 {
-          break-after: avoid !important;
-          page-break-after: avoid !important;
-          color: black !important;
         }
         
         /* Color adjustments for print */
@@ -196,6 +160,13 @@ export const usePDFStyles = () => {
         .border-blue-200,
         .border-blue-300 {
           border-color: #93c5fd !important;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+          break-after: avoid !important;
+          page-break-after: avoid !important;
+          color: black !important;
         }
         
         /* Footer */

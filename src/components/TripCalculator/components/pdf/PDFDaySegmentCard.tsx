@@ -3,7 +3,7 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
 import PDFDaySegmentCardStats from './PDFDaySegmentCardStats';
-import PDFSegmentWeatherForecast from './PDFSegmentWeatherForecast';
+import PDFWeatherForecast from './PDFWeatherForecast';
 import PDFDaySegmentCardStops from './PDFDaySegmentCardStops';
 import PDFDaySegmentCardFooter from './PDFDaySegmentCardFooter';
 
@@ -26,18 +26,14 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000)
     : null;
 
-  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Rendering with forecast-only approach:`, {
-    hasDirectWeather: !!segment.weather,
-    hasWeatherData: !!segment.weatherData,
+  console.log(`📄 PDFDaySegmentCard Day ${segment.day}: Rendering forecast approach:`, {
+    hasWeatherData: !!(segment.weather || segment.weatherData),
     city: segment.endCity,
     exportFormat
   });
 
-  // Extract weather data - prioritize the enriched data
+  // Extract weather data with proper priority
   const weatherData = segment.weather || segment.weatherData || null;
-
-  console.log(`🌤️ Weather data for Day ${segment.day} (${segment.endCity}):`, weatherData);
-
   const distance = segment.distance || segment.approximateMiles || 0;
 
   return (
@@ -55,8 +51,8 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         endCity={segment.endCity}
       />
 
-      <PDFSegmentWeatherForecast
-        forecastData={weatherData}
+      <PDFWeatherForecast
+        weatherData={weatherData}
         segmentDate={segmentDate}
         cityName={segment.endCity}
         exportFormat={exportFormat}

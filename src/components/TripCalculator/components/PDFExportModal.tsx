@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Printer, X, AlertCircle } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { usePDFExport } from './pdf/hooks/usePDFExport';
+import PDFPreviewContainer from './pdf/PDFPreviewContainer';
 
 interface PDFExportModalProps {
   tripPlan: TripPlan;
@@ -63,11 +64,27 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     }));
   };
 
-  // Check if trip is complete
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
-
-  // Only show modal when not exporting and not showing preview
   const shouldShowModal = isOpen && !showPreview && !isExporting;
+
+  // Handle printing from preview
+  const handlePrintFromPreview = () => {
+    window.print();
+  };
+
+  // Show PDF Preview
+  if (showPreview) {
+    return (
+      <PDFPreviewContainer
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        exportOptions={exportOptions}
+        shareUrl={shareUrl}
+        onClose={handleClosePreview}
+        onPrint={handlePrintFromPreview}
+      />
+    );
+  }
 
   return (
     <Dialog open={shouldShowModal} onOpenChange={onClose}>
@@ -158,20 +175,18 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 </div>
               )}
 
-              {/* Enhanced Instructions */}
+              {/* Instructions */}
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
                 <div className="font-semibold mb-2 text-blue-700 text-sm">📋 How PDF Export Works:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed">
                   <li>• Click "Generate PDF" to create your printable itinerary</li>
-                  <li>• Your browser's print dialog will open automatically</li>
-                  <li>• Select "Save as PDF" to download the file</li>
-                  <li>• Live weather data is included for your travel dates</li>
-                  <li>• The export includes all attractions and route details</li>
+                  <li>• Preview your PDF before printing or saving</li>
+                  <li>• Live weather forecast data is included when available</li>
+                  <li>• Export includes route details and recommended stops</li>
                 </ul>
               </div>
             </div>
 
-            {/* Export Button */}
             <Button
               onClick={handleExportPDF}
               disabled={isExporting || !isTripComplete}

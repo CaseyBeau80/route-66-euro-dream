@@ -2,7 +2,8 @@
 import React from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCard from './PDFDaySegmentCard';
-import PDFLogo from './components/PDFLogo';
+import PDFHeader from './PDFHeader';
+import PDFFooter from './PDFFooter';
 
 interface PDFContentRendererProps {
   tripPlan: TripPlan;
@@ -19,54 +20,53 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 }) => {
   console.log('📄 PDFContentRenderer: Rendering PDF content with', {
     segmentsCount: tripPlan.segments?.length || 0,
-    exportFormat: exportOptions.format
+    exportFormat: exportOptions.format,
+    hasStartDate: !!tripStartDate
   });
 
+  // Filter segments with enriched weather data
+  const enrichedSegments = tripPlan.segments?.filter(segment => 
+    segment && segment.day && segment.endCity
+  ) || [];
+
   return (
-    <div className="pdf-content bg-white min-h-screen p-8">
-      {/* Header */}
-      <div className="pdf-header mb-8 text-center border-b-2 border-gray-200 pb-6">
-        <PDFLogo showFallback={true} />
-        <h1 className="text-3xl font-bold text-blue-800 mt-4">
-          {exportOptions.title || `Route 66 Trip: ${tripPlan.startCity} to ${tripPlan.endCity}`}
-        </h1>
-        <p className="text-lg text-gray-600 mt-2">
-          {tripPlan.totalDays} days • {Math.round(tripPlan.totalDistance)} miles
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          Generated on {new Date().toLocaleDateString()}
-        </p>
-      </div>
+    <div className="pdf-content bg-white min-h-screen" style={{ padding: '40px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* PDF Header with Branding */}
+      <PDFHeader
+        title={exportOptions.title || `Route 66 Trip: ${tripPlan.startCity} to ${tripPlan.endCity}`}
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+      />
 
       {/* Trip Overview */}
-      <div className="pdf-overview mb-8 p-4 bg-blue-50 rounded border border-blue-200">
-        <h2 className="text-xl font-bold text-blue-800 mb-3">Trip Overview</h2>
+      <div className="pdf-trip-overview no-page-break mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+        <h2 className="text-xl font-bold text-blue-800 mb-4">Trip Overview</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="text-center">
-            <div className="font-bold text-blue-700">Start</div>
-            <div className="text-gray-700">{tripPlan.startCity}</div>
+          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
+            <div className="font-bold text-blue-700 text-lg">{tripPlan.startCity}</div>
+            <div className="text-gray-600 text-xs mt-1">Starting Point</div>
           </div>
-          <div className="text-center">
-            <div className="font-bold text-blue-700">End</div>
-            <div className="text-gray-700">{tripPlan.endCity}</div>
+          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
+            <div className="font-bold text-blue-700 text-lg">{tripPlan.endCity}</div>
+            <div className="text-gray-600 text-xs mt-1">Destination</div>
           </div>
-          <div className="text-center">
-            <div className="font-bold text-blue-700">Duration</div>
-            <div className="text-gray-700">{tripPlan.totalDays} days</div>
+          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
+            <div className="font-bold text-blue-700 text-lg">{tripPlan.totalDays}</div>
+            <div className="text-gray-600 text-xs mt-1">Days</div>
           </div>
-          <div className="text-center">
-            <div className="font-bold text-blue-700">Distance</div>
-            <div className="text-gray-700">{Math.round(tripPlan.totalDistance)} miles</div>
+          <div className="pdf-overview-card text-center p-3 bg-white rounded border">
+            <div className="font-bold text-blue-700 text-lg">{Math.round(tripPlan.totalDistance)}</div>
+            <div className="text-gray-600 text-xs mt-1">Miles</div>
           </div>
         </div>
       </div>
 
       {/* Daily Segments */}
       <div className="pdf-segments">
-        <h2 className="text-xl font-bold text-blue-800 mb-6">Daily Itinerary</h2>
-        {tripPlan.segments && tripPlan.segments.map((segment, index) => (
+        <h2 className="text-xl font-bold text-blue-800 mb-6 border-b-2 border-blue-200 pb-2">Daily Itinerary</h2>
+        {enrichedSegments.map((segment, index) => (
           <PDFDaySegmentCard
-            key={segment.day}
+            key={`day-${segment.day}`}
             segment={segment}
             tripStartDate={tripStartDate}
             cardIndex={index}
@@ -75,18 +75,24 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="pdf-footer mt-8 pt-6 border-t-2 border-gray-200 text-center text-sm text-gray-600">
-        <p>Generated by Ramble 66 Route Planner</p>
-        {shareUrl && exportOptions.includeQRCode && (
-          <p className="mt-2">Visit the live version: {shareUrl}</p>
-        )}
-        {exportOptions.watermark && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-200 text-6xl font-bold rotate-45 pointer-events-none opacity-30">
+      {/* PDF Footer */}
+      <PDFFooter
+        shareUrl={shareUrl}
+        enrichedSegments={enrichedSegments}
+        includeQRCode={exportOptions.includeQRCode}
+      />
+
+      {/* Watermark */}
+      {exportOptions.watermark && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+          <div 
+            className="text-gray-200 font-bold opacity-10 transform rotate-45"
+            style={{ fontSize: '120px', zIndex: 1 }}
+          >
             {exportOptions.watermark}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

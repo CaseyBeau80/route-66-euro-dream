@@ -2,14 +2,20 @@
 import { useState } from 'react';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { usePDFExportLogic } from './usePDFExportLogic';
-import { usePDFExportState } from './usePDFExportState';
 import { usePDFCleanup } from './usePDFCleanup';
+
+interface PDFExportOptions {
+  format: 'full' | 'summary' | 'route-only';
+  title?: string;
+  watermark?: string;
+  includeQRCode: boolean;
+}
 
 interface UsePDFExportProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   shareUrl?: string;
-  exportOptions: any;
+  exportOptions: PDFExportOptions;
   onClose: () => void;
 }
 
@@ -20,32 +26,18 @@ export const usePDFExport = ({
   exportOptions,
   onClose
 }: UsePDFExportProps) => {
-  const {
-    isExporting,
-    setIsExporting,
-    showPreview,
-    setShowPreview,
-    weatherLoading,
-    setWeatherLoading,
-    pdfContainer,
-    setPdfContainer
-  } = usePDFExportState();
+  const [isExporting, setIsExporting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [pdfContainer, setPdfContainer] = useState<HTMLElement | null>(null);
 
   const { cleanupPDFPreview } = usePDFCleanup();
 
   const handleClosePreview = () => {
-    console.log('🧹 Closing PDF preview and cleaning up...');
-    cleanupPDFPreview();
+    console.log('🔄 Closing PDF preview and cleaning up...');
     setShowPreview(false);
+    cleanupPDFPreview();
     setPdfContainer(null);
-    
-    // Clean up PDF container
-    const container = document.getElementById('pdf-export-content');
-    if (container) {
-      container.remove();
-    }
-    
-    onClose();
   };
 
   const { handleExportPDF } = usePDFExportLogic({
@@ -67,7 +59,7 @@ export const usePDFExport = ({
     showPreview,
     weatherLoading,
     pdfContainer,
-    handleClosePreview,
-    handleExportPDF
+    handleExportPDF,
+    handleClosePreview
   };
 };
