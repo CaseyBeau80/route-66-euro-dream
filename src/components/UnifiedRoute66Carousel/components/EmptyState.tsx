@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, MapPin, Star } from 'lucide-react';
+import { Search, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FilterState } from '../types';
 
@@ -15,58 +15,35 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   onResetFilters,
   hasActiveFilters
 }) => {
-  const getEmptyStateContent = () => {
-    if (filters.search) {
-      return {
-        icon: Search,
-        title: 'No results found',
-        description: `No attractions match your search for "${filters.search}". Try a different search term or clear your filters.`,
-        showResetButton: true
-      };
-    }
-
-    if (hasActiveFilters) {
-      return {
-        icon: MapPin,
-        title: 'No matches found',
-        description: 'No attractions match your current filter settings. Try adjusting your filters or reset them to see all attractions.',
-        showResetButton: true
-      };
-    }
-
-    return {
-      icon: Star,
-      title: 'Loading Route 66 Adventures',
-      description: 'Discovering amazing attractions along America\'s most famous highway...',
-      showResetButton: false
-    };
-  };
-
-  const { icon: Icon, title, description, showResetButton } = getEmptyStateContent();
-
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="bg-route66-background-section rounded-full p-6 mb-6">
-        <Icon className="h-12 w-12 text-route66-primary" />
-      </div>
-      
-      <h3 className="text-xl font-semibold text-route66-text-primary mb-2">
-        {title}
-      </h3>
-      
-      <p className="text-route66-text-secondary max-w-md mb-6">
-        {description}
-      </p>
+    <div className="text-center py-12 sm:py-16 px-4">
+      <div className="max-w-md mx-auto">
+        <div className="bg-route66-background-section rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+          <Search className="h-10 w-10 text-route66-text-muted" />
+        </div>
+        
+        <h3 className="text-xl font-semibold text-route66-text-primary mb-3">
+          No locations found
+        </h3>
+        
+        <p className="text-route66-text-secondary mb-6">
+          {hasActiveFilters 
+            ? "We couldn't find any Route 66 locations matching your current filters. Try adjusting your search criteria."
+            : "No Route 66 locations available at the moment."
+          }
+        </p>
 
-      {showResetButton && (
-        <Button
-          onClick={onResetFilters}
-          variant="outline"
-          className="border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white"
-        >
-          Clear all filters
-        </Button>
-      )}
+        {hasActiveFilters && (
+          <Button
+            onClick={onResetFilters}
+            variant="outline"
+            className="border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white transition-all duration-200"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Clear all filters
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

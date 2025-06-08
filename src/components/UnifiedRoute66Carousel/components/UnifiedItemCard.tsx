@@ -24,10 +24,10 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'attractions': return 'bg-blue-100 text-blue-800';
-      case 'drive_ins': return 'bg-purple-100 text-purple-800';
-      case 'hidden_gems': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'attractions': return 'bg-route66-primary/10 text-route66-primary border border-route66-primary/20';
+      case 'drive_ins': return 'bg-purple-100 text-purple-800 border border-purple-200';
+      case 'hidden_gems': return 'bg-green-100 text-green-800 border border-green-200';
+      default: return 'bg-route66-background-section text-route66-text-muted border border-route66-border';
     }
   };
 
@@ -35,9 +35,9 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const imageUrl = item.thumbnail_url || item.image_url || fallbackImage;
 
   return (
-    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group">
+    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background">
       {/* Image Section */}
-      <div className="relative h-48 overflow-hidden bg-gray-100">
+      <div className="relative h-48 overflow-hidden bg-route66-background-section">
         {!imageError && (
           <img
             src={imageUrl}
@@ -56,47 +56,47 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
         
         {/* Loading/Error Fallback */}
         {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-            <div className="text-gray-400">Loading...</div>
+          <div className="absolute inset-0 bg-route66-background-section animate-pulse flex items-center justify-center">
+            <div className="text-route66-text-muted">Loading...</div>
           </div>
         )}
 
         {/* Category Badge */}
-        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
           {getCategoryLabel(item.category)}
         </div>
 
         {/* Featured Badge */}
         {item.featured && (
-          <div className="absolute top-2 right-2 bg-route66-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium">
+          <div className="absolute top-3 right-3 bg-route66-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium border border-route66-accent-gold/20">
             Featured
           </div>
         )}
       </div>
 
-      <CardContent className="p-4 flex-1 flex flex-col">
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col">
         {/* Title */}
         <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 group-hover:text-route66-primary transition-colors">
           {item.name}
         </h3>
 
         {/* Location */}
-        <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-2">
-          <MapPin className="h-4 w-4" />
-          <span>{item.city_name}{item.state && `, ${item.state}`}</span>
+        <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-3">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">{item.city_name}{item.state && `, ${item.state}`}</span>
         </div>
 
         {/* Description */}
         {item.description && (
-          <p className="text-sm text-route66-text-muted mb-3 line-clamp-3 flex-1">
+          <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 flex-1">
             {item.description}
           </p>
         )}
 
         {/* Year Info */}
         {(item.founded_year || item.year_opened) && (
-          <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-3">
-            <Calendar className="h-4 w-4" />
+          <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-4">
+            <Calendar className="h-4 w-4 flex-shrink-0" />
             <span>
               {item.founded_year ? `Founded ${item.founded_year}` : `Opened ${item.year_opened}`}
             </span>
@@ -105,11 +105,11 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
 
         {/* Tags */}
         {item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {item.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
-                className="bg-route66-background-section text-route66-text-muted px-2 py-1 rounded text-xs"
+                className="bg-route66-background-section text-route66-text-muted px-2 py-1 rounded text-xs border border-route66-divider"
               >
                 {tag}
               </span>
@@ -128,7 +128,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
               onClick={() => window.open(item.website!, '_blank')}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -139,7 +139,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="flex-1 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200"
               onClick={() => {
                 const url = `https://www.google.com/maps?q=${item.latitude},${item.longitude}`;
                 window.open(url, '_blank');

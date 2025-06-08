@@ -3,7 +3,7 @@ import React from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedData } from './hooks/useUnifiedData';
-import CarouselFilters from './components/CarouselFilters';
+import FilterPanel from './components/FilterPanel';
 import UnifiedItemCard from './components/UnifiedItemCard';
 import EmptyState from './components/EmptyState';
 import { UnifiedCarouselProps } from './types';
@@ -24,27 +24,29 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
 
   if (loading) {
     return (
-      <section className={`py-16 bg-route66-background-section ${className}`}>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-route66 text-route66-primary mb-4">Explore Route 66</h2>
-            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto">
+      <section className={`py-12 sm:py-16 lg:py-20 bg-route66-background-section ${className}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-route66 text-route66-primary mb-3 sm:mb-4 font-bold">
+              Explore Route 66
+            </h2>
+            <p className="text-lg sm:text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
               Discover historic attractions, drive-in theaters, and hidden gems along America's most famous highway
             </p>
           </div>
 
           {/* Loading Filters */}
-          <div className="space-y-4 mb-6">
-            <div className="flex gap-3">
-              <Skeleton className="h-10 w-[180px]" />
-              <Skeleton className="h-10 w-[150px]" />
-              <Skeleton className="h-10 w-[150px]" />
+          <div className="space-y-4 mb-6 sm:mb-8">
+            <div className="flex flex-wrap gap-3">
+              <Skeleton className="h-10 w-full sm:w-[180px]" />
+              <Skeleton className="h-10 w-full sm:w-[150px]" />
+              <Skeleton className="h-10 w-full sm:w-[150px]" />
             </div>
             <Skeleton className="h-10 w-full max-w-md" />
           </div>
 
           {/* Loading Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-lg" />
@@ -60,20 +62,20 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
   }
 
   return (
-    <section className={`py-16 bg-route66-background-section ${className}`}>
-      <div className="container mx-auto px-4">
+    <section className={`py-12 sm:py-16 lg:py-20 bg-route66-background-section ${className}`}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-route66 text-route66-primary mb-4 font-bold">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-route66 text-route66-primary mb-3 sm:mb-4 font-bold">
             Explore Route 66
           </h2>
-          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
+          <p className="text-lg sm:text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
             Discover historic attractions, drive-in theaters, and hidden gems along America's most famous highway
           </p>
         </div>
 
-        {/* Filters */}
-        <CarouselFilters
+        {/* Filter Panel */}
+        <FilterPanel
           filters={filters}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
@@ -99,10 +101,10 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
             }}
             className="w-full"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex gap-2">
-                <CarouselPrevious className="relative translate-x-0 translate-y-0" />
-                <CarouselNext className="relative translate-x-0 translate-y-0" />
+                <CarouselPrevious className="relative translate-x-0 translate-y-0 bg-route66-background border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200" />
+                <CarouselNext className="relative translate-x-0 translate-y-0 bg-route66-background border-route66-border hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200" />
               </div>
             </div>
 
