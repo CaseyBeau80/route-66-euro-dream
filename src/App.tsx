@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import Index from "./pages/Index";
 import TripCalculator from "./pages/TripCalculator";
 import TripDetailsPage from "./pages/TripDetailsPage";
 import NotFound from "./pages/NotFound";
+import TestUpload from "./components/TestUpload"; // ✅ Add this line
 
 const queryClient = new QueryClient();
 
@@ -24,6 +24,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/trip-calculator" element={<TripCalculator />} />
               <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
+              <Route path="/test-upload" element={<TestUpload />} /> {/* ✅ Added route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
