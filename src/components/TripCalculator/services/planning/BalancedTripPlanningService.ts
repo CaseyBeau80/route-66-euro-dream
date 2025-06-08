@@ -153,7 +153,12 @@ export class BalancedTripPlanningService {
           name: dayDestination.name
         },
         recommendedStops: segmentStops,
-        attractions: segmentStops.map(stop => stop.name),
+        attractions: segmentStops.map(stop => ({
+          name: stop.name,
+          title: stop.name,
+          description: stop.description,
+          city: stop.city || stop.city_name
+        })),
         driveTimeCategory,
         routeSection: day <= Math.ceil(totalDays / 3) ? 'Early Route' : 
                      day <= Math.ceil(2 * totalDays / 3) ? 'Mid Route' : 'Final Stretch'

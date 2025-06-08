@@ -279,7 +279,12 @@ export class Route66TripPlannerService {
           state: stop.state,
           city: stop.city || stop.city_name
         })),
-        attractions: segmentAttractions.map(stop => stop.name),
+        attractions: segmentAttractions.map(stop => ({
+          name: stop.name,
+          title: stop.name,
+          description: stop.description,
+          city: stop.city || stop.city_name
+        })),
         driveTimeCategory: driveTimeCategory,
         routeSection: day <= Math.ceil(totalDays / 3) ? 'Early Route' : 
                      day <= Math.ceil(2 * totalDays / 3) ? 'Mid Route' : 'Final Stretch'
