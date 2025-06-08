@@ -11,24 +11,15 @@ export const usePDFKeyboardHandlers = ({
   onClosePreview
 }: UsePDFKeyboardHandlersProps) => {
   useEffect(() => {
-    if (!showPreview) return;
-
     const handleKeyDown = (event: KeyboardEvent) => {
-      // ESC key to close preview
-      if (event.key === 'Escape') {
+      if (showPreview && event.key === 'Escape') {
         onClosePreview();
-        return;
-      }
-
-      // Ctrl+P or Cmd+P to print
-      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
-        event.preventDefault();
-        window.print();
-        return;
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    if (showPreview) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);

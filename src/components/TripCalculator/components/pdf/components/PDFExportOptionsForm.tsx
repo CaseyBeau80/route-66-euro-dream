@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { AlertCircle } from 'lucide-react';
-import { PDFExportOptions } from '../../services/pdf/PDFLayoutService';
+import { PDFExportOptions } from '../../../services/pdf/PDFTypesService';
 
 interface PDFExportOptionsFormProps {
   exportOptions: PDFExportOptions;

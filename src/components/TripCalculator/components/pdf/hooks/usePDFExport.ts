@@ -1,10 +1,7 @@
 
-import React from 'react';
+import { useState } from 'react';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
-import { usePDFKeyboardHandlers } from './usePDFKeyboardHandlers';
-import { usePDFCleanup } from './usePDFCleanup';
-import { usePDFExportState } from './usePDFExportState';
-import { usePDFExportLogic } from './usePDFExportLogic';
+import { usePDFContainer } from './usePDFContainer';
 
 interface UsePDFExportProps {
   tripPlan: TripPlan;
@@ -21,40 +18,46 @@ export const usePDFExport = ({
   exportOptions,
   onClose
 }: UsePDFExportProps) => {
-  const {
-    isExporting,
-    setIsExporting,
-    showPreview,
-    setShowPreview,
-    weatherLoading,
-    setWeatherLoading
-  } = usePDFExportState();
+  const [isExporting, setIsExporting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
-  const { cleanupPDFPreview } = usePDFCleanup();
+  const { createPDFContainer } = usePDFContainer();
+
+  const handleExportPDF = async () => {
+    console.log('📄 Starting PDF export process...');
+    setIsExporting(true);
+    setWeatherLoading(true);
+
+    try {
+      const pdfContainer = await createPDFContainer({
+        tripPlan,
+        tripStartDate,
+        exportOptions,
+        shareUrl
+      });
+
+      console.log('📄 PDF container created, opening preview...');
+      setShowPreview(true);
+      setWeatherLoading(false);
+
+      // Open print dialog after a short delay
+      setTimeout(() => {
+        window.print();
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Error creating PDF:', error);
+    } finally {
+      setIsExporting(false);
+      setWeatherLoading(false);
+    }
+  };
 
   const handleClosePreview = () => {
     setShowPreview(false);
-    cleanupPDFPreview();
+    onClose();
   };
-
-  // Use keyboard handlers
-  usePDFKeyboardHandlers({
-    showPreview,
-    onClosePreview: handleClosePreview
-  });
-
-  const { handleExportPDF } = usePDFExportLogic({
-    tripPlan,
-    tripStartDate,
-    shareUrl,
-    exportOptions,
-    onClose,
-    setIsExporting,
-    setWeatherLoading,
-    setShowPreview,
-    showPreview,
-    handleClosePreview
-  });
 
   return {
     isExporting,

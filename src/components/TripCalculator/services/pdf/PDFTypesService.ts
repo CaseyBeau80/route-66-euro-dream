@@ -14,14 +14,11 @@ export interface PDFExportOptions {
 export interface PDFHeaderData {
   title: string;
   subtitle?: string;
-  date: string;
-  logo?: string;
+  date?: string;
 }
 
 export interface PDFFooterData {
-  pageNumbers: boolean;
-  shareUrl?: string;
+  text: string;
   qrCode?: string;
-  watermark?: string;
-  generatedText: string;
+  pageNumbers: boolean;
 }

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { PDFExportOptions } from '../services/pdf/PDFLayoutService';
+import { PDFExportOptions } from '../services/pdf/PDFTypesService';
 
 export const usePDFExportOptions = () => {
   const [exportOptions, setExportOptions] = useState<PDFExportOptions>({
@@ -18,7 +18,7 @@ export const usePDFExportOptions = () => {
   const updateExportOption = <K extends keyof PDFExportOptions>(
     key: K,
     value: PDFExportOptions[K]
-  ) => {
+  ): void => {
     setExportOptions(prev => ({
       ...prev,
       [key]: value
