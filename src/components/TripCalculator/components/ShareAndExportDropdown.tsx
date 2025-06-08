@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -6,8 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { Share2, ChevronDown, Copy, Mail, Calendar, Download, Save } from 'lucide-react';
+import { Share2, ChevronDown, Copy, Mail, Calendar, Download, Save, Link, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { CalendarExportService } from '../services/CalendarExportService';
 import { GoogleCalendarService } from '../services/GoogleCalendarService';
@@ -103,8 +105,8 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
       }
       
       toast({
-        title: "Link Copied!",
-        description: "Trip link has been copied to your clipboard.",
+        title: "Link Copied Successfully!",
+        description: "Your shareable trip link is now in your clipboard and ready to share.",
         variant: "default"
       });
       setIsOpen(false);
@@ -238,7 +240,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           <Button
             variant={variant === 'primary' ? 'default' : 'outline'}
             size={size}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 font-medium"
             disabled={isAutoSaving}
           >
             {isAutoSaving ? (
@@ -257,57 +259,103 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
         </DropdownMenuTrigger>
         
         <DropdownMenuContent 
-          className="w-64 bg-white border-2 border-blue-200 shadow-xl rounded-lg z-50"
+          className="w-72 bg-white border-2 border-blue-200 shadow-xl rounded-xl z-50 p-2"
           align="end"
-          sideOffset={5}
+          sideOffset={8}
         >
+          {/* Share Options Section */}
+          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <Link className="w-4 h-4 text-blue-600" />
+              Share Your Trip
+            </div>
+          </DropdownMenuLabel>
+          
           <DropdownMenuItem
             onClick={handleCopyLink}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
+            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
           >
-            <Copy className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-gray-800">
-              {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
-            </span>
+            <Copy className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800 text-sm">
+                {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
+              </span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                Get a link to share your complete itinerary with others
+              </span>
+            </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem
             onClick={handleShareViaEmail}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
+            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
           >
-            <Mail className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-gray-800">Share via Email</span>
+            <Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800 text-sm">Share via Email</span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                Send your trip plan directly to friends and family
+              </span>
+            </div>
           </DropdownMenuItem>
           
-          <DropdownMenuSeparator className="bg-blue-100" />
+          <DropdownMenuSeparator className="bg-gray-200 my-2" />
+          
+          {/* Export Options Section */}
+          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              Calendar & Planning
+            </div>
+          </DropdownMenuLabel>
           
           <DropdownMenuItem
             onClick={handleAddToGoogleCalendar}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
+            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
           >
-            <Calendar className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-gray-800">Add to Google Calendar</span>
+            <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800 text-sm">Add to Google Calendar</span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                Create calendar events for your Route 66 adventure
+              </span>
+            </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem
             onClick={handleDownloadICS}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
+            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
           >
-            <Download className="w-4 h-4 text-blue-600" />
+            <Download className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="flex flex-col">
-              <span className="font-medium text-gray-800">Download Calendar File</span>
-              <span className="text-xs text-gray-500">Apple Calendar & Outlook</span>
+              <span className="font-medium text-gray-800 text-sm">Download Calendar File</span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                Compatible with Apple Calendar, Outlook, and other apps
+              </span>
             </div>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator className="bg-blue-100" />
+          <DropdownMenuSeparator className="bg-gray-200 my-2" />
+          
+          {/* Document Export Section */}
+          <DropdownMenuLabel className="text-sm font-semibold text-gray-700 px-3 py-2 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-600" />
+              Export Options
+            </div>
+          </DropdownMenuLabel>
           
           <DropdownMenuItem
             onClick={handlePDFExport}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
+            className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors rounded-lg mx-1 my-1"
           >
-            <Download className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-gray-800">Export Trip as PDF</span>
+            <Download className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800 text-sm">Export Trip as PDF</span>
+              <span className="text-xs text-gray-500 mt-0.5">
+                Create a beautiful printable version of your itinerary
+              </span>
+            </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
