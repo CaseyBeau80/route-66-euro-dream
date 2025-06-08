@@ -22,7 +22,7 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     content: (
       <div className="text-center space-y-3 relative">
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative overflow-hidden">
-          {/* Large birthday cake illustration covering the entire card */}
+          {/* Large birthday cake illustration with candles - all in background */}
           <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
             <div className="relative scale-[2.5]">
               <div className="flex flex-col items-center">
@@ -54,40 +54,40 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
                 </div>
               </div>
               
+              {/* Three candles positioned on top of the cake - now in background with cake */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 flex gap-1 pointer-events-none">
+                <div className="flex flex-col items-center">
+                  {/* Flame with enhanced visibility and realistic glow */}
+                  <div className="relative">
+                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg"></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
+                  </div>
+                  {/* Candle body */}
+                  <div className="w-1.5 h-4 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div className="w-1 h-3 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.4s'}}></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
+                  </div>
+                  <div className="w-1.5 h-4 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.8s'}}></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
+                    <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
+                  </div>
+                  <div className="w-1.5 h-4 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
+                </div>
+              </div>
+              
               {/* Enhanced glow effect for larger cake */}
               <div className="absolute inset-0 bg-gradient-radial from-pink-200/30 via-rose-200/15 to-transparent rounded-full blur-lg -z-10 motion-safe:animate-birthday-glow motion-reduce:animate-none scale-150"></div>
-            </div>
-          </div>
-          
-          {/* Three elegant candles with HIGHLY VISIBLE animated flames - positioned ABOVE the content */}
-          <div className="absolute top-1 left-1/2 transform -translate-x-1/2 flex gap-1 z-20 pointer-events-none">
-            <div className="flex flex-col items-center">
-              {/* Flame with enhanced visibility and realistic glow */}
-              <div className="relative">
-                <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg"></div>
-                <div className="absolute inset-0 w-1 h-3 bg-yellow-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90"></div>
-                <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
-              </div>
-              {/* Candle body */}
-              <div className="w-1.5 h-4 bg-gradient-to-b from-blue-200 to-blue-300 rounded-sm border-r border-blue-400 shadow-sm"></div>
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <div className="w-1 h-3 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.4s'}}></div>
-                <div className="absolute inset-0 w-1 h-3 bg-orange-200 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.4s'}}></div>
-                <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
-              </div>
-              <div className="w-1.5 h-4 bg-gradient-to-b from-pink-200 to-pink-300 rounded-sm border-r border-pink-400 shadow-sm"></div>
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <div className="w-1 h-3 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none opacity-100 shadow-lg" style={{animationDelay: '0.8s'}}></div>
-                <div className="absolute inset-0 w-1 h-3 bg-yellow-100 rounded-full blur-[1px] motion-safe:animate-birthday-glow motion-reduce:animate-none opacity-90" style={{animationDelay: '0.8s'}}></div>
-                <div className="absolute inset-0 w-1 h-3 bg-white rounded-full blur-[2px] opacity-60"></div>
-              </div>
-              <div className="w-1.5 h-4 bg-gradient-to-b from-green-200 to-green-300 rounded-sm border-r border-green-400 shadow-sm"></div>
             </div>
           </div>
           
