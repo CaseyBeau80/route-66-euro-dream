@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Hero from "../components/Hero";
 import MapSection from "../components/MapSection";
 import CentennialSection from "../components/CentennialSection";
-import ComprehensiveListings from "../components/ComprehensiveListings";
+import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
 import TripPlannerSection from "../components/TripPlannerSection";
 import TravelResources from "../components/TravelResources";
 import MainLayout from "../components/MainLayout";
@@ -17,7 +17,7 @@ const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   const [isMapOpen, setIsMapOpen] = useState(true);
   
-  console.log("🏠 Index page: Rendering with reorganized layout - Hero, Centennial, Fun Facts, Trivia Game, Instagram, Map, Trip Planner, Adventures, Resources");
+  console.log("🏠 Index page: Rendering with unified Route 66 carousel - Hero, Centennial, Fun Facts, Trivia Game, Instagram, Map, Trip Planner, Unified Carousel, Resources");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
@@ -60,9 +60,9 @@ const Index = () => {
         <TripPlannerSection />
       </FadeInSection>
 
-      {/* Route 66 Adventures Section with fade-in */}
-      <FadeInSection id="adventures" delay={600}>
-        <ComprehensiveListings />
+      {/* Unified Route 66 Carousel Section with fade-in - replaces ComprehensiveListings */}
+      <FadeInSection id="explore-route66" delay={600}>
+        <UnifiedRoute66Carousel />
       </FadeInSection>
 
       {/* Travel Resources Section with fade-in - moved to bottom */}
