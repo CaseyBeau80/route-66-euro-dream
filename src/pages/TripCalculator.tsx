@@ -53,7 +53,7 @@ const TripCalculator = () => {
               {/* YouTube Video Section */}
               <div className="mb-8">
                 <YouTubeEmbed 
-                  videoId="cn1TkvorLe4"
+                  videoId="3904gZljFmY"
                   title="Route 66 Travel Guide & Planning Tips"
                   className="max-w-2xl mx-auto"
                 />
