@@ -8,11 +8,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Share2, ChevronDown, Copy, Mail, Calendar, Download } from 'lucide-react';
+import { Share2, ChevronDown, Copy, Mail, Calendar, Download, Save } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { CalendarExportService } from '../services/CalendarExportService';
 import { GoogleCalendarService } from '../services/GoogleCalendarService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { TripService } from '../services/TripService';
+import { useTripAutoSaveBeforeShare } from '../hooks/useTripAutoSaveBeforeShare';
 import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 
 interface ShareAndExportDropdownProps {
@@ -23,6 +25,7 @@ interface ShareAndExportDropdownProps {
   variant?: 'primary' | 'secondary';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
+  onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
 }
 
 const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({ 
@@ -32,7 +35,8 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   tripStartDate,
   variant = 'primary',
   size = 'default',
-  className
+  className,
+  onShareUrlGenerated
 }) => {
   console.log('🔽 ShareAndExportDropdown rendering with:', {
     shareUrl,
@@ -46,24 +50,49 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
 
   const [isOpen, setIsOpen] = useState(false);
   const [showPDFModal, setShowPDFModal] = useState(false);
+  const { saveBeforeShare, isAutoSaving } = useTripAutoSaveBeforeShare();
 
-  const handleCopyLink = async () => {
-    if (!shareUrl) {
+  const ensureShareUrl = async (): Promise<string | null> => {
+    if (shareUrl) {
+      return shareUrl;
+    }
+
+    if (!tripPlan) {
       toast({
-        title: "No Link Available",
-        description: "Trip needs to be saved first to generate a shareable link.",
+        title: "No Trip to Share",
+        description: "Please create a trip plan first.",
         variant: "destructive"
       });
-      return;
+      return null;
     }
+
+    // Auto-save the trip to generate a share URL
+    const shareCode = await saveBeforeShare(tripPlan);
+    if (shareCode) {
+      const newShareUrl = TripService.getShareUrl(shareCode);
+      
+      // Notify parent component about the new share URL
+      if (onShareUrlGenerated) {
+        onShareUrlGenerated(shareCode, newShareUrl);
+      }
+      
+      return newShareUrl;
+    }
+
+    return null;
+  };
+
+  const handleCopyLink = async () => {
+    const url = await ensureShareUrl();
+    if (!url) return;
     
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(url);
       } else {
         // Fallback for non-secure contexts or older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = shareUrl;
+        textArea.value = url;
         textArea.style.position = 'fixed';
         textArea.style.left = '-999999px';
         textArea.style.top = '-999999px';
@@ -90,12 +119,15 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
   };
 
-  const handleShareViaEmail = () => {
+  const handleShareViaEmail = async () => {
+    const url = await ensureShareUrl();
+    if (!url) return;
+
     const subject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
     const body = encodeURIComponent(
       `I've planned an amazing Route 66 road trip and wanted to share it with you!\n\n` +
       `Trip: ${tripTitle}\n` +
-      (shareUrl ? `View the full plan here: ${shareUrl}\n\n` : '') +
+      `View the full plan here: ${url}\n\n` +
       `This trip was planned using the Route 66 Trip Planner. Start planning your own adventure at ${window.location.origin}`
     );
     
@@ -206,10 +238,20 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
             variant={variant === 'primary' ? 'default' : 'outline'}
             size={size}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+            disabled={isAutoSaving}
           >
-            <Share2 className="w-4 h-4" />
-            Share & Export
-            <ChevronDown className="w-4 h-4" />
+            {isAutoSaving ? (
+              <>
+                <Save className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4" />
+                Share & Export
+                <ChevronDown className="w-4 h-4" />
+              </>
+            )}
           </Button>
         </DropdownMenuTrigger>
         
@@ -223,7 +265,9 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
             className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors"
           >
             <Copy className="w-4 h-4 text-blue-600" />
-            <span className="font-medium text-gray-800">Copy Shareable Link</span>
+            <span className="font-medium text-gray-800">
+              {shareUrl ? 'Copy Shareable Link' : 'Save Trip & Copy Link'}
+            </span>
           </DropdownMenuItem>
           
           <DropdownMenuItem

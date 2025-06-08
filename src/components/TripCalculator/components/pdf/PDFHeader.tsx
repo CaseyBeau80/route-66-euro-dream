@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import PDFLogo from './components/PDFLogo';
 
 interface PDFHeaderProps {
   tripTitle: string;
@@ -22,28 +23,36 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({
   return (
     <>
       {/* PDF Header */}
-      <div className="pdf-header mb-8 text-center border-b-2 border-blue-500 pb-4">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          {tripTitle}
-        </h1>
-        <p className="text-xl text-gray-600 mb-2">
-          {startCity} → {endCity}
-        </p>
-        <p className="text-base text-gray-500">
-          Generated on {format(new Date(), 'MMMM d, yyyy')}
-        </p>
+      <div className="pdf-header mb-8 border-b-2 border-blue-500 pb-4 relative">
+        {/* Logo in top left */}
+        <div className="absolute top-0 left-0">
+          <PDFLogo />
+        </div>
         
-        {/* Weather Loading Status */}
-        {weatherLoading && (
-          <p className="text-sm text-blue-600 mt-2">
-            ⏳ Loading weather data... (this may take up to 10 seconds)
+        {/* Centered content with left margin for logo */}
+        <div className="text-center ml-16">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            {tripTitle}
+          </h1>
+          <p className="text-xl text-gray-600 mb-2">
+            {startCity} → {endCity}
           </p>
-        )}
-        {weatherLoadingTimeout && (
-          <p className="text-sm text-orange-600 mt-2">
-            ⚠️ Weather data loading timed out - using seasonal fallbacks
+          <p className="text-base text-gray-500">
+            Generated on {format(new Date(), 'MMMM d, yyyy')}
           </p>
-        )}
+          
+          {/* Weather Loading Status */}
+          {weatherLoading && (
+            <p className="text-sm text-blue-600 mt-2">
+              ⏳ Loading weather data... (this may take up to 10 seconds)
+            </p>
+          )}
+          {weatherLoadingTimeout && (
+            <p className="text-sm text-orange-600 mt-2">
+              ⚠️ Weather data loading timed out - using seasonal fallbacks
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Watermark */}
