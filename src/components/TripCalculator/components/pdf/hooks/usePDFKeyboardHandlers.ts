@@ -11,15 +11,27 @@ export const usePDFKeyboardHandlers = ({
   onClosePreview
 }: UsePDFKeyboardHandlersProps) => {
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showPreview) {
+    if (!showPreview) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // ESC key to close preview
+      if (event.key === 'Escape') {
         onClosePreview();
+        return;
+      }
+
+      // Ctrl+P or Cmd+P to print
+      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        event.preventDefault();
+        window.print();
+        return;
       }
     };
 
-    if (showPreview) {
-      document.addEventListener('keydown', handleKeyPress);
-      return () => document.removeEventListener('keydown', handleKeyPress);
-    }
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [showPreview, onClosePreview]);
 };
