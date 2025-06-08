@@ -80,14 +80,29 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     window.print();
   };
 
-  // Handle export button click with debugging
+  // Handle export button click with enhanced debugging
   const handleExportClick = () => {
-    console.log('🚀 Export PDF button clicked', {
+    console.log('🚀 PDF Export Button Clicked!');
+    console.log('📊 Export State:', {
       isTripComplete,
       segmentCount: tripPlan?.segments?.length || 0,
       tripStartDate: tripStartDate?.toISOString(),
-      exportOptions
+      exportOptions,
+      isExporting,
+      showPreview
     });
+    
+    if (!isTripComplete) {
+      console.error('❌ Cannot export: Trip not complete');
+      return;
+    }
+    
+    if (isExporting) {
+      console.warn('⚠️ Already exporting, ignoring click');
+      return;
+    }
+    
+    console.log('✅ Calling handleExportPDF...');
     handleExportPDF();
   };
 
