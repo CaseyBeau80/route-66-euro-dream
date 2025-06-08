@@ -13,39 +13,21 @@ export const usePDFKeyboardHandlers = ({
   useEffect(() => {
     if (!showPreview) return;
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        console.log('⌨️ ESC key pressed, closing PDF preview');
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         onClosePreview();
       }
       
-      // Enhanced keyboard shortcuts
-      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-        console.log('⌨️ Ctrl+P detected, print dialog should open');
-        // Don't prevent default - let browser handle print
+      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        // Allow default print behavior
+        console.log('🖨️ Print command detected');
       }
     };
 
-    const handleBeforePrint = () => {
-      console.log('🖨️ Before print event detected');
-    };
-
-    const handleAfterPrint = () => {
-      console.log('🖨️ After print event detected, cleaning up PDF preview');
-      // Auto-close preview after printing
-      setTimeout(() => {
-        onClosePreview();
-      }, 1000);
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    window.addEventListener('beforeprint', handleBeforePrint);
-    window.addEventListener('afterprint', handleAfterPrint);
-
+    document.addEventListener('keydown', handleKeyDown);
+    
     return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-      window.removeEventListener('beforeprint', handleBeforePrint);
-      window.removeEventListener('afterprint', handleAfterPrint);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [showPreview, onClosePreview]);
 };

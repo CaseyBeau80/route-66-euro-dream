@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Printer, X, AlertCircle } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { usePDFExport } from './pdf/hooks/usePDFExport';
+import { usePDFKeyboardHandlers } from './pdf/hooks/usePDFKeyboardHandlers';
 import PDFPreviewContainer from './pdf/PDFPreviewContainer';
 
 interface PDFExportModalProps {
@@ -44,6 +45,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     isExporting,
     showPreview,
     weatherLoading,
+    enrichedTripPlan,
     handleClosePreview,
     handleExportPDF
   } = usePDFExport({
@@ -52,6 +54,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     shareUrl,
     exportOptions,
     onClose
+  });
+
+  usePDFKeyboardHandlers({
+    showPreview,
+    onClosePreview: handleClosePreview
   });
 
   const updateExportOption = <K extends keyof PDFExportOptions>(
@@ -72,11 +79,13 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     window.print();
   };
 
-  // Show PDF Preview
+  // Show PDF Preview with enhanced trip plan if available
   if (showPreview) {
+    const displayTripPlan = enrichedTripPlan || tripPlan;
+    
     return (
       <PDFPreviewContainer
-        tripPlan={tripPlan}
+        tripPlan={displayTripPlan}
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
@@ -171,18 +180,19 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               {weatherLoading && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-sm text-blue-800 font-medium">Loading weather forecasts...</span>
+                  <span className="text-sm text-blue-800 font-medium">Loading enhanced weather data...</span>
                 </div>
               )}
 
-              {/* Instructions */}
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <div className="font-semibold mb-2 text-blue-700 text-sm">📋 How PDF Export Works:</div>
-                <ul className="text-xs space-y-1.5 leading-relaxed">
-                  <li>• Click "Generate PDF" to create your printable itinerary</li>
-                  <li>• Preview your PDF before printing or saving</li>
-                  <li>• Live weather forecast data is included when available</li>
-                  <li>• Export includes route details and recommended stops</li>
+              {/* Enhanced Instructions */}
+              <div className="p-3 bg-route66-vintage-beige border border-route66-tan rounded-lg text-sm text-route66-navy">
+                <div className="font-semibold mb-2 text-route66-vintage-red text-sm font-route66">🛣️ Enhanced PDF Features:</div>
+                <ul className="text-xs space-y-1.5 leading-relaxed text-route66-vintage-brown">
+                  <li>• Live weather forecast integration for accurate trip planning</li>
+                  <li>• Enhanced Route 66 branding and nostalgic styling</li>
+                  <li>• Optimized layout matching your final itinerary</li>
+                  <li>• Clear data source indicators for weather information</li>
+                  <li>• Print-ready format with professional presentation</li>
                 </ul>
               </div>
             </div>
@@ -190,9 +200,9 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
             <Button
               onClick={handleExportPDF}
               disabled={isExporting || !isTripComplete}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
+              className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
-              {isExporting ? 'Preparing Your Itinerary...' : 'Generate PDF Export'}
+              {isExporting ? 'Preparing Enhanced PDF...' : 'Generate Enhanced PDF Export'}
             </Button>
           </>
         )}
