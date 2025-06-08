@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
@@ -36,7 +37,7 @@ const TripCalculator = () => {
       <div className="pt-20 pb-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            {/* Modern Header with Blue Theme - Updated title */}
+            {/* Modern Header with Blue Theme */}
             <div className="text-center mb-8">
               <div className="flex justify-center items-center gap-4 mb-6">
                 {/* Removed Route 66 shield icon and Unit Toggle */}
@@ -48,6 +49,15 @@ const TripCalculator = () => {
               <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">
                 Create your perfect Mother Road journey with our comprehensive trip planning tools
               </p>
+
+              {/* YouTube Video Section */}
+              <div className="mb-8">
+                <YouTubeEmbed 
+                  videoId="cn1TkvorLe4"
+                  title="Route 66 Travel Guide & Planning Tips"
+                  className="max-w-2xl mx-auto"
+                />
+              </div>
 
               {/* Feature Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
