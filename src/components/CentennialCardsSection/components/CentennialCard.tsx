@@ -50,7 +50,7 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
 
   return (
     <Card
-      className={`group h-full overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 ${id !== 'countdown' ? 'cursor-pointer' : ''} relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in min-h-[28rem]`}
+      className={`group h-full overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 ${id !== 'countdown' ? 'cursor-pointer' : ''} relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
       onClick={() => handleCardClick(route)}
       style={{
         animationDelay: `${index * 150}ms`
@@ -119,19 +119,21 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
         </h3>
       </div>
 
-      <CardContent className="p-4 flex flex-col h-full">
-        {/* Dynamic Content - Reduced bottom margin */}
-        <div className="mb-2 flex-1">
-          {content}
+      <CardContent className="p-4 flex flex-col justify-between h-full">
+        <div className="flex-grow">
+          {/* Dynamic Content */}
+          <div className="mb-4">
+            {content}
+          </div>
+
+          {/* Description */}
+          <p className="text-sm text-slate-600 line-clamp-3 group-hover:text-slate-700 transition-colors duration-300">
+            {description}
+          </p>
         </div>
 
-        {/* Description - Reduced bottom margin */}
-        <p className="text-sm text-slate-600 mb-2 line-clamp-3 group-hover:text-slate-700 transition-colors duration-300">
-          {description}
-        </p>
-
-        {/* Action Button - Push to bottom with mt-auto */}
-        <div className="mt-auto">
+        {/* Action Button */}
+        <div className="mt-4 pt-2">
           <Button
             variant="outline"
             size="sm"
