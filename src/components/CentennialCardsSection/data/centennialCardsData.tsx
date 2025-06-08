@@ -22,11 +22,51 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     content: (
       <div className="text-center space-y-3 relative">
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-4 border border-pink-200 relative z-10">
-          {/* Birthday cake behind days */}
+          {/* Enhanced birthday cake behind days */}
           <div className="relative">
-            <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
-              <div className="text-6xl">🎂</div>
+            {/* Birthday cake illustration with candles */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none"
+              aria-hidden="true"
+            >
+              <div className="relative">
+                {/* Cake base layers */}
+                <div className="flex flex-col items-center">
+                  {/* Top cake layer */}
+                  <div className="w-16 h-6 bg-gradient-to-r from-pink-300 to-rose-300 rounded-lg border-2 border-pink-400 mb-1 relative">
+                    {/* Candles with flames */}
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 flex gap-1">
+                      <div className="flex flex-col items-center">
+                        <div className="w-0.5 h-2 bg-yellow-200 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+                        <div className="w-1 h-3 bg-pink-200 rounded-sm"></div>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-0.5 h-2 bg-orange-200 motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.3s'}}></div>
+                        <div className="w-1 h-3 bg-pink-200 rounded-sm"></div>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-0.5 h-2 bg-yellow-200 motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.6s'}}></div>
+                        <div className="w-1 h-3 bg-pink-200 rounded-sm"></div>
+                      </div>
+                    </div>
+                    {/* Frosting decoration */}
+                    <div className="absolute -bottom-1 left-0 right-0 h-2 bg-gradient-to-r from-pink-200 to-rose-200 rounded-b-lg"></div>
+                  </div>
+                  
+                  {/* Bottom cake layer */}
+                  <div className="w-20 h-8 bg-gradient-to-r from-pink-400 to-rose-400 rounded-lg border-2 border-pink-500 relative">
+                    {/* Decorative frosting swirls */}
+                    <div className="absolute top-0 left-2 w-2 h-1 bg-pink-200 rounded-full"></div>
+                    <div className="absolute top-0 right-2 w-2 h-1 bg-pink-200 rounded-full"></div>
+                    <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-pink-200 rounded-full"></div>
+                  </div>
+                </div>
+                
+                {/* Subtle glow effect around the cake */}
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-200/20 to-rose-200/20 rounded-full blur-sm -z-10 motion-safe:animate-birthday-glow motion-reduce:animate-none"></div>
+              </div>
             </div>
+            
             <div className="text-3xl font-black text-pink-700 mb-1 tracking-wide relative z-10">
               {timeLeft.days}
             </div>
