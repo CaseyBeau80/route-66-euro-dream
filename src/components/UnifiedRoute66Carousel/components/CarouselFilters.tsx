@@ -49,14 +49,14 @@ const CarouselFilters: React.FC<CarouselFiltersProps> = ({
 
         {/* State Filter */}
         <Select
-          value={filters.state}
-          onValueChange={(value) => onFiltersChange({ state: value })}
+          value={filters.state || "all-states"}
+          onValueChange={(value) => onFiltersChange({ state: value === "all-states" ? "" : value })}
         >
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="All States" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All States</SelectItem>
+            <SelectItem value="all-states">All States</SelectItem>
             {states.map(state => (
               <SelectItem key={state} value={state}>{state}</SelectItem>
             ))}
@@ -65,14 +65,14 @@ const CarouselFilters: React.FC<CarouselFiltersProps> = ({
 
         {/* City Filter */}
         <Select
-          value={filters.city}
-          onValueChange={(value) => onFiltersChange({ city: value })}
+          value={filters.city || "all-cities"}
+          onValueChange={(value) => onFiltersChange({ city: value === "all-cities" ? "" : value })}
         >
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="All Cities" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Cities</SelectItem>
+            <SelectItem value="all-cities">All Cities</SelectItem>
             {cities.map(city => (
               <SelectItem key={city} value={city}>{city}</SelectItem>
             ))}

@@ -8,7 +8,7 @@ import UnifiedItemCard from './components/UnifiedItemCard';
 import EmptyState from './components/EmptyState';
 import { UnifiedCarouselProps } from './types';
 
-const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className }) => {
+const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = '' }) => {
   const {
     items,
     loading,
