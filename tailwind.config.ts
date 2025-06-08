@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -52,12 +53,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Route 66 Nostalgic Color Palette - Deep Blue Theme
+        // Route 66 Nostalgic Color Palette - Bright Blue Theme
         "route66": {
-          // Primary Brand Colors - Deep Navy from Ramble 66 Logo
-          "primary": "#1B2951",
-          "primary-dark": "#0F1A3A",
-          "primary-light": "#2A3B5F",
+          // Primary Brand Colors - Bright Blue from Ramble 66 Logo
+          "primary": "#1B60A3",
+          "primary-dark": "#155187",
+          "primary-light": "#2470B8",
           
           // Secondary Colors
           "secondary": "#6B7280",
@@ -86,7 +87,7 @@ const config: Config = {
           // Interactive States
           "hover": "#EFF6FF",
           "active": "#DBEAFE",
-          "focus": "#1B2951",
+          "focus": "#1B60A3",
           
           // Borders
           "border": "#E5E7EB",
@@ -95,7 +96,7 @@ const config: Config = {
           "border-vintage": "#CDC6B8",
           
           // Route 66 Specific
-          "shield-blue": "#1B2951",
+          "shield-blue": "#1B60A3",
           "shield-white": "#FFFFFF",
           "highway-yellow": "#FFD700",
           "asphalt": "#2C3E50",
@@ -114,9 +115,9 @@ const config: Config = {
           "yellow": "#FFD700",
           "yellow-light": "#FEF3C7",
           
-          // Legacy compatibility colors - updated to new theme
+          // Legacy compatibility colors - updated to bright blue theme
           "red": "#DC2626",
-          "blue": "#1B2951",
+          "blue": "#1B60A3",
           "tan": "#F9FAFB",
           "gray": "#6B7280",
           "cream": "#ffffff",
@@ -124,17 +125,17 @@ const config: Config = {
           "charcoal": "#4B5563",
           "vintage-white": "#F8FAFC",
           "warm-white": "#ffffff",
-          "sky-blue": "#2A3B5F",
+          "sky-blue": "#2470B8",
           "neon-red": "#DC2626",
           "sunshine-yellow": "#F59E0B",
           "vintage-yellow": "#FFD700",
           "vintage-red": "#DC2626",
-          "vintage-blue": "#1B2951",
+          "vintage-blue": "#1B60A3",
           "vintage-brown": "#78716C",
           "vintage-beige": "#F9FAFB",
-          "vintage-turquoise": "#2A3B5F",
+          "vintage-turquoise": "#2470B8",
           "rust": "#DC2626",
-          "navy": "#1B2951",
+          "navy": "#1B60A3",
         },
       },
       fontFamily: {
@@ -150,17 +151,17 @@ const config: Config = {
         'playfair': ['Playfair Display', 'serif'],
       },
       boxShadow: {
-        // Route 66 themed shadows
-        'vintage': '0 4px 8px rgba(27, 41, 81, 0.15)',
-        'nostalgic': '0 8px 16px rgba(27, 41, 81, 0.12)',
+        // Route 66 themed shadows - updated to bright blue
+        'vintage': '0 4px 8px rgba(27, 96, 163, 0.15)',
+        'nostalgic': '0 8px 16px rgba(27, 96, 163, 0.12)',
         'americana': '0 6px 12px rgba(220, 38, 38, 0.15)',
-        'shield': '0 4px 8px rgba(27, 41, 81, 0.2)',
+        'shield': '0 4px 8px rgba(27, 96, 163, 0.2)',
       },
       backgroundImage: {
-        // Strategic gradient usage
-        'route66-primary': 'linear-gradient(135deg, #1B2951 0%, #2A3B5F 100%)',
+        // Strategic gradient usage - updated to bright blue
+        'route66-primary': 'linear-gradient(135deg, #1B60A3 0%, #2470B8 100%)',
         'route66-vintage': 'linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%)',
-        'route66-hero': 'linear-gradient(135deg, #1B2951 0%, #2A3B5F 50%, #1B2951 100%)',
+        'route66-hero': 'linear-gradient(135deg, #1B60A3 0%, #2470B8 50%, #1B60A3 100%)',
         'route66-accent': 'linear-gradient(90deg, #DC2626 0%, #F59E0B 100%)',
       },
       borderRadius: {
@@ -178,21 +179,21 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        // Route 66 nostalgic animations
+        // Route 66 nostalgic animations - updated to bright blue
         "nostalgic-glow": {
           "0%, 100%": {
-            filter: "drop-shadow(0 0 10px rgba(27, 41, 81, 0.3))"
+            filter: "drop-shadow(0 0 10px rgba(27, 96, 163, 0.3))"
           },
           "50%": {
-            filter: "drop-shadow(0 0 20px rgba(220, 38, 38, 0.4)) drop-shadow(0 0 30px rgba(27, 41, 81, 0.2))"
+            filter: "drop-shadow(0 0 20px rgba(220, 38, 38, 0.4)) drop-shadow(0 0 30px rgba(27, 96, 163, 0.2))"
           }
         },
         "americana-pulse": {
           "0%, 100%": {
-            boxShadow: "0 0 10px rgba(27, 41, 81, 0.2)"
+            boxShadow: "0 0 10px rgba(27, 96, 163, 0.2)"
           },
           "50%": {
-            boxShadow: "0 0 20px rgba(220, 38, 38, 0.3), 0 0 30px rgba(27, 41, 81, 0.15)"
+            boxShadow: "0 0 20px rgba(220, 38, 38, 0.3), 0 0 30px rgba(27, 96, 163, 0.15)"
           }
         },
         "subtle-gradient-shift": {
@@ -232,8 +233,8 @@ const config: Config = {
         'americana': '0.15em',
       },
       textShadow: {
-        'vintage': '2px 2px 4px rgba(27, 41, 81, 0.15)',
-        'strong': '3px 3px 6px rgba(27, 41, 81, 0.25)',
+        'vintage': '2px 2px 4px rgba(27, 96, 163, 0.15)',
+        'strong': '3px 3px 6px rgba(27, 96, 163, 0.25)',
         'nostalgic': '1px 1px 2px rgba(0, 0, 0, 0.3)',
       }
     },
@@ -244,10 +245,10 @@ const config: Config = {
     function({ addUtilities }: { addUtilities: Function }) {
       const newUtilities = {
         '.text-shadow-vintage': {
-          textShadow: '2px 2px 4px rgba(27, 41, 81, 0.15)',
+          textShadow: '2px 2px 4px rgba(27, 96, 163, 0.15)',
         },
         '.text-shadow-strong': {
-          textShadow: '3px 3px 6px rgba(27, 41, 81, 0.25)',
+          textShadow: '3px 3px 6px rgba(27, 96, 163, 0.25)',
         },
         '.text-shadow-nostalgic': {
           textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
