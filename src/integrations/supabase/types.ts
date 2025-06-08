@@ -297,6 +297,74 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_results: {
+        Row: {
+          bucket: string
+          created_at: string | null
+          id: string
+          name: string
+          result: Json | null
+        }
+        Insert: {
+          bucket: string
+          created_at?: string | null
+          id?: string
+          name: string
+          result?: Json | null
+        }
+        Update: {
+          bucket?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          result?: Json | null
+        }
+        Relationships: []
+      }
+      photo_challenges: {
+        Row: {
+          completion_time: string | null
+          created_at: string | null
+          id: string
+          moderation_result: Json | null
+          photo_url: string
+          stop_id: string
+          trip_id: string | null
+          updated_at: string | null
+          user_session_id: string | null
+        }
+        Insert: {
+          completion_time?: string | null
+          created_at?: string | null
+          id?: string
+          moderation_result?: Json | null
+          photo_url: string
+          stop_id: string
+          trip_id?: string | null
+          updated_at?: string | null
+          user_session_id?: string | null
+        }
+        Update: {
+          completion_time?: string | null
+          created_at?: string | null
+          id?: string
+          moderation_result?: Json | null
+          photo_url?: string
+          stop_id?: string
+          trip_id?: string | null
+          updated_at?: string | null
+          user_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_challenges_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route66_waypoints: {
         Row: {
           created_at: string
