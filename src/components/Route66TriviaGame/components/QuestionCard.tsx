@@ -91,9 +91,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-bold uppercase border border-blue-300">
             {question.category}
           </span>
-          <span className="text-sm text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-            ID: {question.id}
-          </span>
           {showExplanation && selectedAnswer === question.correctAnswer && (
             <span className="text-green-600 animate-bounce">🎉</span>
           )}
