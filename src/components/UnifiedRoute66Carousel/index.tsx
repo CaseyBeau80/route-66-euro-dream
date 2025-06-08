@@ -94,7 +94,7 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
         ) : (
           <Carousel
             opts={{
-              align: "start" as const,
+              align: "start",
               loop: false,
             }}
             className="w-full"
