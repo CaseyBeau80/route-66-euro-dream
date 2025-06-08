@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GameSession } from './types';
 import { TriviaGameService } from './services/TriviaGameService';
@@ -5,8 +6,12 @@ import TriviaHeader from './components/TriviaHeader';
 import QuestionCard from './components/QuestionCard';
 import GameResults from './components/GameResults';
 import CactiGarden from './components/CactiGarden';
-import DebugPanel from './components/DebugPanel';
 import { Button } from '@/components/ui/button';
+
+// Only import DebugPanel in development
+const DebugPanel = process.env.NODE_ENV === 'development' 
+  ? React.lazy(() => import('./components/DebugPanel'))
+  : null;
 
 const Route66TriviaGame: React.FC = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
@@ -96,8 +101,12 @@ const Route66TriviaGame: React.FC = () => {
           </div>
         </div>
 
-        {/* Debug Panel */}
-        <DebugPanel gameSession={gameSession} />
+        {/* Debug Panel - Only in development */}
+        {process.env.NODE_ENV === 'development' && DebugPanel && (
+          <React.Suspense fallback={null}>
+            <DebugPanel gameSession={gameSession} />
+          </React.Suspense>
+        )}
       </section>
     );
   }
@@ -172,8 +181,12 @@ const Route66TriviaGame: React.FC = () => {
         )}
       </div>
 
-      {/* Debug Panel */}
-      <DebugPanel gameSession={gameSession} />
+      {/* Debug Panel - Only in development */}
+      {process.env.NODE_ENV === 'development' && DebugPanel && (
+        <React.Suspense fallback={null}>
+          <DebugPanel gameSession={gameSession} />
+        </React.Suspense>
+      )}
     </section>
   );
 };
