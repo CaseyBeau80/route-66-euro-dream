@@ -31,7 +31,7 @@ export const useUnifiedData = () => {
 
       const unifiedItems: UnifiedRoute66Item[] = [];
 
-      // Process attractions
+      // Process attractions - use available fields only
       if (attractionsResult.data) {
         attractionsResult.data.forEach(attraction => {
           unifiedItems.push({
@@ -46,16 +46,16 @@ export const useUnifiedData = () => {
             latitude: attraction.latitude,
             longitude: attraction.longitude,
             category: 'attractions',
-            tags: attraction.tags || [],
-            founded_year: attraction.founded_year,
-            year_opened: attraction.year_opened,
-            featured: attraction.featured,
+            tags: [], // Default empty array since not in DB
+            founded_year: undefined, // Not available in DB
+            year_opened: undefined, // Not available in DB
+            featured: Boolean(attraction.featured), // Ensure boolean
             slug: attraction.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
       }
 
-      // Process drive-ins
+      // Process drive-ins - use available fields only
       if (driveInsResult.data) {
         driveInsResult.data.forEach(driveIn => {
           unifiedItems.push({
@@ -70,9 +70,9 @@ export const useUnifiedData = () => {
             latitude: driveIn.latitude,
             longitude: driveIn.longitude,
             category: 'drive_ins',
-            tags: driveIn.tags || [],
+            tags: [], // Default empty array since not in DB
             year_opened: driveIn.year_opened,
-            featured: driveIn.featured,
+            featured: Boolean(driveIn.featured), // Ensure boolean
             slug: driveIn.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
