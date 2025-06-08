@@ -33,8 +33,8 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
   const navigate = useNavigate();
 
   const handleCardClick = (route: string) => {
-    // Make countdown card non-clickable for navigation
-    if (id !== 'countdown') {
+    // Make countdown card and facts card non-clickable for navigation
+    if (id !== 'countdown' && id !== 'facts') {
       navigate(route);
     }
   };
@@ -43,22 +43,27 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
     if (id === 'countdown') {
       return `Birthday countdown card - ${title} with cake celebration theme`;
     }
+    if (id === 'facts') {
+      return `Fun facts card - ${title} with daily Route 66 stories`;
+    }
     return `Navigate to ${title} - ${description}`;
   };
 
+  const isClickable = id !== 'countdown' && id !== 'facts';
+
   return (
     <Card
-      className={`group overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 ${id !== 'countdown' ? 'cursor-pointer' : ''} relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
+      className={`group overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-blue-400 ${isClickable ? 'cursor-pointer' : ''} relative border-l-4 ${accentColor} shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 animate-fade-in`}
       onClick={() => handleCardClick(route)}
       style={{
         animationDelay: `${index * 150}ms`
       }}
       role="region"
       aria-labelledby={`card-title-${id}`}
-      tabIndex={id !== 'countdown' ? 0 : -1}
+      tabIndex={isClickable ? 0 : -1}
       aria-label={getAriaLabel()}
       onKeyDown={(e) => {
-        if (id !== 'countdown' && (e.key === 'Enter' || e.key === ' ')) {
+        if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
           handleCardClick(route);
         }
