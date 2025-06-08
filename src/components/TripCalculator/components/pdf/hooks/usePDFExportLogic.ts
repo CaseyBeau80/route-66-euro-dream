@@ -35,76 +35,65 @@ export const usePDFExportLogic = ({
   const { showPDFPreview } = usePDFDisplay();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
-    console.log('🔄 Creating Route 66 PDF loading overlay...');
+    console.log('🔄 Creating enhanced PDF loading overlay...');
     
-    // Remove any existing loading message to prevent stacking
+    // Remove any existing loading message
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
-      console.log('🧹 Removing existing loading overlay');
       existingLoading.remove();
     }
 
     const loadingBox = document.createElement("div");
-    loadingBox.setAttribute("role", "status");
-    loadingBox.setAttribute("aria-live", "polite");
     loadingBox.className = "pdf-loading-overlay-js";
     
-    // Use inline styles for reliable positioning and blue theme
     loadingBox.style.cssText = `
       position: fixed;
-      top: 80px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      background: #eff6ff;
+      transform: translate(-50%, -50%);
+      z-index: 99999;
+      background: white;
       color: #1e40af;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       max-width: 400px;
       width: calc(100% - 32px);
-      margin: 0 16px;
-      animation: fade-in-pdf 0.3s ease-out forwards;
+      text-align: center;
+      border: 2px solid #3b82f6;
     `;
 
     loadingBox.innerHTML = `
       <div style="
-        width: 16px;
-        height: 16px;
-        border: 2px solid #1d4ed8;
+        width: 24px;
+        height: 24px;
+        border: 3px solid #3b82f6;
         border-top-color: transparent;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        flex-shrink: 0;
       "></div>
-      <div style="min-width: 0;">
-        <p style="font-weight: 600; color: #1e3a8a; margin: 0 0 4px 0;">Preparing Route 66 PDF</p>
-        <p style="font-size: 14px; color: #1e40af; margin: 0;">Loading weather data and formatting content...</p>
+      <div>
+        <h3 style="font-weight: bold; color: #1e3a8a; margin: 0 0 8px 0; font-size: 18px;">
+          Preparing Route 66 PDF
+        </h3>
+        <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.4;">
+          Loading weather data and formatting your itinerary for print...
+        </p>
       </div>
     `;
 
     document.body.appendChild(loadingBox);
-
-    // Add jiggle animation after initial fade-in
-    setTimeout(() => {
-      if (document.body.contains(loadingBox)) {
-        loadingBox.style.animation = 'fade-in-pdf 0.3s ease-out forwards, pdf-jiggle 1.2s ease-in-out infinite';
-      }
-    }, 300);
-
-    console.log('✅ Route 66 PDF loading overlay created');
     return loadingBox;
   };
 
   const removePDFLoadingMessage = (loadingBox: HTMLDivElement) => {
     if (loadingBox && document.body.contains(loadingBox)) {
-      console.log('🧹 Removing PDF loading overlay with fade-out');
-      loadingBox.style.animation = 'none';
       loadingBox.style.opacity = '0';
-      loadingBox.style.transform = 'translateX(-50%) scale(0.95)';
+      loadingBox.style.transform = 'translate(-50%, -50%) scale(0.9)';
       loadingBox.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
       
       setTimeout(() => {
@@ -115,27 +104,76 @@ export const usePDFExportLogic = ({
     }
   };
 
+  const isolatePDFContainer = async (pdfContainer: HTMLElement): Promise<void> => {
+    console.log('🔒 Isolating PDF container for print...');
+    
+    // Step 1: Hide all other content
+    const bodyChildren = Array.from(document.body.children);
+    const hiddenElements: HTMLElement[] = [];
+    
+    bodyChildren.forEach((child) => {
+      if (child !== pdfContainer && child.id !== 'pdf-export-content') {
+        const element = child as HTMLElement;
+        if (element.style.display !== 'none') {
+          element.dataset.originalDisplay = element.style.display || 'block';
+          element.style.display = 'none';
+          hiddenElements.push(element);
+        }
+      }
+    });
+    
+    // Step 2: Make PDF container the only visible content
+    pdfContainer.style.cssText = `
+      position: static !important;
+      left: auto !important;
+      top: auto !important;
+      visibility: visible !important;
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 20px !important;
+      background: white !important;
+      color: #000 !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+    `;
+    
+    // Step 3: Store cleanup function
+    (pdfContainer as any)._restoreVisibility = () => {
+      console.log('🔓 Restoring page visibility after print...');
+      hiddenElements.forEach((element) => {
+        const originalDisplay = element.dataset.originalDisplay || 'block';
+        element.style.display = originalDisplay;
+        delete element.dataset.originalDisplay;
+      });
+    };
+    
+    console.log('✅ PDF container isolated, ready for print');
+  };
+
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced Route 66 PDF export with blue branding...');
+    console.log('🖨️ Starting enhanced PDF export with container isolation...');
     setIsExporting(true);
     setWeatherLoading(true);
     
-    // Show loading message immediately
     const loadingBox = showPDFLoadingMessage();
     
     try {
-      // Step 1: Close modal first and wait for it to fully close
+      // Step 1: Close modal and wait
       onClose();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Step 2: Show weather loading toast with Route 66 branding
+      // Step 2: Show initial toast
       toast({
         title: "Preparing Route 66 PDF",
-        description: "Loading weather data and formatting content for enhanced readability...",
+        description: "Loading weather data and formatting content...",
         variant: "default"
       });
       
-      // Step 3: Create PDF container and render content
+      // Step 3: Create PDF container with enhanced weather loading
+      console.log('📄 Creating PDF container with weather data...');
       const pdfContainer = await createPDFContainer({
         tripPlan,
         tripStartDate,
@@ -143,41 +181,50 @@ export const usePDFExportLogic = ({
         shareUrl
       });
       
-      setWeatherLoading(false);
+      // Step 4: Wait for weather data to fully load
+      console.log('🌤️ Waiting for weather data to load...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Step 4: Remove loading message with fade-out
+      setWeatherLoading(false);
       removePDFLoadingMessage(loadingBox);
       
       // Step 5: Add enhanced print styles
       addPrintStyles();
       
-      // Step 6: Show PDF preview with programmatic close button
-      setShowPreview(true);
-      showPDFPreview(pdfContainer, handleClosePreview);
+      // Step 6: Isolate PDF container for print
+      await isolatePDFContainer(pdfContainer);
       
-      // Step 7: Add instructions for saving PDF
+      // Step 7: Set preview state and show container
+      setShowPreview(true);
+      
+      // Step 8: Show success toast and auto-open print dialog
+      toast({
+        title: "PDF Ready!",
+        description: "Press Ctrl+P (or Cmd+P on Mac) to print or save as PDF.",
+        variant: "default",
+      });
+      
+      // Step 9: Auto-open print dialog after brief delay
       setTimeout(() => {
-        toast({
-          title: "PDF Ready to Save!",
-          description: "Press Ctrl+P (or Cmd+P on Mac) to open print dialog, then choose 'Save as PDF' or select your printer.",
-          variant: "default",
-        });
+        console.log('🖨️ Opening print dialog...');
+        window.print();
       }, 1000);
       
-      // Step 8: Add automatic timeout with better messaging
+      // Step 10: Auto cleanup after 60 seconds
       setTimeout(() => {
         if (showPreview) {
-          console.log('⏰ Auto-closing PDF preview after 60 seconds');
+          console.log('⏰ Auto-closing PDF preview after timeout');
           handleClosePreview();
         }
       }, 60000);
       
-      console.log('🖨️ Enhanced Route 66 PDF preview ready with improved styling.');
+      console.log('✅ Enhanced PDF export completed successfully');
       
     } catch (error) {
-      console.error('❌ PDF export failed:', error);
+      console.error('❌ Enhanced PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
       handleClosePreview();
+      
       toast({
         title: "PDF Export Failed",
         description: "There was an issue generating the PDF. Please try again.",
