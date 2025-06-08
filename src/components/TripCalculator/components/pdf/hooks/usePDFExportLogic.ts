@@ -35,7 +35,7 @@ export const usePDFExportLogic = ({
   const { addPrintStyles, removePrintStyles } = usePDFStyles();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
-    console.log('🔄 Creating enhanced PDF loading overlay...');
+    console.log('🔄 Creating PDF loading overlay...');
     
     const existingLoading = document.querySelector('.pdf-loading-overlay-js');
     if (existingLoading) {
@@ -77,14 +77,11 @@ export const usePDFExportLogic = ({
       "></div>
       <div>
         <h3 style="font-weight: bold; color: #1e3a8a; margin: 0 0 8px 0; font-size: 18px;">
-          Preparing Your Route 66 Itinerary
+          Preparing Your PDF
         </h3>
-        <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.4;">
-          Loading trip details and weather forecasts for PDF export...
+        <p style="color: #1e40af; margin: 0; font-size: 14px;">
+          Creating your Route 66 itinerary with weather forecasts...
         </p>
-        <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
-          This may take a moment as we gather live weather data
-        </div>
       </div>
     `;
 
@@ -94,35 +91,25 @@ export const usePDFExportLogic = ({
 
   const removePDFLoadingMessage = (loadingBox: HTMLDivElement) => {
     if (loadingBox && document.body.contains(loadingBox)) {
-      loadingBox.style.opacity = '0';
-      loadingBox.style.transform = 'translate(-50%, -50%) scale(0.9)';
-      loadingBox.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
-      
-      setTimeout(() => {
-        if (document.body.contains(loadingBox)) {
-          loadingBox.remove();
-        }
-      }, 300);
+      loadingBox.remove();
     }
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting enhanced PDF export with weather preloading...');
+    console.log('🖨️ Starting PDF export...');
     setIsExporting(true);
     setWeatherLoading(true);
     
     const loadingBox = showPDFLoadingMessage();
     
     try {
-      // Step 1: Show initial toast
       toast({
-        title: "Generating PDF Export",
-        description: "Preparing your Route 66 itinerary with live weather forecasts...",
+        title: "Generating PDF",
+        description: "Creating your Route 66 itinerary...",
         variant: "default"
       });
       
-      // Step 2: Create PDF container with preloaded weather data
-      console.log('📄 Creating PDF container with weather preloading...');
+      console.log('📄 Creating PDF container...');
       const pdfContainer = await createPDFContainer({
         tripPlan,
         tripStartDate,
@@ -132,76 +119,64 @@ export const usePDFExportLogic = ({
       
       setPdfContainer(pdfContainer);
       
-      // Step 3: Verify content was rendered properly
+      // Verify content was rendered
       const hasContent = pdfContainer.innerHTML.trim().length > 100;
-      const segmentElements = pdfContainer.querySelectorAll('.pdf-day-segment');
-      const weatherElements = pdfContainer.querySelectorAll('.pdf-weather-section');
-      
-      console.log('📄 Final content verification:', {
-        hasContent,
-        segmentCount: segmentElements.length,
-        weatherSections: weatherElements.length,
-        expectedSegments: tripPlan.segments?.length || 0
-      });
       
       if (!hasContent) {
-        throw new Error('PDF content failed to render properly');
+        throw new Error('PDF content failed to render');
       }
       
-      // Step 4: Add print styles
+      console.log('📄 Adding print styles...');
       addPrintStyles();
       
-      // Step 5: Wait for final rendering and styles to apply
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Wait for styles to apply
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       setWeatherLoading(false);
       removePDFLoadingMessage(loadingBox);
       
-      // Step 6: Close modal before opening print dialog
+      // Close modal before printing
       onClose();
       
-      // Step 7: Show success message and open print dialog
       setTimeout(() => {
         console.log('🖨️ Opening print dialog...');
         
         toast({
-          title: "PDF Ready for Download!",
-          description: "Your Route 66 itinerary with weather forecasts is ready. The print dialog will open automatically.",
+          title: "PDF Ready!",
+          description: "Your itinerary is ready. Print dialog opening...",
           variant: "default",
         });
         
-        // Auto-open print dialog
+        // Print the document
         window.print();
         
-        // Cleanup function
+        // Cleanup after print
         const cleanup = () => {
           console.log('🧹 Cleaning up after print...');
           removePrintStyles();
           setPdfContainer(null);
           
-          // Remove PDF container
           const container = document.getElementById('pdf-export-content');
           if (container) {
             container.remove();
           }
         };
         
-        // Listen for print events
+        // Listen for print completion
         window.addEventListener('afterprint', cleanup, { once: true });
         
-        // Fallback cleanup after 30 seconds
+        // Fallback cleanup
         setTimeout(cleanup, 30000);
         
-      }, 800);
+      }, 500);
       
-      console.log('✅ Enhanced PDF export completed successfully');
+      console.log('✅ PDF export completed');
       
     } catch (error) {
-      console.error('❌ Enhanced PDF export failed:', error);
+      console.error('❌ PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
       removePrintStyles();
       
-      // Clean up on error
       const container = document.getElementById('pdf-export-content');
       if (container) {
         container.remove();
@@ -209,7 +184,7 @@ export const usePDFExportLogic = ({
       
       toast({
         title: "PDF Export Failed",
-        description: "Unable to generate your itinerary. Please try again or check that your trip plan is complete.",
+        description: "Unable to generate PDF. Please try again.",
         variant: "destructive"
       });
     } finally {

@@ -22,13 +22,6 @@ export const usePDFContainer = () => {
     shareUrl
   }: UsePDFContainerProps) => {
     console.log('📄 Creating PDF container with enhanced weather integration...');
-    console.log('📄 Trip validation:', {
-      tripPlanExists: !!tripPlan,
-      hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
-      segmentsCount: tripPlan.segments?.length || 0,
-      tripStartDate: tripStartDate?.toISOString(),
-      exportFormat: exportOptions.format
-    });
     
     // Clean up any existing PDF container
     let pdfContainer = document.getElementById('pdf-export-content');
@@ -51,36 +44,32 @@ export const usePDFContainer = () => {
       segments: weatherResult.enrichedSegments
     };
     
-    // Create new PDF container with fixed positioning strategy
+    // Create new PDF container - positioned for print visibility
     pdfContainer = document.createElement('div');
     pdfContainer.id = 'pdf-export-content';
     pdfContainer.className = 'pdf-container-ready';
-    pdfContainer.setAttribute('data-pdf-context', 'true');
     document.body.appendChild(pdfContainer);
     
-    // Set up container for PDF rendering with hidden but accessible positioning
+    // Style container to be ready for both preview and print
     pdfContainer.style.cssText = `
       position: fixed;
-      top: 0;
+      top: -10000px;
       left: 0;
       width: 8.5in;
       min-height: 11in;
       background: white;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.4;
       color: #1f2937;
-      padding: 40px;
       margin: 0;
-      overflow: visible;
+      padding: 0;
       box-sizing: border-box;
-      opacity: 0;
-      pointer-events: none;
-      z-index: -1;
-      transform: translateX(-100vw);
+      overflow: visible;
+      z-index: 9999;
     `;
     
-    console.log('📄 PDF container created, rendering React content with enriched data...');
+    console.log('📄 PDF container created, rendering React content...');
     
     // Create React root and render content
     const root = ReactDOM.createRoot(pdfContainer);
@@ -95,36 +84,28 @@ export const usePDFContainer = () => {
       })
     );
     
-    console.log('📄 PDFContentRenderer rendered with enriched weather data, waiting for content to stabilize...');
+    console.log('📄 PDFContentRenderer rendered, waiting for content to stabilize...');
     
     // Wait for React to render and DOM to stabilize
     await new Promise<void>((resolve) => {
-      // Give React more time to render with weather data
       setTimeout(() => {
-        console.log('📄 Initial render complete, checking for content...');
+        console.log('📄 Content check after render...');
         
-        // Verify content was rendered
         const hasContent = pdfContainer!.innerHTML.trim().length > 100;
         const segmentElements = pdfContainer!.querySelectorAll('.pdf-day-segment');
-        const weatherElements = pdfContainer!.querySelectorAll('.pdf-weather-section');
         
         console.log('📄 Content verification:', {
           hasContent,
           segmentCount: segmentElements.length,
-          weatherSections: weatherElements.length,
           expectedSegments: enrichedTripPlan.segments?.length || 0,
-          containerInnerHTML: pdfContainer!.innerHTML.length
+          containerHTML: pdfContainer!.innerHTML.length
         });
         
-        if (!hasContent) {
-          console.warn('⚠️ PDF container appears to be empty, but proceeding...');
-        }
-        
         resolve();
-      }, 2000); // Give more time for weather data to render
+      }, 1500);
     });
 
-    console.log('✅ PDF container fully created with enriched weather content');
+    console.log('✅ PDF container fully created and ready');
     return pdfContainer;
   };
 

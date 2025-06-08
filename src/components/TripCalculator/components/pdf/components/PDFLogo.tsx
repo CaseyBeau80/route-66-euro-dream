@@ -1,45 +1,30 @@
 
-import React, { useState } from 'react';
-import RambleBranding from '../../../../shared/RambleBranding';
+import React from 'react';
+import { Route } from 'lucide-react';
 
 interface PDFLogoProps {
   showFallback?: boolean;
 }
 
 const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
-  const [imageError, setImageError] = useState(false);
-
-  const handleImageError = () => {
-    console.log('🖼️ Failed to load Ramble 66 logo, falling back to component');
-    setImageError(true);
-  };
-
-  const handleImageLoad = () => {
-    console.log('✅ Ramble 66 logo loaded successfully');
-  };
-
-  // If image failed to load or showFallback is false, use RambleBranding component
-  if (imageError || !showFallback) {
-    return (
-      <div className="pdf-logo">
-        <RambleBranding variant="full" size="sm" />
-      </div>
-    );
-  }
-
+  // Always use the text-based logo for PDF to ensure it prints correctly
   return (
-    <div className="pdf-logo flex items-center gap-2">
-      <img
-        src="/assets/branding/ramble66-logo.png"
-        alt="Ramble 66 Logo"
-        className="h-10 w-auto"
-        onError={handleImageError}
-        onLoad={handleImageLoad}
-        style={{ maxHeight: '40px', height: 'auto' }}
-      />
-      <div className="text-sm">
-        <div className="font-bold text-blue-800">Ramble 66</div>
-        <div className="text-xs text-blue-600">Route 66 Trip Planner</div>
+    <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
+      <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center">
+        <Route className="w-6 h-6 text-white" />
+      </div>
+      <div className="ramble-66-text-logo text-center">
+        <div className="flex items-center gap-1 justify-center">
+          <div className="font-bold text-route66-primary text-xl leading-none">
+            RAMBLE
+          </div>
+          <div className="font-bold text-route66-primary text-xl leading-none">
+            66
+          </div>
+        </div>
+        <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-1">
+          ROUTE 66 TRIP PLANNER
+        </div>
       </div>
     </div>
   );
