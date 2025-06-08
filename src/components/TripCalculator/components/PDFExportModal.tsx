@@ -66,13 +66,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
   // Check if trip is complete
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
-  // Don't render modal when PDF preview is active to prevent hijacking
-  if (showPreview) {
-    return null;
-  }
+  // Only show modal when not exporting and not showing preview
+  const shouldShowModal = isOpen && !showPreview && !isExporting;
 
   return (
-    <Dialog open={isOpen && !showPreview} onOpenChange={onClose}>
+    <Dialog open={shouldShowModal} onOpenChange={onClose}>
       <DialogContent 
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
         role="dialog"
@@ -81,7 +79,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
         <DialogHeader>
           <DialogTitle id="pdf-export-title" className="flex items-center gap-2 text-blue-700 font-semibold text-base sm:text-lg">
             <Printer className="w-5 h-5" />
-            PDF Export Options
+            Export Route 66 Itinerary
           </DialogTitle>
         </DialogHeader>
 
@@ -111,9 +109,9 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="full">Full Itinerary (with weather & stops)</SelectItem>
-                    <SelectItem value="summary">Summary (basic info only)</SelectItem>
-                    <SelectItem value="route-only">Route Only (no weather or stops)</SelectItem>
+                    <SelectItem value="full">Complete Itinerary (with weather & attractions)</SelectItem>
+                    <SelectItem value="summary">Summary View (overview only)</SelectItem>
+                    <SelectItem value="route-only">Route Only (basic route info)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -156,19 +154,19 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               {weatherLoading && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-sm text-blue-800 font-medium">Loading weather data...</span>
+                  <span className="text-sm text-blue-800 font-medium">Loading weather forecasts...</span>
                 </div>
               )}
 
-              {/* Updated Instructions */}
+              {/* Enhanced Instructions */}
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <div className="font-semibold mb-2 text-blue-700 text-sm">📋 PDF Export Instructions:</div>
+                <div className="font-semibold mb-2 text-blue-700 text-sm">📋 How PDF Export Works:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed">
-                  <li>• Click "Generate PDF" to prepare your printable itinerary</li>
-                  <li>• The browser's print dialog will open automatically</li>
-                  <li>• Choose "Save as PDF" as your destination to download the file</li>
-                  <li>• Weather data is loaded for enhanced trip planning</li>
-                  <li>• The export modal will close during the print process</li>
+                  <li>• Click "Generate PDF" to create your printable itinerary</li>
+                  <li>• Your browser's print dialog will open automatically</li>
+                  <li>• Select "Save as PDF" to download the file</li>
+                  <li>• Live weather data is included for your travel dates</li>
+                  <li>• The export includes all attractions and route details</li>
                 </ul>
               </div>
             </div>
@@ -179,7 +177,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
               disabled={isExporting || !isTripComplete}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
             >
-              {isExporting ? 'Preparing PDF...' : 'Generate PDF Export'}
+              {isExporting ? 'Preparing Your Itinerary...' : 'Generate PDF Export'}
             </Button>
           </>
         )}

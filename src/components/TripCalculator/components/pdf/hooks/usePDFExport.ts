@@ -26,7 +26,9 @@ export const usePDFExport = ({
     showPreview,
     setShowPreview,
     weatherLoading,
-    setWeatherLoading
+    setWeatherLoading,
+    pdfContainer,
+    setPdfContainer
   } = usePDFExportState();
 
   const { cleanupPDFPreview } = usePDFCleanup();
@@ -35,6 +37,14 @@ export const usePDFExport = ({
     console.log('🧹 Closing PDF preview and cleaning up...');
     cleanupPDFPreview();
     setShowPreview(false);
+    setPdfContainer(null);
+    
+    // Clean up PDF container
+    const container = document.getElementById('pdf-export-content');
+    if (container) {
+      container.remove();
+    }
+    
     onClose();
   };
 
@@ -48,13 +58,15 @@ export const usePDFExport = ({
     setWeatherLoading,
     setShowPreview,
     showPreview,
-    handleClosePreview
+    handleClosePreview,
+    setPdfContainer
   });
 
   return {
     isExporting,
     showPreview,
     weatherLoading,
+    pdfContainer,
     handleClosePreview,
     handleExportPDF
   };

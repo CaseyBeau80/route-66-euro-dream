@@ -15,6 +15,7 @@ interface UsePDFExportLogicProps {
   setShowPreview: (value: boolean) => void;
   showPreview: boolean;
   handleClosePreview: () => void;
+  setPdfContainer: (container: HTMLElement | null) => void;
 }
 
 export const usePDFExportLogic = ({
@@ -27,10 +28,11 @@ export const usePDFExportLogic = ({
   setWeatherLoading,
   setShowPreview,
   showPreview,
-  handleClosePreview
+  handleClosePreview,
+  setPdfContainer
 }: UsePDFExportLogicProps) => {
   const { createPDFContainer } = usePDFContainer();
-  const { addPrintStyles } = usePDFStyles();
+  const { addPrintStyles, removePrintStyles } = usePDFStyles();
 
   const showPDFLoadingMessage = (): HTMLDivElement => {
     console.log('🔄 Creating PDF loading overlay...');
@@ -75,10 +77,10 @@ export const usePDFExportLogic = ({
       "></div>
       <div>
         <h3 style="font-weight: bold; color: #1e3a8a; margin: 0 0 8px 0; font-size: 18px;">
-          Preparing PDF Export
+          Preparing Your Route 66 Itinerary
         </h3>
         <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.4;">
-          Loading weather data and formatting your Route 66 itinerary...
+          Loading trip details and weather forecasts for PDF export...
         </p>
       </div>
     `;
@@ -102,21 +104,21 @@ export const usePDFExportLogic = ({
   };
 
   const handleExportPDF = async () => {
-    console.log('🖨️ Starting PDF export...');
+    console.log('🖨️ Starting enhanced PDF export...');
     setIsExporting(true);
     setWeatherLoading(true);
     
     const loadingBox = showPDFLoadingMessage();
     
     try {
-      // Step 1: Show initial toast with updated message
+      // Step 1: Show initial toast
       toast({
         title: "Generating PDF Export",
-        description: "Loading weather data and preparing your Route 66 itinerary...",
+        description: "Creating your printable Route 66 itinerary with live weather data...",
         variant: "default"
       });
       
-      // Step 2: Create PDF container with weather data
+      // Step 2: Create PDF container with trip data
       console.log('📄 Creating PDF container...');
       const pdfContainer = await createPDFContainer({
         tripPlan,
@@ -125,34 +127,58 @@ export const usePDFExportLogic = ({
         shareUrl
       });
       
-      // Step 3: Wait for weather data to load
-      console.log('🌤️ Waiting for weather data...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setPdfContainer(pdfContainer);
       
-      setWeatherLoading(false);
-      removePDFLoadingMessage(loadingBox);
+      // Step 3: Verify content was rendered properly
+      const hasContent = pdfContainer.innerHTML.trim().length > 100;
+      const segmentElements = pdfContainer.querySelectorAll('.pdf-day-segment');
+      
+      console.log('📄 Content verification:', {
+        hasContent,
+        segmentCount: segmentElements.length,
+        expectedSegments: tripPlan.segments?.length || 0
+      });
+      
+      if (!hasContent) {
+        throw new Error('PDF content failed to render properly');
+      }
       
       // Step 4: Add print styles
       addPrintStyles();
       
-      // Step 5: Close the modal BEFORE opening print dialog
+      // Step 5: Wait a moment for final rendering
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setWeatherLoading(false);
+      removePDFLoadingMessage(loadingBox);
+      
+      // Step 6: Close modal before opening print dialog
       onClose();
       
-      // Step 6: Brief delay then open print dialog
+      // Step 7: Show success message and open print dialog
       setTimeout(() => {
         console.log('🖨️ Opening print dialog...');
+        
         toast({
-          title: "PDF Ready!",
-          description: "Press Ctrl+P (or Cmd+P on Mac) to print or save as PDF.",
+          title: "PDF Ready for Download!",
+          description: "Your Route 66 itinerary is ready. The print dialog will open automatically - choose 'Save as PDF' to download.",
           variant: "default",
         });
         
         // Auto-open print dialog
         window.print();
         
-        // Cleanup after print dialog closes
+        // Cleanup function
         const cleanup = () => {
-          handleClosePreview();
+          console.log('🧹 Cleaning up after print...');
+          removePrintStyles();
+          setPdfContainer(null);
+          
+          // Remove PDF container
+          const container = document.getElementById('pdf-export-content');
+          if (container) {
+            container.remove();
+          }
         };
         
         // Listen for print events
@@ -161,18 +187,24 @@ export const usePDFExportLogic = ({
         // Fallback cleanup after 30 seconds
         setTimeout(cleanup, 30000);
         
-      }, 500);
+      }, 800);
       
       console.log('✅ PDF export completed successfully');
       
     } catch (error) {
       console.error('❌ PDF export failed:', error);
       removePDFLoadingMessage(loadingBox);
-      handleClosePreview();
+      removePrintStyles();
+      
+      // Clean up on error
+      const container = document.getElementById('pdf-export-content');
+      if (container) {
+        container.remove();
+      }
       
       toast({
         title: "PDF Export Failed",
-        description: "There was an issue generating the PDF. Please try again.",
+        description: "Unable to generate your itinerary. Please try again or check that your trip plan is complete.",
         variant: "destructive"
       });
     } finally {

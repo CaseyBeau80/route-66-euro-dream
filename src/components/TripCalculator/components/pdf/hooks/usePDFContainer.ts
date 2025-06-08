@@ -18,7 +18,7 @@ export const usePDFContainer = () => {
     exportOptions,
     shareUrl
   }: UsePDFContainerProps) => {
-    console.log('📄 Creating enhanced PDF container with weather data validation...');
+    console.log('📄 Creating PDF container with weather integration...');
     console.log('📄 Trip validation:', {
       tripPlanExists: !!tripPlan,
       hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
@@ -34,13 +34,13 @@ export const usePDFContainer = () => {
       pdfContainer.remove();
     }
     
-    // Create new PDF container with enhanced setup
+    // Create new PDF container with proper styling
     pdfContainer = document.createElement('div');
     pdfContainer.id = 'pdf-export-content';
-    pdfContainer.className = 'pdf-container-enhanced';
+    pdfContainer.className = 'pdf-container-ready';
     document.body.appendChild(pdfContainer);
     
-    // Initially hide the container
+    // Set up container for PDF rendering with proper dimensions
     pdfContainer.style.cssText = `
       position: absolute;
       left: -9999px;
@@ -52,9 +52,10 @@ export const usePDFContainer = () => {
       font-size: 14px;
       line-height: 1.5;
       color: #1f2937;
-      padding: 0;
+      padding: 40px;
       margin: 0;
       overflow: visible;
+      box-sizing: border-box;
     `;
     
     console.log('📄 PDF container created, rendering React content...');
@@ -62,43 +63,44 @@ export const usePDFContainer = () => {
     // Create React root and render content
     const root = ReactDOM.createRoot(pdfContainer);
     
+    // Render content immediately
+    root.render(
+      React.createElement(PDFContentRenderer, {
+        tripPlan,
+        tripStartDate,
+        exportOptions,
+        shareUrl
+      })
+    );
+    
+    console.log('📄 PDFContentRenderer rendered, waiting for content to stabilize...');
+    
+    // Wait for React to render and DOM to stabilize
     await new Promise<void>((resolve) => {
-      root.render(
-        React.createElement(PDFContentRenderer, {
-          tripPlan,
-          tripStartDate,
-          exportOptions,
-          shareUrl
-        })
-      );
-      
-      console.log('📄 PDFContentRenderer rendered, waiting for weather data...');
-      
-      // Enhanced waiting strategy for weather data
-      const checkWeatherData = (attempt = 1) => {
-        const maxAttempts = 10;
-        const weatherElements = pdfContainer!.querySelectorAll('[data-weather-loaded]');
-        const totalSegments = tripPlan.segments?.length || 0;
+      // Give React time to render
+      setTimeout(() => {
+        console.log('📄 Initial render complete, checking for content...');
         
-        console.log(`🌤️ Weather check attempt ${attempt}/${maxAttempts}:`, {
-          weatherElementsFound: weatherElements.length,
-          totalSegments,
-          containerHasContent: !!pdfContainer!.innerHTML
+        // Verify content was rendered
+        const hasContent = pdfContainer!.innerHTML.trim().length > 100;
+        const segmentElements = pdfContainer!.querySelectorAll('.pdf-day-segment');
+        
+        console.log('📄 Content verification:', {
+          hasContent,
+          segmentCount: segmentElements.length,
+          expectedSegments: tripPlan.segments?.length || 0,
+          containerInnerHTML: pdfContainer!.innerHTML.length
         });
         
-        if (attempt >= maxAttempts || weatherElements.length >= totalSegments * 0.5) {
-          console.log('✅ Weather data loading completed or timed out');
-          resolve();
-        } else {
-          setTimeout(() => checkWeatherData(attempt + 1), 500);
+        if (!hasContent) {
+          console.warn('⚠️ PDF container appears to be empty, but proceeding...');
         }
-      };
-      
-      // Start weather data check after initial render
-      setTimeout(() => checkWeatherData(), 1000);
+        
+        resolve();
+      }, 1500); // Give more time for weather data to load
     });
 
-    console.log('✅ PDF container fully created with content and weather data');
+    console.log('✅ PDF container fully created with content');
     return pdfContainer;
   };
 

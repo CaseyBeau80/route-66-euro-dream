@@ -1,7 +1,7 @@
 
 export const usePDFStyles = () => {
   const addPrintStyles = () => {
-    console.log('📄 Adding enhanced PDF print styles with container isolation...');
+    console.log('📄 Adding enhanced PDF print styles...');
     
     // Remove any existing print styles
     const existingStyles = document.getElementById('pdf-print-styles');
@@ -9,22 +9,17 @@ export const usePDFStyles = () => {
       existingStyles.remove();
     }
 
-    // Create comprehensive print styles with container isolation
+    // Create comprehensive print styles
     const style = document.createElement('style');
     style.id = 'pdf-print-styles';
     style.textContent = `
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
-      
-      @keyframes fade-in-pdf {
-        from { opacity: 0; transform: translate(-50%, -50%) translateY(-10px); }
-        to { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
-      }
 
       @media print {
         @page {
-          margin: 0.5in;
+          margin: 0.75in;
           size: letter;
         }
         
@@ -47,13 +42,14 @@ export const usePDFStyles = () => {
           width: 100% !important;
           height: auto !important;
           margin: 0 !important;
-          padding: 0 !important;
+          padding: 20px !important;
           background: white !important;
           color: black !important;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+          box-sizing: border-box !important;
         }
         
-        /* Hide any overlay elements during print */
+        /* Hide overlay elements during print */
         .pdf-close-button-js,
         .pdf-loading-overlay-js,
         [role="dialog"],
@@ -73,6 +69,7 @@ export const usePDFStyles = () => {
           padding: 0 !important;
         }
         
+        /* PDF content styling */
         .pdf-content {
           width: 100% !important;
           max-width: none !important;
@@ -80,33 +77,107 @@ export const usePDFStyles = () => {
           line-height: 1.4 !important;
         }
         
+        /* Day segment cards with proper page breaks */
         .pdf-day-segment {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-bottom: 16px !important;
+          margin-bottom: 20px !important;
+          padding: 16px !important;
+          border: 1px solid #e5e7eb !important;
+          border-radius: 8px !important;
+          background: white !important;
         }
         
-        .no-page-break {
+        /* Prevent page breaks within key sections */
+        .no-page-break,
+        .pdf-header,
+        .pdf-trip-overview,
+        .pdf-weather-info {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
         }
         
+        /* Header styling */
+        .pdf-header {
+          text-align: center !important;
+          margin-bottom: 30px !important;
+          padding-bottom: 20px !important;
+          border-bottom: 2px solid #3b82f6 !important;
+        }
+        
+        .pdf-header h1 {
+          font-size: 24px !important;
+          font-weight: bold !important;
+          color: #1f2937 !important;
+          margin-bottom: 8px !important;
+        }
+        
+        .pdf-header .subtitle {
+          font-size: 16px !important;
+          color: #6b7280 !important;
+          margin-bottom: 4px !important;
+        }
+        
+        /* Trip overview grid */
+        .pdf-trip-overview {
+          display: grid !important;
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 16px !important;
+          margin-bottom: 30px !important;
+        }
+        
+        .pdf-overview-card {
+          text-align: center !important;
+          padding: 12px !important;
+          border: 1px solid #d1d5db !important;
+          border-radius: 6px !important;
+          background: #f9fafb !important;
+        }
+        
+        /* Day segment headers */
+        .pdf-day-header {
+          margin-bottom: 16px !important;
+          padding-bottom: 8px !important;
+          border-bottom: 1px solid #e5e7eb !important;
+        }
+        
+        .pdf-day-header h3 {
+          font-size: 18px !important;
+          font-weight: bold !important;
+          color: #1f2937 !important;
+          margin: 0 !important;
+        }
+        
+        /* Weather cards */
+        .pdf-weather-card {
+          background: #f0f9ff !important;
+          border: 1px solid #bfdbfe !important;
+          border-radius: 6px !important;
+          padding: 12px !important;
+          margin: 8px 0 !important;
+        }
+        
+        /* Stops and attractions */
+        .pdf-stops-section {
+          margin-top: 16px !important;
+        }
+        
+        .pdf-stop-item {
+          margin-bottom: 8px !important;
+          padding: 8px !important;
+          background: #f9fafb !important;
+          border-radius: 4px !important;
+          border-left: 3px solid #3b82f6 !important;
+        }
+        
+        /* Typography improvements */
         h1, h2, h3, h4, h5, h6 {
           break-after: avoid !important;
           page-break-after: avoid !important;
           color: black !important;
         }
         
-        /* Ensure weather cards print correctly */
-        .weather-card,
-        .pdf-weather-info {
-          border: 1px solid #ccc !important;
-          padding: 8px !important;
-          margin-bottom: 8px !important;
-          background: #f9f9f9 !important;
-        }
-        
-        /* Print-friendly colors */
+        /* Color adjustments for print */
         .text-blue-600,
         .text-blue-700,
         .text-blue-800 {
@@ -122,11 +193,21 @@ export const usePDFStyles = () => {
         .border-blue-300 {
           border-color: #93c5fd !important;
         }
+        
+        /* Footer */
+        .pdf-footer {
+          margin-top: 30px !important;
+          padding-top: 20px !important;
+          border-top: 1px solid #e5e7eb !important;
+          text-align: center !important;
+          font-size: 10px !important;
+          color: #6b7280 !important;
+        }
       }
     `;
     
     document.head.appendChild(style);
-    console.log('✅ Enhanced PDF print styles with container isolation added');
+    console.log('✅ Enhanced PDF print styles added');
   };
 
   const removePrintStyles = () => {

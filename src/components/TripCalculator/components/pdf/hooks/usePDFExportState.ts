@@ -5,11 +5,13 @@ export const usePDFExportState = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
+  const [pdfContainer, setPdfContainer] = useState<HTMLElement | null>(null);
 
   console.log('📄 usePDFExportState:', {
     isExporting,
     showPreview,
-    weatherLoading
+    weatherLoading,
+    hasPdfContainer: !!pdfContainer
   });
 
   return {
@@ -18,6 +20,8 @@ export const usePDFExportState = () => {
     showPreview,
     setShowPreview,
     weatherLoading,
-    setWeatherLoading
+    setWeatherLoading,
+    pdfContainer,
+    setPdfContainer
   };
 };
