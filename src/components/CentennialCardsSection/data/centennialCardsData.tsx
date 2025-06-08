@@ -126,7 +126,12 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
   {
     id: 'timeline',
     title: 'Historic Timeline',
-    subtitle: 'Journey Through Time',
+    subtitle: (
+      <div className="flex items-center gap-2">
+        <span className="text-lg sm:text-xl group-hover:animate-pulse" aria-hidden="true">📜</span>
+        <span>Journey Through Time</span>
+      </div>
+    ),
     description: 'Explore the rich history and milestones of America\'s Mother Road from its birth to present day.',
     icon: <Calendar className="h-6 w-6" />,
     route: '/timeline',
@@ -147,7 +152,12 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
   {
     id: 'facts',
     title: 'Fun Facts & Stories',
-    subtitle: 'Daily Route 66 Tales',
+    subtitle: (
+      <div className="flex items-center gap-2">
+        <span className="text-lg sm:text-xl group-hover:scale-105 transition-transform duration-200" aria-hidden="true">🗺️</span>
+        <span>Daily Route 66 Tales</span>
+      </div>
+    ),
     description: 'Discover fascinating stories, legends, and little-known facts about Route 66\'s incredible journey.',
     icon: <Book className="h-6 w-6" />,
     route: '/facts',
@@ -157,10 +167,10 @@ export const createCentennialCardsData = (timeLeft: TimeLeft, currentFact: strin
     content: (
       <div className="text-center space-y-3">
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-300 min-h-[140px] flex flex-col justify-center">
-          <div className="text-xs font-medium text-green-600 uppercase tracking-wide mb-2">
+          <div className="text-xs font-bold text-green-600 uppercase tracking-wide mb-2">
             Today's Route 66 Fact
           </div>
-          <p className="text-sm text-green-800 font-bold leading-relaxed line-clamp-3">
+          <p className="text-sm text-green-800 font-normal leading-relaxed line-clamp-3">
             {currentFact}
           </p>
         </div>
