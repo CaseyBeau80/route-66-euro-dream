@@ -26,11 +26,11 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({
       <div className="pdf-header mb-8 border-b-2 border-route66-primary pb-4 relative">
         {/* Logo in top left */}
         <div className="absolute top-0 left-0">
-          <PDFLogo />
+          <PDFLogo showFallback={true} />
         </div>
         
         {/* Centered content with left margin for logo */}
-        <div className="text-center ml-16">
+        <div className="text-center ml-20">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             {tripTitle}
           </h1>

@@ -37,11 +37,11 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
 
   if (variant === 'text') {
     return (
-      <div className={`ramble-66-text-logo ${className}`}>
+      <div className={`ramble-66-text-logo flex items-center gap-1 ${className}`}>
         <span className={`font-bold text-route66-primary ${sizeClasses[size]}`}>
           RAMBLE
         </span>
-        <span className={`font-bold text-route66-vintage-red ${sizeClasses[size]} ml-1`}>
+        <span className={`font-bold text-blue-600 ${sizeClasses[size]}`}>
           66
         </span>
       </div>
@@ -54,11 +54,13 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
         <Route className={`${iconSizes[size]} text-white`} />
       </div>
       <div className="ramble-66-text-logo">
-        <div className={`font-bold text-route66-primary leading-none ${sizeClasses[size]}`}>
-          RAMBLE
-        </div>
-        <div className={`font-bold text-route66-vintage-red leading-none ${sizeClasses[size]}`}>
-          66
+        <div className="flex items-center gap-1">
+          <div className={`font-bold text-route66-primary leading-none ${sizeClasses[size]}`}>
+            RAMBLE
+          </div>
+          <div className={`font-bold text-blue-600 leading-none ${sizeClasses[size]}`}>
+            66
+          </div>
         </div>
         <div className="text-xs text-route66-text-secondary font-medium tracking-wider">
           ROUTE 66 TRIP PLANNER

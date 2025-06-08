@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { TripPlan, DailySegment } from '../../services/planning/TripPlanBuilder';
 import PDFItineraryView from './PDFItineraryView';
@@ -81,11 +82,28 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
     segmentsWithWeather: enrichedSegments.filter(s => s.weather || s.weatherData).length,
     weatherLoading,
     weatherLoadingTimeout,
-    weatherServiceAvailable: PDFWeatherIntegrationService.isWeatherServiceAvailable()
+    weatherServiceAvailable: PDFWeatherIntegrationService.isWeatherServiceAvailable(),
+    tripPlanExists: !!tripPlan,
+    hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0)
   });
 
+  // Debug: Check if we have valid trip data
+  if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
+    console.error('❌ PDFContentRenderer: No valid trip data to render');
+    return (
+      <div className="pdf-clean-container bg-white text-black font-sans">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">PDF Export Error</h1>
+            <p className="text-gray-700">No trip data available to export. Please try again.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="pdf-clean-container bg-white text-black font-sans">
+    <div className="pdf-clean-container bg-white text-black font-sans min-h-screen">
       {/* Unified Container - Single max-w-6xl wrapper for entire content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         
@@ -105,7 +123,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
           weatherLoadingTimeout={weatherLoadingTimeout}
         />
 
-        {/* Main Legend Section - Keep only this one */}
+        {/* Main Legend Section */}
         <div className="mb-8 p-4 bg-gray-50 rounded-lg border">
           <h3 className="text-lg font-bold text-gray-800 mb-4">Legend & Icons:</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
