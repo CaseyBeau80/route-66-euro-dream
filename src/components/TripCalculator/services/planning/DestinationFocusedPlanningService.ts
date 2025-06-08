@@ -207,7 +207,12 @@ export class DestinationFocusedPlanningService {
           name: nextStop.name
         },
         recommendedStops: segmentAttractions,
-        attractions: segmentAttractions.map(stop => stop.name),
+        attractions: segmentAttractions.map(stop => ({
+          name: stop.name,
+          title: stop.name,
+          description: stop.description,
+          city: stop.city || stop.city_name || 'Unknown'
+        })),
         driveTimeCategory,
         routeSection: `Historic Route 66 - ${nextStop.state} ${this.getSegmentContext(nextStop, gapFillerMap)}`
       };
