@@ -13,10 +13,10 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
   const { isMenuOpen, setIsMenuOpen, scrolled, isActiveRoute } = useNavigationState();
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
       scrolled 
         ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-route66-primary/20' 
-        : 'bg-white/90 backdrop-blur-sm shadow-sm'
+        : 'bg-transparent backdrop-blur-none shadow-none'
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -41,8 +41,10 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
         </div>
       </div>
 
-      {/* Decorative bottom border */}
-      <div className="h-1 bg-gradient-to-r from-route66-primary via-route66-primary-light to-route66-primary opacity-80"></div>
+      {/* Decorative bottom border - only visible when scrolled */}
+      <div className={`h-1 bg-gradient-to-r from-route66-primary via-route66-primary-light to-route66-primary transition-opacity duration-500 ${
+        scrolled ? 'opacity-80' : 'opacity-0'
+      }`}></div>
     </nav>
   );
 };
