@@ -6,12 +6,7 @@ import { CentennialCardData } from './types';
 export const createFunFactsCardData = (currentFact: string): CentennialCardData => ({
   id: 'facts',
   title: 'Fun Facts & Stories',
-  subtitle: (
-    <div className="flex items-center gap-2">
-      <span className="text-lg sm:text-xl group-hover:scale-105 transition-transform duration-200" aria-hidden="true">🗺️</span>
-      <span>Daily Route 66 Tales</span>
-    </div>
-  ),
+  subtitle: 'Daily Route 66 Tales',
   description: 'Discover fascinating stories, legends, and little-known facts about Route 66\'s incredible journey.',
   icon: <Book className="h-6 w-6" />,
   route: '/facts',

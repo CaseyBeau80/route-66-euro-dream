@@ -130,8 +130,8 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
           {description}
         </p>
 
-        {/* Action Button - Consistent height and alignment */}
-        <div className="mt-auto py-4">
+        {/* Action Button - Consistent height and alignment with reduced bottom padding */}
+        <div className="mt-auto">
           <Button
             variant="outline"
             size="sm"

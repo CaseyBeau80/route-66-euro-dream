@@ -6,12 +6,7 @@ import { CentennialCardData } from './types';
 export const timelineCardData: CentennialCardData = {
   id: 'timeline',
   title: 'Historic Timeline',
-  subtitle: (
-    <div className="flex items-center gap-2">
-      <span className="text-lg sm:text-xl group-hover:animate-pulse" aria-hidden="true">📜</span>
-      <span>Journey Through Time</span>
-    </div>
-  ),
+  subtitle: 'Journey Through Time',
   description: 'Explore the rich history and milestones of America\'s Mother Road from its birth to present day.',
   icon: <Calendar className="h-6 w-6" />,
   route: '/timeline',
