@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Highway, Music, Heart } from 'lucide-react';
+import { Sparkles, Road, Music, Heart } from 'lucide-react';
 import { categoryLabels } from '../../data/timelineData';
 
 interface TimelineFiltersProps {
@@ -11,7 +11,7 @@ interface TimelineFiltersProps {
 }
 
 const categoryIcons = {
-  establishment: Highway,
+  establishment: Road,
   cultural: Music,
   decline: Heart,
   revival: Sparkles
