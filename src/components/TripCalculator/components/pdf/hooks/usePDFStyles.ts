@@ -34,7 +34,7 @@ export const usePDFStyles = () => {
           visibility: visible !important;
         }
         
-        /* Ensure PDF container takes full print space */
+        /* Ensure PDF container is visible and positioned correctly during print */
         #pdf-export-content {
           position: static !important;
           left: 0 !important;
@@ -47,6 +47,10 @@ export const usePDFStyles = () => {
           color: black !important;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
           box-sizing: border-box !important;
+          transform: none !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          z-index: auto !important;
         }
         
         /* Hide overlay elements during print */

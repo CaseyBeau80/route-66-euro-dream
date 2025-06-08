@@ -23,7 +23,15 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           <p className="text-sm text-gray-600 mb-2">Scan QR code or visit:</p>
           <p className="text-sm text-blue-600 break-all">{shareUrl}</p>
           <p className="text-xs text-gray-500 mt-2">
-            Start planning your own Route 66 adventure at ramble66.com
+            Start planning your own Route 66 adventure at{' '}
+            <a 
+              href="https://www.ramble66.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              www.ramble66.com
+            </a>
           </p>
         </div>
       )}
@@ -44,7 +52,15 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           } of {enrichedSegments.length} segments loaded
         </p>
         <p className="text-xs text-route66-primary mt-2 font-medium">
-          Plan your next Route 66 adventure at ramble66.com
+          Plan your next Route 66 adventure at{' '}
+          <a 
+            href="https://www.ramble66.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-route66-primary hover:underline"
+          >
+            www.ramble66.com
+          </a>
         </p>
       </div>
     </>

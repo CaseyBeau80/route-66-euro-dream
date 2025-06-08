@@ -51,18 +51,18 @@ export const usePDFContainer = () => {
       segments: weatherResult.enrichedSegments
     };
     
-    // Create new PDF container with proper styling
+    // Create new PDF container with fixed positioning strategy
     pdfContainer = document.createElement('div');
     pdfContainer.id = 'pdf-export-content';
     pdfContainer.className = 'pdf-container-ready';
     pdfContainer.setAttribute('data-pdf-context', 'true');
     document.body.appendChild(pdfContainer);
     
-    // Set up container for PDF rendering with proper dimensions
+    // Set up container for PDF rendering with hidden but accessible positioning
     pdfContainer.style.cssText = `
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 8.5in;
       min-height: 11in;
       background: white;
@@ -74,6 +74,10 @@ export const usePDFContainer = () => {
       margin: 0;
       overflow: visible;
       box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+      transform: translateX(-100vw);
     `;
     
     console.log('📄 PDF container created, rendering React content with enriched data...');
