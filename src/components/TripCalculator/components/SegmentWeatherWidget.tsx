@@ -32,7 +32,9 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
     tripStartDateType: typeof tripStartDate,
     segmentDay: segment.day,
-    hasApiKey
+    hasApiKey,
+    sectionKey,
+    forceExpanded
   });
 
   // Safely convert tripStartDate to Date object and calculate the actual date for this segment
@@ -109,8 +111,11 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
+  // For weather tab, don't wrap in collapsible container
+  const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
+
   return (
-    <div className={`space-y-3 ${isCollapsible ? 'bg-gray-50 rounded-lg p-3' : ''}`}>
+    <div className={`space-y-3 ${containerClass}`}>
       <SegmentWeatherContent
         hasApiKey={hasApiKey}
         loading={weatherState.loading}

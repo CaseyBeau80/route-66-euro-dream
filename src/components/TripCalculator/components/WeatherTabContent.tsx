@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import DaySegmentCard from './DaySegmentCard';
+import SegmentWeatherWidget from './SegmentWeatherWidget';
 import ErrorBoundary from './ErrorBoundary';
 import { Cloud } from 'lucide-react';
 
@@ -62,20 +62,41 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
       </div>
       
       {segments.map((segment, index) => {
-        console.log(`🌤️ Rendering weather segment ${index + 1}:`, { 
-          day: segment.day, 
+        // Calculate the date for this segment
+        const segmentDate = new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+        
+        console.log(`🌤️ Rendering weather for Day ${segment.day}:`, { 
           endCity: segment.endCity,
-          tripStartDate: tripStartDate.toISOString()
+          segmentDate: segmentDate.toISOString()
         });
+
         return (
-          <ErrorBoundary key={`weather-segment-${segment.day}-${segment.endCity}-${index}`} context={`WeatherTab-Segment-${index}`}>
-            <DaySegmentCard 
-              segment={segment}
-              tripStartDate={tripStartDate}
-              cardIndex={index}
-              tripId={tripId}
-              sectionKey="weather-tab"
-            />
+          <ErrorBoundary key={`weather-day-${segment.day}-${segment.endCity}`} context={`WeatherTab-Day-${segment.day}`}>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+              <div className="mb-3">
+                <h5 className="text-lg font-semibold text-gray-800 mb-1">
+                  Day {segment.day}: {segment.endCity}
+                </h5>
+                <p className="text-sm text-gray-600">
+                  {segmentDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+              
+              <SegmentWeatherWidget 
+                segment={segment}
+                tripStartDate={tripStartDate}
+                cardIndex={index}
+                tripId={tripId}
+                sectionKey="weather-tab"
+                forceExpanded={true}
+                isCollapsible={false}
+              />
+            </div>
           </ErrorBoundary>
         );
       })}

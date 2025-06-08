@@ -44,20 +44,12 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // Weather Card Render Check debugging
-  console.log("WeatherCard Render Check:", segmentEndCity, weather, {
-    hasApiKey,
-    loading,
-    error,
-    segmentDate: segmentDate?.toISOString()
-  });
-
   // No API key - show input prominently
   if (!hasApiKey) {
     console.log(`🔑 No API key for ${segmentEndCity}, showing input`);
     return (
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="mb-3 text-sm text-yellow-800">
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-3 text-sm text-blue-800">
           <p className="font-semibold">Weather API Key Required</p>
           <p>Enter your OpenWeatherMap API key to see weather information for {segmentEndCity}</p>
         </div>
@@ -112,14 +104,15 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segmentEndCity} />;
   }
 
-  // Default message with debugging
-  console.log(`📅 No date set for ${segmentEndCity}, showing default message`);
+  // Default message for weather tab
+  console.log(`📅 No date set for ${segmentEndCity}, showing weather tab message`);
   return (
-    <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded">
-      Set a trip start date to see weather information for {segmentEndCity}
-      <div className="text-xs mt-2 text-gray-400">
-        Debug: hasApiKey={hasApiKey.toString()}, loading={loading.toString()}, error={error || 'none'}
-      </div>
+    <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="text-blue-600 text-4xl mb-3">🌤️</div>
+      <h6 className="text-lg font-semibold text-blue-800 mb-2">Weather Information</h6>
+      <p className="text-sm text-blue-700">
+        Weather forecast for {segmentEndCity} will appear here once a trip start date is set
+      </p>
     </div>
   );
 };
