@@ -50,39 +50,39 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
           </div>
         </div>
         
-        {/* SMALLER TRANSPARENT CANDLES WITH FLAMES - positioned in background like cake */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15" aria-hidden="true" style={{ transform: 'translateY(15px)' }}>
-          <div className="relative scale-[1.2]">
+        {/* CANDLES WITH FLAMES - positioned in background but more visible */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40" aria-hidden="true" style={{ transform: 'translateY(10px)' }}>
+          <div className="relative scale-[1.5]">
             {/* Position candles above the cake */}
-            <div className="absolute -top-[2.5rem] left-1/2 transform -translate-x-1/2 flex gap-1.5">
+            <div className="absolute -top-[3rem] left-1/2 transform -translate-x-1/2 flex gap-2">
               <div className="flex flex-col items-center">
-                {/* Small transparent flame #1 */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full opacity-60 motion-safe:animate-pulse motion-reduce:animate-none"></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-yellow-200 rounded-full blur-[1px] opacity-40"></div>
+                {/* Flame #1 - more visible */}
+                <div className="relative" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-2 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none"></div>
+                  <div className="absolute inset-0 w-2 h-5 bg-yellow-200 rounded-full blur-[1px] opacity-60"></div>
                 </div>
-                {/* Small candle body */}
-                <div className="w-1.5 h-2.5 bg-gradient-to-b from-blue-200 to-blue-400 rounded-sm opacity-60"></div>
+                {/* Candle body */}
+                <div className="w-2 h-3 bg-gradient-to-b from-blue-300 to-blue-500 rounded-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                {/* Small transparent flame #2 */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full opacity-60 motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.4s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-orange-200 rounded-full blur-[1px] opacity-40" style={{animationDelay: '0.4s'}}></div>
+                {/* Flame #2 - more visible */}
+                <div className="relative" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-2 h-5 bg-gradient-to-t from-red-400 via-orange-300 to-yellow-100 rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.4s'}}></div>
+                  <div className="absolute inset-0 w-2 h-5 bg-orange-200 rounded-full blur-[1px] opacity-60" style={{animationDelay: '0.4s'}}></div>
                 </div>
-                {/* Small candle body */}
-                <div className="w-1.5 h-2.5 bg-gradient-to-b from-pink-200 to-pink-400 rounded-sm opacity-60"></div>
+                {/* Candle body */}
+                <div className="w-2 h-3 bg-gradient-to-b from-pink-300 to-pink-500 rounded-sm"></div>
               </div>
               
               <div className="flex flex-col items-center">
-                {/* Small transparent flame #3 */}
-                <div className="relative" style={{ transform: 'translateY(-6px)' }}>
-                  <div className="w-1.5 h-4 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full opacity-60 motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.8s'}}></div>
-                  <div className="absolute inset-0 w-1.5 h-4 bg-yellow-100 rounded-full blur-[1px] opacity-40" style={{animationDelay: '0.8s'}}></div>
+                {/* Flame #3 - more visible */}
+                <div className="relative" style={{ transform: 'translateY(-8px)' }}>
+                  <div className="w-2 h-5 bg-gradient-to-t from-orange-400 via-yellow-300 to-white rounded-full motion-safe:animate-pulse motion-reduce:animate-none" style={{animationDelay: '0.8s'}}></div>
+                  <div className="absolute inset-0 w-2 h-5 bg-yellow-100 rounded-full blur-[1px] opacity-60" style={{animationDelay: '0.8s'}}></div>
                 </div>
-                {/* Small candle body */}
-                <div className="w-1.5 h-2.5 bg-gradient-to-b from-green-200 to-green-400 rounded-sm opacity-60"></div>
+                {/* Candle body */}
+                <div className="w-2 h-3 bg-gradient-to-b from-green-300 to-green-500 rounded-sm"></div>
               </div>
             </div>
           </div>
