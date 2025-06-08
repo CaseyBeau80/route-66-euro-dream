@@ -1,4 +1,7 @@
-/* Existing keyframes */
+
+/* Route 66 Nostalgic Animations */
+
+/* Existing animations preserved */
 @keyframes accordion-down {
   from {
     height: 0;
@@ -30,36 +33,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Enhanced PDF loading animation */
-@keyframes fade-in-pdf {
-  0% {
-    transform: scale(0.95) translateX(-50%);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1) translateX(-50%);
-    opacity: 1;
-  }
-}
-
-/* PDF jiggle animation for loading */
-@keyframes pdf-jiggle {
-  0%, 100% {
-    transform: scale(1) translateX(-50%);
-  }
-  50% {
-    transform: scale(1.03) translateX(-50%);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in-pdf 0.3s ease-out forwards;
-}
-
-.animate-jiggle {
-  animation: pdf-jiggle 1.2s ease-in-out infinite;
 }
 
 @keyframes fade-out {
@@ -113,50 +86,162 @@
   }
 }
 
-/* Route 66 Centennial specific animations */
-@keyframes patriotic-glow {
-  0% {
-    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3), 0 0 40px rgba(220, 38, 38, 0.2);
+/* Route 66 Nostalgic Animations */
+@keyframes nostalgic-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(27, 41, 81, 0.3));
   }
   50% {
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.3);
+    filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.4)) 
+            drop-shadow(0 0 30px rgba(27, 41, 81, 0.2));
+  }
+}
+
+@keyframes americana-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(27, 41, 81, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3), 
+                0 0 30px rgba(27, 41, 81, 0.15);
+  }
+}
+
+@keyframes highway-marker-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes vintage-typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes route66-cruise {
+  0% {
+    transform: translateX(-100%);
   }
   100% {
-    box-shadow: 0 0 20px rgba(29, 78, 216, 0.3), 0 0 40px rgba(29, 78, 216, 0.2);
+    transform: translateX(100vw);
   }
 }
 
-@keyframes neon-pulse {
+/* Subtle gradient animation for logos */
+@keyframes subtle-gradient-shift {
   0%, 100% {
-    text-shadow: 
-      0 0 5px rgba(255, 255, 255, 0.8),
-      0 0 10px rgba(220, 38, 38, 0.6),
-      0 0 15px rgba(220, 38, 38, 0.4),
-      0 0 20px rgba(29, 78, 216, 0.6),
-      0 0 35px rgba(29, 78, 216, 0.4);
+    background-position: 0% 50%;
   }
   50% {
-    text-shadow: 
-      0 0 2px rgba(255, 255, 255, 1),
-      0 0 5px rgba(220, 38, 38, 0.8),
-      0 0 8px rgba(220, 38, 38, 0.6),
-      0 0 12px rgba(29, 78, 216, 0.8),
-      0 0 20px rgba(29, 78, 216, 0.6);
+    background-position: 100% 50%;
   }
 }
 
-/* Vintage effects */
-@keyframes vintage-flicker {
-  0%, 100% { opacity: 1; }
-  2% { opacity: 0.95; }
-  4% { opacity: 1; }
-  6% { opacity: 0.98; }
-  8% { opacity: 1; }
-  10% { opacity: 0.96; }
-  12% { opacity: 1; }
+/* Enhanced PDF loading animation */
+@keyframes fade-in-pdf {
+  0% {
+    transform: scale(0.95) translateX(-50%);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateX(-50%);
+    opacity: 1;
+  }
 }
 
-/* Utility classes */
+@keyframes pdf-jiggle {
+  0%, 100% {
+    transform: scale(1) translateX(-50%);
+  }
+  50% {
+    transform: scale(1.03) translateX(-50%);
+  }
+}
+
+/* Nostalgic hover effects */
+@keyframes nostalgic-hover {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+/* Route 66 shield animation */
+@keyframes shield-shine {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+/* Animation Classes */
+.animate-nostalgic-glow {
+  animation: nostalgic-glow 3s ease-in-out infinite;
+}
+
+.animate-americana-pulse {
+  animation: americana-pulse 2s ease-in-out infinite;
+}
+
+.animate-highway-blink {
+  animation: highway-marker-blink 2s ease-in-out infinite;
+}
+
+.animate-typewriter {
+  animation: vintage-typewriter 2s steps(40) forwards;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.animate-route66-cruise {
+  animation: route66-cruise 10s linear infinite;
+}
+
+.animate-subtle-gradient {
+  animation: subtle-gradient-shift 8s ease-in-out infinite;
+}
+
+.animate-nostalgic-hover {
+  transition: all 0.3s ease;
+}
+
+.animate-nostalgic-hover:hover {
+  animation: nostalgic-hover 0.3s ease forwards;
+}
+
+.animate-shield-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shield-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shield-shine 3s ease-in-out infinite;
+}
+
+/* Utility animations */
 .story-link {
   position: relative;
   display: inline-block;
@@ -170,7 +255,7 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: hsl(var(--primary));
+  background-color: var(--route66-accent-red);
   transform-origin: bottom right;
   transition: transform 0.3s ease-out;
 }
@@ -192,21 +277,15 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Custom scrollbar for Route 66 components */
-.scrollbar-route66::-webkit-scrollbar {
-  height: 8px;
+/* Performance optimized animations */
+.will-change-transform {
+  will-change: transform;
 }
 
-.scrollbar-route66::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+.will-change-opacity {
+  will-change: opacity;
 }
 
-.scrollbar-route66::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #dc2626, #ffffff, #1d4ed8);
-  border-radius: 4px;
-}
-
-.scrollbar-route66::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #ef4444, #f8fafc, #3b82f6);
+.will-change-auto {
+  will-change: auto;
 }

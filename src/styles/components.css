@@ -1,127 +1,254 @@
 
-/* Route 66 Component Styles - Modern Clean Design */
+/* Route 66 Nostalgic Component Styles */
 
-/* Route 66 Logo Animation */
+/* Route 66 Logo with Deep Blue Theme */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
-  transition: filter 300ms;
+  transition: filter 300ms, transform 300ms;
   border-radius: 50%;
-  background: linear-gradient(45deg, #2563eb, #3b82f6);
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+  background: var(--route66-gradient-primary);
+  box-shadow: var(--route66-shadow-lg);
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #3b82f6aa);
-  transform: scale(1.1);
+  filter: drop-shadow(0 0 2em rgba(27, 41, 81, 0.6));
+  transform: scale(1.05);
 }
 
 .logo.route66:hover {
-  filter: drop-shadow(0 0 2em #2563ebaa);
-  animation: neon-glow 1s ease-in-out;
+  filter: drop-shadow(0 0 2em rgba(220, 38, 38, 0.4));
+  animation: nostalgic-glow 2s ease-in-out;
 }
 
-/* Modern Card Styling */
-.card {
-  padding: 2em;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 3px solid #2563eb;
-  border-radius: 15px;
-  box-shadow: 
-    0 8px 16px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 0 0 1px rgba(37, 99, 235, 0.1);
+/* Route 66 Shield Component */
+.route66-shield {
+  background: var(--route66-shield-blue);
+  color: var(--route66-shield-white);
+  border: 3px solid var(--route66-shield-white);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: var(--route66-shadow-vintage);
   position: relative;
-  overflow: hidden;
 }
 
-.card::before {
+.route66-shield::before {
   content: '';
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #2563eb, #3b82f6, #1d4ed8, #2563eb);
+  background: var(--route66-gradient-primary);
+  border-radius: 10px;
   z-index: -1;
-  border-radius: 17px;
 }
 
-.card::after {
+/* Modern Nostalgic Card Styling */
+.nostalgic-card {
+  padding: 2em;
+  background: var(--route66-background);
+  border: 2px solid var(--route66-border);
+  border-radius: 12px;
+  box-shadow: var(--route66-shadow-md);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.nostalgic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--route66-shadow-lg);
+}
+
+.nostalgic-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--route66-gradient-accent);
+}
+
+/* Vintage Button Styling */
+.vintage-button {
+  background: var(--route66-primary);
+  border: 2px solid var(--route66-primary-dark);
+  color: white;
+  font-family: 'Oswald', 'Arial', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 24px;
+  border-radius: 6px;
+  box-shadow: var(--route66-shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.vintage-button:hover {
+  background: var(--route66-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--route66-shadow-md);
+}
+
+.vintage-button:active {
+  transform: translateY(0);
+  box-shadow: var(--route66-shadow-sm);
+}
+
+/* Highway Sign Styling */
+.highway-sign {
+  background: var(--route66-primary);
+  color: white;
+  border: 3px solid white;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: 'Oswald', 'Arial', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: var(--route66-shadow-vintage);
+}
+
+/* Feature Card with Nostalgic Styling */
+.feature-card {
+  background: var(--route66-background);
+  border: 1px solid var(--route66-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--route66-shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  box-shadow: var(--route66-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Route 66 Themed Input Styling */
+.route66-input {
+  border: 2px solid var(--route66-border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  background: var(--route66-background);
+  color: var(--route66-text-primary);
+  transition: all 0.3s ease;
+}
+
+.route66-input:focus {
+  outline: none;
+  border-color: var(--route66-primary);
+  box-shadow: 0 0 0 3px rgba(27, 41, 81, 0.1);
+}
+
+/* Navigation Styling */
+.route66-nav {
+  background: var(--route66-background);
+  border-bottom: 1px solid var(--route66-border);
+  box-shadow: var(--route66-shadow-sm);
+}
+
+.route66-nav-link {
+  color: var(--route66-text-primary);
+  font-family: 'Oswald', 'Arial', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.route66-nav-link:hover {
+  color: var(--route66-primary);
+}
+
+.route66-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--route66-primary);
+}
+
+/* Scrollbar Styling - Nostalgic Theme */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--route66-background-alt);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--route66-gradient-primary);
+  border-radius: 6px;
+  border: 2px solid var(--route66-background-alt);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--route66-primary-dark);
+}
+
+/* Route 66 Badge Component */
+.route66-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--route66-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--route66-shadow);
+}
+
+/* Vintage Paper Texture Effect */
+.vintage-paper {
+  background: var(--route66-background-vintage);
+  position: relative;
+}
+
+.vintage-paper::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 2px,
-      rgba(37, 99, 235, 0.03) 2px,
-      rgba(37, 99, 235, 0.03) 4px
-    );
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(27, 41, 81, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.02) 0%, transparent 50%);
   pointer-events: none;
 }
 
-/* Modern Button Styling */
-.vintage-button {
-  background: linear-gradient(45deg, #2563eb 0%, #3b82f6 100%);
-  border: 3px solid #1d4ed8;
-  color: white;
-  font-family: 'Inter', 'Arial', sans-serif;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  box-shadow: 
-    0 4px 8px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.2);
-  transition: all 0.3s ease;
+/* Americana Accent Elements */
+.americana-accent {
+  position: relative;
 }
 
-.vintage-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 12px rgba(0,0,0,0.2),
-    0 0 15px rgba(37, 99, 235, 0.5),
-    inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-/* Modern Highway Sign Styling */
-.highway-sign {
-  background: #334155;
-  color: white;
-  border: 4px solid white;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-family: 'Inter', 'Arial', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  box-shadow: 
-    0 4px 8px rgba(0,0,0,0.2),
-    inset 0 2px 4px rgba(255,255,255,0.1);
-}
-
-/* Scrollbar Styling - Modern */
-::-webkit-scrollbar {
-  width: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #2563eb, #3b82f6);
-  border-radius: 6px;
-  border: 2px solid #f8fafc;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #1d4ed8, #2563eb);
+.americana-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--route66-gradient-accent);
+  border-radius: 0 2px 2px 0;
 }

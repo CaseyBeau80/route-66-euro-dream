@@ -1,66 +1,160 @@
 
-/* Route 66 Typography and Font Styles */
+/* Route 66 Nostalgic Typography System */
 
-/* Custom Font Classes */
+/* Import nostalgic fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap');
+
+/* Custom Font Classes - Route 66 Themed */
 .font-route66 {
-  font-family: 'Righteous', cursive;
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.font-americana {
-  font-family: 'Americana', serif;
+.font-highway {
+  font-family: 'Oswald', 'Arial', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
 .font-vintage {
-  font-family: 'Righteous', cursive;
-  letter-spacing: 0.1em;
+  font-family: 'Racing Sans One', 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+
+.font-americana {
+  font-family: 'Oswald', 'Impact', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .font-travel {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', 'Helvetica', sans-serif;
+  font-weight: 400;
 }
 
-/* Route 66 Text Styling */
-.route66-text {
-  font-family: 'Racing Sans One', 'Bebas Neue', Impact, sans-serif;
+/* Route 66 Shield Typography */
+.route66-shield-text {
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  background: linear-gradient(45deg, #D2041A, #FFD700, #FF6B35);
+  letter-spacing: 0.15em;
+  color: var(--route66-shield-white);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Highway Sign Typography */
+.highway-sign-text {
+  font-family: 'Oswald', 'Arial', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--route66-text-primary);
+}
+
+/* Vintage Americana Text */
+.americana-text {
+  font-family: 'Racing Sans One', cursive;
+  color: var(--route66-accent-red);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Nostalgic Headers */
+.nostalgic-heading {
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--route66-primary);
+  text-shadow: 2px 2px 4px rgba(27, 41, 81, 0.1);
+}
+
+/* Travel Documentation Text */
+.travel-docs-text {
+  font-family: 'Inter', 'Helvetica', sans-serif;
+  line-height: 1.6;
+  color: var(--route66-text-secondary);
+}
+
+/* Typography Utilities */
+.text-shadow-vintage {
+  text-shadow: 2px 2px 4px rgba(27, 41, 81, 0.15);
+}
+
+.text-shadow-strong {
+  text-shadow: 3px 3px 6px rgba(27, 41, 81, 0.25);
+}
+
+.letter-spacing-wide {
+  letter-spacing: 0.1em;
+}
+
+.letter-spacing-wider {
+  letter-spacing: 0.15em;
+}
+
+/* Route 66 Logo Text Animation */
+.route66-logo-text {
+  background: var(--route66-gradient-accent);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-shift 3s ease-in-out infinite;
+  animation: subtle-gradient-shift 8s ease-in-out infinite;
 }
 
-/* Retro Typography */
-.retro-heading {
-  font-family: 'Righteous', 'Arial Black', sans-serif;
-  text-shadow: 
-    3px 3px 0px #D2041A,
-    6px 6px 0px #FFD700,
-    9px 9px 10px rgba(0,0,0,0.3);
-  color: white;
+@keyframes subtle-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
-/* Route 66 Documentation Link */
-.read-the-docs {
-  color: #D2041A;
-  font-family: 'Fredoka One', cursive;
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .nostalgic-heading {
+    text-shadow: 1px 1px 2px rgba(27, 41, 81, 0.1);
+  }
+  
+  .route66-shield-text {
+    letter-spacing: 0.1em;
+  }
+  
+  .highway-sign-text {
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Link Styles */
+.route66-link {
+  color: var(--route66-primary);
   text-decoration: none;
   transition: all 0.3s ease;
+  position: relative;
 }
 
-.read-the-docs:hover {
-  color: #FFD700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+.route66-link:hover {
+  color: var(--route66-accent-red);
 }
 
-/* Mobile Typography Adjustments */
-@media (max-width: 768px) {
-  .retro-heading {
-    text-shadow: 
-      2px 2px 0px #D2041A,
-      4px 4px 0px #FFD700,
-      6px 6px 8px rgba(0,0,0,0.3);
-  }
+.route66-link::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background: var(--route66-accent-red);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease;
+}
+
+.route66-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }
