@@ -77,7 +77,7 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
           filters={filters}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
-          hasActiveFilters={hasActiveFilters}
+          hasActiveFilters={Boolean(hasActiveFilters)}
           states={states}
           cities={cities}
           filteredCount={filteredCount}
@@ -89,7 +89,7 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
           <EmptyState
             filters={filters}
             onResetFilters={resetFilters}
-            hasActiveFilters={hasActiveFilters}
+            hasActiveFilters={Boolean(hasActiveFilters)}
           />
         ) : (
           <Carousel
