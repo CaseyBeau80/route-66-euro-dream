@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { Car, Clock, MapPin, Star } from 'lucide-react';
@@ -10,7 +9,13 @@ interface ShareTripStatsProps {
 const ShareTripStats: React.FC<ShareTripStatsProps> = ({ tripPlan }) => {
   const totalSegments = tripPlan.segments?.length || 0;
   const totalDistance = tripPlan.segments?.reduce((sum, segment) => sum + (segment.distance || 0), 0) || 0;
-  const totalDuration = tripPlan.segments?.reduce((sum, segment) => sum + (segment.duration || 0), 0) || 0;
+  // Use driveTimeHours instead of duration, and convert to minutes for consistency
+  const totalDuration = tripPlan.segments?.reduce((sum, segment) => {
+    const driveTime = segment.driveTimeHours || segment.drivingTime || 0;
+    // Convert hours to minutes if using driveTimeHours, or use drivingTime directly if it's in minutes
+    const durationInMinutes = segment.driveTimeHours ? segment.driveTimeHours * 60 : (segment.drivingTime || 0);
+    return sum + durationInMinutes;
+  }, 0) || 0;
   
   // Convert duration from minutes to hours
   const durationHours = Math.round(totalDuration / 60 * 10) / 10;
