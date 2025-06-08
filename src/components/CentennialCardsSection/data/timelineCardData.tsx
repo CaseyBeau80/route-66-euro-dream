@@ -1,0 +1,31 @@
+
+import React from 'react';
+import { Calendar } from 'lucide-react';
+import { CentennialCardData } from './types';
+
+export const timelineCardData: CentennialCardData = {
+  id: 'timeline',
+  title: 'Historic Timeline',
+  subtitle: (
+    <div className="flex items-center gap-2">
+      <span className="text-lg sm:text-xl group-hover:animate-pulse" aria-hidden="true">📜</span>
+      <span>Journey Through Time</span>
+    </div>
+  ),
+  description: 'Explore the rich history and milestones of America\'s Mother Road from its birth to present day.',
+  icon: <Calendar className="h-6 w-6" />,
+  route: '/timeline',
+  accentColor: 'border-l-blue-600',
+  buttonText: 'Explore the Journey',
+  sparkleColor: 'text-blue-400',
+  content: (
+    <div className="text-center space-y-3">
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-300 min-h-[140px] flex flex-col justify-center">
+        <div className="text-2xl font-bold text-blue-800 mb-2">1926 - 2026</div>
+        <div className="text-sm text-blue-700 font-medium">
+          100 Years of American Adventure
+        </div>
+      </div>
+    </div>
+  )
+};
