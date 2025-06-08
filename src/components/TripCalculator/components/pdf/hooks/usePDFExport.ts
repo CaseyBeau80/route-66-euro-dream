@@ -29,156 +29,96 @@ export const usePDFExport = ({
   const { addPrintStyles, removePrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: BULLETPROOF PROCESS STARTING...');
-    console.log('📊 PDF Export: Initial State Check:', {
+    console.log('🚀 PDF Export: Starting simplified export process...');
+    console.log('📊 Initial validation:', {
       hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
       segmentCount: tripPlan.segments?.length || 0,
       hasStartDate: !!tripStartDate,
-      tripStartDate: tripStartDate?.toISOString(),
-      exportFormat: exportOptions.format,
       isAlreadyExporting: isExporting
     });
 
-    // BULLETPROOF GUARD: Prevent double execution
+    // Prevent double execution
     if (isExporting) {
-      console.warn('⚠️ PDF Export: Already in progress, blocking duplicate execution');
+      console.warn('⚠️ Export already in progress');
       return;
     }
 
-    // BULLETPROOF GUARD: Validate trip plan
+    // Validate trip plan
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
-      console.error('❌ PDF Export: Invalid trip plan - no segments found');
+      console.error('❌ Invalid trip plan - no segments found');
       alert('Cannot export PDF: No trip segments found. Please create a trip plan first.');
       return;
     }
 
-    // START EXPORT PROCESS
     setIsExporting(true);
-    setWeatherLoading(true);
-    setWeatherLoadingStatus('Initializing weather data...');
-    setWeatherLoadingProgress(10);
-
-    let finalTripPlan = { ...tripPlan };
-    let weatherEnrichmentSuccess = false;
-
+    
     try {
-      console.log('🌤️ PDF Export: WEATHER ENRICHMENT PHASE STARTING...');
+      // Start with original trip plan
+      let finalTripPlan = { ...tripPlan };
       
-      // WEATHER ENRICHMENT WITH BULLETPROOF FALLBACKS
+      // Try weather enrichment if we have a start date
       if (tripStartDate && tripPlan.segments && tripPlan.segments.length > 0) {
-        console.log('🌤️ PDF Export: Attempting weather enrichment for', tripPlan.segments.length, 'segments');
-        setWeatherLoadingStatus(`Loading weather for ${tripPlan.segments.length} destinations...`);
+        console.log('🌤️ Attempting weather enrichment...');
+        setWeatherLoading(true);
+        setWeatherLoadingStatus('Loading weather data...');
         setWeatherLoadingProgress(25);
-
+        
         try {
-          // BULLETPROOF TIMEOUT WRAPPER
-          const weatherEnrichmentWithTimeout = async () => {
-            const WEATHER_TIMEOUT = 12000; // 12 seconds max
-            
-            const weatherPromise = PDFWeatherIntegrationService.enrichSegmentsWithWeather(
-              tripPlan.segments,
-              tripStartDate
-            );
-            
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Weather enrichment timeout after 12 seconds')), WEATHER_TIMEOUT)
-            );
-
-            return Promise.race([weatherPromise, timeoutPromise]);
-          };
-
-          setWeatherLoadingProgress(50);
-          setWeatherLoadingStatus('Fetching weather forecasts...');
+          // Set timeout for weather enrichment
+          const weatherPromise = PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+            tripPlan.segments,
+            tripStartDate
+          );
           
-          const enrichedSegments = await weatherEnrichmentWithTimeout() as any;
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Weather timeout')), 8000)
+          );
+
+          setWeatherLoadingProgress(75);
+          const enrichedSegments = await Promise.race([weatherPromise, timeoutPromise]) as any;
           
           if (enrichedSegments && Array.isArray(enrichedSegments) && enrichedSegments.length > 0) {
-            finalTripPlan = {
-              ...tripPlan,
-              segments: enrichedSegments
-            };
-            weatherEnrichmentSuccess = true;
-            setWeatherLoadingProgress(80);
-            setWeatherLoadingStatus('Weather data loaded successfully!');
-            console.log('✅ PDF Export: Weather enrichment completed successfully');
-            console.log('✅ PDF Export: Enhanced', enrichedSegments.length, 'segments with weather data');
-          } else {
-            throw new Error('Weather enrichment returned invalid data');
+            finalTripPlan = { ...tripPlan, segments: enrichedSegments };
+            setWeatherLoadingStatus('Weather data loaded!');
+            console.log('✅ Weather enrichment successful');
           }
-          
         } catch (weatherError) {
-          console.warn('⚠️ PDF Export: Weather enrichment failed:', weatherError);
-          setWeatherLoadingStatus('Weather unavailable, proceeding without...');
-          setWeatherLoadingProgress(90);
-          
-          // BULLETPROOF FALLBACK: Continue with original plan
-          finalTripPlan = { ...tripPlan };
-          weatherEnrichmentSuccess = false;
+          console.warn('⚠️ Weather enrichment failed, continuing without:', weatherError);
+          setWeatherLoadingStatus('Proceeding without weather data...');
         }
-      } else {
-        console.log('🔄 PDF Export: Skipping weather enrichment (missing date or segments)');
-        setWeatherLoadingStatus('No weather data needed');
-        setWeatherLoadingProgress(90);
-        weatherEnrichmentSuccess = false;
+        
+        setWeatherLoadingProgress(100);
+        setWeatherLoading(false);
       }
 
-      // FINALIZE EXPORT PREPARATION
-      console.log('📄 PDF Export: FINALIZING EXPORT PREPARATION...');
-      setWeatherLoadingStatus('Preparing PDF preview...');
-      setWeatherLoadingProgress(95);
-      
-      // BULLETPROOF STATE UPDATE
+      // Set the enriched trip plan
       setEnrichedTripPlan(finalTripPlan);
-      setWeatherLoading(false);
-      setWeatherLoadingProgress(100);
       
-      // ADD PRINT STYLES
-      console.log('🎨 PDF Export: Adding print styles...');
+      // Add print styles
       addPrintStyles();
       
-      // SHOW PREVIEW
-      console.log('📄 PDF Export: Showing preview...');
+      // Show the preview
+      console.log('📄 Showing PDF preview...');
       setShowPreview(true);
       
-      console.log('✅ PDF Export: BULLETPROOF PROCESS COMPLETED SUCCESSFULLY');
-      console.log('✅ PDF Export: Final Summary:', {
-        weatherEnrichmentSuccess,
-        finalSegmentCount: finalTripPlan.segments?.length || 0,
-        hasWeatherData: finalTripPlan.segments?.some(s => s.weather || s.weatherData) || false
-      });
+      console.log('✅ PDF export process completed successfully');
 
-    } catch (criticalError) {
-      console.error('❌ PDF Export: CRITICAL ERROR in bulletproof process:', criticalError);
+    } catch (error) {
+      console.error('❌ Critical error in PDF export:', error);
       
-      // BULLETPROOF FINAL FALLBACK
-      console.log('🔄 PDF Export: EXECUTING FINAL FALLBACK...');
-      setWeatherLoading(false);
-      setWeatherLoadingStatus('Error occurred, showing basic preview...');
+      // Fallback: show preview with original trip plan
+      setEnrichedTripPlan(tripPlan);
+      addPrintStyles();
+      setShowPreview(true);
       
-      try {
-        // Last resort: show preview with original trip plan
-        setEnrichedTripPlan(tripPlan);
-        addPrintStyles();
-        setShowPreview(true);
-        console.log('✅ PDF Export: Final fallback preview shown successfully');
-      } catch (fallbackError) {
-        console.error('❌ PDF Export: Even fallback failed:', fallbackError);
-        alert('PDF export failed completely. Please refresh the page and try again.');
-      }
     } finally {
-      // BULLETPROOF CLEANUP
-      console.log('🧹 PDF Export: Bulletproof cleanup executing...');
       setIsExporting(false);
-      setWeatherLoadingProgress(100);
-      setTimeout(() => {
-        setWeatherLoadingStatus('');
-        setWeatherLoadingProgress(0);
-      }, 2000);
+      setWeatherLoading(false);
     }
-  }, [tripPlan, tripStartDate, addPrintStyles]);
+  }, [tripPlan, tripStartDate, addPrintStyles, isExporting]);
 
   const handleClosePreview = useCallback(() => {
-    console.log('🔄 PDF Export: Closing preview and cleaning up...');
+    console.log('🔄 Closing PDF preview...');
     setShowPreview(false);
     setEnrichedTripPlan(null);
     setWeatherLoadingStatus('');
