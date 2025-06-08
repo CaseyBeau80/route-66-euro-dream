@@ -7,17 +7,12 @@ export const useNavigationState = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
-  // Handle scroll effect with smoother transition
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setScrolled(scrollPosition > 10); // Trigger earlier for smoother effect
+      setScrolled(window.scrollY > 20);
     };
-    
-    // Check initial scroll position
-    handleScroll();
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
