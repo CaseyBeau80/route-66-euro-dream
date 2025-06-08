@@ -35,11 +35,11 @@ export const createCountdownCardData = (timeLeft: TimeLeft): CentennialCardData 
                   <div className="absolute right-2 top-1 w-0.5 h-0.5 bg-pink-200 rounded-full"></div>
                 </div>
                 
-                {/* Bottom tier - 30% bigger */}
-                <div className="w-21 h-7 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600 rounded-lg border border-pink-600 relative shadow-lg">
+                {/* Bottom tier - biggest layer (base) - 30% bigger */}
+                <div className="w-24 h-6 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600 rounded-lg border border-pink-600 relative shadow-lg">
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-300 to-rose-300 rounded-t-lg"></div>
-                  <div className="absolute left-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
-                  <div className="absolute right-2 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
+                  <div className="absolute left-3 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
+                  <div className="absolute right-3 top-1 w-1 h-0.5 bg-pink-200 rounded-full"></div>
                   <div className="absolute left-1/2 top-0.5 w-1.5 h-0.5 bg-pink-100 rounded-full transform -translate-x-1/2"></div>
                 </div>
               </div>
