@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -125,10 +124,12 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
 
     const subject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
     const body = encodeURIComponent(
-      `I've planned an amazing Route 66 road trip and wanted to share it with you!\n\n` +
+      `I've planned an amazing Route 66 road trip with Ramble 66 and wanted to share it with you!\n\n` +
       `Trip: ${tripTitle}\n` +
       `View the full plan here: ${url}\n\n` +
-      `This trip was planned using the Route 66 Trip Planner. Start planning your own adventure at ${window.location.origin}`
+      `Ramble 66 makes it easy to plan your perfect Route 66 adventure. Start planning your own trip at ${window.location.origin}\n\n` +
+      `Happy travels!\n` +
+      `Planned with ❤️ using Ramble 66 - Your Route 66 Adventure Starts Here`
     );
     
     window.location.href = `mailto:?subject=${subject}&body=${body}`;

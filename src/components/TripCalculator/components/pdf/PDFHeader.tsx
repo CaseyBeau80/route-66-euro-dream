@@ -23,7 +23,7 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({
   return (
     <>
       {/* PDF Header */}
-      <div className="pdf-header mb-8 border-b-2 border-blue-500 pb-4 relative">
+      <div className="pdf-header mb-8 border-b-2 border-route66-primary pb-4 relative">
         {/* Logo in top left */}
         <div className="absolute top-0 left-0">
           <PDFLogo />
@@ -39,6 +39,11 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({
           </p>
           <p className="text-base text-gray-500">
             Generated on {format(new Date(), 'MMMM d, yyyy')}
+          </p>
+          
+          {/* Ramble 66 branding */}
+          <p className="text-sm text-route66-primary font-medium mt-2">
+            Planned with Ramble 66 - Your Route 66 Adventure Starts Here
           </p>
           
           {/* Weather Loading Status */}
