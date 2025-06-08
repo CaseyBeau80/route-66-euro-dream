@@ -81,30 +81,3 @@ export const uploadPhotoChallenge = async (
     };
   }
 };
-
-export const insertModerationResult = async (
-  photoId: string,
-  moderationResult: ModerationResult
-): Promise<{ success: boolean; error?: string }> => {
-  try {
-    const { error } = await supabase
-      .from('moderation_results')
-      .insert({
-        photo_id: photoId,
-        result: moderationResult as any // Cast to Json type
-      });
-
-    if (error) {
-      console.error('Moderation result insert error:', error);
-      throw new Error(`Failed to save moderation result: ${error.message}`);
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('Insert moderation result error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  }
-};
