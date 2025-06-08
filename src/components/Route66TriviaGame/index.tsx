@@ -74,28 +74,31 @@ const Route66TriviaGame: React.FC = () => {
             {/* Game Description */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8 border border-white/20">
               <h3 className="text-white text-lg font-courier-prime font-bold mb-4">
-                🎯 How to Play
+                <span role="img" aria-label="target">🎯</span> How to Play
               </h3>
               <div className="text-white/90 space-y-2 font-special-elite">
                 <p>• Answer 5 multiple-choice questions about Route 66</p>
                 <p>• Learn fun facts after each answer</p>
-                <p>• Grow your desert cactus with correct answers! 🌵</p>
+                <p>• Grow your desert cactus with correct answers! <span role="img" aria-label="cactus">🌵</span></p>
                 <p>• Earn your Route 66 achievement badge!</p>
               </div>
             </div>
             
-            {/* Start Button */}
-            <Button
-              onClick={startNewGame}
-              className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700 text-white px-12 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            >
-              🏁 Start Your Journey
-            </Button>
+            {/* Sticky button container for mobile */}
+            <div className="md:static md:transform-none sticky bottom-6 left-0 right-0 z-50 px-6 md:px-0">
+              <Button
+                onClick={startNewGame}
+                className="w-full md:w-auto bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700 text-white px-12 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                aria-label="Start your Route 66 trivia journey"
+              >
+                <span role="img" aria-label="checkered flag">🏁</span> Start Your Journey
+              </Button>
+            </div>
             
             {/* Decorative elements */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <div className="w-12 h-px bg-red-400"></div>
-              <span className="text-white text-2xl">🛣️</span>
+              <span role="img" aria-label="highway" className="text-white text-2xl">🛣️</span>
               <div className="w-12 h-px bg-blue-400"></div>
             </div>
           </div>
@@ -161,9 +164,9 @@ const Route66TriviaGame: React.FC = () => {
                 <div className="text-center">
                   <Button
                     onClick={nextQuestion}
-                    className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                   >
-                    🛣️ Next Question
+                    <span role="img" aria-label="highway">🛣️</span> Next Question
                   </Button>
                 </div>
               )}
