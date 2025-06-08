@@ -1,5 +1,5 @@
 
-/* Tailwind CSS Utility Overrides for Route 66 Deep Blue Theme */
+/* Tailwind CSS Utility Overrides for Route 66 Bright Blue Theme */
 
 /* Primary color utilities */
 .text-primary {
@@ -14,7 +14,7 @@
   border-color: var(--route66-primary) !important;
 }
 
-/* Blue color overrides - force deep blue everywhere */
+/* Blue color overrides - force bright blue everywhere */
 .text-blue-500,
 .text-blue-600,
 .text-blue-700,
@@ -55,7 +55,7 @@
 /* Focus states */
 .focus\:ring-blue-500:focus,
 .focus\:ring-blue-600:focus {
-  box-shadow: 0 0 0 3px rgba(27, 41, 81, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(27, 96, 163, 0.1) !important;
 }
 
 .focus\:border-blue-500:focus,
@@ -77,7 +77,7 @@
 /* Ring colors */
 .ring-blue-500,
 .ring-blue-600 {
-  --tw-ring-color: rgba(27, 41, 81, 0.5) !important;
+  --tw-ring-color: rgba(27, 96, 163, 0.5) !important;
 }
 
 /* Accent colors for interactive elements */

@@ -1,10 +1,10 @@
 
-/* Route 66 Nostalgic Theme - Deep Blue & Classic Americana */
+/* Route 66 Nostalgic Theme - Bright Blue from Ramble 66 Logo */
 :root {
-  /* Primary Brand Colors - Deep Blue from Ramble 66 Logo */
-  --route66-primary: #1B2951;        /* Deep navy blue from logo */
-  --route66-primary-dark: #0F1A3A;   /* Darker navy for depth */
-  --route66-primary-light: #2A3B5F;  /* Lighter navy for accents */
+  /* Primary Brand Colors - Bright Blue from Ramble 66 Logo */
+  --route66-primary: #1B60A3;        /* Bright blue from logo */
+  --route66-primary-dark: #155187;   /* Darker blue for depth */
+  --route66-primary-light: #2470B8;  /* Lighter blue for accents */
   
   /* Secondary Colors - Classic Route 66 Palette */
   --route66-secondary: #6B7280;      /* Neutral gray */
@@ -33,7 +33,7 @@
   /* Interactive States */
   --route66-hover: #EFF6FF;          /* Light blue hover */
   --route66-active: #DBEAFE;         /* Blue active state */
-  --route66-focus: #1B2951;          /* Deep blue focus ring */
+  --route66-focus: #1B60A3;          /* Bright blue focus ring */
   
   /* Borders and Dividers */
   --route66-border: #E5E7EB;         /* Light gray borders */
@@ -42,16 +42,16 @@
   --route66-border-vintage: #CDC6B8;  /* Vintage border color */
   
   /* Route 66 Specific Colors */
-  --route66-shield-blue: #1B2951;    /* Shield background */
+  --route66-shield-blue: #1B60A3;    /* Shield background */
   --route66-shield-white: #FFFFFF;   /* Shield text */
   --route66-highway-yellow: #FFD700; /* Highway marker yellow */
   --route66-asphalt: #2C3E50;        /* Road color */
   --route66-chrome: #E5E7EB;         /* Chrome accents */
   
   /* Gradient Definitions - Strategic Use */
-  --route66-gradient-primary: linear-gradient(135deg, #1B2951 0%, #2A3B5F 100%);
+  --route66-gradient-primary: linear-gradient(135deg, #1B60A3 0%, #2470B8 100%);
   --route66-gradient-vintage: linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%);
-  --route66-gradient-hero: linear-gradient(135deg, #1B2951 0%, #2A3B5F 50%, #1B2951 100%);
+  --route66-gradient-hero: linear-gradient(135deg, #1B60A3 0%, #2470B8 50%, #1B60A3 100%);
   --route66-gradient-accent: linear-gradient(90deg, #DC2626 0%, #F59E0B 100%);
   
   /* Typography Scale */
@@ -66,11 +66,11 @@
   --route66-text-5xl: 3rem;
   
   /* Shadows and Effects */
-  --route66-shadow-sm: 0 1px 2px 0 rgba(27, 41, 81, 0.05);
-  --route66-shadow: 0 1px 3px 0 rgba(27, 41, 81, 0.1), 0 1px 2px 0 rgba(27, 41, 81, 0.06);
-  --route66-shadow-md: 0 4px 6px -1px rgba(27, 41, 81, 0.1), 0 2px 4px -1px rgba(27, 41, 81, 0.06);
-  --route66-shadow-lg: 0 10px 15px -3px rgba(27, 41, 81, 0.1), 0 4px 6px -2px rgba(27, 41, 81, 0.05);
-  --route66-shadow-vintage: 0 4px 8px rgba(27, 41, 81, 0.15);
+  --route66-shadow-sm: 0 1px 2px 0 rgba(27, 96, 163, 0.05);
+  --route66-shadow: 0 1px 3px 0 rgba(27, 96, 163, 0.1), 0 1px 2px 0 rgba(27, 96, 163, 0.06);
+  --route66-shadow-md: 0 4px 6px -1px rgba(27, 96, 163, 0.1), 0 2px 4px -1px rgba(27, 96, 163, 0.06);
+  --route66-shadow-lg: 0 10px 15px -3px rgba(27, 96, 163, 0.1), 0 4px 6px -2px rgba(27, 96, 163, 0.05);
+  --route66-shadow-vintage: 0 4px 8px rgba(27, 96, 163, 0.15);
   
   /* Legacy compatibility colors - updated to match new theme */
   --route66-orange: #F59E0B;
@@ -79,7 +79,7 @@
   --route66-yellow: #FFD700;
   --route66-yellow-light: #FEF3C7;
   --route66-red: #DC2626;
-  --route66-blue: #1B2951;
+  --route66-blue: #1B60A3;
   --route66-tan: #F9FAFB;
   --route66-gray: #6B7280;
   --route66-cream: #FFFFFF;
@@ -87,24 +87,24 @@
   --route66-charcoal: #4B5563;
   --route66-vintage-white: #F8FAFC;
   --route66-warm-white: #FFFFFF;
-  --route66-sky-blue: #2A3B5F;
+  --route66-sky-blue: #2470B8;
   --route66-neon-red: #DC2626;
   --route66-sunshine-yellow: #F59E0B;
   --route66-vintage-yellow: #FFD700;
   --route66-vintage-red: #DC2626;
-  --route66-vintage-blue: #1B2951;
+  --route66-vintage-blue: #1B60A3;
   --route66-vintage-brown: #78716C;
   --route66-vintage-beige: #F9FAFB;
-  --route66-vintage-turquoise: #2A3B5F;
+  --route66-vintage-turquoise: #2470B8;
   --route66-rust: #DC2626;
-  --route66-navy: #1B2951;
+  --route66-navy: #1B60A3;
 }
 
 /* Dark mode variants */
 .dark {
-  --route66-background: #0F1A3A;
-  --route66-background-alt: #1B2951;
-  --route66-background-section: #2A3B5F;
+  --route66-background: #155187;
+  --route66-background-alt: #1B60A3;
+  --route66-background-section: #2470B8;
   --route66-text-primary: #F8FAFC;
   --route66-text-secondary: #E5E7EB;
   --route66-text-muted: #9CA3AF;

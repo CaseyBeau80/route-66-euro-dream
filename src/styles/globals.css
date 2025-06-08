@@ -33,7 +33,7 @@ button {
   transition: all 0.3s ease;
 }
 
-/* Ensure consistent deep blue theme across components */
+/* Ensure consistent bright blue theme across components */
 .text-route66-primary {
   color: var(--route66-primary) !important;
 }
@@ -46,7 +46,7 @@ button {
   border-color: var(--route66-primary) !important;
 }
 
-/* Override any remaining light blue references with deep blue */
+/* Override any remaining light blue references with bright blue */
 .text-blue-500,
 .text-blue-600,
 .text-blue-700,
@@ -68,7 +68,7 @@ button {
   border-color: var(--route66-primary) !important;
 }
 
-/* Hover states with deep blue */
+/* Hover states with bright blue */
 .hover\:bg-blue-600:hover,
 .hover\:bg-blue-700:hover {
   background-color: var(--route66-primary-dark) !important;
@@ -79,16 +79,16 @@ button {
   color: var(--route66-primary-dark) !important;
 }
 
-/* Focus states using deep blue theme */
+/* Focus states using bright blue theme */
 .focus\:ring-blue-500:focus {
-  box-shadow: 0 0 0 3px rgba(27, 41, 81, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(27, 96, 163, 0.1) !important;
 }
 
 .focus\:border-blue-500:focus {
   border-color: var(--route66-primary) !important;
 }
 
-/* Gradient utilities using new deep blue theme */
+/* Gradient utilities using new bright blue theme */
 .bg-gradient-route66 {
   background: var(--route66-gradient-primary);
 }
@@ -118,7 +118,7 @@ button {
   background-color: #DC2626 !important; /* Keep red for countdown */
 }
 
-/* Focus states using deep blue theme */
+/* Focus states using bright blue theme */
 :focus-visible {
   outline: 2px solid var(--route66-primary);
   outline-offset: 2px;
@@ -126,7 +126,7 @@ button {
 
 /* Selection styling */
 ::selection {
-  background-color: rgba(27, 41, 81, 0.2);
+  background-color: rgba(27, 96, 163, 0.2);
   color: var(--route66-text-primary);
 }
 
@@ -221,7 +221,7 @@ img {
   }
 }
 
-/* Additional utility classes for deep blue theme consistency */
+/* Additional utility classes for bright blue theme consistency */
 .text-primary {
   color: var(--route66-primary) !important;
 }
