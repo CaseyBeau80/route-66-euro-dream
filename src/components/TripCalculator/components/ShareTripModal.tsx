@@ -103,19 +103,18 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-4xl px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[95vh] overflow-y-auto"
         role="dialog"
         aria-labelledby="share-trip-title"
       >
-        <DialogHeader>
-          <DialogTitle id="share-trip-title" className="flex items-center gap-2 text-blue-700 font-semibold text-base sm:text-lg">
-            <Settings className="w-5 h-5" />
+        <DialogHeader className="sr-only">
+          <DialogTitle id="share-trip-title">
             Share Your Route 66 Adventure
           </DialogTitle>
         </DialogHeader>
 
-        {/* Custom Close Button */}
-        <DialogClose className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200">
+        {/* Custom Close Button - Positioned absolutely */}
+        <DialogClose className="absolute top-4 right-4 z-50 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200 bg-white rounded-full p-2 shadow-lg">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogClose>

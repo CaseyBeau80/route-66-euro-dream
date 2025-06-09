@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { DailySegment, getDestinationCityName } from '../../services/planning/TripPlanBuilder';
+import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
 interface PDFDaySegmentCardWeatherProps {
   segment: DailySegment;
@@ -14,122 +13,53 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
   segmentDate,
   exportFormat
 }) => {
-  // Get weather data for the segment's end city (destination)
-  const weatherData = segment.weather;
-  const endCityName = segment.endCity || getDestinationCityName(segment.destination);
-
-  console.log('🌤️ FRESH PDF Weather rendering for:', endCityName, 'Date:', segmentDate, 'Weather:', weatherData);
-
-  if (!weatherData) {
-    console.log('⚠️ No weather data available for', endCityName);
-    return (
-      <div className="pdf-weather-card">
-        <h4 className="text-sm font-semibold text-route66-navy mb-2 flex items-center gap-2">
-          🌤️ Weather Forecast for {endCityName}
-        </h4>
-        <div className="text-xs text-route66-vintage-brown bg-white p-3 rounded border border-route66-tan">
-          <div className="flex items-center gap-2">
-            <span>📍</span>
-            <span>Weather data will be available closer to your travel date</span>
-          </div>
-          <div className="mt-2 text-route66-text-secondary">
-            Check local weather forecasts before departure for the most accurate conditions.
-          </div>
-        </div>
-      </div>
-    );
+  // Skip weather for route-only format
+  if (exportFormat === 'route-only') {
+    return null;
   }
 
-  // Handle different weather data formats - ensure we get the right temperature values
-  const lowTemp = weatherData.lowTemp || weatherData.temp?.min;
-  const highTemp = weatherData.highTemp || weatherData.temp?.max;
-  const condition = weatherData.condition || weatherData.description || weatherData.main;
-  const humidity = weatherData.humidity;
-  const windSpeed = weatherData.windSpeed || weatherData.wind?.speed;
-
-  console.log('🌡️ FRESH Temperature data for', endCityName, ':', {
-    lowTemp,
-    highTemp,
-    condition,
-    humidity,
-    windSpeed,
-    isActualForecast: weatherData.isActualForecast
-  });
+  const hasWeatherData = segment.weather || segment.weatherData;
 
   return (
-    <div className="pdf-weather-card">
-      <h4 className="text-sm font-semibold text-route66-navy mb-3 flex items-center gap-2">
-        🌤️ Weather Forecast for {endCityName}
-        {segmentDate && (
-          <span className="text-xs text-route66-vintage-brown font-normal">
-            ({format(segmentDate, 'MMM d')})
-          </span>
-        )}
-        {weatherData.isActualForecast && (
-          <span className="text-xs text-green-600 font-normal">✓ Live</span>
-        )}
+    <div className="pdf-weather-content">
+      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+        <span className="text-orange-600">☁️</span>
+        Weather Information
       </h4>
       
-      <div className="bg-white p-3 rounded border border-route66-tan">
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          {/* Temperature */}
-          <div className="flex items-center gap-2">
-            <span className="text-route66-primary">🌡️</span>
-            <div>
-              <div className="font-medium text-route66-navy">Temperature</div>
-              <div className="text-route66-vintage-brown font-semibold">
-                {(lowTemp !== undefined && highTemp !== undefined) ? 
-                  `${Math.round(highTemp)}°/${Math.round(lowTemp)}°F` :
-                  highTemp !== undefined ? `${Math.round(highTemp)}°F` :
-                  lowTemp !== undefined ? `${Math.round(lowTemp)}°F` :
-                  'N/A'
-                }
-              </div>
+      {hasWeatherData ? (
+        <div className="bg-white rounded border border-gray-200 p-3">
+          <div className="text-sm text-gray-600 text-center">
+            <div className="mb-2">🌤️ Weather data available</div>
+            <div className="text-xs text-gray-500">
+              Visit the live version for detailed forecasts and current conditions
             </div>
-          </div>
-          
-          {/* Condition */}
-          <div className="flex items-center gap-2">
-            <span className="text-route66-primary">☁️</span>
-            <div>
-              <div className="font-medium text-route66-navy">Conditions</div>
-              <div className="text-route66-vintage-brown capitalize">
-                {condition || 'Variable'}
-              </div>
-            </div>
-          </div>
-          
-          {/* Humidity (if available) */}
-          {humidity && (
-            <div className="flex items-center gap-2">
-              <span className="text-route66-primary">💧</span>
-              <div>
-                <div className="font-medium text-route66-navy">Humidity</div>
-                <div className="text-route66-vintage-brown">{humidity}%</div>
-              </div>
-            </div>
-          )}
-          
-          {/* Wind Speed (if available) */}
-          {windSpeed && (
-            <div className="flex items-center gap-2">
-              <span className="text-route66-primary">💨</span>
-              <div>
-                <div className="font-medium text-route66-navy">Wind</div>
-                <div className="text-route66-vintage-brown">{windSpeed} mph</div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Travel Advisory */}
-        <div className="mt-3 pt-2 border-t border-route66-border">
-          <div className="text-xs text-route66-vintage-brown italic">
-            💡 <strong>Travel Tip:</strong> Route 66 weather can vary greatly between destinations. 
-            Check current conditions before departing each day.
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
+          <div className="text-sm text-gray-500 mb-2">
+            📊 Seasonal weather estimates
+          </div>
+          <div className="text-xs text-gray-400">
+            Set a specific date for detailed forecasts
+          </div>
+        </div>
+      )}
+
+      {/* Seasonal Guidance */}
+      {segmentDate && (
+        <div className="mt-3 text-xs text-gray-600 bg-blue-50 rounded p-2 border border-blue-200">
+          <strong>Season:</strong> {
+            segmentDate.getMonth() >= 2 && segmentDate.getMonth() <= 4 ? 'Spring 🌸' :
+            segmentDate.getMonth() >= 5 && segmentDate.getMonth() <= 7 ? 'Summer ☀️' :
+            segmentDate.getMonth() >= 8 && segmentDate.getMonth() <= 10 ? 'Fall 🍂' : 'Winter ❄️'
+          }
+          <div className="mt-1 text-gray-500">
+            Check current weather conditions before departure for the most accurate forecast.
+          </div>
+        </div>
+      )}
     </div>
   );
 };
