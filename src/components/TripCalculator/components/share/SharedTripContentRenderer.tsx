@@ -5,6 +5,7 @@ import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityServ
 import PDFDaySegmentCard from '../pdf/PDFDaySegmentCard';
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
+import SegmentWeatherWidget from '../SegmentWeatherWidget';
 import ErrorBoundary from '../ErrorBoundary';
 import { getDestinationCityWithState } from '../../utils/DestinationUtils';
 
@@ -188,6 +189,33 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                     segmentIndex={index}
                     exportFormat="full"
                   />
+                  
+                  {/* Enhanced Weather Integration */}
+                  {tripStartDate && (
+                    <ErrorBoundary 
+                      context={`SegmentWeather-${segment.day}`}
+                      silent
+                      fallback={
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                          <p className="text-yellow-800">Weather information temporarily unavailable for this segment.</p>
+                        </div>
+                      }
+                    >
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                        <h4 className="text-sm font-semibold text-blue-800 mb-3">
+                          🌤️ Weather Forecast for {segment.endCity}
+                        </h4>
+                        <SegmentWeatherWidget
+                          segment={segment}
+                          tripStartDate={tripStartDate}
+                          cardIndex={index}
+                          sectionKey="shared-view"
+                          forceExpanded={true}
+                          isCollapsible={false}
+                        />
+                      </div>
+                    </ErrorBoundary>
+                  )}
                 </div>
               </ErrorBoundary>
             );

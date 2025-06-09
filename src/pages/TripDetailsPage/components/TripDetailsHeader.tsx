@@ -3,8 +3,6 @@ import React from 'react';
 import { Calendar, Users, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SavedTrip } from '@/components/TripCalculator/services/TripService';
-import RambleBranding from '@/components/shared/RambleBranding';
-import PlanYourOwnTripCTA from '@/components/shared/PlanYourOwnTripCTA';
 
 interface TripDetailsHeaderProps {
   trip: SavedTrip;
@@ -18,24 +16,9 @@ const TripDetailsHeader: React.FC<TripDetailsHeaderProps> = ({
   onPlanNewTrip 
 }) => {
   return (
-    <div className="text-center mb-8">
-      {/* Ramble 66 Branding - Updated to use consistent sizing */}
-      <div className="flex justify-center mb-6">
-        <RambleBranding size="lg" />
-      </div>
-      
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-text-primary mb-4">
-        {trip.title}
-      </h1>
-      
-      {trip.description && (
-        <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-4">
-          {trip.description}
-        </p>
-      )}
-
-      {/* Trip Stats */}
-      <div className="flex justify-center items-center gap-6 mb-8 text-sm text-route66-text-secondary">
+    <div className="text-center mb-6">
+      {/* Minimal Trip Stats */}
+      <div className="flex justify-center items-center gap-6 mb-6 text-sm text-route66-text-secondary">
         <div className="flex items-center gap-1">
           <Calendar className="w-4 h-4" />
           <span>Created {new Date(trip.created_at).toLocaleDateString()}</span>
@@ -44,15 +27,6 @@ const TripDetailsHeader: React.FC<TripDetailsHeaderProps> = ({
           <Users className="w-4 h-4" />
           <span>{trip.view_count} views</span>
         </div>
-      </div>
-
-      {/* Plan Your Own Trip CTA */}
-      <div className="mb-8">
-        <PlanYourOwnTripCTA 
-          variant="full" 
-          currentPath={`/trip/${trip.share_code}`}
-          className="max-w-4xl mx-auto"
-        />
       </div>
 
       {/* Navigation */}

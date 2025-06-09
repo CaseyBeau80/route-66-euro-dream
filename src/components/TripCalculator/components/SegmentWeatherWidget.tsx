@@ -74,10 +74,17 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         return null;
       }
       
+      // Check if date is within forecast range (5 days from now)
+      const daysFromNow = Math.ceil((calculatedDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+      const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
+      
       console.log('✅ SegmentWeatherWidget: Valid segment date calculated', {
         startDate: validStartDate.toISOString(),
         segmentDay: segment.day,
-        calculatedDate: calculatedDate.toISOString()
+        calculatedDate: calculatedDate.toISOString(),
+        daysFromNow,
+        isWithinForecastRange,
+        canGetForecast: hasApiKey && isWithinForecastRange
       });
       
       return calculatedDate;
@@ -86,7 +93,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       console.error('❌ SegmentWeatherWidget: Error calculating segment date:', error, { tripStartDate, segmentDay: segment.day });
       return null;
     }
-  }, [tripStartDate, segment.day]);
+  }, [tripStartDate, segment.day, hasApiKey]);
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
   const weatherHandlers = useSegmentWeather({
