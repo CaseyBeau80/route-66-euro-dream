@@ -41,7 +41,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   if (!tripPlan) {
     console.error('❌ TripDetailsContent: No trip plan data', { tripPlan });
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Data Not Available</h2>
         <p className="text-gray-600">The trip data could not be loaded. Please try refreshing the page.</p>
       </div>
@@ -57,7 +57,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
       dailySegmentsLength: tripPlan.dailySegments?.length
     });
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Data Not Available</h2>
         <p className="text-gray-600">The trip data could not be loaded. Please try refreshing the page.</p>
         <div className="mt-4 p-4 bg-gray-100 rounded text-sm text-left">
@@ -72,7 +72,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
 
   try {
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full">
         <SharedTripContentRenderer
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}
@@ -84,7 +84,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   } catch (error) {
     console.error('❌ TripDetailsContent: Error rendering SharedTripContentRenderer', error);
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Rendering Error</h2>
         <p className="text-gray-600">There was an error displaying the trip content.</p>
         <div className="mt-4 p-4 bg-red-100 rounded text-sm text-left">
