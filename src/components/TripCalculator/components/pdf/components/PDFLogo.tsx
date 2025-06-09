@@ -18,8 +18,8 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
           onError={() => {
             if (showFallback) {
               // Show fallback icon if image fails
-              const logoImg = document.querySelector('.pdf-logo img');
-              const fallbackIcon = document.querySelector('.pdf-logo .lucide-route');
+              const logoImg = document.querySelector('.pdf-logo img') as HTMLImageElement;
+              const fallbackIcon = document.querySelector('.pdf-logo .lucide-route') as HTMLElement;
               if (logoImg && fallbackIcon) {
                 logoImg.style.display = 'none';
                 fallbackIcon.classList.remove('hidden');
