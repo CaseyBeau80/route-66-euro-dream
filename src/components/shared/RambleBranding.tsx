@@ -29,7 +29,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="bg-route66-primary rounded-full p-2">
           <img 
-            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png" 
+            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
             alt="Ramble 66 Logo" 
             className={`${logoSizes[size]} object-contain`}
           />
@@ -55,7 +55,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="bg-route66-primary rounded-full p-2">
         <img 
-          src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png" 
+          src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
           alt="Ramble 66 Logo" 
           className={`${logoSizes[size]} object-contain`}
         />
