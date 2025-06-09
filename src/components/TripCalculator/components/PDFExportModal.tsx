@@ -49,7 +49,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     weatherLoadingStatus,
     weatherLoadingProgress,
     weatherTimeout,
-    enrichedTripPlan,
+    previewTripPlan,
     handleClosePreview,
     handleExportPDF
   } = usePDFExport({
@@ -83,17 +83,9 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     window.print();
   };
 
-  // Handle export button click with comprehensive validation
+  // Handle export button click
   const handleExportClick = () => {
     console.log('🚀 PDF Export Button Clicked!');
-    console.log('📊 Export State:', {
-      isTripComplete,
-      segmentCount: tripPlan?.segments?.length || 0,
-      tripStartDate: tripStartDate?.toISOString(),
-      exportOptions,
-      isExporting,
-      showPreview
-    });
     
     if (!isTripComplete) {
       console.error('❌ Cannot export: Trip not complete');
@@ -106,34 +98,17 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       return;
     }
     
-    console.log('✅ Calling guaranteed handleExportPDF...');
+    console.log('✅ Calling handleExportPDF...');
     handleExportPDF();
   };
 
-  // Weather service status for display
-  const getWeatherStatusIcon = () => {
-    if (weatherLoading) return <Clock className="w-4 h-4 text-blue-600 animate-spin" />;
-    if (weatherTimeout) return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
-    return <CheckCircle className="w-4 h-4 text-green-600" />;
-  };
-
-  const getWeatherStatusText = () => {
-    if (weatherLoading) return 'Loading...';
-    if (weatherTimeout) return 'Timeout - Using Estimates';
-    return 'Available';
-  };
-
-  // CRITICAL FIX: Show PDF Preview OUTSIDE of any Dialog context
-  if (showPreview && enrichedTripPlan) {
-    console.log('📄 Rendering PDF preview with plan:', {
-      segmentCount: enrichedTripPlan.segments?.length || 0,
-      hasWeatherData: enrichedTripPlan.segments?.some(s => s.weather || s.weatherData) || false,
-      weatherTimeout
-    });
+  // Show PDF Preview if active
+  if (showPreview && previewTripPlan) {
+    console.log('📄 Rendering PDF preview container');
     
     return (
       <PDFPreviewContainer
-        tripPlan={enrichedTripPlan}
+        tripPlan={previewTripPlan}
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
@@ -144,10 +119,8 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     );
   }
 
-  // Only show modal if preview is NOT active and modal should be open
-  const shouldShowModal = isOpen && !showPreview && !isExporting;
-
-  if (!shouldShowModal) {
+  // Only show modal if not in preview mode
+  if (!isOpen || showPreview) {
     return null;
   }
 
@@ -232,11 +205,17 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 />
               </div>
 
-              {/* Enhanced Weather Status Display */}
+              {/* Weather Status Display */}
               {(weatherLoading || weatherTimeout) && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    {getWeatherStatusIcon()}
+                    {weatherLoading ? (
+                      <Clock className="w-4 h-4 text-blue-600 animate-spin" />
+                    ) : weatherTimeout ? (
+                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    )}
                     <div className="flex-1">
                       <div className="text-sm text-blue-800 font-medium mb-1">
                         {weatherLoadingStatus || 'Processing weather data...'}
@@ -253,7 +232,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 </div>
               )}
 
-              {/* Enhanced Instructions */}
+              {/* Instructions */}
               <div className="p-3 bg-route66-vintage-beige border border-route66-tan rounded-lg text-sm text-route66-navy">
                 <div className="font-semibold mb-2 text-route66-vintage-red text-sm font-route66">🛣️ Enhanced PDF Features:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed text-route66-vintage-brown">

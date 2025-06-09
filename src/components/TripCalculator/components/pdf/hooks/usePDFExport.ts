@@ -21,7 +21,7 @@ export const usePDFExport = ({
 }: UsePDFExportProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [enrichedTripPlan, setEnrichedTripPlan] = useState<TripPlan | null>(null);
+  const [previewTripPlan, setPreviewTripPlan] = useState<TripPlan | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherLoadingStatus, setWeatherLoadingStatus] = useState<string>('');
   const [weatherLoadingProgress, setWeatherLoadingProgress] = useState(0);
@@ -30,15 +30,8 @@ export const usePDFExport = ({
   const { addPrintStyles, removePrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: Starting GUARANTEED preview process...');
-    console.log('📊 Initial validation:', {
-      hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
-      segmentCount: tripPlan.segments?.length || 0,
-      hasStartDate: !!tripStartDate,
-      isAlreadyExporting: isExporting,
-      currentShowPreview: showPreview
-    });
-
+    console.log('🚀 PDF Export: Starting export process...');
+    
     // Prevent double execution
     if (isExporting) {
       console.warn('⚠️ Export already in progress');
@@ -56,35 +49,27 @@ export const usePDFExport = ({
     setWeatherTimeout(false);
     
     try {
-      // STEP 1: GUARANTEED PREVIEW OPENING
-      console.log('📄 GUARANTEED: Setting enriched trip plan and showing preview...');
-      setEnrichedTripPlan(tripPlan);
+      // STEP 1: IMMEDIATELY SHOW PREVIEW
+      console.log('📄 Step 1: Immediately showing preview with original plan');
+      setPreviewTripPlan(tripPlan);
       addPrintStyles();
-      
-      // Force state update and log it
-      console.log('📄 Setting showPreview to true...');
       setShowPreview(true);
-      
-      // Wait a tick to ensure state update
-      await new Promise(resolve => setTimeout(resolve, 100));
-      console.log('📄 Preview should now be visible');
       
       // STEP 2: BACKGROUND WEATHER ENRICHMENT
       if (tripStartDate && tripPlan.segments && tripPlan.segments.length > 0) {
-        console.log('🌤️ Background: Starting weather enrichment...');
+        console.log('🌤️ Step 2: Starting background weather enrichment...');
         setWeatherLoading(true);
         setWeatherLoadingStatus('Loading weather data...');
         setWeatherLoadingProgress(25);
         
         try {
-          // 6-second timeout for weather enrichment
           const weatherPromise = PDFWeatherIntegrationService.enrichSegmentsWithWeather(
             tripPlan.segments,
             tripStartDate
           );
           
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Weather timeout after 6 seconds')), 6000)
+            setTimeout(() => reject(new Error('Weather timeout')), 6000)
           );
 
           setWeatherLoadingProgress(50);
@@ -92,9 +77,8 @@ export const usePDFExport = ({
           const enrichedSegments = await Promise.race([weatherPromise, timeoutPromise]) as any;
           
           if (enrichedSegments && Array.isArray(enrichedSegments) && enrichedSegments.length > 0) {
-            // Update preview with enriched data
             const updatedTripPlan = { ...tripPlan, segments: enrichedSegments };
-            setEnrichedTripPlan(updatedTripPlan);
+            setPreviewTripPlan(updatedTripPlan);
             setWeatherLoadingStatus('Weather data loaded successfully!');
             setWeatherLoadingProgress(100);
             console.log('✅ Weather enrichment successful - preview updated');
@@ -107,22 +91,20 @@ export const usePDFExport = ({
           setWeatherTimeout(true);
           setWeatherLoadingStatus('Weather data timeout - using seasonal estimates');
           setWeatherLoadingProgress(100);
-          
-          console.log('📊 Continuing with original trip plan (seasonal fallback available in preview)');
         }
         
         setWeatherLoading(false);
       }
       
-      console.log('✅ PDF export process completed successfully - Preview should be showing');
+      console.log('✅ PDF export process completed - Preview is showing');
 
     } catch (error) {
       console.error('❌ Critical error in PDF export:', error);
       
-      // Even on critical error, ensure preview is showing
+      // Ensure preview shows even on error
       if (!showPreview) {
         console.log('🔧 Fallback: Ensuring preview shows despite error');
-        setEnrichedTripPlan(tripPlan);
+        setPreviewTripPlan(tripPlan);
         addPrintStyles();
         setShowPreview(true);
       }
@@ -135,7 +117,7 @@ export const usePDFExport = ({
   const handleClosePreview = useCallback(() => {
     console.log('🔄 Closing PDF preview...');
     setShowPreview(false);
-    setEnrichedTripPlan(null);
+    setPreviewTripPlan(null);
     setWeatherLoadingStatus('');
     setWeatherLoadingProgress(0);
     setWeatherTimeout(false);
@@ -144,12 +126,11 @@ export const usePDFExport = ({
     onClose();
   }, [removePrintStyles, onClose]);
 
-  // Debug logging for state changes
   console.log('🎯 usePDFExport state:', {
     isExporting,
     showPreview,
     weatherLoading,
-    hasEnrichedTripPlan: !!enrichedTripPlan
+    hasPreviewTripPlan: !!previewTripPlan
   });
 
   return {
@@ -159,7 +140,7 @@ export const usePDFExport = ({
     weatherLoadingStatus,
     weatherLoadingProgress,
     weatherTimeout,
-    enrichedTripPlan,
+    previewTripPlan,
     handleExportPDF,
     handleClosePreview
   };
