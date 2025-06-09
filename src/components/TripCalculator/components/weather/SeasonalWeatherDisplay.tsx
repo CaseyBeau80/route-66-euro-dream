@@ -1,60 +1,101 @@
 
 import React from 'react';
-import { useUnits } from '@/contexts/UnitContext';
-import WeatherIcon from './WeatherIcon';
-import WeatherStatusBadge from './WeatherStatusBadge';
-import TemperatureDisplay from './TemperatureDisplay';
-import WeatherStats from './WeatherStats';
-import { getSeasonalWeatherData } from './SeasonalWeatherService';
 
 interface SeasonalWeatherDisplayProps {
   segmentDate: Date;
   cityName: string;
+  compact?: boolean;
 }
 
 const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({ 
   segmentDate, 
-  cityName 
+  cityName,
+  compact = false
 }) => {
-  const { formatSpeed } = useUnits();
-  const seasonalData = getSeasonalWeatherData(cityName, segmentDate.getMonth() + 1);
+  const getSeasonalInfo = (date: Date, city: string) => {
+    const month = date.getMonth(); // 0-11
+    const day = date.getDate();
+    
+    // Define seasons based on meteorological calendar
+    let season: string;
+    let tempRange: { low: number; high: number };
+    let description: string;
+    let icon: string;
+    
+    // Spring: March-May
+    if (month >= 2 && month <= 4) {
+      season = "Spring";
+      tempRange = { low: 45, high: 75 };
+      description = "Mild temperatures with variable weather";
+      icon = "🌸";
+    }
+    // Summer: June-August  
+    else if (month >= 5 && month <= 7) {
+      season = "Summer";
+      tempRange = { low: 65, high: 95 };
+      description = "Hot and dry conditions";
+      icon = "☀️";
+    }
+    // Fall: September-November
+    else if (month >= 8 && month <= 10) {
+      season = "Fall";
+      tempRange = { low: 50, high: 80 };
+      description = "Pleasant temperatures with clear skies";
+      icon = "🍂";
+    }
+    // Winter: December-February
+    else {
+      season = "Winter";
+      tempRange = { low: 30, high: 60 };
+      description = "Cool temperatures, generally dry";
+      icon = "❄️";
+    }
+    
+    return { season, tempRange, description, icon };
+  };
+
+  const seasonalInfo = getSeasonalInfo(segmentDate, cityName);
   
-  return (
-    <div className="space-y-3">
-      <WeatherStatusBadge 
-        type="seasonal" 
-        description={`Typical ${segmentDate.toLocaleDateString('en-US', { month: 'long' })} weather`}
-      />
-      
-      <div className="flex items-center gap-3">
-        <WeatherIcon description={seasonalData.condition} />
-        <div>
-          <div className="font-semibold text-gray-800">{seasonalData.condition}</div>
-          <div className="text-sm text-gray-600">
-            {segmentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </div>
+  if (compact) {
+    return (
+      <div className="text-sm text-gray-700">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-lg">{seasonalInfo.icon}</span>
+          <span className="font-medium">{seasonalInfo.season} Weather</span>
+        </div>
+        <p className="text-xs text-gray-600 mb-2">{seasonalInfo.description}</p>
+        <div className="flex items-center gap-4 text-xs">
+          <span>High: <strong>{seasonalInfo.tempRange.high}°F</strong></span>
+          <span>Low: <strong>{seasonalInfo.tempRange.low}°F</strong></span>
         </div>
       </div>
+    );
+  }
 
-      <TemperatureDisplay 
-        type="range"
-        highTemp={seasonalData.high}
-        lowTemp={seasonalData.low}
-      />
-
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="flex justify-between bg-white rounded p-1">
-          <span className="text-gray-600">
-            {seasonalData.humidity >= 50 ? 'Humidity:' : 'Avg Humidity:'}
-          </span>
-          <span className="font-semibold">{seasonalData.humidity}%</span>
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-2xl">{seasonalInfo.icon}</span>
+        <div>
+          <h4 className="font-semibold text-gray-800">{seasonalInfo.season} Weather in {cityName}</h4>
+          <p className="text-sm text-gray-600">{seasonalInfo.description}</p>
         </div>
-        <div className="flex justify-between bg-white rounded p-1">
-          <span className="text-gray-600">
-            {seasonalData.windSpeed >= 15 ? 'Wind:' : 'Avg Wind:'}
-          </span>
-          <span className="font-semibold">{formatSpeed(seasonalData.windSpeed)}</span>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg p-3 text-center">
+          <div className="text-lg font-bold text-red-500 mb-1">{seasonalInfo.tempRange.high}°F</div>
+          <div className="text-xs text-gray-600">Expected High</div>
         </div>
+        
+        <div className="bg-white rounded-lg p-3 text-center">
+          <div className="text-lg font-bold text-blue-500 mb-1">{seasonalInfo.tempRange.low}°F</div>
+          <div className="text-xs text-gray-600">Expected Low</div>
+        </div>
+      </div>
+      
+      <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+        <strong>Note:</strong> This is seasonal weather information. For live forecasts, visit the trip planner with an API key.
       </div>
     </div>
   );

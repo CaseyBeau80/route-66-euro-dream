@@ -67,6 +67,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
           onGenerateLink={handleGenerateLink}
           onCopyLink={handleCopyLink}
           onShareViaEmail={handleShareViaEmail}
+          isSharedView={true} // Add this prop to indicate this is a shared view
         />
       </div>
       

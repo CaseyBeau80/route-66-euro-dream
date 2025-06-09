@@ -14,6 +14,7 @@ interface ShareTripModalContentProps {
   onGenerateLink: () => Promise<string | null>;
   onCopyLink: () => Promise<void>;
   onShareViaEmail: () => Promise<void>;
+  isSharedView?: boolean; // New prop to indicate if this is a shared view
 }
 
 const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
@@ -24,7 +25,8 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
   isTripComplete,
   onGenerateLink,
   onCopyLink,
-  onShareViaEmail
+  onShareViaEmail,
+  isSharedView = false
 }) => {
   if (!isTripComplete) {
     return (
@@ -94,7 +96,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
             <div className="text-2xl font-bold text-orange-600 mb-1">☀️</div>
             <div className="text-sm text-gray-600">Weather</div>
             <div className="text-xs text-gray-500 mt-1">
-              {tripStartDate ? 'Live Forecast' : 'Set Date for Forecast'}
+              {isSharedView ? 'Seasonal Info' : (tripStartDate ? 'Live Forecast' : 'Set Date for Forecast')}
             </div>
           </div>
         </div>
@@ -137,18 +139,21 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
           segments={tripPlan.segments || []}
           tripStartDate={tripStartDate}
           totalDays={tripPlan.totalDays}
+          isSharedView={isSharedView}
         />
       </div>
 
-      {/* Sharing Options - Updated to use TripService integration */}
-      <ShareTripOptions
-        tripPlan={tripPlan}
-        currentShareUrl={currentShareUrl}
-        isGeneratingLink={isGeneratingLink}
-        onGenerateLink={onGenerateLink}
-        onCopyLink={onCopyLink}
-        onShareViaEmail={onShareViaEmail}
-      />
+      {/* Sharing Options - Only show in modal, not in shared view */}
+      {!isSharedView && (
+        <ShareTripOptions
+          tripPlan={tripPlan}
+          currentShareUrl={currentShareUrl}
+          isGeneratingLink={isGeneratingLink}
+          onGenerateLink={onGenerateLink}
+          onCopyLink={onCopyLink}
+          onShareViaEmail={onShareViaEmail}
+        />
+      )}
 
       {/* Footer - Matching PDF Style */}
       <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
@@ -156,7 +161,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
           Generated from Route 66 Trip Planner • 
           Visit <span className="text-blue-600">ramble66.com</span> to plan your own adventure
         </p>
-        {currentShareUrl && (
+        {currentShareUrl && !isSharedView && (
           <p className="mt-2 font-mono text-xs break-all text-blue-600">
             {currentShareUrl}
           </p>
