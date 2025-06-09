@@ -16,9 +16,14 @@ export class ApiKeyValidationService {
     if (apiKey.toLowerCase().includes('your_api_key') || 
         apiKey.toLowerCase().includes('replace_with') ||
         apiKey.toLowerCase().includes('example') ||
-        apiKey === 'PLACEHOLDER_KEY' ||
-        apiKey.length < 32) {
+        apiKey === 'PLACEHOLDER_KEY') {
       return { isValid: false, reason: 'Placeholder or invalid API key detected' };
+    }
+    
+    // Valid OpenWeatherMap API keys are typically 32 characters long
+    // But allow some flexibility for different key formats
+    if (apiKey.length < 20) {
+      return { isValid: false, reason: 'API key too short' };
     }
     
     const corruption = CorruptionDetectionService.detectCorruption(apiKey, context);
@@ -37,9 +42,15 @@ export class ApiKeyValidationService {
     if (trimmedKey.toLowerCase().includes('your_api_key') || 
         trimmedKey.toLowerCase().includes('replace_with') ||
         trimmedKey.toLowerCase().includes('example') ||
-        trimmedKey === 'PLACEHOLDER_KEY' ||
-        trimmedKey.length < 32) {
+        trimmedKey === 'PLACEHOLDER_KEY') {
       const errorMessage = 'Invalid API key: appears to be a placeholder or example key';
+      console.error('❌ ApiKeyValidationService:', errorMessage);
+      throw new Error(errorMessage);
+    }
+    
+    // Valid OpenWeatherMap API keys should be at least 20 characters
+    if (trimmedKey.length < 20) {
+      const errorMessage = 'Invalid API key: too short for a valid OpenWeatherMap API key';
       console.error('❌ ApiKeyValidationService:', errorMessage);
       throw new Error(errorMessage);
     }

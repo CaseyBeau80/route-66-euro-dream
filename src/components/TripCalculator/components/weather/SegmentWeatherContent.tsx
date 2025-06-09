@@ -44,28 +44,60 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     retryCount,
     weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular',
     segmentDate: segmentDate?.toISOString(),
-    isSharedView
+    isSharedView,
+    daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
   });
 
-  // In shared view, always show seasonal weather as fallback when no API key
+  // Calculate days from now for forecast eligibility
+  const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
+  const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
+
+  // In shared view, show enhanced messaging when no API key but forecast is possible
   if (!hasApiKey) {
-    console.log(`🔑 No API key for ${segmentEndCity}, showing seasonal fallback`);
+    console.log(`🔑 No API key for ${segmentEndCity}, showing enhanced messaging`);
     
     if (segmentDate) {
       if (isSharedView) {
-        // In shared view, just show seasonal weather without API key input
-        return (
-          <div className="space-y-2">
-            <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-              <strong>Seasonal Estimate:</strong> Weather forecast requires API key configuration.
+        // Enhanced messaging for shared view when forecast would be available
+        if (isWithinForecastRange) {
+          return (
+            <div className="space-y-3">
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🔮</span>
+                  <strong className="text-yellow-800">Live Forecast Available!</strong>
+                </div>
+                <p className="text-yellow-700 mb-2">
+                  This date ({segmentDate.toLocaleDateString()}) is within the 5-day forecast window. 
+                  An API key would show live weather predictions instead of seasonal estimates.
+                </p>
+                <div className="text-xs text-yellow-600 bg-yellow-100 p-2 rounded">
+                  <strong>Trip planners:</strong> Add your free OpenWeatherMap API key to see actual forecasts 
+                  for dates within 5 days, including temperature, precipitation, and wind conditions.
+                </div>
+              </div>
+              <SeasonalWeatherDisplay 
+                segmentDate={segmentDate} 
+                cityName={segmentEndCity}
+                compact={true}
+              />
             </div>
-            <SeasonalWeatherDisplay 
-              segmentDate={segmentDate} 
-              cityName={segmentEndCity}
-              compact={true}
-            />
-          </div>
-        );
+          );
+        } else {
+          // Beyond forecast range - seasonal is the best we can do anyway
+          return (
+            <div className="space-y-2">
+              <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <strong>Seasonal Estimate:</strong> Date is beyond 5-day forecast window.
+              </div>
+              <SeasonalWeatherDisplay 
+                segmentDate={segmentDate} 
+                cityName={segmentEndCity}
+                compact={true}
+              />
+            </div>
+          );
+        }
       } else {
         // In normal view, show seasonal weather with option to add API key
         return (
@@ -77,7 +109,11 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
             />
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
               <p className="text-yellow-800 mb-2">
-                <strong>Want live weather forecasts?</strong> Add your OpenWeatherMap API key below:
+                <strong>Want live weather forecasts?</strong> 
+                {isWithinForecastRange 
+                  ? ` This date is within the 5-day forecast window!`
+                  : ` Add your OpenWeatherMap API key:`
+                }
               </p>
               <EnhancedWeatherApiKeyInput 
                 onApiKeySet={onApiKeySet}
@@ -120,13 +156,23 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <EnhancedWeatherLoading onTimeout={onTimeout} />;
   }
 
-  // Show weather data if available
+  // Show weather data if available with enhanced forecast messaging
   if (weather) {
     console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
     
     // Check if this is forecast data (has isActualForecast property)
     if (weather.isActualForecast !== undefined) {
-      return <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />;
+      return (
+        <div className="space-y-2">
+          {/* Enhanced forecast messaging */}
+          {weather.isActualForecast && isWithinForecastRange && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
+              <strong>🔮 Live Forecast:</strong> Actual weather prediction for {segmentDate?.toLocaleDateString()}
+            </div>
+          )}
+          <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />
+        </div>
+      );
     } else {
       return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
     }
@@ -140,7 +186,11 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       return (
         <div className="space-y-3">
           <div className="p-3 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
-            <strong>Weather Service Unavailable:</strong> Showing seasonal estimates instead of live forecasts.
+            <strong>Weather Service Unavailable:</strong> 
+            {isWithinForecastRange 
+              ? ` Live forecast temporarily unavailable. Showing seasonal estimates.`
+              : ` Showing seasonal estimates instead of live forecasts.`
+            }
           </div>
           <SeasonalWeatherDisplay 
             segmentDate={segmentDate} 
@@ -153,7 +203,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
                 onClick={onRetry}
                 className="text-xs text-blue-600 hover:text-blue-800 underline"
               >
-                Try again for live forecast
+                {isWithinForecastRange ? 'Try again for live forecast' : 'Try again'}
               </button>
             </div>
           )}
@@ -183,7 +233,11 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return (
       <div className="space-y-3">
         <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-          <strong>Seasonal Estimate:</strong> Live forecast will appear when available.
+          <strong>Seasonal Estimate:</strong> 
+          {isWithinForecastRange 
+            ? ` Live forecast will appear when API connects successfully.`
+            : ` Live forecast will appear when available.`
+          }
         </div>
         <SeasonalWeatherDisplay 
           segmentDate={segmentDate} 
