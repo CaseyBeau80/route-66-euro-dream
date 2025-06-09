@@ -2,20 +2,24 @@
 import React from 'react';
 import { Route } from 'lucide-react';
 import LogoImage from '../../../../shared/LogoImage';
+import { getRambleLogoAlt } from '../../../../../utils/logoConfig';
 
 interface PDFLogoProps {
   showFallback?: boolean;
 }
 
 const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
+  console.log('📄 PDFLogo: Rendering with centralized logo configuration, showFallback:', showFallback);
+
   return (
     <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
       <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center mx-auto">
         <LogoImage 
           className="w-6 h-6 object-contain"
-          alt="Ramble 66 - Route 66 Trip Planner"
+          alt={getRambleLogoAlt('branding')}
           showFallback={showFallback}
           onError={() => {
+            console.log('📄 PDFLogo: Logo image failed to load, handling fallback');
             if (showFallback) {
               // Show fallback icon if image fails
               const logoImg = document.querySelector('.pdf-logo img') as HTMLImageElement;

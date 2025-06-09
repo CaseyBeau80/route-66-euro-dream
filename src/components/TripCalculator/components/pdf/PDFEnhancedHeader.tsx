@@ -3,6 +3,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import LogoImage from '../../../shared/LogoImage';
+import { getRambleLogoAlt } from '../../../../utils/logoConfig';
 
 interface PDFEnhancedHeaderProps {
   title: string;
@@ -17,6 +18,8 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
   tripStartDate,
   logoUrl
 }) => {
+  console.log('📄 PDFEnhancedHeader: Rendering with centralized logo configuration');
+
   return (
     <div className="pdf-header no-page-break mb-8 text-center border-b-4 border-route66-primary pb-6">
       {/* Centered Logo Section */}
@@ -24,7 +27,7 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
         <div className="logo-container text-center">
           <LogoImage 
             className="h-16 w-auto max-w-[200px] object-contain mx-auto"
-            alt="Ramble 66 - Route 66 Trip Planner"
+            alt={getRambleLogoAlt('branding')}
           />
           <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2 text-center">
             ROUTE 66 TRIP PLANNER

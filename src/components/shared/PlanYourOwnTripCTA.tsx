@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LogoImage from './LogoImage';
+import { getRambleLogoAlt } from '../../utils/logoConfig';
 
 interface PlanYourOwnTripCTAProps {
   className?: string;
@@ -17,6 +18,8 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
   currentPath
 }) => {
   const navigate = useNavigate();
+
+  console.log('🎯 PlanYourOwnTripCTA: Rendering variant:', variant);
 
   const handlePlanTrip = () => {
     // Add UTM parameters for tracking
@@ -39,7 +42,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
         >
           <LogoImage 
             className="w-5 h-5 object-contain"
-            alt="Ramble 66 - Route 66 Trip Planner"
+            alt={getRambleLogoAlt('default')}
           />
           Plan Your Own Route 66 Trip
           <ArrowRight className="w-4 h-4" />
@@ -55,7 +58,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           <div className="bg-white/20 rounded-full p-4">
             <LogoImage 
               className="w-8 h-8 object-contain"
-              alt="Ramble 66 - Route 66 Trip Planner"
+              alt={getRambleLogoAlt('branding')}
             />
           </div>
         </div>
@@ -91,7 +94,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
         >
           <LogoImage 
             className="w-6 h-6 object-contain"
-            alt="Ramble 66 - Route 66 Trip Planner"
+            alt={getRambleLogoAlt('default')}
           />
           Start Planning Your Trip
           <ArrowRight className="w-5 h-5" />

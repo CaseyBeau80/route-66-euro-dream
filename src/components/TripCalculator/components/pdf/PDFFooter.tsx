@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { DataIntegrityReport } from '../../services/pdf/PDFDataIntegrityService';
 import LogoImage from '../../../shared/LogoImage';
+import { getRambleLogoAlt } from '../../../../utils/logoConfig';
 
 interface PDFFooterProps {
   shareUrl?: string;
@@ -23,6 +24,8 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
     (s.weather?.isActualForecast) || (s.weatherData?.isActualForecast)
   ).length;
 
+  console.log('📄 PDFFooter: Rendering with centralized logo configuration');
+
   return (
     <>
       {/* QR Code Section with Enhanced Styling */}
@@ -31,7 +34,7 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           <div className="flex justify-center mb-4">
             <LogoImage 
               className="h-12 w-auto object-contain"
-              alt="Ramble 66 - Route 66 Trip Planner"
+              alt={getRambleLogoAlt('branding')}
             />
           </div>
           <h3 className="text-lg font-bold text-route66-vintage-red mb-2 font-route66">
@@ -56,7 +59,7 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           <div className="flex items-center gap-3">
             <LogoImage 
               className="h-8 w-auto object-contain"
-              alt="Ramble 66 - Route 66 Trip Planner"
+              alt={getRambleLogoAlt('branding')}
             />
             <div className="ramble-66-text-logo">
               <div className="flex items-center gap-1">

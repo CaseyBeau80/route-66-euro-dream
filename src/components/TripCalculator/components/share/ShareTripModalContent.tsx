@@ -29,6 +29,8 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
   onShareViaEmail,
   isSharedView = false
 }) => {
+  console.log('📤 ShareTripModalContent: Rendering with isSharedView:', isSharedView);
+
   if (!isTripComplete) {
     return (
       <div className="text-center py-12">
