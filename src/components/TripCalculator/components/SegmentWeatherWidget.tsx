@@ -39,9 +39,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     
     console.log(`🔑 SegmentWeatherWidget: API key status for ${segment.endCity}:`, {
       hasApiKey: apiKeyStatus,
+      sectionKey,
       debugInfo: weatherService.getDebugInfo()
     });
-  }, [weatherService, segment.endCity]);
+  }, [weatherService, segment.endCity, sectionKey]);
 
   console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
@@ -49,7 +50,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     hasApiKey,
     sectionKey,
     forceExpanded,
-    isSharedView: sectionKey === 'shared-view'
+    isSharedView: sectionKey === 'shared-view',
+    isPDFExport: sectionKey === 'pdf-export'
   });
 
   // Calculate the actual date for this segment
@@ -100,7 +102,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         calculatedDate: calculatedDate.toISOString(),
         daysFromNow,
         isWithinForecastRange,
-        canGetForecast: hasApiKey && isWithinForecastRange
+        canGetForecast: hasApiKey && isWithinForecastRange,
+        sectionKey
       });
       
       return calculatedDate;
@@ -119,10 +122,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // **PHASE 3**: Enhanced weather data validation and logging
+  // **PDF EXPORT ENHANCEMENT**: Enhanced weather data validation and logging for PDF
   React.useEffect(() => {
     if (weatherState.weather) {
-      console.log(`🔍 PHASE 3 - Weather data analysis for ${segment.endCity}:`, {
+      console.log(`🔍 ${sectionKey === 'pdf-export' ? 'PDF EXPORT' : 'PHASE 3'} - Weather data analysis for ${segment.endCity}:`, {
         hasWeather: true,
         isActualForecast: weatherState.weather.isActualForecast,
         hasDateMatchInfo: !!weatherState.weather.dateMatchInfo,
@@ -135,14 +138,16 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         segmentDate: segmentDate?.toISOString(),
         daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null,
         sectionKey,
-        isSharedView: sectionKey === 'shared-view'
+        isSharedView: sectionKey === 'shared-view',
+        isPDFExport: sectionKey === 'pdf-export'
       });
 
-      // **PHASE 3**: Verify weather object completeness
-      if (weatherState.weather.isActualForecast && !weatherState.weather.dateMatchInfo) {
-        console.warn(`⚠️ PHASE 3 WARNING: Live forecast missing dateMatchInfo for ${segment.endCity}`, {
+      // **PDF EXPORT**: Verify weather object completeness for PDF rendering
+      if (weatherState.weather.isActualForecast && !weatherState.weather.dateMatchInfo && sectionKey === 'pdf-export') {
+        console.warn(`⚠️ PDF EXPORT WARNING: Live forecast missing dateMatchInfo for ${segment.endCity}`, {
           weather: weatherState.weather,
-          segmentDate: segmentDate?.toISOString()
+          segmentDate: segmentDate?.toISOString(),
+          willImpactPDFDisplay: true
         });
       }
     }
@@ -163,9 +168,15 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
       if (element) {
         element.setAttribute('data-weather-loaded', 'true');
+        
+        // **PDF EXPORT**: Additional attribute for PDF-specific weather loading
+        if (sectionKey === 'pdf-export') {
+          element.setAttribute('data-pdf-weather-ready', 'true');
+          console.log(`📄 PDF weather ready for segment ${segment.day}`);
+        }
       }
     }
-  }, [weatherState.weather, weatherState.loading, segment.day]);
+  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey]);
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
@@ -187,6 +198,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
           onTimeout={weatherHandlers.handleTimeout}
           onRetry={weatherHandlers.handleRetry}
           isSharedView={sectionKey === 'shared-view'}
+          isPDFExport={sectionKey === 'pdf-export'}
         />
       </div>
     </WeatherErrorBoundary>

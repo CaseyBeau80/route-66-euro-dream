@@ -14,6 +14,7 @@ interface WeatherDataDisplayProps {
   isSharedView?: boolean;
   error?: string | null;
   retryCount?: number;
+  isPDFExport?: boolean;
 }
 
 const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
@@ -22,7 +23,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   segmentEndCity,
   isSharedView = false,
   error = null,
-  retryCount = 0
+  retryCount = 0,
+  isPDFExport = false
 }) => {
   console.log(`🎨 WeatherDataDisplay: Enhanced rendering for ${segmentEndCity}:`, {
     hasWeather: !!weather,
@@ -30,6 +32,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     retryCount,
     segmentDate: segmentDate?.toISOString(),
     isSharedView,
+    isPDFExport,
     dateMatchInfo: weather?.dateMatchInfo,
     isActualForecast: weather?.isActualForecast,
     hasHighTemp: weather?.highTemp !== undefined,
@@ -39,9 +42,20 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
   });
 
+  // **PDF EXPORT**: Enhanced logging for PDF weather rendering
+  if (isPDFExport) {
+    console.log(`📄 PDF WEATHER DISPLAY: Processing ${segmentEndCity}`, {
+      isActualForecast: weather?.isActualForecast,
+      hasDateMatchInfo: !!weather?.dateMatchInfo,
+      hasTemperatureRange: weather?.highTemp !== undefined && weather?.lowTemp !== undefined,
+      weatherType: weather?.isActualForecast ? 'forecast' : 'fallback'
+    });
+  }
+
   // Show debug info in development or when there are date matching issues
-  const showDebugInfo = process.env.NODE_ENV === 'development' || 
-                       (weather?.dateMatchInfo?.matchType !== 'exact' && weather?.isActualForecast);
+  const showDebugInfo = (process.env.NODE_ENV === 'development' || 
+                       (weather?.dateMatchInfo?.matchType !== 'exact' && weather?.isActualForecast)) &&
+                       !isPDFExport; // Hide debug in PDF exports
 
   // **PHASE 2 FIX**: Enhanced validation with segmentDate parameter for fallback calculations
   const validation = validateWeatherData(weather, segmentEndCity, segmentDate);
@@ -53,7 +67,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     error,
     retryCount,
     dateMatchInfo: weather?.dateMatchInfo,
-    isActualForecast: weather?.isActualForecast
+    isActualForecast: weather?.isActualForecast,
+    isPDFExport
   });
 
   // **PHASE 2 FIX**: Priority override - always show live forecast if available, regardless of validation quality
@@ -71,32 +86,37 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         const forecastWeather = weather as ForecastWeatherData;
         
         // Enhanced warning message based on data quality
-        let warningMessage = 'Live forecast from OpenWeatherMap';
+        let warningMessage = isPDFExport ? 'Live forecast data' : 'Live forecast from OpenWeatherMap';
         if (validation.dataQuality === 'good' && validation.warnings.length > 0) {
           warningMessage += ` (${validation.warnings[0]})`;
         } else if (segmentDate) {
           warningMessage += ` for ${segmentDate.toLocaleDateString()}`;
         }
         
-        // **PHASE 2**: Add dev mode warning for quality issues
-        if (process.env.NODE_ENV === 'development' && validation.dataQuality !== 'excellent') {
+        // **PHASE 2**: Add dev mode warning for quality issues (but not in PDF exports)
+        if (process.env.NODE_ENV === 'development' && validation.dataQuality !== 'excellent' && !isPDFExport) {
           warningMessage += ` [DEV: Quality=${validation.dataQuality}]`;
         }
         
         return (
           <div className="space-y-2">
-            <DismissibleSeasonalWarning
-              message={warningMessage}
-              type="forecast-unavailable"
-              isSharedView={isSharedView}
-            />
+            {/* **PDF EXPORT**: Conditional warning display */}
+            {!isPDFExport && (
+              <DismissibleSeasonalWarning
+                message={warningMessage}
+                type="forecast-unavailable"
+                isSharedView={isSharedView}
+              />
+            )}
             <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
-            <WeatherDateMatchDebug
-              weather={forecastWeather}
-              segmentDate={segmentDate}
-              segmentEndCity={segmentEndCity}
-              isVisible={showDebugInfo}
-            />
+            {showDebugInfo && (
+              <WeatherDateMatchDebug
+                weather={forecastWeather}
+                segmentDate={segmentDate}
+                segmentEndCity={segmentEndCity}
+                isVisible={showDebugInfo}
+              />
+            )}
           </div>
         );
       }
@@ -111,18 +131,22 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         
         return (
           <div className="space-y-2">
-            <DismissibleSeasonalWarning
-              message={`Live forecast available (promoted from seasonal estimate)`}
-              type="forecast-unavailable"
-              isSharedView={isSharedView}
-            />
+            {!isPDFExport && (
+              <DismissibleSeasonalWarning
+                message={`Live forecast available (promoted from seasonal estimate)`}
+                type="forecast-unavailable"
+                isSharedView={isSharedView}
+              />
+            )}
             <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
-            <WeatherDateMatchDebug
-              weather={forecastWeather}
-              segmentDate={segmentDate}
-              segmentEndCity={segmentEndCity}
-              isVisible={showDebugInfo}
-            />
+            {showDebugInfo && (
+              <WeatherDateMatchDebug
+                weather={forecastWeather}
+                segmentDate={segmentDate}
+                segmentEndCity={segmentEndCity}
+                isVisible={showDebugInfo}
+              />
+            )}
           </div>
         );
       }
@@ -131,25 +155,31 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         const forecastWeather = weather as ForecastWeatherData;
         
         // Enhanced message for seasonal estimates
-        let warningMessage = 'Based on historical weather patterns';
+        let warningMessage = isPDFExport ? 'Historical weather patterns' : 'Based on historical weather patterns';
         if (validation.daysFromNow !== null && validation.daysFromNow > 5) {
-          warningMessage = `Historical data (${validation.daysFromNow} days ahead, beyond forecast range)`;
+          warningMessage = isPDFExport 
+            ? `Historical data (${validation.daysFromNow} days ahead)`
+            : `Historical data (${validation.daysFromNow} days ahead, beyond forecast range)`;
         }
         
         return (
           <div className="space-y-2">
-            <DismissibleSeasonalWarning
-              message={warningMessage}
-              type="seasonal"
-              isSharedView={isSharedView}
-            />
+            {!isPDFExport && (
+              <DismissibleSeasonalWarning
+                message={warningMessage}
+                type="seasonal"
+                isSharedView={isSharedView}
+              />
+            )}
             <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
-            <WeatherDateMatchDebug
-              weather={forecastWeather}
-              segmentDate={segmentDate}
-              segmentEndCity={segmentEndCity}
-              isVisible={showDebugInfo}
-            />
+            {showDebugInfo && (
+              <WeatherDateMatchDebug
+                weather={forecastWeather}
+                segmentDate={segmentDate}
+                segmentEndCity={segmentEndCity}
+                isVisible={showDebugInfo}
+              />
+            )}
           </div>
         );
       }
@@ -159,16 +189,25 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       console.log(`❌ Service unavailable for ${segmentEndCity} - suppressing all forecast data`);
       return (
         <div className="space-y-2">
-          <DismissibleSeasonalWarning
-            message={error || "Weather service temporarily unavailable"}
-            type="forecast-unavailable"
-            isSharedView={isSharedView}
-          />
+          {!isPDFExport && (
+            <DismissibleSeasonalWarning
+              message={error || "Weather service temporarily unavailable"}
+              type="forecast-unavailable"
+              isSharedView={isSharedView}
+            />
+          )}
           <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="text-gray-400 text-2xl mb-2">🌤️</div>
             <p className="text-sm text-gray-600">
-              Weather information temporarily unavailable
+              {isPDFExport 
+                ? "Weather information temporarily unavailable" 
+                : "Weather information temporarily unavailable"}
             </p>
+            {isPDFExport && (
+              <p className="text-xs text-gray-500 mt-1">
+                Check the live version for current conditions
+              </p>
+            )}
           </div>
         </div>
       );
@@ -178,7 +217,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       return (
         <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="animate-pulse text-gray-500 text-sm">
-            Loading weather information...
+            {isPDFExport ? 'Processing weather for export...' : 'Loading weather information...'}
           </div>
         </div>
       );
@@ -189,7 +228,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     weather,
     validation,
     displayType,
-    shouldShowLiveForecast
+    shouldShowLiveForecast,
+    isPDFExport
   });
   
   // Final check for live forecast before giving up
@@ -198,11 +238,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     const forecastWeather = weather as ForecastWeatherData;
     return (
       <div className="space-y-2">
-        <DismissibleSeasonalWarning
-          message="Live forecast (fallback rendering)"
-          type="forecast-unavailable"
-          isSharedView={isSharedView}
-        />
+        {!isPDFExport && (
+          <DismissibleSeasonalWarning
+            message="Live forecast (fallback rendering)"
+            type="forecast-unavailable"
+            isSharedView={isSharedView}
+          />
+        )}
         <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
       </div>
     );
@@ -212,9 +254,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
       <div className="text-gray-400 text-2xl mb-2">🌤️</div>
       <p className="text-sm text-gray-600">
-        Weather information processing...
+        {isPDFExport ? 'Weather information processing for export...' : 'Weather information processing...'}
       </p>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === 'development' && !isPDFExport && (
         <div className="text-xs text-gray-500 mt-2">
           Debug: {JSON.stringify({ validation: validation.dataQuality, displayType, shouldShowLiveForecast })}
         </div>

@@ -1,10 +1,9 @@
 
 import React from 'react';
-import EnhancedWeatherLoading from './EnhancedWeatherLoading';
 import WeatherDataDisplay from './WeatherDataDisplay';
-import WeatherErrorStates from './WeatherErrorStates';
-import WeatherApiKeyPrompt from './WeatherApiKeyPrompt';
-import WeatherLoadingStates from './WeatherLoadingStates';
+import WeatherApiKeyInput from './WeatherApiKeyInput';
+import WeatherLoadingPlaceholder from './WeatherLoadingPlaceholder';
+import WeatherErrorDisplay from './WeatherErrorDisplay';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -18,6 +17,7 @@ interface SegmentWeatherContentProps {
   onTimeout: () => void;
   onRetry: () => void;
   isSharedView?: boolean;
+  isPDFExport?: boolean;
 }
 
 const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
@@ -31,83 +31,95 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   onApiKeySet,
   onTimeout,
   onRetry,
-  isSharedView = false
+  isSharedView = false,
+  isPDFExport = false
 }) => {
-  console.log(`🎨 SegmentWeatherContent for ${segmentEndCity}:`, {
+  console.log(`🌤️ SegmentWeatherContent: Rendering for ${segmentEndCity}`, {
     hasApiKey,
     loading,
-    error,
     hasWeather: !!weather,
+    error,
     retryCount,
-    weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular',
-    segmentDate: segmentDate?.toISOString(),
     isSharedView,
-    daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
+    isPDFExport,
+    segmentDate: segmentDate?.toISOString()
   });
 
-  // Calculate days from now for forecast eligibility
-  const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
-  const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
-
-  // Loading state
-  if (loading) {
-    console.log(`⏳ Loading weather for ${segmentEndCity}`);
-    return <EnhancedWeatherLoading onTimeout={onTimeout} />;
+  // **PDF EXPORT**: Enhanced logging for PDF weather rendering
+  if (isPDFExport) {
+    console.log(`📄 PDF WEATHER: Rendering weather content for ${segmentEndCity}`, {
+      hasApiKey,
+      hasWeather: !!weather,
+      isActualForecast: weather?.isActualForecast,
+      hasDateMatchInfo: !!weather?.dateMatchInfo,
+      loading,
+      error
+    });
   }
 
-  // PRIORITY 1: Show centralized weather display if we have weather data
-  // This will handle validation and display logic internally
-  if (weather) {
-    console.log(`✨ Using centralized weather display for ${segmentEndCity}`);
+  // Show API key input if no key is available (except in shared view or PDF export)
+  if (!hasApiKey && !isSharedView && !isPDFExport) {
     return (
-      <WeatherDataDisplay 
+      <WeatherApiKeyInput
+        segmentEndCity={segmentEndCity}
+        onApiKeySet={onApiKeySet}
+      />
+    );
+  }
+
+  // Show loading state
+  if (loading && !weather) {
+    return (
+      <WeatherLoadingPlaceholder
+        segmentEndCity={segmentEndCity}
+        onTimeout={onTimeout}
+        isPDFExport={isPDFExport}
+      />
+    );
+  }
+
+  // Show error state
+  if (error && retryCount <= 3) {
+    return (
+      <WeatherErrorDisplay
+        error={error}
+        retryCount={retryCount}
+        segmentEndCity={segmentEndCity}
+        onRetry={onRetry}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
+    );
+  }
+
+  // Show weather data if available
+  if (weather) {
+    return (
+      <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}
         segmentEndCity={segmentEndCity}
         isSharedView={isSharedView}
         error={error}
         retryCount={retryCount}
+        isPDFExport={isPDFExport}
       />
     );
   }
 
-  // PRIORITY 2: Handle error states with API key available
-  if (error && hasApiKey) {
-    return (
-      <WeatherErrorStates
-        error={error}
-        hasApiKey={hasApiKey}
-        retryCount={retryCount}
-        segmentEndCity={segmentEndCity}
-        segmentDate={segmentDate}
-        isWithinForecastRange={isWithinForecastRange}
-        isSharedView={isSharedView}
-        onRetry={onRetry}
-      />
-    );
-  }
-
-  // PRIORITY 3: Handle no API key scenarios
-  if (!hasApiKey) {
-    return (
-      <WeatherApiKeyPrompt
-        segmentEndCity={segmentEndCity}
-        segmentDate={segmentDate}
-        isWithinForecastRange={isWithinForecastRange}
-        isSharedView={isSharedView}
-        onApiKeySet={onApiKeySet}
-      />
-    );
-  }
-
-  // PRIORITY 4 & 5: Loading states and fallbacks
+  // Fallback state
   return (
-    <WeatherLoadingStates
-      hasApiKey={hasApiKey}
-      segmentDate={segmentDate}
-      isWithinForecastRange={isWithinForecastRange}
-      segmentEndCity={segmentEndCity}
-    />
+    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+      <p className="text-sm text-gray-600">
+        {isPDFExport ? 'Weather information processing for PDF...' : 'Weather information not available'}
+      </p>
+      {isPDFExport && (
+        <div className="text-xs text-gray-500 mt-2">
+          Please check the live version for current weather conditions
+        </div>
+      )}
+    </div>
   );
 };
 

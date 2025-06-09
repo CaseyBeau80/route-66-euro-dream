@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import SegmentWeatherWidget from '../SegmentWeatherWidget';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface PDFDaySegmentCardWeatherProps {
   segment: DailySegment;
@@ -13,13 +15,21 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
   segmentDate,
   exportFormat
 }) => {
+  console.log(`📄 PDFDaySegmentCardWeather: Rendering for ${segment.endCity}`, {
+    exportFormat,
+    hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
+    hasWeatherData: !!(segment.weather || segment.weatherData),
+    segmentDay: segment.day
+  });
+
   // Skip weather for route-only format
   if (exportFormat === 'route-only') {
+    console.log(`📄 PDFDaySegmentCardWeather: Skipping weather for route-only format`);
     return null;
   }
 
-  const hasWeatherData = segment.weather || segment.weatherData;
-
+  // Enhanced weather rendering for PDF export - use the same logic as the main app
   return (
     <div className="pdf-weather-content">
       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -27,15 +37,32 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
         Weather Information
       </h4>
       
-      {hasWeatherData ? (
-        <div className="bg-white rounded border border-gray-200 p-3">
-          <div className="text-sm text-gray-600 text-center">
-            <div className="mb-2">🌤️ Weather data available</div>
-            <div className="text-xs text-gray-500">
-              Visit the live version for detailed forecasts and current conditions
+      {segmentDate ? (
+        <ErrorBoundary 
+          context={`PDFWeather-${segment.day}`}
+          silent
+          fallback={
+            <div className="bg-yellow-50 rounded border border-yellow-200 p-3 text-center">
+              <div className="text-sm text-yellow-800 mb-2">
+                ⚠️ Weather information temporarily unavailable
+              </div>
+              <div className="text-xs text-yellow-600">
+                Check current weather conditions before departure
+              </div>
             </div>
+          }
+        >
+          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+            <SegmentWeatherWidget
+              segment={segment}
+              tripStartDate={segmentDate}
+              cardIndex={segment.day}
+              sectionKey="pdf-export"
+              forceExpanded={true}
+              isCollapsible={false}
+            />
           </div>
-        </div>
+        </ErrorBoundary>
       ) : (
         <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
           <div className="text-sm text-gray-500 mb-2">
