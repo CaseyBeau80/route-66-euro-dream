@@ -60,6 +60,14 @@ export class EnhancedWeatherService {
     }
   }
 
+  getEnhancedDebugInfo() {
+    return this.apiKeyManager.getEnhancedDebugInfo();
+  }
+
+  performNuclearCleanup(): void {
+    this.apiKeyManager.performNuclearCleanup();
+  }
+
   getDebugInfo() {
     return this.apiKeyManager.getEnhancedDebugInfo();
   }
