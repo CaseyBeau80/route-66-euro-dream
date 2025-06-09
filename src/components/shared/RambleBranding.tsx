@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { getRambleLogoUrl, getRambleLogoAlt, getRambleLogoSize } from '../../utils/logoConfig';
 
 interface RambleBrandingProps {
   className?: string;
@@ -18,22 +19,14 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
     lg: 'text-4xl'
   };
 
-  const logoSizes = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12'
-  };
-
-  const RAMBLE_LOGO_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
-
   if (variant === 'logo') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="bg-route66-primary rounded-full p-2">
           <img 
-            src={RAMBLE_LOGO_URL}
-            alt="Ramble 66 Logo" 
-            className={`${logoSizes[size]} object-contain`}
+            src={getRambleLogoUrl()}
+            alt={getRambleLogoAlt('branding')}
+            className={`${getRambleLogoSize(size)} object-contain`}
           />
         </div>
       </div>
@@ -57,9 +50,9 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="bg-route66-primary rounded-full p-2">
         <img 
-          src={RAMBLE_LOGO_URL}
-          alt="Ramble 66 Logo" 
-          className={`${logoSizes[size]} object-contain`}
+          src={getRambleLogoUrl()}
+          alt={getRambleLogoAlt('branding')}
+          className={`${getRambleLogoSize(size)} object-contain`}
         />
       </div>
       <div className="ramble-66-text-logo">

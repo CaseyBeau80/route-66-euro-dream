@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { getRambleLogoUrl, getRambleLogoAlt } from "../utils/logoConfig";
 
 type NavbarProps = {
   language: string;
@@ -10,7 +11,6 @@ type NavbarProps = {
 
 const Navbar = ({ language, setLanguage }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const RAMBLE_LOGO_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm">
@@ -18,8 +18,8 @@ const Navbar = ({ language, setLanguage }: NavbarProps) => {
         <div className="flex items-center">
           <div className="mr-2">
             <img 
-              src={RAMBLE_LOGO_URL}
-              alt="Route 66 logo" 
+              src={getRambleLogoUrl()}
+              alt={getRambleLogoAlt('navigation')}
               className="w-10 h-10 rounded-full object-cover"
             />
           </div>
