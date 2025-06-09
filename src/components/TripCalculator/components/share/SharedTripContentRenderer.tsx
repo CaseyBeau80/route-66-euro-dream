@@ -5,6 +5,7 @@ import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityServ
 import PDFDaySegmentCard from '../pdf/PDFDaySegmentCard';
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -19,14 +20,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Starting render', {
+  console.log('📤 SharedTripContentRenderer: Starting render with enhanced safety', {
     tripPlan,
     segmentsCount: tripPlan.segments?.length || 0,
     dailySegmentsCount: tripPlan.dailySegments?.length || 0,
     hasStartDate: !!tripStartDate,
-    isSharedView,
-    tripPlanType: typeof tripPlan,
-    tripPlanKeys: Object.keys(tripPlan || {})
+    isSharedView
   });
 
   // Validate that we have trip data
@@ -41,7 +40,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   }
 
   try {
-    // Validate and sanitize trip plan data
+    // Validate and sanitize trip plan data with error handling
     console.log('📤 SharedTripContentRenderer: Sanitizing trip plan');
     const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
     console.log('📤 SharedTripContentRenderer: Sanitized trip plan', sanitizedTripPlan);
@@ -53,10 +52,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     const rawSegments = sanitizedTripPlan.segments || sanitizedTripPlan.dailySegments || [];
     console.log('📤 SharedTripContentRenderer: Raw segments', rawSegments);
     
-    // Filter segments with enriched weather data
-    const enrichedSegments = rawSegments.filter(segment => 
-      segment && segment.day && (segment.endCity || segment.destination)
-    ) || [];
+    // Filter segments with proper validation
+    const enrichedSegments = rawSegments.filter(segment => {
+      if (!segment) return false;
+      if (typeof segment.day !== 'number' || segment.day <= 0) return false;
+      if (!segment.endCity && !segment.destination?.name) return false;
+      return true;
+    }) || [];
 
     console.log('📤 SharedTripContentRenderer: Processed segments', {
       rawSegmentsCount: rawSegments.length,
@@ -74,7 +76,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             <strong>Debug Info:</strong>
             <div>Raw segments: {rawSegments.length}</div>
             <div>Sanitized trip plan keys: {Object.keys(sanitizedTripPlan).join(', ')}</div>
-            <pre className="mt-2 text-xs">{JSON.stringify(rawSegments.slice(0, 2), null, 2)}</pre>
           </div>
         </div>
       );
@@ -92,13 +93,15 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         zIndex: 1
       }}>
         {/* Enhanced PDF Header */}
-        <div className="mb-8">
-          <PDFEnhancedHeader
-            title={defaultTitle}
-            tripPlan={sanitizedTripPlan}
-            tripStartDate={tripStartDate}
-          />
-        </div>
+        <ErrorBoundary context="PDFEnhancedHeader" silent>
+          <div className="mb-8">
+            <PDFEnhancedHeader
+              title={defaultTitle}
+              tripPlan={sanitizedTripPlan}
+              tripStartDate={tripStartDate}
+            />
+          </div>
+        </ErrorBoundary>
 
         {/* Data Quality Notice */}
         {PDFDataIntegrityService.shouldShowDataQualityNotice(integrityReport) && (
@@ -166,14 +169,26 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           {enrichedSegments.map((segment, index) => {
             console.log(`📤 SharedTripContentRenderer: Rendering segment ${index + 1}`, segment);
             return (
-              <div key={`day-${segment.day}`} className="mb-6">
-                <PDFDaySegmentCard
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  segmentIndex={index}
-                  exportFormat="full"
-                />
-              </div>
+              <ErrorBoundary 
+                key={`day-${segment.day}-${index}`} 
+                context={`PDFDaySegmentCard-${segment.day}`}
+                silent
+                fallback={
+                  <div className="mb-6 p-4 bg-gray-100 rounded border">
+                    <h3 className="font-bold text-gray-700">Day {segment.day}</h3>
+                    <p className="text-gray-600">Error loading segment details</p>
+                  </div>
+                }
+              >
+                <div className="mb-6">
+                  <PDFDaySegmentCard
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    segmentIndex={index}
+                    exportFormat="full"
+                  />
+                </div>
+              </ErrorBoundary>
             );
           })}
         </div>
@@ -204,14 +219,16 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </div>
 
         {/* Enhanced Footer - Only show QR code in shared view */}
-        <div className="mt-8">
-          <PDFFooter
-            shareUrl={shareUrl}
-            enrichedSegments={enrichedSegments}
-            includeQRCode={isSharedView}
-            dataIntegrityReport={integrityReport}
-          />
-        </div>
+        <ErrorBoundary context="PDFFooter" silent>
+          <div className="mt-8">
+            <PDFFooter
+              shareUrl={shareUrl}
+              enrichedSegments={enrichedSegments}
+              includeQRCode={isSharedView}
+              dataIntegrityReport={integrityReport}
+            />
+          </div>
+        </ErrorBoundary>
       </div>
     );
 
@@ -223,10 +240,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         <p className="text-gray-600">There was an error displaying the trip content.</p>
         <div className="mt-4 p-4 bg-red-100 rounded text-sm text-left">
           <strong>Error:</strong> {error instanceof Error ? error.message : String(error)}
-          <div className="mt-2">
-            <strong>Stack:</strong>
-            <pre className="text-xs mt-1">{error instanceof Error ? error.stack : 'No stack trace'}</pre>
-          </div>
         </div>
       </div>
     );

@@ -8,6 +8,7 @@ import TripDetailsHeader from './TripDetailsPage/components/TripDetailsHeader';
 import TripDetailsLoading from './TripDetailsPage/components/TripDetailsLoading';
 import TripDetailsError from './TripDetailsPage/components/TripDetailsError';
 import TripDetailsContent from './TripDetailsPage/components/TripDetailsContent';
+import TripDetailsErrorBoundary from './TripDetailsPage/components/TripDetailsErrorBoundary';
 
 const TripDetailsPage: React.FC = () => {
   const { shareCode } = useParams<{ shareCode: string }>();
@@ -38,15 +39,28 @@ const TripDetailsPage: React.FC = () => {
 
       try {
         console.log('🔍 TripDetailsPage: Loading trip with share code:', shareCode);
-        const tripData = await TripService.loadTripByShareCode(shareCode);
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
+        );
+        
+        const tripPromise = TripService.loadTripByShareCode(shareCode);
+        const tripData = await Promise.race([tripPromise, timeoutPromise]);
+        
         console.log('✅ TripDetailsPage: Trip loaded successfully:', tripData.title);
+        
+        // Validate trip data structure before setting state
+        if (!tripData.trip_data) {
+          throw new Error('Trip data is missing or corrupted');
+        }
+        
         setTrip(tripData);
         
-        // Increment view count
-        await TripService.incrementViewCount(shareCode);
-        
-        // Update the trip object to reflect the incremented view count
-        setTrip(prev => prev ? { ...prev, view_count: prev.view_count + 1 } : null);
+        // Increment view count (don't await to avoid blocking)
+        TripService.incrementViewCount(shareCode).catch(err => {
+          console.warn('⚠️ Failed to increment view count:', err);
+        });
         
       } catch (err) {
         console.error('❌ TripDetailsPage: Error loading trip:', err);
@@ -61,9 +75,9 @@ const TripDetailsPage: React.FC = () => {
         });
         
         // Redirect to trip calculator after a delay if trip not found
-        if (errorMessage.includes('not found')) {
+        if (errorMessage.includes('not found') || errorMessage.includes('timeout')) {
           setTimeout(() => {
-            console.log('🔄 TripDetailsPage: Redirecting to trip calculator due to trip not found');
+            console.log('🔄 TripDetailsPage: Redirecting to trip calculator due to error');
             navigate('/trip-calculator');
           }, 3000);
         }
@@ -80,51 +94,57 @@ const TripDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
-        <NavigationBar language={language} setLanguage={setLanguage} />
-        <TripDetailsLoading shareCode={shareCode} />
-      </div>
+      <TripDetailsErrorBoundary>
+        <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
+          <NavigationBar language={language} setLanguage={setLanguage} />
+          <TripDetailsLoading shareCode={shareCode} />
+        </div>
+      </TripDetailsErrorBoundary>
     );
   }
 
   if (error || !trip) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
-        <NavigationBar language={language} setLanguage={setLanguage} />
-        <TripDetailsError 
-          error={error || 'Trip not found'}
-          shareCode={shareCode}
-          onBackToHome={handleBackToHome}
-          onPlanNewTrip={handlePlanNewTrip}
-        />
-      </div>
+      <TripDetailsErrorBoundary>
+        <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
+          <NavigationBar language={language} setLanguage={setLanguage} />
+          <TripDetailsError 
+            error={error || 'Trip not found'}
+            shareCode={shareCode}
+            onBackToHome={handleBackToHome}
+            onPlanNewTrip={handlePlanNewTrip}
+          />
+        </div>
+      </TripDetailsErrorBoundary>
     );
   }
 
   const shareUrl = TripService.getShareUrl(shareCode!);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
-      <NavigationBar language={language} setLanguage={setLanguage} />
-      
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <TripDetailsHeader 
-              trip={trip}
-              onBackToHome={handleBackToHome}
-              onPlanNewTrip={handlePlanNewTrip}
-            />
-            
-            {/* Enhanced Trip Content - Now using PDF-style layout */}
-            <TripDetailsContent 
-              trip={trip}
-              shareUrl={shareUrl}
-            />
+    <TripDetailsErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
+        <NavigationBar language={language} setLanguage={setLanguage} />
+        
+        <div className="pt-20 pb-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <TripDetailsHeader 
+                trip={trip}
+                onBackToHome={handleBackToHome}
+                onPlanNewTrip={handlePlanNewTrip}
+              />
+              
+              {/* Enhanced Trip Content with Error Boundary */}
+              <TripDetailsContent 
+                trip={trip}
+                shareUrl={shareUrl}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </TripDetailsErrorBoundary>
   );
 };
 
