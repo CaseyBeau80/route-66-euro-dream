@@ -1,4 +1,37 @@
+
 import { DestinationCity } from '@/components/Route66Planner/types';
+
+export interface DriveTimeCategory {
+  category: 'short' | 'optimal' | 'long' | 'extreme';
+  message: string;
+  color?: string;
+}
+
+export interface RecommendedStop {
+  id?: string;
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  city?: string;
+  type?: string;
+  duration?: number;
+}
+
+export interface SegmentTiming {
+  fromStop: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  toStop: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  distance: number;
+  driveTime: number;
+}
 
 export interface TripPlan {
   id?: string;
@@ -16,6 +49,7 @@ export interface TripPlan {
   endCityImage?: string;
   isEnriched?: boolean;
   lastUpdated?: Date;
+  originalDays?: number; // For tracking adjustments
   enrichmentStatus?: {
     weatherData: boolean;
     stopsData: boolean;
@@ -30,17 +64,21 @@ export interface DailySegment {
   destination?: string;
   distance: number;
   driveTimeHours: number;
-  recommendedStops?: any[];
+  drivingTime?: number; // Alternative property for compatibility
+  recommendedStops?: RecommendedStop[];
+  stops?: RecommendedStop[]; // Alternative property name
   weather?: any;
   weatherData?: any;
   attractions?: any[];
   isEnriched?: boolean;
+  notes?: string;
+  recommendations?: string[];
   // Additional properties for compatibility
   title?: string;
   routeSection?: string;
-  driveTimeCategory?: 'short' | 'medium' | 'long';
+  driveTimeCategory?: DriveTimeCategory;
   approximateMiles?: number;
-  subStopTimings?: any[];
+  subStopTimings?: SegmentTiming[];
 }
 
 // Enhanced data validation service
@@ -120,9 +158,13 @@ export class TripPlanDataValidator {
       ...segment,
       distance: isNaN(segment.distance) ? 0 : Math.max(0, segment.distance),
       driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
+      drivingTime: segment.drivingTime || segment.driveTimeHours,
       startCity: segment.startCity || 'Unknown',
       endCity: segment.endCity || segment.destination || 'Unknown',
-      approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0)
+      approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),
+      stops: segment.stops || segment.recommendedStops || [],
+      notes: segment.notes || '',
+      recommendations: segment.recommendations || []
     };
   }
   
@@ -165,6 +207,7 @@ export class TripPlanBuilder {
       startDate,
       totalDays,
       totalDistance: 0,
+      segments: [],
       dailySegments: [],
     };
   }
