@@ -16,7 +16,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
 
   // Extract trip plan and start date from the saved trip data
   const tripPlan = trip.trip_data;
-  const tripStartDate = tripPlan.tripStartDate;
+  const tripStartDate = tripPlan.startDate;
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
