@@ -130,12 +130,10 @@ export class TripDataSanitizationService {
     return {
       day: this.sanitizeNumber(segment.day, index + 1),
       startCity: this.sanitizeString(segment.startCity, 'Unknown'),
-      endCity: this.sanitizeString(segment.endCity || segment.destination?.name, 'Unknown'),
+      endCity: this.sanitizeString(segment.endCity || segment.destination?.city, 'Unknown'),
       destination: segment.destination ? {
-        name: this.sanitizeString(segment.destination.name, 'Unknown'),
-        description: this.sanitizeString(segment.destination.description, ''),
-        latitude: this.sanitizeNumber(segment.destination.latitude, 0),
-        longitude: this.sanitizeNumber(segment.destination.longitude, 0)
+        city: this.sanitizeString(segment.destination.city || segment.destination.name, 'Unknown'),
+        state: this.sanitizeString(segment.destination.state, undefined)
       } : undefined,
       distance: this.sanitizeNumber(segment.distance || segment.approximateMiles, 0),
       driveTimeHours: this.sanitizeNumber(segment.driveTimeHours || segment.drivingTime, 0),
@@ -150,7 +148,10 @@ export class TripDataSanitizationService {
     };
   }
 
-  private static sanitizeString(value: any, fallback: string): string {
+  private static sanitizeString(value: any, fallback: string | undefined): string | undefined {
+    if (fallback === undefined) {
+      return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+    }
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
   }
 

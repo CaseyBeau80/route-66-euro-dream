@@ -6,6 +6,7 @@ import PDFDaySegmentCard from '../pdf/PDFDaySegmentCard';
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
 import ErrorBoundary from '../ErrorBoundary';
+import { getDestinationCityWithState } from '../../utils/DestinationUtils';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -56,7 +57,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     const enrichedSegments = rawSegments.filter(segment => {
       if (!segment) return false;
       if (typeof segment.day !== 'number' || segment.day <= 0) return false;
-      if (!segment.endCity && !segment.destination?.name) return false;
+      if (!segment.endCity && !getDestinationCityWithState(segment.destination)) return false;
       return true;
     }) || [];
 
