@@ -93,11 +93,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       return;
     }
     
-    if (isExporting) {
-      console.warn('⚠️ Already exporting, ignoring click');
-      return;
-    }
-    
+    // Don't check isExporting here - let the hook handle it
     console.log('✅ Calling handleExportPDF...');
     handleExportPDF();
   };
@@ -248,7 +244,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
 
             <Button
               onClick={handleExportClick}
-              disabled={isExporting || !isTripComplete}
+              disabled={!isTripComplete}
               className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
               {isExporting ? 'Opening Preview...' : 'Export PDF with Preview'}

@@ -32,16 +32,16 @@ export const usePDFExport = ({
   const handleExportPDF = useCallback(async () => {
     console.log('🚀 PDF Export: Starting export process...');
     
-    // Prevent double execution
-    if (isExporting) {
-      console.warn('⚠️ Export already in progress');
-      return;
-    }
-
     // Validate trip plan
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
       console.error('❌ Invalid trip plan - no segments found');
       alert('Cannot export PDF: No trip segments found. Please create a trip plan first.');
+      return;
+    }
+
+    // Prevent multiple simultaneous exports
+    if (isExporting || showPreview) {
+      console.warn('⚠️ Export already in progress or preview already showing');
       return;
     }
 
@@ -110,6 +110,7 @@ export const usePDFExport = ({
       }
       
     } finally {
+      // Only reset isExporting after preview is shown
       setIsExporting(false);
     }
   }, [tripPlan, tripStartDate, addPrintStyles, isExporting, showPreview]);
