@@ -65,8 +65,15 @@ export class WeatherForecastService {
       // Enhanced processing with 5-day support
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
       
-      // Enhanced forecast matching with better fallback logic
+      // **PHASE 4 FIX**: Always call findBestForecastMatch and ensure dateMatchInfo is populated
       const matchResult = this.findBestForecastMatch(processedForecast, targetDate);
+      
+      console.log(`🎯 PHASE 4 - Match result for ${cityName}:`, {
+        hasMatch: !!matchResult.matchedForecast,
+        matchInfo: matchResult.matchInfo,
+        targetDate: targetDate.toISOString(),
+        processedForecastCount: processedForecast.length
+      });
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
@@ -106,7 +113,8 @@ export class WeatherForecastService {
         };
       } else {
         console.log(`⚠️ WeatherForecastService: No suitable forecast match, creating enhanced fallback for ${cityName}`);
-        return this.createEnhancedForecastFromCurrent(currentData, cityName, targetDate, processedForecast);
+        // **PHASE 4 FIX**: Still populate dateMatchInfo even in fallback scenarios
+        return this.createEnhancedForecastFromCurrent(currentData, cityName, targetDate, processedForecast, matchResult.matchInfo);
       }
     } catch (error) {
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
@@ -118,12 +126,23 @@ export class WeatherForecastService {
     currentData: any,
     cityName: string,
     targetDate: Date,
-    processedForecast: ForecastDay[]
+    processedForecast: ForecastDay[],
+    fallbackMatchInfo?: any
   ): ForecastWeatherData {
     console.log(`🔧 WeatherForecastService: Creating enhanced forecast from current data for ${cityName}`);
     
     const currentTemp = currentData.main.temp;
     const tempVariation = 10; // Add realistic temperature variation
+    
+    // **PHASE 4 FIX**: Always provide dateMatchInfo, even for fallback scenarios
+    const dateMatchInfo = fallbackMatchInfo || {
+      requestedDate: targetDate.toISOString().split('T')[0],
+      matchedDate: new Date().toISOString().split('T')[0],
+      matchType: 'closest' as const,
+      daysOffset: Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+    };
+    
+    console.log(`📅 PHASE 4 - Created fallback dateMatchInfo:`, dateMatchInfo);
     
     return {
       temperature: Math.round(currentTemp),
@@ -138,12 +157,7 @@ export class WeatherForecastService {
       forecast: processedForecast.length > 0 ? processedForecast : [],
       forecastDate: targetDate,
       isActualForecast: true, // Mark as actual since it's based on real API data
-      dateMatchInfo: {
-        requestedDate: targetDate.toISOString().split('T')[0],
-        matchedDate: new Date().toISOString().split('T')[0],
-        matchType: 'closest',
-        daysOffset: Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
-      }
+      dateMatchInfo: dateMatchInfo
     };
   }
 
@@ -156,10 +170,27 @@ export class WeatherForecastService {
     
     console.log(`🎯 Enhanced forecast matching for ${targetDateString} from ${processedForecast.length} forecasts`);
     
+    // **PHASE 4**: Enhanced logging for forecast matching
+    if (processedForecast.length === 0) {
+      console.warn(`⚠️ PHASE 4: No processed forecasts available for matching`);
+      return {
+        matchedForecast: null,
+        matchInfo: {
+          requestedDate: targetDateString,
+          matchedDate: 'no-forecasts-available',
+          matchType: 'none' as const,
+          daysOffset: -1
+        }
+      };
+    }
+    
+    // Log all available forecast dates for debugging
+    console.log(`📊 PHASE 4 - Available forecast dates:`, processedForecast.map(f => f.dateString));
+    
     // First try exact date match
     for (const forecast of processedForecast) {
       if (forecast.dateString === targetDateString) {
-        console.log(`✅ Exact date match found: ${forecast.dateString}`);
+        console.log(`✅ PHASE 4 - Exact date match found: ${forecast.dateString}`);
         return {
           matchedForecast: forecast,
           matchInfo: {
@@ -175,33 +206,36 @@ export class WeatherForecastService {
     // If no exact match, find closest date within reasonable range
     let closestForecast: ForecastDay | null = null;
     let smallestOffset = Infinity;
+    let actualOffset = 0;
     
     for (const forecast of processedForecast) {
       if (!forecast.dateString) continue;
       
       const forecastDate = new Date(forecast.dateString + 'T00:00:00Z');
       const offsetDays = Math.abs((forecastDate.getTime() - targetDateUTC.getTime()) / (24 * 60 * 60 * 1000));
+      const actualDayOffset = Math.round((forecastDate.getTime() - targetDateUTC.getTime()) / (24 * 60 * 60 * 1000));
       
       if (offsetDays < smallestOffset && offsetDays <= 2) { // Within 2 days
         closestForecast = forecast;
         smallestOffset = offsetDays;
+        actualOffset = actualDayOffset;
       }
     }
     
     if (closestForecast) {
-      console.log(`🎯 Closest match found: ${closestForecast.dateString} (${smallestOffset} days offset)`);
+      console.log(`🎯 PHASE 4 - Closest match found: ${closestForecast.dateString} (${smallestOffset} days offset)`);
       return {
         matchedForecast: closestForecast,
         matchInfo: {
           requestedDate: targetDateString,
           matchedDate: closestForecast.dateString,
           matchType: 'closest' as const,
-          daysOffset: smallestOffset
+          daysOffset: actualOffset
         }
       };
     }
     
-    console.log(`❌ No suitable forecast match found within 2-day range`);
+    console.log(`❌ PHASE 4 - No suitable forecast match found within 2-day range`);
     return {
       matchedForecast: null,
       matchInfo: {
@@ -225,6 +259,16 @@ export class WeatherForecastService {
     const seasonalTemp = this.getSeasonalTemperature(month);
     const tempVariation = 15;
     
+    // **PHASE 4 FIX**: Always provide dateMatchInfo for fallback forecasts
+    const dateMatchInfo = {
+      requestedDate: targetDate.toISOString().split('T')[0],
+      matchedDate: 'seasonal-estimate',
+      matchType: 'none' as const,
+      daysOffset: daysFromNow
+    };
+    
+    console.log(`📊 PHASE 4 - Created seasonal fallback dateMatchInfo:`, dateMatchInfo);
+    
     return {
       temperature: seasonalTemp,
       highTemp: seasonalTemp + tempVariation/2,
@@ -238,17 +282,11 @@ export class WeatherForecastService {
       forecast: [],
       forecastDate: targetDate,
       isActualForecast: false, // Mark as fallback
-      dateMatchInfo: {
-        requestedDate: targetDate.toISOString().split('T')[0],
-        matchedDate: 'seasonal-estimate',
-        matchType: 'none',
-        daysOffset: daysFromNow
-      }
+      dateMatchInfo: dateMatchInfo
     };
   }
 
   private getSeasonalTemperature(month: number): number {
-    // Rough seasonal temperatures for central US (Route 66 area)
     const seasonalTemps = [40, 45, 55, 65, 75, 85, 90, 88, 80, 70, 55, 45];
     return seasonalTemps[month] || 70;
   }

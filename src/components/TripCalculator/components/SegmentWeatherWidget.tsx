@@ -119,6 +119,35 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
+  // **PHASE 3**: Enhanced weather data validation and logging
+  React.useEffect(() => {
+    if (weatherState.weather) {
+      console.log(`🔍 PHASE 3 - Weather data analysis for ${segment.endCity}:`, {
+        hasWeather: true,
+        isActualForecast: weatherState.weather.isActualForecast,
+        hasDateMatchInfo: !!weatherState.weather.dateMatchInfo,
+        dateMatchType: weatherState.weather.dateMatchInfo?.matchType,
+        hasHighTemp: weatherState.weather.highTemp !== undefined,
+        hasLowTemp: weatherState.weather.lowTemp !== undefined,
+        hasTemperature: weatherState.weather.temperature !== undefined,
+        hasForecast: !!weatherState.weather.forecast?.length,
+        forecastLength: weatherState.weather.forecast?.length || 0,
+        segmentDate: segmentDate?.toISOString(),
+        daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null,
+        sectionKey,
+        isSharedView: sectionKey === 'shared-view'
+      });
+
+      // **PHASE 3**: Verify weather object completeness
+      if (weatherState.weather.isActualForecast && !weatherState.weather.dateMatchInfo) {
+        console.warn(`⚠️ PHASE 3 WARNING: Live forecast missing dateMatchInfo for ${segment.endCity}`, {
+          weather: weatherState.weather,
+          segmentDate: segmentDate?.toISOString()
+        });
+      }
+    }
+  }, [weatherState.weather, segment.endCity, segmentDate, sectionKey]);
+
   // Handle API key updates
   const handleApiKeySet = React.useCallback(() => {
     console.log('🔑 API key set, refreshing weather service state');

@@ -43,17 +43,26 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const showDebugInfo = process.env.NODE_ENV === 'development' || 
                        (weather?.dateMatchInfo?.matchType !== 'exact' && weather?.isActualForecast);
 
-  // Enhanced validation with better error handling
-  const validation = validateWeatherData(weather, segmentEndCity);
-  const displayType = getWeatherDisplayType(validation, error, retryCount);
+  // **PHASE 2 FIX**: Enhanced validation with segmentDate parameter for fallback calculations
+  const validation = validateWeatherData(weather, segmentEndCity, segmentDate);
+  const displayType = getWeatherDisplayType(validation, error, retryCount, weather);
   
-  console.log(`🎯 WeatherDataDisplay: Enhanced display decision for ${segmentEndCity}:`, {
+  console.log(`🎯 Enhanced display decision for ${segmentEndCity}:`, {
     validation,
     displayType,
     error,
     retryCount,
-    dateMatchInfo: weather?.dateMatchInfo
+    dateMatchInfo: weather?.dateMatchInfo,
+    isActualForecast: weather?.isActualForecast
   });
+
+  // **PHASE 2 FIX**: Priority override - always show live forecast if available, regardless of validation quality
+  const shouldShowLiveForecast = weather?.isActualForecast === true && 
+                                (validation.hasTemperatureRange || validation.isWithinForecastRange);
+
+  if (shouldShowLiveForecast && displayType !== 'live-forecast') {
+    console.log(`🚀 OVERRIDE: Forcing live forecast display despite validation quality (${validation.dataQuality})`);
+  }
 
   // Handle each display type with enhanced logic
   switch (displayType) {
@@ -67,6 +76,11 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           warningMessage += ` (${validation.warnings[0]})`;
         } else if (segmentDate) {
           warningMessage += ` for ${segmentDate.toLocaleDateString()}`;
+        }
+        
+        // **PHASE 2**: Add dev mode warning for quality issues
+        if (process.env.NODE_ENV === 'development' && validation.dataQuality !== 'excellent') {
+          warningMessage += ` [DEV: Quality=${validation.dataQuality}]`;
         }
         
         return (
@@ -90,6 +104,29 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
 
     case 'seasonal-estimate':
+      // **PHASE 2 FIX**: Check if this should actually be live forecast
+      if (shouldShowLiveForecast) {
+        console.log(`🚀 PROMOTING seasonal-estimate to live-forecast for ${segmentEndCity}`);
+        const forecastWeather = weather as ForecastWeatherData;
+        
+        return (
+          <div className="space-y-2">
+            <DismissibleSeasonalWarning
+              message={`Live forecast available (promoted from seasonal estimate)`}
+              type="forecast-unavailable"
+              isSharedView={isSharedView}
+            />
+            <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+            <WeatherDateMatchDebug
+              weather={forecastWeather}
+              segmentDate={segmentDate}
+              segmentEndCity={segmentEndCity}
+              isVisible={showDebugInfo}
+            />
+          </div>
+        );
+      }
+
       if (weather?.isActualForecast !== undefined) {
         const forecastWeather = weather as ForecastWeatherData;
         
@@ -119,7 +156,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       break;
 
     case 'service-unavailable':
-      console.log(`❌ WeatherDataDisplay: Service unavailable for ${segmentEndCity} - suppressing all forecast data`);
+      console.log(`❌ Service unavailable for ${segmentEndCity} - suppressing all forecast data`);
       return (
         <div className="space-y-2">
           <DismissibleSeasonalWarning
@@ -147,12 +184,29 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       );
   }
 
-  // Enhanced fallback with better error messaging
+  // **PHASE 2**: Enhanced fallback with better error messaging and live forecast detection
   console.warn(`⚠️ WeatherDataDisplay: Reached enhanced fallback for ${segmentEndCity}`, {
     weather,
     validation,
-    displayType
+    displayType,
+    shouldShowLiveForecast
   });
+  
+  // Final check for live forecast before giving up
+  if (shouldShowLiveForecast) {
+    console.log(`🚀 FINAL ATTEMPT: Showing live forecast in fallback for ${segmentEndCity}`);
+    const forecastWeather = weather as ForecastWeatherData;
+    return (
+      <div className="space-y-2">
+        <DismissibleSeasonalWarning
+          message="Live forecast (fallback rendering)"
+          type="forecast-unavailable"
+          isSharedView={isSharedView}
+        />
+        <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+      </div>
+    );
+  }
   
   return (
     <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -162,7 +216,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       </p>
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-500 mt-2">
-          Debug: {JSON.stringify({ validation: validation.dataQuality, displayType })}
+          Debug: {JSON.stringify({ validation: validation.dataQuality, displayType, shouldShowLiveForecast })}
         </div>
       )}
     </div>

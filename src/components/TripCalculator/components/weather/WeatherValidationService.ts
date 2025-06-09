@@ -20,9 +20,10 @@ export type WeatherDisplayType =
 
 export const validateWeatherData = (
   weather: any, 
-  cityName: string
+  cityName: string,
+  segmentDate?: Date | null
 ): WeatherValidationResult => {
-  console.log(`🔍 WeatherValidationService: Validating weather for ${cityName}:`, {
+  console.log(`🔍 WeatherValidationService: Enhanced validation for ${cityName}:`, {
     hasWeather: !!weather,
     isActualForecast: weather?.isActualForecast,
     hasDateMatchInfo: !!weather?.dateMatchInfo,
@@ -31,7 +32,8 @@ export const validateWeatherData = (
     hasLowTemp: weather?.lowTemp !== undefined,
     daysOffset: weather?.dateMatchInfo?.daysOffset,
     hasTemperatureInWeather: weather?.temperature !== undefined,
-    hasForecastArray: !!weather?.forecast?.length
+    hasForecastArray: !!weather?.forecast?.length,
+    segmentDate: segmentDate?.toISOString()
   });
 
   const warnings: string[] = [];
@@ -61,25 +63,32 @@ export const validateWeatherData = (
   const hasMatchedForecast = weather.matchedForecastDay !== undefined || 
                             (weather.forecast && weather.forecast.length > 0);
   
-  // Enhanced days calculation with fallback methods
+  // **PHASE 1 FIX**: Enhanced days calculation with bulletproof fallback methods
   let daysFromNow: number | null = null;
   
   if (weather.dateMatchInfo?.daysOffset !== undefined) {
     daysFromNow = weather.dateMatchInfo.daysOffset;
+    console.log(`📅 Using dateMatchInfo.daysOffset: ${daysFromNow}`);
   } else if (weather.forecastDate) {
     // Fallback: calculate from forecast date
     const forecastDate = new Date(weather.forecastDate);
     const now = new Date();
     daysFromNow = Math.ceil((forecastDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-    console.log(`📅 WeatherValidationService: Calculated daysFromNow from forecastDate: ${daysFromNow}`);
+    console.log(`📅 Calculated daysFromNow from forecastDate: ${daysFromNow}`);
+  } else if (segmentDate) {
+    // **NEW FALLBACK**: Calculate from segmentDate parameter
+    const now = new Date();
+    daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+    console.log(`📅 Calculated daysFromNow from segmentDate parameter: ${daysFromNow}`);
+    warnings.push('Date calculated from segment date (dateMatchInfo missing)');
   } else {
-    console.log(`⚠️ WeatherValidationService: No date information available for ${cityName}`);
+    console.log(`⚠️ No date information available for ${cityName}`);
   }
 
   // Enhanced forecast range validation - now supports 5 days
   const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
 
-  console.log(`📊 WeatherValidationService: Enhanced analysis for ${cityName}:`, {
+  console.log(`📊 Enhanced analysis for ${cityName}:`, {
     hasActualForecast,
     hasTemperatureRange,
     hasMatchedForecast,
@@ -88,21 +97,20 @@ export const validateWeatherData = (
     matchType: weather.dateMatchInfo?.matchType || 'no-match-info'
   });
 
-  // Enhanced quality assessment that's more lenient with missing dateMatchInfo
+  // **PHASE 1 FIX**: Bulletproof quality assessment - prioritize actual forecast data
   let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'unavailable';
   
+  // **CRITICAL FIX**: Accept as valid if it's actual forecast data, even without perfect dateMatchInfo
   if (hasActualForecast && hasTemperatureRange) {
-    if (isWithinForecastRange) {
-      if (weather.dateMatchInfo?.matchType === 'exact') {
-        dataQuality = 'excellent';
-      } else if (weather.dateMatchInfo?.matchType === 'closest') {
-        dataQuality = 'good';
-        warnings.push(`Date match is approximate (${weather.dateMatchInfo.daysOffset} days offset)`);
-      } else {
-        // Even without perfect dateMatchInfo, if we have actual forecast data, it's still good
-        dataQuality = 'good';
-        warnings.push('Date matching information incomplete but forecast data available');
-      }
+    if (weather.dateMatchInfo?.matchType === 'exact') {
+      dataQuality = 'excellent';
+    } else if (weather.dateMatchInfo?.matchType === 'closest') {
+      dataQuality = 'good';
+      warnings.push(`Date match is approximate (${weather.dateMatchInfo.daysOffset} days offset)`);
+    } else if (isWithinForecastRange) {
+      // **NEW**: Even without dateMatchInfo, if we have actual forecast within range, it's good
+      dataQuality = 'good';
+      warnings.push('Live forecast data available (dateMatchInfo incomplete)');
     } else if (daysFromNow !== null && daysFromNow > 5) {
       dataQuality = 'poor';
       warnings.push(`Date beyond 5-day forecast range (${daysFromNow} days ahead)`);
@@ -130,19 +138,22 @@ export const validateWeatherData = (
     warnings
   };
 
-  console.log(`✅ WeatherValidationService: Final enhanced validation for ${cityName}:`, result);
+  console.log(`✅ Final enhanced validation for ${cityName}:`, result);
   return result;
 };
 
 export const getWeatherDisplayType = (
   validation: WeatherValidationResult,
   error: string | null,
-  retryCount: number
+  retryCount: number,
+  weather?: any
 ): WeatherDisplayType => {
-  console.log(`🎯 WeatherValidationService: Determining display type:`, {
+  console.log(`🎯 Enhanced display type determination:`, {
     validation,
     error,
-    retryCount
+    retryCount,
+    hasActualForecast: weather?.isActualForecast,
+    isWithinRange: validation.isWithinForecastRange
   });
 
   // Handle error states first
@@ -153,6 +164,12 @@ export const getWeatherDisplayType = (
   // Handle loading state
   if (!validation.isValid && validation.dataQuality === 'unavailable' && !error) {
     return 'loading';
+  }
+
+  // **PHASE 2 PREVIEW**: Prioritize actual forecast data even with incomplete validation
+  if (weather?.isActualForecast === true && (validation.isWithinForecastRange || validation.hasTemperatureRange)) {
+    console.log(`🌤️ Live forecast prioritized - quality: ${validation.dataQuality}`);
+    return 'live-forecast';
   }
 
   // Enhanced logic - prioritize actual forecast data even with incomplete dateMatchInfo
