@@ -28,7 +28,10 @@ export const RAMBLE_LOGO_CONFIG = {
 /**
  * Get the primary logo URL - use this throughout the application
  */
-export const getRambleLogoUrl = () => RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
+export const getRambleLogoUrl = () => {
+  console.log('🎯 Loading Ramble 66 logo from:', RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL);
+  return RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
+};
 
 /**
  * Get alt text for logo based on context
