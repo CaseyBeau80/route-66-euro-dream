@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
@@ -19,10 +18,16 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
   const stops = segment.stops || [];
   const attractions = segment.attractions || [];
   
-  // Combine all points of interest
-  const allStops = [...stops, ...attractions];
+  // Combine and deduplicate stops and attractions by name
+  const combinedStops = [...stops, ...attractions];
+  const deduplicatedStops = combinedStops.filter((stop, index, array) => {
+    // Keep only the first occurrence of each stop name (case-insensitive)
+    return array.findIndex(s => 
+      (s.name || s.title || '').toLowerCase() === (stop.name || stop.title || '').toLowerCase()
+    ) === index;
+  });
 
-  if (allStops.length === 0) {
+  if (deduplicatedStops.length === 0) {
     return (
       <div className="pdf-stops-section mb-4">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">🏛️ Attractions & Stops</h4>
@@ -35,7 +40,7 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
     <div className="pdf-stops-section mb-4">
       <h4 className="text-sm font-semibold text-gray-700 mb-3">🏛️ Attractions & Stops</h4>
       <div className="space-y-2">
-        {allStops.slice(0, exportFormat === 'summary' ? 3 : 6).map((stop, index) => (
+        {deduplicatedStops.slice(0, exportFormat === 'summary' ? 3 : 6).map((stop, index) => (
           <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm">
             <span className="text-gray-600 mt-0.5">📍</span>
             <div className="flex-1 min-w-0">
@@ -54,9 +59,9 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
           </div>
         ))}
         
-        {allStops.length > (exportFormat === 'summary' ? 3 : 6) && (
+        {deduplicatedStops.length > (exportFormat === 'summary' ? 3 : 6) && (
           <div className="text-xs text-gray-500 text-center py-1">
-            + {allStops.length - (exportFormat === 'summary' ? 3 : 6)} more stops available
+            + {deduplicatedStops.length - (exportFormat === 'summary' ? 3 : 6)} more stops available
           </div>
         )}
       </div>
