@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import NavigationBar from '@/components/NavigationBar';
-import EnhancedTripResults from '@/components/TripCalculator/EnhancedTripResults';
 import { TripService, SavedTrip } from '@/components/TripCalculator/services/TripService';
 import { toast } from '@/hooks/use-toast';
 import TripDetailsHeader from './TripDetailsPage/components/TripDetailsHeader';
 import TripDetailsLoading from './TripDetailsPage/components/TripDetailsLoading';
 import TripDetailsError from './TripDetailsPage/components/TripDetailsError';
+import TripDetailsContent from './TripDetailsPage/components/TripDetailsContent';
 
 const TripDetailsPage: React.FC = () => {
   const { shareCode } = useParams<{ shareCode: string }>();
@@ -117,14 +116,11 @@ const TripDetailsPage: React.FC = () => {
               onPlanNewTrip={handlePlanNewTrip}
             />
             
-            {/* Trip Results - Note: shared trips don't have a start date set */}
-            <div className="bg-route66-background rounded-xl shadow-lg border border-route66-border p-6">
-              <EnhancedTripResults 
-                tripPlan={trip.trip_data} 
-                shareUrl={shareUrl}
-                tripStartDate={undefined}
-              />
-            </div>
+            {/* Enhanced Trip Content - Now using PDF-style layout */}
+            <TripDetailsContent 
+              trip={trip}
+              shareUrl={shareUrl}
+            />
           </div>
         </div>
       </div>
