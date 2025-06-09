@@ -3,6 +3,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { DataIntegrityReport } from '../../services/pdf/PDFDataIntegrityService';
+import { getRambleLogoUrl, getRambleLogoAlt } from '../../../../utils/logoConfig';
 
 interface PDFFooterProps {
   shareUrl?: string;
@@ -17,9 +18,6 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
   includeQRCode,
   dataIntegrityReport
 }) => {
-  // Use the correct logo URL provided by the user
-  const correctLogoUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png';
-  
   const weatherSegmentsCount = enrichedSegments.filter(s => s.weather || s.weatherData).length;
   const forecastSegmentsCount = enrichedSegments.filter(s => 
     (s.weather?.isActualForecast) || (s.weatherData?.isActualForecast)
@@ -32,8 +30,8 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
         <div className="pdf-qr-section mt-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src={correctLogoUrl} 
-              alt="Ramble 66 Logo" 
+              src={getRambleLogoUrl()}
+              alt={getRambleLogoAlt('branding')}
               className="h-12 w-auto object-contain"
             />
           </div>
@@ -58,8 +56,8 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
         <div className="flex justify-center mb-4">
           <div className="flex items-center gap-3">
             <img 
-              src={correctLogoUrl} 
-              alt="Ramble 66 Logo" 
+              src={getRambleLogoUrl()}
+              alt={getRambleLogoAlt('branding')}
               className="h-8 w-auto object-contain"
             />
             <div className="ramble-66-text-logo">

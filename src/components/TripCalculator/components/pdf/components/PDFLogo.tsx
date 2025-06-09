@@ -1,17 +1,30 @@
 
 import React from 'react';
 import { Route } from 'lucide-react';
+import { getRambleLogoUrl, getRambleLogoAlt } from '../../../../../utils/logoConfig';
 
 interface PDFLogoProps {
   showFallback?: boolean;
 }
 
 const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
-  // Always use the text-based logo for PDF to ensure it prints correctly
   return (
     <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
       <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center mx-auto">
-        <Route className="w-6 h-6 text-white" />
+        <img 
+          src={getRambleLogoUrl()}
+          alt={getRambleLogoAlt('branding')}
+          className="w-6 h-6 object-contain"
+          onError={(e) => {
+            if (showFallback) {
+              // Fallback to Route icon if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }
+          }}
+        />
+        <Route className="w-6 h-6 text-white hidden" />
       </div>
       <div className="ramble-66-text-logo text-center">
         <div className="flex items-center gap-1 justify-center">

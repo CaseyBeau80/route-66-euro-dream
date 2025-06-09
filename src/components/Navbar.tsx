@@ -10,6 +10,7 @@ type NavbarProps = {
 
 const Navbar = ({ language, setLanguage }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const RAMBLE_LOGO_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm">
@@ -17,7 +18,7 @@ const Navbar = ({ language, setLanguage }: NavbarProps) => {
         <div className="flex items-center">
           <div className="mr-2">
             <img 
-              src="https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?auto=format&fit=crop&w=40&h=40&q=80" 
+              src={RAMBLE_LOGO_URL}
               alt="Route 66 logo" 
               className="w-10 h-10 rounded-full object-cover"
             />

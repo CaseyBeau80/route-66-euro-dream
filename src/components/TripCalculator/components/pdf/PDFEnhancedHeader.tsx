@@ -2,6 +2,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { getRambleLogoUrl, getRambleLogoAlt } from '../../../../utils/logoConfig';
 
 interface PDFEnhancedHeaderProps {
   title: string;
@@ -16,17 +17,14 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
   tripStartDate,
   logoUrl
 }) => {
-  // Use the correct logo URL provided by the user
-  const correctLogoUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png';
-
   return (
     <div className="pdf-header no-page-break mb-8 text-center border-b-4 border-route66-primary pb-6">
       {/* Centered Logo Section */}
       <div className="flex justify-center items-center mb-6">
         <div className="logo-container text-center">
           <img 
-            src={correctLogoUrl} 
-            alt="Ramble 66 Logo" 
+            src={getRambleLogoUrl()}
+            alt={getRambleLogoAlt('branding')}
             className="h-16 w-auto max-w-[200px] object-contain mx-auto"
             style={{ 
               maxHeight: '64px',
