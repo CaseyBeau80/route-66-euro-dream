@@ -2,21 +2,24 @@
 import React from 'react';
 import ForecastWeatherDisplay from './ForecastWeatherDisplay';
 import CurrentWeatherDisplay from './CurrentWeatherDisplay';
+import DismissibleSeasonalWarning from './DismissibleSeasonalWarning';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface WeatherDataDisplayProps {
   weather: any;
   segmentDate: Date | null;
   segmentEndCity: string;
+  isSharedView?: boolean;
 }
 
 const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   weather,
   segmentDate,
-  segmentEndCity
+  segmentEndCity,
+  isSharedView = false
 }) => {
-  // Check if this is actual forecast data with real weather information
-  if (weather.isActualForecast !== undefined) {
+  // Check if this is forecast data (matching PDF export logic)
+  if (weather?.isActualForecast !== undefined) {
     const forecastWeather = weather as ForecastWeatherData;
     
     // Show live forecast data if we have actual forecast with valid temperatures
@@ -34,22 +37,26 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       
       return (
         <div className="space-y-2">
-          <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
-            <strong>🔮 Live Forecast:</strong> Powered by OpenWeatherMap for {segmentDate?.toLocaleDateString()}
-          </div>
+          <DismissibleSeasonalWarning
+            message={`Powered by OpenWeatherMap for ${segmentDate?.toLocaleDateString()}`}
+            type="forecast-unavailable"
+            isSharedView={isSharedView}
+          />
           <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
         </div>
       );
     }
     
-    // If forecast data exists but is marked as not actual forecast, show seasonal with note
+    // If forecast data exists but is marked as not actual forecast, show seasonal with warning
     if (!forecastWeather.isActualForecast) {
       console.log(`📊 Forecast service returned seasonal data for ${segmentEndCity}`);
       return (
         <div className="space-y-2">
-          <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-            <strong>📊 Seasonal Estimate:</strong> Based on historical weather patterns
-          </div>
+          <DismissibleSeasonalWarning
+            message="Based on historical weather patterns"
+            type="seasonal"
+            isSharedView={isSharedView}
+          />
           <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
         </div>
       );

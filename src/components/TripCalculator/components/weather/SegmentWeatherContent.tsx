@@ -63,6 +63,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         weather={weather}
         segmentDate={segmentDate}
         segmentEndCity={segmentEndCity}
+        isSharedView={isSharedView}
       />
     );
   }
