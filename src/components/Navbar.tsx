@@ -23,7 +23,7 @@ const Navbar = ({ language, setLanguage }: NavbarProps) => {
               className="w-10 h-10 rounded-full object-cover"
             />
           </div>
-          <span className="font-route66 text-2xl text-route66-red">ROUTE 66</span>
+          <span className="font-route66 text-2xl text-route66-red">RAMBLE 66</span>
         </div>
         
         {/* Desktop Menu */}

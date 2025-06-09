@@ -4,6 +4,7 @@ import NavigationBar from '@/components/NavigationBar';
 import Route66PlannerForm from '@/components/Route66Planner/Route66PlannerForm';
 import PlannerResults from '@/components/Route66Planner/PlannerResults';
 import { PlannerFormData, TripItinerary } from '@/components/Route66Planner/types';
+import { getRambleLogoUrl, getRambleLogoAlt } from '../utils/logoConfig';
 
 const Route66Planner = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
@@ -28,9 +29,12 @@ const Route66Planner = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-26 bg-white rounded-lg border-2 border-[#3b82f6] shadow-xl flex flex-col items-center justify-center">
-                <div className="text-[#1e293b] text-xs font-semibold tracking-wider">ROUTE</div>
-                <div className="text-[#3b82f6] text-2xl font-black leading-none">66</div>
+              <div className="w-20 h-26 bg-white rounded-lg border-2 border-[#3b82f6] shadow-xl flex flex-col items-center justify-center p-4">
+                <img 
+                  src={getRambleLogoUrl()}
+                  alt={getRambleLogoAlt('branding')}
+                  className="w-12 h-12 object-contain mb-2"
+                />
                 <div className="text-[#1e293b] text-[8px] font-medium">PLANNER</div>
               </div>
             </div>
