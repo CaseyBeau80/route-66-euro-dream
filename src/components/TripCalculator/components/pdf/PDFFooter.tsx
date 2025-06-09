@@ -3,7 +3,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { DataIntegrityReport } from '../../services/pdf/PDFDataIntegrityService';
-import { getRambleLogoUrl, getRambleLogoAlt } from '../../../../utils/logoConfig';
+import LogoImage from '../../../shared/LogoImage';
 
 interface PDFFooterProps {
   shareUrl?: string;
@@ -29,10 +29,9 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
       {includeQRCode && shareUrl && (
         <div className="pdf-qr-section mt-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown text-center">
           <div className="flex justify-center mb-4">
-            <img 
-              src={getRambleLogoUrl()}
-              alt={getRambleLogoAlt('branding')}
+            <LogoImage 
               className="h-12 w-auto object-contain"
+              alt="Ramble 66 - Route 66 Trip Planner"
             />
           </div>
           <h3 className="text-lg font-bold text-route66-vintage-red mb-2 font-route66">
@@ -55,10 +54,9 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
         {/* Main Branding */}
         <div className="flex justify-center mb-4">
           <div className="flex items-center gap-3">
-            <img 
-              src={getRambleLogoUrl()}
-              alt={getRambleLogoAlt('branding')}
+            <LogoImage 
               className="h-8 w-auto object-contain"
+              alt="Ramble 66 - Route 66 Trip Planner"
             />
             <div className="ramble-66-text-logo">
               <div className="flex items-center gap-1">

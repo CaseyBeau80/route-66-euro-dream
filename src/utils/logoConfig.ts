@@ -8,6 +8,9 @@ export const RAMBLE_LOGO_CONFIG = {
   // Primary logo URL - the official Ramble 66 logo
   PRIMARY_LOGO_URL: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png",
   
+  // Fallback logo URL in case primary fails
+  FALLBACK_LOGO_URL: "https://via.placeholder.com/64x64/1e40af/ffffff?text=R66",
+  
   // Alt text variations for different contexts
   ALT_TEXT: {
     default: "Ramble 66 Logo",
@@ -28,9 +31,10 @@ export const RAMBLE_LOGO_CONFIG = {
 /**
  * Get the primary logo URL - use this throughout the application
  */
-export const getRambleLogoUrl = () => {
-  console.log('🎯 Loading Ramble 66 logo from:', RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL);
-  return RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
+export const getRambleLogoUrl = (useFallback = false) => {
+  const url = useFallback ? RAMBLE_LOGO_CONFIG.FALLBACK_LOGO_URL : RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
+  console.log('🎯 Loading Ramble 66 logo from:', url);
+  return url;
 };
 
 /**
@@ -44,3 +48,32 @@ export const getRambleLogoAlt = (context: keyof typeof RAMBLE_LOGO_CONFIG.ALT_TE
  */
 export const getRambleLogoSize = (size: keyof typeof RAMBLE_LOGO_CONFIG.SIZES) => 
   RAMBLE_LOGO_CONFIG.SIZES[size];
+
+/**
+ * Test if the logo URL is accessible
+ */
+export const testLogoUrl = async (url: string): Promise<boolean> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    console.error('❌ Logo URL test failed:', error);
+    return false;
+  }
+};
+
+/**
+ * Get the best available logo URL (with fallback logic)
+ */
+export const getBestLogoUrl = async (): Promise<string> => {
+  const primaryUrl = getRambleLogoUrl();
+  const isAccessible = await testLogoUrl(primaryUrl);
+  
+  if (isAccessible) {
+    console.log('✅ Primary logo URL is accessible');
+    return primaryUrl;
+  } else {
+    console.warn('⚠️ Primary logo URL not accessible, using fallback');
+    return getRambleLogoUrl(true);
+  }
+};

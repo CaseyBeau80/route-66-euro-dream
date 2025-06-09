@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Route } from 'lucide-react';
-import { getRambleLogoUrl, getRambleLogoAlt } from '../../../../../utils/logoConfig';
+import LogoImage from '../../../../shared/LogoImage';
 
 interface PDFLogoProps {
   showFallback?: boolean;
@@ -11,16 +11,19 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
   return (
     <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
       <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center mx-auto">
-        <img 
-          src={getRambleLogoUrl()}
-          alt={getRambleLogoAlt('branding')}
+        <LogoImage 
           className="w-6 h-6 object-contain"
-          onError={(e) => {
+          alt="Ramble 66 - Route 66 Trip Planner"
+          showFallback={showFallback}
+          onError={() => {
             if (showFallback) {
-              // Fallback to Route icon if image fails to load
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.nextElementSibling?.classList.remove('hidden');
+              // Show fallback icon if image fails
+              const logoImg = document.querySelector('.pdf-logo img');
+              const fallbackIcon = document.querySelector('.pdf-logo .lucide-route');
+              if (logoImg && fallbackIcon) {
+                logoImg.style.display = 'none';
+                fallbackIcon.classList.remove('hidden');
+              }
             }
           }}
         />

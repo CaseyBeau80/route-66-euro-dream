@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getRambleLogoUrl, getRambleLogoAlt } from '../../utils/logoConfig';
+import LogoImage from './LogoImage';
 
 interface PlanYourOwnTripCTAProps {
   className?: string;
@@ -37,10 +37,9 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           onClick={handlePlanTrip}
           className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
-          <img 
-            src={getRambleLogoUrl()}
-            alt={getRambleLogoAlt('branding')}
+          <LogoImage 
             className="w-5 h-5 object-contain"
+            alt="Ramble 66 - Route 66 Trip Planner"
           />
           Plan Your Own Route 66 Trip
           <ArrowRight className="w-4 h-4" />
@@ -54,10 +53,9 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-center mb-4">
           <div className="bg-white/20 rounded-full p-4">
-            <img 
-              src={getRambleLogoUrl()}
-              alt={getRambleLogoAlt('branding')}
+            <LogoImage 
               className="w-8 h-8 object-contain"
+              alt="Ramble 66 - Route 66 Trip Planner"
             />
           </div>
         </div>
@@ -91,10 +89,9 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           size="lg"
           className="bg-white text-route66-primary hover:bg-gray-100 font-bold px-8 py-4 rounded-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 mx-auto text-lg"
         >
-          <img 
-            src={getRambleLogoUrl()}
-            alt={getRambleLogoAlt('branding')}
+          <LogoImage 
             className="w-6 h-6 object-contain"
+            alt="Ramble 66 - Route 66 Trip Planner"
           />
           Start Planning Your Trip
           <ArrowRight className="w-5 h-5" />
