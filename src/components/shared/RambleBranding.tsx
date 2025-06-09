@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Route } from 'lucide-react';
 
 interface RambleBrandingProps {
   className?: string;
@@ -19,17 +18,21 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
     lg: 'text-4xl'
   };
 
-  const iconSizes = {
-    sm: 'w-5 h-5',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8'
+  const logoSizes = {
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12'
   };
 
   if (variant === 'logo') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="bg-route66-primary rounded-full p-2">
-          <Route className={`${iconSizes[size]} text-white`} />
+          <img 
+            src="/lovable-uploads/8ffcc42d-a7be-49cb-b89b-f2bbcd89cfdf.png" 
+            alt="Ramble 66 Logo" 
+            className={`${logoSizes[size]} object-contain`}
+          />
         </div>
       </div>
     );
@@ -51,7 +54,11 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="bg-route66-primary rounded-full p-2">
-        <Route className={`${iconSizes[size]} text-white`} />
+        <img 
+          src="/lovable-uploads/8ffcc42d-a7be-49cb-b89b-f2bbcd89cfdf.png" 
+          alt="Ramble 66 Logo" 
+          className={`${logoSizes[size]} object-contain`}
+        />
       </div>
       <div className="ramble-66-text-logo">
         <div className="flex items-center gap-1">
