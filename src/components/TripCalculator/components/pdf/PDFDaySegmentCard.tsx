@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import { DailySegment, getDestinationCityName } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
 import PDFDaySegmentCardStats from './PDFDaySegmentCardStats';
 import PDFDaySegmentCardWeather from './PDFDaySegmentCardWeather';
@@ -27,12 +27,15 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     new Date(tripStartDate.getTime() + segmentIndex * 24 * 60 * 60 * 1000) : 
     undefined;
 
+  // Safely get destination city name
+  const destinationCity = segment.endCity || getDestinationCityName(segment.destination);
+
   return (
     <div className="pdf-day-card no-page-break mb-6 bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden">
       {/* Day Header with Route 66 Styling */}
       <PDFDaySegmentCardHeader 
         day={segment.day}
-        endCity={segment.endCity || segment.destination || 'Unknown'}
+        endCity={destinationCity}
         segmentDate={segmentDate}
       />
       
@@ -41,7 +44,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         distance={segment.distance}
         driveTimeHours={segment.driveTimeHours}
         startCity={segment.startCity || 'Unknown'}
-        endCity={segment.endCity || segment.destination || 'Unknown'}
+        endCity={destinationCity}
       />
       
       {/* Weather Section - Enhanced for PDF */}

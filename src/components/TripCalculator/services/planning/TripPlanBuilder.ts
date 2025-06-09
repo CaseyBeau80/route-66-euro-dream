@@ -1,5 +1,6 @@
 
 import { DestinationCity } from '@/components/Route66Planner/types';
+import { TripStop } from '../../types/TripStop';
 
 export interface DriveTimeCategory {
   category: 'short' | 'optimal' | 'long' | 'extreme';
@@ -14,31 +15,21 @@ export interface RecommendedStop {
   latitude: number;
   longitude: number;
   city?: string;
-  city_name?: string; // Added missing property
-  state?: string; // Added missing property
+  city_name?: string;
+  state?: string;
   type?: string;
-  category?: string; // Added missing property
+  category?: string;
   duration?: number;
 }
 
 export interface SegmentTiming {
-  fromStop: {
-    id?: string; // Added missing property
-    name: string;
-    latitude: number;
-    longitude: number;
-  };
-  toStop: {
-    id?: string; // Added missing property
-    name: string;
-    latitude: number;
-    longitude: number;
-  };
+  fromStop: TripStop;
+  toStop: TripStop;
   distance: number;
   driveTime: number;
-  distanceMiles: number; // Added missing property
-  driveTimeHours: number; // Added missing property
-  drivingTime: number; // Added missing property
+  distanceMiles: number;
+  driveTimeHours: number;
+  drivingTime: number;
 }
 
 export interface TripPlan {
@@ -48,20 +39,20 @@ export interface TripPlan {
   startDate?: Date;
   totalDays: number;
   totalDistance: number;
-  totalMiles?: number; // Calculated property for compatibility
-  totalDrivingTime?: number; // Total driving time in hours
+  totalMiles?: number;
+  totalDrivingTime?: number;
   segments: DailySegment[];
-  dailySegments?: DailySegment[]; // Alternative property name for compatibility
-  title?: string; // Trip title
+  dailySegments?: DailySegment[];
+  title?: string;
   startCityImage?: string;
   endCityImage?: string;
   isEnriched?: boolean;
   lastUpdated?: Date;
-  originalDays?: number; // For tracking adjustments
-  driveTimeBalance?: any; // Added missing property
-  wasAdjusted?: boolean; // Added missing property
-  tripStyle?: string; // Added missing property
-  warnings?: string[]; // Added missing property
+  originalDays?: number;
+  driveTimeBalance?: any;
+  wasAdjusted?: boolean;
+  tripStyle?: string;
+  warnings?: string[];
   enrichmentStatus?: {
     weatherData: boolean;
     stopsData: boolean;
@@ -73,25 +64,38 @@ export interface DailySegment {
   day: number;
   startCity: string;
   endCity?: string;
-  destination?: string | { city: string; state?: string }; // Updated to support both types
+  destination?: string | { city: string; state?: string };
   distance: number;
   driveTimeHours: number;
-  drivingTime?: number; // Alternative property for compatibility
+  drivingTime?: number;
   recommendedStops?: RecommendedStop[];
-  stops?: RecommendedStop[]; // Alternative property name
+  stops?: RecommendedStop[];
   weather?: any;
   weatherData?: any;
   attractions?: any[];
   isEnriched?: boolean;
   notes?: string;
   recommendations?: string[];
-  // Additional properties for compatibility
   title?: string;
   routeSection?: string;
   driveTimeCategory?: DriveTimeCategory;
   approximateMiles?: number;
   subStopTimings?: SegmentTiming[];
 }
+
+// Helper function to safely get destination city name
+export const getDestinationCityName = (destination: string | { city: string; state?: string } | undefined): string => {
+  if (!destination) return 'Unknown';
+  if (typeof destination === 'string') return destination;
+  return destination.city;
+};
+
+// Helper function to safely get destination city with state
+export const getDestinationCityWithState = (destination: string | { city: string; state?: string } | undefined): string => {
+  if (!destination) return 'Unknown';
+  if (typeof destination === 'string') return destination;
+  return destination.state ? `${destination.city}, ${destination.state}` : destination.city;
+};
 
 // Enhanced data validation service
 export class TripPlanDataValidator {
@@ -172,7 +176,7 @@ export class TripPlanDataValidator {
       driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
       drivingTime: segment.drivingTime || segment.driveTimeHours,
       startCity: segment.startCity || 'Unknown',
-      endCity: segment.endCity || (typeof segment.destination === 'string' ? segment.destination : segment.destination?.city) || 'Unknown',
+      endCity: segment.endCity || getDestinationCityName(segment.destination) || 'Unknown',
       approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),
       stops: segment.stops || segment.recommendedStops || [],
       notes: segment.notes || '',

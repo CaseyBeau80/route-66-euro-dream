@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import { DailySegment, getDestinationCityName } from '../../services/planning/TripPlanBuilder';
 
 interface PDFDaySegmentCardWeatherProps {
   segment: DailySegment;
@@ -16,7 +16,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
 }) => {
   // Get weather data for the segment's end city (destination)
   const weatherData = segment.weather;
-  const endCityName = segment.endCity || segment.destination || 'Destination';
+  const endCityName = segment.endCity || getDestinationCityName(segment.destination);
 
   console.log('🌤️ PDF Weather rendering for:', endCityName, 'Date:', segmentDate, 'Weather:', weatherData);
 

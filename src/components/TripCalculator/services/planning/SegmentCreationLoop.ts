@@ -1,7 +1,7 @@
 
 import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
+import { DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanBuilder';
 import { SegmentStopCurator } from './SegmentStopCurator';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { SegmentMetricsCalculator } from './SegmentMetricsCalculator';
@@ -143,22 +143,33 @@ export class SegmentCreationLoop {
       city: stop.city || stop.city_name || 'Unknown'
     }));
 
+    // Convert SubStopTiming[] to SegmentTiming[] to match TripPlanBuilder interface
+    const convertedSegmentTimings: SegmentTiming[] = segmentTimings.map(timing => ({
+      fromStop: timing.fromStop,
+      toStop: timing.toStop,
+      distance: timing.distance,
+      driveTime: timing.drivingTime, // Map drivingTime to driveTime
+      distanceMiles: timing.distanceMiles,
+      driveTimeHours: timing.driveTimeHours,
+      drivingTime: timing.drivingTime
+    }));
+
     return {
       day,
       title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
       startCity: startCityDisplay,
       endCity: endCityDisplay,
       approximateMiles: Math.round(segmentDistance),
-      distance: segmentDistance, // Add distance property
-      drivingTime: totalSegmentDriveTime, // Add drivingTime property
+      distance: segmentDistance,
+      drivingTime: totalSegmentDriveTime,
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
-      recommendedStops, // Use the converted stops
-      attractions, // Use proper object structure
-      subStopTimings: segmentTimings,
+      recommendedStops,
+      attractions,
+      subStopTimings: convertedSegmentTimings,
       routeSection,
       driveTimeCategory,
       balanceMetrics: segmentBalanceMetrics,
-      destination: { // Add destination property
+      destination: {
         city: dayDestination.name,
         state: dayDestination.state
       }
@@ -173,7 +184,6 @@ export class SegmentCreationLoop {
     day: number,
     dayDestination: TripStop
   ): void {
-    console.log(`✅ Day ${day}: ${segment.approximateMiles}mi to ${dayDestination.name} (${dayDestination.category}), ${segment.driveTimeHours}h drive (${segment.driveTimeCategory.category}), ${segment.recommendedStops.length} curated stops, ${segment.routeSection}`);
+    console.log(`✅ Day ${day}: ${segment.approximateMiles}mi to ${dayDestination.name} (${dayDestination.category}), ${segment.driveTimeHours}h drive (${segment.driveTimeCategory?.category}), ${segment.recommendedStops?.length} curated stops, ${segment.routeSection}`);
   }
 }
-
