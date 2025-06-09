@@ -2,6 +2,8 @@
 import { useState, useCallback } from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { ShareTripOptions } from '../../hooks/useShareTripOptions';
+import { TripService } from '../../services/TripService';
+import { toast } from '@/hooks/use-toast';
 
 interface UseShareTripModalProps {
   tripPlan: TripPlan;
@@ -23,47 +25,35 @@ export const useShareTripModal = ({
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState<string | null>(shareUrl || null);
 
-  const generateShareData = useCallback(() => {
-    const tripTitle = shareOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
-    
-    return {
-      tripPlan,
-      tripStartDate,
-      title: tripTitle,
-      includeWeather: shareOptions.includeWeather,
-      includeStops: shareOptions.includeStops,
-      allowPublicAccess: shareOptions.allowPublicAccess,
-      userNote: shareOptions.userNote,
-      generatedAt: new Date().toISOString()
-    };
-  }, [tripPlan, tripStartDate, shareOptions]);
-
   const handleGenerateAndShare = useCallback(async () => {
     if (isGeneratingLink) return;
 
     try {
       setIsGeneratingLink(true);
       
-      // Generate share data
-      const shareData = generateShareData();
+      console.log('🔗 Generating shareable link via TripService...');
       
-      // Generate a unique share code
-      const shareCode = `trip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // Generate trip title based on share options or default
+      const tripTitle = shareOptions.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+      const tripDescription = shareOptions.userNote || `Route 66 journey from ${tripPlan.startCity} to ${tripPlan.endCity}`;
       
-      // Create shareable URL (in a real app, this would save to backend)
-      const baseUrl = window.location.origin;
-      const generatedShareUrl = `${baseUrl}/shared-trip/${shareCode}`;
+      // Save trip using TripService and get share code
+      const shareCode = await TripService.saveTrip(tripPlan, tripTitle, tripDescription);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store the trip data in localStorage (in a real app, this would be saved to backend)
-      localStorage.setItem(`shared-trip-${shareCode}`, JSON.stringify(shareData));
+      // Generate the correct share URL using TripService
+      const generatedShareUrl = TripService.getShareUrl(shareCode);
       
       setCurrentShareUrl(generatedShareUrl);
       
       // Copy to clipboard
       await navigator.clipboard.writeText(generatedShareUrl);
+      
+      // Show success toast
+      toast({
+        title: "Trip Saved & Link Copied!",
+        description: "Your trip has been saved and the link copied to clipboard.",
+        variant: "default"
+      });
       
       // Notify parent component
       if (onShareUrlGenerated) {
@@ -72,17 +62,20 @@ export const useShareTripModal = ({
       
       console.log('✅ Trip shared successfully:', {
         shareCode,
-        shareUrl: generatedShareUrl,
-        shareData
+        shareUrl: generatedShareUrl
       });
 
     } catch (error) {
       console.error('❌ Failed to generate share link:', error);
-      // In a real app, show error toast/notification
+      toast({
+        title: "Share Failed",
+        description: "Could not save and share your trip. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingLink(false);
     }
-  }, [isGeneratingLink, generateShareData, onShareUrlGenerated]);
+  }, [isGeneratingLink, tripPlan, shareOptions, onShareUrlGenerated]);
 
   return {
     isGeneratingLink,

@@ -6,7 +6,9 @@ import { Settings, X } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useShareTripOptions } from '../hooks/useShareTripOptions';
 import { useShareTripModal } from './hooks/useShareTripModal';
-import ShareTripOptionsForm from './share/ShareTripOptionsForm';
+import { useTripAutoSaveBeforeShare } from '../hooks/useTripAutoSaveBeforeShare';
+import ShareTripModalContent from './share/ShareTripModalContent';
+import { toast } from '@/hooks/use-toast';
 
 interface ShareTripModalProps {
   tripPlan: TripPlan;
@@ -26,6 +28,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   onShareUrlGenerated
 }) => {
   const { shareOptions, updateShareOption } = useShareTripOptions();
+  const { saveBeforeShare, isAutoSaving } = useTripAutoSaveBeforeShare();
   
   const {
     isGeneratingLink,
@@ -43,17 +46,71 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   // Check if trip is complete
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
+  const handleGenerateLink = async (): Promise<string | null> => {
+    if (!isTripComplete) return null;
+    
+    try {
+      // Use the updated handleGenerateAndShare which integrates with TripService
+      await handleGenerateAndShare();
+      return currentShareUrl;
+    } catch (error) {
+      console.error('❌ Error generating link:', error);
+      return null;
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!currentShareUrl) return;
+    
+    try {
+      await navigator.clipboard.writeText(currentShareUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Trip link has been copied to your clipboard.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy link to clipboard.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleShareViaEmail = async () => {
+    if (!currentShareUrl) {
+      // Generate link first if it doesn't exist
+      await handleGenerateLink();
+      return;
+    }
+
+    const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+    const emailSubject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
+    const emailBody = encodeURIComponent(
+      `Hi!\n\nI've planned an amazing Route 66 trip and wanted to share it with you!\n\n` +
+      `Trip: ${tripTitle}\n` +
+      `${tripPlan.totalDays} days, ${Math.round(tripPlan.totalDistance)} miles\n\n` +
+      `View the complete itinerary here: ${currentShareUrl}\n\n` +
+      `Planned with Ramble 66 - The ultimate Route 66 trip planner\n` +
+      `Visit ramble66.com to plan your own adventure!`
+    );
+    
+    window.open(`mailto:?subject=${emailSubject}&body=${emailBody}`, '_blank');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-4xl px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-labelledby="share-trip-title"
       >
         <DialogHeader>
           <DialogTitle id="share-trip-title" className="flex items-center gap-2 text-blue-700 font-semibold text-base sm:text-lg">
             <Settings className="w-5 h-5" />
-            Share Trip Options
+            Share Your Route 66 Adventure
           </DialogTitle>
         </DialogHeader>
 
@@ -63,44 +120,16 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           <span className="sr-only">Close</span>
         </DialogClose>
         
-        {!isTripComplete ? (
-          <div className="text-center py-8">
-            <div className="text-gray-500 mb-4">
-              <p className="text-lg font-medium">Trip Not Complete</p>
-              <p className="text-sm mt-2">Please create a trip plan first before sharing.</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <ShareTripOptionsForm
-              shareOptions={shareOptions}
-              updateShareOption={updateShareOption}
-              isGeneratingLink={isGeneratingLink}
-            />
-
-            {/* Generate & Share Button */}
-            <Button
-              onClick={handleGenerateAndShare}
-              disabled={isGeneratingLink || !isTripComplete}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
-            >
-              {isGeneratingLink ? 'Generating Shareable Link...' : 'Generate Shareable Link & Copy'}
-            </Button>
-
-            {/* Show current share URL if exists */}
-            {currentShareUrl && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800 font-medium mb-2">✅ Shareable link ready!</p>
-                <p className="text-xs text-green-700 font-mono break-all">
-                  {currentShareUrl}
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  Link copied to clipboard! Share this with friends and family.
-                </p>
-              </div>
-            )}
-          </>
-        )}
+        <ShareTripModalContent
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          currentShareUrl={currentShareUrl}
+          isGeneratingLink={isGeneratingLink || isAutoSaving}
+          isTripComplete={isTripComplete}
+          onGenerateLink={handleGenerateLink}
+          onCopyLink={handleCopyLink}
+          onShareViaEmail={handleShareViaEmail}
+        />
       </DialogContent>
     </Dialog>
   );

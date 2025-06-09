@@ -140,7 +140,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
         />
       </div>
 
-      {/* Sharing Options */}
+      {/* Sharing Options - Updated to use TripService integration */}
       <ShareTripOptions
         tripPlan={tripPlan}
         currentShareUrl={currentShareUrl}

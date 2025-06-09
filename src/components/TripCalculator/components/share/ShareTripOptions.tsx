@@ -21,6 +21,14 @@ const ShareTripOptions: React.FC<ShareTripOptionsProps> = ({
   onCopyLink,
   onShareViaEmail
 }) => {
+  const handleGenerateOrCopy = async () => {
+    if (currentShareUrl) {
+      await onCopyLink();
+    } else {
+      await onGenerateLink();
+    }
+  };
+
   return (
     <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
       <div className="bg-white rounded-xl p-6 border border-gray-200">
@@ -32,14 +40,14 @@ const ShareTripOptions: React.FC<ShareTripOptionsProps> = ({
         <div className="space-y-3">
           {/* Generate/Copy Link Button */}
           <Button
-            onClick={currentShareUrl ? onCopyLink : onGenerateLink}
+            onClick={handleGenerateOrCopy}
             disabled={isGeneratingLink}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
           >
             {isGeneratingLink ? (
               <>
                 <Save className="w-4 h-4 mr-2 animate-spin" />
-                Generating Link...
+                Saving Trip & Generating Link...
               </>
             ) : currentShareUrl ? (
               <>
@@ -77,12 +85,25 @@ const ShareTripOptions: React.FC<ShareTripOptionsProps> = ({
             </Button>
           )}
         </div>
+
+        {/* Success Message */}
+        {currentShareUrl && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800 font-medium mb-1">✅ Trip Saved & Ready to Share!</p>
+            <p className="text-xs text-green-700 font-mono break-all">
+              {currentShareUrl}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              Link copied to clipboard! Share this with friends and family.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Trip Information */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
         <p className="text-sm text-gray-600 text-center leading-relaxed">
-          <strong>"{tripPlan.title}"</strong> - Your Route 66 adventure is ready to share! 
+          <strong>"{tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}"</strong> - Your Route 66 adventure will be saved to our database and accessible via a shareable link. 
           Recipients can view your complete itinerary, including all stops, timing, and recommendations.
         </p>
       </div>
