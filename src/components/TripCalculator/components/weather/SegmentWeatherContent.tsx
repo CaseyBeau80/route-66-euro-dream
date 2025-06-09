@@ -53,8 +53,23 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       isActualForecast: weather?.isActualForecast,
       hasDateMatchInfo: !!weather?.dateMatchInfo,
       loading,
-      error
+      error,
+      weatherType: weather?.isActualForecast ? 'live-forecast' : 'seasonal-fallback'
     });
+  }
+
+  // For PDF export, show API key requirement message instead of input
+  if (!hasApiKey && isPDFExport) {
+    return (
+      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-center">
+        <div className="text-sm text-yellow-800 mb-2">
+          🔑 Weather API Key Required
+        </div>
+        <div className="text-xs text-yellow-600">
+          Configure your OpenWeatherMap API key to see live weather forecasts in exports
+        </div>
+      </div>
+    );
   }
 
   // Show API key input if no key is available (except in shared view or PDF export)
@@ -92,7 +107,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // Show weather data if available
+  // Show weather data if available - **PDF EXPORT**: Prioritize live weather
   if (weather) {
     return (
       <WeatherDataDisplay
@@ -112,7 +127,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
       <div className="text-gray-400 text-2xl mb-2">🌤️</div>
       <p className="text-sm text-gray-600">
-        {isPDFExport ? 'Weather information processing for PDF...' : 'Weather information not available'}
+        {isPDFExport ? 'Weather information processing for PDF export...' : 'Weather information not available'}
       </p>
       {isPDFExport && (
         <div className="text-xs text-gray-500 mt-2">
