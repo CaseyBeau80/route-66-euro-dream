@@ -20,19 +20,51 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   isSharedView = false
 }) => {
   console.log('📤 SharedTripContentRenderer: Rendering with PDF-style layout', {
+    tripPlan,
     segmentsCount: tripPlan.segments?.length || 0,
+    dailySegmentsCount: tripPlan.dailySegments?.length || 0,
     hasStartDate: !!tripStartDate,
     isSharedView
   });
+
+  // Validate that we have trip data
+  if (!tripPlan) {
+    console.error('❌ SharedTripContentRenderer: No trip plan provided');
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Not Available</h2>
+        <p className="text-gray-600">The trip data could not be loaded.</p>
+      </div>
+    );
+  }
 
   // Validate and sanitize trip plan data
   const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
   const integrityReport = PDFDataIntegrityService.generateIntegrityReport(sanitizedTripPlan);
   
+  // Use segments or dailySegments, whichever is available
+  const rawSegments = sanitizedTripPlan.segments || sanitizedTripPlan.dailySegments || [];
+  
   // Filter segments with enriched weather data
-  const enrichedSegments = sanitizedTripPlan.segments?.filter(segment => 
+  const enrichedSegments = rawSegments.filter(segment => 
     segment && segment.day && (segment.endCity || segment.destination)
   ) || [];
+
+  console.log('📤 SharedTripContentRenderer: Processed segments', {
+    rawSegmentsCount: rawSegments.length,
+    enrichedSegmentsCount: enrichedSegments.length,
+    enrichedSegments: enrichedSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity }))
+  });
+
+  if (enrichedSegments.length === 0) {
+    console.warn('⚠️ SharedTripContentRenderer: No valid segments found');
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">No Trip Segments</h2>
+        <p className="text-gray-600">This trip doesn't have any valid segments to display.</p>
+      </div>
+    );
+  }
 
   const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
 
