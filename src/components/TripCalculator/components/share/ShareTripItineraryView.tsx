@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import SegmentWeatherWidget from '../SegmentWeatherWidget';
+import SeasonalWeatherDisplay from '../weather/SeasonalWeatherDisplay';
 
 interface ShareTripItineraryViewProps {
   segments: DailySegment[];
@@ -99,18 +99,25 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* Weather Information - Now uses SegmentWeatherWidget for all views */}
+              {/* Weather Information - For shared views, always show seasonal weather */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                   🌤️ Weather Information
                 </h4>
-                <SegmentWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  cardIndex={index}
-                  isCollapsible={false}
-                  forceExpanded={true}
-                />
+                {segmentDate ? (
+                  <SeasonalWeatherDisplay
+                    segmentDate={segmentDate}
+                    cityName={segment.endCity}
+                    compact={true}
+                  />
+                ) : (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+                    <p className="text-sm text-gray-600">
+                      Weather information will appear when a trip start date is set
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Recommendations */}

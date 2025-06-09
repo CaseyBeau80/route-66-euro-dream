@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import ShareTripOptions from './ShareTripOptions';
 import ShareTripItineraryView from './ShareTripItineraryView';
+import RambleBranding from '@/components/shared/RambleBranding';
 
 interface ShareTripModalContentProps {
   tripPlan: TripPlan;
@@ -51,11 +52,10 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* Header Section - Matching PDF Style */}
+      {/* Header Section - Using RambleBranding component */}
       <div className="text-center mb-8 pb-6 border-b-2 border-blue-500">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="text-blue-600 font-bold text-lg">RAMBLE 66</div>
-          <div className="text-sm text-gray-500">ROUTE 66 TRIP PLANNER</div>
+        <div className="flex justify-center mb-4">
+          <RambleBranding size="md" />
         </div>
         
         <h1 className="text-3xl font-bold text-gray-800 mb-2">{tripTitle}</h1>
@@ -96,7 +96,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
             <div className="text-2xl font-bold text-orange-600 mb-1">☀️</div>
             <div className="text-sm text-gray-600">Weather</div>
             <div className="text-xs text-gray-500 mt-1">
-              {tripStartDate ? 'Live or Seasonal' : 'Set Date for Forecast'}
+              {tripStartDate ? 'Seasonal Estimates' : 'Set Date for Forecast'}
             </div>
           </div>
         </div>

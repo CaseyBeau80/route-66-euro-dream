@@ -19,7 +19,7 @@ const TripDetailsHeader: React.FC<TripDetailsHeaderProps> = ({
 }) => {
   return (
     <div className="text-center mb-8">
-      {/* Ramble 66 Branding */}
+      {/* Ramble 66 Branding - Updated to use consistent sizing */}
       <div className="flex justify-center mb-6">
         <RambleBranding size="lg" />
       </div>
