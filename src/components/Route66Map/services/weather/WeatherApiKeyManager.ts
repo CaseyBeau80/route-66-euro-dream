@@ -6,13 +6,14 @@ export class WeatherApiKeyManager {
 
   static getApiKey(): string | null {
     // First check if API key is configured in code
-    if (WEATHER_API_KEY && 
-        typeof WEATHER_API_KEY === 'string' &&
-        WEATHER_API_KEY !== 'your_api_key_here' && 
-        !WEATHER_API_KEY.toLowerCase().includes('your_api_key') &&
-        !WEATHER_API_KEY.toLowerCase().includes('replace_with') &&
-        WEATHER_API_KEY.length >= 20) {
-      return WEATHER_API_KEY;
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+      const apiKey = WEATHER_API_KEY as string; // Explicit type assertion for clarity
+      if (apiKey !== 'your_api_key_here' && 
+          !apiKey.toLowerCase().includes('your_api_key') &&
+          !apiKey.toLowerCase().includes('replace_with') &&
+          apiKey.length >= 20) {
+        return apiKey;
+      }
     }
     
     // Fallback to localStorage
