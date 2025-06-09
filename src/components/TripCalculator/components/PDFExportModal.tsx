@@ -93,12 +93,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       return;
     }
     
-    // Don't check isExporting here - let the hook handle it
     console.log('✅ Calling handleExportPDF...');
     handleExportPDF();
   };
 
-  // Show PDF Preview if active
+  // Show PDF Preview if active - render OUTSIDE of any Dialog context
   if (showPreview && previewTripPlan) {
     console.log('📄 Rendering PDF preview container');
     
@@ -115,8 +114,8 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     );
   }
 
-  // Only show modal if not in preview mode
-  if (!isOpen || showPreview) {
+  // Only show modal if not in preview mode AND modal is open
+  if (!isOpen) {
     return null;
   }
 
