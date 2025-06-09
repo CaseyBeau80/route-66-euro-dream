@@ -1,11 +1,9 @@
-
 import React, { useState, useCallback } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ChevronDown, Share2 } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import { TripService } from '../services/TripService';
 import { PDFExportService } from '../services/pdf/PDFExportService';
 import { toast } from '@/hooks/use-toast';
 import LogoImage from '../../shared/LogoImage';
@@ -19,6 +17,10 @@ interface ShareAndExportDropdownProps {
   shareUrl: string | null;
   onShareTrip: (tripPlan: TripPlan) => Promise<void>;
   tripStartDate?: Date;
+  tripTitle?: string;
+  variant?: string;
+  size?: string;
+  className?: string;
 }
 
 interface ExportOptions {
@@ -37,7 +39,11 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   tripPlan,
   shareUrl,
   onShareTrip,
-  tripStartDate
+  tripStartDate,
+  tripTitle,
+  variant = 'default',
+  size = 'default',
+  className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -51,7 +57,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     format: 'full',
     includeWeather: true,
     includeQRCode: true,
-    title: `Route 66 Adventure: ${tripPlan.startCity} to ${tripPlan.endCity}`,
+    title: tripTitle || `Route 66 Adventure: ${tripPlan.startCity} to ${tripPlan.endCity}`,
     watermark: 'RAMBLE 66'
   });
 
@@ -144,7 +150,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="bg-white hover:bg-route66-background-alt border-route66-border text-route66-text-primary"
+          className={`bg-white hover:bg-route66-background-alt border-route66-border text-route66-text-primary ${className}`}
         >
           <LogoImage 
             className="w-4 h-4 mr-2 object-contain"
