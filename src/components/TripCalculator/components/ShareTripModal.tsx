@@ -113,11 +113,14 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Custom Close Button - Positioned absolutely */}
-        <DialogClose className="absolute top-4 right-4 z-50 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200 bg-white rounded-full p-2 shadow-lg">
+        {/* Fixed Close Button - Now properly anchored */}
+        <button
+          onClick={onClose}
+          className="fixed top-4 right-4 z-[10001] text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:shadow-xl"
+          aria-label="Close"
+        >
           <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+        </button>
         
         <ShareTripModalContent
           tripPlan={tripPlan}

@@ -129,6 +129,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         onApiKeySet={weatherHandlers.handleApiKeySet}
         onTimeout={weatherHandlers.handleTimeout}
         onRetry={weatherHandlers.handleRetry}
+        isSharedView={sectionKey === 'shared-view'}
       />
     </div>
   );

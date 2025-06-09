@@ -22,11 +22,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Starting render with enhanced safety', {
+  console.log('📤 SharedTripContentRenderer: Starting render with enhanced weather integration', {
     tripPlan,
     segmentsCount: tripPlan.segments?.length || 0,
     dailySegmentsCount: tripPlan.dailySegments?.length || 0,
     hasStartDate: !!tripStartDate,
+    startDateType: typeof tripStartDate,
     isSharedView
   });
 
@@ -86,6 +87,33 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
     console.log('📤 SharedTripContentRenderer: About to render main content');
 
+    // Ensure tripStartDate is a proper Date object for weather calculations
+    const validTripStartDate = React.useMemo(() => {
+      if (!tripStartDate) return undefined;
+      
+      try {
+        if (tripStartDate instanceof Date) {
+          return isNaN(tripStartDate.getTime()) ? undefined : tripStartDate;
+        }
+        
+        if (typeof tripStartDate === 'string') {
+          const parsed = new Date(tripStartDate);
+          return isNaN(parsed.getTime()) ? undefined : parsed;
+        }
+        
+        return undefined;
+      } catch (error) {
+        console.error('❌ Error processing tripStartDate:', error);
+        return undefined;
+      }
+    }, [tripStartDate]);
+
+    console.log('📤 SharedTripContentRenderer: Date validation result:', {
+      originalDate: tripStartDate,
+      validDate: validTripStartDate?.toISOString(),
+      isValid: !!validTripStartDate
+    });
+
     return (
       <div className="w-full bg-white min-h-screen" style={{ 
         padding: '32px', 
@@ -100,7 +128,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             <PDFEnhancedHeader
               title={defaultTitle}
               tripPlan={sanitizedTripPlan}
-              tripStartDate={tripStartDate}
+              tripStartDate={validTripStartDate}
             />
           </div>
         </ErrorBoundary>
@@ -185,13 +213,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                 <div className="mb-6">
                   <PDFDaySegmentCard
                     segment={segment}
-                    tripStartDate={tripStartDate}
+                    tripStartDate={validTripStartDate}
                     segmentIndex={index}
                     exportFormat="full"
                   />
                   
-                  {/* Enhanced Weather Integration */}
-                  {tripStartDate && (
+                  {/* Enhanced Weather Integration with Fixed System */}
+                  {validTripStartDate && (
                     <ErrorBoundary 
                       context={`SegmentWeather-${segment.day}`}
                       silent
@@ -207,7 +235,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                         </h4>
                         <SegmentWeatherWidget
                           segment={segment}
-                          tripStartDate={tripStartDate}
+                          tripStartDate={validTripStartDate}
                           cardIndex={index}
                           sectionKey="shared-view"
                           forceExpanded={true}

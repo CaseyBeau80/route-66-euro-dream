@@ -20,6 +20,7 @@ interface SegmentWeatherContentProps {
   onApiKeySet: () => void;
   onTimeout: () => void;
   onRetry: () => void;
+  isSharedView?: boolean;
 }
 
 const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
@@ -32,7 +33,8 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   segmentDate,
   onApiKeySet,
   onTimeout,
-  onRetry
+  onRetry,
+  isSharedView = false
 }) => {
   console.log(`🎨 SegmentWeatherContent for ${segmentEndCity}:`, {
     hasApiKey,
@@ -41,36 +43,63 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     hasWeather: !!weather,
     retryCount,
     weatherType: weather?.isActualForecast !== undefined ? 'forecast' : 'regular',
-    segmentDate: segmentDate?.toISOString()
+    segmentDate: segmentDate?.toISOString(),
+    isSharedView
   });
 
-  // No API key - show compact seasonal weather as fallback with option to add API key
+  // In shared view, always show seasonal weather as fallback when no API key
   if (!hasApiKey) {
-    console.log(`🔑 No API key for ${segmentEndCity}, showing seasonal fallback with API key option`);
+    console.log(`🔑 No API key for ${segmentEndCity}, showing seasonal fallback`);
     
-    // If we have a date, show seasonal weather with option to add API key
     if (segmentDate) {
-      return (
-        <div className="space-y-3">
-          <SeasonalWeatherDisplay 
-            segmentDate={segmentDate} 
-            cityName={segmentEndCity}
-            compact={true}
-          />
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
-            <p className="text-yellow-800 mb-2">
-              <strong>Want live weather forecasts?</strong> Add your OpenWeatherMap API key below:
-            </p>
-            <EnhancedWeatherApiKeyInput 
-              onApiKeySet={onApiKeySet}
+      if (isSharedView) {
+        // In shared view, just show seasonal weather without API key input
+        return (
+          <div className="space-y-2">
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+              <strong>Seasonal Estimate:</strong> Weather forecast requires API key configuration.
+            </div>
+            <SeasonalWeatherDisplay 
+              segmentDate={segmentDate} 
               cityName={segmentEndCity}
+              compact={true}
             />
           </div>
+        );
+      } else {
+        // In normal view, show seasonal weather with option to add API key
+        return (
+          <div className="space-y-3">
+            <SeasonalWeatherDisplay 
+              segmentDate={segmentDate} 
+              cityName={segmentEndCity}
+              compact={true}
+            />
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
+              <p className="text-yellow-800 mb-2">
+                <strong>Want live weather forecasts?</strong> Add your OpenWeatherMap API key below:
+              </p>
+              <EnhancedWeatherApiKeyInput 
+                onApiKeySet={onApiKeySet}
+                cityName={segmentEndCity}
+              />
+            </div>
+          </div>
+        );
+      }
+    }
+    
+    if (isSharedView) {
+      // In shared view without date, show simple message
+      return (
+        <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+          <p className="text-xs text-gray-600">Weather information not available</p>
         </div>
       );
     }
     
-    // No date available
+    // No date available in normal view
     return (
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="mb-3 text-sm text-blue-800">
@@ -118,14 +147,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
             cityName={segmentEndCity}
             compact={true}
           />
-          <div className="text-center">
-            <button
-              onClick={onRetry}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Try again for live forecast
-            </button>
-          </div>
+          {!isSharedView && (
+            <div className="text-center">
+              <button
+                onClick={onRetry}
+                className="text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                Try again for live forecast
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -134,7 +165,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       <WeatherFallback 
         cityName={segmentEndCity}
         segmentDate={segmentDate}
-        onRetry={onRetry}
+        onRetry={isSharedView ? undefined : onRetry}
         error={error}
       />
     );
