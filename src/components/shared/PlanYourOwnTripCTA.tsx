@@ -16,6 +16,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
   currentPath
 }) => {
   const navigate = useNavigate();
+  const RAMBLE_LOGO_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
 
   const handlePlanTrip = () => {
     // Add UTM parameters for tracking
@@ -37,7 +38,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <img 
-            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
+            src={RAMBLE_LOGO_URL}
             alt="Ramble 66 Logo" 
             className="w-5 h-5 object-contain"
           />
@@ -54,7 +55,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
         <div className="flex justify-center mb-4">
           <div className="bg-white/20 rounded-full p-4">
             <img 
-              src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
+              src={RAMBLE_LOGO_URL}
               alt="Ramble 66 Logo" 
               className="w-8 h-8 object-contain"
             />
@@ -91,7 +92,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           className="bg-white text-route66-primary hover:bg-gray-100 font-bold px-8 py-4 rounded-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 mx-auto text-lg"
         >
           <img 
-            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
+            src={RAMBLE_LOGO_URL}
             alt="Ramble 66 Logo" 
             className="w-6 h-6 object-contain"
           />
