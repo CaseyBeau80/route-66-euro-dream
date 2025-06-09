@@ -9,14 +9,12 @@ interface PDFEnhancedHeaderProps {
   title: string;
   tripPlan: TripPlan;
   tripStartDate?: Date;
-  logoUrl?: string;
 }
 
 const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
   title,
   tripPlan,
-  tripStartDate,
-  logoUrl
+  tripStartDate
 }) => {
   console.log('📄 PDFEnhancedHeader: Rendering with centralized logo configuration');
 

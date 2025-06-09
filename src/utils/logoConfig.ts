@@ -33,31 +33,44 @@ export const RAMBLE_LOGO_CONFIG = {
  */
 export const getRambleLogoUrl = (useFallback = false) => {
   const url = useFallback ? RAMBLE_LOGO_CONFIG.FALLBACK_LOGO_URL : RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
-  console.log('🎯 Loading Ramble 66 logo from:', url);
+  console.log('🎯 getRambleLogoUrl: Loading Ramble 66 logo', {
+    url,
+    useFallback,
+    caller: new Error().stack?.split('\n')[2]?.trim() || 'unknown'
+  });
   return url;
 };
 
 /**
  * Get alt text for logo based on context
  */
-export const getRambleLogoAlt = (context: keyof typeof RAMBLE_LOGO_CONFIG.ALT_TEXT = 'default') => 
-  RAMBLE_LOGO_CONFIG.ALT_TEXT[context];
+export const getRambleLogoAlt = (context: keyof typeof RAMBLE_LOGO_CONFIG.ALT_TEXT = 'default') => {
+  const altText = RAMBLE_LOGO_CONFIG.ALT_TEXT[context];
+  console.log('🎯 getRambleLogoAlt: Getting alt text', { context, altText });
+  return altText;
+};
 
 /**
  * Get size classes for logo
  */
-export const getRambleLogoSize = (size: keyof typeof RAMBLE_LOGO_CONFIG.SIZES) => 
-  RAMBLE_LOGO_CONFIG.SIZES[size];
+export const getRambleLogoSize = (size: keyof typeof RAMBLE_LOGO_CONFIG.SIZES) => {
+  const sizeClasses = RAMBLE_LOGO_CONFIG.SIZES[size];
+  console.log('🎯 getRambleLogoSize: Getting size classes', { size, sizeClasses });
+  return sizeClasses;
+};
 
 /**
  * Test if the logo URL is accessible
  */
 export const testLogoUrl = async (url: string): Promise<boolean> => {
   try {
+    console.log('🧪 testLogoUrl: Testing logo URL accessibility', { url });
     const response = await fetch(url, { method: 'HEAD' });
-    return response.ok;
+    const isAccessible = response.ok;
+    console.log('🧪 testLogoUrl: Test result', { url, isAccessible, status: response.status });
+    return isAccessible;
   } catch (error) {
-    console.error('❌ Logo URL test failed:', error);
+    console.error('❌ testLogoUrl: Logo URL test failed', { url, error });
     return false;
   }
 };
@@ -67,13 +80,19 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
  */
 export const getBestLogoUrl = async (): Promise<string> => {
   const primaryUrl = getRambleLogoUrl();
+  console.log('🔍 getBestLogoUrl: Testing primary logo URL', { primaryUrl });
+  
   const isAccessible = await testLogoUrl(primaryUrl);
   
   if (isAccessible) {
-    console.log('✅ Primary logo URL is accessible');
+    console.log('✅ getBestLogoUrl: Primary logo URL is accessible', { primaryUrl });
     return primaryUrl;
   } else {
-    console.warn('⚠️ Primary logo URL not accessible, using fallback');
-    return getRambleLogoUrl(true);
+    const fallbackUrl = getRambleLogoUrl(true);
+    console.warn('⚠️ getBestLogoUrl: Primary logo URL not accessible, using fallback', { 
+      primaryUrl, 
+      fallbackUrl 
+    });
+    return fallbackUrl;
   }
 };

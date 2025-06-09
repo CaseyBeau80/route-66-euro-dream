@@ -19,7 +19,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   exportOptions,
   shareUrl
 }) => {
-  console.log('📄 PDFContentRenderer: Rendering enhanced PDF content with', {
+  console.log('📄 PDFContentRenderer: Rendering enhanced PDF content with centralized logo configuration', {
     segmentsCount: tripPlan.segments?.length || 0,
     exportFormat: exportOptions.format,
     hasStartDate: !!tripStartDate,
@@ -36,9 +36,6 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   ) || [];
 
   const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
-  
-  // Use the correct logo URL provided by the user
-  const logoUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png';
 
   return (
     <div className="pdf-content bg-white min-h-screen" style={{ 
@@ -46,12 +43,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
       fontFamily: 'system-ui, -apple-system, sans-serif',
       lineHeight: '1.4'
     }}>
-      {/* Enhanced PDF Header with Logo Integration */}
+      {/* Enhanced PDF Header with Centralized Logo */}
       <PDFEnhancedHeader
         title={exportOptions.title || defaultTitle}
         tripPlan={sanitizedTripPlan}
         tripStartDate={tripStartDate}
-        logoUrl={logoUrl}
       />
 
       {/* Data Quality Notice */}

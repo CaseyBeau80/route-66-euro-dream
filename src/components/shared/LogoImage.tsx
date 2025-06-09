@@ -20,32 +20,50 @@ const LogoImage: React.FC<LogoImageProps> = ({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    console.log('🖼️ LogoImage: Component mounted with props', {
+      className,
+      alt,
+      showFallback,
+      initialSrc: imageSrc
+    });
+
     // Test logo accessibility on mount
     const testLogo = async () => {
+      console.log('🧪 LogoImage: Testing logo accessibility on mount');
       const isAccessible = await testLogoUrl(getRambleLogoUrl());
       if (!isAccessible && showFallback) {
-        console.warn('⚠️ Primary logo not accessible, using fallback');
+        console.warn('⚠️ LogoImage: Primary logo not accessible, switching to fallback');
         setImageSrc(getRambleLogoUrl(true));
       }
     };
 
     testLogo();
-  }, [showFallback]);
+  }, [showFallback, imageSrc]);
 
   const handleError = () => {
-    console.error('❌ Logo image failed to load:', imageSrc);
+    console.error('❌ LogoImage: Image failed to load', {
+      src: imageSrc,
+      hasError,
+      showFallback
+    });
     setHasError(true);
     
     if (showFallback && !imageSrc.includes('placeholder')) {
-      console.log('🔄 Switching to fallback logo');
-      setImageSrc(getRambleLogoUrl(true));
+      console.log('🔄 LogoImage: Switching to fallback logo');
+      const fallbackSrc = getRambleLogoUrl(true);
+      setImageSrc(fallbackSrc);
+      console.log('🔄 LogoImage: Fallback logo set', { fallbackSrc });
     }
     
     onError?.();
   };
 
   const handleLoad = () => {
-    console.log('✅ Logo image loaded successfully:', imageSrc);
+    console.log('✅ LogoImage: Image loaded successfully', {
+      src: imageSrc,
+      className,
+      alt: alt || getRambleLogoAlt('default')
+    });
     setHasError(false);
   };
 
