@@ -14,23 +14,31 @@ export interface RecommendedStop {
   latitude: number;
   longitude: number;
   city?: string;
+  city_name?: string; // Added missing property
+  state?: string; // Added missing property
   type?: string;
+  category?: string; // Added missing property
   duration?: number;
 }
 
 export interface SegmentTiming {
   fromStop: {
+    id?: string; // Added missing property
     name: string;
     latitude: number;
     longitude: number;
   };
   toStop: {
+    id?: string; // Added missing property
     name: string;
     latitude: number;
     longitude: number;
   };
   distance: number;
   driveTime: number;
+  distanceMiles: number; // Added missing property
+  driveTimeHours: number; // Added missing property
+  drivingTime: number; // Added missing property
 }
 
 export interface TripPlan {
@@ -50,6 +58,10 @@ export interface TripPlan {
   isEnriched?: boolean;
   lastUpdated?: Date;
   originalDays?: number; // For tracking adjustments
+  driveTimeBalance?: any; // Added missing property
+  wasAdjusted?: boolean; // Added missing property
+  tripStyle?: string; // Added missing property
+  warnings?: string[]; // Added missing property
   enrichmentStatus?: {
     weatherData: boolean;
     stopsData: boolean;
@@ -61,7 +73,7 @@ export interface DailySegment {
   day: number;
   startCity: string;
   endCity?: string;
-  destination?: string;
+  destination?: string | { city: string; state?: string }; // Updated to support both types
   distance: number;
   driveTimeHours: number;
   drivingTime?: number; // Alternative property for compatibility
@@ -160,7 +172,7 @@ export class TripPlanDataValidator {
       driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
       drivingTime: segment.drivingTime || segment.driveTimeHours,
       startCity: segment.startCity || 'Unknown',
-      endCity: segment.endCity || segment.destination || 'Unknown',
+      endCity: segment.endCity || (typeof segment.destination === 'string' ? segment.destination : segment.destination?.city) || 'Unknown',
       approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),
       stops: segment.stops || segment.recommendedStops || [],
       notes: segment.notes || '',
