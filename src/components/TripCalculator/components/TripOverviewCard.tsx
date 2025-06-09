@@ -18,7 +18,7 @@ interface TripOverviewCardProps {
   setShowCostEstimator: (show: boolean) => void;
   formatTime: (hours: number) => string;
   formatDate: (date: Date) => string;
-  handleShare: () => void;
+  handleShare: (tripPlan: TripPlan) => Promise<void>;
 }
 
 const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
@@ -70,6 +70,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           <ShareAndExportDropdown
             tripPlan={tripPlan}
             shareUrl={shareUrl}
+            onShareTrip={handleShare}
             tripTitle={tripTitle}
             tripStartDate={tripStartDate}
             variant="secondary"

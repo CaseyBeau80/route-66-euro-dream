@@ -105,6 +105,7 @@ const Route66TripCalculator: React.FC = () => {
             tripPlan={tripPlan} 
             shareUrl={shareUrl}
             tripStartDate={formData.tripStartDate}
+            onShareTrip={handleShareTrip}
           />
         </div>
       )}

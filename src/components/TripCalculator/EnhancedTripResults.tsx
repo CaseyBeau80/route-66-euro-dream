@@ -13,12 +13,14 @@ interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
+  onShareTrip?: (tripPlan: TripPlan) => Promise<void>;
 }
 
 const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripPlan,
   shareUrl,
-  tripStartDate
+  tripStartDate,
+  onShareTrip
 }) => {
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -72,6 +74,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       maximumFractionDigits: 0
     }).format(amount);
   };
+
+  // Default share function if none provided
+  const handleShareTrip = onShareTrip || (async (tripPlan: TripPlan) => {
+    console.log('No share function provided, using default behavior');
+  });
 
   const endDate = calculateEndDate();
   const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
@@ -133,6 +140,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
           <div className="flex justify-center mt-4">
             <ShareAndExportDropdown
               shareUrl={shareUrl}
+              onShareTrip={handleShareTrip}
               tripTitle={tripTitle}
               tripPlan={tripPlan}
               tripStartDate={validTripStartDate}
