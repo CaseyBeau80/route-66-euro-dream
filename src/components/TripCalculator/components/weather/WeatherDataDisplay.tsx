@@ -3,6 +3,7 @@ import React from 'react';
 import ForecastWeatherDisplay from './ForecastWeatherDisplay';
 import CurrentWeatherDisplay from './CurrentWeatherDisplay';
 import DismissibleSeasonalWarning from './DismissibleSeasonalWarning';
+import WeatherDateMatchDebug from './WeatherDateMatchDebug';
 import { validateWeatherData, getWeatherDisplayType } from './WeatherValidationService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
@@ -28,8 +29,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     error,
     retryCount,
     segmentDate: segmentDate?.toISOString(),
-    isSharedView
+    isSharedView,
+    dateMatchInfo: weather?.dateMatchInfo
   });
+
+  // Show debug info in development or when there are date matching issues
+  const showDebugInfo = process.env.NODE_ENV === 'development' || 
+                       (weather?.dateMatchInfo?.matchType !== 'exact' && weather?.isActualForecast);
 
   // Validate weather data first
   const validation = validateWeatherData(weather, segmentEndCity);
@@ -39,7 +45,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     validation,
     displayType,
     error,
-    retryCount
+    retryCount,
+    dateMatchInfo: weather?.dateMatchInfo
   });
 
   // Handle each display type with consistent messaging
@@ -55,6 +62,12 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
               isSharedView={isSharedView}
             />
             <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+            <WeatherDateMatchDebug
+              weather={forecastWeather}
+              segmentDate={segmentDate}
+              segmentEndCity={segmentEndCity}
+              isVisible={showDebugInfo}
+            />
           </div>
         );
       }
@@ -72,6 +85,12 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
               isSharedView={isSharedView}
             />
             <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+            <WeatherDateMatchDebug
+              weather={forecastWeather}
+              segmentDate={segmentDate}
+              segmentEndCity={segmentEndCity}
+              isVisible={showDebugInfo}
+            />
           </div>
         );
       }

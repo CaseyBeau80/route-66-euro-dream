@@ -10,11 +10,18 @@ export interface ForecastWeatherData extends WeatherData {
   highTemp?: number;
   lowTemp?: number;
   precipitationChance?: number;
+  matchedForecastDay?: ForecastDay;
+  dateMatchInfo?: {
+    requestedDate: string;
+    matchedDate: string;
+    matchType: 'exact' | 'closest' | 'none';
+    daysOffset: number;
+  };
 }
 
 export class WeatherForecastService {
   private apiClient: WeatherApiClient;
-  private readonly FORECAST_THRESHOLD_DAYS = 5; // Changed from 3 to 5 days
+  private readonly FORECAST_THRESHOLD_DAYS = 5;
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
@@ -52,19 +59,25 @@ export class WeatherForecastService {
       
       console.log(`🔮 WeatherForecastService: Got actual forecast data for ${cityName}`);
       
-      const processedForecast = WeatherDataProcessor.processForecastData(forecastData);
+      // Enhanced processing with proper date matching
+      const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate);
       
-      // Find the forecast for the specific day
-      const targetForecast = processedForecast[daysFromNow] || processedForecast[0];
+      // Find the best matching forecast using enhanced date matching
+      const matchResult = this.findBestForecastMatch(processedForecast, targetDate);
       
-      if (targetForecast) {
-        const highTemp = targetForecast.temperature.high;
-        const lowTemp = targetForecast.temperature.low;
-        const precipChance = parseInt(targetForecast.precipitationChance) || 0;
-        const humidity = targetForecast.humidity || 50;
-        const windSpeed = targetForecast.windSpeed || 0;
+      if (matchResult.matchedForecast) {
+        const forecast = matchResult.matchedForecast;
+        const highTemp = forecast.temperature.high;
+        const lowTemp = forecast.temperature.low;
+        const precipChance = parseInt(forecast.precipitationChance) || 0;
+        const humidity = forecast.humidity || 50;
+        const windSpeed = forecast.windSpeed || 0;
         
-        console.log(`🌡️ WeatherForecastService: Extracted real forecast data for ${cityName}:`, {
+        console.log(`🌡️ WeatherForecastService: Enhanced forecast match for ${cityName}:`, {
+          requestedDate: targetDate.toDateString(),
+          matchedDate: matchResult.matchInfo.matchedDate,
+          matchType: matchResult.matchInfo.matchType,
+          daysOffset: matchResult.matchInfo.daysOffset,
           high: highTemp + '°F',
           low: lowTemp + '°F',
           precipitation: precipChance + '%',
@@ -76,23 +89,90 @@ export class WeatherForecastService {
           temperature: Math.round((highTemp + lowTemp) / 2),
           highTemp: highTemp,
           lowTemp: lowTemp,
-          description: targetForecast.description,
-          icon: targetForecast.icon,
-          humidity: humidity, // Real humidity from API
-          windSpeed: windSpeed, // Real wind speed from API
-          precipitationChance: precipChance, // Real precipitation chance from API
+          description: forecast.description,
+          icon: forecast.icon,
+          humidity: humidity,
+          windSpeed: windSpeed,
+          precipitationChance: precipChance,
           cityName: cityName,
           forecast: processedForecast,
           forecastDate: targetDate,
-          isActualForecast: true
+          isActualForecast: true,
+          matchedForecastDay: forecast,
+          dateMatchInfo: matchResult.matchInfo
         };
       } else {
+        console.log(`⚠️ WeatherForecastService: No suitable forecast match found for ${cityName} on ${targetDate.toDateString()}`);
         return null;
       }
     } catch (error) {
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
       return null;
     }
+  }
+
+  private findBestForecastMatch(
+    processedForecast: ForecastDay[], 
+    targetDate: Date
+  ): { matchedForecast: ForecastDay | null; matchInfo: any } {
+    const targetDateUTC = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const targetDateString = targetDateUTC.toISOString().split('T')[0];
+    
+    console.log(`🎯 Finding best forecast match for ${targetDateString} from ${processedForecast.length} forecasts`);
+    
+    // First try exact date match
+    for (const forecast of processedForecast) {
+      if (forecast.dateString === targetDateString) {
+        console.log(`✅ Exact date match found: ${forecast.dateString}`);
+        return {
+          matchedForecast: forecast,
+          matchInfo: {
+            requestedDate: targetDateString,
+            matchedDate: forecast.dateString,
+            matchType: 'exact' as const,
+            daysOffset: 0
+          }
+        };
+      }
+    }
+    
+    // If no exact match, find closest date within reasonable range
+    let closestForecast: ForecastDay | null = null;
+    let smallestOffset = Infinity;
+    
+    for (const forecast of processedForecast) {
+      const forecastDate = new Date(forecast.dateString + 'T00:00:00Z');
+      const offsetDays = Math.abs((forecastDate.getTime() - targetDateUTC.getTime()) / (24 * 60 * 60 * 1000));
+      
+      if (offsetDays < smallestOffset && offsetDays <= 2) { // Within 2 days
+        closestForecast = forecast;
+        smallestOffset = offsetDays;
+      }
+    }
+    
+    if (closestForecast) {
+      console.log(`🎯 Closest match found: ${closestForecast.dateString} (${smallestOffset} days offset)`);
+      return {
+        matchedForecast: closestForecast,
+        matchInfo: {
+          requestedDate: targetDateString,
+          matchedDate: closestForecast.dateString,
+          matchType: 'closest' as const,
+          daysOffset: smallestOffset
+        }
+      };
+    }
+    
+    console.log(`❌ No suitable forecast match found within 2-day range`);
+    return {
+      matchedForecast: null,
+      matchInfo: {
+        requestedDate: targetDateString,
+        matchedDate: 'none',
+        matchType: 'none' as const,
+        daysOffset: -1
+      }
+    };
   }
 
   private getForecastNotAvailable(
@@ -112,9 +192,15 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false, // Key: this flags it as not a real forecast
+      isActualForecast: false,
       highTemp: undefined,
-      lowTemp: undefined
+      lowTemp: undefined,
+      dateMatchInfo: {
+        requestedDate: targetDate.toISOString().split('T')[0],
+        matchedDate: 'none',
+        matchType: 'none',
+        daysOffset: daysFromNow
+      }
     };
   }
 }

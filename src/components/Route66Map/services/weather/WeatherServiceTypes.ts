@@ -6,17 +6,19 @@ export interface WeatherData {
   humidity: number;
   windSpeed: number;
   cityName: string;
+  precipitationChance?: number;
 }
 
 export interface ForecastDay {
   date: string;
+  dateString?: string; // Add explicit ISO date string for enhanced matching
   temperature: {
     high: number;
     low: number;
   };
   description: string;
   icon: string;
-  precipitationChance?: string;
+  precipitationChance: string;
   humidity: number;
   windSpeed: number;
 }
@@ -29,6 +31,8 @@ export interface OpenWeatherResponse {
   main: {
     temp: number;
     humidity: number;
+    temp_min: number;
+    temp_max: number;
   };
   weather: Array<{
     description: string;
@@ -45,6 +49,8 @@ export interface ForecastResponse {
     main: {
       temp: number;
       humidity: number;
+      temp_min: number;
+      temp_max: number;
     };
     weather: Array<{
       description: string;
@@ -53,6 +59,6 @@ export interface ForecastResponse {
     wind?: {
       speed: number;
     };
-    pop?: number; // probability of precipitation (0-1)
+    pop?: number; // Probability of precipitation (0-1)
   }>;
 }
