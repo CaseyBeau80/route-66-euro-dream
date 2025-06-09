@@ -21,8 +21,8 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Extract trip plan and start date from the saved trip data
   const tripPlan = trip.trip_data;
   
-  // Try to get the start date from multiple possible locations
-  const tripStartDate = tripPlan.startDate || tripPlan.tripStartDate || undefined;
+  // Use the correct property name from TripPlan interface
+  const tripStartDate = tripPlan.startDate || undefined;
   
   console.log('🎯 TripDetailsContent: Extracted data', {
     tripPlan,
