@@ -4,15 +4,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { AlertCircle } from 'lucide-react';
-import { PDFExportOptions } from '../../../services/pdf/PDFTypesService';
+
+interface PDFExportOptions {
+  format: 'full' | 'summary' | 'route-only';
+  title?: string;
+  watermark?: string;
+  includeQRCode: boolean;
+}
 
 interface PDFExportOptionsFormProps {
   exportOptions: PDFExportOptions;
-  updateExportOption: <K extends keyof PDFExportOptions>(
-    key: K,
-    value: PDFExportOptions[K]
-  ) => void;
+  updateExportOption: <K extends keyof PDFExportOptions>(key: K, value: PDFExportOptions[K]) => void;
   weatherLoading: boolean;
 }
 
@@ -25,7 +27,7 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
     <div className="space-y-4">
       {/* Export Format */}
       <div className="space-y-2">
-        <Label className="text-blue-700 font-semibold text-sm">Export Format</Label>
+        <Label className="text-route66-primary font-semibold text-sm">Export Format</Label>
         <Select 
           value={exportOptions.format} 
           onValueChange={(value: 'full' | 'summary' | 'route-only') => updateExportOption('format', value)}
@@ -34,22 +36,46 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="full">Full Itinerary (with weather & stops)</SelectItem>
-            <SelectItem value="summary">Summary (basic info only)</SelectItem>
-            <SelectItem value="route-only">Route Only (no weather or stops)</SelectItem>
+            <SelectItem value="full">Complete Itinerary (with weather & attractions)</SelectItem>
+            <SelectItem value="summary">Summary View (overview only)</SelectItem>
+            <SelectItem value="route-only">Route Only (basic route info)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Custom Title */}
       <div className="space-y-2">
-        <Label className="text-blue-700 font-semibold text-sm">Custom Title (Optional)</Label>
+        <Label className="text-route66-primary font-semibold text-sm">Custom Title (Optional)</Label>
         <Input
           placeholder="My Route 66 Adventure"
           value={exportOptions.title || ''}
           onChange={(e) => updateExportOption('title', e.target.value)}
           className="text-sm"
         />
+      </div>
+
+      {/* Weather Forecast Information */}
+      <div className="p-4 bg-route66-vintage-beige border border-route66-tan rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="text-lg">🌤️</div>
+          <Label className="text-route66-vintage-red font-semibold text-sm font-route66">
+            Weather Forecast Information
+          </Label>
+        </div>
+        <div className="text-xs text-route66-vintage-brown space-y-1">
+          {weatherLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin w-3 h-3 border border-route66-primary border-t-transparent rounded-full"></div>
+              <span>Loading current weather forecasts...</span>
+            </div>
+          ) : (
+            <>
+              <div>✅ Weather data will be included for each destination</div>
+              <div>📅 Forecasts based on your travel dates</div>
+              <div>🌡️ Temperature, conditions, and travel tips included</div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Options */}
@@ -60,13 +86,13 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
             checked={exportOptions.includeQRCode}
             onCheckedChange={(checked) => updateExportOption('includeQRCode', !!checked)}
           />
-          <Label htmlFor="includeQRCode" className="text-blue-700 font-semibold text-sm">Include QR Code for Live Version</Label>
+          <Label htmlFor="includeQRCode" className="text-route66-primary font-semibold text-sm">Include QR Code for Live Version</Label>
         </div>
       </div>
 
       {/* Watermark */}
       <div className="space-y-2">
-        <Label className="text-blue-700 font-semibold text-sm">Watermark (Optional)</Label>
+        <Label className="text-route66-primary font-semibold text-sm">Watermark (Optional)</Label>
         <Input
           placeholder="DRAFT"
           value={exportOptions.watermark || ''}
@@ -75,23 +101,15 @@ const PDFExportOptionsForm: React.FC<PDFExportOptionsFormProps> = ({
         />
       </div>
 
-      {/* Weather Loading Status */}
-      {weatherLoading && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-          <span className="text-sm text-blue-800 font-medium">Loading weather data...</span>
-        </div>
-      )}
-
       {/* Instructions */}
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-        <div className="font-semibold mb-2 text-blue-700 text-sm">📋 PDF Export Instructions:</div>
-        <ul className="text-xs space-y-1.5 leading-relaxed">
-          <li>• Click "Export PDF" to create your printable itinerary</li>
-          <li>• A preview will open where you can review the content</li>
-          <li>• Press Ctrl+P (or Cmd+P on Mac) to open the print dialog</li>
-          <li>• Choose "Save as PDF" as your destination to download the file</li>
-          <li>• Weather data is loaded for enhanced trip planning</li>
+      <div className="p-3 bg-route66-vintage-beige border border-route66-tan rounded-lg text-sm text-route66-navy">
+        <div className="font-semibold mb-2 text-route66-vintage-red text-sm font-route66">🛣️ Enhanced PDF Features:</div>
+        <ul className="text-xs space-y-1.5 leading-relaxed text-route66-vintage-brown">
+          <li>• Instant preview opening for fast review</li>
+          <li>• Enhanced Route 66 branding and nostalgic styling</li>
+          <li>• Current weather forecasts for each destination</li>
+          <li>• Optimized layout matching your final itinerary</li>
+          <li>• Print-ready format with professional presentation</li>
         </ul>
       </div>
     </div>

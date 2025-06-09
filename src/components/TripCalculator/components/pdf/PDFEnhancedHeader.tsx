@@ -16,41 +16,28 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
   tripStartDate,
   logoUrl
 }) => {
+  // Use the correct logo URL provided by the user
+  const correctLogoUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png';
+
   return (
     <div className="pdf-header no-page-break mb-8 text-center border-b-4 border-route66-primary pb-6">
       {/* Enhanced Logo Section */}
       <div className="flex justify-center mb-6">
-        {logoUrl ? (
-          <div className="logo-container">
-            <img 
-              src={logoUrl} 
-              alt="Ramble 66 Logo" 
-              className="h-16 w-auto max-w-[200px] object-contain"
-              style={{ 
-                maxHeight: '64px',
-                width: 'auto',
-                objectFit: 'contain'
-              }}
-            />
-            <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2">
-              ROUTE 66 TRIP PLANNER
-            </div>
+        <div className="logo-container">
+          <img 
+            src={correctLogoUrl} 
+            alt="Ramble 66 Logo" 
+            className="h-16 w-auto max-w-[200px] object-contain"
+            style={{ 
+              maxHeight: '64px',
+              width: 'auto',
+              objectFit: 'contain'
+            }}
+          />
+          <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2">
+            ROUTE 66 TRIP PLANNER
           </div>
-        ) : (
-          <div className="ramble-66-text-logo">
-            <div className="flex items-center gap-1 justify-center">
-              <div className="font-bold text-route66-primary text-2xl leading-none">
-                RAMBLE
-              </div>
-              <div className="font-bold text-route66-primary text-2xl leading-none">
-                66
-              </div>
-            </div>
-            <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-1">
-              ROUTE 66 TRIP PLANNER
-            </div>
-          </div>
-        )}
+        </div>
       </div>
       
       {/* Trip Title with Enhanced Route 66 Styling */}

@@ -37,8 +37,8 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
 
   const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
   
-  // Use the uploaded logo URL from the project assets
-  const logoUrl = '/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png';
+  // Use the correct logo URL provided by the user
+  const logoUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png';
 
   return (
     <div className="pdf-content bg-white min-h-screen" style={{ 
