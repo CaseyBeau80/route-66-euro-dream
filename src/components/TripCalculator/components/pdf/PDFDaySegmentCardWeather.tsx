@@ -18,9 +18,10 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
   const weatherData = segment.weather;
   const endCityName = segment.endCity || getDestinationCityName(segment.destination);
 
-  console.log('🌤️ PDF Weather rendering for:', endCityName, 'Date:', segmentDate, 'Weather:', weatherData);
+  console.log('🌤️ FRESH PDF Weather rendering for:', endCityName, 'Date:', segmentDate, 'Weather:', weatherData);
 
   if (!weatherData) {
+    console.log('⚠️ No weather data available for', endCityName);
     return (
       <div className="pdf-weather-card">
         <h4 className="text-sm font-semibold text-route66-navy mb-2 flex items-center gap-2">
@@ -39,12 +40,21 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     );
   }
 
-  // Handle different weather data formats - corrected to use proper property names
+  // Handle different weather data formats - ensure we get the right temperature values
   const lowTemp = weatherData.lowTemp || weatherData.temp?.min;
   const highTemp = weatherData.highTemp || weatherData.temp?.max;
   const condition = weatherData.condition || weatherData.description || weatherData.main;
   const humidity = weatherData.humidity;
   const windSpeed = weatherData.windSpeed || weatherData.wind?.speed;
+
+  console.log('🌡️ FRESH Temperature data for', endCityName, ':', {
+    lowTemp,
+    highTemp,
+    condition,
+    humidity,
+    windSpeed,
+    isActualForecast: weatherData.isActualForecast
+  });
 
   return (
     <div className="pdf-weather-card">
@@ -55,6 +65,9 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
             ({format(segmentDate, 'MMM d')})
           </span>
         )}
+        {weatherData.isActualForecast && (
+          <span className="text-xs text-green-600 font-normal">✓ Live</span>
+        )}
       </h4>
       
       <div className="bg-white p-3 rounded border border-route66-tan">
@@ -64,7 +77,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
             <span className="text-route66-primary">🌡️</span>
             <div>
               <div className="font-medium text-route66-navy">Temperature</div>
-              <div className="text-route66-vintage-brown">
+              <div className="text-route66-vintage-brown font-semibold">
                 {(lowTemp !== undefined && highTemp !== undefined) ? 
                   `${Math.round(highTemp)}°/${Math.round(lowTemp)}°F` :
                   highTemp !== undefined ? `${Math.round(highTemp)}°F` :
