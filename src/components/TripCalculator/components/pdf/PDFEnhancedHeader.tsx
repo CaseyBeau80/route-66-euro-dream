@@ -21,20 +21,20 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
 
   return (
     <div className="pdf-header no-page-break mb-8 text-center border-b-4 border-route66-primary pb-6">
-      {/* Enhanced Logo Section */}
-      <div className="flex justify-center mb-6">
-        <div className="logo-container">
+      {/* Centered Logo Section */}
+      <div className="flex justify-center items-center mb-6">
+        <div className="logo-container text-center">
           <img 
             src={correctLogoUrl} 
             alt="Ramble 66 Logo" 
-            className="h-16 w-auto max-w-[200px] object-contain"
+            className="h-16 w-auto max-w-[200px] object-contain mx-auto"
             style={{ 
               maxHeight: '64px',
               width: 'auto',
               objectFit: 'contain'
             }}
           />
-          <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2">
+          <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2 text-center">
             ROUTE 66 TRIP PLANNER
           </div>
         </div>

@@ -17,9 +17,9 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({
 }) => {
   return (
     <div className="pdf-header no-page-break mb-8 text-center border-b-4 border-route66-primary pb-6">
-      {/* Enhanced Ramble 66 Branding */}
-      <div className="flex justify-center mb-6">
-        <RambleBranding variant="full" size="lg" />
+      {/* Centered Ramble 66 Branding */}
+      <div className="flex justify-center items-center mb-6">
+        <RambleBranding variant="full" size="lg" className="mx-auto" />
       </div>
       
       {/* Trip Title with Enhanced Route 66 Styling */}

@@ -10,7 +10,7 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
   // Always use the text-based logo for PDF to ensure it prints correctly
   return (
     <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
-      <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center">
+      <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center mx-auto">
         <Route className="w-6 h-6 text-white" />
       </div>
       <div className="ramble-66-text-logo text-center">
@@ -22,7 +22,7 @@ const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
             66
           </div>
         </div>
-        <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-1">
+        <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-1 text-center">
           ROUTE 66 TRIP PLANNER
         </div>
       </div>
