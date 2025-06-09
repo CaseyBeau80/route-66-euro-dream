@@ -76,7 +76,6 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
   };
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
-  const shouldShowModal = isOpen && !showPreview && !isExporting;
 
   // Handle printing from preview
   const handlePrintFromPreview = () => {
@@ -124,18 +123,17 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     return 'Available';
   };
 
-  // Show PDF Preview with enhanced trip plan if available
-  if (showPreview) {
-    const displayTripPlan = enrichedTripPlan || tripPlan;
-    console.log('📄 Showing PDF preview with plan:', {
-      segmentCount: displayTripPlan.segments?.length || 0,
-      hasWeatherData: displayTripPlan.segments?.some(s => s.weather || s.weatherData) || false,
+  // CRITICAL FIX: Show PDF Preview OUTSIDE of any Dialog context
+  if (showPreview && enrichedTripPlan) {
+    console.log('📄 Rendering PDF preview with plan:', {
+      segmentCount: enrichedTripPlan.segments?.length || 0,
+      hasWeatherData: enrichedTripPlan.segments?.some(s => s.weather || s.weatherData) || false,
       weatherTimeout
     });
     
     return (
       <PDFPreviewContainer
-        tripPlan={displayTripPlan}
+        tripPlan={enrichedTripPlan}
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
@@ -146,8 +144,15 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     );
   }
 
+  // Only show modal if preview is NOT active and modal should be open
+  const shouldShowModal = isOpen && !showPreview && !isExporting;
+
+  if (!shouldShowModal) {
+    return null;
+  }
+
   return (
-    <Dialog open={shouldShowModal} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent 
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
         role="dialog"

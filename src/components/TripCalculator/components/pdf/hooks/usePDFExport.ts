@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
@@ -34,7 +35,8 @@ export const usePDFExport = ({
       hasSegments: !!(tripPlan.segments && tripPlan.segments.length > 0),
       segmentCount: tripPlan.segments?.length || 0,
       hasStartDate: !!tripStartDate,
-      isAlreadyExporting: isExporting
+      isAlreadyExporting: isExporting,
+      currentShowPreview: showPreview
     });
 
     // Prevent double execution
@@ -55,14 +57,19 @@ export const usePDFExport = ({
     
     try {
       // STEP 1: GUARANTEED PREVIEW OPENING
-      // Always show preview first with original trip plan
-      console.log('📄 GUARANTEED: Opening preview with original trip plan...');
+      console.log('📄 GUARANTEED: Setting enriched trip plan and showing preview...');
       setEnrichedTripPlan(tripPlan);
       addPrintStyles();
+      
+      // Force state update and log it
+      console.log('📄 Setting showPreview to true...');
       setShowPreview(true);
       
+      // Wait a tick to ensure state update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('📄 Preview should now be visible');
+      
       // STEP 2: BACKGROUND WEATHER ENRICHMENT
-      // Try weather enrichment in background if we have a start date
       if (tripStartDate && tripPlan.segments && tripPlan.segments.length > 0) {
         console.log('🌤️ Background: Starting weather enrichment...');
         setWeatherLoading(true);
@@ -101,14 +108,13 @@ export const usePDFExport = ({
           setWeatherLoadingStatus('Weather data timeout - using seasonal estimates');
           setWeatherLoadingProgress(100);
           
-          // Keep original trip plan - preview already showing
           console.log('📊 Continuing with original trip plan (seasonal fallback available in preview)');
         }
         
         setWeatherLoading(false);
       }
       
-      console.log('✅ PDF export process completed successfully - Preview is showing');
+      console.log('✅ PDF export process completed successfully - Preview should be showing');
 
     } catch (error) {
       console.error('❌ Critical error in PDF export:', error);
@@ -137,6 +143,14 @@ export const usePDFExport = ({
     removePrintStyles();
     onClose();
   }, [removePrintStyles, onClose]);
+
+  // Debug logging for state changes
+  console.log('🎯 usePDFExport state:', {
+    isExporting,
+    showPreview,
+    weatherLoading,
+    hasEnrichedTripPlan: !!enrichedTripPlan
+  });
 
   return {
     isExporting,
