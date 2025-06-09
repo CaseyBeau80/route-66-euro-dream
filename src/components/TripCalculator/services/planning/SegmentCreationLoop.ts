@@ -119,9 +119,6 @@ export class SegmentCreationLoop {
       dayDestination
     );
 
-    // Include balance metrics on the first segment
-    const segmentBalanceMetrics = day === 1 ? balanceMetrics : undefined;
-
     // Create attractions list with proper object structure
     const attractions = segmentStops.map(stop => ({
       name: stop.name,
@@ -168,11 +165,11 @@ export class SegmentCreationLoop {
       subStopTimings: convertedSegmentTimings,
       routeSection,
       driveTimeCategory,
-      balanceMetrics: segmentBalanceMetrics,
       destination: {
         city: dayDestination.name,
         state: dayDestination.state
       }
+      // REMOVED: balanceMetrics property - not part of DailySegment interface
     };
   }
 

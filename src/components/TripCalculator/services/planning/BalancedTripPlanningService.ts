@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -148,9 +147,7 @@ export class BalancedTripPlanningService {
         driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
         destination: {
           city: dayDestination.city || dayDestination.city_name,
-          state: dayDestination.state,
-          city_name: dayDestination.city_name,
-          name: dayDestination.name
+          state: dayDestination.state
         },
         recommendedStops: segmentStops,
         attractions: segmentStops.map(stop => ({
