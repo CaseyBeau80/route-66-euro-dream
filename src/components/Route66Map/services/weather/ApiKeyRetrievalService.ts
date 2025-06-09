@@ -40,7 +40,18 @@ export class ApiKeyRetrievalService {
 
   static getApiKeyWithCorruptionCheck(cachedKey: string | null): string | null {
     // Always refresh to get the latest from localStorage
-    return this.refreshApiKey();
+    const refreshedKey = this.refreshApiKey();
+    
+    // If we have a refreshed key and it's different from cached, log the change
+    if (refreshedKey !== cachedKey) {
+      console.log('🔄 ApiKeyRetrievalService: Key changed during refresh', {
+        hadCachedKey: !!cachedKey,
+        hasRefreshedKey: !!refreshedKey,
+        keysMatch: refreshedKey === cachedKey
+      });
+    }
+    
+    return refreshedKey;
   }
 
   private static isValidKey(key: string): boolean {

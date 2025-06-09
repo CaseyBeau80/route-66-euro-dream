@@ -20,8 +20,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * Chooses between forecast and historical data based on trip date
- * Generates display-ready objects for [Low] [Icon] [High] layout
+ * Prioritizes live forecast data when available, falls back to historical data
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -58,11 +57,6 @@ export const getWeatherDataForTripDate = async (
 
   const weatherService = EnhancedWeatherService.getInstance();
   
-  if (!weatherService.hasApiKey()) {
-    console.warn('❌ No weather API key available');
-    return null;
-  }
-
   // Get coordinates if not provided
   let coords = coordinates;
   if (!coords) {
@@ -73,11 +67,11 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  try {
-    // For dates within 5 days, try to get actual forecast
-    if (daysFromNow >= 0 && daysFromNow <= 5) {
-      console.log(`🔮 Attempting forecast for ${cityName} (${daysFromNow} days ahead)`);
-      
+  // PRIORITY 1: Try to get live forecast if API key is available and date is within range
+  if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
+    console.log(`🔮 Attempting live forecast for ${cityName} (${daysFromNow} days ahead)`);
+    
+    try {
       const forecastData: ForecastWeatherData | null = await weatherService.getWeatherForDate(
         coords.lat,
         coords.lng,
@@ -85,14 +79,22 @@ export const getWeatherDataForTripDate = async (
         validTripDate
       );
       
-      if (forecastData && forecastData.isActualForecast && forecastData.highTemp && forecastData.lowTemp) {
-        console.log(`✅ Got actual forecast for ${cityName} with real weather data:`, {
+      // Check if we got actual forecast data with valid temperatures
+      if (forecastData && 
+          forecastData.isActualForecast && 
+          forecastData.highTemp !== undefined && 
+          forecastData.lowTemp !== undefined &&
+          forecastData.highTemp > 0 && 
+          forecastData.lowTemp > 0) {
+        
+        console.log(`✅ Got live forecast for ${cityName}:`, {
           high: forecastData.highTemp + '°F',
           low: forecastData.lowTemp + '°F',
           humidity: forecastData.humidity + '%',
           wind: forecastData.windSpeed + ' mph',
           precipitation: (forecastData.precipitationChance || 0) + '%'
         });
+        
         return {
           lowTemp: forecastData.lowTemp,
           highTemp: forecastData.highTemp,
@@ -107,55 +109,49 @@ export const getWeatherDataForTripDate = async (
           isActualForecast: true
         };
       }
+      
+      console.log(`⚠️ Forecast request returned but no valid live data for ${cityName}`, {
+        hasForecastData: !!forecastData,
+        isActualForecast: forecastData?.isActualForecast,
+        hasValidTemps: !!(forecastData?.highTemp && forecastData?.lowTemp)
+      });
+      
+    } catch (error) {
+      console.error('❌ Error getting live forecast:', error);
     }
-    
-    // For dates beyond 5 days or if forecast failed, use historical data
-    console.log(`📊 Using historical data for ${cityName} (${daysFromNow} days ahead)`);
-    const historicalData = getHistoricalWeatherData(cityName, validTripDate);
-    
-    const historicalDisplay = {
-      lowTemp: historicalData.low,
-      highTemp: historicalData.high,
-      icon: '🌡️', // Thermometer emoji for historical data
-      description: historicalData.condition,
-      source: 'historical' as const,
-      isAvailable: true,
-      humidity: historicalData.humidity,
-      windSpeed: historicalData.windSpeed,
-      precipitationChance: historicalData.precipitationChance,
-      cityName: cityName,
-      isActualForecast: false // This is key - marking it as NOT a forecast
-    };
-    
-    console.log(`📊 Historical weather data for ${cityName}:`, {
-      high: historicalDisplay.highTemp + '°F',
-      low: historicalDisplay.lowTemp + '°F',
-      humidity: historicalDisplay.humidity + '%',
-      wind: historicalDisplay.windSpeed + ' mph',
-      precipitation: (historicalDisplay.precipitationChance || 0) + '%'
+  } else {
+    console.log(`📊 Skipping forecast request for ${cityName}:`, {
+      hasApiKey: weatherService.hasApiKey(),
+      daysFromNow,
+      isWithinRange: daysFromNow >= 0 && daysFromNow <= 5
     });
-    
-    return historicalDisplay;
-    
-  } catch (error) {
-    console.error('❌ Error getting weather data:', error);
-    
-    // Fallback to historical data
-    console.log(`📊 Fallback to historical data for ${cityName}`);
-    const historicalData = getHistoricalWeatherData(cityName, validTripDate);
-    
-    return {
-      lowTemp: historicalData.low,
-      highTemp: historicalData.high,
-      icon: '🌡️',
-      description: historicalData.condition,
-      source: 'historical',
-      isAvailable: true,
-      humidity: historicalData.humidity,
-      windSpeed: historicalData.windSpeed,
-      precipitationChance: historicalData.precipitationChance,
-      cityName: cityName,
-      isActualForecast: false // This is key - marking it as NOT a forecast
-    };
   }
+  
+  // PRIORITY 2: Fall back to historical/seasonal data
+  console.log(`📊 Using historical data for ${cityName} (${daysFromNow} days ahead)`);
+  const historicalData = getHistoricalWeatherData(cityName, validTripDate);
+  
+  const historicalDisplay = {
+    lowTemp: historicalData.low,
+    highTemp: historicalData.high,
+    icon: '🌡️', // Thermometer emoji for historical data
+    description: historicalData.condition,
+    source: 'historical' as const,
+    isAvailable: true,
+    humidity: historicalData.humidity,
+    windSpeed: historicalData.windSpeed,
+    precipitationChance: historicalData.precipitationChance,
+    cityName: cityName,
+    isActualForecast: false // This is key - marking it as NOT a forecast
+  };
+  
+  console.log(`📊 Historical weather data for ${cityName}:`, {
+    high: historicalDisplay.highTemp + '°F',
+    low: historicalDisplay.lowTemp + '°F',
+    humidity: historicalDisplay.humidity + '%',
+    wind: historicalDisplay.windSpeed + ' mph',
+    precipitation: (historicalDisplay.precipitationChance || 0) + '%'
+  });
+  
+  return historicalDisplay;
 };

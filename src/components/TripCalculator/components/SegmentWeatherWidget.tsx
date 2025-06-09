@@ -27,12 +27,20 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
 }) => {
   const weatherService = EnhancedWeatherService.getInstance();
   
-  // Force refresh of API key status to ensure we check localStorage
-  React.useEffect(() => {
-    weatherService.getApiKey(); // This will refresh the internal state
-  }, [weatherService]);
+  // Always refresh API key status to ensure we have the latest state
+  const [hasApiKey, setHasApiKey] = React.useState(false);
   
-  const hasApiKey = weatherService.hasApiKey();
+  React.useEffect(() => {
+    // Force refresh of API key status from storage
+    weatherService.refreshApiKey();
+    const apiKeyStatus = weatherService.hasApiKey();
+    setHasApiKey(apiKeyStatus);
+    
+    console.log(`🔑 SegmentWeatherWidget: API key status for ${segment.endCity}:`, {
+      hasApiKey: apiKeyStatus,
+      debugInfo: weatherService.getDebugInfo()
+    });
+  }, [weatherService, segment.endCity]);
 
   console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
     tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
@@ -40,7 +48,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     hasApiKey,
     sectionKey,
     forceExpanded,
-    apiKeyDebug: weatherService.getDebugInfo()
+    isSharedView: sectionKey === 'shared-view'
   });
 
   // Calculate the actual date for this segment
@@ -110,6 +118,14 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
+  // Handle API key updates
+  const handleApiKeySet = React.useCallback(() => {
+    console.log('🔑 API key set, refreshing weather service state');
+    weatherService.refreshApiKey();
+    setHasApiKey(weatherService.hasApiKey());
+    weatherHandlers.handleApiKeySet();
+  }, [weatherService, weatherHandlers]);
+
   // Mark this element with weather loaded attribute for PDF export
   React.useEffect(() => {
     if (weatherState.weather && !weatherState.loading) {
@@ -133,7 +149,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         retryCount={weatherState.retryCount}
         segmentEndCity={segment.endCity}
         segmentDate={segmentDate}
-        onApiKeySet={weatherHandlers.handleApiKeySet}
+        onApiKeySet={handleApiKeySet}
         onTimeout={weatherHandlers.handleTimeout}
         onRetry={weatherHandlers.handleRetry}
         isSharedView={sectionKey === 'shared-view'}

@@ -58,35 +58,106 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <EnhancedWeatherLoading onTimeout={onTimeout} />;
   }
 
-  // Show weather data if available
+  // PRIORITY 1: Show live weather data if available (regardless of API key status display)
   if (weather) {
     console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
     
-    // Check if this is forecast data (has isActualForecast property)
+    // Check if this is actual forecast data with real weather information
     if (weather.isActualForecast !== undefined) {
-      return (
-        <div className="space-y-2">
-          {/* Show forecast indicator for actual forecasts */}
-          {weather.isActualForecast && isWithinForecastRange && (
+      const forecastWeather = weather as ForecastWeatherData;
+      
+      // Show live forecast data if we have actual forecast with valid temperatures
+      if (forecastWeather.isActualForecast && 
+          forecastWeather.highTemp !== undefined && 
+          forecastWeather.lowTemp !== undefined &&
+          forecastWeather.highTemp > 0 && 
+          forecastWeather.lowTemp > 0) {
+        
+        console.log(`🔮 Showing live forecast for ${segmentEndCity}:`, {
+          high: forecastWeather.highTemp,
+          low: forecastWeather.lowTemp,
+          description: forecastWeather.description
+        });
+        
+        return (
+          <div className="space-y-2">
             <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
               <strong>🔮 Live Forecast:</strong> Powered by OpenWeatherMap for {segmentDate?.toLocaleDateString()}
             </div>
-          )}
-          {/* Show seasonal indicator for historical data */}
-          {!weather.isActualForecast && (
+            <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+          </div>
+        );
+      }
+      
+      // If forecast data exists but is marked as not actual forecast, show seasonal with note
+      if (!forecastWeather.isActualForecast) {
+        console.log(`📊 Forecast service returned seasonal data for ${segmentEndCity}`);
+        return (
+          <div className="space-y-2">
             <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
               <strong>📊 Seasonal Estimate:</strong> Based on historical weather patterns
             </div>
-          )}
-          <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />
-        </div>
-      );
+            <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+          </div>
+        );
+      }
     } else {
+      // Regular weather data (current weather)
       return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
     }
   }
 
-  // In shared view without API key
+  // PRIORITY 2: Handle error states with API key available
+  if (error && hasApiKey) {
+    // Show fallback for repeated errors - use seasonal data if date is available
+    if (retryCount >= 2 || error.includes('timeout')) {
+      console.log(`🔄 Showing fallback for ${segmentEndCity} after ${retryCount} retries`);
+      
+      if (segmentDate) {
+        return (
+          <div className="space-y-3">
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
+              <strong>Weather Service Unavailable:</strong> 
+              {isWithinForecastRange 
+                ? ` Live forecast temporarily unavailable. Showing seasonal estimates.`
+                : ` Showing seasonal estimates instead of live forecasts.`
+              }
+            </div>
+            <SeasonalWeatherDisplay 
+              segmentDate={segmentDate} 
+              cityName={segmentEndCity}
+              compact={true}
+            />
+            {!isSharedView && (
+              <div className="text-center">
+                <button
+                  onClick={onRetry}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  {isWithinForecastRange ? 'Try again for live forecast' : 'Try again'}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      return (
+        <WeatherFallback 
+          cityName={segmentEndCity}
+          segmentDate={segmentDate}
+          onRetry={isSharedView ? undefined : onRetry}
+          error={error}
+        />
+      );
+    }
+
+    // Show error for first attempt
+    console.log(`❌ Showing error for ${segmentEndCity}:`, error);
+    return <WeatherError error={error} />;
+  }
+
+  // PRIORITY 3: Handle no API key scenarios
   if (!hasApiKey) {
     console.log(`🔑 No API key for ${segmentEndCity}, showing appropriate messaging`);
     
@@ -179,66 +250,31 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // Show fallback for repeated errors - use seasonal data if date is available
-  if (error && (retryCount >= 2 || error.includes('timeout'))) {
-    console.log(`🔄 Showing fallback for ${segmentEndCity} after ${retryCount} retries`);
-    
-    if (segmentDate) {
-      return (
-        <div className="space-y-3">
-          <div className="p-3 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
-            <strong>Weather Service Unavailable:</strong> 
-            {isWithinForecastRange 
-              ? ` Live forecast temporarily unavailable. Showing seasonal estimates.`
-              : ` Showing seasonal estimates instead of live forecasts.`
-            }
-          </div>
-          <SeasonalWeatherDisplay 
-            segmentDate={segmentDate} 
-            cityName={segmentEndCity}
-            compact={true}
-          />
-          {!isSharedView && (
-            <div className="text-center">
-              <button
-                onClick={onRetry}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                {isWithinForecastRange ? 'Try again for live forecast' : 'Try again'}
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
-    
-    return (
-      <WeatherFallback 
-        cityName={segmentEndCity}
-        segmentDate={segmentDate}
-        onRetry={isSharedView ? undefined : onRetry}
-        error={error}
-      />
-    );
-  }
-
-  // Show error
-  if (error) {
-    console.log(`❌ Showing error for ${segmentEndCity}:`, error);
-    return <WeatherError error={error} />;
-  }
-
-  // Show seasonal fallback when date is available but no weather data
-  if (segmentDate) {
-    console.log(`🌱 Showing seasonal weather for ${segmentEndCity}`);
+  // PRIORITY 4: API key available but no weather data yet - show loading state while fetching
+  if (hasApiKey && segmentDate && isWithinForecastRange) {
+    console.log(`🌱 API key available, waiting for forecast data for ${segmentEndCity}`);
     return (
       <div className="space-y-3">
         <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-          <strong>📊 Seasonal Estimate:</strong> 
-          {isWithinForecastRange 
-            ? ` Live forecast will appear when API connects successfully.`
-            : ` Live forecast will appear when available.`
-          }
+          <strong>🔮 Loading Forecast:</strong> 
+          Fetching live weather data from OpenWeatherMap...
+        </div>
+        <div className="text-center p-3">
+          <div className="animate-pulse text-gray-500 text-sm">
+            Getting weather forecast...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // PRIORITY 5: Show seasonal fallback when API key is available but date is beyond forecast range
+  if (hasApiKey && segmentDate && !isWithinForecastRange) {
+    console.log(`📊 Date beyond forecast range for ${segmentEndCity}, showing seasonal data`);
+    return (
+      <div className="space-y-2">
+        <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+          <strong>📊 Seasonal Estimate:</strong> Date is beyond 5-day forecast window.
         </div>
         <SeasonalWeatherDisplay 
           segmentDate={segmentDate} 
