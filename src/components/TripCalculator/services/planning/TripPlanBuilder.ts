@@ -48,6 +48,7 @@ export interface TripPlan {
   endCityImage?: string;
   isEnriched?: boolean;
   lastUpdated?: Date;
+  exportTimestamp?: number;
   originalDays?: number;
   driveTimeBalance?: any;
   wasAdjusted?: boolean;
