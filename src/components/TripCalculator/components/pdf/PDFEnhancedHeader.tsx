@@ -25,7 +25,7 @@ const PDFEnhancedHeader: React.FC<PDFEnhancedHeaderProps> = ({
         <div className="logo-container text-center">
           <LogoImage 
             className="h-16 w-auto max-w-[200px] object-contain mx-auto"
-            alt={getRambleLogoAlt('branding')}
+            alt={getRambleLogoAlt()}
           />
           <div className="text-xs text-route66-text-secondary font-medium tracking-wider mt-2 text-center">
             ROUTE 66 TRIP PLANNER

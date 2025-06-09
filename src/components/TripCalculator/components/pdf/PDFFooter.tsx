@@ -34,7 +34,7 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           <div className="flex justify-center mb-4">
             <LogoImage 
               className="h-12 w-auto object-contain"
-              alt={getRambleLogoAlt('branding')}
+              alt={getRambleLogoAlt()}
             />
           </div>
           <h3 className="text-lg font-bold text-route66-vintage-red mb-2 font-route66">
@@ -59,7 +59,7 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
           <div className="flex items-center gap-3">
             <LogoImage 
               className="h-8 w-auto object-contain"
-              alt={getRambleLogoAlt('branding')}
+              alt={getRambleLogoAlt()}
             />
             <div className="ramble-66-text-logo">
               <div className="flex items-center gap-1">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,8 @@ import { TripService } from '../services/TripService';
 import { useTripAutoSaveBeforeShare } from '../hooks/useTripAutoSaveBeforeShare';
 import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 import ShareTripModal from './ShareTripModal';
+import LogoImage from '../../shared/LogoImage';
+import { getRambleLogoAlt } from '../../../utils/logoConfig';
 
 interface ShareAndExportDropdownProps {
   shareUrl?: string | null;
@@ -258,6 +261,10 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
               </>
             ) : (
               <>
+                <LogoImage 
+                  className="w-4 h-4 mr-2 object-contain"
+                  alt={getRambleLogoAlt()}
+                />
                 <Share2 className="w-4 h-4 mr-2" />
                 <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
                   Share & Export
@@ -277,7 +284,10 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-blue-100">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <Share2 className="w-5 h-5 text-white" />
+                <LogoImage 
+                  className="w-5 h-5 object-contain"
+                  alt={getRambleLogoAlt()}
+                />
               </div>
               <div>
                 <h3 className="font-bold text-gray-800 text-lg leading-tight">Share Your Adventure</h3>

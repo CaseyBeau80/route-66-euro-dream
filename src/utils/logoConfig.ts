@@ -8,16 +8,8 @@ export const RAMBLE_LOGO_CONFIG = {
   // Primary logo URL - the official Ramble 66 logo
   PRIMARY_LOGO_URL: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png",
   
-  // Fallback logo URL in case primary fails
-  FALLBACK_LOGO_URL: "https://via.placeholder.com/64x64/1e40af/ffffff?text=R66",
-  
-  // Alt text variations for different contexts
-  ALT_TEXT: {
-    default: "Ramble 66 Logo",
-    navigation: "Ramble Route 66 logo", 
-    branding: "Ramble 66 - Route 66 Trip Planner",
-    social: "Ramble 66 - Your Route 66 Adventure Starts Here"
-  },
+  // Alt text - standardized to "Ramble 66 Logo"
+  ALT_TEXT: "Ramble 66 Logo",
   
   // Standard size classes for consistent sizing
   SIZES: {
@@ -31,22 +23,21 @@ export const RAMBLE_LOGO_CONFIG = {
 /**
  * Get the primary logo URL - use this throughout the application
  */
-export const getRambleLogoUrl = (useFallback = false) => {
-  const url = useFallback ? RAMBLE_LOGO_CONFIG.FALLBACK_LOGO_URL : RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
+export const getRambleLogoUrl = () => {
+  const url = RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
   console.log('🎯 getRambleLogoUrl: Loading Ramble 66 logo', {
     url,
-    useFallback,
     caller: new Error().stack?.split('\n')[2]?.trim() || 'unknown'
   });
   return url;
 };
 
 /**
- * Get alt text for logo based on context
+ * Get standardized alt text for logo
  */
-export const getRambleLogoAlt = (context: keyof typeof RAMBLE_LOGO_CONFIG.ALT_TEXT = 'default') => {
-  const altText = RAMBLE_LOGO_CONFIG.ALT_TEXT[context];
-  console.log('🎯 getRambleLogoAlt: Getting alt text', { context, altText });
+export const getRambleLogoAlt = () => {
+  const altText = RAMBLE_LOGO_CONFIG.ALT_TEXT;
+  console.log('🎯 getRambleLogoAlt: Getting alt text', { altText });
   return altText;
 };
 
@@ -80,19 +71,6 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
  */
 export const getBestLogoUrl = async (): Promise<string> => {
   const primaryUrl = getRambleLogoUrl();
-  console.log('🔍 getBestLogoUrl: Testing primary logo URL', { primaryUrl });
-  
-  const isAccessible = await testLogoUrl(primaryUrl);
-  
-  if (isAccessible) {
-    console.log('✅ getBestLogoUrl: Primary logo URL is accessible', { primaryUrl });
-    return primaryUrl;
-  } else {
-    const fallbackUrl = getRambleLogoUrl(true);
-    console.warn('⚠️ getBestLogoUrl: Primary logo URL not accessible, using fallback', { 
-      primaryUrl, 
-      fallbackUrl 
-    });
-    return fallbackUrl;
-  }
+  console.log('🔍 getBestLogoUrl: Using primary logo URL', { primaryUrl });
+  return primaryUrl;
 };

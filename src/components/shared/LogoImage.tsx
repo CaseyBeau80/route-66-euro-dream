@@ -7,14 +7,12 @@ interface LogoImageProps {
   alt?: string;
   onError?: () => void;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  showFallback?: boolean;
 }
 
 const LogoImage: React.FC<LogoImageProps> = ({
   className = 'w-10 h-10',
   alt,
-  onError,
-  showFallback = true
+  onError
 }) => {
   const [imageSrc, setImageSrc] = useState(getRambleLogoUrl());
   const [hasError, setHasError] = useState(false);
@@ -23,7 +21,6 @@ const LogoImage: React.FC<LogoImageProps> = ({
     console.log('🖼️ LogoImage: Component mounted with props', {
       className,
       alt,
-      showFallback,
       initialSrc: imageSrc
     });
 
@@ -31,30 +28,20 @@ const LogoImage: React.FC<LogoImageProps> = ({
     const testLogo = async () => {
       console.log('🧪 LogoImage: Testing logo accessibility on mount');
       const isAccessible = await testLogoUrl(getRambleLogoUrl());
-      if (!isAccessible && showFallback) {
-        console.warn('⚠️ LogoImage: Primary logo not accessible, switching to fallback');
-        setImageSrc(getRambleLogoUrl(true));
+      if (!isAccessible) {
+        console.warn('⚠️ LogoImage: Primary logo not accessible');
       }
     };
 
     testLogo();
-  }, [showFallback, imageSrc]);
+  }, [imageSrc, className, alt]);
 
   const handleError = () => {
     console.error('❌ LogoImage: Image failed to load', {
       src: imageSrc,
-      hasError,
-      showFallback
+      hasError
     });
     setHasError(true);
-    
-    if (showFallback && !imageSrc.includes('placeholder')) {
-      console.log('🔄 LogoImage: Switching to fallback logo');
-      const fallbackSrc = getRambleLogoUrl(true);
-      setImageSrc(fallbackSrc);
-      console.log('🔄 LogoImage: Fallback logo set', { fallbackSrc });
-    }
-    
     onError?.();
   };
 
@@ -62,7 +49,7 @@ const LogoImage: React.FC<LogoImageProps> = ({
     console.log('✅ LogoImage: Image loaded successfully', {
       src: imageSrc,
       className,
-      alt: alt || getRambleLogoAlt('default')
+      alt: alt || getRambleLogoAlt()
     });
     setHasError(false);
   };
@@ -70,7 +57,7 @@ const LogoImage: React.FC<LogoImageProps> = ({
   return (
     <img 
       src={imageSrc}
-      alt={alt || getRambleLogoAlt('default')}
+      alt={alt || getRambleLogoAlt()}
       className={`${className} object-contain`}
       onError={handleError}
       onLoad={handleLoad}

@@ -9,26 +9,16 @@ interface PDFLogoProps {
 }
 
 const PDFLogo: React.FC<PDFLogoProps> = ({ showFallback = true }) => {
-  console.log('📄 PDFLogo: Rendering with centralized logo configuration, showFallback:', showFallback);
+  console.log('📄 PDFLogo: Rendering with centralized logo configuration');
 
   return (
     <div className="pdf-logo flex items-center justify-center gap-2 mb-4">
       <div className="bg-route66-primary rounded-full p-2 flex items-center justify-center mx-auto">
         <LogoImage 
           className="w-6 h-6 object-contain"
-          alt={getRambleLogoAlt('branding')}
-          showFallback={showFallback}
+          alt={getRambleLogoAlt()}
           onError={() => {
-            console.log('📄 PDFLogo: Logo image failed to load, handling fallback');
-            if (showFallback) {
-              // Show fallback icon if image fails
-              const logoImg = document.querySelector('.pdf-logo img') as HTMLImageElement;
-              const fallbackIcon = document.querySelector('.pdf-logo .lucide-route') as HTMLElement;
-              if (logoImg && fallbackIcon) {
-                logoImg.style.display = 'none';
-                fallbackIcon.classList.remove('hidden');
-              }
-            }
+            console.log('📄 PDFLogo: Logo image failed to load');
           }}
         />
         <Route className="w-6 h-6 text-white hidden" />

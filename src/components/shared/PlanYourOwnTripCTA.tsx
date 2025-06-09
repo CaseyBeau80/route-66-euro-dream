@@ -42,7 +42,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
         >
           <LogoImage 
             className="w-5 h-5 object-contain"
-            alt={getRambleLogoAlt('default')}
+            alt={getRambleLogoAlt()}
           />
           Plan Your Own Route 66 Trip
           <ArrowRight className="w-4 h-4" />
@@ -58,7 +58,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           <div className="bg-white/20 rounded-full p-4">
             <LogoImage 
               className="w-8 h-8 object-contain"
-              alt={getRambleLogoAlt('branding')}
+              alt={getRambleLogoAlt()}
             />
           </div>
         </div>
@@ -94,7 +94,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
         >
           <LogoImage 
             className="w-6 h-6 object-contain"
-            alt={getRambleLogoAlt('default')}
+            alt={getRambleLogoAlt()}
           />
           Start Planning Your Trip
           <ArrowRight className="w-5 h-5" />

@@ -28,7 +28,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
         <div className="bg-route66-primary rounded-full p-2">
           <LogoImage 
             className={`${getRambleLogoSize(size)} object-contain`}
-            alt={getRambleLogoAlt('branding')}
+            alt={getRambleLogoAlt()}
           />
         </div>
       </div>
@@ -53,7 +53,7 @@ const RambleBranding: React.FC<RambleBrandingProps> = ({
       <div className="bg-route66-primary rounded-full p-2">
         <LogoImage 
           className={`${getRambleLogoSize(size)} object-contain`}
-          alt={getRambleLogoAlt('branding')}
+          alt={getRambleLogoAlt()}
         />
       </div>
       <div className="ramble-66-text-logo">
