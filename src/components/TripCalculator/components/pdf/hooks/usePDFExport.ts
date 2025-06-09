@@ -21,6 +21,7 @@ export const usePDFExport = ({
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewTripPlan, setPreviewTripPlan] = useState<TripPlan | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   
   const { addPrintStyles } = usePDFStyles();
 
@@ -44,6 +45,7 @@ export const usePDFExport = ({
     try {
       // Set exporting state
       setIsExporting(true);
+      setWeatherLoading(true);
       
       // Set the preview trip plan immediately
       console.log('📄 Setting preview trip plan...');
@@ -53,24 +55,29 @@ export const usePDFExport = ({
       console.log('🎨 Adding print styles...');
       addPrintStyles();
       
-      // Show the preview immediately
+      // Show the preview immediately - this is the critical fix
       console.log('🔄 Setting showPreview to true...');
       setShowPreview(true);
       
-      // Reset exporting state after a short delay to allow UI to update
+      // Reset loading states after a short delay to allow UI to update
       setTimeout(() => {
         setIsExporting(false);
+        setWeatherLoading(false);
         console.log('✅ PDF preview should now be visible');
         console.log('📊 Final state:', {
           showPreview: true,
           hasPreviewTripPlan: true,
-          isExporting: false
+          isExporting: false,
+          weatherLoading: false
         });
-      }, 100);
+      }, 500);
       
     } catch (error) {
       console.error('❌ Error during PDF export:', error);
       setIsExporting(false);
+      setWeatherLoading(false);
+      setShowPreview(false);
+      setPreviewTripPlan(null);
       alert('An error occurred while preparing the PDF preview. Please try again.');
     }
     
@@ -81,22 +88,28 @@ export const usePDFExport = ({
     console.log('📊 State before close:', {
       showPreview,
       hasPreviewTripPlan: !!previewTripPlan,
-      isExporting
+      isExporting,
+      weatherLoading
     });
     
+    // Reset all states
     setShowPreview(false);
     setPreviewTripPlan(null);
     setIsExporting(false);
+    setWeatherLoading(false);
+    
+    // Call the onClose callback
     onClose();
     
-    console.log('✅ PDF preview closed');
-  }, [onClose, showPreview, previewTripPlan, isExporting]);
+    console.log('✅ PDF preview closed and states reset');
+  }, [onClose, showPreview, previewTripPlan, isExporting, weatherLoading]);
 
   // Enhanced logging for debugging
   console.log('🎯 usePDFExport hook state:', {
     isExporting,
     showPreview,
     hasPreviewTripPlan: !!previewTripPlan,
+    weatherLoading,
     tripPlanSegments: tripPlan?.segments?.length || 0,
     hasExportOptions: !!exportOptions
   });
@@ -104,9 +117,9 @@ export const usePDFExport = ({
   return {
     isExporting,
     showPreview,
-    weatherLoading: false, // Simplified - no weather loading for now
-    weatherLoadingStatus: '',
-    weatherLoadingProgress: 0,
+    weatherLoading,
+    weatherLoadingStatus: weatherLoading ? 'Loading weather data...' : '',
+    weatherLoadingProgress: weatherLoading ? 50 : 0,
     weatherTimeout: false,
     previewTripPlan,
     handleExportPDF,

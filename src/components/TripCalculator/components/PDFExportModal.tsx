@@ -113,9 +113,12 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
       console.error('❌ No trip plan available for preview');
       return (
         <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <p>Error: No trip plan available for preview</p>
-            <Button onClick={handleClosePreview} className="mt-4">Close</Button>
+          <div className="bg-white p-6 rounded-lg max-w-md mx-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-red-600 mb-2">Preview Error</h3>
+              <p className="text-gray-700 mb-4">No trip plan available for preview. Please try again.</p>
+              <Button onClick={handleClosePreview} className="w-full">Close</Button>
+            </div>
           </div>
         </div>
       );
