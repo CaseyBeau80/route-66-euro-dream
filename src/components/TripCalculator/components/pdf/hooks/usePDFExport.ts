@@ -32,19 +32,27 @@ export const usePDFExport = ({
   const handleExportPDF = useCallback(async () => {
     console.log('🚀 PDF Export: Starting export process...');
     
-    // Validate trip plan
+    // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
       console.error('❌ Invalid trip plan - no segments found');
       alert('Cannot export PDF: No trip segments found. Please create a trip plan first.');
       return;
     }
 
-    // Prevent multiple simultaneous exports
-    if (isExporting || showPreview) {
-      console.warn('⚠️ Export already in progress or preview already showing');
-      return;
-    }
-
+    // Reset all states first to ensure clean start
+    console.log('🔄 Resetting states for fresh export attempt...');
+    setIsExporting(false);
+    setShowPreview(false);
+    setPreviewTripPlan(null);
+    setWeatherLoading(false);
+    setWeatherLoadingStatus('');
+    setWeatherLoadingProgress(0);
+    setWeatherTimeout(false);
+    
+    // Small delay to ensure state reset is processed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log('✅ States reset, proceeding with export...');
     setIsExporting(true);
     setWeatherTimeout(false);
     
@@ -113,7 +121,7 @@ export const usePDFExport = ({
       // Only reset isExporting after preview is shown
       setIsExporting(false);
     }
-  }, [tripPlan, tripStartDate, addPrintStyles, isExporting, showPreview]);
+  }, [tripPlan, tripStartDate, addPrintStyles]);
 
   const handleClosePreview = useCallback(() => {
     console.log('🔄 Closing PDF preview...');
