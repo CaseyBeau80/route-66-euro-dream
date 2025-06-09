@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Route, MapPin } from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PlanYourOwnTripCTAProps {
@@ -36,7 +36,11 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           onClick={handlePlanTrip}
           className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
-          <Route className="w-5 h-5" />
+          <img 
+            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png" 
+            alt="Ramble 66 Logo" 
+            className="w-5 h-5 object-contain"
+          />
           Plan Your Own Route 66 Trip
           <ArrowRight className="w-4 h-4" />
         </Button>
@@ -49,7 +53,11 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-center mb-4">
           <div className="bg-white/20 rounded-full p-4">
-            <Route className="w-8 h-8 text-white" />
+            <img 
+              src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png" 
+              alt="Ramble 66 Logo" 
+              className="w-8 h-8 object-contain"
+            />
           </div>
         </div>
         
@@ -68,7 +76,7 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
             <span>Custom Routes</span>
           </div>
           <div className="flex items-center gap-2 text-white/80">
-            <Route className="w-4 h-4" />
+            <MapPin className="w-4 h-4" />
             <span>Flexible Itineraries</span>
           </div>
           <div className="flex items-center gap-2 text-white/80">
@@ -82,7 +90,11 @@ const PlanYourOwnTripCTA: React.FC<PlanYourOwnTripCTAProps> = ({
           size="lg"
           className="bg-white text-route66-primary hover:bg-gray-100 font-bold px-8 py-4 rounded-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 mx-auto text-lg"
         >
-          <Route className="w-6 h-6" />
+          <img 
+            src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets//Logo_1_Ramble_66.png" 
+            alt="Ramble 66 Logo" 
+            className="w-6 h-6 object-contain"
+          />
           Start Planning Your Trip
           <ArrowRight className="w-5 h-5" />
         </Button>
