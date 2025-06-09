@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { TripPlan, TripPlanDataValidator } from '../../../services/planning/TripPlanBuilder';
 import { PDFDataIntegrityService } from '../../../services/pdf/PDFDataIntegrityService';
+import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
 import { usePDFStyles } from './usePDFStyles';
 
 interface UsePDFExportProps {
@@ -27,7 +28,7 @@ export const usePDFExport = ({
   const { addPrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: Starting enhanced export process');
+    console.log('🚀 PDF Export: Starting enhanced export process with weather enrichment');
     
     // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
@@ -36,7 +37,7 @@ export const usePDFExport = ({
       return;
     }
 
-    console.log('✅ Trip plan validated, performing data integrity check...');
+    console.log('✅ Trip plan validated, performing data integrity check and weather enrichment...');
     
     try {
       // Set loading states
@@ -45,17 +46,48 @@ export const usePDFExport = ({
       
       // Validate and sanitize trip plan
       const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
-      const integrityReport = PDFDataIntegrityService.generateIntegrityReport(sanitizedTripPlan);
+      console.log('📊 Trip plan sanitized, starting weather enrichment...');
+      
+      // Enrich segments with weather data
+      let enrichedSegments = sanitizedTripPlan.segments;
+      
+      if (tripStartDate) {
+        console.log('🌤️ Enriching segments with weather data...');
+        try {
+          enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+            sanitizedTripPlan.segments,
+            tripStartDate
+          );
+          console.log('✅ Weather enrichment completed successfully');
+          console.log('🌤️ Segments with weather data:', enrichedSegments.filter(s => s.weather).length);
+        } catch (weatherError) {
+          console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
+          // Continue with original segments if weather enrichment fails
+        }
+      } else {
+        console.log('📅 No trip start date provided, skipping weather enrichment');
+      }
+      
+      // Update segments in the sanitized trip plan
+      const weatherEnrichedTripPlan = {
+        ...sanitizedTripPlan,
+        segments: enrichedSegments,
+        dailySegments: enrichedSegments
+      };
+      
+      // Perform data integrity check on enriched plan
+      const integrityReport = PDFDataIntegrityService.generateIntegrityReport(weatherEnrichedTripPlan);
       
       console.log('📊 Data integrity check completed:', {
         isValid: integrityReport.isValid,
         completeness: integrityReport.enrichmentStatus.completenessPercentage,
-        warnings: integrityReport.warnings.length
+        warnings: integrityReport.warnings.length,
+        weatherEnriched: enrichedSegments.filter(s => s.weather).length > 0
       });
       
       // Mark as enriched for tracking
-      const enrichedTripPlan: TripPlan = {
-        ...sanitizedTripPlan,
+      const finalTripPlan: TripPlan = {
+        ...weatherEnrichedTripPlan,
         isEnriched: true,
         lastUpdated: new Date(),
         enrichmentStatus: {
@@ -66,8 +98,8 @@ export const usePDFExport = ({
       };
       
       // Set the preview trip plan
-      console.log('📄 Setting enhanced preview trip plan with', enrichedTripPlan.segments.length, 'segments');
-      setPreviewTripPlan(enrichedTripPlan);
+      console.log('📄 Setting weather-enriched preview trip plan with', finalTripPlan.segments.length, 'segments');
+      setPreviewTripPlan(finalTripPlan);
       
       // Add print styles to document
       console.log('🎨 Adding enhanced print styles...');
@@ -75,11 +107,11 @@ export const usePDFExport = ({
       
       // Small delay to ensure state updates, then show preview
       setTimeout(() => {
-        console.log('🔄 Showing enhanced PDF preview...');
+        console.log('🔄 Showing weather-enriched PDF preview...');
         setShowPreview(true);
         setIsExporting(false);
         setWeatherLoading(false);
-        console.log('✅ Enhanced PDF preview ready');
+        console.log('✅ Weather-enriched PDF preview ready');
       }, 300);
       
     } catch (error) {
@@ -91,10 +123,10 @@ export const usePDFExport = ({
       alert('An error occurred while preparing the PDF preview. Please try again.');
     }
     
-  }, [tripPlan, addPrintStyles]);
+  }, [tripPlan, tripStartDate, addPrintStyles]);
 
   const handleClosePreview = useCallback(() => {
-    console.log('🔄 Closing enhanced PDF preview...');
+    console.log('🔄 Closing weather-enriched PDF preview...');
     
     // Reset all preview states
     setShowPreview(false);
@@ -105,7 +137,7 @@ export const usePDFExport = ({
     // Call the parent onClose callback
     onClose();
     
-    console.log('✅ Enhanced PDF preview closed');
+    console.log('✅ Weather-enriched PDF preview closed');
   }, [onClose]);
 
   // Debug logging
@@ -115,7 +147,8 @@ export const usePDFExport = ({
     hasPreviewTripPlan: !!previewTripPlan,
     weatherLoading,
     tripPlanValid: !!(tripPlan?.segments?.length),
-    tripPlanEnriched: tripPlan?.isEnriched
+    tripPlanEnriched: tripPlan?.isEnriched,
+    hasStartDate: !!tripStartDate
   });
 
   return {
