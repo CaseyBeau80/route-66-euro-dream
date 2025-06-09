@@ -26,12 +26,7 @@ export const usePDFExport = ({
   const { addPrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: handleExportPDF called');
-    console.log('📋 Trip plan validation:', {
-      hasTripPlan: !!tripPlan,
-      hasSegments: !!tripPlan?.segments,
-      segmentCount: tripPlan?.segments?.length || 0
-    });
+    console.log('🚀 PDF Export: Starting export process');
     
     // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
@@ -40,37 +35,29 @@ export const usePDFExport = ({
       return;
     }
 
-    console.log('✅ Trip plan validated, starting export process...');
+    console.log('✅ Trip plan validated, preparing preview...');
     
     try {
-      // Set exporting state
+      // Set loading states
       setIsExporting(true);
       setWeatherLoading(true);
       
-      // Set the preview trip plan immediately
-      console.log('📄 Setting preview trip plan...');
+      // Set the preview trip plan
+      console.log('📄 Setting preview trip plan with', tripPlan.segments.length, 'segments');
       setPreviewTripPlan(tripPlan);
       
-      // Add print styles
+      // Add print styles to document
       console.log('🎨 Adding print styles...');
       addPrintStyles();
       
-      // Show the preview immediately - this is the critical fix
-      console.log('🔄 Setting showPreview to true...');
-      setShowPreview(true);
-      
-      // Reset loading states after a short delay to allow UI to update
+      // Small delay to ensure state updates, then show preview
       setTimeout(() => {
+        console.log('🔄 Showing PDF preview...');
+        setShowPreview(true);
         setIsExporting(false);
         setWeatherLoading(false);
-        console.log('✅ PDF preview should now be visible');
-        console.log('📊 Final state:', {
-          showPreview: true,
-          hasPreviewTripPlan: true,
-          isExporting: false,
-          weatherLoading: false
-        });
-      }, 500);
+        console.log('✅ PDF preview ready');
+      }, 300);
       
     } catch (error) {
       console.error('❌ Error during PDF export:', error);
@@ -85,33 +72,26 @@ export const usePDFExport = ({
 
   const handleClosePreview = useCallback(() => {
     console.log('🔄 Closing PDF preview...');
-    console.log('📊 State before close:', {
-      showPreview,
-      hasPreviewTripPlan: !!previewTripPlan,
-      isExporting,
-      weatherLoading
-    });
     
-    // Reset all states
+    // Reset all preview states
     setShowPreview(false);
     setPreviewTripPlan(null);
     setIsExporting(false);
     setWeatherLoading(false);
     
-    // Call the onClose callback
+    // Call the parent onClose callback
     onClose();
     
-    console.log('✅ PDF preview closed and states reset');
-  }, [onClose, showPreview, previewTripPlan, isExporting, weatherLoading]);
+    console.log('✅ PDF preview closed');
+  }, [onClose]);
 
-  // Enhanced logging for debugging
-  console.log('🎯 usePDFExport hook state:', {
+  // Debug logging
+  console.log('🎯 usePDFExport state:', {
     isExporting,
     showPreview,
     hasPreviewTripPlan: !!previewTripPlan,
     weatherLoading,
-    tripPlanSegments: tripPlan?.segments?.length || 0,
-    hasExportOptions: !!exportOptions
+    tripPlanValid: !!(tripPlan?.segments?.length)
   });
 
   return {

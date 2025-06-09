@@ -63,20 +63,22 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
     window.print();
   };
 
-  // CRITICAL: Check if preview should be shown
+  // CRITICAL: Show preview when showPreview is true
   if (showPreview) {
-    console.log('📄 Rendering Enhanced PDF preview container (showPreview=true)');
+    console.log('📄 Rendering Enhanced PDF preview container');
     
-    // Use the current tripPlan if previewTripPlan is not available (failsafe)
     const tripPlanToRender = previewTripPlan || tripPlan;
     
     if (!tripPlanToRender) {
       console.error('❌ No trip plan available for Enhanced PDF preview');
       return (
         <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <p>Error: No trip plan available for preview</p>
-            <Button onClick={handleClosePreview} className="mt-4">Close</Button>
+          <div className="bg-white p-6 rounded-lg max-w-md mx-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-red-600 mb-2">Preview Error</h3>
+              <p className="text-gray-700 mb-4">No trip plan available for preview. Please try again.</p>
+              <Button onClick={handleClosePreview} className="w-full">Close</Button>
+            </div>
           </div>
         </div>
       );
@@ -111,7 +113,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         aria-labelledby="enhanced-pdf-export-title"
       >
         <DialogHeader>
-          <DialogTitle id="enhanced-pdf-export-title" className="flex items-center gap-2 text-blue-700 font-semibold text-base sm:text-lg">
+          <DialogTitle id="enhanced-pdf-export-title" className="flex items-center gap-2 text-route66-primary font-semibold text-base sm:text-lg font-route66">
             <Settings className="w-5 h-5" />
             Enhanced PDF Export Options
           </DialogTitle>
@@ -140,7 +142,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             <Button
               onClick={handleExportPDF}
               disabled={isExporting || !isTripComplete}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base"
+              className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
               {isExporting ? 'Preparing Enhanced PDF...' : 'Export Enhanced PDF with Preview'}
             </Button>
