@@ -25,8 +25,8 @@ export class WeatherDataProcessor {
   }
 
   static processForecastData(forecastData: ForecastResponse): ForecastDay[] {
-    // Legacy method - calls enhanced version with 3-day limit for backward compatibility
-    return this.processEnhancedForecastData(forecastData, null, 3);
+    // Update legacy method to use 5-day default for consistency
+    return this.processEnhancedForecastData(forecastData, null, 5);
   }
 
   static processEnhancedForecastData(
@@ -60,7 +60,7 @@ export class WeatherDataProcessor {
       console.log(`🎯 Target date for enhanced processing: ${targetDateString}`);
     }
 
-    // Process up to maxDays worth of forecast data
+    // Process up to maxDays worth of forecast data (now defaults to 5)
     return sortedDates
       .slice(0, maxDays)
       .map((dateKey, index) => {

@@ -3,140 +3,142 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 
 export interface WeatherValidationResult {
   isValid: boolean;
-  isLiveForecast: boolean;
-  isSeasonalEstimate: boolean;
-  hasError: boolean;
-  debugInfo: string;
+  hasActualForecast: boolean;
+  hasTemperatureRange: boolean;
+  hasMatchedForecast: boolean;
+  daysFromNow: number | null;
+  isWithinForecastRange: boolean;
+  dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable';
+  warnings: string[];
 }
 
-export const validateWeatherData = (weather: any, segmentEndCity: string): WeatherValidationResult => {
-  console.log(`🔍 WeatherValidation: Validating data for ${segmentEndCity}:`, weather);
+export type WeatherDisplayType = 
+  | 'live-forecast' 
+  | 'seasonal-estimate' 
+  | 'service-unavailable' 
+  | 'loading';
 
-  // Check if weather data exists at all
+export const validateWeatherData = (
+  weather: any, 
+  cityName: string
+): WeatherValidationResult => {
+  console.log(`🔍 WeatherValidationService: Validating weather for ${cityName}:`, {
+    hasWeather: !!weather,
+    isActualForecast: weather?.isActualForecast,
+    hasDateMatchInfo: !!weather?.dateMatchInfo,
+    matchType: weather?.dateMatchInfo?.matchType,
+    hasHighTemp: weather?.highTemp !== undefined,
+    hasLowTemp: weather?.lowTemp !== undefined,
+    daysOffset: weather?.dateMatchInfo?.daysOffset
+  });
+
+  const warnings: string[] = [];
+
   if (!weather) {
-    console.log(`❌ WeatherValidation: No weather data for ${segmentEndCity}`);
     return {
       isValid: false,
-      isLiveForecast: false,
-      isSeasonalEstimate: false,
-      hasError: true,
-      debugInfo: "No weather data provided"
+      hasActualForecast: false,
+      hasTemperatureRange: false,
+      hasMatchedForecast: false,
+      daysFromNow: null,
+      isWithinForecastRange: false,
+      dataQuality: 'unavailable',
+      warnings: ['No weather data available']
     };
   }
 
-  // Check if this is forecast data structure
-  if (weather.isActualForecast !== undefined) {
-    const forecastWeather = weather as ForecastWeatherData;
-    
-    // Validate live forecast data
-    if (forecastWeather.isActualForecast) {
-      const hasValidTemps = forecastWeather.highTemp !== undefined && 
-                           forecastWeather.lowTemp !== undefined &&
-                           forecastWeather.highTemp > 0 && 
-                           forecastWeather.lowTemp > 0;
-      
-      const hasDescription = forecastWeather.description && 
-                           forecastWeather.description.trim() !== '';
-      
-      if (hasValidTemps && hasDescription) {
-        console.log(`✅ WeatherValidation: Valid live forecast for ${segmentEndCity}`);
-        return {
-          isValid: true,
-          isLiveForecast: true,
-          isSeasonalEstimate: false,
-          hasError: false,
-          debugInfo: "Valid live forecast with complete data"
-        };
-      } else {
-        console.log(`⚠️ WeatherValidation: Partial live forecast data for ${segmentEndCity}:`, {
-          hasValidTemps,
-          hasDescription,
-          highTemp: forecastWeather.highTemp,
-          lowTemp: forecastWeather.lowTemp,
-          description: forecastWeather.description
-        });
-        return {
-          isValid: false,
-          isLiveForecast: false,
-          isSeasonalEstimate: false,
-          hasError: true,
-          debugInfo: "Partial forecast data - missing required fields"
-        };
-      }
-    } else {
-      // This is seasonal/historical data
-      console.log(`📊 WeatherValidation: Seasonal estimate for ${segmentEndCity}`);
-      return {
-        isValid: true,
-        isLiveForecast: false,
-        isSeasonalEstimate: true,
-        hasError: false,
-        debugInfo: "Seasonal estimate based on historical data"
-      };
-    }
-  } else {
-    // Regular current weather data
-    const hasTemp = weather.temperature !== undefined && weather.temperature > 0;
-    const hasDescription = weather.description && weather.description.trim() !== '';
-    const hasCityName = weather.cityName && weather.cityName.trim() !== '';
-    
-    if (hasTemp && hasDescription && hasCityName) {
-      console.log(`✅ WeatherValidation: Valid current weather for ${segmentEndCity}`);
-      return {
-        isValid: true,
-        isLiveForecast: false,
-        isSeasonalEstimate: false,
-        hasError: false,
-        debugInfo: "Valid current weather data"
-      };
-    } else {
-      console.log(`⚠️ WeatherValidation: Invalid current weather for ${segmentEndCity}:`, {
-        hasTemp,
-        hasDescription,
-        hasCityName,
-        weather
-      });
-      return {
-        isValid: false,
-        isLiveForecast: false,
-        isSeasonalEstimate: false,
-        hasError: true,
-        debugInfo: "Invalid current weather data"
-      };
-    }
+  const hasActualForecast = weather.isActualForecast === true;
+  const hasTemperatureRange = weather.highTemp !== undefined && weather.lowTemp !== undefined;
+  const hasMatchedForecast = weather.matchedForecastDay !== undefined;
+  
+  // Calculate days from now using dateMatchInfo if available
+  let daysFromNow: number | null = null;
+  if (weather.dateMatchInfo?.daysOffset !== undefined) {
+    daysFromNow = weather.dateMatchInfo.daysOffset;
   }
+
+  // Enhanced forecast range validation - now supports 5 days
+  const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
+
+  console.log(`📊 WeatherValidationService: Analysis for ${cityName}:`, {
+    hasActualForecast,
+    hasTemperatureRange,
+    hasMatchedForecast,
+    daysFromNow,
+    isWithinForecastRange,
+    matchType: weather.dateMatchInfo?.matchType
+  });
+
+  // Quality assessment with enhanced 5-day range
+  let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'unavailable';
+  
+  if (hasActualForecast && isWithinForecastRange) {
+    if (weather.dateMatchInfo?.matchType === 'exact' && hasTemperatureRange) {
+      dataQuality = 'excellent';
+    } else if (weather.dateMatchInfo?.matchType === 'closest' && hasTemperatureRange) {
+      dataQuality = 'good';
+      warnings.push(`Date match is approximate (${weather.dateMatchInfo.daysOffset} days offset)`);
+    } else {
+      dataQuality = 'fair';
+      warnings.push('Forecast data incomplete');
+    }
+  } else if (!isWithinForecastRange && daysFromNow !== null) {
+    dataQuality = 'poor';
+    warnings.push(`Date beyond 5-day forecast range (${daysFromNow} days ahead)`);
+  } else {
+    dataQuality = 'unavailable';
+    warnings.push('Weather service unavailable');
+  }
+
+  const result = {
+    isValid: dataQuality !== 'unavailable',
+    hasActualForecast,
+    hasTemperatureRange,
+    hasMatchedForecast,
+    daysFromNow,
+    isWithinForecastRange,
+    dataQuality,
+    warnings
+  };
+
+  console.log(`✅ WeatherValidationService: Final validation for ${cityName}:`, result);
+  return result;
 };
 
 export const getWeatherDisplayType = (
   validation: WeatherValidationResult,
   error: string | null,
   retryCount: number
-): 'live-forecast' | 'seasonal-estimate' | 'service-unavailable' | 'loading' => {
-  // Priority 1: If there's an error and invalid data, show service unavailable
-  if (error && !validation.isValid) {
-    console.log(`❌ WeatherDisplayType: Service unavailable due to error and invalid data`);
+): WeatherDisplayType => {
+  console.log(`🎯 WeatherValidationService: Determining display type:`, {
+    validation,
+    error,
+    retryCount
+  });
+
+  // Handle error states first
+  if (error || retryCount > 2) {
     return 'service-unavailable';
   }
-  
-  // Priority 2: If data is valid and it's a live forecast, show live forecast
-  if (validation.isValid && validation.isLiveForecast) {
-    console.log(`🔮 WeatherDisplayType: Live forecast available`);
+
+  // Handle loading state
+  if (!validation.isValid && validation.dataQuality === 'unavailable' && !error) {
+    return 'loading';
+  }
+
+  // Enhanced logic for 5-day forecast range
+  if (validation.hasActualForecast && validation.isWithinForecastRange) {
+    console.log(`🌤️ Live forecast available within 5-day range`);
     return 'live-forecast';
   }
-  
-  // Priority 3: If data is valid but seasonal, show seasonal estimate
-  if (validation.isValid && validation.isSeasonalEstimate) {
-    console.log(`📊 WeatherDisplayType: Seasonal estimate available`);
+
+  // For dates beyond 5-day range or when actual forecast is not available
+  if (validation.daysFromNow !== null && validation.daysFromNow > 5) {
+    console.log(`📊 Using seasonal estimate for date beyond 5-day range (${validation.daysFromNow} days)`);
     return 'seasonal-estimate';
   }
-  
-  // Priority 4: If there's an error or invalid data after retries, show service unavailable
-  if (error || (!validation.isValid && retryCount >= 1)) {
-    console.log(`❌ WeatherDisplayType: Service unavailable after retries`);
-    return 'service-unavailable';
-  }
-  
-  // Default: Loading state
-  console.log(`⏳ WeatherDisplayType: Loading state`);
-  return 'loading';
+
+  // Default to seasonal estimate for other cases
+  console.log(`📊 Using seasonal estimate as fallback`);
+  return 'seasonal-estimate';
 };

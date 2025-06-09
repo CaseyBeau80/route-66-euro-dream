@@ -30,7 +30,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     retryCount,
     segmentDate: segmentDate?.toISOString(),
     isSharedView,
-    dateMatchInfo: weather?.dateMatchInfo
+    dateMatchInfo: weather?.dateMatchInfo,
+    isActualForecast: weather?.isActualForecast,
+    daysFromNow: segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
   });
 
   // Show debug info in development or when there are date matching issues
