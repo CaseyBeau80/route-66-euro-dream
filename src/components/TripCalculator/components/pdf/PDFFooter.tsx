@@ -2,18 +2,20 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import RambleBranding from '../../../shared/RambleBranding';
+import { DataIntegrityReport } from '../../services/pdf/PDFDataIntegrityService';
 
 interface PDFFooterProps {
   shareUrl?: string;
   enrichedSegments: DailySegment[];
   includeQRCode: boolean;
+  dataIntegrityReport?: DataIntegrityReport;
 }
 
 const PDFFooter: React.FC<PDFFooterProps> = ({
   shareUrl,
   enrichedSegments,
-  includeQRCode
+  includeQRCode,
+  dataIntegrityReport
 }) => {
   const weatherSegmentsCount = enrichedSegments.filter(s => s.weather || s.weatherData).length;
   const forecastSegmentsCount = enrichedSegments.filter(s => 
@@ -26,7 +28,11 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
       {includeQRCode && shareUrl && (
         <div className="pdf-qr-section mt-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown text-center">
           <div className="flex justify-center mb-4">
-            <RambleBranding variant="logo" size="md" />
+            <img 
+              src="/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png" 
+              alt="Ramble 66 Logo" 
+              className="h-12 w-auto object-contain"
+            />
           </div>
           <h3 className="text-lg font-bold text-route66-vintage-red mb-2 font-route66">
             VIEW LIVE VERSION
@@ -47,7 +53,26 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
       <div className="pdf-footer mt-8 pt-6 border-t-2 border-route66-primary text-center">
         {/* Main Branding */}
         <div className="flex justify-center mb-4">
-          <RambleBranding variant="full" size="md" />
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png" 
+              alt="Ramble 66 Logo" 
+              className="h-8 w-auto object-contain"
+            />
+            <div className="ramble-66-text-logo">
+              <div className="flex items-center gap-1">
+                <div className="font-bold text-route66-primary text-lg leading-none">
+                  RAMBLE
+                </div>
+                <div className="font-bold text-route66-primary text-lg leading-none">
+                  66
+                </div>
+              </div>
+              <div className="text-xs text-route66-text-secondary font-medium tracking-wider">
+                ROUTE 66 TRIP PLANNER
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Generation Information */}
@@ -65,6 +90,16 @@ const PDFFooter: React.FC<PDFFooterProps> = ({
               <span>📡 Live Forecasts: {forecastSegmentsCount}</span>
               <span>📊 Historical Data: {weatherSegmentsCount - forecastSegmentsCount}</span>
             </div>
+            
+            {/* Data Quality Summary */}
+            {dataIntegrityReport && (
+              <div className="mt-2 text-xs">
+                <strong>Data Quality:</strong> {dataIntegrityReport.enrichmentStatus.completenessPercentage}% complete
+                {dataIntegrityReport.warnings.length > 0 && (
+                  <span className="text-route66-vintage-brown"> • {dataIntegrityReport.warnings.length} notice(s)</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

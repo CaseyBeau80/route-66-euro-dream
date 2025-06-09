@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import { TripPlan } from '../../../services/planning/TripPlanBuilder';
+import { TripPlan, TripPlanDataValidator } from '../../../services/planning/TripPlanBuilder';
+import { PDFDataIntegrityService } from '../../../services/pdf/PDFDataIntegrityService';
 import { usePDFStyles } from './usePDFStyles';
 
 interface UsePDFExportProps {
@@ -26,7 +27,7 @@ export const usePDFExport = ({
   const { addPrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: Starting export process');
+    console.log('🚀 PDF Export: Starting enhanced export process');
     
     // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
@@ -35,32 +36,54 @@ export const usePDFExport = ({
       return;
     }
 
-    console.log('✅ Trip plan validated, preparing preview...');
+    console.log('✅ Trip plan validated, performing data integrity check...');
     
     try {
       // Set loading states
       setIsExporting(true);
       setWeatherLoading(true);
       
+      // Validate and sanitize trip plan
+      const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
+      const integrityReport = PDFDataIntegrityService.generateIntegrityReport(sanitizedTripPlan);
+      
+      console.log('📊 Data integrity check completed:', {
+        isValid: integrityReport.isValid,
+        completeness: integrityReport.enrichmentStatus.completenessPercentage,
+        warnings: integrityReport.warnings.length
+      });
+      
+      // Mark as enriched for tracking
+      const enrichedTripPlan: TripPlan = {
+        ...sanitizedTripPlan,
+        isEnriched: true,
+        lastUpdated: new Date(),
+        enrichmentStatus: {
+          weatherData: integrityReport.enrichmentStatus.hasWeatherData,
+          stopsData: integrityReport.enrichmentStatus.hasStopsData,
+          validationComplete: integrityReport.isValid
+        }
+      };
+      
       // Set the preview trip plan
-      console.log('📄 Setting preview trip plan with', tripPlan.segments.length, 'segments');
-      setPreviewTripPlan(tripPlan);
+      console.log('📄 Setting enhanced preview trip plan with', enrichedTripPlan.segments.length, 'segments');
+      setPreviewTripPlan(enrichedTripPlan);
       
       // Add print styles to document
-      console.log('🎨 Adding print styles...');
+      console.log('🎨 Adding enhanced print styles...');
       addPrintStyles();
       
       // Small delay to ensure state updates, then show preview
       setTimeout(() => {
-        console.log('🔄 Showing PDF preview...');
+        console.log('🔄 Showing enhanced PDF preview...');
         setShowPreview(true);
         setIsExporting(false);
         setWeatherLoading(false);
-        console.log('✅ PDF preview ready');
+        console.log('✅ Enhanced PDF preview ready');
       }, 300);
       
     } catch (error) {
-      console.error('❌ Error during PDF export:', error);
+      console.error('❌ Error during enhanced PDF export:', error);
       setIsExporting(false);
       setWeatherLoading(false);
       setShowPreview(false);
@@ -71,7 +94,7 @@ export const usePDFExport = ({
   }, [tripPlan, addPrintStyles]);
 
   const handleClosePreview = useCallback(() => {
-    console.log('🔄 Closing PDF preview...');
+    console.log('🔄 Closing enhanced PDF preview...');
     
     // Reset all preview states
     setShowPreview(false);
@@ -82,16 +105,17 @@ export const usePDFExport = ({
     // Call the parent onClose callback
     onClose();
     
-    console.log('✅ PDF preview closed');
+    console.log('✅ Enhanced PDF preview closed');
   }, [onClose]);
 
   // Debug logging
-  console.log('🎯 usePDFExport state:', {
+  console.log('🎯 Enhanced usePDFExport state:', {
     isExporting,
     showPreview,
     hasPreviewTripPlan: !!previewTripPlan,
     weatherLoading,
-    tripPlanValid: !!(tripPlan?.segments?.length)
+    tripPlanValid: !!(tripPlan?.segments?.length),
+    tripPlanEnriched: tripPlan?.isEnriched
   });
 
   return {

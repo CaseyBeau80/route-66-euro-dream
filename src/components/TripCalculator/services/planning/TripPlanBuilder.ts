@@ -1,89 +1,130 @@
 import { DestinationCity } from '@/components/Route66Planner/types';
 
 export interface TripPlan {
-  id: string;
-  title?: string;
   startCity: string;
   endCity: string;
-  startDate: Date;
   totalDays: number;
   totalDistance: number;
-  totalDrivingTime?: number;
-  totalMiles?: number;
-  dailySegments: DailySegment[];
-  segments?: DailySegment[];
-  startCityImage?: string;
-  endCityImage?: string;
-  tripStyle?: 'balanced' | 'destination-focused';
-  warnings?: string[];
-  driveTimeBalance?: {
-    isBalanced: boolean;
-    averageDriveTime: number;
-    balanceQuality: "excellent" | "good" | "fair" | "poor";
-    suggestions?: string[];
+  segments: DailySegment[];
+  isEnriched?: boolean;
+  lastUpdated?: Date;
+  enrichmentStatus?: {
+    weatherData: boolean;
+    stopsData: boolean;
+    validationComplete: boolean;
   };
-  originalDays?: number;
-  wasAdjusted?: boolean;
 }
 
 export interface DailySegment {
   day: number;
-  title?: string;
   startCity: string;
-  endCity: string;
+  endCity?: string;
+  destination?: string;
   distance: number;
-  driveTimeHours?: number;
-  approximateMiles?: number;
+  driveTimeHours: number;
+  recommendedStops?: any[];
   weather?: any;
   weatherData?: any;
-  destination?: any;
-  attractions?: Array<{
-    name?: string;
-    title?: string;
-    description?: string;
-    city?: string;
-  }>;
-  stops?: Array<{
-    name?: string;
-    title?: string;
-    description?: string;
-    city?: string;
-  }>;
-  notes?: string;
-  recommendations?: string[];
-  driveTimeCategory?: DriveTimeCategory;
-  routeSection?: string;
-  recommendedStops?: RecommendedStop[];
-  subStopTimings?: SegmentTiming[];
-  balanceMetrics?: any;
-  drivingTime?: number;
+  attractions?: any[];
+  isEnriched?: boolean;
 }
 
-export interface DriveTimeCategory {
-  category: 'short' | 'optimal' | 'long' | 'extreme';
-  message: string;
-  color?: string;
-}
-
-export interface RecommendedStop {
-  id: string;
-  name: string;
-  description: string; // Changed from optional to required
-  latitude: number;
-  longitude: number;
-  category?: string;
-  city_name?: string;
-  state?: string;
-  city: string; // Added to match TripStop
-}
-
-export interface SegmentTiming {
-  fromStop: any;
-  toStop: any;
-  distance: number;
-  drivingTime: number;
-  distanceMiles: number;
-  driveTimeHours: number;
+// Enhanced data validation service
+export class TripPlanDataValidator {
+  static validateTripPlan(tripPlan: TripPlan): { isValid: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    if (!tripPlan) {
+      issues.push('Trip plan is null or undefined');
+      return { isValid: false, issues };
+    }
+    
+    // Validate basic fields
+    if (!tripPlan.startCity || tripPlan.startCity.trim() === '') {
+      issues.push('Start city is missing or empty');
+    }
+    
+    if (!tripPlan.endCity || tripPlan.endCity.trim() === '') {
+      issues.push('End city is missing or empty');
+    }
+    
+    if (!tripPlan.totalDays || isNaN(tripPlan.totalDays) || tripPlan.totalDays <= 0) {
+      issues.push('Total days is invalid or missing');
+    }
+    
+    if (!tripPlan.totalDistance || isNaN(tripPlan.totalDistance) || tripPlan.totalDistance <= 0) {
+      issues.push('Total distance is invalid or missing');
+    }
+    
+    // Validate segments
+    if (!tripPlan.segments || !Array.isArray(tripPlan.segments)) {
+      issues.push('Segments array is missing or invalid');
+    } else {
+      tripPlan.segments.forEach((segment, index) => {
+        const segmentIssues = this.validateSegment(segment, index);
+        issues.push(...segmentIssues);
+      });
+    }
+    
+    return { isValid: issues.length === 0, issues };
+  }
+  
+  static validateSegment(segment: DailySegment, index: number): string[] {
+    const issues: string[] = [];
+    const prefix = `Segment ${index + 1}`;
+    
+    if (!segment) {
+      issues.push(`${prefix}: Segment is null or undefined`);
+      return issues;
+    }
+    
+    if (!segment.day || isNaN(segment.day) || segment.day <= 0) {
+      issues.push(`${prefix}: Day number is invalid`);
+    }
+    
+    if (!segment.startCity || segment.startCity.trim() === '') {
+      issues.push(`${prefix}: Start city is missing`);
+    }
+    
+    if (!segment.endCity && !segment.destination) {
+      issues.push(`${prefix}: End city/destination is missing`);
+    }
+    
+    if (isNaN(segment.distance) || segment.distance < 0) {
+      issues.push(`${prefix}: Distance is invalid (${segment.distance})`);
+    }
+    
+    if (isNaN(segment.driveTimeHours) || segment.driveTimeHours < 0) {
+      issues.push(`${prefix}: Drive time is invalid (${segment.driveTimeHours})`);
+    }
+    
+    return issues;
+  }
+  
+  static sanitizeSegment(segment: DailySegment): DailySegment {
+    return {
+      ...segment,
+      distance: isNaN(segment.distance) ? 0 : Math.max(0, segment.distance),
+      driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
+      startCity: segment.startCity || 'Unknown',
+      endCity: segment.endCity || segment.destination || 'Unknown'
+    };
+  }
+  
+  static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
+    if (!tripPlan) {
+      console.error('Cannot sanitize null trip plan');
+      return tripPlan;
+    }
+    
+    return {
+      ...tripPlan,
+      totalDistance: isNaN(tripPlan.totalDistance) ? 0 : Math.max(0, tripPlan.totalDistance),
+      totalDays: isNaN(tripPlan.totalDays) ? 1 : Math.max(1, tripPlan.totalDays),
+      segments: (tripPlan.segments || []).map(segment => this.sanitizeSegment(segment)),
+      lastUpdated: new Date()
+    };
+  }
 }
 
 export class TripPlanBuilder {

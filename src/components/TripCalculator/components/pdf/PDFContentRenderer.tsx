@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
+import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
 import PDFDaySegmentCard from './PDFDaySegmentCard';
-import PDFHeader from './PDFHeader';
+import PDFEnhancedHeader from './PDFEnhancedHeader';
 import PDFFooter from './PDFFooter';
 
 interface PDFContentRendererProps {
@@ -25,12 +26,19 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
     title: exportOptions.title
   });
 
+  // Validate and sanitize trip plan data
+  const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
+  const integrityReport = PDFDataIntegrityService.generateIntegrityReport(sanitizedTripPlan);
+  
   // Filter segments with enriched weather data
-  const enrichedSegments = tripPlan.segments?.filter(segment => 
-    segment && segment.day && segment.endCity
+  const enrichedSegments = sanitizedTripPlan.segments?.filter(segment => 
+    segment && segment.day && (segment.endCity || segment.destination)
   ) || [];
 
-  const defaultTitle = `Route 66 Adventure: ${tripPlan.startCity} to ${tripPlan.endCity}`;
+  const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
+  
+  // Use the uploaded logo URL from the project assets
+  const logoUrl = '/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png';
 
   return (
     <div className="pdf-content bg-white min-h-screen" style={{ 
@@ -38,12 +46,31 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
       fontFamily: 'system-ui, -apple-system, sans-serif',
       lineHeight: '1.4'
     }}>
-      {/* Enhanced PDF Header with Ramble 66 Branding */}
-      <PDFHeader
+      {/* Enhanced PDF Header with Logo Integration */}
+      <PDFEnhancedHeader
         title={exportOptions.title || defaultTitle}
-        tripPlan={tripPlan}
+        tripPlan={sanitizedTripPlan}
         tripStartDate={tripStartDate}
+        logoUrl={logoUrl}
       />
+
+      {/* Data Quality Notice */}
+      {PDFDataIntegrityService.shouldShowDataQualityNotice(integrityReport) && (
+        <div className="pdf-data-quality-notice mb-6 p-4 bg-route66-vintage-beige border-l-4 border-route66-vintage-brown rounded">
+          <div className="text-sm text-route66-vintage-brown">
+            <div className="font-semibold mb-1">
+              {PDFDataIntegrityService.generateDataQualityMessage(integrityReport)}
+            </div>
+            {integrityReport.warnings.length > 0 && (
+              <ul className="text-xs space-y-1 mt-2">
+                {integrityReport.warnings.slice(0, 2).map((warning, index) => (
+                  <li key={index}>• {warning}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Trip Overview with Route 66 Styling */}
       <div className="pdf-trip-overview no-page-break mb-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown">
@@ -52,19 +79,19 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">{tripPlan.startCity}</div>
+            <div className="font-bold text-route66-primary text-lg font-route66">{sanitizedTripPlan.startCity}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Starting Point</div>
           </div>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">{tripPlan.endCity}</div>
+            <div className="font-bold text-route66-primary text-lg font-route66">{sanitizedTripPlan.endCity}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Destination</div>
           </div>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-vintage-red text-lg font-route66">{tripPlan.totalDays}</div>
+            <div className="font-bold text-route66-vintage-red text-lg font-route66">{sanitizedTripPlan.totalDays}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Adventure Days</div>
           </div>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(tripPlan.totalDistance)}</div>
+            <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(sanitizedTripPlan.totalDistance)}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Historic Miles</div>
           </div>
         </div>
@@ -133,6 +160,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         shareUrl={shareUrl}
         enrichedSegments={enrichedSegments}
         includeQRCode={exportOptions.includeQRCode}
+        dataIntegrityReport={integrityReport}
       />
 
       {/* Watermark with Route 66 Styling */}
