@@ -202,9 +202,7 @@ export class DestinationFocusedPlanningService {
         driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
         destination: {
           city: nextStop.city || nextStop.city_name,
-          state: nextStop.state,
-          city_name: nextStop.city_name,
-          name: nextStop.name
+          state: nextStop.state
         },
         recommendedStops: segmentAttractions,
         attractions: segmentAttractions.map(stop => ({
