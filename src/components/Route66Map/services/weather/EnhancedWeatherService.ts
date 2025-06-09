@@ -35,6 +35,12 @@ export class EnhancedWeatherService {
     this.forecastService = null;
   }
 
+  refreshApiKey(): void {
+    this.apiKeyManager.refreshApiKey();
+    // Reset forecast service when refreshing API key to ensure it uses the latest key
+    this.forecastService = null;
+  }
+
   private getForecastService(): WeatherForecastService | null {
     const apiKey = this.getApiKey();
     if (!apiKey) {
