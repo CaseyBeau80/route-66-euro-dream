@@ -25,7 +25,12 @@ export const usePDFExport = ({
   const { addPrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: Button clicked, starting export process...');
+    console.log('🚀 PDF Export: handleExportPDF called');
+    console.log('📋 Trip plan validation:', {
+      hasTripPlan: !!tripPlan,
+      hasSegments: !!tripPlan?.segments,
+      segmentCount: tripPlan?.segments?.length || 0
+    });
     
     // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
@@ -34,39 +39,66 @@ export const usePDFExport = ({
       return;
     }
 
-    console.log('✅ Trip plan validated, showing preview...');
+    console.log('✅ Trip plan validated, starting export process...');
     
-    // Set the preview trip plan and show preview immediately
-    setPreviewTripPlan(tripPlan);
-    setIsExporting(true);
-    
-    // Add print styles for the preview
-    addPrintStyles();
-    
-    // Show the preview
-    setShowPreview(true);
-    
-    // Reset exporting state after a short delay
-    setTimeout(() => {
+    try {
+      // Set exporting state
+      setIsExporting(true);
+      
+      // Set the preview trip plan immediately
+      console.log('📄 Setting preview trip plan...');
+      setPreviewTripPlan(tripPlan);
+      
+      // Add print styles
+      console.log('🎨 Adding print styles...');
+      addPrintStyles();
+      
+      // Show the preview immediately
+      console.log('🔄 Setting showPreview to true...');
+      setShowPreview(true);
+      
+      // Reset exporting state after a short delay to allow UI to update
+      setTimeout(() => {
+        setIsExporting(false);
+        console.log('✅ PDF preview should now be visible');
+        console.log('📊 Final state:', {
+          showPreview: true,
+          hasPreviewTripPlan: true,
+          isExporting: false
+        });
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Error during PDF export:', error);
       setIsExporting(false);
-      console.log('✅ PDF preview should now be visible');
-    }, 100);
+      alert('An error occurred while preparing the PDF preview. Please try again.');
+    }
     
   }, [tripPlan, addPrintStyles]);
 
   const handleClosePreview = useCallback(() => {
     console.log('🔄 Closing PDF preview...');
+    console.log('📊 State before close:', {
+      showPreview,
+      hasPreviewTripPlan: !!previewTripPlan,
+      isExporting
+    });
+    
     setShowPreview(false);
     setPreviewTripPlan(null);
     setIsExporting(false);
     onClose();
-  }, [onClose]);
+    
+    console.log('✅ PDF preview closed');
+  }, [onClose, showPreview, previewTripPlan, isExporting]);
 
-  console.log('🎯 usePDFExport state:', {
+  // Enhanced logging for debugging
+  console.log('🎯 usePDFExport hook state:', {
     isExporting,
     showPreview,
     hasPreviewTripPlan: !!previewTripPlan,
-    tripPlanSegments: tripPlan?.segments?.length || 0
+    tripPlanSegments: tripPlan?.segments?.length || 0,
+    hasExportOptions: !!exportOptions
   });
 
   return {

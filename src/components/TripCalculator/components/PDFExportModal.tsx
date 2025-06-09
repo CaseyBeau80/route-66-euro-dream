@@ -92,13 +92,38 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     handleExportPDF();
   };
 
-  // If preview is showing and we have trip plan data, render the preview
-  if (showPreview && previewTripPlan) {
-    console.log('📄 Rendering PDF preview container');
+  // Enhanced logging for debugging
+  console.log('📄 PDFExportModal render state:', {
+    isOpen,
+    showPreview,
+    hasPreviewTripPlan: !!previewTripPlan,
+    isTripComplete,
+    isExporting,
+    tripPlanSegments: tripPlan?.segments?.length || 0
+  });
+
+  // CRITICAL: Check if preview should be shown - this is the main fix
+  if (showPreview) {
+    console.log('📄 Rendering PDF preview container (showPreview=true)');
+    
+    // Use the current tripPlan if previewTripPlan is not available (failsafe)
+    const tripPlanToRender = previewTripPlan || tripPlan;
+    
+    if (!tripPlanToRender) {
+      console.error('❌ No trip plan available for preview');
+      return (
+        <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <p>Error: No trip plan available for preview</p>
+            <Button onClick={handleClosePreview} className="mt-4">Close</Button>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <PDFPreviewContainer
-        tripPlan={previewTripPlan}
+        tripPlan={tripPlanToRender}
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
@@ -109,10 +134,13 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     );
   }
 
-  // Only show modal if not in preview mode AND modal should be open
-  if (!isOpen || showPreview) {
+  // Only show modal form if NOT in preview mode AND modal should be open
+  if (!isOpen) {
+    console.log('📄 Modal not open, returning null');
     return null;
   }
+
+  console.log('📄 Rendering PDF export form modal');
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
