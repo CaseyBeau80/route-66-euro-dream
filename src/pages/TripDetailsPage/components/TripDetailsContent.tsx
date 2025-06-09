@@ -16,6 +16,30 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Check if trip is complete
   const isTripComplete = trip.trip_data && trip.trip_data.segments && trip.trip_data.segments.length > 0;
 
+  // Extract start date from trip data
+  const tripStartDate = React.useMemo(() => {
+    // First check if there's a startDate in the trip_data
+    if (trip.trip_data?.startDate) {
+      const date = new Date(trip.trip_data.startDate);
+      if (!isNaN(date.getTime())) {
+        console.log('📅 TripDetailsContent: Found valid startDate in trip_data:', date.toISOString());
+        return date;
+      }
+    }
+
+    // If no explicit startDate, try to derive from created_at (this is a fallback)
+    if (trip.created_at) {
+      const date = new Date(trip.created_at);
+      if (!isNaN(date.getTime())) {
+        console.log('📅 TripDetailsContent: Using created_at as fallback date:', date.toISOString());
+        return date;
+      }
+    }
+
+    console.log('📅 TripDetailsContent: No valid date found, returning undefined');
+    return undefined;
+  }, [trip.trip_data?.startDate, trip.created_at]);
+
   const handleGenerateLink = async (): Promise<string | null> => {
     // Return existing share URL since this is already a shared trip
     return shareUrl;
@@ -60,7 +84,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
       <div className="p-6">
         <ShareTripModalContent
           tripPlan={trip.trip_data}
-          tripStartDate={undefined} // Shared trips don't have a start date set
+          tripStartDate={tripStartDate} // Now properly passing the extracted date
           currentShareUrl={shareUrl}
           isGeneratingLink={false}
           isTripComplete={isTripComplete}

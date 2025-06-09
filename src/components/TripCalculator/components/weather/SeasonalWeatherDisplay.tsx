@@ -13,8 +13,19 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
   compact = false
 }) => {
   const getSeasonalInfo = (date: Date, city: string) => {
+    // Validate the date
+    if (!date || isNaN(date.getTime())) {
+      console.warn('⚠️ SeasonalWeatherDisplay: Invalid date provided', date);
+      // Return default seasonal info for current month as fallback
+      const currentDate = new Date();
+      return getSeasonForDate(currentDate);
+    }
+
+    return getSeasonForDate(date);
+  };
+
+  const getSeasonForDate = (date: Date) => {
     const month = date.getMonth(); // 0-11
-    const day = date.getDate();
     
     // Define seasons based on meteorological calendar
     let season: string;
@@ -53,6 +64,35 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
     
     return { season, tempRange, description, icon };
   };
+
+  // Handle invalid date gracefully
+  if (!segmentDate || isNaN(segmentDate.getTime())) {
+    console.warn('⚠️ SeasonalWeatherDisplay: No valid date provided for', cityName);
+    
+    if (compact) {
+      return (
+        <div className="text-sm text-gray-700">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">🌤️</span>
+            <span className="font-medium">Weather Information</span>
+          </div>
+          <p className="text-xs text-gray-600">Date not available for weather forecast</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-2xl">🌤️</span>
+          <div>
+            <h4 className="font-semibold text-gray-800">Weather Information</h4>
+            <p className="text-sm text-gray-600">Date not available for seasonal forecast</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const seasonalInfo = getSeasonalInfo(segmentDate, cityName);
   

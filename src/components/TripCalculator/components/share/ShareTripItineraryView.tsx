@@ -17,14 +17,40 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
   totalDays,
   isSharedView = false
 }) => {
+  console.log('📅 ShareTripItineraryView: Rendering with tripStartDate:', {
+    tripStartDate: tripStartDate?.toISOString(),
+    hasValidDate: tripStartDate && !isNaN(tripStartDate.getTime()),
+    segmentsCount: segments.length,
+    isSharedView
+  });
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Daily Itinerary</h2>
       
       {segments.map((segment, index) => {
-        const segmentDate = tripStartDate 
-          ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000)
-          : null;
+        // Calculate segment date with proper validation
+        const segmentDate = React.useMemo(() => {
+          if (!tripStartDate || isNaN(tripStartDate.getTime())) {
+            console.log(`📅 ShareTripItineraryView: No valid tripStartDate for segment ${segment.day}`);
+            return null;
+          }
+          
+          try {
+            const calculatedDate = new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+            
+            if (isNaN(calculatedDate.getTime())) {
+              console.error(`❌ ShareTripItineraryView: Invalid calculated date for segment ${segment.day}`);
+              return null;
+            }
+            
+            console.log(`📅 ShareTripItineraryView: Valid date calculated for segment ${segment.day}:`, calculatedDate.toISOString());
+            return calculatedDate;
+          } catch (error) {
+            console.error(`❌ ShareTripItineraryView: Error calculating date for segment ${segment.day}:`, error);
+            return null;
+          }
+        }, [tripStartDate, segment.day]);
 
         return (
           <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -39,7 +65,7 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
-                    }) : 'Date not set'}
+                    }) : 'Date not available'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -77,18 +103,22 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
               {/* Weather Information */}
               {isSharedView ? (
                 // For shared views, show seasonal weather without requiring API key
-                segmentDate && (
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                      🌤️ Seasonal Weather Information
-                    </h4>
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    🌤️ Seasonal Weather Information
+                  </h4>
+                  {segmentDate ? (
                     <SeasonalWeatherDisplay 
                       segmentDate={segmentDate} 
                       cityName={segment.endCity}
                       compact={true}
                     />
-                  </div>
-                )
+                  ) : (
+                    <div className="text-sm text-gray-600">
+                      <p>Weather information not available - trip date not set</p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 // For regular views, show full weather widget
                 <div className="bg-blue-50 rounded-lg p-4">
