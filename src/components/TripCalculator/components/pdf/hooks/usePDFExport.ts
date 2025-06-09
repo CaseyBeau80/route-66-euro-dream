@@ -21,15 +21,11 @@ export const usePDFExport = ({
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewTripPlan, setPreviewTripPlan] = useState<TripPlan | null>(null);
-  const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherLoadingStatus, setWeatherLoadingStatus] = useState<string>('');
-  const [weatherLoadingProgress, setWeatherLoadingProgress] = useState(0);
-  const [weatherTimeout, setWeatherTimeout] = useState(false);
   
   const { addPrintStyles } = usePDFStyles();
 
   const handleExportPDF = useCallback(async () => {
-    console.log('🚀 PDF Export: Starting simplified export process...');
+    console.log('🚀 PDF Export: Button clicked, starting export process...');
     
     // Validate trip plan first
     if (!tripPlan || !tripPlan.segments || tripPlan.segments.length === 0) {
@@ -38,21 +34,23 @@ export const usePDFExport = ({
       return;
     }
 
-    console.log('✅ Trip plan validated, showing preview immediately...');
+    console.log('✅ Trip plan validated, showing preview...');
     
-    // SIMPLIFIED APPROACH: Show preview immediately with current trip plan
+    // Set the preview trip plan and show preview immediately
+    setPreviewTripPlan(tripPlan);
     setIsExporting(true);
     
-    // Set preview data and show it immediately
-    setPreviewTripPlan(tripPlan);
+    // Add print styles for the preview
     addPrintStyles();
+    
+    // Show the preview
     setShowPreview(true);
     
-    // Set exporting to false after preview is shown
+    // Reset exporting state after a short delay
     setTimeout(() => {
       setIsExporting(false);
-      console.log('✅ PDF preview is now visible');
-    }, 500);
+      console.log('✅ PDF preview should now be visible');
+    }, 100);
     
   }, [tripPlan, addPrintStyles]);
 
@@ -60,17 +58,13 @@ export const usePDFExport = ({
     console.log('🔄 Closing PDF preview...');
     setShowPreview(false);
     setPreviewTripPlan(null);
-    setWeatherLoadingStatus('');
-    setWeatherLoadingProgress(0);
-    setWeatherTimeout(false);
-    setWeatherLoading(false);
+    setIsExporting(false);
     onClose();
   }, [onClose]);
 
   console.log('🎯 usePDFExport state:', {
     isExporting,
     showPreview,
-    weatherLoading,
     hasPreviewTripPlan: !!previewTripPlan,
     tripPlanSegments: tripPlan?.segments?.length || 0
   });
@@ -78,10 +72,10 @@ export const usePDFExport = ({
   return {
     isExporting,
     showPreview,
-    weatherLoading,
-    weatherLoadingStatus,
-    weatherLoadingProgress,
-    weatherTimeout,
+    weatherLoading: false, // Simplified - no weather loading for now
+    weatherLoadingStatus: '',
+    weatherLoadingProgress: 0,
+    weatherTimeout: false,
     previewTripPlan,
     handleExportPDF,
     handleClosePreview

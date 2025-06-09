@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Printer, X, AlertCircle, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Printer, X } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { usePDFExport } from './pdf/hooks/usePDFExport';
 import { usePDFKeyboardHandlers } from './pdf/hooks/usePDFKeyboardHandlers';
@@ -45,10 +44,6 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
   const {
     isExporting,
     showPreview,
-    weatherLoading,
-    weatherLoadingStatus,
-    weatherLoadingProgress,
-    weatherTimeout,
     previewTripPlan,
     handleClosePreview,
     handleExportPDF
@@ -97,7 +92,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
     handleExportPDF();
   };
 
-  // Show PDF Preview if active - render OUTSIDE of any Dialog context
+  // If preview is showing and we have trip plan data, render the preview
   if (showPreview && previewTripPlan) {
     console.log('📄 Rendering PDF preview container');
     
@@ -107,15 +102,15 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
         tripStartDate={tripStartDate}
         exportOptions={exportOptions}
         shareUrl={shareUrl}
-        weatherTimeout={weatherTimeout}
+        weatherTimeout={false}
         onClose={handleClosePreview}
         onPrint={handlePrintFromPreview}
       />
     );
   }
 
-  // Only show modal if not in preview mode AND modal is open
-  if (!isOpen) {
+  // Only show modal if not in preview mode AND modal should be open
+  if (!isOpen || showPreview) {
     return null;
   }
 
@@ -200,40 +195,11 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
                 />
               </div>
 
-              {/* Weather Status Display */}
-              {(weatherLoading || weatherTimeout) && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    {weatherLoading ? (
-                      <Clock className="w-4 h-4 text-blue-600 animate-spin" />
-                    ) : weatherTimeout ? (
-                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    )}
-                    <div className="flex-1">
-                      <div className="text-sm text-blue-800 font-medium mb-1">
-                        {weatherLoadingStatus || 'Processing weather data...'}
-                      </div>
-                      <Progress value={weatherLoadingProgress} className="h-2" />
-                    </div>
-                  </div>
-                  
-                  {weatherTimeout && (
-                    <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
-                      ⏱️ Weather data timed out. Preview includes seasonal estimates for reference.
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* Instructions */}
               <div className="p-3 bg-route66-vintage-beige border border-route66-tan rounded-lg text-sm text-route66-navy">
                 <div className="font-semibold mb-2 text-route66-vintage-red text-sm font-route66">🛣️ Enhanced PDF Features:</div>
                 <ul className="text-xs space-y-1.5 leading-relaxed text-route66-vintage-brown">
-                  <li>• Guaranteed instant preview opening for fast review</li>
-                  <li>• Live weather data when available (6-second timeout)</li>
-                  <li>• Seasonal weather estimates as intelligent fallback</li>
+                  <li>• Instant preview opening for fast review</li>
                   <li>• Enhanced Route 66 branding and nostalgic styling</li>
                   <li>• Optimized layout matching your final itinerary</li>
                   <li>• Print-ready format with professional presentation</li>
@@ -243,7 +209,7 @@ const PDFExportModal: React.FC<PDFExportModalProps> = ({
 
             <Button
               onClick={handleExportClick}
-              disabled={!isTripComplete}
+              disabled={!isTripComplete || isExporting}
               className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
             >
               {isExporting ? 'Opening Preview...' : 'Export PDF with Preview'}
