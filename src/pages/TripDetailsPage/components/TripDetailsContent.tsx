@@ -14,11 +14,15 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
 }) => {
   console.log('🎯 TripDetailsContent: Rendering shared trip using SharedTripContentRenderer');
 
+  // Extract trip plan and start date from the saved trip data
+  const tripPlan = trip.trip_data;
+  const tripStartDate = tripPlan.tripStartDate;
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <SharedTripContentRenderer
-        tripPlan={trip.tripPlan}
-        tripStartDate={trip.tripStartDate}
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
         shareUrl={shareUrl}
         isSharedView={true}
       />
