@@ -3,6 +3,7 @@ import React from 'react';
 import ForecastWeatherDisplay from './ForecastWeatherDisplay';
 import CurrentWeatherDisplay from './CurrentWeatherDisplay';
 import DismissibleSeasonalWarning from './DismissibleSeasonalWarning';
+import { validateWeatherData, getWeatherDisplayType } from './WeatherValidationService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface WeatherDataDisplayProps {
@@ -10,63 +11,111 @@ interface WeatherDataDisplayProps {
   segmentDate: Date | null;
   segmentEndCity: string;
   isSharedView?: boolean;
+  error?: string | null;
+  retryCount?: number;
 }
 
 const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   weather,
   segmentDate,
   segmentEndCity,
-  isSharedView = false
+  isSharedView = false,
+  error = null,
+  retryCount = 0
 }) => {
-  // Check if this is forecast data (matching PDF export logic)
-  if (weather?.isActualForecast !== undefined) {
-    const forecastWeather = weather as ForecastWeatherData;
-    
-    // Show live forecast data if we have actual forecast with valid temperatures
-    if (forecastWeather.isActualForecast && 
-        forecastWeather.highTemp !== undefined && 
-        forecastWeather.lowTemp !== undefined &&
-        forecastWeather.highTemp > 0 && 
-        forecastWeather.lowTemp > 0) {
-      
-      console.log(`🔮 Showing live forecast for ${segmentEndCity}:`, {
-        high: forecastWeather.highTemp,
-        low: forecastWeather.lowTemp,
-        description: forecastWeather.description
-      });
-      
+  console.log(`🎨 WeatherDataDisplay: Rendering for ${segmentEndCity}:`, {
+    hasWeather: !!weather,
+    error,
+    retryCount,
+    segmentDate: segmentDate?.toISOString(),
+    isSharedView
+  });
+
+  // Validate weather data first
+  const validation = validateWeatherData(weather, segmentEndCity);
+  const displayType = getWeatherDisplayType(validation, error, retryCount);
+  
+  console.log(`🎯 WeatherDataDisplay: Display decision for ${segmentEndCity}:`, {
+    validation,
+    displayType,
+    error,
+    retryCount
+  });
+
+  // Handle each display type with consistent messaging
+  switch (displayType) {
+    case 'live-forecast':
+      if (weather?.isActualForecast !== undefined) {
+        const forecastWeather = weather as ForecastWeatherData;
+        return (
+          <div className="space-y-2">
+            <DismissibleSeasonalWarning
+              message={`Live forecast from OpenWeatherMap for ${segmentDate?.toLocaleDateString()}`}
+              type="forecast-unavailable"
+              isSharedView={isSharedView}
+            />
+            <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+          </div>
+        );
+      }
+      // Fallback to current weather if not forecast structure
+      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+
+    case 'seasonal-estimate':
+      if (weather?.isActualForecast !== undefined) {
+        const forecastWeather = weather as ForecastWeatherData;
+        return (
+          <div className="space-y-2">
+            <DismissibleSeasonalWarning
+              message="Based on historical weather patterns"
+              type="seasonal"
+              isSharedView={isSharedView}
+            />
+            <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+          </div>
+        );
+      }
+      break;
+
+    case 'service-unavailable':
+      console.log(`❌ WeatherDataDisplay: Service unavailable for ${segmentEndCity} - suppressing all forecast data`);
       return (
         <div className="space-y-2">
           <DismissibleSeasonalWarning
-            message={`Powered by OpenWeatherMap for ${segmentDate?.toLocaleDateString()}`}
+            message={error || "Weather service temporarily unavailable"}
             type="forecast-unavailable"
             isSharedView={isSharedView}
           />
-          <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+          <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+            <p className="text-sm text-gray-600">
+              Weather information temporarily unavailable
+            </p>
+          </div>
         </div>
       );
-    }
-    
-    // If forecast data exists but is marked as not actual forecast, show seasonal with warning
-    if (!forecastWeather.isActualForecast) {
-      console.log(`📊 Forecast service returned seasonal data for ${segmentEndCity}`);
+
+    case 'loading':
+    default:
       return (
-        <div className="space-y-2">
-          <DismissibleSeasonalWarning
-            message="Based on historical weather patterns"
-            type="seasonal"
-            isSharedView={isSharedView}
-          />
-          <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+        <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="animate-pulse text-gray-500 text-sm">
+            Loading weather information...
+          </div>
         </div>
       );
-    }
-  } else {
-    // Regular weather data (current weather)
-    return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
   }
 
-  return null;
+  // Fallback - should not reach here with proper validation
+  console.warn(`⚠️ WeatherDataDisplay: Reached fallback for ${segmentEndCity}`);
+  return (
+    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+      <p className="text-sm text-gray-600">
+        Weather information unavailable
+      </p>
+    </div>
+  );
 };
 
 export default WeatherDataDisplay;

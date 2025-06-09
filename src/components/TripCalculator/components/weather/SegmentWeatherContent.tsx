@@ -55,15 +55,18 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <EnhancedWeatherLoading onTimeout={onTimeout} />;
   }
 
-  // PRIORITY 1: Show live weather data if available
+  // PRIORITY 1: Show centralized weather display if we have weather data
+  // This will handle validation and display logic internally
   if (weather) {
-    console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
+    console.log(`✨ Using centralized weather display for ${segmentEndCity}`);
     return (
       <WeatherDataDisplay 
         weather={weather}
         segmentDate={segmentDate}
         segmentEndCity={segmentEndCity}
         isSharedView={isSharedView}
+        error={error}
+        retryCount={retryCount}
       />
     );
   }

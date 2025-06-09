@@ -5,6 +5,7 @@ import { EnhancedWeatherService } from '@/components/Route66Map/services/weather
 import { useSegmentWeatherState } from './weather/hooks/useSegmentWeatherState';
 import { useSegmentWeather } from './weather/hooks/useSegmentWeather';
 import SegmentWeatherContent from './weather/SegmentWeatherContent';
+import WeatherErrorBoundary from './weather/WeatherErrorBoundary';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
@@ -140,21 +141,26 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
   return (
-    <div className={`space-y-3 ${containerClass}`} data-segment-day={segment.day}>
-      <SegmentWeatherContent
-        hasApiKey={hasApiKey}
-        loading={weatherState.loading}
-        weather={weatherState.weather}
-        error={weatherState.error}
-        retryCount={weatherState.retryCount}
-        segmentEndCity={segment.endCity}
-        segmentDate={segmentDate}
-        onApiKeySet={handleApiKeySet}
-        onTimeout={weatherHandlers.handleTimeout}
-        onRetry={weatherHandlers.handleRetry}
-        isSharedView={sectionKey === 'shared-view'}
-      />
-    </div>
+    <WeatherErrorBoundary 
+      segmentEndCity={segment.endCity}
+      fallbackMessage={`Weather service error for ${segment.endCity}`}
+    >
+      <div className={`space-y-3 ${containerClass}`} data-segment-day={segment.day}>
+        <SegmentWeatherContent
+          hasApiKey={hasApiKey}
+          loading={weatherState.loading}
+          weather={weatherState.weather}
+          error={weatherState.error}
+          retryCount={weatherState.retryCount}
+          segmentEndCity={segment.endCity}
+          segmentDate={segmentDate}
+          onApiKeySet={handleApiKeySet}
+          onTimeout={weatherHandlers.handleTimeout}
+          onRetry={weatherHandlers.handleRetry}
+          isSharedView={sectionKey === 'shared-view'}
+        />
+      </div>
+    </WeatherErrorBoundary>
   );
 };
 
