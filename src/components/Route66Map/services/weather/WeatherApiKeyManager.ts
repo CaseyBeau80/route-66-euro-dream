@@ -7,6 +7,7 @@ export class WeatherApiKeyManager {
   static getApiKey(): string | null {
     // First check if API key is configured in code
     if (WEATHER_API_KEY && 
+        typeof WEATHER_API_KEY === 'string' &&
         WEATHER_API_KEY !== 'your_api_key_here' && 
         !WEATHER_API_KEY.toLowerCase().includes('your_api_key') &&
         !WEATHER_API_KEY.toLowerCase().includes('replace_with') &&
