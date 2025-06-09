@@ -5,11 +5,10 @@ import { EnhancedWeatherApiKeyManager } from './EnhancedWeatherApiKeyManager';
 export class EnhancedWeatherService {
   private static instance: EnhancedWeatherService;
   private apiKeyManager: EnhancedWeatherApiKeyManager;
-  private forecastService: WeatherForecastService;
+  private forecastService: WeatherForecastService | null = null;
 
   private constructor() {
     this.apiKeyManager = new EnhancedWeatherApiKeyManager();
-    this.forecastService = new WeatherForecastService();
   }
 
   static getInstance(): EnhancedWeatherService {
@@ -32,6 +31,21 @@ export class EnhancedWeatherService {
 
   setApiKey(apiKey: string): void {
     this.apiKeyManager.setApiKey(apiKey);
+    // Reset forecast service to use new API key
+    this.forecastService = null;
+  }
+
+  private getForecastService(): WeatherForecastService | null {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      return null;
+    }
+    
+    if (!this.forecastService) {
+      this.forecastService = new WeatherForecastService(apiKey);
+    }
+    
+    return this.forecastService;
   }
 
   async getWeatherForDate(
@@ -45,15 +59,15 @@ export class EnhancedWeatherService {
       return null;
     }
 
-    const apiKey = this.getApiKey();
-    if (!apiKey) {
-      console.warn('❌ EnhancedWeatherService: API key is null');
+    const forecastService = this.getForecastService();
+    if (!forecastService) {
+      console.warn('❌ EnhancedWeatherService: Could not initialize forecast service');
       return null;
     }
 
     try {
       console.log(`🔮 EnhancedWeatherService: Requesting forecast for ${cityName} on ${targetDate.toDateString()}`);
-      return await this.forecastService.getWeatherForDate(lat, lng, cityName, targetDate, apiKey);
+      return await forecastService.getWeatherForDate(lat, lng, cityName, targetDate);
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Forecast error:', error);
       return null;
@@ -66,6 +80,8 @@ export class EnhancedWeatherService {
 
   performNuclearCleanup(): void {
     this.apiKeyManager.performNuclearCleanup();
+    // Reset forecast service when cleaning up
+    this.forecastService = null;
   }
 
   getDebugInfo() {
