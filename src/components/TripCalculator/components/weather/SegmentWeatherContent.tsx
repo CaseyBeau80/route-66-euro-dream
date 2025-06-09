@@ -44,9 +44,33 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // No API key - show input prominently
+  // No API key - show compact seasonal weather as fallback with option to add API key
   if (!hasApiKey) {
-    console.log(`🔑 No API key for ${segmentEndCity}, showing input`);
+    console.log(`🔑 No API key for ${segmentEndCity}, showing seasonal fallback with API key option`);
+    
+    // If we have a date, show seasonal weather with option to add API key
+    if (segmentDate) {
+      return (
+        <div className="space-y-3">
+          <SeasonalWeatherDisplay 
+            segmentDate={segmentDate} 
+            cityName={segmentEndCity}
+            compact={true}
+          />
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
+            <p className="text-yellow-800 mb-2">
+              <strong>Want live weather forecasts?</strong> Add your OpenWeatherMap API key below:
+            </p>
+            <EnhancedWeatherApiKeyInput 
+              onApiKeySet={onApiKeySet}
+              cityName={segmentEndCity}
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    // No date available
     return (
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="mb-3 text-sm text-blue-800">
@@ -79,9 +103,33 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     }
   }
 
-  // Show fallback for repeated errors
+  // Show fallback for repeated errors - use seasonal data if date is available
   if (error && (retryCount >= 2 || error.includes('timeout'))) {
     console.log(`🔄 Showing fallback for ${segmentEndCity} after ${retryCount} retries`);
+    
+    if (segmentDate) {
+      return (
+        <div className="space-y-3">
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
+            <strong>Weather Service Unavailable:</strong> Showing seasonal estimates instead of live forecasts.
+          </div>
+          <SeasonalWeatherDisplay 
+            segmentDate={segmentDate} 
+            cityName={segmentEndCity}
+            compact={true}
+          />
+          <div className="text-center">
+            <button
+              onClick={onRetry}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Try again for live forecast
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <WeatherFallback 
         cityName={segmentEndCity}
@@ -98,10 +146,21 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return <WeatherError error={error} />;
   }
 
-  // Show seasonal fallback when date is available but no API key or data
+  // Show seasonal fallback when date is available but no weather data
   if (segmentDate) {
     console.log(`🌱 Showing seasonal weather for ${segmentEndCity}`);
-    return <SeasonalWeatherDisplay segmentDate={segmentDate} cityName={segmentEndCity} />;
+    return (
+      <div className="space-y-3">
+        <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+          <strong>Seasonal Estimate:</strong> Live forecast will appear when available.
+        </div>
+        <SeasonalWeatherDisplay 
+          segmentDate={segmentDate} 
+          cityName={segmentEndCity}
+          compact={true}
+        />
+      </div>
+    );
   }
 
   // Default message when no date is set

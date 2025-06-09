@@ -102,6 +102,7 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
         <div className="flex items-center gap-2 mb-1">
           <span className="text-lg">{seasonalInfo.icon}</span>
           <span className="font-medium">{seasonalInfo.season} Weather</span>
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Seasonal Estimate</span>
         </div>
         <p className="text-xs text-gray-600 mb-2">{seasonalInfo.description}</p>
         <div className="flex items-center gap-4 text-xs">
@@ -119,6 +120,9 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
         <div>
           <h4 className="font-semibold text-gray-800">{seasonalInfo.season} Weather in {cityName}</h4>
           <p className="text-sm text-gray-600">{seasonalInfo.description}</p>
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mt-1 inline-block">
+            Seasonal Estimate
+          </span>
         </div>
       </div>
       
@@ -135,7 +139,7 @@ const SeasonalWeatherDisplay: React.FC<SeasonalWeatherDisplayProps> = ({
       </div>
       
       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-        <strong>Note:</strong> This is seasonal weather information. For live forecasts, visit the trip planner with an API key.
+        <strong>Note:</strong> This is seasonal weather information based on historical averages. For live forecasts, add an OpenWeatherMap API key.
       </div>
     </div>
   );

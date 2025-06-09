@@ -96,7 +96,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
             <div className="text-2xl font-bold text-orange-600 mb-1">☀️</div>
             <div className="text-sm text-gray-600">Weather</div>
             <div className="text-xs text-gray-500 mt-1">
-              {isSharedView ? 'Seasonal Info' : (tripStartDate ? 'Live Forecast' : 'Set Date for Forecast')}
+              {tripStartDate ? 'Live or Seasonal' : 'Set Date for Forecast'}
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
         </div>
       </div>
 
-      {/* Complete Daily Itinerary - Now shows all days like PDF */}
+      {/* Complete Daily Itinerary - Now intelligently handles weather display */}
       <div className="mb-8">
         <ShareTripItineraryView
           segments={tripPlan.segments || []}

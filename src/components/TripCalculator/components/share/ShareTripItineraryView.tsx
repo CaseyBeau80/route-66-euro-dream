@@ -2,7 +2,6 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
-import SeasonalWeatherDisplay from '../weather/SeasonalWeatherDisplay';
 
 interface ShareTripItineraryViewProps {
   segments: DailySegment[];
@@ -100,40 +99,19 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* Weather Information */}
-              {isSharedView ? (
-                // For shared views, show seasonal weather without requiring API key
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    🌤️ Seasonal Weather Information
-                  </h4>
-                  {segmentDate ? (
-                    <SeasonalWeatherDisplay 
-                      segmentDate={segmentDate} 
-                      cityName={segment.endCity}
-                      compact={true}
-                    />
-                  ) : (
-                    <div className="text-sm text-gray-600">
-                      <p>Weather information not available - trip date not set</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // For regular views, show full weather widget
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    🌤️ Weather Information
-                  </h4>
-                  <SegmentWeatherWidget
-                    segment={segment}
-                    tripStartDate={tripStartDate}
-                    cardIndex={index}
-                    isCollapsible={false}
-                    forceExpanded={true}
-                  />
-                </div>
-              )}
+              {/* Weather Information - Now uses SegmentWeatherWidget for all views */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  🌤️ Weather Information
+                </h4>
+                <SegmentWeatherWidget
+                  segment={segment}
+                  tripStartDate={tripStartDate}
+                  cardIndex={index}
+                  isCollapsible={false}
+                  forceExpanded={true}
+                />
+              </div>
 
               {/* Recommendations */}
               {segment.attractions && segment.attractions.length > 0 && (
