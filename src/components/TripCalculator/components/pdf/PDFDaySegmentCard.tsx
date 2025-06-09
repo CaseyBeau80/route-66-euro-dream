@@ -31,15 +31,17 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     <div className="pdf-day-card no-page-break mb-6 bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden">
       {/* Day Header with Route 66 Styling */}
       <PDFDaySegmentCardHeader 
-        segment={segment} 
-        segmentIndex={segmentIndex}
+        day={segment.day}
+        endCity={segment.endCity || segment.destination || 'Unknown'}
         segmentDate={segmentDate}
       />
       
       {/* Stats Section */}
       <PDFDaySegmentCardStats 
-        segment={segment} 
-        exportFormat={exportFormat}
+        distance={segment.distance}
+        driveTimeHours={segment.driveTimeHours}
+        startCity={segment.startCity || 'Unknown'}
+        endCity={segment.endCity || segment.destination || 'Unknown'}
       />
       
       {/* Weather Section - Enhanced for PDF */}
@@ -66,8 +68,6 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
       {/* Footer with Route Progression */}
       <PDFDaySegmentCardFooter 
         segment={segment}
-        segmentIndex={segmentIndex}
-        exportFormat={exportFormat}
       />
     </div>
   );

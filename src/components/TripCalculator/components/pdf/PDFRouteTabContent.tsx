@@ -29,8 +29,7 @@ const PDFRouteTabContent: React.FC<PDFRouteTabContentProps> = ({
           key={`pdf-route-segment-${segment.day}-${segment.endCity}-${index}`}
           segment={segment}
           tripStartDate={tripStartDate}
-          cardIndex={index}
-          tripId={tripId}
+          segmentIndex={index}
           exportFormat={exportFormat}
         />
       ))}

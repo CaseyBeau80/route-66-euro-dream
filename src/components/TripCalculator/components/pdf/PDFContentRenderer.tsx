@@ -95,7 +95,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
             key={`day-${segment.day}`}
             segment={segment}
             tripStartDate={tripStartDate}
-            cardIndex={index}
+            segmentIndex={index}
             exportFormat={exportOptions.format}
           />
         ))}
