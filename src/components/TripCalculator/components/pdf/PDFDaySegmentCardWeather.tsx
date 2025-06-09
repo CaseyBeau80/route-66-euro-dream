@@ -39,8 +39,9 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     );
   }
 
-  // Handle different weather data formats
-  const temperature = weatherData.temperature || weatherData.temp;
+  // Handle different weather data formats - corrected to use proper property names
+  const lowTemp = weatherData.lowTemp || weatherData.temp?.min;
+  const highTemp = weatherData.highTemp || weatherData.temp?.max;
   const condition = weatherData.condition || weatherData.description || weatherData.main;
   const humidity = weatherData.humidity;
   const windSpeed = weatherData.windSpeed || weatherData.wind?.speed;
@@ -64,9 +65,11 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
             <div>
               <div className="font-medium text-route66-navy">Temperature</div>
               <div className="text-route66-vintage-brown">
-                {typeof temperature === 'object' ? 
-                  `${temperature.high || temperature.max || 'N/A'}°/${temperature.low || temperature.min || 'N/A'}°F` :
-                  `${temperature || 'N/A'}°F`
+                {(lowTemp !== undefined && highTemp !== undefined) ? 
+                  `${Math.round(highTemp)}°/${Math.round(lowTemp)}°F` :
+                  highTemp !== undefined ? `${Math.round(highTemp)}°F` :
+                  lowTemp !== undefined ? `${Math.round(lowTemp)}°F` :
+                  'N/A'
                 }
               </div>
             </div>
