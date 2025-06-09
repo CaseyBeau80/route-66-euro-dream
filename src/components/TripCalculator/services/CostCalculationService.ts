@@ -1,7 +1,6 @@
-
 import { TripPlan } from './planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../types/costEstimator';
-import { getDestinationCity } from './planning/utils/DestinationUtils';
+import { getDestinationCity } from '../utils/DestinationUtils';
 
 export class CostCalculationService {
   // Base rates per day by budget level
