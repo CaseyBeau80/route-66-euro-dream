@@ -26,6 +26,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   isCollapsible = false
 }) => {
   const weatherService = EnhancedWeatherService.getInstance();
+  
+  // Force refresh of API key status to ensure we check localStorage
+  React.useEffect(() => {
+    weatherService.getApiKey(); // This will refresh the internal state
+  }, [weatherService]);
+  
   const hasApiKey = weatherService.hasApiKey();
 
   console.log(`🌤️ SegmentWeatherWidget: Rendering for ${segment.endCity} (Day ${segment.day})`, {
@@ -33,7 +39,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     tripStartDateType: typeof tripStartDate,
     hasApiKey,
     sectionKey,
-    forceExpanded
+    forceExpanded,
+    apiKeyDebug: weatherService.getDebugInfo()
   });
 
   // Calculate the actual date for this segment

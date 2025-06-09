@@ -52,29 +52,58 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
   const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
 
-  // In shared view, show enhanced messaging when no API key but forecast is possible
+  // Loading state
+  if (loading) {
+    console.log(`⏳ Loading weather for ${segmentEndCity}`);
+    return <EnhancedWeatherLoading onTimeout={onTimeout} />;
+  }
+
+  // Show weather data if available
+  if (weather) {
+    console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
+    
+    // Check if this is forecast data (has isActualForecast property)
+    if (weather.isActualForecast !== undefined) {
+      return (
+        <div className="space-y-2">
+          {/* Show forecast indicator for actual forecasts */}
+          {weather.isActualForecast && isWithinForecastRange && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
+              <strong>🔮 Live Forecast:</strong> Powered by OpenWeatherMap for {segmentDate?.toLocaleDateString()}
+            </div>
+          )}
+          {/* Show seasonal indicator for historical data */}
+          {!weather.isActualForecast && (
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+              <strong>📊 Seasonal Estimate:</strong> Based on historical weather patterns
+            </div>
+          )}
+          <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />
+        </div>
+      );
+    } else {
+      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
+    }
+  }
+
+  // In shared view without API key
   if (!hasApiKey) {
-    console.log(`🔑 No API key for ${segmentEndCity}, showing enhanced messaging`);
+    console.log(`🔑 No API key for ${segmentEndCity}, showing appropriate messaging`);
     
     if (segmentDate) {
       if (isSharedView) {
-        // Enhanced messaging for shared view when forecast would be available
+        // In shared view, show enhanced messaging without API key input
         if (isWithinForecastRange) {
           return (
             <div className="space-y-3">
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">🔮</span>
-                  <strong className="text-yellow-800">Live Forecast Available!</strong>
+                  <span className="text-lg">📊</span>
+                  <strong className="text-yellow-800">Seasonal Weather Estimate</strong>
                 </div>
-                <p className="text-yellow-700 mb-2">
-                  This date ({segmentDate.toLocaleDateString()}) is within the 5-day forecast window. 
-                  An API key would show live weather predictions instead of seasonal estimates.
+                <p className="text-yellow-700 text-xs">
+                  Live forecast available with OpenWeatherMap API key. Showing seasonal patterns for now.
                 </p>
-                <div className="text-xs text-yellow-600 bg-yellow-100 p-2 rounded">
-                  <strong>Trip planners:</strong> Add your free OpenWeatherMap API key to see actual forecasts 
-                  for dates within 5 days, including temperature, precipitation, and wind conditions.
-                </div>
               </div>
               <SeasonalWeatherDisplay 
                 segmentDate={segmentDate} 
@@ -88,7 +117,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
           return (
             <div className="space-y-2">
               <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                <strong>Seasonal Estimate:</strong> Date is beyond 5-day forecast window.
+                <strong>📊 Seasonal Estimate:</strong> Date is beyond 5-day forecast window.
               </div>
               <SeasonalWeatherDisplay 
                 segmentDate={segmentDate} 
@@ -150,34 +179,6 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // Loading state
-  if (loading) {
-    console.log(`⏳ Loading weather for ${segmentEndCity}`);
-    return <EnhancedWeatherLoading onTimeout={onTimeout} />;
-  }
-
-  // Show weather data if available with enhanced forecast messaging
-  if (weather) {
-    console.log(`✨ Displaying weather for ${segmentEndCity}:`, weather);
-    
-    // Check if this is forecast data (has isActualForecast property)
-    if (weather.isActualForecast !== undefined) {
-      return (
-        <div className="space-y-2">
-          {/* Enhanced forecast messaging */}
-          {weather.isActualForecast && isWithinForecastRange && (
-            <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-800">
-              <strong>🔮 Live Forecast:</strong> Actual weather prediction for {segmentDate?.toLocaleDateString()}
-            </div>
-          )}
-          <ForecastWeatherDisplay weather={weather as ForecastWeatherData} segmentDate={segmentDate} />
-        </div>
-      );
-    } else {
-      return <CurrentWeatherDisplay weather={weather} segmentDate={segmentDate} />;
-    }
-  }
-
   // Show fallback for repeated errors - use seasonal data if date is available
   if (error && (retryCount >= 2 || error.includes('timeout'))) {
     console.log(`🔄 Showing fallback for ${segmentEndCity} after ${retryCount} retries`);
@@ -233,7 +234,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     return (
       <div className="space-y-3">
         <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-          <strong>Seasonal Estimate:</strong> 
+          <strong>📊 Seasonal Estimate:</strong> 
           {isWithinForecastRange 
             ? ` Live forecast will appear when API connects successfully.`
             : ` Live forecast will appear when available.`

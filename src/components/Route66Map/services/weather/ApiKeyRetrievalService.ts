@@ -1,65 +1,63 @@
 
-import { CorruptionDetectionService } from './CorruptionDetectionService';
-import { StorageCleanupService } from './StorageCleanupService';
+import { WEATHER_API_KEY } from '@/config/weatherConfig';
 
 export class ApiKeyRetrievalService {
+  private static readonly STORAGE_KEY = 'openweathermap_api_key';
+  private static readonly LEGACY_STORAGE_KEY = 'openWeatherMapApiKey';
+
   static refreshApiKey(): string | null {
-    console.log('🔍 ApiKeyRetrievalService: Starting enhanced API key refresh...');
+    console.log('🔄 ApiKeyRetrievalService: Refreshing API key from all sources...');
     
-    const primaryKey = StorageCleanupService.getPrimaryStorageKey();
-    let apiKey = localStorage.getItem(primaryKey);
-    
-    if (apiKey) {
-      const corruption = CorruptionDetectionService.detectCorruption(apiKey, primaryKey);
-      if (corruption.isCorrupted) {
-        console.warn(`🚨 PRIMARY KEY CORRUPTION DETECTED:`, corruption);
-        localStorage.removeItem(primaryKey);
-        apiKey = null;
+    // 1. Check localStorage first (primary storage)
+    const primaryKey = localStorage.getItem(this.STORAGE_KEY);
+    if (primaryKey && this.isValidKey(primaryKey)) {
+      console.log('✅ Found valid key in primary localStorage');
+      return primaryKey.trim();
+    }
+
+    // 2. Check legacy localStorage key
+    const legacyKey = localStorage.getItem(this.LEGACY_STORAGE_KEY);
+    if (legacyKey && this.isValidKey(legacyKey)) {
+      console.log('✅ Found valid key in legacy localStorage, migrating...');
+      // Migrate to primary storage
+      localStorage.setItem(this.STORAGE_KEY, legacyKey.trim());
+      localStorage.removeItem(this.LEGACY_STORAGE_KEY);
+      return legacyKey.trim();
+    }
+
+    // 3. Check configured key in code
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+      const configKey = WEATHER_API_KEY as string;
+      if (this.isValidKey(configKey)) {
+        console.log('✅ Found valid key in weatherConfig');
+        return configKey.trim();
       }
     }
-    
-    // If primary key is corrupted or missing, try fallbacks
-    if (!apiKey) {
-      console.log('🔍 ApiKeyRetrievalService: Checking fallback keys...');
-      for (const fallbackKey of StorageCleanupService.getFallbackStorageKeys()) {
-        const fallbackValue = localStorage.getItem(fallbackKey);
-        if (fallbackValue) {
-          const corruption = CorruptionDetectionService.detectCorruption(fallbackValue, fallbackKey);
-          if (!corruption.isCorrupted) {
-            console.log(`🔑 Valid key found in fallback: ${fallbackKey}`);
-            apiKey = fallbackValue;
-            // Migrate to primary key
-            localStorage.setItem(primaryKey, fallbackValue);
-            localStorage.removeItem(fallbackKey);
-            break;
-          } else {
-            console.warn(`🚨 FALLBACK KEY CORRUPTION DETECTED in ${fallbackKey}:`, corruption);
-            localStorage.removeItem(fallbackKey);
-          }
-        }
-      }
-    }
-    
-    console.log('🔑 ApiKeyRetrievalService: Refresh complete:', {
-      hasValidKey: !!apiKey,
-      keyLength: apiKey?.length || 0
-    });
-    
-    return apiKey;
+
+    console.log('❌ No valid API key found in any source');
+    return null;
   }
 
   static getApiKeyWithCorruptionCheck(cachedKey: string | null): string | null {
-    if (!cachedKey) {
-      return this.refreshApiKey();
+    // Always refresh to get the latest from localStorage
+    return this.refreshApiKey();
+  }
+
+  private static isValidKey(key: string): boolean {
+    if (!key || typeof key !== 'string') return false;
+    
+    const trimmedKey = key.trim();
+    
+    // Check for placeholder keys
+    if (trimmedKey === 'your_api_key_here' ||
+        trimmedKey.toLowerCase().includes('your_api_key') ||
+        trimmedKey.toLowerCase().includes('replace_with') ||
+        trimmedKey.toLowerCase().includes('example') ||
+        trimmedKey === 'PLACEHOLDER_KEY') {
+      return false;
     }
     
-    const corruption = CorruptionDetectionService.detectCorruption(cachedKey, 'retrieval');
-    if (corruption.isCorrupted) {
-      console.warn('🚨 API key corrupted during retrieval, performing cleanup...', corruption);
-      StorageCleanupService.performNuclearCleanup();
-      return null;
-    }
-    
-    return cachedKey;
+    // Valid keys should be at least 20 characters
+    return trimmedKey.length >= 20;
   }
 }
