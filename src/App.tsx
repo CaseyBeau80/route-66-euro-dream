@@ -12,7 +12,6 @@ import CountdownPage from "./pages/CountdownPage";
 import TimelinePage from "./pages/TimelinePage";
 import FunFactsPage from "./pages/FunFactsPage";
 import TriviaPage from "./pages/TriviaPage";
-import HorizontalJourneyPage from "./pages/HorizontalJourneyPage";
 import NotFound from "./pages/NotFound";
 import TestUploadPage from "./pages/test-upload";
 
@@ -34,7 +33,6 @@ function App() {
               <Route path="/timeline" element={<TimelinePage />} />
               <Route path="/fun-facts" element={<FunFactsPage />} />
               <Route path="/trivia" element={<TriviaPage />} />
-              <Route path="/horizontal-journey" element={<HorizontalJourneyPage />} />
               <Route path="/test-upload" element={<TestUploadPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
