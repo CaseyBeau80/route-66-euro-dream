@@ -48,46 +48,56 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // CRITICAL FIX: ALWAYS use segmentDate for the forecast label to prevent date drift
-  // This ensures the header shows the EXACT segment date regardless of weather data source
-  const forecastLabel = segmentDate 
-    ? `${format(segmentDate, 'EEEE, MMM d')}`
-    : 'Weather Information';
+  // CRITICAL FIX: ALWAYS use segmentDate for the forecast label and validate the display
+  const forecastLabel = React.useMemo(() => {
+    if (!segmentDate) return 'Weather Information';
+    
+    // Use the exact segmentDate for display
+    const formattedDate = format(segmentDate, 'EEEE, MMM d');
+    
+    console.log(`🎯 EXACT DATE DISPLAY for ${cityName}:`, {
+      segmentDate: segmentDate.toISOString(),
+      segmentDateString: DateNormalizationService.toDateString(segmentDate),
+      formattedDisplay: formattedDate,
+      noOffset: true
+    });
+    
+    return formattedDate;
+  }, [segmentDate, cityName]);
 
-  // ABSOLUTE validation for date alignment - force segment date display
+  // Enhanced date validation for consistency
   React.useEffect(() => {
     if (segmentDate) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
       
-      console.log(`🎯 FORCING SEGMENT DATE DISPLAY for ${cityName}:`, {
+      console.log(`✅ SEGMENT DATE LOCKED for ${cityName}:`, {
         segmentDate: expectedDateString,
         displayLabel: forecastLabel,
         weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-average',
-        absoluteDateLock: true,
+        exactDateAlignment: true,
         isPDFExport,
         isSharedView
       });
 
-      // Log any date mismatches but always display the segment date
+      // Validate weather data alignment if available
       if (weather.dateMatchInfo) {
         const { requestedDate, matchedDate, matchType, source } = weather.dateMatchInfo;
         if (requestedDate !== expectedDateString && source !== 'seasonal-estimate') {
-          console.warn(`⚠️ Weather data internal mismatch for ${cityName} - BUT DISPLAYING SEGMENT DATE:`, {
+          console.warn(`⚠️ Weather data date mismatch for ${cityName} - BUT DISPLAYING CORRECT SEGMENT DATE:`, {
             segmentDate: expectedDateString,
             requestedDate,
             matchedDate,
             matchType,
             source,
             displayingCorrectDate: forecastLabel,
-            isPDFExport,
-            isSharedView
+            correctedDisplay: true
           });
         }
       }
     }
   }, [segmentDate, weather.dateMatchInfo, cityName, forecastLabel, weather.isActualForecast, isPDFExport, isSharedView]);
 
-  // PRIORITY: Live forecast takes absolute precedence over historical data
+  // Determine weather type for styling
   const isLiveForecast = weather.isActualForecast === true;
   const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';
   
@@ -135,14 +145,14 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
 
-      {/* Status indicator shows ABSOLUTE segment date alignment */}
+      {/* CRITICAL FIX: Status indicator always shows the EXACT segment date */}
       <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
         {isLiveForecast ? (
           weather.dateMatchInfo?.matchType === 'exact' ? `✅ Live forecast for ${forecastLabel}` :
           weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
           `✅ Live forecast for ${forecastLabel}`
         ) : (
-          // CRITICAL FIX: Show historical data for the exact same date (no offset)
+          // CRITICAL FIX: Show historical data for the exact same date
           `📊 Historical averages for ${forecastLabel}`
         )}
       </div>

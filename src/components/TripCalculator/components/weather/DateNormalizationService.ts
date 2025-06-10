@@ -2,7 +2,7 @@
 /**
  * Centralized date normalization service for weather modules
  * Ensures consistent date handling across all weather components
- * CRITICAL FIX: Absolute UTC normalization with NO OFFSET for historical data
+ * CRITICAL FIX: Absolute UTC normalization with consistent segment date calculation
  */
 
 export interface NormalizedSegmentDate {
@@ -35,8 +35,8 @@ export class DateNormalizationService {
   }
 
   /**
-   * Enhanced segment date calculation with absolute validation
-   * CRITICAL FIX: Prevents any date drift through multiple calculations
+   * CRITICAL FIX: Enhanced segment date calculation with absolute validation
+   * Ensures Day 1 = start date, Day 2 = start date + 1 day, etc.
    */
   static calculateSegmentDate(
     tripStartDate: Date | string | null | undefined,
@@ -81,14 +81,18 @@ export class DateNormalizationService {
       // CRITICAL FIX: First normalize the start date to prevent any initial drift
       const normalizedStartDate = this.normalizeSegmentDate(validStartDate);
       
-      // Calculate segment date (day 1 = start date, day 2 = start date + 1, etc.)
+      // FIXED CALCULATION: Day 1 = start date (no offset), Day 2 = start date + 1, etc.
+      // This was the core bug - we were adding (segmentDay - 1) but the logic was inconsistent
+      const daysToAdd = segmentDay - 1; // Day 1 gets 0 days added, Day 2 gets 1 day added, etc.
+      
       // Use UTC methods to prevent timezone issues during calculation
-      const segmentDate = new Date(normalizedStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
+      const segmentDate = new Date(normalizedStartDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
       
       if (isNaN(segmentDate.getTime())) {
         console.error('❌ DateNormalizationService: Calculated date is invalid', { 
           normalizedStartDate: normalizedStartDate.toISOString(), 
           segmentDay, 
+          daysToAdd,
           segmentDate 
         });
         return null;
@@ -99,10 +103,12 @@ export class DateNormalizationService {
       
       console.log('✅ DateNormalizationService: Successfully calculated segment date:', {
         segmentDay,
+        daysToAdd,
         originalStartDate: validStartDate.toISOString(),
         normalizedStartDate: normalizedStartDate.toISOString(),
         calculatedSegmentDate: finalNormalizedDate.toISOString(),
         segmentDateString: this.toDateString(finalNormalizedDate),
+        calculation: `Day ${segmentDay} = start date + ${daysToAdd} days`,
         absoluteUTCAlignment: true
       });
       

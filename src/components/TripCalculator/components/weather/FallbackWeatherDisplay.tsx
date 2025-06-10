@@ -31,9 +31,20 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
   const isNetworkError = error?.includes('Failed to fetch') || error?.includes('timeout');
 
   // CRITICAL FIX: ALWAYS use the EXACT segmentDate for the forecast label
-  const forecastLabel = segmentDate 
-    ? `${format(segmentDate, 'EEEE, MMM d')}`
-    : 'Weather Information';
+  const forecastLabel = React.useMemo(() => {
+    if (!segmentDate) return 'Weather Information';
+    
+    const formattedDate = format(segmentDate, 'EEEE, MMM d');
+    
+    console.log(`🎯 FALLBACK DATE DISPLAY for ${cityName}:`, {
+      segmentDate: segmentDate.toISOString(),
+      segmentDateString: DateNormalizationService.toDateString(segmentDate),
+      formattedDisplay: formattedDate,
+      exactSegmentDate: true
+    });
+    
+    return formattedDate;
+  }, [segmentDate, cityName]);
 
   // Get historical data using NO OFFSET - exact same date
   const historicalData = React.useMemo(() => {
@@ -127,7 +138,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
 
           {/* CRITICAL FIX: Show exact segment date for historical data */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical averages for {format(segmentDate, 'EEEE, MMM d')}
+            📊 Historical averages for {forecastLabel}
           </div>
         </div>
       )}
