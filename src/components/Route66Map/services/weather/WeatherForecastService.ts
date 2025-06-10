@@ -3,6 +3,8 @@ import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
+import { WeatherForecastMatcher } from '../../../TripCalculator/components/weather/WeatherForecastMatcher';
+import { SeasonalWeatherGenerator } from '../../../TripCalculator/components/weather/SeasonalWeatherGenerator';
 
 export interface ForecastWeatherData extends WeatherData {
   forecast: ForecastDay[];
@@ -67,7 +69,7 @@ export class WeatherForecastService {
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
-      const matchResult = this.findBestForecastMatch(processedForecast, targetDate, targetDateString);
+      const matchResult = WeatherForecastMatcher.findBestMatch(processedForecast, targetDate, targetDateString);
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
@@ -137,87 +139,6 @@ export class WeatherForecastService {
     };
   }
 
-  private findBestForecastMatch(
-    processedForecast: ForecastDay[], 
-    targetDate: Date,
-    targetDateString: string
-  ): { matchedForecast: ForecastDay | null; matchInfo: any } {
-    console.log(`🎯 Forecast matching for ${targetDateString} from ${processedForecast.length} forecasts`);
-    
-    if (processedForecast.length === 0) {
-      return {
-        matchedForecast: null,
-        matchInfo: {
-          requestedDate: targetDateString,
-          matchedDate: 'none',
-          matchType: 'none' as const,
-          daysOffset: -1
-        }
-      };
-    }
-    
-    // First try exact date match
-    for (const forecast of processedForecast) {
-      if (forecast.dateString === targetDateString) {
-        console.log(`✅ Exact date match found for ${targetDateString}`);
-        return {
-          matchedForecast: forecast,
-          matchInfo: {
-            requestedDate: targetDateString,
-            matchedDate: forecast.dateString,
-            matchType: 'exact' as const,
-            daysOffset: 0
-          }
-        };
-      }
-    }
-    
-    // Find closest date within reasonable range
-    let closestForecast: ForecastDay | null = null;
-    let smallestOffset = Infinity;
-    let actualOffset = 0;
-    
-    const targetDateObj = new Date(targetDateString + 'T00:00:00Z');
-    
-    for (const forecast of processedForecast) {
-      if (!forecast.dateString) continue;
-      
-      const forecastDate = new Date(forecast.dateString + 'T00:00:00Z');
-      const offsetDays = Math.abs((forecastDate.getTime() - targetDateObj.getTime()) / (24 * 60 * 60 * 1000));
-      const actualDayOffset = Math.round((forecastDate.getTime() - targetDateObj.getTime()) / (24 * 60 * 60 * 1000));
-      
-      if (offsetDays < smallestOffset && offsetDays <= 2) {
-        closestForecast = forecast;
-        smallestOffset = offsetDays;
-        actualOffset = actualDayOffset;
-      }
-    }
-    
-    if (closestForecast) {
-      console.log(`📍 Closest match found for ${targetDateString}: ${closestForecast.dateString}`);
-      return {
-        matchedForecast: closestForecast,
-        matchInfo: {
-          requestedDate: targetDateString,
-          matchedDate: closestForecast.dateString,
-          matchType: 'closest' as const,
-          daysOffset: actualOffset
-        }
-      };
-    }
-    
-    console.log(`❌ No suitable forecast match found for ${targetDateString}`);
-    return {
-      matchedForecast: null,
-      matchInfo: {
-        requestedDate: targetDateString,
-        matchedDate: 'none',
-        matchType: 'none' as const,
-        daysOffset: -1
-      }
-    };
-  }
-
   private getEnhancedFallbackForecast(
     cityName: string, 
     targetDate: Date, 
@@ -225,18 +146,18 @@ export class WeatherForecastService {
     daysFromNow: number
   ): ForecastWeatherData {
     const month = targetDate.getMonth();
-    const seasonalTemp = this.getSeasonalTemperature(month);
+    const seasonalTemp = SeasonalWeatherGenerator.getSeasonalTemperature(month);
     const tempVariation = 15;
     
     return {
       temperature: seasonalTemp,
       highTemp: seasonalTemp + tempVariation/2,
       lowTemp: seasonalTemp - tempVariation/2,
-      description: this.getSeasonalDescription(month),
-      icon: this.getSeasonalIcon(month),
-      humidity: this.getSeasonalHumidity(month),
+      description: SeasonalWeatherGenerator.getSeasonalDescription(month),
+      icon: SeasonalWeatherGenerator.getSeasonalIcon(month),
+      humidity: SeasonalWeatherGenerator.getSeasonalHumidity(month),
       windSpeed: 8,
-      precipitationChance: this.getSeasonalPrecipitation(month),
+      precipitationChance: SeasonalWeatherGenerator.getSeasonalPrecipitation(month),
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
@@ -249,35 +170,5 @@ export class WeatherForecastService {
         source: 'seasonal-estimate' as const
       }
     };
-  }
-
-  private getSeasonalTemperature(month: number): number {
-    const seasonalTemps = [40, 45, 55, 65, 75, 85, 90, 88, 80, 70, 55, 45];
-    return seasonalTemps[month] || 70;
-  }
-
-  private getSeasonalDescription(month: number): string {
-    if (month >= 11 || month <= 2) return 'partly cloudy';
-    if (month >= 3 && month <= 5) return 'mild and pleasant';
-    if (month >= 6 && month <= 8) return 'hot and sunny';
-    return 'comfortable weather';
-  }
-
-  private getSeasonalIcon(month: number): string {
-    if (month >= 11 || month <= 2) return '02d';
-    if (month >= 6 && month <= 8) return '01d';
-    return '02d';
-  }
-
-  private getSeasonalHumidity(month: number): number {
-    if (month >= 6 && month <= 8) return 60;
-    if (month >= 11 || month <= 2) return 45;
-    return 55;
-  }
-
-  private getSeasonalPrecipitation(month: number): number {
-    if (month >= 4 && month <= 6) return 35;
-    if (month >= 7 && month <= 9) return 25;
-    return 20;
   }
 }
