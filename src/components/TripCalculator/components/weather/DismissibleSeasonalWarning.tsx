@@ -15,62 +15,53 @@ const DismissibleSeasonalWarning: React.FC<DismissibleSeasonalWarningProps> = ({
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
 
-  if (isDismissed) {
+  if (isDismissed || isSharedView) {
     return null;
   }
 
-  // Determine styling and content based on message content and type
-  const isLiveForecast = message.toLowerCase().includes('live forecast') || 
-                        message.toLowerCase().includes('openweathermap');
-  const isServiceUnavailable = message.toLowerCase().includes('unavailable') || 
-                               message.toLowerCase().includes('temporarily') ||
-                               message.toLowerCase().includes('error');
+  const getWarningConfig = () => {
+    switch (type) {
+      case 'seasonal':
+        return {
+          bgColor: 'bg-orange-50',
+          borderColor: 'border-orange-200',
+          textColor: 'text-orange-800',
+          icon: '📊'
+        };
+      case 'forecast-unavailable':
+        return {
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          textColor: 'text-blue-800',
+          icon: '🔮'
+        };
+      default:
+        return {
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-200',
+          textColor: 'text-gray-800',
+          icon: '💡'
+        };
+    }
+  };
 
-  let bgColor, textColor, icon, title;
-
-  if (isLiveForecast) {
-    // Green styling for successful live forecasts
-    bgColor = 'bg-green-50 border-green-200';
-    textColor = 'text-green-800';
-    icon = '🔮';
-    title = 'Live Forecast:';
-  } else if (type === 'seasonal') {
-    // Blue styling for seasonal estimates
-    bgColor = 'bg-blue-50 border-blue-200';
-    textColor = 'text-blue-800';
-    icon = '📊';
-    title = 'Seasonal Estimate:';
-  } else if (isServiceUnavailable) {
-    // Red/orange styling for service unavailable
-    bgColor = 'bg-red-50 border-red-200';
-    textColor = 'text-red-800';
-    icon = '❌';
-    title = 'Service Unavailable:';
-  } else {
-    // Orange styling for other forecast unavailable cases
-    bgColor = 'bg-orange-50 border-orange-200';
-    textColor = 'text-orange-800';
-    icon = '⚠️';
-    title = 'Weather Service Unavailable:';
-  }
+  const config = getWarningConfig();
 
   return (
-    <div className={`p-2 ${bgColor} border rounded text-xs ${textColor} relative`}>
-      <div className="flex items-start gap-2">
-        <span className="text-sm">{icon}</span>
-        <div className="flex-1">
-          <strong>{title}</strong>{' '}
+    <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-3 relative`}>
+      <button
+        onClick={() => setIsDismissed(true)}
+        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+        aria-label="Dismiss"
+      >
+        <X className="h-3 w-3" />
+      </button>
+      
+      <div className="flex items-start gap-2 pr-6">
+        <span className="text-sm">{config.icon}</span>
+        <p className={`text-xs ${config.textColor}`}>
           {message}
-        </div>
-        {!isSharedView && (
-          <button
-            onClick={() => setIsDismissed(true)}
-            className="ml-2 hover:opacity-70 transition-opacity"
-            aria-label="Dismiss warning"
-          >
-            <X size={14} />
-          </button>
-        )}
+        </p>
       </div>
     </div>
   );

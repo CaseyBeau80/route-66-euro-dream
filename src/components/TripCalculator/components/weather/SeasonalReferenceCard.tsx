@@ -6,43 +6,58 @@ interface SeasonalReferenceCardProps {
   cityName: string;
 }
 
-const SeasonalReferenceCard: React.FC<SeasonalReferenceCardProps> = ({ 
-  segmentDate, 
-  cityName 
+const SeasonalReferenceCard: React.FC<SeasonalReferenceCardProps> = ({
+  segmentDate,
+  cityName
 }) => {
-  const getSeason = (date: Date): string => {
+  const getSeasonalInfo = (date: Date) => {
     const month = date.getMonth();
-    if (month >= 2 && month <= 4) return 'Spring';
-    if (month >= 5 && month <= 7) return 'Summer';
-    if (month >= 8 && month <= 10) return 'Fall';
-    return 'Winter';
-  };
-
-  const getSeasonalAdvice = (season: string): string => {
-    switch (season) {
-      case 'Spring':
-        return 'Pack layers - temperatures can vary widely. Watch for afternoon thunderstorms.';
-      case 'Summer':
-        return 'Hot and sunny. Stay hydrated and plan early morning or evening drives.';
-      case 'Fall':
-        return 'Pleasant temperatures with beautiful foliage. Perfect for Route 66 travel.';
-      case 'Winter':
-        return 'Cold with possible snow. Check road conditions before departure.';
-      default:
-        return 'Check current weather conditions before your trip.';
+    
+    if (month >= 2 && month <= 4) {
+      return {
+        season: 'Spring',
+        emoji: '🌸',
+        description: 'Mild temperatures, occasional rain',
+        clothing: 'Light layers recommended'
+      };
+    } else if (month >= 5 && month <= 7) {
+      return {
+        season: 'Summer',
+        emoji: '☀️',
+        description: 'Hot and sunny, perfect for road trips',
+        clothing: 'Light clothing, sun protection'
+      };
+    } else if (month >= 8 && month <= 10) {
+      return {
+        season: 'Fall',
+        emoji: '🍂',
+        description: 'Comfortable temperatures, beautiful scenery',
+        clothing: 'Light jacket for evenings'
+      };
+    } else {
+      return {
+        season: 'Winter',
+        emoji: '❄️',
+        description: 'Cool to cold, check road conditions',
+        clothing: 'Warm layers, winter gear'
+      };
     }
   };
 
-  const season = getSeason(segmentDate);
-  const advice = getSeasonalAdvice(season);
+  const seasonInfo = getSeasonalInfo(segmentDate);
 
   return (
-    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-      <div className="text-sm font-semibold text-blue-800 mb-2">
-        {season} Travel in {cityName}
+    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-lg">{seasonInfo.emoji}</span>
+        <h4 className="text-sm font-semibold text-gray-700">
+          {seasonInfo.season} in {cityName}
+        </h4>
       </div>
-      <div className="text-xs text-blue-700">
-        {advice}
+      
+      <div className="space-y-1 text-xs text-gray-600">
+        <p>{seasonInfo.description}</p>
+        <p className="text-blue-600">{seasonInfo.clothing}</p>
       </div>
     </div>
   );

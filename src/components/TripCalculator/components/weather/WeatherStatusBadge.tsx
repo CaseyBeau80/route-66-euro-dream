@@ -1,93 +1,58 @@
 
 import React from 'react';
-import { Thermometer, Eye, AlertTriangle, Calendar, Clock, BarChart3 } from 'lucide-react';
 
 interface WeatherStatusBadgeProps {
-  type: 'current' | 'forecast' | 'historical' | 'seasonal' | 'unavailable' | 'forecast-not-available';
-  description?: string;
-  dateString?: string;
+  type: 'current' | 'forecast' | 'historical';
   daysFromNow?: number;
 }
 
-const WeatherStatusBadge: React.FC<WeatherStatusBadgeProps> = ({ 
-  type, 
-  description, 
-  dateString,
-  daysFromNow 
+const WeatherStatusBadge: React.FC<WeatherStatusBadgeProps> = ({
+  type,
+  daysFromNow
 }) => {
-  if (type === 'current') {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded border border-yellow-200">
-        <Thermometer className="h-4 w-4 text-yellow-600" />
-        <div className="text-xs text-yellow-800">
-          <span className="font-semibold">Current conditions</span> - Live weather data (not forecast)
-        </div>
-      </div>
-    );
-  }
+  const getBadgeConfig = () => {
+    switch (type) {
+      case 'current':
+        return {
+          text: 'Current Weather',
+          bgColor: 'bg-green-100',
+          textColor: 'text-green-800',
+          icon: '🔴'
+        };
+      case 'forecast':
+        return {
+          text: daysFromNow !== undefined && daysFromNow > 0 
+            ? `${daysFromNow} Day${daysFromNow > 1 ? 's' : ''} Ahead` 
+            : 'Live Forecast',
+          bgColor: 'bg-blue-100',
+          textColor: 'text-blue-800',
+          icon: '🔮'
+        };
+      case 'historical':
+        return {
+          text: 'Historical Average',
+          bgColor: 'bg-orange-100',
+          textColor: 'text-orange-800',
+          icon: '📊'
+        };
+      default:
+        return {
+          text: 'Weather Info',
+          bgColor: 'bg-gray-100',
+          textColor: 'text-gray-800',
+          icon: '🌤️'
+        };
+    }
+  };
 
-  if (type === 'forecast') {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
-        <Calendar className="h-4 w-4 text-green-600" />
-        <div className="text-xs text-green-800">
-          <span className="font-semibold">🟩 Forecast</span> - 
-          {daysFromNow !== undefined && daysFromNow === 0 ? ' Today' : 
-           daysFromNow !== undefined && daysFromNow === 1 ? ' Tomorrow' :
-           daysFromNow !== undefined ? ` ${daysFromNow} days ahead` : ' Future date'}
-        </div>
-      </div>
-    );
-  }
+  const config = getBadgeConfig();
 
-  if (type === 'historical') {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-blue-50 rounded border border-blue-200">
-        <BarChart3 className="h-4 w-4 text-blue-600" />
-        <div className="text-xs text-blue-800">
-          <span className="font-semibold">🟦 Historical Average</span> - 
-          {daysFromNow !== undefined ? ` ${daysFromNow} days ahead (typical weather for this date)` : ' Typical weather for this date'}
-        </div>
-      </div>
-    );
-  }
-
-  if (type === 'forecast-not-available') {
-    return (
-      <div className="flex items-center gap-2 p-3 bg-orange-50 rounded border border-orange-200">
-        <Clock className="h-5 w-5 text-orange-600" />
-        <div className="text-sm text-orange-800">
-          <p className="font-semibold">Forecast not yet available</p>
-          <p className="text-xs">Please check again closer to your trip date (within 5 days)</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (type === 'seasonal') {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-blue-50 rounded border border-blue-200">
-        <Eye className="h-4 w-4 text-blue-600" />
-        <div className="text-xs text-blue-800">
-          <span className="font-semibold">Seasonal estimate</span> - {description}
-        </div>
-      </div>
-    );
-  }
-
-  if (type === 'unavailable') {
-    return (
-      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded border border-yellow-200">
-        <AlertTriangle className="h-5 w-5 text-yellow-600" />
-        <div className="text-sm text-yellow-800">
-          <p className="font-semibold">🟨 Weather forecast unavailable</p>
-          <p className="text-xs">{description}</p>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor}`}>
+      <span>{config.icon}</span>
+      <span>{config.text}</span>
+    </div>
+  );
 };
 
 export default WeatherStatusBadge;
