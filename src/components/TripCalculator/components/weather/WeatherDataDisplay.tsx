@@ -60,7 +60,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
       const { requestedDate, matchedDate, matchType } = weather.dateMatchInfo;
       
-      if (requestedDate !== expectedDateString && matchType !== 'seasonal-estimate') {
+      if (requestedDate !== expectedDateString && matchType !== 'fallback') {
         console.warn(`⚠️ Weather data date mismatch for ${cityName}:`, {
           segmentDate: expectedDateString,
           requestedDate,
