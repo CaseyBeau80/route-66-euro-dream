@@ -143,23 +143,28 @@ export const getWeatherDataForTripDate = async (
     console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (fallback to historical)`);
   }
   
-  // FALLBACK: Historical data using the ABSOLUTE exact normalized date
-  console.log(`📊 Using historical data for ${cityName} on ABSOLUTE date ${exactDateString}`);
-  const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate); // Pass exact normalized date
+  // FALLBACK: Historical data using -1 day offset (day before segment date)
+  console.log(`📊 Using historical data for ${cityName} on ABSOLUTE date ${exactDateString} with -1 day offset`);
+  const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate, -1); // Pass exact normalized date with -1 day offset
   
-  // ABSOLUTE validation that historical data aligns with our exact date
-  if (historicalData.alignedDate !== exactDateString) {
+  // Calculate expected historical date for validation
+  const expectedHistoricalDate = new Date(normalizedTripDate.getTime() - (24 * 60 * 60 * 1000)); // -1 day
+  const expectedHistoricalDateString = DateNormalizationService.toDateString(expectedHistoricalDate);
+  
+  // ABSOLUTE validation that historical data aligns with our expected historical date
+  if (historicalData.alignedDate !== expectedHistoricalDateString) {
     console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}`, {
-      expectedDate: exactDateString,
+      expectedSegmentDate: exactDateString,
+      expectedHistoricalDate: expectedHistoricalDateString,
       historicalDate: historicalData.alignedDate,
       inputDateUsed: normalizedTripDate.toISOString(),
       absoluteAlignmentFailure: true
     });
     
     // Force correction to prevent display issues
-    historicalData.alignedDate = exactDateString;
+    historicalData.alignedDate = expectedHistoricalDateString;
   } else {
-    console.log(`✅ Historical data ABSOLUTELY aligned for ${cityName} on ${exactDateString}`);
+    console.log(`✅ Historical data ABSOLUTELY aligned for ${cityName} on historical date ${expectedHistoricalDateString} (day before segment)`);
   }
   
   return {
