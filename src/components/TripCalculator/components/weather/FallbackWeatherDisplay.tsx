@@ -126,15 +126,15 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="text-center">
               <div className="text-lg font-bold text-yellow-800">
-                {Math.round(historicalData.high)}°F
-              </div>
-              <div className="text-xs text-yellow-600">Avg High</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-yellow-800">
                 {Math.round(historicalData.low)}°F
               </div>
               <div className="text-xs text-yellow-600">Avg Low</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-yellow-800">
+                {Math.round(historicalData.high)}°F
+              </div>
+              <div className="text-xs text-yellow-600">Avg High</div>
             </div>
           </div>
           
