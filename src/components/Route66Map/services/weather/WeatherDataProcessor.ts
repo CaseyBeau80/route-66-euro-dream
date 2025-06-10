@@ -1,196 +1,116 @@
 
-import { WeatherData, ForecastDay, WeatherWithForecast, OpenWeatherResponse, ForecastResponse } from './WeatherServiceTypes';
+import { WeatherData, ForecastDay } from './WeatherServiceTypes';
+import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDataProcessor {
-  static processCurrentWeather(data: OpenWeatherResponse, cityName: string): WeatherData {
-    console.log('🔄 WeatherDataProcessor: Processing current weather data for', cityName);
-    console.log('🌤️ Raw weather data:', {
-      temp: data.main.temp,
-      humidity: data.main.humidity,
-      windSpeed: data.wind?.speed,
-      description: data.weather[0].description
-    });
-    
-    const processedWeather = {
+  static processWeatherData(data: any, cityName: string): WeatherData {
+    return {
       temperature: Math.round(data.main.temp),
       description: data.weather[0].description,
       icon: data.weather[0].icon,
       humidity: data.main.humidity,
       windSpeed: Math.round(data.wind?.speed || 0),
-      cityName: cityName
+      precipitationChance: 0,
+      cityName: cityName,
+      forecast: []
     };
-    
-    console.log('✅ Processed current weather:', processedWeather);
-    return processedWeather;
-  }
-
-  static processForecastData(forecastData: ForecastResponse): ForecastDay[] {
-    // Always use enhanced method for consistency
-    return this.processEnhancedForecastData(forecastData, null, 5);
   }
 
   static processEnhancedForecastData(
-    forecastData: ForecastResponse, 
-    targetDate?: Date | null, 
+    forecastData: any, 
+    targetDate: Date, 
     maxDays: number = 5
   ): ForecastDay[] {
-    console.log(`🔄 WeatherDataProcessor: Processing enhanced forecast data (${maxDays} days max)`);
-    
-    if (!forecastData?.list || forecastData.list.length === 0) {
-      console.warn('⚠️ WeatherDataProcessor: No forecast data available');
+    if (!forecastData?.list) {
+      console.warn('⚠️ WeatherDataProcessor: No forecast list found');
       return [];
     }
+
+    console.log(`📊 WeatherDataProcessor: Processing forecast for target date ${targetDate.toISOString()}`);
     
-    // Enhanced grouping by UTC date for consistent timezone handling
-    const forecastByDay: { [key: string]: any[] } = {};
-    
-    forecastData.list.forEach((item: any) => {
-      const date = new Date(item.dt * 1000);
-      // Use UTC date for consistent timezone handling
-      const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      const dateKey = utcDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const processedForecasts: ForecastDay[] = [];
+    const seenDates = new Set<string>();
+
+    for (const item of forecastData.list) {
+      if (!item.dt_txt) continue;
+
+      // Parse the forecast date
+      const forecastDate = new Date(item.dt_txt);
+      if (isNaN(forecastDate.getTime())) continue;
+
+      // Normalize to date string for comparison
+      const forecastDateString = DateNormalizationService.toDateString(forecastDate);
       
-      if (!forecastByDay[dateKey]) {
-        forecastByDay[dateKey] = [];
-      }
-      forecastByDay[dateKey].push(item);
-    });
+      // Skip if we've already processed this date
+      if (seenDates.has(forecastDateString)) continue;
+      seenDates.add(forecastDateString);
 
-    const sortedDates = Object.keys(forecastByDay).sort();
-    console.log(`📅 WeatherDataProcessor: Enhanced grouping by ${sortedDates.length} days:`, sortedDates);
+      // Create forecast entry
+      const forecastEntry: ForecastDay = {
+        date: forecastDate,
+        dateString: forecastDateString,
+        temperature: {
+          high: Math.round(item.main.temp_max),
+          low: Math.round(item.main.temp_min)
+        },
+        description: item.weather[0].description,
+        icon: item.weather[0].icon,
+        precipitationChance: Math.round((item.pop || 0) * 100).toString(),
+        humidity: item.main.humidity,
+        windSpeed: Math.round(item.wind?.speed || 0)
+      };
 
-    if (targetDate) {
-      const targetDateString = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate())
-        .toISOString().split('T')[0];
-      console.log(`🎯 Target date for enhanced processing: ${targetDateString}`);
+      processedForecasts.push(forecastEntry);
+      
+      console.log(`📅 Processed forecast for ${forecastDateString}:`, {
+        high: forecastEntry.temperature.high,
+        low: forecastEntry.temperature.low,
+        description: forecastEntry.description
+      });
+
+      // Stop once we have enough days
+      if (processedForecasts.length >= maxDays) break;
     }
 
-    // Process up to maxDays worth of forecast data with enhanced algorithms
-    return sortedDates
-      .slice(0, maxDays)
-      .map((dateKey, index) => {
-        const dayData = forecastByDay[dateKey];
-        console.log(`📅 Processing enhanced day ${index} (${dateKey}) with ${dayData.length} data points`);
-        
-        // Enhanced temperature calculation with improved range detection
-        const allTemps = dayData.map(item => item.main.temp);
-        const tempMinValues = dayData.map(item => item.main.temp_min);
-        const tempMaxValues = dayData.map(item => item.main.temp_max);
-        
-        // Use the most accurate temperature range available
-        const minTemp = Math.min(...tempMinValues, ...allTemps);
-        const maxTemp = Math.max(...tempMaxValues, ...allTemps);
-        
-        let highTemp = Math.round(maxTemp);
-        let lowTemp = Math.round(minTemp);
-        
-        // Enhanced temperature variation logic - ensure realistic range
-        const tempDifference = highTemp - lowTemp;
-        if (tempDifference < 5) {
-          const avgTemp = Math.round((highTemp + lowTemp) / 2);
-          lowTemp = avgTemp - 7;
-          highTemp = avgTemp + 8;
-          console.log(`🌡️ Enhanced temperature range adjusted for realism: ${lowTemp}°F - ${highTemp}°F`);
-        }
-        
-        console.log(`🌡️ Enhanced temperature calculation for ${dateKey}:`, {
-          rawTemps: allTemps.map(t => Math.round(t)),
-          tempMinValues: tempMinValues.map(t => Math.round(t)),
-          tempMaxValues: tempMaxValues.map(t => Math.round(t)),
-          finalHigh: highTemp,
-          finalLow: lowTemp,
-          difference: highTemp - lowTemp
-        });
-        
-        // Enhanced precipitation calculation with better accuracy
-        const precipChances = dayData.map(item => {
-          const popValue = item.pop || 0;
-          return popValue * 100;
-        }).filter(chance => chance > 0);
-        
-        const precipitationChance = precipChances.length > 0 
-          ? Math.round(Math.max(...precipChances))
-          : Math.round(Math.random() * 15); // Small random chance if no data
-        
-        console.log(`🌧️ Enhanced precipitation for ${dateKey}:`, {
-          rawChances: precipChances,
-          finalChance: precipitationChance + '%'
-        });
-        
-        // Enhanced averages calculation
-        const humidities = dayData.map(item => item.main.humidity);
-        const avgHumidity = humidities.length > 0
-          ? Math.round(humidities.reduce((sum, humidity) => sum + humidity, 0) / humidities.length)
-          : 55; // Reasonable default
-        
-        const windSpeeds = dayData.map(item => item.wind?.speed || 0);
-        const avgWindSpeed = windSpeeds.length > 0
-          ? Math.round(windSpeeds.reduce((sum, speed) => sum + speed, 0) / windSpeeds.length)
-          : 8; // Reasonable default
-        
-        // Find most representative forecast (closest to midday)
-        const midDayForecast = dayData.reduce((closest, current) => {
-          const currentHour = new Date(current.dt * 1000).getHours();
-          const closestHour = new Date(closest.dt * 1000).getHours();
-          return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
-        });
-        
-        const processedDay: ForecastDay = {
-          date: new Date(dateKey + 'T12:00:00Z').toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric' 
-          }),
-          dateString: dateKey, // Critical for enhanced date matching
-          temperature: {
-            high: highTemp,
-            low: lowTemp
-          },
-          description: midDayForecast.weather[0].description,
-          icon: midDayForecast.weather[0].icon,
-          precipitationChance: precipitationChance.toString(),
-          humidity: avgHumidity,
-          windSpeed: avgWindSpeed
-        };
-        
-        console.log(`✅ Enhanced processed day ${index} (${dateKey}):`, {
-          dateString: dateKey,
-          high: highTemp, 
-          low: lowTemp, 
-          precipitation: precipitationChance + '%',
-          humidity: avgHumidity + '%',
-          wind: avgWindSpeed + ' mph',
-          tempDifference: highTemp - lowTemp + '°F'
-        });
-        
-        return processedDay;
-      });
+    console.log(`✅ WeatherDataProcessor: Processed ${processedForecasts.length} forecast days`);
+    return processedForecasts;
   }
 
-  static processWeatherWithForecast(
-    currentData: OpenWeatherResponse, 
-    forecastData: ForecastResponse, 
-    cityName: string
-  ): WeatherWithForecast {
-    console.log('🔄 WeatherDataProcessor: Processing enhanced weather with forecast data for', cityName);
+  static findForecastForDate(forecasts: ForecastDay[], targetDate: Date): ForecastDay | null {
+    const targetDateString = DateNormalizationService.toDateString(targetDate);
     
-    const currentWeather = this.processCurrentWeather(currentData, cityName);
-    const forecast = this.processEnhancedForecastData(forecastData, null, 5); // Use enhanced processing
+    console.log(`🎯 WeatherDataProcessor: Looking for forecast matching ${targetDateString}`);
     
-    console.log('✅ WeatherDataProcessor: Final enhanced processed data for', cityName, {
-      current: currentWeather,
-      forecastCount: forecast.length,
-      firstForecastDay: forecast[0] ? {
-        dateString: forecast[0].dateString,
-        high: forecast[0].temperature.high,
-        low: forecast[0].temperature.low,
-        difference: forecast[0].temperature.high - forecast[0].temperature.low
-      } : 'none'
-    });
+    // Try exact date match first
+    for (const forecast of forecasts) {
+      if (forecast.dateString === targetDateString) {
+        console.log(`✅ Found exact date match for ${targetDateString}`);
+        return forecast;
+      }
+    }
+
+    // Find closest date within 2 days
+    let closestForecast: ForecastDay | null = null;
+    let smallestOffset = Infinity;
+
+    const targetDateObj = new Date(targetDateString + 'T00:00:00Z');
     
-    return {
-      ...currentWeather,
-      forecast
-    };
+    for (const forecast of forecasts) {
+      const forecastDateObj = new Date(forecast.dateString + 'T00:00:00Z');
+      const offsetDays = Math.abs((forecastDateObj.getTime() - targetDateObj.getTime()) / (24 * 60 * 60 * 1000));
+      
+      if (offsetDays < smallestOffset && offsetDays <= 2) {
+        closestForecast = forecast;
+        smallestOffset = offsetDays;
+      }
+    }
+
+    if (closestForecast) {
+      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset} days offset)`);
+    } else {
+      console.log(`❌ No suitable forecast found for ${targetDateString}`);
+    }
+
+    return closestForecast;
   }
 }

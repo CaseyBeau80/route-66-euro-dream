@@ -1,106 +1,66 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import WeatherStatusBadge from './WeatherStatusBadge';
-import SeasonalReferenceCard from './SeasonalReferenceCard';
-import { useUnits } from '@/contexts/UnitContext';
+import { format } from 'date-fns';
 
 interface HistoricalWeatherDisplayProps {
   weather: ForecastWeatherData;
-  segmentDate: Date;
-  daysFromNow: number | null;
+  segmentDate?: Date | null;
+  daysFromNow?: number | null;
 }
 
-const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
-  weather,
-  segmentDate,
-  daysFromNow
+const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({ 
+  weather, 
+  segmentDate
 }) => {
-  const { formatSpeed } = useUnits();
-
-  // CRITICAL FIX: Use the exact segmentDate for consistent display
-  const displayDateString = segmentDate.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'long', 
-    day: 'numeric',
-    timeZone: 'UTC'
+  console.log('📊 HistoricalWeatherDisplay render:', {
+    cityName: weather.cityName,
+    segmentDate: segmentDate?.toISOString(),
+    hasValidTemps: !!(weather.highTemp && weather.lowTemp)
   });
 
-  console.log(`📊 HistoricalWeatherDisplay: Using segmentDate for ${weather.cityName}`, {
-    segmentDate: segmentDate.toISOString(),
-    displayDateString
-  });
+  // Generate forecast label based on actual segment date
+  const forecastLabel = segmentDate 
+    ? `Seasonal data for ${format(segmentDate, 'EEEE, MMM d')}`
+    : 'Seasonal Weather Data';
 
   return (
-    <div className="space-y-3">
-      <WeatherStatusBadge 
-        type="historical"
-        daysFromNow={daysFromNow}
-      />
+    <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
+      <div className="flex items-center justify-between mb-3">
+        <h5 className="font-semibold text-yellow-800">{weather.cityName}</h5>
+        <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-1 rounded">
+          {forecastLabel}
+        </span>
+      </div>
       
-      <div className="text-center mb-4">
-        <div className="font-semibold text-gray-800 capitalize text-sm">{weather.description}</div>
-        <div className="text-xs text-gray-600">
-          📊 Historical Avg for {displayDateString}
-        </div>
-      </div>
-
-      {/* Historical Temperature Layout */}
-      {weather.lowTemp !== undefined && weather.highTemp !== undefined ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-center gap-3 md:gap-4">
-            {/* Humidity */}
-            {weather.humidity !== undefined && weather.humidity > 0 && (
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg">💧</span>
-                <div className="text-xs font-medium text-blue-600">{weather.humidity}%</div>
-              </div>
-            )}
-            
-            {/* Low Temperature */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-lg font-bold text-blue-600">{weather.lowTemp}°</div>
-              <div className="text-xs text-gray-500">Low</div>
-            </div>
-            
-            {/* Thermometer Icon */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-2xl">🌡️</div>
-              <div className="text-xs text-gray-500">Avg</div>
-            </div>
-            
-            {/* High Temperature */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-lg font-bold text-red-600">{weather.highTemp}°</div>
-              <div className="text-xs text-gray-500">High</div>
-            </div>
-            
-            {/* Wind Speed */}
-            {weather.windSpeed !== undefined && weather.windSpeed > 0 && (
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg">💨</span>
-                <div className="text-xs font-medium text-gray-600">
-                  {formatSpeed ? formatSpeed(weather.windSpeed) : `${weather.windSpeed} mph`}
-                </div>
-              </div>
-            )}
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="text-center">
+          <div className="text-lg font-bold text-yellow-700">
+            {Math.round((weather.highTemp || weather.temperature || 0))}°F
           </div>
+          <div className="text-xs text-yellow-600">Avg High</div>
         </div>
-      ) : (
-        <div className="text-center p-4 bg-gray-50 rounded">
-          <div className="text-gray-600">Historical data not available</div>
+        <div className="text-center">
+          <div className="text-lg font-bold text-yellow-700">
+            {Math.round((weather.lowTemp || weather.temperature || 0))}°F
+          </div>
+          <div className="text-xs text-yellow-600">Avg Low</div>
         </div>
-      )}
-
-      <div className="text-xs text-blue-700 italic bg-blue-50 p-2 rounded">
-        📊 Historical average temperatures for {displayDateString} in {weather.cityName}. Check live weather closer to your trip.
+      </div>
+      
+      <div className="mt-3 pt-3 border-t border-yellow-200">
+        <div className="text-sm text-yellow-700 mb-2 capitalize">
+          {weather.description}
+        </div>
+        <div className="flex justify-between text-xs text-yellow-600">
+          <span>💧 {weather.precipitationChance || 0}%</span>
+          <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
+          <span>💦 {weather.humidity || 0}%</span>
+        </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <SeasonalReferenceCard 
-          segmentDate={segmentDate}
-          cityName={weather.cityName}
-        />
+      <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
+        📊 Historical seasonal averages
       </div>
     </div>
   );

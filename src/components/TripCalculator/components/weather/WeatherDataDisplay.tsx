@@ -1,174 +1,100 @@
 
 import React from 'react';
-import ForecastWeatherDisplay from './ForecastWeatherDisplay';
-import DismissibleSeasonalWarning from './DismissibleSeasonalWarning';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { DateNormalizationService } from './DateNormalizationService';
+import { format } from 'date-fns';
 
 interface WeatherDataDisplayProps {
-  weather: any;
-  segmentDate: Date | null;
-  segmentEndCity: string;
+  weather: ForecastWeatherData;
+  segmentDate?: Date | null;
+  cityName: string;
   isSharedView?: boolean;
-  error?: string | null;
-  retryCount?: number;
   isPDFExport?: boolean;
 }
 
-const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
-  weather,
+const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({ 
+  weather, 
   segmentDate,
-  segmentEndCity,
+  cityName,
   isSharedView = false,
-  error = null,
-  retryCount = 0,
   isPDFExport = false
 }) => {
-  console.log(`🎯 WeatherDataDisplay: Rendering for ${segmentEndCity}`, {
-    hasWeather: !!weather,
+  console.log('🌤️ WeatherDataDisplay render:', {
+    cityName,
     segmentDate: segmentDate?.toISOString(),
-    isPDFExport,
-    isSharedView
+    hasWeather: !!weather,
+    isActualForecast: weather?.isActualForecast,
+    isSharedView,
+    isPDFExport
   });
 
-  // Enhanced validation with simplified logging
   if (!weather) {
     return (
-      <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="text-gray-400 text-2xl mb-2">🌤️</div>
-        <p className="text-sm text-gray-600">
-          {isPDFExport ? 'Weather information processing for export...' : 'Weather information not available'}
-        </p>
+      <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
+        <div className="text-sm text-gray-500 mb-2">
+          📊 Weather data unavailable
+        </div>
+        <div className="text-xs text-gray-400">
+          Unable to fetch weather information
+        </div>
       </div>
     );
   }
 
-  // CRITICAL FIX: Use the exact segmentDate passed in - do not re-normalize
-  const displayDate = segmentDate;
+  // Generate accurate forecast label based on segment date
+  const forecastLabel = segmentDate 
+    ? `${format(segmentDate, 'EEEE, MMM d')}`
+    : 'Weather Information';
 
-  // Determine display strategy based on data quality
-  const displayStrategy = getDisplayStrategy(weather, displayDate, error, retryCount);
-  
-  console.log(`🎯 Display strategy for ${segmentEndCity}: ${displayStrategy}`, {
-    isActualForecast: weather.isActualForecast,
-    hasValidTemps: !!(weather.highTemp && weather.lowTemp),
-    segmentDate: displayDate?.toDateString()
-  });
+  const isHistorical = !weather.isActualForecast;
+  const bgClass = isHistorical ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200';
+  const textClass = isHistorical ? 'text-yellow-800' : 'text-blue-800';
+  const labelClass = isHistorical ? 'text-yellow-700 bg-yellow-100' : 'text-blue-600 bg-blue-100';
 
-  switch (displayStrategy) {
-    case 'live-forecast':
-      return renderLiveForecast(weather, displayDate, isPDFExport, isSharedView);
+  return (
+    <div className={`rounded border p-3 ${bgClass}`}>
+      <div className="flex items-center justify-between mb-3">
+        <h5 className={`font-semibold ${textClass}`}>{cityName}</h5>
+        <span className={`text-xs px-2 py-1 rounded ${labelClass}`}>
+          {forecastLabel}
+        </span>
+      </div>
       
-    case 'seasonal-estimate':
-      return renderSeasonalEstimate(weather, displayDate, isPDFExport, isSharedView);
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="text-center">
+          <div className={`text-lg font-bold ${textClass}`}>
+            {Math.round((weather.highTemp || weather.temperature || 0))}°F
+          </div>
+          <div className={`text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
+            {isHistorical ? 'Avg High' : 'High'}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className={`text-lg font-bold ${textClass}`}>
+            {Math.round((weather.lowTemp || weather.temperature || 0))}°F
+          </div>
+          <div className={`text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
+            {isHistorical ? 'Avg Low' : 'Low'}
+          </div>
+        </div>
+      </div>
       
-    case 'service-unavailable':
-      return renderServiceUnavailable(error, isPDFExport, segmentEndCity);
-      
-    default:
-      return renderFallback(isPDFExport);
-  }
-};
+      <div className={`mt-3 pt-3 border-t ${isHistorical ? 'border-yellow-200' : 'border-blue-200'}`}>
+        <div className={`text-sm mb-2 capitalize ${isHistorical ? 'text-yellow-700' : 'text-blue-700'}`}>
+          {weather.description}
+        </div>
+        <div className={`flex justify-between text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
+          <span>💧 {weather.precipitationChance || 0}%</span>
+          <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
+          <span>💦 {weather.humidity || 0}%</span>
+        </div>
+      </div>
 
-// Simplified display strategy determination
-function getDisplayStrategy(weather: any, segmentDate: Date | null, error: string | null, retryCount: number): string {
-  // Error conditions
-  if (error && retryCount > 3) {
-    return 'service-unavailable';
-  }
-
-  // No weather data
-  if (!weather) {
-    return 'service-unavailable';
-  }
-
-  // Check for live forecast data
-  if (weather.isActualForecast === true) {
-    return 'live-forecast';
-  }
-
-  // Check for valid temperature data
-  if ((weather.highTemp !== undefined && weather.lowTemp !== undefined) || 
-      weather.temperature !== undefined) {
-    return 'seasonal-estimate';
-  }
-
-  return 'service-unavailable';
-}
-
-// Simplified render functions with FIXED DATE LABELS
-function renderLiveForecast(weather: any, segmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
-  const forecastWeather = weather as ForecastWeatherData;
-  
-  const warningMessage = isPDFExport ? 'Live weather forecast' : 'Live forecast from OpenWeatherMap';
-  
-  return (
-    <div className="space-y-2">
-      {!isPDFExport && (
-        <DismissibleSeasonalWarning
-          message={warningMessage}
-          type="forecast-unavailable"
-          isSharedView={isSharedView}
-        />
-      )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
-    </div>
-  );
-}
-
-function renderSeasonalEstimate(weather: any, segmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
-  const forecastWeather = weather as ForecastWeatherData;
-  
-  // Calculate days from now for display purposes ONLY
-  const daysFromNow = segmentDate ? 
-    Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
-  
-  let warningMessage = isPDFExport ? 'Historical weather patterns' : 'Based on historical weather patterns for this date';
-  if (daysFromNow && daysFromNow > 5) {
-    warningMessage = isPDFExport ? 
-      `Historical data (${daysFromNow} days ahead)` :
-      `Historical data for this date (${daysFromNow} days ahead, beyond forecast range)`;
-  }
-  
-  return (
-    <div className="space-y-2">
-      {!isPDFExport && (
-        <DismissibleSeasonalWarning
-          message={warningMessage}
-          type="seasonal"
-          isSharedView={isSharedView}
-        />
-      )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
-    </div>
-  );
-}
-
-function renderServiceUnavailable(error: string | null, isPDFExport: boolean, segmentEndCity: string) {
-  return (
-    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
-      <p className="text-sm text-gray-600">
-        {isPDFExport 
-          ? "Weather information temporarily unavailable" 
-          : error || "Weather service temporarily unavailable"}
-      </p>
-      {isPDFExport && (
-        <p className="text-xs text-gray-500 mt-1">
-          Check the live version for current conditions
-        </p>
-      )}
-    </div>
-  );
-}
-
-function renderFallback(isPDFExport: boolean) {
-  return (
-    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="animate-pulse text-gray-500 text-sm">
-        {isPDFExport ? 'Processing weather for export...' : 'Loading weather information...'}
+      <div className={`mt-2 text-xs rounded p-2 ${isHistorical ? 'text-yellow-600 bg-yellow-100' : 'text-blue-500 bg-blue-100'}`}>
+        {isHistorical ? '📊 Historical seasonal averages' : '✅ Live forecast data'}
       </div>
     </div>
   );
-}
+};
 
 export default WeatherDataDisplay;
