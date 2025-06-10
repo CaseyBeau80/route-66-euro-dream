@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { DateNormalizationService } from './DateNormalizationService';
 import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDataDisplayProps {
@@ -47,10 +48,32 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // ALWAYS use segmentDate for the forecast label - this ensures correct date display
+  // CRITICAL FIX: Always use segmentDate for the forecast label
+  // This ensures the header shows the correct date regardless of weather data source
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
+
+  // Date validation for segment alignment
+  React.useEffect(() => {
+    if (segmentDate && weather.dateMatchInfo) {
+      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+      const { requestedDate, matchedDate, matchType } = weather.dateMatchInfo;
+      
+      if (requestedDate !== expectedDateString && matchType !== 'seasonal-estimate') {
+        console.warn(`⚠️ Weather data date mismatch for ${cityName}:`, {
+          segmentDate: expectedDateString,
+          requestedDate,
+          matchedDate,
+          matchType,
+          isPDFExport,
+          isSharedView
+        });
+      } else {
+        console.log(`✅ Weather data properly aligned for ${cityName} on ${expectedDateString}`);
+      }
+    }
+  }, [segmentDate, weather.dateMatchInfo, cityName, isPDFExport, isSharedView]);
 
   // Fixed display priority logic: Live forecast takes precedence
   const isLiveForecast = weather.isActualForecast === true;
@@ -60,22 +83,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const bgClass = isLiveForecast ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-200';
   const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
   const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
-
-  // Debug logging for date validation
-  if (weather.dateMatchInfo && segmentDate) {
-    const segmentDateString = segmentDate.toISOString().split('T')[0];
-    const isExactMatch = weather.dateMatchInfo.requestedDate === segmentDateString;
-    
-    console.log(`📅 Date validation for ${cityName}:`, {
-      segmentDateString,
-      requestedDate: weather.dateMatchInfo.requestedDate,
-      matchedDate: weather.dateMatchInfo.matchedDate,
-      matchType: weather.dateMatchInfo.matchType,
-      isExactMatch,
-      forecastLabel,
-      weatherType
-    });
-  }
 
   return (
     <div className={`rounded border p-3 ${bgClass}`}>
@@ -116,14 +123,14 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
 
-      {/* Unified status indicator with clear terminology */}
+      {/* Status indicator shows exact date alignment */}
       <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
         {isLiveForecast ? (
-          weather.dateMatchInfo?.matchType === 'exact' ? '✅ Live forecast (exact date match)' :
+          weather.dateMatchInfo?.matchType === 'exact' ? `✅ Live forecast for ${forecastLabel}` :
           weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
-          '✅ Live forecast data'
+          `✅ Live forecast for ${forecastLabel}`
         ) : (
-          '📊 Historical seasonal averages'
+          `📊 Historical averages for ${forecastLabel}`
         )}
       </div>
 

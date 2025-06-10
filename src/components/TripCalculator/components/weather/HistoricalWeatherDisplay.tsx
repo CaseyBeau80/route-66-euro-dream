@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { DateNormalizationService } from './DateNormalizationService';
 
 interface HistoricalWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -19,10 +20,29 @@ const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
     hasValidTemps: !!(weather.highTemp && weather.lowTemp)
   });
 
-  // Generate forecast label based on actual segment date
+  // CRITICAL FIX: Always use segmentDate for the forecast label
   const forecastLabel = segmentDate 
-    ? `Seasonal data for ${format(segmentDate, 'EEEE, MMM d')}`
-    : 'Seasonal Weather Data';
+    ? `Historical data for ${format(segmentDate, 'EEEE, MMM d')}`
+    : 'Historical Weather Data';
+
+  // Validate date alignment
+  React.useEffect(() => {
+    if (segmentDate && weather.dateMatchInfo) {
+      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+      const { requestedDate, matchedDate } = weather.dateMatchInfo;
+      
+      if (requestedDate !== expectedDateString) {
+        console.error(`❌ CRITICAL: Historical weather date mismatch for ${weather.cityName}`, {
+          segmentDate: expectedDateString,
+          requestedDate,
+          matchedDate,
+          forecastLabel
+        });
+      } else {
+        console.log(`✅ Historical weather properly aligned for ${weather.cityName} on ${expectedDateString}`);
+      }
+    }
+  }, [segmentDate, weather.dateMatchInfo, weather.cityName, forecastLabel]);
 
   return (
     <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
@@ -60,7 +80,7 @@ const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
       </div>
 
       <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-        📊 Historical seasonal averages
+        📊 {forecastLabel}
       </div>
     </div>
   );

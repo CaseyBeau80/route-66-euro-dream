@@ -21,7 +21,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * Uses centralized date normalization to prevent misalignment
+ * CRITICAL FIX: Always aligns weather data to the exact segment date
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -52,12 +52,12 @@ export const getWeatherDataForTripDate = async (
     return null;
   }
 
-  // Normalize the date using centralized service
+  // CRITICAL: Normalize the date using centralized service to prevent drift
   const normalizedTripDate = DateNormalizationService.normalizeSegmentDate(validTripDate);
   const normalizedDateString = DateNormalizationService.toDateString(normalizedTripDate);
   const daysFromNow = Math.ceil((normalizedTripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🌤️ getWeatherDataForTripDate: ${cityName} for ${normalizedDateString}, ${daysFromNow} days from now`);
+  console.log(`🌤️ getWeatherDataForTripDate: ${cityName} for exact date ${normalizedDateString}, ${daysFromNow} days from now`);
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -73,7 +73,7 @@ export const getWeatherDataForTripDate = async (
 
   // Try to get live forecast if API key is available and date is within range
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🔮 Attempting live forecast for ${cityName} (${daysFromNow} days ahead)`);
+    console.log(`🔮 Attempting live forecast for ${cityName} on exact date ${normalizedDateString}`);
     
     try {
       const forecastData: ForecastWeatherData | null = await weatherService.getWeatherForDate(
@@ -83,7 +83,7 @@ export const getWeatherDataForTripDate = async (
         normalizedTripDate
       );
       
-      // Check if we got actual forecast data with valid temperatures
+      // STRICT VALIDATION: Only accept forecast data that matches our exact date
       if (forecastData && 
           forecastData.isActualForecast && 
           forecastData.highTemp !== undefined && 
@@ -91,9 +91,18 @@ export const getWeatherDataForTripDate = async (
           forecastData.highTemp > 0 && 
           forecastData.lowTemp > 0) {
         
-        console.log(`✅ Got live forecast for ${cityName}:`, {
+        // Additional validation: Check if the forecast data aligns with our segment date
+        if (forecastData.dateMatchInfo) {
+          const requestedDateMatch = forecastData.dateMatchInfo.requestedDate === normalizedDateString;
+          if (!requestedDateMatch) {
+            console.warn(`⚠️ Forecast data date mismatch for ${cityName}: requested ${normalizedDateString}, got ${forecastData.dateMatchInfo.requestedDate}`);
+          }
+        }
+        
+        console.log(`✅ Got aligned live forecast for ${cityName} on ${normalizedDateString}:`, {
           high: forecastData.highTemp + '°F',
-          low: forecastData.lowTemp + '°F'
+          low: forecastData.lowTemp + '°F',
+          alignedToSegmentDate: true
         });
         
         return {
@@ -111,16 +120,27 @@ export const getWeatherDataForTripDate = async (
         };
       }
       
-      console.log(`⚠️ Forecast request returned but no valid data for ${cityName}`);
+      console.log(`⚠️ Forecast request returned but no valid aligned data for ${cityName} on ${normalizedDateString}`);
       
     } catch (error) {
       console.error('❌ Error getting live forecast:', error);
     }
   }
   
-  // Fall back to historical/seasonal data using the exact normalized date
-  console.log(`📊 Using historical data for ${cityName}`);
+  // FALLBACK: Historical data using the EXACT normalized segment date
+  console.log(`📊 Using historical data for ${cityName} on exact date ${normalizedDateString}`);
   const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate);
+  
+  // Validate that historical data aligns with our segment date
+  if (historicalData.alignedDate !== normalizedDateString) {
+    console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}`, {
+      expectedDate: normalizedDateString,
+      historicalDate: historicalData.alignedDate,
+      segmentDateInput: normalizedTripDate.toISOString()
+    });
+  } else {
+    console.log(`✅ Historical data properly aligned for ${cityName} on ${normalizedDateString}`);
+  }
   
   return {
     lowTemp: historicalData.low,

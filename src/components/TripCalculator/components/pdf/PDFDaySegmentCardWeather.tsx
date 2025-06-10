@@ -4,6 +4,7 @@ import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 import ErrorBoundary from '../ErrorBoundary';
 import { DateNormalizationService } from '../weather/DateNormalizationService';
+import { format } from 'date-fns';
 
 interface PDFDaySegmentCardWeatherProps {
   segment: DailySegment;
@@ -29,7 +30,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return null;
   }
 
-  // Calculate the proper segment date using centralized service
+  // CRITICAL FIX: Calculate the proper segment date using centralized service
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
       console.log(`📄 PDFDaySegmentCardWeather: No trip start date provided for ${segment.endCity}`);
@@ -38,10 +39,11 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     
     const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log(`📄 PDFDaySegmentCardWeather: Calculated segment date for ${segment.endCity}:`, {
+    console.log(`📄 PDFDaySegmentCardWeather: Calculated segment date for ${segment.endCity} (Day ${segment.day}):`, {
       segmentDay: segment.day,
       tripStartDate: tripStartDate.toISOString(),
-      calculatedDate: calculatedDate?.toISOString()
+      calculatedDate: calculatedDate?.toISOString(),
+      calculatedDateString: calculatedDate ? DateNormalizationService.toDateString(calculatedDate) : null
     });
     
     return calculatedDate;
@@ -52,6 +54,11 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
         <span className="text-orange-600">☁️</span>
         Weather Information
+        {segmentDate && (
+          <span className="text-xs text-gray-500 ml-2">
+            • {format(segmentDate, 'MMM d')}
+          </span>
+        )}
       </h4>
       
       {segmentDate ? (
@@ -64,7 +71,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
                 ⚠️ Weather information temporarily unavailable
               </div>
               <div className="text-xs text-yellow-600">
-                Check current weather conditions before departure
+                Check current weather conditions for {format(segmentDate, 'EEEE, MMM d')} before departure
               </div>
             </div>
           }
@@ -83,10 +90,10 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       ) : (
         <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
           <div className="text-sm text-gray-500 mb-2">
-            📊 Historical seasonal averages
+            📊 Weather forecast unavailable
           </div>
           <div className="text-xs text-gray-400">
-            Set a specific date for detailed forecasts
+            Set a specific trip start date for detailed weather forecasts
           </div>
         </div>
       )}
@@ -94,17 +101,14 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       {/* Enhanced Seasonal Guidance for PDF */}
       {segmentDate && (
         <div className="mt-3 text-xs text-gray-600 bg-blue-50 rounded p-2 border border-blue-200">
+          <strong>Date:</strong> {format(segmentDate, 'EEEE, MMMM d, yyyy')} •{' '}
           <strong>Season:</strong> {
             segmentDate.getMonth() >= 2 && segmentDate.getMonth() <= 4 ? 'Spring 🌸' :
             segmentDate.getMonth() >= 5 && segmentDate.getMonth() <= 7 ? 'Summer ☀️' :
             segmentDate.getMonth() >= 8 && segmentDate.getMonth() <= 10 ? 'Fall 🍂' : 'Winter ❄️'
           }
           <div className="mt-1 text-gray-500">
-            Weather forecast shown above for {segmentDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric'
-            })}. Check current conditions before departure.
+            Weather information shown above for your planned arrival date. Check current conditions before departure.
           </div>
         </div>
       )}

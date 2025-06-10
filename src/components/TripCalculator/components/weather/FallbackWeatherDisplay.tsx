@@ -4,6 +4,7 @@ import { RefreshCw, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getHistoricalWeatherData } from './SeasonalWeatherService';
 import { format } from 'date-fns';
+import { DateNormalizationService } from './DateNormalizationService';
 
 interface FallbackWeatherDisplayProps {
   cityName: string;
@@ -29,13 +30,31 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
 
   const isNetworkError = error?.includes('Failed to fetch') || error?.includes('timeout');
 
-  // Get historical data for display
-  const historicalData = segmentDate ? getHistoricalWeatherData(cityName, segmentDate) : null;
-
   // ALWAYS use segmentDate for the forecast label to ensure consistency
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
+
+  // Get historical data ONLY if segmentDate is available
+  const historicalData = segmentDate ? getHistoricalWeatherData(cityName, segmentDate) : null;
+
+  // Validate that historical data aligns with segment date
+  React.useEffect(() => {
+    if (historicalData && segmentDate) {
+      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+      const actualDateString = historicalData.alignedDate;
+      
+      if (expectedDateString !== actualDateString) {
+        console.error(`❌ CRITICAL: Historical data date mismatch for ${cityName}`, {
+          expectedSegmentDate: expectedDateString,
+          historicalAlignedDate: actualDateString,
+          segmentDateInput: segmentDate.toISOString()
+        });
+      } else {
+        console.log(`✅ Historical data properly aligned for ${cityName} on ${expectedDateString}`);
+      }
+    }
+  }, [historicalData, segmentDate, cityName]);
 
   return (
     <div className="space-y-3">
@@ -47,7 +66,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             <p className="font-semibold">
               {isNetworkError ? 'Connection issue' : 'Weather service unavailable'}
             </p>
-            <p className="text-xs">Showing historical averages instead</p>
+            <p className="text-xs">Showing historical averages for {forecastLabel}</p>
           </div>
           {onRetry && (
             <Button 
@@ -63,8 +82,8 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
         </div>
       )}
       
-      {/* Historical weather display with unified terminology */}
-      {historicalData && (
+      {/* Historical weather display - only if segment date is available */}
+      {historicalData && segmentDate && (
         <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
           <div className="flex items-center justify-between mb-3">
             <h5 className="font-semibold text-yellow-800">{cityName}</h5>
@@ -99,21 +118,33 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             </div>
           </div>
 
-          {/* Unified terminology - Historical Average instead of Seasonal Estimate */}
+          {/* Date validation indicator */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical seasonal averages
+            📊 Historical averages for {forecastLabel}
           </div>
         </div>
       )}
 
-      {/* Fallback when no data available */}
-      {!historicalData && (
+      {/* Fallback when no segment date available */}
+      {!segmentDate && (
         <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
           <div className="text-sm text-gray-500 mb-2">
-            📊 Weather data unavailable
+            📊 No date specified
           </div>
           <div className="text-xs text-gray-400">
-            Unable to fetch weather information
+            Set a trip date for weather information
+          </div>
+        </div>
+      )}
+
+      {/* Fallback when segment date exists but no historical data */}
+      {segmentDate && !historicalData && (
+        <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
+          <div className="text-sm text-gray-500 mb-2">
+            📊 No historical data for {forecastLabel}
+          </div>
+          <div className="text-xs text-gray-400">
+            Historical weather patterns unavailable for this date
           </div>
         </div>
       )}
