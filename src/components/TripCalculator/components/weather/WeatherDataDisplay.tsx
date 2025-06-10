@@ -3,6 +3,7 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { DateNormalizationService } from './DateNormalizationService';
 import { format } from 'date-fns';
+import { validateWeatherData, getWeatherDisplayType } from './WeatherValidationService';
 
 interface WeatherDataDisplayProps {
   weather: ForecastWeatherData;
@@ -11,6 +12,41 @@ interface WeatherDataDisplayProps {
   isSharedView?: boolean;
   isPDFExport?: boolean;
 }
+
+// Helper function to determine display strategy
+const getDisplayStrategy = (weather: any, segmentDate: Date | null, cityName: string) => {
+  // **PRIORITY FIX**: Always prioritize live forecasts when available
+  if (weather?.isActualForecast === true) {
+    console.warn('[Weather Display Decision] Using LIVE FORECAST', {
+      cityName,
+      segmentDate: segmentDate?.toISOString(),
+      isActualForecast: weather.isActualForecast,
+      hasHighTemp: !!weather.highTemp,
+      hasLowTemp: !!weather.lowTemp,
+      strategy: 'forecast'
+    });
+    return 'forecast';
+  }
+
+  // Run validation for other cases
+  const validationResult = validateWeatherData(weather, cityName, segmentDate);
+  
+  console.warn('[Weather Display Decision] Validation result', {
+    cityName,
+    segmentDate: segmentDate?.toISOString(),
+    isActualForecast: weather?.isActualForecast,
+    validation: validationResult,
+    forecastDate: weather?.forecastDate,
+    strategy: validationResult?.dataQuality === 'unavailable' ? 'historical' : 'forecast'
+  });
+
+  // If validation indicates historical data or unavailable
+  if (validationResult?.dataQuality === 'unavailable') {
+    return 'historical';
+  }
+
+  return 'forecast';
+};
 
 const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({ 
   weather, 
@@ -41,12 +77,15 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
+  // Determine display strategy using updated logic
+  const displayStrategy = getDisplayStrategy(weather, segmentDate, cityName);
+
   // Generate accurate forecast label based on segment date
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  const isHistorical = !weather.isActualForecast;
+  const isHistorical = displayStrategy === 'historical' || !weather.isActualForecast;
   const bgClass = isHistorical ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200';
   const textClass = isHistorical ? 'text-yellow-800' : 'text-blue-800';
   const labelClass = isHistorical ? 'text-yellow-700 bg-yellow-100' : 'text-blue-600 bg-blue-100';
