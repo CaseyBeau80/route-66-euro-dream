@@ -1,3 +1,4 @@
+
 import { DateNormalizationService } from './DateNormalizationService';
 
 export interface HistoricalWeatherData {
@@ -142,38 +143,37 @@ const HISTORICAL_WEATHER_PATTERNS: Record<string, Record<number, { low: number; 
 };
 
 /**
- * CRITICAL FIX: Get historical weather data with configurable date offset
- * This function MUST return data tied to the EXACT historical date - supporting offset for display alignment
+ * CRITICAL FIX: Get historical weather data for the EXACT segment date
+ * This function MUST return data tied to the EXACT segment date - NO OFFSET
  */
 export const getHistoricalWeatherData = (
   cityName: string, 
   segmentDate: Date,
-  historicalDateOffset: number = 0 // NEW: Allow offset for historical data (negative = days before)
+  historicalDateOffset: number = 0 // DEPRECATED - should always be 0 for exact alignment
 ): HistoricalWeatherData => {
-  // Calculate the historical date based on the offset
-  const historicalDate = new Date(segmentDate.getTime() + (historicalDateOffset * 24 * 60 * 60 * 1000));
+  // CRITICAL FIX: Ignore offset and use EXACT segment date
+  const exactSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
   
-  console.log(`📊 SeasonalWeatherService: Historical weather with offset for ${cityName}:`, {
+  console.log(`📊 SeasonalWeatherService: Historical weather for ${cityName} on EXACT segment date:`, {
     segmentDate: segmentDate.toISOString(),
-    historicalDateOffset,
-    historicalDate: historicalDate.toISOString(),
-    segmentDateString: DateNormalizationService.toDateString(segmentDate),
-    historicalDateString: DateNormalizationService.toDateString(historicalDate)
+    exactSegmentDate: exactSegmentDate.toISOString(),
+    segmentDateString: DateNormalizationService.toDateString(exactSegmentDate),
+    offsetIgnored: historicalDateOffset !== 0 ? `Ignored offset of ${historicalDateOffset} days` : 'No offset applied',
+    exactDateMatch: true
   });
   
-  // CRITICAL: Use the EXACT historical date - with offset applied
-  const exactHistoricalDateString = DateNormalizationService.toDateString(historicalDate);
-  const month = historicalDate.getMonth();
-  const dayOfMonth = historicalDate.getDate();
+  // CRITICAL: Use the EXACT segment date for historical data
+  const exactSegmentDateString = DateNormalizationService.toDateString(exactSegmentDate);
+  const month = exactSegmentDate.getMonth();
+  const dayOfMonth = exactSegmentDate.getDate();
   
-  console.log(`📅 Historical Weather Date with Offset:`, {
-    inputSegmentDate: segmentDate.toISOString(),
-    calculatedHistoricalDate: historicalDate.toISOString(),
-    exactHistoricalDateString,
+  console.log(`📅 Historical Weather for EXACT Segment Date:`, {
+    segmentDate: exactSegmentDate.toISOString(),
+    exactSegmentDateString,
     month,
     dayOfMonth,
     cityName,
-    offsetDays: historicalDateOffset
+    noOffsetUsed: true
   });
   
   // Get city-specific patterns or use fallback
@@ -193,37 +193,37 @@ export const getHistoricalWeatherData = (
     windSpeed: 5 + Math.round(Math.random() * 8), // 5-13 mph
     precipitationChance: monthData.precipitation,
     source: 'seasonal-historical',
-    alignedDate: exactHistoricalDateString // ABSOLUTE: EXACT historical date lock
+    alignedDate: exactSegmentDateString // ABSOLUTE: EXACT segment date lock
   };
   
-  console.log(`📊 Historical weather locked to ${cityName} on EXACT historical date ${exactHistoricalDateString}:`, {
+  console.log(`📊 Historical weather LOCKED to ${cityName} on EXACT segment date ${exactSegmentDateString}:`, {
     tempRange: `${result.low}°-${result.high}°F`,
     condition: result.condition,
     humidity: `${result.humidity}%`,
     precipitation: `${result.precipitationChance}%`,
-    historicalDateUsed: result.alignedDate,
-    offsetFromSegmentDate: historicalDateOffset
+    alignedDateConfirmed: result.alignedDate,
+    exactSegmentDateUsed: true
   });
   
   return result;
 };
 
 /**
- * ABSOLUTE validation that historical data aligns with the expected historical date
+ * ABSOLUTE validation that historical data aligns with the expected segment date
  */
 export const validateHistoricalAlignment = (
   historicalData: HistoricalWeatherData,
-  expectedHistoricalDate: Date,
+  expectedSegmentDate: Date,
   cityName: string
 ): boolean => {
-  const expectedDateString = DateNormalizationService.toDateString(expectedHistoricalDate);
+  const expectedDateString = DateNormalizationService.toDateString(expectedSegmentDate);
   const isAligned = historicalData.alignedDate === expectedDateString;
   
   if (!isAligned) {
     console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}:`, {
       expected: expectedDateString,
       historical: historicalData.alignedDate,
-      inputHistoricalDate: expectedHistoricalDate.toISOString(),
+      expectedISO: expectedSegmentDate.toISOString(),
       alignmentFailure: true
     });
   } else {

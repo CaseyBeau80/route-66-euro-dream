@@ -47,20 +47,20 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  // CRITICAL FIX: Get historical data using NO OFFSET - exact same date
+  // CRITICAL FIX: Get historical data using ZERO OFFSET - exact same segment date
   const historicalData = React.useMemo(() => {
     if (!segmentDate) return null;
     
-    const normalizedDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-    // CRITICAL FIX: Use NO OFFSET - same exact date for historical data
-    console.log(`📊 Getting historical data for ${cityName} on EXACT date:`, {
-      segmentDate: normalizedDate.toISOString(),
-      segmentDateString: DateNormalizationService.toDateString(normalizedDate),
+    const exactSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+    // CRITICAL FIX: Use ZERO OFFSET - same exact segment date for historical data
+    console.log(`📊 Getting historical data for ${cityName} on EXACT segment date with ZERO offset:`, {
+      segmentDate: exactSegmentDate.toISOString(),
+      segmentDateString: DateNormalizationService.toDateString(exactSegmentDate),
       offsetUsed: 0,
       exactDateMatch: true
     });
     
-    return getHistoricalWeatherData(cityName, normalizedDate, 0); // NO OFFSET
+    return getHistoricalWeatherData(cityName, exactSegmentDate, 0); // ZERO OFFSET
   }, [cityName, segmentDate]);
 
   // ABSOLUTE validation that historical data aligns with EXACT segment date
@@ -74,7 +74,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
           expectedSegmentDate: segmentDate?.toISOString(),
           expectedDateString: expectedDateString,
           historicalAlignedDate: actualDateString,
-          noOffsetShouldMatch: true,
+          mustMatch: true,
           forcingAlignment: true
         });
         

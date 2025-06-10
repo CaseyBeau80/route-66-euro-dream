@@ -21,7 +21,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * CRITICAL FIX: NO OFFSET - Always use the exact segment date
+ * CRITICAL FIX: Use EXACT segment date - no offset whatsoever
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -29,21 +29,21 @@ export const getWeatherDataForTripDate = async (
   coordinates?: { lat: number; lng: number }
 ): Promise<WeatherDisplayData | null> => {
   // Validate and normalize tripDate to prevent any date drift
-  let normalizedTripDate: Date;
+  let exactSegmentDate: Date;
   try {
     if (tripDate instanceof Date) {
       if (isNaN(tripDate.getTime())) {
         console.error('❌ getWeatherDataForTripDate: Invalid Date object provided', tripDate);
         return null;
       }
-      normalizedTripDate = DateNormalizationService.normalizeSegmentDate(tripDate);
+      exactSegmentDate = DateNormalizationService.normalizeSegmentDate(tripDate);
     } else if (typeof tripDate === 'string') {
       const tempDate = new Date(tripDate);
       if (isNaN(tempDate.getTime())) {
         console.error('❌ getWeatherDataForTripDate: Invalid date string provided', tripDate);
         return null;
       }
-      normalizedTripDate = DateNormalizationService.normalizeSegmentDate(tempDate);
+      exactSegmentDate = DateNormalizationService.normalizeSegmentDate(tempDate);
     } else {
       console.error('❌ getWeatherDataForTripDate: tripDate is not a Date or string', { tripDate, type: typeof tripDate });
       return null;
@@ -53,11 +53,11 @@ export const getWeatherDataForTripDate = async (
     return null;
   }
 
-  // CRITICAL: Use EXACT normalized date - NO OFFSET
-  const exactDateString = DateNormalizationService.toDateString(normalizedTripDate);
-  const daysFromNow = Math.ceil((normalizedTripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  // CRITICAL: Use EXACT segment date - NO OFFSET ANYWHERE
+  const exactDateString = DateNormalizationService.toDateString(exactSegmentDate);
+  const daysFromNow = Math.ceil((exactSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🎯 getWeatherDataForTripDate: ${cityName} for EXACT date ${exactDateString}, ${daysFromNow} days from now`);
+  console.log(`🎯 getWeatherDataForTripDate: ${cityName} for EXACT segment date ${exactDateString}, ${daysFromNow} days from now - NO OFFSET APPLIED`);
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -85,7 +85,7 @@ export const getWeatherDataForTripDate = async (
         coords.lat,
         coords.lng,
         cityName,
-        normalizedTripDate // Use exact normalized date
+        exactSegmentDate // Use exact segment date
       );
       
       const forecastData: ForecastWeatherData | null = await Promise.race([
@@ -143,24 +143,27 @@ export const getWeatherDataForTripDate = async (
     console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (fallback to historical)`);
   }
   
-  // FALLBACK: Historical data using NO OFFSET - same exact date
-  console.log(`📊 Using historical data for ${cityName} on EXACT date ${exactDateString} with NO OFFSET`);
-  const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate, 0); // NO OFFSET
+  // FALLBACK: Historical data using ZERO OFFSET - use the EXACT same segment date
+  console.log(`📊 CRITICAL FIX: Using historical data for ${cityName} on EXACT segment date ${exactDateString} with ZERO OFFSET`);
   
-  // ABSOLUTE validation that historical data aligns with our exact segment date
-  const expectedDateString = DateNormalizationService.toDateString(normalizedTripDate);
+  // CRITICAL FIX: Pass the EXACT segment date to historical service with ZERO offset
+  const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0); // ZERO OFFSET - exact same date
+  
+  // ABSOLUTE validation that historical data uses the EXACT segment date
+  const expectedDateString = DateNormalizationService.toDateString(exactSegmentDate);
   if (historicalData.alignedDate !== expectedDateString) {
-    console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}`, {
+    console.error(`❌ CRITICAL: Historical data using wrong date for ${cityName}`, {
       expectedSegmentDate: expectedDateString,
       historicalDate: historicalData.alignedDate,
-      inputDateUsed: normalizedTripDate.toISOString(),
-      noOffsetRequired: true
+      segmentDateISO: exactSegmentDate.toISOString(),
+      mustBeExactMatch: true
     });
     
     // Force correction to prevent display issues
+    console.log(`🔧 FORCING HISTORICAL DATE CORRECTION: ${historicalData.alignedDate} → ${expectedDateString}`);
     historicalData.alignedDate = expectedDateString;
   } else {
-    console.log(`✅ Historical data EXACTLY aligned for ${cityName} on exact date ${expectedDateString}`);
+    console.log(`✅ Historical data PERFECTLY aligned for ${cityName} on exact segment date ${expectedDateString}`);
   }
   
   return {
