@@ -79,10 +79,19 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     });
   }
 
+  const weatherFallback = (
+    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+      <p className="text-sm text-gray-600">
+        Weather information temporarily unavailable
+      </p>
+    </div>
+  );
+
   return (
     <ErrorBoundary 
       context={`SegmentWeatherContent-${segmentEndCity}`}
-      fallbackMessage="Weather information temporarily unavailable"
+      fallback={weatherFallback}
     >
       <WeatherDataDisplay
         weather={weather}
