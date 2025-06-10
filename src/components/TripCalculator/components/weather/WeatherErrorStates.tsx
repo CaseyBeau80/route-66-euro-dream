@@ -1,6 +1,6 @@
 
 import React from 'react';
-import WeatherFallback from './WeatherFallback';
+import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 import WeatherError from './WeatherError';
 import SeasonalWeatherDisplay from './SeasonalWeatherDisplay';
 
@@ -63,7 +63,7 @@ const WeatherErrorStates: React.FC<WeatherErrorStatesProps> = ({
     }
     
     return (
-      <WeatherFallback 
+      <FallbackWeatherDisplay 
         cityName={segmentEndCity}
         segmentDate={segmentDate}
         onRetry={isSharedView ? undefined : onRetry}
