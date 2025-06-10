@@ -34,19 +34,22 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    const normalizedDate = DateNormalizationService.normalizeSegmentDate(targetDate, 1);
-    if (!normalizedDate) {
+    // Use centralized date normalization
+    const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
+    const normalizedDateFromTrip = DateNormalizationService.normalizeSegmentDateFromTrip(normalizedTargetDate, 1);
+    
+    if (!normalizedDateFromTrip) {
       console.error('❌ WeatherForecastService: Could not normalize target date');
       return null;
     }
 
-    const { daysFromNow, segmentDateString } = normalizedDate;
+    const { daysFromNow, segmentDateString } = normalizedDateFromTrip;
     
     console.log(`🌤️ WeatherForecastService: Request for ${cityName} on ${segmentDateString}, ${daysFromNow} days from now`);
 
     // Try to get actual forecast if within range
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
-      const actualForecast = await this.getActualForecast(lat, lng, cityName, targetDate, normalizedDate);
+      const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, normalizedDateFromTrip);
       if (actualForecast) {
         return actualForecast;
       }
@@ -54,7 +57,7 @@ export class WeatherForecastService {
     }
 
     // Return enhanced fallback with proper dateMatchInfo
-    return this.getEnhancedFallbackForecast(cityName, targetDate, normalizedDate);
+    return this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, normalizedDateFromTrip);
   }
 
   private async getActualForecast(

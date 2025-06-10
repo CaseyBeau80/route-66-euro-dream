@@ -15,9 +15,16 @@ export interface NormalizedSegmentDate {
 
 export class DateNormalizationService {
   /**
+   * Centralize normalized segment date using UTC to avoid timezone issues
+   */
+  static normalizeSegmentDate(date: Date): Date {
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  }
+
+  /**
    * Normalize segment date from various input formats
    */
-  static normalizeSegmentDate(
+  static normalizeSegmentDateFromTrip(
     tripStartDate: Date | string | null | undefined,
     segmentDay: number
   ): NormalizedSegmentDate | null {
@@ -58,21 +65,24 @@ export class DateNormalizationService {
         return null;
       }
 
+      // Normalize the segment date using UTC
+      const normalizedSegmentDate = this.normalizeSegmentDate(segmentDate);
+
       // Generate normalized date string (UTC normalized to avoid timezone issues)
-      const segmentDateString = this.toDateString(segmentDate);
+      const segmentDateString = this.toDateString(normalizedSegmentDate);
       
       // Calculate days from now
       const now = new Date();
-      const daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      const daysFromNow = Math.ceil((normalizedSegmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
       
       // Check if within forecast range
       const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
       
       // Get season info
-      const { season, seasonEmoji } = this.getSeasonInfo(segmentDate);
+      const { season, seasonEmoji } = this.getSeasonInfo(normalizedSegmentDate);
       
       const result = {
-        segmentDate,
+        segmentDate: normalizedSegmentDate,
         segmentDateString,
         daysFromNow,
         isWithinForecastRange,

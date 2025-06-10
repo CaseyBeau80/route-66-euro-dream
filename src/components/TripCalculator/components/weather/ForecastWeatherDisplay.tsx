@@ -5,6 +5,7 @@ import WeatherIcon from './WeatherIcon';
 import WeatherStatusBadge from './WeatherStatusBadge';
 import SeasonalReferenceCard from './SeasonalReferenceCard';
 import { getHistoricalWeatherData } from './SeasonalWeatherService';
+import { DateNormalizationService } from './DateNormalizationService';
 import { useUnits } from '@/contexts/UnitContext';
 
 interface ForecastWeatherDisplayProps {
@@ -17,8 +18,13 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   segmentDate 
 }) => {
   const { formatSpeed } = useUnits();
-  const daysFromNow = segmentDate 
-    ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+  
+  // GUARD CLAUSE: Prevent historical blocks from using offset calculations
+  // Always use the exact segmentDate passed in, never derive from daysFromNow
+  const normalizedSegmentDate = segmentDate ? DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
+  
+  const daysFromNow = normalizedSegmentDate 
+    ? Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
 
   console.log('🌤️ ForecastWeatherDisplay render:', {
@@ -34,7 +40,9 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
     source: (weather as any).source,
     humidity: weather.humidity,
     windSpeed: weather.windSpeed,
-    precipitationChance: weather.precipitationChance
+    precipitationChance: weather.precipitationChance,
+    segmentDate: segmentDate?.toISOString(),
+    normalizedSegmentDate: normalizedSegmentDate?.toISOString()
   });
 
   // Check if we should show historical data based on multiple conditions
@@ -43,15 +51,20 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
                               weather.description === 'Forecast not available' ||
                               (weather as any).source === 'historical';
 
-  // Get historical data if needed
+  // Get historical data if needed - ALWAYS use the exact normalized segment date
   let displayData = weather;
-  if (shouldShowHistorical && segmentDate) {
+  if (shouldShowHistorical && normalizedSegmentDate) {
     console.log(`📊 Preparing historical display for ${weather.cityName} (${daysFromNow} days ahead)`);
+    console.log(`📅 Historical Weather Date Alignment Check:`, {
+      segmentDate: segmentDate?.toISOString(),
+      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
+      weatherDate: DateNormalizationService.toDateString(normalizedSegmentDate)
+    });
     
     // Check if we already have historical temp data, otherwise fetch it
     if (!weather.lowTemp || !weather.highTemp || weather.lowTemp === weather.highTemp) {
       console.log(`🔄 Fetching fresh historical data for ${weather.cityName} due to missing or identical temps`);
-      const historicalData = getHistoricalWeatherData(weather.cityName, segmentDate);
+      const historicalData = getHistoricalWeatherData(weather.cityName, normalizedSegmentDate);
       displayData = {
         ...weather,
         lowTemp: historicalData.low,
@@ -64,12 +77,20 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       console.log('📊 Enhanced weather with historical data:', {
         low: displayData.lowTemp,
         high: displayData.highTemp,
-        difference: displayData.highTemp - displayData.lowTemp
+        difference: displayData.highTemp - displayData.lowTemp,
+        alignedDate: historicalData.alignedDate
       });
     }
   }
 
-  if (shouldShowHistorical && segmentDate) {
+  if (shouldShowHistorical && normalizedSegmentDate) {
+    // Format the date for display - use the exact normalized segment date
+    const displayDateString = normalizedSegmentDate.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
     return (
       <div className="space-y-3">
         <WeatherStatusBadge 
@@ -80,7 +101,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         <div className="text-center mb-4">
           <div className="font-semibold text-gray-800 capitalize text-sm">{displayData.description}</div>
           <div className="text-xs text-gray-600">
-            {segmentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            🔸 Historical Avg for {displayDateString}
           </div>
         </div>
 
@@ -135,10 +156,10 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
           📊 Historical average temperatures for this date in {weather.cityName}. Check live weather closer to your trip.
         </div>
 
-        {segmentDate && (
+        {normalizedSegmentDate && (
           <div className="mt-4 pt-3 border-t border-gray-200">
             <SeasonalReferenceCard 
-              segmentDate={segmentDate}
+              segmentDate={normalizedSegmentDate}
               cityName={weather.cityName}
             />
           </div>
@@ -149,6 +170,13 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
 
   // For actual forecasts or current weather within 5 days
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
+  
+  // Format the date for display - use the exact normalized segment date
+  const displayDateString = normalizedSegmentDate ? normalizedSegmentDate.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric' 
+  }) : '';
 
   return (
     <div className="space-y-3">
@@ -161,7 +189,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       <div className="text-center mb-4">
         <div className="font-semibold text-gray-800 capitalize text-sm">{weather.description}</div>
         <div className="text-xs text-gray-600">
-          {segmentDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          🔹 Forecast for {displayDateString}
         </div>
       </div>
 

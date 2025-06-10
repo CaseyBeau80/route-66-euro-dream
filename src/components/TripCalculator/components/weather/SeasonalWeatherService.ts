@@ -150,9 +150,18 @@ export const getHistoricalWeatherData = (
 ): HistoricalWeatherData => {
   console.log(`📊 SeasonalWeatherService: Getting historical data for ${cityName} on ${segmentDate.toDateString()}`);
   
-  // Normalize the segment date
-  const alignedDateString = DateNormalizationService.toDateString(segmentDate);
-  const month = segmentDate.getMonth();
+  // Use centralized date normalization to ensure consistency
+  const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+  const alignedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
+  const month = normalizedSegmentDate.getMonth();
+  
+  console.log(`📅 Historical Weather Date Alignment:`, {
+    originalSegmentDate: segmentDate.toISOString(),
+    normalizedSegmentDate: normalizedSegmentDate.toISOString(),
+    alignedDateString,
+    month,
+    cityName
+  });
   
   // Get city-specific patterns or use fallback
   const cityPatterns = HISTORICAL_WEATHER_PATTERNS[cityName] || 
@@ -161,7 +170,7 @@ export const getHistoricalWeatherData = (
   const monthData = cityPatterns[month] || cityPatterns[5]; // Fallback to June
   
   // Add realistic daily variation
-  const dayOfMonth = segmentDate.getDate();
+  const dayOfMonth = normalizedSegmentDate.getDate();
   const variation = Math.sin(dayOfMonth / 31 * Math.PI) * 3; // ±3 degree variation
   
   const result: HistoricalWeatherData = {
@@ -179,7 +188,8 @@ export const getHistoricalWeatherData = (
     tempRange: `${result.low}°-${result.high}°F`,
     condition: result.condition,
     humidity: `${result.humidity}%`,
-    precipitation: `${result.precipitationChance}%`
+    precipitation: `${result.precipitationChance}%`,
+    alignedDateString
   });
   
   return result;

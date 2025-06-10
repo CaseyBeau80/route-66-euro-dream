@@ -39,7 +39,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
 
   // Normalize segment date using centralized service
   const normalizedSegmentDate = React.useMemo(() => {
-    const normalized = DateNormalizationService.normalizeSegmentDate(tripStartDate, segment.day);
+    const normalized = DateNormalizationService.normalizeSegmentDateFromTrip(tripStartDate, segment.day);
     
     if (normalized) {
       console.log(`✅ SegmentWeatherWidget: Normalized date for ${segment.endCity} (Day ${segment.day}):`, {
