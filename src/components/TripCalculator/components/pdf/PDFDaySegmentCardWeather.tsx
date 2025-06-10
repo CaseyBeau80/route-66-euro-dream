@@ -3,22 +3,23 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 import ErrorBoundary from '../ErrorBoundary';
+import { DateNormalizationService } from '../weather/DateNormalizationService';
 
 interface PDFDaySegmentCardWeatherProps {
   segment: DailySegment;
-  segmentDate?: Date;
+  tripStartDate?: Date;
   exportFormat: 'full' | 'summary' | 'route-only';
 }
 
 const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
   segment,
-  segmentDate,
+  tripStartDate,
   exportFormat
 }) => {
   console.log(`📄 PDFDaySegmentCardWeather: Rendering for ${segment.endCity}`, {
     exportFormat,
-    hasSegmentDate: !!segmentDate,
-    segmentDate: segmentDate?.toISOString(),
+    hasTripStartDate: !!tripStartDate,
+    tripStartDate: tripStartDate?.toISOString(),
     segmentDay: segment.day
   });
 
@@ -27,6 +28,24 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     console.log(`📄 PDFDaySegmentCardWeather: Skipping weather for route-only format`);
     return null;
   }
+
+  // Calculate the proper segment date using centralized service
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate) {
+      console.log(`📄 PDFDaySegmentCardWeather: No trip start date provided for ${segment.endCity}`);
+      return null;
+    }
+    
+    const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
+    
+    console.log(`📄 PDFDaySegmentCardWeather: Calculated segment date for ${segment.endCity}:`, {
+      segmentDay: segment.day,
+      tripStartDate: tripStartDate.toISOString(),
+      calculatedDate: calculatedDate?.toISOString()
+    });
+    
+    return calculatedDate;
+  }, [tripStartDate, segment.day, segment.endCity]);
 
   return (
     <div className="pdf-weather-content">
@@ -64,7 +83,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       ) : (
         <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
           <div className="text-sm text-gray-500 mb-2">
-            📊 Seasonal weather estimates
+            📊 Historical seasonal averages
           </div>
           <div className="text-xs text-gray-400">
             Set a specific date for detailed forecasts

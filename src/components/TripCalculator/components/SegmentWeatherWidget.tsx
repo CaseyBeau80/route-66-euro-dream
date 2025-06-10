@@ -37,36 +37,50 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     setHasApiKey(apiKeyStatus);
   }, [weatherService, segment.endCity, sectionKey]);
 
-  // Normalize segment date using centralized service
-  const normalizedSegmentDate = React.useMemo(() => {
-    const normalized = DateNormalizationService.normalizeSegmentDateFromTrip(tripStartDate, segment.day);
-    
-    if (normalized) {
-      console.log(`✅ SegmentWeatherWidget: Normalized date for ${segment.endCity} (Day ${segment.day}):`, {
-        segmentDateString: normalized.segmentDateString,
-        daysFromNow: normalized.daysFromNow,
-        isWithinForecastRange: normalized.isWithinForecastRange,
-        season: normalized.season,
-        sectionKey
-      });
-    } else {
-      console.log(`⚠️ SegmentWeatherWidget: Could not normalize date for ${segment.endCity}`);
+  // Use centralized date calculation for consistent results
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate) {
+      console.log(`⚠️ SegmentWeatherWidget: No trip start date provided for ${segment.endCity}`);
+      return null;
     }
     
-    return normalized;
+    const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
+    
+    console.log(`✅ SegmentWeatherWidget: Calculated segment date for ${segment.endCity} (Day ${segment.day}):`, {
+      tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate.toISOString(),
+      segmentDay: segment.day,
+      calculatedDate: calculatedDate?.toISOString(),
+      sectionKey
+    });
+    
+    return calculatedDate;
   }, [tripStartDate, segment.day, segment.endCity, sectionKey]);
+
+  // Enhanced logging for debug mode
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && segmentDate) {
+      console.log(`🐛 DEBUG MODE - Weather data for ${segment.endCity}:`, {
+        segmentDate: segmentDate.toISOString(),
+        segmentDateString: DateNormalizationService.toDateString(segmentDate),
+        segmentDay: segment.day,
+        daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+        isWithinForecastRange: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) <= 5,
+        sectionKey
+      });
+    }
+  }, [segmentDate, segment.endCity, segment.day, sectionKey]);
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
   const weatherHandlers = useSegmentWeather({
     segmentEndCity: segment.endCity,
     hasApiKey,
-    segmentDate: normalizedSegmentDate?.segmentDate || null,
+    segmentDate,
     ...weatherState
   });
 
   // Enhanced weather data validation for consistent display
   React.useEffect(() => {
-    if (weatherState.weather && normalizedSegmentDate) {
+    if (weatherState.weather && segmentDate) {
       console.log(`🔍 Weather data analysis for ${segment.endCity}:`, {
         hasWeather: true,
         isActualForecast: weatherState.weather.isActualForecast,
@@ -74,7 +88,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         dateMatchSource: weatherState.weather.dateMatchInfo?.source,
         matchType: weatherState.weather.dateMatchInfo?.matchType,
         hasValidTemps: !!(weatherState.weather.highTemp && weatherState.weather.lowTemp),
-        segmentDateString: normalizedSegmentDate.segmentDateString,
+        segmentDateString: DateNormalizationService.toDateString(segmentDate),
         sectionKey,
         isPDFExport: sectionKey === 'pdf-export'
       });
@@ -82,16 +96,17 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       // Validate date alignment for PDF exports
       if (sectionKey === 'pdf-export' && weatherState.weather.dateMatchInfo) {
         const { requestedDate, matchedDate, matchType } = weatherState.weather.dateMatchInfo;
-        if (requestedDate !== normalizedSegmentDate.segmentDateString && matchType !== 'seasonal-estimate') {
+        const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+        if (requestedDate !== expectedDateString && matchType !== 'seasonal-estimate') {
           console.warn(`⚠️ PDF EXPORT: Date mismatch detected for ${segment.endCity}`, {
-            requested: normalizedSegmentDate.segmentDateString,
+            requested: expectedDateString,
             matched: matchedDate,
             matchType
           });
         }
       }
     }
-  }, [weatherState.weather, segment.endCity, normalizedSegmentDate, sectionKey]);
+  }, [weatherState.weather, segment.endCity, segmentDate, sectionKey]);
 
   const handleApiKeySet = React.useCallback(() => {
     weatherService.refreshApiKey();
@@ -101,18 +116,18 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
 
   // Mark weather as ready for PDF export
   React.useEffect(() => {
-    if (weatherState.weather && !weatherState.loading && normalizedSegmentDate) {
+    if (weatherState.weather && !weatherState.loading && segmentDate) {
       const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
       if (element) {
         element.setAttribute('data-weather-loaded', 'true');
         
         if (sectionKey === 'pdf-export') {
           element.setAttribute('data-pdf-weather-ready', 'true');
-          element.setAttribute('data-weather-date', normalizedSegmentDate.segmentDateString);
+          element.setAttribute('data-weather-date', DateNormalizationService.toDateString(segmentDate));
         }
       }
     }
-  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, normalizedSegmentDate]);
+  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate]);
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
@@ -129,7 +144,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
           error={weatherState.error}
           retryCount={weatherState.retryCount}
           segmentEndCity={segment.endCity}
-          segmentDate={normalizedSegmentDate?.segmentDate || null}
+          segmentDate={segmentDate}
           onApiKeySet={handleApiKeySet}
           onTimeout={weatherHandlers.handleTimeout}
           onRetry={weatherHandlers.handleRetry}

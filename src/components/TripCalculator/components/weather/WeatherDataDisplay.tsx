@@ -31,9 +31,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     hasError: !!error,
     isSharedView,
     isPDFExport,
-    requestedDate: weather?.dateMatchInfo?.requestedDate,
-    matchedDate: weather?.dateMatchInfo?.matchedDate,
-    matchType: weather?.dateMatchInfo?.matchType
+    weatherType: weather?.isActualForecast ? 'live-forecast' : 'historical-average'
   });
 
   // If there's an error or no weather data, show fallback
@@ -49,18 +47,21 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // ALWAYS use segmentDate for the forecast label - this is the key fix
+  // ALWAYS use segmentDate for the forecast label - this ensures correct date display
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // Determine if this is historical data vs live forecast
-  const isHistorical = !weather.isActualForecast;
-  const bgClass = isHistorical ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200';
-  const textClass = isHistorical ? 'text-yellow-800' : 'text-blue-800';
-  const labelClass = isHistorical ? 'text-yellow-700 bg-yellow-100' : 'text-blue-600 bg-blue-100';
+  // Fixed display priority logic: Live forecast takes precedence
+  const isLiveForecast = weather.isActualForecast === true;
+  const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';
+  
+  // Apply styling based on weather type
+  const bgClass = isLiveForecast ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-200';
+  const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
+  const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
 
-  // Log date matching validation
+  // Debug logging for date validation
   if (weather.dateMatchInfo && segmentDate) {
     const segmentDateString = segmentDate.toISOString().split('T')[0];
     const isExactMatch = weather.dateMatchInfo.requestedDate === segmentDateString;
@@ -71,7 +72,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       matchedDate: weather.dateMatchInfo.matchedDate,
       matchType: weather.dateMatchInfo.matchType,
       isExactMatch,
-      forecastLabel
+      forecastLabel,
+      weatherType
     });
   }
 
@@ -89,38 +91,40 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           <div className={`text-lg font-bold ${textClass}`}>
             {Math.round((weather.highTemp || weather.temperature || 0))}°F
           </div>
-          <div className={`text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
-            {isHistorical ? 'Avg High' : 'High'}
+          <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+            {isLiveForecast ? 'High' : 'Avg High'}
           </div>
         </div>
         <div className="text-center">
           <div className={`text-lg font-bold ${textClass}`}>
             {Math.round((weather.lowTemp || weather.temperature || 0))}°F
           </div>
-          <div className={`text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
-            {isHistorical ? 'Avg Low' : 'Low'}
+          <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+            {isLiveForecast ? 'Low' : 'Avg Low'}
           </div>
         </div>
       </div>
       
-      <div className={`mt-3 pt-3 border-t ${isHistorical ? 'border-yellow-200' : 'border-blue-200'}`}>
-        <div className={`text-sm mb-2 capitalize ${isHistorical ? 'text-yellow-700' : 'text-blue-700'}`}>
+      <div className={`mt-3 pt-3 border-t ${isLiveForecast ? 'border-blue-200' : 'border-yellow-200'}`}>
+        <div className={`text-sm mb-2 capitalize ${isLiveForecast ? 'text-blue-700' : 'text-yellow-700'}`}>
           {weather.description}
         </div>
-        <div className={`flex justify-between text-xs ${isHistorical ? 'text-yellow-600' : 'text-blue-600'}`}>
+        <div className={`flex justify-between text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
           <span>💧 {weather.precipitationChance || 0}%</span>
           <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
           <span>💦 {weather.humidity || 0}%</span>
         </div>
       </div>
 
-      {/* Status indicator with date match info */}
-      <div className={`mt-2 text-xs rounded p-2 ${isHistorical ? 'text-yellow-600 bg-yellow-100' : 'text-blue-500 bg-blue-100'}`}>
-        {isHistorical ? '📊 Historical seasonal averages' : 
-         weather.dateMatchInfo?.matchType === 'exact' ? '✅ Live forecast (exact date match)' :
-         weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
-         '✅ Live forecast data'
-        }
+      {/* Unified status indicator with clear terminology */}
+      <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
+        {isLiveForecast ? (
+          weather.dateMatchInfo?.matchType === 'exact' ? '✅ Live forecast (exact date match)' :
+          weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
+          '✅ Live forecast data'
+        ) : (
+          '📊 Historical seasonal averages'
+        )}
       </div>
 
       {/* Retry button for errors in non-shared views */}

@@ -32,6 +32,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
   // Get historical data for display
   const historicalData = segmentDate ? getHistoricalWeatherData(cityName, segmentDate) : null;
 
+  // ALWAYS use segmentDate for the forecast label to ensure consistency
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
@@ -46,7 +47,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             <p className="font-semibold">
               {isNetworkError ? 'Connection issue' : 'Weather service unavailable'}
             </p>
-            <p className="text-xs">Showing seasonal estimate instead</p>
+            <p className="text-xs">Showing historical averages instead</p>
           </div>
           {onRetry && (
             <Button 
@@ -62,7 +63,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
         </div>
       )}
       
-      {/* Historical weather display */}
+      {/* Historical weather display with unified terminology */}
       {historicalData && (
         <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
           <div className="flex items-center justify-between mb-3">
@@ -98,6 +99,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             </div>
           </div>
 
+          {/* Unified terminology - Historical Average instead of Seasonal Estimate */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
             📊 Historical seasonal averages
           </div>

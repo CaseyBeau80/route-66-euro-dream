@@ -22,14 +22,25 @@ export class DateNormalizationService {
   }
 
   /**
-   * Normalize segment date from various input formats
+   * Enhanced segment date calculation with better validation
    */
-  static normalizeSegmentDateFromTrip(
+  static calculateSegmentDate(
     tripStartDate: Date | string | null | undefined,
     segmentDay: number
-  ): NormalizedSegmentDate | null {
-    if (!tripStartDate) {
-      console.log('🗓️ DateNormalizationService: No trip start date provided');
+  ): Date | null {
+    console.log('🗓️ DateNormalizationService: calculateSegmentDate input:', {
+      tripStartDate,
+      segmentDay,
+      tripStartDateType: typeof tripStartDate
+    });
+
+    if (!tripStartDate || typeof segmentDay !== 'number' || segmentDay <= 0) {
+      console.error('❌ DateNormalizationService: Invalid input parameters', {
+        tripStartDate,
+        segmentDay,
+        hasStartDate: !!tripStartDate,
+        segmentDayValid: typeof segmentDay === 'number' && segmentDay > 0
+      });
       return null;
     }
 
@@ -53,7 +64,7 @@ export class DateNormalizationService {
         return null;
       }
       
-      // Calculate segment date
+      // Calculate segment date (day 1 = start date, day 2 = start date + 1, etc.)
       const segmentDate = new Date(validStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
       
       if (isNaN(segmentDate.getTime())) {
@@ -67,43 +78,67 @@ export class DateNormalizationService {
 
       // Normalize the segment date using UTC
       const normalizedSegmentDate = this.normalizeSegmentDate(segmentDate);
-
-      // Generate normalized date string (UTC normalized to avoid timezone issues)
-      const segmentDateString = this.toDateString(normalizedSegmentDate);
       
-      // Calculate days from now
-      const now = new Date();
-      const daysFromNow = Math.ceil((normalizedSegmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-      
-      // Check if within forecast range
-      const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
-      
-      // Get season info
-      const { season, seasonEmoji } = this.getSeasonInfo(normalizedSegmentDate);
-      
-      const result = {
-        segmentDate: normalizedSegmentDate,
-        segmentDateString,
-        daysFromNow,
-        isWithinForecastRange,
-        season,
-        seasonEmoji
-      };
-      
-      console.log('✅ DateNormalizationService: Normalized date:', {
+      console.log('✅ DateNormalizationService: Successfully calculated segment date:', {
         segmentDay,
-        segmentDateString,
-        daysFromNow,
-        isWithinForecastRange,
-        season
+        originalStartDate: validStartDate.toISOString(),
+        calculatedSegmentDate: normalizedSegmentDate.toISOString(),
+        segmentDateString: this.toDateString(normalizedSegmentDate)
       });
       
-      return result;
+      return normalizedSegmentDate;
       
     } catch (error) {
-      console.error('❌ DateNormalizationService: Error normalizing date:', error, { tripStartDate, segmentDay });
+      console.error('❌ DateNormalizationService: Error calculating segment date:', error, { tripStartDate, segmentDay });
       return null;
     }
+  }
+
+  /**
+   * Normalize segment date from various input formats
+   */
+  static normalizeSegmentDateFromTrip(
+    tripStartDate: Date | string | null | undefined,
+    segmentDay: number
+  ): NormalizedSegmentDate | null {
+    const segmentDate = this.calculateSegmentDate(tripStartDate, segmentDay);
+    
+    if (!segmentDate) {
+      console.log('🗓️ DateNormalizationService: Could not calculate segment date');
+      return null;
+    }
+
+    // Generate normalized date string (UTC normalized to avoid timezone issues)
+    const segmentDateString = this.toDateString(segmentDate);
+    
+    // Calculate days from now
+    const now = new Date();
+    const daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+    
+    // Check if within forecast range
+    const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
+    
+    // Get season info
+    const { season, seasonEmoji } = this.getSeasonInfo(segmentDate);
+    
+    const result = {
+      segmentDate,
+      segmentDateString,
+      daysFromNow,
+      isWithinForecastRange,
+      season,
+      seasonEmoji
+    };
+    
+    console.log('✅ DateNormalizationService: Normalized date result:', {
+      segmentDay,
+      segmentDateString,
+      daysFromNow,
+      isWithinForecastRange,
+      season
+    });
+    
+    return result;
   }
 
   /**
