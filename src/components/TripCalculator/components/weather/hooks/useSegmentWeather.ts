@@ -16,7 +16,7 @@ interface UseSegmentWeatherProps {
   error: string | null;
   setError: (error: string | null) => void;
   retryCount: number;
-  setRetryCount: (count: number) => void;
+  setRetryCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface UseSegmentWeatherReturn {
