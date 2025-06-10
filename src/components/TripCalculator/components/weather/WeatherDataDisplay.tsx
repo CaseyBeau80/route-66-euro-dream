@@ -65,35 +65,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  // CRITICAL: Validate date consistency and force alignment
-  React.useEffect(() => {
-    if (segmentDate) {
-      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
-      
-      // Force validation that all weather display elements use the exact segment date
-      console.log(`✅ WEATHER DATE ABSOLUTE LOCK for ${cityName}:`, {
-        segmentDate: expectedDateString,
-        displayLabel: forecastLabel,
-        weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-average',
-        absoluteDateMatch: true,
-        isPDFExport,
-        isSharedView,
-        forceAlignment: true
-      });
-
-      // If weather data has date mismatch, log but continue with segment date display
-      if (weather.dateMatchInfo && weather.dateMatchInfo.requestedDate !== expectedDateString) {
-        console.warn(`⚠️ Weather data date mismatch detected but OVERRIDING with segment date for ${cityName}:`, {
-          weatherRequestedDate: weather.dateMatchInfo.requestedDate,
-          weatherMatchedDate: weather.dateMatchInfo.matchedDate,
-          segmentDateOverride: expectedDateString,
-          displayingSegmentDate: forecastLabel,
-          overrideApplied: true
-        });
-      }
-    }
-  }, [segmentDate, weather.isActualForecast, weather.dateMatchInfo, cityName, forecastLabel, isPDFExport, isSharedView]);
-
   // Determine weather type for styling
   const isLiveForecast = weather.isActualForecast === true;
   const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';

@@ -84,8 +84,9 @@ export class DateNormalizationService {
       // FIXED CALCULATION: Day 1 = start date (no offset), Day 2 = start date + 1, etc.
       const daysToAdd = segmentDay - 1; // Day 1 gets 0 days added, Day 2 gets 1 day added, etc.
       
-      // Use UTC methods to prevent timezone issues during calculation
-      const segmentDate = new Date(normalizedStartDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+      // CRITICAL FIX: Use setUTCDate instead of adding milliseconds to prevent month rollover issues
+      const segmentDate = new Date(normalizedStartDate);
+      segmentDate.setUTCDate(normalizedStartDate.getUTCDate() + daysToAdd);
       
       if (isNaN(segmentDate.getTime())) {
         console.error('❌ DateNormalizationService: Calculated date is invalid', { 
@@ -160,23 +161,6 @@ export class DateNormalizationService {
     }
     
     return isAligned;
-  }
-
-  /**
-   * Get season information for a date using UTC
-   */
-  private static getSeasonInfo(date: Date): { season: 'Spring' | 'Summer' | 'Fall' | 'Winter'; seasonEmoji: string } {
-    const month = date.getUTCMonth(); // Use UTC to prevent timezone issues
-    
-    if (month >= 2 && month <= 4) {
-      return { season: 'Spring', seasonEmoji: '🌸' };
-    } else if (month >= 5 && month <= 7) {
-      return { season: 'Summer', seasonEmoji: '☀️' };
-    } else if (month >= 8 && month <= 10) {
-      return { season: 'Fall', seasonEmoji: '🍂' };
-    } else {
-      return { season: 'Winter', seasonEmoji: '❄️' };
-    }
   }
 
   /**

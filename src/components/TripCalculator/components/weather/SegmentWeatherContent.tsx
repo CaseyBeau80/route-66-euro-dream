@@ -46,7 +46,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     isPDFExport
   });
 
-  // CRITICAL: Enhanced validation that segment date is being used consistently across all components
+  // CRITICAL: Log the exact segment date being used
   React.useEffect(() => {
     if (segmentDate) {
       const segmentDateString = DateNormalizationService.toDateString(segmentDate);
@@ -57,25 +57,8 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         noOffsets: true,
         allComponentsMustAlign: true
       });
-
-      // Validate weather data alignment if present
-      if (weather && weather.dateMatchInfo) {
-        const isAligned = DateNormalizationService.validateDateAlignment(
-          new Date(weather.dateMatchInfo.requestedDate),
-          segmentDate,
-          `WeatherContent-${segmentEndCity}`
-        );
-        
-        if (!isAligned && weather.dateMatchInfo.source !== 'seasonal-estimate') {
-          console.warn(`⚠️ Weather data misalignment detected for ${segmentEndCity}, but using segment date for display:`, {
-            weatherRequestedDate: weather.dateMatchInfo.requestedDate,
-            segmentDateString,
-            overridingWithSegmentDate: true
-          });
-        }
-      }
     }
-  }, [segmentDate, segmentEndCity, weather]);
+  }, [segmentDate, segmentEndCity]);
 
   // Show API key setup if no key available
   if (!hasApiKey) {

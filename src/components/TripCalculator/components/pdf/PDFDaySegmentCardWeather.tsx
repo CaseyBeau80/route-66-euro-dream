@@ -68,21 +68,6 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return formattedDate;
   }, [segmentDate, segment.endCity, segment.day]);
 
-  // Validate date consistency for PDF generation
-  React.useEffect(() => {
-    if (segmentDate && tripStartDate) {
-      const isValid = DateNormalizationService.validateDateAlignment(
-        segmentDate,
-        segmentDate, // Self-validation
-        `PDFWeather-${segment.endCity}-Day${segment.day}`
-      );
-      
-      if (!isValid) {
-        console.error(`❌ CRITICAL: PDF weather date validation failed for ${segment.endCity}`);
-      }
-    }
-  }, [segmentDate, tripStartDate, segment.endCity, segment.day]);
-
   return (
     <div className="pdf-weather-content">
       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -111,10 +96,10 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
           }
         >
           <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            {/* Use the regular SegmentWeatherWidget with exact segment date from centralized calculation */}
+            {/* Pass the exact segment date to ensure consistency */}
             <SegmentWeatherWidget
               segment={segment}
-              tripStartDate={segmentDate} // Pass the exact calculated segment date
+              tripStartDate={tripStartDate}
               cardIndex={segment.day}
               sectionKey="pdf-export"
               forceExpanded={true}
