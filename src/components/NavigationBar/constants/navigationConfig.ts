@@ -77,3 +77,10 @@ export const navigationLabels = {
     trivia: "Trivia"
   }
 };
+
+export const languageOptions = [
+  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" },
+  { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "pt-BR", name: "Português", flag: "🇧🇷" }
+];

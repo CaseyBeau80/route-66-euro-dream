@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { navigationItems, languageOptions } from "../constants/navigationConfig";
+import { navigationItems, languageOptions, navigationLabels } from "../constants/navigationConfig";
 
 type MobileNavigationProps = {
   isMenuOpen: boolean;
@@ -19,6 +19,8 @@ const MobileNavigation = ({
   language, 
   setLanguage 
 }: MobileNavigationProps) => {
+  const currentLabels = navigationLabels[language as keyof typeof navigationLabels];
+
   return (
     <>
       {/* Mobile Menu Button */}
@@ -47,9 +49,10 @@ const MobileNavigation = ({
         <div className="py-4 space-y-3 border-t border-route66-primary/20 mt-4">
           {navigationItems.map((item) => {
             const Icon = item.icon;
+            const displayName = currentLabels[item.labelKey as keyof typeof currentLabels];
             return (
               <Link
-                key={item.name}
+                key={item.labelKey}
                 to={item.href}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
                   isActiveRoute(item.href)
@@ -58,7 +61,7 @@ const MobileNavigation = ({
                 }`}
               >
                 <Icon size={20} />
-                <span>{item.name}</span>
+                <span>{displayName}</span>
               </Link>
             );
           })}

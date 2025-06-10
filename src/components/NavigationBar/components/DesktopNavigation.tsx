@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { navigationItems } from "../constants/navigationConfig";
+import { navigationItems, navigationLabels } from "../constants/navigationConfig";
 import LanguageSelector from "./LanguageSelector";
 
 type DesktopNavigationProps = {
@@ -12,13 +12,16 @@ type DesktopNavigationProps = {
 };
 
 const DesktopNavigation = ({ isActiveRoute, language, setLanguage }: DesktopNavigationProps) => {
+  const currentLabels = navigationLabels[language as keyof typeof navigationLabels];
+
   return (
     <div className="hidden lg:flex items-center space-x-8">
       {navigationItems.map((item) => {
         const Icon = item.icon;
+        const displayName = currentLabels[item.labelKey as keyof typeof currentLabels];
         return (
           <Link
-            key={item.name}
+            key={item.labelKey}
             to={item.href}
             className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-300 group relative overflow-hidden ${
               isActiveRoute(item.href)
@@ -27,7 +30,7 @@ const DesktopNavigation = ({ isActiveRoute, language, setLanguage }: DesktopNavi
             }`}
           >
             <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
-            <span className="relative z-10">{item.name}</span>
+            <span className="relative z-10">{displayName}</span>
             {!isActiveRoute(item.href) && (
               <div className="absolute inset-0 bg-gradient-to-r from-route66-primary to-route66-primary-light opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full"></div>
             )}
