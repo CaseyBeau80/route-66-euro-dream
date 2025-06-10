@@ -30,15 +30,15 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
 
   const isNetworkError = error?.includes('Failed to fetch') || error?.includes('timeout');
 
-  // CRITICAL FIX: ALWAYS use segmentDate for the forecast label to prevent date drift
+  // CRITICAL FIX: ALWAYS use the EXACT segmentDate for the forecast label
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // Get historical data ONLY if segmentDate is available
+  // Get historical data ONLY if segmentDate is available - pass EXACT date
   const historicalData = segmentDate ? getHistoricalWeatherData(cityName, segmentDate) : null;
 
-  // Validate that historical data aligns with segment date
+  // STRICT validation that historical data aligns with EXACT segment date
   React.useEffect(() => {
     if (historicalData && segmentDate) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
@@ -48,10 +48,11 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
         console.error(`❌ CRITICAL: Historical data date mismatch for ${cityName}`, {
           expectedSegmentDate: expectedDateString,
           historicalAlignedDate: actualDateString,
-          segmentDateInput: segmentDate.toISOString()
+          segmentDateInput: segmentDate.toISOString(),
+          strictValidationFailed: true
         });
       } else {
-        console.log(`✅ Historical data properly aligned for ${cityName} on ${expectedDateString}`);
+        console.log(`✅ Historical data EXACTLY aligned for ${cityName} on ${expectedDateString}`);
       }
     }
   }, [historicalData, segmentDate, cityName]);
@@ -118,9 +119,9 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             </div>
           </div>
 
-          {/* CRITICAL FIX: Always show the planned travel date, not the internal data date */}
+          {/* CRITICAL FIX: Show the EXACT segment date, not internal data date */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical averages shown for your planned travel date ({forecastLabel})
+            📊 Historical averages for your exact travel date: {forecastLabel}
           </div>
         </div>
       )}

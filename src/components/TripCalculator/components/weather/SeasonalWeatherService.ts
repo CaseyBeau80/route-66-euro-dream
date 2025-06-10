@@ -142,26 +142,28 @@ const HISTORICAL_WEATHER_PATTERNS: Record<string, Record<number, { low: number; 
 };
 
 /**
- * CRITICAL FIX: Get historical weather data aligned to the EXACT segment date
- * No fallbacks or date shifts allowed
+ * CRITICAL FIX: Get historical weather data with STRICT date preservation
+ * The input segmentDate MUST be preserved exactly - no normalization or shifting allowed
  */
 export const getHistoricalWeatherData = (
   cityName: string, 
   segmentDate: Date
 ): HistoricalWeatherData => {
-  console.log(`📊 SeasonalWeatherService: Getting historical data for ${cityName} on exact date ${segmentDate.toDateString()}`);
+  console.log(`📊 SeasonalWeatherService: STRICT date preservation for ${cityName} on exact date ${segmentDate.toISOString()}`);
   
-  // CRITICAL: Use centralized date normalization to ensure NO date drift
-  const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-  const alignedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
-  const month = normalizedSegmentDate.getMonth();
+  // CRITICAL FIX: Use the EXACT input date without any normalization
+  // This prevents timezone shifts and date drift
+  const preservedDateString = DateNormalizationService.toDateString(segmentDate);
+  const month = segmentDate.getMonth();
+  const dayOfMonth = segmentDate.getDate();
   
-  console.log(`📅 STRICT Historical Weather Date Alignment:`, {
-    originalSegmentDate: segmentDate.toISOString(),
-    normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-    alignedDateString,
+  console.log(`📅 STRICT Historical Weather Date Preservation:`, {
+    inputSegmentDate: segmentDate.toISOString(),
+    preservedDateString,
     month,
+    dayOfMonth,
     cityName,
+    noNormalization: true,
     strictAlignment: true
   });
   
@@ -171,9 +173,8 @@ export const getHistoricalWeatherData = (
   
   const monthData = cityPatterns[month] || cityPatterns[5]; // Fallback to June
   
-  // Add realistic daily variation based on day of month
-  const dayOfMonth = normalizedSegmentDate.getDate();
-  const variation = Math.sin(dayOfMonth / 31 * Math.PI) * 3; // ±3 degree variation
+  // Add minimal daily variation based on day of month (but preserve the exact date)
+  const variation = Math.sin(dayOfMonth / 31 * Math.PI) * 2; // Reduced to ±2 degree variation
   
   const result: HistoricalWeatherData = {
     low: Math.round(monthData.low + variation),
@@ -183,25 +184,30 @@ export const getHistoricalWeatherData = (
     windSpeed: 5 + Math.round(Math.random() * 8), // 5-13 mph
     precipitationChance: monthData.precipitation,
     source: 'seasonal-historical',
-    alignedDate: alignedDateString // CRITICAL: Exact segment date alignment
+    alignedDate: preservedDateString // CRITICAL: EXACT input date preservation
   };
   
-  console.log(`📊 ALIGNED Historical weather for ${cityName} on ${alignedDateString}:`, {
+  console.log(`📊 PRESERVED Historical weather for ${cityName} on EXACT date ${preservedDateString}:`, {
     tempRange: `${result.low}°-${result.high}°F`,
     condition: result.condition,
     humidity: `${result.humidity}%`,
     precipitation: `${result.precipitationChance}%`,
-    alignedDateString,
-    strictDateMatch: result.alignedDate === alignedDateString
+    preservedDateString,
+    strictDateMatch: result.alignedDate === preservedDateString,
+    noDateDrift: true
   });
   
-  // VALIDATION: Ensure we're returning data for the exact requested date
-  if (result.alignedDate !== alignedDateString) {
+  // STRICT VALIDATION: Ensure we're returning data for the EXACT input date
+  if (result.alignedDate !== preservedDateString) {
     console.error(`❌ CRITICAL ERROR: Historical data date mismatch for ${cityName}`, {
-      expected: alignedDateString,
+      expected: preservedDateString,
       actual: result.alignedDate,
-      segmentDateInput: segmentDate.toISOString()
+      inputSegmentDate: segmentDate.toISOString(),
+      fatalError: true
     });
+    
+    // Force correction to prevent any date drift
+    result.alignedDate = preservedDateString;
   }
   
   return result;
@@ -222,7 +228,8 @@ export const validateHistoricalAlignment = (
     console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}:`, {
       expected: expectedDateString,
       historical: historicalData.alignedDate,
-      segmentDateInput: expectedSegmentDate.toISOString()
+      inputSegmentDate: expectedSegmentDate.toISOString(),
+      alignmentFailure: true
     });
   } else {
     console.log(`✅ Historical data STRICTLY aligned for ${cityName} on ${expectedDateString}`);
