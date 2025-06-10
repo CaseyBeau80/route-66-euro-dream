@@ -31,7 +31,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     isActualForecast: weather?.isActualForecast,
     hasError: !!error,
     isSharedView,
-    isPDFExport
+    isPDFExport,
+    weatherSource: weather?.dateMatchInfo?.source,
+    weatherMatchType: weather?.dateMatchInfo?.matchType
   });
 
   // If there's an error or no weather data, show fallback
@@ -65,14 +67,45 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  // Determine weather type for styling
-  const isLiveForecast = weather.isActualForecast === true;
+  // ENHANCED: Determine weather type for styling - be more aggressive about showing live forecasts
+  const isLiveForecast = React.useMemo(() => {
+    // Check multiple indicators that this is live forecast data
+    const hasActualForecast = weather.isActualForecast === true;
+    const hasApiSource = weather.dateMatchInfo?.source === 'api-forecast';
+    const hasValidMatch = weather.dateMatchInfo?.matchType === 'exact' || weather.dateMatchInfo?.matchType === 'closest';
+    const hasValidTemps = (weather.highTemp !== undefined && weather.lowTemp !== undefined) || weather.temperature !== undefined;
+    
+    // Calculate days from now to check if within forecast range
+    const daysFromNow = segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : 999;
+    const withinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
+    
+    const result = hasActualForecast && hasValidTemps && withinForecastRange;
+    
+    console.log(`🎯 LIVE FORECAST DETECTION for ${cityName}:`, {
+      hasActualForecast,
+      hasApiSource,
+      hasValidMatch,
+      hasValidTemps,
+      withinForecastRange,
+      daysFromNow,
+      isLiveForecast: result,
+      weatherSource: weather.dateMatchInfo?.source,
+      matchType: weather.dateMatchInfo?.matchType
+    });
+    
+    return result;
+  }, [weather, segmentDate, cityName]);
+  
   const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';
   
   // Apply styling based on weather type
   const bgClass = isLiveForecast ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-200';
   const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
   const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
+
+  // Get temperature values with better fallback logic
+  const highTemp = weather.highTemp || weather.temperature || 0;
+  const lowTemp = weather.lowTemp || weather.temperature || 0;
 
   return (
     <div className={`rounded border p-3 ${bgClass}`}>
@@ -86,7 +119,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="text-center">
           <div className={`text-lg font-bold ${textClass}`}>
-            {Math.round((weather.highTemp || weather.temperature || 0))}°F
+            {Math.round(highTemp)}°F
           </div>
           <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
             {isLiveForecast ? 'High' : 'Avg High'}
@@ -94,7 +127,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
         <div className="text-center">
           <div className={`text-lg font-bold ${textClass}`}>
-            {Math.round((weather.lowTemp || weather.temperature || 0))}°F
+            {Math.round(lowTemp)}°F
           </div>
           <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
             {isLiveForecast ? 'Low' : 'Avg Low'}
@@ -113,7 +146,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
 
-      {/* CRITICAL FIX: Status indicator ALWAYS shows the EXACT segment date */}
+      {/* ENHANCED STATUS INDICATOR: Shows the EXACT segment date and weather type */}
       <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
         {isLiveForecast ? (
           `✅ Live forecast for ${forecastLabel}`

@@ -73,7 +73,7 @@ export const getWeatherDataForTripDate = async (
 
   // PRIORITY 1: Try to get live forecast first if API key is available and date is within range
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🔮 PRIORITY: Attempting live forecast for ${cityName} on EXACT date ${exactDateString}`);
+    console.log(`🔮 PRIORITY: Attempting live forecast for ${cityName} on EXACT date ${exactDateString} (${daysFromNow} days from now)`);
     
     try {
       // Add timeout wrapper for API calls
@@ -93,43 +93,46 @@ export const getWeatherDataForTripDate = async (
         timeoutPromise
       ]);
       
-      // STRICT VALIDATION: Accept live forecast if it has valid data and is marked as actual forecast
-      if (forecastData && 
-          forecastData.isActualForecast === true && 
-          forecastData.highTemp !== undefined && 
-          forecastData.lowTemp !== undefined &&
-          forecastData.highTemp > 0 && 
-          forecastData.lowTemp > 0) {
+      // ENHANCED VALIDATION: Accept live forecast if it has ANY valid data and is marked as actual forecast
+      if (forecastData && forecastData.isActualForecast === true) {
+        const highTemp = forecastData.highTemp || forecastData.temperature || 0;
+        const lowTemp = forecastData.lowTemp || forecastData.temperature || 0;
         
-        console.log(`✅ LIVE FORECAST SUCCESS: Using live forecast for ${cityName} on ${exactDateString}:`, {
-          high: forecastData.highTemp + '°F',
-          low: forecastData.lowTemp + '°F',
-          isActualForecast: forecastData.isActualForecast,
-          description: forecastData.description,
-          exactDateUsed: exactDateString,
-          priorityOverHistorical: true
-        });
-        
-        return {
-          lowTemp: forecastData.lowTemp,
-          highTemp: forecastData.highTemp,
-          icon: forecastData.icon,
-          description: forecastData.description,
-          source: 'forecast',
-          isAvailable: true,
-          humidity: forecastData.humidity,
-          windSpeed: forecastData.windSpeed,
-          precipitationChance: forecastData.precipitationChance,
-          cityName: forecastData.cityName,
-          isActualForecast: true
-        };
+        // More lenient validation - accept if we have any temperature data
+        if (highTemp > 0 || lowTemp > 0 || forecastData.temperature !== undefined) {
+          console.log(`✅ LIVE FORECAST SUCCESS: Using live forecast for ${cityName} on ${exactDateString}:`, {
+            high: highTemp + '°F',
+            low: lowTemp + '°F',
+            temperature: forecastData.temperature,
+            isActualForecast: forecastData.isActualForecast,
+            description: forecastData.description,
+            exactDateUsed: exactDateString,
+            priorityOverHistorical: true,
+            daysFromNow
+          });
+          
+          return {
+            lowTemp: lowTemp || forecastData.temperature || 0,
+            highTemp: highTemp || forecastData.temperature || 0,
+            icon: forecastData.icon,
+            description: forecastData.description,
+            source: 'forecast',
+            isAvailable: true,
+            humidity: forecastData.humidity,
+            windSpeed: forecastData.windSpeed,
+            precipitationChance: forecastData.precipitationChance,
+            cityName: forecastData.cityName,
+            isActualForecast: true
+          };
+        }
       }
       
       console.log(`⚠️ Live forecast validation failed for ${cityName} on ${exactDateString} - falling back to historical:`, {
         hasData: !!forecastData,
         isActualForecast: forecastData?.isActualForecast,
-        hasValidTemps: !!(forecastData?.highTemp && forecastData?.lowTemp),
-        reason: 'validation_failed'
+        hasValidTemps: !!(forecastData?.highTemp || forecastData?.lowTemp || forecastData?.temperature),
+        reason: 'validation_failed',
+        daysFromNow
       });
       
     } catch (error) {
@@ -140,11 +143,11 @@ export const getWeatherDataForTripDate = async (
       }
     }
   } else {
-    console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (fallback to historical)`);
+    console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (not within 0-5 day range), falling back to historical`);
   }
   
   // FALLBACK: Historical data using ZERO OFFSET - use the EXACT same segment date
-  console.log(`📊 CRITICAL FIX: Using historical data for ${cityName} on EXACT segment date ${exactDateString} with ZERO OFFSET`);
+  console.log(`📊 FALLBACK: Using historical data for ${cityName} on EXACT segment date ${exactDateString} with ZERO OFFSET`);
   
   // CRITICAL FIX: Pass the EXACT segment date to historical service with ZERO offset
   const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0); // ZERO OFFSET - exact same date
