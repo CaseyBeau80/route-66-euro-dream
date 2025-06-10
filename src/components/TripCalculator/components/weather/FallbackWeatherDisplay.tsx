@@ -35,13 +35,19 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // Get historical data ONLY if segmentDate is available - pass EXACT date
-  const historicalData = segmentDate ? getHistoricalWeatherData(cityName, segmentDate) : null;
+  // Get historical data ONLY if segmentDate is available - pass EXACT normalized date
+  const historicalData = React.useMemo(() => {
+    if (!segmentDate) return null;
+    
+    const normalizedDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+    return getHistoricalWeatherData(cityName, normalizedDate);
+  }, [cityName, segmentDate]);
 
   // STRICT validation that historical data aligns with EXACT segment date
   React.useEffect(() => {
     if (historicalData && segmentDate) {
-      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+      const normalizedDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+      const expectedDateString = DateNormalizationService.toDateString(normalizedDate);
       const actualDateString = historicalData.alignedDate;
       
       if (expectedDateString !== actualDateString) {
@@ -121,7 +127,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
 
           {/* CRITICAL FIX: Show the EXACT segment date, not internal data date */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical averages for your exact travel date: {forecastLabel}
+            📊 Historical averages for {forecastLabel}
           </div>
         </div>
       )}

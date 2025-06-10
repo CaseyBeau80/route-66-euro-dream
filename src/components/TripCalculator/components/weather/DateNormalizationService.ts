@@ -2,6 +2,7 @@
 /**
  * Centralized date normalization service for weather modules
  * Ensures consistent date handling across all weather components
+ * CRITICAL FIX: Absolute UTC normalization to prevent date drift
  */
 
 export interface NormalizedSegmentDate {
@@ -15,14 +16,27 @@ export interface NormalizedSegmentDate {
 
 export class DateNormalizationService {
   /**
-   * Centralize normalized segment date using UTC to avoid timezone issues
+   * CRITICAL FIX: Normalize segment date using UTC to prevent timezone drift
+   * This is the SINGLE SOURCE OF TRUTH for date normalization
    */
   static normalizeSegmentDate(date: Date): Date {
-    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    // Create a new date in UTC timezone with only year/month/day to prevent drift
+    const normalized = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    
+    console.log('🗓️ DateNormalizationService: UTC normalization:', {
+      input: date.toISOString(),
+      normalized: normalized.toISOString(),
+      inputDateString: this.toDateString(date),
+      normalizedDateString: this.toDateString(normalized),
+      preventsDrift: true
+    });
+    
+    return normalized;
   }
 
   /**
-   * Enhanced segment date calculation with better validation
+   * Enhanced segment date calculation with absolute validation
+   * CRITICAL FIX: Prevents any date drift through multiple calculations
    */
   static calculateSegmentDate(
     tripStartDate: Date | string | null | undefined,
@@ -64,29 +78,35 @@ export class DateNormalizationService {
         return null;
       }
       
+      // CRITICAL FIX: First normalize the start date to prevent any initial drift
+      const normalizedStartDate = this.normalizeSegmentDate(validStartDate);
+      
       // Calculate segment date (day 1 = start date, day 2 = start date + 1, etc.)
-      const segmentDate = new Date(validStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
+      // Use UTC methods to prevent timezone issues during calculation
+      const segmentDate = new Date(normalizedStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
       
       if (isNaN(segmentDate.getTime())) {
         console.error('❌ DateNormalizationService: Calculated date is invalid', { 
-          validStartDate: validStartDate.toISOString(), 
+          normalizedStartDate: normalizedStartDate.toISOString(), 
           segmentDay, 
           segmentDate 
         });
         return null;
       }
 
-      // Normalize the segment date using UTC
-      const normalizedSegmentDate = this.normalizeSegmentDate(segmentDate);
+      // CRITICAL FIX: Normalize the final result to ensure absolute UTC alignment
+      const finalNormalizedDate = this.normalizeSegmentDate(segmentDate);
       
       console.log('✅ DateNormalizationService: Successfully calculated segment date:', {
         segmentDay,
         originalStartDate: validStartDate.toISOString(),
-        calculatedSegmentDate: normalizedSegmentDate.toISOString(),
-        segmentDateString: this.toDateString(normalizedSegmentDate)
+        normalizedStartDate: normalizedStartDate.toISOString(),
+        calculatedSegmentDate: finalNormalizedDate.toISOString(),
+        segmentDateString: this.toDateString(finalNormalizedDate),
+        absoluteUTCAlignment: true
       });
       
-      return normalizedSegmentDate;
+      return finalNormalizedDate;
       
     } catch (error) {
       console.error('❌ DateNormalizationService: Error calculating segment date:', error, { tripStartDate, segmentDay });
@@ -95,7 +115,7 @@ export class DateNormalizationService {
   }
 
   /**
-   * Normalize segment date from various input formats
+   * Normalize segment date from various input formats with enhanced validation
    */
   static normalizeSegmentDateFromTrip(
     tripStartDate: Date | string | null | undefined,
@@ -111,9 +131,10 @@ export class DateNormalizationService {
     // Generate normalized date string (UTC normalized to avoid timezone issues)
     const segmentDateString = this.toDateString(segmentDate);
     
-    // Calculate days from now
+    // Calculate days from now using UTC to prevent timezone issues
     const now = new Date();
-    const daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+    const nowUTC = this.normalizeSegmentDate(now);
+    const daysFromNow = Math.ceil((segmentDate.getTime() - nowUTC.getTime()) / (24 * 60 * 60 * 1000));
     
     // Check if within forecast range
     const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
@@ -135,7 +156,8 @@ export class DateNormalizationService {
       segmentDateString,
       daysFromNow,
       isWithinForecastRange,
-      season
+      season,
+      absoluteUTCAlignment: true
     });
     
     return result;
@@ -143,16 +165,22 @@ export class DateNormalizationService {
 
   /**
    * Convert Date to normalized YYYY-MM-DD string (UTC)
+   * CRITICAL FIX: Uses UTC methods to prevent timezone drift
    */
   static toDateString(date: Date): string {
-    return date.toISOString().split('T')[0];
+    // Use UTC methods to prevent timezone issues
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
   }
 
   /**
-   * Get season information for a date
+   * Get season information for a date using UTC
    */
   private static getSeasonInfo(date: Date): { season: 'Spring' | 'Summer' | 'Fall' | 'Winter'; seasonEmoji: string } {
-    const month = date.getMonth();
+    const month = date.getUTCMonth(); // Use UTC to prevent timezone issues
     
     if (month >= 2 && month <= 4) {
       return { season: 'Spring', seasonEmoji: '🌸' };
@@ -166,7 +194,7 @@ export class DateNormalizationService {
   }
 
   /**
-   * Check if two dates represent the same calendar day
+   * Check if two dates represent the same calendar day using UTC
    */
   static isSameDay(date1: Date, date2: Date): boolean {
     return this.toDateString(date1) === this.toDateString(date2);
@@ -188,8 +216,8 @@ export class DateNormalizationService {
       console.warn(`⚠️ Historical date mismatch for ${cityName}:`, {
         expected: expectedDateString,
         historical: historicalDateString,
-        monthDayMatch: historicalDate.getMonth() === expectedSegmentDate.getMonth() && 
-                     historicalDate.getDate() === expectedSegmentDate.getDate()
+        monthDayMatch: historicalDate.getUTCMonth() === expectedSegmentDate.getUTCMonth() && 
+                     historicalDate.getUTCDate() === expectedSegmentDate.getUTCDate()
       });
     }
     

@@ -54,29 +54,38 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // ABSOLUTE validation for date alignment
+  // ABSOLUTE validation for date alignment - force segment date display
   React.useEffect(() => {
-    if (segmentDate && weather.dateMatchInfo) {
+    if (segmentDate) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
-      const { requestedDate, matchedDate, matchType, source } = weather.dateMatchInfo;
       
-      // Only warn if there's a mismatch and it's not a fallback or seasonal estimate scenario
-      if (requestedDate !== expectedDateString && matchType !== 'fallback' && source !== 'seasonal-estimate') {
-        console.warn(`⚠️ Weather data date mismatch for ${cityName} - FORCING segment date display:`, {
-          segmentDate: expectedDateString,
-          requestedDate,
-          matchedDate,
-          matchType,
-          source,
-          forcingSegmentDateDisplay: true,
-          isPDFExport,
-          isSharedView
-        });
-      } else {
-        console.log(`✅ Weather data properly aligned for ${cityName} on ${expectedDateString}`);
+      console.log(`🎯 FORCING SEGMENT DATE DISPLAY for ${cityName}:`, {
+        segmentDate: expectedDateString,
+        displayLabel: forecastLabel,
+        weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-average',
+        absoluteDateLock: true,
+        isPDFExport,
+        isSharedView
+      });
+
+      // Log any date mismatches but always display the segment date
+      if (weather.dateMatchInfo) {
+        const { requestedDate, matchedDate, matchType, source } = weather.dateMatchInfo;
+        if (requestedDate !== expectedDateString && source !== 'seasonal-estimate') {
+          console.warn(`⚠️ Weather data internal mismatch for ${cityName} - BUT DISPLAYING SEGMENT DATE:`, {
+            segmentDate: expectedDateString,
+            requestedDate,
+            matchedDate,
+            matchType,
+            source,
+            displayingCorrectDate: forecastLabel,
+            isPDFExport,
+            isSharedView
+          });
+        }
       }
     }
-  }, [segmentDate, weather.dateMatchInfo, cityName, isPDFExport, isSharedView]);
+  }, [segmentDate, weather.dateMatchInfo, cityName, forecastLabel, weather.isActualForecast, isPDFExport, isSharedView]);
 
   // PRIORITY: Live forecast takes absolute precedence over historical data
   const isLiveForecast = weather.isActualForecast === true;
@@ -134,7 +143,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           `✅ Live forecast for ${forecastLabel}`
         ) : (
           // CRITICAL FIX: ALWAYS show the EXACT segment date, never internal data dates
-          `📊 Historical averages for your travel date: ${forecastLabel}`
+          `📊 Historical averages for ${forecastLabel}`
         )}
       </div>
 
