@@ -109,7 +109,7 @@ const TripItineraryColumn: React.FC<TripItineraryColumnProps> = ({
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Drive Time:</span>
-                      <span className="font-medium">{segment.driveTime} hours</span>
+                      <span className="font-medium">{segment.driveTimeHours} hours</span>
                     </div>
                     {segment.recommendedStops && segment.recommendedStops.length > 0 && (
                       <div>
