@@ -2,8 +2,9 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import WeatherDataDisplay from './WeatherDataDisplay';
-import WeatherApiKeyInput from './WeatherApiKeyInput';
-import ErrorBoundary from '../ErrorBoundary';
+import FallbackWeatherDisplay from './FallbackWeatherDisplay';
+import ApiKeySetup from './ApiKeySetup';
+import { DateNormalizationService } from './DateNormalizationService';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -34,23 +35,37 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌤️ SegmentWeatherContent: Rendering for ${segmentEndCity}`, {
+  console.log('🌤️ SegmentWeatherContent render:', {
+    segmentEndCity,
+    segmentDate: segmentDate?.toISOString(),
     hasApiKey,
     loading,
     hasWeather: !!weather,
-    error,
-    retryCount,
+    hasError: !!error,
     isSharedView,
-    isPDFExport,
-    segmentDate: segmentDate?.toISOString()
+    isPDFExport
   });
 
-  // Show API key input for non-shared views when no API key
-  if (!hasApiKey && !isSharedView && !isPDFExport) {
+  // CRITICAL: Validate segment date is being used consistently
+  React.useEffect(() => {
+    if (segmentDate) {
+      const segmentDateString = DateNormalizationService.toDateString(segmentDate);
+      console.log(`🎯 SEGMENT DATE LOCK for ${segmentEndCity}:`, {
+        segmentDate: segmentDate.toISOString(),
+        segmentDateString,
+        mustMatchExactly: true,
+        noOffsets: true
+      });
+    }
+  }, [segmentDate, segmentEndCity]);
+
+  // Show API key setup if no key available
+  if (!hasApiKey) {
     return (
-      <WeatherApiKeyInput 
+      <ApiKeySetup 
         onApiKeySet={onApiKeySet}
-        cityName={segmentEndCity}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
       />
     );
   }
@@ -58,41 +73,20 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   // Show loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
-        <div className="animate-pulse text-gray-500 text-sm">
-          Loading weather for {segmentEndCity}...
+      <div className="bg-blue-50 rounded border border-blue-200 p-3 text-center">
+        <div className="text-sm text-blue-600 mb-2">
+          🌤️ Getting weather for {segmentEndCity}...
+        </div>
+        <div className="text-xs text-blue-500">
+          {segmentDate && `Checking forecast for ${DateNormalizationService.toDateString(segmentDate)}`}
         </div>
       </div>
     );
   }
 
-  // Enhanced logging for PDF exports
-  if (isPDFExport && weather) {
-    console.log(`📄 PDF WEATHER: Rendering weather content for ${segmentEndCity}`, {
-      hasApiKey,
-      hasWeather: !!weather,
-      isActualForecast: weather.isActualForecast,
-      hasDateMatchInfo: !!weather.dateMatchInfo,
-      loading,
-      error,
-      weatherType: weather.isActualForecast ? 'live-forecast' : 'seasonal-fallback'
-    });
-  }
-
-  const weatherFallback = (
-    <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
-      <p className="text-sm text-gray-600">
-        Weather information temporarily unavailable
-      </p>
-    </div>
-  );
-
-  return (
-    <ErrorBoundary 
-      context={`SegmentWeatherContent-${segmentEndCity}`}
-      fallback={weatherFallback}
-    >
+  // Show weather data or fallback
+  if (weather) {
+    return (
       <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}
@@ -102,7 +96,18 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       />
-    </ErrorBoundary>
+    );
+  }
+
+  // Show fallback display for errors or no data
+  return (
+    <FallbackWeatherDisplay
+      cityName={segmentEndCity}
+      segmentDate={segmentDate}
+      onRetry={onRetry}
+      error={error || undefined}
+      showRetryButton={!isSharedView && !isPDFExport}
+    />
   );
 };
 

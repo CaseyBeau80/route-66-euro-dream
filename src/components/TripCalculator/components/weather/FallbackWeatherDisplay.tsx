@@ -36,7 +36,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
     
-    console.log(`🎯 FALLBACK DATE DISPLAY for ${cityName}:`, {
+    console.log(`🎯 FALLBACK DATE LOCK for ${cityName}:`, {
       segmentDate: segmentDate.toISOString(),
       segmentDateString: DateNormalizationService.toDateString(segmentDate),
       formattedDisplay: formattedDate,
@@ -46,7 +46,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  // Get historical data using NO OFFSET - exact same date
+  // CRITICAL FIX: Get historical data using NO OFFSET - exact same date
   const historicalData = React.useMemo(() => {
     if (!segmentDate) return null;
     
@@ -55,7 +55,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     return getHistoricalWeatherData(cityName, normalizedDate, 0);
   }, [cityName, segmentDate]);
 
-  // STRICT validation that historical data aligns with EXACT segment date
+  // ABSOLUTE validation that historical data aligns with EXACT segment date
   React.useEffect(() => {
     if (historicalData && segmentDate) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
@@ -100,7 +100,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
         </div>
       )}
       
-      {/* Historical weather display - using exact segment date */}
+      {/* Historical weather display - using EXACT segment date */}
       {historicalData && segmentDate && (
         <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
           <div className="flex items-center justify-between mb-3">

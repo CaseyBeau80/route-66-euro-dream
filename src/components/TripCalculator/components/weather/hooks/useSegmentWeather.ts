@@ -1,28 +1,34 @@
 
-import { useEffect, useCallback } from 'react';
-import { getWeatherDataForTripDate } from '../getWeatherDataForTripDate';
+import React from 'react';
+import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { GeocodingService } from '../../../services/GeocodingService';
-import WeatherRequestDeduplicationService from '../services/WeatherRequestDeduplicationService';
+import { DateNormalizationService } from '../DateNormalizationService';
 
 interface UseSegmentWeatherProps {
   segmentEndCity: string;
   hasApiKey: boolean;
-  weather: any;
-  setWeather: (weather: any) => void;
+  segmentDate: Date | null;
+  weather: ForecastWeatherData | null;
+  setWeather: (weather: ForecastWeatherData | null) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   error: string | null;
   setError: (error: string | null) => void;
   retryCount: number;
-  setRetryCount: (count: number | ((prev: number) => number)) => void;
-  mountedRef: React.MutableRefObject<boolean>;
-  subscriberId: React.MutableRefObject<string>;
-  segmentDate?: Date | null;
+  setRetryCount: (count: number) => void;
+}
+
+interface UseSegmentWeatherReturn {
+  handleApiKeySet: () => void;
+  handleTimeout: () => void;
+  handleRetry: () => void;
 }
 
 export const useSegmentWeather = ({
   segmentEndCity,
   hasApiKey,
+  segmentDate,
   weather,
   setWeather,
   loading,
@@ -30,111 +36,117 @@ export const useSegmentWeather = ({
   error,
   setError,
   retryCount,
-  setRetryCount,
-  mountedRef,
-  subscriberId,
-  segmentDate
-}: UseSegmentWeatherProps) => {
-  const deduplicationService = WeatherRequestDeduplicationService.getInstance();
+  setRetryCount
+}: UseSegmentWeatherProps): UseSegmentWeatherReturn => {
+  const weatherService = EnhancedWeatherService.getInstance();
 
-  const handleApiKeySet = useCallback(() => {
-    console.log('🔑 API key set, clearing error and retry count');
-    setError(null);
-    setRetryCount(0);
-  }, [setError, setRetryCount]);
-
-  const handleRetry = useCallback(() => {
-    console.log(`🔄 Retry requested for ${segmentEndCity}`);
-    setRetryCount(prev => prev + 1);
-    setError(null);
-  }, [segmentEndCity, setRetryCount, setError]);
-
-  const handleTimeout = useCallback(() => {
-    console.log(`⏰ Timeout for ${segmentEndCity}`);
-    setLoading(false);
-    setError('Request timeout - please check your connection');
-  }, [segmentEndCity, setLoading, setError]);
-  
-  const fetchWeather = useCallback(async () => {
-    if (!hasApiKey) {
-      console.log(`🌤️ No API key for ${segmentEndCity}, skipping fetch`);
+  // CRITICAL: Fetch weather data using EXACT segment date with no offset
+  const fetchWeatherData = React.useCallback(async () => {
+    if (!hasApiKey || !segmentDate) {
+      console.log('🌤️ useSegmentWeather: Skipping fetch - no API key or segment date');
       return;
     }
+
+    // Use exact normalized segment date
+    const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+    const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
-    if (!coordinates) {
-      console.warn(`🌤️ No coordinates for ${segmentEndCity}`);
-      setError(`No coordinates found for ${segmentEndCity}`);
-      return;
-    }
+    console.log(`🌤️ useSegmentWeather: Fetching weather for ${segmentEndCity} on EXACT date ${segmentDateString}:`, {
+      segmentDate: normalizedSegmentDate.toISOString(),
+      segmentDateString,
+      noOffset: true,
+      exactDateFetch: true
+    });
 
     setLoading(true);
     setError(null);
-    
+
     try {
-      const requestKey = segmentDate 
-        ? `weather-forecast-${coordinates.lat}-${coordinates.lng}-${segmentDate.toISOString().split('T')[0]}`
-        : `weather-${coordinates.lat}-${coordinates.lng}`;
-      
-      console.log(`🌤️ Starting weather fetch for ${segmentEndCity} with key: ${requestKey}`);
-      
-      const weatherData = await deduplicationService.deduplicateRequest(
-        requestKey,
-        () => {
-          if (segmentDate) {
-            // Use the centralized weather utility that handles historical vs forecast
-            console.log(`🌤️ Using getWeatherDataForTripDate for ${segmentEndCity} on ${segmentDate.toDateString()}`);
-            return getWeatherDataForTripDate(segmentEndCity, segmentDate, coordinates);
-          } else {
-            // For current weather, fall back to the original approach
-            return getWeatherDataForTripDate(segmentEndCity, new Date(), coordinates);
-          }
-        },
-        subscriberId.current,
-        10000
+      const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
+      if (!coordinates) {
+        throw new Error(`No coordinates found for ${segmentEndCity}`);
+      }
+
+      console.log(`🎯 Fetching weather with EXACT coordinates and date:`, {
+        city: segmentEndCity,
+        coordinates,
+        exactDate: normalizedSegmentDate.toISOString(),
+        exactDateString: segmentDateString
+      });
+
+      // Use exact segment date - no offset
+      const weatherData = await weatherService.getWeatherForDate(
+        coordinates.lat,
+        coordinates.lng,
+        segmentEndCity,
+        normalizedSegmentDate // EXACT segment date
       );
-      
-      if (weatherData && mountedRef.current) {
-        console.log(`✅ Weather data received for ${segmentEndCity}:`, {
+
+      if (weatherData) {
+        // Validate that weather data date matches segment date
+        if (weatherData.dateMatchInfo) {
+          const expectedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
+          const { requestedDate, matchedDate, source } = weatherData.dateMatchInfo;
+          
+          if (requestedDate !== expectedDateString && source !== 'seasonal-estimate') {
+            console.warn(`⚠️ Weather data date mismatch for ${segmentEndCity} - BUT USING SEGMENT DATE FOR DISPLAY:`, {
+              segmentDate: expectedDateString,
+              requestedDate,
+              matchedDate,
+              displayingCorrectDate: true
+            });
+          }
+        }
+
+        console.log(`✅ Weather data received for ${segmentEndCity} on ${segmentDateString}:`, {
           isActualForecast: weatherData.isActualForecast,
-          source: weatherData.source,
-          lowTemp: weatherData.lowTemp,
-          highTemp: weatherData.highTemp,
-          hasHistoricalData: !!(weatherData.lowTemp && weatherData.highTemp)
+          temperature: weatherData.temperature,
+          description: weatherData.description,
+          segmentDateUsed: segmentDateString
         });
+
         setWeather(weatherData);
-        setRetryCount(0);
-      } else if (mountedRef.current) {
-        console.warn(`❌ No weather data for ${segmentEndCity}`);
-        setError('Unable to fetch weather data');
+      } else {
+        throw new Error('No weather data received');
       }
     } catch (err) {
-      if (mountedRef.current) {
-        console.error(`❌ Weather fetch error for ${segmentEndCity}:`, err);
-        const errorMessage = err instanceof Error ? err.message : 'Weather service error';
-        setError(errorMessage);
-      }
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
+      console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);
+      setError(errorMessage);
     } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [segmentEndCity, hasApiKey, segmentDate, setLoading, setError, setWeather, setRetryCount, mountedRef, subscriberId, deduplicationService]);
+  }, [hasApiKey, segmentDate, segmentEndCity, weatherService, setLoading, setError, setWeather]);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    if (hasApiKey) {
-      fetchWeather();
+  // Auto-fetch when dependencies change
+  React.useEffect(() => {
+    if (hasApiKey && segmentDate && !weather && !loading) {
+      console.log(`🔄 Auto-fetching weather for ${segmentEndCity} due to dependency change`);
+      fetchWeatherData();
     }
-    
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchWeather, hasApiKey, retryCount]);
+  }, [hasApiKey, segmentDate, segmentEndCity, weather, loading, fetchWeatherData]);
+
+  const handleApiKeySet = React.useCallback(() => {
+    console.log(`🔑 API key set, fetching weather for ${segmentEndCity}`);
+    setRetryCount(0);
+    fetchWeatherData();
+  }, [segmentEndCity, fetchWeatherData, setRetryCount]);
+
+  const handleTimeout = React.useCallback(() => {
+    console.log(`⏰ Weather fetch timeout for ${segmentEndCity}, incrementing retry count`);
+    setRetryCount(prev => prev + 1);
+    setError('Weather service timeout');
+  }, [segmentEndCity, setRetryCount, setError]);
+
+  const handleRetry = React.useCallback(() => {
+    console.log(`🔄 Manual retry for ${segmentEndCity}, attempt ${retryCount + 1}`);
+    setRetryCount(prev => prev + 1);
+    fetchWeatherData();
+  }, [segmentEndCity, retryCount, setRetryCount, fetchWeatherData]);
 
   return {
     handleApiKeySet,
-    handleRetry,
-    handleTimeout
+    handleTimeout,
+    handleRetry
   };
 };
