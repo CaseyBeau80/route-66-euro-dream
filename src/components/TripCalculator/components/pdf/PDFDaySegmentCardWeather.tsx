@@ -19,7 +19,6 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     exportFormat,
     hasSegmentDate: !!segmentDate,
     segmentDate: segmentDate?.toISOString(),
-    hasWeatherData: !!(segment.weather || segment.weatherData),
     segmentDay: segment.day
   });
 
@@ -29,7 +28,6 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return null;
   }
 
-  // Enhanced weather rendering for PDF export - force live weather display
   return (
     <div className="pdf-weather-content">
       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -83,7 +81,11 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
             segmentDate.getMonth() >= 8 && segmentDate.getMonth() <= 10 ? 'Fall 🍂' : 'Winter ❄️'
           }
           <div className="mt-1 text-gray-500">
-            Live weather forecast shown above when available. Check current conditions before departure.
+            Weather forecast shown above for {segmentDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'long', 
+              day: 'numeric'
+            })}. Check current conditions before departure.
           </div>
         </div>
       )}

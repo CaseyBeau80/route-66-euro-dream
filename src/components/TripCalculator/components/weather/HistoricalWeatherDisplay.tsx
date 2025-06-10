@@ -18,11 +18,17 @@ const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
 }) => {
   const { formatSpeed } = useUnits();
 
+  // CRITICAL FIX: Use the exact segmentDate for consistent display
   const displayDateString = segmentDate.toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'long', 
     day: 'numeric',
     timeZone: 'UTC'
+  });
+
+  console.log(`📊 HistoricalWeatherDisplay: Using segmentDate for ${weather.cityName}`, {
+    segmentDate: segmentDate.toISOString(),
+    displayDateString
   });
 
   return (
@@ -87,7 +93,7 @@ const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
       )}
 
       <div className="text-xs text-blue-700 italic bg-blue-50 p-2 rounded">
-        📊 Historical average temperatures for this date in {weather.cityName}. Check live weather closer to your trip.
+        📊 Historical average temperatures for {displayDateString} in {weather.cityName}. Check live weather closer to your trip.
       </div>
 
       <div className="mt-4 pt-3 border-t border-gray-200">

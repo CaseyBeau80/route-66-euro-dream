@@ -20,12 +20,19 @@ const LiveWeatherDisplay: React.FC<LiveWeatherDisplayProps> = ({
 
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
   
+  // CRITICAL FIX: Use the exact segmentDate for consistent display
   const displayDateString = segmentDate ? segmentDate.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
+    weekday: 'long', 
+    month: 'long', 
     day: 'numeric',
     timeZone: 'UTC'
   }) : '';
+
+  console.log(`🔮 LiveWeatherDisplay: Using segmentDate for ${weather.cityName}`, {
+    segmentDate: segmentDate?.toISOString(),
+    displayDateString,
+    isActualForecast: weather.isActualForecast
+  });
 
   return (
     <div className="space-y-3">
@@ -34,11 +41,11 @@ const LiveWeatherDisplay: React.FC<LiveWeatherDisplayProps> = ({
         daysFromNow={daysFromNow || undefined}
       />
       
-      {/* Weather Description and Date */}
+      {/* Weather Description and Date - FIXED TO USE SEGMENT DATE */}
       <div className="text-center mb-4">
         <div className="font-semibold text-gray-800 capitalize text-sm">{weather.description}</div>
         <div className="text-xs text-gray-600">
-          🔹 Forecast for {displayDateString}
+          🔮 Forecast for {displayDateString}
         </div>
       </div>
 

@@ -2,7 +2,6 @@
 import React from 'react';
 import ForecastWeatherDisplay from './ForecastWeatherDisplay';
 import DismissibleSeasonalWarning from './DismissibleSeasonalWarning';
-import { DateNormalizationService } from './DateNormalizationService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface WeatherDataDisplayProps {
@@ -24,6 +23,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   retryCount = 0,
   isPDFExport = false
 }) => {
+  console.log(`🎯 WeatherDataDisplay: Rendering for ${segmentEndCity}`, {
+    hasWeather: !!weather,
+    segmentDate: segmentDate?.toISOString(),
+    isPDFExport,
+    isSharedView
+  });
+
   // Enhanced validation with simplified logging
   if (!weather) {
     return (
@@ -36,29 +42,24 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Normalize segment date for consistent handling
-  const normalizedSegmentDate = segmentDate ? 
-    DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
-
-  // Simplified logging for development
-  if (process.env.NODE_ENV === 'development' && normalizedSegmentDate) {
-    console.log(`🗓️ WeatherDataDisplay for ${segmentEndCity}:`, {
-      segmentDate: DateNormalizationService.toDateString(normalizedSegmentDate),
-      isActualForecast: weather.isActualForecast
-    });
-  }
+  // CRITICAL FIX: Use the exact segmentDate passed in - do not re-normalize
+  const displayDate = segmentDate;
 
   // Determine display strategy based on data quality
-  const displayStrategy = getDisplayStrategy(weather, normalizedSegmentDate, error, retryCount);
+  const displayStrategy = getDisplayStrategy(weather, displayDate, error, retryCount);
   
-  console.log(`🎯 Display strategy for ${segmentEndCity}: ${displayStrategy}`);
+  console.log(`🎯 Display strategy for ${segmentEndCity}: ${displayStrategy}`, {
+    isActualForecast: weather.isActualForecast,
+    hasValidTemps: !!(weather.highTemp && weather.lowTemp),
+    segmentDate: displayDate?.toDateString()
+  });
 
   switch (displayStrategy) {
     case 'live-forecast':
-      return renderLiveForecast(weather, normalizedSegmentDate, isPDFExport, isSharedView);
+      return renderLiveForecast(weather, displayDate, isPDFExport, isSharedView);
       
     case 'seasonal-estimate':
-      return renderSeasonalEstimate(weather, normalizedSegmentDate, isPDFExport, isSharedView);
+      return renderSeasonalEstimate(weather, displayDate, isPDFExport, isSharedView);
       
     case 'service-unavailable':
       return renderServiceUnavailable(error, isPDFExport, segmentEndCity);
@@ -69,7 +70,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
 };
 
 // Simplified display strategy determination
-function getDisplayStrategy(weather: any, normalizedSegmentDate: Date | null, error: string | null, retryCount: number): string {
+function getDisplayStrategy(weather: any, segmentDate: Date | null, error: string | null, retryCount: number): string {
   // Error conditions
   if (error && retryCount > 3) {
     return 'service-unavailable';
@@ -94,8 +95,8 @@ function getDisplayStrategy(weather: any, normalizedSegmentDate: Date | null, er
   return 'service-unavailable';
 }
 
-// Simplified render functions
-function renderLiveForecast(weather: any, normalizedSegmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
+// Simplified render functions with FIXED DATE LABELS
+function renderLiveForecast(weather: any, segmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
   const forecastWeather = weather as ForecastWeatherData;
   
   const warningMessage = isPDFExport ? 'Live weather forecast' : 'Live forecast from OpenWeatherMap';
@@ -109,23 +110,23 @@ function renderLiveForecast(weather: any, normalizedSegmentDate: Date | null, is
           isSharedView={isSharedView}
         />
       )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={normalizedSegmentDate} />
+      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
     </div>
   );
 }
 
-function renderSeasonalEstimate(weather: any, normalizedSegmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
+function renderSeasonalEstimate(weather: any, segmentDate: Date | null, isPDFExport: boolean, isSharedView: boolean) {
   const forecastWeather = weather as ForecastWeatherData;
   
-  // Calculate days from now for display purposes
-  const daysFromNow = normalizedSegmentDate ? 
-    Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
+  // Calculate days from now for display purposes ONLY
+  const daysFromNow = segmentDate ? 
+    Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
   
-  let warningMessage = isPDFExport ? 'Historical weather patterns' : 'Based on historical weather patterns';
+  let warningMessage = isPDFExport ? 'Historical weather patterns' : 'Based on historical weather patterns for this date';
   if (daysFromNow && daysFromNow > 5) {
     warningMessage = isPDFExport ? 
       `Historical data (${daysFromNow} days ahead)` :
-      `Historical data (${daysFromNow} days ahead, beyond forecast range)`;
+      `Historical data for this date (${daysFromNow} days ahead, beyond forecast range)`;
   }
   
   return (
@@ -137,7 +138,7 @@ function renderSeasonalEstimate(weather: any, normalizedSegmentDate: Date | null
           isSharedView={isSharedView}
         />
       )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={normalizedSegmentDate} />
+      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
     </div>
   );
 }
