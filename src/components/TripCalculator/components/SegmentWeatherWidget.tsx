@@ -37,19 +37,38 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     setHasApiKey(apiKeyStatus);
   }, [weatherService, segment.endCity, sectionKey]);
 
+  // Enhanced debugging for trip start date issues
+  React.useEffect(() => {
+    console.log(`🔍 DEBUGGING SegmentWeatherWidget for ${segment.endCity}:`, {
+      tripStartDateProvided: !!tripStartDate,
+      tripStartDateType: typeof tripStartDate,
+      tripStartDateValue: tripStartDate,
+      tripStartDateString: tripStartDate ? tripStartDate.toString() : 'null',
+      segmentDay: segment.day,
+      sectionKey
+    });
+  }, [tripStartDate, segment.endCity, segment.day, sectionKey]);
+
   // Use centralized date calculation for consistent results
   const segmentDate = React.useMemo(() => {
+    console.log(`🗓️ Calculating segment date for ${segment.endCity}:`, {
+      tripStartDate,
+      segmentDay: segment.day,
+      hasStartDate: !!tripStartDate
+    });
+
     if (!tripStartDate) {
-      console.log(`⚠️ SegmentWeatherWidget: No trip start date provided for ${segment.endCity}`);
+      console.log(`❌ No trip start date provided for ${segment.endCity}`);
       return null;
     }
     
     const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log(`✅ SegmentWeatherWidget: Calculated segment date for ${segment.endCity} (Day ${segment.day}):`, {
+    console.log(`✅ Segment date calculated for ${segment.endCity} (Day ${segment.day}):`, {
       tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate.toISOString(),
       segmentDay: segment.day,
       calculatedDate: calculatedDate?.toISOString(),
+      calculatedDateString: calculatedDate ? DateNormalizationService.toDateString(calculatedDate) : 'null',
       sectionKey
     });
     
@@ -128,6 +147,16 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       }
     }
   }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate]);
+
+  // Add debug logging for when no date is available
+  if (!segmentDate) {
+    console.log(`⚠️ SegmentWeatherWidget: No segment date available for ${segment.endCity}`, {
+      tripStartDateProvided: !!tripStartDate,
+      tripStartDateValue: tripStartDate,
+      segmentDay: segment.day,
+      willShowFallback: true
+    });
+  }
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
