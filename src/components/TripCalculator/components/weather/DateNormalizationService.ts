@@ -1,8 +1,7 @@
-
 /**
  * Centralized date normalization service for weather modules
  * Ensures consistent date handling across all weather components
- * CRITICAL FIX: Absolute UTC normalization with consistent segment date calculation
+ * CRITICAL FIX: Simplified date normalization to prevent timezone drift
  */
 
 export interface NormalizedSegmentDate {
@@ -16,26 +15,29 @@ export interface NormalizedSegmentDate {
 
 export class DateNormalizationService {
   /**
-   * CRITICAL FIX: Normalize segment date using UTC to prevent timezone drift
-   * This is the SINGLE SOURCE OF TRUTH for date normalization
+   * CRITICAL FIX: Simplified normalize segment date to prevent timezone drift
+   * Creates a clean date object without timezone interference
    */
   static normalizeSegmentDate(date: Date): Date {
-    // Create a new date in UTC timezone with only year/month/day to prevent drift
-    const normalized = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    // FIXED: Create a new date using the original date's components directly
+    // This prevents timezone conversion issues that were causing date drift
+    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🗓️ DateNormalizationService: UTC normalization:', {
+    console.log('🗓️ DateNormalizationService: FIXED normalization (no timezone drift):', {
       input: date.toISOString(),
+      inputLocalDate: date.toDateString(),
       normalized: normalized.toISOString(),
+      normalizedLocalDate: normalized.toDateString(),
       inputDateString: this.toDateString(date),
       normalizedDateString: this.toDateString(normalized),
-      preventsDrift: true
+      noTimezoneShift: true
     });
     
     return normalized;
   }
 
   /**
-   * CRITICAL FIX: Enhanced segment date calculation with absolute validation
+   * CRITICAL FIX: Enhanced segment date calculation with no timezone drift
    * Ensures Day 1 = start date, Day 2 = start date + 1 day, etc.
    */
   static calculateSegmentDate(
@@ -78,15 +80,15 @@ export class DateNormalizationService {
         return null;
       }
       
-      // CRITICAL FIX: First normalize the start date to prevent any initial drift
-      const normalizedStartDate = this.normalizeSegmentDate(validStartDate);
+      // CRITICAL FIX: Use the original date components directly to prevent timezone drift
+      const normalizedStartDate = new Date(validStartDate.getFullYear(), validStartDate.getMonth(), validStartDate.getDate());
       
       // FIXED CALCULATION: Day 1 = start date (no offset), Day 2 = start date + 1, etc.
       const daysToAdd = segmentDay - 1; // Day 1 gets 0 days added, Day 2 gets 1 day added, etc.
       
-      // CRITICAL FIX: Use setUTCDate instead of adding milliseconds to prevent month rollover issues
+      // CRITICAL FIX: Create segment date by adding days to the normalized start date
       const segmentDate = new Date(normalizedStartDate);
-      segmentDate.setUTCDate(normalizedStartDate.getUTCDate() + daysToAdd);
+      segmentDate.setDate(normalizedStartDate.getDate() + daysToAdd);
       
       if (isNaN(segmentDate.getTime())) {
         console.error('❌ DateNormalizationService: Calculated date is invalid', { 
@@ -97,22 +99,22 @@ export class DateNormalizationService {
         });
         return null;
       }
-
-      // CRITICAL FIX: Normalize the final result to ensure absolute UTC alignment
-      const finalNormalizedDate = this.normalizeSegmentDate(segmentDate);
       
-      console.log('✅ DateNormalizationService: Successfully calculated segment date:', {
+      console.log('✅ DateNormalizationService: Successfully calculated segment date (FIXED):', {
         segmentDay,
         daysToAdd,
         originalStartDate: validStartDate.toISOString(),
+        originalStartDateString: validStartDate.toDateString(),
         normalizedStartDate: normalizedStartDate.toISOString(),
-        calculatedSegmentDate: finalNormalizedDate.toISOString(),
-        segmentDateString: this.toDateString(finalNormalizedDate),
+        normalizedStartDateString: normalizedStartDate.toDateString(),
+        calculatedSegmentDate: segmentDate.toISOString(),
+        calculatedSegmentDateString: segmentDate.toDateString(),
+        segmentDateString: this.toDateString(segmentDate),
         calculation: `Day ${segmentDay} = start date + ${daysToAdd} days`,
-        absoluteUTCAlignment: true
+        fixedTimezoneIssue: true
       });
       
-      return finalNormalizedDate;
+      return segmentDate;
       
     } catch (error) {
       console.error('❌ DateNormalizationService: Error calculating segment date:', error, { tripStartDate, segmentDay });
@@ -121,14 +123,14 @@ export class DateNormalizationService {
   }
 
   /**
-   * Convert Date to normalized YYYY-MM-DD string (UTC)
-   * CRITICAL FIX: Uses UTC methods to prevent timezone drift
+   * Convert Date to normalized YYYY-MM-DD string using local date components
+   * CRITICAL FIX: Use local date methods to prevent timezone issues
    */
   static toDateString(date: Date): string {
-    // Use UTC methods to prevent timezone issues
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
+    // FIXED: Use local date methods instead of UTC to prevent timezone shifts
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     
     return `${year}-${month}-${day}`;
   }
@@ -164,7 +166,7 @@ export class DateNormalizationService {
   }
 
   /**
-   * Check if two dates represent the same calendar day using UTC
+   * Check if two dates represent the same calendar day
    */
   static isSameDay(date1: Date, date2: Date): boolean {
     return this.toDateString(date1) === this.toDateString(date2);
