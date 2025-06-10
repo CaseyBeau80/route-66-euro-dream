@@ -1,8 +1,20 @@
 
-import { WeatherData, ForecastDay } from './WeatherServiceTypes';
+import { WeatherData, ForecastDay, WeatherWithForecast } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDataProcessor {
+  static processCurrentWeather(data: any, cityName: string): WeatherData {
+    return {
+      temperature: Math.round(data.main.temp),
+      description: data.weather[0].description,
+      icon: data.weather[0].icon,
+      humidity: data.main.humidity,
+      windSpeed: Math.round(data.wind?.speed || 0),
+      precipitationChance: 0,
+      cityName: cityName
+    };
+  }
+
   static processWeatherData(data: any, cityName: string): WeatherData {
     return {
       temperature: Math.round(data.main.temp),
@@ -11,8 +23,21 @@ export class WeatherDataProcessor {
       humidity: data.main.humidity,
       windSpeed: Math.round(data.wind?.speed || 0),
       precipitationChance: 0,
-      cityName: cityName,
-      forecast: []
+      cityName: cityName
+    };
+  }
+
+  static processWeatherWithForecast(
+    currentData: any,
+    forecastData: any,
+    cityName: string
+  ): WeatherWithForecast {
+    const currentWeather = this.processCurrentWeather(currentData, cityName);
+    const forecast = this.processEnhancedForecastData(forecastData, new Date(), 5);
+    
+    return {
+      current: currentWeather,
+      forecast: forecast
     };
   }
 
@@ -47,7 +72,7 @@ export class WeatherDataProcessor {
 
       // Create forecast entry
       const forecastEntry: ForecastDay = {
-        date: forecastDate,
+        date: forecastDateString, // Use string instead of Date
         dateString: forecastDateString,
         temperature: {
           high: Math.round(item.main.temp_max),

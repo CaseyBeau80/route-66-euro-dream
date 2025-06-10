@@ -96,10 +96,8 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}
-        segmentEndCity={segmentEndCity}
+        cityName={segmentEndCity}
         isSharedView={isSharedView}
-        error={error}
-        retryCount={retryCount}
         isPDFExport={isPDFExport}
       />
     </ErrorBoundary>
