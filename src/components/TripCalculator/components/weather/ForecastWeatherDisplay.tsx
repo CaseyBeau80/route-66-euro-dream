@@ -19,63 +19,43 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
 }) => {
   const { formatSpeed } = useUnits();
   
-  // CRITICAL: Always use the exact segmentDate passed in, never derive from daysFromNow
+  // CRITICAL: Always use the exact segmentDate passed in
   const normalizedSegmentDate = segmentDate ? DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
   
-  // Calculate days from now for display purposes only
+  // Calculate days from now for display purposes only - no offset calculations
   const daysFromNow = normalizedSegmentDate 
     ? Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
 
-  // Date alignment logging for debugging
+  // Simplified date alignment logging
   if (process.env.NODE_ENV === 'development' && normalizedSegmentDate) {
-    console.log(`🗓️ ForecastWeatherDisplay Date Validation for ${weather.cityName}:`, {
-      originalSegmentDate: segmentDate?.toISOString(),
-      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-      normalizedDateString: DateNormalizationService.toDateString(normalizedSegmentDate),
+    console.log(`🗓️ ForecastWeatherDisplay for ${weather.cityName}:`, {
+      segmentDate: DateNormalizationService.toDateString(normalizedSegmentDate),
       daysFromNow,
-      weatherIsActualForecast: weather.isActualForecast,
-      weatherDateMatchInfo: weather.dateMatchInfo
+      isActualForecast: weather.isActualForecast
     });
   }
 
+  // Simplified weather data logging
   console.log('🌤️ ForecastWeatherDisplay render:', {
-    hasHighTemp: weather.highTemp !== undefined,
-    hasLowTemp: weather.lowTemp !== undefined,
-    highTemp: weather.highTemp,
-    lowTemp: weather.lowTemp,
-    tempDifference: weather.highTemp && weather.lowTemp ? weather.highTemp - weather.lowTemp : 'unknown',
-    isActualForecast: weather.isActualForecast,
-    daysFromNow,
     cityName: weather.cityName,
-    description: weather.description,
-    source: (weather as any).source,
-    humidity: weather.humidity,
-    windSpeed: weather.windSpeed,
-    precipitationChance: weather.precipitationChance,
-    segmentDate: segmentDate?.toISOString(),
-    normalizedSegmentDate: normalizedSegmentDate?.toISOString()
+    isActualForecast: weather.isActualForecast,
+    hasValidTemps: !!(weather.highTemp && weather.lowTemp),
+    daysFromNow
   });
 
-  // Check if we should show historical data based on multiple conditions
+  // Check if we should show historical data - simplified logic
   const shouldShowHistorical = !weather.isActualForecast || 
                               (daysFromNow && daysFromNow > 5) || 
-                              weather.description === 'Forecast not available' ||
-                              (weather as any).source === 'historical';
+                              weather.description === 'Forecast not available';
 
-  // Get historical data if needed - ALWAYS use the exact normalized segment date
+  // Get historical data if needed - use exact normalized segment date
   let displayData = weather;
   if (shouldShowHistorical && normalizedSegmentDate) {
-    console.log(`📊 Preparing historical display for ${weather.cityName} using exact segment date`);
-    console.log(`📅 Historical Weather Date Alignment Check:`, {
-      segmentDate: segmentDate?.toISOString(),
-      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-      targetDateString: DateNormalizationService.toDateString(normalizedSegmentDate)
-    });
+    console.log(`📊 Using historical data for ${weather.cityName}`);
     
-    // Check if we already have historical temp data, otherwise fetch it
+    // Check if we need fresh historical data
     if (!weather.lowTemp || !weather.highTemp || weather.lowTemp === weather.highTemp) {
-      console.log(`🔄 Fetching fresh historical data for ${weather.cityName} due to missing or identical temps`);
       const historicalData = getHistoricalWeatherData(weather.cityName, normalizedSegmentDate);
       displayData = {
         ...weather,
@@ -86,29 +66,17 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         windSpeed: historicalData.windSpeed,
         precipitationChance: historicalData.precipitationChance
       };
-      console.log('📊 Enhanced weather with historical data:', {
-        low: displayData.lowTemp,
-        high: displayData.highTemp,
-        difference: displayData.highTemp - displayData.lowTemp,
-        alignedDate: historicalData.alignedDate,
-        targetDate: DateNormalizationService.toDateString(normalizedSegmentDate)
-      });
     }
   }
 
   if (shouldShowHistorical && normalizedSegmentDate) {
-    // FIXED: Generate display date string from the exact normalized segment date using UTC to avoid timezone shifts
-    const displayDateString = new Date(normalizedSegmentDate.getTime()).toLocaleDateString('en-US', { 
+    // Generate display date string from exact normalized segment date
+    const displayDateString = normalizedSegmentDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric',
       timeZone: 'UTC'
     });
-    
-    // Add date validation warning if there's a mismatch
-    const showDateWarning = process.env.NODE_ENV === 'development' && 
-                           weather.dateMatchInfo?.requestedDate &&
-                           weather.dateMatchInfo.requestedDate !== DateNormalizationService.toDateString(normalizedSegmentDate);
     
     return (
       <div className="space-y-3">
@@ -117,21 +85,14 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
           daysFromNow={daysFromNow}
         />
         
-        {showDateWarning && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
-            ⚠️ Weather date may not match segment - expected: {DateNormalizationService.toDateString(normalizedSegmentDate)}, 
-            got: {weather.dateMatchInfo?.requestedDate}
-          </div>
-        )}
-        
         <div className="text-center mb-4">
           <div className="font-semibold text-gray-800 capitalize text-sm">{displayData.description}</div>
           <div className="text-xs text-gray-600">
-            🔸 Historical Avg for {displayDateString}
+            📊 Historical Avg for {displayDateString}
           </div>
         </div>
 
-        {/* Historical Temperature Layout: [💧] [Low] [🌡️] [High] [💨] */}
+        {/* Historical Temperature Layout */}
         {displayData.lowTemp !== undefined && displayData.highTemp !== undefined ? (
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-center gap-3 md:gap-4">
@@ -149,7 +110,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
                 <div className="text-xs text-gray-500">Low</div>
               </div>
               
-              {/* Thermometer Icon for Historical */}
+              {/* Thermometer Icon */}
               <div className="flex flex-col items-center gap-1">
                 <div className="text-2xl">🌡️</div>
                 <div className="text-xs text-gray-500">Avg</div>
@@ -197,8 +158,8 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   // For actual forecasts or current weather within 5 days
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
   
-  // FIXED: Generate display date string from the exact normalized segment date using UTC to avoid timezone shifts
-  const displayDateString = normalizedSegmentDate ? new Date(normalizedSegmentDate.getTime()).toLocaleDateString('en-US', { 
+  // Generate display date string from exact normalized segment date
+  const displayDateString = normalizedSegmentDate ? normalizedSegmentDate.toLocaleDateString('en-US', { 
     weekday: 'short', 
     month: 'short', 
     day: 'numeric',
@@ -220,7 +181,7 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Temperature Layout: [💧] [Low] [Icon] [High] [💨] */}
+      {/* Enhanced Temperature Layout */}
       {weather.isActualForecast && weather.highTemp !== undefined && weather.lowTemp !== undefined ? (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center justify-center gap-3 md:gap-4">

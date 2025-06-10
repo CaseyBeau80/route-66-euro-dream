@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -11,7 +12,7 @@ export interface ForecastWeatherData extends WeatherData {
   lowTemp?: number;
   precipitationChance?: number;
   matchedForecastDay?: ForecastDay;
-  dateMatchInfo: {
+  dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
     matchType: 'exact' | 'closest' | 'none' | 'fallback';
@@ -34,18 +35,12 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    // Use centralized date normalization - CRITICAL for alignment
+    // Use centralized date normalization
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     const daysFromNow = Math.ceil((normalizedTargetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
     console.log(`🌤️ WeatherForecastService: Request for ${cityName} on ${targetDateString}, ${daysFromNow} days from now`);
-    console.log(`🗓️ Date normalization for ${cityName}:`, {
-      originalTargetDate: targetDate.toISOString(),
-      normalizedTargetDate: normalizedTargetDate.toISOString(),
-      targetDateString,
-      daysFromNow
-    });
 
     // Try to get actual forecast if within range
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
@@ -56,7 +51,7 @@ export class WeatherForecastService {
       console.log(`⚠️ WeatherForecastService: API failed, creating enhanced fallback for ${cityName}`);
     }
 
-    // Return enhanced fallback with proper dateMatchInfo
+    // Return enhanced fallback
     return this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
   }
 
@@ -119,15 +114,6 @@ export class WeatherForecastService {
     const currentTemp = currentData.main.temp;
     const tempVariation = 10;
     
-    // Enhanced dateMatchInfo with proper fallback indication and exact date tracking
-    const dateMatchInfo = {
-      requestedDate: targetDateString,
-      matchedDate: DateNormalizationService.toDateString(new Date()),
-      matchType: 'fallback' as const,
-      daysOffset: daysFromNow,
-      source: 'enhanced-fallback' as const
-    };
-    
     return {
       temperature: Math.round(currentTemp),
       highTemp: Math.round(currentTemp + tempVariation/2),
@@ -141,7 +127,13 @@ export class WeatherForecastService {
       forecast: processedForecast,
       forecastDate: targetDate,
       isActualForecast: true,
-      dateMatchInfo
+      dateMatchInfo: {
+        requestedDate: targetDateString,
+        matchedDate: DateNormalizationService.toDateString(new Date()),
+        matchType: 'fallback' as const,
+        daysOffset: daysFromNow,
+        source: 'enhanced-fallback' as const
+      }
     };
   }
 
@@ -164,7 +156,7 @@ export class WeatherForecastService {
       };
     }
     
-    // First try exact date match using string comparison for precision
+    // First try exact date match
     for (const forecast of processedForecast) {
       if (forecast.dateString === targetDateString) {
         console.log(`✅ Exact date match found for ${targetDateString}`);
@@ -202,7 +194,7 @@ export class WeatherForecastService {
     }
     
     if (closestForecast) {
-      console.log(`📍 Closest match found for ${targetDateString}: ${closestForecast.dateString} (${actualOffset} days offset)`);
+      console.log(`📍 Closest match found for ${targetDateString}: ${closestForecast.dateString}`);
       return {
         matchedForecast: closestForecast,
         matchInfo: {
@@ -236,15 +228,6 @@ export class WeatherForecastService {
     const seasonalTemp = this.getSeasonalTemperature(month);
     const tempVariation = 15;
     
-    // Enhanced dateMatchInfo for seasonal estimates with exact date tracking
-    const dateMatchInfo = {
-      requestedDate: targetDateString,
-      matchedDate: 'seasonal-estimate',
-      matchType: 'none' as const,
-      daysOffset: daysFromNow,
-      source: 'seasonal-estimate' as const
-    };
-    
     return {
       temperature: seasonalTemp,
       highTemp: seasonalTemp + tempVariation/2,
@@ -258,7 +241,13 @@ export class WeatherForecastService {
       forecast: [],
       forecastDate: targetDate,
       isActualForecast: false,
-      dateMatchInfo
+      dateMatchInfo: {
+        requestedDate: targetDateString,
+        matchedDate: 'seasonal-estimate',
+        matchType: 'none' as const,
+        daysOffset: daysFromNow,
+        source: 'seasonal-estimate' as const
+      }
     };
   }
 

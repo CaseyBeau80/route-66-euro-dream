@@ -21,7 +21,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * CRITICAL: Uses centralized date normalization to prevent misalignment
+ * Uses centralized date normalization to prevent misalignment
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -52,18 +52,12 @@ export const getWeatherDataForTripDate = async (
     return null;
   }
 
-  // CRITICAL: Normalize the date using centralized service
+  // Normalize the date using centralized service
   const normalizedTripDate = DateNormalizationService.normalizeSegmentDate(validTripDate);
   const normalizedDateString = DateNormalizationService.toDateString(normalizedTripDate);
   const daysFromNow = Math.ceil((normalizedTripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
   console.log(`🌤️ getWeatherDataForTripDate: ${cityName} for ${normalizedDateString}, ${daysFromNow} days from now`);
-  console.log(`🗓️ Date normalization in getWeatherDataForTripDate:`, {
-    originalTripDate: validTripDate.toISOString(),
-    normalizedTripDate: normalizedTripDate.toISOString(),
-    normalizedDateString,
-    daysFromNow
-  });
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -77,35 +71,29 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  // PRIORITY 1: Try to get live forecast if API key is available and date is within range
+  // Try to get live forecast if API key is available and date is within range
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🔮 Attempting live forecast for ${cityName} (${daysFromNow} days ahead) using normalized date: ${normalizedDateString}`);
+    console.log(`🔮 Attempting live forecast for ${cityName} (${daysFromNow} days ahead)`);
     
     try {
       const forecastData: ForecastWeatherData | null = await weatherService.getWeatherForDate(
         coords.lat,
         coords.lng,
         cityName,
-        normalizedTripDate // Pass the normalized date directly
+        normalizedTripDate
       );
       
-      // Check if we got actual forecast data with valid temperatures AND proper date alignment
+      // Check if we got actual forecast data with valid temperatures
       if (forecastData && 
           forecastData.isActualForecast && 
           forecastData.highTemp !== undefined && 
           forecastData.lowTemp !== undefined &&
           forecastData.highTemp > 0 && 
-          forecastData.lowTemp > 0 &&
-          forecastData.dateMatchInfo?.requestedDate === normalizedDateString) {
+          forecastData.lowTemp > 0) {
         
-        console.log(`✅ Got live forecast for ${cityName} with date alignment:`, {
-          requestedDate: normalizedDateString,
-          matchedDate: forecastData.dateMatchInfo.matchedDate,
+        console.log(`✅ Got live forecast for ${cityName}:`, {
           high: forecastData.highTemp + '°F',
-          low: forecastData.lowTemp + '°F',
-          humidity: forecastData.humidity + '%',
-          wind: forecastData.windSpeed + ' mph',
-          precipitation: (forecastData.precipitationChance || 0) + '%'
+          low: forecastData.lowTemp + '°F'
         });
         
         return {
@@ -123,32 +111,21 @@ export const getWeatherDataForTripDate = async (
         };
       }
       
-      console.log(`⚠️ Forecast request returned but no valid aligned data for ${cityName}`, {
-        hasForecastData: !!forecastData,
-        isActualForecast: forecastData?.isActualForecast,
-        hasValidTemps: !!(forecastData?.highTemp && forecastData?.lowTemp),
-        dateAlignment: forecastData?.dateMatchInfo?.requestedDate === normalizedDateString
-      });
+      console.log(`⚠️ Forecast request returned but no valid data for ${cityName}`);
       
     } catch (error) {
       console.error('❌ Error getting live forecast:', error);
     }
-  } else {
-    console.log(`📊 Skipping forecast request for ${cityName}:`, {
-      hasApiKey: weatherService.hasApiKey(),
-      daysFromNow,
-      isWithinRange: daysFromNow >= 0 && daysFromNow <= 5
-    });
   }
   
-  // PRIORITY 2: Fall back to historical/seasonal data using the exact normalized date
-  console.log(`📊 Using historical data for ${cityName} using normalized date: ${normalizedDateString}`);
+  // Fall back to historical/seasonal data using the exact normalized date
+  console.log(`📊 Using historical data for ${cityName}`);
   const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate);
   
-  const historicalDisplay = {
+  return {
     lowTemp: historicalData.low,
     highTemp: historicalData.high,
-    icon: '🌡️', // Thermometer emoji for historical data
+    icon: '🌡️',
     description: historicalData.condition,
     source: 'historical' as const,
     isAvailable: true,
@@ -156,18 +133,6 @@ export const getWeatherDataForTripDate = async (
     windSpeed: historicalData.windSpeed,
     precipitationChance: historicalData.precipitationChance,
     cityName: cityName,
-    isActualForecast: false // This is key - marking it as NOT a forecast
+    isActualForecast: false
   };
-  
-  console.log(`📊 Historical weather data for ${cityName} on ${normalizedDateString}:`, {
-    alignedDate: historicalData.alignedDate,
-    expectedDate: normalizedDateString,
-    high: historicalDisplay.highTemp + '°F',
-    low: historicalDisplay.lowTemp + '°F',
-    humidity: historicalDisplay.humidity + '%',
-    wind: historicalDisplay.windSpeed + ' mph',
-    precipitation: (historicalDisplay.precipitationChance || 0) + '%'
-  });
-  
-  return historicalDisplay;
 };
