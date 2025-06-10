@@ -36,7 +36,7 @@ export class WeatherDataProcessor {
     const forecast = this.processEnhancedForecastData(forecastData, new Date(), 5);
     
     return {
-      current: currentWeather,
+      ...currentWeather,
       forecast: forecast
     };
   }
