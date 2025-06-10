@@ -2,11 +2,14 @@
 import React from 'react';
 import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
 import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
-import PDFDaySegmentCard from '../pdf/PDFDaySegmentCard';
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
 import ErrorBoundary from '../ErrorBoundary';
 import { getDestinationCityWithState } from '../../utils/DestinationUtils';
+import TripOverviewSection from './TripOverviewSection';
+import DailyItinerarySection from './DailyItinerarySection';
+import TravelTipsSection from './TravelTipsSection';
+import DataQualityNotice from './DataQualityNotice';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -133,119 +136,19 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </ErrorBoundary>
 
         {/* Data Quality Notice */}
-        {PDFDataIntegrityService.shouldShowDataQualityNotice(integrityReport) && (
-          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-            <div className="text-sm text-yellow-800">
-              <div className="font-semibold mb-1">
-                {PDFDataIntegrityService.generateDataQualityMessage(integrityReport)}
-              </div>
-              {integrityReport.warnings.length > 0 && (
-                <ul className="text-xs space-y-1 mt-2">
-                  {integrityReport.warnings.slice(0, 2).map((warning, index) => (
-                    <li key={index}>• {warning}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        )}
+        <DataQualityNotice integrityReport={integrityReport} />
 
         {/* Enhanced Trip Overview */}
-        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
-          <h2 className="text-xl font-bold text-blue-800 mb-4 text-center">
-            🛣️ YOUR ROUTE 66 JOURNEY OVERVIEW
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center p-4 bg-white rounded-lg border-2 border-blue-200">
-              <div className="font-bold text-blue-600 text-lg">{sanitizedTripPlan.startCity}</div>
-              <div className="text-gray-600 text-xs mt-1">Starting Point</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-lg border-2 border-blue-200">
-              <div className="font-bold text-blue-600 text-lg">{sanitizedTripPlan.endCity}</div>
-              <div className="text-gray-600 text-xs mt-1">Destination</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-lg border-2 border-blue-200">
-              <div className="font-bold text-red-600 text-lg">{sanitizedTripPlan.totalDays}</div>
-              <div className="text-gray-600 text-xs mt-1">Adventure Days</div>
-            </div>
-            <div className="text-center p-4 bg-white rounded-lg border-2 border-blue-200">
-              <div className="font-bold text-red-600 text-lg">{Math.round(sanitizedTripPlan.totalDistance)}</div>
-              <div className="text-gray-600 text-xs mt-1">Historic Miles</div>
-            </div>
-          </div>
-          
-          {/* Journey Description */}
-          <div className="mt-4 p-4 bg-yellow-50 rounded border border-yellow-200 text-center">
-            <p className="text-sm text-gray-700">
-              <strong>🗺️ Experience America's Main Street:</strong> This carefully planned itinerary takes you through 
-              the heart of Route 66, featuring historic landmarks, classic diners, vintage motels, and unforgettable 
-              roadside attractions that define the spirit of the open road.
-            </p>
-          </div>
-        </div>
+        <TripOverviewSection tripPlan={sanitizedTripPlan} />
 
         {/* Daily Itinerary */}
-        <div className="mb-8">
-          <div className="mb-6 text-center p-4 bg-blue-600 rounded">
-            <h2 className="text-xl font-bold text-white mb-2">
-              📅 DAILY ITINERARY
-            </h2>
-            <p className="text-blue-100 text-sm">
-              Your day-by-day guide to the ultimate Route 66 adventure
-            </p>
-          </div>
-          
-          {enrichedSegments.map((segment, index) => {
-            console.log(`📤 SharedTripContentRenderer: Rendering segment ${index + 1}`, segment);
-            return (
-              <ErrorBoundary 
-                key={`day-${segment.day}-${index}`} 
-                context={`PDFDaySegmentCard-${segment.day}`}
-                silent
-                fallback={
-                  <div className="mb-6 p-4 bg-gray-100 rounded border">
-                    <h3 className="font-bold text-gray-700">Day {segment.day}</h3>
-                    <p className="text-gray-600">Error loading segment details</p>
-                  </div>
-                }
-              >
-                <div className="mb-6">
-                  <PDFDaySegmentCard
-                    segment={segment}
-                    tripStartDate={validTripStartDate}
-                    segmentIndex={index}
-                    exportFormat="full"
-                  />
-                </div>
-              </ErrorBoundary>
-            );
-          })}
-        </div>
+        <DailyItinerarySection 
+          enrichedSegments={enrichedSegments}
+          validTripStartDate={validTripStartDate}
+        />
 
         {/* Travel Tips Section */}
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
-            🛣️ ROUTE 66 TRAVEL TIPS
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="p-3 bg-white rounded border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-2">📱 Planning</h4>
-              <ul className="text-gray-600 space-y-1 text-xs">
-                <li>• Download offline maps as cell service can be spotty</li>
-                <li>• Book accommodations in advance, especially in summer</li>
-                <li>• Check attraction hours before visiting</li>
-              </ul>
-            </div>
-            <div className="p-3 bg-white rounded border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-2">🚗 Driving</h4>
-              <ul className="text-gray-600 space-y-1 text-xs">
-                <li>• Keep your gas tank at least half full</li>
-                <li>• Pack emergency supplies and water</li>
-                <li>• Take frequent breaks to avoid fatigue</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <TravelTipsSection />
 
         {/* Enhanced Footer - Only show QR code in shared view */}
         <ErrorBoundary context="PDFFooter" silent>
