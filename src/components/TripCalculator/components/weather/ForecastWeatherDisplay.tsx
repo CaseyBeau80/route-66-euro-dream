@@ -97,11 +97,12 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   }
 
   if (shouldShowHistorical && normalizedSegmentDate) {
-    // Format the date for display - use the exact normalized segment date
-    const displayDateString = normalizedSegmentDate.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    // FIXED: Generate display date string from the exact normalized segment date using UTC to avoid timezone shifts
+    const displayDateString = new Date(normalizedSegmentDate.getTime()).toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: 'UTC'
     });
     
     // Add date validation warning if there's a mismatch
@@ -196,11 +197,12 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   // For actual forecasts or current weather within 5 days
   const weatherType = weather.isActualForecast ? 'forecast' : 'current';
   
-  // Format the date for display - use the exact normalized segment date
-  const displayDateString = normalizedSegmentDate ? normalizedSegmentDate.toLocaleDateString('en-US', { 
+  // FIXED: Generate display date string from the exact normalized segment date using UTC to avoid timezone shifts
+  const displayDateString = normalizedSegmentDate ? new Date(normalizedSegmentDate.getTime()).toLocaleDateString('en-US', { 
     weekday: 'short', 
     month: 'short', 
-    day: 'numeric' 
+    day: 'numeric',
+    timeZone: 'UTC'
   }) : '';
 
   return (
