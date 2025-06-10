@@ -48,9 +48,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Normalize segment date for consistent handling
+  // Normalize segment date for consistent handling - fix: use correct method with single argument
   const normalizedDate = segmentDate ? 
-    DateNormalizationService.normalizeSegmentDate(segmentDate, 1) : null;
+    DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
 
   // Show debug info only in development and not in PDF exports
   const showDebugInfo = process.env.NODE_ENV === 'development' && 
@@ -115,7 +115,7 @@ function getDisplayStrategy(weather: any, normalizedDate: any, error: string | n
       weather.temperature !== undefined) {
     
     // If within forecast range but not marked as actual forecast
-    if (normalizedDate?.isWithinForecastRange && !weather.isActualForecast) {
+    if (normalizedDate && !weather.isActualForecast) {
       return 'seasonal-estimate';
     }
     
