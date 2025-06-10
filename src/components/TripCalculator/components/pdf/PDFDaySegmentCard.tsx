@@ -52,7 +52,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
         <div className="pdf-weather-section px-4 py-3 bg-route66-vintage-beige border-t border-route66-tan">
           <PDFDaySegmentCardWeather 
             segment={segment}
-            segmentDate={segmentDate}
+            tripStartDate={tripStartDate}
             exportFormat={exportFormat}
           />
         </div>
