@@ -142,29 +142,27 @@ const HISTORICAL_WEATHER_PATTERNS: Record<string, Record<number, { low: number; 
 };
 
 /**
- * CRITICAL FIX: Get historical weather data with STRICT date preservation
- * The input segmentDate MUST be preserved exactly - no normalization or shifting allowed
+ * CRITICAL FIX: Get historical weather data with ABSOLUTE segment date preservation
+ * This function MUST return data tied to the EXACT segment date - no drift allowed
  */
 export const getHistoricalWeatherData = (
   cityName: string, 
   segmentDate: Date
 ): HistoricalWeatherData => {
-  console.log(`📊 SeasonalWeatherService: STRICT date preservation for ${cityName} on exact date ${segmentDate.toISOString()}`);
+  console.log(`📊 SeasonalWeatherService: ABSOLUTE segment date preservation for ${cityName} on exact date ${segmentDate.toISOString()}`);
   
-  // CRITICAL FIX: Use the EXACT input date without any normalization
-  // This prevents timezone shifts and date drift
-  const preservedDateString = DateNormalizationService.toDateString(segmentDate);
+  // CRITICAL: Use the EXACT segment date - no normalization that could cause drift
+  const exactSegmentDateString = DateNormalizationService.toDateString(segmentDate);
   const month = segmentDate.getMonth();
   const dayOfMonth = segmentDate.getDate();
   
-  console.log(`📅 STRICT Historical Weather Date Preservation:`, {
+  console.log(`📅 ABSOLUTE Historical Weather Date Lock:`, {
     inputSegmentDate: segmentDate.toISOString(),
-    preservedDateString,
+    exactSegmentDateString,
     month,
     dayOfMonth,
     cityName,
-    noNormalization: true,
-    strictAlignment: true
+    absoluteDateLock: true
   });
   
   // Get city-specific patterns or use fallback
@@ -173,8 +171,8 @@ export const getHistoricalWeatherData = (
   
   const monthData = cityPatterns[month] || cityPatterns[5]; // Fallback to June
   
-  // Add minimal daily variation based on day of month (but preserve the exact date)
-  const variation = Math.sin(dayOfMonth / 31 * Math.PI) * 2; // Reduced to ±2 degree variation
+  // Add minimal daily variation based on day of month (preserve exact date)
+  const variation = Math.sin(dayOfMonth / 31 * Math.PI) * 2; // ±2 degree variation
   
   const result: HistoricalWeatherData = {
     low: Math.round(monthData.low + variation),
@@ -184,37 +182,23 @@ export const getHistoricalWeatherData = (
     windSpeed: 5 + Math.round(Math.random() * 8), // 5-13 mph
     precipitationChance: monthData.precipitation,
     source: 'seasonal-historical',
-    alignedDate: preservedDateString // CRITICAL: EXACT input date preservation
+    alignedDate: exactSegmentDateString // ABSOLUTE: EXACT segment date lock
   };
   
-  console.log(`📊 PRESERVED Historical weather for ${cityName} on EXACT date ${preservedDateString}:`, {
+  console.log(`📊 ABSOLUTE Historical weather locked to ${cityName} on EXACT date ${exactSegmentDateString}:`, {
     tempRange: `${result.low}°-${result.high}°F`,
     condition: result.condition,
     humidity: `${result.humidity}%`,
     precipitation: `${result.precipitationChance}%`,
-    preservedDateString,
-    strictDateMatch: result.alignedDate === preservedDateString,
-    noDateDrift: true
+    absoluteDateLock: result.alignedDate === exactSegmentDateString,
+    noDriftGuarantee: true
   });
-  
-  // STRICT VALIDATION: Ensure we're returning data for the EXACT input date
-  if (result.alignedDate !== preservedDateString) {
-    console.error(`❌ CRITICAL ERROR: Historical data date mismatch for ${cityName}`, {
-      expected: preservedDateString,
-      actual: result.alignedDate,
-      inputSegmentDate: segmentDate.toISOString(),
-      fatalError: true
-    });
-    
-    // Force correction to prevent any date drift
-    result.alignedDate = preservedDateString;
-  }
   
   return result;
 };
 
 /**
- * STRICT validation that historical data aligns with the expected segment date
+ * ABSOLUTE validation that historical data aligns with the exact segment date
  */
 export const validateHistoricalAlignment = (
   historicalData: HistoricalWeatherData,
@@ -232,7 +216,7 @@ export const validateHistoricalAlignment = (
       alignmentFailure: true
     });
   } else {
-    console.log(`✅ Historical data STRICTLY aligned for ${cityName} on ${expectedDateString}`);
+    console.log(`✅ Historical data ABSOLUTELY aligned for ${cityName} on ${expectedDateString}`);
   }
   
   return isAligned;

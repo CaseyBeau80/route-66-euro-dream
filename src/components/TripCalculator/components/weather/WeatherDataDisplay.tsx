@@ -48,35 +48,26 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // CRITICAL FIX: Always use segmentDate for the forecast label to prevent date drift
-  // This ensures the header shows the correct date regardless of weather data source
+  // CRITICAL FIX: ALWAYS use segmentDate for the forecast label to prevent date drift
+  // This ensures the header shows the EXACT segment date regardless of weather data source
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // PDF SPECIFIC: Enhanced logging to track date alignment
-  if (isPDFExport) {
-    console.log(`📄 PDF WEATHER DISPLAY: Rendering for ${cityName}`, {
-      segmentDate: segmentDate?.toISOString(),
-      forecastLabel,
-      isActualForecast: weather.isActualForecast,
-      weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-data',
-      dateMatchInfo: weather.dateMatchInfo
-    });
-  }
-
-  // Date validation for segment alignment
+  // ABSOLUTE validation for date alignment
   React.useEffect(() => {
     if (segmentDate && weather.dateMatchInfo) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
       const { requestedDate, matchedDate, matchType } = weather.dateMatchInfo;
       
-      if (requestedDate !== expectedDateString && matchType !== 'fallback') {
-        console.warn(`⚠️ Weather data date mismatch for ${cityName}:`, {
+      // Only warn if there's a mismatch and it's not a fallback scenario
+      if (requestedDate !== expectedDateString && matchType !== 'fallback' && matchType !== 'seasonal-estimate') {
+        console.warn(`⚠️ Weather data date mismatch for ${cityName} - FORCING segment date display:`, {
           segmentDate: expectedDateString,
           requestedDate,
           matchedDate,
           matchType,
+          forcingSegmentDateDisplay: true,
           isPDFExport,
           isSharedView
         });
@@ -86,7 +77,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     }
   }, [segmentDate, weather.dateMatchInfo, cityName, isPDFExport, isSharedView]);
 
-  // PRIORITY FIX: Live forecast takes precedence in both preview and PDF
+  // PRIORITY: Live forecast takes absolute precedence over historical data
   const isLiveForecast = weather.isActualForecast === true;
   const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';
   
@@ -134,15 +125,15 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
 
-      {/* Status indicator shows exact date alignment */}
+      {/* Status indicator shows ABSOLUTE segment date alignment */}
       <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
         {isLiveForecast ? (
           weather.dateMatchInfo?.matchType === 'exact' ? `✅ Live forecast for ${forecastLabel}` :
           weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
           `✅ Live forecast for ${forecastLabel}`
         ) : (
-          // CRITICAL FIX: Always show the segment date, not the internal data date
-          `📊 Historical averages shown for your planned travel date (${forecastLabel})`
+          // CRITICAL FIX: ALWAYS show the EXACT segment date, never internal data dates
+          `📊 Historical averages for your travel date: ${forecastLabel}`
         )}
       </div>
 
