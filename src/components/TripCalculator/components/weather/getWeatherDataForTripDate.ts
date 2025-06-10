@@ -21,7 +21,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * CRITICAL FIX: Always aligns weather data to the exact segment date
+ * CRITICAL FIX: Always aligns weather data to the exact segment date and prioritizes live forecasts
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -71,7 +71,7 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  // Try to get live forecast if API key is available and date is within range
+  // PRIORITY FIX: Try to get live forecast first if API key is available and date is within range
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
     console.log(`🔮 Attempting live forecast for ${cityName} on exact date ${normalizedDateString}`);
     
@@ -83,26 +83,19 @@ export const getWeatherDataForTripDate = async (
         normalizedTripDate
       );
       
-      // STRICT VALIDATION: Only accept forecast data that matches our exact date
+      // STRICT VALIDATION: Accept forecast data if it has valid temperatures and is marked as actual forecast
       if (forecastData && 
-          forecastData.isActualForecast && 
+          forecastData.isActualForecast === true && 
           forecastData.highTemp !== undefined && 
           forecastData.lowTemp !== undefined &&
           forecastData.highTemp > 0 && 
           forecastData.lowTemp > 0) {
         
-        // Additional validation: Check if the forecast data aligns with our segment date
-        if (forecastData.dateMatchInfo) {
-          const requestedDateMatch = forecastData.dateMatchInfo.requestedDate === normalizedDateString;
-          if (!requestedDateMatch) {
-            console.warn(`⚠️ Forecast data date mismatch for ${cityName}: requested ${normalizedDateString}, got ${forecastData.dateMatchInfo.requestedDate}`);
-          }
-        }
-        
-        console.log(`✅ Got aligned live forecast for ${cityName} on ${normalizedDateString}:`, {
+        console.log(`✅ LIVE FORECAST PRIORITY: Using live forecast for ${cityName} on ${normalizedDateString}:`, {
           high: forecastData.highTemp + '°F',
           low: forecastData.lowTemp + '°F',
-          alignedToSegmentDate: true
+          isActualForecast: forecastData.isActualForecast,
+          description: forecastData.description
         });
         
         return {
@@ -120,11 +113,17 @@ export const getWeatherDataForTripDate = async (
         };
       }
       
-      console.log(`⚠️ Forecast request returned but no valid aligned data for ${cityName} on ${normalizedDateString}`);
+      console.log(`⚠️ Live forecast request failed validation for ${cityName} on ${normalizedDateString}:`, {
+        hasData: !!forecastData,
+        isActualForecast: forecastData?.isActualForecast,
+        hasValidTemps: !!(forecastData?.highTemp && forecastData?.lowTemp)
+      });
       
     } catch (error) {
       console.error('❌ Error getting live forecast:', error);
     }
+  } else {
+    console.log(`⚠️ Live forecast not attempted for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow}`);
   }
   
   // FALLBACK: Historical data using the EXACT normalized segment date

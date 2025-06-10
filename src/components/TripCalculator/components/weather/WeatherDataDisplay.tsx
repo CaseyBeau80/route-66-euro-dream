@@ -48,11 +48,22 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // CRITICAL FIX: Always use segmentDate for the forecast label
+  // CRITICAL FIX: Always use segmentDate for the forecast label to prevent date drift
   // This ensures the header shows the correct date regardless of weather data source
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
+
+  // PDF SPECIFIC: Enhanced logging to track date alignment
+  if (isPDFExport) {
+    console.log(`📄 PDF WEATHER DISPLAY: Rendering for ${cityName}`, {
+      segmentDate: segmentDate?.toISOString(),
+      forecastLabel,
+      isActualForecast: weather.isActualForecast,
+      weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-data',
+      dateMatchInfo: weather.dateMatchInfo
+    });
+  }
 
   // Date validation for segment alignment
   React.useEffect(() => {
@@ -75,7 +86,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     }
   }, [segmentDate, weather.dateMatchInfo, cityName, isPDFExport, isSharedView]);
 
-  // Fixed display priority logic: Live forecast takes precedence
+  // PRIORITY FIX: Live forecast takes precedence in both preview and PDF
   const isLiveForecast = weather.isActualForecast === true;
   const weatherType = isLiveForecast ? 'live-forecast' : 'historical-average';
   
@@ -130,7 +141,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
           `✅ Live forecast for ${forecastLabel}`
         ) : (
-          `📊 Historical averages for ${forecastLabel}`
+          // CRITICAL FIX: Always show the segment date, not the internal data date
+          `📊 Historical averages shown for your planned travel date (${forecastLabel})`
         )}
       </div>
 

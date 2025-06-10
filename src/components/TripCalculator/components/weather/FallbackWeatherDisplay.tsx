@@ -30,7 +30,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
 
   const isNetworkError = error?.includes('Failed to fetch') || error?.includes('timeout');
 
-  // ALWAYS use segmentDate for the forecast label to ensure consistency
+  // CRITICAL FIX: ALWAYS use segmentDate for the forecast label to prevent date drift
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
@@ -118,9 +118,9 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             </div>
           </div>
 
-          {/* Date validation indicator */}
+          {/* CRITICAL FIX: Always show the planned travel date, not the internal data date */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical averages for {forecastLabel}
+            📊 Historical averages shown for your planned travel date ({forecastLabel})
           </div>
         </div>
       )}
