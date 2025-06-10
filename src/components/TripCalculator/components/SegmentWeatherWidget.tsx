@@ -31,10 +31,40 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   
   const [hasApiKey, setHasApiKey] = React.useState(false);
   
+  // ENHANCED DEBUGGING: Check weather service status
   React.useEffect(() => {
-    weatherService.refreshApiKey();
-    const apiKeyStatus = weatherService.hasApiKey();
-    setHasApiKey(apiKeyStatus);
+    console.log('🔍 WEATHER DEBUG - SegmentWeatherWidget mounted:', {
+      segment: segment.endCity,
+      day: segment.day,
+      sectionKey,
+      tripStartDate: tripStartDate ? (typeof tripStartDate === 'string' ? tripStartDate : tripStartDate.toISOString()) : 'NO_DATE'
+    });
+
+    // Check if weather service exists
+    if (!weatherService) {
+      console.error('❌ WEATHER DEBUG - EnhancedWeatherService is null/undefined');
+      return;
+    }
+
+    console.log('🔍 WEATHER DEBUG - Weather service status:', {
+      weatherServiceExists: !!weatherService,
+      weatherServiceType: typeof weatherService,
+      weatherServiceMethods: Object.getOwnPropertyNames(Object.getPrototypeOf(weatherService))
+    });
+
+    try {
+      weatherService.refreshApiKey();
+      const apiKeyStatus = weatherService.hasApiKey();
+      console.log('🔍 WEATHER DEBUG - API Key status:', {
+        hasApiKey: apiKeyStatus,
+        environmentCheck: !!import.meta.env.VITE_OPENWEATHER_API_KEY,
+        envLength: import.meta.env.VITE_OPENWEATHER_API_KEY?.length || 0
+      });
+      setHasApiKey(apiKeyStatus);
+    } catch (error) {
+      console.error('❌ WEATHER DEBUG - Error checking API key:', error);
+      setHasApiKey(false);
+    }
   }, [weatherService, segment.endCity, sectionKey]);
 
   // Enhanced debugging for trip start date issues
@@ -128,10 +158,11 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   }, [weatherState.weather, segment.endCity, segmentDate, sectionKey]);
 
   const handleApiKeySet = React.useCallback(() => {
+    console.log('🔑 WEATHER DEBUG - handleApiKeySet called for', segment.endCity);
     weatherService.refreshApiKey();
     setHasApiKey(weatherService.hasApiKey());
     weatherHandlers.handleApiKeySet();
-  }, [weatherService, weatherHandlers]);
+  }, [weatherService, weatherHandlers, segment.endCity]);
 
   // Mark weather as ready for PDF export
   React.useEffect(() => {
@@ -157,6 +188,16 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       willShowFallback: true
     });
   }
+
+  // CRITICAL DEBUG: Log the weather state and API key status
+  console.log(`🔍 WEATHER DEBUG - Current state for ${segment.endCity}:`, {
+    hasApiKey,
+    loading: weatherState.loading,
+    hasWeather: !!weatherState.weather,
+    error: weatherState.error,
+    retryCount: weatherState.retryCount,
+    segmentDate: segmentDate?.toISOString()
+  });
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 

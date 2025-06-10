@@ -14,19 +14,29 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
-  // Enhanced debugging for trip start date propagation
+  // CRITICAL DEBUG: Enhanced debugging for trip start date propagation
   React.useEffect(() => {
-    console.log('🗓️ TripItinerary received tripStartDate:', {
+    console.log('🗓️ CRITICAL DEBUG - TripItinerary received tripStartDate:', {
       tripStartDate: tripStartDate?.toISOString(),
       tripStartDateType: typeof tripStartDate,
       isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
       segmentsCount: tripPlan.segments.length,
-      debug: 'TripItinerary component'
+      debug: 'TripItinerary component',
+      rawTripStartDate: tripStartDate,
+      segmentsList: tripPlan.segments.map(s => ({ day: s.day, endCity: s.endCity }))
     });
+
+    // ADDITIONAL DEBUG: Check if we're getting the date at all
+    if (!tripStartDate) {
+      console.error('❌ CRITICAL - No tripStartDate provided to TripItinerary component!');
+      console.log('🔍 TripItinerary props debug:', { tripPlan, tripStartDate });
+    }
   }, [tripStartDate, tripPlan.segments.length]);
 
   // Validate tripStartDate and log any issues
   const validatedTripStartDate = React.useMemo(() => {
+    console.log('🔍 VALIDATING tripStartDate in TripItinerary:', tripStartDate);
+    
     if (!tripStartDate) {
       console.warn('⚠️ TripItinerary: No tripStartDate provided');
       return undefined;
