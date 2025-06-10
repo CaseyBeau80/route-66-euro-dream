@@ -54,12 +54,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // Calculate historical reference date for display (segment date - 1 day for historical data)
-  const historicalReferenceDate = React.useMemo(() => {
-    if (!segmentDate || weather.isActualForecast) return null;
-    return new Date(segmentDate.getTime() - (24 * 60 * 60 * 1000)); // -1 day for historical
-  }, [segmentDate, weather.isActualForecast]);
-
   // ABSOLUTE validation for date alignment - force segment date display
   React.useEffect(() => {
     if (segmentDate) {
@@ -69,7 +63,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         segmentDate: expectedDateString,
         displayLabel: forecastLabel,
         weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-average',
-        historicalReferenceDate: historicalReferenceDate?.toISOString(),
         absoluteDateLock: true,
         isPDFExport,
         isSharedView
@@ -92,7 +85,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         }
       }
     }
-  }, [segmentDate, weather.dateMatchInfo, cityName, forecastLabel, weather.isActualForecast, isPDFExport, isSharedView, historicalReferenceDate]);
+  }, [segmentDate, weather.dateMatchInfo, cityName, forecastLabel, weather.isActualForecast, isPDFExport, isSharedView]);
 
   // PRIORITY: Live forecast takes absolute precedence over historical data
   const isLiveForecast = weather.isActualForecast === true;
@@ -149,10 +142,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
           `✅ Live forecast for ${forecastLabel}`
         ) : (
-          // CRITICAL FIX: Show historical data reference (day before segment date)
-          historicalReferenceDate ? 
-            `📊 Historical averages for ${format(historicalReferenceDate, 'EEEE, MMM d')} (day before arrival)` :
-            `📊 Historical averages for ${forecastLabel}`
+          // CRITICAL FIX: Show historical data for the exact same date (no offset)
+          `📊 Historical averages for ${forecastLabel}`
         )}
       </div>
 

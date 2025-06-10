@@ -21,7 +21,7 @@ export interface WeatherDisplayData {
 
 /**
  * Central utility for handling weather data selection and formatting
- * CRITICAL FIX: ABSOLUTE segment date preservation with live forecast priority
+ * CRITICAL FIX: NO OFFSET - Always use the exact segment date
  */
 export const getWeatherDataForTripDate = async (
   cityName: string,
@@ -53,11 +53,11 @@ export const getWeatherDataForTripDate = async (
     return null;
   }
 
-  // CRITICAL: Use EXACT normalized date - no further manipulation to prevent drift
+  // CRITICAL: Use EXACT normalized date - NO OFFSET
   const exactDateString = DateNormalizationService.toDateString(normalizedTripDate);
   const daysFromNow = Math.ceil((normalizedTripDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🎯 getWeatherDataForTripDate: ${cityName} for ABSOLUTE date ${exactDateString}, ${daysFromNow} days from now`);
+  console.log(`🎯 getWeatherDataForTripDate: ${cityName} for EXACT date ${exactDateString}, ${daysFromNow} days from now`);
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -73,7 +73,7 @@ export const getWeatherDataForTripDate = async (
 
   // PRIORITY 1: Try to get live forecast first if API key is available and date is within range
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🔮 PRIORITY: Attempting live forecast for ${cityName} on ABSOLUTE date ${exactDateString}`);
+    console.log(`🔮 PRIORITY: Attempting live forecast for ${cityName} on EXACT date ${exactDateString}`);
     
     try {
       // Add timeout wrapper for API calls
@@ -143,28 +143,24 @@ export const getWeatherDataForTripDate = async (
     console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (fallback to historical)`);
   }
   
-  // FALLBACK: Historical data using -1 day offset (day before segment date)
-  console.log(`📊 Using historical data for ${cityName} on ABSOLUTE date ${exactDateString} with -1 day offset`);
-  const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate, -1); // Pass exact normalized date with -1 day offset
+  // FALLBACK: Historical data using NO OFFSET - same exact date
+  console.log(`📊 Using historical data for ${cityName} on EXACT date ${exactDateString} with NO OFFSET`);
+  const historicalData = getHistoricalWeatherData(cityName, normalizedTripDate, 0); // NO OFFSET
   
-  // Calculate expected historical date for validation
-  const expectedHistoricalDate = new Date(normalizedTripDate.getTime() - (24 * 60 * 60 * 1000)); // -1 day
-  const expectedHistoricalDateString = DateNormalizationService.toDateString(expectedHistoricalDate);
-  
-  // ABSOLUTE validation that historical data aligns with our expected historical date
-  if (historicalData.alignedDate !== expectedHistoricalDateString) {
+  // ABSOLUTE validation that historical data aligns with our exact segment date
+  const expectedDateString = DateNormalizationService.toDateString(normalizedTripDate);
+  if (historicalData.alignedDate !== expectedDateString) {
     console.error(`❌ CRITICAL: Historical data misalignment for ${cityName}`, {
-      expectedSegmentDate: exactDateString,
-      expectedHistoricalDate: expectedHistoricalDateString,
+      expectedSegmentDate: expectedDateString,
       historicalDate: historicalData.alignedDate,
       inputDateUsed: normalizedTripDate.toISOString(),
-      absoluteAlignmentFailure: true
+      noOffsetRequired: true
     });
     
     // Force correction to prevent display issues
-    historicalData.alignedDate = expectedHistoricalDateString;
+    historicalData.alignedDate = expectedDateString;
   } else {
-    console.log(`✅ Historical data ABSOLUTELY aligned for ${cityName} on historical date ${expectedHistoricalDateString} (day before segment)`);
+    console.log(`✅ Historical data EXACTLY aligned for ${cityName} on exact date ${expectedDateString}`);
   }
   
   return {

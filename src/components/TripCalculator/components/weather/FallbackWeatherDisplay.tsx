@@ -35,40 +35,33 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  // Get historical data ONLY if segmentDate is available - pass EXACT normalized date with -1 day offset
+  // Get historical data using NO OFFSET - exact same date
   const historicalData = React.useMemo(() => {
     if (!segmentDate) return null;
     
     const normalizedDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-    // CRITICAL FIX: Use -1 day offset for historical data (day before segment date)
-    return getHistoricalWeatherData(cityName, normalizedDate, -1);
+    // CRITICAL FIX: Use NO OFFSET - same exact date for historical data
+    return getHistoricalWeatherData(cityName, normalizedDate, 0);
   }, [cityName, segmentDate]);
 
-  // Calculate the historical date for validation (segment date - 1 day)
-  const expectedHistoricalDate = React.useMemo(() => {
-    if (!segmentDate) return null;
-    const normalizedDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-    return new Date(normalizedDate.getTime() - (24 * 60 * 60 * 1000)); // -1 day
-  }, [segmentDate]);
-
-  // STRICT validation that historical data aligns with EXACT historical date (segment date - 1)
+  // STRICT validation that historical data aligns with EXACT segment date
   React.useEffect(() => {
-    if (historicalData && expectedHistoricalDate) {
-      const expectedHistoricalDateString = DateNormalizationService.toDateString(expectedHistoricalDate);
+    if (historicalData && segmentDate) {
+      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
       const actualDateString = historicalData.alignedDate;
       
-      if (expectedHistoricalDateString !== actualDateString) {
+      if (expectedDateString !== actualDateString) {
         console.error(`❌ CRITICAL: Historical data date mismatch for ${cityName}`, {
           expectedSegmentDate: segmentDate?.toISOString(),
-          expectedHistoricalDate: expectedHistoricalDateString,
+          expectedDateString: expectedDateString,
           historicalAlignedDate: actualDateString,
-          strictValidationFailed: true
+          noOffsetShouldMatch: true
         });
       } else {
-        console.log(`✅ Historical data EXACTLY aligned for ${cityName} on historical date ${expectedHistoricalDateString} (day before segment)`);
+        console.log(`✅ Historical data EXACTLY aligned for ${cityName} on segment date ${expectedDateString}`);
       }
     }
-  }, [historicalData, expectedHistoricalDate, cityName, segmentDate]);
+  }, [historicalData, segmentDate, cityName]);
 
   return (
     <div className="space-y-3">
@@ -96,8 +89,8 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
         </div>
       )}
       
-      {/* Historical weather display - only if segment date is available */}
-      {historicalData && segmentDate && expectedHistoricalDate && (
+      {/* Historical weather display - using exact segment date */}
+      {historicalData && segmentDate && (
         <div className="bg-yellow-50 rounded border border-yellow-200 p-3">
           <div className="flex items-center justify-between mb-3">
             <h5 className="font-semibold text-yellow-800">{cityName}</h5>
@@ -132,9 +125,9 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
             </div>
           </div>
 
-          {/* CRITICAL FIX: Show historical data disclaimer with offset info */}
+          {/* CRITICAL FIX: Show exact segment date for historical data */}
           <div className="mt-2 text-xs text-yellow-600 bg-yellow-100 rounded p-2">
-            📊 Historical averages for {format(expectedHistoricalDate, 'EEEE, MMM d')} (day before arrival)
+            📊 Historical averages for {format(segmentDate, 'EEEE, MMM d')}
           </div>
         </div>
       )}

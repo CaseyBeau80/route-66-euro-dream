@@ -86,7 +86,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
           }
         >
           <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            {/* Use the regular SegmentWeatherWidget but with PDF-specific date override */}
+            {/* Use the regular SegmentWeatherWidget with exact segment date */}
             <SegmentWeatherWidget
               segment={segment}
               tripStartDate={segmentDate}

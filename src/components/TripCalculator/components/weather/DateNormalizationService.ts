@@ -2,7 +2,7 @@
 /**
  * Centralized date normalization service for weather modules
  * Ensures consistent date handling across all weather components
- * CRITICAL FIX: Absolute UTC normalization to prevent date drift
+ * CRITICAL FIX: Absolute UTC normalization with NO OFFSET for historical data
  */
 
 export interface NormalizedSegmentDate {
@@ -115,55 +115,6 @@ export class DateNormalizationService {
   }
 
   /**
-   * Normalize segment date from various input formats with enhanced validation
-   */
-  static normalizeSegmentDateFromTrip(
-    tripStartDate: Date | string | null | undefined,
-    segmentDay: number
-  ): NormalizedSegmentDate | null {
-    const segmentDate = this.calculateSegmentDate(tripStartDate, segmentDay);
-    
-    if (!segmentDate) {
-      console.log('🗓️ DateNormalizationService: Could not calculate segment date');
-      return null;
-    }
-
-    // Generate normalized date string (UTC normalized to avoid timezone issues)
-    const segmentDateString = this.toDateString(segmentDate);
-    
-    // Calculate days from now using UTC to prevent timezone issues
-    const now = new Date();
-    const nowUTC = this.normalizeSegmentDate(now);
-    const daysFromNow = Math.ceil((segmentDate.getTime() - nowUTC.getTime()) / (24 * 60 * 60 * 1000));
-    
-    // Check if within forecast range
-    const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 5;
-    
-    // Get season info
-    const { season, seasonEmoji } = this.getSeasonInfo(segmentDate);
-    
-    const result = {
-      segmentDate,
-      segmentDateString,
-      daysFromNow,
-      isWithinForecastRange,
-      season,
-      seasonEmoji
-    };
-    
-    console.log('✅ DateNormalizationService: Normalized date result:', {
-      segmentDay,
-      segmentDateString,
-      daysFromNow,
-      isWithinForecastRange,
-      season,
-      absoluteUTCAlignment: true
-    });
-    
-    return result;
-  }
-
-  /**
    * Convert Date to normalized YYYY-MM-DD string (UTC)
    * CRITICAL FIX: Uses UTC methods to prevent timezone drift
    */
@@ -201,23 +152,23 @@ export class DateNormalizationService {
   }
 
   /**
-   * Validate that a historical weather date matches the expected segment date
+   * Validate that a weather date matches the expected segment date
+   * CRITICAL FIX: No offset validation - dates must match exactly
    */
-  static validateHistoricalDateMatch(
-    historicalDate: Date,
+  static validateWeatherDateMatch(
+    weatherDate: Date,
     expectedSegmentDate: Date,
     cityName: string
   ): boolean {
-    const historicalDateString = this.toDateString(historicalDate);
+    const weatherDateString = this.toDateString(weatherDate);
     const expectedDateString = this.toDateString(expectedSegmentDate);
-    const isMatch = historicalDateString === expectedDateString;
+    const isMatch = weatherDateString === expectedDateString;
     
     if (!isMatch) {
-      console.warn(`⚠️ Historical date mismatch for ${cityName}:`, {
+      console.warn(`⚠️ Weather date mismatch for ${cityName}:`, {
         expected: expectedDateString,
-        historical: historicalDateString,
-        monthDayMatch: historicalDate.getUTCMonth() === expectedSegmentDate.getUTCMonth() && 
-                     historicalDate.getUTCDate() === expectedSegmentDate.getUTCDate()
+        weather: weatherDateString,
+        exactMatchRequired: true
       });
     }
     
