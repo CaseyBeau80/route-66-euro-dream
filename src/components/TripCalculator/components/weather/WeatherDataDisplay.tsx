@@ -26,17 +26,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   retryCount = 0,
   isPDFExport = false
 }) => {
-  console.log(`🎨 WeatherDataDisplay: Rendering for ${segmentEndCity}:`, {
-    hasWeather: !!weather,
-    isActualForecast: weather?.isActualForecast,
-    hasDateMatchInfo: !!weather?.dateMatchInfo,
-    dateMatchSource: weather?.dateMatchInfo?.source,
-    matchType: weather?.dateMatchInfo?.matchType,
-    segmentDate: segmentDate?.toISOString(),
-    isPDFExport
-  });
-
-  // Enhanced validation
+  // Enhanced validation with date alignment logging
   if (!weather) {
     return (
       <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -48,34 +38,58 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Normalize segment date for consistent handling - fix: use correct method with single argument
-  const normalizedDate = segmentDate ? 
+  // Normalize segment date for consistent handling across all weather displays
+  const normalizedSegmentDate = segmentDate ? 
     DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
+
+  // CRITICAL: Date alignment logging for debugging
+  if (process.env.NODE_ENV === 'development' && normalizedSegmentDate) {
+    console.log(`🗓️ WeatherDataDisplay Date Alignment for ${segmentEndCity}:`, {
+      originalSegmentDate: segmentDate?.toISOString(),
+      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
+      normalizedDateString: DateNormalizationService.toDateString(normalizedSegmentDate),
+      weatherDateMatchInfo: weather.dateMatchInfo,
+      isActualForecast: weather.isActualForecast
+    });
+
+    // Check for date misalignment and warn
+    if (weather.dateMatchInfo?.requestedDate) {
+      const expectedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
+      if (weather.dateMatchInfo.requestedDate !== expectedDateString) {
+        console.warn(`⚠️ DATE MISMATCH DETECTED for ${segmentEndCity}:`, {
+          segmentDate: expectedDateString,
+          weatherRequestedDate: weather.dateMatchInfo.requestedDate,
+          weatherMatchedDate: weather.dateMatchInfo.matchedDate
+        });
+      }
+    }
+  }
 
   // Show debug info only in development and not in PDF exports
   const showDebugInfo = process.env.NODE_ENV === 'development' && 
                        !isPDFExport && 
                        weather?.dateMatchInfo?.matchType !== 'exact';
 
-  // Determine display strategy based on data quality and source
-  const displayStrategy = getDisplayStrategy(weather, normalizedDate, error, retryCount);
+  // Determine display strategy based on data quality and exact date alignment
+  const displayStrategy = getDisplayStrategy(weather, normalizedSegmentDate, error, retryCount);
   
   console.log(`🎯 Display strategy for ${segmentEndCity}:`, {
     strategy: displayStrategy,
     isActualForecast: weather.isActualForecast,
     dateMatchSource: weather?.dateMatchInfo?.source,
-    matchType: weather?.dateMatchInfo?.matchType
+    matchType: weather?.dateMatchInfo?.matchType,
+    normalizedSegmentDate: normalizedSegmentDate?.toISOString()
   });
 
   switch (displayStrategy) {
     case 'live-forecast':
-      return renderLiveForecast(weather, segmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity);
+      return renderLiveForecast(weather, normalizedSegmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity);
       
     case 'enhanced-fallback':
-      return renderEnhancedFallback(weather, segmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity);
+      return renderEnhancedFallback(weather, normalizedSegmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity);
       
     case 'seasonal-estimate':
-      return renderSeasonalEstimate(weather, segmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity, normalizedDate);
+      return renderSeasonalEstimate(weather, normalizedSegmentDate, showDebugInfo, isPDFExport, isSharedView, segmentEndCity);
       
     case 'service-unavailable':
       return renderServiceUnavailable(error, isPDFExport, segmentEndCity);
@@ -85,8 +99,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   }
 };
 
-// Display strategy determination
-function getDisplayStrategy(weather: any, normalizedDate: any, error: string | null, retryCount: number): string {
+// Enhanced display strategy determination with strict date validation
+function getDisplayStrategy(weather: any, normalizedSegmentDate: Date | null, error: string | null, retryCount: number): string {
   // Error conditions
   if (error && retryCount > 3) {
     return 'service-unavailable';
@@ -97,37 +111,36 @@ function getDisplayStrategy(weather: any, normalizedDate: any, error: string | n
     return 'service-unavailable';
   }
 
-  // Check for live forecast data
-  if (weather.isActualForecast === true && weather.dateMatchInfo) {
-    const { source, matchType } = weather.dateMatchInfo;
+  // Check for live forecast data with proper date alignment
+  if (weather.isActualForecast === true && weather.dateMatchInfo && normalizedSegmentDate) {
+    const { source, matchType, requestedDate } = weather.dateMatchInfo;
+    const expectedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    if (source === 'api-forecast' && (matchType === 'exact' || matchType === 'closest')) {
-      return 'live-forecast';
-    }
-    
-    if (source === 'enhanced-fallback') {
-      return 'enhanced-fallback';
+    // Verify date alignment before using forecast
+    if (requestedDate === expectedDateString) {
+      if (source === 'api-forecast' && (matchType === 'exact' || matchType === 'closest')) {
+        return 'live-forecast';
+      }
+      
+      if (source === 'enhanced-fallback') {
+        return 'enhanced-fallback';
+      }
+    } else {
+      console.warn('⚠️ Date misalignment detected, using seasonal estimate instead');
     }
   }
 
-  // Check for valid temperature data
+  // Check for valid temperature data - use seasonal estimate for consistency
   if ((weather.highTemp !== undefined && weather.lowTemp !== undefined) || 
       weather.temperature !== undefined) {
-    
-    // If within forecast range but not marked as actual forecast
-    if (normalizedDate && !weather.isActualForecast) {
-      return 'seasonal-estimate';
-    }
-    
-    // Has temperature data but beyond forecast range
     return 'seasonal-estimate';
   }
 
   return 'service-unavailable';
 }
 
-// Render functions for each strategy
-function renderLiveForecast(weather: any, segmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string) {
+// Render functions for each strategy - now all use normalizedSegmentDate
+function renderLiveForecast(weather: any, normalizedSegmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string) {
   const forecastWeather = weather as ForecastWeatherData;
   
   let warningMessage = isPDFExport ? 'Live weather forecast' : 'Live forecast from OpenWeatherMap';
@@ -145,11 +158,11 @@ function renderLiveForecast(weather: any, segmentDate: Date | null, showDebugInf
           isSharedView={isSharedView}
         />
       )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={normalizedSegmentDate} />
       {showDebugInfo && (
         <WeatherDateMatchDebug
           weather={forecastWeather}
-          segmentDate={segmentDate}
+          segmentDate={normalizedSegmentDate}
           segmentEndCity={segmentEndCity}
           isVisible={showDebugInfo}
         />
@@ -158,7 +171,7 @@ function renderLiveForecast(weather: any, segmentDate: Date | null, showDebugInf
   );
 }
 
-function renderEnhancedFallback(weather: any, segmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string) {
+function renderEnhancedFallback(weather: any, normalizedSegmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string) {
   const forecastWeather = weather as ForecastWeatherData;
   
   const warningMessage = isPDFExport ? 
@@ -174,11 +187,11 @@ function renderEnhancedFallback(weather: any, segmentDate: Date | null, showDebu
           isSharedView={isSharedView}
         />
       )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={normalizedSegmentDate} />
       {showDebugInfo && (
         <WeatherDateMatchDebug
           weather={forecastWeather}
-          segmentDate={segmentDate}
+          segmentDate={normalizedSegmentDate}
           segmentEndCity={segmentEndCity}
           isVisible={showDebugInfo}
         />
@@ -187,14 +200,18 @@ function renderEnhancedFallback(weather: any, segmentDate: Date | null, showDebu
   );
 }
 
-function renderSeasonalEstimate(weather: any, segmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string, normalizedDate: any) {
+function renderSeasonalEstimate(weather: any, normalizedSegmentDate: Date | null, showDebugInfo: boolean, isPDFExport: boolean, isSharedView: boolean, segmentEndCity: string) {
   const forecastWeather = weather as ForecastWeatherData;
   
+  // Calculate days from now using normalized dates for display purposes only
+  const daysFromNow = normalizedSegmentDate ? 
+    Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null;
+  
   let warningMessage = isPDFExport ? 'Historical weather patterns' : 'Based on historical weather patterns';
-  if (normalizedDate?.daysFromNow > 5) {
+  if (daysFromNow && daysFromNow > 5) {
     warningMessage = isPDFExport ? 
-      `Historical data (${normalizedDate.daysFromNow} days ahead)` :
-      `Historical data (${normalizedDate.daysFromNow} days ahead, beyond forecast range)`;
+      `Historical data (${daysFromNow} days ahead)` :
+      `Historical data (${daysFromNow} days ahead, beyond forecast range)`;
   }
   
   return (
@@ -206,11 +223,11 @@ function renderSeasonalEstimate(weather: any, segmentDate: Date | null, showDebu
           isSharedView={isSharedView}
         />
       )}
-      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={segmentDate} />
+      <ForecastWeatherDisplay weather={forecastWeather} segmentDate={normalizedSegmentDate} />
       {showDebugInfo && (
         <WeatherDateMatchDebug
           weather={forecastWeather}
-          segmentDate={segmentDate}
+          segmentDate={normalizedSegmentDate}
           segmentEndCity={segmentEndCity}
           isVisible={showDebugInfo}
         />

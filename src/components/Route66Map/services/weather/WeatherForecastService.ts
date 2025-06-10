@@ -34,22 +34,22 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    // Use centralized date normalization
+    // Use centralized date normalization - CRITICAL for alignment
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
-    const normalizedDateFromTrip = DateNormalizationService.normalizeSegmentDateFromTrip(normalizedTargetDate, 1);
+    const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
+    const daysFromNow = Math.ceil((normalizedTargetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
-    if (!normalizedDateFromTrip) {
-      console.error('❌ WeatherForecastService: Could not normalize target date');
-      return null;
-    }
-
-    const { daysFromNow, segmentDateString } = normalizedDateFromTrip;
-    
-    console.log(`🌤️ WeatherForecastService: Request for ${cityName} on ${segmentDateString}, ${daysFromNow} days from now`);
+    console.log(`🌤️ WeatherForecastService: Request for ${cityName} on ${targetDateString}, ${daysFromNow} days from now`);
+    console.log(`🗓️ Date normalization for ${cityName}:`, {
+      originalTargetDate: targetDate.toISOString(),
+      normalizedTargetDate: normalizedTargetDate.toISOString(),
+      targetDateString,
+      daysFromNow
+    });
 
     // Try to get actual forecast if within range
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
-      const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, normalizedDateFromTrip);
+      const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
       if (actualForecast) {
         return actualForecast;
       }
@@ -57,7 +57,7 @@ export class WeatherForecastService {
     }
 
     // Return enhanced fallback with proper dateMatchInfo
-    return this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, normalizedDateFromTrip);
+    return this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
   }
 
   private async getActualForecast(
@@ -65,13 +65,14 @@ export class WeatherForecastService {
     lng: number, 
     cityName: string, 
     targetDate: Date, 
-    normalizedDate: any
+    targetDateString: string,
+    daysFromNow: number
   ): Promise<ForecastWeatherData | null> {
     try {
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
-      const matchResult = this.findBestForecastMatch(processedForecast, targetDate, normalizedDate.segmentDateString);
+      const matchResult = this.findBestForecastMatch(processedForecast, targetDate, targetDateString);
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
@@ -99,7 +100,7 @@ export class WeatherForecastService {
           }
         };
       } else {
-        return this.createEnhancedForecastFromCurrent(currentData, cityName, targetDate, normalizedDate, processedForecast);
+        return this.createEnhancedForecastFromCurrent(currentData, cityName, targetDate, targetDateString, daysFromNow, processedForecast);
       }
     } catch (error) {
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
@@ -111,18 +112,19 @@ export class WeatherForecastService {
     currentData: any,
     cityName: string,
     targetDate: Date,
-    normalizedDate: any,
+    targetDateString: string,
+    daysFromNow: number,
     processedForecast: ForecastDay[]
   ): ForecastWeatherData {
     const currentTemp = currentData.main.temp;
     const tempVariation = 10;
     
-    // Enhanced dateMatchInfo with proper fallback indication
+    // Enhanced dateMatchInfo with proper fallback indication and exact date tracking
     const dateMatchInfo = {
-      requestedDate: normalizedDate.segmentDateString,
+      requestedDate: targetDateString,
       matchedDate: DateNormalizationService.toDateString(new Date()),
       matchType: 'fallback' as const,
-      daysOffset: normalizedDate.daysFromNow,
+      daysOffset: daysFromNow,
       source: 'enhanced-fallback' as const
     };
     
@@ -162,9 +164,10 @@ export class WeatherForecastService {
       };
     }
     
-    // First try exact date match
+    // First try exact date match using string comparison for precision
     for (const forecast of processedForecast) {
       if (forecast.dateString === targetDateString) {
+        console.log(`✅ Exact date match found for ${targetDateString}`);
         return {
           matchedForecast: forecast,
           matchInfo: {
@@ -199,6 +202,7 @@ export class WeatherForecastService {
     }
     
     if (closestForecast) {
+      console.log(`📍 Closest match found for ${targetDateString}: ${closestForecast.dateString} (${actualOffset} days offset)`);
       return {
         matchedForecast: closestForecast,
         matchInfo: {
@@ -210,6 +214,7 @@ export class WeatherForecastService {
       };
     }
     
+    console.log(`❌ No suitable forecast match found for ${targetDateString}`);
     return {
       matchedForecast: null,
       matchInfo: {
@@ -224,18 +229,19 @@ export class WeatherForecastService {
   private getEnhancedFallbackForecast(
     cityName: string, 
     targetDate: Date, 
-    normalizedDate: any
+    targetDateString: string,
+    daysFromNow: number
   ): ForecastWeatherData {
     const month = targetDate.getMonth();
     const seasonalTemp = this.getSeasonalTemperature(month);
     const tempVariation = 15;
     
-    // Enhanced dateMatchInfo for seasonal estimates
+    // Enhanced dateMatchInfo for seasonal estimates with exact date tracking
     const dateMatchInfo = {
-      requestedDate: normalizedDate.segmentDateString,
+      requestedDate: targetDateString,
       matchedDate: 'seasonal-estimate',
       matchType: 'none' as const,
-      daysOffset: normalizedDate.daysFromNow,
+      daysOffset: daysFromNow,
       source: 'seasonal-estimate' as const
     };
     

@@ -19,13 +19,25 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
 }) => {
   const { formatSpeed } = useUnits();
   
-  // GUARD CLAUSE: Prevent historical blocks from using offset calculations
-  // Always use the exact segmentDate passed in, never derive from daysFromNow
+  // CRITICAL: Always use the exact segmentDate passed in, never derive from daysFromNow
   const normalizedSegmentDate = segmentDate ? DateNormalizationService.normalizeSegmentDate(segmentDate) : null;
   
+  // Calculate days from now for display purposes only
   const daysFromNow = normalizedSegmentDate 
     ? Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
+
+  // Date alignment logging for debugging
+  if (process.env.NODE_ENV === 'development' && normalizedSegmentDate) {
+    console.log(`🗓️ ForecastWeatherDisplay Date Validation for ${weather.cityName}:`, {
+      originalSegmentDate: segmentDate?.toISOString(),
+      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
+      normalizedDateString: DateNormalizationService.toDateString(normalizedSegmentDate),
+      daysFromNow,
+      weatherIsActualForecast: weather.isActualForecast,
+      weatherDateMatchInfo: weather.dateMatchInfo
+    });
+  }
 
   console.log('🌤️ ForecastWeatherDisplay render:', {
     hasHighTemp: weather.highTemp !== undefined,
@@ -54,11 +66,11 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
   // Get historical data if needed - ALWAYS use the exact normalized segment date
   let displayData = weather;
   if (shouldShowHistorical && normalizedSegmentDate) {
-    console.log(`📊 Preparing historical display for ${weather.cityName} (${daysFromNow} days ahead)`);
+    console.log(`📊 Preparing historical display for ${weather.cityName} using exact segment date`);
     console.log(`📅 Historical Weather Date Alignment Check:`, {
       segmentDate: segmentDate?.toISOString(),
       normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-      weatherDate: DateNormalizationService.toDateString(normalizedSegmentDate)
+      targetDateString: DateNormalizationService.toDateString(normalizedSegmentDate)
     });
     
     // Check if we already have historical temp data, otherwise fetch it
@@ -78,7 +90,8 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
         low: displayData.lowTemp,
         high: displayData.highTemp,
         difference: displayData.highTemp - displayData.lowTemp,
-        alignedDate: historicalData.alignedDate
+        alignedDate: historicalData.alignedDate,
+        targetDate: DateNormalizationService.toDateString(normalizedSegmentDate)
       });
     }
   }
@@ -91,12 +104,24 @@ const ForecastWeatherDisplay: React.FC<ForecastWeatherDisplayProps> = ({
       day: 'numeric' 
     });
     
+    // Add date validation warning if there's a mismatch
+    const showDateWarning = process.env.NODE_ENV === 'development' && 
+                           weather.dateMatchInfo?.requestedDate &&
+                           weather.dateMatchInfo.requestedDate !== DateNormalizationService.toDateString(normalizedSegmentDate);
+    
     return (
       <div className="space-y-3">
         <WeatherStatusBadge 
           type="historical"
           daysFromNow={daysFromNow}
         />
+        
+        {showDateWarning && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
+            ⚠️ Weather date may not match segment - expected: {DateNormalizationService.toDateString(normalizedSegmentDate)}, 
+            got: {weather.dateMatchInfo?.requestedDate}
+          </div>
+        )}
         
         <div className="text-center mb-4">
           <div className="font-semibold text-gray-800 capitalize text-sm">{displayData.description}</div>
