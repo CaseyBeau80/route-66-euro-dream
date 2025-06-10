@@ -28,16 +28,11 @@ export const validateWeatherData = (
   cityName: string,
   segmentDate?: Date | null
 ): WeatherValidationResult => {
-  console.log(`🔍 WeatherValidationService: Enhanced validation for ${cityName}:`, {
+  console.log(`🔍 WeatherValidationService: Validating for ${cityName}:`, {
     hasWeather: !!weather,
     isActualForecast: weather?.isActualForecast,
-    hasDateMatchInfo: !!weather?.dateMatchInfo,
-    matchType: weather?.dateMatchInfo?.matchType,
     hasHighTemp: weather?.highTemp !== undefined,
     hasLowTemp: weather?.lowTemp !== undefined,
-    daysOffset: weather?.dateMatchInfo?.daysOffset,
-    hasTemperatureInWeather: weather?.temperature !== undefined,
-    hasForecastArray: !!weather?.forecast?.length,
     segmentDate: segmentDate?.toISOString()
   });
 
@@ -58,9 +53,9 @@ export const validateWeatherData = (
 
   const hasActualForecast = weather.isActualForecast === true;
   
-  // **RELAXED VALIDATION**: If it's actual forecast with high/low temps, it's valid
+  // Prioritize actual forecast with high/low temps
   if (hasActualForecast && hasHighLowTemps(weather)) {
-    console.log(`✅ Live forecast validation passed for ${cityName} - has actual forecast with temps`);
+    console.log(`✅ Live forecast validation passed for ${cityName}`);
     return {
       isValid: true,
       hasActualForecast: true,
@@ -73,7 +68,7 @@ export const validateWeatherData = (
     };
   }
 
-  // Enhanced temperature range validation - check multiple sources
+  // Enhanced temperature range validation
   const hasTemperatureRange = (
     (weather.highTemp !== undefined && weather.lowTemp !== undefined) ||
     (weather.temperature !== undefined) ||
@@ -83,39 +78,22 @@ export const validateWeatherData = (
   const hasMatchedForecast = weather.matchedForecastDay !== undefined || 
                             (weather.forecast && weather.forecast.length > 0);
   
-  // Enhanced days calculation with bulletproof fallback methods
+  // Calculate days from now
   let daysFromNow: number | null = null;
   
   if (weather.dateMatchInfo?.daysOffset !== undefined) {
     daysFromNow = weather.dateMatchInfo.daysOffset;
-    console.log(`📅 Using dateMatchInfo.daysOffset: ${daysFromNow}`);
   } else if (weather.forecastDate) {
-    // Fallback: calculate from forecast date
     const forecastDate = new Date(weather.forecastDate);
     const now = new Date();
     daysFromNow = Math.ceil((forecastDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-    console.log(`📅 Calculated daysFromNow from forecastDate: ${daysFromNow}`);
   } else if (segmentDate) {
-    // Calculate from segmentDate parameter
     const now = new Date();
     daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-    console.log(`📅 Calculated daysFromNow from segmentDate parameter: ${daysFromNow}`);
     warnings.push('Date calculated from segment date (dateMatchInfo missing)');
-  } else {
-    console.log(`⚠️ No date information available for ${cityName}`);
   }
 
-  // Enhanced forecast range validation - now supports 5 days
   const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
-
-  console.log(`📊 Enhanced analysis for ${cityName}:`, {
-    hasActualForecast,
-    hasTemperatureRange,
-    hasMatchedForecast,
-    daysFromNow,
-    isWithinForecastRange,
-    matchType: weather.dateMatchInfo?.matchType || 'no-match-info'
-  });
 
   // Quality assessment
   let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'unavailable';
@@ -127,7 +105,6 @@ export const validateWeatherData = (
       dataQuality = 'good';
       warnings.push(`Date match is approximate (${weather.dateMatchInfo.daysOffset} days offset)`);
     } else if (isWithinForecastRange) {
-      // Even without dateMatchInfo, if we have actual forecast within range, it's good
       dataQuality = 'good';
       warnings.push('Live forecast data available (dateMatchInfo incomplete)');
     } else if (daysFromNow !== null && daysFromNow > 5) {
@@ -138,7 +115,6 @@ export const validateWeatherData = (
       warnings.push('Limited forecast information available');
     }
   } else if (hasTemperatureRange || weather.temperature !== undefined) {
-    // If we have some temperature data, even without full forecast info
     dataQuality = 'fair';
     warnings.push('Partial weather data available');
   } else {
@@ -157,7 +133,7 @@ export const validateWeatherData = (
     warnings
   };
 
-  console.log(`✅ Final enhanced validation for ${cityName}:`, result);
+  console.log(`✅ Final validation for ${cityName}:`, result);
   return result;
 };
 
@@ -167,12 +143,11 @@ export const getWeatherDisplayType = (
   retryCount: number,
   weather?: any
 ): WeatherDisplayType => {
-  console.log(`🎯 Enhanced display type determination:`, {
+  console.log(`🎯 Display type determination:`, {
     validation,
     error,
     retryCount,
-    hasActualForecast: weather?.isActualForecast,
-    isWithinRange: validation.isWithinForecastRange
+    hasActualForecast: weather?.isActualForecast
   });
 
   // Handle error states first
@@ -185,9 +160,9 @@ export const getWeatherDisplayType = (
     return 'loading';
   }
 
-  // **PRIORITY FIX**: Prioritize actual forecast data regardless of validation completeness
+  // Prioritize actual forecast data
   if (weather?.isActualForecast === true && hasHighLowTemps(weather)) {
-    console.log(`🌤️ Live forecast prioritized for actual forecast data`);
+    console.log(`🌤️ Live forecast prioritized`);
     return 'live-forecast';
   }
 

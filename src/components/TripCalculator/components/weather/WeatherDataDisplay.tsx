@@ -1,57 +1,25 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { DateNormalizationService } from './DateNormalizationService';
 import { format } from 'date-fns';
-import { validateWeatherData, getWeatherDisplayType } from './WeatherValidationService';
+import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDataDisplayProps {
-  weather: ForecastWeatherData;
+  weather: ForecastWeatherData | null;
   segmentDate?: Date | null;
   cityName: string;
+  error?: string | null;
+  onRetry?: () => void;
   isSharedView?: boolean;
   isPDFExport?: boolean;
 }
-
-// Helper function to determine display strategy
-const getDisplayStrategy = (weather: any, segmentDate: Date | null, cityName: string) => {
-  // **PRIORITY FIX**: Always prioritize live forecasts when available
-  if (weather?.isActualForecast === true) {
-    console.warn('[Weather Display Decision] Using LIVE FORECAST', {
-      cityName,
-      segmentDate: segmentDate?.toISOString(),
-      isActualForecast: weather.isActualForecast,
-      hasHighTemp: !!weather.highTemp,
-      hasLowTemp: !!weather.lowTemp,
-      strategy: 'forecast'
-    });
-    return 'forecast';
-  }
-
-  // Run validation for other cases
-  const validationResult = validateWeatherData(weather, cityName, segmentDate);
-  
-  console.warn('[Weather Display Decision] Validation result', {
-    cityName,
-    segmentDate: segmentDate?.toISOString(),
-    isActualForecast: weather?.isActualForecast,
-    validation: validationResult,
-    forecastDate: weather?.forecastDate,
-    strategy: validationResult?.dataQuality === 'unavailable' ? 'historical' : 'forecast'
-  });
-
-  // If validation indicates historical data or unavailable
-  if (validationResult?.dataQuality === 'unavailable') {
-    return 'historical';
-  }
-
-  return 'forecast';
-};
 
 const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({ 
   weather, 
   segmentDate,
   cityName,
+  error,
+  onRetry,
   isSharedView = false,
   isPDFExport = false
 }) => {
@@ -60,32 +28,31 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     segmentDate: segmentDate?.toISOString(),
     hasWeather: !!weather,
     isActualForecast: weather?.isActualForecast,
+    hasError: !!error,
     isSharedView,
     isPDFExport
   });
 
-  if (!weather) {
+  // If there's an error or no weather data, show fallback
+  if (error || !weather) {
     return (
-      <div className="bg-gray-50 rounded border border-gray-200 p-3 text-center">
-        <div className="text-sm text-gray-500 mb-2">
-          📊 Weather data unavailable
-        </div>
-        <div className="text-xs text-gray-400">
-          Unable to fetch weather information
-        </div>
-      </div>
+      <FallbackWeatherDisplay
+        cityName={cityName}
+        segmentDate={segmentDate}
+        onRetry={onRetry}
+        error={error || undefined}
+        showRetryButton={!isSharedView && !isPDFExport}
+      />
     );
   }
 
-  // Determine display strategy using updated logic
-  const displayStrategy = getDisplayStrategy(weather, segmentDate, cityName);
-
-  // Generate accurate forecast label based on segment date
+  // Generate forecast label based on segment date
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
 
-  const isHistorical = displayStrategy === 'historical' || !weather.isActualForecast;
+  // Determine if this is historical data vs live forecast
+  const isHistorical = !weather.isActualForecast;
   const bgClass = isHistorical ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200';
   const textClass = isHistorical ? 'text-yellow-800' : 'text-blue-800';
   const labelClass = isHistorical ? 'text-yellow-700 bg-yellow-100' : 'text-blue-600 bg-blue-100';
@@ -132,6 +99,18 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       <div className={`mt-2 text-xs rounded p-2 ${isHistorical ? 'text-yellow-600 bg-yellow-100' : 'text-blue-500 bg-blue-100'}`}>
         {isHistorical ? '📊 Historical seasonal averages' : '✅ Live forecast data'}
       </div>
+
+      {/* Retry button for errors in non-shared views */}
+      {error && onRetry && !isSharedView && !isPDFExport && (
+        <div className="mt-2">
+          <button
+            onClick={onRetry}
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            Retry weather fetch
+          </button>
+        </div>
+      )}
     </div>
   );
 };
