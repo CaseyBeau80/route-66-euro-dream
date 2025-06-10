@@ -82,7 +82,6 @@ export class DateNormalizationService {
       const normalizedStartDate = this.normalizeSegmentDate(validStartDate);
       
       // FIXED CALCULATION: Day 1 = start date (no offset), Day 2 = start date + 1, etc.
-      // This was the core bug - we were adding (segmentDay - 1) but the logic was inconsistent
       const daysToAdd = segmentDay - 1; // Day 1 gets 0 days added, Day 2 gets 1 day added, etc.
       
       // Use UTC methods to prevent timezone issues during calculation
@@ -131,6 +130,36 @@ export class DateNormalizationService {
     const day = String(date.getUTCDate()).padStart(2, '0');
     
     return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Enhanced date validation with comprehensive logging
+   */
+  static validateDateAlignment(
+    actualDate: Date,
+    expectedDate: Date,
+    context: string
+  ): boolean {
+    const actualDateString = this.toDateString(actualDate);
+    const expectedDateString = this.toDateString(expectedDate);
+    const isAligned = actualDateString === expectedDateString;
+    
+    if (!isAligned) {
+      console.error(`❌ DATE MISALIGNMENT in ${context}:`, {
+        expected: expectedDateString,
+        actual: actualDateString,
+        expectedISO: expectedDate.toISOString(),
+        actualISO: actualDate.toISOString(),
+        context
+      });
+    } else {
+      console.log(`✅ DATE ALIGNMENT CONFIRMED in ${context}:`, {
+        aligned: expectedDateString,
+        context
+      });
+    }
+    
+    return isAligned;
   }
 
   /**

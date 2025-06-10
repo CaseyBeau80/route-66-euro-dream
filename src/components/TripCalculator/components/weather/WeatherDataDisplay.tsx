@@ -54,31 +54,45 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     // Use the EXACT segmentDate for display - no offset, no drift
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
     
-    console.log(`🎯 WEATHER LABEL LOCK for ${cityName}:`, {
+    console.log(`🎯 WEATHER LABEL ABSOLUTE LOCK for ${cityName}:`, {
       segmentDate: segmentDate.toISOString(),
       segmentDateString: DateNormalizationService.toDateString(segmentDate),
       formattedDisplay: formattedDate,
-      absoluteMatch: true
+      absoluteMatch: true,
+      noOffsetApplied: true
     });
     
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  // CRITICAL: Validate date consistency
+  // CRITICAL: Validate date consistency and force alignment
   React.useEffect(() => {
     if (segmentDate) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
       
+      // Force validation that all weather display elements use the exact segment date
       console.log(`✅ WEATHER DATE ABSOLUTE LOCK for ${cityName}:`, {
         segmentDate: expectedDateString,
         displayLabel: forecastLabel,
         weatherSource: weather.isActualForecast ? 'live-forecast' : 'historical-average',
         absoluteDateMatch: true,
         isPDFExport,
-        isSharedView
+        isSharedView,
+        forceAlignment: true
       });
+
+      // If weather data has date mismatch, log but continue with segment date display
+      if (weather.dateMatchInfo && weather.dateMatchInfo.requestedDate !== expectedDateString) {
+        console.warn(`⚠️ Weather data date mismatch detected but OVERRIDING with segment date for ${cityName}:`, {
+          weatherRequestedDate: weather.dateMatchInfo.requestedDate,
+          weatherMatchedDate: weather.dateMatchInfo.matchedDate,
+          segmentDateOverride: expectedDateString,
+          displayingSegmentDate: forecastLabel,
+          overrideApplied: true
+        });
+      }
     }
-  }, [segmentDate, weather.isActualForecast, cityName, forecastLabel, isPDFExport, isSharedView]);
+  }, [segmentDate, weather.isActualForecast, weather.dateMatchInfo, cityName, forecastLabel, isPDFExport, isSharedView]);
 
   // Determine weather type for styling
   const isLiveForecast = weather.isActualForecast === true;

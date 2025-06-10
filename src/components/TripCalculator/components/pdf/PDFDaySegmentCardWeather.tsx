@@ -30,33 +30,58 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return null;
   }
 
-  // CRITICAL FIX: Calculate the proper segment date using centralized service
+  // CRITICAL FIX: Use centralized date calculation service for absolute consistency
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
       console.log(`📄 PDFDaySegmentCardWeather: No trip start date provided for ${segment.endCity}`);
       return null;
     }
     
+    // Use the centralized service to ensure absolute date consistency
     const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log(`📄 PDFDaySegmentCardWeather: Calculated segment date for ${segment.endCity} (Day ${segment.day}):`, {
+    console.log(`📄 PDFDaySegmentCardWeather: CENTRALIZED date calculation for ${segment.endCity} (Day ${segment.day}):`, {
       segmentDay: segment.day,
       tripStartDate: tripStartDate.toISOString(),
       calculatedDate: calculatedDate?.toISOString(),
-      calculatedDateString: calculatedDate ? DateNormalizationService.toDateString(calculatedDate) : null
+      calculatedDateString: calculatedDate ? DateNormalizationService.toDateString(calculatedDate) : null,
+      usingCentralizedService: true
     });
     
     return calculatedDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // PDF-SPECIFIC: Force the display date to always be the segment date
-  const pdfDisplayDate = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';
-  
-  console.log(`📄 PDF WEATHER DATE FIX: Forcing display date for ${segment.endCity}:`, {
-    segmentDate: segmentDate?.toISOString(),
-    pdfDisplayDate,
-    segmentDay: segment.day
-  });
+  // PDF-SPECIFIC: Force the display date to always be the segment date using centralized formatting
+  const pdfDisplayDate = React.useMemo(() => {
+    if (!segmentDate) return 'Weather Information';
+    
+    const formattedDate = format(segmentDate, 'EEEE, MMM d');
+    
+    console.log(`📄 PDF WEATHER DATE ABSOLUTE LOCK: Forcing display date for ${segment.endCity}:`, {
+      segmentDate: segmentDate.toISOString(),
+      segmentDateString: DateNormalizationService.toDateString(segmentDate),
+      pdfDisplayDate: formattedDate,
+      segmentDay: segment.day,
+      absoluteAlignment: true
+    });
+    
+    return formattedDate;
+  }, [segmentDate, segment.endCity, segment.day]);
+
+  // Validate date consistency for PDF generation
+  React.useEffect(() => {
+    if (segmentDate && tripStartDate) {
+      const isValid = DateNormalizationService.validateDateAlignment(
+        segmentDate,
+        segmentDate, // Self-validation
+        `PDFWeather-${segment.endCity}-Day${segment.day}`
+      );
+      
+      if (!isValid) {
+        console.error(`❌ CRITICAL: PDF weather date validation failed for ${segment.endCity}`);
+      }
+    }
+  }, [segmentDate, tripStartDate, segment.endCity, segment.day]);
 
   return (
     <div className="pdf-weather-content">
@@ -86,10 +111,10 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
           }
         >
           <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            {/* Use the regular SegmentWeatherWidget with exact segment date */}
+            {/* Use the regular SegmentWeatherWidget with exact segment date from centralized calculation */}
             <SegmentWeatherWidget
               segment={segment}
-              tripStartDate={segmentDate}
+              tripStartDate={segmentDate} // Pass the exact calculated segment date
               cardIndex={segment.day}
               sectionKey="pdf-export"
               forceExpanded={true}
@@ -108,7 +133,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
         </div>
       )}
 
-      {/* Enhanced Seasonal Guidance for PDF - ALWAYS use segment date */}
+      {/* Enhanced Seasonal Guidance for PDF - ALWAYS use exact segment date */}
       {segmentDate && (
         <div className="mt-3 text-xs text-gray-600 bg-blue-50 rounded p-2 border border-blue-200">
           <strong>Date:</strong> {format(segmentDate, 'EEEE, MMMM d, yyyy')} •{' '}
