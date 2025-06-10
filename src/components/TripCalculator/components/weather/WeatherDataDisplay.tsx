@@ -58,15 +58,16 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   React.useEffect(() => {
     if (segmentDate && weather.dateMatchInfo) {
       const expectedDateString = DateNormalizationService.toDateString(segmentDate);
-      const { requestedDate, matchedDate, matchType } = weather.dateMatchInfo;
+      const { requestedDate, matchedDate, matchType, source } = weather.dateMatchInfo;
       
-      // Only warn if there's a mismatch and it's not a fallback scenario
-      if (requestedDate !== expectedDateString && matchType !== 'fallback' && matchType !== 'seasonal-estimate') {
+      // Only warn if there's a mismatch and it's not a fallback or seasonal estimate scenario
+      if (requestedDate !== expectedDateString && matchType !== 'fallback' && source !== 'seasonal-estimate') {
         console.warn(`⚠️ Weather data date mismatch for ${cityName} - FORCING segment date display:`, {
           segmentDate: expectedDateString,
           requestedDate,
           matchedDate,
           matchType,
+          source,
           forcingSegmentDateDisplay: true,
           isPDFExport,
           isSharedView
