@@ -19,6 +19,7 @@ export interface ForecastWeatherData extends WeatherData {
     matchedDate: string;
     matchType: 'exact' | 'closest' | 'none' | 'fallback';
     daysOffset: number;
+    hoursOffset?: number;
     source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
   };
 }
@@ -69,6 +70,8 @@ export class WeatherForecastService {
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
+      
+      // Use exact date matching instead of index-based lookup
       const matchResult = WeatherForecastMatcher.findBestMatch(processedForecast, targetDate, targetDateString);
       
       if (matchResult.matchedForecast) {
@@ -76,6 +79,12 @@ export class WeatherForecastService {
         const highTemp = forecast.temperature.high;
         const lowTemp = forecast.temperature.low;
         const precipChance = parseInt(forecast.precipitationChance) || 0;
+        
+        console.log(`✅ Found exact forecast match for ${cityName} on ${targetDateString}:`, {
+          matchType: matchResult.matchInfo.matchType,
+          matchedDate: matchResult.matchInfo.matchedDate,
+          hoursOffset: matchResult.matchInfo.hoursOffset
+        });
         
         return {
           temperature: Math.round((highTemp + lowTemp) / 2),
@@ -134,6 +143,7 @@ export class WeatherForecastService {
         matchedDate: DateNormalizationService.toDateString(new Date()),
         matchType: 'fallback' as const,
         daysOffset: daysFromNow,
+        hoursOffset: 0,
         source: 'enhanced-fallback' as const
       }
     };
@@ -167,6 +177,7 @@ export class WeatherForecastService {
         matchedDate: 'seasonal-estimate',
         matchType: 'none' as const,
         daysOffset: daysFromNow,
+        hoursOffset: 0,
         source: 'seasonal-estimate' as const
       }
     };

@@ -41,6 +41,13 @@ export class WeatherDataProcessor {
     };
   }
 
+  /**
+   * Normalize date to UTC midnight for exact matching
+   */
+  private static normalizeToUtcMidnight(date: Date): Date {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  }
+
   static processEnhancedForecastData(
     forecastData: any, 
     targetDate: Date, 
@@ -63,8 +70,9 @@ export class WeatherDataProcessor {
       const forecastDate = new Date(item.dt_txt);
       if (isNaN(forecastDate.getTime())) continue;
 
-      // Normalize to date string for comparison
-      const forecastDateString = DateNormalizationService.toDateString(forecastDate);
+      // Normalize to UTC midnight for consistent comparison
+      const normalizedForecastDate = this.normalizeToUtcMidnight(forecastDate);
+      const forecastDateString = DateNormalizationService.toDateString(normalizedForecastDate);
       
       // Skip if we've already processed this date
       if (seenDates.has(forecastDateString)) continue;
@@ -101,12 +109,16 @@ export class WeatherDataProcessor {
     return processedForecasts;
   }
 
+  /**
+   * Find forecast for exact date match with fallback to closest within 12 hours
+   */
   static findForecastForDate(forecasts: ForecastDay[], targetDate: Date): ForecastDay | null {
-    const targetDateString = DateNormalizationService.toDateString(targetDate);
+    const normalizedTargetDate = this.normalizeToUtcMidnight(targetDate);
+    const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     
-    console.log(`🎯 WeatherDataProcessor: Looking for forecast matching ${targetDateString}`);
+    console.log(`🎯 WeatherDataProcessor: Looking for exact match for ${targetDateString}`);
     
-    // Try exact date match first
+    // First try exact date match
     for (const forecast of forecasts) {
       if (forecast.dateString === targetDateString) {
         console.log(`✅ Found exact date match for ${targetDateString}`);
@@ -114,26 +126,27 @@ export class WeatherDataProcessor {
       }
     }
 
-    // Find closest date within 2 days
+    // Fallback: Find closest date within ±12 hours
     let closestForecast: ForecastDay | null = null;
     let smallestOffset = Infinity;
 
-    const targetDateObj = new Date(targetDateString + 'T00:00:00Z');
-    
     for (const forecast of forecasts) {
-      const forecastDateObj = new Date(forecast.dateString + 'T00:00:00Z');
-      const offsetDays = Math.abs((forecastDateObj.getTime() - targetDateObj.getTime()) / (24 * 60 * 60 * 1000));
+      if (!forecast.dateString) continue;
       
-      if (offsetDays < smallestOffset && offsetDays <= 2) {
+      const forecastDate = new Date(forecast.dateString + 'T00:00:00Z');
+      const offsetHours = Math.abs((forecastDate.getTime() - normalizedTargetDate.getTime()) / (60 * 60 * 1000));
+      
+      // Only consider forecasts within 12 hours (0.5 days)
+      if (offsetHours <= 12 && offsetHours < smallestOffset) {
         closestForecast = forecast;
-        smallestOffset = offsetDays;
+        smallestOffset = offsetHours;
       }
     }
 
     if (closestForecast) {
-      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset} days offset)`);
+      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset.toFixed(1)} hours offset)`);
     } else {
-      console.log(`❌ No suitable forecast found for ${targetDateString}`);
+      console.log(`❌ No suitable forecast found within 12 hours for ${targetDateString}`);
     }
 
     return closestForecast;

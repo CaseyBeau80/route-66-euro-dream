@@ -30,7 +30,10 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     isActualForecast: weather?.isActualForecast,
     hasError: !!error,
     isSharedView,
-    isPDFExport
+    isPDFExport,
+    requestedDate: weather?.dateMatchInfo?.requestedDate,
+    matchedDate: weather?.dateMatchInfo?.matchedDate,
+    matchType: weather?.dateMatchInfo?.matchType
   });
 
   // If there's an error or no weather data, show fallback
@@ -46,7 +49,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Generate forecast label based on segment date
+  // ALWAYS use segmentDate for the forecast label - this is the key fix
   const forecastLabel = segmentDate 
     ? `${format(segmentDate, 'EEEE, MMM d')}`
     : 'Weather Information';
@@ -56,6 +59,21 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const bgClass = isHistorical ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200';
   const textClass = isHistorical ? 'text-yellow-800' : 'text-blue-800';
   const labelClass = isHistorical ? 'text-yellow-700 bg-yellow-100' : 'text-blue-600 bg-blue-100';
+
+  // Log date matching validation
+  if (weather.dateMatchInfo && segmentDate) {
+    const segmentDateString = segmentDate.toISOString().split('T')[0];
+    const isExactMatch = weather.dateMatchInfo.requestedDate === segmentDateString;
+    
+    console.log(`📅 Date validation for ${cityName}:`, {
+      segmentDateString,
+      requestedDate: weather.dateMatchInfo.requestedDate,
+      matchedDate: weather.dateMatchInfo.matchedDate,
+      matchType: weather.dateMatchInfo.matchType,
+      isExactMatch,
+      forecastLabel
+    });
+  }
 
   return (
     <div className={`rounded border p-3 ${bgClass}`}>
@@ -96,8 +114,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
 
+      {/* Status indicator with date match info */}
       <div className={`mt-2 text-xs rounded p-2 ${isHistorical ? 'text-yellow-600 bg-yellow-100' : 'text-blue-500 bg-blue-100'}`}>
-        {isHistorical ? '📊 Historical seasonal averages' : '✅ Live forecast data'}
+        {isHistorical ? '📊 Historical seasonal averages' : 
+         weather.dateMatchInfo?.matchType === 'exact' ? '✅ Live forecast (exact date match)' :
+         weather.dateMatchInfo?.matchType === 'closest' ? `✅ Live forecast (${weather.dateMatchInfo.hoursOffset?.toFixed(0) || '0'}h offset)` :
+         '✅ Live forecast data'
+        }
       </div>
 
       {/* Retry button for errors in non-shared views */}
