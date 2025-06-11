@@ -10,7 +10,7 @@ import { CalendarIcon, Car, Clock, MapPin, Users, Key, ExternalLink, Check } fro
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { TripCalculation } from './TripCalculator/types/tripCalculator';
-import { TripPlan } from './TripCalculator/services/Route66TripPlannerService';
+import { TripPlan, DailySegment } from './TripCalculator/services/planning/TripPlanTypes';
 import TripCalculatorResults from './TripCalculator/TripCalculatorResults';
 import { EnhancedWeatherService } from './Route66Map/services/weather/EnhancedWeatherService';
 
@@ -87,11 +87,8 @@ const Route66TripCalculator = () => {
       // Simulate API call and data processing
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate a basic calculation (replace with actual logic)
+      // Generate a basic calculation (updated to match TripCalculation type)
       const newCalculation: TripCalculation = {
-        startCity: startingCity,
-        endCity: endCity,
-        tripStyle: tripStyle,
         totalDistance: 2448,
         totalDriveTime: 41,
         numberOfDays: 7,
@@ -106,7 +103,7 @@ const Route66TripCalculator = () => {
 
       setCalculation(newCalculation);
 
-      // Generate a basic trip plan (replace with actual logic)
+      // Generate a basic trip plan (updated to match DailySegment type)
       const newTripPlan: TripPlan = {
         id: 'trip-plan-123',
         startCity: startingCity,
@@ -114,13 +111,13 @@ const Route66TripCalculator = () => {
         totalDays: 7,
         totalDistance: 2448,
         segments: [
-          { day: 1, startCity: startingCity, endCity: 'Springfield, IL', distance: 200 },
-          { day: 2, startCity: 'Springfield, IL', endCity: 'St. Louis, MO', distance: 100 },
-          { day: 3, startCity: 'St. Louis, MO', endCity: 'Tulsa, OK', distance: 300 },
-          { day: 4, startCity: 'Tulsa, OK', endCity: 'Oklahoma City, OK', distance: 100 },
-          { day: 5, startCity: 'Oklahoma City, OK', endCity: 'Amarillo, TX', distance: 250 },
-          { day: 6, startCity: 'Amarillo, TX', endCity: 'Albuquerque, NM', distance: 280 },
-          { day: 7, startCity: 'Albuquerque, NM', endCity: endCity, distance: 400 },
+          { day: 1, startCity: startingCity, endCity: 'Springfield, IL', distance: 200, driveTimeHours: 3.5 },
+          { day: 2, startCity: 'Springfield, IL', endCity: 'St. Louis, MO', distance: 100, driveTimeHours: 1.5 },
+          { day: 3, startCity: 'St. Louis, MO', endCity: 'Tulsa, OK', distance: 300, driveTimeHours: 4.5 },
+          { day: 4, startCity: 'Tulsa, OK', endCity: 'Oklahoma City, OK', distance: 100, driveTimeHours: 1.5 },
+          { day: 5, startCity: 'Oklahoma City, OK', endCity: 'Amarillo, TX', distance: 250, driveTimeHours: 3.5 },
+          { day: 6, startCity: 'Amarillo, TX', endCity: 'Albuquerque, NM', distance: 280, driveTimeHours: 4.0 },
+          { day: 7, startCity: 'Albuquerque, NM', endCity: endCity, distance: 400, driveTimeHours: 5.5 },
         ],
       };
 
