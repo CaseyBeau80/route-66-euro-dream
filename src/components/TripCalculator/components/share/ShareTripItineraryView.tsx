@@ -20,19 +20,23 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
 }) => {
   const context = `ShareTripItineraryView${isSharedView ? '-SharedView' : ''}`;
   
-  // Get weather configuration for export context
+  // Get enhanced weather configuration for export context
   const weatherConfig = React.useMemo(() => {
     return ShareWeatherConfigService.getShareWeatherConfig();
   }, []);
   
-  console.log('📅 ShareTripItineraryView: Rendering with weather support:', {
+  console.log('📅 ShareTripItineraryView: Enhanced weather config analysis:', {
     tripStartDate: tripStartDate?.toISOString(),
     hasValidDate: tripStartDate && !isNaN(tripStartDate.getTime()),
     segmentsCount: segments.length,
     isSharedView,
     context,
     maxAttractionsAllowed: AttractionLimitingService.getMaxAttractions(),
-    weatherConfig
+    weatherConfig: {
+      hasApiKey: weatherConfig.hasApiKey,
+      apiKeySource: weatherConfig.apiKeySource,
+      canFetchLiveWeather: weatherConfig.canFetchLiveWeather
+    }
   });
 
   return (
@@ -105,13 +109,13 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Information with Live Forecasts */}
+              {/* Enhanced Weather Information with Enhanced Status Messages */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   🌤️ Weather Information
                   {weatherConfig.hasApiKey && (
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                      Live Forecast
+                      {weatherConfig.apiKeySource === 'config-file' ? 'App Configured' : 'User Configured'}
                     </span>
                   )}
                 </h4>
@@ -128,13 +132,13 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 ) : (
                   <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                     <div className="text-sm text-yellow-800 mb-2">
-                      📊 Live weather forecasts unavailable
+                      📊 {ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)}
                     </div>
                     <div className="text-xs text-yellow-600">
-                      Weather API configuration not available in export view. 
                       {tripStartDate && (
                         <span className="block mt-1">
                           Check current weather conditions before your trip to {segment.endCity}.
+                          {weatherConfig.apiKeySource === 'none' && ' Live forecasts can be enabled by configuring a weather API key.'}
                         </span>
                       )}
                     </div>

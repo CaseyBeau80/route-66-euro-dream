@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
 import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
@@ -28,12 +27,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 }) => {
   const context = `SharedTripContentRenderer${isSharedView ? '-SharedView' : ''}`;
   
-  // Get weather configuration for the export context
+  // Get enhanced weather configuration for the export context
   const weatherConfig = React.useMemo(() => {
     return ShareWeatherConfigService.getShareWeatherConfig();
   }, []);
   
-  console.log('📤 SharedTripContentRenderer: Starting render with weather support', {
+  console.log('📤 SharedTripContentRenderer: Enhanced weather analysis starting', {
     tripPlan,
     segmentsCount: tripPlan.segments?.length || 0,
     dailySegmentsCount: tripPlan.dailySegments?.length || 0,
@@ -41,7 +40,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     startDateType: typeof tripStartDate,
     isSharedView,
     context,
-    weatherConfig
+    enhancedWeatherConfig: {
+      hasApiKey: weatherConfig.hasApiKey,
+      apiKeySource: weatherConfig.apiKeySource,
+      canFetchLiveWeather: weatherConfig.canFetchLiveWeather,
+      detectionDetails: weatherConfig.detectionDetails
+    }
   });
 
   // Validate that we have trip data
@@ -125,7 +129,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     }
 
     const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
-    console.log('📤 SharedTripContentRenderer: About to render main content');
+    console.log('📤 SharedTripContentRenderer: About to render main content with enhanced weather');
 
     // Ensure tripStartDate is a proper Date object for weather calculations
     const validTripStartDate = React.useMemo(() => {
@@ -152,7 +156,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       originalDate: tripStartDate,
       validDate: validTripStartDate?.toISOString(),
       isValid: !!validTripStartDate,
-      weatherConfig
+      weatherConfig: {
+        hasApiKey: weatherConfig.hasApiKey,
+        apiKeySource: weatherConfig.apiKeySource,
+        statusMessage: ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)
+      }
     });
 
     return (
@@ -177,15 +185,30 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         {/* Data Quality Notice */}
         <DataQualityNotice integrityReport={integrityReport} />
 
-        {/* Weather Configuration Notice */}
-        {weatherConfig.hasApiKey && (
+        {/* Enhanced Weather Configuration Notice */}
+        {weatherConfig.hasApiKey ? (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-2 text-blue-800">
               <span className="text-green-600">✅</span>
               <strong>Live Weather Forecasts Available</strong>
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded ml-2">
+                {weatherConfig.apiKeySource === 'config-file' ? 'App Configured' : 'User Configured'}
+              </span>
             </div>
             <p className="text-sm text-blue-600 mt-1">
               This itinerary includes live weather forecasts powered by OpenWeatherMap API.
+              {weatherConfig.detectionDetails?.keyLength && ` (Key source: ${weatherConfig.apiKeySource})`}
+            </p>
+          </div>
+        ) : (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 text-yellow-800">
+              <span className="text-orange-600">ℹ️</span>
+              <strong>Weather Information Notice</strong>
+            </div>
+            <p className="text-sm text-yellow-600 mt-1">
+              {ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)}. 
+              Check current weather conditions before departure.
             </p>
           </div>
         )}
@@ -193,7 +216,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         {/* Enhanced Trip Overview */}
         <TripOverviewSection tripPlan={sanitizedTripPlan} />
 
-        {/* Daily Itinerary with weather support */}
+        {/* Daily Itinerary with enhanced weather support */}
         <DailyItinerarySection 
           enrichedSegments={enrichedSegments}
           validTripStartDate={validTripStartDate}

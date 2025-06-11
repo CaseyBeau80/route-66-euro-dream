@@ -2,6 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
+import { WeatherConfigValidationService } from '../../services/weather/WeatherConfigValidationService';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 import ErrorBoundary from '../ErrorBoundary';
 import { DateNormalizationService } from '../weather/DateNormalizationService';
@@ -22,12 +23,17 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return ShareWeatherConfigService.getShareWeatherConfig();
   }, []);
 
-  console.log(`📄 PDFDaySegmentCardWeather: Rendering for ${segment.endCity}`, {
+  const configValidation = React.useMemo(() => {
+    return WeatherConfigValidationService.validateConfiguration();
+  }, []);
+
+  console.log(`📄 PDFDaySegmentCardWeather: Enhanced weather analysis for ${segment.endCity}`, {
     exportFormat,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
     segmentDay: segment.day,
-    weatherConfig
+    weatherConfig,
+    configValidation
   });
 
   // Skip weather for route-only format
@@ -120,14 +126,27 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
       ) : (
         <div className="bg-yellow-50 rounded border border-yellow-200 p-3 text-center">
           <div className="text-sm text-yellow-800 mb-2">
-            📊 {segmentDate ? 'Live weather forecasts unavailable' : 'Weather forecast unavailable'}
+            📊 {segmentDate ? ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig) : 'Weather forecast unavailable'}
           </div>
           <div className="text-xs text-yellow-600">
             {!segmentDate ? 
               'Set a specific trip start date for detailed weather forecasts' :
-              'Weather API configuration not available in export view. Check current weather conditions before departure.'
+              configValidation.isValid ? 
+                'Weather service temporarily unavailable. Check current weather conditions before departure.' :
+                'Weather API configuration needed for live forecasts. Check current weather conditions before departure.'
             }
           </div>
+          {/* Configuration help for invalid configs */}
+          {!configValidation.isValid && configValidation.recommendations.length > 0 && (
+            <div className="mt-2 text-xs text-blue-600 border-t border-yellow-300 pt-2">
+              <strong>To enable live weather:</strong>
+              <ul className="list-disc list-inside mt-1 text-left max-w-md mx-auto">
+                {configValidation.recommendations.slice(0, 2).map((rec, index) => (
+                  <li key={index} className="truncate">{rec}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -142,7 +161,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
           }
           <div className="mt-1 text-gray-500">
             Weather information shown above for your planned arrival date: {pdfDisplayDate}
-            {weatherConfig.hasApiKey && ' (Live forecast enabled)'}
+            {weatherConfig.hasApiKey && ` (${weatherConfig.apiKeySource === 'config-file' ? 'App configured' : 'User configured'} live forecast)`}
           </div>
         </div>
       )}
