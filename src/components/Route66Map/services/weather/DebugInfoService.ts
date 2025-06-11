@@ -10,6 +10,8 @@ export interface EnhancedDebugInfo {
   lastValidation: ValidationResult | null;
   corruptionAnalysis: any | null;
   storageAnalysis: any[];
+  keySource?: 'config-file' | 'localStorage' | 'legacy-storage' | 'none';
+  managerInitialized?: boolean;
 }
 
 export class DebugInfoService {
