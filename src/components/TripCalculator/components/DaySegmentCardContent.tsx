@@ -2,7 +2,6 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import SegmentRecommendedStops from './SegmentRecommendedStops';
 import SegmentNearbyAttractions from './SegmentNearbyAttractions';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
@@ -49,14 +48,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Nearby Attractions - NEW with limit of 3 */}
+        {/* Nearby Attractions - Limited to 3 attractions */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
           <SegmentNearbyAttractions segment={segment} maxAttractions={3} />
-        </ErrorBoundary>
-
-        {/* Recommended Stops - LEGACY (kept for compatibility) */}
-        <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
-          <SegmentRecommendedStops segment={segment} />
         </ErrorBoundary>
       </div>
 
