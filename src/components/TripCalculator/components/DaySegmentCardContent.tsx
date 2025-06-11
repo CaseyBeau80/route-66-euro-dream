@@ -49,9 +49,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Nearby Attractions - NEW */}
+        {/* Nearby Attractions - NEW with limit of 3 */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
-          <SegmentNearbyAttractions segment={segment} maxAttractions={4} />
+          <SegmentNearbyAttractions segment={segment} maxAttractions={3} />
         </ErrorBoundary>
 
         {/* Recommended Stops - LEGACY (kept for compatibility) */}

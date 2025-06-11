@@ -165,7 +165,7 @@ const AttractionCard: React.FC<{ attraction: NearbyAttraction }> = ({ attraction
 
 const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({ 
   segment, 
-  maxAttractions = 4 
+  maxAttractions = 3 
 }) => {
   const [searchResult, setSearchResult] = useState<AttractionSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -366,12 +366,15 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   
   // Handle successful results
   const attractions = searchResult.attractions.slice(0, maxAttractions);
+  const totalAttractions = searchResult.attractions.length;
+  const hasMoreAttractions = totalAttractions > maxAttractions;
+  const remainingCount = totalAttractions - maxAttractions;
   
   return (
     <div className="space-y-3">
       <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
         <MapPin className="h-4 w-4" />
-        Nearby Attractions ({attractions.length})
+        Nearby Attractions ({hasMoreAttractions ? `${attractions.length} of ${totalAttractions}` : attractions.length})
         {retryCount > 0 && (
           <span className="text-xs text-gray-500">(retry {retryCount})</span>
         )}
@@ -384,6 +387,12 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           </ErrorBoundary>
         ))}
       </div>
+      
+      {hasMoreAttractions && (
+        <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-50 rounded border border-gray-200">
+          + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
+        </div>
+      )}
       
       <div className="text-xs text-blue-600 italic text-center p-2 bg-blue-50 rounded border border-blue-200">
         ✨ {searchResult.message}

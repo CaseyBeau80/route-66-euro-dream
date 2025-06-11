@@ -21,8 +21,8 @@ const SegmentRecommendedStops: React.FC<SegmentRecommendedStopsProps> = ({ segme
           Attractions & Hidden Gems
         </h4>
         
-        {/* Use the new SegmentNearbyAttractions component */}
-        <SegmentNearbyAttractions segment={segment} maxAttractions={4} />
+        {/* Use the new SegmentNearbyAttractions component with limit of 3 */}
+        <SegmentNearbyAttractions segment={segment} maxAttractions={3} />
       </div>
     </ErrorBoundary>
   );
