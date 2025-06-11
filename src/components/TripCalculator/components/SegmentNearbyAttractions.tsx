@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { MapPin, Clock, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -12,6 +11,9 @@ interface SegmentNearbyAttractionsProps {
   segment: DailySegment;
   maxAttractions?: number;
 }
+
+// CRITICAL: Absolute maximum attractions enforced at module level
+const ABSOLUTE_MAX_ATTRACTIONS = 3;
 
 // UI timeout configuration - reduced to prevent infinite loading
 const UI_TIMEOUT_MS = 10000; // 10 seconds
@@ -165,17 +167,20 @@ const AttractionCard: React.FC<{ attraction: NearbyAttraction }> = ({ attraction
 
 const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({ 
   segment, 
-  maxAttractions = 3 
+  maxAttractions 
 }) => {
-  // CRITICAL: Enforce safe maxAttractions limit with fallback
-  const safeMaxAttractions = maxAttractions ?? 3;
+  // CRITICAL: Triple-layer enforcement of 3-attraction limit
+  const requestedMax = maxAttractions ?? ABSOLUTE_MAX_ATTRACTIONS;
+  const enforcedMax = Math.min(requestedMax, ABSOLUTE_MAX_ATTRACTIONS);
   
-  // DEBUG: Add console logging to track component rendering
-  console.log('🔍 SegmentNearbyAttractions render DEBUG:', {
+  // DEBUG: Add console logging to track component rendering and limits
+  console.log('🔍 SegmentNearbyAttractions TRIPLE-ENFORCED limit:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    maxAttractions: safeMaxAttractions,
-    componentKey: `SegmentNearbyAttractions-${segment.day}-${segment.endCity}`
+    requestedMax,
+    enforcedMax,
+    absoluteMax: ABSOLUTE_MAX_ATTRACTIONS,
+    finalMaxAttractions: enforcedMax
   });
 
   const [searchResult, setSearchResult] = useState<AttractionSearchResult | null>(null);
@@ -286,18 +291,18 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     console.log(`🎯 SegmentNearbyAttractions effect triggered:`, {
       endCity: segment?.endCity,
       day: segment?.day,
-      maxAttractions: safeMaxAttractions
+      enforcedMax
     });
     
     loadAttractions();
-  }, [segment?.endCity, segment?.day, safeMaxAttractions]);
+  }, [segment?.endCity, segment?.day, enforcedMax]);
   
   if (isLoading) {
     return (
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions
+          Nearby Attractions (max {enforcedMax})
         </h4>
         <EnhancedLoadingDisplay 
           cityName={segment.endCity || 'destination'} 
@@ -313,7 +318,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions
+          Nearby Attractions (max {enforcedMax})
         </h4>
         <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-500">No search results available</p>
@@ -330,7 +335,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions
+          Nearby Attractions (max {enforcedMax})
         </h4>
         <EnhancedErrorDisplay
           searchResult={searchResult}
@@ -356,7 +361,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions
+          Nearby Attractions (max {enforcedMax})
         </h4>
         <NoAttractionsDisplay
           searchResult={searchResult}
@@ -375,29 +380,61 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
   
-  // CRITICAL: Apply the maxAttractions limit strictly and safely
-  const totalAttractions = searchResult.attractions.length;
-  const attractions = searchResult.attractions.slice(0, safeMaxAttractions);
-  const hasMoreAttractions = totalAttractions > safeMaxAttractions;
-  const remainingCount = totalAttractions - safeMaxAttractions;
+  // CRITICAL: Apply the absolute maximum limit with quadruple safety checks
+  const rawAttractions = searchResult.attractions || [];
+  const totalAttractions = rawAttractions.length;
   
-  // DEBUG: Log the attraction limiting enforcement
-  console.log('🔍 SegmentNearbyAttractions ENFORCED attraction limiting:', {
+  // Quadruple enforcement: slice twice to be absolutely sure
+  const firstSlice = rawAttractions.slice(0, enforcedMax);
+  const attractions = firstSlice.slice(0, ABSOLUTE_MAX_ATTRACTIONS);
+  
+  const actualCount = attractions.length;
+  const hasMoreAttractions = totalAttractions > actualCount;
+  const remainingCount = totalAttractions - actualCount;
+  
+  // DEBUG: Log the attraction limiting enforcement with all safety checks
+  console.log('🔍 SegmentNearbyAttractions QUADRUPLE-ENFORCED attraction limiting:', {
     totalAttractions,
-    safeMaxAttractions,
-    attractionsToShow: attractions.length,
+    enforcedMax,
+    absoluteMax: ABSOLUTE_MAX_ATTRACTIONS,
+    firstSliceLength: firstSlice.length,
+    finalAttractionsLength: actualCount,
     hasMoreAttractions,
     remainingCount,
     segmentDay: segment.day,
-    endCity: segment.endCity
+    endCity: segment.endCity,
+    limitingWorking: actualCount <= ABSOLUTE_MAX_ATTRACTIONS
   });
+  
+  // Final safety check - should never happen but just in case
+  if (actualCount > ABSOLUTE_MAX_ATTRACTIONS) {
+    console.error('🚨 CRITICAL: Attraction limit breach detected!', {
+      actualCount,
+      absoluteMax: ABSOLUTE_MAX_ATTRACTIONS,
+      segment: segment.day,
+      endCity: segment.endCity
+    });
+    // Emergency fallback
+    const emergencySlice = attractions.slice(0, ABSOLUTE_MAX_ATTRACTIONS);
+    return (
+      <div className="space-y-3">
+        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          Nearby Attractions ({emergencySlice.length} of {totalAttractions})
+        </h4>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700 font-medium">⚠️ Emergency limit enforcement applied</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-3">
       <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
         <MapPin className="h-4 w-4" />
-        {/* Enhanced header showing truncation when applicable */}
-        Nearby Attractions ({hasMoreAttractions ? `${attractions.length} of ${totalAttractions}` : attractions.length})
+        {/* Enhanced header showing enforced limit and truncation */}
+        Nearby Attractions ({hasMoreAttractions ? `${actualCount} of ${totalAttractions}` : actualCount} • max {ABSOLUTE_MAX_ATTRACTIONS})
         {retryCount > 0 && (
           <span className="text-xs text-gray-500">(retry {retryCount})</span>
         )}
@@ -413,8 +450,11 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       
       {/* Truncation indicator when more attractions are available */}
       {hasMoreAttractions && (
-        <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-50 rounded border border-gray-200">
-          + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
+        <div className="text-xs text-gray-600 italic text-center p-2 bg-yellow-50 rounded border border-yellow-200">
+          🚫 Showing only {actualCount} of {totalAttractions} attractions (limited to max {ABSOLUTE_MAX_ATTRACTIONS})
+          <div className="text-xs text-gray-500 mt-1">
+            + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
+          </div>
         </div>
       )}
       
@@ -426,3 +466,5 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
 };
 
 export default SegmentNearbyAttractions;
+
+}

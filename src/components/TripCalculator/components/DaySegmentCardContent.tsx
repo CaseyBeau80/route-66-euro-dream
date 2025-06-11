@@ -27,6 +27,16 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // CRITICAL: Enforce strict 3-attraction limit for all segments
+  const MAX_ATTRACTIONS = 3;
+  
+  console.log('🔍 DaySegmentCardContent ENFORCED 3-attraction limit:', {
+    segmentDay: segment.day,
+    endCity: segment.endCity,
+    maxAttractions: MAX_ATTRACTIONS,
+    enforced: true
+  });
+
   return (
     <div className="space-y-4">
       {/* Drive Time Message - Compact */}
@@ -48,9 +58,12 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Nearby Attractions - ENFORCED LIMIT of 3 attractions */}
+        {/* Nearby Attractions - STRICTLY ENFORCED LIMIT of 3 attractions */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
-          <SegmentNearbyAttractions segment={segment} maxAttractions={3} />
+          <SegmentNearbyAttractions 
+            segment={segment} 
+            maxAttractions={MAX_ATTRACTIONS}
+          />
         </ErrorBoundary>
       </div>
 
