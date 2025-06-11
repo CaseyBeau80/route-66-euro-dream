@@ -2,6 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { GeographicAttractionService, NearbyAttraction } from '../../services/attractions/GeographicAttractionService';
+import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
 import { getDestinationCityWithState } from '../../utils/DestinationUtils';
 
 interface PDFDaySegmentCardStopsProps {
@@ -18,6 +19,8 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
     return null;
   }
 
+  const context = `PDFDaySegmentCardStops-Day${segment.day}-${exportFormat}`;
+  
   // Load attractions instead of showing destination city as a stop
   const [attractions, setAttractions] = React.useState<NearbyAttraction[]>([]);
   
@@ -53,14 +56,32 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
     );
   }
 
-  const maxAttractions = exportFormat === 'summary' ? 3 : 6;
-  const displayAttractions = attractions.slice(0, maxAttractions);
+  // Use centralized limiting based on export format
+  const requestedMax = exportFormat === 'summary' ? 3 : 6;
+  const limitResult = AttractionLimitingService.limitAttractions(
+    attractions,
+    context,
+    requestedMax
+  );
+  
+  // Validate the result
+  if (!AttractionLimitingService.validateAttractionLimit(limitResult.limitedAttractions, context)) {
+    console.error(`🚨 CRITICAL: PDF stops limit validation failed for ${context}`);
+    return (
+      <div className="pdf-stops-section mb-4">
+        <h4 className="text-sm font-semibold text-red-600 mb-3">⚠️ Stops Limit Error</h4>
+        <p className="text-xs text-red-500">Attraction limiting failed for this segment.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pdf-stops-section mb-4">
-      <h4 className="text-sm font-semibold text-gray-700 mb-3">🎯 Attractions & Hidden Gems</h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-3">
+        🎯 Attractions & Hidden Gems ({limitResult.hasMoreAttractions ? `${limitResult.limitedAttractions.length} of ${limitResult.totalAttractions}` : limitResult.limitedAttractions.length})
+      </h4>
       <div className="space-y-2">
-        {displayAttractions.map((attraction, index) => {
+        {limitResult.limitedAttractions.map((attraction, index) => {
           const icon = GeographicAttractionService.getAttractionIcon(attraction);
           const typeLabel = GeographicAttractionService.getAttractionTypeLabel(attraction);
           
@@ -87,9 +108,9 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
           );
         })}
         
-        {attractions.length > maxAttractions && (
+        {limitResult.hasMoreAttractions && (
           <div className="text-xs text-gray-500 text-center py-1">
-            + {attractions.length - maxAttractions} more attractions available
+            + {limitResult.remainingCount} more attractions available
           </div>
         )}
       </div>

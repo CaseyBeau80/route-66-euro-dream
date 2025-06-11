@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
+import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 
 interface ShareTripItineraryViewProps {
@@ -16,11 +17,15 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
   totalDays,
   isSharedView = false
 }) => {
-  console.log('📅 ShareTripItineraryView: Rendering with enhanced weather system:', {
+  const context = `ShareTripItineraryView${isSharedView ? '-SharedView' : ''}`;
+  
+  console.log('📅 ShareTripItineraryView: Rendering with centralized attraction limiting:', {
     tripStartDate: tripStartDate?.toISOString(),
     hasValidDate: tripStartDate && !isNaN(tripStartDate.getTime()),
     segmentsCount: segments.length,
-    isSharedView
+    isSharedView,
+    context,
+    maxAttractionsAllowed: AttractionLimitingService.getMaxAttractions()
   });
 
   return (
@@ -28,21 +33,19 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Daily Itinerary</h2>
       
       {segments.map((segment, index) => {
-        // CRITICAL: Enforce 3-attraction limit in shared view
-        const maxAttractions = 3;
-        const totalAttractions = segment.attractions?.length || 0;
-        const limitedAttractions = segment.attractions?.slice(0, maxAttractions) || [];
-        const hasMoreAttractions = totalAttractions > maxAttractions;
-        const remainingCount = totalAttractions - maxAttractions;
-
-        console.log('🔍 ShareTripItineraryView ENFORCED attraction limiting:', {
-          segmentDay: segment.day,
-          totalAttractions,
-          maxAttractions,
-          limitedAttractions: limitedAttractions.length,
-          hasMoreAttractions,
-          remainingCount
-        });
+        // CRITICAL: Use centralized attraction limiting service
+        const segmentContext = `${context}-Day${segment.day}`;
+        const originalAttractions = segment.attractions || [];
+        
+        const limitResult = AttractionLimitingService.limitAttractions(
+          originalAttractions,
+          segmentContext
+        );
+        
+        // Validate the result
+        if (!AttractionLimitingService.validateAttractionLimit(limitResult.limitedAttractions, segmentContext)) {
+          console.error(`🚨 CRITICAL: Attraction limit validation failed for ${segmentContext}`);
+        }
 
         return (
           <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -110,14 +113,14 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 />
               </div>
 
-              {/* ENFORCED 3-Attraction Limit Recommendations */}
-              {limitedAttractions.length > 0 && (
+              {/* CENTRALIZED ENFORCED Attraction Limit Recommendations */}
+              {limitResult.limitedAttractions.length > 0 && (
                 <div className="bg-green-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    🏛️ Recommended Stops ({hasMoreAttractions ? `${limitedAttractions.length} of ${totalAttractions}` : limitedAttractions.length} total)
+                    🏛️ Recommended Stops ({limitResult.hasMoreAttractions ? `${limitResult.limitedAttractions.length} of ${limitResult.totalAttractions}` : limitResult.limitedAttractions.length} • max {limitResult.limitApplied})
                   </h4>
                   <ul className="space-y-1">
-                    {limitedAttractions.map((attraction, idx) => (
+                    {limitResult.limitedAttractions.map((attraction, idx) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                         {attraction.name || attraction}
@@ -126,9 +129,12 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                   </ul>
                   
                   {/* Truncation indicator when more attractions are available */}
-                  {hasMoreAttractions && (
+                  {limitResult.hasMoreAttractions && (
                     <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-100 rounded border border-gray-200 mt-2">
-                      + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
+                      🚫 Showing only {limitResult.limitedAttractions.length} of {limitResult.totalAttractions} attractions (limited to max {limitResult.limitApplied})
+                      <div className="text-xs text-gray-500 mt-1">
+                        + {limitResult.remainingCount} more attraction{limitResult.remainingCount !== 1 ? 's' : ''} nearby
+                      </div>
                     </div>
                   )}
                 </div>

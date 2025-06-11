@@ -2,6 +2,7 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
 import SegmentNearbyAttractions from './SegmentNearbyAttractions';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
@@ -27,14 +28,16 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // CRITICAL: Enforce strict 3-attraction limit for all segments
-  const MAX_ATTRACTIONS = 3;
+  // CRITICAL: Use centralized service for consistent limiting
+  const maxAttractions = AttractionLimitingService.getMaxAttractions();
+  const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 DaySegmentCardContent ENFORCED 3-attraction limit:', {
+  console.log('🔍 DaySegmentCardContent using CENTRALIZED attraction limiting:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    maxAttractions: MAX_ATTRACTIONS,
-    enforced: true
+    maxAttractions,
+    context,
+    sectionKey
   });
 
   return (
@@ -58,11 +61,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Nearby Attractions - STRICTLY ENFORCED LIMIT of 3 attractions */}
+        {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
           <SegmentNearbyAttractions 
             segment={segment} 
-            maxAttractions={MAX_ATTRACTIONS}
+            maxAttractions={maxAttractions}
           />
         </ErrorBoundary>
       </div>
