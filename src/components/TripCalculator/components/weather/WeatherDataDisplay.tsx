@@ -116,21 +116,22 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </span>
       </div>
       
+      {/* FIXED: Low temperature on left, High temperature on right */}
       <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="text-center">
-          <div className={`text-lg font-bold ${textClass}`}>
-            {Math.round(highTemp)}°F
-          </div>
-          <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
-            {isLiveForecast ? 'High' : 'Avg High'}
-          </div>
-        </div>
         <div className="text-center">
           <div className={`text-lg font-bold ${textClass}`}>
             {Math.round(lowTemp)}°F
           </div>
           <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
             {isLiveForecast ? 'Low' : 'Avg Low'}
+          </div>
+        </div>
+        <div className="text-center">
+          <div className={`text-lg font-bold ${textClass}`}>
+            {Math.round(highTemp)}°F
+          </div>
+          <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+            {isLiveForecast ? 'High' : 'Avg High'}
           </div>
         </div>
       </div>
