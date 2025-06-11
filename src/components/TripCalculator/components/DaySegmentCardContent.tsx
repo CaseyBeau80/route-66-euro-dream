@@ -3,6 +3,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SegmentRecommendedStops from './SegmentRecommendedStops';
+import SegmentNearbyAttractions from './SegmentNearbyAttractions';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -48,12 +49,15 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Recommended Stops */}
+        {/* Nearby Attractions - NEW */}
+        <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
+          <SegmentNearbyAttractions segment={segment} maxAttractions={4} />
+        </ErrorBoundary>
+
+        {/* Recommended Stops - LEGACY (kept for compatibility) */}
         <ErrorBoundary context={`SegmentRecommendedStops-Day${segment.day}`}>
           <SegmentRecommendedStops segment={segment} />
         </ErrorBoundary>
-
-        {/* Route Progression section has been removed */}
       </div>
 
       {/* Debug Component - Production Safe */}

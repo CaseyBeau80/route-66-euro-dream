@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 
@@ -30,15 +31,15 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
   if (deduplicatedStops.length === 0) {
     return (
       <div className="pdf-stops-section mb-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">🏛️ Attractions & Stops</h4>
-        <p className="text-sm text-gray-500">No specific stops listed for this segment</p>
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">🏛️ Historic Route 66 Stops</h4>
+        <p className="text-sm text-gray-500">No historic stops listed for this segment - check nearby attractions instead</p>
       </div>
     );
   }
 
   return (
     <div className="pdf-stops-section mb-4">
-      <h4 className="text-sm font-semibold text-gray-700 mb-3">🏛️ Attractions & Stops</h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-3">🏛️ Historic Route 66 Stops</h4>
       <div className="space-y-2">
         {deduplicatedStops.slice(0, exportFormat === 'summary' ? 3 : 6).map((stop, index) => (
           <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm">
