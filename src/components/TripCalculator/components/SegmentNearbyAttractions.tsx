@@ -19,7 +19,6 @@ interface SegmentNearbyAttractionsProps {
 // CRITICAL: Absolute maximum attractions enforced at module level
 const ABSOLUTE_MAX_ATTRACTIONS = 3;
 const UI_TIMEOUT_MS = 10000; // 10 seconds
-const UI_TIMEOUT_FALLBACK_MESSAGE = "Search took too long and was stopped to prevent infinite loading.";
 
 const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({ 
   segment, 
@@ -41,13 +40,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   // Enhanced UI timeout fallback handler
   const handleUITimeout = () => {
     console.log(`⏰ UI timeout triggered after ${UI_TIMEOUT_MS}ms for ${segment.endCity}`);
-    setSearchResult({
-      status: AttractionSearchStatus.TIMEOUT,
-      attractions: [],
-      message: UI_TIMEOUT_FALLBACK_MESSAGE,
-      citySearched: segment.endCity || '',
-      stateSearched: ''
-    });
+    // Let the hook handle timeout internally - don't try to set state directly
   };
 
   const { clearUITimeout, getRemainingTime } = useUITimeout({
