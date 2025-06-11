@@ -41,6 +41,25 @@ export const useSegmentWeather = ({
 }: UseSegmentWeatherProps): UseSegmentWeatherReturn => {
   const weatherService = EnhancedWeatherService.getInstance();
 
+  // Validate weather data quality
+  const validateWeatherData = React.useCallback((data: ForecastWeatherData, city: string, dateString: string): boolean => {
+    const validationResult = {
+      hasTemperature: !!(data.temperature || data.highTemp || data.lowTemp),
+      hasDescription: !!data.description,
+      hasValidDateMatch: !!data.dateMatchInfo,
+      isActualForecast: data.isActualForecast
+    };
+
+    const isValid = validationResult.hasTemperature && validationResult.hasDescription;
+    
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.validateWeatherData [${city}]`,
+      { dateString, validationResult, isValid }
+    );
+
+    return isValid;
+  }, []);
+
   // Enhanced weather data fetching with comprehensive debugging
   const fetchWeatherData = React.useCallback(async () => {
     if (!hasApiKey || !segmentDate) {
@@ -95,7 +114,7 @@ export const useSegmentWeather = ({
 
       if (weatherData) {
         // Enhanced validation with detailed logging
-        const isValidData = this.validateWeatherData(weatherData, segmentEndCity, segmentDateString);
+        const isValidData = validateWeatherData(weatherData, segmentEndCity, segmentDateString);
         
         if (isValidData) {
           WeatherDataDebugger.debugWeatherFlow(
@@ -130,26 +149,7 @@ export const useSegmentWeather = ({
     } finally {
       setLoading(false);
     }
-  }, [hasApiKey, segmentDate, segmentEndCity, weatherService, setLoading, setError, setWeather, retryCount]);
-
-  // Validate weather data quality
-  const validateWeatherData = React.useCallback((data: ForecastWeatherData, city: string, dateString: string): boolean => {
-    const validationResult = {
-      hasTemperature: !!(data.temperature || data.highTemp || data.lowTemp),
-      hasDescription: !!data.description,
-      hasValidDateMatch: !!data.dateMatchInfo,
-      isActualForecast: data.isActualForecast
-    };
-
-    const isValid = validationResult.hasTemperature && validationResult.hasDescription;
-    
-    WeatherDataDebugger.debugWeatherFlow(
-      `useSegmentWeather.validateWeatherData [${city}]`,
-      { dateString, validationResult, isValid }
-    );
-
-    return isValid;
-  }, []);
+  }, [hasApiKey, segmentDate, segmentEndCity, weatherService, setLoading, setError, setWeather, retryCount, validateWeatherData]);
 
   // Auto-fetch when dependencies change with debouncing
   React.useEffect(() => {

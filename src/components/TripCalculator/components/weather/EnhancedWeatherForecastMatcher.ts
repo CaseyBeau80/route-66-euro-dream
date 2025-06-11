@@ -1,4 +1,3 @@
-
 import { ForecastDay } from '@/components/Route66Map/services/weather/WeatherServiceTypes';
 import { DateNormalizationService } from './DateNormalizationService';
 
@@ -7,7 +6,7 @@ export interface EnhancedMatchResult {
   matchInfo: {
     requestedDate: string;
     matchedDate: string;
-    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none';
+    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
     daysOffset: number;
     hoursOffset?: number;
     confidence: 'high' | 'medium' | 'low';

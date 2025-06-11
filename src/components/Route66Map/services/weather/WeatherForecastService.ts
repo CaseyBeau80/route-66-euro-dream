@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -17,7 +18,7 @@ export interface ForecastWeatherData extends WeatherData {
   dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
-    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none';
+    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
     daysOffset: number;
     hoursOffset?: number;
     source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
@@ -110,19 +111,42 @@ export class WeatherForecastService {
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
-        const highTemp = forecast.temperature?.high || forecast.temperature || 0;
-        const lowTemp = forecast.temperature?.low || forecast.temperature || 0;
+        
+        // Handle temperature extraction properly
+        const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
+          if (typeof temp === 'number') return temp;
+          if (temp && typeof temp === 'object' && 'high' in temp && 'low' in temp) {
+            return Math.round((temp.high + temp.low) / 2);
+          }
+          return 0;
+        };
+
+        const extractHighTemp = (temp: number | { high: number; low: number; } | undefined): number => {
+          if (typeof temp === 'number') return temp;
+          if (temp && typeof temp === 'object' && 'high' in temp) return temp.high;
+          return 0;
+        };
+
+        const extractLowTemp = (temp: number | { high: number; low: number; } | undefined): number => {
+          if (typeof temp === 'number') return temp;
+          if (temp && typeof temp === 'object' && 'low' in temp) return temp.low;
+          return 0;
+        };
+
+        const highTemp = extractHighTemp(forecast.temperature);
+        const lowTemp = extractLowTemp(forecast.temperature);
+        const avgTemp = extractTemperature(forecast.temperature);
         const precipChance = parseInt(String(forecast.precipitationChance)) || 0;
         
         console.log(`✅ Enhanced forecast match for ${cityName} on ${targetDateString}:`, {
           matchType: matchResult.matchInfo.matchType,
           matchedDate: matchResult.matchInfo.matchedDate,
           confidence: matchResult.matchInfo.confidence,
-          temperature: { high: highTemp, low: lowTemp }
+          temperature: { high: highTemp, low: lowTemp, avg: avgTemp }
         });
         
         return {
-          temperature: Math.round((highTemp + lowTemp) / 2) || highTemp || lowTemp,
+          temperature: avgTemp || highTemp || lowTemp,
           highTemp: highTemp,
           lowTemp: lowTemp,
           description: forecast.description || 'Clear',
@@ -223,7 +247,7 @@ export class WeatherForecastService {
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
-        matchType: 'none' as const,
+        matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
         source: 'seasonal-estimate' as const,
