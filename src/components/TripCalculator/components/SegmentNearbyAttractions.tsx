@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { MapPin, Clock, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -466,5 +467,3 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
 };
 
 export default SegmentNearbyAttractions;
-
-}
