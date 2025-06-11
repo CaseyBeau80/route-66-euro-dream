@@ -399,5 +399,3 @@ const Route66TripCalculator = () => {
 };
 
 export default Route66TripCalculator;
-
-</edits_to_apply>
