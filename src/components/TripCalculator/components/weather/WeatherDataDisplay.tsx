@@ -3,8 +3,6 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
 import { DateNormalizationService } from './DateNormalizationService';
-import { validateWeatherData, getWeatherDisplayType } from './WeatherValidationService';
-import { WeatherDataDebugger } from './WeatherDataDebugger';
 import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDataDisplayProps {
@@ -52,21 +50,19 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // CRITICAL: Use relaxed validation
-  const validation = validateWeatherData(weather, cityName, segmentDate);
-  const displayType = getWeatherDisplayType(validation, error, 0, weather);
+  // CRITICAL FIX: Direct basic data check - no complex validation
+  const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+  const hasDescription = !!weather.description;
   
-  console.log(`🎯 DISPLAY DECISION for ${cityName}:`, {
-    displayType,
-    validation: validation.validationDetails,
-    canProceed: validation.isValid
-  });
-
-  // CRITICAL: If validation failed, still try to display if we have basic data
-  const hasBasicData = !!(weather.temperature || weather.highTemp || weather.lowTemp) && !!weather.description;
-  
-  if (!validation.isValid && !hasBasicData) {
-    console.log(`❌ WeatherDataDisplay: No basic data for ${cityName}, showing fallback`);
+  if (!hasAnyTemp || !hasDescription) {
+    console.log(`❌ WeatherDataDisplay: Missing basic data for ${cityName}:`, {
+      hasAnyTemp,
+      hasDescription,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description
+    });
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
@@ -91,12 +87,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     return formattedDate;
   }, [segmentDate, cityName]);
 
-  const isLiveForecast = displayType === 'live-forecast' || validation.isValid;
+  // Determine if this is live forecast or fallback
+  const isLiveForecast = weather.isActualForecast === true;
   const bgClass = isLiveForecast ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-200';
   const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
   const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
 
-  // CRITICAL: Extract temperatures with fallbacks
+  // CRITICAL: Extract temperatures with robust fallbacks
   const getTemperatureValues = () => {
     let highTemp = 0;
     let lowTemp = 0;
@@ -109,10 +106,10 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       highTemp = weather.temperature + 5;
       lowTemp = weather.temperature - 5;
     } else {
-      // CRITICAL: Provide reasonable fallback temperatures
+      // Should not reach here due to earlier validation, but just in case
+      console.warn(`⚠️ No temperature data found for ${cityName}`);
       highTemp = 70;
       lowTemp = 50;
-      console.warn(`⚠️ Using fallback temperatures for ${cityName}`);
     }
 
     console.log(`🌡️ Temperature extraction for ${cityName}:`, {
@@ -182,14 +179,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           `📊 Weather data for {forecastLabel}`
         )}
       </div>
-
-      {validation.warnings.length > 0 && !isSharedView && !isPDFExport && (
-        <div className="mt-2 text-xs text-gray-600">
-          {validation.warnings.slice(0, 1).map((warning, index) => (
-            <div key={index}>ℹ️ {warning}</div>
-          ))}
-        </div>
-      )}
 
       {error && onRetry && !isSharedView && !isPDFExport && (
         <div className="mt-2">

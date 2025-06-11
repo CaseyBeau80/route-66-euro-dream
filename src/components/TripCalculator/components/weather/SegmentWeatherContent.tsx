@@ -63,43 +63,6 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     }
   }, [weather, segmentEndCity]);
 
-  // Validate weather data with enhanced debugging
-  const validation = React.useMemo(() => {
-    if (!weather) {
-      console.log(`❌ SegmentWeatherContent: No weather data for ${segmentEndCity}`);
-      return null;
-    }
-    
-    const result = validateWeatherData(weather, segmentEndCity, segmentDate);
-    console.log(`🎯 SegmentWeatherContent validation for ${segmentEndCity}:`, result);
-    return result;
-  }, [weather, segmentEndCity, segmentDate]);
-
-  const displayType = React.useMemo(() => {
-    if (!validation) {
-      console.log(`❌ SegmentWeatherContent: No validation for ${segmentEndCity}, showing loading`);
-      return 'loading';
-    }
-    
-    const type = getWeatherDisplayType(validation, error, retryCount, weather);
-    console.log(`🎯 SegmentWeatherContent display type for ${segmentEndCity}:`, type);
-    return type;
-  }, [validation, error, retryCount, weather, segmentEndCity]);
-
-  // Log segment date information
-  React.useEffect(() => {
-    if (segmentDate) {
-      const segmentDateString = DateNormalizationService.toDateString(segmentDate);
-      console.log(`🎯 CRITICAL SEGMENT DATE for ${segmentEndCity}:`, {
-        segmentDate: segmentDate.toISOString(),
-        segmentDateString,
-        daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-        validation,
-        displayType
-      });
-    }
-  }, [segmentDate, segmentEndCity, validation, displayType]);
-
   // Show API key setup if no key available
   if (!hasApiKey) {
     console.log(`❌ SegmentWeatherContent: No API key for ${segmentEndCity}`);
@@ -142,7 +105,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   }
 
   // Handle service unavailable state
-  if (displayType === 'service-unavailable' || retryCount > 2) {
+  if (retryCount > 2) {
     console.log(`❌ SegmentWeatherContent: Service unavailable for ${segmentEndCity}`);
     return (
       <FallbackWeatherDisplay
@@ -155,20 +118,27 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // CRITICAL: Show weather data if we have ANY data, regardless of validation
+  // CRITICAL FIX: Simplified weather display logic - bypass complex validation
   if (weather) {
-    const hasBasicData = !!(weather.temperature || weather.highTemp || weather.lowTemp) && !!weather.description;
+    // Direct check for displayable data - much simpler than validation chain
+    const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+    const hasDescription = !!weather.description;
+    const canDisplay = hasAnyTemp && hasDescription;
     
-    console.log(`🎯 CRITICAL WEATHER DISPLAY DECISION for ${segmentEndCity}:`, {
-      hasWeather: true,
-      hasBasicData,
-      validationPassed: validation?.isValid,
-      displayType,
-      forceDisplay: hasBasicData
+    console.log(`🎯 SIMPLIFIED DISPLAY CHECK for ${segmentEndCity}:`, {
+      hasAnyTemp,
+      hasDescription,
+      canDisplay,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      bypassingComplexValidation: true
     });
 
-    if (hasBasicData || validation?.isValid) {
-      console.log(`✅ DISPLAYING WEATHER for ${segmentEndCity}`);
+    // If we have basic displayable data, show it immediately
+    if (canDisplay) {
+      console.log(`✅ DIRECT DISPLAY: Showing weather for ${segmentEndCity} - bypassing validation`);
       return (
         <WeatherDataDisplay
           weather={weather}
@@ -180,6 +150,12 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
           isPDFExport={isPDFExport}
         />
       );
+    } else {
+      console.log(`❌ DIRECT DISPLAY: Cannot display weather for ${segmentEndCity} - missing basic data`, {
+        hasAnyTemp,
+        hasDescription,
+        weatherKeys: Object.keys(weather)
+      });
     }
   }
 
@@ -190,7 +166,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || (weather ? 'Weather data validation failed' : 'No weather data available')}
+      error={error || (weather ? 'Weather data incomplete' : 'No weather data available')}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );
