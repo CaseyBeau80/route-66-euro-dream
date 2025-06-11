@@ -167,6 +167,14 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   segment, 
   maxAttractions = 3 
 }) => {
+  // DEBUG: Add console logging to track component rendering
+  console.log('🔍 SegmentNearbyAttractions render DEBUG:', {
+    segmentDay: segment.day,
+    endCity: segment.endCity,
+    maxAttractions,
+    componentKey: `SegmentNearbyAttractions-${segment.day}-${segment.endCity}`
+  });
+
   const [searchResult, setSearchResult] = useState<AttractionSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -364,11 +372,22 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
   
-  // Handle successful results
+  // CRITICAL: Apply the maxAttractions limit strictly
   const attractions = searchResult.attractions.slice(0, maxAttractions);
   const totalAttractions = searchResult.attractions.length;
   const hasMoreAttractions = totalAttractions > maxAttractions;
   const remainingCount = totalAttractions - maxAttractions;
+  
+  // DEBUG: Log the attraction limiting
+  console.log('🔍 SegmentNearbyAttractions attraction limiting DEBUG:', {
+    totalAttractions,
+    maxAttractions,
+    attractionsToShow: attractions.length,
+    hasMoreAttractions,
+    remainingCount,
+    segmentDay: segment.day,
+    endCity: segment.endCity
+  });
   
   return (
     <div className="space-y-3">
