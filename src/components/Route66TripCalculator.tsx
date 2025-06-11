@@ -94,11 +94,6 @@ const Route66TripCalculator = () => {
         numberOfDays: 7,
         averageDailyDistance: 350,
         dailyDistances: [350, 350, 350, 350, 350, 350, 398],
-        fuelCost: 300,
-        accommodationCost: 700,
-        foodCost: 500,
-        attractionCost: 200,
-        totalCost: 1700,
       };
 
       setCalculation(newCalculation);
@@ -404,3 +399,5 @@ const Route66TripCalculator = () => {
 };
 
 export default Route66TripCalculator;
+
+</edits_to_apply>
