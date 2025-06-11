@@ -26,20 +26,21 @@ export class WeatherConfigValidationService {
     let isValid = false;
     let source: 'config-file' | 'localStorage' | 'none' = 'none';
     
-    // Check config file
+    // Check config file - ensure we have a string before calling methods
     const configKey = WEATHER_API_KEY;
-    const isConfigPlaceholder = !configKey || 
-      configKey === 'your_api_key_here' || 
-      configKey.toLowerCase().includes('your_api_key') ||
-      configKey.toLowerCase().includes('placeholder');
+    const configKeyString = typeof configKey === 'string' ? configKey : '';
+    const isConfigPlaceholder = !configKeyString || 
+      configKeyString === 'your_api_key_here' || 
+      configKeyString.toLowerCase().includes('your_api_key') ||
+      configKeyString.toLowerCase().includes('placeholder');
     
-    details.configFileKey = !!configKey && !isConfigPlaceholder;
+    details.configFileKey = !!configKeyString && !isConfigPlaceholder;
     details.isPlaceholder = isConfigPlaceholder;
     
     if (details.configFileKey) {
-      details.keyLength = configKey.length;
+      details.keyLength = configKeyString.length;
       source = 'config-file';
-      isValid = configKey.length >= 20;
+      isValid = configKeyString.length >= 20;
     }
     
     // Check localStorage

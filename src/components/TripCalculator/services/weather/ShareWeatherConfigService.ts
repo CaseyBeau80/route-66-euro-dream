@@ -10,6 +10,7 @@ export interface ShareWeatherConfig {
     configKey?: string;
     localStorageKey?: string;
     refreshedKey?: string;
+    keyLength?: number;
     validationPassed: boolean;
   };
 }
@@ -31,7 +32,8 @@ export class ShareWeatherConfigService {
       // Determine the source of the API key
       let apiKeySource: 'main-app' | 'config-file' | 'localStorage' | 'none' = 'none';
       const detectionDetails: any = {
-        validationPassed: hasApiKey
+        validationPassed: hasApiKey,
+        keyLength: refreshedKey?.length || 0
       };
       
       if (refreshedKey) {
@@ -74,7 +76,8 @@ export class ShareWeatherConfigService {
         canFetchLiveWeather: false,
         apiKeySource: 'none',
         detectionDetails: {
-          validationPassed: false
+          validationPassed: false,
+          keyLength: 0
         }
       };
     }
