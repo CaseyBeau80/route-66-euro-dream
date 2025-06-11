@@ -57,18 +57,40 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     const rawSegments = sanitizedTripPlan.segments || sanitizedTripPlan.dailySegments || [];
     console.log('📤 SharedTripContentRenderer: Raw segments', rawSegments);
     
-    // Filter segments with proper validation
+    // Filter segments with proper validation and ENFORCE 3-attraction limit
     const enrichedSegments = rawSegments.filter(segment => {
       if (!segment) return false;
       if (typeof segment.day !== 'number' || segment.day <= 0) return false;
       if (!segment.endCity && !getDestinationCity(segment.destination)) return false;
       return true;
+    }).map(segment => {
+      // CRITICAL: Enforce 3-attraction limit on each segment
+      const maxAttractions = 3;
+      const originalAttractions = segment.attractions || [];
+      const limitedAttractions = originalAttractions.slice(0, maxAttractions);
+      
+      console.log('🔍 SharedTripContentRenderer ENFORCED attraction limiting:', {
+        segmentDay: segment.day,
+        originalCount: originalAttractions.length,
+        limitedCount: limitedAttractions.length,
+        maxAttractions
+      });
+      
+      return {
+        ...segment,
+        attractions: limitedAttractions
+      };
     }) || [];
 
-    console.log('📤 SharedTripContentRenderer: Processed segments', {
+    console.log('📤 SharedTripContentRenderer: Processed segments with enforced limits', {
       rawSegmentsCount: rawSegments.length,
       enrichedSegmentsCount: enrichedSegments.length,
-      enrichedSegments: enrichedSegments.map(s => ({ day: s.day, endCity: s.endCity, startCity: s.startCity }))
+      enrichedSegments: enrichedSegments.map(s => ({ 
+        day: s.day, 
+        endCity: s.endCity, 
+        startCity: s.startCity,
+        attractionsCount: s.attractions?.length || 0
+      }))
     });
 
     if (enrichedSegments.length === 0) {
@@ -141,7 +163,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         {/* Enhanced Trip Overview */}
         <TripOverviewSection tripPlan={sanitizedTripPlan} />
 
-        {/* Daily Itinerary */}
+        {/* Daily Itinerary with ENFORCED attraction limits */}
         <DailyItinerarySection 
           enrichedSegments={enrichedSegments}
           validTripStartDate={validTripStartDate}

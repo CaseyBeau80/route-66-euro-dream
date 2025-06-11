@@ -28,6 +28,22 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Daily Itinerary</h2>
       
       {segments.map((segment, index) => {
+        // CRITICAL: Enforce 3-attraction limit in shared view
+        const maxAttractions = 3;
+        const totalAttractions = segment.attractions?.length || 0;
+        const limitedAttractions = segment.attractions?.slice(0, maxAttractions) || [];
+        const hasMoreAttractions = totalAttractions > maxAttractions;
+        const remainingCount = totalAttractions - maxAttractions;
+
+        console.log('🔍 ShareTripItineraryView ENFORCED attraction limiting:', {
+          segmentDay: segment.day,
+          totalAttractions,
+          maxAttractions,
+          limitedAttractions: limitedAttractions.length,
+          hasMoreAttractions,
+          remainingCount
+        });
+
         return (
           <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
@@ -94,20 +110,27 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 />
               </div>
 
-              {/* Recommendations */}
-              {segment.attractions && segment.attractions.length > 0 && (
+              {/* ENFORCED 3-Attraction Limit Recommendations */}
+              {limitedAttractions.length > 0 && (
                 <div className="bg-green-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    🏛️ Recommended Stops ({segment.attractions.length} total)
+                    🏛️ Recommended Stops ({hasMoreAttractions ? `${limitedAttractions.length} of ${totalAttractions}` : limitedAttractions.length} total)
                   </h4>
                   <ul className="space-y-1">
-                    {segment.attractions.map((attraction, idx) => (
+                    {limitedAttractions.map((attraction, idx) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                         {attraction.name || attraction}
                       </li>
                     ))}
                   </ul>
+                  
+                  {/* Truncation indicator when more attractions are available */}
+                  {hasMoreAttractions && (
+                    <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-100 rounded border border-gray-200 mt-2">
+                      + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
+                    </div>
+                  )}
                 </div>
               )}
             </div>

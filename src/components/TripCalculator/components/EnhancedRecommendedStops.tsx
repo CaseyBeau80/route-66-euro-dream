@@ -18,8 +18,11 @@ interface EnhancedRecommendedStopsProps {
 
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
-  maxStops = 5
+  maxStops = 3 // CRITICAL: Default limit enforced to 3
 }) => {
+  // CRITICAL: Enforce safe maxStops limit with fallback
+  const safeMaxStops = maxStops ?? 3;
+  
   const stableSegment = useStableSegment(segment);
   const { validStops, userRelevantStops, isValid } = useOptimizedValidation(stableSegment);
   
@@ -44,7 +47,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     
     try {
       const enhanced = await StopEnhancementService.enhanceStopsForSegment(
-        startCity, endCity, segmentDay, maxStops
+        startCity, endCity, segmentDay, safeMaxStops
       );
       setEnhancedStops(enhanced);
     } catch (error) {
@@ -54,22 +57,23 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [shouldTriggerEnhanced, startCity, endCity, maxStops, segmentDay]);
+  }, [shouldTriggerEnhanced, startCity, endCity, safeMaxStops, segmentDay]);
   
   useEffect(() => {
     tryEnhancedSelection();
   }, [tryEnhancedSelection]);
   
   const finalStops = useMemo(() => 
-    StopsCombiner.combineStops(userRelevantStops, enhancedStops, maxStops),
-    [userRelevantStops, enhancedStops, maxStops]
+    StopsCombiner.combineStops(userRelevantStops, enhancedStops, safeMaxStops),
+    [userRelevantStops, enhancedStops, safeMaxStops]
   );
 
-  console.log('🎯 EnhancedRecommendedStops final result:', {
+  console.log('🎯 EnhancedRecommendedStops ENFORCED final result:', {
     segmentDay,
     route: `${startCity} → ${endCity}`,
     originalStops: userRelevantStops.length,
     enhancedStops: enhancedStops.length,
+    safeMaxStops,
     finalStops: finalStops.length,
     isLoading,
     error,
@@ -112,7 +116,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
             
             {enhancedStops.length > 0 && (
               <div className="text-xs text-blue-600 italic text-center p-2 bg-blue-50 rounded border border-blue-200">
-                ✨ Enhanced selection found {enhancedStops.length} additional stops
+                ✨ Enhanced selection found {enhancedStops.length} additional stops (limited to {safeMaxStops})
               </div>
             )}
           </div>
