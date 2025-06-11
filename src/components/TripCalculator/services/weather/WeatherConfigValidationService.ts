@@ -29,10 +29,18 @@ export class WeatherConfigValidationService {
     // Check config file - ensure we have a string before calling methods
     const configKey = WEATHER_API_KEY;
     const configKeyString = typeof configKey === 'string' ? configKey : '';
-    const isConfigPlaceholder = !configKeyString || 
-      configKeyString === 'your_api_key_here' || 
-      configKeyString.toLowerCase().includes('your_api_key') ||
-      configKeyString.toLowerCase().includes('placeholder');
+    
+    // Separate the string checks to avoid TypeScript control flow issues
+    let isConfigPlaceholder = false;
+    if (!configKeyString) {
+      isConfigPlaceholder = true;
+    } else if (configKeyString === 'your_api_key_here') {
+      isConfigPlaceholder = true;
+    } else if (configKeyString.toLowerCase().includes('your_api_key')) {
+      isConfigPlaceholder = true;
+    } else if (configKeyString.toLowerCase().includes('placeholder')) {
+      isConfigPlaceholder = true;
+    }
     
     details.configFileKey = !!configKeyString && !isConfigPlaceholder;
     details.isPlaceholder = isConfigPlaceholder;
