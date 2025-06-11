@@ -81,7 +81,7 @@ const PDFSegmentWeatherForecast: React.FC<PDFSegmentWeatherForecastProps> = ({
       </h4>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-        {/* Temperature Range */}
+        {/* Temperature Range - Low first, then High */}
         <div className="text-center">
           <div className="font-bold text-blue-700">
             {forecastData.lowTemp && forecastData.highTemp ? (

@@ -94,7 +94,7 @@ const PDFWeatherForecast: React.FC<PDFWeatherForecastProps> = ({
         </span>
       </div>
       
-      {/* Temperature Display - Matching UI Layout */}
+      {/* Temperature Display - Low on left, High on right */}
       <div className="flex items-center justify-center gap-4 mb-3 p-3 bg-white rounded border">
         <div className="text-center">
           <div className="text-lg font-bold text-blue-700">
