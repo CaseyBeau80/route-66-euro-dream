@@ -75,7 +75,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       
       // Validation readiness
       hasAnyTemp: !!(weather.temperature || weather.highTemp || weather.lowTemp),
-      hasDescription: !!weather.description,
+      hasDescriptionValue: !!weather.description,
       basicDisplayReady: !!(weather.temperature || weather.highTemp || weather.lowTemp) && !!weather.description
     });
   }
