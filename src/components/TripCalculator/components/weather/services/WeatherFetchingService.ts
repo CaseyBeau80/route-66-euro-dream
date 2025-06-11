@@ -20,12 +20,14 @@ export class WeatherFetchingService {
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
     WeatherDataDebugger.debugWeatherFlow(
-      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - IMPROVED`,
+      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - ENHANCED DEBUG`,
       {
         originalDate: segmentDate.toISOString(),
         normalizedDate: normalizedSegmentDate.toISOString(),
         segmentDateString,
-        daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+        hasApiKey: this.weatherService.hasApiKey(),
+        apiKeySource: this.weatherService.getApiKeySource?.() || 'unknown'
       }
     );
 
@@ -33,6 +35,11 @@ export class WeatherFetchingService {
     setError(null);
 
     try {
+      // Check API key first
+      if (!this.weatherService.hasApiKey()) {
+        throw new Error('No weather API key configured');
+      }
+
       const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
       if (!coordinates) {
         throw new Error(`No coordinates found for ${segmentEndCity}`);
@@ -40,8 +47,14 @@ export class WeatherFetchingService {
 
       WeatherDataDebugger.debugWeatherFlow(
         `WeatherFetchingService.coordinates [${segmentEndCity}]`,
-        { coordinates, segmentDateString }
+        { coordinates, segmentDateString, apiKeyAvailable: true }
       );
+
+      console.log(`🌤️ FETCHING WEATHER: ${segmentEndCity} for ${segmentDateString}`, {
+        coordinates,
+        normalizedDate: normalizedSegmentDate.toISOString(),
+        serviceHasKey: this.weatherService.hasApiKey()
+      });
 
       const weatherPromise = this.weatherService.getWeatherForDate(
         coordinates.lat,
@@ -51,18 +64,27 @@ export class WeatherFetchingService {
       );
 
       const timeoutPromise = new Promise<ForecastWeatherData | null>((_, reject) => {
-        setTimeout(() => reject(new Error('Weather fetch timeout')), 10000);
+        setTimeout(() => reject(new Error('Weather fetch timeout after 15 seconds')), 15000);
       });
 
       const weatherData = await Promise.race([weatherPromise, timeoutPromise]);
 
+      console.log(`🌤️ WEATHER RESPONSE for ${segmentEndCity}:`, {
+        hasData: !!weatherData,
+        isActualForecast: weatherData?.isActualForecast,
+        temperature: weatherData?.temperature,
+        highTemp: weatherData?.highTemp,
+        lowTemp: weatherData?.lowTemp,
+        description: weatherData?.description
+      });
+
       if (weatherData) {
-        // FIXED: Use improved validation
+        // Use improved validation
         const isValidData = WeatherDataValidator.validateWeatherData(weatherData, segmentEndCity, segmentDateString);
         
         if (isValidData) {
           WeatherDataDebugger.debugWeatherFlow(
-            `WeatherFetchingService.success [${segmentEndCity}] - IMPROVED VALIDATION`,
+            `WeatherFetchingService.success [${segmentEndCity}] - VALIDATION PASSED`,
             {
               isActualForecast: weatherData.isActualForecast,
               temperature: weatherData.temperature,
@@ -75,9 +97,10 @@ export class WeatherFetchingService {
           );
 
           setWeather(weatherData);
+          console.log(`✅ WEATHER SET for ${segmentEndCity}:`, weatherData);
         } else {
-          console.warn(`⚠️ Weather data validation failed for ${segmentEndCity}, but attempting to use anyway`);
-          // FIXED: Try to use data even if validation fails
+          console.warn(`⚠️ Weather data validation failed for ${segmentEndCity}, but trying to use anyway`);
+          // Try to use data even if validation fails
           setWeather(weatherData);
         }
       } else {
@@ -88,7 +111,7 @@ export class WeatherFetchingService {
       
       WeatherDataDebugger.debugWeatherFlow(
         `WeatherFetchingService.error [${segmentEndCity}]`,
-        { error: errorMessage }
+        { error: errorMessage, hasApiKey: this.weatherService.hasApiKey() }
       );
       
       console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);

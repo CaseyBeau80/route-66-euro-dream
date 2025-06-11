@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { WeatherDataDebugger } from '../WeatherDataDebugger';
-import { WeatherFetchingService } from '../services/WeatherFetchingService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherFetchingService } from '../services/WeatherFetchingService';
+import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 interface UseSegmentWeatherHandlersProps {
   segmentEndCity: string;
@@ -14,6 +14,13 @@ interface UseSegmentWeatherHandlersProps {
   setWeather: (weather: ForecastWeatherData | null) => void;
 }
 
+interface UseSegmentWeatherHandlersReturn {
+  fetchWeatherData: () => Promise<void>;
+  handleApiKeySet: () => void;
+  handleTimeout: () => void;
+  handleRetry: () => void;
+}
+
 export const useSegmentWeatherHandlers = ({
   segmentEndCity,
   segmentDate,
@@ -22,54 +29,81 @@ export const useSegmentWeatherHandlers = ({
   setLoading,
   setError,
   setWeather
-}: UseSegmentWeatherHandlersProps) => {
+}: UseSegmentWeatherHandlersProps): UseSegmentWeatherHandlersReturn => {
+  
   const fetchWeatherData = React.useCallback(async () => {
     if (!segmentDate) {
-      WeatherDataDebugger.debugWeatherFlow(
-        `useSegmentWeatherHandlers.fetchWeatherData.skip [${segmentEndCity}]`,
-        { reason: 'missing_segment_date' }
-      );
+      console.warn(`❌ Cannot fetch weather for ${segmentEndCity}: No segment date`);
+      setError('Missing trip date - please set a trip start date');
       return;
     }
 
-    await WeatherFetchingService.fetchWeatherForSegment(
-      segmentEndCity,
-      segmentDate,
-      setLoading,
-      setError,
-      setWeather
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeatherHandlers.fetchWeatherData [${segmentEndCity}]`,
+      {
+        segmentDate: segmentDate.toISOString(),
+        retryCount,
+        hasDate: !!segmentDate
+      }
     );
-  }, [segmentDate, segmentEndCity, setLoading, setError, setWeather]);
+
+    try {
+      await WeatherFetchingService.fetchWeatherForSegment(
+        segmentEndCity,
+        segmentDate,
+        setLoading,
+        setError,
+        setWeather
+      );
+    } catch (error) {
+      console.error(`❌ Weather fetch failed for ${segmentEndCity}:`, error);
+      setError(error instanceof Error ? error.message : 'Weather fetch failed');
+      setLoading(false);
+    }
+  }, [segmentEndCity, segmentDate, retryCount, setLoading, setError, setWeather]);
 
   const handleApiKeySet = React.useCallback(() => {
     WeatherDataDebugger.debugWeatherFlow(
       `useSegmentWeatherHandlers.handleApiKeySet [${segmentEndCity}]`,
-      { previousRetryCount: retryCount }
+      { trigger: 'api_key_set' }
     );
     
+    setError(null);
     setRetryCount(0);
-    fetchWeatherData();
-  }, [segmentEndCity, fetchWeatherData, setRetryCount, retryCount]);
+    
+    // Fetch weather data immediately after API key is set
+    if (segmentDate) {
+      setTimeout(() => {
+        fetchWeatherData();
+      }, 500);
+    }
+  }, [segmentEndCity, segmentDate, fetchWeatherData, setError, setRetryCount]);
 
   const handleTimeout = React.useCallback(() => {
     WeatherDataDebugger.debugWeatherFlow(
       `useSegmentWeatherHandlers.handleTimeout [${segmentEndCity}]`,
-      { currentRetryCount: retryCount }
+      { retryCount }
     );
     
-    setRetryCount(prev => prev + 1);
-    setError('Weather service timeout - please try again');
-  }, [segmentEndCity, setRetryCount, setError, retryCount]);
+    setError('Weather request timed out');
+    setLoading(false);
+  }, [segmentEndCity, retryCount, setError, setLoading]);
 
   const handleRetry = React.useCallback(() => {
     WeatherDataDebugger.debugWeatherFlow(
       `useSegmentWeatherHandlers.handleRetry [${segmentEndCity}]`,
-      { currentRetryCount: retryCount, newRetryCount: retryCount + 1 }
+      { retryCount, newRetryCount: retryCount + 1 }
     );
     
     setRetryCount(prev => prev + 1);
-    fetchWeatherData();
-  }, [segmentEndCity, retryCount, setRetryCount, fetchWeatherData]);
+    setError(null);
+    setWeather(null);
+    
+    // Retry fetch immediately
+    setTimeout(() => {
+      fetchWeatherData();
+    }, 100);
+  }, [segmentEndCity, retryCount, setRetryCount, setError, setWeather, fetchWeatherData]);
 
   return {
     fetchWeatherData,

@@ -1,95 +1,38 @@
 
 export class WeatherDataDebugger {
-  /**
-   * Comprehensive debugging for weather data flow
-   */
-  static debugWeatherFlow(context: string, data: any): void {
-    console.log(`🐛 WEATHER DEBUG [${context}]:`, {
-      timestamp: new Date().toISOString(),
-      context,
-      data: this.sanitizeDebugData(data)
-    });
+  static debugWeatherFlow(message: string, data?: any): void {
+    console.log(`🌤️ ${message}`, data || '');
   }
 
-  /**
-   * Debug weather API response
-   */
-  static debugApiResponse(cityName: string, targetDate: string, response: any): void {
-    console.log(`🌐 WEATHER API DEBUG [${cityName}]:`, {
-      targetDate,
-      hasResponse: !!response,
-      isActualForecast: response?.isActualForecast,
-      temperature: response?.temperature,
-      highTemp: response?.highTemp,
-      lowTemp: response?.lowTemp,
-      description: response?.description,
-      forecastDate: response?.forecastDate?.toISOString(),
-      dateMatchInfo: response?.dateMatchInfo,
-      forecastCount: response?.forecast?.length || 0
-    });
-  }
-
-  /**
-   * Debug component state changes
-   */
-  static debugComponentState(componentName: string, city: string, state: any): void {
-    console.log(`🔍 COMPONENT STATE [${componentName}] [${city}]:`, {
-      hasApiKey: state.hasApiKey,
-      loading: state.loading,
-      hasWeather: !!state.weather,
-      error: state.error,
-      retryCount: state.retryCount,
-      segmentDate: state.segmentDate?.toISOString(),
-      weatherSource: state.weather?.dateMatchInfo?.source
-    });
-  }
-
-  /**
-   * Debug date calculations
-   */
-  static debugDateCalculation(context: string, tripStartDate: any, dayNumber: number, result: Date | null): void {
-    console.log(`📅 DATE CALCULATION DEBUG [${context}]:`, {
+  static debugDateCalculation(message: string, tripStartDate: any, dayNumber: number, result: any): void {
+    console.log(`📅 ${message}`, {
       tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
-      tripStartDateType: typeof tripStartDate,
       dayNumber,
-      calculatedDate: result?.toISOString(),
-      calculatedDateString: result ? result.toISOString().split('T')[0] : null,
-      daysFromNow: result ? Math.ceil((result.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : null
+      result: result?.toISOString(),
+      resultType: typeof result
     });
   }
 
-  /**
-   * Debug weather matching process
-   */
+  static debugApiResponse(cityName: string, dateString: string, weatherData: any): void {
+    console.log(`🔮 API Response for ${cityName} on ${dateString}:`, {
+      hasData: !!weatherData,
+      isActualForecast: weatherData?.isActualForecast,
+      temperature: weatherData?.temperature,
+      description: weatherData?.description,
+      dateMatchInfo: weatherData?.dateMatchInfo
+    });
+  }
+
   static debugWeatherMatching(cityName: string, targetDate: string, forecasts: any[], matchResult: any): void {
-    console.log(`🎯 WEATHER MATCHING DEBUG [${cityName}]:`, {
-      targetDate,
-      forecastCount: forecasts.length,
-      availableDates: forecasts.map(f => f.dateString).filter(Boolean),
+    console.log(`🎯 Weather matching for ${cityName} on ${targetDate}:`, {
+      availableForecasts: forecasts.length,
       matchFound: !!matchResult.matchedForecast,
       matchType: matchResult.matchInfo?.matchType,
-      matchedDate: matchResult.matchInfo?.matchedDate,
-      confidence: matchResult.matchInfo?.confidence,
-      daysOffset: matchResult.matchInfo?.daysOffset
+      confidence: matchResult.matchInfo?.confidence
     });
   }
 
-  private static sanitizeDebugData(data: any): any {
-    if (!data) return data;
-    
-    // Remove circular references and large objects
-    try {
-      return JSON.parse(JSON.stringify(data, (key, value) => {
-        if (typeof value === 'function') return '[Function]';
-        if (value instanceof Date) return value.toISOString();
-        if (typeof value === 'object' && value !== null) {
-          // Limit object depth
-          if (Object.keys(value).length > 20) return '[Large Object]';
-        }
-        return value;
-      }));
-    } catch (error) {
-      return '[Debug Data Error]';
-    }
+  static debugComponentState(componentName: string, cityName: string, state: any): void {
+    console.log(`📊 ${componentName} state for ${cityName}:`, state);
   }
 }
