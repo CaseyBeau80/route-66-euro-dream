@@ -1,4 +1,3 @@
-
 /**
  * Centralized date normalization service for weather modules
  * Ensures consistent date handling across all weather components
@@ -77,117 +76,123 @@ export class DateNormalizationService {
           return null;
         }
       } else {
-        console.error('❌ DateNormalizationService: Invalid tripStartDate type', { 
-          tripStartDate, 
-          type: typeof tripStartDate 
+        console.error('❌ DateNormalizationService: Invalid tripStartDate type', { tripStartDate, type: typeof tripStartDate });
+        return null;
+      }
+      
+      // CRITICAL FIX: Use the original date components directly to prevent timezone drift
+      const normalizedStartDate = new Date(validStartDate.getFullYear(), validStartDate.getMonth(), validStartDate.getDate());
+      
+      // FIXED CALCULATION: Day 1 = start date (no offset), Day 2 = start date + 1, etc.
+      const daysToAdd = segmentDay - 1; // Day 1 gets 0 days added, Day 2 gets 1 day added, etc.
+      
+      // CRITICAL FIX: Create segment date by adding days to the normalized start date
+      const segmentDate = new Date(normalizedStartDate);
+      segmentDate.setDate(normalizedStartDate.getDate() + daysToAdd);
+      
+      if (isNaN(segmentDate.getTime())) {
+        console.error('❌ DateNormalizationService: Calculated date is invalid', { 
+          normalizedStartDate: normalizedStartDate.toISOString(), 
+          segmentDay, 
+          daysToAdd,
+          segmentDate 
         });
         return null;
       }
-
-      // FIXED: Direct date calculation without timezone conversion
-      const normalizedStartDate = this.normalizeSegmentDate(validStartDate);
       
-      // Calculate segment date: Day 1 = start date, Day 2 = start date + 1, etc.
-      const daysToAdd = segmentDay - 1;
-      const segmentDate = new Date(
-        normalizedStartDate.getFullYear(),
-        normalizedStartDate.getMonth(),
-        normalizedStartDate.getDate() + daysToAdd
-      );
-
-      console.log('🗓️ DateNormalizationService: FIXED segment date calculation:', {
-        tripStartDate: validStartDate.toISOString(),
+      console.log('✅ DateNormalizationService: Successfully calculated segment date (FIXED):', {
         segmentDay,
         daysToAdd,
-        segmentDate: segmentDate.toISOString(),
+        originalStartDate: validStartDate.toISOString(),
+        originalStartDateString: validStartDate.toDateString(),
+        normalizedStartDate: normalizedStartDate.toISOString(),
+        normalizedStartDateString: normalizedStartDate.toDateString(),
+        calculatedSegmentDate: segmentDate.toISOString(),
+        calculatedSegmentDateString: segmentDate.toDateString(),
         segmentDateString: this.toDateString(segmentDate),
-        noTimezoneShift: true
+        calculation: `Day ${segmentDay} = start date + ${daysToAdd} days`,
+        fixedTimezoneIssue: true
       });
-
+      
       return segmentDate;
+      
     } catch (error) {
-      console.error('❌ DateNormalizationService: Error calculating segment date:', error, {
-        tripStartDate,
-        segmentDay
-      });
+      console.error('❌ DateNormalizationService: Error calculating segment date:', error, { tripStartDate, segmentDay });
       return null;
     }
   }
 
   /**
-   * Convert Date to YYYY-MM-DD string format (local date, no timezone conversion)
+   * Convert Date to normalized YYYY-MM-DD string using local date components
+   * CRITICAL FIX: Use local date methods to prevent timezone issues
    */
   static toDateString(date: Date): string {
+    // FIXED: Use local date methods instead of UTC to prevent timezone shifts
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+    
     return `${year}-${month}-${day}`;
   }
 
   /**
-   * Calculate days from now for a given date
+   * Enhanced date validation with comprehensive logging
    */
-  static getDaysFromNow(targetDate: Date): number {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  static validateDateAlignment(
+    actualDate: Date,
+    expectedDate: Date,
+    context: string
+  ): boolean {
+    const actualDateString = this.toDateString(actualDate);
+    const expectedDateString = this.toDateString(expectedDate);
+    const isAligned = actualDateString === expectedDateString;
     
-    const timeDiff = target.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
-  }
-
-  /**
-   * Get season information for a date
-   */
-  static getSeasonInfo(date: Date): { season: 'Spring' | 'Summer' | 'Fall' | 'Winter'; emoji: string } {
-    const month = date.getMonth();
+    if (!isAligned) {
+      console.error(`❌ DATE MISALIGNMENT in ${context}:`, {
+        expected: expectedDateString,
+        actual: actualDateString,
+        expectedISO: expectedDate.toISOString(),
+        actualISO: actualDate.toISOString(),
+        context
+      });
+    } else {
+      console.log(`✅ DATE ALIGNMENT CONFIRMED in ${context}:`, {
+        aligned: expectedDateString,
+        context
+      });
+    }
     
-    if (month >= 2 && month <= 4) return { season: 'Spring', emoji: '🌸' };
-    if (month >= 5 && month <= 7) return { season: 'Summer', emoji: '☀️' };
-    if (month >= 8 && month <= 10) return { season: 'Fall', emoji: '🍂' };
-    return { season: 'Winter', emoji: '❄️' };
+    return isAligned;
   }
 
   /**
-   * Get full normalized segment date information
+   * Check if two dates represent the same calendar day
    */
-  static getNormalizedSegmentDate(
-    tripStartDate: Date | string | null,
-    segmentDay: number
-  ): NormalizedSegmentDate | null {
-    const segmentDate = this.calculateSegmentDate(tripStartDate, segmentDay);
-    if (!segmentDate) return null;
-
-    const daysFromNow = this.getDaysFromNow(segmentDate);
-    const seasonInfo = this.getSeasonInfo(segmentDate);
-
-    return {
-      segmentDate,
-      segmentDateString: this.toDateString(segmentDate),
-      daysFromNow,
-      isWithinForecastRange: daysFromNow >= 0 && daysFromNow <= 5,
-      season: seasonInfo.season,
-      seasonEmoji: seasonInfo.emoji
-    };
+  static isSameDay(date1: Date, date2: Date): boolean {
+    return this.toDateString(date1) === this.toDateString(date2);
   }
 
   /**
-   * Check if a date is within the weather forecast range (5 days)
+   * Validate that a weather date matches the expected segment date
+   * CRITICAL FIX: No offset validation - dates must match exactly
    */
-  static isWithinForecastRange(date: Date): boolean {
-    const daysFromNow = this.getDaysFromNow(date);
-    return daysFromNow >= 0 && daysFromNow <= 5;
-  }
-
-  /**
-   * Format date for display purposes
-   */
-  static formatDisplayDate(date: Date): string {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  static validateWeatherDateMatch(
+    weatherDate: Date,
+    expectedSegmentDate: Date,
+    cityName: string
+  ): boolean {
+    const weatherDateString = this.toDateString(weatherDate);
+    const expectedDateString = this.toDateString(expectedSegmentDate);
+    const isMatch = weatherDateString === expectedDateString;
+    
+    if (!isMatch) {
+      console.warn(`⚠️ Weather date mismatch for ${cityName}:`, {
+        expected: expectedDateString,
+        weather: weatherDateString,
+        exactMatchRequired: true
+      });
+    }
+    
+    return isMatch;
   }
 }

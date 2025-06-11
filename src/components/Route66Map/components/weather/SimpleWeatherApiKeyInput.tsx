@@ -18,8 +18,6 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
   onApiKeySet, 
   cityName 
 }) => {
-  console.log('🔑 SimpleWeatherApiKeyInput: Rendering for', cityName);
-
   const {
     apiKey,
     isSubmitting,
@@ -66,19 +64,10 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
   };
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 space-y-4 shadow-sm">
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
       <div className="flex items-center gap-2 text-blue-800">
-        <Key className="w-5 h-5" />
-        <span className="text-base font-semibold">Weather API Key Required</span>
-      </div>
-      
-      <div className="bg-blue-100 border border-blue-200 rounded p-3">
-        <p className="text-sm text-blue-700 font-medium mb-2">
-          🌤️ Get live weather forecasts for {cityName}
-        </p>
-        <p className="text-xs text-blue-600">
-          Enter your free OpenWeatherMap API key below to see current weather and 5-day forecasts.
-        </p>
+        <Key className="w-4 h-4" />
+        <span className="text-sm font-medium">Weather API Key Required</span>
       </div>
       
       {error && <ApiKeyErrorDisplay error={error} />}
@@ -102,22 +91,14 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
       
       {debugInfo && <ApiKeyDebugInfo debugInfo={debugInfo} />}
       
-      <div className="border-t border-blue-200 pt-3">
-        <a
-          href="https://openweathermap.org/api"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white px-3 py-2 rounded border border-blue-200 hover:border-blue-300 transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Get Free API Key at OpenWeatherMap
-        </a>
-        <p className="text-xs text-blue-500 mt-2">
-          • Free tier includes 1,000 API calls per day<br/>
-          • No credit card required for basic plan<br/>
-          • Takes 10-15 minutes to activate after signup
-        </p>
-      </div>
+      <a
+        href="https://openweathermap.org/api"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
+      >
+        Get Free API Key <ExternalLink className="w-3 h-3" />
+      </a>
     </div>
   );
 };
