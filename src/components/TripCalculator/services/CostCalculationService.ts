@@ -1,3 +1,4 @@
+
 import { TripPlan } from './planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../types/costEstimator';
 import { getDestinationCity } from '../utils/DestinationUtils';

@@ -39,11 +39,23 @@ export function getDestinationCityWithState(destination: string): { city: string
 }
 
 /**
- * Extract just the city name from a destination string
+ * Extract just the city name from a destination string or object
  */
-export function getDestinationCity(destination: string): string {
-  const { city } = getDestinationCityWithState(destination);
-  return city;
+export function getDestinationCity(destination: string | { city: string; state?: string; }): string {
+  if (!destination) return '';
+  
+  // If it's already an object with city property, return the city
+  if (typeof destination === 'object' && destination.city) {
+    return destination.city;
+  }
+  
+  // If it's a string, extract the city using the existing logic
+  if (typeof destination === 'string') {
+    const { city } = getDestinationCityWithState(destination);
+    return city;
+  }
+  
+  return '';
 }
 
 /**
