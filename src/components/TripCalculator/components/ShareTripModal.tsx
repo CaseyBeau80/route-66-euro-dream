@@ -103,7 +103,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[95vh] overflow-y-auto"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl bg-white shadow-2xl rounded-xl max-h-[95vh] p-0 overflow-hidden"
         role="dialog"
         aria-labelledby="share-trip-title"
       >
@@ -113,25 +113,43 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Fixed Close Button - Now properly anchored */}
-        <button
-          onClick={onClose}
-          className="fixed top-4 right-4 z-[10001] text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:shadow-xl"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        
-        <ShareTripModalContent
-          tripPlan={tripPlan}
-          tripStartDate={tripStartDate}
-          currentShareUrl={currentShareUrl}
-          isGeneratingLink={isGeneratingLink || isAutoSaving}
-          isTripComplete={isTripComplete}
-          onGenerateLink={handleGenerateLink}
-          onCopyLink={handleCopyLink}
-          onShareViaEmail={handleShareViaEmail}
-        />
+        {/* Fixed Header with Close Button */}
+        <div className="relative flex items-center justify-between p-4 border-b bg-route66-primary text-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-white rounded-full p-2">
+              <Settings className="w-5 h-5 text-route66-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold font-route66">Share Your Route 66 Adventure</h2>
+              <p className="text-sm text-route66-cream font-travel">
+                Share your personalized Route 66 itinerary with friends and family
+              </p>
+            </div>
+          </div>
+          
+          {/* Close Button - Absolutely positioned within header */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-route66-cream text-xl font-bold transition-colors duration-200 bg-route66-primary-dark hover:bg-route66-rust rounded-full p-2 shadow-lg"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-auto p-6">
+          <ShareTripModalContent
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
+            currentShareUrl={currentShareUrl}
+            isGeneratingLink={isGeneratingLink || isAutoSaving}
+            isTripComplete={isTripComplete}
+            onGenerateLink={handleGenerateLink}
+            onCopyLink={handleCopyLink}
+            onShareViaEmail={handleShareViaEmail}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
