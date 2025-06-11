@@ -1,36 +1,68 @@
 
-import { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
-export const useSegmentWeatherState = (cityName: string, segmentDay: number) => {
-  const [weather, setWeather] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const mountedRef = useRef(true);
-  const subscriberId = useRef(`weather-${cityName}-${segmentDay}-${Date.now()}`);
+interface SegmentWeatherState {
+  weather: ForecastWeatherData | null;
+  setWeather: (weather: ForecastWeatherData | null) => void;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
+  retryCount: number;
+  setRetryCount: React.Dispatch<React.SetStateAction<number>>;
+}
 
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+export const useSegmentWeatherState = (segmentEndCity: string, segmentDay: number): SegmentWeatherState => {
+  const [weather, setWeatherInternal] = React.useState<ForecastWeatherData | null>(null);
+  const [loading, setLoadingInternal] = React.useState(false);
+  const [error, setErrorInternal] = React.useState<string | null>(null);
+  const [retryCount, setRetryCount] = React.useState(0);
 
-  // Reset state when cityName or segmentDay changes
-  useEffect(() => {
-    setWeather(null);
-    setError(null);
-    setRetryCount(0);
-    subscriberId.current = `weather-${cityName}-${segmentDay}-${Date.now()}`;
-  }, [cityName, segmentDay]);
+  // Enhanced setter with debugging
+  const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeatherState.setWeather [${segmentEndCity}] [Day ${segmentDay}]`,
+      {
+        hasNewWeather: !!newWeather,
+        isActualForecast: newWeather?.isActualForecast,
+        temperature: newWeather?.temperature,
+        description: newWeather?.description,
+        dateMatchInfo: newWeather?.dateMatchInfo
+      }
+    );
+    setWeatherInternal(newWeather);
+  }, [segmentEndCity, segmentDay]);
 
-  console.log(`🌤️ useSegmentWeatherState for ${cityName} (Day ${segmentDay}):`, {
-    hasWeather: !!weather,
-    loading,
-    error,
-    retryCount,
-    subscriberId: subscriberId.current
-  });
+  const setLoading = React.useCallback((newLoading: boolean) => {
+    if (newLoading !== loading) {
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeatherState.setLoading [${segmentEndCity}] [Day ${segmentDay}]`,
+        { loading: newLoading }
+      );
+    }
+    setLoadingInternal(newLoading);
+  }, [loading, segmentEndCity, segmentDay]);
+
+  const setError = React.useCallback((newError: string | null) => {
+    if (newError !== error) {
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeatherState.setError [${segmentEndCity}] [Day ${segmentDay}]`,
+        { error: newError }
+      );
+    }
+    setErrorInternal(newError);
+  }, [error, segmentEndCity, segmentDay]);
+
+  // Debug state changes
+  React.useEffect(() => {
+    WeatherDataDebugger.debugComponentState(
+      'useSegmentWeatherState',
+      segmentEndCity,
+      { weather, loading, error, retryCount }
+    );
+  }, [weather, loading, error, retryCount, segmentEndCity]);
 
   return {
     weather,
@@ -40,8 +72,6 @@ export const useSegmentWeatherState = (cityName: string, segmentDay: number) => 
     error,
     setError,
     retryCount,
-    setRetryCount,
-    mountedRef,
-    subscriberId
+    setRetryCount
   };
 };

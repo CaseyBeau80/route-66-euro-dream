@@ -4,6 +4,7 @@ import { EnhancedWeatherService } from '@/components/Route66Map/services/weather
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { GeocodingService } from '../../../services/GeocodingService';
 import { DateNormalizationService } from '../DateNormalizationService';
+import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 interface UseSegmentWeatherProps {
   segmentEndCity: string;
@@ -40,10 +41,13 @@ export const useSegmentWeather = ({
 }: UseSegmentWeatherProps): UseSegmentWeatherReturn => {
   const weatherService = EnhancedWeatherService.getInstance();
 
-  // CRITICAL: Fetch weather data using EXACT segment date with no offset
+  // Enhanced weather data fetching with comprehensive debugging
   const fetchWeatherData = React.useCallback(async () => {
     if (!hasApiKey || !segmentDate) {
-      console.log('🌤️ useSegmentWeather: Skipping fetch - no API key or segment date');
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeather.fetchWeatherData.skip [${segmentEndCity}]`,
+        { hasApiKey, hasSegmentDate: !!segmentDate, reason: 'missing_requirements' }
+      );
       return;
     }
 
@@ -51,12 +55,15 @@ export const useSegmentWeather = ({
     const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    console.log(`🌤️ useSegmentWeather: Fetching weather for ${segmentEndCity} on EXACT date ${segmentDateString}:`, {
-      segmentDate: normalizedSegmentDate.toISOString(),
-      segmentDateString,
-      noOffset: true,
-      exactDateFetch: true
-    });
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.fetchWeatherData.start [${segmentEndCity}]`,
+      {
+        originalDate: segmentDate.toISOString(),
+        normalizedDate: normalizedSegmentDate.toISOString(),
+        segmentDateString,
+        daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+      }
+    );
 
     setLoading(true);
     setError(null);
@@ -67,79 +74,126 @@ export const useSegmentWeather = ({
         throw new Error(`No coordinates found for ${segmentEndCity}`);
       }
 
-      console.log(`🎯 Fetching weather with EXACT coordinates and date:`, {
-        city: segmentEndCity,
-        coordinates,
-        exactDate: normalizedSegmentDate.toISOString(),
-        exactDateString: segmentDateString
-      });
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeather.fetchWeatherData.coordinates [${segmentEndCity}]`,
+        { coordinates, segmentDateString }
+      );
 
-      // Use exact segment date - no offset
-      const weatherData = await weatherService.getWeatherForDate(
+      // Fetch weather with enhanced error handling and timeout
+      const weatherPromise = weatherService.getWeatherForDate(
         coordinates.lat,
         coordinates.lng,
         segmentEndCity,
-        normalizedSegmentDate // EXACT segment date
+        normalizedSegmentDate
       );
 
+      const timeoutPromise = new Promise<ForecastWeatherData | null>((_, reject) => {
+        setTimeout(() => reject(new Error('Weather fetch timeout')), 10000);
+      });
+
+      const weatherData = await Promise.race([weatherPromise, timeoutPromise]);
+
       if (weatherData) {
-        // Validate that weather data date matches segment date
-        if (weatherData.dateMatchInfo) {
-          const expectedDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
-          const { requestedDate, matchedDate, source } = weatherData.dateMatchInfo;
-          
-          if (requestedDate !== expectedDateString && source !== 'seasonal-estimate') {
-            console.warn(`⚠️ Weather data date mismatch for ${segmentEndCity} - BUT USING SEGMENT DATE FOR DISPLAY:`, {
-              segmentDate: expectedDateString,
-              requestedDate,
-              matchedDate,
-              displayingCorrectDate: true
-            });
-          }
+        // Enhanced validation with detailed logging
+        const isValidData = this.validateWeatherData(weatherData, segmentEndCity, segmentDateString);
+        
+        if (isValidData) {
+          WeatherDataDebugger.debugWeatherFlow(
+            `useSegmentWeather.fetchWeatherData.success [${segmentEndCity}]`,
+            {
+              isActualForecast: weatherData.isActualForecast,
+              temperature: weatherData.temperature,
+              highTemp: weatherData.highTemp,
+              lowTemp: weatherData.lowTemp,
+              description: weatherData.description,
+              dateMatchInfo: weatherData.dateMatchInfo
+            }
+          );
+
+          setWeather(weatherData);
+        } else {
+          throw new Error('Invalid weather data received');
         }
-
-        console.log(`✅ Weather data received for ${segmentEndCity} on ${segmentDateString}:`, {
-          isActualForecast: weatherData.isActualForecast,
-          temperature: weatherData.temperature,
-          description: weatherData.description,
-          segmentDateUsed: segmentDateString
-        });
-
-        setWeather(weatherData);
       } else {
-        throw new Error('No weather data received');
+        throw new Error('No weather data received from service');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
+      
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeather.fetchWeatherData.error [${segmentEndCity}]`,
+        { error: errorMessage, retryCount }
+      );
+      
       console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [hasApiKey, segmentDate, segmentEndCity, weatherService, setLoading, setError, setWeather]);
+  }, [hasApiKey, segmentDate, segmentEndCity, weatherService, setLoading, setError, setWeather, retryCount]);
 
-  // Auto-fetch when dependencies change
+  // Validate weather data quality
+  const validateWeatherData = React.useCallback((data: ForecastWeatherData, city: string, dateString: string): boolean => {
+    const validationResult = {
+      hasTemperature: !!(data.temperature || data.highTemp || data.lowTemp),
+      hasDescription: !!data.description,
+      hasValidDateMatch: !!data.dateMatchInfo,
+      isActualForecast: data.isActualForecast
+    };
+
+    const isValid = validationResult.hasTemperature && validationResult.hasDescription;
+    
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.validateWeatherData [${city}]`,
+      { dateString, validationResult, isValid }
+    );
+
+    return isValid;
+  }, []);
+
+  // Auto-fetch when dependencies change with debouncing
   React.useEffect(() => {
     if (hasApiKey && segmentDate && !weather && !loading) {
-      console.log(`🔄 Auto-fetching weather for ${segmentEndCity} due to dependency change`);
-      fetchWeatherData();
+      WeatherDataDebugger.debugWeatherFlow(
+        `useSegmentWeather.autoFetch [${segmentEndCity}]`,
+        { trigger: 'dependency_change', hasApiKey, hasDate: !!segmentDate, hasWeather: !!weather, loading }
+      );
+
+      // Debounce to prevent rapid-fire requests
+      const timeoutId = setTimeout(() => {
+        fetchWeatherData();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [hasApiKey, segmentDate, segmentEndCity, weather, loading, fetchWeatherData]);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log(`🔑 API key set, fetching weather for ${segmentEndCity}`);
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.handleApiKeySet [${segmentEndCity}]`,
+      { previousRetryCount: retryCount }
+    );
+    
     setRetryCount(0);
     fetchWeatherData();
   }, [segmentEndCity, fetchWeatherData, setRetryCount]);
 
   const handleTimeout = React.useCallback(() => {
-    console.log(`⏰ Weather fetch timeout for ${segmentEndCity}, incrementing retry count`);
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.handleTimeout [${segmentEndCity}]`,
+      { currentRetryCount: retryCount }
+    );
+    
     setRetryCount(prev => prev + 1);
-    setError('Weather service timeout');
-  }, [segmentEndCity, setRetryCount, setError]);
+    setError('Weather service timeout - please try again');
+  }, [segmentEndCity, setRetryCount, setError, retryCount]);
 
   const handleRetry = React.useCallback(() => {
-    console.log(`🔄 Manual retry for ${segmentEndCity}, attempt ${retryCount + 1}`);
+    WeatherDataDebugger.debugWeatherFlow(
+      `useSegmentWeather.handleRetry [${segmentEndCity}]`,
+      { currentRetryCount: retryCount, newRetryCount: retryCount + 1 }
+    );
+    
     setRetryCount(prev => prev + 1);
     fetchWeatherData();
   }, [segmentEndCity, retryCount, setRetryCount, fetchWeatherData]);

@@ -1,10 +1,10 @@
-
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
-import { WeatherForecastMatcher } from '../../../TripCalculator/components/weather/WeatherForecastMatcher';
+import { EnhancedWeatherForecastMatcher } from '../../../TripCalculator/components/weather/EnhancedWeatherForecastMatcher';
 import { SeasonalWeatherGenerator } from '../../../TripCalculator/components/weather/SeasonalWeatherGenerator';
+import { WeatherDataDebugger } from '../../../TripCalculator/components/weather/WeatherDataDebugger';
 
 export interface ForecastWeatherData extends WeatherData {
   forecast: ForecastDay[];
@@ -17,10 +17,12 @@ export interface ForecastWeatherData extends WeatherData {
   dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
-    matchType: 'exact' | 'closest' | 'none' | 'fallback';
+    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none';
     daysOffset: number;
     hoursOffset?: number;
     source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
+    confidence?: 'high' | 'medium' | 'low';
+    availableDates?: string[];
   };
 }
 
@@ -38,24 +40,36 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    // Use centralized date normalization
+    // Use centralized date normalization with enhanced debugging
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     const daysFromNow = Math.ceil((normalizedTargetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
-    console.log(`🌤️ WeatherForecastService: Request for ${cityName} on ${targetDateString}, ${daysFromNow} days from now`);
+    WeatherDataDebugger.debugWeatherFlow(
+      `WeatherForecastService.getWeatherForDate [${cityName}]`,
+      {
+        originalDate: targetDate.toISOString(),
+        normalizedDate: normalizedTargetDate.toISOString(),
+        targetDateString,
+        daysFromNow,
+        withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS
+      }
+    );
 
     // Try to get actual forecast if within range
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
       const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
       if (actualForecast) {
+        WeatherDataDebugger.debugApiResponse(cityName, targetDateString, actualForecast);
         return actualForecast;
       }
-      console.log(`⚠️ WeatherForecastService: API failed, creating enhanced fallback for ${cityName}`);
+      console.log(`⚠️ WeatherForecastService: API failed for ${cityName}, creating enhanced fallback`);
     }
 
     // Return enhanced fallback
-    return this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
+    const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
+    WeatherDataDebugger.debugApiResponse(cityName, targetDateString, fallbackForecast);
+    return fallbackForecast;
   }
 
   private async getActualForecast(
@@ -67,31 +81,52 @@ export class WeatherForecastService {
     daysFromNow: number
   ): Promise<ForecastWeatherData | null> {
     try {
+      WeatherDataDebugger.debugWeatherFlow(
+        `WeatherForecastService.getActualForecast [${cityName}]`,
+        { targetDateString, daysFromNow, coordinates: { lat, lng } }
+      );
+
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
       
-      // Use exact date matching instead of index-based lookup
-      const matchResult = WeatherForecastMatcher.findBestMatch(processedForecast, targetDate, targetDateString);
+      WeatherDataDebugger.debugWeatherFlow(
+        `WeatherForecastService.processedForecast [${cityName}]`,
+        {
+          processedCount: processedForecast.length,
+          availableDates: processedForecast.map(f => f.dateString).filter(Boolean)
+        }
+      );
+      
+      // Use enhanced date matching
+      const matchResult = EnhancedWeatherForecastMatcher.findBestMatch(
+        processedForecast, 
+        targetDate, 
+        targetDateString, 
+        cityName
+      );
+      
+      WeatherDataDebugger.debugWeatherMatching(cityName, targetDateString, processedForecast, matchResult);
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
-        const highTemp = forecast.temperature.high;
-        const lowTemp = forecast.temperature.low;
-        const precipChance = parseInt(forecast.precipitationChance) || 0;
+        const highTemp = forecast.temperature?.high || forecast.temperature || 0;
+        const lowTemp = forecast.temperature?.low || forecast.temperature || 0;
+        const precipChance = parseInt(String(forecast.precipitationChance)) || 0;
         
-        console.log(`✅ Found exact forecast match for ${cityName} on ${targetDateString}:`, {
+        console.log(`✅ Enhanced forecast match for ${cityName} on ${targetDateString}:`, {
           matchType: matchResult.matchInfo.matchType,
           matchedDate: matchResult.matchInfo.matchedDate,
-          hoursOffset: matchResult.matchInfo.hoursOffset
+          confidence: matchResult.matchInfo.confidence,
+          temperature: { high: highTemp, low: lowTemp }
         });
         
         return {
-          temperature: Math.round((highTemp + lowTemp) / 2),
+          temperature: Math.round((highTemp + lowTemp) / 2) || highTemp || lowTemp,
           highTemp: highTemp,
           lowTemp: lowTemp,
-          description: forecast.description,
-          icon: forecast.icon,
+          description: forecast.description || 'Clear',
+          icon: forecast.icon || '01d',
           humidity: forecast.humidity || 50,
           windSpeed: forecast.windSpeed || 0,
           precipitationChance: precipChance,
@@ -102,14 +137,26 @@ export class WeatherForecastService {
           matchedForecastDay: forecast,
           dateMatchInfo: {
             ...matchResult.matchInfo,
-            source: 'api-forecast'
+            source: 'api-forecast' as const
           }
         };
       } else {
-        return this.createEnhancedForecastFromCurrent(currentData, cityName, targetDate, targetDateString, daysFromNow, processedForecast);
+        // Create enhanced forecast from current data if no match found
+        return this.createEnhancedForecastFromCurrent(
+          currentData, 
+          cityName, 
+          targetDate, 
+          targetDateString, 
+          daysFromNow, 
+          processedForecast
+        );
       }
     } catch (error) {
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
+      WeatherDataDebugger.debugWeatherFlow(
+        `WeatherForecastService.error [${cityName}]`,
+        { error: error instanceof Error ? error.message : 'Unknown error' }
+      );
       return null;
     }
   }
@@ -144,7 +191,8 @@ export class WeatherForecastService {
         matchType: 'fallback' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'enhanced-fallback' as const
+        source: 'enhanced-fallback' as const,
+        confidence: 'medium' as const
       }
     };
   }
@@ -178,7 +226,8 @@ export class WeatherForecastService {
         matchType: 'none' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'seasonal-estimate' as const
+        source: 'seasonal-estimate' as const,
+        confidence: 'low' as const
       }
     };
   }
