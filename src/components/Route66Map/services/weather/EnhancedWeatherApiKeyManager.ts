@@ -7,6 +7,7 @@ import { DebugInfoService, EnhancedDebugInfo } from './DebugInfoService';
 export class EnhancedWeatherApiKeyManager {
   private apiKey: string | null = null;
   private lastValidationResult: ValidationResult | null = null;
+  private keySource: 'config-file' | 'localStorage' | 'legacy-storage' | 'none' = 'none';
 
   constructor() {
     this.performStartupCleanup();
@@ -18,7 +19,15 @@ export class EnhancedWeatherApiKeyManager {
   }
 
   refreshApiKey(): void {
+    console.log('🔄 EnhancedWeatherApiKeyManager: Refreshing API key with enhanced detection');
     this.apiKey = ApiKeyRetrievalService.refreshApiKey();
+    this.keySource = ApiKeyRetrievalService.getKeySource(this.apiKey);
+    
+    console.log('🔍 EnhancedWeatherApiKeyManager: Key refresh result:', {
+      hasKey: !!this.apiKey,
+      keySource: this.keySource,
+      keyLength: this.apiKey?.length || 0
+    });
   }
 
   setApiKey(apiKey: string): void {
@@ -28,7 +37,10 @@ export class EnhancedWeatherApiKeyManager {
     ApiKeyValidationService.validateAndStoreApiKey(apiKey, primaryKey);
     
     this.apiKey = apiKey.trim();
+    this.keySource = 'localStorage';
     this.lastValidationResult = { isValid: true };
+    
+    console.log('✅ EnhancedWeatherApiKeyManager: API key set successfully');
   }
 
   hasApiKey(): boolean {
@@ -44,12 +56,23 @@ export class EnhancedWeatherApiKeyManager {
       }
     }
     
+    console.log('🔍 EnhancedWeatherApiKeyManager: API key check:', {
+      hasKey,
+      keySource: this.keySource,
+      keyLength: this.apiKey?.length || 0
+    });
+    
     return hasKey;
   }
 
   getApiKey(): string | null {
     this.apiKey = ApiKeyRetrievalService.getApiKeyWithCorruptionCheck(this.apiKey);
+    this.keySource = ApiKeyRetrievalService.getKeySource(this.apiKey);
     return this.apiKey;
+  }
+
+  getKeySource(): 'config-file' | 'localStorage' | 'legacy-storage' | 'none' {
+    return this.keySource;
   }
 
   validateApiKey(): boolean {
@@ -69,6 +92,7 @@ export class EnhancedWeatherApiKeyManager {
     console.log('💥 EnhancedWeatherApiKeyManager: PERFORMING NUCLEAR CLEANUP');
     
     this.apiKey = null;
+    this.keySource = 'none';
     this.lastValidationResult = null;
     StorageCleanupService.performNuclearCleanup();
     
@@ -77,6 +101,12 @@ export class EnhancedWeatherApiKeyManager {
 
   getEnhancedDebugInfo(): EnhancedDebugInfo {
     this.refreshApiKey();
-    return DebugInfoService.getEnhancedDebugInfo(this.apiKey, this.lastValidationResult);
+    const debugInfo = DebugInfoService.getEnhancedDebugInfo(this.apiKey, this.lastValidationResult);
+    
+    return {
+      ...debugInfo,
+      keySource: this.keySource,
+      managerInitialized: true
+    };
   }
 }

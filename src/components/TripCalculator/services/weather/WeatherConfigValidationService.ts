@@ -10,6 +10,7 @@ export interface WeatherConfigValidation {
     localStorageKey?: boolean;
     keyLength?: number;
     isPlaceholder?: boolean;
+    isConfiguredKey?: boolean;
   };
   recommendations: string[];
 }
@@ -19,18 +20,18 @@ export class WeatherConfigValidationService {
    * Validate weather configuration and provide recommendations
    */
   static validateConfiguration(): WeatherConfigValidation {
-    console.log('🔍 WeatherConfigValidationService: Starting configuration validation');
+    console.log('🔍 WeatherConfigValidationService: Starting enhanced configuration validation');
     
     const details: any = {};
     const recommendations: string[] = [];
     let isValid = false;
     let source: 'config-file' | 'localStorage' | 'none' = 'none';
     
-    // Check config file - ensure we have a string before calling methods
+    // Check config file with enhanced validation
     const configKey = WEATHER_API_KEY;
     const configKeyString = typeof configKey === 'string' ? configKey : '';
     
-    // More explicit string checking to avoid TypeScript control flow issues
+    // Enhanced string checking to avoid TypeScript control flow issues
     let isConfigPlaceholder = false;
     if (configKeyString.length === 0) {
       isConfigPlaceholder = true;
@@ -47,44 +48,58 @@ export class WeatherConfigValidationService {
     
     details.configFileKey = !!configKeyString && !isConfigPlaceholder;
     details.isPlaceholder = isConfigPlaceholder;
+    details.isConfiguredKey = details.configFileKey;
     
     if (details.configFileKey) {
       details.keyLength = configKeyString.length;
       source = 'config-file';
       isValid = configKeyString.length >= 20;
+      console.log('✅ WeatherConfigValidationService: Valid config file key detected', {
+        keyLength: configKeyString.length,
+        keyPreview: configKeyString.substring(0, 8) + '...'
+      });
     }
     
-    // Check localStorage
-    const primaryKey = localStorage.getItem('openweathermap_api_key');
-    const legacyKey = localStorage.getItem('openWeatherMapApiKey');
-    
-    details.localStorageKey = !!(primaryKey || legacyKey);
-    
-    if (details.localStorageKey && !isValid) {
-      const storageKey = primaryKey || legacyKey;
-      if (storageKey && storageKey.length >= 20) {
-        source = 'localStorage';
-        isValid = true;
-        details.keyLength = storageKey.length;
+    // Check localStorage only if config file key is not valid
+    if (!isValid) {
+      const primaryKey = localStorage.getItem('openweathermap_api_key');
+      const legacyKey = localStorage.getItem('openWeatherMapApiKey');
+      
+      details.localStorageKey = !!(primaryKey || legacyKey);
+      
+      if (details.localStorageKey) {
+        const storageKey = primaryKey || legacyKey;
+        if (storageKey && storageKey.length >= 20) {
+          source = 'localStorage';
+          isValid = true;
+          details.keyLength = storageKey.length;
+          console.log('✅ WeatherConfigValidationService: Valid localStorage key detected');
+        }
       }
     }
     
-    // Generate recommendations
+    // Generate enhanced recommendations
     if (!isValid) {
       if (isConfigPlaceholder) {
         recommendations.push('Replace the placeholder API key in src/config/weatherConfig.ts with a real OpenWeatherMap API key');
+        recommendations.push('This will enable weather forecasts for all users including export views');
+      } else if (!details.configFileKey) {
+        recommendations.push('Add your API key to src/config/weatherConfig.ts for permanent configuration');
       }
+      
       if (!details.localStorageKey) {
         recommendations.push('Alternatively, set up an API key through the weather widget in the main application');
       }
+      
       recommendations.push('Get a free API key from https://openweathermap.org/api');
     }
     
-    console.log('✅ WeatherConfigValidationService: Validation complete:', {
+    console.log('✅ WeatherConfigValidationService: Enhanced validation complete:', {
       isValid,
       source,
       details,
-      recommendationsCount: recommendations.length
+      recommendationsCount: recommendations.length,
+      hasConfiguredKey: details.isConfiguredKey
     });
     
     return {
@@ -102,9 +117,20 @@ export class WeatherConfigValidationService {
     const validation = this.validateConfiguration();
     
     if (validation.isValid) {
-      return `Weather API configured via ${validation.source === 'config-file' ? 'configuration file' : 'user settings'}`;
+      const keyType = validation.details.isConfiguredKey ? 'application configured' : 
+                     validation.source === 'config-file' ? 'configuration file' : 'user settings';
+      return `Weather API configured via ${keyType}`;
     } else {
       return 'Weather API not configured - live forecasts unavailable';
     }
+  }
+  
+  /**
+   * Check if the current configuration supports export views
+   */
+  static supportsExportViews(): boolean {
+    const validation = this.validateConfiguration();
+    // Export views work best with configured keys or localStorage
+    return validation.isValid && (validation.source === 'config-file' || validation.source === 'localStorage');
   }
 }

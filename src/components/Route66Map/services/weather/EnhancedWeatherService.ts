@@ -9,6 +9,7 @@ export class EnhancedWeatherService {
 
   private constructor() {
     this.apiKeyManager = new EnhancedWeatherApiKeyManager();
+    console.log('🌤️ EnhancedWeatherService: Initialized with enhanced API key detection');
   }
 
   static getInstance(): EnhancedWeatherService {
@@ -19,23 +20,54 @@ export class EnhancedWeatherService {
   }
 
   hasApiKey(): boolean {
-    // Always refresh from storage to get latest key
+    // Always refresh from all sources to get latest key
     this.apiKeyManager.refreshApiKey();
-    return this.apiKeyManager.hasApiKey();
+    const hasKey = this.apiKeyManager.hasApiKey();
+    
+    console.log('🔍 EnhancedWeatherService: API key check result:', {
+      hasKey,
+      keySource: this.getApiKeySource(),
+      timestamp: new Date().toISOString()
+    });
+    
+    return hasKey;
   }
 
   getApiKey(): string | null {
     this.apiKeyManager.refreshApiKey();
-    return this.apiKeyManager.getApiKey();
+    const key = this.apiKeyManager.getApiKey();
+    
+    if (key) {
+      console.log('✅ EnhancedWeatherService: API key retrieved successfully', {
+        keyLength: key.length,
+        keySource: this.getApiKeySource(),
+        keyPreview: key.substring(0, 8) + '...' + key.substring(key.length - 4)
+      });
+    } else {
+      console.log('❌ EnhancedWeatherService: No API key available');
+    }
+    
+    return key;
+  }
+
+  getApiKeySource(): 'config-file' | 'localStorage' | 'legacy-storage' | 'none' {
+    const key = this.apiKeyManager.getApiKey();
+    if (!key) return 'none';
+    
+    // Import here to avoid circular dependencies
+    const { ApiKeyRetrievalService } = require('./ApiKeyRetrievalService');
+    return ApiKeyRetrievalService.getKeySource(key);
   }
 
   setApiKey(apiKey: string): void {
+    console.log('🔑 EnhancedWeatherService: Setting new API key');
     this.apiKeyManager.setApiKey(apiKey);
     // Reset forecast service to use new API key
     this.forecastService = null;
   }
 
   refreshApiKey(): void {
+    console.log('🔄 EnhancedWeatherService: Refreshing API key from all sources');
     this.apiKeyManager.refreshApiKey();
     // Reset forecast service when refreshing API key to ensure it uses the latest key
     this.forecastService = null;
@@ -44,10 +76,12 @@ export class EnhancedWeatherService {
   private getForecastService(): WeatherForecastService | null {
     const apiKey = this.getApiKey();
     if (!apiKey) {
+      console.warn('❌ EnhancedWeatherService: Cannot initialize forecast service - no API key');
       return null;
     }
     
     if (!this.forecastService) {
+      console.log('🔧 EnhancedWeatherService: Initializing forecast service with API key');
       this.forecastService = new WeatherForecastService(apiKey);
     }
     
@@ -72,7 +106,10 @@ export class EnhancedWeatherService {
     }
 
     try {
-      console.log(`🔮 EnhancedWeatherService: Requesting forecast for ${cityName} on ${targetDate.toDateString()}`);
+      console.log(`🔮 EnhancedWeatherService: Requesting forecast for ${cityName} on ${targetDate.toDateString()}`, {
+        keySource: this.getApiKeySource(),
+        hasValidKey: !!this.getApiKey()
+      });
       return await forecastService.getWeatherForDate(lat, lng, cityName, targetDate);
     } catch (error) {
       console.error('❌ EnhancedWeatherService: Forecast error:', error);
@@ -81,16 +118,22 @@ export class EnhancedWeatherService {
   }
 
   getEnhancedDebugInfo() {
-    return this.apiKeyManager.getEnhancedDebugInfo();
+    const debugInfo = this.apiKeyManager.getEnhancedDebugInfo();
+    return {
+      ...debugInfo,
+      keySource: this.getApiKeySource(),
+      serviceInitialized: !!this.forecastService
+    };
   }
 
   performNuclearCleanup(): void {
+    console.log('💥 EnhancedWeatherService: Performing nuclear cleanup');
     this.apiKeyManager.performNuclearCleanup();
     // Reset forecast service when cleaning up
     this.forecastService = null;
   }
 
   getDebugInfo() {
-    return this.apiKeyManager.getEnhancedDebugInfo();
+    return this.getEnhancedDebugInfo();
   }
 }

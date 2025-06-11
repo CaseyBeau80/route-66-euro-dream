@@ -1,17 +1,19 @@
 
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { ApiKeyRetrievalService } from '@/components/Route66Map/services/weather/ApiKeyRetrievalService';
+import { WEATHER_API_KEY } from '@/config/weatherConfig';
 
 export interface ShareWeatherConfig {
   hasApiKey: boolean;
   canFetchLiveWeather: boolean;
-  apiKeySource: 'main-app' | 'config-file' | 'localStorage' | 'none';
+  apiKeySource: 'config-file' | 'localStorage' | 'legacy-storage' | 'none';
   detectionDetails?: {
     configKey?: string;
     localStorageKey?: string;
     refreshedKey?: string;
     keyLength?: number;
     validationPassed: boolean;
+    isConfiguredKey?: boolean;
   };
 }
 
@@ -25,48 +27,57 @@ export class ShareWeatherConfigService {
       
       const weatherService = EnhancedWeatherService.getInstance();
       
+      // Force refresh to ensure we get the latest configuration
+      weatherService.refreshApiKey();
+      
       // Get detailed API key information
       const refreshedKey = ApiKeyRetrievalService.refreshApiKey();
       const hasApiKey = weatherService.hasApiKey();
+      const keySource = weatherService.getApiKeySource();
       
-      // Determine the source of the API key
-      let apiKeySource: 'main-app' | 'config-file' | 'localStorage' | 'none' = 'none';
       const detectionDetails: any = {
         validationPassed: hasApiKey,
-        keyLength: refreshedKey?.length || 0
+        keyLength: refreshedKey?.length || 0,
+        isConfiguredKey: false
       };
       
       if (refreshedKey) {
-        // Check localStorage first
+        // Check if this is the configured key
+        if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+          const configKey = WEATHER_API_KEY as string;
+          if (configKey.trim() === refreshedKey) {
+            detectionDetails.isConfiguredKey = true;
+            detectionDetails.configKey = 'WEATHER_API_KEY (configured)';
+          }
+        }
+        
+        // Check localStorage keys
         const primaryKey = localStorage.getItem('openweathermap_api_key');
         const legacyKey = localStorage.getItem('openWeatherMapApiKey');
         
         if (primaryKey && primaryKey === refreshedKey) {
-          apiKeySource = 'localStorage';
           detectionDetails.localStorageKey = 'openweathermap_api_key';
         } else if (legacyKey && legacyKey === refreshedKey) {
-          apiKeySource = 'localStorage';
           detectionDetails.localStorageKey = 'openWeatherMapApiKey';
-        } else {
-          apiKeySource = 'config-file';
-          detectionDetails.configKey = 'WEATHER_API_KEY';
         }
+        
         detectionDetails.refreshedKey = refreshedKey.substring(0, 8) + '...' + refreshedKey.substring(refreshedKey.length - 4);
       }
       
       console.log('✅ ShareWeatherConfigService: Enhanced weather config analysis:', {
         hasApiKey,
         canFetchLiveWeather: hasApiKey,
-        apiKeySource,
+        apiKeySource: keySource,
         detectionDetails,
         weatherServiceExists: !!weatherService,
-        refreshedKeyLength: refreshedKey?.length || 0
+        refreshedKeyLength: refreshedKey?.length || 0,
+        isExportContext: true
       });
       
       return {
         hasApiKey,
         canFetchLiveWeather: hasApiKey,
-        apiKeySource,
+        apiKeySource: keySource,
         detectionDetails
       };
     } catch (error) {
@@ -77,7 +88,8 @@ export class ShareWeatherConfigService {
         apiKeySource: 'none',
         detectionDetails: {
           validationPassed: false,
-          keyLength: 0
+          keyLength: 0,
+          isConfiguredKey: false
         }
       };
     }
@@ -91,7 +103,8 @@ export class ShareWeatherConfigService {
     console.log('🌤️ ShareWeatherConfigService: Live weather attempt decision:', {
       shouldAttempt: config.canFetchLiveWeather,
       hasApiKey: config.hasApiKey,
-      apiKeySource: config.apiKeySource
+      apiKeySource: config.apiKeySource,
+      isConfiguredKey: config.detectionDetails?.isConfiguredKey || false
     });
     return config.canFetchLiveWeather;
   }
@@ -101,18 +114,36 @@ export class ShareWeatherConfigService {
    */
   static getWeatherStatusMessage(config: ShareWeatherConfig): string {
     if (config.hasApiKey) {
+      const isConfigured = config.detectionDetails?.isConfiguredKey || false;
+      
       switch (config.apiKeySource) {
+        case 'config-file':
+          return isConfigured 
+            ? 'Live weather forecasts enabled (Application configured API key)'
+            : 'Live weather forecasts enabled (Configuration file API key)';
         case 'localStorage':
           return 'Live weather forecasts enabled (User configured API key)';
-        case 'config-file':
-          return 'Live weather forecasts enabled (Application configured API key)';
-        case 'main-app':
-          return 'Live weather forecasts enabled (System API key)';
+        case 'legacy-storage':
+          return 'Live weather forecasts enabled (User configured API key - migrated)';
         default:
           return 'Live weather forecasts enabled';
       }
     } else {
       return 'Weather API configuration not available in export view';
+    }
+  }
+  
+  /**
+   * Get configuration summary for debugging
+   */
+  static getConfigurationSummary(): string {
+    const config = this.getShareWeatherConfig();
+    
+    if (config.hasApiKey) {
+      const keySource = config.apiKeySource === 'config-file' ? 'application configuration' : 'user settings';
+      return `Weather API configured via ${keySource} (${config.detectionDetails?.keyLength || 0} chars)`;
+    } else {
+      return 'Weather API not configured - live forecasts unavailable in export';
     }
   }
 }
