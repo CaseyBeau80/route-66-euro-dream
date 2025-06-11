@@ -1,6 +1,5 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDataDebugger } from './WeatherDataDebugger';
 
 export interface WeatherValidationResult {
   isValid: boolean;
@@ -22,21 +21,19 @@ export type WeatherDisplayType =
   | 'service-unavailable' 
   | 'loading';
 
-// ULTRA-PERMISSIVE: Accept ANY weather data that exists
 function hasAnyDisplayableData(weather: any): boolean {
   const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
   const hasDescription = !!weather.description;
   const hasAnyData = hasAnyTemp || hasDescription;
   
-  console.log(`🔍 FORCE LOG - ULTRA PERMISSIVE DATA CHECK:`, {
+  console.log(`🔍 Weather data check:`, {
     hasAnyTemp,
     hasDescription,
     hasAnyData,
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
-    description: weather.description,
-    canDisplay: hasAnyData
+    description: weather.description
   });
 
   return hasAnyData;
@@ -47,28 +44,13 @@ export const validateWeatherData = (
   cityName: string,
   segmentDate?: Date | null
 ): WeatherValidationResult => {
-  console.log(`🚨 FORCE LOG - VALIDATION START for ${cityName}:`, {
+  console.log(`🔍 Weather validation for ${cityName}:`, {
     hasWeather: !!weather,
     weatherType: typeof weather,
     segmentDate: segmentDate?.toISOString()
   });
 
-  if (weather) {
-    console.log(`🔍 FORCE LOG - RAW WEATHER DATA for ${cityName}:`, {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      isActualForecast: weather.isActualForecast,
-      dateMatchInfo: weather.dateMatchInfo,
-      allKeys: Object.keys(weather)
-    });
-  }
-
-  const warnings: string[] = [];
-
   if (!weather) {
-    console.log(`❌ FORCE LOG - NO WEATHER DATA for ${cityName}`);
     return {
       isValid: false,
       hasActualForecast: false,
@@ -84,19 +66,9 @@ export const validateWeatherData = (
     };
   }
 
-  // ULTRA-PERMISSIVE: Check for ANY displayable data
   const canDisplay = hasAnyDisplayableData(weather);
   
   if (!canDisplay) {
-    console.log(`❌ FORCE LOG - NO DISPLAYABLE DATA for ${cityName}:`, {
-      hasTemperature: !!weather.temperature,
-      hasHighTemp: !!weather.highTemp,
-      hasLowTemp: !!weather.lowTemp,
-      hasDescription: !!weather.description,
-      description: weather.description,
-      reason: 'no_displayable_data'
-    });
-    
     return {
       isValid: false,
       hasActualForecast: false,
@@ -108,13 +80,7 @@ export const validateWeatherData = (
       warnings: ['No displayable weather data'],
       hasCompleteData: false,
       canShowLiveForecast: false,
-      validationDetails: { 
-        reason: 'no_displayable_data',
-        hasTemperature: !!weather.temperature,
-        hasHighTemp: !!weather.highTemp,
-        hasLowTemp: !!weather.lowTemp,
-        hasDescription: !!weather.description
-      }
+      validationDetails: { reason: 'no_displayable_data' }
     };
   }
 
@@ -129,29 +95,25 @@ export const validateWeatherData = (
 
   const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
 
-  // ULTRA-PERMISSIVE: If we have ANY data, mark as valid
   let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'fair';
   
-  // Determine quality based on available data
   if (weather.isActualForecast && isWithinForecastRange && weather.dateMatchInfo?.matchType === 'exact') {
     dataQuality = 'excellent';
   } else if (weather.isActualForecast && isWithinForecastRange) {
     dataQuality = 'good';
-  } else if (canDisplay) {
-    dataQuality = 'fair';
   }
 
   const result = {
-    isValid: true, // ULTRA-PERMISSIVE: Always true if we have ANY displayable data
+    isValid: true,
     hasActualForecast: !!weather.isActualForecast,
     hasTemperatureRange: !!(weather.highTemp && weather.lowTemp) || !!weather.temperature,
     hasMatchedForecast: !!weather.dateMatchInfo,
     daysFromNow,
     isWithinForecastRange,
     dataQuality,
-    warnings,
+    warnings: [],
     hasCompleteData: !!weather.isActualForecast,
-    canShowLiveForecast: true, // ULTRA-PERMISSIVE: Always true if we have ANY displayable data
+    canShowLiveForecast: true,
     validationDetails: {
       canDisplay,
       hasTemperature: !!weather.temperature,
@@ -160,11 +122,11 @@ export const validateWeatherData = (
       hasDescription: !!weather.description,
       isActualForecast: weather.isActualForecast,
       dateMatchSource: weather.dateMatchInfo?.source,
-      validationMode: 'ultra_permissive'
+      validationMode: 'permissive'
     }
   };
 
-  console.log(`✅ FORCE LOG - VALIDATION RESULT for ${cityName}:`, result);
+  console.log(`✅ Validation result for ${cityName}:`, result);
   return result;
 };
 
@@ -174,21 +136,11 @@ export const getWeatherDisplayType = (
   retryCount: number,
   weather?: any
 ): WeatherDisplayType => {
-  console.log(`🎯 FORCE LOG - DISPLAY TYPE for ${weather?.cityName || 'unknown'}:`, {
-    isValid: validation.isValid,
-    canShowLiveForecast: validation.canShowLiveForecast,
-    error,
-    retryCount,
-    validationMode: 'ultra_permissive'
-  });
-
   if (error || retryCount > 2) {
     return 'service-unavailable';
   }
 
-  // ULTRA-PERMISSIVE: If validation says it's valid, show it
   if (validation.isValid && validation.canShowLiveForecast) {
-    console.log(`✅ FORCE LOG - SHOWING LIVE FORECAST for ${weather?.cityName || 'unknown'}`);
     return 'live-forecast';
   }
 
