@@ -78,13 +78,30 @@ export class WeatherDataProcessor {
       if (seenDates.has(forecastDateString)) continue;
       seenDates.add(forecastDateString);
 
-      // Create forecast entry
+      // CRITICAL FIX: Correctly extract high and low temperatures
+      const highTemp = Math.round(item.main.temp_max);
+      const lowTemp = Math.round(item.main.temp_min);
+
+      console.log(`🌡️ TEMPERATURE DEBUG for ${forecastDateString}:`, {
+        originalData: {
+          temp: item.main.temp,
+          temp_max: item.main.temp_max,
+          temp_min: item.main.temp_min
+        },
+        processedTemps: {
+          high: highTemp,
+          low: lowTemp
+        },
+        correctExtraction: highTemp !== lowTemp ? 'YES' : 'POTENTIAL_ISSUE'
+      });
+
+      // Create forecast entry with correct temperature mapping
       const forecastEntry: ForecastDay = {
-        date: forecastDateString, // Use string instead of Date
+        date: forecastDateString,
         dateString: forecastDateString,
         temperature: {
-          high: Math.round(item.main.temp_max),
-          low: Math.round(item.main.temp_min)
+          high: highTemp,  // temp_max from API
+          low: lowTemp     // temp_min from API
         },
         description: item.weather[0].description,
         icon: item.weather[0].icon,
@@ -98,7 +115,8 @@ export class WeatherDataProcessor {
       console.log(`📅 Processed forecast for ${forecastDateString}:`, {
         high: forecastEntry.temperature.high,
         low: forecastEntry.temperature.low,
-        description: forecastEntry.description
+        description: forecastEntry.description,
+        tempDifference: forecastEntry.temperature.high - forecastEntry.temperature.low
       });
 
       // Stop once we have enough days
@@ -121,7 +139,11 @@ export class WeatherDataProcessor {
     // First try exact date match
     for (const forecast of forecasts) {
       if (forecast.dateString === targetDateString) {
-        console.log(`✅ Found exact date match for ${targetDateString}`);
+        console.log(`✅ Found exact date match for ${targetDateString}:`, {
+          high: forecast.temperature.high,
+          low: forecast.temperature.low,
+          validTemperatureRange: forecast.temperature.high !== forecast.temperature.low
+        });
         return forecast;
       }
     }
@@ -144,7 +166,11 @@ export class WeatherDataProcessor {
     }
 
     if (closestForecast) {
-      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset.toFixed(1)} hours offset)`);
+      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset.toFixed(1)} hours offset):`, {
+        high: closestForecast.temperature.high,
+        low: closestForecast.temperature.low,
+        validTemperatureRange: closestForecast.temperature.high !== closestForecast.temperature.low
+      });
     } else {
       console.log(`❌ No suitable forecast found within 12 hours for ${targetDateString}`);
     }
