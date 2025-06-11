@@ -5,7 +5,7 @@ import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityServ
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
 import ErrorBoundary from '../ErrorBoundary';
-import { getDestinationCityWithState } from '../../utils/DestinationUtils';
+import { getDestinationCity } from '../../utils/DestinationUtils';
 import TripOverviewSection from './TripOverviewSection';
 import DailyItinerarySection from './DailyItinerarySection';
 import TravelTipsSection from './TravelTipsSection';
@@ -61,7 +61,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     const enrichedSegments = rawSegments.filter(segment => {
       if (!segment) return false;
       if (typeof segment.day !== 'number' || segment.day <= 0) return false;
-      if (!segment.endCity && !getDestinationCityWithState(segment.destination)) return false;
+      if (!segment.endCity && !getDestinationCity(segment.destination)) return false;
       return true;
     }) || [];
 

@@ -39,6 +39,14 @@ export function getDestinationCityWithState(destination: string): { city: string
 }
 
 /**
+ * Extract just the city name from a destination string
+ */
+export function getDestinationCity(destination: string): string {
+  const { city } = getDestinationCityWithState(destination);
+  return city;
+}
+
+/**
  * Format destination with city and state
  */
 export function formatDestination(city: string, state: string): string {
