@@ -1,16 +1,21 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MapPin, Clock, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { GeographicAttractionService, NearbyAttraction } from '../services/attractions/GeographicAttractionService';
 import { AttractionSearchResult, AttractionSearchStatus } from '../services/attractions/AttractionSearchResult';
 import { getDestinationCityWithState } from '../utils/DestinationUtils';
+import { useUITimeout } from '../hooks/useUITimeout';
 import ErrorBoundary from './ErrorBoundary';
 
 interface SegmentNearbyAttractionsProps {
   segment: DailySegment;
   maxAttractions?: number;
 }
+
+// UI timeout configuration
+const UI_TIMEOUT_MS = 12000; // 12 seconds
+const UI_TIMEOUT_FALLBACK_MESSAGE = "Search timed out after 12 seconds.";
 
 // Enhanced error display component
 const EnhancedErrorDisplay: React.FC<{ 
@@ -165,6 +170,26 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   const [searchStartTime, setSearchStartTime] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
 
+  // UI timeout fallback handler
+  const handleUITimeout = useCallback(() => {
+    console.log('⏰ UI timeout triggered after 12 seconds');
+    setIsLoading(false);
+    setSearchResult({
+      status: AttractionSearchStatus.TIMEOUT,
+      attractions: [],
+      message: UI_TIMEOUT_FALLBACK_MESSAGE,
+      citySearched: segment.endCity || '',
+      stateSearched: ''
+    });
+  }, [segment.endCity]);
+
+  // Set up UI timeout
+  const { clearUITimeout } = useUITimeout({
+    timeoutMs: UI_TIMEOUT_MS,
+    onTimeout: handleUITimeout,
+    isActive: isLoading
+  });
+
   const loadAttractions = async (isRetry: boolean = false) => {
     if (!segment?.endCity) return;
     
@@ -194,10 +219,13 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         message: result.message
       });
       
+      // Clear UI timeout since we got a response
+      clearUITimeout();
       setSearchResult(result);
       
     } catch (error) {
       console.error('❌ Error loading attractions:', error);
+      clearUITimeout();
       setSearchResult({
         status: AttractionSearchStatus.ERROR,
         attractions: [],
