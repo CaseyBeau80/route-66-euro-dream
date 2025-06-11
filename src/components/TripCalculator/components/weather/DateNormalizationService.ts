@@ -1,4 +1,5 @@
 
+
 export class DateNormalizationService {
   /**
    * Calculate the exact segment date for a given trip start date and day number
@@ -128,4 +129,26 @@ export class DateNormalizationService {
       return new Date();
     }
   }
+
+  /**
+   * Calculate the difference in days between two dates
+   */
+  static getDaysDifference(date1: Date, date2: Date): number {
+    if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+      console.error('❌ DateNormalizationService: Invalid dates for difference calculation:', { date1, date2 });
+      return 0;
+    }
+
+    const timeDifference = date2.getTime() - date1.getTime();
+    const daysDifference = Math.round(timeDifference / (24 * 60 * 60 * 1000));
+    
+    console.log(`📊 DateNormalizationService.getDaysDifference:`, {
+      date1: date1.toISOString(),
+      date2: date2.toISOString(),
+      daysDifference
+    });
+    
+    return daysDifference;
+  }
 }
+
