@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import DeveloperDebugTools from "@/components/TripCalculator/components/DeveloperDebugTools";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
@@ -86,6 +87,13 @@ const TripCalculator = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Developer Debug Tools - Only in development */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-6">
+                <DeveloperDebugTools />
+              </div>
+            )}
             
             {/* Trip Planner Container */}
             <div className="bg-white rounded-xl shadow-lg border border-route66-border p-6">

@@ -1,4 +1,3 @@
-
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -30,7 +29,6 @@ export class SupabaseDataService {
     }));
   }
   
-  // Rest of the class implementation
   static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
     const allStops = await this.fetchAllStops();
     return allStops.filter(stop => stop.category === category);
@@ -62,7 +60,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data for development and testing - EXPANDED with more Illinois cities
+// Mock data for development and testing - EXPANDED with MISSING CITIES ADDED
 const mockStopsData: Partial<UnifiedTripStop>[] = [
   {
     id: "chicago-start",
@@ -136,6 +134,55 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     latitude: 39.1753,
     longitude: -89.6542
   },
+  
+  // ADDED: MISSING MISSOURI CITIES
+  {
+    id: "springfield-mo",
+    name: "Springfield",
+    description: "Birthplace of Route 66 and Missouri's Queen City of the Ozarks",
+    category: "destination_city",
+    city_name: "Springfield",
+    city: "Springfield", 
+    state: "MO",
+    latitude: 37.2153,
+    longitude: -93.2982,
+    is_major_stop: true,
+    is_official_destination: true
+  },
+  {
+    id: "joplin-mo",
+    name: "Joplin",
+    description: "Historic Route 66 mining town on Missouri-Kansas border",
+    category: "destination_city",
+    city_name: "Joplin",
+    city: "Joplin",
+    state: "MO", 
+    latitude: 37.0842,
+    longitude: -94.5133,
+    is_major_stop: true
+  },
+  {
+    id: "carthage-mo",
+    name: "Carthage",
+    description: "Historic Route 66 town known for its Victorian architecture",
+    category: "destination_city",
+    city_name: "Carthage",
+    city: "Carthage",
+    state: "MO",
+    latitude: 37.1765,
+    longitude: -94.3100
+  },
+  {
+    id: "webb-city-mo",
+    name: "Webb City",
+    description: "Small Route 66 town in Missouri",
+    category: "destination_city",
+    city_name: "Webb City",
+    city: "Webb City",
+    state: "MO",
+    latitude: 37.1467,
+    longitude: -94.4663
+  },
   {
     id: "lou-mitchells",
     name: "Lou Mitchell's",
@@ -203,6 +250,30 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     state: "MO",
     latitude: 38.2342,
     longitude: -91.1137
+  },
+
+  // ADDED: MISSOURI ATTRACTIONS
+  {
+    id: "fantastic-caverns",
+    name: "Fantastic Caverns",
+    description: "America's only ride-through cave attraction in Springfield, MO",
+    category: "attraction",
+    city_name: "Springfield",
+    city: "Springfield",
+    state: "MO",
+    latitude: 37.2745,
+    longitude: -93.3376
+  },
+  {
+    id: "wilson-park",
+    name: "Wilson's Creek National Battlefield",
+    description: "Civil War battlefield near Springfield, MO",
+    category: "historic_site",
+    city_name: "Springfield",
+    city: "Springfield", 
+    state: "MO",
+    latitude: 37.1011,
+    longitude: -93.4074
   },
   {
     id: "blue-whale-catoosa",
