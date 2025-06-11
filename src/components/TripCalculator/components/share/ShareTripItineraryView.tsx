@@ -2,6 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
+import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 
 interface ShareTripItineraryViewProps {
@@ -19,13 +20,19 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
 }) => {
   const context = `ShareTripItineraryView${isSharedView ? '-SharedView' : ''}`;
   
-  console.log('📅 ShareTripItineraryView: Rendering with centralized attraction limiting:', {
+  // Get weather configuration for export context
+  const weatherConfig = React.useMemo(() => {
+    return ShareWeatherConfigService.getShareWeatherConfig();
+  }, []);
+  
+  console.log('📅 ShareTripItineraryView: Rendering with weather support:', {
     tripStartDate: tripStartDate?.toISOString(),
     hasValidDate: tripStartDate && !isNaN(tripStartDate.getTime()),
     segmentsCount: segments.length,
     isSharedView,
     context,
-    maxAttractionsAllowed: AttractionLimitingService.getMaxAttractions()
+    maxAttractionsAllowed: AttractionLimitingService.getMaxAttractions(),
+    weatherConfig
   });
 
   return (
@@ -98,19 +105,41 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Information with SegmentWeatherWidget */}
+              {/* Enhanced Weather Information with Live Forecasts */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   🌤️ Weather Information
+                  {weatherConfig.hasApiKey && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                      Live Forecast
+                    </span>
+                  )}
                 </h4>
-                <SegmentWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  cardIndex={index}
-                  sectionKey="shared-view"
-                  forceExpanded={true}
-                  isCollapsible={false}
-                />
+                
+                {weatherConfig.canFetchLiveWeather ? (
+                  <SegmentWeatherWidget
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    cardIndex={index}
+                    sectionKey="shared-view"
+                    forceExpanded={true}
+                    isCollapsible={false}
+                  />
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                    <div className="text-sm text-yellow-800 mb-2">
+                      📊 Live weather forecasts unavailable
+                    </div>
+                    <div className="text-xs text-yellow-600">
+                      Weather API configuration not available in export view. 
+                      {tripStartDate && (
+                        <span className="block mt-1">
+                          Check current weather conditions before your trip to {segment.endCity}.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* CENTRALIZED ENFORCED Attraction Limit Recommendations */}

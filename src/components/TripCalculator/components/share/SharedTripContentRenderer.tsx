@@ -3,6 +3,7 @@ import React from 'react';
 import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
 import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
 import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
+import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
 import PDFEnhancedHeader from '../pdf/PDFEnhancedHeader';
 import PDFFooter from '../pdf/PDFFooter';
 import ErrorBoundary from '../ErrorBoundary';
@@ -27,14 +28,20 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 }) => {
   const context = `SharedTripContentRenderer${isSharedView ? '-SharedView' : ''}`;
   
-  console.log('📤 SharedTripContentRenderer: Starting render with centralized attraction limiting', {
+  // Get weather configuration for the export context
+  const weatherConfig = React.useMemo(() => {
+    return ShareWeatherConfigService.getShareWeatherConfig();
+  }, []);
+  
+  console.log('📤 SharedTripContentRenderer: Starting render with weather support', {
     tripPlan,
     segmentsCount: tripPlan.segments?.length || 0,
     dailySegmentsCount: tripPlan.dailySegments?.length || 0,
     hasStartDate: !!tripStartDate,
     startDateType: typeof tripStartDate,
     isSharedView,
-    context
+    context,
+    weatherConfig
   });
 
   // Validate that we have trip data
@@ -88,10 +95,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       };
     }) || [];
 
-    console.log('📤 SharedTripContentRenderer: Processed segments with CENTRALIZED enforced limits', {
+    console.log('📤 SharedTripContentRenderer: Processed segments with weather config', {
       rawSegmentsCount: rawSegments.length,
       enrichedSegmentsCount: enrichedSegments.length,
       maxAttractionsAllowed: AttractionLimitingService.getMaxAttractions(),
+      weatherConfig,
       enrichedSegments: enrichedSegments.map(s => ({ 
         day: s.day, 
         endCity: s.endCity, 
@@ -140,10 +148,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       }
     }, [tripStartDate]);
 
-    console.log('📤 SharedTripContentRenderer: Date validation result:', {
+    console.log('📤 SharedTripContentRenderer: Date and weather validation result:', {
       originalDate: tripStartDate,
       validDate: validTripStartDate?.toISOString(),
-      isValid: !!validTripStartDate
+      isValid: !!validTripStartDate,
+      weatherConfig
     });
 
     return (
@@ -168,10 +177,23 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         {/* Data Quality Notice */}
         <DataQualityNotice integrityReport={integrityReport} />
 
+        {/* Weather Configuration Notice */}
+        {weatherConfig.hasApiKey && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 text-blue-800">
+              <span className="text-green-600">✅</span>
+              <strong>Live Weather Forecasts Available</strong>
+            </div>
+            <p className="text-sm text-blue-600 mt-1">
+              This itinerary includes live weather forecasts powered by OpenWeatherMap API.
+            </p>
+          </div>
+        )}
+
         {/* Enhanced Trip Overview */}
         <TripOverviewSection tripPlan={sanitizedTripPlan} />
 
-        {/* Daily Itinerary with CENTRALIZED ENFORCED attraction limits */}
+        {/* Daily Itinerary with weather support */}
         <DailyItinerarySection 
           enrichedSegments={enrichedSegments}
           validTripStartDate={validTripStartDate}
