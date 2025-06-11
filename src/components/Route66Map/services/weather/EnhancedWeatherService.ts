@@ -1,5 +1,7 @@
+
 import { WeatherForecastService, ForecastWeatherData } from './WeatherForecastService';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
+import { WEATHER_API_KEY } from '../../../../config/weatherConfig';
 
 export class EnhancedWeatherService {
   private static instance: EnhancedWeatherService | null = null;
@@ -22,20 +24,25 @@ export class EnhancedWeatherService {
   }
 
   refreshApiKey(): void {
-    // Enhanced API key detection with multiple sources
+    // Enhanced API key detection with embedded key as fallback
     const apiKey = 
+      localStorage.getItem('openweather_api_key') ||
       import.meta.env.VITE_OPENWEATHER_API_KEY ||
       import.meta.env.OPENWEATHER_API_KEY ||
-      localStorage.getItem('openweather_api_key') ||
+      WEATHER_API_KEY ||
       null;
 
     console.log('🔑 EnhancedWeatherService: API Key check:', {
+      hasLocalStorage: !!localStorage.getItem('openweather_api_key'),
       hasViteEnv: !!import.meta.env.VITE_OPENWEATHER_API_KEY,
       hasBasicEnv: !!import.meta.env.OPENWEATHER_API_KEY,
-      hasLocalStorage: !!localStorage.getItem('openweather_api_key'),
+      hasEmbeddedKey: !!WEATHER_API_KEY,
       finalApiKey: !!apiKey,
       apiKeyLength: apiKey?.length || 0,
-      envKeys: Object.keys(import.meta.env).filter(key => key.includes('WEATHER'))
+      source: localStorage.getItem('openweather_api_key') ? 'localStorage' :
+              import.meta.env.VITE_OPENWEATHER_API_KEY ? 'vite_env' :
+              import.meta.env.OPENWEATHER_API_KEY ? 'env' :
+              WEATHER_API_KEY ? 'embedded_config' : 'none'
     });
 
     this.apiKey = apiKey;
