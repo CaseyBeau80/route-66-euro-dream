@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { MapPin, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { MapPin, Clock, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { GeographicAttractionService, NearbyAttraction } from '../services/attractions/GeographicAttractionService';
+import { AttractionSearchResult, AttractionSearchStatus } from '../services/attractions/AttractionSearchResult';
 import { getDestinationCityWithState } from '../utils/DestinationUtils';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -13,57 +14,116 @@ interface SegmentNearbyAttractionsProps {
 
 // Enhanced error display component
 const EnhancedErrorDisplay: React.FC<{ 
-  error: string; 
-  cityName: string; 
+  searchResult: AttractionSearchResult;
   onRetry: () => void;
   onDebug?: () => void;
-}> = ({ error, cityName, onRetry, onDebug }) => (
-  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-    <div className="flex items-start gap-2 mb-2">
-      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-      <div className="flex-1">
-        <p className="text-sm text-red-700 font-medium">Unable to load attractions</p>
-        <p className="text-xs text-red-600 mt-1">{error}</p>
-        <p className="text-xs text-red-500 mt-1">Searching near: {cityName}</p>
+}> = ({ searchResult, onRetry, onDebug }) => {
+  const getErrorColor = () => {
+    switch (searchResult.status) {
+      case AttractionSearchStatus.CITY_NOT_FOUND:
+        return 'yellow';
+      case AttractionSearchStatus.TIMEOUT:
+        return 'orange';
+      case AttractionSearchStatus.ERROR:
+        return 'red';
+      default:
+        return 'red';
+    }
+  };
+
+  const color = getErrorColor();
+
+  return (
+    <div className={`p-3 bg-${color}-50 border border-${color}-200 rounded-lg`}>
+      <div className="flex items-start gap-2 mb-2">
+        <AlertTriangle className={`h-4 w-4 text-${color}-600 mt-0.5 flex-shrink-0`} />
+        <div className="flex-1">
+          <p className={`text-sm text-${color}-700 font-medium`}>
+            {searchResult.status === AttractionSearchStatus.CITY_NOT_FOUND && 'City Not Found'}
+            {searchResult.status === AttractionSearchStatus.TIMEOUT && 'Search Timed Out'}
+            {searchResult.status === AttractionSearchStatus.ERROR && 'Search Failed'}
+          </p>
+          <p className={`text-xs text-${color}-600 mt-1`}>{searchResult.message}</p>
+          <p className={`text-xs text-${color}-500 mt-1`}>
+            Searching: {searchResult.citySearched}, {searchResult.stateSearched}
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={onRetry}
+          className={`flex items-center gap-1 text-xs bg-${color}-100 hover:bg-${color}-200 text-${color}-700 px-2 py-1 rounded transition-colors`}
+        >
+          <RefreshCw className="h-3 w-3" />
+          Retry
+        </button>
+        {onDebug && (
+          <button
+            onClick={onDebug}
+            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors"
+          >
+            Debug Info
+          </button>
+        )}
       </div>
     </div>
-    <div className="flex gap-2">
-      <button
-        onClick={onRetry}
-        className="flex items-center gap-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
-      >
-        <RefreshCw className="h-3 w-3" />
-        Retry
-      </button>
-      {onDebug && (
-        <button
-          onClick={onDebug}
-          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors"
-        >
-          Debug Info
-        </button>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 // Enhanced loading component with timeout indicator
 const EnhancedLoadingDisplay: React.FC<{ 
   cityName: string; 
-  timeoutWarning?: boolean;
-}> = ({ cityName, timeoutWarning = false }) => (
-  <div className={`flex items-center justify-center p-4 rounded-lg border ${
-    timeoutWarning ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'
-  }`}>
-    <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mr-3"></div>
-    <div className="text-sm">
-      <span className="text-gray-600">Finding attractions near {cityName}...</span>
-      {timeoutWarning && (
-        <div className="text-xs text-yellow-600 mt-1">
-          ⚠️ This is taking longer than expected
+  searchStartTime: number;
+}> = ({ cityName, searchStartTime }) => {
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - searchStartTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [searchStartTime]);
+
+  const isLongRunning = elapsedTime > 5;
+
+  return (
+    <div className={`flex items-center justify-center p-4 rounded-lg border ${
+      isLongRunning ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'
+    }`}>
+      <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mr-3"></div>
+      <div className="text-sm">
+        <span className="text-gray-600">Finding attractions near {cityName}...</span>
+        <div className="text-xs text-gray-500 mt-1">
+          {elapsedTime}s elapsed
+          {isLongRunning && <span className="text-yellow-600 ml-2">⚠️ Taking longer than expected</span>}
         </div>
-      )}
+      </div>
     </div>
+  );
+};
+
+// No attractions found display
+const NoAttractionsDisplay: React.FC<{ 
+  searchResult: AttractionSearchResult;
+  onDebug?: () => void;
+}> = ({ searchResult, onDebug }) => (
+  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+    <div className="flex items-start gap-2">
+      <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+      <div className="flex-1">
+        <p className="text-sm text-blue-700 font-medium">No Attractions Found</p>
+        <p className="text-xs text-blue-600 mt-1">{searchResult.message}</p>
+      </div>
+    </div>
+    {onDebug && (
+      <button
+        onClick={onDebug}
+        className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+      >
+        Debug city search
+      </button>
+    )}
   </div>
 );
 
@@ -99,28 +159,22 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   segment, 
   maxAttractions = 4 
 }) => {
-  const [attractions, setAttractions] = useState<NearbyAttraction[]>([]);
+  const [searchResult, setSearchResult] = useState<AttractionSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [searchStartTime, setSearchStartTime] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
 
   const loadAttractions = async (isRetry: boolean = false) => {
     if (!segment?.endCity) return;
     
     setIsLoading(true);
-    setError(null);
-    setShowTimeoutWarning(false);
+    setSearchResult(null);
+    setSearchStartTime(Date.now());
     
     if (isRetry) {
       setRetryCount(prev => prev + 1);
     }
-
-    // Show timeout warning after 5 seconds
-    const timeoutWarningTimer = setTimeout(() => {
-      setShowTimeoutWarning(true);
-    }, 5000);
 
     try {
       // Extract city and state from endCity
@@ -128,22 +182,29 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       
       console.log(`🎯 Loading attractions near ${city}, ${state} for segment ${segment.day} (attempt ${retryCount + 1})`);
       
-      const nearbyAttractions = await GeographicAttractionService.findAttractionsNearCity(
+      const result = await GeographicAttractionService.findAttractionsNearCity(
         city, 
         state, 
         40 // 40 mile radius
       );
       
-      clearTimeout(timeoutWarningTimer);
-      setAttractions(nearbyAttractions.slice(0, maxAttractions));
-      setShowTimeoutWarning(false);
+      console.log(`📊 Search result for ${city}, ${state}:`, {
+        status: result.status,
+        attractionsFound: result.attractions.length,
+        message: result.message
+      });
+      
+      setSearchResult(result);
       
     } catch (error) {
-      clearTimeout(timeoutWarningTimer);
       console.error('❌ Error loading attractions:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load nearby attractions';
-      setError(errorMessage);
-      setShowTimeoutWarning(false);
+      setSearchResult({
+        status: AttractionSearchStatus.ERROR,
+        attractions: [],
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        citySearched: segment.endCity,
+        stateSearched: ''
+      });
     } finally {
       setIsLoading(false);
     }
@@ -175,13 +236,30 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         </h4>
         <EnhancedLoadingDisplay 
           cityName={segment.endCity || 'destination'} 
-          timeoutWarning={showTimeoutWarning}
+          searchStartTime={searchStartTime}
         />
       </div>
     );
   }
   
-  if (error) {
+  if (!searchResult) {
+    return (
+      <div className="space-y-3">
+        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          Nearby Attractions
+        </h4>
+        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-500">No search results available</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error states
+  if (searchResult.status === AttractionSearchStatus.ERROR || 
+      searchResult.status === AttractionSearchStatus.TIMEOUT ||
+      searchResult.status === AttractionSearchStatus.CITY_NOT_FOUND) {
     return (
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
@@ -189,8 +267,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           Nearby Attractions
         </h4>
         <EnhancedErrorDisplay
-          error={error}
-          cityName={segment.endCity || 'destination'}
+          searchResult={searchResult}
           onRetry={() => loadAttractions(true)}
           onDebug={handleDebugInfo}
         />
@@ -207,27 +284,33 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
   
-  if (attractions.length === 0) {
+  // Handle no attractions found
+  if (searchResult.status === AttractionSearchStatus.NO_ATTRACTIONS) {
     return (
       <div className="space-y-3">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
           Nearby Attractions
         </h4>
-        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-500">
-            No specific attractions found near {segment.endCity}
-          </p>
-          <button
-            onClick={handleDebugInfo}
-            className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-          >
-            Debug city search
-          </button>
-        </div>
+        <NoAttractionsDisplay
+          searchResult={searchResult}
+          onDebug={handleDebugInfo}
+        />
+        
+        {debugInfo && (
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="text-xs font-mono text-gray-600">
+              <div className="font-bold mb-2">Debug Information:</div>
+              <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
+  
+  // Handle successful results
+  const attractions = searchResult.attractions.slice(0, maxAttractions);
   
   return (
     <div className="space-y-3">
@@ -247,11 +330,9 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         ))}
       </div>
       
-      {attractions.length > 0 && (
-        <div className="text-xs text-blue-600 italic text-center p-2 bg-blue-50 rounded border border-blue-200">
-          ✨ Attractions within 40 miles of {segment.endCity}
-        </div>
-      )}
+      <div className="text-xs text-blue-600 italic text-center p-2 bg-blue-50 rounded border border-blue-200">
+        ✨ {searchResult.message}
+      </div>
     </div>
   );
 };

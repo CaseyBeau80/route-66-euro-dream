@@ -1,6 +1,6 @@
-
 import { SupabaseDataService, TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { AttractionSearchResult, AttractionSearchStatus } from './AttractionSearchResult';
 
 export interface NearbyAttraction extends TripStop {
   distanceFromCity: number;
@@ -111,13 +111,13 @@ export class GeographicAttractionService {
   private static readonly MAX_ATTRACTIONS = 8;
 
   /**
-   * Find attractions near a destination city with enhanced error handling
+   * Find attractions near a destination city with structured response
    */
   static async findAttractionsNearCity(
     cityName: string,
     state: string,
     maxDistance: number = 50 // miles
-  ): Promise<NearbyAttraction[]> {
+  ): Promise<AttractionSearchResult> {
     const searchId = `${cityName}-${state}-${Date.now()}`;
     
     StructuredLogger.logAttractionSearch('findAttractionsNearCity_start', {
@@ -137,7 +137,8 @@ export class GeographicAttractionService {
 
       StructuredLogger.logAttractionSearch('findAttractionsNearCity_success', {
         searchId,
-        attractionsFound: result.length,
+        status: result.status,
+        attractionsFound: result.attractions.length,
         cityName,
         state
       });
@@ -153,8 +154,14 @@ export class GeographicAttractionService {
         errorType: error instanceof Error ? error.constructor.name : 'Unknown'
       }, 'error');
 
-      // Return empty array on error to prevent UI crashes
-      return [];
+      // Return structured error response
+      return {
+        status: AttractionSearchStatus.ERROR,
+        attractions: [],
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        citySearched: cityName,
+        stateSearched: state
+      };
     }
   }
 
@@ -163,7 +170,7 @@ export class GeographicAttractionService {
     state: string,
     maxDistance: number,
     searchId: string
-  ): Promise<NearbyAttraction[]> {
+  ): Promise<AttractionSearchResult> {
     // Get all stops from database with timeout
     const allStops = await TimeoutUtility.withTimeout(
       SupabaseDataService.fetchAllStops(),
@@ -191,7 +198,7 @@ export class GeographicAttractionService {
           coordinates: fallbackCoords
         }, 'warn');
 
-        return this.findAttractionsNearCoordinates(
+        const attractions = this.findAttractionsNearCoordinates(
           fallbackCoords.latitude,
           fallbackCoords.longitude,
           allStops,
@@ -199,6 +206,16 @@ export class GeographicAttractionService {
           cityName,
           searchId
         );
+
+        return {
+          status: attractions.length > 0 ? AttractionSearchStatus.SUCCESS : AttractionSearchStatus.NO_ATTRACTIONS,
+          attractions,
+          message: attractions.length > 0 ? 
+            `Found ${attractions.length} attractions using fallback coordinates` :
+            `No attractions found within ${maxDistance} miles using fallback coordinates`,
+          citySearched: cityName,
+          stateSearched: state
+        };
       }
 
       StructuredLogger.logAttractionSearch('destination_city_not_found', {
@@ -210,7 +227,13 @@ export class GeographicAttractionService {
           .map(stop => `${stop.city_name}, ${stop.state}`)
       }, 'warn');
 
-      return [];
+      return {
+        status: AttractionSearchStatus.CITY_NOT_FOUND,
+        attractions: [],
+        message: `City "${cityName}, ${state}" not found in database`,
+        citySearched: cityName,
+        stateSearched: state
+      };
     }
 
     // Validate destination city data
@@ -222,7 +245,14 @@ export class GeographicAttractionService {
         state,
         issues: validation.issues
       }, 'error');
-      return [];
+      
+      return {
+        status: AttractionSearchStatus.ERROR,
+        attractions: [],
+        message: `Invalid data for ${cityName}: ${validation.issues.join(', ')}`,
+        citySearched: cityName,
+        stateSearched: state
+      };
     }
 
     StructuredLogger.logAttractionSearch('destination_city_found', {
@@ -234,7 +264,7 @@ export class GeographicAttractionService {
       }
     });
 
-    return this.findAttractionsNearCoordinates(
+    const attractions = this.findAttractionsNearCoordinates(
       destinationCity.latitude,
       destinationCity.longitude,
       allStops,
@@ -243,6 +273,16 @@ export class GeographicAttractionService {
       searchId,
       destinationCity.id
     );
+
+    return {
+      status: attractions.length > 0 ? AttractionSearchStatus.SUCCESS : AttractionSearchStatus.NO_ATTRACTIONS,
+      attractions,
+      message: attractions.length > 0 ? 
+        `Found ${attractions.length} attractions near ${cityName}` :
+        `No attractions found within ${maxDistance} miles of ${cityName}`,
+      citySearched: cityName,
+      stateSearched: state
+    };
   }
 
   private static findDestinationCity(allStops: TripStop[], cityName: string, state: string): TripStop | undefined {
