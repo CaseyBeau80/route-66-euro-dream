@@ -56,8 +56,23 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({
     }
   };
 
-  // Enhanced messaging for export/shared views
+  // FIXED: Enhanced messaging for export/shared views - only show warning if NO valid key
   if (isSharedView || isPDFExport) {
+    // If we have a valid API key, don't show the setup component
+    if (weatherConfig.hasApiKey) {
+      return (
+        <div className="bg-green-50 border border-green-200 rounded p-3">
+          <div className="text-sm text-green-800 mb-2">
+            ✅ {ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)}
+          </div>
+          <div className="text-xs text-green-600">
+            Live weather forecasts are available for this trip.
+          </div>
+        </div>
+      );
+    }
+
+    // Only show the warning if no valid key is found
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
         <div className="text-sm text-yellow-800 mb-2">

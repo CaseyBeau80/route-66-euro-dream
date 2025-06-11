@@ -25,15 +25,17 @@ export class ShareWeatherConfigService {
     try {
       console.log('🔍 ShareWeatherConfigService: Starting enhanced weather config detection for export');
       
-      const weatherService = EnhancedWeatherService.getInstance();
-      
-      // Force refresh to ensure we get the latest configuration
-      weatherService.refreshApiKey();
-      
-      // Get detailed API key information
+      // FIXED: Direct key retrieval without relying on service instance state
       const refreshedKey = ApiKeyRetrievalService.refreshApiKey();
-      const hasApiKey = weatherService.hasApiKey();
-      const keySource = weatherService.getApiKeySource();
+      const keySource = ApiKeyRetrievalService.getKeySource(refreshedKey);
+      const hasApiKey = !!refreshedKey;
+      
+      console.log('🔍 ShareWeatherConfigService: Direct API key detection:', {
+        refreshedKey: refreshedKey ? refreshedKey.substring(0, 8) + '...' : 'none',
+        keySource,
+        hasApiKey,
+        keyLength: refreshedKey?.length || 0
+      });
       
       const detectionDetails: any = {
         validationPassed: hasApiKey,
@@ -45,7 +47,7 @@ export class ShareWeatherConfigService {
         // Check if this is the configured key
         if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
           const configKey = WEATHER_API_KEY as string;
-          if (configKey.trim() === refreshedKey) {
+          if (configKey.trim() === refreshedKey.trim()) {
             detectionDetails.isConfiguredKey = true;
             detectionDetails.configKey = 'WEATHER_API_KEY (configured)';
           }
@@ -55,9 +57,9 @@ export class ShareWeatherConfigService {
         const primaryKey = localStorage.getItem('openweathermap_api_key');
         const legacyKey = localStorage.getItem('openWeatherMapApiKey');
         
-        if (primaryKey && primaryKey === refreshedKey) {
+        if (primaryKey && primaryKey.trim() === refreshedKey.trim()) {
           detectionDetails.localStorageKey = 'openweathermap_api_key';
-        } else if (legacyKey && legacyKey === refreshedKey) {
+        } else if (legacyKey && legacyKey.trim() === refreshedKey.trim()) {
           detectionDetails.localStorageKey = 'openWeatherMapApiKey';
         }
         
@@ -69,8 +71,6 @@ export class ShareWeatherConfigService {
         canFetchLiveWeather: hasApiKey,
         apiKeySource: keySource,
         detectionDetails,
-        weatherServiceExists: !!weatherService,
-        refreshedKeyLength: refreshedKey?.length || 0,
         isExportContext: true
       });
       
@@ -140,8 +140,9 @@ export class ShareWeatherConfigService {
     const config = this.getShareWeatherConfig();
     
     if (config.hasApiKey) {
-      const keySource = config.apiKeySource === 'config-file' ? 'application configuration' : 'user settings';
-      return `Weather API configured via ${keySource} (${config.detectionDetails?.keyLength || 0} chars)`;
+      const keyType = config.detectionDetails?.isConfiguredKey ? 'application configuration' : 
+                     config.apiKeySource === 'config-file' ? 'configuration file' : 'user settings';
+      return `Weather API configured via ${keyType} (${config.detectionDetails?.keyLength || 0} chars)`;
     } else {
       return 'Weather API not configured - live forecasts unavailable in export';
     }

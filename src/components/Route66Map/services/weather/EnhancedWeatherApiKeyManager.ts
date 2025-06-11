@@ -26,7 +26,8 @@ export class EnhancedWeatherApiKeyManager {
     console.log('🔍 EnhancedWeatherApiKeyManager: Key refresh result:', {
       hasKey: !!this.apiKey,
       keySource: this.keySource,
-      keyLength: this.apiKey?.length || 0
+      keyLength: this.apiKey?.length || 0,
+      keyPreview: this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'none'
     });
   }
 
@@ -44,7 +45,11 @@ export class EnhancedWeatherApiKeyManager {
   }
 
   hasApiKey(): boolean {
-    this.refreshApiKey();
+    // FIXED: Don't always refresh on hasApiKey check to avoid infinite loops
+    if (!this.apiKey) {
+      this.refreshApiKey();
+    }
+    
     const hasKey = !!this.apiKey && this.apiKey.length > 0;
     
     if (this.apiKey) {
@@ -66,8 +71,11 @@ export class EnhancedWeatherApiKeyManager {
   }
 
   getApiKey(): string | null {
-    this.apiKey = ApiKeyRetrievalService.getApiKeyWithCorruptionCheck(this.apiKey);
-    this.keySource = ApiKeyRetrievalService.getKeySource(this.apiKey);
+    // FIXED: Only refresh if we don't have a key to avoid excessive calls
+    if (!this.apiKey) {
+      this.apiKey = ApiKeyRetrievalService.getApiKeyWithCorruptionCheck(this.apiKey);
+      this.keySource = ApiKeyRetrievalService.getKeySource(this.apiKey);
+    }
     return this.apiKey;
   }
 
@@ -100,7 +108,7 @@ export class EnhancedWeatherApiKeyManager {
   }
 
   getEnhancedDebugInfo(): EnhancedDebugInfo {
-    this.refreshApiKey();
+    // FIXED: Don't refresh every time debug info is requested
     const debugInfo = DebugInfoService.getEnhancedDebugInfo(this.apiKey, this.lastValidationResult);
     
     return {

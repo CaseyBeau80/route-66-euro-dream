@@ -27,60 +27,43 @@ export class WeatherConfigValidationService {
     let isValid = false;
     let source: 'config-file' | 'localStorage' | 'none' = 'none';
     
-    // Check config file with enhanced validation
-    const configKey = WEATHER_API_KEY;
-    const configKeyString = typeof configKey === 'string' ? configKey : '';
+    // FIXED: Use ApiKeyRetrievalService for consistent validation
+    const refreshedKey = ApiKeyRetrievalService.refreshApiKey();
+    const keySource = ApiKeyRetrievalService.getKeySource(refreshedKey);
     
-    // Enhanced string checking to avoid TypeScript control flow issues
-    let isConfigPlaceholder = false;
-    if (configKeyString.length === 0) {
-      isConfigPlaceholder = true;
+    if (refreshedKey) {
+      isValid = true;
+      source = keySource === 'config-file' ? 'config-file' : 'localStorage';
+      details.keyLength = refreshedKey.length;
+      
+      // Check if it's from config file
+      if (keySource === 'config-file') {
+        details.configFileKey = true;
+        details.isConfiguredKey = true;
+        details.isPlaceholder = false;
+        console.log('✅ WeatherConfigValidationService: Valid config file key detected', {
+          keyLength: refreshedKey.length,
+          keyPreview: refreshedKey.substring(0, 8) + '...'
+        });
+      } else {
+        details.localStorageKey = true;
+        details.isConfiguredKey = false;
+        console.log('✅ WeatherConfigValidationService: Valid localStorage key detected');
+      }
     } else {
-      // Now TypeScript knows configKeyString is a non-empty string
-      if (configKeyString === 'your_api_key_here') {
-        isConfigPlaceholder = true;
-      } else if (configKeyString.toLowerCase().includes('your_api_key')) {
-        isConfigPlaceholder = true;
-      } else if (configKeyString.toLowerCase().includes('placeholder')) {
-        isConfigPlaceholder = true;
-      }
-    }
-    
-    details.configFileKey = !!configKeyString && !isConfigPlaceholder;
-    details.isPlaceholder = isConfigPlaceholder;
-    details.isConfiguredKey = details.configFileKey;
-    
-    if (details.configFileKey) {
-      details.keyLength = configKeyString.length;
-      source = 'config-file';
-      isValid = configKeyString.length >= 20;
-      console.log('✅ WeatherConfigValidationService: Valid config file key detected', {
-        keyLength: configKeyString.length,
-        keyPreview: configKeyString.substring(0, 8) + '...'
-      });
-    }
-    
-    // Check localStorage only if config file key is not valid
-    if (!isValid) {
-      const primaryKey = localStorage.getItem('openweathermap_api_key');
-      const legacyKey = localStorage.getItem('openWeatherMapApiKey');
+      // Check if config has placeholder
+      const configKey = WEATHER_API_KEY;
+      const configKeyString = typeof configKey === 'string' ? configKey : '';
       
-      details.localStorageKey = !!(primaryKey || legacyKey);
-      
-      if (details.localStorageKey) {
-        const storageKey = primaryKey || legacyKey;
-        if (storageKey && storageKey.length >= 20) {
-          source = 'localStorage';
-          isValid = true;
-          details.keyLength = storageKey.length;
-          console.log('✅ WeatherConfigValidationService: Valid localStorage key detected');
-        }
-      }
+      details.configFileKey = false;
+      details.localStorageKey = false;
+      details.isPlaceholder = this.isPlaceholderKey(configKeyString);
+      details.isConfiguredKey = false;
     }
     
     // Generate enhanced recommendations
     if (!isValid) {
-      if (isConfigPlaceholder) {
+      if (details.isPlaceholder) {
         recommendations.push('Replace the placeholder API key in src/config/weatherConfig.ts with a real OpenWeatherMap API key');
         recommendations.push('This will enable weather forecasts for all users including export views');
       } else if (!details.configFileKey) {
@@ -108,6 +91,21 @@ export class WeatherConfigValidationService {
       details,
       recommendations
     };
+  }
+  
+  private static isPlaceholderKey(key: string): boolean {
+    if (!key || typeof key !== 'string') return true;
+    
+    const trimmedKey = key.trim().toLowerCase();
+    const placeholders = [
+      'your_api_key_here',
+      'your_api_key',
+      'placeholder',
+      'example',
+      'test'
+    ];
+    
+    return placeholders.some(placeholder => trimmedKey.includes(placeholder));
   }
   
   /**

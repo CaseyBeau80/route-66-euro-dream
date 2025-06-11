@@ -60,23 +60,26 @@ export class ApiKeyRetrievalService {
   static getKeySource(key: string | null): 'config-file' | 'localStorage' | 'legacy-storage' | 'none' {
     if (!key) return 'none';
     
-    // Check if it matches config
-    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim() === key) {
-      return 'config-file';
+    // Check if it matches config - FIXED: proper string comparison
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+      const configKey = WEATHER_API_KEY as string;
+      if (configKey.trim() === key.trim() && this.isValidKey(configKey)) {
+        return 'config-file';
+      }
     }
     
     // Check localStorage
     const primaryKey = localStorage.getItem(this.STORAGE_KEY);
-    if (primaryKey === key) {
+    if (primaryKey && primaryKey.trim() === key.trim()) {
       return 'localStorage';
     }
     
     const legacyKey = localStorage.getItem(this.LEGACY_STORAGE_KEY);
-    if (legacyKey === key) {
+    if (legacyKey && legacyKey.trim() === key.trim()) {
       return 'legacy-storage';
     }
     
-    return 'config-file'; // Default assumption
+    return 'none'; // Changed from 'config-file' default assumption
   }
 
   private static isValidKey(key: string): boolean {
@@ -84,17 +87,35 @@ export class ApiKeyRetrievalService {
     
     const trimmedKey = key.trim();
     
-    // Check for placeholder keys
-    if (trimmedKey === 'your_api_key_here' ||
-        trimmedKey.toLowerCase().includes('your_api_key') ||
-        trimmedKey.toLowerCase().includes('replace_with') ||
-        trimmedKey.toLowerCase().includes('example') ||
-        trimmedKey.toLowerCase().includes('placeholder') ||
-        trimmedKey === 'PLACEHOLDER_KEY') {
+    // Check for placeholder keys - ENHANCED: more comprehensive placeholder detection
+    const placeholderPatterns = [
+      'your_api_key_here',
+      'your_api_key',
+      'replace_with',
+      'example',
+      'placeholder',
+      'PLACEHOLDER_KEY',
+      'INSERT_API_KEY',
+      'ADD_YOUR_KEY'
+    ];
+    
+    const lowerKey = trimmedKey.toLowerCase();
+    for (const pattern of placeholderPatterns) {
+      if (lowerKey.includes(pattern.toLowerCase())) {
+        return false;
+      }
+    }
+    
+    // Valid keys should be at least 20 characters and not be obvious test values
+    if (trimmedKey.length < 20) {
       return false;
     }
     
-    // Valid keys should be at least 20 characters
-    return trimmedKey.length >= 20;
+    // Additional check for common test patterns
+    if (trimmedKey.includes('test') || trimmedKey.includes('demo') || trimmedKey.includes('fake')) {
+      return false;
+    }
+    
+    return true;
   }
 }
