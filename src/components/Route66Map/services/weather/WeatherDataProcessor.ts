@@ -60,71 +60,135 @@ export class WeatherDataProcessor {
 
     console.log(`📊 WeatherDataProcessor: Processing forecast for target date ${targetDate.toISOString()}`);
     
-    const processedForecasts: ForecastDay[] = [];
-    const seenDates = new Set<string>();
+    // Group forecast items by date to aggregate daily high/low temperatures
+    const dailyForecasts = new Map<string, {
+      temps: number[],
+      descriptions: string[],
+      icons: string[],
+      humidity: number[],
+      windSpeed: number[],
+      precipitationChances: number[]
+    }>();
 
+    // First pass: collect all forecast items and group by date
     for (const item of forecastData.list) {
       if (!item.dt_txt) continue;
 
-      // Parse the forecast date
       const forecastDate = new Date(item.dt_txt);
       if (isNaN(forecastDate.getTime())) continue;
 
-      // Normalize to UTC midnight for consistent comparison
       const normalizedForecastDate = this.normalizeToUtcMidnight(forecastDate);
       const forecastDateString = DateNormalizationService.toDateString(normalizedForecastDate);
       
-      // Skip if we've already processed this date
-      if (seenDates.has(forecastDateString)) continue;
-      seenDates.add(forecastDateString);
+      if (!dailyForecasts.has(forecastDateString)) {
+        dailyForecasts.set(forecastDateString, {
+          temps: [],
+          descriptions: [],
+          icons: [],
+          humidity: [],
+          windSpeed: [],
+          precipitationChances: []
+        });
+      }
 
-      // CRITICAL FIX: Correctly extract high and low temperatures
-      const highTemp = Math.round(item.main.temp_max);
-      const lowTemp = Math.round(item.main.temp_min);
+      const dayData = dailyForecasts.get(forecastDateString)!;
+      
+      // Collect all temperature readings for this date
+      dayData.temps.push(item.main.temp);
+      if (item.main.temp_max) dayData.temps.push(item.main.temp_max);
+      if (item.main.temp_min) dayData.temps.push(item.main.temp_min);
+      
+      dayData.descriptions.push(item.weather[0].description);
+      dayData.icons.push(item.weather[0].icon);
+      dayData.humidity.push(item.main.humidity);
+      dayData.windSpeed.push(item.wind?.speed || 0);
+      dayData.precipitationChances.push((item.pop || 0) * 100);
 
-      console.log(`🌡️ TEMPERATURE DEBUG for ${forecastDateString}:`, {
-        originalData: {
-          temp: item.main.temp,
-          temp_max: item.main.temp_max,
-          temp_min: item.main.temp_min
-        },
-        processedTemps: {
+      console.log(`🌡️ COLLECTED TEMPS for ${forecastDateString}:`, {
+        itemTemp: item.main.temp,
+        itemTempMax: item.main.temp_max,
+        itemTempMin: item.main.temp_min,
+        allTempsForDay: dayData.temps
+      });
+    }
+
+    // Second pass: calculate daily aggregates
+    const processedForecasts: ForecastDay[] = [];
+
+    for (const [dateString, dayData] of dailyForecasts.entries()) {
+      if (dayData.temps.length === 0) continue;
+
+      // Calculate actual daily high and low from all temperature readings
+      const highTemp = Math.round(Math.max(...dayData.temps));
+      const lowTemp = Math.round(Math.min(...dayData.temps));
+
+      console.log(`🌡️ TEMPERATURE AGGREGATION for ${dateString}:`, {
+        allTemps: dayData.temps,
+        calculatedHigh: highTemp,
+        calculatedLow: lowTemp,
+        tempDifference: highTemp - lowTemp,
+        validRange: highTemp !== lowTemp ? 'YES' : 'SAME_TEMP'
+      });
+
+      // Use the most common description and icon
+      const mostCommonDescription = this.getMostCommon(dayData.descriptions);
+      const mostCommonIcon = this.getMostCommon(dayData.icons);
+      const avgHumidity = Math.round(dayData.humidity.reduce((a, b) => a + b, 0) / dayData.humidity.length);
+      const avgWindSpeed = Math.round(dayData.windSpeed.reduce((a, b) => a + b, 0) / dayData.windSpeed.length);
+      const avgPrecipitationChance = Math.round(dayData.precipitationChances.reduce((a, b) => a + b, 0) / dayData.precipitationChances.length);
+
+      const forecastEntry: ForecastDay = {
+        date: dateString,
+        dateString: dateString,
+        temperature: {
           high: highTemp,
           low: lowTemp
         },
-        correctExtraction: highTemp !== lowTemp ? 'YES' : 'POTENTIAL_ISSUE'
-      });
-
-      // Create forecast entry with correct temperature mapping
-      const forecastEntry: ForecastDay = {
-        date: forecastDateString,
-        dateString: forecastDateString,
-        temperature: {
-          high: highTemp,  // temp_max from API
-          low: lowTemp     // temp_min from API
-        },
-        description: item.weather[0].description,
-        icon: item.weather[0].icon,
-        precipitationChance: Math.round((item.pop || 0) * 100).toString(),
-        humidity: item.main.humidity,
-        windSpeed: Math.round(item.wind?.speed || 0)
+        description: mostCommonDescription,
+        icon: mostCommonIcon,
+        precipitationChance: avgPrecipitationChance.toString(),
+        humidity: avgHumidity,
+        windSpeed: avgWindSpeed
       };
 
       processedForecasts.push(forecastEntry);
       
-      console.log(`📅 Processed forecast for ${forecastDateString}:`, {
+      console.log(`📅 FINAL PROCESSED forecast for ${dateString}:`, {
         high: forecastEntry.temperature.high,
         low: forecastEntry.temperature.low,
         description: forecastEntry.description,
-        tempDifference: forecastEntry.temperature.high - forecastEntry.temperature.low
+        tempDifference: forecastEntry.temperature.high - forecastEntry.temperature.low,
+        hasRealisticRange: forecastEntry.temperature.high > forecastEntry.temperature.low
       });
 
       // Stop once we have enough days
       if (processedForecasts.length >= maxDays) break;
     }
 
-    console.log(`✅ WeatherDataProcessor: Processed ${processedForecasts.length} forecast days`);
+    console.log(`✅ WeatherDataProcessor: Processed ${processedForecasts.length} forecast days with aggregated temperatures`);
     return processedForecasts;
+  }
+
+  /**
+   * Helper method to find the most common value in an array
+   */
+  private static getMostCommon<T>(arr: T[]): T {
+    const counts = new Map<T, number>();
+    for (const item of arr) {
+      counts.set(item, (counts.get(item) || 0) + 1);
+    }
+    
+    let mostCommon = arr[0];
+    let maxCount = 0;
+    
+    for (const [item, count] of counts.entries()) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommon = item;
+      }
+    }
+    
+    return mostCommon;
   }
 
   /**
