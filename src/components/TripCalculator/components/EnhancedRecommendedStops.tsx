@@ -2,12 +2,11 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { EnhancedStopSelectionService } from '../services/planning/EnhancedStopSelectionService';
-import { SupabaseDataService } from '../services/data/SupabaseDataService';
-import { ErrorHandlingService } from '../services/error/ErrorHandlingService';
-import { TripStop, convertToTripStop } from '../types/TripStop';
+import { TripStop } from '../types/TripStop';
 import { useStableSegment } from '../hooks/useStableSegments';
 import { useOptimizedValidation } from '../hooks/useOptimizedValidation';
+import { StopEnhancementService } from './stops/StopEnhancementService';
+import { StopsCombiner } from './stops/StopsCombiner';
 import StopItem from './StopItem';
 import StopsEmpty from './StopsEmpty';
 import ErrorBoundary from './ErrorBoundary';
@@ -21,28 +20,22 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   segment, 
   maxStops = 5
 }) => {
-  // Use stable segment to prevent infinite re-renders
   const stableSegment = useStableSegment(segment);
-  
-  // Use optimized validation to prevent multiple validation calls
   const { validStops, userRelevantStops, isValid } = useOptimizedValidation(stableSegment);
   
   const [enhancedStops, setEnhancedStops] = useState<TripStop[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Extract primitive values for stable dependencies
   const segmentDay = stableSegment?.day || 0;
   const startCity = stableSegment?.startCity || '';
   const endCity = stableSegment?.endCity || '';
   
-  // Check if enhanced selection is needed using primitive values
   const shouldTriggerEnhanced = useMemo(() => 
     isValid && userRelevantStops.length < 2 && startCity !== '' && endCity !== '',
     [isValid, userRelevantStops.length, startCity, endCity]
   );
   
-  // Enhanced selection with stable dependencies
   const tryEnhancedSelection = useCallback(async () => {
     if (!shouldTriggerEnhanced) return;
     
@@ -50,58 +43,12 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     setError(null);
     
     try {
-      console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${startCity} → ${endCity}`);
-      
-      // Create mock start/end stops
-      const startStop: TripStop = convertToTripStop({
-        id: `temp-start-${segmentDay}`,
-        name: startCity,
-        description: 'Start location',
-        city_name: startCity,
-        state: 'Unknown',
-        latitude: 0,
-        longitude: 0,
-        category: 'destination_city'
-      });
-      
-      const endStop: TripStop = convertToTripStop({
-        id: `temp-end-${segmentDay}`,
-        name: endCity,
-        description: 'End location',
-        city_name: endCity,
-        state: 'Unknown',
-        latitude: 0,
-        longitude: 0,
-        category: 'destination_city'
-      });
-      
-      const allStops = await ErrorHandlingService.handleAsyncError(
-        () => SupabaseDataService.fetchAllStops(),
-        'EnhancedRecommendedStops.fetchAllStops',
-        []
+      const enhanced = await StopEnhancementService.enhanceStopsForSegment(
+        startCity, endCity, segmentDay, maxStops
       );
-      
-      if (!allStops || allStops.length === 0) {
-        console.warn('⚠️ No stops data available for enhanced selection');
-        return;
-      }
-      
-      const enhanced = await ErrorHandlingService.handleAsyncError(
-        () => EnhancedStopSelectionService.selectStopsForSegment(
-          startStop, endStop, allStops, maxStops
-        ),
-        'EnhancedRecommendedStops.selectStopsForSegment',
-        []
-      );
-      
-      if (enhanced && enhanced.length > 0) {
-        console.log(`✅ Enhanced selection found ${enhanced.length} stops`);
-        const convertedEnhanced = enhanced.map(stop => convertToTripStop(stop));
-        setEnhancedStops(convertedEnhanced);
-      }
+      setEnhancedStops(enhanced);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.tryEnhancedSelection');
       setError(`Failed to load enhanced stops: ${errorMessage}`);
       console.error('❌ Enhanced selection failed:', error);
     } finally {
@@ -113,27 +60,10 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     tryEnhancedSelection();
   }, [tryEnhancedSelection]);
   
-  // Combine and deduplicate stops with memoization
-  const finalStops = useMemo(() => {
-    const combinedStops = [...userRelevantStops];
-    
-    try {
-      enhancedStops.forEach(enhancedStop => {
-        const alreadyExists = combinedStops.some(stop => 
-          stop.name.toLowerCase() === enhancedStop.name.toLowerCase()
-        );
-        
-        if (!alreadyExists) {
-          combinedStops.push(enhancedStop);
-        }
-      });
-    } catch (error) {
-      ErrorHandlingService.logError(error as Error, 'EnhancedRecommendedStops.combineStops');
-      console.error('❌ Error combining stops:', error);
-    }
-    
-    return combinedStops.slice(0, maxStops);
-  }, [userRelevantStops, enhancedStops, maxStops]);
+  const finalStops = useMemo(() => 
+    StopsCombiner.combineStops(userRelevantStops, enhancedStops, maxStops),
+    [userRelevantStops, enhancedStops, maxStops]
+  );
 
   console.log('🎯 EnhancedRecommendedStops final result:', {
     segmentDay,
