@@ -60,7 +60,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data for development and testing - EXPANDED with MISSING CITIES ADDED
+// Enhanced mock data with complete Missouri coverage and additional attractions
 const mockStopsData: Partial<UnifiedTripStop>[] = [
   {
     id: "chicago-start",
@@ -135,7 +135,7 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     longitude: -89.6542
   },
   
-  // ADDED: MISSING MISSOURI CITIES
+  // ENHANCED MISSOURI COVERAGE with ALL missing cities
   {
     id: "springfield-mo",
     name: "Springfield",
@@ -183,6 +183,52 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     latitude: 37.1467,
     longitude: -94.4663
   },
+  {
+    id: "rolla-mo",
+    name: "Rolla",
+    description: "University town and important Route 66 stop in Missouri",
+    category: "destination_city",
+    city_name: "Rolla",
+    city: "Rolla",
+    state: "MO",
+    latitude: 37.9514,
+    longitude: -91.7735,
+    is_major_stop: true
+  },
+  {
+    id: "lebanon-mo",
+    name: "Lebanon",
+    description: "Historic Route 66 town in the Missouri Ozarks",
+    category: "destination_city",
+    city_name: "Lebanon",
+    city: "Lebanon",
+    state: "MO",
+    latitude: 37.6806,
+    longitude: -92.6638
+  },
+  {
+    id: "marshfield-mo",
+    name: "Marshfield",
+    description: "Route 66 town between Springfield and Lebanon",
+    category: "destination_city",
+    city_name: "Marshfield",
+    city: "Marshfield",
+    state: "MO",
+    latitude: 37.3389,
+    longitude: -92.9068
+  },
+  {
+    id: "strafford-mo",
+    name: "Strafford",
+    description: "Small Route 66 community near Springfield",
+    category: "destination_city",
+    city_name: "Strafford",
+    city: "Strafford",
+    state: "MO",
+    latitude: 37.2725,
+    longitude: -93.1185
+  },
+
   {
     id: "lou-mitchells",
     name: "Lou Mitchell's",
@@ -252,9 +298,99 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     longitude: -91.1137
   },
 
-  // ADDED: MISSOURI ATTRACTIONS
+  // MISSOURI ATTRACTIONS - Enhanced for Joplin area
   {
-    id: "fantastic-caverns",
+    id: "precious-moments-chapel",
+    name: "Precious Moments Chapel & Gardens",
+    description: "Beautiful chapel and gardens featuring Precious Moments artwork near Carthage",
+    category: "attraction",
+    city_name: "Carthage",
+    city: "Carthage",
+    state: "MO",
+    latitude: 37.1456,
+    longitude: -94.3458
+  },
+  {
+    id: "george-washington-carver-monument",
+    name: "George Washington Carver National Monument",
+    description: "Historic site honoring the famous scientist, near Joplin",
+    category: "historic_site",
+    city_name: "Joplin",
+    city: "Joplin",
+    state: "MO",
+    latitude: 36.9889,
+    longitude: -94.3472
+  },
+  {
+    id: "joplin-museum-complex",
+    name: "Joplin Museum Complex",
+    description: "Local history museum showcasing Joplin's mining heritage and Route 66 history",
+    category: "museum",
+    city_name: "Joplin",
+    city: "Joplin",
+    state: "MO",
+    latitude: 37.0811,
+    longitude: -94.5069
+  },
+  {
+    id: "spiva-center-arts",
+    name: "Spiva Center for the Arts",
+    description: "Regional arts center in Joplin featuring local and touring exhibitions",
+    category: "attraction",
+    city_name: "Joplin",
+    city: "Joplin",
+    state: "MO",
+    latitude: 37.0844,
+    longitude: -94.5133
+  },
+  {
+    id: "grand-falls",
+    name: "Grand Falls",
+    description: "Missouri's largest natural waterfall, located near Joplin",
+    category: "scenic_view",
+    city_name: "Joplin",
+    city: "Joplin",
+    state: "MO",
+    latitude: 37.1378,
+    longitude: -94.6202
+  },
+  {
+    id: "route66-mural-webb-city",
+    name: "Route 66 Mural",
+    description: "Historic Route 66 mural celebrating the Mother Road heritage",
+    category: "roadside_attraction",
+    city_name: "Webb City",
+    city: "Webb City",
+    state: "MO",
+    latitude: 37.1469,
+    longitude: -94.4658
+  },
+  {
+    id: "civil-war-museum-carthage",
+    name: "Civil War Museum",
+    description: "Museum dedicated to the Civil War Battle of Carthage",
+    category: "museum",
+    city_name: "Carthage",
+    city: "Carthage",
+    state: "MO",
+    latitude: 37.1748,
+    longitude: -94.3107
+  },
+  {
+    id: "maple-leaf-cemetery-carthage",
+    name: "Maple Leaf Cemetery",
+    description: "Historic cemetery with unique Victorian-era monuments",
+    category: "historic_site",
+    city_name: "Carthage",
+    city: "Carthage",
+    state: "MO",
+    latitude: 37.1789,
+    longitude: -94.3145
+  },
+
+  // SPRINGFIELD MO ATTRACTIONS - Enhanced coverage
+  {
+    id: "fantastic-caverns-springfield",
     name: "Fantastic Caverns",
     description: "America's only ride-through cave attraction in Springfield, MO",
     category: "attraction",
@@ -262,10 +398,11 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     city: "Springfield",
     state: "MO",
     latitude: 37.2745,
-    longitude: -93.3376
+    longitude: -93.3376,
+    is_major_stop: true
   },
   {
-    id: "wilson-park",
+    id: "wilson-creek-battlefield",
     name: "Wilson's Creek National Battlefield",
     description: "Civil War battlefield near Springfield, MO",
     category: "historic_site",
@@ -274,6 +411,40 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     state: "MO",
     latitude: 37.1011,
     longitude: -93.4074
+  },
+  {
+    id: "bass-pro-shops-outdoor-world",
+    name: "Bass Pro Shops Outdoor World",
+    description: "Massive outdoor retail store and tourist attraction in Springfield",
+    category: "attraction",
+    city_name: "Springfield",
+    city: "Springfield",
+    state: "MO",
+    latitude: 37.2081,
+    longitude: -93.2923,
+    is_major_stop: true
+  },
+  {
+    id: "route66-car-museum",
+    name: "Route 66 Car Museum",
+    description: "Classic car museum celebrating Route 66 automotive heritage",
+    category: "museum",
+    city_name: "Springfield",
+    city: "Springfield",
+    state: "MO",
+    latitude: 37.2156,
+    longitude: -93.2985
+  },
+  {
+    id: "discovery-center-springfield",
+    name: "Discovery Center of Springfield",
+    description: "Interactive science museum perfect for families",
+    category: "museum",
+    city_name: "Springfield",
+    city: "Springfield",
+    state: "MO",
+    latitude: 37.2089,
+    longitude: -93.2923
   },
   {
     id: "blue-whale-catoosa",
