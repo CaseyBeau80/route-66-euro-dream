@@ -70,13 +70,14 @@ const DeveloperDebugTools: React.FC = () => {
   const testAttractionSearch = async () => {
     setIsLoading(true);
     try {
-      const attractions = await GeographicAttractionService.findAttractionsNearCity(testCity, testState, 50);
+      const searchResult = await GeographicAttractionService.findAttractionsNearCity(testCity, testState, 50);
       setDebugResults({
         searchType: 'attraction_search',
         cityName: testCity,
         state: testState,
-        attractionsFound: attractions.length,
-        attractions: attractions.map(a => ({
+        status: searchResult.status,
+        attractionsFound: searchResult.attractions.length,
+        attractions: searchResult.attractions.map(a => ({
           name: a.name,
           distance: a.distanceFromCity.toFixed(1),
           type: a.attractionType,

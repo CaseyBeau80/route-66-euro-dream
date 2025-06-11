@@ -27,14 +27,17 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
       
       try {
         const { city, state } = getDestinationCityWithState(segment.endCity);
-        const nearbyAttractions = await GeographicAttractionService.findAttractionsNearCity(
+        const searchResult = await GeographicAttractionService.findAttractionsNearCity(
           city, 
           state, 
           40 // 40 mile radius
         );
-        setAttractions(nearbyAttractions);
+        
+        // Extract the attractions array from the search result
+        setAttractions(searchResult.attractions);
       } catch (error) {
         console.error('❌ Error loading attractions for PDF:', error);
+        setAttractions([]);
       }
     };
     
