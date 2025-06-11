@@ -53,6 +53,33 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     } : null
   });
 
+  // FORCE LOG: Complete weather data analysis
+  if (weather) {
+    console.log('🔍 FORCE LOG - COMPLETE WEATHER DATA ANALYSIS for', segmentEndCity, ':', {
+      // Basic data existence
+      hasTemperature: !!weather.temperature,
+      hasHighTemp: !!weather.highTemp,
+      hasLowTemp: !!weather.lowTemp,
+      hasDescription: !!weather.description,
+      
+      // Actual values
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      
+      // Forecast flags
+      isActualForecast: weather.isActualForecast,
+      dateMatchInfo: weather.dateMatchInfo,
+      dateMatchSource: weather.dateMatchInfo?.source,
+      
+      // Validation readiness
+      hasAnyTemp: !!(weather.temperature || weather.highTemp || weather.lowTemp),
+      hasDescription: !!weather.description,
+      basicDisplayReady: !!(weather.temperature || weather.highTemp || weather.lowTemp) && !!weather.description
+    });
+  }
+
   // Show API key setup if no key available
   if (!hasApiKey) {
     console.log(`❌ No API key for ${segmentEndCity}`);
@@ -108,9 +135,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // CRITICAL: If we have weather data, validate it and show detailed debugging
+  // CRITICAL: AGGRESSIVE WEATHER RENDERING - Show ANY available data
   if (weather) {
-    console.log(`🔍 WEATHER DATA VALIDATION for ${segmentEndCity}:`, {
+    console.log('🔍 FORCE LOG - AGGRESSIVE RENDER CHECK for', segmentEndCity, ':', {
       hasWeather: true,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
@@ -120,17 +147,20 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       dateMatchInfo: weather.dateMatchInfo
     });
 
-    // Run validation
-    const validation = validateWeatherData(weather, segmentEndCity, segmentDate);
-    console.log(`🎯 VALIDATION RESULT for ${segmentEndCity}:`, validation);
+    // ULTRA-PERMISSIVE: Show weather if we have ANY data at all
+    const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+    const hasAnyDescription = !!weather.description;
+    const hasMinimalData = hasAnyTemperature || hasAnyDescription;
 
-    // Get display type
-    const displayType = getWeatherDisplayType(validation, error, retryCount, weather);
-    console.log(`🎨 DISPLAY TYPE for ${segmentEndCity}: ${displayType}`);
+    console.log('🎯 FORCE LOG - MINIMAL DATA CHECK for', segmentEndCity, ':', {
+      hasAnyTemperature,
+      hasAnyDescription,
+      hasMinimalData,
+      shouldRenderWeather: hasMinimalData
+    });
 
-    // CRITICAL: If validation passes, show the weather data
-    if (validation.isValid && validation.canShowLiveForecast) {
-      console.log(`✅ SHOWING WEATHER DATA for ${segmentEndCity}`);
+    if (hasMinimalData) {
+      console.log('✅ FORCE LOG - RENDERING WEATHER DATA for', segmentEndCity);
       return (
         <WeatherDataDisplay
           weather={weather}
@@ -143,24 +173,27 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         />
       );
     } else {
-      console.log(`❌ VALIDATION FAILED for ${segmentEndCity}:`, {
-        isValid: validation.isValid,
-        canShowLiveForecast: validation.canShowLiveForecast,
-        validationDetails: validation.validationDetails
+      console.log('❌ FORCE LOG - NO MINIMAL DATA for', segmentEndCity, ':', {
+        hasAnyTemperature,
+        hasAnyDescription,
+        actualTemperature: weather.temperature,
+        actualHighTemp: weather.highTemp,
+        actualLowTemp: weather.lowTemp,
+        actualDescription: weather.description
       });
     }
   } else {
-    console.log(`❌ NO WEATHER DATA for ${segmentEndCity}`);
+    console.log('❌ FORCE LOG - NO WEATHER OBJECT for', segmentEndCity);
   }
 
   // Show fallback display
-  console.log(`🔄 SHOWING FALLBACK for ${segmentEndCity}`);
+  console.log(`🔄 FORCE LOG - SHOWING FALLBACK for ${segmentEndCity}`);
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || (weather ? 'Weather data validation failed' : 'No weather data available')}
+      error={error || (weather ? 'Weather data incomplete' : 'No weather data available')}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );
