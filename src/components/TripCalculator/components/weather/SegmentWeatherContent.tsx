@@ -75,13 +75,27 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     }
   }, [segmentDate, segmentEndCity, validation, displayType]);
 
-  // Show API key setup if no key available
+  // FIXED: Show API key setup if no key available
   if (!hasApiKey) {
     return (
       <ApiKeySetup 
         onApiKeySet={onApiKeySet}
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
+      />
+    );
+  }
+
+  // FIXED: Check for missing segment date BEFORE showing loading
+  if (!segmentDate) {
+    console.warn(`❌ SegmentWeatherContent: Missing segment date for ${segmentEndCity}`);
+    return (
+      <FallbackWeatherDisplay
+        cityName={segmentEndCity}
+        segmentDate={null}
+        onRetry={onRetry}
+        error="Missing trip start date - please set a trip start date to see weather forecasts"
+        showRetryButton={!isSharedView && !isPDFExport}
       />
     );
   }
@@ -94,7 +108,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
           🌤️ Getting weather for {segmentEndCity}...
         </div>
         <div className="text-xs text-blue-500">
-          {segmentDate && `Checking forecast for ${DateNormalizationService.toDateString(segmentDate)}`}
+          Checking forecast for {DateNormalizationService.toDateString(segmentDate)}
         </div>
       </div>
     );
