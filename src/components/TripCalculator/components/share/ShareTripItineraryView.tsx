@@ -123,7 +123,10 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                     {limitResult.limitedAttractions.map((attraction, idx) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        {attraction.name || attraction}
+                        {typeof attraction === 'string' 
+                          ? attraction 
+                          : attraction.name || 'Unknown Attraction'
+                        }
                       </li>
                     ))}
                   </ul>
