@@ -1,4 +1,3 @@
-
 export interface CityCoordinates {
   name: string;
   lat: number;
@@ -9,18 +8,18 @@ export interface CityCoordinates {
 
 export class FallbackCoordinatesService {
   private static readonly ROUTE_66_CITY_COORDINATES: CityCoordinates[] = [
-    // Illinois
+    // Illinois - Enhanced Springfield coverage
     { name: 'chicago', lat: 41.8781, lng: -87.6298, state: 'IL' },
-    { name: 'springfield', lat: 39.7817, lng: -89.6501, state: 'IL' },
+    { name: 'springfield', lat: 39.7817, lng: -89.6501, state: 'IL', aliases: ['springfield il', 'springfield illinois'] },
     { name: 'joliet', lat: 41.5250, lng: -88.0817, state: 'IL' },
     { name: 'pontiac', lat: 40.8808, lng: -88.6298, state: 'IL' },
     { name: 'bloomington', lat: 40.4842, lng: -88.9934, state: 'IL' },
     { name: 'normal', lat: 40.5142, lng: -88.9906, state: 'IL' },
     { name: 'litchfield', lat: 39.1753, lng: -89.6542, state: 'IL' },
     
-    // Missouri
-    { name: 'st. louis', lat: 38.6270, lng: -90.1994, state: 'MO', aliases: ['saint louis'] },
-    { name: 'springfield', lat: 37.2153, lng: -93.2982, state: 'MO' },
+    // Missouri - Enhanced Springfield coverage to distinguish from IL
+    { name: 'st. louis', lat: 38.6270, lng: -90.1994, state: 'MO', aliases: ['saint louis', 'st louis'] },
+    { name: 'springfield', lat: 37.2153, lng: -93.2982, state: 'MO', aliases: ['springfield mo', 'springfield missouri'] },
     { name: 'joplin', lat: 37.0842, lng: -94.5133, state: 'MO' },
     { name: 'carthage', lat: 37.1765, lng: -94.3100, state: 'MO' },
     { name: 'webb city', lat: 37.1467, lng: -94.4663, state: 'MO' },
@@ -101,21 +100,40 @@ export class FallbackCoordinatesService {
   ];
 
   static getFallbackCoordinates(cityName: string, state?: string): { latitude: number; longitude: number } | null {
-    const normalizedCity = cityName.toLowerCase().trim();
+    const normalizedCity = cityName.toLowerCase().trim().replace(/[.,]/g, '');
+    const normalizedState = state?.toLowerCase().trim();
     
+    console.log(`🔍 Searching fallback coordinates for: "${normalizedCity}" in state: "${normalizedState}"`);
+
+    // First try exact match with state if provided
+    if (normalizedState) {
+      const coords = this.ROUTE_66_CITY_COORDINATES.find(coord => {
+        const nameMatch = coord.name === normalizedCity;
+        const aliasMatch = coord.aliases?.some(alias => alias.toLowerCase().replace(/[.,]/g, '') === normalizedCity);
+        const stateMatch = coord.state.toLowerCase() === normalizedState;
+        
+        return (nameMatch || aliasMatch) && stateMatch;
+      });
+      
+      if (coords) {
+        console.log(`✅ Found exact fallback coordinates for ${cityName}, ${state}: ${coords.lat}, ${coords.lng}`);
+        return { latitude: coords.lat, longitude: coords.lng };
+      }
+    }
+
+    // Then try name-only match (first result)
     const coords = this.ROUTE_66_CITY_COORDINATES.find(coord => {
       const nameMatch = coord.name === normalizedCity;
-      const aliasMatch = coord.aliases?.some(alias => alias.toLowerCase() === normalizedCity);
-      const stateMatch = !state || coord.state.toLowerCase() === state.toLowerCase();
-      
-      return (nameMatch || aliasMatch) && stateMatch;
+      const aliasMatch = coord.aliases?.some(alias => alias.toLowerCase().replace(/[.,]/g, '') === normalizedCity);
+      return nameMatch || aliasMatch;
     });
     
     if (coords) {
-      console.log(`🔄 Using fallback coordinates for ${cityName}: ${coords.lat}, ${coords.lng}`);
+      console.log(`✅ Found name-only fallback coordinates for ${cityName}: ${coords.lat}, ${coords.lng} (${coords.state})`);
       return { latitude: coords.lat, longitude: coords.lng };
     }
     
+    console.warn(`❌ No fallback coordinates found for: "${cityName}", "${state}"`);
     return null;
   }
 }

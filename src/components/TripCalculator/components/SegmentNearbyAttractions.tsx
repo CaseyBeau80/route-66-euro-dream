@@ -13,9 +13,9 @@ interface SegmentNearbyAttractionsProps {
   maxAttractions?: number;
 }
 
-// UI timeout configuration
-const UI_TIMEOUT_MS = 12000; // 12 seconds
-const UI_TIMEOUT_FALLBACK_MESSAGE = "Search timed out after 12 seconds.";
+// UI timeout configuration - reduced to prevent infinite loading
+const UI_TIMEOUT_MS = 10000; // 10 seconds
+const UI_TIMEOUT_FALLBACK_MESSAGE = "Search took too long and was stopped to prevent infinite loading.";
 
 // Enhanced error display component
 const EnhancedErrorDisplay: React.FC<{ 
@@ -75,11 +75,12 @@ const EnhancedErrorDisplay: React.FC<{
   );
 };
 
-// Enhanced loading component with timeout indicator
+// Enhanced loading component with better timeout indication
 const EnhancedLoadingDisplay: React.FC<{ 
   cityName: string; 
   searchStartTime: number;
-}> = ({ cityName, searchStartTime }) => {
+  remainingTime: number;
+}> = ({ cityName, searchStartTime, remainingTime }) => {
   const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
@@ -90,7 +91,8 @@ const EnhancedLoadingDisplay: React.FC<{
     return () => clearInterval(interval);
   }, [searchStartTime]);
 
-  const isLongRunning = elapsedTime > 5;
+  const isLongRunning = elapsedTime > 3;
+  const remainingSeconds = Math.ceil(remainingTime / 1000);
 
   return (
     <div className={`flex items-center justify-center p-4 rounded-lg border ${
@@ -101,6 +103,7 @@ const EnhancedLoadingDisplay: React.FC<{
         <span className="text-gray-600">Finding attractions near {cityName}...</span>
         <div className="text-xs text-gray-500 mt-1">
           {elapsedTime}s elapsed
+          {remainingSeconds > 0 && <span className="ml-2">({remainingSeconds}s remaining)</span>}
           {isLongRunning && <span className="text-yellow-600 ml-2">⚠️ Taking longer than expected</span>}
         </div>
       </div>
@@ -170,9 +173,9 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   const [searchStartTime, setSearchStartTime] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
 
-  // UI timeout fallback handler
+  // Enhanced UI timeout fallback handler
   const handleUITimeout = useCallback(() => {
-    console.log('⏰ UI timeout triggered after 12 seconds');
+    console.log(`⏰ UI timeout triggered after ${UI_TIMEOUT_MS}ms for ${segment.endCity}`);
     setIsLoading(false);
     setSearchResult({
       status: AttractionSearchStatus.TIMEOUT,
@@ -183,15 +186,20 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     });
   }, [segment.endCity]);
 
-  // Set up UI timeout
-  const { clearUITimeout } = useUITimeout({
+  // Set up enhanced UI timeout with remaining time tracking
+  const { clearUITimeout, getRemainingTime } = useUITimeout({
     timeoutMs: UI_TIMEOUT_MS,
     onTimeout: handleUITimeout,
     isActive: isLoading
   });
 
   const loadAttractions = async (isRetry: boolean = false) => {
-    if (!segment?.endCity) return;
+    if (!segment?.endCity) {
+      console.warn('⚠️ No endCity provided for segment:', segment);
+      return;
+    }
+    
+    console.log(`🚀 Starting attraction search for "${segment.endCity}" (Day ${segment.day})`);
     
     setIsLoading(true);
     setSearchResult(null);
@@ -199,13 +207,21 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     
     if (isRetry) {
       setRetryCount(prev => prev + 1);
+      console.log(`🔄 Retry attempt ${retryCount + 1} for "${segment.endCity}"`);
+    } else {
+      setRetryCount(0);
     }
 
     try {
-      // Extract city and state from endCity
+      // Extract city and state from endCity with enhanced logging
       const { city, state } = getDestinationCityWithState(segment.endCity);
       
-      console.log(`🎯 Loading attractions near ${city}, ${state} for segment ${segment.day} (attempt ${retryCount + 1})`);
+      console.log(`🔍 Parsed destination:`, {
+        original: segment.endCity,
+        city,
+        state,
+        attemptNumber: retryCount + 1
+      });
       
       const result = await GeographicAttractionService.findAttractionsNearCity(
         city, 
@@ -213,10 +229,11 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         40 // 40 mile radius
       );
       
-      console.log(`📊 Search result for ${city}, ${state}:`, {
+      console.log(`📊 Search completed for "${segment.endCity}":`, {
         status: result.status,
         attractionsFound: result.attractions.length,
-        message: result.message
+        message: result.message,
+        attemptNumber: retryCount + 1
       });
       
       // Clear UI timeout since we got a response
@@ -224,7 +241,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       setSearchResult(result);
       
     } catch (error) {
-      console.error('❌ Error loading attractions:', error);
+      console.error(`❌ Error loading attractions for "${segment.endCity}":`, error);
       clearUITimeout();
       setSearchResult({
         status: AttractionSearchStatus.ERROR,
@@ -241,6 +258,8 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   const handleDebugInfo = async () => {
     if (!segment?.endCity) return;
     
+    console.log(`🔍 Getting debug info for "${segment.endCity}"`);
+    
     const { city, state } = getDestinationCityWithState(segment.endCity);
     try {
       const debug = await GeographicAttractionService.debugCitySearch(city, state);
@@ -250,8 +269,15 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
       console.error('❌ Error getting debug info:', error);
     }
   };
-  
+
+  // Enhanced effect with better dependency management
   useEffect(() => {
+    console.log(`🎯 SegmentNearbyAttractions effect triggered:`, {
+      endCity: segment?.endCity,
+      day: segment?.day,
+      maxAttractions
+    });
+    
     loadAttractions();
   }, [segment?.endCity, segment?.day, maxAttractions]);
   
@@ -265,6 +291,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         <EnhancedLoadingDisplay 
           cityName={segment.endCity || 'destination'} 
           searchStartTime={searchStartTime}
+          remainingTime={getRemainingTime()}
         />
       </div>
     );
@@ -284,7 +311,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
 
-  // Handle error states
+  // Handle error states with enhanced debugging
   if (searchResult.status === AttractionSearchStatus.ERROR || 
       searchResult.status === AttractionSearchStatus.TIMEOUT ||
       searchResult.status === AttractionSearchStatus.CITY_NOT_FOUND) {
