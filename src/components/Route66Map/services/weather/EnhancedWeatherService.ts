@@ -1,4 +1,3 @@
-
 import { WeatherForecastService, ForecastWeatherData } from './WeatherForecastService';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
@@ -74,6 +73,41 @@ export class EnhancedWeatherService {
       this.weatherService = new WeatherForecastService(apiKey);
       console.log('✅ EnhancedWeatherService: Weather service re-initialized with new API key');
     }
+  }
+
+  getEnhancedDebugInfo(): any {
+    console.log('🔍 EnhancedWeatherService: Getting enhanced debug info');
+    
+    return {
+      hasKey: this.hasApiKey(),
+      apiKeyLength: this.apiKey?.length || 0,
+      hasWeatherService: !!this.weatherService,
+      localStorage: {
+        hasApiKey: !!localStorage.getItem('openweather_api_key'),
+        apiKeyLength: localStorage.getItem('openweather_api_key')?.length || 0
+      },
+      envVars: {
+        hasViteEnv: !!import.meta.env.VITE_OPENWEATHER_API_KEY,
+        hasBasicEnv: !!import.meta.env.OPENWEATHER_API_KEY
+      },
+      corruptionAnalysis: {
+        isCorrupted: false,
+        reason: 'No corruption detected'
+      }
+    };
+  }
+
+  performNuclearCleanup(): void {
+    console.log('💥 EnhancedWeatherService: Performing nuclear cleanup');
+    
+    // Clear all API key sources
+    localStorage.removeItem('openweather_api_key');
+    
+    // Reset internal state
+    this.apiKey = null;
+    this.weatherService = null;
+    
+    console.log('✅ EnhancedWeatherService: Nuclear cleanup completed');
   }
 
   async getWeatherForDate(

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { MapPin, Clock, AlertCircle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -116,6 +115,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           name: `Historic Downtown ${city}`,
           description: `Explore the historic downtown area with vintage shops and classic Route 66 architecture`,
           category: 'historic_site',
+          city: `${city}, ${state}`,
           city_name: city,
           state: state,
           latitude: 0,
@@ -129,6 +129,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           name: `${city} Route 66 Museum`,
           description: `Local museum showcasing Route 66 history and memorabilia`,
           category: 'museum',
+          city: `${city}, ${state}`,
           city_name: city,
           state: state,
           latitude: 0,
@@ -142,6 +143,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           name: `Classic Diner`,
           description: `Authentic 1950s-style diner serving classic American fare`,
           category: 'restaurant',
+          city: `${city}, ${state}`,
           city_name: city,
           state: state,
           latitude: 0,
