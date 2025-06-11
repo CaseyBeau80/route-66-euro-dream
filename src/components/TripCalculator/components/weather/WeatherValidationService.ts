@@ -13,7 +13,7 @@ export interface WeatherValidationResult {
   warnings: string[];
   hasCompleteData: boolean;
   canShowLiveForecast: boolean;
-  validationDetails?: any; // For debugging
+  validationDetails?: any;
 }
 
 export type WeatherDisplayType = 
@@ -22,28 +22,22 @@ export type WeatherDisplayType =
   | 'service-unavailable' 
   | 'loading';
 
-// FIXED: Much more permissive live forecast validation
-function hasValidLiveForecastData(weather: any): boolean {
-  // CRITICAL: Accept weather data if we have ANY temperature and description
+// CRITICAL FIX: Extremely permissive validation - just check for ANY displayable data
+function hasMinimalDisplayableData(weather: any): boolean {
   const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
   const hasDescription = !!weather.description;
   
-  // NEW: Don't require isActualForecast flag to be true
-  const hasReasonableData = hasAnyTemp && hasDescription;
-  
-  console.log(`🔍 RELAXED live forecast validation for ${weather.cityName || 'unknown'}:`, {
+  console.log(`🔍 MINIMAL DISPLAYABLE CHECK:`, {
     hasAnyTemp,
     hasDescription,
-    hasReasonableData,
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
     description: weather.description,
-    isActualForecast: weather.isActualForecast,
-    source: weather.dateMatchInfo?.source
+    canDisplay: hasAnyTemp && hasDescription
   });
 
-  return hasReasonableData;
+  return hasAnyTemp && hasDescription;
 }
 
 export const validateWeatherData = (
@@ -51,21 +45,29 @@ export const validateWeatherData = (
   cityName: string,
   segmentDate?: Date | null
 ): WeatherValidationResult => {
-  console.log(`🔍 CRITICAL VALIDATION START for ${cityName}:`, {
+  console.log(`🚨 CRITICAL VALIDATION START for ${cityName}:`, {
     hasWeather: !!weather,
-    weatherKeys: weather ? Object.keys(weather) : [],
+    weatherType: typeof weather,
     segmentDate: segmentDate?.toISOString()
   });
 
-  // Force validation debugging
   if (weather) {
-    WeatherDataDebugger.debugForceValidation(cityName, weather);
+    console.log(`🔍 RAW WEATHER DATA for ${cityName}:`, {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast,
+      dateMatchInfo: weather.dateMatchInfo,
+      allKeys: Object.keys(weather)
+    });
   }
 
   const warnings: string[] = [];
 
   if (!weather) {
-    const failureResult = {
+    console.log(`❌ NO WEATHER DATA for ${cityName}`);
+    return {
       isValid: false,
       hasActualForecast: false,
       hasTemperatureRange: false,
@@ -78,105 +80,88 @@ export const validateWeatherData = (
       canShowLiveForecast: false,
       validationDetails: { reason: 'no_weather_data' }
     };
-    
-    WeatherDataDebugger.debugValidationFailure(cityName, weather, failureResult);
-    return failureResult;
   }
 
-  // CRITICAL: Use much more relaxed validation
-  const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
-  const hasDescription = !!weather.description;
-  const hasMinimalData = hasAnyTemperature && hasDescription;
+  // CRITICAL: Check for absolute minimum displayable data
+  const canDisplay = hasMinimalDisplayableData(weather);
   
-  console.log(`🎯 MINIMAL DATA CHECK for ${cityName}:`, {
-    hasAnyTemperature,
-    hasDescription,
-    hasMinimalData,
-    temperature: weather.temperature,
-    highTemp: weather.highTemp,
-    lowTemp: weather.lowTemp,
-    description: weather.description
-  });
+  if (!canDisplay) {
+    console.log(`❌ INSUFFICIENT DATA for ${cityName}:`, {
+      hasTemperature: !!weather.temperature,
+      hasHighTemp: !!weather.highTemp,
+      hasLowTemp: !!weather.lowTemp,
+      hasDescription: !!weather.description,
+      description: weather.description,
+      reason: 'missing_essential_display_data'
+    });
+    
+    return {
+      isValid: false,
+      hasActualForecast: false,
+      hasTemperatureRange: false,
+      hasMatchedForecast: false,
+      daysFromNow: null,
+      isWithinForecastRange: false,
+      dataQuality: 'unavailable' as const,
+      warnings: ['Missing essential weather data for display'],
+      hasCompleteData: false,
+      canShowLiveForecast: false,
+      validationDetails: { 
+        reason: 'insufficient_display_data',
+        hasTemperature: !!weather.temperature,
+        hasHighTemp: !!weather.highTemp,
+        hasLowTemp: !!weather.lowTemp,
+        hasDescription: !!weather.description
+      }
+    };
+  }
 
   // Calculate days from now
   let daysFromNow: number | null = null;
-  
   if (weather.dateMatchInfo?.daysOffset !== undefined) {
     daysFromNow = weather.dateMatchInfo.daysOffset;
   } else if (segmentDate) {
     const now = new Date();
     daysFromNow = Math.ceil((segmentDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-    warnings.push('Date calculated from segment date (dateMatchInfo missing)');
   }
 
   const isWithinForecastRange = daysFromNow !== null && daysFromNow >= 0 && daysFromNow <= 5;
-  
-  // CRITICAL: If we have minimal data, consider it valid
-  if (!hasMinimalData) {
-    const failureResult = {
-      isValid: false,
-      hasActualForecast: false,
-      hasTemperatureRange: false,
-      hasMatchedForecast: false,
-      daysFromNow,
-      isWithinForecastRange,
-      dataQuality: 'unavailable' as const,
-      warnings: ['Missing essential weather data (temperature or description)'],
-      hasCompleteData: false,
-      canShowLiveForecast: false,
-      validationDetails: { 
-        reason: 'missing_minimal_data',
-        hasAnyTemperature,
-        hasDescription
-      }
-    };
-    
-    WeatherDataDebugger.debugValidationFailure(cityName, weather, failureResult);
-    return failureResult;
-  }
 
-  // FIXED: Much more permissive quality assessment
-  let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'fair';
-  let canShowLiveForecast = true; // Default to true if we have minimal data
+  // CRITICAL: If we have displayable data, ALWAYS mark as valid
+  let dataQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable' = 'good';
   
-  const hasValidLiveData = hasValidLiveForecastData(weather);
-  
-  if (hasValidLiveData && isWithinForecastRange) {
-    if (weather.dateMatchInfo?.matchType === 'exact') {
-      dataQuality = 'excellent';
-    } else {
-      dataQuality = 'good';
-    }
-  } else if (hasValidLiveData) {
+  // Determine quality based on available data
+  if (weather.isActualForecast && isWithinForecastRange && weather.dateMatchInfo?.matchType === 'exact') {
+    dataQuality = 'excellent';
+  } else if (weather.isActualForecast && isWithinForecastRange) {
     dataQuality = 'good';
-  } else if (hasMinimalData) {
+  } else if (canDisplay) {
     dataQuality = 'fair';
-    warnings.push('Using available weather data');
   }
 
   const result = {
-    isValid: true, // CRITICAL: If we have minimal data, it's valid
+    isValid: true, // CRITICAL: Always true if we have displayable data
     hasActualForecast: !!weather.isActualForecast,
-    hasTemperatureRange: hasAnyTemperature,
-    hasMatchedForecast: !!(weather.matchedForecastDay || weather.forecast?.length),
+    hasTemperatureRange: !!(weather.highTemp && weather.lowTemp) || !!weather.temperature,
+    hasMatchedForecast: !!weather.dateMatchInfo,
     daysFromNow,
     isWithinForecastRange,
     dataQuality,
     warnings,
-    hasCompleteData: hasValidLiveData,
-    canShowLiveForecast,
+    hasCompleteData: !!weather.isActualForecast,
+    canShowLiveForecast: true, // CRITICAL: Always true if we have displayable data
     validationDetails: {
-      hasMinimalData,
-      hasValidLiveData,
-      isWithinForecastRange,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description
+      canDisplay,
+      hasTemperature: !!weather.temperature,
+      hasHighTemp: !!weather.highTemp,
+      hasLowTemp: !!weather.lowTemp,
+      hasDescription: !!weather.description,
+      isActualForecast: weather.isActualForecast,
+      dateMatchSource: weather.dateMatchInfo?.source
     }
   };
 
-  console.log(`✅ FINAL VALIDATION RESULT for ${cityName}:`, result);
+  console.log(`✅ VALIDATION RESULT for ${cityName}:`, result);
   return result;
 };
 
@@ -186,33 +171,22 @@ export const getWeatherDisplayType = (
   retryCount: number,
   weather?: any
 ): WeatherDisplayType => {
-  console.log(`🎯 DISPLAY TYPE DECISION for ${weather?.cityName || 'unknown'}:`, {
-    validation,
+  console.log(`🎯 DISPLAY TYPE for ${weather?.cityName || 'unknown'}:`, {
+    isValid: validation.isValid,
+    canShowLiveForecast: validation.canShowLiveForecast,
     error,
-    retryCount,
-    hasMinimalData: validation.validationDetails?.hasMinimalData
+    retryCount
   });
 
   if (error || retryCount > 2) {
-    WeatherDataDebugger.debugRenderDecision(weather?.cityName || 'unknown', 'service-unavailable', { error, retryCount });
     return 'service-unavailable';
   }
 
-  if (!validation.isValid) {
-    WeatherDataDebugger.debugRenderDecision(weather?.cityName || 'unknown', 'loading', { reason: 'invalid_data' });
-    return 'loading';
-  }
-
-  // CRITICAL: If validation passed, show as live forecast
-  if (validation.isValid && validation.validationDetails?.hasMinimalData) {
-    WeatherDataDebugger.debugRenderDecision(weather?.cityName || 'unknown', 'live-forecast', { 
-      reason: 'minimal_data_available',
-      dataQuality: validation.dataQuality
-    });
+  // CRITICAL: If validation says it's valid and can show live forecast, do it
+  if (validation.isValid && validation.canShowLiveForecast) {
+    console.log(`✅ SHOWING LIVE FORECAST for ${weather?.cityName || 'unknown'}`);
     return 'live-forecast';
   }
 
-  // Fallback to seasonal estimate
-  WeatherDataDebugger.debugRenderDecision(weather?.cityName || 'unknown', 'seasonal-estimate', { reason: 'fallback' });
-  return 'seasonal-estimate';
+  return 'loading';
 };

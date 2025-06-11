@@ -37,35 +37,25 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ CRITICAL SegmentWeatherContent render for', segmentEndCity, ':', {
+  console.log('🚨 CRITICAL SegmentWeatherContent DEBUG for', segmentEndCity, ':', {
     segmentDate: segmentDate?.toISOString(),
     hasApiKey,
     loading,
     hasWeather: !!weather,
     hasError: !!error,
-    isSharedView,
-    isPDFExport,
-    retryCount
+    retryCount,
+    weatherData: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast
+    } : null
   });
-
-  // CRITICAL: Log raw weather data when available
-  React.useEffect(() => {
-    if (weather) {
-      console.log(`🔍 CRITICAL RAW WEATHER DATA for ${segmentEndCity}:`, {
-        fullWeatherObject: weather,
-        temperature: weather.temperature,
-        highTemp: weather.highTemp,
-        lowTemp: weather.lowTemp,
-        description: weather.description,
-        isActualForecast: weather.isActualForecast,
-        dateMatchInfo: weather.dateMatchInfo
-      });
-    }
-  }, [weather, segmentEndCity]);
 
   // Show API key setup if no key available
   if (!hasApiKey) {
-    console.log(`❌ SegmentWeatherContent: No API key for ${segmentEndCity}`);
+    console.log(`❌ No API key for ${segmentEndCity}`);
     return (
       <ApiKeySetup 
         onApiKeySet={onApiKeySet}
@@ -77,7 +67,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Check for missing segment date
   if (!segmentDate) {
-    console.warn(`❌ SegmentWeatherContent: Missing segment date for ${segmentEndCity}`);
+    console.warn(`❌ Missing segment date for ${segmentEndCity}`);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -91,7 +81,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Show loading state
   if (loading) {
-    console.log(`⏳ SegmentWeatherContent: Loading weather for ${segmentEndCity}`);
+    console.log(`⏳ Loading weather for ${segmentEndCity}`);
     return (
       <div className="bg-blue-50 rounded border border-blue-200 p-3 text-center">
         <div className="text-sm text-blue-600 mb-2">
@@ -106,7 +96,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Handle service unavailable state
   if (retryCount > 2) {
-    console.log(`❌ SegmentWeatherContent: Service unavailable for ${segmentEndCity}`);
+    console.log(`❌ Service unavailable for ${segmentEndCity} after ${retryCount} retries`);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -118,27 +108,29 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // CRITICAL FIX: Simplified weather display logic - bypass complex validation
+  // CRITICAL: If we have weather data, validate it and show detailed debugging
   if (weather) {
-    // Direct check for displayable data - much simpler than validation chain
-    const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
-    const hasDescription = !!weather.description;
-    const canDisplay = hasAnyTemp && hasDescription;
-    
-    console.log(`🎯 SIMPLIFIED DISPLAY CHECK for ${segmentEndCity}:`, {
-      hasAnyTemp,
-      hasDescription,
-      canDisplay,
+    console.log(`🔍 WEATHER DATA VALIDATION for ${segmentEndCity}:`, {
+      hasWeather: true,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
       description: weather.description,
-      bypassingComplexValidation: true
+      isActualForecast: weather.isActualForecast,
+      dateMatchInfo: weather.dateMatchInfo
     });
 
-    // If we have basic displayable data, show it immediately
-    if (canDisplay) {
-      console.log(`✅ DIRECT DISPLAY: Showing weather for ${segmentEndCity} - bypassing validation`);
+    // Run validation
+    const validation = validateWeatherData(weather, segmentEndCity, segmentDate);
+    console.log(`🎯 VALIDATION RESULT for ${segmentEndCity}:`, validation);
+
+    // Get display type
+    const displayType = getWeatherDisplayType(validation, error, retryCount, weather);
+    console.log(`🎨 DISPLAY TYPE for ${segmentEndCity}: ${displayType}`);
+
+    // CRITICAL: If validation passes, show the weather data
+    if (validation.isValid && validation.canShowLiveForecast) {
+      console.log(`✅ SHOWING WEATHER DATA for ${segmentEndCity}`);
       return (
         <WeatherDataDisplay
           weather={weather}
@@ -151,22 +143,24 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         />
       );
     } else {
-      console.log(`❌ DIRECT DISPLAY: Cannot display weather for ${segmentEndCity} - missing basic data`, {
-        hasAnyTemp,
-        hasDescription,
-        weatherKeys: Object.keys(weather)
+      console.log(`❌ VALIDATION FAILED for ${segmentEndCity}:`, {
+        isValid: validation.isValid,
+        canShowLiveForecast: validation.canShowLiveForecast,
+        validationDetails: validation.validationDetails
       });
     }
+  } else {
+    console.log(`❌ NO WEATHER DATA for ${segmentEndCity}`);
   }
 
-  // Show fallback display for errors or invalid data
-  console.log(`❌ SegmentWeatherContent: Fallback display for ${segmentEndCity}`);
+  // Show fallback display
+  console.log(`🔄 SHOWING FALLBACK for ${segmentEndCity}`);
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || (weather ? 'Weather data incomplete' : 'No weather data available')}
+      error={error || (weather ? 'Weather data validation failed' : 'No weather data available')}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );
