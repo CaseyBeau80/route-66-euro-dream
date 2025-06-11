@@ -167,11 +167,14 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   segment, 
   maxAttractions = 3 
 }) => {
+  // CRITICAL: Enforce safe maxAttractions limit with fallback
+  const safeMaxAttractions = maxAttractions ?? 3;
+  
   // DEBUG: Add console logging to track component rendering
   console.log('🔍 SegmentNearbyAttractions render DEBUG:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    maxAttractions,
+    maxAttractions: safeMaxAttractions,
     componentKey: `SegmentNearbyAttractions-${segment.day}-${segment.endCity}`
   });
 
@@ -283,11 +286,11 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     console.log(`🎯 SegmentNearbyAttractions effect triggered:`, {
       endCity: segment?.endCity,
       day: segment?.day,
-      maxAttractions
+      maxAttractions: safeMaxAttractions
     });
     
     loadAttractions();
-  }, [segment?.endCity, segment?.day, maxAttractions]);
+  }, [segment?.endCity, segment?.day, safeMaxAttractions]);
   
   if (isLoading) {
     return (
@@ -372,16 +375,16 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
   
-  // CRITICAL: Apply the maxAttractions limit strictly
-  const attractions = searchResult.attractions.slice(0, maxAttractions);
+  // CRITICAL: Apply the maxAttractions limit strictly and safely
   const totalAttractions = searchResult.attractions.length;
-  const hasMoreAttractions = totalAttractions > maxAttractions;
-  const remainingCount = totalAttractions - maxAttractions;
+  const attractions = searchResult.attractions.slice(0, safeMaxAttractions);
+  const hasMoreAttractions = totalAttractions > safeMaxAttractions;
+  const remainingCount = totalAttractions - safeMaxAttractions;
   
-  // DEBUG: Log the attraction limiting
-  console.log('🔍 SegmentNearbyAttractions attraction limiting DEBUG:', {
+  // DEBUG: Log the attraction limiting enforcement
+  console.log('🔍 SegmentNearbyAttractions ENFORCED attraction limiting:', {
     totalAttractions,
-    maxAttractions,
+    safeMaxAttractions,
     attractionsToShow: attractions.length,
     hasMoreAttractions,
     remainingCount,
@@ -393,6 +396,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     <div className="space-y-3">
       <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
         <MapPin className="h-4 w-4" />
+        {/* Enhanced header showing truncation when applicable */}
         Nearby Attractions ({hasMoreAttractions ? `${attractions.length} of ${totalAttractions}` : attractions.length})
         {retryCount > 0 && (
           <span className="text-xs text-gray-500">(retry {retryCount})</span>
@@ -407,6 +411,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
         ))}
       </div>
       
+      {/* Truncation indicator when more attractions are available */}
       {hasMoreAttractions && (
         <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-50 rounded border border-gray-200">
           + {remainingCount} more attraction{remainingCount !== 1 ? 's' : ''} nearby
