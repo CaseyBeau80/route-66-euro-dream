@@ -103,7 +103,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl bg-white shadow-2xl rounded-xl max-h-[95vh] p-0 overflow-hidden"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl bg-white shadow-2xl rounded-xl max-h-[95vh] p-0 overflow-hidden flex flex-col"
         role="dialog"
         aria-labelledby="share-trip-title"
       >
