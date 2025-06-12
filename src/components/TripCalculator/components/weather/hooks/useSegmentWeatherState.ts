@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherDebugService } from '../services/WeatherDebugService';
 
 interface SegmentWeatherState {
   weather: ForecastWeatherData | null;
@@ -14,9 +15,7 @@ interface SegmentWeatherState {
 }
 
 export const useSegmentWeatherState = (segmentEndCity: string, day: number): SegmentWeatherState => {
-  // 🚨 DEBUG INJECTION: Hook initialization logging
-  console.log('🚨 DEBUG: useSegmentWeatherState HOOK INIT', {
-    segmentEndCity,
+  WeatherDebugService.logWeatherFlow(`useSegmentWeatherState.init [${segmentEndCity}]`, {
     day,
     timestamp: new Date().toISOString()
   });
@@ -26,11 +25,8 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
   const [error, setErrorInternal] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
-  // Enhanced setWeather with debug logging
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
-    // 🚨 DEBUG INJECTION: Weather state change logging
-    console.log('🚨 DEBUG: useSegmentWeatherState.setWeather CALLED', {
-      segmentEndCity,
+    WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setWeather', {
       day,
       hasNewWeather: !!newWeather,
       previousWeather: !!weather,
@@ -38,20 +34,15 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
         temperature: newWeather.temperature,
         highTemp: newWeather.highTemp,
         lowTemp: newWeather.lowTemp,
-        isActualForecast: newWeather.isActualForecast,
-        description: newWeather.description,
-        source: newWeather.dateMatchInfo?.source
+        isActualForecast: newWeather.isActualForecast
       } : null
     });
 
     setWeatherInternal(newWeather);
   }, [segmentEndCity, day, weather]);
 
-  // Enhanced setLoading with debug logging
   const setLoading = React.useCallback((newLoading: boolean) => {
-    // 🚨 DEBUG INJECTION: Loading state change logging
-    console.log('🚨 DEBUG: useSegmentWeatherState.setLoading CALLED', {
-      segmentEndCity,
+    WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setLoading', {
       day,
       newLoading,
       previousLoading: loading
@@ -60,11 +51,8 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
     setLoadingInternal(newLoading);
   }, [segmentEndCity, day, loading]);
 
-  // Enhanced setError with debug logging
   const setError = React.useCallback((newError: string | null) => {
-    // 🚨 DEBUG INJECTION: Error state change logging
-    console.log('🚨 DEBUG: useSegmentWeatherState.setError CALLED', {
-      segmentEndCity,
+    WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setError', {
       day,
       newError,
       previousError: error
@@ -75,9 +63,7 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
 
   // Reset state when city or day changes
   React.useEffect(() => {
-    // 🚨 DEBUG INJECTION: State reset logging
-    console.log('🚨 DEBUG: useSegmentWeatherState RESETTING STATE', {
-      segmentEndCity,
+    WeatherDebugService.logWeatherFlow(`useSegmentWeatherState.reset [${segmentEndCity}]`, {
       day,
       previousState: {
         hadWeather: !!weather,
@@ -87,27 +73,11 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
       }
     });
 
-    console.log(`🔄 Resetting weather state for ${segmentEndCity} Day ${day}`);
     setWeatherInternal(null);
     setErrorInternal(null);
     setRetryCount(0);
     setLoadingInternal(false);
   }, [segmentEndCity, day]);
-
-  // 🚨 DEBUG INJECTION: Current state logging
-  React.useEffect(() => {
-    console.log('🚨 DEBUG: useSegmentWeatherState CURRENT STATE', {
-      segmentEndCity,
-      day,
-      currentState: {
-        hasWeather: !!weather,
-        loading,
-        error,
-        retryCount,
-        weatherValid: weather ? !!(weather.temperature || weather.highTemp || weather.lowTemp) : false
-      }
-    });
-  }, [weather, loading, error, retryCount, segmentEndCity, day]);
 
   return {
     weather,

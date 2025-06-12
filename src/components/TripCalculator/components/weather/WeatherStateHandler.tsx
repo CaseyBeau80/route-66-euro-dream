@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { DateNormalizationService } from './DateNormalizationService';
+import WeatherLoadingState from './components/WeatherLoadingState';
+import WeatherErrorState from './components/WeatherErrorState';
 import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherStateHandlerProps {
@@ -28,7 +29,6 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
 }) => {
   // Handle missing segment date
   if (!segmentDate) {
-    console.warn(`❌ Missing segment date for ${segmentEndCity}`);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -42,28 +42,21 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
 
   // Show loading state
   if (loading) {
-    console.log(`⏳ Loading weather for ${segmentEndCity}`);
     return (
-      <div className="bg-blue-50 rounded border border-blue-200 p-3 text-center">
-        <div className="text-sm text-blue-600 mb-2">
-          🌤️ Getting weather for {segmentEndCity}...
-        </div>
-        <div className="text-xs text-blue-500">
-          Checking forecast for {DateNormalizationService.toDateString(segmentDate)}
-        </div>
-      </div>
+      <WeatherLoadingState
+        cityName={segmentEndCity}
+        segmentDate={segmentDate}
+      />
     );
   }
 
   // Handle service unavailable state
   if (retryCount > 2) {
-    console.log(`❌ Service unavailable for ${segmentEndCity} after ${retryCount} retries`);
     return (
-      <FallbackWeatherDisplay
+      <WeatherErrorState
         cityName={segmentEndCity}
-        segmentDate={segmentDate}
-        onRetry={onRetry}
         error={error || 'Weather service unavailable after multiple attempts'}
+        onRetry={onRetry}
         showRetryButton={!isSharedView && !isPDFExport}
       />
     );
