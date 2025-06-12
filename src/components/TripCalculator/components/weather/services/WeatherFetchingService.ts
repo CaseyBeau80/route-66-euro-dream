@@ -5,6 +5,8 @@ import { GeocodingService } from '../../../services/GeocodingService';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { WeatherDataDebugger } from '../WeatherDataDebugger';
 import { WeatherDataValidator } from '../utils/WeatherDataValidator';
+import { WeatherDataNormalizer } from './WeatherDataNormalizer';
+import { WeatherPersistenceService } from './WeatherPersistenceService';
 
 export class WeatherFetchingService {
   private static weatherService = EnhancedWeatherService.getInstance();
@@ -19,15 +21,39 @@ export class WeatherFetchingService {
     const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
+    // Check for cached data first
+    const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
+    if (cachedWeather) {
+      console.log('💾 WeatherFetchingService: Using cached weather data for', segmentEndCity);
+      // Convert normalized data back to ForecastWeatherData format
+      const forecastData: ForecastWeatherData = {
+        temperature: cachedWeather.temperature,
+        highTemp: cachedWeather.highTemp,
+        lowTemp: cachedWeather.lowTemp,
+        description: cachedWeather.description,
+        icon: cachedWeather.icon,
+        humidity: cachedWeather.humidity,
+        windSpeed: cachedWeather.windSpeed,
+        precipitationChance: cachedWeather.precipitationChance,
+        cityName: cachedWeather.cityName,
+        forecast: [],
+        forecastDate: normalizedSegmentDate,
+        isActualForecast: cachedWeather.isActualForecast,
+        dateMatchInfo: cachedWeather.dateMatchInfo
+      };
+      setWeather(forecastData);
+      return;
+    }
+
     WeatherDataDebugger.debugWeatherFlow(
-      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - ENHANCED DEBUG`,
+      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - ENHANCED WITH PERSISTENCE`,
       {
         originalDate: segmentDate.toISOString(),
         normalizedDate: normalizedSegmentDate.toISOString(),
         segmentDateString,
         daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
         hasApiKey: this.weatherService.hasApiKey(),
-        apiKeySource: this.weatherService.getApiKeySource?.() || 'unknown'
+        hasCachedData: !!cachedWeather
       }
     );
 
@@ -44,11 +70,6 @@ export class WeatherFetchingService {
       if (!coordinates) {
         throw new Error(`No coordinates found for ${segmentEndCity}`);
       }
-
-      WeatherDataDebugger.debugWeatherFlow(
-        `WeatherFetchingService.coordinates [${segmentEndCity}]`,
-        { coordinates, segmentDateString, apiKeyAvailable: true }
-      );
 
       console.log(`🌤️ FETCHING WEATHER: ${segmentEndCity} for ${segmentDateString}`, {
         coordinates,
@@ -74,34 +95,37 @@ export class WeatherFetchingService {
         isActualForecast: weatherData?.isActualForecast,
         temperature: weatherData?.temperature,
         highTemp: weatherData?.highTemp,
-        lowTemp: weatherData?.lowTemp,
-        description: weatherData?.description
+        lowTemp: weatherData?.lowTemp
       });
 
       if (weatherData) {
-        // Use improved validation
-        const isValidData = WeatherDataValidator.validateWeatherData(weatherData, segmentEndCity, segmentDateString);
+        // Normalize and validate the data
+        const normalizedData = WeatherDataNormalizer.normalizeWeatherData(
+          weatherData, 
+          segmentEndCity, 
+          normalizedSegmentDate
+        );
         
-        if (isValidData) {
+        if (normalizedData && WeatherDataValidator.validateNormalizedData(normalizedData)) {
+          // Store in persistence service
+          WeatherPersistenceService.storeWeatherData(segmentEndCity, normalizedSegmentDate, normalizedData);
+          
           WeatherDataDebugger.debugWeatherFlow(
-            `WeatherFetchingService.success [${segmentEndCity}] - VALIDATION PASSED`,
+            `WeatherFetchingService.success [${segmentEndCity}] - NORMALIZED AND PERSISTED`,
             {
               isActualForecast: weatherData.isActualForecast,
-              temperature: weatherData.temperature,
-              highTemp: weatherData.highTemp,
-              lowTemp: weatherData.lowTemp,
-              description: weatherData.description,
-              dateMatchInfo: weatherData.dateMatchInfo,
-              validationPassed: true
+              normalizedTemperature: normalizedData.temperature,
+              normalizedHighTemp: normalizedData.highTemp,
+              normalizedLowTemp: normalizedData.lowTemp,
+              persistenceSuccess: true
             }
           );
 
           setWeather(weatherData);
-          console.log(`✅ WEATHER SET for ${segmentEndCity}:`, weatherData);
+          console.log(`✅ WEATHER SET AND PERSISTED for ${segmentEndCity}:`, normalizedData);
         } else {
-          console.warn(`⚠️ Weather data validation failed for ${segmentEndCity}, but trying to use anyway`);
-          // Try to use data even if validation fails
-          setWeather(weatherData);
+          console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}`);
+          setWeather(weatherData); // Try to use anyway
         }
       } else {
         throw new Error('No weather data received from service');
