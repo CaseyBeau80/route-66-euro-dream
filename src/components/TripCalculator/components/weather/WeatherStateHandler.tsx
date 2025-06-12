@@ -26,9 +26,18 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
   isPDFExport = false,
   children
 }) => {
-  // Handle missing segment date
+  console.log('🔍 WeatherStateHandler CRITICAL CHECK for', segmentEndCity, ':', {
+    loading,
+    retryCount,
+    hasError: !!error,
+    hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
+    decision: 'Will determine...'
+  });
+
+  // Handle missing segment date - this is the KEY issue
   if (!segmentDate) {
-    console.warn(`❌ Missing segment date for ${segmentEndCity}`);
+    console.error(`❌ CRITICAL: Missing segment date for ${segmentEndCity} - this causes "unavailable" message`);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -55,8 +64,8 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
     );
   }
 
-  // Handle service unavailable state
-  if (retryCount > 2) {
+  // Handle service unavailable state - only after multiple retries
+  if (retryCount > 2 && error) {
     console.log(`❌ Service unavailable for ${segmentEndCity} after ${retryCount} retries`);
     return (
       <FallbackWeatherDisplay
@@ -69,6 +78,7 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
     );
   }
 
+  console.log(`✅ WeatherStateHandler: Proceeding to weather display for ${segmentEndCity}`);
   return <>{children}</>;
 };
 

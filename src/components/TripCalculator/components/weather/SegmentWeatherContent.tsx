@@ -35,27 +35,25 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🚨 ENHANCED SegmentWeatherContent for', segmentEndCity, ':', {
-    segmentDate: segmentDate?.toISOString(),
+  console.log('🚨 CRITICAL SegmentWeatherContent ANALYSIS for', segmentEndCity, ':', {
     hasApiKey,
     loading,
     hasWeather: !!weather,
     hasError: !!error,
-    retryCount
+    hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
+    retryCount,
+    weatherSummary: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast
+    } : null
   });
 
   // Enhanced weather data analysis if available
   if (weather) {
-    console.log('🔍 ENHANCED Weather data analysis for', segmentEndCity, ':', {
-      hasTemperature: !!weather.temperature,
-      hasHighTemp: !!weather.highTemp,
-      hasLowTemp: !!weather.lowTemp,
-      hasDescription: !!weather.description,
-      isActualForecast: weather.isActualForecast,
-      dateMatchInfo: weather.dateMatchInfo
-    });
-
-    // Log the specific fields the user requested
     WeatherDataDebugger.debugWeatherFieldsForUser(segmentEndCity, weather, 'SEGMENT_CONTENT');
   }
 
@@ -77,15 +75,17 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       >
-        <WeatherDisplayDecision
-          weather={weather}
-          segmentDate={segmentDate!}
-          segmentEndCity={segmentEndCity}
-          error={error}
-          onRetry={onRetry}
-          isSharedView={isSharedView}
-          isPDFExport={isPDFExport}
-        />
+        {segmentDate && (
+          <WeatherDisplayDecision
+            weather={weather}
+            segmentDate={segmentDate}
+            segmentEndCity={segmentEndCity}
+            error={error}
+            onRetry={onRetry}
+            isSharedView={isSharedView}
+            isPDFExport={isPDFExport}
+          />
+        )}
       </WeatherStateHandler>
     </WeatherApiKeyHandler>
   );

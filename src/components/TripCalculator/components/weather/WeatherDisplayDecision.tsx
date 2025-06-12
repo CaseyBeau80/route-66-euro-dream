@@ -23,28 +23,51 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDisplayDecision for', segmentEndCity, ':', {
+  console.log('🎯 WeatherDisplayDecision CRITICAL ANALYSIS for', segmentEndCity, ':', {
     hasWeather: !!weather,
-    hasError: !!error
+    hasError: !!error,
+    hasAnyDisplayableData: weather && (weather.temperature || weather.highTemp || weather.lowTemp || weather.description),
+    weatherFields: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast
+    } : null,
+    decision: 'Will determine...'
   });
 
-  // If we have weather data, always try to display it
+  // CRITICAL FIX: Always try to display weather if we have ANY usable data
   if (weather) {
-    console.log('✅ FORCE RENDERING weather data for', segmentEndCity);
-    return (
-      <WeatherDataDisplay
-        weather={weather}
-        segmentDate={segmentDate}
-        cityName={segmentEndCity}
-        error={error}
-        onRetry={onRetry}
-        isSharedView={isSharedView}
-        isPDFExport={isPDFExport}
-      />
+    const hasDisplayableData = !!(
+      weather.temperature || 
+      weather.highTemp || 
+      weather.lowTemp || 
+      weather.description
     );
+
+    if (hasDisplayableData) {
+      console.log('✅ WEATHER DISPLAY DECISION: Rendering weather data for', segmentEndCity);
+      return (
+        <WeatherDataDisplay
+          weather={weather}
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          error={error}
+          onRetry={onRetry}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
+        />
+      );
+    } else {
+      console.log('⚠️ Weather data exists but no displayable fields for', segmentEndCity);
+    }
   }
 
-  console.log('❌ No weather data for', segmentEndCity, '- showing fallback');
+  console.log('❌ WEATHER DISPLAY DECISION: Showing fallback for', segmentEndCity, {
+    reason: !weather ? 'no_weather_data' : 'no_displayable_fields'
+  });
+
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
