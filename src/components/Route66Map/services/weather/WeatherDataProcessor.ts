@@ -3,6 +3,43 @@ import { ForecastDay } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDataProcessor {
+  static processCurrentWeather(currentData: any, cityName: string): any {
+    console.log('🔧 WeatherDataProcessor.processCurrentWeather:', {
+      currentData,
+      cityName
+    });
+
+    if (!currentData) {
+      console.warn('❌ WeatherDataProcessor: No current weather data provided');
+      return null;
+    }
+
+    return {
+      temperature: Math.round(currentData.main?.temp || 70),
+      description: currentData.weather?.[0]?.description || 'Clear',
+      icon: currentData.weather?.[0]?.icon || '01d',
+      humidity: currentData.main?.humidity || 50,
+      windSpeed: Math.round(currentData.wind?.speed || 5),
+      cityName
+    };
+  }
+
+  static processWeatherWithForecast(currentData: any, forecastData: any, cityName: string): any {
+    console.log('🔧 WeatherDataProcessor.processWeatherWithForecast:', {
+      currentData,
+      forecastData,
+      cityName
+    });
+
+    const current = this.processCurrentWeather(currentData, cityName);
+    const forecast = this.processEnhancedForecastData(forecastData, new Date(), 5);
+
+    return {
+      ...current,
+      forecast
+    };
+  }
+
   static processEnhancedForecastData(
     forecastData: any,
     targetDate: Date,
@@ -99,7 +136,7 @@ export class WeatherDataProcessor {
 
   private static createDailySummary(dateString: string, items: any[]): ForecastDay {
     const firstItem = items[0];
-    const date = new Date(dateString + 'T12:00:00');
+    const date = DateNormalizationService.toDateString(new Date(dateString + 'T12:00:00'));
     
     // Extract temperatures from all items for this day
     const temperatures = items.map(item => item.processedTemperature).filter(Boolean);
@@ -109,7 +146,7 @@ export class WeatherDataProcessor {
     const windSpeeds = items.map(item => item.wind?.speed).filter(w => w !== undefined);
     
     // Calculate temperature range
-    let temperature: number | { high: number; low: number };
+    let temperature: { high: number; low: number };
     
     if (temperatures.length > 0) {
       const allHighs: number[] = [];
@@ -131,15 +168,15 @@ export class WeatherDataProcessor {
           low: Math.round(Math.min(...allLows))
         };
       } else {
-        temperature = 70; // Fallback
+        temperature = { high: 75, low: 55 }; // Fallback
       }
     } else {
-      temperature = 70; // Fallback
+      temperature = { high: 75, low: 55 }; // Fallback
     }
     
     const summary: ForecastDay = {
-      date,
-      dateString,
+      date: date,
+      dateString: date,
       temperature,
       description: descriptions[0] || 'Clear',
       icon: icons[0] || '01d',
