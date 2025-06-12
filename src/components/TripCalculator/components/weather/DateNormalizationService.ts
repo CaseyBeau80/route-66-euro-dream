@@ -107,6 +107,32 @@ export class DateNormalizationService {
   }
 
   /**
+   * Calculate the difference in days between two dates
+   */
+  static getDaysDifference(date1: Date, date2: Date): number {
+    if (!date1 || !date2 || !(date1 instanceof Date) || !(date2 instanceof Date)) {
+      console.error('❌ DateNormalizationService.getDaysDifference: Invalid dates:', { date1, date2 });
+      return 0;
+    }
+    
+    if (isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+      console.error('❌ DateNormalizationService.getDaysDifference: Invalid date values:', { date1, date2 });
+      return 0;
+    }
+    
+    const diffInMilliseconds = date2.getTime() - date1.getTime();
+    const diffInDays = Math.round(diffInMilliseconds / (24 * 60 * 60 * 1000));
+    
+    console.log(`📊 DateNormalizationService.getDaysDifference:`, {
+      date1: date1.toISOString(),
+      date2: date2.toISOString(),
+      diffInDays
+    });
+    
+    return diffInDays;
+  }
+
+  /**
    * CRITICAL: Enhanced debugging for date issues
    */
   static debugDateCalculation(context: string, inputs: any, result: any): void {

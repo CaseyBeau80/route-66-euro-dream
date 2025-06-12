@@ -89,7 +89,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     
     WeatherDataDebugger.debugDateCalculation(
       `SegmentWeatherWidget.calculateDate [${segment.endCity}] [Day ${segment.day}]`,
-      { tripStartDate: startDate.toISOString(), segmentDay: segment.day },
+      startDate.toISOString(),
+      segment.day,
       calculatedDate
     );
     
