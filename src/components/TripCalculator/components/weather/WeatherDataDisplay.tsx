@@ -24,20 +24,25 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ WeatherDataDisplay RENDER:', {
+  console.log('🌤️ WeatherDataDisplay ENHANCED RENDER ANALYSIS:', {
     cityName,
     hasWeather: !!weather,
-    weather: weather ? {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      isActualForecast: weather.isActualForecast
+    segmentDate: segmentDate?.toISOString(),
+    detailedWeatherAnalysis: weather ? {
+      rawWeatherObject: weather,
+      temperature: { value: weather.temperature, isValid: typeof weather.temperature === 'number' && !isNaN(weather.temperature) },
+      highTemp: { value: weather.highTemp, isValid: typeof weather.highTemp === 'number' && !isNaN(weather.highTemp) },
+      lowTemp: { value: weather.lowTemp, isValid: typeof weather.lowTemp === 'number' && !isNaN(weather.lowTemp) },
+      description: { value: weather.description, isValid: typeof weather.description === 'string' && weather.description.length > 0 },
+      isActualForecast: weather.isActualForecast,
+      precipitationChance: weather.precipitationChance,
+      windSpeed: weather.windSpeed,
+      humidity: weather.humidity
     } : null
   });
 
   if (!weather) {
-    console.log('❌ No weather data for', cityName);
+    console.log('❌ WeatherDataDisplay: No weather data for', cityName);
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
@@ -49,18 +54,51 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Extract temperature data - be very aggressive about finding ANY temperature
-  const highTemp = weather.highTemp || weather.temperature || 75;
-  const lowTemp = weather.lowTemp || (weather.temperature ? weather.temperature - 10 : 65);
-  const avgTemp = weather.temperature || Math.round((highTemp + lowTemp) / 2);
-  const description = weather.description || 'Clear skies';
+  // ULTRA-AGGRESSIVE: Extract ANY usable temperature data with smart fallbacks
+  const hasValidTemp = (temp: any): boolean => typeof temp === 'number' && !isNaN(temp) && temp > -50 && temp < 150;
+  
+  let highTemp: number;
+  let lowTemp: number;
+  let avgTemp: number;
+  
+  // Try to get high/low temps from available data
+  if (hasValidTemp(weather.highTemp) && hasValidTemp(weather.lowTemp)) {
+    highTemp = weather.highTemp;
+    lowTemp = weather.lowTemp;
+    avgTemp = Math.round((highTemp + lowTemp) / 2);
+  } else if (hasValidTemp(weather.temperature)) {
+    // Use single temperature as average, estimate high/low
+    avgTemp = weather.temperature;
+    highTemp = avgTemp + 5; // Add 5 degrees for high
+    lowTemp = avgTemp - 5;  // Subtract 5 degrees for low
+  } else if (hasValidTemp(weather.highTemp)) {
+    highTemp = weather.highTemp;
+    lowTemp = highTemp - 10; // Estimate low temp
+    avgTemp = Math.round((highTemp + lowTemp) / 2);
+  } else if (hasValidTemp(weather.lowTemp)) {
+    lowTemp = weather.lowTemp;
+    highTemp = lowTemp + 10; // Estimate high temp
+    avgTemp = Math.round((highTemp + lowTemp) / 2);
+  } else {
+    // Ultimate fallback - use reasonable defaults
+    console.log('⚠️ Using fallback temperatures for', cityName);
+    avgTemp = 70;
+    highTemp = 75;
+    lowTemp = 65;
+  }
 
-  console.log('✅ RENDERING weather for', cityName, ':', {
-    highTemp,
-    lowTemp,
-    avgTemp,
+  // Get description with fallbacks
+  let description = weather.description || 'Weather forecast available';
+  if (description === 'Clear' || description === '') {
+    description = 'Clear skies';
+  }
+
+  console.log('✅ RENDERING weather for', cityName, 'with processed data:', {
+    originalWeather: weather,
+    processedTemps: { highTemp, lowTemp, avgTemp },
     description,
-    isActualForecast: weather.isActualForecast
+    isActualForecast: weather.isActualForecast,
+    willRender: true
   });
 
   const forecastLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';

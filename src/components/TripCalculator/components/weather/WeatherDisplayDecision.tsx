@@ -23,49 +23,53 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDisplayDecision CRITICAL ANALYSIS for', segmentEndCity, ':', {
+  console.log('🎯 WeatherDisplayDecision ENHANCED ANALYSIS for', segmentEndCity, ':', {
     hasWeather: !!weather,
     hasError: !!error,
-    hasAnyDisplayableData: weather && (weather.temperature || weather.highTemp || weather.lowTemp || weather.description),
-    weatherFields: weather ? {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      isActualForecast: weather.isActualForecast
-    } : null,
-    decision: 'Will determine...'
+    segmentDate: segmentDate.toISOString(),
+    weatherObject: weather,
+    detailedWeatherFields: weather ? {
+      temperature: { value: weather.temperature, type: typeof weather.temperature, exists: weather.temperature !== undefined && weather.temperature !== null },
+      highTemp: { value: weather.highTemp, type: typeof weather.highTemp, exists: weather.highTemp !== undefined && weather.highTemp !== null },
+      lowTemp: { value: weather.lowTemp, type: typeof weather.lowTemp, exists: weather.lowTemp !== undefined && weather.lowTemp !== null },
+      description: { value: weather.description, type: typeof weather.description, exists: weather.description !== undefined && weather.description !== null && weather.description !== '' },
+      isActualForecast: weather.isActualForecast,
+      allKeys: Object.keys(weather)
+    } : 'NO_WEATHER_OBJECT'
   });
 
-  // CRITICAL FIX: Always try to display weather if we have ANY usable data
+  // ULTRA-PERMISSIVE: If we have ANY weather object, try to display it
   if (weather) {
-    const hasDisplayableData = !!(
-      weather.temperature || 
-      weather.highTemp || 
-      weather.lowTemp || 
-      weather.description
-    );
+    console.log('✅ WEATHER DISPLAY DECISION: Weather object exists, attempting to render for', segmentEndCity);
+    console.log('📊 Weather data summary:', {
+      hasTemperature: !!(weather.temperature !== undefined && weather.temperature !== null),
+      hasHighTemp: !!(weather.highTemp !== undefined && weather.highTemp !== null),
+      hasLowTemp: !!(weather.lowTemp !== undefined && weather.lowTemp !== null),
+      hasDescription: !!(weather.description !== undefined && weather.description !== null && weather.description !== ''),
+      temperatureValue: weather.temperature,
+      highTempValue: weather.highTemp,
+      lowTempValue: weather.lowTemp,
+      descriptionValue: weather.description,
+      willAttemptRender: true
+    });
 
-    if (hasDisplayableData) {
-      console.log('✅ WEATHER DISPLAY DECISION: Rendering weather data for', segmentEndCity);
-      return (
-        <WeatherDataDisplay
-          weather={weather}
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          error={error}
-          onRetry={onRetry}
-          isSharedView={isSharedView}
-          isPDFExport={isPDFExport}
-        />
-      );
-    } else {
-      console.log('⚠️ Weather data exists but no displayable fields for', segmentEndCity);
-    }
+    return (
+      <WeatherDataDisplay
+        weather={weather}
+        segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        error={error}
+        onRetry={onRetry}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
+    );
   }
 
-  console.log('❌ WEATHER DISPLAY DECISION: Showing fallback for', segmentEndCity, {
-    reason: !weather ? 'no_weather_data' : 'no_displayable_fields'
+  console.log('❌ WEATHER DISPLAY DECISION: No weather object, showing fallback for', segmentEndCity, {
+    reason: 'no_weather_object',
+    hasError: !!error,
+    errorMessage: error
   });
 
   return (
