@@ -15,6 +15,11 @@ interface SegmentWeatherState {
 }
 
 export const useSegmentWeatherState = (segmentEndCity: string, day: number): SegmentWeatherState => {
+  // 🚨 FORCE LOG: State hook initialization
+  console.log(`🚨 FORCE LOG: useSegmentWeatherState initialized for Day ${day} - ${segmentEndCity}`, {
+    timestamp: new Date().toISOString()
+  });
+
   WeatherDebugService.logWeatherFlow(`useSegmentWeatherState.init [${segmentEndCity}]`, {
     day,
     timestamp: new Date().toISOString()
@@ -26,6 +31,18 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
   const [retryCount, setRetryCount] = React.useState(0);
 
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
+    console.log(`🚨 FORCE LOG: setWeather called for Day ${day} - ${segmentEndCity}`, {
+      hasNewWeather: !!newWeather,
+      previousWeather: !!weather,
+      newWeatherData: newWeather ? {
+        temperature: newWeather.temperature,
+        highTemp: newWeather.highTemp,
+        lowTemp: newWeather.lowTemp,
+        isActualForecast: newWeather.isActualForecast
+      } : null,
+      timestamp: new Date().toISOString()
+    });
+
     WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setWeather', {
       day,
       hasNewWeather: !!newWeather,
@@ -42,6 +59,12 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
   }, [segmentEndCity, day, weather]);
 
   const setLoading = React.useCallback((newLoading: boolean) => {
+    console.log(`🚨 FORCE LOG: setLoading called for Day ${day} - ${segmentEndCity}`, {
+      newLoading,
+      previousLoading: loading,
+      timestamp: new Date().toISOString()
+    });
+
     WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setLoading', {
       day,
       newLoading,
@@ -52,6 +75,12 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
   }, [segmentEndCity, day, loading]);
 
   const setError = React.useCallback((newError: string | null) => {
+    console.log(`🚨 FORCE LOG: setError called for Day ${day} - ${segmentEndCity}`, {
+      newError,
+      previousError: error,
+      timestamp: new Date().toISOString()
+    });
+
     WeatherDebugService.logWeatherStateChange(segmentEndCity, 'setError', {
       day,
       newError,
@@ -63,6 +92,16 @@ export const useSegmentWeatherState = (segmentEndCity: string, day: number): Seg
 
   // Reset state when city or day changes
   React.useEffect(() => {
+    console.log(`🚨 FORCE LOG: Weather state reset effect for Day ${day} - ${segmentEndCity}`, {
+      previousState: {
+        hadWeather: !!weather,
+        wasLoading: loading,
+        hadError: !!error,
+        retryCount
+      },
+      timestamp: new Date().toISOString()
+    });
+
     WeatherDebugService.logWeatherFlow(`useSegmentWeatherState.reset [${segmentEndCity}]`, {
       day,
       previousState: {

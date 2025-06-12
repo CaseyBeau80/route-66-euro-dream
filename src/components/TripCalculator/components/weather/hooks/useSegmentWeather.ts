@@ -37,6 +37,18 @@ export const useSegmentWeather = ({
   retryCount,
   setRetryCount
 }: UseSegmentWeatherProps): UseSegmentWeatherReturn => {
+  // 🚨 FORCE LOG: Hook initialization
+  console.log(`🚨 FORCE LOG: useSegmentWeather hook initialized for ${segmentEndCity}`, {
+    hasApiKey,
+    hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
+    hasWeather: !!weather,
+    loading,
+    error,
+    retryCount,
+    timestamp: new Date().toISOString()
+  });
+
   const {
     fetchWeatherData,
     handleApiKeySet,
@@ -52,9 +64,38 @@ export const useSegmentWeather = ({
     setWeather
   });
 
+  // 🚨 FORCE LOG: Weather handlers ready
+  console.log(`🚨 FORCE LOG: Weather handlers ready for ${segmentEndCity}`, {
+    hasFetchWeatherData: typeof fetchWeatherData === 'function',
+    hasHandleApiKeySet: typeof handleApiKeySet === 'function',
+    hasHandleTimeout: typeof handleTimeout === 'function',
+    hasHandleRetry: typeof handleRetry === 'function',
+    timestamp: new Date().toISOString()
+  });
+
   // Auto-fetch when dependencies change with debouncing
   React.useEffect(() => {
+    console.log(`🚨 FORCE LOG: useSegmentWeather auto-fetch effect triggered for ${segmentEndCity}`, {
+      hasApiKey,
+      hasSegmentDate: !!segmentDate,
+      segmentDate: segmentDate?.toISOString(),
+      hasWeather: !!weather,
+      loading,
+      shouldFetch: hasApiKey && segmentDate && !weather && !loading,
+      trigger: 'dependency_change',
+      timestamp: new Date().toISOString()
+    });
+
     if (hasApiKey && segmentDate && !weather && !loading) {
+      console.log(`🚨 FORCE LOG: *** WEATHER FETCH TRIGGERED *** for ${segmentEndCity}`, {
+        reason: 'all_conditions_met',
+        hasApiKey,
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weather,
+        loading,
+        timestamp: new Date().toISOString()
+      });
+
       WeatherDataDebugger.debugWeatherFlow(
         `useSegmentWeather.autoFetch [${segmentEndCity}]`,
         { trigger: 'dependency_change', hasApiKey, hasDate: !!segmentDate, hasWeather: !!weather, loading }
@@ -62,10 +103,33 @@ export const useSegmentWeather = ({
 
       // Debounce to prevent rapid-fire requests
       const timeoutId = setTimeout(() => {
+        console.log(`🚨 FORCE LOG: Executing fetchWeatherData for ${segmentEndCity} after debounce`, {
+          timestamp: new Date().toISOString()
+        });
         fetchWeatherData();
       }, 100);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        console.log(`🚨 FORCE LOG: Clearing weather fetch timeout for ${segmentEndCity}`, {
+          timestamp: new Date().toISOString()
+        });
+        clearTimeout(timeoutId);
+      };
+    } else {
+      console.log(`🚨 FORCE LOG: Weather fetch NOT triggered for ${segmentEndCity}`, {
+        reason: 'conditions_not_met',
+        hasApiKey,
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weather,
+        loading,
+        conditionsFailed: {
+          noApiKey: !hasApiKey,
+          noSegmentDate: !segmentDate,
+          alreadyHasWeather: !!weather,
+          currentlyLoading: loading
+        },
+        timestamp: new Date().toISOString()
+      });
     }
   }, [hasApiKey, segmentDate, segmentEndCity, weather, loading, fetchWeatherData]);
 

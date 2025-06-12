@@ -26,13 +26,40 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // 🚨 FORCE LOG: DaySegmentCard component entry
+  console.log(`🚨 FORCE LOG: DaySegmentCard rendering for Day ${segment?.day} - ${segment?.endCity}`, {
+    segment: {
+      day: segment?.day,
+      endCity: segment?.endCity,
+      title: segment?.title
+    },
+    tripStartDate: tripStartDate?.toISOString(),
+    cardIndex,
+    tripId,
+    sectionKey,
+    timestamp: new Date().toISOString()
+  });
+
   // Use stable segment to prevent cascading re-renders
   const stableSegment = useStableSegment(segment);
+  
+  // 🚨 FORCE LOG: Stable segment result
+  console.log(`🚨 FORCE LOG: DaySegmentCard stable segment for Day ${segment?.day}`, {
+    hasStableSegment: !!stableSegment,
+    stableSegmentDay: stableSegment?.day,
+    stableSegmentEndCity: stableSegment?.endCity,
+    timestamp: new Date().toISOString()
+  });
   
   // Early return for invalid segments with proper type checking
   if (!stableSegment || !DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
     // Safe access to day property with fallback
     const segmentDay = stableSegment?.day ?? (segment?.day ?? 'Unknown');
+    console.log(`🚨 FORCE LOG: DaySegmentCard INVALID SEGMENT for Day ${segmentDay}`, {
+      hasStableSegment: !!stableSegment,
+      validationFailed: true,
+      timestamp: new Date().toISOString()
+    });
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -46,6 +73,15 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
+  
+  // 🚨 FORCE LOG: Segment date calculation
+  console.log(`🚨 FORCE LOG: DaySegmentCard date calculation for Day ${stableSegment.day}`, {
+    tripStartDate: tripStartDate?.toISOString(),
+    segmentDay: stableSegment.day,
+    calculatedSegmentDate: segmentDate?.toISOString(),
+    hasSegmentDate: !!segmentDate,
+    timestamp: new Date().toISOString()
+  });
   
   console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
@@ -119,6 +155,12 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       />
     </div>
   ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
+
+  console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
+    willRenderCard: true,
+    hasCardHeader: !!cardHeader,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>

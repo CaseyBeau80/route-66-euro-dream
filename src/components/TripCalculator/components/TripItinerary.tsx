@@ -14,6 +14,17 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
+  // 🚨 FORCE LOG: TripItinerary component render
+  console.log('🚨 FORCE LOG: TripItinerary component rendering', {
+    hasTripPlan: !!tripPlan,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateType: typeof tripStartDate,
+    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    segmentsCount: tripPlan?.segments?.length || 0,
+    segments: tripPlan?.segments?.map(s => ({ day: s.day, endCity: s.endCity })) || [],
+    timestamp: new Date().toISOString()
+  });
+
   // CRITICAL DEBUG: Enhanced debugging for trip start date propagation
   React.useEffect(() => {
     console.log('🗓️ CRITICAL DEBUG - TripItinerary received tripStartDate:', {
@@ -58,6 +69,14 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     console.log('✅ TripItinerary: Valid tripStartDate confirmed:', tripStartDate.toISOString());
     return tripStartDate;
   }, [tripStartDate]);
+
+  // 🚨 FORCE LOG: Validated date result
+  console.log('🚨 FORCE LOG: TripItinerary validated date result', {
+    originalDate: tripStartDate?.toISOString(),
+    validatedDate: validatedTripStartDate?.toISOString(),
+    isValid: !!validatedTripStartDate,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <div className="w-full max-w-6xl mx-auto">
