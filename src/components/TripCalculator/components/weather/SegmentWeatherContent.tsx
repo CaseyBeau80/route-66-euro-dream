@@ -78,17 +78,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       >
-        {segmentDate && (
-          <WeatherDisplayDecision
-            weather={weather}
-            segmentDate={segmentDate}
-            segmentEndCity={segmentEndCity}
-            error={error}
-            onRetry={onRetry}
-            isSharedView={isSharedView}
-            isPDFExport={isPDFExport}
-          />
-        )}
+        {/* CRITICAL FIX: Always try to render weather display, don't block on segmentDate */}
+        <WeatherDisplayDecision
+          weather={weather}
+          segmentDate={segmentDate}
+          segmentEndCity={segmentEndCity}
+          error={error}
+          onRetry={onRetry}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
+        />
       </WeatherStateHandler>
     </WeatherApiKeyHandler>
   );
