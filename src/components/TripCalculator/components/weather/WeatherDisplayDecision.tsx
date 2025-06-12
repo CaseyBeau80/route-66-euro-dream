@@ -25,33 +25,13 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
 }) => {
   console.log('🎯 WeatherDisplayDecision for', segmentEndCity, ':', {
     hasWeather: !!weather,
-    hasError: !!error
+    hasError: !!error,
+    weatherObject: weather
   });
 
-  if (!weather) {
-    return (
-      <FallbackWeatherDisplay
-        cityName={segmentEndCity}
-        segmentDate={segmentDate}
-        onRetry={onRetry}
-        error={error || 'No weather data available'}
-        showRetryButton={!isSharedView && !isPDFExport}
-      />
-    );
-  }
-
-  // Check for any displayable data
-  const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
-  const hasAnyDescription = !!weather.description;
-  const hasMinimalData = hasAnyTemperature || hasAnyDescription;
-
-  console.log('🔍 Weather data check for', segmentEndCity, ':', {
-    hasAnyTemperature,
-    hasAnyDescription,
-    hasMinimalData
-  });
-
-  if (hasMinimalData) {
+  // CRITICAL FIX: If we have ANY weather object, render it
+  if (weather) {
+    console.log('✅ FORCING RENDER: Weather object exists for', segmentEndCity, ', rendering WeatherDataDisplay');
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -65,12 +45,14 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     );
   }
 
+  // Only show fallback if we have no weather data at all
+  console.log('❌ FALLBACK: No weather object for', segmentEndCity, ', showing fallback');
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error="Weather data incomplete"
+      error={error || 'No weather data available'}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );

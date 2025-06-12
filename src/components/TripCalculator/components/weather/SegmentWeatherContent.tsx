@@ -34,30 +34,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🚨 SegmentWeatherContent for', segmentEndCity, ':', {
+  console.log('🚨 SegmentWeatherContent CRITICAL DEBUG for', segmentEndCity, ':', {
     segmentDate: segmentDate?.toISOString(),
     hasApiKey,
     loading,
     hasWeather: !!weather,
+    weatherObject: weather,
     hasError: !!error,
-    retryCount
+    retryCount,
+    willRenderWeather: !!weather && !!segmentDate
   });
-
-  // Log complete weather data analysis if available
-  if (weather) {
-    console.log('🔍 Weather data analysis for', segmentEndCity, ':', {
-      hasTemperature: !!weather.temperature,
-      hasHighTemp: !!weather.highTemp,
-      hasLowTemp: !!weather.lowTemp,
-      hasDescription: !!weather.description,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      isActualForecast: weather.isActualForecast,
-      dateMatchInfo: weather.dateMatchInfo
-    });
-  }
 
   return (
     <WeatherApiKeyHandler
@@ -77,15 +63,22 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       >
-        <WeatherDisplayDecision
-          weather={weather}
-          segmentDate={segmentDate!}
-          segmentEndCity={segmentEndCity}
-          error={error}
-          onRetry={onRetry}
-          isSharedView={isSharedView}
-          isPDFExport={isPDFExport}
-        />
+        {segmentDate && (
+          <WeatherDisplayDecision
+            weather={weather}
+            segmentDate={segmentDate}
+            segmentEndCity={segmentEndCity}
+            error={error}
+            onRetry={onRetry}
+            isSharedView={isSharedView}
+            isPDFExport={isPDFExport}
+          />
+        )}
+        {!segmentDate && (
+          <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700">
+            ❌ Missing segment date for {segmentEndCity}
+          </div>
+        )}
       </WeatherStateHandler>
     </WeatherApiKeyHandler>
   );
