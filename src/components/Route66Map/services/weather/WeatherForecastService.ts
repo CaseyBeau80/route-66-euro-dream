@@ -1,4 +1,3 @@
-
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -33,6 +32,14 @@ export class WeatherForecastService {
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
+    
+    // 🚨 DEBUG INJECTION: Constructor logging
+    console.log('🔧 DEBUG: WeatherForecastService constructor called', {
+      hasApiKey: !!apiKey,
+      apiKeyLength: apiKey?.length || 0,
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      timestamp: new Date().toISOString()
+    });
   }
 
   async getWeatherForDate(
@@ -41,11 +48,31 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
+    // 🚨 DEBUG INJECTION: Entry point logging
+    console.log('🚨 DEBUG: WeatherForecastService.getWeatherForDate ENTRY POINT', {
+      cityName,
+      targetDate: targetDate.toISOString(),
+      coordinates: { lat, lng },
+      timestamp: new Date().toISOString(),
+      callStack: new Error().stack?.split('\n').slice(1, 4)
+    });
+
     // Use centralized date normalization with enhanced debugging
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     const daysFromNow = Math.ceil((normalizedTargetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
+    // 🚨 DEBUG INJECTION: Date processing logging
+    console.log('🚨 DEBUG: WeatherForecastService date processing', {
+      cityName,
+      originalDate: targetDate.toISOString(),
+      normalizedDate: normalizedTargetDate.toISOString(),
+      targetDateString,
+      daysFromNow,
+      withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS,
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS
+    });
+
     WeatherDataDebugger.debugWeatherFlow(
       `WeatherForecastService.getWeatherForDate [${cityName}]`,
       {
@@ -59,16 +86,85 @@ export class WeatherForecastService {
 
     // Try to get actual forecast if within range
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
+      // 🚨 DEBUG INJECTION: API attempt logging
+      console.log('🚨 DEBUG: WeatherForecastService attempting actual forecast API call', {
+        cityName,
+        targetDateString,
+        daysFromNow,
+        coordinates: { lat, lng },
+        reason: 'within_forecast_range'
+      });
+
       const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
+      
+      // 🚨 DEBUG INJECTION: API result logging
+      console.log('🚨 DEBUG: WeatherForecastService actual forecast result', {
+        cityName,
+        targetDateString,
+        hasResult: !!actualForecast,
+        isActualForecast: actualForecast?.isActualForecast,
+        temperature: actualForecast?.temperature,
+        highTemp: actualForecast?.highTemp,
+        lowTemp: actualForecast?.lowTemp,
+        source: actualForecast?.dateMatchInfo?.source,
+        matchType: actualForecast?.dateMatchInfo?.matchType
+      });
+
       if (actualForecast) {
         WeatherDataDebugger.debugApiResponse(cityName, targetDateString, actualForecast);
+        
+        // 🚨 DEBUG INJECTION: Success return logging
+        console.log('🚨 DEBUG: WeatherForecastService RETURNING ACTUAL FORECAST', {
+          cityName,
+          targetDateString,
+          finalResult: {
+            temperature: actualForecast.temperature,
+            highTemp: actualForecast.highTemp,
+            lowTemp: actualForecast.lowTemp,
+            isActualForecast: actualForecast.isActualForecast,
+            description: actualForecast.description,
+            source: actualForecast.dateMatchInfo?.source
+          }
+        });
+        
         return actualForecast;
       }
+      
+      // 🚨 DEBUG INJECTION: API failure logging
+      console.log('🚨 DEBUG: WeatherForecastService API failed, creating enhanced fallback', {
+        cityName,
+        targetDateString,
+        reason: 'api_returned_null'
+      });
       console.log(`⚠️ WeatherForecastService: API failed for ${cityName}, creating enhanced fallback`);
+    } else {
+      // 🚨 DEBUG INJECTION: Out of range logging
+      console.log('🚨 DEBUG: WeatherForecastService skipping API (out of range)', {
+        cityName,
+        targetDateString,
+        daysFromNow,
+        forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+        reason: 'outside_forecast_range'
+      });
     }
 
     // Return enhanced fallback
     const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
+    
+    // 🚨 DEBUG INJECTION: Fallback logging
+    console.log('🚨 DEBUG: WeatherForecastService RETURNING FALLBACK FORECAST', {
+      cityName,
+      targetDateString,
+      fallbackResult: {
+        temperature: fallbackForecast.temperature,
+        highTemp: fallbackForecast.highTemp,
+        lowTemp: fallbackForecast.lowTemp,
+        isActualForecast: fallbackForecast.isActualForecast,
+        description: fallbackForecast.description,
+        source: fallbackForecast.dateMatchInfo?.source
+      }
+    });
+    
     WeatherDataDebugger.debugApiResponse(cityName, targetDateString, fallbackForecast);
     return fallbackForecast;
   }
@@ -82,6 +178,14 @@ export class WeatherForecastService {
     daysFromNow: number
   ): Promise<ForecastWeatherData | null> {
     try {
+      // 🚨 DEBUG INJECTION: API call start
+      console.log('🚨 DEBUG: WeatherForecastService.getActualForecast START', {
+        cityName,
+        targetDateString,
+        coordinates: { lat, lng },
+        daysFromNow
+      });
+
       WeatherDataDebugger.debugWeatherFlow(
         `WeatherForecastService.getActualForecast [${cityName}]`,
         { targetDateString, daysFromNow, coordinates: { lat, lng } }
@@ -89,7 +193,30 @@ export class WeatherForecastService {
 
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
+      // 🚨 DEBUG INJECTION: API response logging
+      console.log('🚨 DEBUG: WeatherForecastService API response received', {
+        cityName,
+        targetDateString,
+        hasCurrentData: !!currentData,
+        hasForecastData: !!forecastData,
+        currentTemp: currentData?.main?.temp,
+        forecastListLength: Array.isArray(forecastData?.list) ? forecastData.list.length : 0
+      });
+      
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
+      
+      // 🚨 DEBUG INJECTION: Processed forecast logging
+      console.log('🚨 DEBUG: WeatherForecastService processed forecast data', {
+        cityName,
+        targetDateString,
+        processedCount: processedForecast.length,
+        availableDates: processedForecast.map(f => f.dateString).filter(Boolean),
+        firstFewForecasts: processedForecast.slice(0, 3).map(f => ({
+          dateString: f.dateString,
+          temperature: f.temperature,
+          description: f.description
+        }))
+      });
       
       WeatherDataDebugger.debugWeatherFlow(
         `WeatherForecastService.processedForecast [${cityName}]`,
@@ -107,11 +234,31 @@ export class WeatherForecastService {
         cityName
       );
       
+      // 🚨 DEBUG INJECTION: Match result logging
+      console.log('🚨 DEBUG: WeatherForecastService match result', {
+        cityName,
+        targetDateString,
+        hasMatch: !!matchResult.matchedForecast,
+        matchType: matchResult.matchInfo?.matchType,
+        matchedDate: matchResult.matchInfo?.matchedDate,
+        confidence: matchResult.matchInfo?.confidence,
+        matchedTemperature: matchResult.matchedForecast?.temperature
+      });
+      
       WeatherDataDebugger.debugWeatherMatching(cityName, targetDateString, processedForecast, matchResult);
       
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
         
+        // 🚨 DEBUG INJECTION: Temperature extraction logging
+        console.log('🚨 DEBUG: WeatherForecastService extracting temperatures', {
+          cityName,
+          targetDateString,
+          rawTemperature: forecast.temperature,
+          temperatureType: typeof forecast.temperature,
+          isObject: typeof forecast.temperature === 'object'
+        });
+
         // Handle temperature extraction properly
         const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
           if (typeof temp === 'number') return temp;
@@ -138,6 +285,24 @@ export class WeatherForecastService {
         const avgTemp = extractTemperature(forecast.temperature);
         const precipChance = parseInt(String(forecast.precipitationChance)) || 0;
         
+        // 🚨 DEBUG INJECTION: Final temperature values logging
+        console.log('🚨 DEBUG: WeatherForecastService final temperature values', {
+          cityName,
+          targetDateString,
+          extractedTemps: {
+            high: highTemp,
+            low: lowTemp,
+            average: avgTemp,
+            precipitation: precipChance
+          },
+          forecast: {
+            description: forecast.description,
+            icon: forecast.icon,
+            humidity: forecast.humidity,
+            windSpeed: forecast.windSpeed
+          }
+        });
+        
         console.log(`✅ Enhanced forecast match for ${cityName} on ${targetDateString}:`, {
           matchType: matchResult.matchInfo.matchType,
           matchedDate: matchResult.matchInfo.matchedDate,
@@ -145,7 +310,7 @@ export class WeatherForecastService {
           temperature: { high: highTemp, low: lowTemp, avg: avgTemp }
         });
         
-        return {
+        const finalResult = {
           temperature: avgTemp || highTemp || lowTemp,
           highTemp: highTemp,
           lowTemp: lowTemp,
@@ -164,7 +329,31 @@ export class WeatherForecastService {
             source: 'api-forecast' as const
           }
         };
+
+        // 🚨 DEBUG INJECTION: Final result construction logging
+        console.log('🚨 DEBUG: WeatherForecastService CONSTRUCTED FINAL RESULT', {
+          cityName,
+          targetDateString,
+          finalResult,
+          isValid: !!(finalResult.temperature && finalResult.description),
+          temperatureCheck: {
+            hasTemperature: !!finalResult.temperature,
+            hasHighTemp: !!finalResult.highTemp,
+            hasLowTemp: !!finalResult.lowTemp,
+            temperatureValue: finalResult.temperature
+          }
+        });
+        
+        return finalResult;
       } else {
+        // 🚨 DEBUG INJECTION: No match fallback logging
+        console.log('🚨 DEBUG: WeatherForecastService no match found, creating current-based forecast', {
+          cityName,
+          targetDateString,
+          hasCurrentData: !!currentData,
+          currentTemp: currentData?.main?.temp
+        });
+
         // Create enhanced forecast from current data if no match found
         return this.createEnhancedForecastFromCurrent(
           currentData, 
@@ -176,6 +365,14 @@ export class WeatherForecastService {
         );
       }
     } catch (error) {
+      // 🚨 DEBUG INJECTION: Error logging
+      console.error('🚨 DEBUG: WeatherForecastService.getActualForecast ERROR', {
+        cityName,
+        targetDateString,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+
       console.error('❌ WeatherForecastService: Error getting actual forecast:', error);
       WeatherDataDebugger.debugWeatherFlow(
         `WeatherForecastService.error [${cityName}]`,
@@ -227,11 +424,19 @@ export class WeatherForecastService {
     targetDateString: string,
     daysFromNow: number
   ): ForecastWeatherData {
+    // 🚨 DEBUG INJECTION: Fallback forecast creation logging
+    console.log('🚨 DEBUG: WeatherForecastService.getEnhancedFallbackForecast', {
+      cityName,
+      targetDateString,
+      targetMonth: targetDate.getMonth(),
+      daysFromNow
+    });
+
     const month = targetDate.getMonth();
     const seasonalTemp = SeasonalWeatherGenerator.getSeasonalTemperature(month);
     const tempVariation = 15;
     
-    return {
+    const fallbackResult = {
       temperature: seasonalTemp,
       highTemp: seasonalTemp + tempVariation/2,
       lowTemp: seasonalTemp - tempVariation/2,
@@ -254,5 +459,14 @@ export class WeatherForecastService {
         confidence: 'low' as const
       }
     };
+
+    // 🚨 DEBUG INJECTION: Fallback result logging
+    console.log('🚨 DEBUG: WeatherForecastService fallback result created', {
+      cityName,
+      targetDateString,
+      fallbackResult
+    });
+
+    return fallbackResult;
   }
 }
