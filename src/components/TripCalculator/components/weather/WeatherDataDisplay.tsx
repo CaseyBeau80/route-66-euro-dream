@@ -23,24 +23,15 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // COMPREHENSIVE DEBUG LOGGING
-  console.log(`🌤️ WeatherDataDisplay RENDER DEBUG for ${cityName}:`, {
+  // ENHANCED DEBUG for June 12 rendering issue
+  console.log(`🌦 WeatherDataDisplay RENDER DEBUG for ${cityName}:`, {
     hasWeather: !!weather,
-    rawWeatherData: weather,
-    detailedAnalysis: weather ? {
-      temperature: { value: weather.temperature, type: typeof weather.temperature, isNumber: typeof weather.temperature === 'number' },
-      highTemp: { value: weather.highTemp, type: typeof weather.highTemp, isNumber: typeof weather.highTemp === 'number' },
-      lowTemp: { value: weather.lowTemp, type: typeof weather.lowTemp, isNumber: typeof weather.lowTemp === 'number' },
-      description: { value: weather.description, type: typeof weather.description, hasLength: weather.description?.length > 0 },
-      icon: { value: weather.icon, type: typeof weather.icon },
-      isActualForecast: weather.isActualForecast,
-      cityName: weather.cityName,
-      allKeys: Object.keys(weather)
-    } : null
+    weather,
+    isJune12: segmentDate?.toDateString().includes('Jun 12')
   });
 
   if (!weather) {
-    console.log(`❌ WeatherDataDisplay: No weather data for ${cityName} - showing fallback`);
+    console.log(`❌ WeatherDataDisplay: No weather data for ${cityName}`);
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
@@ -52,67 +43,61 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // AGGRESSIVE DATA EXTRACTION with smart fallbacks
-  const extractTemp = (value: any): number => {
+  // RESILIENT temperature extraction with better fallbacks
+  const getDisplayTemp = (value: any): number | null => {
     if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) return Math.round(parsed);
     }
-    return 0;
+    return null;
   };
 
-  // Extract temperatures with fallback logic
+  const highTemp = getDisplayTemp(weather.highTemp);
+  const lowTemp = getDisplayTemp(weather.lowTemp);
+  const avgTemp = getDisplayTemp(weather.temperature);
+
+  // SMART temperature display logic
   let displayHighTemp: number;
   let displayLowTemp: number;
   let displayAvgTemp: number;
 
-  const highTemp = extractTemp(weather.highTemp);
-  const lowTemp = extractTemp(weather.lowTemp);
-  const avgTemp = extractTemp(weather.temperature);
-
-  // Smart temperature assignment
-  if (highTemp > 0 && lowTemp > 0) {
+  if (highTemp !== null && lowTemp !== null) {
     displayHighTemp = highTemp;
     displayLowTemp = lowTemp;
     displayAvgTemp = Math.round((highTemp + lowTemp) / 2);
-  } else if (avgTemp > 0) {
+  } else if (avgTemp !== null) {
     displayAvgTemp = avgTemp;
     displayHighTemp = avgTemp + 5;
     displayLowTemp = avgTemp - 5;
-  } else if (highTemp > 0) {
+  } else if (highTemp !== null) {
     displayHighTemp = highTemp;
     displayLowTemp = highTemp - 10;
     displayAvgTemp = Math.round((highTemp + displayLowTemp) / 2);
-  } else if (lowTemp > 0) {
+  } else if (lowTemp !== null) {
     displayLowTemp = lowTemp;
     displayHighTemp = lowTemp + 10;
     displayAvgTemp = Math.round((displayHighTemp + lowTemp) / 2);
   } else {
-    // Ultimate fallback
+    // Fallback temperatures
     displayAvgTemp = 72;
     displayHighTemp = 77;
     displayLowTemp = 67;
   }
 
-  // Get description with fallbacks
-  const description = weather.description || 'Weather forecast';
-  
-  // Get icon with fallback
+  // RESILIENT field extraction
+  const description = weather.description || 'Weather forecast available';
   const weatherIcon = weather.icon || '🌤️';
+  const humidity = Math.round(weather.humidity || 50);
+  const windSpeed = Math.round(weather.windSpeed || 5);
+  const precipitationChance = Math.round(weather.precipitationChance || 10);
 
   console.log(`✅ DISPLAYING weather for ${cityName}:`, {
     temps: { high: displayHighTemp, low: displayLowTemp, avg: displayAvgTemp },
     description,
     icon: weatherIcon,
     isActualForecast: weather.isActualForecast,
-    originalData: {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      icon: weather.icon
-    }
+    hasPartialData: !!(weather.temperature || weather.highTemp || weather.lowTemp || weather.description)
   });
 
   const forecastLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';
@@ -153,9 +138,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
         
         <div className="flex justify-between text-xs text-blue-600">
-          <span>💧 {Math.round(weather.precipitationChance || 0)}%</span>
-          <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
-          <span>💦 {Math.round(weather.humidity || 50)}%</span>
+          <span>💧 {precipitationChance}%</span>
+          <span>💨 {windSpeed} mph</span>
+          <span>💦 {humidity}%</span>
         </div>
       </div>
 
@@ -166,6 +151,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           <>📊 Weather estimate</>
         )}
       </div>
+
+      {/* Add partial data indicator for debugging */}
+      {(!weather.temperature && !weather.highTemp && !weather.lowTemp) && (
+        <div className="mt-2 text-xs rounded p-2 text-orange-600 bg-orange-50 border border-orange-200">
+          ⚠️ Forecast available but temperature data is incomplete. Check back shortly.
+        </div>
+      )}
 
       {error && onRetry && !isSharedView && !isPDFExport && (
         <div className="mt-2">

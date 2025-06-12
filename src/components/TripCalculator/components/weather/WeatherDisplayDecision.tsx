@@ -23,30 +23,43 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // COMPREHENSIVE DEBUG LOGGING
-  console.log(`🔍 WeatherDisplayDecision DEBUG for ${segmentEndCity}:`, {
+  // ENHANCED DEBUG LOGGING for June 12 issue
+  console.log(`🌦 WeatherDisplayDecision FORECAST DEBUG for ${segmentEndCity}:`, {
     hasWeather: !!weather,
-    weather: weather,
-    weatherFields: weather ? {
+    segmentDate: segmentDate.toISOString(),
+    forecastObject: weather,
+    specificFields: weather ? {
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
       description: weather.description,
       icon: weather.icon,
       isActualForecast: weather.isActualForecast,
-      cityName: weather.cityName,
-      humidity: weather.humidity,
-      windSpeed: weather.windSpeed,
-      precipitationChance: weather.precipitationChance
+      cityName: weather.cityName
     } : null,
-    segmentDate: segmentDate.toISOString(),
     hasError: !!error,
-    error
+    error,
+    isJune12Debug: segmentDate.toDateString().includes('Jun 12')
   });
 
-  // FORCE RENDER if we have ANY weather object
-  if (weather) {
-    console.log(`✅ RENDERING WeatherDataDisplay for ${segmentEndCity} with weather data:`, weather);
+  // Check if we have ANY displayable weather data
+  const hasDisplayableData = weather && (
+    weather.temperature !== undefined ||
+    weather.highTemp !== undefined ||
+    weather.lowTemp !== undefined ||
+    weather.description ||
+    weather.icon
+  );
+
+  if (hasDisplayableData) {
+    console.log(`✅ RENDERING WeatherDataDisplay for ${segmentEndCity} - has displayable data:`, {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      icon: weather.icon,
+      isActualForecast: weather.isActualForecast
+    });
     
     return (
       <WeatherDataDisplay
@@ -61,14 +74,18 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     );
   }
 
-  console.log(`❌ NO WEATHER DATA - showing fallback for ${segmentEndCity}`);
+  console.log(`❌ NO DISPLAYABLE DATA - showing fallback for ${segmentEndCity}:`, {
+    hasWeather: !!weather,
+    weatherFields: weather ? Object.keys(weather) : [],
+    reason: 'no_displayable_fields'
+  });
   
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || 'No weather data available'}
+      error={error || 'Weather data incomplete'}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );
