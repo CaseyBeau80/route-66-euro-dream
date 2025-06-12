@@ -23,19 +23,16 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 WeatherDataDisplay ENHANCED RENDERING for ${cityName}:`, {
+  console.log(`🌦 ENHANCED DEBUG: WeatherDataDisplay render for ${cityName}:`, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
-    weatherData: weather ? {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
-      isActualForecast: weather.isActualForecast
-    } : null
+    weather: weather,
+    weatherKeys: weather ? Object.keys(weather) : [],
+    componentProps: { cityName, error, isSharedView, isPDFExport }
   });
 
   if (!weather) {
+    console.log(`❌ ENHANCED DEBUG: No weather data, showing fallback for ${cityName}`);
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
@@ -47,22 +44,52 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
+  console.log(`🔍 ENHANCED DEBUG: Processing weather data for ${cityName}:`, {
+    temperature: weather.temperature,
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
+    description: weather.description,
+    icon: weather.icon,
+    humidity: weather.humidity,
+    windSpeed: weather.windSpeed,
+    precipitationChance: weather.precipitationChance,
+    isActualForecast: weather.isActualForecast
+  });
+
   // ENHANCED: More robust temperature extraction with better fallbacks
   const getTemperature = (value: any): number => {
-    if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
+    console.log(`🌡️ ENHANCED DEBUG: Processing temperature value:`, { value, type: typeof value });
+    
+    if (typeof value === 'number' && !isNaN(value)) {
+      console.log(`✅ ENHANCED DEBUG: Valid number temperature: ${value}`);
+      return Math.round(value);
+    }
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
-      if (!isNaN(parsed)) return Math.round(parsed);
+      if (!isNaN(parsed)) {
+        console.log(`✅ ENHANCED DEBUG: Parsed string temperature: ${parsed}`);
+        return Math.round(parsed);
+      }
     }
     if (value && typeof value === 'object') {
-      if (typeof value.high === 'number') return Math.round(value.high);
-      if (typeof value.low === 'number') return Math.round(value.low);
-      if (typeof value.temp === 'number') return Math.round(value.temp);
+      if (typeof value.high === 'number') {
+        console.log(`✅ ENHANCED DEBUG: Using object.high temperature: ${value.high}`);
+        return Math.round(value.high);
+      }
+      if (typeof value.low === 'number') {
+        console.log(`✅ ENHANCED DEBUG: Using object.low temperature: ${value.low}`);
+        return Math.round(value.low);
+      }
+      if (typeof value.temp === 'number') {
+        console.log(`✅ ENHANCED DEBUG: Using object.temp temperature: ${value.temp}`);
+        return Math.round(value.temp);
+      }
     }
-    return 0; // Return 0 instead of default temperature
+    console.log(`⚠️ ENHANCED DEBUG: No valid temperature found, using fallback`);
+    return 0;
   };
 
-  // Extract weather data with enhanced fallbacks
+  // Extract weather data with enhanced fallbacks and debugging
   const highTemp = getTemperature(weather.highTemp) || 
                    getTemperature(weather.temperature) || 
                    getTemperature((weather as any).temp_max) || 
@@ -92,10 +119,14 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const precipitationChance = Math.round(weather.precipitationChance || 
                                         (weather as any).pop * 100 || 10);
 
-  console.log(`✅ ENHANCED WEATHER DISPLAY for ${cityName}:`, {
+  console.log(`✅ ENHANCED DEBUG: Final weather display data for ${cityName}:`, {
     high: highTemp,
     low: lowTemp,
     description,
+    weatherIcon,
+    humidity,
+    windSpeed,
+    precipitationChance,
     isActualForecast: weather.isActualForecast,
     hasValidTemps: highTemp > 0 && lowTemp > 0
   });

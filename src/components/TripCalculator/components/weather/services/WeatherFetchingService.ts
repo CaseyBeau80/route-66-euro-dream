@@ -13,9 +13,19 @@ export class WeatherFetchingService {
     setError: (error: string | null) => void,
     setWeather: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
+    console.log(`🚀 ENHANCED DEBUG: Starting weather fetch for ${segmentEndCity}`);
+    console.log(`📅 ENHANCED DEBUG: Segment date:`, segmentDate.toISOString());
+    
     const dateString = DateNormalizationService.toDateString(segmentDate);
     const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
+    console.log(`🔍 ENHANCED DEBUG: Date calculations:`, {
+      dateString,
+      daysFromNow,
+      withinForecastRange: daysFromNow >= 0 && daysFromNow <= 5,
+      segmentEndCity
+    });
+
     WeatherDataDebugger.debugWeatherFlow(
       `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}]`,
       {
@@ -30,29 +40,46 @@ export class WeatherFetchingService {
     setError(null);
 
     try {
+      console.log(`🔧 ENHANCED DEBUG: Getting weather service instance...`);
       const weatherService = EnhancedWeatherService.getInstance();
       
+      if (!weatherService) {
+        console.error(`❌ ENHANCED DEBUG: Weather service is null/undefined!`);
+        setError('Weather service not available');
+        setLoading(false);
+        return;
+      }
+
+      console.log(`🔑 ENHANCED DEBUG: Checking API key...`);
       if (!weatherService.hasApiKey()) {
-        console.warn(`❌ No API key for weather service`);
+        console.warn(`❌ ENHANCED DEBUG: No API key for weather service`);
         setError('Weather API key not configured');
         setLoading(false);
         return;
       }
 
+      console.log(`✅ ENHANCED DEBUG: API key confirmed, getting coordinates...`);
+      
       // Get coordinates for the city
       const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
       if (!coordinates) {
-        console.warn(`❌ No coordinates found for ${segmentEndCity}`);
+        console.warn(`❌ ENHANCED DEBUG: No coordinates found for ${segmentEndCity}`);
         setError(`Location not found: ${segmentEndCity}`);
         setLoading(false);
         return;
       }
 
+      console.log(`📍 ENHANCED DEBUG: Coordinates found:`, coordinates);
+
       // Set a timeout for the weather fetch
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Weather fetch timeout')), 10000);
+        setTimeout(() => {
+          console.error(`⏰ ENHANCED DEBUG: Weather fetch timeout for ${segmentEndCity}`);
+          reject(new Error('Weather fetch timeout'));
+        }, 10000);
       });
 
+      console.log(`🌤️ ENHANCED DEBUG: Making weather API call...`);
       const weatherPromise = weatherService.getWeatherForDate(
         coordinates.lat,
         coordinates.lng,
@@ -62,23 +89,39 @@ export class WeatherFetchingService {
 
       const weatherData = await Promise.race([weatherPromise, timeoutPromise]);
 
+      console.log(`📊 ENHANCED DEBUG: Raw weather response:`, {
+        hasData: !!weatherData,
+        weatherData: weatherData,
+        dataType: typeof weatherData,
+        keys: weatherData ? Object.keys(weatherData) : [],
+        segmentEndCity
+      });
+
       if (weatherData) {
-        console.log(`✅ Weather data fetched successfully for ${segmentEndCity}:`, {
-          hasData: true,
-          isActualForecast: weatherData.isActualForecast,
-          dateString,
+        console.log(`✅ ENHANCED DEBUG: Weather data received, setting state...`);
+        console.log(`🌡️ ENHANCED DEBUG: Temperature data:`, {
           temperature: weatherData.temperature,
-          description: weatherData.description
+          highTemp: weatherData.highTemp,
+          lowTemp: weatherData.lowTemp,
+          description: weatherData.description,
+          isActualForecast: weatherData.isActualForecast,
+          cityName: weatherData.cityName
         });
         
         setWeather(weatherData);
         setError(null);
+        
+        console.log(`🎉 ENHANCED DEBUG: Weather state updated successfully for ${segmentEndCity}`);
       } else {
-        console.warn(`⚠️ No weather data returned for ${segmentEndCity}`);
+        console.warn(`⚠️ ENHANCED DEBUG: No weather data returned for ${segmentEndCity}`);
         setError('No weather data available');
       }
     } catch (error) {
-      console.error(`❌ Weather fetch failed for ${segmentEndCity}:`, error);
+      console.error(`❌ ENHANCED DEBUG: Weather fetch error for ${segmentEndCity}:`, {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : 'No stack'
+      });
       
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
@@ -92,6 +135,7 @@ export class WeatherFetchingService {
         setError('Weather service error');
       }
     } finally {
+      console.log(`🏁 ENHANCED DEBUG: Weather fetch completed for ${segmentEndCity}`);
       setLoading(false);
     }
   }
