@@ -1,244 +1,155 @@
 
-import { WeatherData, ForecastDay, WeatherWithForecast } from './WeatherServiceTypes';
+import { ForecastDay } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDataProcessor {
-  static processCurrentWeather(data: any, cityName: string): WeatherData {
-    return {
-      temperature: Math.round(data.main.temp),
-      description: data.weather[0].description,
-      icon: data.weather[0].icon,
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind?.speed || 0),
-      precipitationChance: 0,
-      cityName: cityName
-    };
-  }
-
-  static processWeatherData(data: any, cityName: string): WeatherData {
-    return {
-      temperature: Math.round(data.main.temp),
-      description: data.weather[0].description,
-      icon: data.weather[0].icon,
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind?.speed || 0),
-      precipitationChance: 0,
-      cityName: cityName
-    };
-  }
-
-  static processWeatherWithForecast(
-    currentData: any,
-    forecastData: any,
-    cityName: string
-  ): WeatherWithForecast {
-    const currentWeather = this.processCurrentWeather(currentData, cityName);
-    const forecast = this.processEnhancedForecastData(forecastData, new Date(), 5);
-    
-    return {
-      ...currentWeather,
-      forecast: forecast
-    };
-  }
-
-  /**
-   * Normalize date to UTC midnight for exact matching
-   */
-  private static normalizeToUtcMidnight(date: Date): Date {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  }
-
   static processEnhancedForecastData(
-    forecastData: any, 
-    targetDate: Date, 
+    forecastData: any,
+    targetDate: Date,
     maxDays: number = 5
   ): ForecastDay[] {
-    if (!forecastData?.list) {
-      console.warn('⚠️ WeatherDataProcessor: No forecast list found');
-      return [];
-    }
-
-    console.log(`📊 WeatherDataProcessor: Processing forecast for target date ${targetDate.toISOString()}`);
+    const processed: ForecastDay[] = [];
     
-    // Group forecast items by date to aggregate daily high/low temperatures
-    const dailyForecasts = new Map<string, {
-      temps: number[],
-      descriptions: string[],
-      icons: string[],
-      humidity: number[],
-      windSpeed: number[],
-      precipitationChances: number[]
-    }>();
+    console.log('🔧 WeatherDataProcessor.processEnhancedForecastData:', {
+      forecastDataKeys: Object.keys(forecastData || {}),
+      forecastList: forecastData?.list?.length || 0,
+      targetDate: targetDate.toISOString(),
+      maxDays
+    });
 
-    // First pass: collect all forecast items and group by date
-    for (const item of forecastData.list) {
-      if (!item.dt_txt) continue;
-
-      const forecastDate = new Date(item.dt_txt);
-      if (isNaN(forecastDate.getTime())) continue;
-
-      const normalizedForecastDate = this.normalizeToUtcMidnight(forecastDate);
-      const forecastDateString = DateNormalizationService.toDateString(normalizedForecastDate);
-      
-      if (!dailyForecasts.has(forecastDateString)) {
-        dailyForecasts.set(forecastDateString, {
-          temps: [],
-          descriptions: [],
-          icons: [],
-          humidity: [],
-          windSpeed: [],
-          precipitationChances: []
-        });
-      }
-
-      const dayData = dailyForecasts.get(forecastDateString)!;
-      
-      // Collect all temperature readings for this date
-      dayData.temps.push(item.main.temp);
-      if (item.main.temp_max) dayData.temps.push(item.main.temp_max);
-      if (item.main.temp_min) dayData.temps.push(item.main.temp_min);
-      
-      dayData.descriptions.push(item.weather[0].description);
-      dayData.icons.push(item.weather[0].icon);
-      dayData.humidity.push(item.main.humidity);
-      dayData.windSpeed.push(item.wind?.speed || 0);
-      dayData.precipitationChances.push((item.pop || 0) * 100);
-
-      console.log(`🌡️ COLLECTED TEMPS for ${forecastDateString}:`, {
-        itemTemp: item.main.temp,
-        itemTempMax: item.main.temp_max,
-        itemTempMin: item.main.temp_min,
-        allTempsForDay: dayData.temps
-      });
+    if (!forecastData?.list || !Array.isArray(forecastData.list)) {
+      console.warn('❌ WeatherDataProcessor: Invalid forecast data structure');
+      return processed;
     }
 
-    // Second pass: calculate daily aggregates
-    const processedForecasts: ForecastDay[] = [];
+    // Group forecasts by date
+    const forecastsByDate: { [date: string]: any[] } = {};
+    
+    forecastData.list.forEach((item: any, index: number) => {
+      try {
+        const itemDate = new Date(item.dt * 1000);
+        const dateString = DateNormalizationService.toDateString(itemDate);
+        
+        if (!forecastsByDate[dateString]) {
+          forecastsByDate[dateString] = [];
+        }
+        
+        // Enhanced temperature extraction
+        const temperature = this.extractTemperatureFromForecastItem(item);
+        
+        forecastsByDate[dateString].push({
+          ...item,
+          itemDate,
+          dateString,
+          processedTemperature: temperature
+        });
 
-    for (const [dateString, dayData] of dailyForecasts.entries()) {
-      if (dayData.temps.length === 0) continue;
+        console.log(`📦 Processed forecast item ${index} for ${dateString}:`, {
+          original: item,
+          processedTemperature: temperature,
+          datetime: itemDate.toISOString()
+        });
+      } catch (error) {
+        console.error('❌ Error processing forecast item:', error, item);
+      }
+    });
 
-      // Calculate actual daily high and low from all temperature readings
-      const highTemp = Math.round(Math.max(...dayData.temps));
-      const lowTemp = Math.round(Math.min(...dayData.temps));
+    // Create daily summaries
+    Object.entries(forecastsByDate).forEach(([dateString, items]) => {
+      if (processed.length >= maxDays) return;
+      
+      const dailySummary = this.createDailySummary(dateString, items);
+      processed.push(dailySummary);
+      
+      console.log(`📊 Created daily summary for ${dateString}:`, dailySummary);
+    });
 
-      console.log(`🌡️ TEMPERATURE AGGREGATION for ${dateString}:`, {
-        allTemps: dayData.temps,
-        calculatedHigh: highTemp,
-        calculatedLow: lowTemp,
-        tempDifference: highTemp - lowTemp,
-        validRange: highTemp !== lowTemp ? 'YES' : 'SAME_TEMP'
-      });
+    console.log('✅ WeatherDataProcessor completed:', {
+      processedCount: processed.length,
+      dates: processed.map(p => p.dateString)
+    });
 
-      // Use the most common description and icon
-      const mostCommonDescription = this.getMostCommon(dayData.descriptions);
-      const mostCommonIcon = this.getMostCommon(dayData.icons);
-      const avgHumidity = Math.round(dayData.humidity.reduce((a, b) => a + b, 0) / dayData.humidity.length);
-      const avgWindSpeed = Math.round(dayData.windSpeed.reduce((a, b) => a + b, 0) / dayData.windSpeed.length);
-      const avgPrecipitationChance = Math.round(dayData.precipitationChances.reduce((a, b) => a + b, 0) / dayData.precipitationChances.length);
+    return processed;
+  }
 
-      const forecastEntry: ForecastDay = {
-        date: dateString,
-        dateString: dateString,
-        temperature: {
-          high: highTemp,
-          low: lowTemp
-        },
-        description: mostCommonDescription,
-        icon: mostCommonIcon,
-        precipitationChance: avgPrecipitationChance.toString(),
-        humidity: avgHumidity,
-        windSpeed: avgWindSpeed
+  private static extractTemperatureFromForecastItem(item: any): number | { high: number; low: number } {
+    console.log('🌡️ Extracting temperature from forecast item:', {
+      item,
+      main: item.main,
+      temp: item.main?.temp,
+      temp_max: item.main?.temp_max,
+      temp_min: item.main?.temp_min
+    });
+
+    // Try different temperature extraction strategies
+    if (item.main?.temp_max !== undefined && item.main?.temp_min !== undefined) {
+      return {
+        high: Math.round(item.main.temp_max),
+        low: Math.round(item.main.temp_min)
       };
-
-      processedForecasts.push(forecastEntry);
-      
-      console.log(`📅 FINAL PROCESSED forecast for ${dateString}:`, {
-        high: forecastEntry.temperature.high,
-        low: forecastEntry.temperature.low,
-        description: forecastEntry.description,
-        tempDifference: forecastEntry.temperature.high - forecastEntry.temperature.low,
-        hasRealisticRange: forecastEntry.temperature.high > forecastEntry.temperature.low
-      });
-
-      // Stop once we have enough days
-      if (processedForecasts.length >= maxDays) break;
-    }
-
-    console.log(`✅ WeatherDataProcessor: Processed ${processedForecasts.length} forecast days with aggregated temperatures`);
-    return processedForecasts;
-  }
-
-  /**
-   * Helper method to find the most common value in an array
-   */
-  private static getMostCommon<T>(arr: T[]): T {
-    const counts = new Map<T, number>();
-    for (const item of arr) {
-      counts.set(item, (counts.get(item) || 0) + 1);
-    }
-    
-    let mostCommon = arr[0];
-    let maxCount = 0;
-    
-    for (const [item, count] of counts.entries()) {
-      if (count > maxCount) {
-        maxCount = count;
-        mostCommon = item;
-      }
-    }
-    
-    return mostCommon;
-  }
-
-  /**
-   * Find forecast for exact date match with fallback to closest within 12 hours
-   */
-  static findForecastForDate(forecasts: ForecastDay[], targetDate: Date): ForecastDay | null {
-    const normalizedTargetDate = this.normalizeToUtcMidnight(targetDate);
-    const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
-    
-    console.log(`🎯 WeatherDataProcessor: Looking for exact match for ${targetDateString}`);
-    
-    // First try exact date match
-    for (const forecast of forecasts) {
-      if (forecast.dateString === targetDateString) {
-        console.log(`✅ Found exact date match for ${targetDateString}:`, {
-          high: forecast.temperature.high,
-          low: forecast.temperature.low,
-          validTemperatureRange: forecast.temperature.high !== forecast.temperature.low
-        });
-        return forecast;
-      }
-    }
-
-    // Fallback: Find closest date within ±12 hours
-    let closestForecast: ForecastDay | null = null;
-    let smallestOffset = Infinity;
-
-    for (const forecast of forecasts) {
-      if (!forecast.dateString) continue;
-      
-      const forecastDate = new Date(forecast.dateString + 'T00:00:00Z');
-      const offsetHours = Math.abs((forecastDate.getTime() - normalizedTargetDate.getTime()) / (60 * 60 * 1000));
-      
-      // Only consider forecasts within 12 hours (0.5 days)
-      if (offsetHours <= 12 && offsetHours < smallestOffset) {
-        closestForecast = forecast;
-        smallestOffset = offsetHours;
-      }
-    }
-
-    if (closestForecast) {
-      console.log(`📍 Found closest match for ${targetDateString}: ${closestForecast.dateString} (${smallestOffset.toFixed(1)} hours offset):`, {
-        high: closestForecast.temperature.high,
-        low: closestForecast.temperature.low,
-        validTemperatureRange: closestForecast.temperature.high !== closestForecast.temperature.low
-      });
+    } else if (item.main?.temp !== undefined) {
+      return Math.round(item.main.temp);
+    } else if (item.temp !== undefined) {
+      return Math.round(item.temp);
     } else {
-      console.log(`❌ No suitable forecast found within 12 hours for ${targetDateString}`);
+      console.warn('⚠️ No temperature data found in forecast item:', item);
+      return 70; // Fallback temperature
     }
+  }
 
-    return closestForecast;
+  private static createDailySummary(dateString: string, items: any[]): ForecastDay {
+    const firstItem = items[0];
+    const date = new Date(dateString + 'T12:00:00');
+    
+    // Extract temperatures from all items for this day
+    const temperatures = items.map(item => item.processedTemperature).filter(Boolean);
+    const descriptions = items.map(item => item.weather?.[0]?.description).filter(Boolean);
+    const icons = items.map(item => item.weather?.[0]?.icon).filter(Boolean);
+    const humidity = items.map(item => item.main?.humidity).filter(h => h !== undefined);
+    const windSpeeds = items.map(item => item.wind?.speed).filter(w => w !== undefined);
+    
+    // Calculate temperature range
+    let temperature: number | { high: number; low: number };
+    
+    if (temperatures.length > 0) {
+      const allHighs: number[] = [];
+      const allLows: number[] = [];
+      
+      temperatures.forEach(temp => {
+        if (typeof temp === 'object' && temp.high !== undefined && temp.low !== undefined) {
+          allHighs.push(temp.high);
+          allLows.push(temp.low);
+        } else if (typeof temp === 'number') {
+          allHighs.push(temp);
+          allLows.push(temp);
+        }
+      });
+      
+      if (allHighs.length > 0 && allLows.length > 0) {
+        temperature = {
+          high: Math.round(Math.max(...allHighs)),
+          low: Math.round(Math.min(...allLows))
+        };
+      } else {
+        temperature = 70; // Fallback
+      }
+    } else {
+      temperature = 70; // Fallback
+    }
+    
+    const summary: ForecastDay = {
+      date,
+      dateString,
+      temperature,
+      description: descriptions[0] || 'Clear',
+      icon: icons[0] || '01d',
+      humidity: humidity.length > 0 ? Math.round(humidity.reduce((a, b) => a + b) / humidity.length) : 50,
+      windSpeed: windSpeeds.length > 0 ? Math.round(windSpeeds.reduce((a, b) => a + b) / windSpeeds.length) : 5,
+      precipitationChance: 0
+    };
+
+    console.log(`📈 Daily summary created for ${dateString}:`, summary);
+    
+    return summary;
   }
 }
