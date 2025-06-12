@@ -65,6 +65,18 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
+  // 🎯 NEW: Add segment render attempt logging
+  React.useEffect(() => {
+    WeatherDebugService.logSegmentRenderAttempt(segment.endCity, segment.day, {
+      weather: weatherState.weather,
+      loading: weatherState.loading,
+      error: weatherState.error,
+      segmentDate,
+      hasApiKey,
+      sectionKey
+    });
+  }, [segment.endCity, segment.day, weatherState.weather, weatherState.loading, weatherState.error, segmentDate, hasApiKey, sectionKey]);
+
   // Debug logging for component state
   WeatherDebugService.logComponentRender('SegmentWeatherWidget', segment.endCity, {
     hasApiKey,
@@ -89,6 +101,9 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   // Mark weather as ready for rendering
   React.useEffect(() => {
     if (weatherState.weather && !weatherState.loading && segmentDate) {
+      // 🎯 NEW: Add weather state set logging
+      WeatherDebugService.logWeatherStateSet(segment.endCity, weatherState.weather);
+      
       const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
       if (element) {
         element.setAttribute('data-weather-loaded', 'true');
@@ -99,7 +114,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         }
       }
     }
-  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate]);
+  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate, segment.endCity]);
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 

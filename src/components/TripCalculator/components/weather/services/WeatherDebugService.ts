@@ -40,4 +40,60 @@ export class WeatherDebugService {
       isValid: !!output
     });
   }
+
+  // 🎯 NEW: Add the specific debug markers you requested
+  static logForecastApiRawResponse(city: string, response: any) {
+    console.log(`🛰️ [Forecast API Raw Response] ${city}`, {
+      hasResponse: !!response,
+      temperature: response?.temperature,
+      highTemp: response?.highTemp,
+      lowTemp: response?.lowTemp,
+      isActualForecast: response?.isActualForecast,
+      description: response?.description,
+      fullResponse: response
+    });
+  }
+
+  static logNormalizedForecastOutput(city: string, normalized: any) {
+    console.log(`🔁 [Normalized Forecast Output] ${city}`, {
+      hasNormalized: !!normalized,
+      isValid: normalized?.isValid,
+      temperature: normalized?.temperature,
+      highTemp: normalized?.highTemp,
+      lowTemp: normalized?.lowTemp,
+      source: normalized?.source,
+      fullNormalized: normalized
+    });
+  }
+
+  static logWeatherStateSet(city: string, weatherData: any) {
+    console.log(`📦 [Weather State SET] ${city}`, {
+      hasWeatherData: !!weatherData,
+      temperature: weatherData?.temperature,
+      highTemp: weatherData?.highTemp,
+      lowTemp: weatherData?.lowTemp,
+      isActualForecast: weatherData?.isActualForecast,
+      fullWeatherData: weatherData
+    });
+  }
+
+  static logSegmentRenderAttempt(city: string, day: number, renderData: any) {
+    console.log(`🧩 [Segment Render Attempt] Day ${day} - ${city}`, {
+      hasWeather: !!renderData.weather,
+      loading: renderData.loading,
+      error: renderData.error,
+      segmentDate: renderData.segmentDate?.toISOString(),
+      weatherTemperature: renderData.weather?.temperature,
+      renderData
+    });
+  }
+
+  static logPdfWeatherExport(city: string, day: number, exportData: any) {
+    console.log(`📄 [PDF Weather Export] Day ${day} - ${city}`, {
+      hasWeather: !!(exportData.weather || exportData.weatherData),
+      weatherValid: exportData.weather ? !!(exportData.weather.highTemp || exportData.weather.lowTemp || exportData.weather.temperature) : false,
+      temperature: exportData.weather?.temperature || exportData.weatherData?.temperature,
+      exportData
+    });
+  }
 }

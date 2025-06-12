@@ -1,9 +1,9 @@
-
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { getWeatherDataForTripDate } from '../weather/getWeatherDataForTripDate';
 import { WeatherCountingService } from '../weather/services/WeatherCountingService';
 import { WeatherPersistenceService } from '../weather/services/WeatherPersistenceService';
 import { WeatherDataNormalizer } from '../weather/services/WeatherDataNormalizer';
+import { WeatherDebugService } from '../weather/services/WeatherDebugService';
 
 export class PDFWeatherIntegrationService {
   static async enrichSegmentsWithWeather(
@@ -146,6 +146,9 @@ export class PDFWeatherIntegrationService {
                   }
                 });
 
+                // 🎯 NEW: Use specific debug marker for normalized forecast output
+                WeatherDebugService.logNormalizedForecastOutput(segment.endCity, normalized);
+
                 console.log(`💾 Persisted new weather data for Day ${segment.day}`);
               }
             }
@@ -167,14 +170,8 @@ export class PDFWeatherIntegrationService {
           weatherData: weatherData // Backup property
         };
         
-        // 🚨 DEBUG INJECTION: Segment enrichment completion logging
-        console.log('🚨 DEBUG: PDFWeatherIntegrationService segment enriched', {
-          day: segment.day,
-          endCity: segment.endCity,
-          hasWeather: !!enrichedSegment.weather,
-          hasWeatherData: !!enrichedSegment.weatherData,
-          weatherValid: enrichedSegment.weather ? !!(enrichedSegment.weather.highTemp || enrichedSegment.weather.lowTemp || enrichedSegment.weather.temperature) : false
-        });
+        // 🎯 NEW: Use specific debug marker for PDF export logging
+        WeatherDebugService.logPdfWeatherExport(segment.endCity, segment.day, enrichedSegment);
         
         enrichedSegments.push(enrichedSegment);
         console.log(`✅ Weather data enriched for Day ${segment.day}`);

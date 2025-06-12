@@ -7,6 +7,7 @@ import { WeatherDataDebugger } from '../WeatherDataDebugger';
 import { WeatherDataValidator } from '../utils/WeatherDataValidator';
 import { WeatherDataNormalizer } from './WeatherDataNormalizer';
 import { WeatherPersistenceService } from './WeatherPersistenceService';
+import { WeatherDebugService } from './WeatherDebugService';
 
 export class WeatherFetchingService {
   private static weatherService = EnhancedWeatherService.getInstance();
@@ -41,6 +42,10 @@ export class WeatherFetchingService {
         isActualForecast: cachedWeather.isActualForecast,
         dateMatchInfo: cachedWeather.dateMatchInfo
       };
+      
+      // 🎯 NEW: Use specific debug marker for cached weather state set
+      WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
+      
       setWeather(forecastData);
       return;
     }
@@ -99,12 +104,18 @@ export class WeatherFetchingService {
       });
 
       if (weatherData) {
+        // 🎯 NEW: Use specific debug marker for forecast API response
+        WeatherDebugService.logForecastApiRawResponse(segmentEndCity, weatherData);
+        
         // Normalize and validate the data
         const normalizedData = WeatherDataNormalizer.normalizeWeatherData(
           weatherData, 
           segmentEndCity, 
           normalizedSegmentDate
         );
+        
+        // 🎯 NEW: Use specific debug marker for normalized forecast output
+        WeatherDebugService.logNormalizedForecastOutput(segmentEndCity, normalizedData);
         
         if (normalizedData && WeatherDataValidator.validateNormalizedData(normalizedData)) {
           // Store in persistence service
@@ -121,10 +132,17 @@ export class WeatherFetchingService {
             }
           );
 
+          // 🎯 NEW: Use specific debug marker for weather state set
+          WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
+
           setWeather(weatherData);
           console.log(`✅ WEATHER SET AND PERSISTED for ${segmentEndCity}:`, normalizedData);
         } else {
           console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}`);
+          
+          // 🎯 NEW: Use specific debug marker even for failed normalization
+          WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
+          
           setWeather(weatherData); // Try to use anyway
         }
       } else {

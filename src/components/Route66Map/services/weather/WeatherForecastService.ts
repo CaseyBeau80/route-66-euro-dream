@@ -5,6 +5,7 @@ import { DateNormalizationService } from '../../../TripCalculator/components/wea
 import { EnhancedWeatherForecastMatcher } from '../../../TripCalculator/components/weather/EnhancedWeatherForecastMatcher';
 import { SeasonalWeatherGenerator } from '../../../TripCalculator/components/weather/SeasonalWeatherGenerator';
 import { WeatherDataDebugger } from '../../../TripCalculator/components/weather/WeatherDataDebugger';
+import { WeatherDebugService } from '../../../TripCalculator/components/weather/services/WeatherDebugService';
 
 export interface ForecastWeatherData extends WeatherData {
   forecast: ForecastDay[];
@@ -97,18 +98,8 @@ export class WeatherForecastService {
 
       const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
       
-      // 🚨 DEBUG INJECTION: API result logging
-      console.log('🚨 DEBUG: WeatherForecastService actual forecast result', {
-        cityName,
-        targetDateString,
-        hasResult: !!actualForecast,
-        isActualForecast: actualForecast?.isActualForecast,
-        temperature: actualForecast?.temperature,
-        highTemp: actualForecast?.highTemp,
-        lowTemp: actualForecast?.lowTemp,
-        source: actualForecast?.dateMatchInfo?.source,
-        matchType: actualForecast?.dateMatchInfo?.matchType
-      });
+      // 🎯 NEW: Use specific debug marker for raw API response
+      WeatherDebugService.logForecastApiRawResponse(cityName, actualForecast);
 
       if (actualForecast) {
         WeatherDataDebugger.debugApiResponse(cityName, targetDateString, actualForecast);
@@ -151,19 +142,8 @@ export class WeatherForecastService {
     // Return enhanced fallback
     const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
     
-    // 🚨 DEBUG INJECTION: Fallback logging
-    console.log('🚨 DEBUG: WeatherForecastService RETURNING FALLBACK FORECAST', {
-      cityName,
-      targetDateString,
-      fallbackResult: {
-        temperature: fallbackForecast.temperature,
-        highTemp: fallbackForecast.highTemp,
-        lowTemp: fallbackForecast.lowTemp,
-        isActualForecast: fallbackForecast.isActualForecast,
-        description: fallbackForecast.description,
-        source: fallbackForecast.dateMatchInfo?.source
-      }
-    });
+    // 🎯 NEW: Use specific debug marker for fallback response
+    WeatherDebugService.logForecastApiRawResponse(cityName, fallbackForecast);
     
     WeatherDataDebugger.debugApiResponse(cityName, targetDateString, fallbackForecast);
     return fallbackForecast;
