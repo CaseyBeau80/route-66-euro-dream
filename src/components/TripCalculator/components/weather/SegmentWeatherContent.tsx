@@ -4,7 +4,6 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import WeatherApiKeyHandler from './WeatherApiKeyHandler';
 import WeatherStateHandler from './WeatherStateHandler';
 import WeatherDisplayDecision from './WeatherDisplayDecision';
-import { WeatherDataDebugger } from './WeatherDataDebugger';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -35,26 +34,30 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🚨 CRITICAL SegmentWeatherContent ANALYSIS for', segmentEndCity, ':', {
+  // ENHANCED DEBUG LOGGING
+  console.log(`🚨 SegmentWeatherContent ENHANCED DEBUG for ${segmentEndCity}:`, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
     hasError: !!error,
     hasSegmentDate: !!segmentDate,
-    segmentDate: segmentDate?.toISOString(),
     retryCount,
     weatherSummary: weather ? {
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
       description: weather.description,
-      isActualForecast: weather.isActualForecast
-    } : null
+      icon: weather.icon,
+      isActualForecast: weather.isActualForecast,
+      cityName: weather.cityName
+    } : null,
+    segmentDate: segmentDate?.toISOString(),
+    error
   });
 
-  // Enhanced weather data analysis if available
+  // Add detailed forecast data logging
   if (weather) {
-    WeatherDataDebugger.debugWeatherFieldsForUser(segmentEndCity, weather, 'SEGMENT_CONTENT');
+    console.log(`📊 FORECAST DATA DETAILED ANALYSIS for ${segmentEndCity}:`, weather);
   }
 
   return (
