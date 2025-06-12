@@ -1,17 +1,17 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 export class WeatherDataValidator {
   static validateWeatherData(data: ForecastWeatherData, city: string, dateString: string): boolean {
-    console.log('🔍 WeatherDataValidator for', city, 'on', dateString, ':', data);
+    console.log('🔍 WeatherDataValidator ULTRA-PERMISSIVE for', city, 'on', dateString, ':', data);
 
-    // ULTRA-PERMISSIVE: Accept ANY weather data object
-    const isValid = !!data;
+    // ULTRA-PERMISSIVE: Accept ANY non-null weather data object
+    const isValid = !!data && typeof data === 'object';
     
     console.log('✅ ULTRA-PERMISSIVE VALIDATION for', city, ':', {
       isValid,
       hasData: !!data,
+      isObject: typeof data === 'object',
       willRender: isValid
     });
 
@@ -21,12 +21,13 @@ export class WeatherDataValidator {
   static validateLiveForecastData(data: ForecastWeatherData): boolean {
     console.log('🔍 validateLiveForecastData - ULTRA-PERMISSIVE');
     
-    // Accept any data object
-    const isValid = !!data;
+    // Accept any non-null data object
+    const isValid = !!data && typeof data === 'object';
     
     console.log('✅ LIVE FORECAST VALIDATION (ULTRA-PERMISSIVE):', {
       isValid,
-      hasData: !!data
+      hasData: !!data,
+      isObject: typeof data === 'object'
     });
     
     return isValid;

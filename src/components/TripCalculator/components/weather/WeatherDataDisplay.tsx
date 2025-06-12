@@ -23,11 +23,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ENHANCED DEBUG for June 12 rendering issue
-  console.log(`🌦 WeatherDataDisplay RENDER DEBUG for ${cityName}:`, {
+  console.log(`🌦 WeatherDataDisplay RENDER for ${cityName}:`, {
     hasWeather: !!weather,
-    weather,
-    isJune12: segmentDate?.toDateString().includes('Jun 12')
+    weather
   });
 
   if (!weather) {
@@ -43,49 +41,22 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // RESILIENT temperature extraction with better fallbacks
-  const getDisplayTemp = (value: any): number | null => {
+  // SIMPLIFIED temperature extraction with better defaults
+  const getTemp = (value: any): number => {
     if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) return Math.round(parsed);
     }
-    return null;
+    return 72; // Default temperature
   };
 
-  const highTemp = getDisplayTemp(weather.highTemp);
-  const lowTemp = getDisplayTemp(weather.lowTemp);
-  const avgTemp = getDisplayTemp(weather.temperature);
+  // Extract temperatures with fallbacks
+  const highTemp = getTemp(weather.highTemp) || getTemp(weather.temperature) || 77;
+  const lowTemp = getTemp(weather.lowTemp) || getTemp(weather.temperature) || 67;
+  const avgTemp = Math.round((highTemp + lowTemp) / 2);
 
-  // SMART temperature display logic
-  let displayHighTemp: number;
-  let displayLowTemp: number;
-  let displayAvgTemp: number;
-
-  if (highTemp !== null && lowTemp !== null) {
-    displayHighTemp = highTemp;
-    displayLowTemp = lowTemp;
-    displayAvgTemp = Math.round((highTemp + lowTemp) / 2);
-  } else if (avgTemp !== null) {
-    displayAvgTemp = avgTemp;
-    displayHighTemp = avgTemp + 5;
-    displayLowTemp = avgTemp - 5;
-  } else if (highTemp !== null) {
-    displayHighTemp = highTemp;
-    displayLowTemp = highTemp - 10;
-    displayAvgTemp = Math.round((highTemp + displayLowTemp) / 2);
-  } else if (lowTemp !== null) {
-    displayLowTemp = lowTemp;
-    displayHighTemp = lowTemp + 10;
-    displayAvgTemp = Math.round((displayHighTemp + lowTemp) / 2);
-  } else {
-    // Fallback temperatures
-    displayAvgTemp = 72;
-    displayHighTemp = 77;
-    displayLowTemp = 67;
-  }
-
-  // RESILIENT field extraction
+  // Extract other fields with defaults
   const description = weather.description || 'Weather forecast available';
   const weatherIcon = weather.icon || '🌤️';
   const humidity = Math.round(weather.humidity || 50);
@@ -93,11 +64,10 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const precipitationChance = Math.round(weather.precipitationChance || 10);
 
   console.log(`✅ DISPLAYING weather for ${cityName}:`, {
-    temps: { high: displayHighTemp, low: displayLowTemp, avg: displayAvgTemp },
+    temps: { high: highTemp, low: lowTemp, avg: avgTemp },
     description,
     icon: weatherIcon,
-    isActualForecast: weather.isActualForecast,
-    hasPartialData: !!(weather.temperature || weather.highTemp || weather.lowTemp || weather.description)
+    isActualForecast: weather.isActualForecast
   });
 
   const forecastLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';
@@ -115,7 +85,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div className="text-center">
           <div className="text-lg font-bold text-blue-800">
-            {displayLowTemp}°F
+            {lowTemp}°F
           </div>
           <div className="text-xs text-blue-600">
             Low
@@ -123,7 +93,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-blue-800">
-            {displayHighTemp}°F
+            {highTemp}°F
           </div>
           <div className="text-xs text-blue-600">
             High
@@ -151,13 +121,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           <>📊 Weather estimate</>
         )}
       </div>
-
-      {/* Add partial data indicator for debugging */}
-      {(!weather.temperature && !weather.highTemp && !weather.lowTemp) && (
-        <div className="mt-2 text-xs rounded p-2 text-orange-600 bg-orange-50 border border-orange-200">
-          ⚠️ Forecast available but temperature data is incomplete. Check back shortly.
-        </div>
-      )}
 
       {error && onRetry && !isSharedView && !isPDFExport && (
         <div className="mt-2">
