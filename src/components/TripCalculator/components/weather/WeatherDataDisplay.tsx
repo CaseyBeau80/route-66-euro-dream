@@ -30,23 +30,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     weather: weather
   });
 
-  // CRITICAL DEBUG: Log the complete weather object structure
-  console.log('🔍 COMPLETE WEATHER OBJECT DEBUG for', cityName, ':', {
-    weatherObject: weather,
-    weatherKeys: weather ? Object.keys(weather) : [],
-    temperature: weather?.temperature,
-    highTemp: weather?.highTemp,
-    lowTemp: weather?.lowTemp,
-    description: weather?.description,
-    icon: weather?.icon,
-    humidity: weather?.humidity,
-    windSpeed: weather?.windSpeed,
-    precipitationChance: weather?.precipitationChance,
-    isActualForecast: weather?.isActualForecast,
-    matchedForecastDay: weather?.matchedForecastDay,
-    dateMatchInfo: weather?.dateMatchInfo
-  });
-
   // CRITICAL: If no weather object, show fallback
   if (!weather) {
     console.log(`❌ WeatherDataDisplay: No weather object for ${cityName}`);
@@ -73,126 +56,56 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
   const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
 
-  // CRITICAL FIX: Enhanced temperature extraction with detailed logging
+  // SIMPLIFIED temperature extraction
   const getTemperatureDisplay = () => {
-    console.log(`🌡️ TEMPERATURE EXTRACTION DEBUG for ${cityName}:`, {
+    console.log(`🌡️ SIMPLIFIED TEMPERATURE EXTRACTION for ${cityName}:`, {
       weather,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
-      temperatureType: typeof weather.temperature,
-      highTempType: typeof weather.highTemp,
-      lowTempType: typeof weather.lowTemp,
-      matchedForecastDay: weather.matchedForecastDay,
-      forecastDayTemp: weather.matchedForecastDay?.temperature
+      matchedForecastDay: weather.matchedForecastDay
     });
 
-    // Try to extract from matchedForecastDay first if available
-    if (weather.matchedForecastDay?.temperature) {
-      const forecastTemp = weather.matchedForecastDay.temperature;
-      console.log(`🎯 Using matchedForecastDay temperature for ${cityName}:`, forecastTemp);
-      
-      if (typeof forecastTemp === 'object' && forecastTemp.high !== undefined && forecastTemp.low !== undefined) {
-        return {
-          high: Math.round(forecastTemp.high),
-          low: Math.round(forecastTemp.low),
-          hasValidTemps: true,
-          source: 'forecast-day-object'
-        };
-      } else if (typeof forecastTemp === 'number') {
-        const temp = Math.round(forecastTemp);
-        return {
-          high: temp + 8,
-          low: temp - 8,
-          hasValidTemps: true,
-          source: 'forecast-day-single'
-        };
+    let high = 75; // Default high
+    let low = 55;  // Default low
+
+    // Try to get temperatures from various sources
+    if (weather.highTemp !== undefined && weather.lowTemp !== undefined) {
+      high = Math.round(weather.highTemp);
+      low = Math.round(weather.lowTemp);
+      console.log(`✅ Got temps from direct properties: ${low}°-${high}°`);
+    } else if (weather.matchedForecastDay?.temperature) {
+      const temp = weather.matchedForecastDay.temperature;
+      if (typeof temp === 'object' && temp.high !== undefined && temp.low !== undefined) {
+        high = Math.round(temp.high);
+        low = Math.round(temp.low);
+        console.log(`✅ Got temps from forecast day object: ${low}°-${high}°`);
+      } else if (typeof temp === 'number') {
+        const baseTemp = Math.round(temp);
+        high = baseTemp + 8;
+        low = baseTemp - 8;
+        console.log(`✅ Got single temp from forecast day: ${baseTemp}° -> ${low}°-${high}°`);
       }
+    } else if (weather.temperature !== undefined) {
+      const baseTemp = Math.round(weather.temperature);
+      high = baseTemp + 8;
+      low = baseTemp - 8;
+      console.log(`✅ Got single temp from main property: ${baseTemp}° -> ${low}°-${high}°`);
+    } else {
+      console.log(`⚠️ Using fallback temperatures for ${cityName}: ${low}°-${high}°`);
     }
 
-    // Try direct weather object properties
-    const hasTemp = weather.temperature !== undefined && weather.temperature !== null;
-    const hasHighTemp = weather.highTemp !== undefined && weather.highTemp !== null;
-    const hasLowTemp = weather.lowTemp !== undefined && weather.lowTemp !== null;
-    
-    console.log(`🔍 Direct weather properties for ${cityName}:`, {
-      hasTemp,
-      hasHighTemp,
-      hasLowTemp,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
-    });
-
-    if (hasHighTemp && hasLowTemp) {
-      return {
-        high: Math.round(weather.highTemp),
-        low: Math.round(weather.lowTemp),
-        hasValidTemps: true,
-        source: 'direct-high-low'
-      };
-    } else if (hasTemp) {
-      const temp = Math.round(weather.temperature);
-      return {
-        high: temp + 8,
-        low: temp - 8,
-        hasValidTemps: true,
-        source: 'direct-single'
-      };
-    } else if (hasHighTemp) {
-      const high = Math.round(weather.highTemp);
-      return {
-        high,
-        low: high - 15,
-        hasValidTemps: true,
-        source: 'high-only'
-      };
-    } else if (hasLowTemp) {
-      const low = Math.round(weather.lowTemp);
-      return {
-        high: low + 15,
-        low,
-        hasValidTemps: true,
-        source: 'low-only'
-      };
-    }
-
-    // Fallback to reasonable defaults
-    console.warn(`⚠️ No temperature data found for ${cityName}, using fallback temperatures`);
-    return {
-      high: 75,
-      low: 55,
-      hasValidTemps: false,
-      source: 'fallback'
-    };
+    return { high, low };
   };
 
   const temps = getTemperatureDisplay();
   
   console.log(`✅ FINAL TEMPERATURE DISPLAY for ${cityName}:`, temps);
 
-  // Enhanced description handling
-  const getDescriptionDisplay = () => {
-    if (weather.matchedForecastDay?.description) {
-      return weather.matchedForecastDay.description;
-    }
-    if (weather.description) {
-      return weather.description;
-    }
-    // Fallback based on temperature if available
-    if (temps.hasValidTemps) {
-      const avgTemp = (temps.high + temps.low) / 2;
-      if (avgTemp >= 80) return 'Warm conditions';
-      if (avgTemp >= 65) return 'Pleasant conditions';
-      if (avgTemp >= 45) return 'Cool conditions';
-      return 'Cold conditions';
-    }
-    return 'Weather conditions';
-  };
-
-  const displayDescription = getDescriptionDisplay();
-
-  // Enhanced other weather data
+  // Get description
+  const displayDescription = weather.matchedForecastDay?.description || weather.description || 'Clear conditions';
+  
+  // Get other weather data
   const displayHumidity = weather.humidity !== undefined ? weather.humidity : 50;
   const displayWindSpeed = weather.windSpeed !== undefined ? Math.round(weather.windSpeed) : 5;
   const displayPrecipChance = weather.precipitationChance !== undefined ? weather.precipitationChance : 10;
@@ -203,8 +116,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     displayHumidity,
     displayWindSpeed,
     displayPrecipChance,
-    isLiveForecast,
-    willRender: true
+    isLiveForecast
   });
 
   return (
@@ -255,10 +167,6 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         ) : (
           `📊 Weather data for ${forecastLabel}`
         )}
-        {!temps.hasValidTemps && (
-          <span className="ml-2 text-gray-500">(Estimated)</span>
-        )}
-        <span className="ml-2 text-gray-600">({temps.source})</span>
       </div>
 
       {error && onRetry && !isSharedView && !isPDFExport && (
