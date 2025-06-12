@@ -31,18 +31,73 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   const weatherService = EnhancedWeatherService.getInstance();
   const [hasApiKey, setHasApiKey] = React.useState(false);
   
+  // CRITICAL: Enhanced date calculation with comprehensive debugging
+  const segmentDate = React.useMemo(() => {
+    console.log(`🗓️ CRITICAL SegmentWeatherWidget date calculation for ${segment.endCity} Day ${segment.day}:`, {
+      tripStartDate,
+      tripStartDateType: typeof tripStartDate,
+      isDateObject: tripStartDate instanceof Date,
+      segmentDay: segment.day
+    });
+
+    if (!tripStartDate) {
+      console.error(`❌ No trip start date provided for ${segment.endCity} Day ${segment.day}`);
+      return null;
+    }
+
+    // Convert string to Date if needed
+    let startDate: Date;
+    try {
+      if (tripStartDate instanceof Date) {
+        if (isNaN(tripStartDate.getTime())) {
+          console.error('❌ Invalid Date object provided:', tripStartDate);
+          return null;
+        }
+        startDate = tripStartDate;
+      } else if (typeof tripStartDate === 'string') {
+        startDate = new Date(tripStartDate);
+        if (isNaN(startDate.getTime())) {
+          console.error('❌ Invalid date string provided:', tripStartDate);
+          return null;
+        }
+      } else {
+        console.error('❌ Invalid tripStartDate type:', { tripStartDate, type: typeof tripStartDate });
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error processing tripStartDate:', error, tripStartDate);
+      return null;
+    }
+    
+    const calculatedDate = DateNormalizationService.calculateSegmentDate(startDate, segment.day);
+    
+    if (!calculatedDate) {
+      console.error(`❌ Failed to calculate segment date for ${segment.endCity} Day ${segment.day}`);
+      return null;
+    }
+    
+    const dateString = DateNormalizationService.toDateString(calculatedDate);
+    const daysFromNow = Math.ceil((calculatedDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    
+    console.log(`✅ CRITICAL SegmentWeatherWidget calculated date for ${segment.endCity} Day ${segment.day}:`, {
+      startDate: startDate.toISOString(),
+      calculatedDate: calculatedDate.toISOString(),
+      dateString,
+      daysFromNow,
+      isWithinForecastRange: daysFromNow >= 0 && daysFromNow <= 5
+    });
+    
+    WeatherDataDebugger.debugDateCalculation(
+      `SegmentWeatherWidget.calculateDate [${segment.endCity}] [Day ${segment.day}]`,
+      { tripStartDate: startDate.toISOString(), segmentDay: segment.day },
+      calculatedDate
+    );
+    
+    return calculatedDate;
+  }, [tripStartDate, segment.day, segment.endCity]);
+
   // Enhanced weather service initialization with debugging
   React.useEffect(() => {
-    WeatherDataDebugger.debugWeatherFlow(
-      `SegmentWeatherWidget.mount [${segment.endCity}] [Day ${segment.day}]`,
-      {
-        sectionKey,
-        tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
-        cardIndex,
-        tripId
-      }
-    );
-
     if (!weatherService) {
       console.error('❌ CRITICAL: EnhancedWeatherService is null/undefined');
       return;
@@ -52,81 +107,18 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       weatherService.refreshApiKey();
       const apiKeyStatus = weatherService.hasApiKey();
       
-      WeatherDataDebugger.debugWeatherFlow(
-        `SegmentWeatherWidget.apiKeyCheck [${segment.endCity}]`,
-        {
-          hasApiKey: apiKeyStatus,
-          weatherServiceExists: !!weatherService,
-          environmentCheck: !!import.meta.env.VITE_OPENWEATHER_API_KEY,
-          envLength: import.meta.env.VITE_OPENWEATHER_API_KEY?.length || 0
-        }
-      );
+      console.log(`🔑 SegmentWeatherWidget API key check for ${segment.endCity}:`, {
+        hasApiKey: apiKeyStatus,
+        weatherServiceExists: !!weatherService,
+        segmentDay: segment.day
+      });
       
       setHasApiKey(apiKeyStatus);
     } catch (error) {
       console.error('❌ Error checking API key for', segment.endCity, ':', error);
       setHasApiKey(false);
     }
-  }, [weatherService, segment.endCity, segment.day, sectionKey, tripStartDate]);
-
-  // Enhanced date calculation with comprehensive debugging
-  const segmentDate = React.useMemo(() => {
-    WeatherDataDebugger.debugDateCalculation(
-      `SegmentWeatherWidget.calculateDate [${segment.endCity}]`,
-      tripStartDate,
-      segment.day,
-      null
-    );
-
-    if (!tripStartDate) {
-      console.log(`❌ No trip start date provided for ${segment.endCity} Day ${segment.day}`);
-      return null;
-    }
-    
-    const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
-    
-    WeatherDataDebugger.debugDateCalculation(
-      `SegmentWeatherWidget.calculateDate.result [${segment.endCity}]`,
-      tripStartDate,
-      segment.day,
-      calculatedDate
-    );
-    
-    return calculatedDate;
-  }, [tripStartDate, segment.day, segment.endCity]);
-
-  // Enhanced development mode debugging
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && segmentDate) {
-      const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-      
-      WeatherDataDebugger.debugWeatherFlow(
-        `SegmentWeatherWidget.developmentDebug [${segment.endCity}] [Day ${segment.day}]`,
-        {
-          segmentDate: segmentDate.toISOString(),
-          segmentDateString: DateNormalizationService.toDateString(segmentDate),
-          daysFromNow,
-          isWithinForecastRange: daysFromNow >= 0 && daysFromNow <= 5,
-          sectionKey,
-          isDaySevenDebug: segment.day === 7
-        }
-      );
-
-      // Special debugging for Day 7
-      if (segment.day === 7) {
-        console.log(`🔍 DAY 7 SPECIFIC DEBUG for ${segment.endCity}:`, {
-          tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
-          calculatedSegmentDate: segmentDate.toISOString(),
-          expectedDate: '2025-06-17',
-          actualDateString: DateNormalizationService.toDateString(segmentDate),
-          daysFromNow,
-          isWithinApiRange: daysFromNow >= 0 && daysFromNow <= 5,
-          hasApiKey,
-          componentPath: 'SegmentWeatherWidget'
-        });
-      }
-    }
-  }, [segmentDate, segment.endCity, segment.day, sectionKey, hasApiKey, tripStartDate]);
+  }, [weatherService, segment.endCity, segment.day]);
 
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
   const weatherHandlers = useSegmentWeather({
@@ -136,82 +128,24 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // Enhanced weather data validation for display
-  React.useEffect(() => {
-    if (weatherState.weather && segmentDate) {
-      WeatherDataDebugger.debugWeatherFlow(
-        `SegmentWeatherWidget.weatherDataValidation [${segment.endCity}] [Day ${segment.day}]`,
-        {
-          hasWeather: true,
-          isActualForecast: weatherState.weather.isActualForecast,
-          hasDateMatchInfo: !!weatherState.weather.dateMatchInfo,
-          dateMatchSource: weatherState.weather.dateMatchInfo?.source,
-          matchType: weatherState.weather.dateMatchInfo?.matchType,
-          confidence: weatherState.weather.dateMatchInfo?.confidence,
-          hasValidTemps: !!(weatherState.weather.highTemp && weatherState.weather.lowTemp),
-          segmentDateString: DateNormalizationService.toDateString(segmentDate),
-          sectionKey,
-          isDaySevenValidation: segment.day === 7
-        }
-      );
-
-      // Special validation for PDF exports
-      if (sectionKey === 'pdf-export' && weatherState.weather.dateMatchInfo) {
-        const { requestedDate, matchedDate, matchType } = weatherState.weather.dateMatchInfo;
-        const expectedDateString = DateNormalizationService.toDateString(segmentDate);
-        
-        if (requestedDate !== expectedDateString && matchType !== 'seasonal-estimate') {
-          console.warn(`⚠️ PDF EXPORT: Date mismatch detected for ${segment.endCity} Day ${segment.day}`, {
-            expected: expectedDateString,
-            requested: requestedDate,
-            matched: matchedDate,
-            matchType
-          });
-        }
-      }
-    }
-  }, [weatherState.weather, segment.endCity, segment.day, segmentDate, sectionKey]);
-
   const handleApiKeySet = React.useCallback(() => {
-    WeatherDataDebugger.debugWeatherFlow(
-      `SegmentWeatherWidget.handleApiKeySet [${segment.endCity}] [Day ${segment.day}]`,
-      { previousApiKeyStatus: hasApiKey }
-    );
+    console.log(`🔄 SegmentWeatherWidget handling API key set for ${segment.endCity} Day ${segment.day}`);
     
     weatherService.refreshApiKey();
     setHasApiKey(weatherService.hasApiKey());
     weatherHandlers.handleApiKeySet();
-  }, [weatherService, weatherHandlers, segment.endCity, segment.day, hasApiKey]);
-
-  // Mark weather as ready for rendering
-  React.useEffect(() => {
-    if (weatherState.weather && !weatherState.loading && segmentDate) {
-      const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
-      if (element) {
-        element.setAttribute('data-weather-loaded', 'true');
-        
-        if (sectionKey === 'pdf-export') {
-          element.setAttribute('data-pdf-weather-ready', 'true');
-          element.setAttribute('data-weather-date', DateNormalizationService.toDateString(segmentDate));
-        }
-      }
-    }
-  }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate]);
+  }, [weatherService, weatherHandlers, segment.endCity, segment.day]);
 
   // Final debug log for current state
-  WeatherDataDebugger.debugComponentState(
-    'SegmentWeatherWidget',
-    segment.endCity,
-    {
-      hasApiKey,
-      loading: weatherState.loading,
-      hasWeather: !!weatherState.weather,
-      error: weatherState.error,
-      retryCount: weatherState.retryCount,
-      segmentDate,
-      isDaySevenCheck: segment.day === 7
-    }
-  );
+  console.log(`🔍 SegmentWeatherWidget final state for ${segment.endCity} Day ${segment.day}:`, {
+    hasApiKey,
+    hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
+    loading: weatherState.loading,
+    hasWeather: !!weatherState.weather,
+    error: weatherState.error,
+    retryCount: weatherState.retryCount
+  });
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 

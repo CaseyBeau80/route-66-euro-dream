@@ -1,14 +1,14 @@
 
-
 export class DateNormalizationService {
   /**
-   * Calculate the exact segment date for a given trip start date and day number
+   * CRITICAL FIX: Ensure consistent date calculation across all components
    */
-  static calculateSegmentDate(tripStartDate: Date | string, dayNumber: number): Date | null {
-    console.log(`🗓️ DateNormalizationService.calculateSegmentDate:`, {
-      tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
-      dayNumber,
-      tripStartDateType: typeof tripStartDate
+  static calculateSegmentDate(tripStartDate: Date | string, segmentDay: number): Date | null {
+    console.log(`🗓️ CRITICAL DateNormalizationService.calculateSegmentDate:`, {
+      tripStartDate,
+      segmentDay,
+      tripStartDateType: typeof tripStartDate,
+      isDateObject: tripStartDate instanceof Date
     });
 
     if (!tripStartDate) {
@@ -16,17 +16,12 @@ export class DateNormalizationService {
       return null;
     }
 
-    if (!dayNumber || dayNumber < 1) {
-      console.error('❌ DateNormalizationService: Invalid day number:', dayNumber);
-      return null;
-    }
-
+    let baseDate: Date;
+    
     try {
-      let baseDate: Date;
-      
       if (tripStartDate instanceof Date) {
         if (isNaN(tripStartDate.getTime())) {
-          console.error('❌ DateNormalizationService: Invalid Date object');
+          console.error('❌ DateNormalizationService: Invalid Date object:', tripStartDate);
           return null;
         }
         baseDate = new Date(tripStartDate);
@@ -37,44 +32,73 @@ export class DateNormalizationService {
           return null;
         }
       } else {
-        console.error('❌ DateNormalizationService: tripStartDate is not a Date or string:', tripStartDate);
+        console.error('❌ DateNormalizationService: Invalid tripStartDate type:', { tripStartDate, type: typeof tripStartDate });
         return null;
       }
-
-      // Calculate the segment date by adding (dayNumber - 1) days
-      const segmentDate = new Date(baseDate);
-      segmentDate.setDate(baseDate.getDate() + (dayNumber - 1));
-      
-      // Normalize to start of day to avoid time zone issues
-      const normalizedDate = this.normalizeSegmentDate(segmentDate);
-      
-      console.log(`✅ DateNormalizationService: Calculated segment date for day ${dayNumber}:`, {
-        baseDate: baseDate.toISOString(),
-        calculatedDate: segmentDate.toISOString(),
-        normalizedDate: normalizedDate.toISOString(),
-        dateString: this.toDateString(normalizedDate)
-      });
-      
-      return normalizedDate;
     } catch (error) {
-      console.error('❌ DateNormalizationService: Error calculating segment date:', error);
+      console.error('❌ DateNormalizationService: Error parsing date:', error, tripStartDate);
       return null;
     }
+
+    // CRITICAL: Calculate segment date by adding (segmentDay - 1) days
+    // Day 1 = start date, Day 2 = start date + 1 day, etc.
+    const segmentDate = new Date(baseDate);
+    segmentDate.setDate(baseDate.getDate() + (segmentDay - 1));
+    
+    // Normalize to midnight local time to avoid timezone issues
+    segmentDate.setHours(0, 0, 0, 0);
+    
+    const dateString = this.toDateString(segmentDate);
+    
+    console.log(`✅ DateNormalizationService: Calculated segment date:`, {
+      segmentDay,
+      baseDate: baseDate.toISOString(),
+      calculatedDate: segmentDate.toISOString(),
+      dateString,
+      daysAdded: segmentDay - 1
+    });
+    
+    return segmentDate;
   }
 
   /**
-   * Normalize a date to start of day in UTC to avoid timezone issues
+   * Convert Date to YYYY-MM-DD string format (local timezone)
+   */
+  static toDateString(date: Date): string {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      console.error('❌ DateNormalizationService.toDateString: Invalid date:', date);
+      return '';
+    }
+    
+    // Use local timezone to avoid UTC conversion issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    const dateString = `${year}-${month}-${day}`;
+    
+    console.log(`📅 DateNormalizationService.toDateString:`, {
+      inputDate: date.toISOString(),
+      outputString: dateString,
+      localDate: date.toLocaleDateString()
+    });
+    
+    return dateString;
+  }
+
+  /**
+   * Normalize a date to midnight local time
    */
   static normalizeSegmentDate(date: Date): Date {
-    if (!date || isNaN(date.getTime())) {
-      console.error('❌ DateNormalizationService: Cannot normalize invalid date:', date);
-      return new Date(); // fallback to current date
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      console.error('❌ DateNormalizationService.normalizeSegmentDate: Invalid date:', date);
+      return new Date();
     }
-
-    const normalized = new Date(date);
-    normalized.setUTCHours(12, 0, 0, 0); // Set to noon UTC to avoid timezone edge cases
     
-    console.log(`🔧 DateNormalizationService.normalizeSegmentDate:`, {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    
+    console.log(`🕒 DateNormalizationService.normalizeSegmentDate:`, {
       original: date.toISOString(),
       normalized: normalized.toISOString()
     });
@@ -83,72 +107,14 @@ export class DateNormalizationService {
   }
 
   /**
-   * Convert a date to YYYY-MM-DD string format
+   * CRITICAL: Enhanced debugging for date issues
    */
-  static toDateString(date: Date): string {
-    if (!date || isNaN(date.getTime())) {
-      console.error('❌ DateNormalizationService: Cannot convert invalid date to string:', date);
-      return new Date().toISOString().split('T')[0]; // fallback to today
-    }
-
-    const dateString = date.toISOString().split('T')[0];
-    
-    console.log(`📅 DateNormalizationService.toDateString:`, {
-      date: date.toISOString(),
-      dateString
+  static debugDateCalculation(context: string, inputs: any, result: any): void {
+    console.log(`🔍 DATE DEBUG [${context}]:`, {
+      inputs,
+      result: result?.toISOString(),
+      resultString: result ? this.toDateString(result) : null,
+      timestamp: new Date().toISOString()
     });
-    
-    return dateString;
-  }
-
-  /**
-   * Create a date from YYYY-MM-DD string
-   */
-  static fromDateString(dateString: string): Date {
-    if (!dateString || typeof dateString !== 'string') {
-      console.error('❌ DateNormalizationService: Invalid date string:', dateString);
-      return new Date();
-    }
-
-    try {
-      const date = new Date(dateString + 'T12:00:00.000Z'); // Add time to ensure UTC
-      
-      if (isNaN(date.getTime())) {
-        console.error('❌ DateNormalizationService: Could not parse date string:', dateString);
-        return new Date();
-      }
-      
-      console.log(`📅 DateNormalizationService.fromDateString:`, {
-        dateString,
-        parsedDate: date.toISOString()
-      });
-      
-      return date;
-    } catch (error) {
-      console.error('❌ DateNormalizationService: Error parsing date string:', error);
-      return new Date();
-    }
-  }
-
-  /**
-   * Calculate the difference in days between two dates
-   */
-  static getDaysDifference(date1: Date, date2: Date): number {
-    if (!date1 || !date2 || isNaN(date1.getTime()) || isNaN(date2.getTime())) {
-      console.error('❌ DateNormalizationService: Invalid dates for difference calculation:', { date1, date2 });
-      return 0;
-    }
-
-    const timeDifference = date2.getTime() - date1.getTime();
-    const daysDifference = Math.round(timeDifference / (24 * 60 * 60 * 1000));
-    
-    console.log(`📊 DateNormalizationService.getDaysDifference:`, {
-      date1: date1.toISOString(),
-      date2: date2.toISOString(),
-      daysDifference
-    });
-    
-    return daysDifference;
   }
 }
-
