@@ -23,16 +23,15 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // SIMPLIFIED DEBUG LOGGING
-  console.log(`🌦 WeatherDisplayDecision for ${segmentEndCity}:`, {
+  console.log(`🌦 WeatherDisplayDecision FORCE RENDER for ${segmentEndCity}:`, {
     hasWeather: !!weather,
-    segmentDate: segmentDate.toISOString(),
-    hasError: !!error
+    weatherKeys: weather ? Object.keys(weather) : [],
+    segmentDate: segmentDate.toISOString()
   });
 
-  // ULTRA-PERMISSIVE: If we have ANY weather object, display it
-  if (weather) {
-    console.log(`✅ DISPLAYING weather for ${segmentEndCity} - weather object exists`);
+  // FORCE RENDER: If we have ANY weather object, show it
+  if (weather && typeof weather === 'object') {
+    console.log(`✅ FORCE RENDERING weather for ${segmentEndCity}`);
     
     return (
       <WeatherDataDisplay
@@ -47,7 +46,7 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     );
   }
 
-  console.log(`❌ NO WEATHER DATA - showing fallback for ${segmentEndCity}`);
+  console.log(`❌ NO WEATHER OBJECT - showing fallback for ${segmentEndCity}`);
   
   return (
     <FallbackWeatherDisplay

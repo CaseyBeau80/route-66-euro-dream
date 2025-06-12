@@ -23,13 +23,12 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 WeatherDataDisplay RENDER for ${cityName}:`, {
+  console.log(`🌦 WeatherDataDisplay FORCE RENDER for ${cityName}:`, {
     hasWeather: !!weather,
-    weather
+    weatherData: weather
   });
 
   if (!weather) {
-    console.log(`❌ WeatherDataDisplay: No weather data for ${cityName}`);
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
@@ -41,32 +40,52 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // SIMPLIFIED temperature extraction with better defaults
-  const getTemp = (value: any): number => {
+  // FORCE EXTRACT: Get temperature data with aggressive fallbacks
+  const getTemperature = (value: any): number => {
     if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) return Math.round(parsed);
     }
-    return 72; // Default temperature
+    if (value && typeof value === 'object') {
+      if (value.high && typeof value.high === 'number') return Math.round(value.high);
+      if (value.low && typeof value.low === 'number') return Math.round(value.low);
+    }
+    return 72; // Default
   };
 
-  // Extract temperatures with fallbacks
-  const highTemp = getTemp(weather.highTemp) || getTemp(weather.temperature) || 77;
-  const lowTemp = getTemp(weather.lowTemp) || getTemp(weather.temperature) || 67;
-  const avgTemp = Math.round((highTemp + lowTemp) / 2);
+  // Extract with multiple fallback paths
+  const highTemp = getTemperature(weather.highTemp) || 
+                   getTemperature(weather.temperature) || 
+                   getTemperature((weather as any).temp_max) || 
+                   getTemperature((weather as any).main?.temp_max) || 75;
+                   
+  const lowTemp = getTemperature(weather.lowTemp) || 
+                  getTemperature(weather.temperature) || 
+                  getTemperature((weather as any).temp_min) || 
+                  getTemperature((weather as any).main?.temp_min) || 65;
 
-  // Extract other fields with defaults
-  const description = weather.description || 'Weather forecast available';
-  const weatherIcon = weather.icon || '🌤️';
-  const humidity = Math.round(weather.humidity || 50);
-  const windSpeed = Math.round(weather.windSpeed || 5);
-  const precipitationChance = Math.round(weather.precipitationChance || 10);
+  const description = weather.description || 
+                     (weather as any).weather?.[0]?.description || 
+                     'Weather information available';
+                     
+  const weatherIcon = weather.icon || 
+                     (weather as any).weather?.[0]?.icon || 
+                     '🌤️';
+                     
+  const humidity = Math.round(weather.humidity || 
+                             (weather as any).main?.humidity || 50);
+                             
+  const windSpeed = Math.round(weather.windSpeed || 
+                              (weather as any).wind?.speed || 5);
+                              
+  const precipitationChance = Math.round(weather.precipitationChance || 
+                                        (weather as any).pop * 100 || 10);
 
-  console.log(`✅ DISPLAYING weather for ${cityName}:`, {
-    temps: { high: highTemp, low: lowTemp, avg: avgTemp },
+  console.log(`✅ FORCE DISPLAYING weather for ${cityName}:`, {
+    high: highTemp,
+    low: lowTemp,
     description,
-    icon: weatherIcon,
     isActualForecast: weather.isActualForecast
   });
 
