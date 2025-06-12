@@ -4,6 +4,7 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import WeatherApiKeyHandler from './WeatherApiKeyHandler';
 import WeatherStateHandler from './WeatherStateHandler';
 import WeatherDisplayDecision from './WeatherDisplayDecision';
+import { WeatherDataDebugger } from './WeatherDataDebugger';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -34,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🚨 SegmentWeatherContent for', segmentEndCity, ':', {
+  console.log('🚨 ENHANCED SegmentWeatherContent for', segmentEndCity, ':', {
     segmentDate: segmentDate?.toISOString(),
     hasApiKey,
     loading,
@@ -43,20 +44,19 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     retryCount
   });
 
-  // Log complete weather data analysis if available
+  // Enhanced weather data analysis if available
   if (weather) {
-    console.log('🔍 Weather data analysis for', segmentEndCity, ':', {
+    console.log('🔍 ENHANCED Weather data analysis for', segmentEndCity, ':', {
       hasTemperature: !!weather.temperature,
       hasHighTemp: !!weather.highTemp,
       hasLowTemp: !!weather.lowTemp,
       hasDescription: !!weather.description,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      description: weather.description,
       isActualForecast: weather.isActualForecast,
       dateMatchInfo: weather.dateMatchInfo
     });
+
+    // Log the specific fields the user requested
+    WeatherDataDebugger.debugWeatherFieldsForUser(segmentEndCity, weather, 'SEGMENT_CONTENT');
   }
 
   return (

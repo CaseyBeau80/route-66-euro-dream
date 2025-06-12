@@ -14,13 +14,28 @@ export class WeatherDataDebugger {
   }
 
   static debugApiResponse(cityName: string, dateString: string, weatherData: any): void {
-    console.log(`🔮 API Response for ${cityName} on ${dateString}:`, {
+    console.log(`🔮 ENHANCED API Response for ${cityName} on ${dateString}:`, {
       hasData: !!weatherData,
       isActualForecast: weatherData?.isActualForecast,
       temperature: weatherData?.temperature,
+      highTemp: weatherData?.highTemp,
+      lowTemp: weatherData?.lowTemp,
       description: weatherData?.description,
-      dateMatchInfo: weatherData?.dateMatchInfo
+      dateMatchInfo: weatherData?.dateMatchInfo,
+      dateMatchSource: weatherData?.dateMatchInfo?.source
     });
+
+    // Log the specific fields the user requested
+    if (weatherData) {
+      console.log(`📊 USER REQUESTED FIELDS for ${cityName}:`, {
+        'weather.isActualForecast': weatherData.isActualForecast,
+        'weather.highTemp': weatherData.highTemp,
+        'weather.lowTemp': weatherData.lowTemp,
+        'weather.temperature': weatherData.temperature,
+        'weather.description': weatherData.description,
+        'weather.dateMatchInfo.source': weatherData.dateMatchInfo?.source
+      });
+    }
   }
 
   static debugWeatherMatching(cityName: string, targetDate: string, forecasts: any[], matchResult: any): void {
@@ -36,16 +51,16 @@ export class WeatherDataDebugger {
     console.log(`📊 ${componentName} state for ${cityName}:`, state);
   }
 
-  // NEW: Critical validation debugging
   static debugValidationFailure(cityName: string, weatherData: any, validationResult: any): void {
-    console.log(`❌ VALIDATION FAILURE for ${cityName}:`, {
+    console.log(`❌ ENHANCED VALIDATION ANALYSIS for ${cityName}:`, {
       weatherData: {
         isActualForecast: weatherData?.isActualForecast,
         temperature: weatherData?.temperature,
         highTemp: weatherData?.highTemp,
         lowTemp: weatherData?.lowTemp,
         description: weatherData?.description,
-        dateMatchInfo: weatherData?.dateMatchInfo
+        dateMatchInfo: weatherData?.dateMatchInfo,
+        dateMatchSource: weatherData?.dateMatchInfo?.source
       },
       validationResult,
       criticalIssues: {
@@ -55,24 +70,50 @@ export class WeatherDataDebugger {
         noDateMatch: !weatherData?.dateMatchInfo
       }
     });
+
+    // Always log the specific fields the user wants to see
+    console.log(`📊 VALIDATION FAILURE - USER REQUESTED FIELDS for ${cityName}:`, {
+      'weather.isActualForecast': weatherData?.isActualForecast,
+      'weather.highTemp': weatherData?.highTemp,
+      'weather.lowTemp': weatherData?.lowTemp,
+      'weather.temperature': weatherData?.temperature,
+      'weather.description': weatherData?.description,
+      'weather.dateMatchInfo.source': weatherData?.dateMatchInfo?.source
+    });
   }
 
-  // NEW: Render decision debugging
   static debugRenderDecision(cityName: string, decision: string, reasons: any): void {
-    console.log(`🎨 RENDER DECISION for ${cityName}: ${decision}`, reasons);
+    console.log(`🎨 ENHANCED RENDER DECISION for ${cityName}: ${decision}`, reasons);
   }
 
-  // NEW: Force weather data through validation
   static debugForceValidation(cityName: string, weatherData: any): void {
-    console.log(`🔧 FORCE VALIDATION TEST for ${cityName}:`, {
+    console.log(`🔧 ENHANCED FORCE VALIDATION TEST for ${cityName}:`, {
       hasWeatherData: !!weatherData,
-      temperature: weatherData?.temperature || 'MISSING',
-      highTemp: weatherData?.highTemp || 'MISSING',
-      lowTemp: weatherData?.lowTemp || 'MISSING',
-      description: weatherData?.description || 'MISSING',
-      isActualForecast: weatherData?.isActualForecast || 'MISSING',
-      dateMatchInfo: weatherData?.dateMatchInfo || 'MISSING',
-      wouldPassMinimalValidation: !!(weatherData?.temperature || weatherData?.highTemp) && !!weatherData?.description
+      // User requested fields
+      'weather.isActualForecast': weatherData?.isActualForecast || 'MISSING',
+      'weather.highTemp': weatherData?.highTemp || 'MISSING',
+      'weather.lowTemp': weatherData?.lowTemp || 'MISSING',
+      'weather.temperature': weatherData?.temperature || 'MISSING',
+      'weather.description': weatherData?.description || 'MISSING',
+      'weather.dateMatchInfo.source': weatherData?.dateMatchInfo?.source || 'MISSING',
+      // Validation checks
+      wouldPassMinimalValidation: !!(weatherData?.temperature || weatherData?.highTemp || weatherData?.description),
+      hasAnyTemperature: !!(weatherData?.temperature || weatherData?.highTemp || weatherData?.lowTemp),
+      hasDescription: !!weatherData?.description,
+      forceRenderRecommendation: !!(weatherData?.temperature || weatherData?.highTemp || weatherData?.lowTemp || weatherData?.description)
+    });
+  }
+
+  // NEW: Enhanced weather data logging specifically for user's requested fields
+  static debugWeatherFieldsForUser(cityName: string, weatherData: any, context: string = ''): void {
+    console.log(`🎯 USER FIELD DEBUG ${context} for ${cityName}:`, {
+      'weather.isActualForecast': weatherData?.isActualForecast,
+      'weather.highTemp': weatherData?.highTemp,
+      'weather.lowTemp': weatherData?.lowTemp,
+      'weather.temperature': weatherData?.temperature,
+      'weather.description': weatherData?.description,
+      'weather.dateMatchInfo.source': weatherData?.dateMatchInfo?.source,
+      hasDisplayableData: !!(weatherData?.temperature || weatherData?.highTemp || weatherData?.lowTemp || weatherData?.description)
     });
   }
 }

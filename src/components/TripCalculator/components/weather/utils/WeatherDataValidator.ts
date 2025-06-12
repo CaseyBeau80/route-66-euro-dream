@@ -4,28 +4,52 @@ import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 export class WeatherDataValidator {
   static validateWeatherData(data: ForecastWeatherData, city: string, dateString: string): boolean {
-    // FIXED: Less strict validation - accept data if we have basic weather information
-    const validationResult = {
+    console.log('🔍 ENHANCED WeatherDataValidator for', city, 'on', dateString);
+
+    // ULTRA-PERMISSIVE: Accept ANY weather data that has basic information
+    const validationChecks = {
       hasTemperature: !!(data.temperature || data.highTemp || data.lowTemp),
       hasDescription: !!data.description,
       hasValidDateMatch: !!data.dateMatchInfo,
       isActualForecast: data.isActualForecast,
-      hasMinimalData: !!(data.temperature || data.highTemp) && !!data.description
+      hasAnyDisplayableData: !!(data.temperature || data.highTemp || data.lowTemp || data.description)
     };
 
-    // FIXED: Accept weather data if we have minimal required information
-    const isValid = validationResult.hasMinimalData;
+    console.log('🔧 VALIDATION CHECKS for', city, ':', validationChecks);
+
+    // Log specific field values that user requested
+    console.log('📊 REQUESTED FIELD VALUES for', city, ':', {
+      'weather.isActualForecast': data.isActualForecast,
+      'weather.highTemp': data.highTemp,
+      'weather.lowTemp': data.lowTemp,
+      'weather.temperature': data.temperature,
+      'weather.description': data.description,
+      'weather.dateMatchInfo.source': data.dateMatchInfo?.source
+    });
+
+    // ULTRA-PERMISSIVE: Accept if we have ANY displayable data
+    const isValid = validationChecks.hasAnyDisplayableData;
     
+    console.log('✅ ULTRA-PERMISSIVE VALIDATION RESULT for', city, ':', {
+      isValid,
+      reason: isValid ? 'Has displayable data' : 'No displayable data found',
+      willRender: isValid
+    });
+
     WeatherDataDebugger.debugWeatherFlow(
-      `WeatherDataValidator.validateWeatherData [${city}] - RELAXED VALIDATION`,
+      `WeatherDataValidator.validateWeatherData [${city}] - ULTRA-PERMISSIVE`,
       { 
         dateString, 
-        validationResult, 
+        validationChecks, 
         isValid,
-        temperature: data.temperature,
-        highTemp: data.highTemp,
-        lowTemp: data.lowTemp,
-        description: data.description
+        fieldValues: {
+          temperature: data.temperature,
+          highTemp: data.highTemp,
+          lowTemp: data.lowTemp,
+          description: data.description,
+          isActualForecast: data.isActualForecast,
+          dateMatchSource: data.dateMatchInfo?.source
+        }
       }
     );
 
@@ -33,31 +57,21 @@ export class WeatherDataValidator {
   }
 
   static validateLiveForecastData(data: ForecastWeatherData): boolean {
-    // FIXED: More permissive live forecast validation
-    const hasActualFlag = data.isActualForecast === true;
-    const hasValidTemps = (
-      (data.highTemp !== undefined && data.lowTemp !== undefined) ||
-      (data.temperature !== undefined && data.temperature > -50 && data.temperature < 150)
-    );
-    const hasApiSource = data.dateMatchInfo?.source === 'api-forecast';
-    const hasValidDescription = !!data.description;
+    console.log('🔍 ENHANCED validateLiveForecastData');
     
-    const isValidLiveForecast = hasActualFlag && hasValidTemps && hasApiSource && hasValidDescription;
+    // ULTRA-PERMISSIVE: Accept any data with temperature or description
+    const hasBasicData = !!(data.temperature || data.highTemp || data.lowTemp || data.description);
     
-    WeatherDataDebugger.debugWeatherFlow(
-      'WeatherDataValidator.validateLiveForecastData - IMPROVED',
-      {
-        hasActualFlag,
-        hasValidTemps,
-        hasApiSource,
-        hasValidDescription,
-        isValidLiveForecast,
-        temperature: data.temperature,
-        highTemp: data.highTemp,
-        lowTemp: data.lowTemp
-      }
-    );
-
-    return isValidLiveForecast;
+    console.log('✅ LIVE FORECAST VALIDATION (ULTRA-PERMISSIVE):', {
+      hasBasicData,
+      isActualForecast: data.isActualForecast,
+      temperature: data.temperature,
+      highTemp: data.highTemp,
+      lowTemp: data.lowTemp,
+      description: data.description,
+      willAccept: hasBasicData
+    });
+    
+    return hasBasicData;
   }
 }

@@ -23,12 +23,13 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDisplayDecision for', segmentEndCity, ':', {
+  console.log('🎯 ENHANCED WeatherDisplayDecision for', segmentEndCity, ':', {
     hasWeather: !!weather,
     hasError: !!error
   });
 
   if (!weather) {
+    console.log('❌ ENHANCED WeatherDisplayDecision: No weather data for', segmentEndCity);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -40,18 +41,38 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     );
   }
 
-  // Check for any displayable data
-  const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
-  const hasAnyDescription = !!weather.description;
-  const hasMinimalData = hasAnyTemperature || hasAnyDescription;
-
-  console.log('🔍 Weather data check for', segmentEndCity, ':', {
-    hasAnyTemperature,
-    hasAnyDescription,
-    hasMinimalData
+  // ENHANCED: Ultra-detailed weather data analysis
+  console.log('🔍 ULTRA-DETAILED WEATHER ANALYSIS for', segmentEndCity, ':', {
+    isActualForecast: weather.isActualForecast,
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
+    temperature: weather.temperature,
+    description: weather.description,
+    dateMatchInfoSource: weather.dateMatchInfo?.source,
+    dateMatchInfoMatchType: weather.dateMatchInfo?.matchType,
+    dateMatchInfoConfidence: weather.dateMatchInfo?.confidence,
+    precipitationChance: weather.precipitationChance,
+    windSpeed: weather.windSpeed,
+    humidity: weather.humidity,
+    fullWeatherObject: weather
   });
 
-  if (hasMinimalData) {
+  // FORCE RENDER MODE: Always render if we have any data
+  const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+  const hasAnyDescription = !!weather.description;
+  const hasAnyWeatherData = hasAnyTemperature || hasAnyDescription;
+
+  console.log('🔧 FORCE RENDER ANALYSIS for', segmentEndCity, ':', {
+    hasAnyTemperature,
+    hasAnyDescription,
+    hasAnyWeatherData,
+    FORCING_RENDER: hasAnyWeatherData,
+    skipValidation: true
+  });
+
+  // FORCE RENDER: If we have ANY weather data, render it
+  if (hasAnyWeatherData) {
+    console.log('✅ FORCE RENDERING WeatherDataDisplay for', segmentEndCity);
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -65,6 +86,7 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     );
   }
 
+  console.log('❌ FALLBACK: No displayable weather data for', segmentEndCity);
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
