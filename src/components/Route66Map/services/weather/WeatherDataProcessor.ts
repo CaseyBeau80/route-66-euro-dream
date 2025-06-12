@@ -1,4 +1,3 @@
-
 import { ForecastDay } from './WeatherServiceTypes';
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
@@ -136,7 +135,7 @@ export class WeatherDataProcessor {
 
   private static createDailySummary(dateString: string, items: any[]): ForecastDay {
     const firstItem = items[0];
-    const date = DateNormalizationService.toDateString(new Date(dateString + 'T12:00:00'));
+    const date = dateString;
     
     // Extract temperatures from all items for this day
     const temperatures = items.map(item => item.processedTemperature).filter(Boolean);
@@ -182,7 +181,7 @@ export class WeatherDataProcessor {
       icon: icons[0] || '01d',
       humidity: humidity.length > 0 ? Math.round(humidity.reduce((a, b) => a + b) / humidity.length) : 50,
       windSpeed: windSpeeds.length > 0 ? Math.round(windSpeeds.reduce((a, b) => a + b) / windSpeeds.length) : 5,
-      precipitationChance: 0
+      precipitationChance: "0"
     };
 
     console.log(`📈 Daily summary created for ${dateString}:`, summary);
