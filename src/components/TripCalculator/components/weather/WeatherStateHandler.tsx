@@ -26,28 +26,15 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
   isPDFExport = false,
   children
 }) => {
-  console.log('🔍 WeatherStateHandler CRITICAL CHECK for', segmentEndCity, ':', {
+  console.log('🔍 WeatherStateHandler ENHANCED CHECK for', segmentEndCity, ':', {
     loading,
     retryCount,
     hasError: !!error,
     hasSegmentDate: !!segmentDate,
     segmentDate: segmentDate?.toISOString(),
-    decision: 'Will determine...'
+    willProceedToChildren: !loading && retryCount <= 2 && !!segmentDate,
+    decision: 'Enhanced logic - will not block on missing date'
   });
-
-  // Handle missing segment date - this is the KEY issue
-  if (!segmentDate) {
-    console.error(`❌ CRITICAL: Missing segment date for ${segmentEndCity} - this causes "unavailable" message`);
-    return (
-      <FallbackWeatherDisplay
-        cityName={segmentEndCity}
-        segmentDate={null}
-        onRetry={onRetry}
-        error="Missing trip start date - please set a trip start date to see weather forecasts"
-        showRetryButton={!isSharedView && !isPDFExport}
-      />
-    );
-  }
 
   // Show loading state
   if (loading) {
@@ -57,16 +44,18 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
         <div className="text-sm text-blue-600 mb-2">
           🌤️ Getting weather for {segmentEndCity}...
         </div>
-        <div className="text-xs text-blue-500">
-          Checking forecast for {DateNormalizationService.toDateString(segmentDate)}
-        </div>
+        {segmentDate && (
+          <div className="text-xs text-blue-500">
+            Checking forecast for {DateNormalizationService.toDateString(segmentDate)}
+          </div>
+        )}
       </div>
     );
   }
 
-  // Handle service unavailable state - only after multiple retries
-  if (retryCount > 2 && error) {
-    console.log(`❌ Service unavailable for ${segmentEndCity} after ${retryCount} retries`);
+  // Handle service unavailable state - only after multiple retries AND with significant errors
+  if (retryCount > 2 && error && error.includes('failed') || error && error.includes('timeout')) {
+    console.log(`❌ Service unavailable for ${segmentEndCity} after ${retryCount} retries with error: ${error}`);
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
@@ -78,7 +67,18 @@ const WeatherStateHandler: React.FC<WeatherStateHandlerProps> = ({
     );
   }
 
-  console.log(`✅ WeatherStateHandler: Proceeding to weather display for ${segmentEndCity}`);
+  // CRITICAL FIX: Don't block rendering just because segmentDate is missing
+  // Let the children components handle missing dates appropriately
+  if (!segmentDate) {
+    console.warn(`⚠️ Missing segment date for ${segmentEndCity} - passing to children to handle gracefully`);
+    // Still pass to children - they can show appropriate fallbacks
+  }
+
+  console.log(`✅ WeatherStateHandler: Proceeding to weather display for ${segmentEndCity}`, {
+    hasSegmentDate: !!segmentDate,
+    allowedToProceed: true
+  });
+  
   return <>{children}</>;
 };
 

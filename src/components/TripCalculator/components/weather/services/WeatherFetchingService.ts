@@ -1,14 +1,11 @@
 
-import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { GeocodingService } from '../../../services/GeocodingService';
+import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
+import { GeocodingService } from '../../services/GeocodingService';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { WeatherDataDebugger } from '../WeatherDataDebugger';
-import { WeatherDataValidator } from '../utils/WeatherDataValidator';
 
 export class WeatherFetchingService {
-  private static weatherService = EnhancedWeatherService.getInstance();
-
   static async fetchWeatherForSegment(
     segmentEndCity: string,
     segmentDate: Date,
@@ -16,89 +13,84 @@ export class WeatherFetchingService {
     setError: (error: string | null) => void,
     setWeather: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
-    const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-    const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
+    const dateString = DateNormalizationService.toDateString(segmentDate);
+    const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
-    console.log('🌤️ ENHANCED WeatherFetchingService for', segmentEndCity, ':', {
-      originalDate: segmentDate.toISOString(),
-      normalizedDate: normalizedSegmentDate.toISOString(),
-      segmentDateString,
-      daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-      hasApiKey: this.weatherService.hasApiKey(),
-      apiKeySource: this.weatherService.getApiKeySource?.() || 'unknown'
-    });
+    WeatherDataDebugger.debugWeatherFlow(
+      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}]`,
+      {
+        segmentDate: segmentDate.toISOString(),
+        dateString,
+        daysFromNow,
+        withinForecastRange: daysFromNow >= 0 && daysFromNow <= 5
+      }
+    );
 
     setLoading(true);
     setError(null);
 
     try {
-      if (!this.weatherService.hasApiKey()) {
-        throw new Error('No weather API key configured');
+      const weatherService = EnhancedWeatherService.getInstance();
+      
+      if (!weatherService.hasApiKey()) {
+        console.warn(`❌ No API key for weather service`);
+        setError('Weather API key not configured');
+        setLoading(false);
+        return;
       }
 
+      // Get coordinates for the city
       const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
       if (!coordinates) {
-        throw new Error(`No coordinates found for ${segmentEndCity}`);
+        console.warn(`❌ No coordinates found for ${segmentEndCity}`);
+        setError(`Location not found: ${segmentEndCity}`);
+        setLoading(false);
+        return;
       }
 
-      console.log(`🌤️ FETCHING WEATHER: ${segmentEndCity} for ${segmentDateString}`, {
-        coordinates,
-        normalizedDate: normalizedSegmentDate.toISOString(),
-        serviceHasKey: this.weatherService.hasApiKey()
+      // Set a timeout for the weather fetch
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Weather fetch timeout')), 10000);
       });
 
-      const weatherPromise = this.weatherService.getWeatherForDate(
+      const weatherPromise = weatherService.getWeatherForDate(
         coordinates.lat,
         coordinates.lng,
         segmentEndCity,
-        normalizedSegmentDate
+        segmentDate
       );
-
-      const timeoutPromise = new Promise<ForecastWeatherData | null>((_, reject) => {
-        setTimeout(() => reject(new Error('Weather fetch timeout after 15 seconds')), 15000);
-      });
 
       const weatherData = await Promise.race([weatherPromise, timeoutPromise]);
 
-      console.log(`🌤️ ENHANCED WEATHER RESPONSE for ${segmentEndCity}:`, {
-        hasData: !!weatherData,
-        dataType: typeof weatherData
-      });
-
       if (weatherData) {
-        // Log the specific fields the user requested
-        WeatherDataDebugger.debugWeatherFieldsForUser(segmentEndCity, weatherData, 'FETCH_RESPONSE');
-
-        // Use enhanced permissive validation
-        const isValidData = WeatherDataValidator.validateWeatherData(weatherData, segmentEndCity, segmentDateString);
+        console.log(`✅ Weather data fetched successfully for ${segmentEndCity}:`, {
+          hasData: true,
+          isActualForecast: weatherData.isActualForecast,
+          dateString,
+          temperature: weatherData.temperature,
+          description: weatherData.description
+        });
         
-        console.log('🔧 ENHANCED VALIDATION RESULT for', segmentEndCity, ':', {
-          isValidData,
-          willSetWeather: true, // Force set weather regardless of validation
-          validationMode: 'PERMISSIVE_FORCE_RENDER'
-        });
-
-        // FORCE SET: Always set weather data if we receive it
         setWeather(weatherData);
-        console.log(`✅ WEATHER FORCE SET for ${segmentEndCity}:`, {
-          hasWeather: true,
-          'weather.isActualForecast': weatherData.isActualForecast,
-          'weather.temperature': weatherData.temperature,
-          'weather.description': weatherData.description
-        });
+        setError(null);
       } else {
-        throw new Error('No weather data received from service');
+        console.warn(`⚠️ No weather data returned for ${segmentEndCity}`);
+        setError('No weather data available');
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
+    } catch (error) {
+      console.error(`❌ Weather fetch failed for ${segmentEndCity}:`, error);
       
-      console.error(`❌ ENHANCED Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, {
-        error: errorMessage,
-        hasApiKey: this.weatherService.hasApiKey(),
-        coordinates: GeocodingService.getCoordinatesForCity(segmentEndCity)
-      });
-      
-      setError(errorMessage);
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          setError('Weather service timed out - please try again');
+        } else if (error.message.includes('API key')) {
+          setError('Weather service configuration error');
+        } else {
+          setError('Unable to fetch weather data');
+        }
+      } else {
+        setError('Weather service error');
+      }
     } finally {
       setLoading(false);
     }

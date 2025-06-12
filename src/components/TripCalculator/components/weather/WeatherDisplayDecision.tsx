@@ -6,7 +6,7 @@ import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDisplayDecisionProps {
   weather: ForecastWeatherData | null;
-  segmentDate: Date;
+  segmentDate: Date | null;
   segmentEndCity: string;
   error: string | null;
   onRetry: () => void;
@@ -23,37 +23,74 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 WeatherDisplayDecision FORCE RENDER for ${segmentEndCity}:`, {
+  console.log(`🌦 WeatherDisplayDecision ENHANCED LOGIC for ${segmentEndCity}:`, {
     hasWeather: !!weather,
+    hasSegmentDate: !!segmentDate,
     weatherKeys: weather ? Object.keys(weather) : [],
-    segmentDate: segmentDate.toISOString()
+    segmentDate: segmentDate?.toISOString(),
+    decision: 'Will evaluate based on weather data availability'
   });
 
-  // FORCE RENDER: If we have ANY weather object, show it
-  if (weather && typeof weather === 'object') {
-    console.log(`✅ FORCE RENDERING weather for ${segmentEndCity}`);
-    
+  // ENHANCED: Handle missing segmentDate more gracefully
+  if (!segmentDate) {
+    console.log(`⚠️ Missing segment date for ${segmentEndCity} - showing informational fallback`);
     return (
-      <WeatherDataDisplay
-        weather={weather}
-        segmentDate={segmentDate}
+      <FallbackWeatherDisplay
         cityName={segmentEndCity}
-        error={error}
+        segmentDate={null}
         onRetry={onRetry}
-        isSharedView={isSharedView}
-        isPDFExport={isPDFExport}
+        error="Set a trip start date to see weather forecasts"
+        showRetryButton={false}
       />
     );
   }
 
-  console.log(`❌ NO WEATHER OBJECT - showing fallback for ${segmentEndCity}`);
+  // ENHANCED: More permissive weather data validation
+  if (weather && typeof weather === 'object') {
+    // Check if we have any meaningful weather data
+    const hasTemperatureData = weather.temperature !== undefined || 
+                              weather.highTemp !== undefined || 
+                              weather.lowTemp !== undefined;
+    
+    const hasDescriptiveData = weather.description || 
+                              weather.icon;
+    
+    const hasAnyUsefulData = hasTemperatureData || hasDescriptiveData || weather.isActualForecast;
+    
+    if (hasAnyUsefulData) {
+      console.log(`✅ ENHANCED VALIDATION PASSED for ${segmentEndCity}:`, {
+        hasTemperatureData,
+        hasDescriptiveData,
+        isActualForecast: weather.isActualForecast,
+        decision: 'showing_weather_display'
+      });
+      
+      return (
+        <WeatherDataDisplay
+          weather={weather}
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          error={error}
+          onRetry={onRetry}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
+        />
+      );
+    }
+  }
+
+  console.log(`❌ NO VALID WEATHER DATA - showing fallback for ${segmentEndCity}`, {
+    hasWeather: !!weather,
+    weatherType: typeof weather,
+    hasSegmentDate: !!segmentDate
+  });
   
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || 'Weather data unavailable'}
+      error={error || 'Weather data temporarily unavailable'}
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );

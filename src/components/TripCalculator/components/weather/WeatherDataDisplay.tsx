@@ -23,9 +23,16 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 WeatherDataDisplay FORCE RENDER for ${cityName}:`, {
+  console.log(`🌦 WeatherDataDisplay ENHANCED RENDERING for ${cityName}:`, {
     hasWeather: !!weather,
-    weatherData: weather
+    hasSegmentDate: !!segmentDate,
+    weatherData: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast
+    } : null
   });
 
   if (!weather) {
@@ -34,13 +41,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         cityName={cityName}
         segmentDate={segmentDate}
         onRetry={onRetry}
-        error={error || 'No weather data'}
+        error={error || 'No weather data available'}
         showRetryButton={!isSharedView && !isPDFExport}
       />
     );
   }
 
-  // FORCE EXTRACT: Get temperature data with aggressive fallbacks
+  // ENHANCED: More robust temperature extraction with better fallbacks
   const getTemperature = (value: any): number => {
     if (typeof value === 'number' && !isNaN(value)) return Math.round(value);
     if (typeof value === 'string') {
@@ -48,26 +55,29 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       if (!isNaN(parsed)) return Math.round(parsed);
     }
     if (value && typeof value === 'object') {
-      if (value.high && typeof value.high === 'number') return Math.round(value.high);
-      if (value.low && typeof value.low === 'number') return Math.round(value.low);
+      if (typeof value.high === 'number') return Math.round(value.high);
+      if (typeof value.low === 'number') return Math.round(value.low);
+      if (typeof value.temp === 'number') return Math.round(value.temp);
     }
-    return 72; // Default
+    return 0; // Return 0 instead of default temperature
   };
 
-  // Extract with multiple fallback paths
+  // Extract weather data with enhanced fallbacks
   const highTemp = getTemperature(weather.highTemp) || 
                    getTemperature(weather.temperature) || 
                    getTemperature((weather as any).temp_max) || 
-                   getTemperature((weather as any).main?.temp_max) || 75;
+                   getTemperature((weather as any).main?.temp_max) || 
+                   75;
                    
   const lowTemp = getTemperature(weather.lowTemp) || 
-                  getTemperature(weather.temperature) || 
+                  (getTemperature(weather.temperature) - 10) || 
                   getTemperature((weather as any).temp_min) || 
-                  getTemperature((weather as any).main?.temp_min) || 65;
+                  getTemperature((weather as any).main?.temp_min) || 
+                  65;
 
   const description = weather.description || 
                      (weather as any).weather?.[0]?.description || 
-                     'Weather information available';
+                     'Weather forecast available';
                      
   const weatherIcon = weather.icon || 
                      (weather as any).weather?.[0]?.icon || 
@@ -82,11 +92,12 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const precipitationChance = Math.round(weather.precipitationChance || 
                                         (weather as any).pop * 100 || 10);
 
-  console.log(`✅ FORCE DISPLAYING weather for ${cityName}:`, {
+  console.log(`✅ ENHANCED WEATHER DISPLAY for ${cityName}:`, {
     high: highTemp,
     low: lowTemp,
     description,
-    isActualForecast: weather.isActualForecast
+    isActualForecast: weather.isActualForecast,
+    hasValidTemps: highTemp > 0 && lowTemp > 0
   });
 
   const forecastLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';
