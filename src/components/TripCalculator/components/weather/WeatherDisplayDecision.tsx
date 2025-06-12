@@ -29,9 +29,24 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     weatherObject: weather
   });
 
-  // CRITICAL FIX: If we have ANY weather object, render it
+  // CRITICAL FIX: Add detailed forecast object logging
+  console.log('📦 Forecast object for', segmentEndCity, ':', {
+    fullWeatherObject: weather,
+    temperature: weather?.temperature,
+    highTemp: weather?.highTemp,
+    lowTemp: weather?.lowTemp,
+    description: weather?.description,
+    icon: weather?.icon,
+    humidity: weather?.humidity,
+    windSpeed: weather?.windSpeed,
+    precipitationChance: weather?.precipitationChance,
+    isActualForecast: weather?.isActualForecast,
+    dateMatchInfo: weather?.dateMatchInfo
+  });
+
+  // CRITICAL FIX: Always render if we have ANY weather object, regardless of missing fields
   if (weather) {
-    console.log('✅ FORCING RENDER: Weather object exists for', segmentEndCity, ', rendering WeatherDataDisplay');
+    console.log('✅ FORCING RENDER: Weather object exists for', segmentEndCity, ', rendering WeatherDataDisplay with fault tolerance');
     return (
       <WeatherDataDisplay
         weather={weather}

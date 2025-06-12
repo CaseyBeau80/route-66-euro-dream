@@ -45,6 +45,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     willRenderWeather: !!weather && !!segmentDate
   });
 
+  // CRITICAL FIX: Add detailed forecast object logging
+  console.log('📦 SegmentWeatherContent forecast object for', segmentEndCity, ':', {
+    fullWeatherObject: weather,
+    hasTemperatureData: !!(weather?.temperature || weather?.highTemp || weather?.lowTemp),
+    hasDescription: !!weather?.description,
+    hasMinimalData: !!(weather?.temperature || weather?.highTemp) && !!weather?.description,
+    isActualForecast: weather?.isActualForecast,
+    dateMatchInfo: weather?.dateMatchInfo
+  });
+
   return (
     <WeatherApiKeyHandler
       hasApiKey={hasApiKey}

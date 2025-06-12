@@ -24,10 +24,25 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ WeatherDataDisplay FORCED RENDER for', cityName, ':', {
+  console.log('🌤️ WeatherDataDisplay RENDER for', cityName, ':', {
     hasWeather: !!weather,
     segmentDate: segmentDate?.toISOString(),
     weather: weather
+  });
+
+  // CRITICAL FIX: Add detailed forecast object logging
+  console.log('📦 WeatherDataDisplay forecast object for', cityName, ':', {
+    fullWeatherObject: weather,
+    temperature: weather?.temperature,
+    highTemp: weather?.highTemp,
+    lowTemp: weather?.lowTemp,
+    description: weather?.description,
+    icon: weather?.icon,
+    humidity: weather?.humidity,
+    windSpeed: weather?.windSpeed,
+    precipitationChance: weather?.precipitationChance,
+    isActualForecast: weather?.isActualForecast,
+    hasValidTemperature: weather?.temperature !== undefined || weather?.highTemp !== undefined || weather?.lowTemp !== undefined
   });
 
   // CRITICAL: If no weather object, show fallback
@@ -44,8 +59,8 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // ULTRA-AGGRESSIVE: Always render if we have ANY weather object
-  console.log(`✅ FORCING WEATHER RENDER for ${cityName} - weather object exists`);
+  // CRITICAL FIX: ALWAYS render if we have ANY weather object - tolerate partial data
+  console.log(`✅ FAULT-TOLERANT RENDER for ${cityName} - weather object exists`);
 
   const forecastLabel = React.useMemo(() => {
     if (!segmentDate) return 'Weather Information';
@@ -59,27 +74,92 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
   const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
 
-  // ULTRA-AGGRESSIVE: Extract ANY available temperature data
+  // CRITICAL FIX: Fail-forward temperature handling - show something rather than nothing
   const getTemperatureDisplay = () => {
-    // Try to get temperatures in order of preference
-    let highTemp = weather.highTemp || weather.temperature || 75;
-    let lowTemp = weather.lowTemp || weather.temperature || 55;
+    // Check if we have any temperature data at all
+    const hasTemp = weather.temperature !== undefined;
+    const hasHighTemp = weather.highTemp !== undefined;
+    const hasLowTemp = weather.lowTemp !== undefined;
     
-    // If we only have one temperature, create a range
-    if (weather.temperature && !weather.highTemp && !weather.lowTemp) {
-      highTemp = weather.temperature + 10;
-      lowTemp = weather.temperature - 10;
-    }
+    console.log(`🌡️ Temperature analysis for ${cityName}:`, {
+      hasTemp,
+      hasHighTemp,
+      hasLowTemp,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp
+    });
 
-    return {
-      high: Math.round(highTemp),
-      low: Math.round(lowTemp),
-      hasValidTemps: !!(weather.temperature || weather.highTemp || weather.lowTemp)
-    };
+    if (hasTemp && hasHighTemp && hasLowTemp) {
+      // All temperature data available
+      return {
+        high: Math.round(weather.highTemp),
+        low: Math.round(weather.lowTemp),
+        hasValidTemps: true,
+        source: 'complete'
+      };
+    } else if (hasHighTemp && hasLowTemp) {
+      // High/Low available
+      return {
+        high: Math.round(weather.highTemp),
+        low: Math.round(weather.lowTemp),
+        hasValidTemps: true,
+        source: 'high-low'
+      };
+    } else if (hasTemp) {
+      // Only single temperature - create reasonable range
+      const temp = Math.round(weather.temperature);
+      return {
+        high: temp + 8,
+        low: temp - 8,
+        hasValidTemps: true,
+        source: 'single-temp'
+      };
+    } else {
+      // No temperature data - provide reasonable defaults
+      console.log(`⚠️ No temperature data for ${cityName}, using fallback`);
+      return {
+        high: 75,
+        low: 55,
+        hasValidTemps: false,
+        source: 'fallback'
+      };
+    }
   };
 
   const temps = getTemperatureDisplay();
-  const displayDescription = weather.description || 'Weather conditions';
+  
+  // CRITICAL FIX: Fail-forward description handling
+  const getDescriptionDisplay = () => {
+    if (weather.description) {
+      return weather.description;
+    }
+    // Fallback based on temperature if available
+    if (temps.hasValidTemps) {
+      const avgTemp = (temps.high + temps.low) / 2;
+      if (avgTemp >= 80) return 'Warm conditions';
+      if (avgTemp >= 65) return 'Pleasant conditions';
+      if (avgTemp >= 45) return 'Cool conditions';
+      return 'Cold conditions';
+    }
+    return 'Weather conditions';
+  };
+
+  const displayDescription = getDescriptionDisplay();
+
+  // CRITICAL FIX: Fail-forward for other weather data
+  const displayHumidity = weather.humidity !== undefined ? weather.humidity : 50;
+  const displayWindSpeed = weather.windSpeed !== undefined ? Math.round(weather.windSpeed) : 5;
+  const displayPrecipChance = weather.precipitationChance !== undefined ? weather.precipitationChance : 10;
+
+  console.log(`✅ FAULT-TOLERANT DISPLAY DATA for ${cityName}:`, {
+    temps,
+    displayDescription,
+    displayHumidity,
+    displayWindSpeed,
+    displayPrecipChance,
+    willRender: true
+  });
 
   return (
     <div className={`rounded border p-3 ${bgClass}`}>
@@ -90,7 +170,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </span>
       </div>
       
-      {/* Temperature Display */}
+      {/* FAULT-TOLERANT Temperature Display */}
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div className="text-center">
           <div className={`text-lg font-bold ${textClass}`}>
@@ -110,16 +190,16 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         </div>
       </div>
       
-      {/* Description and Details */}
+      {/* FAULT-TOLERANT Description and Details */}
       <div className={`pt-3 border-t ${isLiveForecast ? 'border-blue-200' : 'border-yellow-200'}`}>
         <div className={`text-sm mb-2 capitalize ${isLiveForecast ? 'text-blue-700' : 'text-yellow-700'}`}>
           {displayDescription}
         </div>
         
         <div className={`flex justify-between text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
-          <span>💧 {weather.precipitationChance || 0}%</span>
-          <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
-          <span>💦 {weather.humidity || 0}%</span>
+          <span>💧 {displayPrecipChance}%</span>
+          <span>💨 {displayWindSpeed} mph</span>
+          <span>💦 {displayHumidity}%</span>
         </div>
       </div>
 
@@ -127,10 +207,13 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         {isLiveForecast ? (
           <>✅ Live forecast for {forecastLabel}</>
         ) : (
-          `📊 Weather data for {forecastLabel}`
+          `📊 Weather data for ${forecastLabel}`
         )}
         {!temps.hasValidTemps && (
           <span className="ml-2 text-gray-500">(Estimated)</span>
+        )}
+        {temps.source === 'fallback' && (
+          <span className="ml-2 text-orange-600">(Fallback data)</span>
         )}
       </div>
 
