@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { DateNormalizationService } from './DateNormalizationService';
 import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDataDisplayProps {
@@ -23,163 +24,191 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 ENHANCED DEBUG: WeatherDataDisplay render for ${cityName}:`, {
+  console.log('🌤️ FORCE LOG - WeatherDataDisplay render for', cityName, ':', {
     hasWeather: !!weather,
-    hasSegmentDate: !!segmentDate,
-    weather: weather,
-    weatherKeys: weather ? Object.keys(weather) : [],
-    componentProps: { cityName, error, isSharedView, isPDFExport }
+    segmentDate: segmentDate?.toISOString(),
+    hasError: !!error,
+    weather: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      description: weather.description,
+      isActualForecast: weather.isActualForecast,
+      dateMatchInfo: weather.dateMatchInfo
+    } : null
   });
 
   if (!weather) {
-    console.log(`❌ ENHANCED DEBUG: No weather data, showing fallback for ${cityName}`);
+    console.log(`❌ FORCE LOG - WeatherDataDisplay: No weather object for ${cityName}`);
     return (
       <FallbackWeatherDisplay
         cityName={cityName}
         segmentDate={segmentDate}
         onRetry={onRetry}
-        error={error || 'No weather data available'}
+        error={error || 'No weather data'}
         showRetryButton={!isSharedView && !isPDFExport}
       />
     );
   }
 
-  console.log(`🔍 ENHANCED DEBUG: Processing weather data for ${cityName}:`, {
+  // ULTRA-AGGRESSIVE: Extract ANY available data
+  const hasAnyTemp = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+  const hasDescription = !!weather.description;
+  
+  console.log(`🔍 FORCE LOG - ULTRA AGGRESSIVE DATA CHECK for ${cityName}:`, {
+    hasAnyTemp,
+    hasDescription,
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
     description: weather.description,
-    icon: weather.icon,
-    humidity: weather.humidity,
-    windSpeed: weather.windSpeed,
-    precipitationChance: weather.precipitationChance,
-    isActualForecast: weather.isActualForecast
+    willAttemptRender: hasAnyTemp || hasDescription
   });
+  
+  // If we don't have ANY displayable data, show fallback
+  if (!hasAnyTemp && !hasDescription) {
+    console.log(`❌ FORCE LOG - WeatherDataDisplay: No displayable data for ${cityName}`);
+    return (
+      <FallbackWeatherDisplay
+        cityName={cityName}
+        segmentDate={segmentDate}
+        onRetry={onRetry}
+        error="No temperature or weather description available"
+        showRetryButton={!isSharedView && !isPDFExport}
+      />
+    );
+  }
 
-  // ENHANCED: More robust temperature extraction with better fallbacks
-  const getTemperature = (value: any): number => {
-    console.log(`🌡️ ENHANCED DEBUG: Processing temperature value:`, { value, type: typeof value });
+  const forecastLabel = React.useMemo(() => {
+    if (!segmentDate) return 'Weather Information';
+    const formattedDate = format(segmentDate, 'EEEE, MMM d');
     
-    if (typeof value === 'number' && !isNaN(value)) {
-      console.log(`✅ ENHANCED DEBUG: Valid number temperature: ${value}`);
-      return Math.round(value);
+    console.log(`🎯 FORCE LOG - WEATHER LABEL for ${cityName}:`, {
+      segmentDate: segmentDate.toISOString(),
+      segmentDateString: DateNormalizationService.toDateString(segmentDate),
+      formattedDisplay: formattedDate
+    });
+    
+    return formattedDate;
+  }, [segmentDate, cityName]);
+
+  // Determine if this is live forecast or fallback
+  const isLiveForecast = weather.isActualForecast === true;
+  const bgClass = isLiveForecast ? 'bg-blue-50 border-blue-200' : 'bg-yellow-50 border-yellow-200';
+  const textClass = isLiveForecast ? 'text-blue-800' : 'text-yellow-800';
+  const labelClass = isLiveForecast ? 'text-blue-600 bg-blue-100' : 'text-yellow-700 bg-yellow-100';
+
+  // ULTRA-AGGRESSIVE: Extract temperatures with maximum fallbacks
+  const getTemperatureValues = () => {
+    let highTemp = 0;
+    let lowTemp = 0;
+    let hasValidTemps = false;
+
+    if (weather.highTemp !== undefined && weather.lowTemp !== undefined) {
+      highTemp = weather.highTemp;
+      lowTemp = weather.lowTemp;
+      hasValidTemps = true;
+    } else if (weather.temperature !== undefined) {
+      // Use single temperature as both high and low with small variation
+      highTemp = weather.temperature + 5;
+      lowTemp = weather.temperature - 5;
+      hasValidTemps = true;
+    } else if (weather.highTemp !== undefined) {
+      // Only high temp available
+      highTemp = weather.highTemp;
+      lowTemp = weather.highTemp - 10;
+      hasValidTemps = true;
+    } else if (weather.lowTemp !== undefined) {
+      // Only low temp available
+      lowTemp = weather.lowTemp;
+      highTemp = weather.lowTemp + 10;
+      hasValidTemps = true;
+    } else {
+      // No temperatures at all - use reasonable defaults
+      console.warn(`⚠️ FORCE LOG - No temperature data found for ${cityName}, using defaults`);
+      highTemp = 70;
+      lowTemp = 50;
+      hasValidTemps = false;
     }
-    if (typeof value === 'string') {
-      const parsed = parseFloat(value);
-      if (!isNaN(parsed)) {
-        console.log(`✅ ENHANCED DEBUG: Parsed string temperature: ${parsed}`);
-        return Math.round(parsed);
-      }
-    }
-    if (value && typeof value === 'object') {
-      if (typeof value.high === 'number') {
-        console.log(`✅ ENHANCED DEBUG: Using object.high temperature: ${value.high}`);
-        return Math.round(value.high);
-      }
-      if (typeof value.low === 'number') {
-        console.log(`✅ ENHANCED DEBUG: Using object.low temperature: ${value.low}`);
-        return Math.round(value.low);
-      }
-      if (typeof value.temp === 'number') {
-        console.log(`✅ ENHANCED DEBUG: Using object.temp temperature: ${value.temp}`);
-        return Math.round(value.temp);
-      }
-    }
-    console.log(`⚠️ ENHANCED DEBUG: No valid temperature found, using fallback`);
-    return 0;
+
+    console.log(`🌡️ FORCE LOG - Temperature extraction for ${cityName}:`, {
+      originalHighTemp: weather.highTemp,
+      originalLowTemp: weather.lowTemp,
+      originalTemperature: weather.temperature,
+      calculatedHighTemp: highTemp,
+      calculatedLowTemp: lowTemp,
+      hasValidTemps
+    });
+
+    return { highTemp, lowTemp, hasValidTemps };
   };
 
-  // Extract weather data with enhanced fallbacks and debugging
-  const highTemp = getTemperature(weather.highTemp) || 
-                   getTemperature(weather.temperature) || 
-                   getTemperature((weather as any).temp_max) || 
-                   getTemperature((weather as any).main?.temp_max) || 
-                   75;
-                   
-  const lowTemp = getTemperature(weather.lowTemp) || 
-                  (getTemperature(weather.temperature) - 10) || 
-                  getTemperature((weather as any).temp_min) || 
-                  getTemperature((weather as any).main?.temp_min) || 
-                  65;
+  const { highTemp, lowTemp, hasValidTemps } = getTemperatureValues();
+  const displayDescription = weather.description || 'Weather information';
 
-  const description = weather.description || 
-                     (weather as any).weather?.[0]?.description || 
-                     'Weather forecast available';
-                     
-  const weatherIcon = weather.icon || 
-                     (weather as any).weather?.[0]?.icon || 
-                     '🌤️';
-                     
-  const humidity = Math.round(weather.humidity || 
-                             (weather as any).main?.humidity || 50);
-                             
-  const windSpeed = Math.round(weather.windSpeed || 
-                              (weather as any).wind?.speed || 5);
-                              
-  const precipitationChance = Math.round(weather.precipitationChance || 
-                                        (weather as any).pop * 100 || 10);
-
-  console.log(`✅ ENHANCED DEBUG: Final weather display data for ${cityName}:`, {
-    high: highTemp,
-    low: lowTemp,
-    description,
-    weatherIcon,
-    humidity,
-    windSpeed,
-    precipitationChance,
-    isActualForecast: weather.isActualForecast,
-    hasValidTemps: highTemp > 0 && lowTemp > 0
+  // FORCE RENDER: Always render if we reach this point
+  console.log(`✅ FORCE LOG - RENDERING WEATHER DISPLAY for ${cityName}:`, {
+    highTemp,
+    lowTemp,
+    description: displayDescription,
+    isLiveForecast,
+    hasValidTemps,
+    forcingRender: true
   });
 
-  const forecastLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather Information';
-  const isLiveForecast = weather.isActualForecast === true;
-
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded p-3">
+    <div className={`rounded border p-3 ${bgClass}`}>
       <div className="flex items-center justify-between mb-3">
-        <h5 className="font-semibold text-blue-800">{cityName}</h5>
-        <span className="text-xs px-2 py-1 rounded text-blue-600 bg-blue-100">
+        <h5 className={`font-semibold ${textClass}`}>{cityName}</h5>
+        <span className={`text-xs px-2 py-1 rounded ${labelClass}`}>
           {forecastLabel}
         </span>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-800">
-            {lowTemp}°F
+      {/* Always show temperature section if we have ANY temp data */}
+      {hasAnyTemp && (
+        <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+          <div className="text-center">
+            <div className={`text-lg font-bold ${textClass}`}>
+              {Math.round(lowTemp)}°F
+            </div>
+            <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+              {hasValidTemps ? (isLiveForecast ? 'Low' : 'Avg Low') : 'Est Low'}
+            </div>
           </div>
-          <div className="text-xs text-blue-600">
-            Low
+          <div className="text-center">
+            <div className={`text-lg font-bold ${textClass}`}>
+              {Math.round(highTemp)}°F
+            </div>
+            <div className={`text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+              {hasValidTemps ? (isLiveForecast ? 'High' : 'Avg High') : 'Est High'}
+            </div>
           </div>
         </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-800">
-            {highTemp}°F
-          </div>
-          <div className="text-xs text-blue-600">
-            High
-          </div>
-        </div>
-      </div>
+      )}
       
-      <div className="pt-3 border-t border-blue-200">
-        <div className="text-sm mb-2 capitalize text-blue-700 flex items-center">
-          <span className="mr-2">{weatherIcon}</span>
-          {description}
+      {/* Always show description section */}
+      <div className={`pt-3 border-t ${isLiveForecast ? 'border-blue-200' : 'border-yellow-200'}`}>
+        <div className={`text-sm mb-2 capitalize ${isLiveForecast ? 'text-blue-700' : 'text-yellow-700'}`}>
+          {displayDescription}
         </div>
         
-        <div className="flex justify-between text-xs text-blue-600">
-          <span>💧 {precipitationChance}%</span>
-          <span>💨 {windSpeed} mph</span>
-          <span>💦 {humidity}%</span>
+        {/* Show additional data if available */}
+        <div className={`flex justify-between text-xs ${isLiveForecast ? 'text-blue-600' : 'text-yellow-600'}`}>
+          <span>💧 {weather.precipitationChance || 0}%</span>
+          <span>💨 {Math.round(weather.windSpeed || 0)} mph</span>
+          <span>💦 {weather.humidity || 0}%</span>
         </div>
       </div>
 
-      <div className="mt-2 text-xs rounded p-2 text-blue-500 bg-blue-100">
+      <div className={`mt-2 text-xs rounded p-2 ${isLiveForecast ? 'text-blue-500 bg-blue-100' : 'text-yellow-600 bg-yellow-100'}`}>
         {isLiveForecast ? (
-          <>✅ Live weather forecast</>
+          <>✅ Weather forecast for {forecastLabel}</>
         ) : (
-          <>📊 Weather estimate</>
+          `📊 Weather data for {forecastLabel}`
+        )}
+        {!hasValidTemps && (
+          <span className="ml-2 text-gray-500">(Estimated temperatures)</span>
         )}
       </div>
 

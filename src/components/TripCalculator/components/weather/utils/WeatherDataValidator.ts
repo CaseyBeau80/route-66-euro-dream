@@ -1,28 +1,63 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 export class WeatherDataValidator {
   static validateWeatherData(data: ForecastWeatherData, city: string, dateString: string): boolean {
-    console.log('🔍 WeatherDataValidator FORCE ACCEPT for', city, ':', data);
+    // FIXED: Less strict validation - accept data if we have basic weather information
+    const validationResult = {
+      hasTemperature: !!(data.temperature || data.highTemp || data.lowTemp),
+      hasDescription: !!data.description,
+      hasValidDateMatch: !!data.dateMatchInfo,
+      isActualForecast: data.isActualForecast,
+      hasMinimalData: !!(data.temperature || data.highTemp) && !!data.description
+    };
 
-    // FORCE ACCEPT: Any weather object is valid
-    const isValid = !!(data && typeof data === 'object');
+    // FIXED: Accept weather data if we have minimal required information
+    const isValid = validationResult.hasMinimalData;
     
-    console.log('✅ FORCE VALIDATION RESULT for', city, ':', {
-      isValid: true,
-      hasData: !!data,
-      forceAccept: true
-    });
+    WeatherDataDebugger.debugWeatherFlow(
+      `WeatherDataValidator.validateWeatherData [${city}] - RELAXED VALIDATION`,
+      { 
+        dateString, 
+        validationResult, 
+        isValid,
+        temperature: data.temperature,
+        highTemp: data.highTemp,
+        lowTemp: data.lowTemp,
+        description: data.description
+      }
+    );
 
-    return true; // Always return true to force render
+    return isValid;
   }
 
   static validateLiveForecastData(data: ForecastWeatherData): boolean {
-    console.log('🔍 validateLiveForecastData - FORCE ACCEPT');
+    // FIXED: More permissive live forecast validation
+    const hasActualFlag = data.isActualForecast === true;
+    const hasValidTemps = (
+      (data.highTemp !== undefined && data.lowTemp !== undefined) ||
+      (data.temperature !== undefined && data.temperature > -50 && data.temperature < 150)
+    );
+    const hasApiSource = data.dateMatchInfo?.source === 'api-forecast';
+    const hasValidDescription = !!data.description;
     
-    // Force accept any data
-    console.log('✅ FORCE ACCEPT LIVE FORECAST');
+    const isValidLiveForecast = hasActualFlag && hasValidTemps && hasApiSource && hasValidDescription;
     
-    return true; // Always return true
+    WeatherDataDebugger.debugWeatherFlow(
+      'WeatherDataValidator.validateLiveForecastData - IMPROVED',
+      {
+        hasActualFlag,
+        hasValidTemps,
+        hasApiSource,
+        hasValidDescription,
+        isValidLiveForecast,
+        temperature: data.temperature,
+        highTemp: data.highTemp,
+        lowTemp: data.lowTemp
+      }
+    );
+
+    return isValidLiveForecast;
   }
 }

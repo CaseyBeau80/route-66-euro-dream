@@ -6,7 +6,7 @@ import FallbackWeatherDisplay from './FallbackWeatherDisplay';
 
 interface WeatherDisplayDecisionProps {
   weather: ForecastWeatherData | null;
-  segmentDate: Date | null;
+  segmentDate: Date;
   segmentEndCity: string;
   error: string | null;
   onRetry: () => void;
@@ -23,74 +23,54 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🌦 WeatherDisplayDecision ENHANCED LOGIC for ${segmentEndCity}:`, {
+  console.log('🎯 WeatherDisplayDecision for', segmentEndCity, ':', {
     hasWeather: !!weather,
-    hasSegmentDate: !!segmentDate,
-    weatherKeys: weather ? Object.keys(weather) : [],
-    segmentDate: segmentDate?.toISOString(),
-    decision: 'Will evaluate based on weather data availability'
+    hasError: !!error
   });
 
-  // ENHANCED: Handle missing segmentDate more gracefully
-  if (!segmentDate) {
-    console.log(`⚠️ Missing segment date for ${segmentEndCity} - showing informational fallback`);
+  if (!weather) {
     return (
       <FallbackWeatherDisplay
         cityName={segmentEndCity}
-        segmentDate={null}
+        segmentDate={segmentDate}
         onRetry={onRetry}
-        error="Set a trip start date to see weather forecasts"
-        showRetryButton={false}
+        error={error || 'No weather data available'}
+        showRetryButton={!isSharedView && !isPDFExport}
       />
     );
   }
 
-  // ENHANCED: More permissive weather data validation
-  if (weather && typeof weather === 'object') {
-    // Check if we have any meaningful weather data
-    const hasTemperatureData = weather.temperature !== undefined || 
-                              weather.highTemp !== undefined || 
-                              weather.lowTemp !== undefined;
-    
-    const hasDescriptiveData = weather.description || 
-                              weather.icon;
-    
-    const hasAnyUsefulData = hasTemperatureData || hasDescriptiveData || weather.isActualForecast;
-    
-    if (hasAnyUsefulData) {
-      console.log(`✅ ENHANCED VALIDATION PASSED for ${segmentEndCity}:`, {
-        hasTemperatureData,
-        hasDescriptiveData,
-        isActualForecast: weather.isActualForecast,
-        decision: 'showing_weather_display'
-      });
-      
-      return (
-        <WeatherDataDisplay
-          weather={weather}
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          error={error}
-          onRetry={onRetry}
-          isSharedView={isSharedView}
-          isPDFExport={isPDFExport}
-        />
-      );
-    }
+  // Check for any displayable data
+  const hasAnyTemperature = !!(weather.temperature || weather.highTemp || weather.lowTemp);
+  const hasAnyDescription = !!weather.description;
+  const hasMinimalData = hasAnyTemperature || hasAnyDescription;
+
+  console.log('🔍 Weather data check for', segmentEndCity, ':', {
+    hasAnyTemperature,
+    hasAnyDescription,
+    hasMinimalData
+  });
+
+  if (hasMinimalData) {
+    return (
+      <WeatherDataDisplay
+        weather={weather}
+        segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        error={error}
+        onRetry={onRetry}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
+    );
   }
 
-  console.log(`❌ NO VALID WEATHER DATA - showing fallback for ${segmentEndCity}`, {
-    hasWeather: !!weather,
-    weatherType: typeof weather,
-    hasSegmentDate: !!segmentDate
-  });
-  
   return (
     <FallbackWeatherDisplay
       cityName={segmentEndCity}
       segmentDate={segmentDate}
       onRetry={onRetry}
-      error={error || 'Weather data temporarily unavailable'}
+      error="Weather data incomplete"
       showRetryButton={!isSharedView && !isPDFExport}
     />
   );

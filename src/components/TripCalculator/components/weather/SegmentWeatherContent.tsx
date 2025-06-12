@@ -34,30 +34,29 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ENHANCED DEBUG LOGGING
-  console.log(`🚨 SegmentWeatherContent ENHANCED DEBUG for ${segmentEndCity}:`, {
+  console.log('🚨 SegmentWeatherContent for', segmentEndCity, ':', {
+    segmentDate: segmentDate?.toISOString(),
     hasApiKey,
     loading,
     hasWeather: !!weather,
     hasError: !!error,
-    hasSegmentDate: !!segmentDate,
-    retryCount,
-    weatherSummary: weather ? {
+    retryCount
+  });
+
+  // Log complete weather data analysis if available
+  if (weather) {
+    console.log('🔍 Weather data analysis for', segmentEndCity, ':', {
+      hasTemperature: !!weather.temperature,
+      hasHighTemp: !!weather.highTemp,
+      hasLowTemp: !!weather.lowTemp,
+      hasDescription: !!weather.description,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
       description: weather.description,
-      icon: weather.icon,
       isActualForecast: weather.isActualForecast,
-      cityName: weather.cityName
-    } : null,
-    segmentDate: segmentDate?.toISOString(),
-    error
-  });
-
-  // Add detailed forecast data logging
-  if (weather) {
-    console.log(`📊 FORECAST DATA DETAILED ANALYSIS for ${segmentEndCity}:`, weather);
+      dateMatchInfo: weather.dateMatchInfo
+    });
   }
 
   return (
@@ -78,10 +77,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       >
-        {/* CRITICAL FIX: Always try to render weather display, don't block on segmentDate */}
         <WeatherDisplayDecision
           weather={weather}
-          segmentDate={segmentDate}
+          segmentDate={segmentDate!}
           segmentEndCity={segmentEndCity}
           error={error}
           onRetry={onRetry}
