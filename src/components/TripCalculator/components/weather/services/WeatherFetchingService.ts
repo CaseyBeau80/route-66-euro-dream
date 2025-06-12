@@ -1,7 +1,7 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
-import { GeocodingService } from '../../services/GeocodingService';
+import { GeocodingService } from '@/components/TripCalculator/services/GeocodingService';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
