@@ -22,13 +22,13 @@ export class WeatherFetchingService {
     const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    // PLAN IMPLEMENTATION: Use consistent normalized LOCAL date calculation for forecast range check
+    // PLAN: Use consistent normalized LOCAL date calculation for forecast range check
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7; // PLAN IMPLEMENTATION: Expanded to 0-7
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7; // PLAN: Standardized to 0-7
     
-    console.log('🔧 PLAN: WeatherFetchingService - EXPANDED FORECAST RANGE 0-7 WITH LOCAL DATES', {
+    console.log('🔧 PLAN: WeatherFetchingService - STANDARDIZED FORECAST RANGE 0-7 WITH LOCAL DATES', {
       cityName: segmentEndCity,
       normalizedToday: normalizedToday.toISOString(),
       normalizedTodayLocal: normalizedToday.toLocaleDateString(),
@@ -40,18 +40,18 @@ export class WeatherFetchingService {
       segmentDateString,
       dateCalculationMethod: 'DateNormalizationService_LOCAL',
       forecastLogic: 'Days 0-7 = FORCE live forecast, Day 8+ = historical',
-      expandedRange: true,
+      standardizedRange: true,
       localDateCalculation: true
     });
 
-    // PLAN IMPLEMENTATION: For forecast range dates (0-7), skip cache completely and go straight to live forecast
+    // PLAN: For forecast range dates (0-7), skip cache completely and go straight to live forecast
     if (isWithinForecastRange && this.weatherService.hasApiKey()) {
-      console.log('🔧 PLAN: FORCING live forecast attempt for EXPANDED forecast range date', {
+      console.log('🔧 PLAN: FORCING live forecast attempt for STANDARDIZED forecast range date', {
         cityName: segmentEndCity,
         daysFromToday,
         reason: 'within_0_to_7_day_range_MUST_attempt_live',
         skippingCacheCompletely: true,
-        expandedForecastRange: true,
+        standardizedForecastRange: true,
         localDateCalculation: true
       });
 
@@ -68,10 +68,10 @@ export class WeatherFetchingService {
           coordinates,
           daysFromToday,
           isWithinForecastRange,
-          reason: 'expanded_forecast_range_date_MUST_use_live',
+          reason: 'standardized_forecast_range_date_MUST_use_live',
           normalizedDateUsed: true,
           localDateCalculation: true,
-          expandedRange: true
+          standardizedRange: true
         });
 
         const weatherPromise = this.weatherService.getWeatherForDate(
@@ -95,18 +95,18 @@ export class WeatherFetchingService {
           daysFromToday,
           shouldBeLiveForecast: isWithinForecastRange,
           normalizedDateUsed: true,
-          expandedForecastRangeEnforced: true,
+          standardizedForecastRangeEnforced: true,
           localDateCalculation: true
         });
 
         if (weatherData) {
-          console.log('🔧 PLAN: Live forecast SUCCESS for expanded forecast range date', segmentEndCity, {
+          console.log('🔧 PLAN: Live forecast SUCCESS for standardized forecast range date', segmentEndCity, {
             daysFromToday,
             source: weatherData.source,
             isActualForecast: weatherData.isActualForecast,
             temperature: weatherData.temperature,
             normalizedCalculation: true,
-            expandedForecastRangeEnforced: true,
+            standardizedForecastRangeEnforced: true,
             localDateCalculation: true
           });
           
@@ -126,46 +126,46 @@ export class WeatherFetchingService {
             WeatherPersistenceService.storeWeatherData(segmentEndCity, normalizedSegmentDate, normalizedData);
             
             WeatherDataDebugger.debugWeatherFlow(
-              `WeatherFetchingService.success [${segmentEndCity}] - LIVE FORECAST ENFORCED EXPANDED RANGE`,
+              `WeatherFetchingService.success [${segmentEndCity}] - LIVE FORECAST ENFORCED STANDARDIZED RANGE`,
               {
                 isActualForecast: weatherData.isActualForecast,
                 source: weatherData.source,
                 daysFromToday,
                 liveForecastEnforced: true,
                 normalizedDateUsed: true,
-                expandedForecastRangeEnforced: true,
+                standardizedForecastRangeEnforced: true,
                 localDateCalculation: true
               }
             );
 
             WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
             setWeather(weatherData);
-            console.log(`✅ PLAN: LIVE FORECAST SET for expanded forecast range date ${segmentEndCity}:`, normalizedData);
+            console.log(`✅ PLAN: LIVE FORECAST SET for standardized forecast range date ${segmentEndCity}:`, normalizedData);
           } else {
             console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}, using raw data`);
             WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
             setWeather(weatherData);
           }
         } else {
-          throw new Error('Live forecast returned null for expanded forecast range date');
+          throw new Error('Live forecast returned null for standardized forecast range date');
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
         
-        console.error(`❌ PLAN: Live forecast failed for expanded forecast range date ${segmentEndCity}:`, err);
+        console.error(`❌ PLAN: Live forecast failed for standardized forecast range date ${segmentEndCity}:`, err);
         
         WeatherDataDebugger.debugWeatherFlow(
-          `WeatherFetchingService.error [${segmentEndCity}] - EXPANDED FORECAST RANGE LIVE ATTEMPT FAILED`,
+          `WeatherFetchingService.error [${segmentEndCity}] - STANDARDIZED FORECAST RANGE LIVE ATTEMPT FAILED`,
           { 
             error: errorMessage, 
             hasApiKey: this.weatherService.hasApiKey(), 
             daysFromToday, 
-            expandedForecastRangeEnforced: true,
+            standardizedForecastRangeEnforced: true,
             localDateCalculation: true 
           }
         );
         
-        console.error(`❌ Weather fetch error for expanded forecast range date ${segmentEndCity} on ${segmentDateString}:`, err);
+        console.error(`❌ Weather fetch error for standardized forecast range date ${segmentEndCity} on ${segmentDateString}:`, err);
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -173,15 +173,15 @@ export class WeatherFetchingService {
       return;
     }
 
-    // PLAN IMPLEMENTATION: Only check cache for dates beyond expanded forecast range OR when no API key
+    // PLAN: Only check cache for dates beyond standardized forecast range OR when no API key
     if (!isWithinForecastRange || !this.weatherService.hasApiKey()) {
       const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
       if (cachedWeather) {
-        console.log('💾 PLAN: Using cached weather data for beyond-expanded-forecast-range date', segmentEndCity, {
-          reason: !isWithinForecastRange ? 'beyond_expanded_forecast_range' : 'no_api_key',
+        console.log('💾 PLAN: Using cached weather data for beyond-standardized-forecast-range date', segmentEndCity, {
+          reason: !isWithinForecastRange ? 'beyond_standardized_forecast_range' : 'no_api_key',
           daysFromToday,
           isWithinForecastRange,
-          expandedRange: true,
+          standardizedRange: true,
           localDateCalculation: true
         });
         
@@ -208,13 +208,13 @@ export class WeatherFetchingService {
       }
     }
 
-    // This should never be reached for expanded forecast range dates with API key
-    console.error(`❌ PLAN ERROR: Reached fallback path for expanded forecast range date ${segmentEndCity}`, {
+    // This should never be reached for standardized forecast range dates with API key
+    console.error(`❌ PLAN ERROR: Reached fallback path for standardized forecast range date ${segmentEndCity}`, {
       daysFromToday,
       isWithinForecastRange,
       hasApiKey: this.weatherService.hasApiKey(),
       shouldNotReachHere: isWithinForecastRange && this.weatherService.hasApiKey(),
-      expandedRange: true,
+      standardizedRange: true,
       localDateCalculation: true
     });
 
