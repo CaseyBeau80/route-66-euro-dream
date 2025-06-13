@@ -6,6 +6,7 @@ export interface WeatherTypeResult {
   isHistoricalData: boolean;
   displayLabel: string;
   badgeType: 'live' | 'historical';
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export class WeatherTypeDetector {
@@ -19,17 +20,20 @@ export class WeatherTypeDetector {
         isLiveForecast: false,
         isHistoricalData: true,
         displayLabel: 'Weather Information',
-        badgeType: 'historical'
+        badgeType: 'historical',
+        confidence: 'low'
       };
     }
 
     console.log('🔍 WeatherTypeDetector analyzing weather data:', {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
-      dateMatchSource: weather.dateMatchInfo?.source
+      dateMatchSource: weather.dateMatchInfo?.source,
+      temperature: weather.temperature,
+      hasValidData: !!(weather.temperature || weather.highTemp || weather.lowTemp)
     });
 
-    // FIXED LOGIC: Properly detect historical data
+    // ENHANCED LOGIC: More robust detection with confidence levels
     const isHistoricalData = (
       weather.isActualForecast === false ||
       weather.source === 'historical_fallback' ||
@@ -46,14 +50,29 @@ export class WeatherTypeDetector {
       weather.dateMatchInfo?.source !== 'seasonal-estimate'
     );
 
+    // Determine confidence level
+    let confidence: 'high' | 'medium' | 'low' = 'medium';
+    if (isLiveForecast && weather.dateMatchInfo?.confidence) {
+      confidence = weather.dateMatchInfo.confidence;
+    } else if (isHistoricalData) {
+      confidence = weather.source === 'seasonal' ? 'low' : 'medium';
+    }
+
     const result: WeatherTypeResult = {
       isLiveForecast,
       isHistoricalData,
       displayLabel: isLiveForecast ? 'Live Forecast' : 'Historical Data',
-      badgeType: isLiveForecast ? 'live' : 'historical'
+      badgeType: isLiveForecast ? 'live' : 'historical',
+      confidence
     };
 
-    console.log('✅ WeatherTypeDetector result:', result);
+    console.log('✅ WeatherTypeDetector result:', {
+      ...result,
+      weatherSource: weather.source,
+      dateMatchSource: weather.dateMatchInfo?.source,
+      temperature: weather.temperature
+    });
+
     return result;
   }
 
@@ -73,5 +92,36 @@ export class WeatherTypeDetector {
     return result.isLiveForecast 
       ? 'Real-time weather forecast from API'
       : 'Historical weather patterns - live forecast not available';
+  }
+
+  /**
+   * Validate weather type consistency across components
+   */
+  static validateWeatherTypeConsistency(
+    weather: ForecastWeatherData | null,
+    componentName: string
+  ): boolean {
+    if (!weather) return true;
+
+    const result = this.detectWeatherType(weather);
+    
+    // Log validation for debugging
+    console.log(`🔧 WeatherTypeDetector validation for ${componentName}:`, {
+      isLiveForecast: result.isLiveForecast,
+      isHistoricalData: result.isHistoricalData,
+      displayLabel: result.displayLabel,
+      confidence: result.confidence,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast
+    });
+
+    // Basic consistency check: can't be both live and historical
+    const isConsistent = !(result.isLiveForecast && result.isHistoricalData);
+    
+    if (!isConsistent) {
+      console.error(`❌ Weather type inconsistency detected in ${componentName}:`, result);
+    }
+    
+    return isConsistent;
   }
 }

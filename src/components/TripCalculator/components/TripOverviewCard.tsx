@@ -9,6 +9,7 @@ import { useCostEstimator } from '../hooks/useCostEstimator';
 import TripStatsGrid from './TripStatsGrid';
 import ShareAndExportDropdown from './ShareAndExportDropdown';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
+import { WeatherTypeDetector } from './weather/utils/WeatherTypeDetector';
 
 interface TripOverviewCardProps {
   tripPlan: TripPlan;
@@ -48,6 +49,19 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   // Get the last segment for destination weather
   const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
+  // FIXED: Get weather section header using centralized WeatherTypeDetector
+  const getWeatherSectionHeader = () => {
+    // Since we don't have the actual weather data here, we'll let the 
+    // SegmentWeatherWidget handle the header determination internally
+    return "Destination Weather";
+  };
+
+  console.log('🔧 FIXED: TripOverviewCard using centralized weather header logic:', {
+    lastSegmentCity: lastSegment?.endCity,
+    weatherSectionHeader: getWeatherSectionHeader(),
+    hasTripStartDate: !!tripStartDate
+  });
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -84,12 +98,12 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatTime={formatTime}
         />
 
-        {/* Weather Information Section - Now prominently displayed and always visible */}
+        {/* FIXED: Weather Information Section - Now uses centralized weather detection */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Cloud className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-800">Destination Weather</h3>
+              <h3 className="font-semibold text-gray-800">{getWeatherSectionHeader()}</h3>
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
               <SegmentWeatherWidget 

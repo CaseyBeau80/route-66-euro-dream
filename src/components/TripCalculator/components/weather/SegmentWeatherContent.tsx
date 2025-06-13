@@ -81,10 +81,13 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Use centralized WeatherTypeDetector for consistent header determination
+  // FIXED: Use centralized WeatherTypeDetector with validation
   const weatherSectionHeader = WeatherTypeDetector.getSectionHeader(weather);
+  
+  // Validate weather type consistency
+  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SegmentWeatherContent-${segmentEndCity}`);
 
-  console.log('🔧 FIXED: Using WeatherTypeDetector for section header:', {
+  console.log('🔧 FIXED: Using centralized WeatherTypeDetector for section header:', {
     segmentEndCity,
     weatherSectionHeader,
     weatherSource: weather?.source,

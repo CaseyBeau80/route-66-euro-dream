@@ -57,11 +57,14 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
   const showCurrent = !isNaN(temperatures.current) && !showRange;
 
-  // FIXED: Use centralized WeatherTypeDetector for consistent type detection
+  // FIXED: Use centralized WeatherTypeDetector with validation
   const weatherType = WeatherTypeDetector.detectWeatherType(weather);
   const footerMessage = WeatherTypeDetector.getFooterMessage(weather);
+  
+  // Validate weather type consistency
+  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SimpleWeatherDisplay-${cityName}`);
 
-  console.log('🔧 FIXED: Using WeatherTypeDetector for display decision:', {
+  console.log('🔧 FIXED: Using centralized WeatherTypeDetector for display decision:', {
     cityName,
     showRange,
     showCurrent,
