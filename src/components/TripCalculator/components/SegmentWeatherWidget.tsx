@@ -152,7 +152,14 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     segmentEndCity: segment.endCity,
     hasApiKey,
     segmentDate,
-    ...weatherState
+    weather: weatherState.weather,
+    loading: weatherState.loading,
+    error: weatherState.error,
+    retryCount: weatherState.retryCount,
+    setWeather: weatherState.setWeather,
+    setLoading: weatherState.setLoading,
+    setError: weatherState.setError,
+    setRetryCount: weatherState.setRetryCount
   });
 
   // PLAN IMPLEMENTATION: Enhanced weather handlers initialization logging
