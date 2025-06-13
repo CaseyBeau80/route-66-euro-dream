@@ -55,10 +55,10 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // For shared views or PDF exports without API key, show seasonal fallback
-  if (!hasApiKey && (isSharedView || isPDFExport)) {
+  // For shared views or PDF exports, ALWAYS show seasonal fallback if no weather data
+  if ((isSharedView || isPDFExport) && !weather && !loading) {
     if (segmentDate) {
-      console.log(`🌱 Showing seasonal fallback for ${segmentEndCity} in shared view`);
+      console.log(`🌱 No weather data - showing seasonal fallback for ${segmentEndCity} in shared view`);
       return (
         <SeasonalWeatherFallback 
           segmentDate={segmentDate}
@@ -68,7 +68,29 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       );
     }
     
-    // No date available in shared view - show generic message
+    // No date available in shared view
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-gray-600">Weather information not available</p>
+      </div>
+    );
+  }
+
+  // For shared views without API key, show seasonal fallback immediately
+  if (!hasApiKey && (isSharedView || isPDFExport)) {
+    if (segmentDate) {
+      console.log(`🌱 No API key - showing seasonal fallback for ${segmentEndCity} in shared view`);
+      return (
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
+      );
+    }
+    
+    // No date available in shared view
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -122,7 +144,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   // No weather data available - show fallback for shared views
   if (isSharedView || isPDFExport) {
     if (segmentDate) {
-      console.log(`🌱 No weather data, showing seasonal fallback for ${segmentEndCity} in shared view`);
+      console.log(`🌱 Final fallback - no weather data, showing seasonal fallback for ${segmentEndCity} in shared view`);
       return (
         <SeasonalWeatherFallback 
           segmentDate={segmentDate}

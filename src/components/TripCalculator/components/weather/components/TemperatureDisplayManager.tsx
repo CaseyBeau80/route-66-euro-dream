@@ -20,9 +20,9 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
   const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
   
-  // For shared views, show range if we have high OR low, otherwise show current
-  const shouldShowRange = isSharedView ? (hasValidHigh || hasValidLow) : false;
-  const shouldShowCurrent = !shouldShowRange && hasValidCurrent;
+  // For shared views, ALWAYS prioritize high/low range over current temp
+  const shouldShowRange = isSharedView ? (hasValidHigh || hasValidLow) : (hasValidHigh && hasValidLow);
+  const shouldShowCurrent = !shouldShowRange && hasValidCurrent && !isSharedView;
 
   console.log('🌡️ TemperatureDisplayManager: Display decision', {
     isSharedView,
@@ -31,7 +31,8 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
     hasValidCurrent,
     shouldShowRange,
     shouldShowCurrent,
-    temperatures
+    temperatures,
+    prioritizeRangeForShared: isSharedView
   });
 
   if (shouldShowRange) {

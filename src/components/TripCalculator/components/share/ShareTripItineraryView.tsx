@@ -109,41 +109,22 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* CLEANED UP: Weather section with simplified header */}
+              {/* Weather section with enforced shared view behavior */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   🌤️ Weather Information
-                  {weatherConfig.hasApiKey && (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                      {weatherConfig.apiKeySource === 'config-file' ? 'App Configured' : 'User Configured'}
-                    </span>
-                  )}
                 </h4>
                 
-                {weatherConfig.canFetchLiveWeather ? (
-                  <SegmentWeatherWidget
-                    segment={segment}
-                    tripStartDate={tripStartDate}
-                    cardIndex={index}
-                    sectionKey="shared-view"
-                    forceExpanded={true}
-                    isCollapsible={false}
-                  />
-                ) : (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <div className="text-sm text-yellow-800 mb-2">
-                      📊 {ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)}
-                    </div>
-                    <div className="text-xs text-yellow-600">
-                      {tripStartDate && (
-                        <span className="block mt-1">
-                          Check current weather conditions before your trip to {segment.endCity}.
-                          {weatherConfig.apiKeySource === 'none' && ' Live forecasts can be enabled by configuring a weather API key.'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* ALWAYS use SegmentWeatherWidget with isSharedView=true for shared contexts */}
+                <SegmentWeatherWidget
+                  segment={segment}
+                  tripStartDate={tripStartDate}
+                  cardIndex={index}
+                  sectionKey="shared-view"
+                  forceExpanded={true}
+                  isCollapsible={false}
+                  isSharedView={true}
+                />
               </div>
 
               {/* CENTRALIZED ENFORCED Attraction Limit Recommendations */}
