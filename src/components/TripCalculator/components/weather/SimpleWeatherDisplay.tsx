@@ -6,8 +6,10 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
-  segmentDate: Date;
+  segmentDate?: Date | null;
   cityName: string;
+  isSharedView?: boolean;
+  isPDFExport?: boolean;
 }
 
 const getWeatherIcon = (description: string) => {
@@ -21,7 +23,9 @@ const getWeatherIcon = (description: string) => {
 const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   weather,
   segmentDate,
-  cityName
+  cityName,
+  isSharedView = false,
+  isPDFExport = false
 }) => {
   const IconComponent = getWeatherIcon(weather.description);
 
@@ -32,9 +36,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           <IconComponent className="h-6 w-6 text-blue-600" />
           <span className="font-medium text-blue-900">{weather.temperature}°F</span>
         </div>
-        <span className="text-sm text-blue-700">
-          {format(segmentDate, 'MMM d')}
-        </span>
+        {segmentDate && (
+          <span className="text-sm text-blue-700">
+            {format(segmentDate, 'MMM d')}
+          </span>
+        )}
       </div>
       
       <div className="space-y-2">

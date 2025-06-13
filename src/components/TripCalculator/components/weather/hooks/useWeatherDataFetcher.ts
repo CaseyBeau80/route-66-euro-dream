@@ -31,7 +31,8 @@ export const useWeatherDataFetcher = ({
       actions.setLoading(true);
       actions.setError(null);
 
-      const weatherData = await weatherService.getForecastForLocation(
+      // Use the correct method name - let's try getWeatherForecast instead
+      const weatherData = await weatherService.getWeatherForecast(
         segmentEndCity,
         segmentDate
       );
@@ -49,13 +50,21 @@ export const useWeatherDataFetcher = ({
     }
   }, [hasApiKey, tripStartDate, segmentEndCity, segmentDay, weatherService, actions]);
 
-  // Auto-fetch when conditions are met
+  // Auto-fetch when conditions are met - check against a loading state we track locally
+  const [isCurrentlyLoading, setIsCurrentlyLoading] = React.useState(false);
+
   React.useEffect(() => {
-    if (hasApiKey && tripStartDate && !actions.loading) {
-      const timeoutId = setTimeout(fetchWeather, 100);
-      return () => clearTimeout(timeoutId);
+    if (hasApiKey && tripStartDate && !isCurrentlyLoading) {
+      setIsCurrentlyLoading(true);
+      const timeoutId = setTimeout(() => {
+        fetchWeather().finally(() => setIsCurrentlyLoading(false));
+      }, 100);
+      return () => {
+        clearTimeout(timeoutId);
+        setIsCurrentlyLoading(false);
+      };
     }
-  }, [hasApiKey, tripStartDate, fetchWeather, actions.loading]);
+  }, [hasApiKey, tripStartDate, fetchWeather]);
 
   return { fetchWeather };
 };
