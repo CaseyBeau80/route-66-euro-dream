@@ -22,55 +22,60 @@ export class WeatherFetchingService {
     const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    // Check for cached data first
-    const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
-    if (cachedWeather) {
-      console.log('💾 WeatherFetchingService: Using cached weather data for', segmentEndCity);
-      
-      // FIXED: Properly reconstruct ForecastWeatherData with all required properties
-      const forecastData: ForecastWeatherData = {
-        temperature: cachedWeather.temperature,
-        highTemp: cachedWeather.highTemp,
-        lowTemp: cachedWeather.lowTemp,
-        description: cachedWeather.description,
-        icon: cachedWeather.icon,
-        humidity: cachedWeather.humidity,
-        windSpeed: cachedWeather.windSpeed,
-        precipitationChance: cachedWeather.precipitationChance,
-        cityName: cachedWeather.cityName,
-        forecast: [],
-        forecastDate: normalizedSegmentDate,
-        isActualForecast: cachedWeather.isActualForecast,
-        source: cachedWeather.source, // FIXED: Include source from cached data
-        dateMatchInfo: cachedWeather.dateMatchInfo
-      };
-      
-      console.log('🔧 PLAN: WeatherFetchingService CACHED DATA RECONSTRUCTION', {
-        cityName: segmentEndCity,
-        cachedSource: cachedWeather.source,
-        cachedIsActualForecast: cachedWeather.isActualForecast,
-        reconstructedSource: forecastData.source,
-        reconstructedIsActualForecast: forecastData.isActualForecast,
-        hasAllRequiredFields: !!(forecastData.source && forecastData.dateMatchInfo),
-        timestamp: new Date().toISOString()
-      });
-      
-      // 🎯 NEW: Use specific debug marker for cached weather state set
-      WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
-      
-      setWeather(forecastData);
-      return;
+    // FIXED: Calculate days from today to determine if we should attempt live forecast
+    const today = new Date();
+    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
+    
+    console.log('🔧 FIXED: WeatherFetchingService - FORECAST RANGE CHECK', {
+      cityName: segmentEndCity,
+      daysFromToday,
+      isWithinForecastRange,
+      shouldAttemptLiveForecast: isWithinForecastRange && this.weatherService.hasApiKey(),
+      segmentDateString,
+      normalizedSegmentDate: normalizedSegmentDate.toISOString()
+    });
+
+    // FIXED: Only use cached data immediately if we're beyond forecast range OR no API key
+    if (!isWithinForecastRange || !this.weatherService.hasApiKey()) {
+      const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
+      if (cachedWeather) {
+        console.log('💾 WeatherFetchingService: Using cached weather data for', segmentEndCity, '(beyond forecast range or no API key)');
+        
+        const forecastData: ForecastWeatherData = {
+          temperature: cachedWeather.temperature,
+          highTemp: cachedWeather.highTemp,
+          lowTemp: cachedWeather.lowTemp,
+          description: cachedWeather.description,
+          icon: cachedWeather.icon,
+          humidity: cachedWeather.humidity,
+          windSpeed: cachedWeather.windSpeed,
+          precipitationChance: cachedWeather.precipitationChance,
+          cityName: cachedWeather.cityName,
+          forecast: [],
+          forecastDate: normalizedSegmentDate,
+          isActualForecast: cachedWeather.isActualForecast,
+          source: cachedWeather.source,
+          dateMatchInfo: cachedWeather.dateMatchInfo
+        };
+        
+        WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
+        setWeather(forecastData);
+        return;
+      }
     }
 
     WeatherDataDebugger.debugWeatherFlow(
-      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - ENHANCED WITH PERSISTENCE`,
+      `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - LIVE FORECAST ATTEMPT`,
       {
         originalDate: segmentDate.toISOString(),
         normalizedDate: normalizedSegmentDate.toISOString(),
         segmentDateString,
-        daysFromNow: Math.ceil((normalizedSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+        daysFromToday,
+        isWithinForecastRange,
         hasApiKey: this.weatherService.hasApiKey(),
-        hasCachedData: !!cachedWeather
+        willAttemptLiveForecast: true
       }
     );
 
@@ -88,10 +93,11 @@ export class WeatherFetchingService {
         throw new Error(`No coordinates found for ${segmentEndCity}`);
       }
 
-      console.log(`🌤️ FETCHING WEATHER: ${segmentEndCity} for ${segmentDateString}`, {
+      console.log(`🌤️ FIXED: ATTEMPTING LIVE FORECAST: ${segmentEndCity} for ${segmentDateString}`, {
         coordinates,
-        normalizedDate: normalizedSegmentDate.toISOString(),
-        serviceHasKey: this.weatherService.hasApiKey()
+        daysFromToday,
+        isWithinForecastRange,
+        reason: 'within_forecast_range_forcing_live_attempt'
       });
 
       const weatherPromise = this.weatherService.getWeatherForDate(
@@ -107,25 +113,23 @@ export class WeatherFetchingService {
 
       const weatherData = await Promise.race([weatherPromise, timeoutPromise]);
 
-      console.log(`🌤️ WEATHER RESPONSE for ${segmentEndCity}:`, {
+      console.log(`🌤️ FIXED: LIVE FORECAST RESPONSE for ${segmentEndCity}:`, {
         hasData: !!weatherData,
         isActualForecast: weatherData?.isActualForecast,
         source: weatherData?.source,
         temperature: weatherData?.temperature,
-        highTemp: weatherData?.highTemp,
-        lowTemp: weatherData?.lowTemp
+        daysFromToday,
+        shouldBeLiveForecast: isWithinForecastRange
       });
 
       if (weatherData) {
-        console.log('🔧 PLAN: WeatherFetchingService FRESH DATA PATH', {
-          cityName: segmentEndCity,
-          freshSource: weatherData.source,
-          freshIsActualForecast: weatherData.isActualForecast,
-          hasAllRequiredFields: !!(weatherData.source && weatherData.dateMatchInfo),
-          timestamp: new Date().toISOString()
+        console.log('🔧 FIXED: Live forecast SUCCESS for', segmentEndCity, {
+          daysFromToday,
+          source: weatherData.source,
+          isActualForecast: weatherData.isActualForecast,
+          temperature: weatherData.temperature
         });
         
-        // 🎯 NEW: Use specific debug marker for forecast API response
         WeatherDebugService.logForecastApiRawResponse(segmentEndCity, weatherData);
         
         // Normalize and validate the data
@@ -135,7 +139,6 @@ export class WeatherFetchingService {
           normalizedSegmentDate
         );
         
-        // 🎯 NEW: Use specific debug marker for normalized forecast output
         WeatherDebugService.logNormalizedForecastOutput(segmentEndCity, normalizedData);
         
         if (normalizedData && WeatherDataValidator.validateNormalizedData(normalizedData)) {
@@ -143,43 +146,92 @@ export class WeatherFetchingService {
           WeatherPersistenceService.storeWeatherData(segmentEndCity, normalizedSegmentDate, normalizedData);
           
           WeatherDataDebugger.debugWeatherFlow(
-            `WeatherFetchingService.success [${segmentEndCity}] - NORMALIZED AND PERSISTED`,
+            `WeatherFetchingService.success [${segmentEndCity}] - LIVE FORECAST PERSISTED`,
             {
               isActualForecast: weatherData.isActualForecast,
               source: weatherData.source,
-              normalizedTemperature: normalizedData.temperature,
-              normalizedHighTemp: normalizedData.highTemp,
-              normalizedLowTemp: normalizedData.lowTemp,
-              persistenceSuccess: true
+              daysFromToday,
+              liveForecastSuccess: true
             }
           );
 
-          // 🎯 NEW: Use specific debug marker for weather state set
           WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
-
           setWeather(weatherData);
-          console.log(`✅ WEATHER SET AND PERSISTED for ${segmentEndCity}:`, normalizedData);
+          console.log(`✅ FIXED: LIVE FORECAST SET for ${segmentEndCity}:`, normalizedData);
         } else {
-          console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}`);
-          
-          // 🎯 NEW: Use specific debug marker even for failed normalization
+          console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}, using raw data`);
           WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
-          
-          setWeather(weatherData); // Try to use anyway
+          setWeather(weatherData);
         }
       } else {
-        throw new Error('No weather data received from service');
+        console.log(`🔧 FIXED: Live forecast returned null for ${segmentEndCity}, trying cache fallback`);
+        
+        // FIXED: Only now try cached data as fallback
+        const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
+        if (cachedWeather) {
+          console.log('💾 FIXED: Using cached weather as fallback for failed live forecast:', segmentEndCity);
+          
+          const forecastData: ForecastWeatherData = {
+            temperature: cachedWeather.temperature,
+            highTemp: cachedWeather.highTemp,
+            lowTemp: cachedWeather.lowTemp,
+            description: cachedWeather.description,
+            icon: cachedWeather.icon,
+            humidity: cachedWeather.humidity,
+            windSpeed: cachedWeather.windSpeed,
+            precipitationChance: cachedWeather.precipitationChance,
+            cityName: cachedWeather.cityName,
+            forecast: [],
+            forecastDate: normalizedSegmentDate,
+            isActualForecast: cachedWeather.isActualForecast,
+            source: cachedWeather.source,
+            dateMatchInfo: cachedWeather.dateMatchInfo
+          };
+          
+          WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
+          setWeather(forecastData);
+        } else {
+          throw new Error('No weather data received from service and no cache available');
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
       
-      WeatherDataDebugger.debugWeatherFlow(
-        `WeatherFetchingService.error [${segmentEndCity}]`,
-        { error: errorMessage, hasApiKey: this.weatherService.hasApiKey() }
-      );
+      console.error(`❌ FIXED: Live forecast failed for ${segmentEndCity}, trying cache:`, err);
       
-      console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);
-      setError(errorMessage);
+      // FIXED: Try cached data as final fallback
+      const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
+      if (cachedWeather) {
+        console.log('💾 FIXED: Using cached weather as error fallback for:', segmentEndCity);
+        
+        const forecastData: ForecastWeatherData = {
+          temperature: cachedWeather.temperature,
+          highTemp: cachedWeather.highTemp,
+          lowTemp: cachedWeather.lowTemp,
+          description: cachedWeather.description,
+          icon: cachedWeather.icon,
+          humidity: cachedWeather.humidity,
+          windSpeed: cachedWeather.windSpeed,
+          precipitationChance: cachedWeather.precipitationChance,
+          cityName: cachedWeather.cityName,
+          forecast: [],
+          forecastDate: normalizedSegmentDate,
+          isActualForecast: cachedWeather.isActualForecast,
+          source: cachedWeather.source,
+          dateMatchInfo: cachedWeather.dateMatchInfo
+        };
+        
+        WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
+        setWeather(forecastData);
+      } else {
+        WeatherDataDebugger.debugWeatherFlow(
+          `WeatherFetchingService.error [${segmentEndCity}]`,
+          { error: errorMessage, hasApiKey: this.weatherService.hasApiKey(), daysFromToday }
+        );
+        
+        console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
