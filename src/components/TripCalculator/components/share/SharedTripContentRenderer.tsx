@@ -93,7 +93,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </div>
       </div>
 
-      {/* Daily Itinerary Preview */}
+      {/* Daily Itinerary Preview - RESTORED */}
       <div className="space-y-4">
         <div className="text-center p-4 bg-route66-primary rounded">
           <h3 className="text-lg font-bold text-white mb-2 font-route66">
