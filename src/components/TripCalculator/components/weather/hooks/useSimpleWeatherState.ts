@@ -18,7 +18,6 @@ export interface SimpleWeatherActions {
 }
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
-  // 🎯 DEBUG: Log hook initialization
   console.log(`🎯 [WEATHER DEBUG] useSimpleWeatherState initialized:`, {
     component: 'useSimpleWeatherState',
     segmentEndCity,
@@ -30,6 +29,12 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
+  // Track weather quality to prevent downgrades
+  const weatherQualityRef = React.useRef<{
+    isLive: boolean;
+    timestamp: number;
+  } | null>(null);
+
   const reset = React.useCallback(() => {
     console.log(`🎯 [WEATHER DEBUG] useSimpleWeatherState.reset called for ${segmentEndCity}:`, {
       component: 'useSimpleWeatherState -> reset'
@@ -38,6 +43,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     setLoading(false);
     setError(null);
     setRetryCount(0);
+    weatherQualityRef.current = null;
   }, [segmentEndCity]);
 
   const incrementRetry = React.useCallback(() => {
@@ -47,7 +53,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     setRetryCount(prev => prev + 1);
   }, [segmentEndCity]);
 
-  // Enhanced setWeather with guards against overwriting live forecasts
+  // ENHANCED setWeather with strict quality protection
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
     console.log(`🎯 [WEATHER DEBUG] useSimpleWeatherState.setWeather called for ${segmentEndCity}:`, {
       component: 'useSimpleWeatherState -> setWeather',
@@ -58,46 +64,46 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
         isActualForecast: newWeather.isActualForecast,
         source: newWeather.dateMatchInfo?.source
       } : null,
-      currentWeatherData: weather ? {
-        temperature: weather.temperature,
-        description: weather.description,
-        isActualForecast: weather.isActualForecast,
-        source: weather.dateMatchInfo?.source
-      } : null
+      currentWeatherQuality: weatherQualityRef.current
     });
 
-    // CRITICAL GUARD: Don't allow fallback data to overwrite live forecast
-    if (weather?.isActualForecast && newWeather && !newWeather.isActualForecast) {
-      console.log(`🚨 GUARD: Blocking fallback weather from overwriting live forecast for ${segmentEndCity}:`, {
-        currentIsLive: weather.isActualForecast,
-        newIsLive: newWeather.isActualForecast,
-        currentSource: weather.dateMatchInfo?.source,
+    const now = Date.now();
+    const newIsLive = newWeather?.isActualForecast === true;
+
+    // CRITICAL GUARD: Prevent live forecast downgrades
+    if (weatherQualityRef.current?.isLive && 
+        newWeather && 
+        !newIsLive &&
+        (now - weatherQualityRef.current.timestamp) < 600000) { // 10 minutes
+      console.log(`🚨 QUALITY GUARD: Blocking downgrade from live to fallback for ${segmentEndCity}:`, {
+        currentIsLive: weatherQualityRef.current.isLive,
+        currentAge: now - weatherQualityRef.current.timestamp,
+        newIsLive,
         newSource: newWeather.dateMatchInfo?.source,
         action: 'BLOCKED'
       });
       return;
     }
 
-    // Log state transition
-    if (weather && newWeather) {
-      console.log(`🚨 WEATHER STATE TRANSITION for ${segmentEndCity}:`, {
-        from: {
-          isActualForecast: weather.isActualForecast,
-          source: weather.dateMatchInfo?.source,
-          temperature: weather.temperature
-        },
-        to: {
-          isActualForecast: newWeather.isActualForecast,
-          source: newWeather.dateMatchInfo?.source,
-          temperature: newWeather.temperature
-        },
-        transition: weather.isActualForecast === newWeather.isActualForecast ? 'SAME_TYPE' : 
-                   newWeather.isActualForecast ? 'UPGRADE_TO_LIVE' : 'DOWNGRADE_TO_FALLBACK'
+    // Update weather quality tracking
+    if (newWeather) {
+      weatherQualityRef.current = {
+        isLive: newIsLive,
+        timestamp: now
+      };
+
+      console.log(`🚨 WEATHER QUALITY UPDATE for ${segmentEndCity}:`, {
+        isLive: newIsLive,
+        source: newWeather.dateMatchInfo?.source,
+        temperature: newWeather.temperature,
+        timestamp: now
       });
+    } else {
+      weatherQualityRef.current = null;
     }
 
     setWeatherState(newWeather);
-  }, [segmentEndCity, weather]);
+  }, [segmentEndCity]);
 
   // Enhanced setLoading with debugging
   const enhancedSetLoading = React.useCallback((loading: boolean) => {
@@ -105,7 +111,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
       component: 'useSimpleWeatherState -> setLoading',
       loading,
       hasCurrentWeather: !!weather,
-      currentWeatherType: weather?.isActualForecast ? 'live' : 'fallback'
+      currentWeatherQuality: weatherQualityRef.current
     });
     setLoading(loading);
   }, [segmentEndCity, weather]);
@@ -129,12 +135,11 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     reset();
   }, [segmentEndCity, day, reset]);
 
-  // 🎯 DEBUG: Log current state on every render
   console.log(`🎯 [WEATHER DEBUG] useSimpleWeatherState current state for ${segmentEndCity}:`, {
     component: 'useSimpleWeatherState -> current-state',
     state: {
       hasWeather: !!weather,
-      weatherType: weather?.isActualForecast ? 'live' : 'fallback',
+      weatherQuality: weatherQualityRef.current,
       loading,
       error,
       retryCount
