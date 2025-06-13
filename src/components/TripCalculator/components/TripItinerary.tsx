@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
@@ -7,6 +8,7 @@ import WeatherTabContent from './WeatherTabContent';
 import CostEstimateColumn from './CostEstimateColumn';
 import ItineraryPreLoader from './ItineraryPreLoader';
 import ErrorBoundary from './ErrorBoundary';
+
 interface TripItineraryProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
@@ -19,10 +21,11 @@ interface TripItineraryProps {
     isReady: boolean;
   };
 }
-const TripItinerary: React.FC<TripItineraryProps> = ({
-  tripPlan,
-  tripStartDate,
-  loadingState
+
+const TripItinerary: React.FC<TripItineraryProps> = ({ 
+  tripPlan, 
+  tripStartDate, 
+  loadingState 
 }) => {
   // Validate tripStartDate
   const validatedTripStartDate = React.useMemo(() => {
@@ -34,6 +37,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
 
   // Track readiness for progressive reveal
   const [isContentReady, setIsContentReady] = React.useState(false);
+
   React.useEffect(() => {
     if (loadingState?.isReady && !loadingState.isPreLoading) {
       // Small delay for smooth transition after pre-loader
@@ -46,6 +50,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
       setIsContentReady(true);
     }
   }, [loadingState?.isReady, loadingState?.isPreLoading, loadingState]);
+
   console.log('🎯 [WEATHER DEBUG] TripItinerary rendered:', {
     component: 'TripItinerary',
     segmentsCount: tripPlan.segments.length,
@@ -61,43 +66,65 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
 
   // Show loading if still pre-loading
   if (loadingState?.isPreLoading || !isContentReady) {
-    return <div className="w-full max-w-6xl mx-auto">
-        <ItineraryPreLoader progress={loadingState?.progress || 90} currentStep={loadingState?.currentStep || 'Finalizing your itinerary...'} totalSegments={loadingState?.totalSegments || tripPlan.segments.length} loadedSegments={loadingState?.loadedSegments || 0} />
-      </div>;
+    return (
+      <div className="w-full max-w-6xl mx-auto">
+        <ItineraryPreLoader
+          progress={loadingState?.progress || 90}
+          currentStep={loadingState?.currentStep || 'Finalizing your itinerary...'}
+          totalSegments={loadingState?.totalSegments || tripPlan.segments.length}
+          loadedSegments={loadingState?.loadedSegments || 0}
+        />
+      </div>
+    );
   }
-  return <div className="w-full max-w-6xl mx-auto">
+
+  return (
+    <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="itinerary">Daily Itinerary</TabsTrigger>
           <TabsTrigger value="weather">Weather Forecast</TabsTrigger>
-          
-          
+          <TabsTrigger value="costs">Cost Estimates</TabsTrigger>
+          <TabsTrigger value="overview">Trip Overview</TabsTrigger>
         </TabsList>
 
         <TabsContent value="itinerary" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary context="TripItineraryColumn">
-              <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} loadingState={loadingState} />
+              <TripItineraryColumn 
+                segments={tripPlan.segments} 
+                tripStartDate={validatedTripStartDate}
+                loadingState={loadingState}
+              />
             </ErrorBoundary>
             
             <ErrorBoundary context="SimpleWeatherForecastColumn">
               {(() => {
-              console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
-                component: 'TripItinerary -> SimpleWeatherForecastColumn',
-                segmentsCount: tripPlan.segments.length,
-                tripStartDate: validatedTripStartDate?.toISOString(),
-                tripId: tripPlan.id
-              });
-              return null;
-            })()}
-              <SimpleWeatherForecastColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} tripId={tripPlan.id} />
+                console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
+                  component: 'TripItinerary -> SimpleWeatherForecastColumn',
+                  segmentsCount: tripPlan.segments.length,
+                  tripStartDate: validatedTripStartDate?.toISOString(),
+                  tripId: tripPlan.id
+                });
+                return null;
+              })()}
+              <SimpleWeatherForecastColumn 
+                segments={tripPlan.segments} 
+                tripStartDate={validatedTripStartDate}
+                tripId={tripPlan.id}
+              />
             </ErrorBoundary>
           </div>
         </TabsContent>
 
         <TabsContent value="weather" className="mt-6">
           <ErrorBoundary context="WeatherTabContent">
-            <WeatherTabContent segments={tripPlan.segments} tripStartDate={validatedTripStartDate} tripId={tripPlan.id} isVisible={true} />
+            <WeatherTabContent 
+              segments={tripPlan.segments}
+              tripStartDate={validatedTripStartDate}
+              tripId={tripPlan.id}
+              isVisible={true}
+            />
           </ErrorBoundary>
         </TabsContent>
 
@@ -122,16 +149,22 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
               </div>
               <div>
                 <h4 className="font-medium text-gray-700 mb-2">Travel Information</h4>
-                {validatedTripStartDate ? <p className="text-sm text-gray-600">
+                {validatedTripStartDate ? (
+                  <p className="text-sm text-gray-600">
                     Starting: {validatedTripStartDate.toLocaleDateString()}
-                  </p> : <p className="text-sm text-gray-500">
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-500">
                     Set a start date for detailed planning
-                  </p>}
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </TabsContent>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
+
 export default TripItinerary;

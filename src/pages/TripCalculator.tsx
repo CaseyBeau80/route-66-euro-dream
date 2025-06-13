@@ -1,28 +1,36 @@
+
 import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import DeveloperDebugTools from "@/components/TripCalculator/components/DeveloperDebugTools";
+
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
+
   useEffect(() => {
     console.log('🚗 TripCalculator page mounted');
-
+    
     // Check for any critical errors on mount
     const handleError = (event: ErrorEvent) => {
       console.error('❌ Critical error in TripCalculator:', event.error);
     };
+    
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('❌ Unhandled promise rejection in TripCalculator:', event.reason);
     };
+    
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
-  return <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
       {/* Navigation Bar */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
@@ -39,11 +47,17 @@ const TripCalculator = () => {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-4">
                 Plan Your Route 66 Adventure
               </h1>
-              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">Create your perfect Mother Road journey with our comprehensive trip planning tool</p>
+              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">
+                Create your perfect Mother Road journey with our comprehensive trip planning tools
+              </p>
 
               {/* YouTube Video Section */}
               <div className="mb-8">
-                <YouTubeEmbed videoId="3904gZljFmY" title="Route 66 Travel Guide & Planning Tips" className="max-w-2xl mx-auto" />
+                <YouTubeEmbed 
+                  videoId="3904gZljFmY"
+                  title="Route 66 Travel Guide & Planning Tips"
+                  className="max-w-2xl mx-auto"
+                />
               </div>
 
               {/* Feature Cards */}
@@ -75,9 +89,11 @@ const TripCalculator = () => {
             </div>
             
             {/* Developer Debug Tools - Only in development */}
-            {process.env.NODE_ENV === 'development' && <div className="mb-6">
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-6">
                 <DeveloperDebugTools />
-              </div>}
+              </div>
+            )}
             
             {/* Trip Planner Container */}
             <div className="bg-white rounded-xl shadow-lg border border-route66-border p-6">
@@ -86,6 +102,8 @@ const TripCalculator = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default TripCalculator;
