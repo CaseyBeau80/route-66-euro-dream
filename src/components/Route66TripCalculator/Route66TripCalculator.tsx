@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Calendar, Clock, Route } from 'lucide-react';
-import TripPlannerForm from '../TripCalculator/components/TripPlannerForm';
+import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
 import EnhancedTripResults from '../TripCalculator/EnhancedTripResults';
 import { useEnhancedTripCalculation } from '../TripCalculator/hooks/useEnhancedTripCalculation';
 
@@ -52,15 +52,15 @@ const Route66TripCalculator: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <TripPlannerForm
+          <TripCalculatorForm
             formData={formData}
             setFormData={setFormData}
             availableEndLocations={availableEndLocations}
-            onCalculateTrip={calculateTrip}
-            onResetTrip={resetTrip}
-            isCalculating={isCalculating}
+            onCalculate={calculateTrip}
             isCalculateDisabled={isCalculateDisabled}
-            hasExistingPlan={!!tripPlan}
+            isCalculating={isCalculating}
+            tripPlan={tripPlan}
+            shareUrl={shareUrl}
           />
         </CardContent>
       </Card>
