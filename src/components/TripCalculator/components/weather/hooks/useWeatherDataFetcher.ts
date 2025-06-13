@@ -147,7 +147,8 @@ export const useWeatherDataFetcher = ({
       });
 
       if (weatherDisplayData) {
-        const isLiveForecast = weatherDisplayData.isActualForecast === true || weatherDisplayData.source === 'forecast';
+        // FIXED: Use correct source value for live forecast detection
+        const isLiveForecast = weatherDisplayData.isActualForecast === true || weatherDisplayData.source === 'live_forecast';
         
         // Record forecast source result
         if (isLiveForecast) {
@@ -218,6 +219,7 @@ export const useWeatherDataFetcher = ({
           forecast: [],
           forecastDate: segmentDate,
           isActualForecast: isLiveForecast,
+          source: weatherDisplayData.source, // Pass through the explicit source
           dateMatchInfo: {
             requestedDate: DateNormalizationService.toDateString(segmentDate),
             matchedDate: DateNormalizationService.toDateString(segmentDate),
@@ -235,7 +237,7 @@ export const useWeatherDataFetcher = ({
           fetchId,
           temperature: forecastData.temperature,
           isActualForecast: forecastData.isActualForecast,
-          source: forecastData.dateMatchInfo?.source,
+          source: forecastData.source,
           liveForecastState: liveForecastStateRef.current
         });
 
