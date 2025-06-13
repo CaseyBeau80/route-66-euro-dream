@@ -27,6 +27,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
     
     if (typeof date === 'string') {
+      console.log('📅 TripDateForm: Converting string to Date:', date);
       const parsed = new Date(date);
       return isNaN(parsed.getTime()) ? undefined : parsed;
     }
@@ -35,6 +36,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   };
 
   const tripStartDate = ensureDateObject(formData.tripStartDate);
+
+  console.log('📅 TripDateForm: Date validation:', {
+    originalValue: formData.tripStartDate,
+    originalType: typeof formData.tripStartDate,
+    processedValue: tripStartDate,
+    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
+  });
 
   // Calculate end date if start date and travel days are available
   const calculateEndDate = () => {
