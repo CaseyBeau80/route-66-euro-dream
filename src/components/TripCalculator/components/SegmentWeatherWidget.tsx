@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { useWeatherApiKey } from './weather/hooks/useWeatherApiKey';
 import { useSimpleWeatherState } from './weather/hooks/useSimpleWeatherState';
 import { useWeatherDataFetcher } from './weather/hooks/useWeatherDataFetcher';
 import { DateNormalizationService } from './weather/DateNormalizationService';
@@ -57,18 +58,23 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Weather state management - fix the destructuring to match the actual return type
+  // API key management
+  const { hasApiKey, refreshApiKey } = useWeatherApiKey(segment.endCity);
+
+  // Weather state management - fix the call to match the hook signature
   const weatherState = useSimpleWeatherState(
     segment.endCity,
-    segmentDate,
-    sectionKey
+    segment.day
   );
 
   // Weather data fetcher - fix the call to match expected arguments
-  const weatherActions = useWeatherDataFetcher(
-    segment.endCity,
-    segmentDate
-  );
+  const weatherActions = useWeatherDataFetcher({
+    segmentEndCity: segment.endCity,
+    segmentDay: segment.day,
+    tripStartDate,
+    hasApiKey,
+    actions: weatherState
+  });
 
   console.log('🚨 [PLAN] Weather handlers initialized for Day', segment.day, '-', segment.endCity, {
     hasHandlers: !!(weatherActions.handleApiKeySet && weatherActions.handleTimeout && weatherActions.handleRetry),
@@ -78,7 +84,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   });
 
   console.log('🎨 SegmentWeatherWidget [' + segment.endCity + '] render:', {
-    hasApiKey: weatherState.hasApiKey,
+    hasApiKey,
     loading: weatherState.loading,
     hasWeather: !!weatherState.weather,
     error: weatherState.error,
@@ -110,7 +116,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   return (
     <div className="">
       <SegmentWeatherContent
-        hasApiKey={weatherState.hasApiKey}
+        hasApiKey={hasApiKey}
         loading={weatherState.loading}
         weather={weatherState.weather}
         error={weatherState.error}
