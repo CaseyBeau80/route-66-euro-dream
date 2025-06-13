@@ -13,7 +13,7 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TemperatureExtractor.extractTemperatures ENHANCED DEBUG:', {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures FIXED VERSION:', {
       cityName,
       rawWeatherInput: weather,
       weatherKeys: Object.keys(weather || {}),
@@ -35,6 +35,7 @@ export class TemperatureExtractor {
     }
 
     // Extract individual temperature values from the normalized ForecastWeatherData
+    // The ForecastWeatherData interface has: temperature, highTemp, lowTemp properties
     const current = this.extractSingleTemperature(weather.temperature, 'current');
     const high = this.extractSingleTemperature(weather.highTemp, 'high');
     const low = this.extractSingleTemperature(weather.lowTemp, 'low');
@@ -49,29 +50,9 @@ export class TemperatureExtractor {
       lowValid: this.isValidTemperature(low)
     });
 
-    // Try alternative extraction methods if primary fields are empty
     let finalCurrent = current;
     let finalHigh = high;
     let finalLow = low;
-
-    // If we don't have valid temperatures, try fallback logic
-    if (!this.isValidTemperature(finalCurrent) && !this.isValidTemperature(finalHigh) && !this.isValidTemperature(finalLow)) {
-      console.log('🔍 TemperatureExtractor: No valid temperatures found, checking for fallback data...');
-      
-      // Try to extract from main object if it exists
-      if (weather.main) {
-        finalCurrent = this.extractSingleTemperature(weather.main.temp, 'current-main');
-        finalHigh = this.extractSingleTemperature(weather.main.temp_max, 'high-main');
-        finalLow = this.extractSingleTemperature(weather.main.temp_min, 'low-main');
-      }
-      
-      // Try to extract from temp object if it exists
-      if (!this.isValidTemperature(finalCurrent) && weather.temp) {
-        finalCurrent = this.extractSingleTemperature(weather.temp.day || weather.temp, 'current-temp');
-        finalHigh = this.extractSingleTemperature(weather.temp.max, 'high-temp');
-        finalLow = this.extractSingleTemperature(weather.temp.min, 'low-temp');
-      }
-    }
 
     // If we have high/low but not current, calculate current as average
     if (!this.isValidTemperature(finalCurrent) && this.isValidTemperature(finalHigh) && this.isValidTemperature(finalLow)) {
