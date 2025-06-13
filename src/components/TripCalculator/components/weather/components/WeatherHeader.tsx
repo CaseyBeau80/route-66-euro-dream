@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import WeatherIcon from '../WeatherIcon';
 import WeatherBadge from './WeatherBadge';
 import { WeatherTypeDetector } from '../utils/WeatherTypeDetector';
+import { WeatherSourceType } from '@/components/Route66Map/services/weather/WeatherServiceTypes';
 
 interface WeatherHeaderProps {
   weather: {
@@ -26,6 +27,9 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
     return WeatherTypeDetector.detectWeatherType(weather);
   }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source]);
 
+  // Safely convert source to WeatherSourceType with fallback
+  const sourceType: WeatherSourceType = (weather.source as WeatherSourceType) || 'historical_fallback';
+
   return (
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
@@ -45,7 +49,7 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
       </div>
       
       <WeatherBadge
-        source={weather.source || 'historical_fallback'}
+        source={sourceType}
         isActualForecast={weather.isActualForecast}
         dateMatchSource={weather.dateMatchInfo?.source}
         cityName={cityName}

@@ -9,12 +9,24 @@ export interface WeatherTypeResult {
   confidence: 'high' | 'medium' | 'low';
 }
 
+// Create a partial type for weather type detection
+type WeatherDataForDetection = {
+  source?: string;
+  isActualForecast?: boolean;
+  dateMatchInfo?: { source?: string };
+  icon?: string;
+  description?: string;
+  temperature?: number;
+  highTemp?: number;
+  lowTemp?: number;
+};
+
 export class WeatherTypeDetector {
   /**
    * Centralized logic to determine weather data type
    * This ensures consistent behavior across all weather components
    */
-  static detectWeatherType(weather: ForecastWeatherData | null): WeatherTypeResult {
+  static detectWeatherType(weather: WeatherDataForDetection | null): WeatherTypeResult {
     if (!weather) {
       return {
         isLiveForecast: false,
@@ -80,7 +92,7 @@ export class WeatherTypeDetector {
   /**
    * Get section header text for weather components
    */
-  static getSectionHeader(weather: ForecastWeatherData | null): string {
+  static getSectionHeader(weather: WeatherDataForDetection | null): string {
     const result = this.detectWeatherType(weather);
     return result.displayLabel;
   }
@@ -88,7 +100,7 @@ export class WeatherTypeDetector {
   /**
    * Get footer message for weather displays
    */
-  static getFooterMessage(weather: ForecastWeatherData | null): string {
+  static getFooterMessage(weather: WeatherDataForDetection | null): string {
     const result = this.detectWeatherType(weather);
     return result.isLiveForecast 
       ? 'Real-time weather forecast from API'
