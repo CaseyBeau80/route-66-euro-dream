@@ -1,111 +1,60 @@
 
 import React from 'react';
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDataNormalizer, NormalizedWeatherData } from './services/WeatherDataNormalizer';
-import { WeatherPersistenceService } from './services/WeatherPersistenceService';
 import { format } from 'date-fns';
+import { Cloud, CloudRain, Sun, CloudSnow } from 'lucide-react';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
-  segmentDate?: Date | null;
+  segmentDate: Date;
   cityName: string;
-  isSharedView?: boolean;
-  isPDFExport?: boolean;
 }
 
-const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({ 
-  weather, 
+const getWeatherIcon = (description: string) => {
+  const desc = description.toLowerCase();
+  if (desc.includes('rain') || desc.includes('storm')) return CloudRain;
+  if (desc.includes('snow')) return CloudSnow;
+  if (desc.includes('cloud')) return Cloud;
+  return Sun;
+};
+
+const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
+  weather,
   segmentDate,
-  cityName,
-  isSharedView = false,
-  isPDFExport = false
+  cityName
 }) => {
-  console.log('🌤️ SimpleWeatherDisplay ENHANCED RENDER:', {
-    cityName,
-    weather,
-    segmentDate: segmentDate?.toISOString()
-  });
-
-  // Normalize weather data for consistent display
-  const normalizedWeather = React.useMemo(() => {
-    const normalized = WeatherDataNormalizer.normalizeWeatherData(weather, cityName, segmentDate);
-    
-    // Store in persistence service if we have a valid date
-    if (normalized && segmentDate) {
-      WeatherPersistenceService.storeWeatherData(cityName, segmentDate, normalized);
-    }
-    
-    return normalized;
-  }, [weather, cityName, segmentDate]);
-
-  if (!normalizedWeather) {
-    console.warn('❌ SimpleWeatherDisplay: Failed to normalize weather data');
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="text-red-700 text-center">
-          <span className="text-red-600">⚠️</span>
-          <strong className="ml-2">Weather Data Error</strong>
-          <p className="text-sm mt-1">Unable to display weather information for {cityName}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const dateLabel = segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'Weather';
-
-  console.log('✅ SimpleWeatherDisplay NORMALIZED DATA:', {
-    cityName,
-    temperature: normalizedWeather.temperature,
-    highTemp: normalizedWeather.highTemp,
-    lowTemp: normalizedWeather.lowTemp,
-    source: normalizedWeather.source,
-    isValid: normalizedWeather.isValid
-  });
+  const IconComponent = getWeatherIcon(weather.description);
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-      {/* Header */}
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
       <div className="flex items-center justify-between mb-3">
-        <h5 className="font-semibold text-blue-800">{cityName}</h5>
-        <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
-          {dateLabel}
+        <div className="flex items-center gap-2">
+          <IconComponent className="h-6 w-6 text-blue-600" />
+          <span className="font-medium text-blue-900">{weather.temperature}°F</span>
+        </div>
+        <span className="text-sm text-blue-700">
+          {format(segmentDate, 'MMM d')}
         </span>
       </div>
       
-      {/* Main Temperature Display */}
-      <div className="text-center mb-4">
-        <div className="text-3xl font-bold text-blue-800 mb-1">
-          {normalizedWeather.temperature}°F
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-blue-600">High:</span>
+          <span className="text-blue-900 font-medium">{weather.highTemp}°F</span>
         </div>
-        <div className="text-sm text-blue-600 capitalize">
-          {normalizedWeather.description}
+        <div className="flex justify-between text-sm">
+          <span className="text-blue-600">Low:</span>
+          <span className="text-blue-900 font-medium">{weather.lowTemp}°F</span>
         </div>
-      </div>
-      
-      {/* Temperature Range */}
-      <div className="flex justify-between items-center mb-3 px-4">
-        <div className="text-center">
-          <div className="text-lg font-semibold text-blue-700">{normalizedWeather.lowTemp}°</div>
-          <div className="text-xs text-blue-600">Low</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-semibold text-blue-700">{normalizedWeather.highTemp}°</div>
-          <div className="text-xs text-blue-600">High</div>
-        </div>
-      </div>
-      
-      {/* Weather Details */}
-      <div className="flex justify-between text-xs text-blue-600 border-t border-blue-200 pt-2">
-        <span>💧 {normalizedWeather.precipitationChance}%</span>
-        <span>💨 {normalizedWeather.windSpeed} mph</span>
-        <span>💦 {normalizedWeather.humidity}%</span>
-      </div>
-
-      {/* Data Source */}
-      <div className="mt-2 text-xs text-center">
-        <span className={`px-2 py-1 rounded ${normalizedWeather.isActualForecast ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-          {normalizedWeather.isActualForecast ? '📡 Live forecast' : '📊 Seasonal estimate'}
-        </span>
+        <p className="text-sm text-blue-700 capitalize mt-2">
+          {weather.description}
+        </p>
+        
+        {!weather.isActualForecast && (
+          <p className="text-xs text-blue-500 italic mt-2">
+            Historical average data
+          </p>
+        )}
       </div>
     </div>
   );

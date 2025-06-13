@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripItineraryColumn from './TripItineraryColumn';
-import WeatherForecastColumn from './WeatherForecastColumn';
+import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
 import WeatherTabContent from './WeatherTabContent';
 import CostEstimateColumn from './CostEstimateColumn';
 import ErrorBoundary from './ErrorBoundary';
@@ -14,117 +14,13 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
-  // 🚨 FORCE LOG: TripItinerary component entry
-  console.log('🚨 FORCE LOG: TripItinerary COMPONENT ENTRY', {
-    hasTripPlan: !!tripPlan,
-    tripStartDate: tripStartDate?.toISOString(),
-    segmentsCount: tripPlan?.segments?.length || 0,
-    timestamp: new Date().toISOString()
-  });
-
-  // 🚨 PLAN IMPLEMENTATION: Enhanced TripItinerary component render logging
-  console.log('🚨 [PLAN] TripItinerary component rendering', {
-    hasTripPlan: !!tripPlan,
-    tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateType: typeof tripStartDate,
-    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    segmentsCount: tripPlan?.segments?.length || 0,
-    segments: tripPlan?.segments?.map(s => ({ day: s.day, endCity: s.endCity })) || [],
-    timestamp: new Date().toISOString()
-  });
-
-  // 🚨 PLAN IMPLEMENTATION: Enhanced trip start date propagation debugging
-  React.useEffect(() => {
-    console.log('🗓️ [PLAN] TripItinerary received tripStartDate:', {
-      tripStartDate: tripStartDate?.toISOString(),
-      tripStartDateType: typeof tripStartDate,
-      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-      segmentsCount: tripPlan.segments.length,
-      debug: 'TripItinerary component',
-      rawTripStartDate: tripStartDate,
-      segmentsList: tripPlan.segments.map(s => ({ day: s.day, endCity: s.endCity })),
-      day1Segment: tripPlan.segments.find(s => s.day === 1)
-    });
-
-    // 🚨 PLAN IMPLEMENTATION: Day 1 specific trip date check
-    const day1Segment = tripPlan.segments.find(s => s.day === 1);
-    if (day1Segment) {
-      console.log('🎯 [PLAN] DAY 1 segment found in TripItinerary:', {
-        day: day1Segment.day,
-        endCity: day1Segment.endCity,
-        hasTripStartDate: !!tripStartDate,
-        tripStartDate: tripStartDate?.toISOString(),
-        willPropagate: !!tripStartDate
-      });
-    } else {
-      console.error('❌ [PLAN] DAY 1 segment NOT found in TripItinerary!', {
-        availableDays: tripPlan.segments.map(s => s.day),
-        segmentCount: tripPlan.segments.length
-      });
-    }
-
-    // ADDITIONAL DEBUG: Check if we're getting the date at all
-    if (!tripStartDate) {
-      console.error('❌ [PLAN] CRITICAL - No tripStartDate provided to TripItinerary component!');
-      console.log('🔍 TripItinerary props debug:', { tripPlan, tripStartDate });
-    }
-  }, [tripStartDate, tripPlan.segments]);
-
-  // Validate tripStartDate and log any issues
+  // Validate tripStartDate
   const validatedTripStartDate = React.useMemo(() => {
-    console.log('🔍 [PLAN] VALIDATING tripStartDate in TripItinerary:', tripStartDate);
-    
-    if (!tripStartDate) {
-      console.warn('⚠️ [PLAN] TripItinerary: No tripStartDate provided');
-      return undefined;
-    }
-
-    if (!(tripStartDate instanceof Date)) {
-      console.error('❌ [PLAN] TripItinerary: tripStartDate is not a Date object:', { 
-        tripStartDate, 
-        type: typeof tripStartDate 
-      });
-      return undefined;
-    }
-
-    if (isNaN(tripStartDate.getTime())) {
-      console.error('❌ [PLAN] TripItinerary: tripStartDate is an invalid Date:', tripStartDate);
-      return undefined;
-    }
-
-    console.log('✅ [PLAN] TripItinerary: Valid tripStartDate confirmed:', tripStartDate.toISOString());
+    if (!tripStartDate) return undefined;
+    if (!(tripStartDate instanceof Date)) return undefined;
+    if (isNaN(tripStartDate.getTime())) return undefined;
     return tripStartDate;
   }, [tripStartDate]);
-
-  // 🚨 PLAN IMPLEMENTATION: Enhanced validated date result logging
-  console.log('🚨 [PLAN] TripItinerary validated date result', {
-    originalDate: tripStartDate?.toISOString(),
-    validatedDate: validatedTripStartDate?.toISOString(),
-    isValid: !!validatedTripStartDate,
-    willPassToChildren: !!validatedTripStartDate,
-    timestamp: new Date().toISOString()
-  });
-
-  // 🚨 PLAN IMPLEMENTATION: Log WeatherForecastColumn instantiation before render
-  React.useEffect(() => {
-    console.log('🚀 [PLAN] About to instantiate WeatherForecastColumn with:', {
-      segmentsCount: tripPlan.segments.length,
-      tripStartDate: validatedTripStartDate?.toISOString(),
-      tripId: tripPlan.id,
-      hasDay1: tripPlan.segments.some(s => s.day === 1)
-    });
-  }, [tripPlan.segments, validatedTripStartDate, tripPlan.id]);
-
-  // 🚨 FORCE LOG: Before rendering tabs
-  console.log('🚨 FORCE LOG: TripItinerary about to render tabs', {
-    validatedTripStartDate: validatedTripStartDate?.toISOString(),
-    segmentsCount: tripPlan.segments.length,
-    willRenderWeatherColumn: !!validatedTripStartDate,
-    timestamp: new Date().toISOString()
-  });
-
-  // 🚨 FORCE LOG: Rendering itinerary tab content - moved outside JSX
-  console.log('🚨 FORCE LOG: Rendering itinerary tab content with WeatherForecastColumn');
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -142,8 +38,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
               <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
             </ErrorBoundary>
             
-            <ErrorBoundary context="WeatherForecastColumn">
-              <WeatherForecastColumn 
+            <ErrorBoundary context="SimpleWeatherForecastColumn">
+              <SimpleWeatherForecastColumn 
                 segments={tripPlan.segments} 
                 tripStartDate={validatedTripStartDate}
                 tripId={tripPlan.id}
