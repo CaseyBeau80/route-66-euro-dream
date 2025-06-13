@@ -14,22 +14,29 @@ interface SegmentLimiterProps {
 const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
   segments,
   children,
-  initialLimit = 3,
-  incrementSize = 5,
-  emergencyLimit = 15
+  initialLimit = 2, // EMERGENCY: Reduced from 3 to 2
+  incrementSize = 2, // EMERGENCY: Reduced from 5 to 2
+  emergencyLimit = 10 // EMERGENCY: Reduced from 15 to 10
 }) => {
   const [currentLimit, setCurrentLimit] = useState(initialLimit);
   const [isEmergencyMode, setIsEmergencyMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Emergency circuit breaker - if too many segments, force emergency mode
+  // 🚨 EMERGENCY: More aggressive limiting
   const safeSegments = useMemo(() => {
-    if (segments.length > emergencyLimit && !isEmergencyMode) {
+    if (segments.length > emergencyLimit) {
       console.warn('🚨 EMERGENCY: Too many segments detected, activating emergency mode');
       setIsEmergencyMode(true);
       return segments.slice(0, emergencyLimit);
     }
+    
+    // Additional safety: if more than 5 segments, warn but don't emergency mode
+    if (segments.length > 5) {
+      console.warn('⚠️ WARNING: Large number of segments, performance may be affected');
+    }
+    
     return segments;
-  }, [segments, emergencyLimit, isEmergencyMode]);
+  }, [segments, emergencyLimit]);
 
   const limitedSegments = useMemo(() => {
     return safeSegments.slice(0, currentLimit);
@@ -37,20 +44,30 @@ const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
 
   const hasMore = currentLimit < safeSegments.length;
 
-  const loadMore = () => {
+  const loadMore = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
     const newLimit = Math.min(currentLimit + incrementSize, safeSegments.length);
+    
     console.log(`📊 SegmentLimiter: Loading more segments (${currentLimit} -> ${newLimit})`);
+    
+    // Add artificial delay to prevent rapid loading that could cause lockup
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     setCurrentLimit(newLimit);
+    setIsLoading(false);
   };
 
   // Log segment limiting activity
-  console.log('📊 SegmentLimiter render:', {
+  console.log('📊 SegmentLimiter render (EMERGENCY MODE):', {
     totalSegments: segments.length,
     safeSegments: safeSegments.length,
     currentLimit,
     limitedSegments: limitedSegments.length,
     hasMore,
-    isEmergencyMode
+    isEmergencyMode,
+    isLoading
   });
 
   return (
@@ -74,10 +91,20 @@ const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
         <div className="mt-6 text-center">
           <button
             onClick={loadMore}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-route66-primary text-white rounded-lg hover:bg-route66-primary-dark transition-colors"
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-route66-primary text-white rounded-lg hover:bg-route66-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>Load More Days ({currentLimit}/{safeSegments.length})</span>
-            <ChevronDown className="h-4 w-4" />
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Loading...</span>
+              </>
+            ) : (
+              <>
+                <span>Load More Days ({currentLimit}/{safeSegments.length})</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
           </button>
         </div>
       )}
