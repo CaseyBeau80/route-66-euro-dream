@@ -37,6 +37,10 @@ export const useWeatherDataFetcher = ({
     hasApiKey
   });
 
+  // Track if we already have a live forecast to prevent overwrites
+  const hasLiveForecastRef = React.useRef(false);
+  const lastFetchIdRef = React.useRef(0);
+
   const fetchWeather = React.useCallback(async () => {
     if (!tripStartDate || !hasApiKey) {
       console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher fetchWeather skipped:`, {
@@ -49,10 +53,15 @@ export const useWeatherDataFetcher = ({
       return;
     }
 
+    // Generate unique fetch ID to prevent race conditions
+    const fetchId = ++lastFetchIdRef.current;
+    
     console.log(`🚨 FIXED: fetchWeather STARTING for ${segmentEndCity}`, {
+      fetchId,
       segmentDay,
       tripStartDate: tripStartDate.toISOString(),
       hasApiKey,
+      hasLiveForecast: hasLiveForecastRef.current,
       timestamp: new Date().toISOString()
     });
 
@@ -68,6 +77,7 @@ export const useWeatherDataFetcher = ({
       }
 
       console.log(`🚨 FIXED: Calling getWeatherDataForTripDate for ${segmentEndCity}`, {
+        fetchId,
         segmentDate: segmentDate.toISOString(),
         daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
       });
@@ -77,13 +87,43 @@ export const useWeatherDataFetcher = ({
         segmentDate
       );
 
+      // Check if this fetch is still current (not superseded by a newer fetch)
+      if (fetchId !== lastFetchIdRef.current) {
+        console.log(`🚨 STALE FETCH: Ignoring stale fetch ${fetchId} for ${segmentEndCity} (current: ${lastFetchIdRef.current})`);
+        return;
+      }
+
       console.log(`🚨 FIXED: Weather data received for ${segmentEndCity}:`, {
+        fetchId,
         hasData: !!weatherDisplayData,
         source: weatherDisplayData?.source,
-        isActualForecast: weatherDisplayData?.isActualForecast
+        isActualForecast: weatherDisplayData?.isActualForecast,
+        hasLiveForecast: hasLiveForecastRef.current
       });
 
       if (weatherDisplayData) {
+        const isLiveForecast = weatherDisplayData.isActualForecast || weatherDisplayData.source === 'forecast';
+        
+        // CRITICAL: Don't allow fallback data to overwrite live forecast
+        if (hasLiveForecastRef.current && !isLiveForecast) {
+          console.log(`🚨 GUARD: Preventing fallback data from overwriting live forecast for ${segmentEndCity}`, {
+            fetchId,
+            currentHasLive: hasLiveForecastRef.current,
+            incomingIsLive: isLiveForecast,
+            incomingSource: weatherDisplayData.source
+          });
+          return;
+        }
+
+        // Update live forecast status
+        if (isLiveForecast) {
+          hasLiveForecastRef.current = true;
+          console.log(`🚨 LIVE FORECAST LOCKED: ${segmentEndCity} now has live forecast protection`, {
+            fetchId,
+            source: weatherDisplayData.source
+          });
+        }
+
         // Convert to ForecastWeatherData format
         const forecastData: ForecastWeatherData = {
           temperature: Math.round((weatherDisplayData.highTemp + weatherDisplayData.lowTemp) / 2),
@@ -97,21 +137,23 @@ export const useWeatherDataFetcher = ({
           cityName: weatherDisplayData.cityName,
           forecast: [],
           forecastDate: segmentDate,
-          isActualForecast: weatherDisplayData.isActualForecast || weatherDisplayData.source === 'forecast',
+          isActualForecast: isLiveForecast,
           dateMatchInfo: {
             requestedDate: DateNormalizationService.toDateString(segmentDate),
             matchedDate: DateNormalizationService.toDateString(segmentDate),
-            matchType: weatherDisplayData.source === 'forecast' ? 'exact' : 'seasonal-estimate',
+            matchType: isLiveForecast ? 'exact' : 'seasonal-estimate',
             daysOffset: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-            source: weatherDisplayData.source === 'forecast' ? 'api-forecast' : 'seasonal-estimate',
-            confidence: weatherDisplayData.source === 'forecast' ? 'high' : 'low'
+            source: isLiveForecast ? 'api-forecast' : 'seasonal-estimate',
+            confidence: isLiveForecast ? 'high' : 'low'
           }
         };
 
         console.log(`🚨 FIXED: Setting weather data for ${segmentEndCity}:`, {
+          fetchId,
           temperature: forecastData.temperature,
           isActualForecast: forecastData.isActualForecast,
-          source: forecastData.dateMatchInfo?.source
+          source: forecastData.dateMatchInfo?.source,
+          hasLiveForecast: hasLiveForecastRef.current
         });
 
         actions.setWeather(forecastData);
@@ -119,20 +161,33 @@ export const useWeatherDataFetcher = ({
         throw new Error('No weather data available');
       }
     } catch (error) {
-      console.error(`🚨 FIXED: Weather fetch error for ${segmentEndCity}:`, error);
-      actions.setError(error instanceof Error ? error.message : 'Weather fetch failed');
+      // Only set error if this is still the current fetch
+      if (fetchId === lastFetchIdRef.current) {
+        console.error(`🚨 FIXED: Weather fetch error for ${segmentEndCity}:`, error);
+        actions.setError(error instanceof Error ? error.message : 'Weather fetch failed');
+      }
     } finally {
-      actions.setLoading(false);
+      // Only clear loading if this is still the current fetch
+      if (fetchId === lastFetchIdRef.current) {
+        actions.setLoading(false);
+      }
     }
   }, [segmentEndCity, segmentDay, tripStartDate, hasApiKey, actions]);
 
-  // FIXED: Auto-fetch effect that actually triggers
+  // Reset live forecast tracking when dependencies change
+  React.useEffect(() => {
+    hasLiveForecastRef.current = false;
+    lastFetchIdRef.current = 0;
+    console.log(`🚨 RESET: Live forecast tracking reset for ${segmentEndCity}`);
+  }, [segmentEndCity, segmentDay, tripStartDate]);
+
+  // FIXED: Auto-fetch effect that actually triggers and prevents race conditions
   React.useEffect(() => {
     console.log(`🚨 FIXED: useWeatherDataFetcher auto-fetch effect for ${segmentEndCity}:`, {
       hasApiKey,
       hasTripStartDate: !!tripStartDate,
-      isCurrentlyLoading: actions.retryCount > 0,
       retryCount: actions.retryCount,
+      hasLiveForecast: hasLiveForecastRef.current,
       shouldFetch: hasApiKey && tripStartDate
     });
 
@@ -145,7 +200,8 @@ export const useWeatherDataFetcher = ({
   return {
     fetchWeather,
     handleApiKeySet: React.useCallback(() => {
-      console.log(`🚨 FIXED: handleApiKeySet for ${segmentEndCity}`);
+      console.log(`🚨 FIXED: handleApiKeySet for ${segmentEndCity} - resetting live forecast tracking`);
+      hasLiveForecastRef.current = false;
       if (tripStartDate) {
         fetchWeather();
       }
@@ -156,7 +212,8 @@ export const useWeatherDataFetcher = ({
       actions.setLoading(false);
     }, [actions]),
     handleRetry: React.useCallback(() => {
-      console.log(`🚨 FIXED: handleRetry for ${segmentEndCity}`);
+      console.log(`🚨 FIXED: handleRetry for ${segmentEndCity} - resetting live forecast tracking`);
+      hasLiveForecastRef.current = false;
       actions.incrementRetry();
       fetchWeather();
     }, [fetchWeather, actions])
