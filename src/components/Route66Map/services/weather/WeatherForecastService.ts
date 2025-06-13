@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -70,8 +71,10 @@ export class WeatherForecastService {
       normalizedDate: normalizedTargetDate.toISOString(),
       targetDateString,
       daysFromNow,
-      withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS,
-      forecastThreshold: this.FORECAST_THRESHOLD_DAYS
+      withinForecastRange: daysFromNow >= -1 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS, // FIXED: Allow -1 for yesterday/today
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      todayCheck: new Date().toISOString().split('T')[0],
+      isToday: targetDateString === new Date().toISOString().split('T')[0]
     });
 
     WeatherDataDebugger.debugWeatherFlow(
@@ -81,19 +84,19 @@ export class WeatherForecastService {
         normalizedDate: normalizedTargetDate.toISOString(),
         targetDateString,
         daysFromNow,
-        withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS
+        withinForecastRange: daysFromNow >= -1 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS
       }
     );
 
-    // Try to get actual forecast if within range
-    if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
+    // FIXED: Try to get actual forecast if within expanded range (allow yesterday/today too)
+    if (daysFromNow >= -1 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
       // 🚨 DEBUG INJECTION: API attempt logging
       console.log('🚨 DEBUG: WeatherForecastService attempting actual forecast API call', {
         cityName,
         targetDateString,
         daysFromNow,
         coordinates: { lat, lng },
-        reason: 'within_forecast_range'
+        reason: 'within_expanded_forecast_range'
       });
 
       const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
@@ -282,49 +285,71 @@ export class WeatherForecastService {
             windSpeed: forecast.windSpeed
           }
         });
-        
-        console.log(`✅ Enhanced forecast match for ${cityName} on ${targetDateString}:`, {
-          matchType: matchResult.matchInfo.matchType,
-          matchedDate: matchResult.matchInfo.matchedDate,
-          confidence: matchResult.matchInfo.confidence,
-          temperature: { high: highTemp, low: lowTemp, avg: avgTemp }
-        });
-        
-        const finalResult = {
-          temperature: avgTemp || highTemp || lowTemp,
-          highTemp: highTemp,
-          lowTemp: lowTemp,
-          description: forecast.description || 'Clear',
-          icon: forecast.icon || '01d',
-          humidity: forecast.humidity || 50,
-          windSpeed: forecast.windSpeed || 0,
-          precipitationChance: precipChance,
-          cityName: cityName,
-          forecast: processedForecast,
-          forecastDate: targetDate,
-          isActualForecast: true,
-          matchedForecastDay: forecast,
-          dateMatchInfo: {
-            ...matchResult.matchInfo,
-            source: 'api-forecast' as const
-          }
-        };
 
-        // 🚨 DEBUG INJECTION: Final result construction logging
-        console.log('🚨 DEBUG: WeatherForecastService CONSTRUCTED FINAL RESULT', {
-          cityName,
-          targetDateString,
-          finalResult,
-          isValid: !!(finalResult.temperature && finalResult.description),
-          temperatureCheck: {
-            hasTemperature: !!finalResult.temperature,
-            hasHighTemp: !!finalResult.highTemp,
-            hasLowTemp: !!finalResult.lowTemp,
-            temperatureValue: finalResult.temperature
-          }
-        });
+        // FIXED: Much more permissive validation - accept if we have ANY meaningful weather data
+        const hasValidTemperature = avgTemp > 0 || highTemp > 0 || lowTemp > 0 || 
+                                   (typeof forecast.temperature === 'number' && forecast.temperature !== 0);
+        const hasValidDescription = forecast.description && forecast.description.length > 0;
+        const hasValidIcon = forecast.icon && forecast.icon.length > 0;
         
-        return finalResult;
+        // Accept if we have temperature OR weather description
+        if (hasValidTemperature || hasValidDescription || hasValidIcon) {
+          console.log(`✅ FIXED VALIDATION: Enhanced forecast accepted for ${cityName} on ${targetDateString}:`, {
+            matchType: matchResult.matchInfo.matchType,
+            matchedDate: matchResult.matchInfo.matchedDate,
+            confidence: matchResult.matchInfo.confidence,
+            temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
+            hasValidTemperature,
+            hasValidDescription,
+            hasValidIcon,
+            validationReason: 'permissive_validation_passed'
+          });
+          
+          const finalResult = {
+            temperature: avgTemp || highTemp || lowTemp || 0,
+            highTemp: highTemp || avgTemp || 0,
+            lowTemp: lowTemp || avgTemp || 0,
+            description: forecast.description || 'Weather forecast',
+            icon: forecast.icon || '01d',
+            humidity: forecast.humidity || 50,
+            windSpeed: forecast.windSpeed || 0,
+            precipitationChance: precipChance,
+            cityName: cityName,
+            forecast: processedForecast,
+            forecastDate: targetDate,
+            isActualForecast: true, // FIXED: Always mark as actual forecast if we got data from API
+            matchedForecastDay: forecast,
+            dateMatchInfo: {
+              ...matchResult.matchInfo,
+              source: 'api-forecast' as const
+            }
+          };
+
+          // 🚨 DEBUG INJECTION: Final result construction logging
+          console.log('🚨 DEBUG: WeatherForecastService CONSTRUCTED FINAL RESULT', {
+            cityName,
+            targetDateString,
+            finalResult,
+            isValid: true,
+            temperatureCheck: {
+              hasTemperature: !!finalResult.temperature,
+              hasHighTemp: !!finalResult.highTemp,
+              hasLowTemp: !!finalResult.lowTemp,
+              temperatureValue: finalResult.temperature
+            },
+            validationPassed: 'FIXED_PERMISSIVE_VALIDATION'
+          });
+          
+          return finalResult;
+        } else {
+          console.log(`❌ VALIDATION FAILED: No valid weather data for ${cityName} on ${targetDateString}:`, {
+            hasValidTemperature,
+            hasValidDescription,
+            hasValidIcon,
+            forecast,
+            reason: 'no_meaningful_weather_data'
+          });
+        }
       } else {
         // 🚨 DEBUG INJECTION: No match fallback logging
         console.log('🚨 DEBUG: WeatherForecastService no match found, creating current-based forecast', {
@@ -335,15 +360,20 @@ export class WeatherForecastService {
         });
 
         // Create enhanced forecast from current data if no match found
-        return this.createEnhancedForecastFromCurrent(
-          currentData, 
-          cityName, 
-          targetDate, 
-          targetDateString, 
-          daysFromNow, 
-          processedForecast
-        );
+        if (currentData && currentData.main && currentData.main.temp) {
+          return this.createEnhancedForecastFromCurrent(
+            currentData, 
+            cityName, 
+            targetDate, 
+            targetDateString, 
+            daysFromNow, 
+            processedForecast
+          );
+        }
       }
+
+      console.log(`❌ No usable forecast data found for ${cityName} on ${targetDateString}`);
+      return null;
     } catch (error) {
       // 🚨 DEBUG INJECTION: Error logging
       console.error('🚨 DEBUG: WeatherForecastService.getActualForecast ERROR', {
