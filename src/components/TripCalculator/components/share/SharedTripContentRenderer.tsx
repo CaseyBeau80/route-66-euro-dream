@@ -18,7 +18,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Rendering shared content with weather');
+  console.log('📤 SharedTripContentRenderer: Rendering shared content with RAMBLE 66 branding');
   console.log('📤 TripPlan segments data:', tripPlan.segments?.map(s => ({
     day: s.day,
     startCity: s.startCity,
@@ -94,7 +94,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* Header with Ramble 66 branding */}
+      {/* Header with RAMBLE 66 branding - UPDATED */}
       <div className="text-center mb-6 p-6 bg-gradient-to-r from-route66-primary to-route66-rust rounded-lg">
         <div className="flex items-center justify-center gap-2 mb-3">
           <div className="bg-white rounded-full p-2">
