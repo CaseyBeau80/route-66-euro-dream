@@ -22,7 +22,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 SIMPLIFIED: SimpleWeatherDisplay for', cityName, {
+  console.log('🔧 FIXED: SimpleWeatherDisplay for', cityName, {
     temperature: weather.temperature,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
@@ -55,17 +55,25 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
   const showCurrent = !isNaN(temperatures.current) && !showRange;
 
-  // Simple footer message
-  const isLive = weather.isActualForecast === true || weather.source === 'live_forecast';
-  const footerMessage = isLive 
+  // FIXED: Properly determine if this is live forecast data
+  const isLiveForecast = (
+    weather.isActualForecast === true &&
+    weather.source === 'live_forecast' &&
+    weather.dateMatchInfo?.source !== 'historical_fallback' &&
+    weather.dateMatchInfo?.source !== 'seasonal-estimate'
+  );
+
+  const footerMessage = isLiveForecast 
     ? 'Real-time weather forecast from API'
     : 'Historical weather patterns - live forecast not available';
 
-  console.log('🔧 SIMPLIFIED: Display decision for', cityName, {
+  console.log('🔧 FIXED: Display decision for', cityName, {
     showRange,
     showCurrent,
-    isLive,
-    temperatures
+    isLiveForecast,
+    temperatures,
+    weatherSource: weather.source,
+    dateMatchSource: weather.dateMatchInfo?.source
   });
 
   return (
@@ -133,7 +141,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
-          Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}
+          Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}, dateMatch={weather.dateMatchInfo?.source}
         </div>
       )}
     </div>

@@ -15,23 +15,33 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   dateMatchSource,
   cityName
 }) => {
-  console.log('🎯 SIMPLIFIED: WeatherBadge for', cityName, {
+  console.log('🎯 FIXED: WeatherBadge for', cityName, {
     source,
     isActualForecast,
     dateMatchSource
   });
 
-  // SIMPLIFIED LOGIC: Just check if it's a live forecast or not
-  const isLiveForecast = (
-    isActualForecast === true ||
-    source === 'live_forecast' ||
-    dateMatchSource === 'live_forecast' ||
-    dateMatchSource === 'api-forecast'
+  // FIXED LOGIC: Properly detect historical data
+  const isHistoricalData = (
+    isActualForecast === false ||
+    source === 'historical_fallback' ||
+    source === 'seasonal' ||
+    dateMatchSource === 'historical_fallback' ||
+    dateMatchSource === 'seasonal-estimate'
   );
 
-  console.log('🎯 SIMPLIFIED: Badge decision for', cityName, {
+  // Only show live forecast if explicitly marked as actual forecast AND not from fallback sources
+  const isLiveForecast = (
+    isActualForecast === true &&
+    source === 'live_forecast' &&
+    dateMatchSource !== 'historical_fallback' &&
+    dateMatchSource !== 'seasonal-estimate'
+  );
+
+  console.log('🎯 FIXED: Badge decision for', cityName, {
+    isHistoricalData,
     isLiveForecast,
-    decision: isLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL'
+    decision: isLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL_DATA'
   });
 
   if (isLiveForecast) {
@@ -42,7 +52,7 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     );
   }
 
-  // For any non-live forecast, show historical with tooltip
+  // For all other cases (historical, seasonal, fallback), show historical data badge
   return (
     <TooltipProvider>
       <Tooltip>
