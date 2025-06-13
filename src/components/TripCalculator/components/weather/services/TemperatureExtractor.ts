@@ -20,14 +20,14 @@ export class TemperatureExtractor {
       temperatureField: weather.temperature,
       highTempField: weather.highTemp,
       lowTempField: weather.lowTemp,
-      mainField: weather.main,
-      tempField: weather.temp
+      cityNameField: weather.cityName,
+      descriptionField: weather.description
     });
 
-    // Extract individual temperature values with enhanced logic
-    const current = this.extractSingleTemperature(weather.temperature, 'current', weather);
-    const high = this.extractSingleTemperature(weather.highTemp, 'high', weather);
-    const low = this.extractSingleTemperature(weather.lowTemp, 'low', weather);
+    // Extract individual temperature values from the normalized ForecastWeatherData
+    const current = this.extractSingleTemperature(weather.temperature, 'current');
+    const high = this.extractSingleTemperature(weather.highTemp, 'high');
+    const low = this.extractSingleTemperature(weather.lowTemp, 'low');
 
     console.log('🌡️ TemperatureExtractor extracted raw values:', {
       cityName,
@@ -44,42 +44,13 @@ export class TemperatureExtractor {
     let finalHigh = high;
     let finalLow = low;
 
-    // If we don't have valid temperatures, try extracting from nested structures
+    // If we don't have valid temperatures, try fallback logic
     if (!this.isValidTemperature(finalCurrent) && !this.isValidTemperature(finalHigh) && !this.isValidTemperature(finalLow)) {
-      console.log('🔍 TemperatureExtractor: Trying alternative extraction methods...');
+      console.log('🔍 TemperatureExtractor: No valid temperatures found, checking for fallback data...');
       
-      // Try main.temp structure (OpenWeatherMap current weather)
-      if (weather.main) {
-        console.log('🔍 Trying main object extraction:', weather.main);
-        if (weather.main.temp && this.isValidTemperature(weather.main.temp)) {
-          finalCurrent = Math.round(weather.main.temp);
-        }
-        if (weather.main.temp_max && this.isValidTemperature(weather.main.temp_max)) {
-          finalHigh = Math.round(weather.main.temp_max);
-        }
-        if (weather.main.temp_min && this.isValidTemperature(weather.main.temp_min)) {
-          finalLow = Math.round(weather.main.temp_min);
-        }
-      }
-
-      // Try temp object structure (OpenWeatherMap forecast)
-      if (weather.temp && typeof weather.temp === 'object') {
-        console.log('🔍 Trying temp object extraction:', weather.temp);
-        if (weather.temp.day && this.isValidTemperature(weather.temp.day)) {
-          finalCurrent = Math.round(weather.temp.day);
-        }
-        if (weather.temp.max && this.isValidTemperature(weather.temp.max)) {
-          finalHigh = Math.round(weather.temp.max);
-        }
-        if (weather.temp.min && this.isValidTemperature(weather.temp.min)) {
-          finalLow = Math.round(weather.temp.min);
-        }
-      }
-
-      // Try direct temperature field
-      if (weather.temperature && this.isValidTemperature(weather.temperature)) {
-        finalCurrent = Math.round(weather.temperature);
-      }
+      // For ForecastWeatherData, the temperature fields should already be normalized
+      // So if they're not valid, we don't have usable data
+      console.warn('⚠️ TemperatureExtractor: No valid temperature data available in ForecastWeatherData');
     }
 
     // If we have high/low but not current, calculate current as average
@@ -114,14 +85,12 @@ export class TemperatureExtractor {
     return result;
   }
 
-  private static extractSingleTemperature(temp: any, type: string, fullWeatherObject?: any): number {
+  private static extractSingleTemperature(temp: any, type: string): number {
     console.log(`🌡️ TemperatureExtractor.extractSingleTemperature [${type}]:`, {
       temp,
       type: typeof temp,
       isNumber: typeof temp === 'number',
-      isObject: typeof temp === 'object',
-      isString: typeof temp === 'string',
-      fullWeatherKeys: fullWeatherObject ? Object.keys(fullWeatherObject) : 'no-full-object'
+      isString: typeof temp === 'string'
     });
 
     // Handle direct numbers
