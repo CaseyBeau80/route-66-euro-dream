@@ -33,7 +33,7 @@ export class WeatherForecastService {
   constructor(apiKey: string) {
     this.apiHandler = new WeatherForecastApiHandler(apiKey);
     
-    console.log('🔧 FIXED: WeatherForecastService with corrected 7-day logic', {
+    console.log('🔧 PLAN: WeatherForecastService initialized with normalized date logic', {
       hasApiKey: !!apiKey,
       forecastRange: 'Days 0-6 (inclusive)',
       historicalRange: 'Day 7 and beyond',
@@ -47,26 +47,38 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🎯 FIXED: WeatherForecastService.getWeatherForDate', {
+    // PLAN IMPLEMENTATION: Use normalized date calculation
+    console.log('🔧 PLAN: WeatherForecastService.getWeatherForDate - ENTRY', {
       cityName,
-      targetDate: targetDate.toISOString()
+      targetDate: targetDate.toISOString(),
+      coordinates: { lat, lng }
     });
 
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    console.log('🎯 FIXED: Date range decision for', cityName, {
-      targetDateString,
-      daysFromToday,
-      isWithinForecastRange,
-      decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
+    // PLAN IMPLEMENTATION: Enhanced debug output for routing decision
+    console.log('🔧 PLAN: WeatherForecastService - ROUTING DECISION', {
+      cityName,
+      dateInfo: {
+        targetDateString,
+        daysFromToday,
+        isWithinForecastRange,
+        decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
+      },
+      logic: {
+        forecastRange: '0-6 days from today',
+        historicalRange: '7+ days from today',
+        currentDecision: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL'
+      }
     });
 
-    // CORRECTED LOGIC: If within 0-6 days, try live forecast
+    // PLAN IMPLEMENTATION: Corrected logic - If within 0-6 days, try live forecast
     if (isWithinForecastRange) {
-      console.log('📡 FIXED: Attempting live forecast for', cityName, {
+      console.log('🔧 PLAN: Attempting live forecast for', cityName, {
         reason: 'within_7_day_range',
-        daysFromToday
+        daysFromToday,
+        targetDateString
       });
 
       const actualForecast = await this.apiHandler.fetchLiveForecast(
@@ -79,7 +91,7 @@ export class WeatherForecastService {
       );
       
       if (actualForecast) {
-        // Ensure it's properly marked as live forecast
+        // PLAN IMPLEMENTATION: Ensure it's properly marked as live forecast
         const enhancedForecast = {
           ...actualForecast,
           source: 'live_forecast' as const,
@@ -90,25 +102,27 @@ export class WeatherForecastService {
           }
         };
         
-        console.log('✅ FIXED: Live forecast SUCCESS for', cityName, {
+        console.log('🔧 PLAN: Live forecast SUCCESS for', cityName, {
           daysFromToday,
           temperature: enhancedForecast.temperature,
           source: enhancedForecast.source,
-          isActualForecast: enhancedForecast.isActualForecast
+          isActualForecast: enhancedForecast.isActualForecast,
+          dateMatching: enhancedForecast.dateMatchInfo
         });
         
         return enhancedForecast;
       }
       
-      console.log('⚠️ FIXED: Live forecast failed, falling back to historical for', cityName);
+      console.log('🔧 PLAN: Live forecast failed, falling back to historical for', cityName);
     } else {
-      console.log('📊 FIXED: Using historical weather for', cityName, {
+      console.log('🔧 PLAN: Using historical weather for', cityName, {
         reason: 'beyond_7_day_range',
-        daysFromToday
+        daysFromToday,
+        targetDateString
       });
     }
 
-    // FALLBACK: Use historical weather
+    // PLAN IMPLEMENTATION: Fallback to historical weather with normalized date
     const fallbackForecast = WeatherFallbackService.createFallbackForecast(
       cityName, 
       normalizedTargetDate, 
@@ -116,10 +130,11 @@ export class WeatherForecastService {
       daysFromToday
     );
     
-    console.log('📊 FIXED: Historical fallback applied for', cityName, {
+    console.log('🔧 PLAN: Historical fallback applied for', cityName, {
       daysFromToday,
       source: fallbackForecast.source,
-      isActualForecast: fallbackForecast.isActualForecast
+      isActualForecast: fallbackForecast.isActualForecast,
+      targetDateString
     });
     
     return fallbackForecast;

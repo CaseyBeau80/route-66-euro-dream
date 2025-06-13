@@ -10,30 +10,41 @@ export class WeatherDateCalculator {
     daysFromToday: number;
     isWithinForecastRange: boolean;
   } {
+    // PLAN IMPLEMENTATION: Normalize the target date to UTC midnight
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     
-    // Get today's date and normalize it
+    // PLAN IMPLEMENTATION: Normalize today's date to UTC midnight for consistent comparison
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     
-    // Calculate days from today (can be negative for past dates)
-    const daysFromToday = Math.floor((normalizedTargetDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
+    // PLAN IMPLEMENTATION: Calculate days from today using normalized dates
+    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
     
-    // FIXED LOGIC: Today through Day 6 = forecast range (0, 1, 2, 3, 4, 5, 6)
-    // Day 7 and beyond = historical weather
+    // PLAN IMPLEMENTATION: Fixed logic - Days 0-6 = forecast range (today through 6 days out)
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
     
-    console.log('🔧 FIXED: WeatherDateCalculator CORRECTED off-by-one logic', {
-      originalDate: targetDate.toISOString(),
-      normalizedDate: normalizedTargetDate.toISOString(),
-      targetDateString,
-      today: today.toISOString(),
-      normalizedToday: normalizedToday.toISOString(),
-      daysFromToday,
-      isWithinForecastRange,
-      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-      logic: `Days 0-6 = forecast, Day 7+ = historical`
+    // PLAN IMPLEMENTATION: Enhanced debug output
+    console.log('🔧 PLAN: WeatherDateCalculator.calculateDaysFromToday - NORMALIZED DATE LOGIC', {
+      input: {
+        originalTargetDate: targetDate.toISOString(),
+        targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      },
+      normalization: {
+        normalizedTargetDate: normalizedTargetDate.toISOString(),
+        normalizedToday: normalizedToday.toISOString(),
+        targetDateString
+      },
+      calculation: {
+        daysFromToday,
+        isWithinForecastRange,
+        forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+        logic: 'Days 0-6 = forecast, Day 7+ = historical'
+      },
+      decision: {
+        useCase: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
+        reason: isWithinForecastRange ? 'within_7_day_range' : 'beyond_7_day_range'
+      }
     });
 
     return {
