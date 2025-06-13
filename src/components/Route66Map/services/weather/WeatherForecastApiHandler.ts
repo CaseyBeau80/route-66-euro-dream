@@ -59,22 +59,23 @@ export class WeatherForecastApiHandler {
         return null;
       }
 
-      // Process the forecast data into ForecastDay format
+      // Process the forecast data into ForecastDay format matching the expected types
       const processedForecast: ForecastDay[] = forecastResponse.list.map((item: any, index: number) => {
         const forecastDate = new Date(item.dt * 1000);
         const dateString = forecastDate.toISOString().split('T')[0];
         
         return {
-          date: forecastDate,
+          date: dateString,
           dateString,
-          temperature: Math.round(item.main?.temp || 0),
-          highTemp: Math.round(item.main?.temp_max || 0),
-          lowTemp: Math.round(item.main?.temp_min || 0),
+          temperature: {
+            high: Math.round(item.main?.temp_max || 0),
+            low: Math.round(item.main?.temp_min || 0)
+          },
           description: item.weather?.[0]?.description || 'Unknown',
           icon: item.weather?.[0]?.icon || '01d',
+          precipitationChance: Math.round((item.pop || 0) * 100).toString() + '%',
           humidity: item.main?.humidity || 0,
-          windSpeed: Math.round((item.wind?.speed || 0) * 2.237), // Convert m/s to mph
-          precipitationChance: Math.round((item.pop || 0) * 100)
+          windSpeed: Math.round((item.wind?.speed || 0) * 2.237) // Convert m/s to mph
         };
       });
 
@@ -102,14 +103,14 @@ export class WeatherForecastApiHandler {
 
       if (matchResult.matchedForecast) {
         const forecastData: ForecastWeatherData = {
-          temperature: matchResult.matchedForecast.temperature,
-          highTemp: matchResult.matchedForecast.highTemp,
-          lowTemp: matchResult.matchedForecast.lowTemp,
+          temperature: matchResult.matchedForecast.temperature.high,
+          highTemp: matchResult.matchedForecast.temperature.high,
+          lowTemp: matchResult.matchedForecast.temperature.low,
           description: matchResult.matchedForecast.description,
           icon: matchResult.matchedForecast.icon,
           humidity: matchResult.matchedForecast.humidity,
           windSpeed: matchResult.matchedForecast.windSpeed,
-          precipitationChance: matchResult.matchedForecast.precipitationChance,
+          precipitationChance: parseInt(matchResult.matchedForecast.precipitationChance.replace('%', '')),
           cityName: cityName,
           forecast: processedForecast,
           forecastDate: normalizedTargetDate,

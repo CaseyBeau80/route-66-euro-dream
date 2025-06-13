@@ -78,4 +78,15 @@ export class WeatherApiClient {
 
     return response.json();
   }
+
+  async getWeatherAndForecast(lat: number, lng: number): Promise<[any, any]> {
+    console.log('🔧 FIXED: WeatherApiClient.getWeatherAndForecast - Making parallel API calls');
+    
+    const [currentData, forecastData] = await Promise.all([
+      this.getCurrentWeather(lat, lng),
+      this.getForecast(lat, lng)
+    ]);
+
+    return [currentData, forecastData];
+  }
 }
