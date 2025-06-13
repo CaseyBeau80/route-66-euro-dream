@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
@@ -15,6 +14,7 @@ import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
 import UnitSelector from './components/UnitSelector';
 import { useFormValidation } from './hooks/useFormValidation';
+import DataSourceIndicator from './components/DataSourceIndicator';
 
 interface TripCalculatorFormProps {
   formData: TripFormData;
@@ -72,6 +72,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         isFormValid={isFormValid}
         isCalculating={isCalculating}
       />
+
+      {/* Data Source Status Indicator */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          Plan your Route 66 adventure
+        </div>
+        <DataSourceIndicator showDetails={true} className="text-xs" />
+      </div>
 
       {/* Main Form */}
       <LocationSelectionForm 

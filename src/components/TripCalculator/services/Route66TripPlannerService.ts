@@ -1,5 +1,5 @@
 
-import { SupabaseDataService, TripStop } from './data/SupabaseDataService';
+import { EnhancedSupabaseDataService } from './data/EnhancedSupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
 import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningService';
@@ -7,7 +7,8 @@ import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
 
 // Re-export types for backward compatibility
-export type { TripStop, DailySegment, TripPlan, SegmentTiming };
+export type { DailySegment, TripPlan, SegmentTiming };
+export type TripStop = import('../types/TripStop').TripStop;
 
 export class Route66TripPlannerService {
   static async planTrip(
@@ -16,10 +17,21 @@ export class Route66TripPlannerService {
     tripDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log(`🗺️ Planning ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
+    console.log(`🗺️ Enhanced Planning: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
 
-    const allStops = await SupabaseDataService.fetchAllStops();
-    console.log(`📊 Total stops available for planning: ${allStops.length}`);
+    // Use enhanced data service with fallback tracking
+    const allStops = await EnhancedSupabaseDataService.fetchAllStops();
+    console.log(`📊 Enhanced: Total stops available for planning: ${allStops.length}`);
+    
+    // Log data source status
+    const dataSourceInfo = EnhancedSupabaseDataService.getDataSourceInfo();
+    if (dataSourceInfo) {
+      console.log(`📡 Data Source: ${EnhancedSupabaseDataService.getDataSourceMessage()}`);
+      
+      if (!dataSourceInfo.isUsingSupabase) {
+        console.warn(`⚠️ Enhanced: Using fallback data due to: ${dataSourceInfo.fallbackReason}`);
+      }
+    }
     
     // Enhanced city matching function with improved fuzzy matching
     const findCityStop = (cityName: string): TripStop | undefined => {
@@ -28,7 +40,20 @@ export class Route66TripPlannerService {
       const cityOnly = parts[0].toLowerCase();
       const stateOnly = parts.length > 1 ? parts[1].toLowerCase() : null;
       
-      console.log(`🔍 Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
+      console.log(`🔍 Enhanced: Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
+      
+      // Special handling for Santa Fe - most common search terms
+      if (cityOnly.includes('santa fe') || cityOnly.includes('santa_fe')) {
+        const santaFe = allStops.find(stop => 
+          stop.name.toLowerCase().includes('santa fe') && 
+          (!stateOnly || stop.state.toLowerCase().includes(stateOnly))
+        );
+        
+        if (santaFe) {
+          console.log(`🎯 Enhanced: Found Santa Fe via special handling: ${santaFe.name} in ${CityDisplayService.getCityDisplayName(santaFe)}`);
+          return santaFe;
+        }
+      }
       
       // Tier 1: Exact city + state matching (most precise)
       if (stateOnly) {
@@ -45,7 +70,7 @@ export class Route66TripPlannerService {
         });
         
         if (exactMatch) {
-          console.log(`✅ Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
+          console.log(`✅ Enhanced: Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
           return exactMatch;
         }
 
@@ -64,7 +89,7 @@ export class Route66TripPlannerService {
         });
         
         if (partialMatch) {
-          console.log(`✅ Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
+          console.log(`✅ Enhanced: Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
           return partialMatch;
         }
       }
@@ -88,32 +113,43 @@ export class Route66TripPlannerService {
         // Prioritize destination cities, then major stops
         const destinationCity = cityOnlyMatches.find(stop => stop.category === 'destination_city');
         if (destinationCity) {
-          console.log(`✅ Found destination city match: ${destinationCity.name} in ${CityDisplayService.getCityDisplayName(destinationCity)}`);
+          console.log(`✅ Enhanced: Found destination city match: ${destinationCity.name} in ${CityDisplayService.getCityDisplayName(destinationCity)}`);
           if (stateOnly && destinationCity.state.toLowerCase() !== stateOnly) {
-            console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${destinationCity.state}`);
+            console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${destinationCity.state}`);
           }
           return destinationCity;
         }
 
         const majorStop = cityOnlyMatches.find(stop => stop.is_major_stop);
         if (majorStop) {
-          console.log(`✅ Found major stop match: ${majorStop.name} in ${CityDisplayService.getCityDisplayName(majorStop)}`);
+          console.log(`✅ Enhanced: Found major stop match: ${majorStop.name} in ${CityDisplayService.getCityDisplayName(majorStop)}`);
           if (stateOnly && majorStop.state.toLowerCase() !== stateOnly) {
-            console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${majorStop.state}`);
+            console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${majorStop.state}`);
           }
           return majorStop;
         }
 
         // Return first match
         const firstMatch = cityOnlyMatches[0];
-        console.log(`⚠️ Found city-only match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
+        console.log(`⚠️ Enhanced: Found city-only match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
         if (stateOnly && firstMatch.state.toLowerCase() !== stateOnly) {
-          console.log(`⚠️ Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
+          console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
         }
         return firstMatch;
       }
       
-      console.log(`❌ No match found for "${cityName}"`);
+      console.log(`❌ Enhanced: No match found for "${cityName}"`);
+      
+      // Enhanced error logging for debugging
+      if (EnhancedSupabaseDataService.isUsingFallback()) {
+        console.log(`💡 Enhanced: Search failed with fallback data. Reason: ${EnhancedSupabaseDataService.getDataSourceInfo()?.fallbackReason}`);
+        console.log(`📋 Enhanced: Available cities in fallback:`, allStops
+          .filter(stop => stop.category === 'destination_city')
+          .map(stop => `${stop.name}, ${stop.state}`)
+          .sort()
+        );
+      }
+      
       return undefined;
     };
     
@@ -121,19 +157,21 @@ export class Route66TripPlannerService {
     const startStop = findCityStop(startCityName);
     const endStop = findCityStop(endCityName);
 
-    console.log('🔍 Start stop found:', startStop ? { 
+    console.log('🔍 Enhanced: Start stop found:', startStop ? { 
       name: startStop.name, 
       city_display: CityDisplayService.getCityDisplayName(startStop),
-      category: startStop.category 
+      category: startStop.category,
+      dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     } : 'NOT FOUND');
     
-    console.log('🔍 End stop found:', endStop ? { 
+    console.log('🔍 Enhanced: End stop found:', endStop ? { 
       name: endStop.name, 
       city_display: CityDisplayService.getCityDisplayName(endStop),
-      category: endStop.category 
+      category: endStop.category,
+      dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     } : 'NOT FOUND');
 
-    // Validate stops using the new validator
+    // Enhanced validation with better error messages
     const { startStop: validatedStartStop, endStop: validatedEndStop } = TripPlanValidator.validateStops(
       startStop,
       endStop,
@@ -153,11 +191,12 @@ export class Route66TripPlannerService {
       tripStyle
     );
 
-    console.log('🎯 Final trip plan created:', {
+    console.log('🎯 Enhanced: Final trip plan created:', {
       title: planningResult.tripPlan.title,
       tripStyle: planningResult.tripStyle,
       warnings: planningResult.warnings?.length || 0,
-      segmentsCount: planningResult.tripPlan.segments.length
+      segmentsCount: planningResult.tripPlan.segments.length,
+      dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     });
     
     return planningResult.tripPlan;
@@ -300,7 +339,6 @@ export class Route66TripPlannerService {
     return segments;
   }
 
-  // NEW METHOD: Find attractions along a segment
   private static findAttractionsForSegment(
     startStop: TripStop,
     endStop: TripStop,
@@ -350,7 +388,6 @@ export class Route66TripPlannerService {
     return sortedAttractions.slice(0, maxAttractions);
   }
   
-  // NEW METHOD: Get drive time category based on hours
   private static getDriveTimeCategory(driveTimeHours: number): { category: 'short' | 'optimal' | 'long' | 'extreme', message: string, color: string } {
     if (driveTimeHours <= 4) {
       return {
@@ -398,5 +435,19 @@ export class Route66TripPlannerService {
       
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  }
+
+  /**
+   * Get data source status for debugging
+   */
+  static getDataSourceStatus(): string {
+    return EnhancedSupabaseDataService.getDataSourceMessage();
+  }
+
+  /**
+   * Check if using fallback data
+   */
+  static isUsingFallbackData(): boolean {
+    return EnhancedSupabaseDataService.isUsingFallback();
   }
 }
