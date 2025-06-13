@@ -8,6 +8,6 @@ export class EnhancedWeatherService {
   
   static getApiKey(): string | null {
     const instance = MainEnhancedWeatherService.getInstance();
-    return instance.getDebugInfo().apiKey || null;
+    return instance.getApiKey();
   }
 }
