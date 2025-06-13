@@ -33,7 +33,12 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     return `${Math.round(temp)}°F`;
   };
 
-  if (type === 'current' && currentTemp !== undefined && !isNaN(currentTemp)) {
+  // Validate temperature values
+  const isValidTemp = (temp: number | undefined): temp is number => {
+    return temp !== undefined && !isNaN(temp) && temp > -100 && temp < 200;
+  };
+
+  if (type === 'current' && isValidTemp(currentTemp)) {
     return (
       <div className="flex flex-col items-center justify-center bg-white rounded p-3">
         <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -44,8 +49,7 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     );
   }
 
-  if (type === 'range' && highTemp !== undefined && lowTemp !== undefined && 
-      !isNaN(highTemp) && !isNaN(lowTemp)) {
+  if (type === 'range' && isValidTemp(highTemp) && isValidTemp(lowTemp)) {
     return (
       <div className="flex items-center justify-center gap-3 bg-white rounded p-3">
         {/* Low Temperature - moved to left */}
@@ -70,12 +74,24 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     );
   }
 
-  // Fallback display when no valid temperature data
-  console.warn('⚠️ TemperatureDisplay: No valid temperature data to display');
+  // Enhanced fallback display when no valid temperature data
+  console.warn('⚠️ TemperatureDisplay: No valid temperature data to display', {
+    type,
+    currentTemp,
+    highTemp,
+    lowTemp,
+    validCurrentTemp: isValidTemp(currentTemp),
+    validHighTemp: isValidTemp(highTemp),
+    validLowTemp: isValidTemp(lowTemp)
+  });
+
   return (
     <div className="flex flex-col items-center justify-center bg-gray-50 rounded p-3">
       <div className="text-lg text-gray-400 mb-1">--°</div>
       <div className="text-xs text-gray-500">Temperature unavailable</div>
+      <div className="text-xs text-gray-400 mt-1">
+        {type === 'current' ? 'Current temp data missing' : 'Temperature range data missing'}
+      </div>
     </div>
   );
 };
