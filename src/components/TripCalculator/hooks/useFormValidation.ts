@@ -4,27 +4,26 @@ import { TripFormData } from '../types/tripCalculator';
 
 export const useFormValidation = (formData: TripFormData) => {
   const isFormValid = useMemo(() => {
-    const hasStartLocation = Boolean(formData.startLocation);
-    const hasEndLocation = Boolean(formData.endLocation);
-    const hasTravelDays = Boolean(formData.travelDays && formData.travelDays > 0);
-    const differentLocations = formData.startLocation !== formData.endLocation;
-    
-    console.log('🔍 Form validation check:', {
+    const hasStartLocation = !!formData.startLocation;
+    const hasEndLocation = !!formData.endLocation;
+    const hasValidTravelDays = formData.travelDays > 0 && formData.travelDays <= 30;
+    const hasStartDate = !!formData.tripStartDate;
+
+    console.log('📋 Form validation check:', {
       hasStartLocation,
       hasEndLocation,
-      hasTravelDays,
-      differentLocations,
-      travelDays: formData.travelDays,
-      startLocation: formData.startLocation,
-      endLocation: formData.endLocation
+      hasValidTravelDays,
+      hasStartDate,
+      formData: {
+        startLocation: formData.startLocation,
+        endLocation: formData.endLocation,
+        travelDays: formData.travelDays,
+        tripStartDate: formData.tripStartDate
+      }
     });
-    
-    const isValid = hasStartLocation && hasEndLocation && hasTravelDays && differentLocations;
-    
-    console.log('✅ Form validation result:', { isValid });
-    
-    return isValid;
-  }, [formData.startLocation, formData.endLocation, formData.travelDays]);
+
+    return hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
+  }, [formData]);
 
   return { isFormValid };
 };

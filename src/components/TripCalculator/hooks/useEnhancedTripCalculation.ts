@@ -60,6 +60,16 @@ export const useEnhancedTripCalculation = () => {
       return false;
     }
 
+    // NEW: Validate trip start date is required
+    if (!formData.tripStartDate) {
+      toast({
+        title: "Trip Start Date Required",
+        description: "Please select a start date for your Route 66 journey to enable weather forecasts.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     if (formData.startLocation === formData.endLocation) {
       toast({
         title: "Invalid Route",
@@ -108,7 +118,7 @@ export const useEnhancedTripCalculation = () => {
       
       toast({
         title: "You're All Set!",
-        description: `Your ${formData.travelDays}-day Route 66 journey has been successfully planned.`,
+        description: `Your ${formData.travelDays}-day Route 66 journey has been successfully planned with weather forecasts.`,
         variant: "default"
       });
       
@@ -133,6 +143,6 @@ export const useEnhancedTripCalculation = () => {
     calculateTrip,
     resetTrip,
     isCalculating,
-    isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays <= 0
+    isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays <= 0 || !formData.tripStartDate
   };
 };
