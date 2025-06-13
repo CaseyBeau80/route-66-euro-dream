@@ -33,10 +33,10 @@ export class WeatherForecastService {
   constructor(apiKey: string) {
     this.apiHandler = new WeatherForecastApiHandler(apiKey);
     
-    console.log('🔧 FIXED: WeatherForecastService with corrected 7-day logic', {
+    console.log('🔧 ENHANCED: WeatherForecastService with strict Day 7+ logic', {
       hasApiKey: !!apiKey,
       forecastRange: 'Days 0-6 (inclusive)',
-      historicalRange: 'Day 7 and beyond',
+      historicalRange: 'Day 7 and beyond (STRICTLY ENFORCED)',
       timestamp: new Date().toISOString()
     });
   }
@@ -47,7 +47,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🎯 FIXED: WeatherForecastService.getWeatherForDate', {
+    console.log('🎯 ENHANCED: WeatherForecastService.getWeatherForDate with strict validation', {
       cityName,
       targetDate: targetDate.toISOString()
     });
@@ -55,30 +55,76 @@ export class WeatherForecastService {
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    console.log('🎯 FIXED: Date range decision for', cityName, {
+    console.log('🎯 ENHANCED: Date range decision for', cityName, {
       targetDateString,
       daysFromToday,
       isWithinForecastRange,
-      decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
+      decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'FORCE_HISTORICAL_FALLBACK'
     });
 
-    // CORRECTED LOGIC: If within 0-6 days, try live forecast
-    if (isWithinForecastRange) {
-      console.log('📡 FIXED: Attempting live forecast for', cityName, {
-        reason: 'within_7_day_range',
-        daysFromToday
+    // ENHANCED LOGIC: Strict enforcement of Day 7+ as historical
+    if (!isWithinForecastRange) {
+      console.log('📊 ENHANCED: STRICTLY enforcing historical weather for Day 7+:', {
+        cityName,
+        daysFromToday,
+        reason: 'beyond_6_day_forecast_threshold',
+        enforcementLevel: 'STRICT'
       });
 
-      const actualForecast = await this.apiHandler.fetchLiveForecast(
-        lat, 
-        lng, 
+      // Force historical weather for Day 7+
+      const fallbackForecast = WeatherFallbackService.createFallbackForecast(
         cityName, 
         normalizedTargetDate, 
         targetDateString, 
         daysFromToday
       );
       
-      if (actualForecast) {
+      // ENHANCED: Ensure proper marking for historical data
+      const enhancedFallback = {
+        ...fallbackForecast,
+        source: 'historical_fallback' as const,
+        isActualForecast: false,
+        dateMatchInfo: {
+          ...fallbackForecast.dateMatchInfo,
+          source: 'historical_fallback' as const
+        }
+      };
+      
+      console.log('📊 ENHANCED: Historical fallback STRICTLY applied for Day 7+:', {
+        cityName,
+        daysFromToday,
+        source: enhancedFallback.source,
+        isActualForecast: enhancedFallback.isActualForecast,
+        dateMatchSource: enhancedFallback.dateMatchInfo?.source
+      });
+      
+      return enhancedFallback;
+    }
+
+    // Try live forecast only for Days 0-6
+    console.log('📡 ENHANCED: Attempting live forecast for Days 0-6:', cityName, {
+      reason: 'within_7_day_range',
+      daysFromToday
+    });
+
+    const actualForecast = await this.apiHandler.fetchLiveForecast(
+      lat, 
+      lng, 
+      cityName, 
+      normalizedTargetDate, 
+      targetDateString, 
+      daysFromToday
+    );
+    
+    if (actualForecast) {
+      // ENHANCED: Strict validation before marking as live forecast
+      const isValidLiveForecast = (
+        daysFromToday >= 0 && 
+        daysFromToday <= 6 && 
+        actualForecast.isActualForecast === true
+      );
+
+      if (isValidLiveForecast) {
         // Ensure it's properly marked as live forecast
         const enhancedForecast = {
           ...actualForecast,
@@ -90,25 +136,28 @@ export class WeatherForecastService {
           }
         };
         
-        console.log('✅ FIXED: Live forecast SUCCESS for', cityName, {
+        console.log('✅ ENHANCED: Live forecast SUCCESS with validation for', cityName, {
           daysFromToday,
           temperature: enhancedForecast.temperature,
           source: enhancedForecast.source,
-          isActualForecast: enhancedForecast.isActualForecast
+          isActualForecast: enhancedForecast.isActualForecast,
+          validation: 'PASSED'
         });
         
         return enhancedForecast;
+      } else {
+        console.warn('⚠️ ENHANCED: Live forecast failed validation, forcing historical:', {
+          cityName,
+          daysFromToday,
+          originalIsActualForecast: actualForecast.isActualForecast,
+          validationFailure: 'invalid_live_forecast_criteria'
+        });
       }
-      
-      console.log('⚠️ FIXED: Live forecast failed, falling back to historical for', cityName);
-    } else {
-      console.log('📊 FIXED: Using historical weather for', cityName, {
-        reason: 'beyond_7_day_range',
-        daysFromToday
-      });
     }
+    
+    console.log('⚠️ ENHANCED: Live forecast failed, falling back to historical for', cityName);
 
-    // FALLBACK: Use historical weather
+    // FALLBACK: Use historical weather with proper marking
     const fallbackForecast = WeatherFallbackService.createFallbackForecast(
       cityName, 
       normalizedTargetDate, 
@@ -116,12 +165,24 @@ export class WeatherForecastService {
       daysFromToday
     );
     
-    console.log('📊 FIXED: Historical fallback applied for', cityName, {
+    // ENHANCED: Ensure proper marking for fallback data
+    const enhancedFallback = {
+      ...fallbackForecast,
+      source: 'historical_fallback' as const,
+      isActualForecast: false,
+      dateMatchInfo: {
+        ...fallbackForecast.dateMatchInfo,
+        source: 'historical_fallback' as const
+      }
+    };
+    
+    console.log('📊 ENHANCED: Historical fallback applied with proper marking for', cityName, {
       daysFromToday,
-      source: fallbackForecast.source,
-      isActualForecast: fallbackForecast.isActualForecast
+      source: enhancedFallback.source,
+      isActualForecast: enhancedFallback.isActualForecast,
+      dateMatchSource: enhancedFallback.dateMatchInfo?.source
     });
     
-    return fallbackForecast;
+    return enhancedFallback;
   }
 }

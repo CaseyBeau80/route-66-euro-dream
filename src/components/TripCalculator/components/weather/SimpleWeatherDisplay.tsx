@@ -23,11 +23,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SimpleWeatherDisplay for', cityName, {
+  console.log('🔧 ENHANCED: SimpleWeatherDisplay for', cityName, {
     temperature: weather.temperature,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source,
+    segmentDate: segmentDate?.toISOString(),
     hasTemperature: !!weather.temperature
   });
 
@@ -57,21 +58,22 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
   const showCurrent = !isNaN(temperatures.current) && !showRange;
 
-  // FIXED: Use centralized WeatherTypeDetector with validation
-  const weatherType = WeatherTypeDetector.detectWeatherType(weather);
-  const footerMessage = WeatherTypeDetector.getFooterMessage(weather);
+  // ENHANCED: Use centralized WeatherTypeDetector with date validation
+  const weatherType = WeatherTypeDetector.detectWeatherType(weather, segmentDate || undefined);
+  const footerMessage = WeatherTypeDetector.getFooterMessage(weather, segmentDate || undefined);
   
-  // Validate weather type consistency
-  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SimpleWeatherDisplay-${cityName}`);
+  // Validate weather type consistency with date
+  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SimpleWeatherDisplay-${cityName}`, segmentDate || undefined);
 
-  console.log('🔧 FIXED: Using centralized WeatherTypeDetector for display decision:', {
+  console.log('🔧 ENHANCED: Using WeatherTypeDetector with date validation for display decision:', {
     cityName,
     showRange,
     showCurrent,
     weatherType,
     temperatures,
     weatherSource: weather.source,
-    dateMatchSource: weather.dateMatchInfo?.source
+    dateMatchSource: weather.dateMatchInfo?.source,
+    segmentDate: segmentDate?.toISOString()
   });
 
   return (
@@ -139,7 +141,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
-          Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}, dateMatch={weather.dateMatchInfo?.source}
+          Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}, dateMatch={weather.dateMatchInfo?.source}, days={(segmentDate ? Math.floor((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : 'unknown')}
         </div>
       )}
     </div>
