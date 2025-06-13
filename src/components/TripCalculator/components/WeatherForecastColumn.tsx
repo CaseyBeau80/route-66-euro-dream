@@ -20,9 +20,44 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
 }) => {
   const stableSegments = useStableSegments(segments);
 
+  // 🚨 PLAN IMPLEMENTATION: Explicit segment enumeration logging
+  console.log('🔍 [PLAN] WeatherForecastColumn - SEGMENT ENUMERATION:', {
+    rawSegments: segments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || [],
+    stableSegments: stableSegments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || [],
+    segmentCount: stableSegments.length,
+    tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+    tripId
+  });
+
+  // 🚨 PLAN IMPLEMENTATION: Day 1 specific logging
+  const day1Segment = stableSegments.find(s => s.day === 1);
+  if (day1Segment) {
+    console.log('🎯 [PLAN] DAY 1 SEGMENT FOUND in WeatherForecastColumn:', {
+      day: day1Segment.day,
+      endCity: day1Segment.endCity,
+      title: day1Segment.title,
+      hasSegment: true,
+      segmentData: day1Segment
+    });
+  } else {
+    console.error('❌ [PLAN] DAY 1 SEGMENT MISSING from WeatherForecastColumn segments!', {
+      availableDays: stableSegments.map(s => s.day),
+      segmentCount: stableSegments.length
+    });
+  }
+
   // Validate and convert tripStartDate to Date object
   const validTripStartDate = React.useMemo(() => {
+    // 🚨 PLAN IMPLEMENTATION: Trip date propagation validation
+    console.log('🗓️ [PLAN] Trip date validation in WeatherForecastColumn:', {
+      originalTripStartDate: tripStartDate,
+      tripStartDateType: typeof tripStartDate,
+      isDate: tripStartDate instanceof Date,
+      isString: typeof tripStartDate === 'string'
+    });
+
     if (!tripStartDate) {
+      console.log('🗓️ [PLAN] No tripStartDate provided to WeatherForecastColumn');
       return null;
     }
     
@@ -32,6 +67,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid Date object provided', tripStartDate);
           return null;
         }
+        console.log('✅ [PLAN] Valid Date object confirmed in WeatherForecastColumn:', tripStartDate.toISOString());
         return tripStartDate;
       } else if (typeof tripStartDate === 'string') {
         const parsed = new Date(tripStartDate);
@@ -39,6 +75,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid date string provided', tripStartDate);
           return null;
         }
+        console.log('✅ [PLAN] Valid date string converted in WeatherForecastColumn:', parsed.toISOString());
         return parsed;
       } else {
         console.error('❌ WeatherForecastColumn: tripStartDate is not a Date or string', { tripStartDate, type: typeof tripStartDate });
@@ -91,10 +128,30 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
       {/* Day Cards */}
       <div className="space-y-4">
         {stableSegments.map((segment, index) => {
+          // 🚨 PLAN IMPLEMENTATION: Segment visibility confirmation
+          console.log(`🔍 [PLAN] Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
+            segmentIndex: index,
+            day: segment.day,
+            endCity: segment.endCity,
+            willRender: true,
+            isDay1: segment.day === 1
+          });
+
           let segmentDate: Date | null = null;
           
           try {
             segmentDate = addDays(validTripStartDate, segment.day - 1);
+            
+            // 🚨 PLAN IMPLEMENTATION: Day 1 specific date calculation logging
+            if (segment.day === 1) {
+              console.log('🗓️ [PLAN] DAY 1 DATE CALCULATION:', {
+                tripStartDate: validTripStartDate.toISOString(),
+                segmentDay: segment.day,
+                calculatedDate: segmentDate.toISOString(),
+                daysToAdd: segment.day - 1,
+                isValid: !isNaN(segmentDate.getTime())
+              });
+            }
             
             if (isNaN(segmentDate.getTime())) {
               console.error('❌ WeatherForecastColumn: Invalid calculated date for segment', { 
@@ -109,6 +166,18 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
               startDate: validTripStartDate 
             });
             segmentDate = null;
+          }
+          
+          // 🚨 PLAN IMPLEMENTATION: Segment data integrity verification
+          if (segment.day === 1) {
+            console.log('🔍 [PLAN] DAY 1 SEGMENT DATA INTEGRITY CHECK:', {
+              hasSegment: !!segment,
+              hasEndCity: !!segment.endCity,
+              hasValidDate: !!segmentDate,
+              segmentTitle: segment.title,
+              allSegmentKeys: Object.keys(segment),
+              segmentComplete: !!(segment && segment.endCity && segmentDate)
+            });
           }
           
           return (
@@ -136,6 +205,16 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
                 
                 {/* Weather Content */}
                 <div className="p-4">
+                  {/* 🚨 PLAN IMPLEMENTATION: SegmentWeatherWidget instantiation logging */}
+                  {segment.day === 1 && console.log('🚀 [PLAN] About to render SegmentWeatherWidget for DAY 1:', {
+                    segment: { day: segment.day, endCity: segment.endCity },
+                    tripStartDate: validTripStartDate.toISOString(),
+                    segmentDate: segmentDate?.toISOString(),
+                    cardIndex: index,
+                    tripId,
+                    sectionKey: 'weather-column'
+                  })}
+                  
                   <SegmentWeatherWidget
                     segment={segment}
                     tripStartDate={validTripStartDate}

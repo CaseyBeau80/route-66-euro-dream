@@ -28,8 +28,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   forceExpanded = false,
   isCollapsible = false
 }) => {
-  // 🚨 FORCE LOG: Component instantiation
-  console.log(`🚨 FORCE LOG: SegmentWeatherWidget INSTANTIATED for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced component instantiation logging
+  console.log(`🚨 [PLAN] SegmentWeatherWidget INSTANTIATED for Day ${segment.day} - ${segment.endCity}`, {
     segment: {
       day: segment.day,
       endCity: segment.endCity,
@@ -40,26 +40,58 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     tripId,
     sectionKey,
     timestamp: new Date().toISOString(),
-    componentMount: true
+    componentMount: true,
+    isDay1: segment.day === 1
   });
+
+  // 🚨 PLAN IMPLEMENTATION: Day 1 specific instantiation check
+  if (segment.day === 1) {
+    console.log('🎯 [PLAN] *** DAY 1 WIDGET INSTANTIATED ***', {
+      endCity: segment.endCity,
+      tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+      sectionKey,
+      timestamp: new Date().toISOString(),
+      callStack: new Error().stack?.split('\n').slice(1, 5)
+    });
+  }
 
   // Use the new focused API key hook
   const { hasApiKey, refreshApiKey } = useWeatherApiKey(segment.endCity);
   
-  // 🚨 FORCE LOG: API key status
-  console.log(`🚨 FORCE LOG: API Key Status for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced API key status logging
+  console.log(`🚨 [PLAN] API Key Status for Day ${segment.day} - ${segment.endCity}`, {
     hasApiKey,
+    isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
+  // 🚨 PLAN IMPLEMENTATION: Day 1 API key specific check
+  if (segment.day === 1) {
+    console.log('🔑 [PLAN] DAY 1 API KEY STATUS:', {
+      hasApiKey,
+      endCity: segment.endCity,
+      apiKeyAvailable: hasApiKey ? 'YES' : 'NO'
+    });
+  }
+
   // Calculate segment date
   const segmentDate = React.useMemo(() => {
-    console.log(`🚨 FORCE LOG: Calculating segment date for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🚨 [PLAN] Calculating segment date for Day ${segment.day} - ${segment.endCity}`, {
       tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
       segmentDay: segment.day,
       hasTripStartDate: !!tripStartDate,
-      tripStartDateType: typeof tripStartDate
+      tripStartDateType: typeof tripStartDate,
+      isDay1: segment.day === 1
     });
+
+    // 🚨 PLAN IMPLEMENTATION: Day 1 specific date calculation logging
+    if (segment.day === 1) {
+      console.log('🗓️ [PLAN] *** DAY 1 DATE CALCULATION START ***', {
+        tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+        segmentDay: segment.day,
+        endCity: segment.endCity
+      });
+    }
 
     WeatherDebugService.logDateCalculation(
       segment.endCity,
@@ -69,16 +101,36 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     );
 
     if (!tripStartDate) {
-      console.log(`🚨 FORCE LOG: No tripStartDate for Day ${segment.day} - ${segment.endCity} - EARLY RETURN NULL`);
+      console.log(`🚨 [PLAN] No tripStartDate for Day ${segment.day} - ${segment.endCity} - EARLY RETURN NULL`);
+      
+      // 🚨 PLAN IMPLEMENTATION: Day 1 specific no date logging
+      if (segment.day === 1) {
+        console.error('❌ [PLAN] *** DAY 1 NO TRIP START DATE - CRITICAL ERROR ***', {
+          endCity: segment.endCity,
+          tripStartDate,
+          receivedType: typeof tripStartDate
+        });
+      }
       return null;
     }
     
     const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log(`🚨 FORCE LOG: Date calculation result for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🚨 [PLAN] Date calculation result for Day ${segment.day} - ${segment.endCity}`, {
       calculatedDate: calculatedDate?.toISOString(),
-      isValid: calculatedDate instanceof Date && !isNaN(calculatedDate.getTime())
+      isValid: calculatedDate instanceof Date && !isNaN(calculatedDate.getTime()),
+      isDay1: segment.day === 1
     });
+
+    // 🚨 PLAN IMPLEMENTATION: Day 1 specific date calculation result
+    if (segment.day === 1) {
+      console.log('🗓️ [PLAN] *** DAY 1 DATE CALCULATION RESULT ***', {
+        success: !!calculatedDate,
+        calculatedDate: calculatedDate?.toISOString(),
+        isValidDate: calculatedDate instanceof Date && !isNaN(calculatedDate.getTime()),
+        endCity: segment.endCity
+      });
+    }
     
     WeatherDebugService.logDateCalculation(
       segment.endCity,
@@ -90,23 +142,25 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     return calculatedDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // 🚨 FORCE LOG: Segment date result
-  console.log(`🚨 FORCE LOG: Final segmentDate for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced final segmentDate result logging
+  console.log(`🚨 [PLAN] Final segmentDate for Day ${segment.day} - ${segment.endCity}`, {
     segmentDate: segmentDate?.toISOString(),
     hasSegmentDate: !!segmentDate,
+    isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
   // Use weather state and handlers
   const weatherState = useSegmentWeatherState(segment.endCity, segment.day);
   
-  // 🚨 FORCE LOG: Weather state initialization
-  console.log(`🚨 FORCE LOG: Weather state initialized for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced weather state initialization logging
+  console.log(`🚨 [PLAN] Weather state initialized for Day ${segment.day} - ${segment.endCity}`, {
     weather: weatherState.weather,
     loading: weatherState.loading,
     error: weatherState.error,
     retryCount: weatherState.retryCount,
     hasWeatherData: !!weatherState.weather,
+    isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
@@ -117,24 +171,41 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     ...weatherState
   });
 
-  // 🚨 FORCE LOG: Weather handlers initialization
-  console.log(`🚨 FORCE LOG: Weather handlers initialized for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced weather handlers initialization logging
+  console.log(`🚨 [PLAN] Weather handlers initialized for Day ${segment.day} - ${segment.endCity}`, {
     hasHandlers: !!weatherHandlers,
     handlerMethods: Object.keys(weatherHandlers),
+    isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
-  // 🎯 NEW: Add segment render attempt logging
+  // 🚨 PLAN IMPLEMENTATION: Enhanced segment render attempt logging
   React.useEffect(() => {
-    console.log(`🚨 FORCE LOG: SegmentWeatherWidget render effect for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🚨 [PLAN] SegmentWeatherWidget render effect for Day ${segment.day} - ${segment.endCity}`, {
       weather: weatherState.weather,
       loading: weatherState.loading,
       error: weatherState.error,
       segmentDate: segmentDate?.toISOString(),
       hasApiKey,
       sectionKey,
-      shouldTriggerWeatherFetch: hasApiKey && segmentDate && !weatherState.weather && !weatherState.loading
+      shouldTriggerWeatherFetch: hasApiKey && segmentDate && !weatherState.weather && !weatherState.loading,
+      isDay1: segment.day === 1
     });
+
+    // 🚨 PLAN IMPLEMENTATION: Day 1 specific render effect
+    if (segment.day === 1) {
+      console.log('🚀 [PLAN] *** DAY 1 RENDER EFFECT TRIGGERED ***', {
+        endCity: segment.endCity,
+        conditions: {
+          hasApiKey,
+          hasSegmentDate: !!segmentDate,
+          hasWeather: !!weatherState.weather,
+          loading: weatherState.loading
+        },
+        shouldFetch: hasApiKey && segmentDate && !weatherState.weather && !weatherState.loading,
+        sectionKey
+      });
+    }
 
     WeatherDebugService.logSegmentRenderAttempt(segment.endCity, segment.day, {
       weather: weatherState.weather,
@@ -158,8 +229,9 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   });
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log(`🚨 FORCE LOG: handleApiKeySet called for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🚨 [PLAN] handleApiKeySet called for Day ${segment.day} - ${segment.endCity}`, {
       previousApiKeyStatus: hasApiKey,
+      isDay1: segment.day === 1,
       timestamp: new Date().toISOString()
     });
 
@@ -175,7 +247,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   // Mark weather as ready for rendering
   React.useEffect(() => {
     if (weatherState.weather && !weatherState.loading && segmentDate) {
-      console.log(`🚨 FORCE LOG: Weather ready for rendering Day ${segment.day} - ${segment.endCity}`, {
+      console.log(`🚨 [PLAN] Weather ready for rendering Day ${segment.day} - ${segment.endCity}`, {
         weatherData: {
           temperature: weatherState.weather.temperature,
           highTemp: weatherState.weather.highTemp,
@@ -184,10 +256,20 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
         },
         segmentDate: segmentDate.toISOString(),
         sectionKey,
+        isDay1: segment.day === 1,
         timestamp: new Date().toISOString()
       });
 
-      // 🎯 NEW: Add weather state set logging
+      // 🚨 PLAN IMPLEMENTATION: Day 1 specific weather ready logging
+      if (segment.day === 1) {
+        console.log('✅ [PLAN] *** DAY 1 WEATHER DATA READY FOR RENDERING ***', {
+          endCity: segment.endCity,
+          temperature: weatherState.weather.temperature,
+          isActualForecast: weatherState.weather.isActualForecast,
+          sectionKey
+        });
+      }
+
       WeatherDebugService.logWeatherStateSet(segment.endCity, weatherState.weather);
       
       const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
@@ -202,10 +284,11 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
   }, [weatherState.weather, weatherState.loading, segment.day, sectionKey, segmentDate, segment.endCity]);
 
-  // 🚨 FORCE LOG: Component render decision
-  console.log(`🚨 FORCE LOG: SegmentWeatherWidget rendering for Day ${segment.day} - ${segment.endCity}`, {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced component render decision logging
+  console.log(`🚨 [PLAN] SegmentWeatherWidget rendering for Day ${segment.day} - ${segment.endCity}`, {
     willRender: true,
     containerClass: isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '',
+    isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
@@ -217,6 +300,15 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       fallbackMessage={`Weather service error for ${segment.endCity} Day ${segment.day}`}
     >
       <div className={`space-y-3 ${containerClass}`} data-segment-day={segment.day}>
+        {/* 🚨 PLAN IMPLEMENTATION: Day 1 specific content rendering confirmation */}
+        {segment.day === 1 && console.log('🎨 [PLAN] *** DAY 1 CONTENT RENDERING CONFIRMED ***', {
+          endCity: segment.endCity,
+          hasApiKey,
+          loading: weatherState.loading,
+          hasWeather: !!weatherState.weather,
+          hasSegmentDate: !!segmentDate
+        })}
+        
         <SegmentWeatherContent
           hasApiKey={hasApiKey}
           loading={weatherState.loading}

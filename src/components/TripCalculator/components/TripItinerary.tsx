@@ -14,8 +14,8 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
-  // 🚨 FORCE LOG: TripItinerary component render
-  console.log('🚨 FORCE LOG: TripItinerary component rendering', {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced TripItinerary component render logging
+  console.log('🚨 [PLAN] TripItinerary component rendering', {
     hasTripPlan: !!tripPlan,
     tripStartDate: tripStartDate?.toISOString(),
     tripStartDateType: typeof tripStartDate,
@@ -25,36 +25,54 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     timestamp: new Date().toISOString()
   });
 
-  // CRITICAL DEBUG: Enhanced debugging for trip start date propagation
+  // 🚨 PLAN IMPLEMENTATION: Enhanced trip start date propagation debugging
   React.useEffect(() => {
-    console.log('🗓️ CRITICAL DEBUG - TripItinerary received tripStartDate:', {
+    console.log('🗓️ [PLAN] TripItinerary received tripStartDate:', {
       tripStartDate: tripStartDate?.toISOString(),
       tripStartDateType: typeof tripStartDate,
       isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
       segmentsCount: tripPlan.segments.length,
       debug: 'TripItinerary component',
       rawTripStartDate: tripStartDate,
-      segmentsList: tripPlan.segments.map(s => ({ day: s.day, endCity: s.endCity }))
+      segmentsList: tripPlan.segments.map(s => ({ day: s.day, endCity: s.endCity })),
+      day1Segment: tripPlan.segments.find(s => s.day === 1)
     });
+
+    // 🚨 PLAN IMPLEMENTATION: Day 1 specific trip date check
+    const day1Segment = tripPlan.segments.find(s => s.day === 1);
+    if (day1Segment) {
+      console.log('🎯 [PLAN] DAY 1 segment found in TripItinerary:', {
+        day: day1Segment.day,
+        endCity: day1Segment.endCity,
+        hasTripStartDate: !!tripStartDate,
+        tripStartDate: tripStartDate?.toISOString(),
+        willPropagate: !!tripStartDate
+      });
+    } else {
+      console.error('❌ [PLAN] DAY 1 segment NOT found in TripItinerary!', {
+        availableDays: tripPlan.segments.map(s => s.day),
+        segmentCount: tripPlan.segments.length
+      });
+    }
 
     // ADDITIONAL DEBUG: Check if we're getting the date at all
     if (!tripStartDate) {
-      console.error('❌ CRITICAL - No tripStartDate provided to TripItinerary component!');
+      console.error('❌ [PLAN] CRITICAL - No tripStartDate provided to TripItinerary component!');
       console.log('🔍 TripItinerary props debug:', { tripPlan, tripStartDate });
     }
-  }, [tripStartDate, tripPlan.segments.length]);
+  }, [tripStartDate, tripPlan.segments]);
 
   // Validate tripStartDate and log any issues
   const validatedTripStartDate = React.useMemo(() => {
-    console.log('🔍 VALIDATING tripStartDate in TripItinerary:', tripStartDate);
+    console.log('🔍 [PLAN] VALIDATING tripStartDate in TripItinerary:', tripStartDate);
     
     if (!tripStartDate) {
-      console.warn('⚠️ TripItinerary: No tripStartDate provided');
+      console.warn('⚠️ [PLAN] TripItinerary: No tripStartDate provided');
       return undefined;
     }
 
     if (!(tripStartDate instanceof Date)) {
-      console.error('❌ TripItinerary: tripStartDate is not a Date object:', { 
+      console.error('❌ [PLAN] TripItinerary: tripStartDate is not a Date object:', { 
         tripStartDate, 
         type: typeof tripStartDate 
       });
@@ -62,19 +80,20 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     }
 
     if (isNaN(tripStartDate.getTime())) {
-      console.error('❌ TripItinerary: tripStartDate is an invalid Date:', tripStartDate);
+      console.error('❌ [PLAN] TripItinerary: tripStartDate is an invalid Date:', tripStartDate);
       return undefined;
     }
 
-    console.log('✅ TripItinerary: Valid tripStartDate confirmed:', tripStartDate.toISOString());
+    console.log('✅ [PLAN] TripItinerary: Valid tripStartDate confirmed:', tripStartDate.toISOString());
     return tripStartDate;
   }, [tripStartDate]);
 
-  // 🚨 FORCE LOG: Validated date result
-  console.log('🚨 FORCE LOG: TripItinerary validated date result', {
+  // 🚨 PLAN IMPLEMENTATION: Enhanced validated date result logging
+  console.log('🚨 [PLAN] TripItinerary validated date result', {
     originalDate: tripStartDate?.toISOString(),
     validatedDate: validatedTripStartDate?.toISOString(),
     isValid: !!validatedTripStartDate,
+    willPassToChildren: !!validatedTripStartDate,
     timestamp: new Date().toISOString()
   });
 
@@ -95,6 +114,14 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
             </ErrorBoundary>
             
             <ErrorBoundary context="WeatherForecastColumn">
+              {/* 🚨 PLAN IMPLEMENTATION: Log WeatherForecastColumn instantiation */}
+              {console.log('🚀 [PLAN] Instantiating WeatherForecastColumn with:', {
+                segmentsCount: tripPlan.segments.length,
+                tripStartDate: validatedTripStartDate?.toISOString(),
+                tripId: tripPlan.id,
+                hasDay1: tripPlan.segments.some(s => s.day === 1)
+              })}
+              
               <WeatherForecastColumn 
                 segments={tripPlan.segments} 
                 tripStartDate={validatedTripStartDate}
