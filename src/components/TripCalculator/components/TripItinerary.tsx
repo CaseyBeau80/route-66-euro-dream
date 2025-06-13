@@ -13,8 +13,8 @@ interface TripItineraryProps {
   tripStartDate?: Date;
 }
 
-const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
-  // Validate tripStartDate
+const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, tripStartDate }) => {
+  // Validate tripStartDate once and memoize it
   const validatedTripStartDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
     if (!(tripStartDate instanceof Date)) return undefined;
@@ -22,17 +22,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     return tripStartDate;
   }, [tripStartDate]);
 
-  // 🎯 DEBUG: Log TripItinerary render
-  console.log('🎯 [WEATHER DEBUG] TripItinerary rendered:', {
-    component: 'TripItinerary',
-    segmentsCount: tripPlan.segments.length,
-    hasStartDate: !!validatedTripStartDate,
-    startDate: validatedTripStartDate?.toISOString(),
-    segments: tripPlan.segments.map(s => ({
-      day: s.day,
-      endCity: s.endCity
-    }))
-  });
+  // Memoize segments to prevent unnecessary re-renders
+  const memoizedSegments = React.useMemo(() => tripPlan.segments, [tripPlan.segments]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -47,22 +38,12 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
         <TabsContent value="itinerary" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary context="TripItineraryColumn">
-              <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
+              <TripItineraryColumn segments={memoizedSegments} tripStartDate={validatedTripStartDate} />
             </ErrorBoundary>
             
             <ErrorBoundary context="SimpleWeatherForecastColumn">
-              {/* 🎯 DEBUG: Log before rendering SimpleWeatherForecastColumn */}
-              {(() => {
-                console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
-                  component: 'TripItinerary -> SimpleWeatherForecastColumn',
-                  segmentsCount: tripPlan.segments.length,
-                  tripStartDate: validatedTripStartDate?.toISOString(),
-                  tripId: tripPlan.id
-                });
-                return null;
-              })()}
               <SimpleWeatherForecastColumn 
-                segments={tripPlan.segments} 
+                segments={memoizedSegments} 
                 tripStartDate={validatedTripStartDate}
                 tripId={tripPlan.id}
               />
@@ -73,7 +54,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
         <TabsContent value="weather" className="mt-6">
           <ErrorBoundary context="WeatherTabContent">
             <WeatherTabContent 
-              segments={tripPlan.segments}
+              segments={memoizedSegments}
               tripStartDate={validatedTripStartDate}
               tripId={tripPlan.id}
               isVisible={true}
@@ -83,7 +64,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
 
         <TabsContent value="costs" className="mt-6">
           <ErrorBoundary context="CostEstimateColumn">
-            <CostEstimateColumn segments={tripPlan.segments} />
+            <CostEstimateColumn segments={memoizedSegments} />
           </ErrorBoundary>
         </TabsContent>
 
@@ -118,6 +99,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
       </Tabs>
     </div>
   );
-};
+});
+
+TripItinerary.displayName = 'TripItinerary';
 
 export default TripItinerary;
