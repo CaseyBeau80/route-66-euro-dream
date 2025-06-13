@@ -25,10 +25,10 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
 
   // Create a minimal weather object for the WeatherTypeDetector
   const weatherData: ForecastWeatherData = {
-    source,
+    source: source === 'seasonal' ? 'historical_fallback' : source, // Convert seasonal to historical_fallback for the interface
     isActualForecast,
     dateMatchInfo: { 
-      source: (dateMatchSource as "live_forecast" | "historical_fallback" | "api-forecast" | "enhanced-fallback" | "seasonal-estimate") || 'historical_fallback',
+      source: (dateMatchSource as "live_forecast" | "historical_fallback" | "api-forecast" | "enhanced-fallback" | "seasonal-estimate" | "fallback_historical_due_to_location_error") || 'historical_fallback',
       requestedDate: '',
       matchedDate: '',
       matchType: 'none',
@@ -37,11 +37,11 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     temperature: 0,
     description: '',
     icon: '',
-    humidity: null,
-    windSpeed: null,
-    precipitationChance: null,
-    highTemp: null,
-    lowTemp: null,
+    humidity: 0,
+    windSpeed: 0,
+    precipitationChance: 0,
+    highTemp: 0,
+    lowTemp: 0,
     forecast: [],
     forecastDate: new Date(),
     cityName: cityName

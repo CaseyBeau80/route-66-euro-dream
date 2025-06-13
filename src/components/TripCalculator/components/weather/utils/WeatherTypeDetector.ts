@@ -37,9 +37,9 @@ export class WeatherTypeDetector {
     const isHistoricalData = (
       weather.isActualForecast === false ||
       weather.source === 'historical_fallback' ||
-      weather.source === 'seasonal' ||
       weather.dateMatchInfo?.source === 'historical_fallback' ||
-      weather.dateMatchInfo?.source === 'seasonal-estimate'
+      weather.dateMatchInfo?.source === 'seasonal-estimate' ||
+      weather.dateMatchInfo?.source === 'fallback_historical_due_to_location_error'
     );
 
     // Only show live forecast if explicitly marked as actual forecast AND not from fallback sources
@@ -47,7 +47,8 @@ export class WeatherTypeDetector {
       weather.isActualForecast === true &&
       weather.source === 'live_forecast' &&
       weather.dateMatchInfo?.source !== 'historical_fallback' &&
-      weather.dateMatchInfo?.source !== 'seasonal-estimate'
+      weather.dateMatchInfo?.source !== 'seasonal-estimate' &&
+      weather.dateMatchInfo?.source !== 'fallback_historical_due_to_location_error'
     );
 
     // Determine confidence level
@@ -55,7 +56,7 @@ export class WeatherTypeDetector {
     if (isLiveForecast && weather.dateMatchInfo?.confidence) {
       confidence = weather.dateMatchInfo.confidence;
     } else if (isHistoricalData) {
-      confidence = weather.source === 'seasonal' ? 'low' : 'medium';
+      confidence = 'low'; // Historical data is always low confidence
     }
 
     const result: WeatherTypeResult = {

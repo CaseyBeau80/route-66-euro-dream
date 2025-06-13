@@ -49,7 +49,7 @@ export class TemperatureExtractor {
       low = this.extractSingleTemperature(weather.lowTemp, 'low-direct');
     }
 
-    // Path 2: If we have a matchedForecastDay, try extracting from it
+    // Path 2: If we have a matchedForecastDay and it exists, try extracting from it
     if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
       console.log('🌡️ TemperatureExtractor: Trying matchedForecastDay extraction', weather.matchedForecastDay);
       const matched = weather.matchedForecastDay;

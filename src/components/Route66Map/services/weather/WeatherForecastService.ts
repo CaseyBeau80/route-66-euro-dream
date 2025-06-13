@@ -1,5 +1,5 @@
-
 import { WeatherSourceType } from './WeatherServiceTypes';
+import { WeatherFallbackService } from './WeatherFallbackService';
 
 export interface DateMatchInfo {
   requestedDate: string;
@@ -26,6 +26,7 @@ export interface ForecastWeatherData {
   isActualForecast: boolean;
   source: 'live_forecast' | 'historical_fallback';
   dateMatchInfo?: DateMatchInfo;
+  matchedForecastDay?: any; // Add the missing property
 }
 
 export class WeatherForecastService {
@@ -34,6 +35,58 @@ export class WeatherForecastService {
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+  }
+
+  // Add the missing getWeatherForDate method
+  async getWeatherForDate(
+    lat: number, 
+    lng: number, 
+    cityName: string, 
+    targetDate: Date
+  ): Promise<ForecastWeatherData | null> {
+    console.log('🌤️ WeatherForecastService.getWeatherForDate called:', {
+      cityName,
+      targetDate: targetDate.toISOString(),
+      coordinates: { lat, lng }
+    });
+
+    const today = new Date();
+    const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    const targetDateString = targetDate.toISOString().split('T')[0];
+
+    // If within forecast range (0-7 days), try to get live forecast
+    if (daysFromToday >= 0 && daysFromToday <= 7) {
+      try {
+        const forecast = await this.getForecast(lat, lng, cityName);
+        
+        if (forecast && forecast.length > 0) {
+          // Find the closest match to the target date
+          const targetDay = targetDate.getDate();
+          const targetMonth = targetDate.getMonth();
+          
+          const matchedForecast = forecast.find(item => {
+            const forecastDate = new Date(item.forecastDate);
+            return forecastDate.getDate() === targetDay && forecastDate.getMonth() === targetMonth;
+          });
+
+          if (matchedForecast) {
+            console.log('✅ Found matching forecast for date:', targetDateString);
+            return matchedForecast;
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Live forecast failed, using fallback:', error);
+      }
+    }
+
+    // Use fallback weather for dates outside forecast range or if API fails
+    console.log('🔄 Using fallback weather for:', cityName);
+    return WeatherFallbackService.createFallbackForecast(
+      cityName,
+      targetDate,
+      targetDateString,
+      daysFromToday
+    );
   }
 
   async getForecast(lat: number, lng: number, cityName: string): Promise<ForecastWeatherData[]> {
