@@ -7,6 +7,8 @@ import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
 import WeatherTabContent from './WeatherTabContent';
 import CostEstimateColumn from './CostEstimateColumn';
 import ErrorBoundary from './ErrorBoundary';
+import SegmentLimiter from './SegmentLimiter';
+import PerformanceCircuitBreaker from './PerformanceCircuitBreaker';
 
 interface TripItineraryProps {
   tripPlan: TripPlan;
@@ -25,6 +27,14 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
   // Memoize segments to prevent unnecessary re-renders
   const memoizedSegments = React.useMemo(() => tripPlan.segments, [tripPlan.segments]);
 
+  // 🚨 CRASH PREVENTION: Log segment count for monitoring
+  console.log('🚨 TripItinerary render - CRASH PREVENTION ACTIVE:', {
+    segmentCount: memoizedSegments.length,
+    totalDays: tripPlan.totalDays,
+    hasValidStartDate: !!validatedTripStartDate,
+    willUseLimiting: memoizedSegments.length > 3
+  });
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
@@ -37,35 +47,84 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
 
         <TabsContent value="itinerary" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ErrorBoundary context="TripItineraryColumn">
-              <TripItineraryColumn segments={memoizedSegments} tripStartDate={validatedTripStartDate} />
-            </ErrorBoundary>
+            {/* 🚨 CRASH PREVENTION: Wrap itinerary in segment limiter */}
+            <PerformanceCircuitBreaker componentName="TripItineraryColumn" maxErrors={2}>
+              <SegmentLimiter segments={memoizedSegments} initialLimit={3} incrementSize={5}>
+                {(limitedSegments, hasMore, loadMore) => (
+                  <>
+                    <ErrorBoundary context="TripItineraryColumn">
+                      <TripItineraryColumn 
+                        segments={limitedSegments} 
+                        tripStartDate={validatedTripStartDate} 
+                      />
+                    </ErrorBoundary>
+                    {hasMore && (
+                      <div className="mt-4 text-center">
+                        <button
+                          onClick={loadMore}
+                          className="text-sm text-route66-primary hover:text-route66-primary-dark underline"
+                        >
+                          Load more itinerary days...
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </SegmentLimiter>
+            </PerformanceCircuitBreaker>
             
-            <ErrorBoundary context="SimpleWeatherForecastColumn">
-              <SimpleWeatherForecastColumn 
-                segments={memoizedSegments} 
-                tripStartDate={validatedTripStartDate}
-                tripId={tripPlan.id}
-              />
-            </ErrorBoundary>
+            {/* 🚨 CRASH PREVENTION: Wrap weather in circuit breaker */}
+            <PerformanceCircuitBreaker componentName="SimpleWeatherForecastColumn" maxErrors={2>
+              <SegmentLimiter segments={memoizedSegments} initialLimit={3} incrementSize={5}>
+                {(limitedSegments, hasMore, loadMore) => (
+                  <>
+                    <ErrorBoundary context="SimpleWeatherForecastColumn">
+                      <SimpleWeatherForecastColumn 
+                        segments={limitedSegments} 
+                        tripStartDate={validatedTripStartDate}
+                        tripId={tripPlan.id}
+                      />
+                    </ErrorBoundary>
+                    {hasMore && (
+                      <div className="mt-4 text-center">
+                        <button
+                          onClick={loadMore}
+                          className="text-sm text-route66-primary hover:text-route66-primary-dark underline"
+                        >
+                          Load more weather forecasts...
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </SegmentLimiter>
+            </PerformanceCircuitBreaker>
           </div>
         </TabsContent>
 
         <TabsContent value="weather" className="mt-6">
-          <ErrorBoundary context="WeatherTabContent">
-            <WeatherTabContent 
-              segments={memoizedSegments}
-              tripStartDate={validatedTripStartDate}
-              tripId={tripPlan.id}
-              isVisible={true}
-            />
-          </ErrorBoundary>
+          <PerformanceCircuitBreaker componentName="WeatherTabContent" maxErrors={2}>
+            <SegmentLimiter segments={memoizedSegments} initialLimit={5} incrementSize={7}>
+              {(limitedSegments) => (
+                <ErrorBoundary context="WeatherTabContent">
+                  <WeatherTabContent 
+                    segments={limitedSegments}
+                    tripStartDate={validatedTripStartDate}
+                    tripId={tripPlan.id}
+                    isVisible={true}
+                  />
+                </ErrorBoundary>
+              )}
+            </SegmentLimiter>
+          </PerformanceCircuitBreaker>
         </TabsContent>
 
         <TabsContent value="costs" className="mt-6">
-          <ErrorBoundary context="CostEstimateColumn">
-            <CostEstimateColumn segments={memoizedSegments} />
-          </ErrorBoundary>
+          <PerformanceCircuitBreaker componentName="CostEstimateColumn" maxErrors={2}>
+            <ErrorBoundary context="CostEstimateColumn">
+              <CostEstimateColumn segments={memoizedSegments} />
+            </ErrorBoundary>
+          </PerformanceCircuitBreaker>
         </TabsContent>
 
         <TabsContent value="overview" className="mt-6">
@@ -80,6 +139,12 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
                 <p className="text-sm text-gray-600">
                   {tripPlan.totalDays} days, {Math.round(tripPlan.totalDistance)} miles
                 </p>
+                {/* 🚨 CRASH PREVENTION: Show segment limiting info */}
+                {memoizedSegments.length > 10 && (
+                  <p className="text-sm text-orange-600 mt-2">
+                    ⚡ Large trip detected - segments are loaded progressively for performance
+                  </p>
+                )}
               </div>
               <div>
                 <h4 className="font-medium text-gray-700 mb-2">Travel Information</h4>
