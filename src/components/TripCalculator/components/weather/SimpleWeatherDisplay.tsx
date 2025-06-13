@@ -22,8 +22,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // DEBUGGING: Log the complete weather object to understand what we're working with
-  console.log('🔍 SimpleWeatherDisplay SIMPLIFIED for', cityName, {
+  // ENHANCED DEBUGGING: Log the complete weather object to understand what we're working with
+  console.log('🔍 SimpleWeatherDisplay ENHANCED DEBUG for', cityName, {
+    completeWeatherObject: weather,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source,
@@ -51,19 +52,39 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     };
   }, [temperatures]);
 
-  // SIMPLIFIED footer message logic - matches the badge logic exactly
-  const getFooterMessage = React.useMemo(() => {
-    console.log('🌤️ SimpleWeatherDisplay SIMPLIFIED footer for', cityName, {
+  // Log the exact props we're about to pass to WeatherBadge
+  const weatherBadgeProps = React.useMemo(() => {
+    const props = {
+      source: weather.source,
       isActualForecast: weather.isActualForecast,
-      decision: weather.isActualForecast === true ? 'LIVE' : 'HISTORICAL'
+      dateMatchSource: weather.dateMatchInfo?.source,
+      cityName: cityName
+    };
+    
+    console.log('🏷️ SimpleWeatherDisplay: WeatherBadge props for', cityName, {
+      propsBeingPassed: props,
+      weatherIsActualForecast: weather.isActualForecast,
+      weatherSource: weather.source,
+      dateMatchInfoSource: weather.dateMatchInfo?.source
+    });
+    
+    return props;
+  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
+
+  // ENHANCED footer message logic - matches the badge logic exactly
+  const getFooterMessage = React.useMemo(() => {
+    const isLive = weather.isActualForecast === true;
+    
+    console.log('🌤️ SimpleWeatherDisplay ENHANCED footer for', cityName, {
+      isActualForecast: weather.isActualForecast,
+      isLiveCheck: isLive,
+      decision: isLive ? 'LIVE' : 'HISTORICAL'
     });
 
-    // SIMPLE RULE: If isActualForecast is true, show live message
-    if (weather.isActualForecast === true) {
+    if (isLive) {
       return 'Real-time weather forecast from API';
     }
 
-    // SIMPLE RULE: Everything else is historical
     return 'Historical weather patterns - live forecast not available for this date';
   }, [weather.isActualForecast, cityName]);
 
@@ -114,13 +135,8 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Weather Badge - using simplified props */}
-        <WeatherBadge
-          source={weather.source}
-          isActualForecast={weather.isActualForecast}
-          dateMatchSource={weather.dateMatchInfo?.source}
-          cityName={cityName}
-        />
+        {/* Weather Badge - using enhanced props with detailed logging */}
+        <WeatherBadge {...weatherBadgeProps} />
       </div>
 
       {/* Temperature Display */}
@@ -148,7 +164,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* Simplified footer message that matches badge logic */}
+      {/* Enhanced footer message that matches badge logic */}
       <div className="mt-3 text-xs text-blue-500 text-center">
         {getFooterMessage}
       </div>
