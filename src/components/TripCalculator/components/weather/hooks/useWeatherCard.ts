@@ -20,23 +20,8 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     tripStartDate: tripStartDate?.toISOString()
   });
 
-  const segmentDate = React.useMemo(() => {
-    if (!tripStartDate) return null;
-    try {
-      return addDays(tripStartDate, segment.day - 1);
-    } catch {
-      return null;
-    }
-  }, [tripStartDate, segment.day]);
-
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
-  
-  // FIXED: Use correct function signature with segmentDate and sectionKey
-  const weatherState = useSimpleWeatherState(
-    segment.endCity, 
-    segmentDate, 
-    `weather-card-${segment.day}`
-  );
+  const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
   console.log(`🎯 [WEATHER DEBUG] useWeatherCard hooks initialized for ${segment.endCity}:`, {
     component: 'useWeatherCard -> hooks',
@@ -56,6 +41,15 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     hasApiKey,
     actions: weatherState
   });
+
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate) return null;
+    try {
+      return addDays(tripStartDate, segment.day - 1);
+    } catch {
+      return null;
+    }
+  }, [tripStartDate, segment.day]);
 
   console.log(`🎯 [WEATHER DEBUG] useWeatherCard segment date calculated for ${segment.endCity}:`, {
     component: 'useWeatherCard -> segmentDate',
