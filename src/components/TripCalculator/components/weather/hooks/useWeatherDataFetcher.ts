@@ -4,6 +4,7 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import { getWeatherDataForTripDate } from '../getWeatherDataForTripDate';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { WeatherDataNormalizer } from '../services/WeatherDataNormalizer';
+import { ForecastSourceAuditor } from '../services/ForecastSourceAuditor';
 
 interface UseWeatherDataFetcherProps {
   segmentEndCity: string;
@@ -86,9 +87,8 @@ export const useWeatherDataFetcher = ({
     const fetchId = ++currentFetchIdRef.current;
     const now = Date.now();
     
-    console.log(`🚨 FIXED: fetchWeather STARTING for ${segmentEndCity}`, {
+    console.log(`🚨 [FORECAST AUDIT] fetchWeather STARTING for ${segmentEndCity} Day ${segmentDay}`, {
       fetchId,
-      segmentDay,
       tripStartDate: tripStartDate.toISOString(),
       hasApiKey,
       liveForecastState: liveForecastStateRef.current,
@@ -118,7 +118,10 @@ export const useWeatherDataFetcher = ({
         throw new Error('Could not calculate segment date');
       }
 
-      console.log(`🚨 FIXED: Calling getWeatherDataForTripDate for ${segmentEndCity}`, {
+      // Start forecast audit
+      ForecastSourceAuditor.startAudit(segmentEndCity, segmentDay, segmentDate);
+
+      console.log(`🚨 [FORECAST AUDIT] Calling getWeatherDataForTripDate for ${segmentEndCity} Day ${segmentDay}`, {
         fetchId,
         segmentDate: segmentDate.toISOString(),
         daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
@@ -135,7 +138,7 @@ export const useWeatherDataFetcher = ({
         return;
       }
 
-      console.log(`🚨 FIXED: Weather data received for ${segmentEndCity}:`, {
+      console.log(`🚨 [FORECAST AUDIT] Weather data received for ${segmentEndCity} Day ${segmentDay}:`, {
         fetchId,
         hasData: !!weatherDisplayData,
         source: weatherDisplayData?.source,
@@ -146,9 +149,16 @@ export const useWeatherDataFetcher = ({
       if (weatherDisplayData) {
         const isLiveForecast = weatherDisplayData.isActualForecast === true || weatherDisplayData.source === 'forecast';
         
+        // Record forecast source result
+        if (isLiveForecast) {
+          ForecastSourceAuditor.recordLiveForecastResult(segmentEndCity, segmentDay, true, undefined);
+        } else {
+          ForecastSourceAuditor.recordFallbackUsed(segmentEndCity, segmentDay, `source_${weatherDisplayData.source}`);
+        }
+        
         // ENHANCED GUARD: Multiple protection layers
         if (liveForecastStateRef.current.hasLiveForecast && !isLiveForecast) {
-          console.log(`🚨 ENHANCED GUARD: Blocking fallback data from overwriting live forecast for ${segmentEndCity}`, {
+          console.log(`🚨 ENHANCED GUARD: Blocking fallback data from overwriting live forecast for ${segmentEndCity} Day ${segmentDay}`, {
             fetchId,
             currentHasLive: liveForecastStateRef.current.hasLiveForecast,
             incomingIsLive: isLiveForecast,
@@ -163,7 +173,7 @@ export const useWeatherDataFetcher = ({
         if (lastSuccessfulFetchRef.current?.isLive && !isLiveForecast) {
           const timeSinceLastSuccess = now - lastSuccessfulFetchRef.current.timestamp;
           if (timeSinceLastSuccess < 600000) { // 10 minutes
-            console.log(`🚨 RECENT SUCCESS GUARD: Blocking downgrade from live to fallback for ${segmentEndCity}`, {
+            console.log(`🚨 RECENT SUCCESS GUARD: Blocking downgrade from live to fallback for ${segmentEndCity} Day ${segmentDay}`, {
               fetchId,
               timeSinceLastSuccess,
               lastFetchWasLive: lastSuccessfulFetchRef.current.isLive,
@@ -180,7 +190,7 @@ export const useWeatherDataFetcher = ({
             lastLiveForecastTime: now,
             cityDay: `${segmentEndCity}-${segmentDay}`
           };
-          console.log(`🚨 LIVE FORECAST LOCKED: ${segmentEndCity} now has live forecast protection`, {
+          console.log(`🚨 LIVE FORECAST LOCKED: ${segmentEndCity} Day ${segmentDay} now has live forecast protection`, {
             fetchId,
             source: weatherDisplayData.source,
             timestamp: now
@@ -218,7 +228,10 @@ export const useWeatherDataFetcher = ({
           }
         };
 
-        console.log(`🚨 FIXED: Setting weather data for ${segmentEndCity}:`, {
+        // Record final weather set in audit
+        ForecastSourceAuditor.recordFinalWeatherSet(segmentEndCity, segmentDay, forecastData);
+
+        console.log(`🚨 [FORECAST AUDIT] Setting weather data for ${segmentEndCity} Day ${segmentDay}:`, {
           fetchId,
           temperature: forecastData.temperature,
           isActualForecast: forecastData.isActualForecast,
@@ -228,12 +241,20 @@ export const useWeatherDataFetcher = ({
 
         actions.setWeather(forecastData);
       } else {
+        ForecastSourceAuditor.recordFallbackUsed(segmentEndCity, segmentDay, 'no_weather_data');
         throw new Error('No weather data available');
       }
     } catch (error) {
       // Only set error if this is still the current fetch
       if (fetchId === currentFetchIdRef.current) {
-        console.error(`🚨 FIXED: Weather fetch error for ${segmentEndCity}:`, error);
+        console.error(`🚨 [FORECAST AUDIT] Weather fetch error for ${segmentEndCity} Day ${segmentDay}:`, error);
+        ForecastSourceAuditor.recordLiveForecastResult(
+          segmentEndCity, 
+          segmentDay, 
+          false, 
+          undefined, 
+          error instanceof Error ? error.message : 'unknown_error'
+        );
         actions.setError(error instanceof Error ? error.message : 'Weather fetch failed');
       }
     } finally {
@@ -248,7 +269,7 @@ export const useWeatherDataFetcher = ({
   React.useEffect(() => {
     const shouldFetch = hasApiKey && tripStartDate;
     
-    console.log(`🚨 FIXED: useWeatherDataFetcher auto-fetch effect for ${segmentEndCity}:`, {
+    console.log(`🚨 [FORECAST AUDIT] useWeatherDataFetcher auto-fetch effect for ${segmentEndCity} Day ${segmentDay}:`, {
       hasApiKey,
       hasTripStartDate: !!tripStartDate,
       retryCount: actions.retryCount,
@@ -260,7 +281,7 @@ export const useWeatherDataFetcher = ({
     if (shouldFetch) {
       // Debounce rapid successive calls
       const timeoutId = setTimeout(() => {
-        console.log(`🚨 FIXED: TRIGGERING AUTO FETCH for ${segmentEndCity}`);
+        console.log(`🚨 [FORECAST AUDIT] TRIGGERING AUTO FETCH for ${segmentEndCity} Day ${segmentDay}`);
         fetchWeather();
       }, 100);
 
@@ -271,30 +292,30 @@ export const useWeatherDataFetcher = ({
   return {
     fetchWeather,
     handleApiKeySet: React.useCallback(() => {
-      console.log(`🚨 FIXED: handleApiKeySet for ${segmentEndCity} - preserving live forecast state`);
+      console.log(`🚨 [FORECAST AUDIT] handleApiKeySet for ${segmentEndCity} Day ${segmentDay} - preserving live forecast state`);
       // DON'T reset live forecast state on API key changes
       if (tripStartDate) {
         fetchWeather();
       }
-    }, [fetchWeather, tripStartDate]),
+    }, [fetchWeather, tripStartDate, segmentEndCity, segmentDay]),
     handleTimeout: React.useCallback(() => {
-      console.log(`🚨 FIXED: handleTimeout for ${segmentEndCity}`);
+      console.log(`🚨 [FORECAST AUDIT] handleTimeout for ${segmentEndCity} Day ${segmentDay}`);
       actions.setError('Weather request timed out');
       actions.setLoading(false);
-    }, [actions]),
+    }, [actions, segmentEndCity, segmentDay]),
     handleRetry: React.useCallback(() => {
-      console.log(`🚨 FIXED: handleRetry for ${segmentEndCity} - preserving live forecast state if recent`);
+      console.log(`🚨 [FORECAST AUDIT] handleRetry for ${segmentEndCity} Day ${segmentDay} - preserving live forecast state if recent`);
       // Only reset live forecast state if it's old
       const now = Date.now();
       if (liveForecastStateRef.current.lastLiveForecastTime &&
           (now - liveForecastStateRef.current.lastLiveForecastTime) > 600000) { // 10 minutes
-        console.log(`🚨 RETRY: Resetting old live forecast state for ${segmentEndCity}`);
+        console.log(`🚨 RETRY: Resetting old live forecast state for ${segmentEndCity} Day ${segmentDay}`);
         liveForecastStateRef.current.hasLiveForecast = false;
         liveForecastStateRef.current.lastLiveForecastTime = null;
       }
       
       actions.incrementRetry();
       fetchWeather();
-    }, [fetchWeather, actions, segmentEndCity])
+    }, [fetchWeather, actions, segmentEndCity, segmentDay])
   };
 };
