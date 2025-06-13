@@ -14,17 +14,16 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   trip,
   shareUrl
 }) => {
-  // 🔧 DEBUG: Verify this component is using the latest SharedTripContentRenderer
-  console.log('🚨 TripDetailsContent: Using LATEST SharedTripContentRenderer with RAMBLE 66 branding', {
+  console.log('🚨 TripDetailsContent: RENDERING with enhanced error handling', {
     trip: {
-      id: trip.id,
-      title: trip.title,
-      created_at: trip.created_at
+      id: trip?.id,
+      title: trip?.title,
+      created_at: trip?.created_at
     },
     shareUrl,
     hasTrip: !!trip,
-    hasTripData: !!trip.trip_data,
-    componentVersion: 'LATEST_WITH_RAMBLE_66_AND_WEATHER',
+    hasTripData: !!trip?.trip_data,
+    componentVersion: 'ENHANCED_ERROR_HANDLING',
     timestamp: new Date().toISOString()
   });
 
@@ -39,103 +38,126 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
     );
   }
 
-  // Sanitize trip data to handle circular references and data integrity issues
-  const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(trip.trip_data);
-
-  console.log('🚨 TripDetailsContent: Data sanitization complete with RAMBLE 66 update', {
-    report,
-    sanitizedTripPlan: {
-      startCity: tripPlan?.startCity,
-      endCity: tripPlan?.endCity,
-      totalDays: tripPlan?.totalDays,
-      segmentsCount: tripPlan?.segments?.length
-    },
-    hasCircularReferences: report.hasCircularReferences,
-    warnings: report.warnings,
-    willRenderSharedView: true
-  });
-
-  // Show data quality warnings if significant issues were found
-  if (report.hasCircularReferences || report.warnings.length > 0) {
-    console.warn('⚠️ TripDetailsContent: Data quality issues detected', report);
-  }
-
-  // Validate sanitized trip plan
-  if (!tripPlan || (!tripPlan.segments && !tripPlan.dailySegments)) {
-    console.error('❌ TripDetailsContent: No valid segments after sanitization', { 
-      tripPlan,
-      report
-    });
+  // Validate trip_data exists
+  if (!trip.trip_data) {
+    console.error('❌ TripDetailsContent: No trip_data in trip object');
     return (
       <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Data Invalid</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Data Missing</h2>
+        <p className="text-gray-600">The trip data appears to be missing or corrupted.</p>
+      </div>
+    );
+  }
+
+  try {
+    // Sanitize trip data to handle circular references and data integrity issues
+    const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(trip.trip_data);
+
+    console.log('🚨 TripDetailsContent: Data sanitization complete', {
+      report,
+      sanitizedTripPlan: {
+        startCity: tripPlan?.startCity,
+        endCity: tripPlan?.endCity,
+        totalDays: tripPlan?.totalDays,
+        segmentsCount: tripPlan?.segments?.length
+      },
+      hasCircularReferences: report.hasCircularReferences,
+      warnings: report.warnings,
+      willRenderSharedView: true
+    });
+
+    // Show data quality warnings if significant issues were found
+    if (report.hasCircularReferences || report.warnings.length > 0) {
+      console.warn('⚠️ TripDetailsContent: Data quality issues detected', report);
+    }
+
+    // Validate sanitized trip plan
+    if (!tripPlan || (!tripPlan.segments && !tripPlan.dailySegments)) {
+      console.error('❌ TripDetailsContent: No valid segments after sanitization', { 
+        tripPlan,
+        report
+      });
+      return (
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Trip Data Invalid</h2>
+          <p className="text-gray-600 mb-4">
+            The trip data appears to be corrupted or incomplete and could not be repaired.
+          </p>
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4 p-4 bg-yellow-100 rounded text-sm text-left">
+              <strong>Sanitization Report:</strong>
+              <pre className="mt-2 text-xs">{JSON.stringify(report, null, 2)}</pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Use the correct property name from TripPlan interface
+    const tripStartDate = tripPlan.startDate || undefined;
+
+    console.log('🚨 TripDetailsContent: About to render SharedTripContentRenderer', {
+      tripStartDate: tripStartDate?.toISOString(),
+      isSharedView: true,
+      shareUrl,
+      componentVersion: 'ENHANCED_ERROR_HANDLING'
+    });
+
+    return (
+      <ErrorBoundary 
+        context="TripDetailsContent"
+        fallback={
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Display Error</h2>
+            <p className="text-gray-600">There was an error displaying the trip content.</p>
+          </div>
+        }
+      >
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full">
+          {/* Data Quality Notice for significant issues */}
+          {(report.hasCircularReferences || report.warnings.length > 2) && (
+            <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+              <div className="text-sm text-yellow-800">
+                <strong>Notice:</strong> Some trip data was automatically repaired for display.
+                {report.warnings.length > 0 && (
+                  <div className="mt-1 text-xs">
+                    Key issues: {report.warnings.slice(0, 2).join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced SharedTripContentRenderer */}
+          <SharedTripContentRenderer
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
+            shareUrl={shareUrl}
+            isSharedView={true}
+          />
+        </div>
+      </ErrorBoundary>
+    );
+
+  } catch (error) {
+    console.error('❌ TripDetailsContent: Error in component rendering:', error);
+    return (
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Rendering Error</h2>
         <p className="text-gray-600 mb-4">
-          The trip data appears to be corrupted or incomplete and could not be repaired.
+          There was an unexpected error while preparing the trip content for display.
         </p>
         {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-yellow-100 rounded text-sm text-left">
-            <strong>Sanitization Report:</strong>
-            <pre className="mt-2 text-xs">{JSON.stringify(report, null, 2)}</pre>
+          <div className="mt-4 p-4 bg-red-100 rounded text-sm text-left">
+            <strong>Error Details:</strong>
+            <pre className="mt-2 text-xs text-red-600">
+              {error instanceof Error ? error.message : String(error)}
+            </pre>
           </div>
         )}
       </div>
     );
   }
-
-  // Use the correct property name from TripPlan interface
-  const tripStartDate = tripPlan.startDate || undefined;
-
-  console.log('🚨 TripDetailsContent: About to render LATEST SharedTripContentRenderer with RAMBLE 66 branding', {
-    tripStartDate: tripStartDate?.toISOString(),
-    isSharedView: true,
-    shareUrl,
-    componentVersion: 'LATEST_RAMBLE_66_VERSION'
-  });
-
-  return (
-    <ErrorBoundary 
-      context="TripDetailsContent"
-      fallback={
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8 text-center w-full min-h-[400px]">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Display Error</h2>
-          <p className="text-gray-600">There was an error displaying the trip content.</p>
-        </div>
-      }
-    >
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden w-full">
-        {/* Data Quality Notice for significant issues */}
-        {(report.hasCircularReferences || report.warnings.length > 2) && (
-          <div className="p-4 bg-yellow-50 border-b border-yellow-200">
-            <div className="text-sm text-yellow-800">
-              <strong>Notice:</strong> Some trip data was automatically repaired for display.
-              {report.warnings.length > 0 && (
-                <div className="mt-1 text-xs">
-                  Key issues: {report.warnings.slice(0, 2).join(', ')}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 🔧 DEBUG: Visual confirmation this is using latest SharedTripContentRenderer */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="p-2 bg-green-100 border-b border-green-200 text-center">
-            <div className="text-xs text-green-800 font-mono">
-              🚨 USING LATEST SharedTripContentRenderer with RAMBLE 66 branding
-            </div>
-          </div>
-        )}
-
-        {/* LATEST SharedTripContentRenderer with RAMBLE 66 branding and weather */}
-        <SharedTripContentRenderer
-          tripPlan={tripPlan}
-          tripStartDate={tripStartDate}
-          shareUrl={shareUrl}
-          isSharedView={true}
-        />
-      </div>
-    </ErrorBoundary>
-  );
 };
 
 export default TripDetailsContent;

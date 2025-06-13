@@ -19,8 +19,10 @@ const TripDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('🔍 TripDetailsPage: Component mounting with shareCode:', shareCode);
+
   useEffect(() => {
-    console.log('🔍 TripDetailsPage: shareCode from URL params:', { shareCode });
+    console.log('🔍 TripDetailsPage: useEffect triggered with shareCode:', shareCode);
     
     const loadTrip = async () => {
       // Validate shareCode exists and has correct format
@@ -49,7 +51,13 @@ const TripDetailsPage: React.FC = () => {
         const tripPromise = TripService.loadTripByShareCode(shareCode);
         const tripData = await Promise.race([tripPromise, timeoutPromise]);
         
-        console.log('✅ TripDetailsPage: Trip loaded successfully:', tripData.title);
+        console.log('✅ TripDetailsPage: Trip loaded successfully:', {
+          title: tripData.title,
+          hasTrip: !!tripData,
+          hasTripData: !!tripData.trip_data,
+          startCity: tripData.trip_data?.startCity,
+          endCity: tripData.trip_data?.endCity
+        });
         
         // Validate trip data structure before setting state
         if (!tripData.trip_data) {
@@ -98,7 +106,15 @@ const TripDetailsPage: React.FC = () => {
     ? `${trip.trip_data?.startCity} to ${trip.trip_data?.endCity} - RAMBLE 66`
     : 'RAMBLE 66 - Route 66 Trip Planner';
 
+  console.log('🔍 TripDetailsPage: Rendering state:', {
+    loading,
+    hasError: !!error,
+    hasTrip: !!trip,
+    pageTitle
+  });
+
   if (loading) {
+    console.log('🔍 TripDetailsPage: Rendering loading state');
     return (
       <TripDetailsErrorBoundary>
         <Helmet>
@@ -113,6 +129,7 @@ const TripDetailsPage: React.FC = () => {
   }
 
   if (error || !trip) {
+    console.log('🔍 TripDetailsPage: Rendering error state:', { error, hasTrip: !!trip });
     return (
       <TripDetailsErrorBoundary>
         <Helmet>
@@ -132,6 +149,12 @@ const TripDetailsPage: React.FC = () => {
   }
 
   const shareUrl = TripService.getShareUrl(shareCode!);
+
+  console.log('🔍 TripDetailsPage: Rendering trip content:', {
+    tripTitle: trip.title,
+    shareUrl,
+    hasShareUrl: !!shareUrl
+  });
 
   return (
     <TripDetailsErrorBoundary>
