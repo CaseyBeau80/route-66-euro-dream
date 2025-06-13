@@ -71,7 +71,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     });
 
     // Check for seasonal/historical fallback sources
-    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'seasonal_fallback') {
+    if (dateMatchSource === 'seasonal-estimate') {
       return 'Seasonal data used due to unavailable live forecast';
     }
 

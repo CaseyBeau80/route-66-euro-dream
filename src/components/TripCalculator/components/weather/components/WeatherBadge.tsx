@@ -32,7 +32,7 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     });
 
     // Primary check: Use dateMatchInfo.source as the definitive source of truth
-    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'seasonal_fallback') {
+    if (dateMatchSource === 'seasonal-estimate') {
       return {
         text: '📊 Seasonal Average',
         bgColor: 'bg-orange-100',

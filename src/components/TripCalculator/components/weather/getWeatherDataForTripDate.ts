@@ -1,5 +1,6 @@
+
 export interface DateMatchInfo {
-  source: 'live_forecast' | 'historical_fallback' | 'seasonal_fallback' | 'api-forecast' | 'enhanced-fallback';
+  source: 'live_forecast' | 'historical_fallback' | 'seasonal_fallback' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
   confidence: 'high' | 'medium' | 'low' | 'historical';
   explanation: string;
 }
