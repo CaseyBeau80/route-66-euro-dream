@@ -1,7 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { TripPlanBuilder, TripPlan } from './TripPlanBuilder';
-import { CityDisplayService } from '../utils/CityDisplayService';
+import { TripPlan } from './TripPlanBuilder';
+import { TripPlanningService } from './TripPlanningService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 
 export interface TripPlanningResult {
@@ -30,8 +30,8 @@ export class UnifiedTripPlanningService {
     
     console.log(`🔒 Using only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
     
-    // STEP 2: Build trip plan with destination cities only - using correct method signature
-    const tripPlan = TripPlanBuilder.buildTripPlan(
+    // STEP 2: Build trip plan with destination cities only - using TripPlanningService
+    const tripPlan = TripPlanningService.buildTripPlan(
       startStop,
       endStop,
       destinationCitiesOnly, // Only pass destination cities
