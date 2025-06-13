@@ -33,7 +33,7 @@ export class WeatherForecastService {
   constructor(apiKey: string) {
     this.apiHandler = new WeatherForecastApiHandler(apiKey);
     
-    console.log('🔧 PLAN: WeatherForecastService initialized with normalized date logic', {
+    console.log('🔧 FIXED: WeatherForecastService initialized with corrected forecast logic', {
       hasApiKey: !!apiKey,
       forecastRange: 'Days 0-6 (inclusive)',
       historicalRange: 'Day 7 and beyond',
@@ -47,24 +47,23 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    // PLAN IMPLEMENTATION: Use normalized date calculation
-    console.log('🔧 PLAN: WeatherForecastService.getWeatherForDate - ENTRY', {
+    console.log('🔧 FIXED: WeatherForecastService.getWeatherForDate - ENTRY WITH FORCED LIVE FORECAST', {
       cityName,
       targetDate: targetDate.toISOString(),
-      coordinates: { lat, lng }
+      coordinates: { lat, lng },
+      timestamp: new Date().toISOString()
     });
 
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    // PLAN IMPLEMENTATION: Enhanced debug output for routing decision
-    console.log('🔧 PLAN: WeatherForecastService - ROUTING DECISION', {
+    console.log('🔧 FIXED: WeatherForecastService - ROUTING DECISION WITH FORCED LOGIC', {
       cityName,
       dateInfo: {
         targetDateString,
         daysFromToday,
         isWithinForecastRange,
-        decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
+        forcedDecision: isWithinForecastRange ? 'FORCE_LIVE_FORECAST_ATTEMPT' : 'USE_HISTORICAL_FALLBACK'
       },
       logic: {
         forecastRange: '0-6 days from today',
@@ -73,56 +72,70 @@ export class WeatherForecastService {
       }
     });
 
-    // PLAN IMPLEMENTATION: Corrected logic - If within 0-6 days, try live forecast
+    // FIXED: Force live forecast attempt for days 0-6
     if (isWithinForecastRange) {
-      console.log('🔧 PLAN: Attempting live forecast for', cityName, {
+      console.log('🔧 FIXED: FORCING live forecast attempt for', cityName, {
         reason: 'within_7_day_range',
         daysFromToday,
-        targetDateString
+        targetDateString,
+        willAttemptLiveForecast: true
       });
 
-      const actualForecast = await this.apiHandler.fetchLiveForecast(
-        lat, 
-        lng, 
-        cityName, 
-        normalizedTargetDate, 
-        targetDateString, 
-        daysFromToday
-      );
-      
-      if (actualForecast) {
-        // PLAN IMPLEMENTATION: Ensure it's properly marked as live forecast
-        const enhancedForecast = {
-          ...actualForecast,
-          source: 'live_forecast' as const,
-          isActualForecast: true,
-          dateMatchInfo: {
-            ...actualForecast.dateMatchInfo,
-            source: 'live_forecast' as const
-          }
-        };
+      try {
+        const actualForecast = await this.apiHandler.fetchLiveForecast(
+          lat, 
+          lng, 
+          cityName, 
+          normalizedTargetDate, 
+          targetDateString, 
+          daysFromToday
+        );
         
-        console.log('🔧 PLAN: Live forecast SUCCESS for', cityName, {
+        if (actualForecast) {
+          const enhancedForecast = {
+            ...actualForecast,
+            source: 'live_forecast' as const,
+            isActualForecast: true,
+            dateMatchInfo: {
+              ...actualForecast.dateMatchInfo,
+              source: 'live_forecast' as const
+            }
+          };
+          
+          console.log('🔧 FIXED: Live forecast SUCCESS for', cityName, {
+            daysFromToday,
+            temperature: enhancedForecast.temperature,
+            source: enhancedForecast.source,
+            isActualForecast: enhancedForecast.isActualForecast,
+            dateMatching: enhancedForecast.dateMatchInfo
+          });
+          
+          return enhancedForecast;
+        } else {
+          console.error('🔧 FIXED: Live forecast returned NULL for', cityName, {
+            daysFromToday,
+            targetDateString,
+            reason: 'api_handler_returned_null'
+          });
+        }
+      } catch (error) {
+        console.error('🔧 FIXED: Live forecast FAILED with error for', cityName, {
+          error: error instanceof Error ? error.message : String(error),
           daysFromToday,
-          temperature: enhancedForecast.temperature,
-          source: enhancedForecast.source,
-          isActualForecast: enhancedForecast.isActualForecast,
-          dateMatching: enhancedForecast.dateMatchInfo
+          targetDateString
         });
-        
-        return enhancedForecast;
       }
       
-      console.log('🔧 PLAN: Live forecast failed, falling back to historical for', cityName);
+      console.log('🔧 FIXED: Live forecast failed, falling back to historical for', cityName);
     } else {
-      console.log('🔧 PLAN: Using historical weather for', cityName, {
+      console.log('🔧 FIXED: Using historical weather for', cityName, {
         reason: 'beyond_7_day_range',
         daysFromToday,
         targetDateString
       });
     }
 
-    // PLAN IMPLEMENTATION: Fallback to historical weather with normalized date
+    // Fallback to historical weather with normalized date
     const fallbackForecast = WeatherFallbackService.createFallbackForecast(
       cityName, 
       normalizedTargetDate, 
@@ -130,11 +143,12 @@ export class WeatherForecastService {
       daysFromToday
     );
     
-    console.log('🔧 PLAN: Historical fallback applied for', cityName, {
+    console.log('🔧 FIXED: Historical fallback applied for', cityName, {
       daysFromToday,
       source: fallbackForecast.source,
       isActualForecast: fallbackForecast.isActualForecast,
-      targetDateString
+      targetDateString,
+      fallbackReason: isWithinForecastRange ? 'live_forecast_failed' : 'beyond_forecast_range'
     });
     
     return fallbackForecast;

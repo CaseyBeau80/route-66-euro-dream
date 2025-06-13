@@ -1,212 +1,149 @@
 
 import { WeatherApiClient } from './WeatherApiClient';
-import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { ForecastWeatherData } from './WeatherForecastService';
+import { WeatherData, ForecastDay } from './WeatherServiceTypes';
 import { EnhancedWeatherForecastMatcher } from '../../../TripCalculator/components/weather/EnhancedWeatherForecastMatcher';
-import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherForecastApiHandler {
   private apiClient: WeatherApiClient;
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
+    
+    console.log('🔧 FIXED: WeatherForecastApiHandler initialized', {
+      hasApiKey: !!apiKey,
+      timestamp: new Date().toISOString()
+    });
   }
 
   async fetchLiveForecast(
     lat: number,
     lng: number,
     cityName: string,
-    targetDate: Date,
+    normalizedTargetDate: Date,
     targetDateString: string,
     daysFromToday: number
   ): Promise<ForecastWeatherData | null> {
+    console.log('🔧 FIXED: WeatherForecastApiHandler.fetchLiveForecast - STARTING', {
+      cityName,
+      coordinates: { lat, lng },
+      targetDateString,
+      daysFromToday,
+      normalizedTargetDate: normalizedTargetDate.toISOString(),
+      timestamp: new Date().toISOString()
+    });
+
+    if (!this.apiClient.hasApiKey()) {
+      console.error('🔧 FIXED: No API key available for live forecast');
+      return null;
+    }
+
     try {
-      console.log('🚨 FIXED: WeatherForecastApiHandler.fetchLiveForecast START', {
-        cityName,
-        targetDateString,
-        coordinates: { lat, lng },
-        daysFromToday
+      // Attempt to get forecast data from the API
+      console.log('🔧 FIXED: Calling apiClient.getForecast for', cityName);
+      
+      const forecastResponse = await this.apiClient.getForecast(lat, lng);
+      
+      console.log('🔧 FIXED: Raw forecast response received for', cityName, {
+        hasForecast: !!forecastResponse,
+        forecastLength: forecastResponse?.list?.length || 0,
+        forecastData: forecastResponse ? {
+          city: forecastResponse.city?.name,
+          country: forecastResponse.city?.country,
+          listLength: forecastResponse.list?.length
+        } : null
       });
 
-      const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
-      
-      console.log('🚨 FIXED: API response received', {
-        cityName,
-        targetDateString,
-        hasCurrentData: !!currentData,
-        hasForecastData: !!forecastData,
-        currentTemp: currentData?.main?.temp,
-        forecastListLength: Array.isArray(forecastData?.list) ? forecastData.list.length : 0
-      });
-      
-      const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 7);
-      
-      console.log('🚨 FIXED: Processed forecast data', {
-        cityName,
-        targetDateString,
-        processedCount: processedForecast.length,
-        availableDates: processedForecast.map(f => f.dateString).filter(Boolean)
-      });
-      
-      const matchResult = EnhancedWeatherForecastMatcher.findBestMatch(
-        processedForecast, 
-        targetDate, 
-        targetDateString, 
-        cityName
-      );
-      
-      console.log('🚨 FIXED: Match result for live forecast', {
-        cityName,
-        targetDateString,
-        daysFromToday,
-        hasMatch: !!matchResult.matchedForecast,
-        matchType: matchResult.matchInfo?.matchType,
-        matchedDate: matchResult.matchInfo?.matchedDate,
-        confidence: matchResult.matchInfo?.confidence
-      });
-      
-      if (matchResult.matchedForecast) {
-        return this.createForecastResult(matchResult, processedForecast, cityName, targetDate, targetDateString, daysFromToday);
-      } else if (currentData && currentData.main && currentData.main.temp) {
-        console.log('🚨 FIXED: Creating live estimate from current data within forecast range', {
-          cityName,
-          targetDateString,
-          daysFromToday,
-          currentTemp: currentData.main.temp,
-          reason: 'live_estimate_within_range'
-        });
-
-        return this.createLiveEstimateFromCurrent(
-          currentData, 
-          cityName, 
-          targetDate, 
-          targetDateString, 
-          daysFromToday, 
-          processedForecast
-        );
+      if (!forecastResponse || !forecastResponse.list || forecastResponse.list.length === 0) {
+        console.error('🔧 FIXED: Invalid or empty forecast response for', cityName);
+        return null;
       }
 
-      console.log(`❌ No usable forecast data found for ${cityName} on ${targetDateString}`);
-      return null;
-    } catch (error) {
-      console.error('🚨 FIXED: WeatherForecastApiHandler.fetchLiveForecast ERROR', {
-        cityName,
+      // Process the forecast data into ForecastDay format
+      const processedForecast: ForecastDay[] = forecastResponse.list.map((item: any, index: number) => {
+        const forecastDate = new Date(item.dt * 1000);
+        const dateString = forecastDate.toISOString().split('T')[0];
+        
+        return {
+          date: forecastDate,
+          dateString,
+          temperature: Math.round(item.main?.temp || 0),
+          highTemp: Math.round(item.main?.temp_max || 0),
+          lowTemp: Math.round(item.main?.temp_min || 0),
+          description: item.weather?.[0]?.description || 'Unknown',
+          icon: item.weather?.[0]?.icon || '01d',
+          humidity: item.main?.humidity || 0,
+          windSpeed: Math.round((item.wind?.speed || 0) * 2.237), // Convert m/s to mph
+          precipitationChance: Math.round((item.pop || 0) * 100)
+        };
+      });
+
+      console.log('🔧 FIXED: Processed forecast data for', cityName, {
+        processedCount: processedForecast.length,
+        availableDates: processedForecast.map(f => f.dateString),
+        targetDateString
+      });
+
+      // Use EnhancedWeatherForecastMatcher to find the best match
+      const matchResult = EnhancedWeatherForecastMatcher.findBestMatch(
+        processedForecast,
+        normalizedTargetDate,
         targetDateString,
-        daysFromToday,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        cityName
+      );
+
+      console.log('🔧 FIXED: Forecast matching result for', cityName, {
+        hasMatch: !!matchResult.matchedForecast,
+        matchType: matchResult.matchInfo.matchType,
+        matchedDate: matchResult.matchInfo.matchedDate,
+        confidence: matchResult.matchInfo.confidence,
+        daysOffset: matchResult.matchInfo.daysOffset
+      });
+
+      if (matchResult.matchedForecast) {
+        const forecastData: ForecastWeatherData = {
+          temperature: matchResult.matchedForecast.temperature,
+          highTemp: matchResult.matchedForecast.highTemp,
+          lowTemp: matchResult.matchedForecast.lowTemp,
+          description: matchResult.matchedForecast.description,
+          icon: matchResult.matchedForecast.icon,
+          humidity: matchResult.matchedForecast.humidity,
+          windSpeed: matchResult.matchedForecast.windSpeed,
+          precipitationChance: matchResult.matchedForecast.precipitationChance,
+          cityName: cityName,
+          forecast: processedForecast,
+          forecastDate: normalizedTargetDate,
+          isActualForecast: true,
+          source: 'live_forecast',
+          matchedForecastDay: matchResult.matchedForecast,
+          dateMatchInfo: {
+            ...matchResult.matchInfo,
+            source: 'live_forecast'
+          }
+        };
+
+        console.log('🔧 FIXED: Successfully created live forecast data for', cityName, {
+          temperature: forecastData.temperature,
+          isActualForecast: forecastData.isActualForecast,
+          source: forecastData.source,
+          matchInfo: forecastData.dateMatchInfo
+        });
+
+        return forecastData;
+      } else {
+        console.error('🔧 FIXED: No suitable forecast match found for', cityName, {
+          targetDateString,
+          availableDates: processedForecast.map(f => f.dateString)
+        });
+        return null;
+      }
+
+    } catch (error) {
+      console.error('🔧 FIXED: Error in fetchLiveForecast for', cityName, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
       });
       return null;
     }
-  }
-
-  private createForecastResult(
-    matchResult: any,
-    processedForecast: any[],
-    cityName: string,
-    targetDate: Date,
-    targetDateString: string,
-    daysFromToday: number
-  ): ForecastWeatherData {
-    const forecast = matchResult.matchedForecast;
-    
-    const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
-      if (typeof temp === 'number') return temp;
-      if (temp && typeof temp === 'object' && 'high' in temp && 'low' in temp) {
-        return Math.round((temp.high + temp.low) / 2);
-      }
-      return 70;
-    };
-
-    const extractHighTemp = (temp: number | { high: number; low: number; } | undefined): number => {
-      if (typeof temp === 'number') return temp + 8;
-      if (temp && typeof temp === 'object' && 'high' in temp) return temp.high;
-      return 78;
-    };
-
-    const extractLowTemp = (temp: number | { high: number; low: number; } | undefined): number => {
-      if (typeof temp === 'number') return temp - 8;
-      if (temp && typeof temp === 'object' && 'low' in temp) return temp.low;
-      return 62;
-    };
-
-    const highTemp = extractHighTemp(forecast.temperature);
-    const lowTemp = extractLowTemp(forecast.temperature);
-    const avgTemp = extractTemperature(forecast.temperature);
-    const precipChance = parseInt(String(forecast.precipitationChance)) || 0;
-    
-    console.log(`✅ FIXED: Live forecast CONFIRMED for ${cityName} Day ${daysFromToday}:`, {
-      targetDateString,
-      daysFromToday,
-      matchType: matchResult.matchInfo.matchType,
-      temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
-      description: forecast.description,
-      isActualForecast: true,
-      explicitSource: 'live_forecast'
-    });
-    
-    return {
-      temperature: avgTemp,
-      highTemp: highTemp,
-      lowTemp: lowTemp,
-      description: forecast.description || 'Weather forecast',
-      icon: forecast.icon || '01d',
-      humidity: forecast.humidity || 50,
-      windSpeed: forecast.windSpeed || 0,
-      precipitationChance: precipChance,
-      cityName: cityName,
-      forecast: processedForecast,
-      forecastDate: targetDate,
-      isActualForecast: true,
-      source: 'live_forecast' as const,
-      matchedForecastDay: forecast,
-      dateMatchInfo: {
-        ...matchResult.matchInfo,
-        source: 'live_forecast' as const
-      }
-    };
-  }
-
-  private createLiveEstimateFromCurrent(
-    currentData: any,
-    cityName: string,
-    targetDate: Date,
-    targetDateString: string,
-    daysFromToday: number,
-    processedForecast: any[]
-  ): ForecastWeatherData {
-    const currentTemp = currentData.main.temp;
-    const tempVariation = 10;
-    
-    console.log('🚨 FIXED: createLiveEstimateFromCurrent - LIVE ESTIMATE with consistent source marking', {
-      cityName,
-      targetDateString,
-      daysFromToday,
-      reason: 'live_estimate_from_current_within_forecast_range'
-    });
-    
-    return {
-      temperature: Math.round(currentTemp),
-      highTemp: Math.round(currentTemp + tempVariation/2),
-      lowTemp: Math.round(currentTemp - tempVariation/2),
-      description: currentData.weather[0].description,
-      icon: currentData.weather[0].icon,
-      humidity: currentData.main.humidity,
-      windSpeed: Math.round(currentData.wind?.speed || 0),
-      precipitationChance: Math.round((currentData.main.humidity / 100) * 30),
-      cityName: cityName,
-      forecast: processedForecast,
-      forecastDate: targetDate,
-      isActualForecast: true,
-      source: 'live_forecast' as const,
-      dateMatchInfo: {
-        requestedDate: targetDateString,
-        matchedDate: DateNormalizationService.toDateString(new Date()),
-        matchType: 'closest' as const,
-        daysOffset: daysFromToday,
-        hoursOffset: 0,
-        source: 'live_forecast' as const,
-        confidence: 'medium' as const
-      }
-    };
   }
 }
