@@ -1,4 +1,7 @@
 
+import { WeatherFetchingService } from './services/WeatherFetchingService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+
 export interface DateMatchInfo {
   source: 'live_forecast' | 'historical_fallback' | 'seasonal_fallback' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
   confidence: 'high' | 'medium' | 'low' | 'historical';
@@ -20,13 +23,57 @@ export interface WeatherDisplayData {
   dateMatchInfo: DateMatchInfo;
 }
 
-// This function would contain the main weather data fetching logic
-// For now, this is a placeholder to satisfy the import in WeatherDataConverter
+// FIXED: This function now acts as a bridge to the actual weather service
+// instead of being a placeholder that always returns null
 export const getWeatherDataForTripDate = async (
   cityName: string,
   segmentDate: Date
 ): Promise<WeatherDisplayData | null> => {
-  // This would be implemented with the actual weather fetching logic
-  // For now, returning null as a placeholder
-  return null;
+  console.log('🔧 FIXED: getWeatherDataForTripDate now redirecting to WeatherFetchingService');
+  
+  return new Promise((resolve, reject) => {
+    WeatherFetchingService.fetchWeatherForSegment(
+      cityName,
+      segmentDate,
+      () => {}, // loading callback - not needed here
+      (error) => {
+        if (error) {
+          console.warn(`getWeatherDataForTripDate: Error fetching weather for ${cityName}:`, error);
+          resolve(null);
+        }
+      },
+      (weather: ForecastWeatherData | null) => {
+        if (weather) {
+          // Convert ForecastWeatherData to WeatherDisplayData format
+          const weatherDisplayData: WeatherDisplayData = {
+            lowTemp: weather.lowTemp || weather.temperature - 10,
+            highTemp: weather.highTemp || weather.temperature + 10,
+            icon: weather.icon,
+            description: weather.description,
+            source: weather.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback',
+            isAvailable: true,
+            humidity: weather.humidity,
+            windSpeed: weather.windSpeed,
+            precipitationChance: weather.precipitationChance,
+            cityName: weather.cityName,
+            isActualForecast: weather.isActualForecast,
+            dateMatchInfo: {
+              source: weather.dateMatchInfo?.source || 'historical_fallback',
+              confidence: weather.dateMatchInfo?.confidence || 'low',
+              explanation: 'Weather data retrieved via WeatherFetchingService'
+            }
+          };
+          
+          console.log('🔧 FIXED: Converted weather data for', cityName, {
+            isActualForecast: weatherDisplayData.isActualForecast,
+            source: weatherDisplayData.source
+          });
+          
+          resolve(weatherDisplayData);
+        } else {
+          resolve(null);
+        }
+      }
+    );
+  });
 };
