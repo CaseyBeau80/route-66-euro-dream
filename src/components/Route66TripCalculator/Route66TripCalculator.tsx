@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Calendar, Clock, Route } from 'lucide-react';
 import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
 import EnhancedTripResults from '../TripCalculator/EnhancedTripResults';
+import ItineraryPreLoader from '../TripCalculator/components/ItineraryPreLoader';
 import { useEnhancedTripCalculation } from '../TripCalculator/hooks/useEnhancedTripCalculation';
 
 const Route66TripCalculator: React.FC = () => {
@@ -65,10 +66,22 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Trip Results with Pre-loading */}
-      {(tripPlan || loadingState.isPreLoading) && (
+      {/* Show Pre-loader when loading but no trip plan yet */}
+      {loadingState.isPreLoading && !tripPlan && (
+        <div className="w-full max-w-6xl mx-auto">
+          <ItineraryPreLoader
+            progress={loadingState.progress}
+            currentStep={loadingState.currentStep}
+            totalSegments={loadingState.totalSegments}
+            loadedSegments={loadingState.loadedSegments}
+          />
+        </div>
+      )}
+
+      {/* Trip Results - Only render when we have a valid trip plan */}
+      {tripPlan && (
         <EnhancedTripResults
-          tripPlan={tripPlan!}
+          tripPlan={tripPlan}
           shareUrl={shareUrl}
           tripStartDate={formData.tripStartDate}
           loadingState={loadingState}

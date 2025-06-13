@@ -31,6 +31,13 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   loadingState
 }) => {
   const { formatDistance } = useUnits();
+  
+  // Add safety check for tripPlan
+  if (!tripPlan) {
+    console.error('❌ EnhancedTripResults: tripPlan is null or undefined');
+    return null;
+  }
+
   const { costEstimate } = useCostEstimator(tripPlan);
 
   // Safely convert tripStartDate to a valid Date object
@@ -50,7 +57,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   }, [tripStartDate]);
 
   console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
-    segmentsCount: tripPlan.segments.length,
+    segmentsCount: tripPlan.segments?.length || 0,
     hasStartDate: !!validTripStartDate,
     hasCostEstimate: !!costEstimate,
     startDate: validTripStartDate?.toISOString(),
@@ -139,7 +146,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">{formatTime(tripPlan.totalDrivingTime)}</div>
+              <div className="text-sm font-semibold text-gray-800">{formatTime(tripPlan.totalDrivingTime || 0)}</div>
               <div className="text-xs text-gray-600">Drive Time</div>
             </div>
             
