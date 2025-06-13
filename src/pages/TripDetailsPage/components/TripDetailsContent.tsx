@@ -14,7 +14,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   trip,
   shareUrl
 }) => {
-  console.log('🎯 TripDetailsContent: Starting render with enhanced error handling', {
+  console.log('🎯 TripDetailsContent: Rendering with UPDATED SharedTripContentRenderer (RAMBLE 66 branding)', {
     trip,
     shareUrl,
     hasTrip: !!trip,
@@ -35,7 +35,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Sanitize trip data to handle circular references and data integrity issues
   const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(trip.trip_data);
 
-  console.log('🎯 TripDetailsContent: Data sanitization complete', {
+  console.log('🎯 TripDetailsContent: Data sanitization complete with RAMBLE 66 update', {
     report,
     sanitizedTripPlan: tripPlan,
     hasCircularReferences: report.hasCircularReferences,
@@ -72,7 +72,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Use the correct property name from TripPlan interface
   const tripStartDate = tripPlan.startDate || undefined;
 
-  console.log('🎯 TripDetailsContent: About to render SharedTripContentRenderer with sanitized data');
+  console.log('🎯 TripDetailsContent: About to render UPDATED SharedTripContentRenderer with RAMBLE 66 branding');
 
   return (
     <ErrorBoundary 
@@ -99,6 +99,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
           </div>
         )}
 
+        {/* UPDATED SharedTripContentRenderer with RAMBLE 66 branding and weather */}
         <SharedTripContentRenderer
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}

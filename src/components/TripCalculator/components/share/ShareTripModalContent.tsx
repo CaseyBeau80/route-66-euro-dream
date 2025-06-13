@@ -27,7 +27,13 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
   onShareViaEmail,
   isSharedView = false
 }) => {
-  console.log('📤 ShareTripModalContent: Rendering with PDF-style content using SharedTripContentRenderer');
+  console.log('📤 ShareTripModalContent: Rendering with UPDATED SharedTripContentRenderer with RAMBLE 66 branding');
+  console.log('📤 ShareTripModalContent: Trip data:', {
+    startCity: tripPlan?.startCity,
+    endCity: tripPlan?.endCity,
+    totalDays: tripPlan?.totalDays,
+    segmentsCount: tripPlan?.segments?.length
+  });
 
   if (!isTripComplete) {
     return (
@@ -42,7 +48,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* Rich PDF-Style Content using SharedTripContentRenderer */}
+      {/* UPDATED Rich Content using SharedTripContentRenderer with RAMBLE 66 branding */}
       <SharedTripContentRenderer
         tripPlan={tripPlan}
         tripStartDate={tripStartDate}
