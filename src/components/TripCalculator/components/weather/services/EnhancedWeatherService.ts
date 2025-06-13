@@ -4,28 +4,34 @@ import { EnhancedWeatherService as MainEnhancedWeatherService } from '@/componen
 export class EnhancedWeatherService {
   static hasApiKey(): boolean {
     const hasKey = MainEnhancedWeatherService.getInstance().hasApiKey();
-    console.log('🔧 TripCalculator EnhancedWeatherService.hasApiKey():', hasKey);
+    console.log('🔧 PLAN: TripCalculator EnhancedWeatherService.hasApiKey():', {
+      hasKey,
+      timestamp: new Date().toISOString(),
+      planImplementation: true
+    });
     return hasKey;
   }
   
   static getApiKey(): string | null {
-    console.log('🔧 TripCalculator EnhancedWeatherService.getApiKey() called');
+    console.log('🔧 PLAN: TripCalculator EnhancedWeatherService.getApiKey() called');
     
     // Access the API key manager directly, same as the main service
     const instance = MainEnhancedWeatherService.getInstance();
     // Use the enhanced debug info which contains the actual key access pattern
     const debugInfo = instance.getEnhancedDebugInfo();
     
-    console.log('🔧 TripCalculator EnhancedWeatherService debug info:', {
+    console.log('🔧 PLAN: TripCalculator EnhancedWeatherService debug info:', {
       hasKey: debugInfo.hasKey,
       keyLength: debugInfo.keyLength,
-      isCorrupted: debugInfo.corruptionAnalysis?.isCorrupted
+      isCorrupted: debugInfo.corruptionAnalysis?.isCorrupted,
+      timestamp: new Date().toISOString(),
+      planImplementation: true
     });
     
     // The debug info doesn't contain the actual key, so we need to use
     // the same pattern as the main service's internal apiKeyManager
     if (!debugInfo.hasKey) {
-      console.log('🔧 TripCalculator EnhancedWeatherService: No API key available');
+      console.log('🔧 PLAN: TripCalculator EnhancedWeatherService: No API key available');
       return null;
     }
     
@@ -33,7 +39,10 @@ export class EnhancedWeatherService {
     // we'll rely on the fact that if hasKey is true, the service can provide weather data
     // For the wrapper's purposes, we'll return a placeholder that indicates the key exists
     const result = debugInfo.hasKey ? 'key-available' : null;
-    console.log('🔧 TripCalculator EnhancedWeatherService returning:', result);
+    console.log('🔧 PLAN: TripCalculator EnhancedWeatherService returning:', {
+      result,
+      planImplementation: true
+    });
     return result;
   }
 }

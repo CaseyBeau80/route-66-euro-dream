@@ -2,7 +2,7 @@
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDateCalculator {
-  private static readonly FORECAST_THRESHOLD_DAYS = 7; // PLAN: Expanded to 7 days for consistent forecast range
+  private static readonly FORECAST_THRESHOLD_DAYS = 7; // PLAN: STANDARDIZED to 7 days
 
   static calculateDaysFromToday(targetDate: Date): {
     normalizedTargetDate: Date;
@@ -10,21 +10,21 @@ export class WeatherDateCalculator {
     daysFromToday: number;
     isWithinForecastRange: boolean;
   } {
-    // Normalize the target date to local midnight
+    // PLAN: Use LOCAL date normalization for consistency
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     
-    // Normalize today's date to local midnight for consistent comparison
+    // PLAN: Use LOCAL date normalization for today as well
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     
-    // Calculate days from today using normalized local dates
+    // PLAN: Calculate days using standardized LOCAL date arithmetic
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
     
-    // PLAN: Days 0-7 = forecast range (today through 7 days out), Day 8+ = historical
+    // PLAN: STANDARDIZED forecast range 0-7 days
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
     
-    console.log('🔧 PLAN: WeatherDateCalculator.calculateDaysFromToday - STANDARDIZED FORECAST RANGE 0-7', {
+    console.log('🔧 PLAN: WeatherDateCalculator - STANDARDIZED LOCAL date calculation', {
       input: {
         originalTargetDate: targetDate.toISOString(),
         originalTargetLocal: targetDate.toLocaleDateString(),
@@ -36,19 +36,20 @@ export class WeatherDateCalculator {
         normalizedToday: normalizedToday.toISOString(),
         normalizedTodayLocal: normalizedToday.toLocaleDateString(),
         targetDateString,
-        normalizationMethod: 'LOCAL_MIDNIGHT'
+        normalizationMethod: 'LOCAL_MIDNIGHT_CONSISTENT'
       },
       calculation: {
         daysFromToday,
         isWithinForecastRange,
         forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        logic: 'Days 0-7 = LIVE FORECAST, Day 8+ = historical',
-        standardizedRange: true
+        logic: 'Days 0-7 = LIVE FORECAST attempt, Day 8+ = historical',
+        standardizedRange: true,
+        localDateArithmetic: true
       },
       decision: {
-        useCase: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
-        reason: isWithinForecastRange ? 'within_7_day_range' : 'beyond_7_day_range',
-        forecastRangeStandardized: true
+        useCase: isWithinForecastRange ? 'LIVE_FORECAST_ATTEMPT' : 'HISTORICAL_FALLBACK',
+        reason: isWithinForecastRange ? 'within_standardized_0_to_7_range' : 'beyond_standardized_range',
+        consistentWithPersistence: true
       }
     });
 

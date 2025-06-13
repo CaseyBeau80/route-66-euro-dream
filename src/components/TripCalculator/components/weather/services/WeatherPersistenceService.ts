@@ -23,7 +23,7 @@ export class WeatherPersistenceService {
 
       localStorage.setItem(`${this.CACHE_PREFIX}${cacheKey}`, JSON.stringify(cacheEntry));
       
-      console.log('💾 WeatherPersistenceService: Stored weather data', {
+      console.log('💾 PLAN: Stored weather data', {
         cacheKey,
         temperature: weatherData.temperature,
         source: weatherData.source
@@ -42,7 +42,7 @@ export class WeatherPersistenceService {
       const stored = localStorage.getItem(`${this.CACHE_PREFIX}${cacheKey}`);
       
       if (!stored) {
-        console.log('💾 WeatherPersistenceService: No cached data found', { cacheKey });
+        console.log('💾 PLAN: No cached data found', { cacheKey });
         return null;
       }
 
@@ -51,43 +51,40 @@ export class WeatherPersistenceService {
       const cacheAge = now - cacheEntry.timestamp;
       const maxAge = this.CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
-      // Use DateNormalizationService for consistent LOCAL date calculations
+      // PLAN: Use standardized LOCAL date calculations
       const today = new Date();
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
       const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(date);
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
-      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7; // PLAN: Standardized to 0-7 range
+      
+      // PLAN: STANDARDIZED forecast range 0-7 days
+      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('💾 PLAN: WeatherPersistenceService cache decision with STANDARDIZED forecast range 0-7', {
+      console.log('💾 PLAN: Cache decision with STANDARDIZED forecast range 0-7', {
         cacheKey,
         normalizedToday: normalizedToday.toISOString(),
-        normalizedTodayLocal: normalizedToday.toLocaleDateString(),
         normalizedTargetDate: normalizedTargetDate.toISOString(),
-        normalizedTargetLocal: normalizedTargetDate.toLocaleDateString(),
         daysFromToday,
         isWithinForecastRange,
         forecastRange: 'Days 0-7 = FORCE live forecast attempt, Day 8+ = allow cache',
         standardizedRange: true,
-        localDateCalculation: true,
         cacheDecision: isWithinForecastRange ? 'FORCE_SKIP_CACHE_FOR_LIVE_ATTEMPT' : 'USE_CACHE_IF_VALID'
       });
 
-      // NEVER return cached data for forecast range dates (0-7)
+      // PLAN: NEVER return cached data for forecast range dates (0-7)
       // This forces the system to attempt live forecasts for days 0-7
       if (isWithinForecastRange) {
-        console.log('💾 PLAN: FORCING cache skip for forecast range date to ensure live forecast attempt', {
+        console.log('💾 PLAN: FORCING cache skip for forecast range to ensure live attempt', {
           cacheKey,
           daysFromToday,
-          isWithinForecastRange,
           reason: 'within_0_to_7_day_forecast_range_MUST_attempt_live',
-          standardizedForecastRange: true,
-          localDateCalculation: true
+          standardizedForecastRange: true
         });
         return null;
       }
 
       if (cacheAge > maxAge) {
-        console.log('💾 WeatherPersistenceService: Cache expired', {
+        console.log('💾 PLAN: Cache expired', {
           cacheKey,
           cacheAgeHours: cacheAge / (60 * 60 * 1000),
           maxAgeHours: this.CACHE_DURATION_HOURS
@@ -96,12 +93,11 @@ export class WeatherPersistenceService {
         return null;
       }
 
-      console.log('✅ WeatherPersistenceService: Retrieved cached weather data', {
+      console.log('✅ PLAN: Retrieved cached weather data', {
         cacheKey,
         temperature: cacheEntry.data.temperature,
         daysFromToday,
-        reason: 'beyond_forecast_range_and_cache_valid',
-        standardizedForecastRange: true
+        reason: 'beyond_forecast_range_and_cache_valid'
       });
 
       return cacheEntry.data;

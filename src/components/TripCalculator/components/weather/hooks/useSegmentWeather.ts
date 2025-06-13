@@ -33,30 +33,32 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     setRetryCount: incrementRetry
   } = props;
 
-  // FIXED: Memoize the fetch function to prevent recreation on every render
+  // PLAN: Memoize the fetch function to prevent recreation on every render
   const fetchWeather = React.useCallback(async () => {
     if (!hasApiKey || !segmentDate || loading) {
-      console.log('🔧 useSegmentWeather: Skipping fetch', {
+      console.log('🔧 PLAN: useSegmentWeather: Skipping fetch', {
         hasApiKey,
         hasSegmentDate: !!segmentDate,
         loading,
-        city: segmentEndCity
+        city: segmentEndCity,
+        planImplementation: true
       });
       return;
     }
 
-    console.log('🚨 TRIGGERING AUTO FETCH for', segmentEndCity, `Day ${segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) + 1 : '?'}`);
-
-    const fetchId = Math.floor(Math.random() * 1000);
-    console.log('🚨 Starting weather fetch for', segmentEndCity, `Day ${segmentDate ? Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) + 1 : '?'}`, {
-      fetchId,
-      tripStartDate: segmentDate.toISOString()
+    console.log('🚨 PLAN: TRIGGERING AUTO FETCH with 5-second timeout for', segmentEndCity, {
+      segmentDate: segmentDate.toISOString(),
+      daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+      planImplementation: true
     });
 
+    const fetchId = Math.floor(Math.random() * 1000);
+    
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.fetchWeather [${segmentEndCity}]`, {
       hasApiKey,
       segmentDate: segmentDate.toISOString(),
-      fetchId
+      fetchId,
+      planImplementation: true
     });
 
     try {
@@ -68,34 +70,43 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
         setWeather
       );
     } catch (error) {
-      console.error('❌ useSegmentWeather: Fetch failed for', segmentEndCity, error);
+      console.error('❌ PLAN: useSegmentWeather: Fetch failed for', segmentEndCity, error);
       setError(error instanceof Error ? error.message : 'Weather fetch failed');
       setLoading(false);
     }
   }, [hasApiKey, segmentDate, loading, segmentEndCity, setLoading, setError, setWeather]);
 
-  // FIXED: Auto-fetch effect with proper dependency management
+  // PLAN: Auto-fetch effect with proper dependency management
   React.useEffect(() => {
     // Only fetch if we don't have weather data and we're not currently loading
     if (hasApiKey && segmentDate && !weather && !loading) {
+      console.log('🔧 PLAN: Auto-fetch triggered for', segmentEndCity, {
+        hasApiKey,
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weather,
+        loading,
+        planImplementation: true
+      });
       fetchWeather();
     }
   }, [hasApiKey, segmentDate, weather, loading, fetchWeather]);
 
-  // FIXED: Cleanup effect to cancel requests when component unmounts
+  // PLAN: Cleanup effect to cancel requests when component unmounts
   React.useEffect(() => {
     return () => {
       if (segmentDate) {
         WeatherFetchingService.cancelRequest(segmentEndCity, segmentDate);
+        console.log('🔧 PLAN: Cleanup - cancelled request for', segmentEndCity);
       }
     };
   }, [segmentEndCity, segmentDate]);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log('🔧 useSegmentWeather: handleApiKeySet called for', segmentEndCity);
+    console.log('🔧 PLAN: useSegmentWeather: handleApiKeySet called for', segmentEndCity);
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.handleApiKeySet [${segmentEndCity}]`, {
       hasApiKey,
-      segmentDate: segmentDate?.toISOString()
+      segmentDate: segmentDate?.toISOString(),
+      planImplementation: true
     });
     
     // Reset any existing error state
@@ -108,13 +119,14 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
   }, [fetchWeather, segmentDate, segmentEndCity, hasApiKey, setError]);
 
   const handleTimeout = React.useCallback(() => {
-    console.log('🚨 handleTimeout for', segmentEndCity);
+    console.log('🚨 PLAN: handleTimeout for', segmentEndCity);
+    WeatherDebugService.logForecastTimeout(segmentEndCity, 5000, 'user_requested_timeout');
     setError('Weather request timed out');
     setLoading(false);
   }, [setError, setLoading, segmentEndCity]);
 
   const handleRetry = React.useCallback(() => {
-    console.log('🚨 handleRetry for', segmentEndCity);
+    console.log('🚨 PLAN: handleRetry for', segmentEndCity);
     setError(null);
     incrementRetry();
     fetchWeather();
