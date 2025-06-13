@@ -9,7 +9,6 @@ import { useCostEstimator } from '../hooks/useCostEstimator';
 import TripStatsGrid from './TripStatsGrid';
 import ShareAndExportDropdown from './ShareAndExportDropdown';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
-import { WeatherTypeDetector } from './weather/utils/WeatherTypeDetector';
 
 interface TripOverviewCardProps {
   tripPlan: TripPlan;
@@ -49,14 +48,13 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   // Get the last segment for destination weather
   const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
-  // FIXED: Get weather section header using centralized WeatherTypeDetector
+  // FIXED: Use a generic header that doesn't make assumptions about weather type
+  // Let the SegmentWeatherWidget handle the specific weather type determination
   const getWeatherSectionHeader = () => {
-    // Since we don't have the actual weather data here, we'll let the 
-    // SegmentWeatherWidget handle the header determination internally
     return "Destination Weather";
   };
 
-  console.log('🔧 FIXED: TripOverviewCard using centralized weather header logic:', {
+  console.log('🔧 FIXED: TripOverviewCard using generic weather header to avoid conflicts:', {
     lastSegmentCity: lastSegment?.endCity,
     weatherSectionHeader: getWeatherSectionHeader(),
     hasTripStartDate: !!tripStartDate
@@ -98,7 +96,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatTime={formatTime}
         />
 
-        {/* FIXED: Weather Information Section - Now uses centralized weather detection */}
+        {/* FIXED: Weather Information Section - Let SegmentWeatherWidget determine the header */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
