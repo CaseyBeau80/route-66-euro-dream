@@ -109,7 +109,7 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Information with Enhanced Status Messages */}
+              {/* CLEANED UP: Weather section with simplified header */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   🌤️ Weather Information

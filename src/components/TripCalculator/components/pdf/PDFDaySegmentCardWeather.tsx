@@ -63,38 +63,12 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     return calculatedDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // PDF-SPECIFIC: Force the display date to always be the segment date using centralized formatting
-  const pdfDisplayDate = React.useMemo(() => {
-    if (!segmentDate) return 'Weather Information';
-    
-    const formattedDate = format(segmentDate, 'EEEE, MMM d');
-    
-    console.log(`📄 PDF WEATHER DATE ABSOLUTE LOCK: Forcing display date for ${segment.endCity}:`, {
-      segmentDate: segmentDate.toISOString(),
-      segmentDateString: DateNormalizationService.toDateString(segmentDate),
-      pdfDisplayDate: formattedDate,
-      segmentDay: segment.day,
-      absoluteAlignment: true
-    });
-    
-    return formattedDate;
-  }, [segmentDate, segment.endCity, segment.day]);
-
   return (
     <div className="pdf-weather-content">
+      {/* REMOVED: Redundant header with date and forecast type - let the weather widget handle its own display */}
       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
         <span className="text-orange-600">☁️</span>
         Weather Information
-        {segmentDate && (
-          <span className="text-xs text-gray-500 ml-2">
-            • {pdfDisplayDate}
-          </span>
-        )}
-        {weatherConfig.hasApiKey && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded ml-2">
-            Live Forecast
-          </span>
-        )}
       </h4>
       
       {segmentDate && weatherConfig.canFetchLiveWeather ? (
@@ -107,7 +81,7 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
                 ⚠️ Weather information temporarily unavailable
               </div>
               <div className="text-xs text-yellow-600">
-                Check current weather conditions for {pdfDisplayDate} before departure
+                Check current weather conditions for {segmentDate ? format(segmentDate, 'EEEE, MMM d') : 'your planned date'} before departure
               </div>
             </div>
           }
@@ -150,19 +124,10 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
         </div>
       )}
 
-      {/* Enhanced Seasonal Guidance for PDF - ALWAYS use exact segment date */}
+      {/* SIMPLIFIED: Attribution footer */}
       {segmentDate && (
-        <div className="mt-3 text-xs text-gray-600 bg-blue-50 rounded p-2 border border-blue-200">
-          <strong>Date:</strong> {format(segmentDate, 'EEEE, MMMM d, yyyy')} •{' '}
-          <strong>Season:</strong> {
-            segmentDate.getMonth() >= 2 && segmentDate.getMonth() <= 4 ? 'Spring 🌸' :
-            segmentDate.getMonth() >= 5 && segmentDate.getMonth() <= 7 ? 'Summer ☀️' :
-            segmentDate.getMonth() >= 8 && segmentDate.getMonth() <= 10 ? 'Fall 🍂' : 'Winter ❄️'
-          }
-          <div className="mt-1 text-gray-500">
-            Weather information shown above for your planned arrival date: {pdfDisplayDate}
-            {weatherConfig.hasApiKey && ` (${weatherConfig.apiKeySource === 'config-file' ? 'App configured' : 'User configured'} live forecast)`}
-          </div>
+        <div className="mt-3 text-xs text-gray-500 text-center">
+          Weather shown based on available forecast or historical data.
         </div>
       )}
     </div>
