@@ -18,61 +18,31 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   tripStartDate,
   tripId
 }) => {
-  // 🚨 FORCE LOG: WeatherForecastColumn component entry
-  console.log('🚨 FORCE LOG: WeatherForecastColumn COMPONENT ENTRY', {
+  // 🚨 CRITICAL DEBUG: WeatherForecastColumn component entry
+  console.log('🚨 CRITICAL DEBUG: WeatherForecastColumn COMPONENT ENTRY', {
     segments: segments?.length || 0,
     tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+    tripStartDateValue: tripStartDate,
+    tripStartDateType: typeof tripStartDate,
     tripId,
     timestamp: new Date().toISOString()
   });
 
   const stableSegments = useStableSegments(segments);
 
-  // 🚨 FORCE LOG: Stable segments result
-  console.log('🚨 FORCE LOG: STABLE SEGMENTS RESULT', {
-    originalCount: segments?.length || 0,
-    stableCount: stableSegments?.length || 0,
-    stableSegments: stableSegments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || []
-  });
-
-  // 🚨 PLAN IMPLEMENTATION: Explicit segment enumeration logging
-  console.log('🔍 [PLAN] WeatherForecastColumn - SEGMENT ENUMERATION:', {
-    rawSegments: segments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || [],
-    stableSegments: stableSegments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || [],
-    segmentCount: stableSegments.length,
-    tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
-    tripId
-  });
-
-  // 🚨 PLAN IMPLEMENTATION: Day 1 specific logging
-  const day1Segment = stableSegments.find(s => s.day === 1);
-  if (day1Segment) {
-    console.log('🎯 [PLAN] DAY 1 SEGMENT FOUND in WeatherForecastColumn:', {
-      day: day1Segment.day,
-      endCity: day1Segment.endCity,
-      title: day1Segment.title,
-      hasSegment: true,
-      segmentData: day1Segment
-    });
-  } else {
-    console.error('❌ [PLAN] DAY 1 SEGMENT MISSING from WeatherForecastColumn segments!', {
-      availableDays: stableSegments.map(s => s.day),
-      segmentCount: stableSegments.length
-    });
-  }
-
   // Validate and convert tripStartDate to Date object
   const validTripStartDate = React.useMemo(() => {
-    // 🚨 PLAN IMPLEMENTATION: Trip date propagation validation
-    console.log('🗓️ [PLAN] Trip date validation in WeatherForecastColumn:', {
+    console.log('🗓️ CRITICAL: Trip date validation in WeatherForecastColumn:', {
       originalTripStartDate: tripStartDate,
       tripStartDateType: typeof tripStartDate,
       isDate: tripStartDate instanceof Date,
-      isString: typeof tripStartDate === 'string'
+      isString: typeof tripStartDate === 'string',
+      tripStartDateValue: tripStartDate,
+      now: new Date().toISOString()
     });
 
     if (!tripStartDate) {
-      console.log('🗓️ [PLAN] No tripStartDate provided to WeatherForecastColumn');
+      console.log('🗓️ CRITICAL: No tripStartDate provided to WeatherForecastColumn');
       return null;
     }
     
@@ -82,7 +52,13 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid Date object provided', tripStartDate);
           return null;
         }
-        console.log('✅ [PLAN] Valid Date object confirmed in WeatherForecastColumn:', tripStartDate.toISOString());
+        console.log('✅ CRITICAL: Valid Date object confirmed in WeatherForecastColumn:', {
+          isoString: tripStartDate.toISOString(),
+          getTime: tripStartDate.getTime(),
+          getUTCFullYear: tripStartDate.getUTCFullYear(),
+          getUTCMonth: tripStartDate.getUTCMonth(),
+          getUTCDate: tripStartDate.getUTCDate()
+        });
         return tripStartDate;
       } else if (typeof tripStartDate === 'string') {
         const parsed = new Date(tripStartDate);
@@ -90,7 +66,11 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid date string provided', tripStartDate);
           return null;
         }
-        console.log('✅ [PLAN] Valid date string converted in WeatherForecastColumn:', parsed.toISOString());
+        console.log('✅ CRITICAL: Valid date string converted in WeatherForecastColumn:', {
+          original: tripStartDate,
+          parsed: parsed.toISOString(),
+          getTime: parsed.getTime()
+        });
         return parsed;
       } else {
         console.error('❌ WeatherForecastColumn: tripStartDate is not a Date or string', { tripStartDate, type: typeof tripStartDate });
@@ -105,17 +85,11 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   console.log('🌤️ WeatherForecastColumn render:', {
     segmentsCount: stableSegments.length,
     tripStartDate: validTripStartDate?.toISOString(),
-    originalTripStartDate: tripStartDate
+    originalTripStartDate: tripStartDate,
+    validationResult: !!validTripStartDate
   });
 
   if (!validTripStartDate) {
-    // 🚨 FORCE LOG: Early return due to no valid trip start date
-    console.log('🚨 FORCE LOG: WeatherForecastColumn EARLY RETURN - No valid trip start date', {
-      originalTripStartDate: tripStartDate,
-      validTripStartDate,
-      timestamp: new Date().toISOString()
-    });
-    
     return (
       <>
         {/* Subtle Column Label */}
@@ -138,14 +112,6 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
     );
   }
 
-  // 🚨 FORCE LOG: About to enter the segments map loop
-  console.log('🚨 FORCE LOG: ENTERING SEGMENTS MAP LOOP', {
-    segmentCount: stableSegments.length,
-    validTripStartDate: validTripStartDate.toISOString(),
-    segments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity })),
-    timestamp: new Date().toISOString()
-  });
-
   return (
     <>
       {/* Subtle Column Label */}
@@ -158,22 +124,12 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
       {/* Day Cards */}
       <div className="space-y-4">
         {stableSegments.map((segment, index) => {
-          // 🚨 FORCE LOG: INSIDE MAP LOOP - Processing each segment
-          console.log(`🚨 FORCE LOG: MAP LOOP ITERATION ${index + 1}/${stableSegments.length}`, {
+          console.log(`🚨 CRITICAL: Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
             segmentIndex: index,
             day: segment.day,
             endCity: segment.endCity,
-            isDay1: segment.day === 1,
+            validTripStartDate: validTripStartDate.toISOString(),
             timestamp: new Date().toISOString()
-          });
-
-          // 🚨 PLAN IMPLEMENTATION: Segment visibility confirmation
-          console.log(`🔍 [PLAN] Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
-            segmentIndex: index,
-            day: segment.day,
-            endCity: segment.endCity,
-            willRender: true,
-            isDay1: segment.day === 1
           });
 
           let segmentDate: Date | null = null;
@@ -181,16 +137,14 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           try {
             segmentDate = addDays(validTripStartDate, segment.day - 1);
             
-            // 🚨 PLAN IMPLEMENTATION: Day 1 specific date calculation logging
-            if (segment.day === 1) {
-              console.log('🗓️ [PLAN] DAY 1 DATE CALCULATION:', {
-                tripStartDate: validTripStartDate.toISOString(),
-                segmentDay: segment.day,
-                calculatedDate: segmentDate.toISOString(),
-                daysToAdd: segment.day - 1,
-                isValid: !isNaN(segmentDate.getTime())
-              });
-            }
+            console.log(`🗓️ CRITICAL: Date calculation for Day ${segment.day}:`, {
+              tripStartDate: validTripStartDate.toISOString(),
+              segmentDay: segment.day,
+              daysToAdd: segment.day - 1,
+              calculatedDate: segmentDate.toISOString(),
+              addDaysResult: segmentDate,
+              isValid: !isNaN(segmentDate.getTime())
+            });
             
             if (isNaN(segmentDate.getTime())) {
               console.error('❌ WeatherForecastColumn: Invalid calculated date for segment', { 
@@ -206,41 +160,6 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
             });
             segmentDate = null;
           }
-          
-          // 🚨 PLAN IMPLEMENTATION: Segment data integrity verification
-          if (segment.day === 1) {
-            console.log('🔍 [PLAN] DAY 1 SEGMENT DATA INTEGRITY CHECK:', {
-              hasSegment: !!segment,
-              hasEndCity: !!segment.endCity,
-              hasValidDate: !!segmentDate,
-              segmentTitle: segment.title,
-              allSegmentKeys: Object.keys(segment),
-              segmentComplete: !!(segment && segment.endCity && segmentDate)
-            });
-          }
-
-          // 🚨 PLAN IMPLEMENTATION: SegmentWeatherWidget instantiation logging before JSX
-          if (segment.day === 1) {
-            console.log('🚀 [PLAN] About to render SegmentWeatherWidget for DAY 1:', {
-              segment: { day: segment.day, endCity: segment.endCity },
-              tripStartDate: validTripStartDate.toISOString(),
-              segmentDate: segmentDate?.toISOString(),
-              cardIndex: index,
-              tripId,
-              sectionKey: 'weather-column'
-            });
-          }
-
-          // 🚨 FORCE LOG: About to render SegmentWeatherWidget for ANY segment
-          console.log(`🚨 FORCE LOG: About to render SegmentWeatherWidget for Day ${segment.day}`, {
-            segment: { day: segment.day, endCity: segment.endCity },
-            tripStartDate: validTripStartDate.toISOString(),
-            segmentDate: segmentDate?.toISOString(),
-            cardIndex: index,
-            tripId,
-            sectionKey: 'weather-column',
-            timestamp: new Date().toISOString()
-          });
           
           return (
             <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherForecastColumn-Segment-${index}`}>

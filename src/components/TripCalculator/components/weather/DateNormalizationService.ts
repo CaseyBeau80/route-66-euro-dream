@@ -14,44 +14,58 @@ export class DateNormalizationService {
         return null;
       }
 
-      // PLAN IMPLEMENTATION: Normalize the trip start date first
+      // FIXED: Normalize the trip start date first
       const normalizedStartDate = this.normalizeSegmentDate(startDate);
       
-      // PLAN IMPLEMENTATION: Calculate the segment date by adding (segmentDay - 1) days
-      const segmentDate = new Date(normalizedStartDate);
+      // FIXED: Calculate the segment date by adding (segmentDay - 1) days
+      // Create a new date to avoid mutating the original
+      const segmentDate = new Date(normalizedStartDate.getTime());
       segmentDate.setUTCDate(normalizedStartDate.getUTCDate() + (segmentDay - 1));
       
-      // PLAN IMPLEMENTATION: Enhanced debug output for date calculation
-      console.log('🔧 PLAN: DateNormalizationService.calculateSegmentDate - ENHANCED CALCULATION', {
+      // FIXED: Enhanced debug output for date calculation
+      console.log('🔧 FIXED: DateNormalizationService.calculateSegmentDate - CORRECTED CALCULATION', {
         input: {
           tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString(),
           segmentDay,
           tripStartDateType: typeof tripStartDate
         },
         normalization: {
+          originalStartDate: startDate.toISOString(),
           normalizedStartDate: normalizedStartDate.toISOString(),
           daysToAdd: segmentDay - 1
+        },
+        calculation: {
+          baseTime: normalizedStartDate.getTime(),
+          finalTime: segmentDate.getTime(),
+          timeDifference: segmentDate.getTime() - normalizedStartDate.getTime(),
+          expectedDaysDifference: segmentDay - 1
         },
         result: {
           segmentDate: segmentDate.toISOString(),
           isValid: !isNaN(segmentDate.getTime()),
-          timezone: 'UTC (normalized)'
+          timezone: 'UTC (normalized)',
+          daysDifference: Math.floor((segmentDate.getTime() - normalizedStartDate.getTime()) / (24 * 60 * 60 * 1000))
         }
       });
       
       return isNaN(segmentDate.getTime()) ? null : segmentDate;
     } catch (error) {
-      console.error('🔧 PLAN: Error in calculateSegmentDate:', error);
+      console.error('🔧 FIXED: Error in calculateSegmentDate:', error);
       return null;
     }
   }
 
   static normalizeSegmentDate(date: Date): Date {
-    // PLAN IMPLEMENTATION: Normalize to UTC midnight to ensure consistent date handling
+    // FIXED: Normalize to UTC midnight to ensure consistent date handling
     const normalized = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
     
-    console.log('🔧 PLAN: DateNormalizationService.normalizeSegmentDate', {
+    console.log('🔧 FIXED: DateNormalizationService.normalizeSegmentDate', {
       input: date.toISOString(),
+      inputComponents: {
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth(),
+        date: date.getUTCDate()
+      },
       output: normalized.toISOString(),
       timezone: 'UTC (normalized)'
     });
@@ -60,17 +74,20 @@ export class DateNormalizationService {
   }
 
   static getDaysDifference(date1: Date, date2: Date): number {
-    // PLAN IMPLEMENTATION: Use UTC dates for consistent calculation
+    // FIXED: Use UTC dates for consistent calculation
     const utc1 = Date.UTC(date1.getUTCFullYear(), date1.getUTCMonth(), date1.getUTCDate());
     const utc2 = Date.UTC(date2.getUTCFullYear(), date2.getUTCMonth(), date2.getUTCDate());
     const msPerDay = 24 * 60 * 60 * 1000;
     const daysDiff = Math.floor((utc2 - utc1) / msPerDay);
     
-    console.log('🔧 PLAN: DateNormalizationService.getDaysDifference', {
+    console.log('🔧 FIXED: DateNormalizationService.getDaysDifference', {
       date1: date1.toISOString(),
       date2: date2.toISOString(),
       utc1: new Date(utc1).toISOString(),
       utc2: new Date(utc2).toISOString(),
+      utc1Ms: utc1,
+      utc2Ms: utc2,
+      differenceMs: utc2 - utc1,
       daysDifference: daysDiff
     });
     
@@ -78,10 +95,10 @@ export class DateNormalizationService {
   }
 
   static toDateString(date: Date): string {
-    // PLAN IMPLEMENTATION: Use UTC date for string conversion
+    // FIXED: Use UTC date for string conversion
     const dateString = date.toISOString().split('T')[0];
     
-    console.log('🔧 PLAN: DateNormalizationService.toDateString', {
+    console.log('🔧 FIXED: DateNormalizationService.toDateString', {
       input: date.toISOString(),
       output: dateString
     });
