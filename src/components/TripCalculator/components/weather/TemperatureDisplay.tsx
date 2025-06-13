@@ -25,9 +25,9 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     currentTempType: typeof currentTemp,
     highTempType: typeof highTemp,
     lowTempType: typeof lowTemp,
-    currentTempIsNaN: isNaN(currentTemp as number),
-    highTempIsNaN: isNaN(highTemp as number),
-    lowTempIsNaN: isNaN(lowTemp as number)
+    currentTempIsNaN: currentTemp !== undefined ? isNaN(currentTemp as number) : 'undefined',
+    highTempIsNaN: highTemp !== undefined ? isNaN(highTemp as number) : 'undefined',
+    lowTempIsNaN: lowTemp !== undefined ? isNaN(lowTemp as number) : 'undefined'
   });
 
   // Enhanced formatting function
@@ -66,7 +66,7 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
         notUndefined: temp !== undefined,
         notNull: temp !== null,
         isNumber: typeof temp === 'number',
-        notNaN: !isNaN(temp as number),
+        notNaN: temp !== undefined ? !isNaN(temp as number) : false,
         inRange: temp !== undefined && temp > -150 && temp < 150
       }
     });

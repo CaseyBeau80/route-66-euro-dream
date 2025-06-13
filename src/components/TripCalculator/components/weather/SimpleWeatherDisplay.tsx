@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDataNormalizer } from './services/WeatherDataNormalizer';
+import { TemperatureExtractor } from './services/TemperatureExtractor';
 import TemperatureDisplay from './TemperatureDisplay';
 import WeatherIcon from './WeatherIcon';
-import WeatherStats from './WeatherStats';
-import WeatherStatusBadge from './WeatherStatusBadge';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -22,105 +20,145 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ SimpleWeatherDisplay rendering:', {
+  console.log('🌤️ SimpleWeatherDisplay: Enhanced rendering start', {
     cityName,
     weather,
-    rawTemperatureData: {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
-    },
-    hasTemperature: weather.temperature !== undefined,
-    hasHighTemp: weather.highTemp !== undefined,
-    hasLowTemp: weather.lowTemp !== undefined
+    segmentDate: segmentDate?.toISOString(),
+    isSharedView,
+    isPDFExport
   });
 
-  // Normalize weather data
-  const normalizedWeather = WeatherDataNormalizer.normalizeWeatherData(weather, cityName, segmentDate);
+  // Extract temperatures using the enhanced TemperatureExtractor
+  const temperatures = React.useMemo(() => {
+    console.log('🌡️ SimpleWeatherDisplay: Extracting temperatures for', cityName);
+    const extracted = TemperatureExtractor.extractTemperatures(weather, cityName);
+    console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures:', extracted);
+    return extracted;
+  }, [weather, cityName]);
 
-  console.log('🌤️ SimpleWeatherDisplay - Normalized Weather Debug:', {
-    cityName,
-    originalWeather: {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
-    },
-    normalizedWeather: normalizedWeather ? {
-      temperature: normalizedWeather.temperature,
-      highTemp: normalizedWeather.highTemp,
-      lowTemp: normalizedWeather.lowTemp
-    } : null
-  });
+  // Determine what to display based on available temperature data
+  const displayConfig = React.useMemo(() => {
+    const hasValidCurrent = temperatures.isValid && !isNaN(temperatures.current);
+    const hasValidRange = temperatures.isValid && (!isNaN(temperatures.high) || !isNaN(temperatures.low));
+    
+    console.log('🌤️ SimpleWeatherDisplay: Display configuration:', {
+      cityName,
+      hasValidCurrent,
+      hasValidRange,
+      temperatures,
+      weather: {
+        description: weather.description,
+        icon: weather.icon,
+        isActualForecast: weather.isActualForecast
+      }
+    });
 
-  if (!normalizedWeather) {
-    console.log('❌ SimpleWeatherDisplay: No valid normalized weather data');
+    return {
+      hasValidCurrent,
+      hasValidRange,
+      showCurrent: hasValidCurrent && !hasValidRange,
+      showRange: hasValidRange
+    };
+  }, [temperatures, cityName, weather]);
+
+  if (!temperatures.isValid) {
+    console.warn('❌ SimpleWeatherDisplay: No valid temperature data available for', cityName);
     return (
-      <div className="bg-gray-50 rounded p-4 text-center">
-        <div className="text-sm text-gray-500">Weather data unavailable</div>
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+        <div className="text-yellow-800 font-medium mb-2">
+          Weather information unavailable
+        </div>
+        <div className="text-sm text-yellow-600">
+          Unable to extract temperature data for {cityName}
+        </div>
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 text-xs text-red-500">
+            Debug: {JSON.stringify(weather, null, 2)}
+          </div>
+        )}
       </div>
     );
   }
 
-  console.log('✅ SimpleWeatherDisplay: Using normalized weather:', normalizedWeather);
-
   return (
-    <div className="space-y-3">
-      {/* Weather Status Badge */}
-      <WeatherStatusBadge 
-        type={normalizedWeather.isActualForecast ? "forecast" : "seasonal"} 
-      />
-      
-      {/* Main Weather Display */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {/* Weather Icon and Description */}
-        <div className="text-center p-4 bg-gradient-to-b from-blue-50 to-white">
-          <WeatherIcon 
-            iconCode={normalizedWeather.icon} 
-            description={normalizedWeather.description}
-            className="h-16 w-16 mx-auto mb-2"
-          />
-          <div className="font-medium text-gray-800 capitalize mb-1">
-            {normalizedWeather.description}
-          </div>
-          {segmentDate && (
-            <div className="text-xs text-gray-600">
-              {segmentDate.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric' 
-              })}
-            </div>
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      {/* Weather Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {weather.icon && (
+            <WeatherIcon iconCode={weather.icon} className="w-8 h-8" />
           )}
-        </div>
-
-        {/* Temperature Display - ENHANCED DEBUG */}
-        <div className="p-4">
-          <div className="text-xs text-gray-500 mb-2">
-            DEBUG: Passing to TemperatureDisplay - high: {normalizedWeather.highTemp}, low: {normalizedWeather.lowTemp}
+          <div>
+            <h4 className="font-medium text-blue-900">
+              {weather.description || 'Weather Forecast'}
+            </h4>
+            {segmentDate && (
+              <div className="text-sm text-blue-600">
+                {segmentDate.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </div>
+            )}
           </div>
-          <TemperatureDisplay
-            type="range"
-            highTemp={normalizedWeather.highTemp}
-            lowTemp={normalizedWeather.lowTemp}
-          />
         </div>
-
-        {/* Weather Stats */}
-        <div className="px-4 pb-4">
-          <WeatherStats
-            humidity={normalizedWeather.humidity}
-            windSpeed={normalizedWeather.windSpeed}
-            precipitationChance={normalizedWeather.precipitationChance}
-            layout="card"
-          />
+        
+        {/* Forecast Type Badge */}
+        <div className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+          {weather.isActualForecast ? '📡 Live' : '📊 Seasonal'}
         </div>
       </div>
 
+      {/* Temperature Display */}
+      <div className="mb-3">
+        {displayConfig.showCurrent && (
+          <TemperatureDisplay
+            type="current"
+            currentTemp={temperatures.current}
+          />
+        )}
+        
+        {displayConfig.showRange && (
+          <TemperatureDisplay
+            type="range"
+            highTemp={temperatures.high}
+            lowTemp={temperatures.low}
+          />
+        )}
+      </div>
+
+      {/* Additional Weather Info */}
+      {(weather.humidity || weather.windSpeed || weather.precipitationChance) && (
+        <div className="grid grid-cols-3 gap-2 text-sm text-blue-700">
+          {weather.humidity && (
+            <div className="text-center">
+              <div className="font-medium">{weather.humidity}%</div>
+              <div className="text-xs text-blue-600">Humidity</div>
+            </div>
+          )}
+          
+          {weather.windSpeed && (
+            <div className="text-center">
+              <div className="font-medium">{Math.round(weather.windSpeed)} mph</div>
+              <div className="text-xs text-blue-600">Wind</div>
+            </div>
+          )}
+          
+          {weather.precipitationChance !== undefined && (
+            <div className="text-center">
+              <div className="font-medium">{weather.precipitationChance}%</div>
+              <div className="text-xs text-blue-600">Rain</div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Data Source Info */}
-      <div className="text-xs text-center text-gray-500">
-        {normalizedWeather.isActualForecast 
-          ? `📡 Live forecast from ${normalizedWeather.source}` 
-          : `📊 ${normalizedWeather.source} data`
+      <div className="mt-3 text-xs text-blue-500 text-center">
+        {weather.isActualForecast 
+          ? 'Live forecast data from weather service' 
+          : 'Based on historical weather patterns'
         }
       </div>
     </div>

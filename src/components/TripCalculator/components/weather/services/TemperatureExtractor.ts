@@ -16,13 +16,23 @@ export class TemperatureExtractor {
     console.log('🌡️ TemperatureExtractor.extractTemperatures ENHANCED DEBUG:', {
       cityName,
       rawWeatherInput: weather,
-      weatherKeys: Object.keys(weather),
-      temperatureField: weather.temperature,
-      highTempField: weather.highTemp,
-      lowTempField: weather.lowTemp,
-      cityNameField: weather.cityName,
-      descriptionField: weather.description
+      weatherKeys: Object.keys(weather || {}),
+      temperatureField: weather?.temperature,
+      highTempField: weather?.highTemp,
+      lowTempField: weather?.lowTemp,
+      cityNameField: weather?.cityName,
+      descriptionField: weather?.description
     });
+
+    if (!weather) {
+      console.warn('❌ TemperatureExtractor: No weather data provided');
+      return {
+        current: NaN,
+        high: NaN,
+        low: NaN,
+        isValid: false
+      };
+    }
 
     // Extract individual temperature values from the normalized ForecastWeatherData
     const current = this.extractSingleTemperature(weather.temperature, 'current');
@@ -48,9 +58,19 @@ export class TemperatureExtractor {
     if (!this.isValidTemperature(finalCurrent) && !this.isValidTemperature(finalHigh) && !this.isValidTemperature(finalLow)) {
       console.log('🔍 TemperatureExtractor: No valid temperatures found, checking for fallback data...');
       
-      // For ForecastWeatherData, the temperature fields should already be normalized
-      // So if they're not valid, we don't have usable data
-      console.warn('⚠️ TemperatureExtractor: No valid temperature data available in ForecastWeatherData');
+      // Try to extract from main object if it exists
+      if (weather.main) {
+        finalCurrent = this.extractSingleTemperature(weather.main.temp, 'current-main');
+        finalHigh = this.extractSingleTemperature(weather.main.temp_max, 'high-main');
+        finalLow = this.extractSingleTemperature(weather.main.temp_min, 'low-main');
+      }
+      
+      // Try to extract from temp object if it exists
+      if (!this.isValidTemperature(finalCurrent) && weather.temp) {
+        finalCurrent = this.extractSingleTemperature(weather.temp.day || weather.temp, 'current-temp');
+        finalHigh = this.extractSingleTemperature(weather.temp.max, 'high-temp');
+        finalLow = this.extractSingleTemperature(weather.temp.min, 'low-temp');
+      }
     }
 
     // If we have high/low but not current, calculate current as average
@@ -94,7 +114,7 @@ export class TemperatureExtractor {
     });
 
     // Handle direct numbers
-    if (typeof temp === 'number' && !isNaN(temp) && temp !== 0) {
+    if (typeof temp === 'number' && !isNaN(temp)) {
       const rounded = Math.round(temp);
       console.log(`✅ TemperatureExtractor: Direct number extraction [${type}]:`, rounded);
       return rounded;
@@ -103,7 +123,7 @@ export class TemperatureExtractor {
     // Handle string numbers
     if (typeof temp === 'string' && temp.trim() !== '') {
       const parsed = parseFloat(temp);
-      if (!isNaN(parsed) && parsed !== 0) {
+      if (!isNaN(parsed)) {
         const rounded = Math.round(parsed);
         console.log(`✅ TemperatureExtractor: String number extraction [${type}]:`, rounded);
         return rounded;
