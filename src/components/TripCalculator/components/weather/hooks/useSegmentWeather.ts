@@ -18,6 +18,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     setWeather,
     setLoading,
     setError,
+    retryCount,
     incrementRetry,
     reset
   } = props;
@@ -32,6 +33,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
       setWeather,
       setLoading,
       setError,
+      retryCount,
       incrementRetry,
       reset
     }
