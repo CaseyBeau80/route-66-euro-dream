@@ -3,8 +3,8 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import WeatherDataDisplay from './WeatherDataDisplay';
+import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
 import { WeatherDebugService } from './services/WeatherDebugService';
-import { WeatherTypeDetector } from './utils/WeatherTypeDetector';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -43,12 +43,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     retryCount,
     isSharedView,
     isPDFExport,
-    weatherData: weather ? {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      isActualForecast: weather.isActualForecast
-    } : null
+    hasSegmentDate: !!segmentDate
   });
 
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {
@@ -60,26 +55,30 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // For shared views, show a different message when no API key is available
-  if (!hasApiKey) {
-    if (isSharedView || isPDFExport) {
+  // For shared views or PDF exports without API key, show seasonal fallback
+  if (!hasApiKey && (isSharedView || isPDFExport)) {
+    if (segmentDate) {
+      console.log(`🌱 Showing seasonal fallback for ${segmentEndCity} in shared view`);
       return (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="text-center">
-            <div className="text-blue-600 text-sm font-medium mb-2">
-              🌤️ Weather Information
-            </div>
-            <div className="text-blue-700 text-sm">
-              Current weather conditions for {segmentEndCity}
-            </div>
-            <div className="text-xs text-blue-600 mt-2">
-              Live weather forecasts are available when viewing this trip with an API key configured.
-            </div>
-          </div>
-        </div>
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
       );
     }
+    
+    // No date available in shared view - show generic message
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-gray-600">Weather information not available</p>
+      </div>
+    );
+  }
 
+  // For regular views without API key, show the API key input
+  if (!hasApiKey) {
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -105,8 +104,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  return (
-    <div className="space-y-3">
+  // If we have weather data, display it
+  if (weather) {
+    return (
       <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}
@@ -116,10 +116,45 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       />
+    );
+  }
+
+  // No weather data available - show fallback for shared views
+  if (isSharedView || isPDFExport) {
+    if (segmentDate) {
+      console.log(`🌱 No weather data, showing seasonal fallback for ${segmentEndCity} in shared view`);
+      return (
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
+      );
+    }
+    
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-gray-600">Weather information not available</p>
+      </div>
+    );
+  }
+
+  // Regular view with error - show retry option
+  return (
+    <div className="space-y-3">
+      <div className="bg-amber-50 border border-amber-200 rounded p-3">
+        <div className="text-amber-800 text-sm">
+          Weather information temporarily unavailable
+        </div>
+        {error && (
+          <div className="text-xs text-amber-600 mt-1">{error}</div>
+        )}
+      </div>
 
       {/* Retry section for errors - hide in shared/PDF views */}
-      {error && retryCount < 3 && !isSharedView && !isPDFExport && (
-        <div className="mt-2 text-center">
+      {retryCount < 3 && (
+        <div className="text-center">
           <button
             onClick={onRetry}
             className="text-xs text-blue-600 hover:text-blue-800 underline"
