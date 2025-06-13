@@ -1,3 +1,4 @@
+
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -64,7 +65,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data with enhanced Route 66 destination cities including missing ones
+// Mock data with enhanced Route 66 destination cities - REMOVED VICTORVILLE as it's a waypoint, not a destination city
 const mockDestinationCitiesData = [
   {
     id: 'chicago-il',
