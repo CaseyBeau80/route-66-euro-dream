@@ -22,7 +22,7 @@ export class WeatherFetchingService {
     onError: (error: string | null) => void,
     onWeatherSet: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
-    console.log('🔧 PLAN: WeatherFetchingService.fetchWeatherForSegment - IMPLEMENTING 5-SECOND TIMEOUT', {
+    console.log('🔧 FIXED: WeatherFetchingService.fetchWeatherForSegment - ENHANCED GEOCODING', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       hasApiKey: EnhancedWeatherService.hasApiKey(),
@@ -48,7 +48,7 @@ export class WeatherFetchingService {
       // PLAN: STANDARDIZED forecast range 0-7 days
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('🔧 PLAN: STANDARDIZED date calculations with LOCAL normalization', {
+      console.log('🔧 FIXED: STANDARDIZED date calculations with enhanced geocoding', {
         cityName,
         normalizedSegmentDate: normalizedSegmentDate.toISOString(),
         normalizedToday: normalizedToday.toISOString(),
@@ -65,13 +65,13 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 PLAN: Request aborted for', cityName);
+        console.log('🔧 FIXED: Request aborted for', cityName);
         return;
       }
 
       // PLAN: For forecast range (0-7 days), attempt live forecast with timeout
       if (isWithinForecastRange && EnhancedWeatherService.hasApiKey()) {
-        console.log('🔧 PLAN: ATTEMPTING live forecast with 5-second timeout for', cityName, {
+        console.log('🔧 FIXED: ATTEMPTING live forecast with enhanced geocoding for', cityName, {
           daysFromToday,
           timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
           standardizedRange: true
@@ -96,12 +96,12 @@ export class WeatherFetchingService {
 
           // Check if request was aborted
           if (abortController.signal.aborted) {
-            console.log('🔧 PLAN: Request aborted after live forecast attempt for', cityName);
+            console.log('🔧 FIXED: Request aborted after live forecast attempt for', cityName);
             return;
           }
 
           if (result && result.isActualForecast) {
-            console.log('✅ PLAN: Live forecast SUCCESS within timeout for', cityName, {
+            console.log('✅ FIXED: Live forecast SUCCESS within timeout for', cityName, {
               temperature: result.temperature,
               source: result.source,
               timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS
@@ -112,7 +112,7 @@ export class WeatherFetchingService {
           }
         } catch (error) {
           const isTimeout = error instanceof Error && error.message === 'Live forecast timeout';
-          console.log(`⚠️ PLAN: Live forecast ${isTimeout ? 'TIMEOUT' : 'FAILED'} for`, cityName, {
+          console.log(`⚠️ FIXED: Live forecast ${isTimeout ? 'TIMEOUT' : 'FAILED'} for`, cityName, {
             isTimeout,
             error: error instanceof Error ? error.message : String(error),
             timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
@@ -124,7 +124,7 @@ export class WeatherFetchingService {
 
       // PLAN: Use fallback weather (historical) - either because beyond range or live forecast failed/timed out
       const fallbackReason = isWithinForecastRange ? 'live_forecast_timeout_or_failed' : 'beyond_forecast_range';
-      console.log('🔄 PLAN: Using historical fallback weather for', cityName, {
+      console.log('🔄 FIXED: Using historical fallback weather for', cityName, {
         reason: fallbackReason,
         daysFromToday,
         isWithinForecastRange,
@@ -140,7 +140,7 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 PLAN: Request aborted after fallback creation for', cityName);
+        console.log('🔧 FIXED: Request aborted after fallback creation for', cityName);
         return;
       }
 
@@ -149,7 +149,7 @@ export class WeatherFetchingService {
       onWeatherSet(fallbackWeather);
 
     } catch (error) {
-      console.error('❌ PLAN: Critical error for', cityName, ':', error);
+      console.error('❌ FIXED: Critical error for', cityName, ':', error);
       
       if (!abortController.signal.aborted) {
         // Provide fallback even on critical error
@@ -174,26 +174,42 @@ export class WeatherFetchingService {
     normalizedSegmentDate: Date,
     abortController: AbortController
   ): Promise<ForecastWeatherData | null> {
-    console.log('🔧 PLAN: attemptLiveForecast starting for', cityName);
+    console.log('🔧 FIXED: attemptLiveForecast starting with enhanced geocoding for', cityName);
 
-    // Get coordinates
+    // Get coordinates with enhanced error handling
     const coordinates = await GeocodingService.getCoordinates(cityName);
     
     if (abortController.signal.aborted) {
-      console.log('🔧 PLAN: Aborted after geocoding for', cityName);
+      console.log('🔧 FIXED: Aborted after geocoding for', cityName);
       return null;
     }
 
     if (!coordinates) {
-      console.log('⚠️ PLAN: No coordinates found for', cityName);
+      console.error('❌ FIXED: GEOCODING FAILED for', cityName, {
+        cityName,
+        attemptedNormalization: true,
+        fallbackToHistorical: true,
+        geocodingEnhanced: true
+      });
       return null;
     }
 
+    console.log('✅ FIXED: Geocoding SUCCESS for', cityName, {
+      coordinates,
+      lat: coordinates.lat,
+      lng: coordinates.lng
+    });
+
     const apiKey = EnhancedWeatherService.getApiKey();
     if (!apiKey || apiKey === 'key-available') {
-      console.log('⚠️ PLAN: No valid API key for live forecast', { apiKey });
+      console.log('⚠️ FIXED: No valid API key for live forecast', { apiKey });
       return null;
     }
+
+    console.log('🔧 FIXED: Attempting actual weather API call for', cityName, {
+      coordinates,
+      apiKey: apiKey ? 'present' : 'missing'
+    });
 
     // Try to get actual weather service instance
     const weatherService = new WeatherForecastService(apiKey);
@@ -205,14 +221,15 @@ export class WeatherFetchingService {
     );
 
     if (abortController.signal.aborted) {
-      console.log('🔧 PLAN: Aborted after weather fetch for', cityName);
+      console.log('🔧 FIXED: Aborted after weather fetch for', cityName);
       return null;
     }
 
-    console.log('🔧 PLAN: Live forecast result for', cityName, {
+    console.log('🔧 FIXED: Live forecast result for', cityName, {
       hasWeather: !!weather,
       isActualForecast: weather?.isActualForecast,
-      temperature: weather?.temperature
+      temperature: weather?.temperature,
+      source: weather?.source
     });
 
     return weather;
