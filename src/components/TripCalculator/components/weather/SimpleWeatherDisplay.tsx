@@ -16,7 +16,7 @@ interface SimpleWeatherDisplayProps {
   isPDFExport?: boolean;
 }
 
-const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
+const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
   weather,
   segmentDate,
   cityName,
@@ -31,12 +31,24 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     hasTemperature: !!weather.temperature
   });
 
-  // Extract temperatures
+  // Extract temperatures with memoization to prevent recalculation
   const temperatures = React.useMemo(() => {
     const extracted = TemperatureExtractor.extractTemperatures(weather, cityName);
     console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures:', extracted);
     return extracted;
-  }, [weather, cityName]);
+  }, [weather.temperature, weather.highTemp, weather.lowTemp, weather.matchedForecastDay, cityName]);
+
+  // Memoize weather type detection
+  const weatherType = React.useMemo(() => {
+    const type = WeatherTypeDetector.detectWeatherType(weather);
+    WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SimpleWeatherDisplay-${cityName}`);
+    return type;
+  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
+
+  const footerMessage = React.useMemo(() => 
+    WeatherTypeDetector.getFooterMessage(weather), 
+    [weather.source, weather.isActualForecast]
+  );
 
   // Check if we have any displayable data
   if (!temperatures.isValid) {
@@ -56,13 +68,6 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   // Determine what to show
   const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
   const showCurrent = !isNaN(temperatures.current) && !showRange;
-
-  // FIXED: Use centralized WeatherTypeDetector with validation
-  const weatherType = WeatherTypeDetector.detectWeatherType(weather);
-  const footerMessage = WeatherTypeDetector.getFooterMessage(weather);
-  
-  // Validate weather type consistency
-  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SimpleWeatherDisplay-${cityName}`);
 
   console.log('🔧 FIXED: Using centralized WeatherTypeDetector for display decision:', {
     cityName,
@@ -144,6 +149,20 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return (
+    prevProps.weather.temperature === nextProps.weather.temperature &&
+    prevProps.weather.highTemp === nextProps.weather.highTemp &&
+    prevProps.weather.lowTemp === nextProps.weather.lowTemp &&
+    prevProps.weather.source === nextProps.weather.source &&
+    prevProps.weather.isActualForecast === nextProps.weather.isActualForecast &&
+    prevProps.weather.dateMatchInfo?.source === nextProps.weather.dateMatchInfo?.source &&
+    prevProps.cityName === nextProps.cityName &&
+    prevProps.segmentDate?.getTime() === nextProps.segmentDate?.getTime()
+  );
+});
+
+SimpleWeatherDisplay.displayName = 'SimpleWeatherDisplay';
 
 export default SimpleWeatherDisplay;
