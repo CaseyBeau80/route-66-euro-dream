@@ -81,16 +81,38 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Don't show any header in SegmentWeatherContent - let the parent component handle it
-  // This eliminates the conflict between different header determinations
-  console.log('🔧 FIXED: SegmentWeatherContent removed header to prevent conflicts for', segmentEndCity, {
-    hasWeather: !!weather,
+  // FIXED: Add the proper weather type header using centralized detection
+  const weatherType = WeatherTypeDetector.detectWeatherType(weather, segmentDate || undefined);
+  const headerText = weatherType.displayLabel;
+  const headerColor = weatherType.isLiveForecast ? 'text-green-600' : 'text-orange-600';
+
+  console.log('🔧 FIXED: SegmentWeatherContent now uses centralized header logic for', segmentEndCity, {
+    weatherType: weatherType,
+    headerText,
+    headerColor,
     weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast
+    isActualForecast: weather?.isActualForecast,
+    segmentDate: segmentDate?.toISOString()
   });
 
   return (
     <div className="space-y-3">
+      {/* FIXED: Show centralized weather type header */}
+      <div className="flex items-center justify-between">
+        <h4 className={`font-medium ${headerColor}`}>
+          {headerText}
+        </h4>
+        {segmentDate && (
+          <span className="text-xs text-gray-500">
+            {segmentDate.toLocaleDateString('en-US', { 
+              weekday: 'short', 
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </span>
+        )}
+      </div>
+
       <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}

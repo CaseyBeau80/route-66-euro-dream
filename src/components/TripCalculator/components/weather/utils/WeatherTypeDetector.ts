@@ -54,13 +54,14 @@ export class WeatherTypeDetector {
       hasValidData: !!(weather.temperature || weather.highTemp || weather.lowTemp)
     });
 
-    // STRICT RULE 1: Date-based validation - Day 7+ is ALWAYS historical
-    if (!isWithinForecastRange) {
-      console.log('🚨 STRICT VALIDATION: Day 7+ detected - forcing historical classification:', {
+    // ABSOLUTE RULE 1: Day 7+ is ALWAYS historical - NO EXCEPTIONS
+    if (daysFromToday > this.FORECAST_THRESHOLD_DAYS) {
+      console.log('🚨 ABSOLUTE VALIDATION: Day 7+ detected - FORCED historical classification:', {
         daysFromToday,
         threshold: this.FORECAST_THRESHOLD_DAYS,
         originalSource: weather.source,
-        originalIsActualForecast: weather.isActualForecast
+        originalIsActualForecast: weather.isActualForecast,
+        enforcementLevel: 'ABSOLUTE'
       });
 
       return {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
   // FIXED: Remove any header logic from TripOverviewCard - let SegmentWeatherWidget handle it entirely
-  console.log('🔧 FIXED: TripOverviewCard removed weather header logic to prevent conflicts:', {
+  console.log('🔧 FIXED: TripOverviewCard completely removed weather header logic:', {
     lastSegmentCity: lastSegment?.endCity,
     hasTripStartDate: !!tripStartDate,
     willShowWeatherWidget: !!(tripStartDate && lastSegment)
@@ -90,7 +91,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatTime={formatTime}
         />
 
-        {/* FIXED: Weather Information Section - No header, let SegmentWeatherWidget handle everything */}
+        {/* FIXED: Weather Information Section - Static title only */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
