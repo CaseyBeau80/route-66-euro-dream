@@ -31,6 +31,31 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     }).format(amount);
   };
 
+  // Helper function to safely get driving time
+  const getDrivingTime = (segment: any): number => {
+    // Try multiple possible properties for driving time
+    const possibleTimes = [
+      segment.drivingTime,
+      segment.driveTimeHours,
+      segment.totalDriveTime
+    ];
+    
+    for (const time of possibleTimes) {
+      if (typeof time === 'number' && !isNaN(time) && time > 0) {
+        return time;
+      }
+    }
+    
+    // Fallback: calculate from distance if available
+    if (segment.distance && typeof segment.distance === 'number' && !isNaN(segment.distance)) {
+      // Assume average speed of 55 mph for Route 66
+      return segment.distance / 55;
+    }
+    
+    // Final fallback
+    return 0;
+  };
+
   const segments = tripPlan.segments || [];
   const enrichedSegments = segments.filter(segment => 
     segment && segment.day && (segment.endCity || segment.destination)
@@ -104,29 +129,38 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           </p>
         </div>
         
-        {enrichedSegments.slice(0, 3).map((segment, index) => (
-          <div key={`preview-day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
-                  Day {segment.day}
-                </span>
-                <span className="text-gray-300">•</span>
-                <h5 className="text-sm font-semibold text-route66-text-primary">
-                  {segment.startCity} → {segment.endCity}
-                </h5>
+        {enrichedSegments.slice(0, 3).map((segment, index) => {
+          const drivingTime = getDrivingTime(segment);
+          const drivingHours = Math.floor(drivingTime);
+          const drivingMinutes = Math.round((drivingTime - drivingHours) * 60);
+          const drivingTimeDisplay = drivingHours > 0 ? 
+            `${drivingHours}h ${drivingMinutes > 0 ? drivingMinutes + 'm' : ''}` : 
+            `${drivingMinutes}m`;
+
+          return (
+            <div key={`preview-day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
+                    Day {segment.day}
+                  </span>
+                  <span className="text-gray-300">•</span>
+                  <h5 className="text-sm font-semibold text-route66-text-primary">
+                    {segment.startCity} → {segment.endCity}
+                  </h5>
+                </div>
+                {tripStartDate && (
+                  <span className="text-xs text-gray-500">
+                    {format(new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEE, MMM d')}
+                  </span>
+                )}
               </div>
-              {tripStartDate && (
-                <span className="text-xs text-gray-500">
-                  {format(new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEE, MMM d')}
-                </span>
-              )}
+              <p className="text-xs text-gray-600">
+                {Math.round(segment.distance || 0)} miles • {drivingTimeDisplay} driving
+              </p>
             </div>
-            <p className="text-xs text-gray-600">
-              {Math.round(segment.distance)} miles • {Math.round(segment.drivingTime)} hours driving
-            </p>
-          </div>
-        ))}
+          );
+        })}
         
         {enrichedSegments.length > 3 && (
           <div className="text-center text-sm text-gray-500 font-travel">
