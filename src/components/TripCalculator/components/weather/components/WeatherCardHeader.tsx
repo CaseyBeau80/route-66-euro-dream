@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { DailySegment } from '../../../services/planning/TripPlanBuilder';
+import { DailySegment } from '../../../../services/planning/TripPlanBuilder';
 
 interface WeatherCardHeaderProps {
   segment: DailySegment;
