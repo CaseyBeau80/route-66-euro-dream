@@ -25,7 +25,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     distance: s.distance,
     drivingTime: s.drivingTime,
     driveTimeHours: s.driveTimeHours,
-    totalDriveTime: s.totalDriveTime,
     allProperties: Object.keys(s)
   })));
 
@@ -47,15 +46,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       day: segment.day,
       drivingTime: segment.drivingTime,
       driveTimeHours: segment.driveTimeHours,
-      totalDriveTime: segment.totalDriveTime,
       distance: segment.distance
     });
     
     // Try multiple possible properties for driving time
     const possibleTimes = [
       segment.drivingTime,
-      segment.driveTimeHours,
-      segment.totalDriveTime
+      segment.driveTimeHours
     ];
     
     for (const time of possibleTimes) {
