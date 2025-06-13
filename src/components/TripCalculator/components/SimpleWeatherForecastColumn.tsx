@@ -34,6 +34,20 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
     }
   }, [tripStartDate]);
 
+  // 🎯 DEBUG: Log SimpleWeatherForecastColumn render
+  console.log('🎯 [WEATHER DEBUG] SimpleWeatherForecastColumn rendered:', {
+    component: 'SimpleWeatherForecastColumn',
+    originalSegmentsCount: segments.length,
+    stableSegmentsCount: stableSegments.length,
+    hasValidStartDate: !!validTripStartDate,
+    tripStartDate: validTripStartDate?.toISOString(),
+    tripId,
+    segments: stableSegments.map(s => ({
+      day: s.day,
+      endCity: s.endCity
+    }))
+  });
+
   return (
     <>
       {/* Column Header */}
@@ -45,14 +59,26 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
       
       {/* Weather Cards */}
       <div className="space-y-4">
-        {stableSegments.map((segment, index) => (
-          <WeatherCard
-            key={`weather-${segment.day}-${index}`}
-            segment={segment}
-            tripStartDate={validTripStartDate}
-            cardIndex={index}
-          />
-        ))}
+        {stableSegments.map((segment, index) => {
+          // 🎯 DEBUG: Log before rendering each WeatherCard
+          console.log(`🎯 [WEATHER DEBUG] About to render WeatherCard ${index + 1}:`, {
+            component: 'SimpleWeatherForecastColumn -> WeatherCard',
+            segmentDay: segment.day,
+            segmentEndCity: segment.endCity,
+            cardIndex: index,
+            tripStartDate: validTripStartDate?.toISOString(),
+            key: `weather-${segment.day}-${index}`
+          });
+
+          return (
+            <WeatherCard
+              key={`weather-${segment.day}-${index}`}
+              segment={segment}
+              tripStartDate={validTripStartDate}
+              cardIndex={index}
+            />
+          );
+        })}
       </div>
     </>
   );

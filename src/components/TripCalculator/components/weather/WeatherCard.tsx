@@ -21,9 +21,31 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
   tripStartDate,
   cardIndex
 }) => {
+  // 🎯 DEBUG: Log WeatherCard component entry
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendered for Day ${segment.day}:`, {
+    component: 'WeatherCard',
+    segmentDay: segment.day,
+    segmentEndCity: segment.endCity,
+    cardIndex,
+    hasTripStartDate: !!tripStartDate,
+    tripStartDate: tripStartDate?.toISOString()
+  });
+
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
+  // 🎯 DEBUG: Log API key and weather state
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard hooks initialized for ${segment.endCity}:`, {
+    component: 'WeatherCard -> hooks',
+    hasApiKey,
+    weatherState: {
+      hasWeather: !!weatherState.weather,
+      loading: weatherState.loading,
+      error: weatherState.error,
+      retryCount: weatherState.retryCount
+    }
+  });
+
   const { fetchWeather } = useWeatherDataFetcher({
     segmentEndCity: segment.endCity,
     segmentDay: segment.day,
@@ -41,8 +63,20 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
+  // 🎯 DEBUG: Log calculated segment date
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard segment date calculated for ${segment.endCity}:`, {
+    component: 'WeatherCard -> segmentDate',
+    calculatedDate: segmentDate?.toISOString(),
+    dayOffset: segment.day - 1
+  });
+
   // No trip date provided
   if (!tripStartDate || !segmentDate) {
+    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning no-date state for ${segment.endCity}:`, {
+      component: 'WeatherCard -> no-date-state',
+      reason: !tripStartDate ? 'no tripStartDate' : 'no segmentDate'
+    });
+
     return (
       <div className="bg-gray-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
         <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -55,6 +89,10 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   // No API key
   if (!hasApiKey) {
+    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning no-API-key state for ${segment.endCity}:`, {
+      component: 'WeatherCard -> no-api-key-state'
+    });
+
     return (
       <div className="bg-yellow-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center border border-yellow-200">
         <Cloud className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
@@ -70,6 +108,10 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   // Loading state
   if (weatherState.loading) {
+    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning loading state for ${segment.endCity}:`, {
+      component: 'WeatherCard -> loading-state'
+    });
+
     return (
       <div className="bg-blue-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -80,6 +122,12 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   // Error state
   if (weatherState.error && weatherState.retryCount > 2) {
+    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning error state for ${segment.endCity}:`, {
+      component: 'WeatherCard -> error-state',
+      error: weatherState.error,
+      retryCount: weatherState.retryCount
+    });
+
     return (
       <div className="bg-red-50 rounded-lg p-6 text-center min-h-[200px] flex flex-col justify-center border border-red-200">
         <Cloud className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -88,6 +136,13 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
       </div>
     );
   }
+
+  // 🎯 DEBUG: Log successful render path
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendering main content for ${segment.endCity}:`, {
+    component: 'WeatherCard -> main-content',
+    hasWeather: !!weatherState.weather,
+    segmentDate: segmentDate.toISOString()
+  });
 
   return (
     <ErrorBoundary context={`WeatherCard-${segment.day}`}>
@@ -126,16 +181,39 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
         {/* Weather Content */}
         <div className="p-4">
           {weatherState.weather ? (
-            <SimpleWeatherDisplay
-              weather={weatherState.weather}
-              segmentDate={segmentDate}
-              cityName={segment.endCity}
-            />
+            <>
+              {/* 🎯 DEBUG: Log weather display */}
+              {(() => {
+                console.log(`🎯 [WEATHER DEBUG] WeatherCard displaying weather for ${segment.endCity}:`, {
+                  component: 'WeatherCard -> SimpleWeatherDisplay',
+                  weatherData: {
+                    temperature: weatherState.weather.temperature,
+                    description: weatherState.weather.description,
+                    isActualForecast: weatherState.weather.isActualForecast
+                  }
+                });
+                return null;
+              })()}
+              <SimpleWeatherDisplay
+                weather={weatherState.weather}
+                segmentDate={segmentDate}
+                cityName={segment.endCity}
+              />
+            </>
           ) : (
-            <div className="text-center py-8">
-              <Cloud className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">Loading weather...</p>
-            </div>
+            <>
+              {/* 🎯 DEBUG: Log no weather data */}
+              {(() => {
+                console.log(`🎯 [WEATHER DEBUG] WeatherCard showing no weather for ${segment.endCity}:`, {
+                  component: 'WeatherCard -> no-weather-fallback'
+                });
+                return null;
+              })()}
+              <div className="text-center py-8">
+                <Cloud className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Loading weather...</p>
+              </div>
+            </>
           )}
         </div>
       </div>

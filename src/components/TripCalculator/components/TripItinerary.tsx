@@ -22,6 +22,18 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     return tripStartDate;
   }, [tripStartDate]);
 
+  // 🎯 DEBUG: Log TripItinerary render
+  console.log('🎯 [WEATHER DEBUG] TripItinerary rendered:', {
+    component: 'TripItinerary',
+    segmentsCount: tripPlan.segments.length,
+    hasStartDate: !!validatedTripStartDate,
+    startDate: validatedTripStartDate?.toISOString(),
+    segments: tripPlan.segments.map(s => ({
+      day: s.day,
+      endCity: s.endCity
+    }))
+  });
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
@@ -39,6 +51,16 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
             </ErrorBoundary>
             
             <ErrorBoundary context="SimpleWeatherForecastColumn">
+              {/* 🎯 DEBUG: Log before rendering SimpleWeatherForecastColumn */}
+              {(() => {
+                console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
+                  component: 'TripItinerary -> SimpleWeatherForecastColumn',
+                  segmentsCount: tripPlan.segments.length,
+                  tripStartDate: validatedTripStartDate?.toISOString(),
+                  tripId: tripPlan.id
+                });
+                return null;
+              })()}
               <SimpleWeatherForecastColumn 
                 segments={tripPlan.segments} 
                 tripStartDate={validatedTripStartDate}
