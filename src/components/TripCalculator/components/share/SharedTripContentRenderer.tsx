@@ -94,6 +94,24 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
+      {/* Header with Ramble 66 branding */}
+      <div className="text-center mb-6 p-6 bg-gradient-to-r from-route66-primary to-route66-rust rounded-lg">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="bg-white rounded-full p-2">
+            <div className="w-8 h-8 bg-route66-primary rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">66</span>
+            </div>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white font-route66">RAMBLE 66</h1>
+            <p className="text-xs text-route66-cream font-travel tracking-wider">ROUTE 66 TRIP PLANNER</p>
+          </div>
+        </div>
+        <h2 className="text-lg font-semibold text-white">
+          {tripPlan.startCity} to {tripPlan.endCity} Adventure
+        </h2>
+      </div>
+
       {/* Trip Overview Header with Cost Integration */}
       <div className="mb-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown">
         <h2 className="text-xl font-bold text-route66-vintage-red mb-4 font-route66 text-center">
