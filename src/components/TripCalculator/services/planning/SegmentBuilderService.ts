@@ -1,7 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 import { SegmentBuilderOrchestrator } from './SegmentBuilderOrchestrator';
 
 export class SegmentBuilderService {

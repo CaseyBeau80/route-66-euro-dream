@@ -1,6 +1,5 @@
-
 import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 
 export class SegmentValidationHelper {
   /**

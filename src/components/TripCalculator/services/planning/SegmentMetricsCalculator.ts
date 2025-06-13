@@ -1,7 +1,7 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { CityDisplayService } from '../utils/CityDisplayService';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 
 export class SegmentMetricsCalculator {
   /**

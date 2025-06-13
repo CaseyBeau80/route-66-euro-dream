@@ -1,4 +1,4 @@
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 import { DriveTimeCategory } from './TripPlanBuilder';
 
 export interface DriveTimeValidationResult {

@@ -208,7 +208,16 @@ export class UnifiedTripPlanningService {
     }
 
     // FIXED: Validate that all overnight stops are destination cities
-    const overnightStops = segments.map(seg => seg.destination?.city).filter(Boolean);
+    const overnightStops = segments.map(seg => {
+      // Handle both string and object destination types
+      if (typeof seg.destination === 'string') {
+        return seg.destination;
+      } else if (seg.destination && typeof seg.destination === 'object' && 'city' in seg.destination) {
+        return seg.destination.city;
+      }
+      return seg.endCity; // Fallback to endCity
+    }).filter(Boolean);
+
     const nonDestinationOvernights = overnightStops.filter(city => {
       // This is a simplified check - in a real implementation you'd cross-reference with the actual TripStop objects
       return false; // Placeholder - the DailySegmentCreator already ensures destination cities

@@ -1,5 +1,5 @@
 
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 
 export interface BalanceMetrics {

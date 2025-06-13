@@ -2,7 +2,7 @@
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { BalanceQualityMetrics } from './BalanceQualityMetrics';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 import { SegmentCreationLoop } from './SegmentCreationLoop';
 import { SegmentValidationHelper } from './SegmentValidationHelper';
 

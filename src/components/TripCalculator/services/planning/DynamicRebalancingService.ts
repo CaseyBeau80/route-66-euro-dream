@@ -1,6 +1,6 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { DriveTimeCategory } from './TripPlanBuilder';

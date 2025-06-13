@@ -1,5 +1,5 @@
 
-import { DailySegment } from './DailySegmentCreator';
+import { DailySegment } from './TripPlanBuilder';
 
 export class DriveTimeBalanceCalculator {
   /**
