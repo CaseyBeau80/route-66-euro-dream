@@ -3,7 +3,7 @@ import { CityNameNormalizationService } from '../../../services/CityNameNormaliz
 import { allRoute66Coordinates } from '../../../services/coordinates/Route66Coordinates';
 
 export class GeocodingService {
-  static async getCoordinates(cityName: string): Promise<{ lat: number; lng: number } | null {
+  static async getCoordinates(cityName: string): Promise<{ lat: number; lng: number } | null> {
     console.log('🗺️ ENHANCED: Weather GeocodingService - Enhanced coordinate lookup for:', JSON.stringify(cityName));
     
     if (!cityName || typeof cityName !== 'string') {
