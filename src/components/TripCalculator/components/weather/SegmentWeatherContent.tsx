@@ -1,10 +1,8 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import WeatherApiKeyHandler from './WeatherApiKeyHandler';
-import WeatherStateHandler from './WeatherStateHandler';
-import WeatherDisplayDecision from './WeatherDisplayDecision';
-import MissingDateError from './components/MissingDateError';
+import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
+import WeatherDataDisplay from './WeatherDataDisplay';
 import { WeatherDebugService } from './services/WeatherDebugService';
 
 interface SegmentWeatherContentProps {
@@ -14,7 +12,7 @@ interface SegmentWeatherContentProps {
   error: string | null;
   retryCount: number;
   segmentEndCity: string;
-  segmentDate: Date | null;
+  segmentDate?: Date | null;
   onApiKeySet: () => void;
   onTimeout: () => void;
   onRetry: () => void;
@@ -36,63 +34,129 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Debug logging for component render
+  console.log('🌤️ SegmentWeatherContent render for', segmentEndCity, {
+    hasApiKey,
+    loading,
+    hasWeather: !!weather,
+    error,
+    retryCount,
+    isSharedView,
+    isPDFExport
+  });
+
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
     error,
     retryCount,
-    segmentDate: segmentDate?.toISOString(),
-    isSharedView,
-    isPDFExport
+    segmentDate: segmentDate?.toISOString()
   });
 
-  // Log weather data details
-  if (weather) {
-    WeatherDebugService.logWeatherFlow(`SegmentWeatherContent.weatherData [${segmentEndCity}]`, {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      isActualForecast: weather.isActualForecast,
-      description: weather.description,
-      source: weather.dateMatchInfo?.source
-    });
+  // Show API key input if no API key
+  if (!hasApiKey) {
+    return (
+      <div className="space-y-2">
+        <div className="text-sm text-gray-600 mb-2">
+          Weather forecast requires an API key
+        </div>
+        <SimpleWeatherApiKeyInput 
+          onApiKeySet={onApiKeySet}
+          cityName={segmentEndCity}
+        />
+      </div>
+    );
   }
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-sm">Loading weather for {segmentEndCity}...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // FIXED: Determine weather section header based on actual data type
+  const getWeatherSectionHeader = () => {
+    if (!weather) return 'Weather Information';
+    
+    const isHistoricalData = (
+      weather.isActualForecast === false ||
+      weather.source === 'historical_fallback' ||
+      weather.source === 'seasonal' ||
+      weather.dateMatchInfo?.source === 'historical_fallback' ||
+      weather.dateMatchInfo?.source === 'seasonal-estimate'
+    );
+
+    const isLiveForecast = (
+      weather.isActualForecast === true &&
+      weather.source === 'live_forecast' &&
+      weather.dateMatchInfo?.source !== 'historical_fallback' &&
+      weather.dateMatchInfo?.source !== 'seasonal-estimate'
+    );
+
+    if (isLiveForecast) {
+      return 'Live Forecast';
+    } else if (isHistoricalData) {
+      return 'Historical Data';
+    } else {
+      return 'Weather Information';
+    }
+  };
+
+  const weatherSectionHeader = getWeatherSectionHeader();
+
+  console.log('🔧 FIXED: Weather section header determination', {
+    segmentEndCity,
+    weatherSectionHeader,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
+    dateMatchSource: weather?.dateMatchInfo?.source
+  });
+
   return (
-    <WeatherApiKeyHandler
-      hasApiKey={hasApiKey}
-      segmentEndCity={segmentEndCity}
-      onApiKeySet={onApiKeySet}
-      isSharedView={isSharedView}
-      isPDFExport={isPDFExport}
-    >
-      <WeatherStateHandler
-        loading={loading}
-        retryCount={retryCount}
-        error={error}
-        segmentEndCity={segmentEndCity}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">
+          {weatherSectionHeader}
+        </h3>
+        {segmentDate && (
+          <div className="text-sm text-gray-500">
+            {segmentDate.toLocaleDateString('en-US', { 
+              weekday: 'short',
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </div>
+        )}
+      </div>
+
+      <WeatherDataDisplay
+        weather={weather}
         segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        error={error}
         onRetry={onRetry}
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
-      >
-        {segmentDate ? (
-          <WeatherDisplayDecision
-            weather={weather}
-            segmentDate={segmentDate}
-            segmentEndCity={segmentEndCity}
-            error={error}
-            onRetry={onRetry}
-            isSharedView={isSharedView}
-            isPDFExport={isPDFExport}
-          />
-        ) : (
-          <MissingDateError cityName={segmentEndCity} />
-        )}
-      </WeatherStateHandler>
-    </WeatherApiKeyHandler>
+      />
+
+      {/* Retry section for errors */}
+      {error && retryCount < 3 && !isSharedView && !isPDFExport && (
+        <div className="mt-2 text-center">
+          <button
+            onClick={onRetry}
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            Retry weather fetch
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
