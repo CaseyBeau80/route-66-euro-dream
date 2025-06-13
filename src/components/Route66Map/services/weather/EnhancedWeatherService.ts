@@ -47,6 +47,10 @@ export class EnhancedWeatherService {
     return hasKey;
   }
 
+  getEnhancedDebugInfo() {
+    return this.apiKeyManager.getEnhancedDebugInfo();
+  }
+
   getDebugInfo() {
     return this.apiKeyManager.getEnhancedDebugInfo();
   }
