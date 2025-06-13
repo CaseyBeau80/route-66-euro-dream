@@ -77,45 +77,48 @@ export class TemperatureExtractor {
         }
       }
 
-      // Try extracting directly from matched day if it has main properties
-      if (matched.main) {
-        if (isNaN(current) && matched.main.temp) {
+      // Try extracting directly from matched day if it has main properties (raw API data)
+      if (matched.main && typeof matched.main === 'object') {
+        if (isNaN(current) && 'temp' in matched.main) {
           current = this.extractSingleTemperature(matched.main.temp, 'current-main');
         }
-        if (isNaN(high) && matched.main.temp_max) {
+        if (isNaN(high) && 'temp_max' in matched.main) {
           high = this.extractSingleTemperature(matched.main.temp_max, 'high-main');
         }
-        if (isNaN(low) && matched.main.temp_min) {
+        if (isNaN(low) && 'temp_min' in matched.main) {
           low = this.extractSingleTemperature(matched.main.temp_min, 'low-main');
         }
       }
     }
 
-    // Path 3: Enhanced fallback - check for common weather API response formats
+    // Path 3: Enhanced fallback - check for common weather API response formats in raw data
     if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather) {
+      // Check if the weather object contains raw API data (type checking)
+      const weatherAsAny = weather as any;
+      
       // OpenWeatherMap current weather format
-      if (weather.main) {
-        if (isNaN(current) && weather.main.temp) {
-          current = this.extractSingleTemperature(weather.main.temp, 'current-owm');
+      if (weatherAsAny.main && typeof weatherAsAny.main === 'object') {
+        if (isNaN(current) && 'temp' in weatherAsAny.main) {
+          current = this.extractSingleTemperature(weatherAsAny.main.temp, 'current-owm');
         }
-        if (isNaN(high) && weather.main.temp_max) {
-          high = this.extractSingleTemperature(weather.main.temp_max, 'high-owm');
+        if (isNaN(high) && 'temp_max' in weatherAsAny.main) {
+          high = this.extractSingleTemperature(weatherAsAny.main.temp_max, 'high-owm');
         }
-        if (isNaN(low) && weather.main.temp_min) {
-          low = this.extractSingleTemperature(weather.main.temp_min, 'low-owm');
+        if (isNaN(low) && 'temp_min' in weatherAsAny.main) {
+          low = this.extractSingleTemperature(weatherAsAny.main.temp_min, 'low-owm');
         }
       }
 
       // Try temp object format
-      if (weather.temp) {
-        if (isNaN(current) && weather.temp.day) {
-          current = this.extractSingleTemperature(weather.temp.day, 'current-temp-day');
+      if (weatherAsAny.temp && typeof weatherAsAny.temp === 'object') {
+        if (isNaN(current) && 'day' in weatherAsAny.temp) {
+          current = this.extractSingleTemperature(weatherAsAny.temp.day, 'current-temp-day');
         }
-        if (isNaN(high) && weather.temp.max) {
-          high = this.extractSingleTemperature(weather.temp.max, 'high-temp-max');
+        if (isNaN(high) && 'max' in weatherAsAny.temp) {
+          high = this.extractSingleTemperature(weatherAsAny.temp.max, 'high-temp-max');
         }
-        if (isNaN(low) && weather.temp.min) {
-          low = this.extractSingleTemperature(weather.temp.min, 'low-temp-min');
+        if (isNaN(low) && 'min' in weatherAsAny.temp) {
+          low = this.extractSingleTemperature(weatherAsAny.temp.min, 'low-temp-min');
         }
       }
     }

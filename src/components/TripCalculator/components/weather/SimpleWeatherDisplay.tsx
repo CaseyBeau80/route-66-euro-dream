@@ -49,7 +49,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
       }
     });
     return extracted;
-  }, [weather.temperature, weather.highTemp, weather.lowTemp, weather.matchedForecastDay, weather.main, weather.temp, cityName]);
+  }, [weather.temperature, weather.highTemp, weather.lowTemp, weather.matchedForecastDay, cityName]);
 
   // Memoize weather type detection
   const weatherType = React.useMemo(() => {
