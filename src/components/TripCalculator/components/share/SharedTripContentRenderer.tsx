@@ -18,6 +18,16 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   isSharedView = false
 }) => {
   console.log('📤 SharedTripContentRenderer: Rendering PDF-style content for sharing');
+  console.log('📤 TripPlan segments data:', tripPlan.segments?.map(s => ({
+    day: s.day,
+    startCity: s.startCity,
+    endCity: s.endCity,
+    distance: s.distance,
+    drivingTime: s.drivingTime,
+    driveTimeHours: s.driveTimeHours,
+    totalDriveTime: s.totalDriveTime,
+    allProperties: Object.keys(s)
+  })));
 
   // Get cost estimate for the trip
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -33,6 +43,14 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   // Helper function to safely get driving time
   const getDrivingTime = (segment: any): number => {
+    console.log('🚗 Getting driving time for segment:', {
+      day: segment.day,
+      drivingTime: segment.drivingTime,
+      driveTimeHours: segment.driveTimeHours,
+      totalDriveTime: segment.totalDriveTime,
+      distance: segment.distance
+    });
+    
     // Try multiple possible properties for driving time
     const possibleTimes = [
       segment.drivingTime,
@@ -42,6 +60,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     
     for (const time of possibleTimes) {
       if (typeof time === 'number' && !isNaN(time) && time > 0) {
+        console.log('🚗 Found valid driving time:', time);
         return time;
       }
     }
@@ -49,10 +68,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     // Fallback: calculate from distance if available
     if (segment.distance && typeof segment.distance === 'number' && !isNaN(segment.distance)) {
       // Assume average speed of 55 mph for Route 66
-      return segment.distance / 55;
+      const calculatedTime = segment.distance / 55;
+      console.log('🚗 Calculated driving time from distance:', calculatedTime);
+      return calculatedTime;
     }
     
     // Final fallback
+    console.log('🚗 No valid driving time found, returning 0');
     return 0;
   };
 
@@ -136,6 +158,8 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           const drivingTimeDisplay = drivingHours > 0 ? 
             `${drivingHours}h ${drivingMinutes > 0 ? drivingMinutes + 'm' : ''}` : 
             `${drivingMinutes}m`;
+
+          console.log('🚗 Final driving time display for day', segment.day, ':', drivingTimeDisplay);
 
           return (
             <div key={`preview-day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
