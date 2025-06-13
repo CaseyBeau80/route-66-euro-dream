@@ -34,28 +34,34 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       matchType: 'none',
       daysOffset: 0
     },
-    temperature: 0, // Not used for type detection
-    description: '', // Not used for type detection
-    icon: '', // Not used for type detection
+    temperature: 0,
+    description: '',
+    icon: '',
     humidity: null,
     windSpeed: null,
     precipitationChance: null,
     highTemp: null,
     lowTemp: null,
-    forecast: [], // Required property - empty array since not used for type detection
-    forecastDate: new Date(), // Required property - current date as placeholder
-    cityName: cityName // Required property - pass through the cityName prop
+    forecast: [],
+    forecastDate: new Date(),
+    cityName: cityName
   };
 
   // FIXED: Use centralized WeatherTypeDetector for consistent badge logic
   const weatherType = WeatherTypeDetector.detectWeatherType(weatherData);
 
-  console.log('🎯 FIXED: WeatherBadge using WeatherTypeDetector result:', {
-    cityName,
-    weatherType,
-    decision: weatherType.isLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL_DATA'
+  console.log('🎯 FIXED: WeatherBadge decision for', cityName, {
+    inputData: { source, isActualForecast, dateMatchSource },
+    weatherType: {
+      isLiveForecast: weatherType.isLiveForecast,
+      isHistoricalData: weatherType.isHistoricalData,
+      displayLabel: weatherType.displayLabel,
+      badgeType: weatherType.badgeType
+    },
+    finalDecision: weatherType.isLiveForecast ? 'LIVE_FORECAST_BADGE' : 'HISTORICAL_DATA_BADGE'
   });
 
+  // Only show live forecast badge if WeatherTypeDetector confirms it's actually live
   if (weatherType.isLiveForecast) {
     return (
       <div className="text-xs px-2 py-1 rounded bg-green-100 text-green-800">

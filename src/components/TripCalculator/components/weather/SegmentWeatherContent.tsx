@@ -81,19 +81,33 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Use centralized WeatherTypeDetector with validation
-  const weatherSectionHeader = WeatherTypeDetector.getSectionHeader(weather);
+  // FIXED: Determine the weather section header based on actual weather data
+  let weatherSectionHeader = 'Weather Information';
   
-  // Validate weather type consistency
-  WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SegmentWeatherContent-${segmentEndCity}`);
-
-  console.log('🔧 FIXED: Using centralized WeatherTypeDetector for section header:', {
-    segmentEndCity,
-    weatherSectionHeader,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    dateMatchSource: weather?.dateMatchInfo?.source
-  });
+  if (weather) {
+    // Use centralized WeatherTypeDetector for consistent header determination
+    const weatherType = WeatherTypeDetector.detectWeatherType(weather);
+    weatherSectionHeader = weatherType.displayLabel;
+    
+    console.log('🔧 FIXED: Weather section header determination for', segmentEndCity, {
+      weatherData: {
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        dateMatchSource: weather.dateMatchInfo?.source
+      },
+      weatherType: {
+        isLiveForecast: weatherType.isLiveForecast,
+        isHistoricalData: weatherType.isHistoricalData,
+        displayLabel: weatherType.displayLabel
+      },
+      finalHeader: weatherSectionHeader
+    });
+    
+    // Validate weather type consistency
+    WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SegmentWeatherContent-${segmentEndCity}`);
+  } else {
+    console.log('🔧 No weather data available for', segmentEndCity, '- using default header');
+  }
 
   return (
     <div className="space-y-3">
