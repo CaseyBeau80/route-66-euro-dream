@@ -9,12 +9,15 @@ export class WeatherFallbackService {
     targetDateString: string,
     daysFromToday: number
   ): ForecastWeatherData {
-    console.log('🚨 FIXED: WeatherFallbackService.createFallbackForecast - STRICT historical marking', {
+    console.log('🚨 PLAN: WeatherFallbackService.createFallbackForecast - STRICT historical marking with LOCAL dates', {
       cityName,
       targetDateString,
+      targetDateLocal: targetDate.toLocaleDateString(),
       targetMonth: targetDate.getMonth(),
       daysFromToday,
-      reason: 'outside_forecast_range_or_api_unavailable'
+      reason: 'outside_expanded_forecast_range_or_api_unavailable',
+      expandedRange: true,
+      localDateCalculation: true
     });
 
     const month = targetDate.getMonth();
@@ -46,9 +49,10 @@ export class WeatherFallbackService {
       }
     };
 
-    console.log('🚨 FIXED: WeatherFallbackService STRICT FALLBACK RESULT', {
+    console.log('🚨 PLAN: WeatherFallbackService STRICT FALLBACK RESULT WITH LOCAL DATES', {
       cityName,
       targetDateString,
+      targetDateLocal: targetDate.toLocaleDateString(),
       daysFromToday,
       fallbackResult: {
         isActualForecast: fallbackResult.isActualForecast, // Should be false
@@ -60,7 +64,9 @@ export class WeatherFallbackService {
                                fallbackResult.dateMatchInfo.source === 'historical_fallback',
           isActualForecastFalse: fallbackResult.isActualForecast === false
         }
-      }
+      },
+      expandedRange: true,
+      localDateCalculation: true
     });
 
     return fallbackResult;

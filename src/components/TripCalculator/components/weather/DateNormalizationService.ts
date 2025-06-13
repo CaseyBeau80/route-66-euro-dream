@@ -14,16 +14,15 @@ export class DateNormalizationService {
         return null;
       }
 
-      // FIXED: Normalize the trip start date first
+      // PLAN IMPLEMENTATION: Normalize the trip start date to local midnight first
       const normalizedStartDate = this.normalizeSegmentDate(startDate);
       
-      // FIXED: Calculate the segment date by adding (segmentDay - 1) days
-      // Create a new date to avoid mutating the original
-      const segmentDate = new Date(normalizedStartDate.getTime());
-      segmentDate.setUTCDate(normalizedStartDate.getUTCDate() + (segmentDay - 1));
+      // PLAN IMPLEMENTATION: Calculate the segment date by adding (segmentDay - 1) days using local date arithmetic
+      const segmentDate = new Date(normalizedStartDate);
+      segmentDate.setDate(normalizedStartDate.getDate() + (segmentDay - 1));
       
-      // FIXED: Enhanced debug output for date calculation
-      console.log('🔧 FIXED: DateNormalizationService.calculateSegmentDate - CONSISTENT CALCULATION', {
+      // PLAN IMPLEMENTATION: Enhanced debug output for local date calculation
+      console.log('🔧 PLAN: DateNormalizationService.calculateSegmentDate - LOCAL DATE CALCULATION', {
         input: {
           tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString(),
           segmentDay,
@@ -32,75 +31,91 @@ export class DateNormalizationService {
         normalization: {
           originalStartDate: startDate.toISOString(),
           normalizedStartDate: normalizedStartDate.toISOString(),
-          daysToAdd: segmentDay - 1
+          daysToAdd: segmentDay - 1,
+          calculationMethod: 'LOCAL_DATE_ARITHMETIC'
         },
         calculation: {
           baseTime: normalizedStartDate.getTime(),
           finalTime: segmentDate.getTime(),
           timeDifference: segmentDate.getTime() - normalizedStartDate.getTime(),
-          expectedDaysDifference: segmentDay - 1
+          expectedDaysDifference: segmentDay - 1,
+          localDateUsed: true
         },
         result: {
           segmentDate: segmentDate.toISOString(),
+          localSegmentDate: segmentDate.toLocaleDateString(),
           isValid: !isNaN(segmentDate.getTime()),
-          timezone: 'UTC (normalized)',
+          timezone: 'LOCAL (normalized to midnight)',
           daysDifference: Math.floor((segmentDate.getTime() - normalizedStartDate.getTime()) / (24 * 60 * 60 * 1000))
         }
       });
       
       return isNaN(segmentDate.getTime()) ? null : segmentDate;
     } catch (error) {
-      console.error('🔧 FIXED: Error in calculateSegmentDate:', error);
+      console.error('🔧 PLAN: Error in calculateSegmentDate:', error);
       return null;
     }
   }
 
   static normalizeSegmentDate(date: Date): Date {
-    // FIXED: Normalize to UTC midnight to ensure consistent date handling
-    const normalized = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    // PLAN IMPLEMENTATION: Normalize to LOCAL midnight instead of UTC
+    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🔧 FIXED: DateNormalizationService.normalizeSegmentDate', {
+    console.log('🔧 PLAN: DateNormalizationService.normalizeSegmentDate - LOCAL MIDNIGHT NORMALIZATION', {
       input: date.toISOString(),
+      inputLocal: date.toLocaleDateString(),
       inputComponents: {
-        year: date.getUTCFullYear(),
-        month: date.getUTCMonth(),
-        date: date.getUTCDate()
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        date: date.getDate(),
+        timezone: date.getTimezoneOffset()
       },
       output: normalized.toISOString(),
-      timezone: 'UTC (normalized)'
+      outputLocal: normalized.toLocaleDateString(),
+      timezone: 'LOCAL (midnight)',
+      normalizationMethod: 'LOCAL_MIDNIGHT_NOT_UTC'
     });
     
     return normalized;
   }
 
   static getDaysDifference(date1: Date, date2: Date): number {
-    // FIXED: Use UTC dates for consistent calculation
-    const utc1 = Date.UTC(date1.getUTCFullYear(), date1.getUTCMonth(), date1.getUTCDate());
-    const utc2 = Date.UTC(date2.getUTCFullYear(), date2.getUTCMonth(), date2.getUTCDate());
+    // PLAN IMPLEMENTATION: Use LOCAL dates for consistent calculation
+    const local1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+    const local2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
     const msPerDay = 24 * 60 * 60 * 1000;
-    const daysDiff = Math.floor((utc2 - utc1) / msPerDay);
+    const daysDiff = Math.floor((local2.getTime() - local1.getTime()) / msPerDay);
     
-    console.log('🔧 FIXED: DateNormalizationService.getDaysDifference', {
+    console.log('🔧 PLAN: DateNormalizationService.getDaysDifference - LOCAL DATE CALCULATION', {
       date1: date1.toISOString(),
       date2: date2.toISOString(),
-      utc1: new Date(utc1).toISOString(),
-      utc2: new Date(utc2).toISOString(),
-      utc1Ms: utc1,
-      utc2Ms: utc2,
-      differenceMs: utc2 - utc1,
-      daysDifference: daysDiff
+      date1Local: date1.toLocaleDateString(),
+      date2Local: date2.toLocaleDateString(),
+      local1: local1.toISOString(),
+      local2: local2.toISOString(),
+      local1Ms: local1.getTime(),
+      local2Ms: local2.getTime(),
+      differenceMs: local2.getTime() - local1.getTime(),
+      daysDifference: daysDiff,
+      calculationMethod: 'LOCAL_DATE_ARITHMETIC'
     });
     
     return daysDiff;
   }
 
   static toDateString(date: Date): string {
-    // FIXED: Use UTC date for string conversion
-    const dateString = date.toISOString().split('T')[0];
+    // PLAN IMPLEMENTATION: Use LOCAL date for string conversion
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     
-    console.log('🔧 FIXED: DateNormalizationService.toDateString', {
+    console.log('🔧 PLAN: DateNormalizationService.toDateString - LOCAL DATE STRING', {
       input: date.toISOString(),
-      output: dateString
+      inputLocal: date.toLocaleDateString(),
+      output: dateString,
+      components: { year, month, day },
+      conversionMethod: 'LOCAL_DATE_COMPONENTS'
     });
     
     return dateString;
