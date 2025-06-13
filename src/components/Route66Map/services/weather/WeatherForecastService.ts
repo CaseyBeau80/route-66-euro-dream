@@ -65,7 +65,7 @@ export class WeatherForecastService {
       normalizedDate: normalizedTargetDate.toISOString(),
       targetDateString,
       daysFromNow,
-      withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS, // FIXED: 0-5 days
+      withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS,
       forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
       todayCheck: new Date().toISOString().split('T')[0],
       isToday: targetDateString === new Date().toISOString().split('T')[0]
@@ -180,7 +180,7 @@ export class WeatherForecastService {
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
         
-        // FIXED: Much more lenient temperature validation
+        // FIXED: Accept ANY forecast data that has basic weather info
         const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
           if (typeof temp === 'number') return temp;
           if (temp && typeof temp === 'object' && 'high' in temp && 'low' in temp) {
@@ -217,48 +217,43 @@ export class WeatherForecastService {
           }
         });
 
-        // FIXED: Accept ANY forecast data that has basic weather info
-        const hasBasicWeatherData = avgTemp > 0 || forecast.description || forecast.icon;
+        // FIXED: Set isActualForecast=true for ANY live forecast match
+        console.log(`✅ FIXED: Live forecast ACCEPTED for ${cityName} on ${targetDateString}:`, {
+          matchType: matchResult.matchInfo.matchType,
+          temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
+          description: forecast.description,
+          isActualForecast: true,
+          validationReason: 'live_forecast_from_api'
+        });
         
-        if (hasBasicWeatherData) {
-          console.log(`✅ FIXED: Live forecast ACCEPTED for ${cityName} on ${targetDateString}:`, {
-            matchType: matchResult.matchInfo.matchType,
-            temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
-            description: forecast.description,
-            validationReason: 'lenient_validation_passed'
-          });
-          
-          const finalResult = {
-            temperature: avgTemp,
-            highTemp: highTemp,
-            lowTemp: lowTemp,
-            description: forecast.description || 'Weather forecast',
-            icon: forecast.icon || '01d',
-            humidity: forecast.humidity || 50,
-            windSpeed: forecast.windSpeed || 0,
-            precipitationChance: precipChance,
-            cityName: cityName,
-            forecast: processedForecast,
-            forecastDate: targetDate,
-            isActualForecast: true, // FIXED: Always mark as live forecast
-            matchedForecastDay: forecast,
-            dateMatchInfo: {
-              ...matchResult.matchInfo,
-              source: 'api-forecast' as const
-            }
-          };
+        const finalResult = {
+          temperature: avgTemp,
+          highTemp: highTemp,
+          lowTemp: lowTemp,
+          description: forecast.description || 'Weather forecast',
+          icon: forecast.icon || '01d',
+          humidity: forecast.humidity || 50,
+          windSpeed: forecast.windSpeed || 0,
+          precipitationChance: precipChance,
+          cityName: cityName,
+          forecast: processedForecast,
+          forecastDate: targetDate,
+          isActualForecast: true, // FIXED: Always true for live API responses
+          matchedForecastDay: forecast,
+          dateMatchInfo: {
+            ...matchResult.matchInfo,
+            source: 'api-forecast' as const
+          }
+        };
 
-          console.log('🚨 FIXED: CONSTRUCTED LIVE FORECAST RESULT', {
-            cityName,
-            targetDateString,
-            finalResult,
-            isValid: true
-          });
-          
-          return finalResult;
-        } else {
-          console.log(`❌ FIXED: No basic weather data for ${cityName} on ${targetDateString}`);
-        }
+        console.log('🚨 FIXED: CONSTRUCTED LIVE FORECAST RESULT', {
+          cityName,
+          targetDateString,
+          finalResult,
+          isValid: true
+        });
+        
+        return finalResult;
       } else {
         console.log('🚨 FIXED: No match found, creating current-based forecast', {
           cityName,
