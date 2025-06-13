@@ -12,7 +12,7 @@ interface BadgeConfig {
 }
 
 interface WeatherBadgeProps {
-  source: 'live_forecast' | 'historical_fallback';
+  source: 'live_forecast' | 'historical_fallback' | 'seasonal';
   isActualForecast?: boolean;
   dateMatchSource?: string;
   cityName: string;
