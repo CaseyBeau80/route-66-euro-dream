@@ -1,4 +1,3 @@
-
 interface Coordinates {
   lat: number;
   lng: number;
@@ -170,7 +169,6 @@ export class GeocodingService {
     'joseph city, az': { lat: 35.0228, lng: -110.3357 },
     'holbrook, az': { lat: 34.9028, lng: -110.1593 },
     'sun valley, az': { lat: 34.8639, lng: -110.2850 },
-    'joseph city, az': { lat: 35.0228, lng: -110.3357 },
     'winslow, az': { lat: 35.0242, lng: -110.6974 },
     'winona, az': { lat: 35.1639, lng: -111.2350 },
     'flagstaff, az': { lat: 35.1983, lng: -111.6513 },

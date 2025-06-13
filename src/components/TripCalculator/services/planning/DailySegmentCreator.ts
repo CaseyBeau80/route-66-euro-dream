@@ -1,221 +1,289 @@
+
 import { TripStop } from '../../types/TripStop';
-import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { SegmentCreationLoop } from './SegmentCreationLoop';
+import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { SegmentTiming, DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
-
-// Re-export types for backward compatibility
-export type { SegmentTiming, DailySegment };
-
-// Updated DailySegmentCreatorResult with compatible types
-export interface DailySegmentCreatorResult extends Omit<DailySegment, 'driveTimeCategory'> {
-  title: string;
-  distance: number; // Distance in miles
-  drivingTime: number; // Driving time in hours
-  recommendedStops: RecommendedStop[]; // Change from TripStop[] to RecommendedStop[]
-  attractions?: Array<{
-    name?: string;
-    title?: string;
-    description?: string;
-    city?: string;
-  }>; // Updated to match DailySegment interface
-  subStopTimings: SegmentTiming[]; // Timings for sub-stops
-  routeSection: string;
-  driveTimeCategory: {
-    category: 'short' | 'optimal' | 'long' | 'extreme';
-    color: string;
-    message: string; // Changed from description to message
-  };
-  balanceMetrics?: any;
-  destination?: {
-    city: string;
-    state?: string;
-  };
-}
+import { CityDisplayService } from '../utils/CityDisplayService';
+import { DestinationCityValidator } from '../validation/DestinationCityValidator';
 
 export class DailySegmentCreator {
   /**
-   * Create balanced daily segments using enhanced drive time balancing
-   * FIXED: Use the actual trip days requested, not auto-calculated
+   * Create balanced daily segments ensuring only destination cities are used for overnight stops
    */
   static createBalancedDailySegments(
     startStop: TripStop,
     endStop: TripStop,
-    enhancedStops: TripStop[],
-    requestedTotalDays: number, // Use the REQUESTED days, not calculated
+    allStops: TripStop[],
+    totalDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log(`📊 Creating ${requestedTotalDays} balanced daily segments for ${Math.round(totalDistance)} mile trip (USING REQUESTED DAYS)`);
-
-    // Create destinations for each day (excluding start/end)
-    const destinations = this.selectDestinations(startStop, endStop, enhancedStops, requestedTotalDays);
+    console.log(`🏗️ Creating ${totalDays} daily segments with destination city validation`);
     
-    // Calculate drive time targets for balanced segments
-    const driveTimeTargets = this.calculateDriveTimeTargets(totalDistance, requestedTotalDays);
-    
-    // Enhanced balance metrics
-    const balanceMetrics = {
-      totalDistance,
-      totalDays: requestedTotalDays, // Use requested days
-      targetAverageDriveTime: totalDistance / requestedTotalDays / 60, // Using 60 mph for realistic average
-      balanceStrategy: 'enhanced_geographic_diversity'
-    };
-
-    // Create the daily segments
-    const dailySegments = SegmentCreationLoop.createDailySegments(
-      startStop,
-      destinations,
-      endStop,
-      enhancedStops,
-      totalDistance,
-      driveTimeTargets,
-      balanceMetrics
+    // FIXED: Filter to only use destination cities for overnight stops
+    const destinationCities = DestinationCityValidator.filterDestinationCities(
+      allStops, 
+      'overnight_stop_selection'
     );
-
-    // Post-process segments to ensure data consistency
-    const validatedSegments = this.validateAndFixSegmentData(dailySegments);
-
-    console.log(`✅ Created ${validatedSegments.length} daily segments with enhanced balance metrics (REQUESTED: ${requestedTotalDays} days)`);
-    return validatedSegments;
-  }
-
-  /**
-   * Validate and fix segment data for consistency - IMPROVED VALIDATION
-   */
-  private static validateAndFixSegmentData(segments: DailySegment[]): DailySegment[] {
-    return segments.map(segment => {
-      // Calculate realistic drive time based on distance
-      const realisticDriveTime = this.calculateRealisticDriveTime(segment.distance || segment.approximateMiles || 0);
-      
-      // Use the more realistic value between calculated and existing
-      const currentDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
-      let validatedDriveTime = realisticDriveTime;
-      
-      // If current drive time seems unrealistic (too high), use calculated
-      if (currentDriveTime > realisticDriveTime * 2) {
-        console.warn(`⚠️ Day ${segment.day}: Correcting excessive drive time from ${currentDriveTime.toFixed(1)}h to ${validatedDriveTime.toFixed(1)}h for ${segment.distance}mi`);
-      } else if (currentDriveTime > 0 && Math.abs(currentDriveTime - realisticDriveTime) < 2) {
-        // If current time is reasonable and close to calculated, keep it
-        validatedDriveTime = currentDriveTime;
-      }
-
-      // Set default title if missing
-      const title = segment.title || `Day ${segment.day}: ${segment.startCity} to ${segment.endCity}`;
-
-      return {
-        ...segment,
-        title,
-        drivingTime: validatedDriveTime,
-        driveTimeHours: validatedDriveTime,
-        // Ensure distance is consistent
-        distance: Math.max(segment.distance || segment.approximateMiles || 0, 1),
-        approximateMiles: Math.round(segment.distance || segment.approximateMiles || 0),
-        // Ensure these properties exist with at least empty arrays
-        subStopTimings: segment.subStopTimings || [],
-        attractions: segment.attractions || [],
-        // Ensure routeSection exists 
-        routeSection: segment.routeSection || `Route 66 - Day ${segment.day}`,
-        // Ensure driveTimeCategory has required structure
-        driveTimeCategory: segment.driveTimeCategory || {
-          category: 'optimal',
-          message: 'Optimal driving time',
-          color: 'blue'
-        }
-      };
-    });
-  }
-
-  /**
-   * Calculate realistic drive time based on distance
-   */
-  private static calculateRealisticDriveTime(distance: number): number {
-    let avgSpeed: number;
     
-    if (distance < 50) {
-      avgSpeed = 45; // Urban/city driving
-    } else if (distance < 150) {
-      avgSpeed = 55; // Mixed roads
-    } else {
-      avgSpeed = 65; // Highway
+    console.log(`🏛️ Available destination cities for overnight stops: ${destinationCities.length}`);
+    
+    // Calculate average distance per day
+    const avgDistancePerDay = totalDistance / totalDays;
+    console.log(`📏 Target average distance per day: ${Math.round(avgDistancePerDay)} miles`);
+    
+    // Find intermediate overnight stops (destination cities only)
+    const overnightStops = this.selectOvernightStops(
+      startStop,
+      endStop,
+      destinationCities,
+      totalDays,
+      totalDistance
+    );
+    
+    // Validate all selected overnight stops
+    const warnings = DestinationCityValidator.validateOvernightStops(overnightStops);
+    if (warnings.length > 0) {
+      console.warn('🛡️ Overnight stop validation warnings:', warnings);
     }
     
-    const baseTime = distance / avgSpeed;
-    const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
+    // Create segments
+    const segments: DailySegment[] = [];
+    let currentStop = startStop;
     
-    return Math.max(baseTime * bufferMultiplier, 0.5);
+    for (let day = 1; day <= totalDays; day++) {
+      const isLastDay = day === totalDays;
+      const dayEndStop = isLastDay ? endStop : overnightStops[day - 1];
+      
+      if (!dayEndStop) {
+        console.error(`❌ No end stop found for day ${day}`);
+        continue;
+      }
+      
+      // Create segment with validation
+      const segment = this.createSingleSegment(
+        currentStop,
+        dayEndStop,
+        allStops, // Use all stops for attractions, but destinations for overnight
+        day,
+        totalDistance
+      );
+      
+      if (segment) {
+        segments.push(segment);
+        currentStop = dayEndStop;
+      }
+    }
+    
+    console.log(`✅ Created ${segments.length} validated daily segments`);
+    return segments;
   }
-
-  private static selectDestinations(
+  
+  private static selectOvernightStops(
     startStop: TripStop,
     endStop: TripStop,
-    enhancedStops: TripStop[],
-    totalDays: number
+    destinationCities: TripStop[],
+    totalDays: number,
+    totalDistance: number
   ): TripStop[] {
-    const destinations: TripStop[] = [];
+    console.log(`🎯 Selecting overnight stops from ${destinationCities.length} destination cities`);
     
-    // Calculate total distance for the trip
-    const totalTripDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
+    // Filter out start and end stops
+    const availableStops = destinationCities.filter(stop => 
+      stop.id !== startStop.id && stop.id !== endStop.id
     );
     
-    const segmentDistance = totalTripDistance / totalDays;
-
-    // Select destinations based on distance intervals
-    for (let day = 1; day < totalDays; day++) {
-      const targetDistance = segmentDistance * day;
-      const destination = this.findNearestStop(startStop, enhancedStops, targetDistance);
-      if (destination && !destinations.find(d => d.id === destination.id)) {
-        destinations.push(destination);
-      }
-    }
-
-    console.log(`📍 Selected ${destinations.length} destinations for ${totalDays}-day trip`);
-    return destinations;
-  }
-
-  private static findNearestStop(
-    startStop: TripStop,
-    stops: TripStop[],
-    targetDistance: number
-  ): TripStop | null {
-    let nearestStop: TripStop | null = null;
-    let minDistanceDiff = Infinity;
-
-    for (const stop of stops) {
-      const distance = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        stop.latitude, stop.longitude
+    // Sort by distance from start to ensure geographic progression
+    const sortedStops = availableStops.sort((a, b) => {
+      const distA = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude, a.latitude, a.longitude
       );
-      const distanceDiff = Math.abs(distance - targetDistance);
+      const distB = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude, b.latitude, b.longitude
+      );
+      return distA - distB;
+    });
+    
+    const overnightStops: TripStop[] = [];
+    const neededStops = totalDays - 1; // Don't count the final day
+    
+    console.log(`🏛️ Need ${neededStops} overnight destination cities from ${sortedStops.length} available`);
+    
+    // Select stops based on ideal spacing
+    for (let i = 1; i <= neededStops; i++) {
+      const idealDistance = (totalDistance * i) / totalDays;
       
-      if (distanceDiff < minDistanceDiff) {
-        minDistanceDiff = distanceDiff;
-        nearestStop = stop;
+      // Find the destination city closest to the ideal distance
+      let bestStop: TripStop | null = null;
+      let bestStopDiff = Number.MAX_VALUE;
+      
+      for (const stop of sortedStops) {
+        // Skip already selected stops
+        if (overnightStops.some(s => s.id === stop.id)) continue;
+        
+        const stopDistance = DistanceCalculationService.calculateDistance(
+          startStop.latitude, startStop.longitude, stop.latitude, stop.longitude
+        );
+        
+        const diff = Math.abs(stopDistance - idealDistance);
+        
+        if (diff < bestStopDiff) {
+          bestStop = stop;
+          bestStopDiff = diff;
+        }
+      }
+      
+      if (bestStop) {
+        console.log(`🏛️ Selected overnight destination: ${bestStop.name} (${bestStop.category})`);
+        overnightStops.push(bestStop);
+      } else {
+        console.warn(`⚠️ Could not find suitable destination city for day ${i + 1}`);
       }
     }
-
-    return nearestStop;
+    
+    // Sort overnight stops by distance from start for proper sequence
+    return overnightStops.sort((a, b) => {
+      const distA = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude, a.latitude, a.longitude
+      );
+      const distB = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude, b.latitude, b.longitude
+      );
+      return distA - distB;
+    });
   }
-
-  private static calculateDriveTimeTargets(
-    totalDistance: number,
-    totalDays: number
-  ): DriveTimeTarget[] {
-    // Use realistic speed calculation - 60 mph average for Route 66
-    const averageDriveTime = totalDistance / totalDays / 60;
-    const targets: DriveTimeTarget[] = [];
-
-    for (let day = 1; day <= totalDays; day++) {
-      targets.push({
-        day,
-        targetHours: averageDriveTime,
-        minHours: Math.max(averageDriveTime * 0.7, 1.0), // Minimum 1 hour
-        maxHours: Math.min(averageDriveTime * 1.3, 6.0), // Maximum 6 hours
-        priority: 'balanced'
-      });
+  
+  private static createSingleSegment(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    day: number,
+    totalDistance: number
+  ): DailySegment {
+    // Calculate segment distance
+    const segmentDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude
+    );
+    
+    // Calculate drive time (Route 66 average speed: 50 mph)
+    const driveTimeHours = segmentDistance / 50;
+    
+    // Find attractions along this segment (not destination cities for overnight)
+    const segmentAttractions = this.findAttractionsForSegment(
+      startStop, endStop, allStops, 3
+    );
+    
+    // Determine drive time category
+    const driveTimeCategory = this.getDriveTimeCategory(driveTimeHours);
+    
+    // Create city display names
+    const startCityDisplay = CityDisplayService.getCityDisplayName(startStop);
+    const endCityDisplay = CityDisplayService.getCityDisplayName(endStop);
+    
+    return {
+      day,
+      title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
+      startCity: startCityDisplay,
+      endCity: endCityDisplay,
+      distance: segmentDistance,
+      approximateMiles: Math.round(segmentDistance),
+      drivingTime: driveTimeHours,
+      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+      destination: {
+        city: endStop.city_name || endStop.name,
+        state: endStop.state
+      },
+      recommendedStops: segmentAttractions.map(stop => ({
+        id: stop.id,
+        name: stop.name,
+        description: stop.description,
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        category: stop.category,
+        city_name: stop.city_name,
+        state: stop.state,
+        city: stop.city || stop.city_name || 'Unknown'
+      })),
+      attractions: segmentAttractions.map(stop => ({
+        name: stop.name,
+        title: stop.name,
+        description: stop.description,
+        city: stop.city || stop.city_name || 'Unknown'
+      })),
+      driveTimeCategory: driveTimeCategory,
+      routeSection: day <= Math.ceil(3) ? 'Early Route' : 
+                   day <= Math.ceil(6) ? 'Mid Route' : 'Final Stretch'
+    };
+  }
+  
+  private static findAttractionsForSegment(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    maxAttractions: number
+  ): TripStop[] {
+    const directDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude
+    );
+    
+    // Find stops along the route - exclude destination cities for attractions
+    const attractions = allStops.filter(stop => {
+      // Skip start and end stops
+      if (stop.id === startStop.id || stop.id === endStop.id) return false;
+      
+      // FIXED: Don't use destination cities as attractions in segments
+      if (stop.category === 'destination_city') return false;
+      
+      // Calculate if stop is along the route
+      const distFromStart = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude, stop.latitude, stop.longitude
+      );
+      const distToEnd = DistanceCalculationService.calculateDistance(
+        stop.latitude, stop.longitude, endStop.latitude, endStop.longitude
+      );
+      
+      const routeDeviation = (distFromStart + distToEnd) - directDistance;
+      const isOnRoute = routeDeviation < (directDistance * 0.2);
+      const isBetween = distFromStart < directDistance && distToEnd < directDistance;
+      
+      return isOnRoute && isBetween;
+    });
+    
+    // Sort by priority - attractions first, then historic sites
+    const sortedAttractions = attractions.sort((a, b) => {
+      if (a.category === 'attraction' && b.category !== 'attraction') return -1;
+      if (b.category === 'attraction' && a.category !== 'attraction') return 1;
+      if (a.category === 'historic_site' && b.category !== 'historic_site') return -1;
+      if (b.category === 'historic_site' && a.category !== 'historic_site') return 1;
+      return 0;
+    });
+    
+    return sortedAttractions.slice(0, maxAttractions);
+  }
+  
+  private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
+    if (driveTimeHours <= 4) {
+      return {
+        category: 'short',
+        message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace with plenty of time for attractions`,
+        color: 'text-green-800'
+      };
+    } else if (driveTimeHours <= 6) {
+      return {
+        category: 'optimal',
+        message: `${driveTimeHours.toFixed(1)} hours - Perfect balance of driving and exploration`,
+        color: 'text-blue-800'
+      };
+    } else if (driveTimeHours <= 8) {
+      return {
+        category: 'long',
+        message: `${driveTimeHours.toFixed(1)} hours - Substantial driving day, but manageable`,
+        color: 'text-orange-800'
+      };
+    } else {
+      return {
+        category: 'extreme',
+        message: `${driveTimeHours.toFixed(1)} hours - Very long driving day, consider breaking into multiple days`,
+        color: 'text-red-800'
+      };
     }
-
-    return targets;
   }
 }
