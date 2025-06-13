@@ -2,6 +2,7 @@
 import React from 'react';
 import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
 import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
+import { useCostEstimator } from '../../hooks/useCostEstimator';
 import PDFDaySegmentCard from './PDFDaySegmentCard';
 import PDFEnhancedHeader from './PDFEnhancedHeader';
 import PDFFooter from './PDFFooter';
@@ -26,6 +27,9 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
     title: exportOptions.title
   });
 
+  // Get cost estimate for the trip
+  const { costEstimate } = useCostEstimator(tripPlan);
+
   // Validate and sanitize trip plan data
   const sanitizedTripPlan = TripPlanDataValidator.sanitizeTripPlan(tripPlan);
   const integrityReport = PDFDataIntegrityService.generateIntegrityReport(sanitizedTripPlan);
@@ -36,6 +40,15 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
   ) || [];
 
   const defaultTitle = `Route 66 Adventure: ${sanitizedTripPlan.startCity} to ${sanitizedTripPlan.endCity}`;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
 
   return (
     <div className="pdf-content bg-white min-h-screen" style={{ 
@@ -73,7 +86,7 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         <h2 className="text-xl font-bold text-route66-vintage-red mb-4 font-route66 text-center">
           🛣️ YOUR ROUTE 66 JOURNEY OVERVIEW
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className={`grid gap-4 text-sm ${costEstimate ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
             <div className="font-bold text-route66-primary text-lg font-route66">{sanitizedTripPlan.startCity}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Starting Point</div>
@@ -90,6 +103,15 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
             <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(sanitizedTripPlan.totalDistance)}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Historic Miles</div>
           </div>
+          {/* Estimated Cost Card - Only show if cost estimate is available */}
+          {costEstimate && (
+            <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+              <div className="font-bold text-route66-vintage-red text-lg font-route66">
+                {formatCurrency(costEstimate.breakdown.totalCost)}
+              </div>
+              <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Estimated Cost</div>
+            </div>
+          )}
         </div>
         
         {/* Journey Description */}
@@ -99,6 +121,18 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
             the heart of Route 66, featuring historic landmarks, classic diners, vintage motels, and unforgettable 
             roadside attractions that define the spirit of the open road.
           </p>
+          {/* Cost breakdown summary if available */}
+          {costEstimate && (
+            <div className="mt-3 pt-3 border-t border-route66-tan">
+              <p className="text-xs text-route66-vintage-brown font-travel">
+                <strong>💰 Cost Breakdown:</strong> Gas {formatCurrency(costEstimate.breakdown.gasCost)} • 
+                Lodging {formatCurrency(costEstimate.breakdown.accommodationCost)} • 
+                Meals {formatCurrency(costEstimate.breakdown.mealCost)}
+                {costEstimate.breakdown.attractionCost > 0 && ` • Attractions ${formatCurrency(costEstimate.breakdown.attractionCost)}`}
+                {costEstimate.breakdown.carRentalCost > 0 && ` • Car Rental ${formatCurrency(costEstimate.breakdown.carRentalCost)}`}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
