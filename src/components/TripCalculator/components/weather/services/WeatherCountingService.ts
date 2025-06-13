@@ -57,13 +57,13 @@ export class WeatherCountingService {
       const cityName = segment.endCity || 'Unknown';
       
       // Check for weather data in multiple sources
-      const hasPersistedWeather = segmentDate 
-        ? WeatherPersistenceService.hasWeatherData(cityName, segmentDate)
-        : false;
+      const persistedWeatherData = segmentDate 
+        ? WeatherPersistenceService.getWeatherData(cityName, segmentDate)
+        : null;
+      const hasPersistedWeather = !!persistedWeatherData;
 
       const hasSegmentWeather = !!(segment.weather || segment.weatherData || hasPersistedWeather);
-      const weatherData = segment.weather || segment.weatherData || 
-        (segmentDate ? WeatherPersistenceService.getWeatherData(cityName, segmentDate) : null);
+      const weatherData = segment.weather || segment.weatherData || persistedWeatherData;
 
       const isActualForecast = weatherData?.isActualForecast || false;
 
