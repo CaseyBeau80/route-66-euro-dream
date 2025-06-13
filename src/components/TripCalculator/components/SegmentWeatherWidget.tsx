@@ -57,32 +57,32 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Weather state management
-  const { weather, loading, error, retryCount, hasApiKey } = useSimpleWeatherState(
+  // Weather state management - fix the destructuring to match the actual return type
+  const weatherState = useSimpleWeatherState(
     segment.endCity,
     segmentDate,
     sectionKey
   );
 
-  // Weather data fetcher
-  const { handleApiKeySet, handleTimeout, handleRetry } = useWeatherDataFetcher(
+  // Weather data fetcher - fix the call to match expected arguments
+  const weatherActions = useWeatherDataFetcher(
     segment.endCity,
     segmentDate
   );
 
   console.log('🚨 [PLAN] Weather handlers initialized for Day', segment.day, '-', segment.endCity, {
-    hasHandlers: !!(handleApiKeySet && handleTimeout && handleRetry),
+    hasHandlers: !!(weatherActions.handleApiKeySet && weatherActions.handleTimeout && weatherActions.handleRetry),
     handlerMethods: ['handleApiKeySet', 'handleTimeout', 'handleRetry'],
     isDay1: segment.day === 1,
     timestamp: new Date().toISOString()
   });
 
   console.log('🎨 SegmentWeatherWidget [' + segment.endCity + '] render:', {
-    hasApiKey,
-    loading,
-    hasWeather: !!weather,
-    error,
-    retryCount,
+    hasApiKey: weatherState.hasApiKey,
+    loading: weatherState.loading,
+    hasWeather: !!weatherState.weather,
+    error: weatherState.error,
+    retryCount: weatherState.retryCount,
     segmentDate: segmentDate?.toISOString(),
     sectionKey
   });
@@ -95,14 +95,14 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   });
 
   // FIXED: Use centralized WeatherTypeDetector for ALL weather type decisions
-  const weatherType = weather && segmentDate 
-    ? WeatherTypeDetector.detectWeatherType(weather, segmentDate)
+  const weatherType = weatherState.weather && segmentDate 
+    ? WeatherTypeDetector.detectWeatherType(weatherState.weather, segmentDate)
     : { isLiveForecast: false, displayLabel: 'Weather Information' };
 
   console.log('🔧 FIXED: SegmentWeatherWidget using centralized weather type detection for', segment.endCity, {
     weatherType,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
+    weatherSource: weatherState.weather?.source,
+    isActualForecast: weatherState.weather?.isActualForecast,
     segmentDate: segmentDate?.toISOString(),
     daysFromToday: segmentDate ? Math.floor((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : 'unknown'
   });
@@ -110,16 +110,16 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   return (
     <div className="">
       <SegmentWeatherContent
-        hasApiKey={hasApiKey}
-        loading={loading}
-        weather={weather}
-        error={error}
-        retryCount={retryCount}
+        hasApiKey={weatherState.hasApiKey}
+        loading={weatherState.loading}
+        weather={weatherState.weather}
+        error={weatherState.error}
+        retryCount={weatherState.retryCount}
         segmentEndCity={segment.endCity}
         segmentDate={segmentDate}
-        onApiKeySet={handleApiKeySet}
-        onTimeout={handleTimeout}
-        onRetry={handleRetry}
+        onApiKeySet={weatherActions.handleApiKeySet}
+        onTimeout={weatherActions.handleTimeout}
+        onRetry={weatherActions.handleRetry}
         isSharedView={sectionKey.includes('shared')}
         isPDFExport={sectionKey.includes('pdf')}
       />

@@ -66,15 +66,20 @@ const ShareTripDaySegmentCard: React.FC<ShareTripDaySegmentCardProps> = ({
         <strong>Route:</strong> {segment.startCity} → {segment.endCity}
       </div>
 
-      {/* Weather Widget */}
-      <div className="mb-3">
-        <SegmentWeatherWidget
-          segment={segment}
-          tripStartDate={tripStartDate}
-          forceExpanded={false}
-          isCollapsible={false}
-        />
-      </div>
+      {/* Weather Widget - only show if tripStartDate is available */}
+      {tripStartDate && (
+        <div className="mb-3">
+          <SegmentWeatherWidget
+            segment={segment}
+            tripStartDate={tripStartDate}
+            cardIndex={segment.day - 1}
+            tripId="shared-trip"
+            sectionKey="shared-day-segment"
+            forceExpanded={false}
+            isCollapsible={false}
+          />
+        </div>
+      )}
 
       {/* Recommended Stops */}
       {segment.recommendedStops && segment.recommendedStops.length > 0 && (
