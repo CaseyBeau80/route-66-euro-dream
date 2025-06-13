@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -15,6 +16,7 @@ export interface ForecastWeatherData extends WeatherData {
   lowTemp?: number;
   precipitationChance?: number;
   matchedForecastDay?: ForecastDay;
+  source?: 'live_forecast' | 'historical_fallback'; // ENHANCED: Explicit source property
   dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
@@ -48,7 +50,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🚨 FIXED: WeatherForecastService.getWeatherForDate ENTRY POINT', {
+    console.log('🚨 ENHANCED: WeatherForecastService.getWeatherForDate ENTRY POINT', {
       cityName,
       targetDate: targetDate.toISOString(),
       coordinates: { lat, lng },
@@ -59,7 +61,7 @@ export class WeatherForecastService {
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     const daysFromNow = Math.ceil((normalizedTargetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
-    console.log('🚨 FIXED: Date processing for live forecast', {
+    console.log('🚨 ENHANCED: Date processing for live forecast', {
       cityName,
       originalDate: targetDate.toISOString(),
       normalizedDate: normalizedTargetDate.toISOString(),
@@ -71,9 +73,9 @@ export class WeatherForecastService {
       isToday: targetDateString === new Date().toISOString().split('T')[0]
     });
 
-    // FIXED: Use 0-5 days range for live forecasts (including today)
+    // ENHANCED: Use 0-5 days range for live forecasts with explicit source marking
     if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
-      console.log('🚨 FIXED: Attempting live forecast API call (0-5 days range)', {
+      console.log('🚨 ENHANCED: Attempting live forecast API call (0-5 days range)', {
         cityName,
         targetDateString,
         daysFromNow,
@@ -86,7 +88,7 @@ export class WeatherForecastService {
       WeatherDebugService.logForecastApiRawResponse(cityName, actualForecast);
 
       if (actualForecast) {
-        console.log('🚨 FIXED: RETURNING LIVE FORECAST', {
+        console.log('🚨 ENHANCED: RETURNING LIVE FORECAST WITH EXPLICIT SOURCE', {
           cityName,
           targetDateString,
           finalResult: {
@@ -95,20 +97,21 @@ export class WeatherForecastService {
             lowTemp: actualForecast.lowTemp,
             isActualForecast: actualForecast.isActualForecast,
             description: actualForecast.description,
-            source: actualForecast.dateMatchInfo?.source
+            source: actualForecast.source,
+            dateMatchSource: actualForecast.dateMatchInfo?.source
           }
         });
         
         return actualForecast;
       }
       
-      console.log('🚨 FIXED: Live forecast API failed, using fallback', {
+      console.log('🚨 ENHANCED: Live forecast API failed, using fallback', {
         cityName,
         targetDateString,
         reason: 'api_returned_null'
       });
     } else {
-      console.log('🚨 FIXED: Outside live forecast range, using fallback', {
+      console.log('🚨 ENHANCED: Outside live forecast range, using fallback', {
         cityName,
         targetDateString,
         daysFromNow,
@@ -117,7 +120,7 @@ export class WeatherForecastService {
       });
     }
 
-    // Return enhanced fallback
+    // Return enhanced fallback with explicit source marking
     const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
     
     WeatherDebugService.logForecastApiRawResponse(cityName, fallbackForecast);
@@ -134,7 +137,7 @@ export class WeatherForecastService {
     daysFromNow: number
   ): Promise<ForecastWeatherData | null> {
     try {
-      console.log('🚨 FIXED: WeatherForecastService.getActualForecast START', {
+      console.log('🚨 ENHANCED: WeatherForecastService.getActualForecast START', {
         cityName,
         targetDateString,
         coordinates: { lat, lng },
@@ -143,7 +146,7 @@ export class WeatherForecastService {
 
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
       
-      console.log('🚨 FIXED: API response received', {
+      console.log('🚨 ENHANCED: API response received', {
         cityName,
         targetDateString,
         hasCurrentData: !!currentData,
@@ -154,7 +157,7 @@ export class WeatherForecastService {
       
       const processedForecast = WeatherDataProcessor.processEnhancedForecastData(forecastData, targetDate, 5);
       
-      console.log('🚨 FIXED: Processed forecast data', {
+      console.log('🚨 ENHANCED: Processed forecast data', {
         cityName,
         targetDateString,
         processedCount: processedForecast.length,
@@ -168,7 +171,7 @@ export class WeatherForecastService {
         cityName
       );
       
-      console.log('🚨 FIXED: Match result', {
+      console.log('🚨 ENHANCED: Match result', {
         cityName,
         targetDateString,
         hasMatch: !!matchResult.matchedForecast,
@@ -180,7 +183,7 @@ export class WeatherForecastService {
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
         
-        // FIXED: Accept ANY forecast data that has basic weather info
+        // ENHANCED: Accept ANY forecast data that has basic weather info
         const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
           if (typeof temp === 'number') return temp;
           if (temp && typeof temp === 'object' && 'high' in temp && 'low' in temp) {
@@ -206,7 +209,7 @@ export class WeatherForecastService {
         const avgTemp = extractTemperature(forecast.temperature);
         const precipChance = parseInt(String(forecast.precipitationChance)) || 0;
         
-        console.log('🚨 FIXED: Final temperature values extracted', {
+        console.log('🚨 ENHANCED: Final temperature values extracted', {
           cityName,
           targetDateString,
           extractedTemps: {
@@ -217,12 +220,13 @@ export class WeatherForecastService {
           }
         });
 
-        // FIXED: Set isActualForecast=true for ANY live forecast match
-        console.log(`✅ FIXED: Live forecast ACCEPTED for ${cityName} on ${targetDateString}:`, {
+        // ENHANCED: Set isActualForecast=true and explicit source for ANY live forecast match
+        console.log(`✅ ENHANCED: Live forecast ACCEPTED for ${cityName} on ${targetDateString}:`, {
           matchType: matchResult.matchInfo.matchType,
           temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
           description: forecast.description,
           isActualForecast: true,
+          explicitSource: 'live_forecast',
           validationReason: 'live_forecast_from_api'
         });
         
@@ -238,7 +242,8 @@ export class WeatherForecastService {
           cityName: cityName,
           forecast: processedForecast,
           forecastDate: targetDate,
-          isActualForecast: true, // FIXED: Always true for live API responses
+          isActualForecast: true, // ENHANCED: Always true for live API responses
+          source: 'live_forecast' as const, // ENHANCED: Explicit source marking
           matchedForecastDay: forecast,
           dateMatchInfo: {
             ...matchResult.matchInfo,
@@ -246,16 +251,17 @@ export class WeatherForecastService {
           }
         };
 
-        console.log('🚨 FIXED: CONSTRUCTED LIVE FORECAST RESULT', {
+        console.log('🚨 ENHANCED: CONSTRUCTED LIVE FORECAST RESULT WITH EXPLICIT SOURCE', {
           cityName,
           targetDateString,
           finalResult,
+          explicitSource: finalResult.source,
           isValid: true
         });
         
         return finalResult;
       } else {
-        console.log('🚨 FIXED: No match found, creating current-based forecast', {
+        console.log('🚨 ENHANCED: No match found, creating current-based forecast', {
           cityName,
           targetDateString,
           hasCurrentData: !!currentData
@@ -277,7 +283,7 @@ export class WeatherForecastService {
       console.log(`❌ No usable forecast data found for ${cityName} on ${targetDateString}`);
       return null;
     } catch (error) {
-      console.error('🚨 FIXED: WeatherForecastService.getActualForecast ERROR', {
+      console.error('🚨 ENHANCED: WeatherForecastService.getActualForecast ERROR', {
         cityName,
         targetDateString,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -310,6 +316,7 @@ export class WeatherForecastService {
       forecast: processedForecast,
       forecastDate: targetDate,
       isActualForecast: true,
+      source: 'live_forecast' as const, // ENHANCED: Explicit source for current-based forecast
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: DateNormalizationService.toDateString(new Date()),
@@ -328,7 +335,7 @@ export class WeatherForecastService {
     targetDateString: string,
     daysFromNow: number
   ): ForecastWeatherData {
-    console.log('🚨 DEBUG: WeatherForecastService.getEnhancedFallbackForecast', {
+    console.log('🚨 ENHANCED: WeatherForecastService.getEnhancedFallbackForecast', {
       cityName,
       targetDateString,
       targetMonth: targetDate.getMonth(),
@@ -352,6 +359,7 @@ export class WeatherForecastService {
       forecast: [],
       forecastDate: targetDate,
       isActualForecast: false,
+      source: 'historical_fallback' as const, // ENHANCED: Explicit source for fallback
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
@@ -363,10 +371,11 @@ export class WeatherForecastService {
       }
     };
 
-    console.log('🚨 DEBUG: WeatherForecastService fallback result created', {
+    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with explicit source', {
       cityName,
       targetDateString,
-      fallbackResult
+      fallbackResult,
+      explicitSource: fallbackResult.source
     });
 
     return fallbackResult;

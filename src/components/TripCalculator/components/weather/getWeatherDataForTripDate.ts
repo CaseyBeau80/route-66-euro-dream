@@ -10,7 +10,7 @@ export interface WeatherDisplayData {
   highTemp: number;
   icon: string;
   description: string;
-  source: 'forecast' | 'historical' | 'seasonal';
+  source: 'live_forecast' | 'historical_fallback';
   isAvailable: boolean;
   humidity: number;
   windSpeed: number;
@@ -59,14 +59,14 @@ export const getWeatherDataForTripDate = async (
   const exactDateString = DateNormalizationService.toDateString(exactSegmentDate);
   const daysFromNow = Math.ceil((exactSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🚨 [FORECAST AUDIT] Date analysis for ${cityName}:`, {
+  console.log(`🚨 [FORECAST AUDIT] Enhanced date analysis for ${cityName}:`, {
     originalDate: tripDate instanceof Date ? tripDate.toISOString() : tripDate,
     exactSegmentDate: exactSegmentDate.toISOString(),
     exactDateString,
     daysFromNow,
     isWithinForecastRange: daysFromNow >= 0 && daysFromNow <= 5,
     forecastRangeCheck: `${daysFromNow} days (must be 0-5 for live forecast)`,
-    auditPoint: 'DATE_VALIDATION'
+    auditPoint: 'ENHANCED_DATE_VALIDATION'
   });
 
   const weatherService = EnhancedWeatherService.getInstance();
@@ -89,17 +89,18 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  // AUDIT POINT 1: Live forecast attempt criteria
+  // ENHANCED STEP 1: Strict live forecast attempt criteria with explicit source tracking
   const shouldAttemptLiveForecast = weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5;
   
-  console.log(`🚨 [FORECAST AUDIT] Live forecast decision for ${cityName}:`, {
+  console.log(`🚨 [FORECAST AUDIT] Enhanced live forecast decision for ${cityName}:`, {
     shouldAttemptLiveForecast,
     criteria: {
       hasApiKey: weatherService.hasApiKey(),
       daysFromNow,
-      withinRange: daysFromNow >= 0 && daysFromNow <= 5
+      withinRange: daysFromNow >= 0 && daysFromNow <= 5,
+      strictRangeCheck: 'ENFORCED_0_TO_5_DAYS'
     },
-    auditPoint: 'LIVE_FORECAST_CRITERIA'
+    auditPoint: 'ENHANCED_LIVE_FORECAST_CRITERIA'
   });
 
   if (shouldAttemptLiveForecast) {
@@ -122,7 +123,7 @@ export const getWeatherDataForTripDate = async (
         timeoutPromise
       ]);
       
-      console.log(`🚨 [FORECAST AUDIT] API RESPONSE for ${cityName}:`, {
+      console.log(`🚨 [FORECAST AUDIT] Enhanced API response validation for ${cityName}:`, {
         hasData: !!forecastData,
         isActualForecast: forecastData?.isActualForecast,
         temperature: forecastData?.temperature,
@@ -130,39 +131,41 @@ export const getWeatherDataForTripDate = async (
         lowTemp: forecastData?.lowTemp,
         description: forecastData?.description,
         source: forecastData?.dateMatchInfo?.source,
-        auditPoint: 'API_RESPONSE_VALIDATION'
+        auditPoint: 'ENHANCED_API_RESPONSE_VALIDATION'
       });
       
-      // AUDIT POINT 2: Live forecast validation
+      // ENHANCED STEP 2: Stricter live forecast validation with explicit source marking
       if (forecastData) {
         const isValidLiveForecast = forecastData.isActualForecast === true && 
           (forecastData.dateMatchInfo?.source === 'api-forecast' || 
            forecastData.dateMatchInfo?.source === 'enhanced-fallback');
         
-        console.log(`🚨 [FORECAST AUDIT] Live forecast validation for ${cityName}:`, {
+        console.log(`🚨 [FORECAST AUDIT] Enhanced live forecast validation for ${cityName}:`, {
           isValidLiveForecast,
-          validationCriteria: {
+          strictValidationCriteria: {
             isActualForecast: forecastData.isActualForecast,
             expectedValue: true,
             source: forecastData.dateMatchInfo?.source,
-            allowedSources: ['api-forecast', 'enhanced-fallback']
+            allowedSources: ['api-forecast', 'enhanced-fallback'],
+            daysFromNowCheck: daysFromNow <= 5
           },
-          auditPoint: 'LIVE_FORECAST_VALIDATION'
+          auditPoint: 'ENHANCED_LIVE_FORECAST_VALIDATION'
         });
         
         if (isValidLiveForecast) {
           const highTemp = forecastData.highTemp || forecastData.temperature || 0;
           const lowTemp = forecastData.lowTemp || forecastData.temperature || 0;
           
-          // Temperature validation
+          // Enhanced temperature validation
           if (highTemp > 0 && lowTemp > 0 && highTemp >= lowTemp) {
             console.log(`✅ [FORECAST AUDIT] LIVE FORECAST ACCEPTED for ${cityName}:`, {
               high: highTemp + '°F',
               low: lowTemp + '°F',
               isActualForecast: true,
-              source: 'forecast',
+              source: 'live_forecast',
               description: forecastData.description,
-              auditPoint: 'LIVE_FORECAST_ACCEPTED'
+              explicitSourceMarking: 'LIVE_FORECAST_CONFIRMED',
+              auditPoint: 'ENHANCED_LIVE_FORECAST_ACCEPTED'
             });
             
             return {
@@ -170,7 +173,7 @@ export const getWeatherDataForTripDate = async (
               highTemp: highTemp,
               icon: forecastData.icon,
               description: forecastData.description,
-              source: 'forecast',
+              source: 'live_forecast', // EXPLICIT SOURCE: Live forecast confirmed
               isAvailable: true,
               humidity: forecastData.humidity,
               windSpeed: forecastData.windSpeed,
@@ -183,6 +186,7 @@ export const getWeatherDataForTripDate = async (
               highTemp,
               lowTemp,
               reason: 'temperature_validation_failed',
+              willUseFallback: true,
               auditPoint: 'TEMPERATURE_VALIDATION_FAILED'
             });
           }
@@ -191,13 +195,15 @@ export const getWeatherDataForTripDate = async (
             hasData: !!forecastData,
             isActualForecast: forecastData?.isActualForecast,
             source: forecastData?.dateMatchInfo?.source,
-            reason: 'FAILED_LIVE_VALIDATION',
-            auditPoint: 'LIVE_FORECAST_REJECTED'
+            reason: 'FAILED_STRICT_LIVE_VALIDATION',
+            willUseFallback: true,
+            auditPoint: 'ENHANCED_LIVE_FORECAST_REJECTED'
           });
         }
       } else {
         console.log(`⚠️ [FORECAST AUDIT] No data returned from API for ${cityName}`, {
           reason: 'api_returned_null',
+          willUseFallback: true,
           auditPoint: 'API_NO_DATA'
         });
       }
@@ -206,6 +212,7 @@ export const getWeatherDataForTripDate = async (
       console.error('🚨 [FORECAST AUDIT] Error in live forecast attempt:', {
         cityName,
         error: error instanceof Error ? error.message : 'Unknown error',
+        willUseFallback: true,
         auditPoint: 'LIVE_FORECAST_ERROR'
       });
     }
@@ -214,16 +221,18 @@ export const getWeatherDataForTripDate = async (
       hasApiKey: weatherService.hasApiKey(),
       daysFromNow,
       reason: !weatherService.hasApiKey() ? 'no_api_key' : 'outside_0_5_day_range',
+      willUseFallback: true,
       auditPoint: 'LIVE_FORECAST_SKIPPED'
     });
   }
   
-  // AUDIT POINT 3: Fallback trigger
+  // ENHANCED STEP 3: Explicit fallback with clear source marking
   console.log(`📊 [FORECAST AUDIT] TRIGGERING HISTORICAL FALLBACK for ${cityName}:`, {
     reason: shouldAttemptLiveForecast ? 'live_forecast_failed_validation' : 'outside_forecast_range',
     daysFromNow,
     exactDateString,
-    auditPoint: 'FALLBACK_TRIGGERED'
+    explicitSourceMarking: 'HISTORICAL_FALLBACK_CONFIRMED',
+    auditPoint: 'ENHANCED_FALLBACK_TRIGGERED'
   });
   
   const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0);
@@ -233,7 +242,7 @@ export const getWeatherDataForTripDate = async (
     highTemp: historicalData.high,
     icon: '🌡️',
     description: historicalData.condition,
-    source: 'historical' as const,
+    source: 'historical_fallback' as const, // EXPLICIT SOURCE: Historical fallback confirmed
     isAvailable: true,
     humidity: historicalData.humidity,
     windSpeed: historicalData.windSpeed,
@@ -242,9 +251,10 @@ export const getWeatherDataForTripDate = async (
     isActualForecast: false
   };
 
-  console.log(`📊 [FORECAST AUDIT] HISTORICAL FALLBACK RESULT for ${cityName}:`, {
+  console.log(`📊 [FORECAST AUDIT] ENHANCED HISTORICAL FALLBACK RESULT for ${cityName}:`, {
     fallbackResult,
-    auditPoint: 'FALLBACK_RESULT'
+    explicitSourceMarking: 'HISTORICAL_FALLBACK_FINAL',
+    auditPoint: 'ENHANCED_FALLBACK_RESULT'
   });
 
   return fallbackResult;

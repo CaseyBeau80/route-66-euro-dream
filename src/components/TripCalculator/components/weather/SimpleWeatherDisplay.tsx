@@ -36,6 +36,53 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return extracted;
   }, [weather, cityName]);
 
+  // Enhanced badge logic using explicit source validation
+  const getBadgeConfig = React.useMemo(() => {
+    console.log('🏷️ SimpleWeatherDisplay: Enhanced badge logic for', cityName, {
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      dateMatchSource: weather.dateMatchInfo?.source
+    });
+
+    // ENHANCED STEP 3: Use explicit source for accurate badge display
+    if (weather.source === 'live_forecast') {
+      return {
+        text: '📡 Live Forecast',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        explanation: 'Real-time weather data from API'
+      };
+    } else if (weather.source === 'historical_fallback') {
+      return {
+        text: '📊 Seasonal Average',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800',
+        explanation: 'Based on historical weather patterns'
+      };
+    }
+
+    // Fallback logic for legacy data without explicit source
+    if (weather.isActualForecast === true && 
+        (weather.dateMatchInfo?.source === 'api-forecast' || 
+         weather.dateMatchInfo?.source === 'enhanced-fallback')) {
+      console.log('🏷️ Legacy fallback: Live forecast detected', { cityName, source: weather.dateMatchInfo?.source });
+      return {
+        text: '📡 Live Forecast',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        explanation: 'Real-time weather data from API'
+      };
+    } else {
+      console.log('🏷️ Legacy fallback: Historical data detected', { cityName, isActualForecast: weather.isActualForecast });
+      return {
+        text: '📊 Seasonal Average',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800',
+        explanation: 'Based on historical weather patterns'
+      };
+    }
+  }, [weather, cityName]);
+
   // Determine what to display based on available temperature data
   const displayConfig = React.useMemo(() => {
     const hasValidCurrent = temperatures.isValid && !isNaN(temperatures.current);
@@ -46,9 +93,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       hasValidCurrent,
       hasValidRange,
       temperatures,
+      badgeConfig: getBadgeConfig,
       weather: {
         description: weather.description,
         icon: weather.icon,
+        source: weather.source,
         isActualForecast: weather.isActualForecast
       }
     });
@@ -59,7 +108,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       showCurrent: hasValidCurrent && !hasValidRange,
       showRange: hasValidRange
     };
-  }, [temperatures, cityName, weather]);
+  }, [temperatures, cityName, weather, getBadgeConfig]);
 
   if (!temperatures.isValid) {
     console.warn('❌ SimpleWeatherDisplay: No valid temperature data available for', cityName);
@@ -70,6 +119,10 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         </div>
         <div className="text-sm text-yellow-600">
           Unable to extract temperature data for {cityName}
+        </div>
+        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium mt-2 bg-gray-100 text-gray-800`}>
+          <span>❓</span>
+          <span>Weather Unavailable</span>
         </div>
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-2 text-xs text-red-500">
@@ -104,9 +157,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Forecast Type Badge */}
-        <div className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
-          {weather.isActualForecast ? '📡 Live' : '📊 Seasonal'}
+        {/* Enhanced Forecast Type Badge with explicit source validation */}
+        <div className={`text-xs px-2 py-1 rounded ${getBadgeConfig.bgColor} ${getBadgeConfig.textColor}`}>
+          {getBadgeConfig.text}
         </div>
       </div>
 
@@ -154,12 +207,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         </div>
       )}
 
-      {/* Data Source Info */}
+      {/* Enhanced Data Source Info */}
       <div className="mt-3 text-xs text-blue-500 text-center">
-        {weather.isActualForecast 
-          ? 'Live forecast data from weather service' 
-          : 'Based on historical weather patterns'
-        }
+        {getBadgeConfig.explanation}
       </div>
     </div>
   );
