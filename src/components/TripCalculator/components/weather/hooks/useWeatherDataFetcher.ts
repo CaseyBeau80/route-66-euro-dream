@@ -15,6 +15,7 @@ interface UseWeatherDataFetcherProps {
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
     retryCount: number;
+    incrementRetry: () => void;
   };
 }
 
@@ -155,7 +156,8 @@ export const useWeatherDataFetcher = ({
     }, [actions]),
     handleRetry: React.useCallback(() => {
       console.log(`🚨 FIXED: handleRetry for ${segmentEndCity}`);
+      actions.incrementRetry();
       fetchWeather();
-    }, [fetchWeather])
+    }, [fetchWeather, actions])
   };
 };
