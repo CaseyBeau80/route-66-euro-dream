@@ -27,7 +27,9 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   const weatherData: ForecastWeatherData = {
     source,
     isActualForecast,
-    dateMatchInfo: { source: dateMatchSource },
+    dateMatchInfo: { 
+      source: (dateMatchSource as "live_forecast" | "historical_fallback" | "api-forecast" | "enhanced-fallback" | "seasonal-estimate") || 'historical_fallback'
+    },
     temperature: 0, // Not used for type detection
     description: '', // Not used for type detection
     icon: '', // Not used for type detection
