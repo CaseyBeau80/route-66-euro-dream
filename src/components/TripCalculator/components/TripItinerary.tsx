@@ -74,7 +74,7 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
             </PerformanceCircuitBreaker>
             
             {/* 🚨 CRASH PREVENTION: Wrap weather in circuit breaker */}
-            <PerformanceCircuitBreaker componentName="SimpleWeatherForecastColumn" maxErrors={2>
+            <PerformanceCircuitBreaker componentName="SimpleWeatherForecastColumn" maxErrors={2}>
               <SegmentLimiter segments={memoizedSegments} initialLimit={3} incrementSize={5}>
                 {(limitedSegments, hasMore, loadMore) => (
                   <>
