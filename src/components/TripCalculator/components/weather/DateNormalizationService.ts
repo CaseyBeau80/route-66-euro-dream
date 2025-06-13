@@ -23,7 +23,7 @@ export class DateNormalizationService {
       segmentDate.setUTCDate(normalizedStartDate.getUTCDate() + (segmentDay - 1));
       
       // FIXED: Enhanced debug output for date calculation
-      console.log('🔧 FIXED: DateNormalizationService.calculateSegmentDate - CORRECTED CALCULATION', {
+      console.log('🔧 FIXED: DateNormalizationService.calculateSegmentDate - CONSISTENT CALCULATION', {
         input: {
           tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString(),
           segmentDay,

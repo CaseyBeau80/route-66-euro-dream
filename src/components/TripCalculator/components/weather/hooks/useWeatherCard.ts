@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { addDays } from 'date-fns';
 import { DailySegment } from '../../../services/planning/TripPlanBuilder';
+import { DateNormalizationService } from '../DateNormalizationService';
 import { useWeatherApiKey } from './useWeatherApiKey';
 import { useSimpleWeatherState } from './useSimpleWeatherState';
 import { useWeatherDataFetcher } from './useWeatherDataFetcher';
@@ -45,7 +45,8 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) return null;
     try {
-      return addDays(tripStartDate, segment.day - 1);
+      // 🔧 FIXED: Use DateNormalizationService for consistent date calculation
+      return DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     } catch {
       return null;
     }
@@ -54,7 +55,8 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
   console.log(`🎯 [WEATHER DEBUG] useWeatherCard segment date calculated for ${segment.endCity}:`, {
     component: 'useWeatherCard -> segmentDate',
     calculatedDate: segmentDate?.toISOString(),
-    dayOffset: segment.day - 1
+    dayOffset: segment.day - 1,
+    calculationMethod: 'DateNormalizationService.calculateSegmentDate'
   });
 
   return {

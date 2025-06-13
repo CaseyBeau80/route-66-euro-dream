@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Cloud } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { useStableSegments } from '../hooks/useStableSegments';
+import { DateNormalizationService } from './weather/DateNormalizationService';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -135,18 +136,18 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           let segmentDate: Date | null = null;
           
           try {
-            segmentDate = addDays(validTripStartDate, segment.day - 1);
+            // 🔧 FIXED: Use DateNormalizationService for consistent date calculation
+            segmentDate = DateNormalizationService.calculateSegmentDate(validTripStartDate, segment.day);
             
-            console.log(`🗓️ CRITICAL: Date calculation for Day ${segment.day}:`, {
+            console.log(`🗓️ FIXED: Consistent date calculation for Day ${segment.day}:`, {
               tripStartDate: validTripStartDate.toISOString(),
               segmentDay: segment.day,
-              daysToAdd: segment.day - 1,
-              calculatedDate: segmentDate.toISOString(),
-              addDaysResult: segmentDate,
-              isValid: !isNaN(segmentDate.getTime())
+              calculatedDate: segmentDate?.toISOString(),
+              calculationMethod: 'DateNormalizationService.calculateSegmentDate',
+              isValid: segmentDate ? !isNaN(segmentDate.getTime()) : false
             });
             
-            if (isNaN(segmentDate.getTime())) {
+            if (!segmentDate || isNaN(segmentDate.getTime())) {
               console.error('❌ WeatherForecastColumn: Invalid calculated date for segment', { 
                 segment: segment.day, 
                 startDate: validTripStartDate.toISOString() 
