@@ -5,6 +5,7 @@ import { TripPlanValidator } from './planning/TripPlanValidator';
 import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningService';
 import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
+import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
 
 // Re-export types for backward compatibility
 export type { DailySegment, TripPlan, SegmentTiming };
@@ -17,19 +18,23 @@ export class Route66TripPlannerService {
     tripDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log(`🗺️ Enhanced Planning: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
+    console.log(`🗺️ STRICT PLANNING: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
 
     // Use enhanced data service with fallback tracking
     const allStops = await EnhancedSupabaseDataService.fetchAllStops();
-    console.log(`📊 Enhanced: Total stops available for planning: ${allStops.length}`);
+    console.log(`📊 STRICT: Total stops available for planning: ${allStops.length}`);
+    
+    // STRICT: Filter to only destination cities for processing
+    const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+    console.log(`🔒 STRICT: Processing only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
     
     // Log data source status
     const dataSourceInfo = EnhancedSupabaseDataService.getDataSourceInfo();
     if (dataSourceInfo) {
-      console.log(`📡 Data Source: ${EnhancedSupabaseDataService.getDataSourceMessage()}`);
+      console.log(`📡 STRICT: Data Source: ${EnhancedSupabaseDataService.getDataSourceMessage()}`);
       
       if (!dataSourceInfo.isUsingSupabase) {
-        console.warn(`⚠️ Enhanced: Using fallback data due to: ${dataSourceInfo.fallbackReason}`);
+        console.warn(`⚠️ STRICT: Using fallback data due to: ${dataSourceInfo.fallbackReason}`);
       }
     }
     
@@ -40,24 +45,24 @@ export class Route66TripPlannerService {
       const cityOnly = parts[0].toLowerCase();
       const stateOnly = parts.length > 1 ? parts[1].toLowerCase() : null;
       
-      console.log(`🔍 Enhanced: Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
+      console.log(`🔍 STRICT: Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
       
       // Special handling for Santa Fe - most common search terms
       if (cityOnly.includes('santa fe') || cityOnly.includes('santa_fe')) {
-        const santaFe = allStops.find(stop => 
+        const santaFe = destinationCitiesOnly.find(stop => 
           stop.name.toLowerCase().includes('santa fe') && 
           (!stateOnly || stop.state.toLowerCase().includes(stateOnly))
         );
         
         if (santaFe) {
-          console.log(`🎯 Enhanced: Found Santa Fe via special handling: ${santaFe.name} in ${CityDisplayService.getCityDisplayName(santaFe)}`);
+          console.log(`🎯 STRICT: Found Santa Fe via special handling: ${santaFe.name} in ${CityDisplayService.getCityDisplayName(santaFe)}`);
           return santaFe;
         }
       }
       
-      // Tier 1: Exact city + state matching (most precise)
+      // Tier 1: Exact city + state matching (most precise) - destination cities only
       if (stateOnly) {
-        const exactMatch = allStops.find(stop => {
+        const exactMatch = destinationCitiesOnly.find(stop => {
           const stopCity = stop.city_name.toLowerCase();
           const stopState = stop.state.toLowerCase();
           const stopName = stop.name.toLowerCase();
@@ -70,12 +75,12 @@ export class Route66TripPlannerService {
         });
         
         if (exactMatch) {
-          console.log(`✅ Enhanced: Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
+          console.log(`✅ STRICT: Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
           return exactMatch;
         }
 
-        // Try partial matches with correct state
-        const partialMatch = allStops.find(stop => {
+        // Try partial matches with correct state - destination cities only
+        const partialMatch = destinationCitiesOnly.find(stop => {
           const stopCity = stop.city_name.toLowerCase();
           const stopState = stop.state.toLowerCase();
           const stopName = stop.name.toLowerCase();
@@ -89,13 +94,13 @@ export class Route66TripPlannerService {
         });
         
         if (partialMatch) {
-          console.log(`✅ Enhanced: Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
+          console.log(`✅ STRICT: Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
           return partialMatch;
         }
       }
       
-      // Tier 2: City-only matching (fallback) - prioritize destination cities
-      const cityOnlyMatches = allStops.filter(stop => {
+      // Tier 2: City-only matching (fallback) - destination cities only
+      const cityOnlyMatches = destinationCitiesOnly.filter(stop => {
         const stopCity = stop.city_name.toLowerCase();
         const stopName = stop.name.toLowerCase();
         
@@ -110,41 +115,21 @@ export class Route66TripPlannerService {
       });
 
       if (cityOnlyMatches.length > 0) {
-        // Prioritize destination cities, then major stops
-        const destinationCity = cityOnlyMatches.find(stop => stop.category === 'destination_city');
-        if (destinationCity) {
-          console.log(`✅ Enhanced: Found destination city match: ${destinationCity.name} in ${CityDisplayService.getCityDisplayName(destinationCity)}`);
-          if (stateOnly && destinationCity.state.toLowerCase() !== stateOnly) {
-            console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${destinationCity.state}`);
-          }
-          return destinationCity;
-        }
-
-        const majorStop = cityOnlyMatches.find(stop => stop.is_major_stop);
-        if (majorStop) {
-          console.log(`✅ Enhanced: Found major stop match: ${majorStop.name} in ${CityDisplayService.getCityDisplayName(majorStop)}`);
-          if (stateOnly && majorStop.state.toLowerCase() !== stateOnly) {
-            console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${majorStop.state}`);
-          }
-          return majorStop;
-        }
-
-        // Return first match
+        // Return first match since all are destination cities
         const firstMatch = cityOnlyMatches[0];
-        console.log(`⚠️ Enhanced: Found city-only match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
+        console.log(`✅ STRICT: Found destination city match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
         if (stateOnly && firstMatch.state.toLowerCase() !== stateOnly) {
-          console.log(`⚠️ Enhanced: Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
+          console.log(`⚠️ STRICT: Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
         }
         return firstMatch;
       }
       
-      console.log(`❌ Enhanced: No match found for "${cityName}"`);
+      console.log(`❌ STRICT: No destination city match found for "${cityName}"`);
       
       // Enhanced error logging for debugging
       if (EnhancedSupabaseDataService.isUsingFallback()) {
-        console.log(`💡 Enhanced: Search failed with fallback data. Reason: ${EnhancedSupabaseDataService.getDataSourceInfo()?.fallbackReason}`);
-        console.log(`📋 Enhanced: Available cities in fallback:`, allStops
-          .filter(stop => stop.category === 'destination_city')
+        console.log(`💡 STRICT: Search failed with fallback data. Reason: ${EnhancedSupabaseDataService.getDataSourceInfo()?.fallbackReason}`);
+        console.log(`📋 STRICT: Available destination cities in fallback:`, destinationCitiesOnly
           .map(stop => `${stop.name}, ${stop.state}`)
           .sort()
         );
@@ -157,14 +142,14 @@ export class Route66TripPlannerService {
     const startStop = findCityStop(startCityName);
     const endStop = findCityStop(endCityName);
 
-    console.log('🔍 Enhanced: Start stop found:', startStop ? { 
+    console.log('🔍 STRICT: Start stop found:', startStop ? { 
       name: startStop.name, 
       city_display: CityDisplayService.getCityDisplayName(startStop),
       category: startStop.category,
       dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     } : 'NOT FOUND');
     
-    console.log('🔍 Enhanced: End stop found:', endStop ? { 
+    console.log('🔍 STRICT: End stop found:', endStop ? { 
       name: endStop.name, 
       city_display: CityDisplayService.getCityDisplayName(endStop),
       category: endStop.category,
@@ -177,264 +162,30 @@ export class Route66TripPlannerService {
       endStop,
       startCityName,
       endCityName,
-      allStops
+      destinationCitiesOnly // Only pass destination cities for validation
     );
 
-    // Use UnifiedTripPlanningService with the specified trip style
+    // Use UnifiedTripPlanningService with the specified trip style and destination cities only
     const planningResult = UnifiedTripPlanningService.createTripPlan(
       validatedStartStop,
       validatedEndStop,
-      allStops,
+      destinationCitiesOnly, // Only pass destination cities
       tripDays,
       startCityName,
       endCityName,
       tripStyle
     );
 
-    console.log('🎯 Enhanced: Final trip plan created:', {
+    console.log('🎯 STRICT: Final trip plan created:', {
       title: planningResult.tripPlan.title,
       tripStyle: planningResult.tripStyle,
       warnings: planningResult.warnings?.length || 0,
       segmentsCount: planningResult.tripPlan.segments.length,
-      dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
+      dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase',
+      destinationCitiesOnly: true
     });
     
     return planningResult.tripPlan;
-  }
-
-  // NEW METHOD: Generate daily segments for the trip
-  private static generateDailySegments(
-    startStop: TripStop, 
-    endStop: TripStop,
-    totalDays: number,
-    totalDistance: number,
-    allStops: TripStop[]
-  ): DailySegment[] {
-    console.log(`🔄 Generating ${totalDays} daily segments from ${startStop.name} to ${endStop.name}`);
-    
-    const segments: DailySegment[] = [];
-    const avgDistancePerDay = totalDistance / totalDays;
-    
-    // Find intermediate destination cities that would make good overnight stops
-    let potentialStops = allStops.filter(stop => 
-      stop.id !== startStop.id && 
-      stop.id !== endStop.id && 
-      (stop.is_major_stop || stop.category === 'destination_city')
-    );
-    
-    // Sort by distance from start (to ensure we follow geographic progression)
-    potentialStops = potentialStops.sort((a, b) => {
-      const distA = this.calculateDistance(startStop, a);
-      const distB = this.calculateDistance(startStop, b);
-      return distA - distB;
-    });
-    
-    // Select overnight stops based on total days
-    const overnightStops: TripStop[] = [];
-    
-    // For multi-day trips (more than 2 days), select intermediate stops
-    if (totalDays > 1) {
-      // We need (totalDays - 1) intermediate stops
-      const neededIntermediateStops = totalDays - 1;
-      
-      // Calculate ideal positions for stops (evenly spaced)
-      for (let i = 1; i <= neededIntermediateStops; i++) {
-        const idealDistance = (totalDistance * i) / totalDays;
-        
-        // Find closest stop to ideal position
-        let bestStop: TripStop | null = null;
-        let bestStopDiff = Number.MAX_VALUE;
-        
-        for (const stop of potentialStops) {
-          if (overnightStops.some(s => s.id === stop.id)) continue; // Skip already selected stops
-          
-          const stopDistance = this.calculateDistance(startStop, stop);
-          const diff = Math.abs(stopDistance - idealDistance);
-          
-          if (diff < bestStopDiff) {
-            bestStop = stop;
-            bestStopDiff = diff;
-          }
-        }
-        
-        if (bestStop) {
-          overnightStops.push(bestStop);
-        }
-      }
-    }
-    
-    // Sort overnight stops by distance from start
-    overnightStops.sort((a, b) => {
-      const distA = this.calculateDistance(startStop, a);
-      const distB = this.calculateDistance(startStop, b);
-      return distA - distB;
-    });
-    
-    console.log(`🏙️ Selected ${overnightStops.length} overnight stops:`, overnightStops.map(s => s.name));
-    
-    // Create segments based on start, overnight stops, and end
-    let currentStop = startStop;
-    
-    for (let day = 1; day <= totalDays; day++) {
-      // Determine end stop for this day's segment
-      const isLastDay = day === totalDays;
-      const dayEndStop = isLastDay ? endStop : overnightStops[day - 1];
-      
-      // Calculate segment distance
-      const segmentDistance = this.calculateDistance(currentStop, dayEndStop);
-      
-      // Calculate drive time (assume average speed of 50 mph on Route 66)
-      const driveTimeHours = segmentDistance / 50;
-      
-      // Find attractions along this segment
-      const segmentAttractions = this.findAttractionsForSegment(
-        currentStop, dayEndStop, allStops, 3
-      );
-      
-      // Determine drive time category
-      const driveTimeCategory = this.getDriveTimeCategory(driveTimeHours);
-      
-      // Create the segment
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(dayEndStop)}`,
-        startCity: CityDisplayService.getCityDisplayName(currentStop),
-        endCity: CityDisplayService.getCityDisplayName(dayEndStop),
-        distance: segmentDistance,
-        approximateMiles: Math.round(segmentDistance),
-        driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
-        destination: {
-          city: dayEndStop.city_name,
-          state: dayEndStop.state
-        },
-        recommendedStops: segmentAttractions.map(stop => ({
-          id: stop.id,
-          name: stop.name,
-          description: stop.description,
-          latitude: stop.latitude,
-          longitude: stop.longitude,
-          category: stop.category,
-          city_name: stop.city_name,
-          state: stop.state,
-          city: stop.city || stop.city_name
-        })),
-        attractions: segmentAttractions.map(stop => ({
-          name: stop.name,
-          title: stop.name,
-          description: stop.description,
-          city: stop.city || stop.city_name
-        })),
-        driveTimeCategory: driveTimeCategory,
-        routeSection: day <= Math.ceil(totalDays / 3) ? 'Early Route' : 
-                     day <= Math.ceil(2 * totalDays / 3) ? 'Mid Route' : 'Final Stretch'
-      };
-      
-      segments.push(segment);
-      
-      // Update current stop for next iteration
-      currentStop = dayEndStop;
-    }
-    
-    console.log(`✅ Generated ${segments.length} daily segments`);
-    return segments;
-  }
-
-  private static findAttractionsForSegment(
-    startStop: TripStop,
-    endStop: TripStop,
-    allStops: TripStop[],
-    maxAttractions: number
-  ): TripStop[] {
-    // Calculate the direct distance between start and end
-    const directDistance = this.calculateDistance(startStop, endStop);
-    
-    // Find attractions that are along the route (not too far off the direct path)
-    const attractions = allStops.filter(stop => {
-      // Skip the start and end stops
-      if (stop.id === startStop.id || stop.id === endStop.id) return false;
-      
-      // Skip overnight stops (destination cities) for clarity in the UI
-      if (stop.category === 'destination_city') return false;
-      
-      // Calculate distances
-      const distFromStart = this.calculateDistance(startStop, stop);
-      const distToEnd = this.calculateDistance(stop, endStop);
-      
-      // Triangle inequality - if the sum of distances through this stop is not much longer
-      // than the direct route, the stop is roughly along the path
-      const routeDeviation = (distFromStart + distToEnd) - directDistance;
-      const isOnRoute = routeDeviation < (directDistance * 0.2); // Within 20% deviation
-      
-      // Also check that the attraction is between the start and end (not past them)
-      const isBetween = distFromStart < directDistance && distToEnd < directDistance;
-      
-      return isOnRoute && isBetween;
-    });
-    
-    // Sort by priority (category) - always show important attractions first
-    const sortedAttractions = attractions.sort((a, b) => {
-      // Prioritize official Route 66 attractions
-      if (a.category === 'attraction' && b.category !== 'attraction') return -1;
-      if (b.category === 'attraction' && a.category !== 'attraction') return 1;
-      
-      // Then prioritize historic sites
-      if (a.category === 'historic_site' && b.category !== 'historic_site') return -1;
-      if (b.category === 'historic_site' && a.category !== 'historic_site') return 1;
-      
-      return 0;
-    });
-    
-    // Return limited number of attractions
-    return sortedAttractions.slice(0, maxAttractions);
-  }
-  
-  private static getDriveTimeCategory(driveTimeHours: number): { category: 'short' | 'optimal' | 'long' | 'extreme', message: string, color: string } {
-    if (driveTimeHours <= 4) {
-      return {
-        category: 'short',
-        message: `${driveTimeHours.toFixed(1)} hours - Relaxed pace with plenty of time for attractions`,
-        color: 'text-green-800'
-      };
-    } else if (driveTimeHours <= 6) {
-      return {
-        category: 'optimal',
-        message: `${driveTimeHours.toFixed(1)} hours - Perfect balance of driving and exploration`,
-        color: 'text-blue-800'
-      };
-    } else if (driveTimeHours <= 8) {
-      return {
-        category: 'long',
-        message: `${driveTimeHours.toFixed(1)} hours - Substantial driving day, but manageable`,
-        color: 'text-orange-800'
-      };
-    } else {
-      return {
-        category: 'extreme',
-        message: `${driveTimeHours.toFixed(1)} hours - Very long driving day, consider breaking into multiple days`,
-        color: 'text-red-800'
-      };
-    }
-  }
-
-  // Helper function to calculate distance between stops
-  private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
-    // Simple distance calculation using latitude/longitude
-    const R = 3958.8; // Earth radius in miles
-    const lat1 = startStop.latitude;
-    const lon1 = startStop.longitude;
-    const lat2 = endStop.latitude;
-    const lon2 = endStop.longitude;
-    
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-      
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
   }
 
   /**
@@ -449,5 +200,14 @@ export class Route66TripPlannerService {
    */
   static isUsingFallbackData(): boolean {
     return EnhancedSupabaseDataService.isUsingFallback();
+  }
+
+  /**
+   * Get count of destination cities only
+   */
+  static async getDestinationCitiesCount(): Promise<number> {
+    const allStops = await EnhancedSupabaseDataService.fetchAllStops();
+    const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+    return destinationCitiesOnly.length;
   }
 }

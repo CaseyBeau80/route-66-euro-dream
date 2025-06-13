@@ -1,21 +1,26 @@
 
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { isUserRelevantStop } from './filters/stopFiltering';
+import { StrictDestinationCityEnforcer } from '../../services/planning/StrictDestinationCityEnforcer';
 import { isGeographicallyRelevant } from './validation/geographicValidation';
 import { convertStopToTripStop } from './conversion/stopConversion';
 import { createFallbackStops } from './data/fallbackStops';
 import { isValidStopData, createStableSegmentKey } from './types/stopValidationTypes';
 
 // Re-export commonly used functions for backward compatibility
-export { isUserRelevantStop, isGeographicallyRelevant, createStableSegmentKey };
+export { isGeographicallyRelevant, createStableSegmentKey };
+
+// STRICT: Use destination city enforcer for filtering
+export const isUserRelevantStop = (stop: TripStop): boolean => {
+  return StrictDestinationCityEnforcer.isDestinationCity(stop);
+};
 
 // Get validated stops from multiple possible sources with enhanced validation
 export const getValidatedStops = (segment: DailySegment): TripStop[] => {
   const stops: TripStop[] = [];
   const segmentKey = createStableSegmentKey(segment);
   
-  console.log(`🔍 ENHANCED VALIDATION: Day ${segment.day}:`, {
+  console.log(`🔍 STRICT VALIDATION: Day ${segment.day}:`, {
     recommendedStops: segment.recommendedStops?.length || 0,
     attractions: segment.attractions?.length || 0,
     startCity: segment.startCity,
@@ -29,7 +34,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
       .filter((stop, index) => {
         const isValid = isValidStopData(stop);
         
-        console.log(`🎯 Stop ${index + 1} validation:`, {
+        console.log(`🎯 STRICT: Stop ${index + 1} validation:`, {
           stop: stop,
           isValid,
           name: isValid ? (typeof stop === 'string' ? stop : stop.name) : 'invalid',
@@ -38,21 +43,29 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey));
+      .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey))
+      .filter(stop => {
+        // STRICT: Only allow destination cities for overnight stops
+        const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
+        if (!isDestCity) {
+          console.log(`🚫 STRICT: Filtered out non-destination city: ${stop.name} (${stop.category})`);
+        }
+        return isDestCity;
+      });
     
-    console.log(`✅ Valid recommended stops: ${validRecommendedStops.length}`);
+    console.log(`✅ STRICT: Valid destination city stops: ${validRecommendedStops.length}`);
     stops.push(...validRecommendedStops);
   }
   
-  // Fallback: attractions array (for backward compatibility)
+  // Fallback: attractions array (for backward compatibility) - but still apply strict filtering
   if (stops.length === 0 && segment.attractions && Array.isArray(segment.attractions)) {
-    console.log(`🔄 Falling back to attractions array:`, segment.attractions);
+    console.log(`🔄 STRICT: Falling back to attractions array:`, segment.attractions);
     
     const attractionStops = segment.attractions
       .filter((attraction, index) => {
         const isValid = isValidStopData(attraction);
         
-        console.log(`🎯 Attraction ${index + 1} validation:`, {
+        console.log(`🎯 STRICT: Attraction ${index + 1} validation:`, {
           attraction,
           isValid,
           type: typeof attraction
@@ -60,18 +73,30 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         
         return isValid;
       })
-      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey));
+      .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey))
+      .filter(stop => {
+        // STRICT: For attractions, we can be less strict but still prefer destination cities
+        const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
+        if (isDestCity) {
+          console.log(`🏛️ STRICT: Keeping destination city attraction: ${stop.name}`);
+          return true;
+        } else {
+          // For now, allow non-destination attractions but log them
+          console.log(`📍 STRICT: Allowing non-destination attraction: ${stop.name} (${stop.category})`);
+          return true;
+        }
+      });
     
-    console.log(`✅ Valid attraction stops: ${attractionStops.length}`);
+    console.log(`✅ STRICT: Valid attraction stops: ${attractionStops.length}`);
     stops.push(...attractionStops);
   }
   
   // FALLBACK: If still no stops, create synthetic ones based on known Route 66 attractions
   if (stops.length === 0) {
-    console.log(`🚨 NO STOPS FOUND - Creating fallback stops for ${segment.startCity} → ${segment.endCity}`);
+    console.log(`🚨 STRICT: NO STOPS FOUND - Creating fallback stops for ${segment.startCity} → ${segment.endCity}`);
     
     const fallbackStops = createFallbackStops(segment, segmentKey);
-    console.log(`🔄 Created ${fallbackStops.length} fallback stops:`, fallbackStops.map(s => s.name));
+    console.log(`🔄 STRICT: Created ${fallbackStops.length} fallback stops:`, fallbackStops.map(s => s.name));
     stops.push(...fallbackStops);
   }
   
@@ -80,7 +105,21 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
     index === self.findIndex(s => s.name.toLowerCase() === stop.name.toLowerCase())
   );
   
-  console.log(`🎯 Final unique stops: ${uniqueStops.length}`, uniqueStops.map(s => `${s.name} (${s.category})`));
+  console.log(`🎯 STRICT: Final unique stops: ${uniqueStops.length}`, uniqueStops.map(s => `${s.name} (${s.category})`));
   
   return uniqueStops;
+};
+
+// New function to validate all stops in a trip plan are destination cities
+export const validateTripPlanDestinationCities = (segments: DailySegment[]): { isValid: boolean; violations: string[] } => {
+  console.log(`🛡️ STRICT: Validating trip plan with ${segments.length} segments for destination city compliance`);
+  
+  return StrictDestinationCityEnforcer.validateTripPlan(segments);
+};
+
+// New function to sanitize trip plan to remove non-destination cities
+export const sanitizeTripPlanToDestinationCities = (segments: DailySegment[]): DailySegment[] => {
+  console.log(`🧹 STRICT: Sanitizing trip plan to only include destination cities`);
+  
+  return StrictDestinationCityEnforcer.sanitizeTripPlan(segments);
 };
