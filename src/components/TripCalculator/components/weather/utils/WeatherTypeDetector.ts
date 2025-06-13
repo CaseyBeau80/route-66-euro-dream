@@ -13,7 +13,10 @@ export interface WeatherTypeResult {
 type WeatherDataForDetection = {
   source?: string;
   isActualForecast?: boolean;
-  dateMatchInfo?: { source?: string };
+  dateMatchInfo?: { 
+    source?: string;
+    confidence?: 'high' | 'medium' | 'low';
+  };
   icon?: string;
   description?: string;
   temperature?: number;
