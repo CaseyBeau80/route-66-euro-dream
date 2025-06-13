@@ -21,9 +21,12 @@ export class WeatherFetchingService {
     onError: (error: string | null) => void,
     onWeatherSet: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
-    console.log('🔧 FIXED: Using WeatherFetchingService for', cityName, 'instead of placeholder');
+    console.log('🔧 FIXED: WeatherFetchingService.fetchWeatherForSegment called for', cityName, {
+      segmentDate: segmentDate.toISOString(),
+      hasApiKey: EnhancedWeatherService.hasApiKey()
+    });
 
-    // FIXED: Cancel any existing request for this city to prevent race conditions
+    // Cancel any existing request for this city to prevent race conditions
     const requestKey = `${cityName}-${segmentDate.getTime()}`;
     if (this.activeRequests.has(requestKey)) {
       this.activeRequests.get(requestKey)?.abort();
@@ -39,29 +42,20 @@ export class WeatherFetchingService {
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
       const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
 
-      console.log('🔧 PLAN: WeatherFetchingService - STANDARDIZED FORECAST RANGE 0-7 WITH FALLBACK ENABLED', {
+      console.log('🔧 WeatherFetchingService: Date calculations', {
         cityName,
-        normalizedToday: normalizedToday.toISOString(),
-        normalizedTodayLocal: normalizedToday.toLocaleDateString(),
         normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-        normalizedSegmentLocal: normalizedSegmentDate.toLocaleDateString(),
         daysFromToday,
-        isWithinForecastRange: daysFromToday >= 0 && daysFromToday <= 7,
-        shouldAttemptLiveForecast: daysFromToday >= 0 && daysFromToday <= 7,
-        segmentDateString,
-        dateCalculationMethod: 'DateNormalizationService_LOCAL',
-        forecastLogic: 'Days 0-7 = TRY live forecast then fallback, Day 8+ = direct fallback',
-        standardizedRange: true,
-        localDateCalculation: true,
-        fallbackEnabled: true
+        isWithinForecastRange: daysFromToday >= 0 && daysFromToday <= 7
       });
 
-      // FIXED: Single state update to start loading
+      // Set loading state
       onLoadingChange(true);
       onError(null);
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
+        console.log('🔧 WeatherFetchingService: Request aborted for', cityName);
         return;
       }
 
@@ -69,55 +63,52 @@ export class WeatherFetchingService {
       const shouldAttemptLiveForecast = daysFromToday >= 0 && daysFromToday <= 7;
 
       if (shouldAttemptLiveForecast && EnhancedWeatherService.hasApiKey()) {
-        console.log('🔧 PLAN: ATTEMPTING live forecast with fallback for forecast range date', {
-          cityName,
-          daysFromToday,
-          reason: 'within_0_to_7_day_range_attempt_live_then_fallback',
-          standardizedForecastRange: true,
-          localDateCalculation: true,
-          fallbackEnabled: true
-        });
+        console.log('🔧 WeatherFetchingService: Attempting live forecast for', cityName);
 
         try {
-          // FIXED: Attempt live forecast without additional state updates
+          // Attempt live forecast
           const coordinates = await GeocodingService.getCoordinates(cityName);
           
           // Check if request was aborted
           if (abortController.signal.aborted) {
+            console.log('🔧 WeatherFetchingService: Request aborted after geocoding for', cityName);
             return;
           }
 
           if (coordinates) {
-            const weatherService = new WeatherForecastService(EnhancedWeatherService.getApiKey()!);
-            const weather = await weatherService.getWeatherForDate(
-              coordinates.lat,
-              coordinates.lng,
-              cityName,
-              normalizedSegmentDate
-            );
+            const apiKey = EnhancedWeatherService.getApiKey();
+            if (apiKey && apiKey !== 'key-available') {
+              // We have a real API key, try to get actual weather service instance
+              const weatherService = new WeatherForecastService(apiKey);
+              const weather = await weatherService.getWeatherForDate(
+                coordinates.lat,
+                coordinates.lng,
+                cityName,
+                normalizedSegmentDate
+              );
 
-            // Check if request was aborted
-            if (abortController.signal.aborted) {
-              return;
-            }
+              // Check if request was aborted
+              if (abortController.signal.aborted) {
+                console.log('🔧 WeatherFetchingService: Request aborted after weather fetch for', cityName);
+                return;
+              }
 
-            if (weather && weather.isActualForecast) {
-              console.log('✅ Live forecast SUCCESS for', cityName);
-              
-              // FIXED: Single state update for success
-              onLoadingChange(false);
-              onWeatherSet(weather);
-              return;
+              if (weather && weather.isActualForecast) {
+                console.log('✅ WeatherFetchingService: Live forecast SUCCESS for', cityName);
+                onLoadingChange(false);
+                onWeatherSet(weather);
+                return;
+              }
             }
           }
         } catch (error) {
-          console.log('⚠️ Live forecast failed for', cityName, 'falling back to historical data:', error);
+          console.log('⚠️ WeatherFetchingService: Live forecast failed for', cityName, 'falling back to historical data:', error);
           // Don't update error state here, just continue to fallback
         }
       }
 
-      // FIXED: Direct fallback without additional loading state changes
-      console.log('🔄 Using fallback weather for', cityName, {
+      // Use fallback weather
+      console.log('🔄 WeatherFetchingService: Using fallback weather for', cityName, {
         reason: shouldAttemptLiveForecast ? 'live_forecast_failed' : 'beyond_forecast_range',
         daysFromToday
       });
@@ -131,18 +122,19 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
+        console.log('🔧 WeatherFetchingService: Request aborted after fallback creation for', cityName);
         return;
       }
 
-      // FIXED: Single final state update
+      // Set the fallback weather
       onLoadingChange(false);
       onWeatherSet(fallbackWeather);
 
     } catch (error) {
-      console.error('❌ WeatherFetchingService error for', cityName, ':', error);
+      console.error('❌ WeatherFetchingService: Error for', cityName, ':', error);
       
       if (!abortController.signal.aborted) {
-        // FIXED: Minimal error handling - still provide fallback
+        // Provide fallback even on error
         const fallbackWeather = WeatherFallbackService.createFallbackForecast(
           cityName,
           segmentDate,
