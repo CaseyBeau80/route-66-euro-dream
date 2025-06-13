@@ -2,7 +2,7 @@
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDateCalculator {
-  private static readonly FORECAST_THRESHOLD_DAYS = 6;
+  private static readonly FORECAST_THRESHOLD_DAYS = 5; // FIXED: Changed from 6 to 5
 
   static calculateDaysFromToday(targetDate: Date): {
     normalizedTargetDate: Date;
@@ -21,11 +21,11 @@ export class WeatherDateCalculator {
     // PLAN IMPLEMENTATION: Calculate days from today using normalized dates
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
     
-    // PLAN IMPLEMENTATION: Fixed logic - Days 0-6 = forecast range (today through 6 days out)
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
+    // FIXED: Days 0-5 = forecast range (today through 5 days out), Day 6+ = historical
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
     // PLAN IMPLEMENTATION: Enhanced debug output
-    console.log('🔧 PLAN: WeatherDateCalculator.calculateDaysFromToday - NORMALIZED DATE LOGIC', {
+    console.log('🔧 FIXED: WeatherDateCalculator.calculateDaysFromToday - CORRECTED FORECAST RANGE', {
       input: {
         originalTargetDate: targetDate.toISOString(),
         targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -39,11 +39,11 @@ export class WeatherDateCalculator {
         daysFromToday,
         isWithinForecastRange,
         forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        logic: 'Days 0-6 = forecast, Day 7+ = historical'
+        logic: 'Days 0-5 = forecast, Day 6+ = historical'
       },
       decision: {
         useCase: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
-        reason: isWithinForecastRange ? 'within_7_day_range' : 'beyond_7_day_range'
+        reason: isWithinForecastRange ? 'within_6_day_range' : 'beyond_6_day_range'
       }
     });
 

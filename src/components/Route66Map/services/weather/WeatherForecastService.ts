@@ -35,8 +35,8 @@ export class WeatherForecastService {
     
     console.log('🔧 FIXED: WeatherForecastService initialized with corrected forecast logic', {
       hasApiKey: !!apiKey,
-      forecastRange: 'Days 0-6 (inclusive)',
-      historicalRange: 'Day 7 and beyond',
+      forecastRange: 'Days 0-5 (inclusive)',
+      historicalRange: 'Day 6 and beyond',
       timestamp: new Date().toISOString()
     });
   }
@@ -47,7 +47,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🔧 FIXED: WeatherForecastService.getWeatherForDate - ENTRY WITH FORCED LIVE FORECAST', {
+    console.log('🔧 FIXED: WeatherForecastService.getWeatherForDate - ENTRY WITH CORRECTED FORECAST RANGE', {
       cityName,
       targetDate: targetDate.toISOString(),
       coordinates: { lat, lng },
@@ -57,28 +57,29 @@ export class WeatherForecastService {
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    console.log('🔧 FIXED: WeatherForecastService - ROUTING DECISION WITH FORCED LOGIC', {
+    console.log('🔧 FIXED: WeatherForecastService - ROUTING DECISION WITH CORRECTED LOGIC', {
       cityName,
       dateInfo: {
         targetDateString,
         daysFromToday,
         isWithinForecastRange,
-        forcedDecision: isWithinForecastRange ? 'FORCE_LIVE_FORECAST_ATTEMPT' : 'USE_HISTORICAL_FALLBACK'
+        correctedDecision: isWithinForecastRange ? 'FORCE_LIVE_FORECAST_ATTEMPT' : 'USE_HISTORICAL_FALLBACK'
       },
       logic: {
-        forecastRange: '0-6 days from today',
-        historicalRange: '7+ days from today',
+        forecastRange: '0-5 days from today',
+        historicalRange: '6+ days from today',
         currentDecision: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL'
       }
     });
 
-    // FIXED: Force live forecast attempt for days 0-6
+    // FIXED: Force live forecast attempt for days 0-5
     if (isWithinForecastRange) {
       console.log('🔧 FIXED: FORCING live forecast attempt for', cityName, {
-        reason: 'within_7_day_range',
+        reason: 'within_6_day_range',
         daysFromToday,
         targetDateString,
-        willAttemptLiveForecast: true
+        willAttemptLiveForecast: true,
+        correctedForecastRange: true
       });
 
       try {
@@ -107,7 +108,8 @@ export class WeatherForecastService {
             temperature: enhancedForecast.temperature,
             source: enhancedForecast.source,
             isActualForecast: enhancedForecast.isActualForecast,
-            dateMatching: enhancedForecast.dateMatchInfo
+            dateMatching: enhancedForecast.dateMatchInfo,
+            correctedForecastRange: true
           });
           
           return enhancedForecast;
@@ -129,9 +131,10 @@ export class WeatherForecastService {
       console.log('🔧 FIXED: Live forecast failed, falling back to historical for', cityName);
     } else {
       console.log('🔧 FIXED: Using historical weather for', cityName, {
-        reason: 'beyond_7_day_range',
+        reason: 'beyond_6_day_range',
         daysFromToday,
-        targetDateString
+        targetDateString,
+        correctedForecastRange: true
       });
     }
 
@@ -148,7 +151,8 @@ export class WeatherForecastService {
       source: fallbackForecast.source,
       isActualForecast: fallbackForecast.isActualForecast,
       targetDateString,
-      fallbackReason: isWithinForecastRange ? 'live_forecast_failed' : 'beyond_forecast_range'
+      fallbackReason: isWithinForecastRange ? 'live_forecast_failed' : 'beyond_forecast_range',
+      correctedForecastRange: true
     });
     
     return fallbackForecast;

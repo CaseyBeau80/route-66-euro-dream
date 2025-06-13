@@ -57,23 +57,24 @@ export class WeatherPersistenceService {
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
       const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(date);
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
-      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
+      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5; // FIXED: Changed from 6 to 5
 
-      console.log('💾 FIXED: WeatherPersistenceService cache decision with normalized dates', {
+      console.log('💾 FIXED: WeatherPersistenceService cache decision with corrected forecast range', {
         cacheKey,
         normalizedToday: normalizedToday.toISOString(),
         normalizedTargetDate: normalizedTargetDate.toISOString(),
         daysFromToday,
         isWithinForecastRange,
+        forecastRange: 'Days 0-5 = live forecast, Day 6+ = cache',
         cacheDecision: isWithinForecastRange ? 'SKIP_CACHE_FOR_LIVE_FORECAST' : 'USE_CACHE_IF_VALID'
       });
 
       if (isWithinForecastRange) {
-        console.log('💾 FIXED: Skipping cache for forecast range date to force live attempt', {
+        console.log('💾 FIXED: Skipping cache for corrected forecast range date to force live attempt', {
           cacheKey,
           daysFromToday,
           isWithinForecastRange,
-          reason: 'within_0_to_6_day_forecast_range'
+          reason: 'within_0_to_5_day_forecast_range'
         });
         return null;
       }
