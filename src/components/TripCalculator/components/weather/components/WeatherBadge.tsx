@@ -41,7 +41,10 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     windSpeed: null,
     precipitationChance: null,
     highTemp: null,
-    lowTemp: null
+    lowTemp: null,
+    forecast: [], // Required property - empty array since not used for type detection
+    forecastDate: new Date(), // Required property - current date as placeholder
+    cityName: cityName // Required property - pass through the cityName prop
   };
 
   // FIXED: Use centralized WeatherTypeDetector for consistent badge logic
