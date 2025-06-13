@@ -17,41 +17,49 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
 }) => {
   const { formatTemperature } = useUnits();
 
-  console.log('🌡️ TemperatureDisplay DEBUG - Raw Props:', {
+  console.log('🌡️ TemperatureDisplay SIMPLIFIED - Raw Props:', {
     type,
     currentTemp,
     highTemp,
     lowTemp,
     currentTempType: typeof currentTemp,
     highTempType: typeof highTemp,
-    lowTempType: typeof lowTemp,
-    hasFormatTemperature: !!formatTemperature
+    lowTempType: typeof lowTemp
   });
 
-  // Fallback formatting if useUnits context is not available
-  const formatTemp = (temp: number) => {
+  // Simplified formatting function
+  const formatTemp = (temp: number | undefined): string => {
+    if (temp === undefined || temp === null || isNaN(temp)) {
+      return '--°';
+    }
+    
     if (formatTemperature) {
       return formatTemperature(temp);
     }
     return `${Math.round(temp)}°F`;
   };
 
-  // More lenient temperature validation - just check if it's a number
-  const isValidTemp = (temp: number | undefined): temp is number => {
-    const isValid = temp !== undefined && temp !== null && !isNaN(temp) && typeof temp === 'number';
-    console.log('🌡️ TemperatureDisplay validation:', { temp, isValid, type: typeof temp });
-    return isValid;
+  // More lenient validation - just check if it's a reasonable number
+  const isDisplayableTemp = (temp: number | undefined): boolean => {
+    return temp !== undefined && 
+           temp !== null && 
+           typeof temp === 'number' && 
+           !isNaN(temp) && 
+           temp > -150 && 
+           temp < 150;
   };
 
   console.log('🌡️ TemperatureDisplay validation results:', {
     type,
-    currentTempValid: isValidTemp(currentTemp),
-    highTempValid: isValidTemp(highTemp),
-    lowTempValid: isValidTemp(lowTemp)
+    currentTempValid: isDisplayableTemp(currentTemp),
+    highTempValid: isDisplayableTemp(highTemp),
+    lowTempValid: isDisplayableTemp(lowTemp),
+    willShowCurrent: type === 'current' && isDisplayableTemp(currentTemp),
+    willShowRange: type === 'range' && (isDisplayableTemp(highTemp) || isDisplayableTemp(lowTemp))
   });
 
-  if (type === 'current' && isValidTemp(currentTemp)) {
-    console.log('🌡️ TemperatureDisplay: Rendering current temp:', currentTemp);
+  if (type === 'current' && isDisplayableTemp(currentTemp)) {
+    console.log('✅ TemperatureDisplay: Rendering current temp:', currentTemp);
     return (
       <div className="flex flex-col items-center justify-center bg-white rounded p-3">
         <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -62,53 +70,58 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     );
   }
 
-  if (type === 'range' && isValidTemp(highTemp) && isValidTemp(lowTemp)) {
-    console.log('🌡️ TemperatureDisplay: Rendering range temps:', { highTemp, lowTemp });
-    return (
-      <div className="flex items-center justify-center gap-3 bg-white rounded p-3">
-        {/* Low Temperature - moved to left */}
-        <div className="text-center flex-1">
-          <div className="text-xl font-bold text-blue-600">
-            {formatTemp(lowTemp)}
-          </div>
-          <div className="text-xs text-gray-500">Low</div>
+  if (type === 'range') {
+    const hasHigh = isDisplayableTemp(highTemp);
+    const hasLow = isDisplayableTemp(lowTemp);
+    
+    console.log('🌡️ TemperatureDisplay: Range display check:', {
+      hasHigh,
+      hasLow,
+      highTemp,
+      lowTemp,
+      willShow: hasHigh || hasLow
+    });
+
+    if (hasHigh || hasLow) {
+      console.log('✅ TemperatureDisplay: Rendering range temps');
+      return (
+        <div className="flex items-center justify-center gap-3 bg-white rounded p-3">
+          {/* Low Temperature */}
+          {hasLow && (
+            <div className="text-center flex-1">
+              <div className="text-xl font-bold text-blue-600">
+                {formatTemp(lowTemp)}
+              </div>
+              <div className="text-xs text-gray-500">Low</div>
+            </div>
+          )}
+          
+          {/* Separator - only show if we have both temps */}
+          {hasHigh && hasLow && (
+            <div className="text-gray-300 text-lg">•</div>
+          )}
+          
+          {/* High Temperature */}
+          {hasHigh && (
+            <div className="text-center flex-1">
+              <div className="text-xl font-bold text-red-600">
+                {formatTemp(highTemp)}
+              </div>
+              <div className="text-xs text-gray-500">High</div>
+            </div>
+          )}
         </div>
-        
-        {/* Separator */}
-        <div className="text-gray-300 text-lg">•</div>
-        
-        {/* High Temperature - moved to right */}
-        <div className="text-center flex-1">
-          <div className="text-xl font-bold text-red-600">
-            {formatTemp(highTemp)}
-          </div>
-          <div className="text-xs text-gray-500">High</div>
-        </div>
-      </div>
-    );
+      );
+    }
   }
 
-  // Enhanced fallback display when no valid temperature data
-  console.warn('⚠️ TemperatureDisplay: No valid temperature data to display', {
-    type,
-    currentTemp,
-    highTemp,
-    lowTemp,
-    validCurrentTemp: isValidTemp(currentTemp),
-    validHighTemp: isValidTemp(highTemp),
-    validLowTemp: isValidTemp(lowTemp)
-  });
+  // Fallback display - simplified
+  console.warn('❌ TemperatureDisplay: No valid temperature data to display');
 
   return (
     <div className="flex flex-col items-center justify-center bg-gray-50 rounded p-3">
       <div className="text-lg text-gray-400 mb-1">--°</div>
       <div className="text-xs text-gray-500">Temperature unavailable</div>
-      <div className="text-xs text-gray-400 mt-1">
-        {type === 'current' ? 'Current temp data missing' : 'Temperature range data missing'}
-      </div>
-      <div className="text-xs text-red-500 mt-1">
-        DEBUG: high={highTemp}, low={lowTemp}, current={currentTemp}
-      </div>
     </div>
   );
 };

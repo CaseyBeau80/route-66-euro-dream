@@ -1,103 +1,141 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDebugService } from './WeatherDebugService';
+
+export interface ExtractedTemperatures {
+  current: number;
+  high: number;
+  low: number;
+  isValid: boolean;
+}
 
 export class TemperatureExtractor {
-  static extractTemperatures(weather: ForecastWeatherData, cityName: string): {
-    current: number;
-    high: number;
-    low: number;
-  } {
-    WeatherDebugService.logWeatherFlow(`TemperatureExtractor.extract [${cityName}]`, {
+  static extractTemperatures(
+    weather: ForecastWeatherData,
+    cityName: string
+  ): ExtractedTemperatures {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures:', {
+      cityName,
       inputWeather: {
         temperature: weather.temperature,
         highTemp: weather.highTemp,
         lowTemp: weather.lowTemp,
-        matchedForecastDay: weather.matchedForecastDay?.temperature
+        temperatureType: typeof weather.temperature,
+        highTempType: typeof weather.highTemp,
+        lowTempType: typeof weather.lowTemp
       }
     });
 
-    let current = 65;
-    let high = 75;
-    let low = 55;
+    // Extract individual temperature values with more lenient validation
+    const current = this.extractSingleTemperature(weather.temperature, 'current');
+    const high = this.extractSingleTemperature(weather.highTemp, 'high');
+    const low = this.extractSingleTemperature(weather.lowTemp, 'low');
 
-    // Priority 1: Use highTemp/lowTemp if available
-    if (weather.highTemp !== undefined && weather.lowTemp !== undefined) {
-      WeatherDebugService.logWeatherFlow(`TemperatureExtractor.priority1 [${cityName}]`, {
-        rawHighTemp: weather.highTemp,
-        rawLowTemp: weather.lowTemp
-      });
-
-      high = Math.round(Number(weather.highTemp));
-      low = Math.round(Number(weather.lowTemp));
-      current = Math.round((high + low) / 2);
-    }
-    // Priority 2: Use temperature field
-    else if (weather.temperature !== undefined) {
-      WeatherDebugService.logWeatherFlow(`TemperatureExtractor.priority2 [${cityName}]`, {
-        rawTemperature: weather.temperature
-      });
-
-      current = Math.round(Number(weather.temperature));
-      high = current + 10;
-      low = current - 10;
-    }
-    // Priority 3: Check matched forecast day
-    else if (weather.matchedForecastDay?.temperature) {
-      WeatherDebugService.logWeatherFlow(`TemperatureExtractor.priority3 [${cityName}]`, {
-        matchedForecastTemp: weather.matchedForecastDay.temperature
-      });
-
-      const temp = weather.matchedForecastDay.temperature;
-      if (typeof temp === 'object' && 'high' in temp && 'low' in temp) {
-        high = Math.round(Number(temp.high));
-        low = Math.round(Number(temp.low));
-        current = Math.round((high + low) / 2);
-      } else if (typeof temp === 'number') {
-        current = Math.round(Number(temp));
-        high = current + 10;
-        low = current - 10;
-      }
-    } else {
-      WeatherDebugService.logWeatherFlow(`TemperatureExtractor.fallback [${cityName}]`, {
-        reason: 'no_valid_temperature_data_found'
-      });
-    }
-
-    // Ensure we have valid numbers
-    if (isNaN(current) || isNaN(high) || isNaN(low)) {
-      console.warn(`⚠️ TemperatureExtractor: Invalid temperature values for ${cityName}, using fallback`);
-      current = 65;
-      high = 75;
-      low = 55;
-    }
-
-    const result = { current, high, low };
-
-    WeatherDebugService.logWeatherFlow(`TemperatureExtractor.result [${cityName}]`, {
-      result,
-      isValid: result.current > 0 && result.high > 0 && result.low > 0
+    console.log('🌡️ TemperatureExtractor extracted values:', {
+      cityName,
+      current,
+      high,
+      low,
+      currentValid: this.isValidTemperature(current),
+      highValid: this.isValidTemperature(high),
+      lowValid: this.isValidTemperature(low)
     });
 
+    // If we have high/low but not current, calculate current as average
+    let finalCurrent = current;
+    if (!this.isValidTemperature(current) && this.isValidTemperature(high) && this.isValidTemperature(low)) {
+      finalCurrent = Math.round((high + low) / 2);
+      console.log('🌡️ TemperatureExtractor calculated current from high/low:', finalCurrent);
+    }
+
+    // If we have current but not high/low, estimate them
+    let finalHigh = high;
+    let finalLow = low;
+    if (this.isValidTemperature(finalCurrent)) {
+      if (!this.isValidTemperature(high)) {
+        finalHigh = finalCurrent + 5; // Estimate high temp
+      }
+      if (!this.isValidTemperature(low)) {
+        finalLow = finalCurrent - 5; // Estimate low temp
+      }
+    }
+
+    const result = {
+      current: finalCurrent,
+      high: finalHigh,
+      low: finalLow,
+      isValid: this.hasDisplayableTemperatureData({
+        current: finalCurrent,
+        high: finalHigh,
+        low: finalLow,
+        isValid: true
+      })
+    };
+
+    console.log('🌡️ TemperatureExtractor final result:', result);
     return result;
   }
 
-  static hasDisplayableTemperatureData(temps: { current: number; high: number; low: number }): boolean {
-    const isValid = !isNaN(temps.current) && !isNaN(temps.high) && !isNaN(temps.low) &&
-                   temps.current > -50 && temps.current < 150 && 
-                   temps.high > -50 && temps.high < 150 && 
-                   temps.low > -50 && temps.low < 150;
-    
-    WeatherDebugService.logWeatherFlow('TemperatureExtractor.validation', {
-      temps,
-      validationResult: isValid,
-      checks: {
-        currentValid: !isNaN(temps.current) && temps.current > -50 && temps.current < 150,
-        highValid: !isNaN(temps.high) && temps.high > -50 && temps.high < 150,
-        lowValid: !isNaN(temps.low) && temps.low > -50 && temps.low < 150
-      }
+  private static extractSingleTemperature(temp: any, type: string): number {
+    console.log(`🌡️ TemperatureExtractor.extractSingleTemperature [${type}]:`, {
+      temp,
+      type: typeof temp,
+      isNumber: typeof temp === 'number',
+      isObject: typeof temp === 'object'
     });
 
-    return isValid;
+    // Handle different temperature formats
+    if (typeof temp === 'number' && !isNaN(temp)) {
+      return Math.round(temp);
+    }
+
+    if (temp && typeof temp === 'object') {
+      // Handle object format like { high: 75, low: 65 }
+      if ('high' in temp && typeof temp.high === 'number') {
+        return Math.round(temp.high);
+      }
+      if ('low' in temp && typeof temp.low === 'number') {
+        return Math.round(temp.low);
+      }
+      if ('temp' in temp && typeof temp.temp === 'number') {
+        return Math.round(temp.temp);
+      }
+    }
+
+    // Handle string numbers
+    if (typeof temp === 'string') {
+      const parsed = parseFloat(temp);
+      if (!isNaN(parsed)) {
+        return Math.round(parsed);
+      }
+    }
+
+    console.warn(`❌ TemperatureExtractor: Could not extract ${type} temperature from:`, temp);
+    return 0; // Return 0 instead of NaN for invalid temperatures
+  }
+
+  private static isValidTemperature(temp: number): boolean {
+    return typeof temp === 'number' && 
+           !isNaN(temp) && 
+           temp > -150 && 
+           temp < 150; // More reasonable temperature range
+  }
+
+  static hasDisplayableTemperatureData(temperatures: ExtractedTemperatures): boolean {
+    const hasValidCurrent = this.isValidTemperature(temperatures.current);
+    const hasValidHigh = this.isValidTemperature(temperatures.high);
+    const hasValidLow = this.isValidTemperature(temperatures.low);
+
+    // We need at least one valid temperature to display
+    const hasAnyValidTemp = hasValidCurrent || hasValidHigh || hasValidLow;
+
+    console.log('🌡️ TemperatureExtractor.hasDisplayableTemperatureData:', {
+      temperatures,
+      hasValidCurrent,
+      hasValidHigh,
+      hasValidLow,
+      hasAnyValidTemp
+    });
+
+    return hasAnyValidTemp;
   }
 }
