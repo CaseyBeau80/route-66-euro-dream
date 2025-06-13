@@ -25,51 +25,20 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   cityName
 }) => {
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    console.log('🏷️ WeatherBadge: FIXED source detection for', cityName, {
+    console.log('🏷️ WeatherBadge: FIXED logic for', cityName, {
       source,
       isActualForecast,
       dateMatchSource,
       timestamp: new Date().toISOString()
     });
 
-    // FIXED STEP 1: Check for any historical indicators first (highest priority)
-    const isHistoricalBySource = source === 'historical_fallback';
-    const isHistoricalByFlag = isActualForecast === false;
-    const isHistoricalByDateMatch = dateMatchSource === 'historical_fallback' || 
-                                    dateMatchSource === 'seasonal-estimate';
-
-    // FIXED STEP 2: If ANY indicator points to historical, show historical badge
-    if (isHistoricalBySource || isHistoricalByFlag || isHistoricalByDateMatch) {
-      console.log('🏷️ WeatherBadge: HISTORICAL badge (any historical indicator found)', { 
+    // FIXED LOGIC: Check for live forecast first (most restrictive)
+    if (dateMatchSource === 'live_forecast' && isActualForecast === true) {
+      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (strict validation passed)', { 
         cityName, 
-        isHistoricalBySource,
-        isHistoricalByFlag,
-        isHistoricalByDateMatch,
-        reason: 'any_historical_indicator'
-      });
-      return {
-        text: '📊 Historical Average',
-        bgColor: 'bg-orange-100',
-        textColor: 'text-orange-800',
-        explanation: 'Based on historical weather patterns',
-        showTooltip: true,
-        tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
-      };
-    }
-
-    // FIXED STEP 3: Only show live forecast if ALL indicators point to live data
-    const isLiveBySource = source === 'live_forecast';
-    const isLiveByFlag = isActualForecast === true;
-    const isLiveByDateMatch = dateMatchSource === 'api-forecast' || 
-                              dateMatchSource === 'enhanced-fallback';
-
-    if (isLiveBySource && isLiveByFlag && isLiveByDateMatch) {
-      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (all indicators confirm live)', { 
-        cityName, 
-        isLiveBySource,
-        isLiveByFlag,
-        isLiveByDateMatch,
-        reason: 'all_live_indicators_confirmed'
+        dateMatchSource,
+        isActualForecast,
+        reason: 'live_forecast_confirmed'
       });
       return {
         text: '📡 Live Forecast',
@@ -79,22 +48,40 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // FIXED STEP 4: Default to historical for any ambiguous cases
-    console.warn('🏷️ WeatherBadge: AMBIGUOUS source, defaulting to historical', {
+    // FIXED LOGIC: Check for historical/seasonal data
+    if (dateMatchSource === 'historical_fallback' || source === 'seasonal') {
+      console.log('🏷️ WeatherBadge: SEASONAL AVERAGE badge (historical data detected)', { 
+        cityName, 
+        dateMatchSource,
+        source,
+        reason: 'historical_or_seasonal_data'
+      });
+      return {
+        text: '📊 Seasonal Average',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800',
+        explanation: 'Based on historical weather patterns',
+        showTooltip: true,
+        tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
+      };
+    }
+
+    // FIXED LOGIC: Default to forecast unavailable for any other cases
+    console.log('🏷️ WeatherBadge: FORECAST UNAVAILABLE badge (no valid source detected)', {
       cityName,
       source,
       isActualForecast,
       dateMatchSource,
-      reason: 'ambiguous_or_uncertain_data'
+      reason: 'no_valid_source_detected'
     });
 
     return {
-      text: '📊 Historical Average',
+      text: '❓ Forecast Unavailable',
       bgColor: 'bg-gray-100',
       textColor: 'text-gray-800',
-      explanation: 'Weather data source uncertain',
+      explanation: 'Weather data source unavailable',
       showTooltip: true,
-      tooltipMessage: 'Weather data source could not be determined - displaying historical estimates'
+      tooltipMessage: 'Weather data could not be retrieved for this location and date'
     };
   }, [source, isActualForecast, dateMatchSource, cityName]);
 
