@@ -23,22 +23,16 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isPDFExport = false
 }) => {
   // DEBUGGING: Log the complete weather object to understand what we're working with
-  console.log('🔍 SimpleWeatherDisplay DEBUG - Complete weather object for', cityName, {
-    weather: {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      dateMatchInfo: weather.dateMatchInfo,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
-    },
-    segmentDate: segmentDate?.toISOString(),
+  console.log('🔍 SimpleWeatherDisplay SIMPLIFIED for', cityName, {
+    isActualForecast: weather.isActualForecast,
+    source: weather.source,
+    dateMatchSource: weather.dateMatchInfo?.source,
+    temperature: weather.temperature,
     timestamp: new Date().toISOString()
   });
 
   // Extract temperatures using the enhanced TemperatureExtractor
   const temperatures = React.useMemo(() => {
-    console.log('🌡️ SimpleWeatherDisplay: Extracting temperatures for', cityName);
     const extracted = TemperatureExtractor.extractTemperatures(weather, cityName);
     console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures:', extracted);
     return extracted;
@@ -49,78 +43,29 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     const hasValidCurrent = temperatures.isValid && !isNaN(temperatures.current);
     const hasValidRange = temperatures.isValid && (!isNaN(temperatures.high) || !isNaN(temperatures.low));
     
-    console.log('🌤️ SimpleWeatherDisplay: Display configuration:', {
-      cityName,
-      hasValidCurrent,
-      hasValidRange,
-      temperatures
-    });
-
     return {
       hasValidCurrent,
       hasValidRange,
       showCurrent: hasValidCurrent && !hasValidRange,
       showRange: hasValidRange
     };
-  }, [temperatures, cityName]);
+  }, [temperatures]);
 
-  // DEBUGGING: Log the exact props being passed to WeatherBadge
-  const weatherBadgeProps = React.useMemo(() => {
-    const props = {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      dateMatchSource: weather.dateMatchInfo?.source,
-      cityName: cityName
-    };
-    
-    console.log('🔍 SimpleWeatherDisplay DEBUG - WeatherBadge props for', cityName, {
-      props,
-      explanation: 'These are the exact props being passed to WeatherBadge'
-    });
-    
-    return props;
-  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
-
-  // Get dynamic footer message with corrected source validation
+  // SIMPLIFIED footer message logic - matches the badge logic exactly
   const getFooterMessage = React.useMemo(() => {
-    const dateMatchSource = weather.dateMatchInfo?.source;
-    const explicitSource = weather.source;
-    const isActualForecast = weather.isActualForecast;
-
-    console.log('🌤️ SimpleWeatherDisplay: Footer message determination', {
-      cityName,
-      dateMatchSource,
-      explicitSource,
-      isActualForecast,
-      timestamp: new Date().toISOString()
+    console.log('🌤️ SimpleWeatherDisplay SIMPLIFIED footer for', cityName, {
+      isActualForecast: weather.isActualForecast,
+      decision: weather.isActualForecast === true ? 'LIVE' : 'HISTORICAL'
     });
 
-    // Check for confirmed live forecast (most restrictive)
-    if (dateMatchSource === 'live_forecast' && isActualForecast === true) {
-      console.log('🌤️ SimpleWeatherDisplay: LIVE footer (strict validation passed)', { cityName, dateMatchSource, isActualForecast });
+    // SIMPLE RULE: If isActualForecast is true, show live message
+    if (weather.isActualForecast === true) {
       return 'Real-time weather forecast from API';
     }
 
-    // Check for historical/seasonal sources OR if isActualForecast is false
-    if (dateMatchSource === 'historical_fallback' || explicitSource === 'seasonal' || explicitSource === 'historical_fallback' || isActualForecast === false) {
-      console.log('🌤️ SimpleWeatherDisplay: HISTORICAL footer (historical data detected)', { 
-        cityName, 
-        dateMatchSource, 
-        explicitSource, 
-        isActualForecast 
-      });
-      return 'Historical weather patterns - live forecast not available for this date';
-    }
-
-    // Default to unavailable for any other cases
-    console.log('🌤️ SimpleWeatherDisplay: UNAVAILABLE footer (no valid source)', { 
-      cityName, 
-      dateMatchSource, 
-      explicitSource, 
-      isActualForecast 
-    });
-    return 'Weather forecast unavailable';
-  }, [weather.dateMatchInfo?.source, weather.source, weather.isActualForecast, cityName]);
+    // SIMPLE RULE: Everything else is historical
+    return 'Historical weather patterns - live forecast not available for this date';
+  }, [weather.isActualForecast, cityName]);
 
   if (!temperatures.isValid) {
     console.warn('❌ SimpleWeatherDisplay: No valid temperature data available for', cityName);
@@ -169,12 +114,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Weather Badge with DEBUG props */}
+        {/* Weather Badge - using simplified props */}
         <WeatherBadge
-          source={weatherBadgeProps.source}
-          isActualForecast={weatherBadgeProps.isActualForecast}
-          dateMatchSource={weatherBadgeProps.dateMatchSource}
-          cityName={weatherBadgeProps.cityName}
+          source={weather.source}
+          isActualForecast={weather.isActualForecast}
+          dateMatchSource={weather.dateMatchInfo?.source}
+          cityName={cityName}
         />
       </div>
 
@@ -203,10 +148,17 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* Dynamic Data Source Footer */}
+      {/* Simplified footer message that matches badge logic */}
       <div className="mt-3 text-xs text-blue-500 text-center">
         {getFooterMessage}
       </div>
+
+      {/* Debug info in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
+          Debug: isActualForecast={String(weather.isActualForecast)}, source={weather.source}
+        </div>
+      )}
     </div>
   );
 };
