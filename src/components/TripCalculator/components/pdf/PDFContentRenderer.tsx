@@ -88,11 +88,11 @@ const PDFContentRenderer: React.FC<PDFContentRendererProps> = ({
         </h2>
         <div className={`grid gap-4 text-sm ${costEstimate ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">{sanitizedTripPlan.startCity}</div>
+            <div className="font-bold text-route66-primary text-lg font-route66">From {sanitizedTripPlan.startCity}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Starting Point</div>
           </div>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">{sanitizedTripPlan.endCity}</div>
+            <div className="font-bold text-route66-primary text-lg font-route66">To {sanitizedTripPlan.endCity}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Destination</div>
           </div>
           <div className="pdf-overview-card text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
