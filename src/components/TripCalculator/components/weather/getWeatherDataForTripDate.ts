@@ -24,6 +24,13 @@ export const getWeatherDataForTripDate = async (
   tripDate: Date | string,
   coordinates?: { lat: number; lng: number }
 ): Promise<WeatherDisplayData | null> => {
+  console.log('🚨 CRITICAL DEBUG: getWeatherDataForTripDate ENTRY POINT', {
+    cityName,
+    tripDate: tripDate instanceof Date ? tripDate.toISOString() : tripDate,
+    coordinates,
+    timestamp: new Date().toISOString()
+  });
+
   let exactSegmentDate: Date;
   try {
     if (tripDate instanceof Date) {
@@ -51,9 +58,16 @@ export const getWeatherDataForTripDate = async (
   const exactDateString = DateNormalizationService.toDateString(exactSegmentDate);
   const daysFromNow = Math.ceil((exactSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🚨 FIXED: getWeatherDataForTripDate for ${cityName} on ${exactDateString}, ${daysFromNow} days from now`);
+  console.log(`🚨 CRITICAL DEBUG: Processing ${cityName} on ${exactDateString}, ${daysFromNow} days from now`);
 
   const weatherService = EnhancedWeatherService.getInstance();
+  
+  console.log('🚨 CRITICAL DEBUG: Weather service status', {
+    hasApiKey: weatherService.hasApiKey(),
+    debugInfo: weatherService.getDebugInfo(),
+    daysFromNow,
+    withinForecastRange: daysFromNow >= 0 && daysFromNow <= 5
+  });
   
   // Get coordinates if not provided
   let coords = coordinates;
@@ -65,13 +79,15 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  // FIXED: Try live forecast for 0-5 days from now (including today)
+  // CRITICAL: Try live forecast for 0-5 days from now (including today)
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🚨 FORECAST ATTEMPT: ${cityName} on ${exactDateString} (${daysFromNow} days from now) - WITHIN LIVE RANGE`);
+    console.log(`🚨 CRITICAL DEBUG: ATTEMPTING LIVE FORECAST for ${cityName} on ${exactDateString}`);
     
     try {
+      console.log('🚨 CRITICAL DEBUG: About to call weatherService.getWeatherForDate');
+      
       const timeoutPromise = new Promise<ForecastWeatherData | null>((_, reject) => {
-        setTimeout(() => reject(new Error('Weather API timeout')), 8000);
+        setTimeout(() => reject(new Error('Weather API timeout')), 10000);
       });
       
       const forecastPromise = weatherService.getWeatherForDate(
@@ -86,33 +102,33 @@ export const getWeatherDataForTripDate = async (
         timeoutPromise
       ]);
       
-      console.log(`🚨 FORECAST API RESPONSE for ${cityName}:`, {
+      console.log(`🚨 CRITICAL DEBUG: FORECAST API RESPONSE for ${cityName}:`, {
         hasData: !!forecastData,
         isActualForecast: forecastData?.isActualForecast,
         temperature: forecastData?.temperature,
         highTemp: forecastData?.highTemp,
         lowTemp: forecastData?.lowTemp,
-        dateMatchInfo: forecastData?.dateMatchInfo,
+        description: forecastData?.description,
+        source: forecastData?.dateMatchInfo?.source,
         fullResponse: forecastData
       });
       
-      // FIXED: Accept live forecast if API returns ANY forecast data with isActualForecast=true
+      // CRITICAL: Accept live forecast ONLY if API returns isActualForecast=true
       if (forecastData && forecastData.isActualForecast === true) {
         const highTemp = forecastData.highTemp || forecastData.temperature || 0;
         const lowTemp = forecastData.lowTemp || forecastData.temperature || 0;
         
-        console.log(`✅ LIVE FORECAST ACCEPTED for ${cityName} on ${exactDateString}:`, {
+        console.log(`✅ CRITICAL DEBUG: LIVE FORECAST ACCEPTED for ${cityName}:`, {
           high: highTemp + '°F',
           low: lowTemp + '°F',
           isActualForecast: true,
           source: 'forecast',
-          daysFromNow,
-          reason: 'API_returned_isActualForecast_true'
+          description: forecastData.description
         });
         
         return {
-          lowTemp: lowTemp || forecastData.temperature || 0,
-          highTemp: highTemp || forecastData.temperature || 0,
+          lowTemp: lowTemp,
+          highTemp: highTemp,
           icon: forecastData.icon,
           description: forecastData.description,
           source: 'forecast',
@@ -124,23 +140,18 @@ export const getWeatherDataForTripDate = async (
           isActualForecast: true
         };
       } else {
-        console.log(`⚠️ LIVE FORECAST REJECTED for ${cityName} on ${exactDateString}:`, {
+        console.log(`⚠️ CRITICAL DEBUG: LIVE FORECAST REJECTED for ${cityName}:`, {
           hasData: !!forecastData,
           isActualForecast: forecastData?.isActualForecast,
-          reason: !forecastData ? 'no_data_returned' : 'isActualForecast_not_true',
-          fallbackToHistorical: true
+          reason: !forecastData ? 'no_data_returned' : 'isActualForecast_not_true'
         });
       }
       
     } catch (error) {
-      if (error instanceof Error && error.message === 'Weather API timeout') {
-        console.warn(`⏰ Weather API timeout for ${cityName} on ${exactDateString} - falling back to historical`);
-      } else {
-        console.error('❌ Error getting live forecast, falling back to historical:', error);
-      }
+      console.error('🚨 CRITICAL DEBUG: Error in live forecast attempt:', error);
     }
   } else {
-    console.log(`⚠️ LIVE FORECAST NOT ATTEMPTED for ${cityName}:`, {
+    console.log(`⚠️ CRITICAL DEBUG: LIVE FORECAST NOT ATTEMPTED for ${cityName}:`, {
       hasApiKey: weatherService.hasApiKey(),
       daysFromNow,
       reason: !weatherService.hasApiKey() ? 'no_api_key' : 'outside_0_5_day_range'
@@ -148,7 +159,7 @@ export const getWeatherDataForTripDate = async (
   }
   
   // FALLBACK: Historical data
-  console.log(`📊 FALLBACK: Using historical data for ${cityName} on ${exactDateString}`);
+  console.log(`📊 CRITICAL DEBUG: Using historical fallback for ${cityName}`);
   
   const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0);
   
