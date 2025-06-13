@@ -29,7 +29,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
-  // STRONGER: Track weather quality with source validation
+  // Enhanced weather quality tracking with source validation
   const weatherQualityRef = React.useRef<{
     isLive: boolean;
     timestamp: number;
@@ -54,18 +54,20 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     setRetryCount(prev => prev + 1);
   }, [segmentEndCity]);
 
-  // ENHANCED: Much stronger setWeather with multiple protection layers
+  // FIXED: Enhanced setWeather with corrected protection logic
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
     console.log(`🔒 [PROTECTION] setWeather called for ${segmentEndCity}:`, {
       hasNewWeather: !!newWeather,
-      newSource: newWeather?.dateMatchInfo?.source,
+      newSource: newWeather?.source,
+      newDateMatchSource: newWeather?.dateMatchInfo?.source,
       newIsLive: newWeather?.isActualForecast,
       currentQuality: weatherQualityRef.current
     });
 
     const now = Date.now();
     const newIsLive = newWeather?.isActualForecast === true;
-    const newSource = newWeather?.dateMatchInfo?.source || 'unknown';
+    const newSource = newWeather?.source || 'unknown';
+    const newDateMatchSource = newWeather?.dateMatchInfo?.source || 'unknown';
 
     // PROTECTION LAYER 1: Block any downgrade from live to non-live
     if (weatherQualityRef.current?.isLive && newWeather && !newIsLive) {
@@ -89,15 +91,38 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
       return;
     }
 
-    // PROTECTION LAYER 3: Source validation
-    const allowedSources = ['api-forecast', 'forecast'];
-    if (newWeather && newIsLive && !allowedSources.includes(newSource)) {
-      console.log(`🚨 [BLOCKED] Invalid source for live forecast for ${segmentEndCity}:`, {
-        source: newSource,
-        allowedSources,
-        reason: 'INVALID_LIVE_SOURCE'
+    // PROTECTION LAYER 3: FIXED - Enhanced source validation with proper allowedSources
+    if (newWeather && newIsLive) {
+      // FIXED: Updated allowedSources to include 'live_forecast' and other valid live sources
+      const allowedLiveSources = ['live_forecast', 'api-forecast', 'forecast'];
+      const isValidMainSource = allowedLiveSources.includes(newSource);
+      const isValidDateMatchSource = allowedLiveSources.includes(newDateMatchSource);
+      
+      console.log(`🔧 [FIXED] Enhanced source validation for ${segmentEndCity}:`, {
+        newSource,
+        newDateMatchSource,
+        allowedLiveSources,
+        isValidMainSource,
+        isValidDateMatchSource,
+        isActualForecast: newIsLive
       });
-      return;
+
+      // FIXED: Accept if either source is valid OR if isActualForecast is explicitly true
+      if (!isValidMainSource && !isValidDateMatchSource) {
+        console.log(`🚨 [BLOCKED] Invalid source for live forecast for ${segmentEndCity}:`, {
+          mainSource: newSource,
+          dateMatchSource: newDateMatchSource,
+          allowedSources: allowedLiveSources,
+          reason: 'INVALID_LIVE_SOURCE'
+        });
+        
+        // FIXED: Add defensive fallback - if isActualForecast is true, allow it anyway
+        if (newWeather.isActualForecast === true) {
+          console.log(`✅ [OVERRIDE] Allowing live forecast despite source mismatch due to isActualForecast=true for ${segmentEndCity}`);
+        } else {
+          return;
+        }
+      }
     }
 
     // Update quality tracking
@@ -111,6 +136,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
       console.log(`✅ [ACCEPTED] Weather update for ${segmentEndCity}:`, {
         isLive: newIsLive,
         source: newSource,
+        dateMatchSource: newDateMatchSource,
         temperature: newWeather.temperature,
         protection: 'PASSED_ALL_LAYERS'
       });

@@ -88,23 +88,34 @@ export class WeatherForecastService {
       WeatherDebugService.logForecastApiRawResponse(cityName, actualForecast);
 
       if (actualForecast) {
-        console.log('🚨 FIXED: LIVE FORECAST SUCCESS - returning with consistent live source marking', {
+        // FIXED: Ensure consistent source marking for live forecasts
+        const enhancedForecast = {
+          ...actualForecast,
+          source: 'live_forecast' as const,
+          isActualForecast: true,
+          dateMatchInfo: {
+            ...actualForecast.dateMatchInfo,
+            source: 'live_forecast' as const
+          }
+        };
+        
+        console.log('🚨 FIXED: LIVE FORECAST SUCCESS - returning with CONSISTENT live source marking', {
           cityName,
           targetDateString,
           daysFromToday,
           finalResult: {
-            temperature: actualForecast.temperature,
-            highTemp: actualForecast.highTemp,
-            lowTemp: actualForecast.lowTemp,
-            isActualForecast: actualForecast.isActualForecast,
-            description: actualForecast.description,
-            source: actualForecast.source,
-            dateMatchSource: actualForecast.dateMatchInfo?.source,
+            temperature: enhancedForecast.temperature,
+            highTemp: enhancedForecast.highTemp,
+            lowTemp: enhancedForecast.lowTemp,
+            isActualForecast: enhancedForecast.isActualForecast,
+            description: enhancedForecast.description,
+            source: enhancedForecast.source,
+            dateMatchSource: enhancedForecast.dateMatchInfo?.source,
             shouldShowLiveBadge: true
           }
         });
         
-        return actualForecast;
+        return enhancedForecast;
       }
       
       console.log('🚨 FIXED: Live forecast API failed within range, using fallback', {
