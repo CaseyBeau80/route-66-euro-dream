@@ -14,25 +14,25 @@ interface SegmentLimiterProps {
 const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
   segments,
   children,
-  initialLimit = 2, // EMERGENCY: Reduced from 3 to 2
-  incrementSize = 2, // EMERGENCY: Reduced from 5 to 2
-  emergencyLimit = 10 // EMERGENCY: Reduced from 15 to 10
+  initialLimit = 1, // 🚨 NUCLEAR: Start with just 1 segment
+  incrementSize = 1, // 🚨 NUCLEAR: Load only 1 at a time
+  emergencyLimit = 5 // 🚨 NUCLEAR: Never more than 5 total
 }) => {
   const [currentLimit, setCurrentLimit] = useState(initialLimit);
   const [isEmergencyMode, setIsEmergencyMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🚨 EMERGENCY: More aggressive limiting
+  // 🚨 NUCLEAR: Ultra-aggressive limiting
   const safeSegments = useMemo(() => {
     if (segments.length > emergencyLimit) {
-      console.warn('🚨 EMERGENCY: Too many segments detected, activating emergency mode');
+      console.warn('🚨 NUCLEAR: Too many segments detected, activating emergency mode');
       setIsEmergencyMode(true);
       return segments.slice(0, emergencyLimit);
     }
     
-    // Additional safety: if more than 5 segments, warn but don't emergency mode
-    if (segments.length > 5) {
-      console.warn('⚠️ WARNING: Large number of segments, performance may be affected');
+    // NUCLEAR: If more than 3 segments, warn immediately
+    if (segments.length > 3) {
+      console.warn('🚨 NUCLEAR WARNING: Large number of segments, ultra-conservative mode');
     }
     
     return segments;
@@ -50,17 +50,17 @@ const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
     setIsLoading(true);
     const newLimit = Math.min(currentLimit + incrementSize, safeSegments.length);
     
-    console.log(`📊 SegmentLimiter: Loading more segments (${currentLimit} -> ${newLimit})`);
+    console.log(`🚨 NUCLEAR: Loading segments one by one (${currentLimit} -> ${newLimit})`);
     
-    // Add artificial delay to prevent rapid loading that could cause lockup
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // NUCLEAR: Longer delay to prevent rapid loading
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     setCurrentLimit(newLimit);
     setIsLoading(false);
   };
 
-  // Log segment limiting activity
-  console.log('📊 SegmentLimiter render (EMERGENCY MODE):', {
+  // Log nuclear limiting activity
+  console.log('🚨 NUCLEAR SegmentLimiter render:', {
     totalSegments: segments.length,
     safeSegments: safeSegments.length,
     currentLimit,
@@ -80,7 +80,7 @@ const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
           <div className="flex items-center gap-2 text-red-700">
             <AlertTriangle className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Emergency Mode: Large trip detected. Showing limited segments for performance.
+              🚨 Nuclear Mode: Trip too large. Showing maximum {emergencyLimit} segments.
             </span>
           </div>
         </div>
@@ -101,7 +101,7 @@ const SegmentLimiter: React.FC<SegmentLimiterProps> = ({
               </>
             ) : (
               <>
-                <span>Load More Days ({currentLimit}/{safeSegments.length})</span>
+                <span>Load Next Day ({currentLimit}/{safeSegments.length})</span>
                 <ChevronDown className="h-4 w-4" />
               </>
             )}

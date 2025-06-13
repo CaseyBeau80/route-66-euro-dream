@@ -3,11 +3,9 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripItineraryColumn from './TripItineraryColumn';
-import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
 import WeatherTabContent from './WeatherTabContent';
 import CostEstimateColumn from './CostEstimateColumn';
 import ErrorBoundary from './ErrorBoundary';
-import SegmentLimiter from './SegmentLimiter';
 import PerformanceCircuitBreaker from './PerformanceCircuitBreaker';
 
 interface TripItineraryProps {
@@ -18,13 +16,14 @@ interface TripItineraryProps {
 const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, tripStartDate }) => {
   const [activeTab, setActiveTab] = React.useState('itinerary');
   const [isRendering, setIsRendering] = React.useState(false);
+  const [visibleSegmentCount, setVisibleSegmentCount] = React.useState(1); // NUCLEAR: Start with only 1 segment
 
-  // 🚨 EMERGENCY: Add render tracking to prevent infinite loops
+  // 🚨 NUCLEAR OPTION: Extremely aggressive segment limiting
   const renderCount = React.useRef(0);
   React.useEffect(() => {
     renderCount.current += 1;
-    if (renderCount.current > 10) {
-      console.error('🚨 EMERGENCY: TripItinerary rendering too many times, possible infinite loop!');
+    if (renderCount.current > 5) {
+      console.error('🚨 NUCLEAR: TripItinerary rendering too many times, emergency stop!');
     }
   });
 
@@ -36,40 +35,29 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
     return tripStartDate;
   }, [tripStartDate]);
 
-  // 🚨 EMERGENCY: Severely limit segments to prevent lockup
-  const emergencyLimitedSegments = React.useMemo(() => {
+  // 🚨 NUCLEAR: Ultra-conservative segment limiting
+  const nuclearLimitedSegments = React.useMemo(() => {
     const segments = tripPlan.segments || [];
     
-    // EMERGENCY: Only show first 2 segments if more than 5 total
-    if (segments.length > 5) {
-      console.warn('🚨 EMERGENCY: Large trip detected, showing only first 2 segments to prevent lockup');
-      return segments.slice(0, 2);
-    }
+    // NUCLEAR: Never show more than the visible count initially
+    const limitedSegments = segments.slice(0, visibleSegmentCount);
     
-    return segments.slice(0, 3); // Never show more than 3 initially
-  }, [tripPlan.segments]);
+    console.log('🚨 NUCLEAR: Ultra-conservative segment limiting:', {
+      totalSegments: segments.length,
+      visibleCount: visibleSegmentCount,
+      renderingCount: limitedSegments.length
+    });
+    
+    return limitedSegments;
+  }, [tripPlan.segments, visibleSegmentCount]);
 
-  // 🚨 CRASH PREVENTION: Log segment count for monitoring
-  console.log('🚨 TripItinerary render - EMERGENCY MODE ACTIVE:', {
-    renderCount: renderCount.current,
-    totalSegments: tripPlan.segments?.length || 0,
-    emergencyLimitedCount: emergencyLimitedSegments.length,
-    totalDays: tripPlan.totalDays,
-    hasValidStartDate: !!validatedTripStartDate,
-    activeTab,
-    isRendering
-  });
-
-  // 🚨 EMERGENCY: Prevent rendering if too many segments
-  if ((tripPlan.segments?.length || 0) > 20) {
+  // 🚨 NUCLEAR: Prevent rendering if too many segments total
+  if ((tripPlan.segments?.length || 0) > 15) {
     return (
       <div className="w-full max-w-6xl mx-auto p-6 text-center bg-red-50 border-2 border-red-200 rounded-lg">
-        <h3 className="text-xl font-bold text-red-800 mb-4">⚠️ Large Trip Detected</h3>
+        <h3 className="text-xl font-bold text-red-800 mb-4">⚠️ Trip Too Large</h3>
         <p className="text-red-700 mb-4">
-          This trip has {tripPlan.segments?.length} segments, which is too large to display safely.
-        </p>
-        <p className="text-red-600 text-sm">
-          Please plan a shorter trip (maximum 20 days) to avoid performance issues.
+          This trip has {tripPlan.segments?.length} segments. For performance, please plan a shorter trip (maximum 15 days).
         </p>
       </div>
     );
@@ -81,8 +69,23 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
     setActiveTab(value);
     
     // Reset rendering flag after a delay
-    setTimeout(() => setIsRendering(false), 500);
+    setTimeout(() => setIsRendering(false), 1000);
   };
+
+  const loadMoreSegments = () => {
+    const maxSegments = tripPlan.segments?.length || 0;
+    const newCount = Math.min(visibleSegmentCount + 2, maxSegments);
+    
+    console.log('🔄 Loading more segments:', {
+      current: visibleSegmentCount,
+      new: newCount,
+      max: maxSegments
+    });
+    
+    setVisibleSegmentCount(newCount);
+  };
+
+  const hasMoreSegments = visibleSegmentCount < (tripPlan.segments?.length || 0);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -105,37 +108,33 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
         <TabsContent value="itinerary" className="mt-6">
           {!isRendering && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 🚨 EMERGENCY: Wrap itinerary in multiple safety layers */}
+              {/* 🚨 NUCLEAR: Ultra-safe itinerary rendering */}
               <PerformanceCircuitBreaker componentName="TripItineraryColumn" maxErrors={1}>
-                <SegmentLimiter segments={emergencyLimitedSegments} initialLimit={2} incrementSize={2}>
-                  {(limitedSegments, hasMore, loadMore) => (
-                    <>
-                      <ErrorBoundary context="TripItineraryColumn">
-                        <TripItineraryColumn 
-                          segments={limitedSegments} 
-                          tripStartDate={validatedTripStartDate} 
-                        />
-                      </ErrorBoundary>
-                      {hasMore && (
-                        <div className="mt-4 text-center">
-                          <button
-                            onClick={loadMore}
-                            className="text-sm text-route66-primary hover:text-route66-primary-dark underline"
-                          >
-                            Load more itinerary days... ({limitedSegments.length}/{emergencyLimitedSegments.length})
-                          </button>
-                        </div>
-                      )}
-                    </>
+                <ErrorBoundary context="TripItineraryColumn">
+                  <TripItineraryColumn 
+                    segments={nuclearLimitedSegments} 
+                    tripStartDate={validatedTripStartDate} 
+                  />
+                  
+                  {/* Load More Button */}
+                  {hasMoreSegments && (
+                    <div className="mt-6 text-center">
+                      <button
+                        onClick={loadMoreSegments}
+                        className="px-6 py-3 bg-route66-primary text-white rounded-lg hover:bg-route66-primary-dark transition-colors"
+                      >
+                        Load More Days ({visibleSegmentCount}/{tripPlan.segments?.length || 0})
+                      </button>
+                    </div>
                   )}
-                </SegmentLimiter>
+                </ErrorBoundary>
               </PerformanceCircuitBreaker>
               
-              {/* 🚨 EMERGENCY: Disable weather on itinerary tab to prevent lockup */}
+              {/* 🚨 NUCLEAR: No weather on itinerary tab - redirect only */}
               <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h3 className="text-lg font-semibold text-yellow-800 mb-2">Weather Information</h3>
                 <p className="text-yellow-700 text-sm mb-4">
-                  Weather forecasts have been moved to the dedicated Weather tab to improve performance.
+                  Weather forecasts are available on the dedicated Weather tab to prevent performance issues.
                 </p>
                 <button
                   onClick={() => handleTabChange('weather')}
@@ -151,18 +150,26 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
         <TabsContent value="weather" className="mt-6">
           {!isRendering && (
             <PerformanceCircuitBreaker componentName="WeatherTabContent" maxErrors={1}>
-              <SegmentLimiter segments={emergencyLimitedSegments} initialLimit={2} incrementSize={2}>
-                {(limitedSegments) => (
-                  <ErrorBoundary context="WeatherTabContent">
-                    <WeatherTabContent 
-                      segments={limitedSegments}
-                      tripStartDate={validatedTripStartDate}
-                      tripId={tripPlan.id}
-                      isVisible={activeTab === 'weather'}
-                    />
-                  </ErrorBoundary>
+              <ErrorBoundary context="WeatherTabContent">
+                <WeatherTabContent 
+                  segments={nuclearLimitedSegments}
+                  tripStartDate={validatedTripStartDate}
+                  tripId={tripPlan.id}
+                  isVisible={activeTab === 'weather'}
+                />
+                
+                {/* Weather Load More */}
+                {hasMoreSegments && activeTab === 'weather' && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={loadMoreSegments}
+                      className="px-6 py-3 bg-route66-primary text-white rounded-lg hover:bg-route66-primary-dark transition-colors"
+                    >
+                      Load More Weather ({visibleSegmentCount}/{tripPlan.segments?.length || 0})
+                    </button>
+                  </div>
                 )}
-              </SegmentLimiter>
+              </ErrorBoundary>
             </PerformanceCircuitBreaker>
           )}
         </TabsContent>
@@ -171,7 +178,7 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
           {!isRendering && (
             <PerformanceCircuitBreaker componentName="CostEstimateColumn" maxErrors={1}>
               <ErrorBoundary context="CostEstimateColumn">
-                <CostEstimateColumn segments={emergencyLimitedSegments} />
+                <CostEstimateColumn segments={nuclearLimitedSegments} />
               </ErrorBoundary>
             </PerformanceCircuitBreaker>
           )}
@@ -189,11 +196,10 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
                 <p className="text-sm text-gray-600">
                   {tripPlan.totalDays} days, {Math.round(tripPlan.totalDistance)} miles
                 </p>
-                {/* 🚨 EMERGENCY: Show performance info */}
-                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                  <p className="text-blue-800 font-medium">Performance Mode Active</p>
-                  <p className="text-blue-700">
-                    Showing {emergencyLimitedSegments.length} of {tripPlan.segments?.length || 0} segments
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                  <p className="text-red-800 font-medium">🚨 Nuclear Performance Mode</p>
+                  <p className="text-red-700">
+                    Showing {visibleSegmentCount} of {tripPlan.segments?.length || 0} segments initially
                   </p>
                 </div>
               </div>
