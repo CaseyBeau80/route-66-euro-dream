@@ -13,15 +13,14 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TemperatureExtractor.extractTemperatures COMPREHENSIVE FIX:', {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures FIXED VERSION:', {
       cityName,
       rawWeatherInput: weather,
-      weatherKeys: Object.keys(weather || {}),
-      temperatureField: weather?.temperature,
-      highTempField: weather?.highTemp,
-      lowTempField: weather?.lowTemp,
-      mainField: weather?.main,
-      tempField: weather?.temp
+      availableProperties: Object.keys(weather || {}),
+      temperature: weather?.temperature,
+      highTemp: weather?.highTemp,
+      lowTemp: weather?.lowTemp,
+      matchedForecastDay: weather?.matchedForecastDay
     });
 
     if (!weather) {
@@ -34,7 +33,7 @@ export class TemperatureExtractor {
       };
     }
 
-    // Try multiple extraction paths for more robust temperature extraction
+    // Try multiple extraction paths using only available properties
     let current = NaN;
     let high = NaN;
     let low = NaN;
@@ -50,47 +49,25 @@ export class TemperatureExtractor {
       low = this.extractSingleTemperature(weather.lowTemp, 'low-direct');
     }
 
-    // Path 2: Main object (from current weather API)
-    if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.main) {
-      console.log('🌡️ TemperatureExtractor: Trying main object extraction', weather.main);
-      if (isNaN(current) && weather.main.temp !== undefined) {
-        current = this.extractSingleTemperature(weather.main.temp, 'current-main');
-      }
-      if (isNaN(high) && weather.main.temp_max !== undefined) {
-        high = this.extractSingleTemperature(weather.main.temp_max, 'high-main');
-      }
-      if (isNaN(low) && weather.main.temp_min !== undefined) {
-        low = this.extractSingleTemperature(weather.main.temp_min, 'low-main');
-      }
-    }
-
-    // Path 3: Temp object (from forecast API)
-    if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.temp) {
-      console.log('🌡️ TemperatureExtractor: Trying temp object extraction', weather.temp);
-      if (isNaN(current)) {
-        current = this.extractSingleTemperature(weather.temp.day || weather.temp, 'current-temp');
-      }
-      if (isNaN(high)) {
-        high = this.extractSingleTemperature(weather.temp.max, 'high-temp');
-      }
-      if (isNaN(low)) {
-        low = this.extractSingleTemperature(weather.temp.min, 'low-temp');
-      }
-    }
-
-    // Path 4: If we have a matchedForecastDay, try extracting from it
+    // Path 2: If we have a matchedForecastDay, try extracting from it
     if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
       console.log('🌡️ TemperatureExtractor: Trying matchedForecastDay extraction', weather.matchedForecastDay);
       const matched = weather.matchedForecastDay;
-      if (isNaN(current) && matched.temperature !== undefined) {
-        current = this.extractSingleTemperature(matched.temperature, 'current-matched');
-      }
-      if (matched.temp) {
-        if (isNaN(high)) {
-          high = this.extractSingleTemperature(matched.temp.max, 'high-matched');
+      
+      if (matched.temperature && typeof matched.temperature === 'object') {
+        if (isNaN(high) && 'high' in matched.temperature) {
+          high = this.extractSingleTemperature(matched.temperature.high, 'high-matched');
         }
-        if (isNaN(low)) {
-          low = this.extractSingleTemperature(matched.temp.min, 'low-matched');
+        if (isNaN(low) && 'low' in matched.temperature) {
+          low = this.extractSingleTemperature(matched.temperature.low, 'low-matched');
+        }
+        if (isNaN(current) && 'high' in matched.temperature && 'low' in matched.temperature) {
+          current = Math.round((matched.temperature.high + matched.temperature.low) / 2);
+          console.log('🌡️ TemperatureExtractor: Calculated current from high/low:', current);
+        }
+      } else if (typeof matched.temperature === 'number') {
+        if (isNaN(current)) {
+          current = this.extractSingleTemperature(matched.temperature, 'current-matched');
         }
       }
     }
