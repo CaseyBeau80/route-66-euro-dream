@@ -6,14 +6,27 @@ import TripItineraryColumn from './TripItineraryColumn';
 import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
 import WeatherTabContent from './WeatherTabContent';
 import CostEstimateColumn from './CostEstimateColumn';
+import ItineraryPreLoader from './ItineraryPreLoader';
 import ErrorBoundary from './ErrorBoundary';
 
 interface TripItineraryProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
+  loadingState?: {
+    isPreLoading: boolean;
+    progress: number;
+    currentStep: string;
+    totalSegments: number;
+    loadedSegments: number;
+    isReady: boolean;
+  };
 }
 
-const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
+const TripItinerary: React.FC<TripItineraryProps> = ({ 
+  tripPlan, 
+  tripStartDate, 
+  loadingState 
+}) => {
   // Validate tripStartDate
   const validatedTripStartDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
@@ -22,17 +35,48 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     return tripStartDate;
   }, [tripStartDate]);
 
-  // 🎯 DEBUG: Log TripItinerary render
+  // Track readiness for progressive reveal
+  const [isContentReady, setIsContentReady] = React.useState(false);
+
+  React.useEffect(() => {
+    if (loadingState?.isReady && !loadingState.isPreLoading) {
+      // Small delay for smooth transition after pre-loader
+      const timer = setTimeout(() => {
+        setIsContentReady(true);
+      }, 200);
+      return () => clearTimeout(timer);
+    } else if (!loadingState) {
+      // No loading state means immediate readiness
+      setIsContentReady(true);
+    }
+  }, [loadingState?.isReady, loadingState?.isPreLoading, loadingState]);
+
   console.log('🎯 [WEATHER DEBUG] TripItinerary rendered:', {
     component: 'TripItinerary',
     segmentsCount: tripPlan.segments.length,
     hasStartDate: !!validatedTripStartDate,
     startDate: validatedTripStartDate?.toISOString(),
+    isPreLoading: loadingState?.isPreLoading,
+    isContentReady,
     segments: tripPlan.segments.map(s => ({
       day: s.day,
       endCity: s.endCity
     }))
   });
+
+  // Show loading if still pre-loading
+  if (loadingState?.isPreLoading || !isContentReady) {
+    return (
+      <div className="w-full max-w-6xl mx-auto">
+        <ItineraryPreLoader
+          progress={loadingState?.progress || 90}
+          currentStep={loadingState?.currentStep || 'Finalizing your itinerary...'}
+          totalSegments={loadingState?.totalSegments || tripPlan.segments.length}
+          loadedSegments={loadingState?.loadedSegments || 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -47,11 +91,14 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
         <TabsContent value="itinerary" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary context="TripItineraryColumn">
-              <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
+              <TripItineraryColumn 
+                segments={tripPlan.segments} 
+                tripStartDate={validatedTripStartDate}
+                loadingState={loadingState}
+              />
             </ErrorBoundary>
             
             <ErrorBoundary context="SimpleWeatherForecastColumn">
-              {/* 🎯 DEBUG: Log before rendering SimpleWeatherForecastColumn */}
               {(() => {
                 console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
                   component: 'TripItinerary -> SimpleWeatherForecastColumn',

@@ -1,111 +1,100 @@
 
-import React, { useState, useEffect } from 'react';
-import { TripService } from '../TripCalculator/services/TripService';
-import { TripPlan } from '../TripCalculator/services/planning/TripPlanBuilder';
-import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MapPin, Calendar, Clock, Route } from 'lucide-react';
+import TripPlannerForm from '../TripCalculator/components/TripPlannerForm';
 import EnhancedTripResults from '../TripCalculator/EnhancedTripResults';
-import TripStyleIndicator from './components/TripStyleIndicator';
-import { useFormData } from './hooks/useFormData';
-import { useTripCalculation } from './hooks/useTripCalculation';
-import { toast } from '@/hooks/use-toast';
+import { useEnhancedTripCalculation } from '../TripCalculator/hooks/useEnhancedTripCalculation';
 
 const Route66TripCalculator: React.FC = () => {
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  
-  useEffect(() => {
-    console.log('🎯 Route66TripCalculator component mounted');
-  }, []);
-
   const {
     formData,
     setFormData,
-    getAvailableEndLocations,
-    isCalculateDisabled
-  } = useFormData();
-
-  const {
     tripPlan,
-    isCalculating,
-    planningResult,
+    shareUrl,
+    availableEndLocations,
     calculateTrip,
-    resetTrip
-  } = useTripCalculation();
+    resetTrip,
+    isCalculating,
+    isCalculateDisabled,
+    loadingState
+  } = useEnhancedTripCalculation();
 
-  const handleShareTrip = async (tripPlan: TripPlan) => {
-    try {
-      console.log('🔗 Attempting to share trip...');
-      const shareCode = await TripService.saveTrip(tripPlan);
-      if (shareCode) {
-        const newShareUrl = TripService.getShareUrl(shareCode);
-        setShareUrl(newShareUrl);
-        toast({
-          title: "Trip Saved & Shared!",
-          description: "Your Route 66 trip has been saved and a shareable link has been generated.",
-        });
-      } else {
-        toast({
-          title: "Failed to Share",
-          description: "Could not save trip. Please try again.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('❌ Error sharing trip:', error);
-      toast({
-        title: "Sharing Error",
-        description: "An error occurred while sharing the trip.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleCalculateTrip = async () => {
-    try {
-      console.log('🚗 Starting trip calculation...');
-      setShareUrl(null);
-      await calculateTrip(formData);
-      console.log('✅ Trip calculation completed');
-    } catch (error) {
-      console.error('❌ Error in handleCalculateTrip:', error);
-    }
-  };
-
-  const availableEndLocations = getAvailableEndLocations();
-
-  console.log('🎯 Route66TripCalculator render state:', {
-    hasFormData: !!formData,
+  console.log('🚗 Route66TripCalculator: Rendering with enhanced loading state', {
     hasTripPlan: !!tripPlan,
     isCalculating,
-    availableEndLocationsCount: availableEndLocations.length
+    isPreLoading: loadingState.isPreLoading,
+    loadingProgress: loadingState.progress
   });
 
   return (
-    <div className="space-y-8">
-      {/* Trip Calculator Form */}
-      <TripCalculatorForm
-        formData={formData}
-        setFormData={setFormData}
-        onCalculate={handleCalculateTrip}
-        availableEndLocations={availableEndLocations}
-        isCalculateDisabled={isCalculateDisabled}
-        isCalculating={isCalculating}
-        tripPlan={tripPlan}
-        shareUrl={shareUrl}
-      />
+    <div className="max-w-7xl mx-auto p-6 space-y-8">
+      {/* Header Section */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg">
+            <Route className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-800">Route 66 Trip Calculator</h1>
+        </div>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          Plan your perfect journey along America's Mother Road. Get detailed itineraries, 
+          weather forecasts, and cost estimates for your Route 66 adventure.
+        </p>
+      </div>
 
-      {/* Trip Results */}
-      {tripPlan && (
-        <div className="mt-8">
-          {/* Enhanced Trip Style Indicator */}
-          {planningResult && (
-            <TripStyleIndicator planningResult={planningResult} />
-          )}
-
-          <EnhancedTripResults 
-            tripPlan={tripPlan} 
-            shareUrl={shareUrl}
-            tripStartDate={formData.tripStartDate}
+      {/* Trip Planning Form */}
+      <Card className="bg-white shadow-lg border-2 border-blue-200">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-orange-50 border-b">
+          <CardTitle className="flex items-center gap-2 text-xl text-gray-800">
+            <MapPin className="h-5 w-5 text-blue-600" />
+            Plan Your Route 66 Adventure
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <TripPlannerForm
+            formData={formData}
+            setFormData={setFormData}
+            availableEndLocations={availableEndLocations}
+            onCalculateTrip={calculateTrip}
+            onResetTrip={resetTrip}
+            isCalculating={isCalculating}
+            isCalculateDisabled={isCalculateDisabled}
+            hasExistingPlan={!!tripPlan}
           />
+        </CardContent>
+      </Card>
+
+      {/* Trip Results with Pre-loading */}
+      {(tripPlan || loadingState.isPreLoading) && (
+        <EnhancedTripResults
+          tripPlan={tripPlan!}
+          shareUrl={shareUrl}
+          tripStartDate={formData.tripStartDate}
+          loadingState={loadingState}
+        />
+      )}
+
+      {/* Features Overview */}
+      {!tripPlan && !loadingState.isPreLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <Card className="text-center p-6 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+            <Calendar className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Smart Itineraries</h3>
+            <p className="text-gray-600">Get day-by-day travel plans optimized for your schedule and preferences.</p>
+          </Card>
+          
+          <Card className="text-center p-6 border-2 border-gray-200 hover:border-orange-300 transition-colors">
+            <Clock className="h-12 w-12 text-orange-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Weather Forecasts</h3>
+            <p className="text-gray-600">Plan with confidence using detailed weather information for each destination.</p>
+          </Card>
+          
+          <Card className="text-center p-6 border-2 border-gray-200 hover:border-green-300 transition-colors">
+            <MapPin className="h-12 w-12 text-green-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Historic Attractions</h3>
+            <p className="text-gray-600">Discover must-see stops, hidden gems, and authentic Route 66 experiences.</p>
+          </Card>
         </div>
       )}
     </div>

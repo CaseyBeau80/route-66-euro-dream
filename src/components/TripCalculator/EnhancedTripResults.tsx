@@ -5,6 +5,7 @@ import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
 import ShareAndExportDropdown from './components/ShareAndExportDropdown';
+import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
@@ -13,12 +14,21 @@ interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
+  loadingState?: {
+    isPreLoading: boolean;
+    progress: number;
+    currentStep: string;
+    totalSegments: number;
+    loadedSegments: number;
+    isReady: boolean;
+  };
 }
 
 const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripPlan,
   shareUrl,
-  tripStartDate
+  tripStartDate,
+  loadingState
 }) => {
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -27,12 +37,10 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   const validTripStartDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
     
-    // If it's already a Date object, check if it's valid
     if (tripStartDate instanceof Date) {
       return isNaN(tripStartDate.getTime()) ? undefined : tripStartDate;
     }
     
-    // If it's a string, try to parse it
     if (typeof tripStartDate === 'string') {
       const parsed = new Date(tripStartDate);
       return isNaN(parsed.getTime()) ? undefined : parsed;
@@ -45,8 +53,23 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     segmentsCount: tripPlan.segments.length,
     hasStartDate: !!validTripStartDate,
     hasCostEstimate: !!costEstimate,
-    startDate: validTripStartDate?.toISOString()
+    startDate: validTripStartDate?.toISOString(),
+    isPreLoading: loadingState?.isPreLoading
   });
+
+  // Show pre-loader if loading
+  if (loadingState?.isPreLoading) {
+    return (
+      <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
+        <ItineraryPreLoader
+          progress={loadingState.progress}
+          currentStep={loadingState.currentStep}
+          totalSegments={loadingState.totalSegments}
+          loadedSegments={loadingState.loadedSegments}
+        />
+      </div>
+    );
+  }
 
   const formatTime = (hours: number): string => {
     const wholeHours = Math.floor(hours);
@@ -147,6 +170,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       <TripItinerary 
         tripPlan={tripPlan} 
         tripStartDate={validTripStartDate}
+        loadingState={loadingState}
       />
     </div>
   );
