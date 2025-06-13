@@ -23,26 +23,24 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 SimpleWeatherDisplay ENHANCED FOR TEMPERATURE DISPLAY:', cityName, {
+  console.log('🔧 SimpleWeatherDisplay RENDERING FOR SHARED VIEW:', cityName, {
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
-    dateMatchSource: weather.dateMatchInfo?.source,
-    hasTemperature: !!weather.temperature,
     isSharedView,
-    matchedForecastDay: weather.matchedForecastDay
+    isPDFExport
   });
 
-  // Extract temperatures with enhanced logic for shared views
+  // Extract temperatures
   const temperatures = React.useMemo(() => {
     const extracted = TemperatureExtractor.extractTemperatures(weather, cityName);
-    console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures for shared view:', {
+    console.log('🌡️ SimpleWeatherDisplay: Temperature extraction for shared view:', {
       cityName,
       isSharedView,
       extracted,
-      originalWeather: {
+      rawWeather: {
         temperature: weather.temperature,
         highTemp: weather.highTemp,
         lowTemp: weather.lowTemp
@@ -63,9 +61,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
     [weather.source, weather.isActualForecast]
   );
 
-  // Enhanced validation for shared views
+  // Validation for temperature data
   if (!temperatures.isValid) {
-    console.warn('❌ SimpleWeatherDisplay: No valid temperature data for shared view:', cityName, {
+    console.warn('❌ SimpleWeatherDisplay: No valid temperature data:', cityName, {
       temperatures,
       weather,
       isSharedView
@@ -79,28 +77,28 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
         <div className="text-sm text-yellow-600">
           Unable to display temperature data for {cityName}
         </div>
-        {process.env.NODE_ENV === 'development' && (
-          <div className="text-xs text-yellow-500 mt-2">
-            Debug: current={temperatures.current}, high={temperatures.high}, low={temperatures.low}
-          </div>
-        )}
       </div>
     );
   }
 
-  // Determine what to show - prioritize range for shared views
-  const showRange = (!isNaN(temperatures.high) || !isNaN(temperatures.low)) && isSharedView;
-  const showCurrent = !isNaN(temperatures.current) && !showRange;
+  // FIXED: For shared views, ALWAYS prioritize showing temperature ranges if available
+  const hasValidHigh = !isNaN(temperatures.high) && temperatures.high !== null;
+  const hasValidLow = !isNaN(temperatures.low) && temperatures.low !== null;
+  const hasValidCurrent = !isNaN(temperatures.current) && temperatures.current !== null;
+  
+  // For shared views, show range if we have high OR low, otherwise show current
+  const shouldShowRange = isSharedView ? (hasValidHigh || hasValidLow) : false;
+  const shouldShowCurrent = !shouldShowRange && hasValidCurrent;
 
   console.log('🔧 SimpleWeatherDisplay: Display decision for shared view:', {
     cityName,
-    showRange,
-    showCurrent,
-    weatherType,
-    temperatures,
     isSharedView,
-    weatherSource: weather.source,
-    dateMatchSource: weather.dateMatchInfo?.source
+    hasValidHigh,
+    hasValidLow,
+    hasValidCurrent,
+    shouldShowRange,
+    shouldShowCurrent,
+    temperatures
   });
 
   return (
@@ -135,40 +133,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
         />
       </div>
 
-      {/* Enhanced Temperature Display for Shared Views */}
+      {/* Temperature Display - Fixed to prioritize ranges for shared views */}
       <div className="mb-3">
-        {showCurrent && (
-          <TemperatureDisplay
-            type="current"
-            currentTemp={temperatures.current}
-          />
-        )}
-        
-        {showRange && (
+        {shouldShowRange && (
           <TemperatureDisplay
             type="range"
             highTemp={temperatures.high}
             lowTemp={temperatures.low}
           />
         )}
-
-        {/* Fallback: show both if available */}
-        {!showCurrent && !showRange && temperatures.isValid && (
-          <div className="space-y-2">
-            {!isNaN(temperatures.current) && (
-              <TemperatureDisplay
-                type="current"
-                currentTemp={temperatures.current}
-              />
-            )}
-            {(!isNaN(temperatures.high) || !isNaN(temperatures.low)) && (
-              <TemperatureDisplay
-                type="range"
-                highTemp={temperatures.high}
-                lowTemp={temperatures.low}
-              />
-            )}
-          </div>
+        
+        {shouldShowCurrent && (
+          <TemperatureDisplay
+            type="current"
+            currentTemp={temperatures.current}
+          />
         )}
       </div>
 
@@ -184,12 +163,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
         {footerMessage}
       </div>
 
-      {/* Enhanced debug info for shared views */}
+      {/* Debug info */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
           <div>Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}</div>
           <div>Extracted: current={temperatures.current}, high={temperatures.high}, low={temperatures.low}</div>
-          <div>Display: showRange={showRange}, showCurrent={showCurrent}, isSharedView={isSharedView}</div>
+          <div>Display: shouldShowRange={shouldShowRange}, shouldShowCurrent={shouldShowCurrent}, isSharedView={isSharedView}</div>
         </div>
       )}
     </div>
