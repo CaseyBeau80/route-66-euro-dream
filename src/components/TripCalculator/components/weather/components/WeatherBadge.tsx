@@ -24,8 +24,8 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   dateMatchSource,
   cityName
 }) => {
-  // ENHANCED DEBUGGING: Log every single prop and decision
-  console.log('🏷️ WeatherBadge ENHANCED DEBUG for', cityName, {
+  // PLAN IMPLEMENTATION: Enhanced debugging with defensive logic
+  console.log('🔧 PLAN: WeatherBadge ENHANCED DEBUG for', cityName, {
     receivedProps: {
       source,
       isActualForecast,
@@ -37,22 +37,16 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       isActualForecastType: typeof isActualForecast,
       dateMatchSourceType: typeof dateMatchSource
     },
+    hasSource: !!source,
+    hasDateMatchSource: !!dateMatchSource,
     timestamp: new Date().toISOString()
   });
 
-  // ULTRA SIMPLE LOGIC: Only show live forecast if isActualForecast is EXACTLY true
+  // PLAN IMPLEMENTATION: Defensive logic with multiple fallback strategies
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    const isLive = isActualForecast === true;
-    
-    console.log('🏷️ WeatherBadge DECISION LOGIC for', cityName, {
-      isActualForecast,
-      isActualForecastStrictCheck: isActualForecast === true,
-      decision: isLive ? 'LIVE_FORECAST' : 'HISTORICAL_AVERAGE',
-      decisionReason: isLive ? 'isActualForecast_exactly_true' : 'isActualForecast_not_exactly_true'
-    });
-
-    if (isLive) {
-      console.log('✅ WeatherBadge: LIVE FORECAST badge for', cityName);
+    // Primary check: Use isActualForecast if explicitly true
+    if (isActualForecast === true) {
+      console.log('✅ PLAN: WeatherBadge LIVE FORECAST badge (isActualForecast=true) for', cityName);
       return {
         text: '📡 Live Forecast',
         bgColor: 'bg-green-100',
@@ -61,7 +55,40 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    console.log('📊 WeatherBadge: HISTORICAL AVERAGE badge for', cityName);
+    // Secondary check: Use source property if available
+    if (source === 'live_forecast') {
+      console.log('✅ PLAN: WeatherBadge LIVE FORECAST badge (source=live_forecast) for', cityName);
+      return {
+        text: '📡 Live Forecast',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        explanation: 'Real-time weather data from API'
+      };
+    }
+
+    // Tertiary check: Use dateMatchSource if available
+    if (dateMatchSource === 'live_forecast') {
+      console.log('✅ PLAN: WeatherBadge LIVE FORECAST badge (dateMatchSource=live_forecast) for', cityName);
+      return {
+        text: '📡 Live Forecast',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        explanation: 'Real-time weather data from API'
+      };
+    }
+
+    // Default: Historical/Seasonal Average
+    const isHistorical = source === 'historical_fallback' || dateMatchSource === 'historical_fallback';
+    const isSeasonal = source === 'seasonal' || dateMatchSource === 'seasonal-estimate';
+    
+    console.log('📊 PLAN: WeatherBadge HISTORICAL/SEASONAL badge for', cityName, {
+      decision: 'historical_average',
+      source,
+      dateMatchSource,
+      isHistorical,
+      isSeasonal
+    });
+
     return {
       text: '📊 Seasonal Average',
       bgColor: 'bg-yellow-100',
@@ -70,13 +97,18 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       showTooltip: true,
       tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
     };
-  }, [isActualForecast, cityName]);
+  }, [isActualForecast, source, dateMatchSource, cityName]);
 
   // Log final badge configuration
-  console.log('🏷️ WeatherBadge FINAL CONFIG for', cityName, {
+  console.log('🔧 PLAN: WeatherBadge FINAL CONFIG for', cityName, {
     badgeText: getBadgeConfig.text,
     showTooltip: getBadgeConfig.showTooltip,
-    isLiveBadge: getBadgeConfig.text.includes('Live Forecast')
+    isLiveBadge: getBadgeConfig.text.includes('Live Forecast'),
+    decisionFactors: {
+      isActualForecast,
+      source,
+      dateMatchSource
+    }
   });
 
   const BadgeContent = () => (

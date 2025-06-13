@@ -1,7 +1,5 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { TemperatureExtractor } from './TemperatureExtractor';
-import { WeatherDebugService } from './WeatherDebugService';
 
 export interface NormalizedWeatherData {
   temperature: number;
@@ -13,112 +11,156 @@ export interface NormalizedWeatherData {
   windSpeed: number;
   precipitationChance: number;
   cityName: string;
-  source: string;
   isActualForecast: boolean;
+  source: 'live_forecast' | 'historical_fallback' | 'seasonal'; // FIXED: Ensure source is included
+  dateMatchInfo?: {
+    requestedDate: string;
+    matchedDate: string;
+    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
+    daysOffset: number;
+    hoursOffset?: number;
+    source: 'live_forecast' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate' | 'historical_fallback';
+    confidence?: 'high' | 'medium' | 'low';
+    availableDates?: string[];
+  };
   isValid: boolean;
-  dateMatchInfo?: any;
 }
 
 export class WeatherDataNormalizer {
+  /**
+   * Normalize weather data for consistent storage and display
+   */
   static normalizeWeatherData(
-    weather: ForecastWeatherData,
+    weatherData: ForecastWeatherData | any,
     cityName: string,
-    segmentDate?: Date | null
+    segmentDate: Date
   ): NormalizedWeatherData | null {
-    console.log('🔧 WeatherDataNormalizer.normalizeWeatherData called:', {
+    console.log('🔧 PLAN: WeatherDataNormalizer.normalizeWeatherData ENHANCED', {
       cityName,
-      weather: {
-        temperature: weather.temperature,
-        highTemp: weather.highTemp,
-        lowTemp: weather.lowTemp,
-        description: weather.description,
-        isActualForecast: weather.isActualForecast
+      inputData: {
+        temperature: weatherData?.temperature,
+        highTemp: weatherData?.highTemp,
+        lowTemp: weatherData?.lowTemp,
+        isActualForecast: weatherData?.isActualForecast,
+        source: weatherData?.source,
+        dateMatchInfoSource: weatherData?.dateMatchInfo?.source
       },
-      segmentDate: segmentDate?.toISOString()
+      segmentDate: segmentDate.toISOString()
     });
 
-    WeatherDebugService.logWeatherFlow(`WeatherDataNormalizer.normalize [${cityName}]`, {
-      inputWeather: weather,
-      segmentDate: segmentDate?.toISOString()
-    });
-
-    if (!weather) {
-      console.warn('❌ WeatherDataNormalizer: No weather data provided');
+    if (!weatherData) {
+      console.warn('🔧 PLAN: WeatherDataNormalizer: No weather data provided');
       return null;
     }
 
-    // Extract temperatures using the dedicated service
-    const temperatures = TemperatureExtractor.extractTemperatures(weather, cityName);
-    
-    console.log('🌡️ WeatherDataNormalizer: Extracted temperatures:', temperatures);
+    try {
+      // Extract temperature values with fallbacks
+      const temperature = this.extractTemperature(weatherData.temperature) || 70;
+      const highTemp = this.extractTemperature(weatherData.highTemp) || temperature + 10;
+      const lowTemp = this.extractTemperature(weatherData.lowTemp) || temperature - 10;
 
-    // Validate extracted temperatures
-    const hasValidTemperatures = TemperatureExtractor.hasDisplayableTemperatureData(temperatures);
-    
-    if (!hasValidTemperatures) {
-      console.warn(`⚠️ WeatherDataNormalizer: Invalid temperature data for ${cityName}`);
-      return null;
-    }
+      // FIXED: Determine source with proper fallback logic
+      let source: 'live_forecast' | 'historical_fallback' | 'seasonal' = 'historical_fallback';
+      
+      if (weatherData.source) {
+        // Use explicit source if available
+        if (weatherData.source === 'live_forecast') {
+          source = 'live_forecast';
+        } else if (weatherData.source === 'seasonal') {
+          source = 'seasonal';
+        } else {
+          source = 'historical_fallback';
+        }
+      } else if (weatherData.dateMatchInfo?.source) {
+        // Fallback to dateMatchInfo source
+        if (weatherData.dateMatchInfo.source === 'live_forecast') {
+          source = 'live_forecast';
+        } else if (weatherData.dateMatchInfo.source === 'seasonal-estimate') {
+          source = 'seasonal';
+        } else {
+          source = 'historical_fallback';
+        }
+      } else if (weatherData.isActualForecast === true) {
+        // Final fallback based on isActualForecast
+        source = 'live_forecast';
+      }
 
-    // Build normalized data with extracted temperatures
-    const normalized: NormalizedWeatherData = {
-      temperature: temperatures.current,
-      highTemp: temperatures.high,
-      lowTemp: temperatures.low,
-      description: weather.description || 'Clear',
-      icon: weather.icon || '01d',
-      humidity: weather.humidity || 50,
-      windSpeed: weather.windSpeed || 5,
-      precipitationChance: weather.precipitationChance || 0,
-      cityName: cityName,
-      source: weather.dateMatchInfo?.source || (weather.isActualForecast ? 'API Forecast' : 'Seasonal Average'),
-      isActualForecast: weather.isActualForecast || false,
-      isValid: this.validateNormalizedData({
-        temperature: temperatures.current,
-        highTemp: temperatures.high,
-        lowTemp: temperatures.low,
-        description: weather.description || 'Clear',
-        icon: weather.icon || '01d',
-        humidity: weather.humidity || 50,
-        windSpeed: weather.windSpeed || 5,
-        precipitationChance: weather.precipitationChance || 0,
+      const normalized: NormalizedWeatherData = {
+        temperature,
+        highTemp,
+        lowTemp,
+        description: weatherData.description || 'Weather forecast',
+        icon: weatherData.icon || '01d',
+        humidity: weatherData.humidity || 50,
+        windSpeed: weatherData.windSpeed || 0,
+        precipitationChance: weatherData.precipitationChance || 0,
         cityName: cityName,
-        source: weather.dateMatchInfo?.source || (weather.isActualForecast ? 'API Forecast' : 'Seasonal Average'),
-        isActualForecast: weather.isActualForecast || false,
-        isValid: true, // temporary for validation
-        dateMatchInfo: weather.dateMatchInfo
-      }),
-      dateMatchInfo: weather.dateMatchInfo
-    };
+        isActualForecast: weatherData.isActualForecast || false,
+        source, // FIXED: Always include source
+        dateMatchInfo: weatherData.dateMatchInfo,
+        isValid: true
+      };
 
-    console.log('✅ WeatherDataNormalizer: Normalized weather data:', normalized);
+      console.log('🔧 PLAN: WeatherDataNormalizer NORMALIZED RESULT', {
+        cityName,
+        normalized: {
+          temperature: normalized.temperature,
+          isActualForecast: normalized.isActualForecast,
+          source: normalized.source,
+          hasDateMatchInfo: !!normalized.dateMatchInfo
+        }
+      });
 
-    WeatherDebugService.logNormalizedForecastOutput(cityName, normalized);
-
-    return normalized;
+      return normalized;
+    } catch (error) {
+      console.error('🔧 PLAN: WeatherDataNormalizer error:', error);
+      return null;
+    }
   }
 
-  static validateNormalizedData(data: NormalizedWeatherData | null): boolean {
-    if (!data) return false;
+  /**
+   * Extract a single temperature value from various formats
+   */
+  private static extractTemperature(temp: any): number | null {
+    if (typeof temp === 'number' && !isNaN(temp)) {
+      return Math.round(temp);
+    }
+    
+    if (typeof temp === 'string') {
+      const parsed = parseFloat(temp);
+      if (!isNaN(parsed)) {
+        return Math.round(parsed);
+      }
+    }
+    
+    if (temp && typeof temp === 'object') {
+      // Handle temperature objects with high/low properties
+      if ('high' in temp && typeof temp.high === 'number') {
+        return Math.round(temp.high);
+      }
+      if ('low' in temp && typeof temp.low === 'number') {
+        return Math.round(temp.low);
+      }
+      // Handle temperature objects with avg property
+      if ('avg' in temp && typeof temp.avg === 'number') {
+        return Math.round(temp.avg);
+      }
+    }
+    
+    return null;
+  }
 
-    const isValid = !isNaN(data.temperature) && 
-                   !isNaN(data.highTemp) && 
-                   !isNaN(data.lowTemp) &&
-                   data.temperature > -100 && data.temperature < 200 &&
-                   data.highTemp > -100 && data.highTemp < 200 &&
-                   data.lowTemp > -100 && data.lowTemp < 200 &&
-                   data.description && data.description.length > 0;
-
-    console.log('🔍 WeatherDataNormalizer: Validation result:', {
-      isValid,
-      data: data ? {
-        temperature: data.temperature,
-        highTemp: data.highTemp,
-        lowTemp: data.lowTemp,
-        description: data.description
-      } : null
-    });
-
-    return isValid;
+  /**
+   * Validate that normalized data has required fields
+   */
+  static validateNormalizedData(data: NormalizedWeatherData): boolean {
+    return !!(
+      data &&
+      typeof data.temperature === 'number' &&
+      typeof data.isActualForecast === 'boolean' &&
+      data.source && // FIXED: Ensure source is validated
+      data.cityName &&
+      data.isValid
+    );
   }
 }

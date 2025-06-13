@@ -26,7 +26,8 @@ export class WeatherFetchingService {
     const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
     if (cachedWeather) {
       console.log('💾 WeatherFetchingService: Using cached weather data for', segmentEndCity);
-      // Convert normalized data back to ForecastWeatherData format
+      
+      // FIXED: Properly reconstruct ForecastWeatherData with all required properties
       const forecastData: ForecastWeatherData = {
         temperature: cachedWeather.temperature,
         highTemp: cachedWeather.highTemp,
@@ -40,8 +41,19 @@ export class WeatherFetchingService {
         forecast: [],
         forecastDate: normalizedSegmentDate,
         isActualForecast: cachedWeather.isActualForecast,
+        source: cachedWeather.source, // FIXED: Include source from cached data
         dateMatchInfo: cachedWeather.dateMatchInfo
       };
+      
+      console.log('🔧 PLAN: WeatherFetchingService CACHED DATA RECONSTRUCTION', {
+        cityName: segmentEndCity,
+        cachedSource: cachedWeather.source,
+        cachedIsActualForecast: cachedWeather.isActualForecast,
+        reconstructedSource: forecastData.source,
+        reconstructedIsActualForecast: forecastData.isActualForecast,
+        hasAllRequiredFields: !!(forecastData.source && forecastData.dateMatchInfo),
+        timestamp: new Date().toISOString()
+      });
       
       // 🎯 NEW: Use specific debug marker for cached weather state set
       WeatherDebugService.logWeatherStateSet(segmentEndCity, forecastData);
@@ -98,12 +110,21 @@ export class WeatherFetchingService {
       console.log(`🌤️ WEATHER RESPONSE for ${segmentEndCity}:`, {
         hasData: !!weatherData,
         isActualForecast: weatherData?.isActualForecast,
+        source: weatherData?.source,
         temperature: weatherData?.temperature,
         highTemp: weatherData?.highTemp,
         lowTemp: weatherData?.lowTemp
       });
 
       if (weatherData) {
+        console.log('🔧 PLAN: WeatherFetchingService FRESH DATA PATH', {
+          cityName: segmentEndCity,
+          freshSource: weatherData.source,
+          freshIsActualForecast: weatherData.isActualForecast,
+          hasAllRequiredFields: !!(weatherData.source && weatherData.dateMatchInfo),
+          timestamp: new Date().toISOString()
+        });
+        
         // 🎯 NEW: Use specific debug marker for forecast API response
         WeatherDebugService.logForecastApiRawResponse(segmentEndCity, weatherData);
         
@@ -125,6 +146,7 @@ export class WeatherFetchingService {
             `WeatherFetchingService.success [${segmentEndCity}] - NORMALIZED AND PERSISTED`,
             {
               isActualForecast: weatherData.isActualForecast,
+              source: weatherData.source,
               normalizedTemperature: normalizedData.temperature,
               normalizedHighTemp: normalizedData.highTemp,
               normalizedLowTemp: normalizedData.lowTemp,

@@ -22,13 +22,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ENHANCED DEBUGGING: Log the complete weather object to understand what we're working with
-  console.log('🔍 SimpleWeatherDisplay ENHANCED DEBUG for', cityName, {
+  // PLAN IMPLEMENTATION: Enhanced debugging with defensive logic
+  console.log('🔧 PLAN: SimpleWeatherDisplay ENHANCED DEBUG for', cityName, {
     completeWeatherObject: weather,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source,
     temperature: weather.temperature,
+    hasSource: !!weather.source,
+    hasDateMatchInfo: !!weather.dateMatchInfo,
     timestamp: new Date().toISOString()
   });
 
@@ -52,31 +54,54 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     };
   }, [temperatures]);
 
-  // Log the exact props we're about to pass to WeatherBadge
+  // PLAN IMPLEMENTATION: Enhanced WeatherBadge props with defensive fallbacks
   const weatherBadgeProps = React.useMemo(() => {
+    // Determine source with defensive fallbacks
+    let determinedSource: 'live_forecast' | 'historical_fallback' | 'seasonal' = 'historical_fallback';
+    
+    if (weather.source) {
+      determinedSource = weather.source;
+    } else if (weather.dateMatchInfo?.source) {
+      // Map dateMatchInfo source to badge source
+      if (weather.dateMatchInfo.source === 'live_forecast') {
+        determinedSource = 'live_forecast';
+      } else if (weather.dateMatchInfo.source === 'seasonal-estimate') {
+        determinedSource = 'seasonal';
+      } else {
+        determinedSource = 'historical_fallback';
+      }
+    } else if (weather.isActualForecast === true) {
+      determinedSource = 'live_forecast';
+    }
+    
     const props = {
-      source: weather.source,
+      source: determinedSource,
       isActualForecast: weather.isActualForecast,
       dateMatchSource: weather.dateMatchInfo?.source,
       cityName: cityName
     };
     
-    console.log('🏷️ SimpleWeatherDisplay: WeatherBadge props for', cityName, {
-      propsBeingPassed: props,
-      weatherIsActualForecast: weather.isActualForecast,
-      weatherSource: weather.source,
-      dateMatchInfoSource: weather.dateMatchInfo?.source
+    console.log('🔧 PLAN: SimpleWeatherDisplay: WeatherBadge props for', cityName, {
+      originalSource: weather.source,
+      originalIsActualForecast: weather.isActualForecast,
+      originalDateMatchSource: weather.dateMatchInfo?.source,
+      determinedSource,
+      finalProps: props
     });
     
     return props;
   }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
 
-  // ENHANCED footer message logic - matches the badge logic exactly
+  // PLAN IMPLEMENTATION: Enhanced footer message logic with defensive fallbacks
   const getFooterMessage = React.useMemo(() => {
-    const isLive = weather.isActualForecast === true;
+    const isLive = weather.isActualForecast === true || 
+                   weather.source === 'live_forecast' || 
+                   weather.dateMatchInfo?.source === 'live_forecast';
     
-    console.log('🌤️ SimpleWeatherDisplay ENHANCED footer for', cityName, {
+    console.log('🔧 PLAN: SimpleWeatherDisplay ENHANCED footer for', cityName, {
       isActualForecast: weather.isActualForecast,
+      source: weather.source,
+      dateMatchSource: weather.dateMatchInfo?.source,
       isLiveCheck: isLive,
       decision: isLive ? 'LIVE' : 'HISTORICAL'
     });
@@ -86,7 +111,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     }
 
     return 'Historical weather patterns - live forecast not available for this date';
-  }, [weather.isActualForecast, cityName]);
+  }, [weather.isActualForecast, weather.source, weather.dateMatchInfo?.source, cityName]);
 
   if (!temperatures.isValid) {
     console.warn('❌ SimpleWeatherDisplay: No valid temperature data available for', cityName);
@@ -135,7 +160,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Weather Badge - using enhanced props with detailed logging */}
+        {/* Weather Badge - using enhanced props with defensive fallbacks */}
         <WeatherBadge {...weatherBadgeProps} />
       </div>
 
@@ -164,7 +189,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* Enhanced footer message that matches badge logic */}
+      {/* Enhanced footer message with defensive logic */}
       <div className="mt-3 text-xs text-blue-500 text-center">
         {getFooterMessage}
       </div>
@@ -172,7 +197,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
-          Debug: isActualForecast={String(weather.isActualForecast)}, source={weather.source}
+          Debug: isActualForecast={String(weather.isActualForecast)}, source={weather.source}, dateMatchSource={weather.dateMatchInfo?.source}
         </div>
       )}
     </div>
