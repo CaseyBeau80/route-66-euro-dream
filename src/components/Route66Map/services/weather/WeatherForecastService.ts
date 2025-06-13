@@ -16,7 +16,7 @@ export interface ForecastWeatherData extends WeatherData {
   lowTemp?: number;
   precipitationChance?: number;
   matchedForecastDay?: ForecastDay;
-  source?: 'live_forecast' | 'historical_fallback'; // ENHANCED: Explicit source property
+  source?: 'live_forecast' | 'historical_fallback';
   dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
@@ -316,7 +316,7 @@ export class WeatherForecastService {
       forecast: processedForecast,
       forecastDate: targetDate,
       isActualForecast: true,
-      source: 'live_forecast' as const, // ENHANCED: Explicit source for current-based forecast
+      source: 'live_forecast' as const,
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: DateNormalizationService.toDateString(new Date()),
@@ -358,25 +358,26 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false,
-      source: 'historical_fallback' as const, // ENHANCED: Explicit source for fallback
+      isActualForecast: false, // FIXED: Set to false for historical data
+      source: 'historical_fallback' as const,
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'seasonal-estimate' as const, // ENHANCED: Clear seasonal source marking
+        source: 'historical_fallback' as const, // FIXED: Use historical_fallback consistently
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with seasonal source', {
+    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with historical source', {
       cityName,
       targetDateString,
       fallbackResult,
       explicitSource: fallbackResult.source,
-      dateMatchSource: fallbackResult.dateMatchInfo.source
+      dateMatchSource: fallbackResult.dateMatchInfo.source,
+      isActualForecast: fallbackResult.isActualForecast
     });
 
     return fallbackResult;

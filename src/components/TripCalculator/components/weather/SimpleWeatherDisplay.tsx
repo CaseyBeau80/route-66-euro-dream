@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { TemperatureExtractor } from './services/TemperatureExtractor';
@@ -61,20 +62,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const getFooterMessage = React.useMemo(() => {
     const dateMatchSource = weather.dateMatchInfo?.source;
     const explicitSource = weather.source;
+    const isActualForecast = weather.isActualForecast;
 
     console.log('🌤️ SimpleWeatherDisplay: Determining footer message', {
       cityName,
       dateMatchSource,
       explicitSource,
-      isActualForecast: weather.isActualForecast
+      isActualForecast
     });
 
     // Check for seasonal/historical fallback sources
-    if (dateMatchSource === 'seasonal-estimate') {
-      return 'Seasonal data used due to unavailable live forecast';
+    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'historical_fallback') {
+      return 'Historical weather patterns used - live forecast not available';
     }
 
-    if (dateMatchSource === 'historical_fallback' || explicitSource === 'historical_fallback') {
+    if (explicitSource === 'historical_fallback' || isActualForecast === false) {
       return 'Historical weather patterns used - live forecast not available';
     }
 
@@ -83,12 +85,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       return 'Real-time weather data from API';
     }
 
-    if (explicitSource === 'live_forecast' && weather.isActualForecast === true) {
+    if (explicitSource === 'live_forecast' && isActualForecast === true) {
       return 'Real-time weather data from API';
     }
 
     // Default fallback message
-    return 'Weather data source uncertain - seasonal estimates displayed';
+    return 'Historical weather patterns used - forecast source uncertain';
   }, [weather.dateMatchInfo?.source, weather.source, weather.isActualForecast, cityName]);
 
   if (!temperatures.isValid) {

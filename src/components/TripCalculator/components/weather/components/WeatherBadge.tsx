@@ -32,25 +32,14 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     });
 
     // Primary check: Use dateMatchInfo.source as the definitive source of truth
-    if (dateMatchSource === 'seasonal-estimate') {
+    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'historical_fallback') {
       return {
-        text: '📊 Seasonal Average',
+        text: '📊 Historical Average',
         bgColor: 'bg-orange-100',
         textColor: 'text-orange-800',
         explanation: 'Based on historical weather patterns',
         showTooltip: true,
-        tooltipMessage: 'Live forecast unavailable - using seasonal weather patterns for this date'
-      };
-    }
-
-    if (dateMatchSource === 'historical_fallback') {
-      return {
-        text: '📊 Historical Average',
-        bgColor: 'bg-yellow-100',
-        textColor: 'text-yellow-800',
-        explanation: 'Based on historical weather data',
-        showTooltip: true,
-        tooltipMessage: 'Live forecast not available - using historical weather patterns'
+        tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
       };
     }
 
@@ -63,15 +52,15 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // Fallback logic based on explicit source property
-    if (source === 'historical_fallback') {
+    // Fallback logic based on explicit source property and isActualForecast
+    if (source === 'historical_fallback' || isActualForecast === false) {
       return {
-        text: '📊 Seasonal Average',
+        text: '📊 Historical Average',
         bgColor: 'bg-orange-100',
         textColor: 'text-orange-800',
         explanation: 'Based on historical weather patterns',
         showTooltip: true,
-        tooltipMessage: 'Live forecast unavailable - using seasonal weather patterns'
+        tooltipMessage: 'Live forecast unavailable - using historical weather patterns'
       };
     }
 
@@ -84,8 +73,8 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // Final fallback - treat any uncertain data as seasonal to avoid misleading users
-    console.warn('🏷️ WeatherBadge: Uncertain source detected, defaulting to seasonal', {
+    // Final fallback - treat any uncertain data as historical to avoid misleading users
+    console.warn('🏷️ WeatherBadge: Uncertain source detected, defaulting to historical', {
       cityName,
       source,
       isActualForecast,
@@ -93,12 +82,12 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     });
 
     return {
-      text: '📊 Seasonal Average',
+      text: '📊 Historical Average',
       bgColor: 'bg-gray-100',
       textColor: 'text-gray-800',
       explanation: 'Weather data source uncertain',
       showTooltip: true,
-      tooltipMessage: 'Weather data source could not be determined - displaying seasonal estimates'
+      tooltipMessage: 'Weather data source could not be determined - displaying historical estimates'
     };
   }, [source, isActualForecast, dateMatchSource, cityName]);
 
