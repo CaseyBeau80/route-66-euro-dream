@@ -15,6 +15,7 @@ export interface NormalizedWeatherData {
   cityName: string;
   source: string;
   isActualForecast: boolean;
+  isValid: boolean;
   dateMatchInfo?: any;
 }
 
@@ -52,7 +53,9 @@ export class WeatherDataNormalizer {
     console.log('🌡️ WeatherDataNormalizer: Extracted temperatures:', temperatures);
 
     // Validate extracted temperatures
-    if (!TemperatureExtractor.hasDisplayableTemperatureData(temperatures)) {
+    const hasValidTemperatures = TemperatureExtractor.hasDisplayableTemperatureData(temperatures);
+    
+    if (!hasValidTemperatures) {
       console.warn(`⚠️ WeatherDataNormalizer: Invalid temperature data for ${cityName}`);
       return null;
     }
@@ -70,6 +73,21 @@ export class WeatherDataNormalizer {
       cityName: cityName,
       source: weather.dateMatchInfo?.source || (weather.isActualForecast ? 'API Forecast' : 'Seasonal Average'),
       isActualForecast: weather.isActualForecast || false,
+      isValid: this.validateNormalizedData({
+        temperature: temperatures.current,
+        highTemp: temperatures.high,
+        lowTemp: temperatures.low,
+        description: weather.description || 'Clear',
+        icon: weather.icon || '01d',
+        humidity: weather.humidity || 50,
+        windSpeed: weather.windSpeed || 5,
+        precipitationChance: weather.precipitationChance || 0,
+        cityName: cityName,
+        source: weather.dateMatchInfo?.source || (weather.isActualForecast ? 'API Forecast' : 'Seasonal Average'),
+        isActualForecast: weather.isActualForecast || false,
+        isValid: true, // temporary for validation
+        dateMatchInfo: weather.dateMatchInfo
+      }),
       dateMatchInfo: weather.dateMatchInfo
     };
 
