@@ -21,7 +21,11 @@ export class WeatherDataConverter {
       windSpeed: forecastData.windSpeed,
       precipitationChance: forecastData.precipitationChance,
       cityName: forecastData.cityName,
-      isActualForecast: true
+      isActualForecast: true,
+      dateMatchInfo: {
+        ...forecastData.dateMatchInfo,
+        source: 'live_forecast'
+      }
     };
   }
 
@@ -42,7 +46,12 @@ export class WeatherDataConverter {
       windSpeed: historicalData.windSpeed,
       precipitationChance: historicalData.precipitationChance,
       cityName: cityName,
-      isActualForecast: false
+      isActualForecast: false,
+      dateMatchInfo: {
+        source: 'historical_fallback',
+        confidence: 'historical',
+        explanation: 'Using historical weather patterns for this date'
+      }
     };
   }
 }
