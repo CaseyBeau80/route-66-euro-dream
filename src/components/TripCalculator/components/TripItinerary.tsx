@@ -1,21 +1,20 @@
 
 import React from 'react';
-import { Tabs } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import TripItineraryTabs from './TripItineraryTabs';
-import TripItineraryContent from './TripItineraryContent';
-import TripSegmentLoader from './TripSegmentLoader';
+import TripItineraryColumn from './TripItineraryColumn';
+import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
+import WeatherTabContent from './WeatherTabContent';
+import CostEstimateColumn from './CostEstimateColumn';
+import ErrorBoundary from './ErrorBoundary';
 
 interface TripItineraryProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
 }
 
-const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, tripStartDate }) => {
-  const [activeTab, setActiveTab] = React.useState('itinerary');
-  const [isRendering, setIsRendering] = React.useState(false);
-
-  // Validate tripStartDate once and memoize it
+const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
+  // Validate tripStartDate
   const validatedTripStartDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
     if (!(tripStartDate instanceof Date)) return undefined;
@@ -23,39 +22,102 @@ const TripItinerary: React.FC<TripItineraryProps> = React.memo(({ tripPlan, trip
     return tripStartDate;
   }, [tripStartDate]);
 
-  const handleTabChange = (value: string) => {
-    console.log('🔄 TripItinerary: Tab change to', value);
-    setIsRendering(true);
-    setActiveTab(value);
-    
-    // Reset rendering flag after a delay
-    setTimeout(() => setIsRendering(false), 1000);
-  };
+  // 🎯 DEBUG: Log TripItinerary render
+  console.log('🎯 [WEATHER DEBUG] TripItinerary rendered:', {
+    component: 'TripItinerary',
+    segmentsCount: tripPlan.segments.length,
+    hasStartDate: !!validatedTripStartDate,
+    startDate: validatedTripStartDate?.toISOString(),
+    segments: tripPlan.segments.map(s => ({
+      day: s.day,
+      endCity: s.endCity
+    }))
+  });
 
   return (
     <div className="w-full max-w-6xl mx-auto">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TripItineraryTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      <Tabs defaultValue="itinerary" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="itinerary">Daily Itinerary</TabsTrigger>
+          <TabsTrigger value="weather">Weather Forecast</TabsTrigger>
+          <TabsTrigger value="costs">Cost Estimates</TabsTrigger>
+          <TabsTrigger value="overview">Trip Overview</TabsTrigger>
+        </TabsList>
 
-        <TripSegmentLoader segments={tripPlan.segments || []} initialLimit={1}>
-          {(limitedSegments, hasMoreSegments, loadMoreSegments) => (
-            <TripItineraryContent
-              activeTab={activeTab}
-              isRendering={isRendering}
-              limitedSegments={limitedSegments}
-              validatedTripStartDate={validatedTripStartDate}
-              hasMoreSegments={hasMoreSegments}
-              loadMoreSegments={loadMoreSegments}
-              tripPlan={tripPlan}
-              handleTabChange={handleTabChange}
+        <TabsContent value="itinerary" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ErrorBoundary context="TripItineraryColumn">
+              <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
+            </ErrorBoundary>
+            
+            <ErrorBoundary context="SimpleWeatherForecastColumn">
+              {/* 🎯 DEBUG: Log before rendering SimpleWeatherForecastColumn */}
+              {(() => {
+                console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
+                  component: 'TripItinerary -> SimpleWeatherForecastColumn',
+                  segmentsCount: tripPlan.segments.length,
+                  tripStartDate: validatedTripStartDate?.toISOString(),
+                  tripId: tripPlan.id
+                });
+                return null;
+              })()}
+              <SimpleWeatherForecastColumn 
+                segments={tripPlan.segments} 
+                tripStartDate={validatedTripStartDate}
+                tripId={tripPlan.id}
+              />
+            </ErrorBoundary>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="weather" className="mt-6">
+          <ErrorBoundary context="WeatherTabContent">
+            <WeatherTabContent 
+              segments={tripPlan.segments}
+              tripStartDate={validatedTripStartDate}
+              tripId={tripPlan.id}
+              isVisible={true}
             />
-          )}
-        </TripSegmentLoader>
+          </ErrorBoundary>
+        </TabsContent>
+
+        <TabsContent value="costs" className="mt-6">
+          <ErrorBoundary context="CostEstimateColumn">
+            <CostEstimateColumn segments={tripPlan.segments} />
+          </ErrorBoundary>
+        </TabsContent>
+
+        <TabsContent value="overview" className="mt-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold mb-4">Trip Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Route Details</h4>
+                <p className="text-sm text-gray-600">
+                  From {tripPlan.startCity} to {tripPlan.endCity}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {tripPlan.totalDays} days, {Math.round(tripPlan.totalDistance)} miles
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Travel Information</h4>
+                {validatedTripStartDate ? (
+                  <p className="text-sm text-gray-600">
+                    Starting: {validatedTripStartDate.toLocaleDateString()}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Set a start date for detailed planning
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
-});
-
-TripItinerary.displayName = 'TripItinerary';
+};
 
 export default TripItinerary;

@@ -18,41 +18,53 @@ export interface SimpleWeatherActions {
 }
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
-  // Memoize the state key to prevent unnecessary resets
-  const stateKey = React.useMemo(() => `${segmentEndCity}-${day}`, [segmentEndCity, day]);
-  
+  console.log(`🎯 SIMPLIFIED: useSimpleWeatherState for ${segmentEndCity} Day ${day}`);
+
   const [weather, setWeatherState] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
   const reset = React.useCallback(() => {
+    console.log(`🔄 SIMPLIFIED: Resetting weather state for ${segmentEndCity}`);
     setWeatherState(null);
     setLoading(false);
     setError(null);
     setRetryCount(0);
-  }, []);
+  }, [segmentEndCity]);
 
   const incrementRetry = React.useCallback(() => {
+    console.log(`🔄 SIMPLIFIED: Incrementing retry for ${segmentEndCity}`);
     setRetryCount(prev => prev + 1);
-  }, []);
+  }, [segmentEndCity]);
 
+  // SIMPLIFIED: Accept any weather data without complex validation
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
+    console.log(`✅ SIMPLIFIED: Setting weather for ${segmentEndCity}:`, {
+      hasWeather: !!newWeather,
+      temperature: newWeather?.temperature,
+      source: newWeather?.source,
+      isActualForecast: newWeather?.isActualForecast
+    });
+
     setWeatherState(newWeather);
-  }, []);
+  }, [segmentEndCity]);
 
   const enhancedSetLoading = React.useCallback((loading: boolean) => {
+    console.log(`🔄 SIMPLIFIED: Setting loading=${loading} for ${segmentEndCity}`);
     setLoading(loading);
-  }, []);
+  }, [segmentEndCity]);
 
   const enhancedSetError = React.useCallback((error: string | null) => {
+    console.log(`❌ SIMPLIFIED: Setting error for ${segmentEndCity}:`, error);
     setError(error);
-  }, []);
+  }, [segmentEndCity]);
 
-  // Only reset when the state key changes, not on every render
+  // Reset when city or day changes
   React.useEffect(() => {
+    console.log(`🔄 SIMPLIFIED: Dependency change for ${segmentEndCity} Day ${day} - resetting`);
     reset();
-  }, [stateKey, reset]);
+  }, [segmentEndCity, day, reset]);
 
   return {
     weather,
