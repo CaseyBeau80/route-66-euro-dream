@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -30,15 +31,16 @@ export interface ForecastWeatherData extends WeatherData {
 
 export class WeatherForecastService {
   private apiClient: WeatherApiClient;
-  private readonly FORECAST_THRESHOLD_DAYS = 5; // FIXED: 0-5 days from now
+  private readonly FORECAST_THRESHOLD_DAYS = 5; // 0-5 days from now (includes today)
 
   constructor(apiKey: string) {
     this.apiClient = new WeatherApiClient(apiKey);
     
-    console.log('🔧 DEBUG: WeatherForecastService constructor called', {
+    console.log('🔧 FIXED: WeatherForecastService constructor with corrected forecast logic', {
       hasApiKey: !!apiKey,
       apiKeyLength: apiKey?.length || 0,
       forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      forecastRangeDescription: '0-5 days inclusive',
       timestamp: new Date().toISOString()
     });
   }
@@ -49,7 +51,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🚨 ENHANCED: WeatherForecastService.getWeatherForDate ENTRY POINT', {
+    console.log('🚨 FIXED: WeatherForecastService.getWeatherForDate ENTRY with corrected date logic', {
       cityName,
       targetDate: targetDate.toISOString(),
       coordinates: { lat, lng },
@@ -60,39 +62,44 @@ export class WeatherForecastService {
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
-    const daysFromNow = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
     
-    console.log('🚨 FIXED: Corrected date processing for live forecast', {
+    // FIXED: Use proper date calculation - days from today (can be 0 for today)
+    const daysFromToday = Math.floor((normalizedTargetDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
+    
+    console.log('🚨 FIXED: Corrected date processing for live forecast range', {
       cityName,
       originalDate: targetDate.toISOString(),
       normalizedDate: normalizedTargetDate.toISOString(),
       targetDateString,
       today: today.toISOString(),
       normalizedToday: normalizedToday.toISOString(),
-      daysFromNow,
-      withinForecastRange: daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS,
-      forecastThreshold: this.FORECAST_THRESHOLD_DAYS
+      daysFromToday,
+      withinForecastRange: daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS,
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      isToday: daysFromToday === 0,
+      isTomorrow: daysFromToday === 1
     });
 
-    // FIXED: Use proper date difference calculation for forecast range
-    if (daysFromNow >= 0 && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
-      console.log('🚨 FIXED: Attempting live forecast API call (0-5 days range)', {
+    // FIXED: Correct forecast range check (0-5 days inclusive)
+    if (daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS) {
+      console.log('🚨 FIXED: Target date IS within live forecast range - attempting API call', {
         cityName,
         targetDateString,
-        daysFromNow,
+        daysFromToday,
         coordinates: { lat, lng },
-        reason: 'within_live_forecast_range'
+        reason: 'within_0_5_day_forecast_range_inclusive',
+        forecastRangeCheck: `${daysFromToday} <= ${this.FORECAST_THRESHOLD_DAYS}`
       });
 
-      const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromNow);
+      const actualForecast = await this.getActualForecast(lat, lng, cityName, normalizedTargetDate, targetDateString, daysFromToday);
       
       WeatherDebugService.logForecastApiRawResponse(cityName, actualForecast);
 
       if (actualForecast) {
-        console.log('🚨 FIXED: RETURNING LIVE FORECAST WITH CONSISTENT SOURCE', {
+        console.log('🚨 FIXED: LIVE FORECAST SUCCESS - returning with consistent live source marking', {
           cityName,
           targetDateString,
-          daysFromNow,
+          daysFromToday,
           finalResult: {
             temperature: actualForecast.temperature,
             highTemp: actualForecast.highTemp,
@@ -100,31 +107,33 @@ export class WeatherForecastService {
             isActualForecast: actualForecast.isActualForecast,
             description: actualForecast.description,
             source: actualForecast.source,
-            dateMatchSource: actualForecast.dateMatchInfo?.source
+            dateMatchSource: actualForecast.dateMatchInfo?.source,
+            shouldShowLiveBadge: true
           }
         });
         
         return actualForecast;
       }
       
-      console.log('🚨 FIXED: Live forecast API failed, using fallback', {
+      console.log('🚨 FIXED: Live forecast API failed within range, using fallback', {
         cityName,
         targetDateString,
-        daysFromNow,
-        reason: 'api_returned_null'
+        daysFromToday,
+        reason: 'api_call_failed_within_range'
       });
     } else {
-      console.log('🚨 FIXED: Outside live forecast range, using fallback', {
+      console.log('🚨 FIXED: Target date is OUTSIDE live forecast range, using fallback', {
         cityName,
         targetDateString,
-        daysFromNow,
+        daysFromToday,
         forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        reason: 'outside_forecast_range'
+        reason: 'outside_0_5_day_forecast_range',
+        forecastRangeCheck: `${daysFromToday} > ${this.FORECAST_THRESHOLD_DAYS} || ${daysFromToday} < 0`
       });
     }
 
-    // Return enhanced fallback with explicit source marking
-    const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromNow);
+    // Return enhanced fallback with explicit historical source marking
+    const fallbackForecast = this.getEnhancedFallbackForecast(cityName, normalizedTargetDate, targetDateString, daysFromToday);
     
     WeatherDebugService.logForecastApiRawResponse(cityName, fallbackForecast);
     
@@ -137,14 +146,15 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date, 
     targetDateString: string,
-    daysFromNow: number
+    daysFromToday: number
   ): Promise<ForecastWeatherData | null> {
     try {
-      console.log('🚨 FIXED: WeatherForecastService.getActualForecast START', {
+      console.log('🚨 FIXED: WeatherForecastService.getActualForecast START with corrected logic', {
         cityName,
         targetDateString,
         coordinates: { lat, lng },
-        daysFromNow
+        daysFromToday,
+        isWithinRange: daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS
       });
 
       const [currentData, forecastData] = await this.apiClient.getWeatherAndForecast(lat, lng);
@@ -174,10 +184,10 @@ export class WeatherForecastService {
         cityName
       );
       
-      console.log('🚨 FIXED: Match result', {
+      console.log('🚨 FIXED: Match result for live forecast', {
         cityName,
         targetDateString,
-        daysFromNow,
+        daysFromToday,
         hasMatch: !!matchResult.matchedForecast,
         matchType: matchResult.matchInfo?.matchType,
         matchedDate: matchResult.matchInfo?.matchedDate,
@@ -187,7 +197,7 @@ export class WeatherForecastService {
       if (matchResult.matchedForecast) {
         const forecast = matchResult.matchedForecast;
         
-        // FIXED: Accept any match within the forecast range as live forecast
+        // FIXED: Always mark as live forecast for ANY match within 0-5 day range
         const extractTemperature = (temp: number | { high: number; low: number; } | undefined): number => {
           if (typeof temp === 'number') return temp;
           if (temp && typeof temp === 'object' && 'high' in temp && 'low' in temp) {
@@ -216,7 +226,7 @@ export class WeatherForecastService {
         console.log('🚨 FIXED: Temperature values extracted for live forecast', {
           cityName,
           targetDateString,
-          daysFromNow,
+          daysFromToday,
           extractedTemps: {
             high: highTemp,
             low: lowTemp,
@@ -225,16 +235,15 @@ export class WeatherForecastService {
           }
         });
 
-        // FIXED: Always mark as live forecast for any match within 0-5 day range
-        console.log(`✅ FIXED: Live forecast ACCEPTED for ${cityName} Day ${daysFromNow}:`, {
+        console.log(`✅ FIXED: Live forecast CONFIRMED for ${cityName} Day ${daysFromToday}:`, {
           targetDateString,
-          daysFromNow,
+          daysFromToday,
           matchType: matchResult.matchInfo.matchType,
           temperature: { high: highTemp, low: lowTemp, avg: avgTemp },
           description: forecast.description,
           isActualForecast: true,
           explicitSource: 'live_forecast',
-          validationReason: 'within_0_5_day_forecast_range'
+          validationReason: 'successful_api_match_within_0_5_day_range'
         });
         
         const finalResult = {
@@ -249,7 +258,7 @@ export class WeatherForecastService {
           cityName: cityName,
           forecast: processedForecast,
           forecastDate: targetDate,
-          isActualForecast: true, // FIXED: Always true for ANY match within 0-5 day range
+          isActualForecast: true, // FIXED: Always true for successful matches within range
           source: 'live_forecast' as const, // FIXED: Explicit live forecast source
           matchedForecastDay: forecast,
           dateMatchInfo: {
@@ -258,33 +267,34 @@ export class WeatherForecastService {
           }
         };
 
-        console.log('🚨 FIXED: CONSTRUCTED LIVE FORECAST RESULT', {
+        console.log('🚨 FIXED: CONSTRUCTED LIVE FORECAST RESULT with consistent source marking', {
           cityName,
           targetDateString,
-          daysFromNow,
+          daysFromToday,
           finalResult: {
             isActualForecast: finalResult.isActualForecast,
             explicitSource: finalResult.source,
             dateMatchSource: finalResult.dateMatchInfo.source,
-            temperature: finalResult.temperature
+            temperature: finalResult.temperature,
+            shouldTriggerLiveBadge: true
           }
         });
         
         return finalResult;
       } else {
-        console.log('🚨 FIXED: No forecast match found, checking current data for estimation', {
+        console.log('🚨 FIXED: No forecast match found, checking current data for live estimation', {
           cityName,
           targetDateString,
-          daysFromNow,
+          daysFromToday,
           hasCurrentData: !!currentData
         });
 
-        // FIXED: Still try to provide live estimate from current data within forecast range
-        if (currentData && currentData.main && currentData.main.temp && daysFromNow <= this.FORECAST_THRESHOLD_DAYS) {
+        // FIXED: Create live estimate from current data within forecast range
+        if (currentData && currentData.main && currentData.main.temp && daysFromToday <= this.FORECAST_THRESHOLD_DAYS) {
           console.log('🚨 FIXED: Creating live estimate from current data within forecast range', {
             cityName,
             targetDateString,
-            daysFromNow,
+            daysFromToday,
             currentTemp: currentData.main.temp,
             reason: 'live_estimate_within_range'
           });
@@ -294,7 +304,7 @@ export class WeatherForecastService {
             cityName, 
             targetDate, 
             targetDateString, 
-            daysFromNow, 
+            daysFromToday, 
             processedForecast
           );
         }
@@ -306,31 +316,31 @@ export class WeatherForecastService {
       console.error('🚨 FIXED: WeatherForecastService.getActualForecast ERROR', {
         cityName,
         targetDateString,
-        daysFromNow,
+        daysFromToday,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       return null;
     }
   }
 
-  // FIXED: New method to create live estimates within forecast range
+  // FIXED: Create live estimates within forecast range with consistent marking
   private createLiveEstimateFromCurrent(
     currentData: any,
     cityName: string,
     targetDate: Date,
     targetDateString: string,
-    daysFromNow: number,
+    daysFromToday: number,
     processedForecast: ForecastDay[]
   ): ForecastWeatherData {
     const currentTemp = currentData.main.temp;
     const tempVariation = 10;
     
-    console.log('🚨 FIXED: createLiveEstimateFromCurrent - LIVE ESTIMATE within forecast range', {
+    console.log('🚨 FIXED: createLiveEstimateFromCurrent - LIVE ESTIMATE with consistent source marking', {
       cityName,
       targetDateString,
-      daysFromNow,
+      daysFromToday,
       reason: 'live_estimate_from_current_within_forecast_range',
-      markingStrategy: 'live_forecast_estimate'
+      markingStrategy: 'live_forecast_consistent'
     });
     
     return {
@@ -351,7 +361,7 @@ export class WeatherForecastService {
         requestedDate: targetDateString,
         matchedDate: DateNormalizationService.toDateString(new Date()),
         matchType: 'closest' as const,
-        daysOffset: daysFromNow,
+        daysOffset: daysFromToday,
         hoursOffset: 0,
         source: 'live_forecast' as const, // FIXED: Consistent live source
         confidence: 'medium' as const
@@ -363,13 +373,13 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date, 
     targetDateString: string,
-    daysFromNow: number
+    daysFromToday: number
   ): ForecastWeatherData {
-    console.log('🚨 ENHANCED: WeatherForecastService.getEnhancedFallbackForecast - CONSISTENT historical marking', {
+    console.log('🚨 FIXED: WeatherForecastService.getEnhancedFallbackForecast - CONSISTENT historical marking', {
       cityName,
       targetDateString,
       targetMonth: targetDate.getMonth(),
-      daysFromNow,
+      daysFromToday,
       reason: 'outside_forecast_range_or_api_unavailable',
       markingStrategy: 'historical_fallback_consistent'
     });
@@ -390,20 +400,20 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false, // ENHANCED: Always false for seasonal estimates
-      source: 'historical_fallback' as const, // ENHANCED: Consistent historical marking
+      isActualForecast: false, // FIXED: Always false for seasonal estimates
+      source: 'historical_fallback' as const, // FIXED: Consistent historical marking
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
         matchType: 'seasonal-estimate' as const,
-        daysOffset: daysFromNow,
+        daysOffset: daysFromToday,
         hoursOffset: 0,
-        source: 'historical_fallback' as const, // ENHANCED: Use historical_fallback consistently
+        source: 'historical_fallback' as const, // FIXED: Use historical_fallback consistently
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 ENHANCED: WeatherForecastService fallback result with CONSISTENT HISTORICAL SOURCE MARKING', {
+    console.log('🚨 FIXED: WeatherForecastService fallback result with CONSISTENT HISTORICAL SOURCE MARKING', {
       cityName,
       targetDateString,
       fallbackResult: {
@@ -411,7 +421,8 @@ export class WeatherForecastService {
         explicitSource: fallbackResult.source,
         dateMatchSource: fallbackResult.dateMatchInfo.source,
         temperature: fallbackResult.temperature,
-        markingConsistency: 'all_historical_fallback'
+        markingConsistency: 'all_historical_fallback',
+        shouldShowHistoricalBadge: true
       }
     });
 
