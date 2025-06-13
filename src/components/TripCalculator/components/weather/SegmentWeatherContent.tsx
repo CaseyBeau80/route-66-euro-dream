@@ -81,51 +81,16 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Determine the weather section header based on actual weather data
-  let weatherSectionHeader = 'Weather Information';
-  
-  if (weather) {
-    // Use centralized WeatherTypeDetector for consistent header determination
-    const weatherType = WeatherTypeDetector.detectWeatherType(weather);
-    weatherSectionHeader = weatherType.displayLabel;
-    
-    console.log('🔧 FIXED: Weather section header determination for', segmentEndCity, {
-      weatherData: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        dateMatchSource: weather.dateMatchInfo?.source
-      },
-      weatherType: {
-        isLiveForecast: weatherType.isLiveForecast,
-        isHistoricalData: weatherType.isHistoricalData,
-        displayLabel: weatherType.displayLabel
-      },
-      finalHeader: weatherSectionHeader
-    });
-    
-    // Validate weather type consistency
-    WeatherTypeDetector.validateWeatherTypeConsistency(weather, `SegmentWeatherContent-${segmentEndCity}`);
-  } else {
-    console.log('🔧 No weather data available for', segmentEndCity, '- using default header');
-  }
+  // FIXED: Don't show any header in SegmentWeatherContent - let the parent component handle it
+  // This eliminates the conflict between different header determinations
+  console.log('🔧 FIXED: SegmentWeatherContent removed header to prevent conflicts for', segmentEndCity, {
+    hasWeather: !!weather,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast
+  });
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800">
-          {weatherSectionHeader}
-        </h3>
-        {segmentDate && (
-          <div className="text-sm text-gray-500">
-            {segmentDate.toLocaleDateString('en-US', { 
-              weekday: 'short',
-              month: 'short', 
-              day: 'numeric' 
-            })}
-          </div>
-        )}
-      </div>
-
       <WeatherDataDisplay
         weather={weather}
         segmentDate={segmentDate}

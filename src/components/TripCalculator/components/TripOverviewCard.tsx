@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,16 +47,11 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   // Get the last segment for destination weather
   const lastSegment = tripPlan.segments[tripPlan.segments.length - 1];
 
-  // FIXED: Use a generic header that doesn't make assumptions about weather type
-  // Let the SegmentWeatherWidget handle the specific weather type determination
-  const getWeatherSectionHeader = () => {
-    return "Destination Weather";
-  };
-
-  console.log('🔧 FIXED: TripOverviewCard using generic weather header to avoid conflicts:', {
+  // FIXED: Remove any header logic from TripOverviewCard - let SegmentWeatherWidget handle it entirely
+  console.log('🔧 FIXED: TripOverviewCard removed weather header logic to prevent conflicts:', {
     lastSegmentCity: lastSegment?.endCity,
-    weatherSectionHeader: getWeatherSectionHeader(),
-    hasTripStartDate: !!tripStartDate
+    hasTripStartDate: !!tripStartDate,
+    willShowWeatherWidget: !!(tripStartDate && lastSegment)
   });
 
   const formatCurrency = (amount: number) => {
@@ -96,12 +90,12 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           formatTime={formatTime}
         />
 
-        {/* FIXED: Weather Information Section - Let SegmentWeatherWidget determine the header */}
+        {/* FIXED: Weather Information Section - No header, let SegmentWeatherWidget handle everything */}
         {tripStartDate && lastSegment && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Cloud className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-800">{getWeatherSectionHeader()}</h3>
+              <h3 className="font-semibold text-gray-800">Destination Weather</h3>
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
               <SegmentWeatherWidget 
