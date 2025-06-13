@@ -18,7 +18,22 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   tripStartDate,
   tripId
 }) => {
+  // 🚨 FORCE LOG: WeatherForecastColumn component entry
+  console.log('🚨 FORCE LOG: WeatherForecastColumn COMPONENT ENTRY', {
+    segments: segments?.length || 0,
+    tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+    tripId,
+    timestamp: new Date().toISOString()
+  });
+
   const stableSegments = useStableSegments(segments);
+
+  // 🚨 FORCE LOG: Stable segments result
+  console.log('🚨 FORCE LOG: STABLE SEGMENTS RESULT', {
+    originalCount: segments?.length || 0,
+    stableCount: stableSegments?.length || 0,
+    stableSegments: stableSegments?.map((s, i) => ({ index: i, day: s.day, endCity: s.endCity })) || []
+  });
 
   // 🚨 PLAN IMPLEMENTATION: Explicit segment enumeration logging
   console.log('🔍 [PLAN] WeatherForecastColumn - SEGMENT ENUMERATION:', {
@@ -94,6 +109,13 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   });
 
   if (!validTripStartDate) {
+    // 🚨 FORCE LOG: Early return due to no valid trip start date
+    console.log('🚨 FORCE LOG: WeatherForecastColumn EARLY RETURN - No valid trip start date', {
+      originalTripStartDate: tripStartDate,
+      validTripStartDate,
+      timestamp: new Date().toISOString()
+    });
+    
     return (
       <>
         {/* Subtle Column Label */}
@@ -116,6 +138,14 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
     );
   }
 
+  // 🚨 FORCE LOG: About to enter the segments map loop
+  console.log('🚨 FORCE LOG: ENTERING SEGMENTS MAP LOOP', {
+    segmentCount: stableSegments.length,
+    validTripStartDate: validTripStartDate.toISOString(),
+    segments: stableSegments.map(s => ({ day: s.day, endCity: s.endCity })),
+    timestamp: new Date().toISOString()
+  });
+
   return (
     <>
       {/* Subtle Column Label */}
@@ -128,6 +158,15 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
       {/* Day Cards */}
       <div className="space-y-4">
         {stableSegments.map((segment, index) => {
+          // 🚨 FORCE LOG: INSIDE MAP LOOP - Processing each segment
+          console.log(`🚨 FORCE LOG: MAP LOOP ITERATION ${index + 1}/${stableSegments.length}`, {
+            segmentIndex: index,
+            day: segment.day,
+            endCity: segment.endCity,
+            isDay1: segment.day === 1,
+            timestamp: new Date().toISOString()
+          });
+
           // 🚨 PLAN IMPLEMENTATION: Segment visibility confirmation
           console.log(`🔍 [PLAN] Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
             segmentIndex: index,
@@ -191,6 +230,17 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
               sectionKey: 'weather-column'
             });
           }
+
+          // 🚨 FORCE LOG: About to render SegmentWeatherWidget for ANY segment
+          console.log(`🚨 FORCE LOG: About to render SegmentWeatherWidget for Day ${segment.day}`, {
+            segment: { day: segment.day, endCity: segment.endCity },
+            tripStartDate: validTripStartDate.toISOString(),
+            segmentDate: segmentDate?.toISOString(),
+            cardIndex: index,
+            tripId,
+            sectionKey: 'weather-column',
+            timestamp: new Date().toISOString()
+          });
           
           return (
             <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherForecastColumn-Segment-${index}`}>

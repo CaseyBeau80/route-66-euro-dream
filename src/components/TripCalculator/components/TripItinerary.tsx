@@ -14,6 +14,14 @@ interface TripItineraryProps {
 }
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }) => {
+  // 🚨 FORCE LOG: TripItinerary component entry
+  console.log('🚨 FORCE LOG: TripItinerary COMPONENT ENTRY', {
+    hasTripPlan: !!tripPlan,
+    tripStartDate: tripStartDate?.toISOString(),
+    segmentsCount: tripPlan?.segments?.length || 0,
+    timestamp: new Date().toISOString()
+  });
+
   // 🚨 PLAN IMPLEMENTATION: Enhanced TripItinerary component render logging
   console.log('🚨 [PLAN] TripItinerary component rendering', {
     hasTripPlan: !!tripPlan,
@@ -107,6 +115,14 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     });
   }, [tripPlan.segments, validatedTripStartDate, tripPlan.id]);
 
+  // 🚨 FORCE LOG: Before rendering tabs
+  console.log('🚨 FORCE LOG: TripItinerary about to render tabs', {
+    validatedTripStartDate: validatedTripStartDate?.toISOString(),
+    segmentsCount: tripPlan.segments.length,
+    willRenderWeatherColumn: !!validatedTripStartDate,
+    timestamp: new Date().toISOString()
+  });
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
@@ -118,6 +134,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
         </TabsList>
 
         <TabsContent value="itinerary" className="mt-6">
+          {/* 🚨 FORCE LOG: Rendering itinerary tab content */}
+          {console.log('🚨 FORCE LOG: Rendering itinerary tab content with WeatherForecastColumn')}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary context="TripItineraryColumn">
               <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
