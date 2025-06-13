@@ -5,8 +5,4 @@ export class EnhancedWeatherService {
   static hasApiKey(): boolean {
     return MainEnhancedWeatherService.getInstance().hasApiKey();
   }
-  
-  static getApiKey(): string | null {
-    return MainEnhancedWeatherService.getInstance().getApiKey();
-  }
 }
