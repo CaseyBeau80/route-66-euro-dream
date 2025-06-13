@@ -16,8 +16,9 @@ export class WeatherDataValidator {
       return false;
     }
 
-    // Use the normalizer to validate
-    const normalized = WeatherDataNormalizer.normalizeWeatherData(data, city);
+    // Use the normalizer to validate - provide a placeholder date since validation doesn't depend on the specific date
+    const placeholderDate = new Date();
+    const normalized = WeatherDataNormalizer.normalizeWeatherData(data, city, placeholderDate);
     const isValid = normalized !== null && normalized.isValid;
     
     console.log('✅ WeatherDataValidator: Enhanced validation result:', {
@@ -38,7 +39,9 @@ export class WeatherDataValidator {
 
     if (!data) return false;
 
-    const normalized = WeatherDataNormalizer.normalizeWeatherData(data, data.cityName || 'Unknown');
+    // Use the normalizer to validate - provide a placeholder date since validation doesn't depend on the specific date
+    const placeholderDate = new Date();
+    const normalized = WeatherDataNormalizer.normalizeWeatherData(data, data.cityName || 'Unknown', placeholderDate);
     return normalized !== null && normalized.isValid;
   }
 
