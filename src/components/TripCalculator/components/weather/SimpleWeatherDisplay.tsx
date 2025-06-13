@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { TemperatureExtractor } from './services/TemperatureExtractor';
@@ -80,7 +79,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     }
 
     // Check for live forecast sources
-    if (dateMatchSource === 'api-forecast' || dateMatchSource === 'enhanced-fallback' || dateMatchSource === 'live_forecast') {
+    if (dateMatchSource === 'api-forecast' || dateMatchSource === 'enhanced-fallback') {
       return 'Real-time weather data from API';
     }
 

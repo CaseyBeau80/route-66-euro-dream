@@ -23,7 +23,7 @@ export interface ForecastWeatherData extends WeatherData {
     matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
     daysOffset: number;
     hoursOffset?: number;
-    source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
+    source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate' | 'historical_fallback';
     confidence?: 'high' | 'medium' | 'low';
     availableDates?: string[];
   };

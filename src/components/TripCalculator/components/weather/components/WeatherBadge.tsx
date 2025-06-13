@@ -63,15 +63,6 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    if (dateMatchSource === 'live_forecast') {
-      return {
-        text: '📡 Live Forecast',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-800',
-        explanation: 'Real-time weather data from API'
-      };
-    }
-
     // Fallback logic based on explicit source property
     if (source === 'historical_fallback') {
       return {
