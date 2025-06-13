@@ -25,36 +25,19 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   cityName
 }) => {
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    console.log('🏷️ WeatherBadge: FIXED logic for', cityName, {
+    // DEBUGGING: Log all the inputs to understand what's happening
+    console.log('🔍 WeatherBadge DEBUG - All inputs for', cityName, {
       source,
       isActualForecast,
       dateMatchSource,
       timestamp: new Date().toISOString()
     });
 
-    // FIXED LOGIC: Check for live forecast first (most restrictive)
-    if (dateMatchSource === 'live_forecast' && isActualForecast === true) {
-      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (strict validation passed)', { 
-        cityName, 
-        dateMatchSource,
-        isActualForecast,
-        reason: 'live_forecast_confirmed'
-      });
-      return {
-        text: '📡 Live Forecast',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-800',
-        explanation: 'Real-time weather data from API'
-      };
-    }
-
-    // FIXED LOGIC: Check for historical/seasonal data
-    if (dateMatchSource === 'historical_fallback' || source === 'seasonal') {
-      console.log('🏷️ WeatherBadge: SEASONAL AVERAGE badge (historical data detected)', { 
-        cityName, 
-        dateMatchSource,
-        source,
-        reason: 'historical_or_seasonal_data'
+    // FIXED LOGIC: If isActualForecast is false, it's definitely not live forecast
+    if (isActualForecast === false) {
+      console.log('🔍 WeatherBadge: isActualForecast=false detected, showing historical badge', {
+        cityName,
+        reason: 'isActualForecast_false'
       });
       return {
         text: '📊 Seasonal Average',
@@ -66,13 +49,45 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // FIXED LOGIC: Default to forecast unavailable for any other cases
-    console.log('🏷️ WeatherBadge: FORECAST UNAVAILABLE badge (no valid source detected)', {
+    // FIXED LOGIC: Check for historical/seasonal sources
+    if (source === 'historical_fallback' || source === 'seasonal' || dateMatchSource === 'historical_fallback') {
+      console.log('🔍 WeatherBadge: Historical source detected, showing seasonal badge', {
+        cityName,
+        source,
+        dateMatchSource,
+        reason: 'source_indicates_historical'
+      });
+      return {
+        text: '📊 Seasonal Average',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800',
+        explanation: 'Based on historical weather patterns',
+        showTooltip: true,
+        tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
+      };
+    }
+
+    // FIXED LOGIC: Only show live forecast if explicitly confirmed
+    if (dateMatchSource === 'live_forecast' && isActualForecast === true) {
+      console.log('🔍 WeatherBadge: Confirmed live forecast, showing live badge', {
+        cityName,
+        reason: 'confirmed_live_forecast'
+      });
+      return {
+        text: '📡 Live Forecast',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        explanation: 'Real-time weather data from API'
+      };
+    }
+
+    // FIXED LOGIC: Default to unavailable for any unclear cases
+    console.log('🔍 WeatherBadge: Unclear data source, showing unavailable badge', {
       cityName,
       source,
       isActualForecast,
       dateMatchSource,
-      reason: 'no_valid_source_detected'
+      reason: 'unclear_source_defaulting_to_unavailable'
     });
 
     return {

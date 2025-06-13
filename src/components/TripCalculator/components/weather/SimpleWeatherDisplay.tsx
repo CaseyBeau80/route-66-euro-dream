@@ -22,17 +22,18 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ SimpleWeatherDisplay: FIXED rendering with corrected source validation', {
-    cityName,
+  // DEBUGGING: Log the complete weather object to understand what we're working with
+  console.log('🔍 SimpleWeatherDisplay DEBUG - Complete weather object for', cityName, {
     weather: {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
-      dateMatchSource: weather.dateMatchInfo?.source,
-      temperature: weather.temperature
+      dateMatchInfo: weather.dateMatchInfo,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp
     },
     segmentDate: segmentDate?.toISOString(),
-    isSharedView,
-    isPDFExport
+    timestamp: new Date().toISOString()
   });
 
   // Extract temperatures using the enhanced TemperatureExtractor
@@ -63,13 +64,30 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     };
   }, [temperatures, cityName]);
 
-  // FIXED: Get dynamic footer message with corrected source validation
+  // DEBUGGING: Log the exact props being passed to WeatherBadge
+  const weatherBadgeProps = React.useMemo(() => {
+    const props = {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      dateMatchSource: weather.dateMatchInfo?.source,
+      cityName: cityName
+    };
+    
+    console.log('🔍 SimpleWeatherDisplay DEBUG - WeatherBadge props for', cityName, {
+      props,
+      explanation: 'These are the exact props being passed to WeatherBadge'
+    });
+    
+    return props;
+  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
+
+  // Get dynamic footer message with corrected source validation
   const getFooterMessage = React.useMemo(() => {
     const dateMatchSource = weather.dateMatchInfo?.source;
     const explicitSource = weather.source;
     const isActualForecast = weather.isActualForecast;
 
-    console.log('🌤️ SimpleWeatherDisplay: FIXED footer message determination', {
+    console.log('🌤️ SimpleWeatherDisplay: Footer message determination', {
       cityName,
       dateMatchSource,
       explicitSource,
@@ -77,19 +95,24 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       timestamp: new Date().toISOString()
     });
 
-    // FIXED STEP 1: Check for confirmed live forecast (most restrictive)
+    // Check for confirmed live forecast (most restrictive)
     if (dateMatchSource === 'live_forecast' && isActualForecast === true) {
       console.log('🌤️ SimpleWeatherDisplay: LIVE footer (strict validation passed)', { cityName, dateMatchSource, isActualForecast });
       return 'Real-time weather forecast from API';
     }
 
-    // FIXED STEP 2: Check for historical/seasonal sources
-    if (dateMatchSource === 'historical_fallback' || explicitSource === 'seasonal') {
-      console.log('🌤️ SimpleWeatherDisplay: HISTORICAL footer (historical data detected)', { cityName, dateMatchSource, explicitSource });
+    // Check for historical/seasonal sources OR if isActualForecast is false
+    if (dateMatchSource === 'historical_fallback' || explicitSource === 'seasonal' || explicitSource === 'historical_fallback' || isActualForecast === false) {
+      console.log('🌤️ SimpleWeatherDisplay: HISTORICAL footer (historical data detected)', { 
+        cityName, 
+        dateMatchSource, 
+        explicitSource, 
+        isActualForecast 
+      });
       return 'Historical weather patterns - live forecast not available for this date';
     }
 
-    // FIXED STEP 3: Default to unavailable for any other cases
+    // Default to unavailable for any other cases
     console.log('🌤️ SimpleWeatherDisplay: UNAVAILABLE footer (no valid source)', { 
       cityName, 
       dateMatchSource, 
@@ -146,12 +169,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* FIXED Weather Badge with Corrected Source Detection */}
+        {/* Weather Badge with DEBUG props */}
         <WeatherBadge
-          source={weather.source}
-          isActualForecast={weather.isActualForecast}
-          dateMatchSource={weather.dateMatchInfo?.source}
-          cityName={cityName}
+          source={weatherBadgeProps.source}
+          isActualForecast={weatherBadgeProps.isActualForecast}
+          dateMatchSource={weatherBadgeProps.dateMatchSource}
+          cityName={weatherBadgeProps.cityName}
         />
       </div>
 
@@ -180,7 +203,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* FIXED Dynamic Data Source Footer */}
+      {/* Dynamic Data Source Footer */}
       <div className="mt-3 text-xs text-blue-500 text-center">
         {getFooterMessage}
       </div>
