@@ -1,173 +1,122 @@
 
-import { WeatherApiClient } from './WeatherApiClient';
-import { WeatherData, ForecastDay } from './WeatherServiceTypes';
-import { WeatherDateCalculator } from './WeatherDateCalculator';
-import { WeatherForecastApiHandler } from './WeatherForecastApiHandler';
-import { WeatherFallbackService } from './WeatherFallbackService';
-import { WeatherDebugService } from '../../../TripCalculator/components/weather/services/WeatherDebugService';
+import { WeatherSourceType } from './WeatherServiceTypes';
 
-export interface ForecastWeatherData extends WeatherData {
-  forecast: ForecastDay[];
-  forecastDate: Date;
-  isActualForecast: boolean;
+export interface DateMatchInfo {
+  requestedDate: string;
+  matchedDate: string;
+  matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
+  daysOffset: number;
+  hoursOffset?: number;
+  source: WeatherSourceType;
+  confidence?: 'high' | 'medium' | 'low';
+}
+
+export interface ForecastWeatherData {
+  temperature: number;
   highTemp?: number;
   lowTemp?: number;
-  precipitationChance?: number;
-  matchedForecastDay?: ForecastDay;
-  source?: 'live_forecast' | 'historical_fallback' | 'seasonal';
-  dateMatchInfo?: {
-    requestedDate: string;
-    matchedDate: string;
-    matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
-    daysOffset: number;
-    hoursOffset?: number;
-    source: 'live_forecast' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate' | 'historical_fallback';
-    confidence?: 'high' | 'medium' | 'low';
-    availableDates?: string[];
-  };
+  description: string;
+  icon: string;
+  humidity: number;
+  windSpeed: number;
+  precipitationChance: number;
+  cityName: string;
+  forecast: any[];
+  forecastDate: Date;
+  isActualForecast: boolean;
+  source: 'live_forecast' | 'historical_fallback';
+  dateMatchInfo?: DateMatchInfo;
 }
 
 export class WeatherForecastService {
-  private apiHandler: WeatherForecastApiHandler;
+  private apiKey: string;
+  private baseUrl = 'https://api.openweathermap.org/data/2.5';
 
   constructor(apiKey: string) {
-    this.apiHandler = new WeatherForecastApiHandler(apiKey);
-    
-    console.log('🔧 PLAN: WeatherForecastService initialized with STANDARDIZED forecast logic', {
-      hasApiKey: !!apiKey,
-      forecastRange: 'Days 0-7 (inclusive)',
-      historicalRange: 'Day 8 and beyond',
-      localDateCalculation: true,
-      standardizedRange: true,
-      timestamp: new Date().toISOString()
-    });
+    this.apiKey = apiKey;
   }
 
-  async getWeatherForDate(
-    lat: number, 
-    lng: number, 
-    cityName: string, 
-    targetDate: Date
-  ): Promise<ForecastWeatherData | null> {
-    console.log('🔧 PLAN: WeatherForecastService.getWeatherForDate - ENTRY WITH STANDARDIZED FORECAST RANGE', {
-      cityName,
-      targetDate: targetDate.toISOString(),
-      targetDateLocal: targetDate.toLocaleDateString(),
-      coordinates: { lat, lng },
-      localDateCalculation: true,
-      standardizedRange: true,
-      timestamp: new Date().toISOString()
-    });
-
-    const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
-    const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
-
-    console.log('🔧 PLAN: WeatherForecastService - ROUTING DECISION WITH STANDARDIZED LOGIC', {
-      cityName,
-      dateInfo: {
-        targetDateString,
-        daysFromToday,
-        isWithinForecastRange,
-        standardizedDecision: isWithinForecastRange ? 'FORCE_LIVE_FORECAST_ATTEMPT' : 'USE_HISTORICAL_FALLBACK'
-      },
-      logic: {
-        forecastRange: '0-7 days from today',
-        historicalRange: '8+ days from today',
-        currentDecision: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL',
-        standardizedRange: true,
-        localDateCalculation: true
-      }
-    });
-
-    // Force live forecast attempt for days 0-7
-    if (isWithinForecastRange) {
-      console.log('🔧 PLAN: FORCING live forecast attempt for', cityName, {
-        reason: 'within_7_day_range',
-        daysFromToday,
-        targetDateString,
-        willAttemptLiveForecast: true,
-        standardizedForecastRange: true,
-        localDateCalculation: true
-      });
-
-      try {
-        const actualForecast = await this.apiHandler.fetchLiveForecast(
-          lat, 
-          lng, 
-          cityName, 
-          normalizedTargetDate, 
-          targetDateString, 
-          daysFromToday
-        );
-        
-        if (actualForecast) {
-          const enhancedForecast = {
-            ...actualForecast,
-            source: 'live_forecast' as const,
-            isActualForecast: true,
-            dateMatchInfo: {
-              ...actualForecast.dateMatchInfo,
-              source: 'live_forecast' as const
-            }
-          };
-          
-          console.log('🔧 PLAN: Live forecast SUCCESS for', cityName, {
-            daysFromToday,
-            temperature: enhancedForecast.temperature,
-            source: enhancedForecast.source,
-            isActualForecast: enhancedForecast.isActualForecast,
-            dateMatching: enhancedForecast.dateMatchInfo,
-            standardizedForecastRange: true,
-            localDateCalculation: true
-          });
-          
-          return enhancedForecast;
-        } else {
-          console.error('🔧 PLAN: Live forecast returned NULL for', cityName, {
-            daysFromToday,
-            targetDateString,
-            reason: 'api_handler_returned_null',
-            standardizedRange: true
-          });
-        }
-      } catch (error) {
-        console.error('🔧 PLAN: Live forecast FAILED with error for', cityName, {
-          error: error instanceof Error ? error.message : String(error),
-          daysFromToday,
-          targetDateString,
-          standardizedRange: true
-        });
-      }
+  async getForecast(lat: number, lng: number, cityName: string): Promise<ForecastWeatherData[]> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/forecast?lat=${lat}&lon=${lng}&appid=${this.apiKey}&units=imperial`
+      );
       
-      console.log('🔧 PLAN: Live forecast failed, falling back to historical for', cityName);
-    } else {
-      console.log('🔧 PLAN: Using historical weather for', cityName, {
-        reason: 'beyond_7_day_range',
-        daysFromToday,
-        targetDateString,
-        standardizedForecastRange: true,
-        localDateCalculation: true
-      });
-    }
+      if (!response.ok) {
+        throw new Error(`Weather API error: ${response.status}`);
+      }
 
-    // Fallback to historical weather with normalized date
-    const fallbackForecast = WeatherFallbackService.createFallbackForecast(
-      cityName, 
-      normalizedTargetDate, 
-      targetDateString, 
-      daysFromToday
-    );
-    
-    console.log('🔧 PLAN: Historical fallback applied for', cityName, {
-      daysFromToday,
-      source: fallbackForecast.source,
-      isActualForecast: fallbackForecast.isActualForecast,
-      targetDateString,
-      fallbackReason: isWithinForecastRange ? 'live_forecast_failed' : 'beyond_forecast_range',
-      standardizedForecastRange: true,
-      localDateCalculation: true
-    });
-    
-    return fallbackForecast;
+      const data = await response.json();
+      
+      return data.list.map((item: any, index: number) => ({
+        temperature: Math.round(item.main.temp),
+        highTemp: Math.round(item.main.temp_max),
+        lowTemp: Math.round(item.main.temp_min),
+        description: item.weather[0].description,
+        icon: item.weather[0].icon,
+        humidity: item.main.humidity,
+        windSpeed: Math.round(item.wind?.speed || 0),
+        precipitationChance: Math.round((item.pop || 0) * 100),
+        cityName,
+        forecast: [],
+        forecastDate: new Date(item.dt * 1000),
+        isActualForecast: true,
+        source: 'live_forecast' as const,
+        dateMatchInfo: {
+          requestedDate: new Date(item.dt * 1000).toISOString(),
+          matchedDate: new Date(item.dt * 1000).toISOString(),
+          matchType: 'exact' as const,
+          daysOffset: index,
+          hoursOffset: 0,
+          source: 'live_forecast' as const,
+          confidence: 'high' as const
+        }
+      }));
+    } catch (error) {
+      console.error('Error fetching weather forecast:', error);
+      throw error;
+    }
+  }
+
+  async getCurrentWeather(lat: number, lng: number, cityName: string): Promise<ForecastWeatherData> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/weather?lat=${lat}&lon=${lng}&appid=${this.apiKey}&units=imperial`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Weather API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        temperature: Math.round(data.main.temp),
+        highTemp: Math.round(data.main.temp_max),
+        lowTemp: Math.round(data.main.temp_min),
+        description: data.weather[0].description,
+        icon: data.weather[0].icon,
+        humidity: data.main.humidity,
+        windSpeed: Math.round(data.wind?.speed || 0),
+        precipitationChance: 0, // Current weather doesn't have precipitation probability
+        cityName,
+        forecast: [],
+        forecastDate: new Date(),
+        isActualForecast: true,
+        source: 'live_forecast' as const,
+        dateMatchInfo: {
+          requestedDate: new Date().toISOString(),
+          matchedDate: new Date().toISOString(),
+          matchType: 'exact' as const,
+          daysOffset: 0,
+          hoursOffset: 0,
+          source: 'live_forecast' as const,
+          confidence: 'high' as const
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching current weather:', error);
+      throw error;
+    }
   }
 }

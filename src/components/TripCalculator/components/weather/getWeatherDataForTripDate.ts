@@ -1,9 +1,10 @@
 
 import { WeatherFetchingService } from './services/WeatherFetchingService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherSourceType } from '@/components/Route66Map/services/weather/WeatherServiceTypes';
 
 export interface DateMatchInfo {
-  source: 'live_forecast' | 'historical_fallback' | 'seasonal_fallback' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate';
+  source: WeatherSourceType;
   confidence: 'high' | 'medium' | 'low' | 'historical';
   explanation: string;
 }

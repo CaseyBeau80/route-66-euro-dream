@@ -62,3 +62,12 @@ export interface ForecastResponse {
     pop?: number; // Probability of precipitation (0-1)
   }>;
 }
+
+// Updated type to include the new fallback source
+export type WeatherSourceType = 
+  | 'historical_fallback' 
+  | 'live_forecast' 
+  | 'seasonal-estimate' 
+  | 'api-forecast' 
+  | 'enhanced-fallback'
+  | 'fallback_historical_due_to_location_error';
