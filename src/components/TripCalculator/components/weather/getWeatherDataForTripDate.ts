@@ -19,16 +19,11 @@ export interface WeatherDisplayData {
   isActualForecast?: boolean;
 }
 
-/**
- * Central utility for handling weather data selection and formatting
- * CRITICAL FIX: Use EXACT segment date - no offset whatsoever
- */
 export const getWeatherDataForTripDate = async (
   cityName: string,
   tripDate: Date | string,
   coordinates?: { lat: number; lng: number }
 ): Promise<WeatherDisplayData | null> => {
-  // Validate and normalize tripDate to prevent any date drift
   let exactSegmentDate: Date;
   try {
     if (tripDate instanceof Date) {
@@ -53,11 +48,10 @@ export const getWeatherDataForTripDate = async (
     return null;
   }
 
-  // CRITICAL: Use EXACT segment date - NO OFFSET ANYWHERE
   const exactDateString = DateNormalizationService.toDateString(exactSegmentDate);
   const daysFromNow = Math.ceil((exactSegmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
   
-  console.log(`🎯 getWeatherDataForTripDate: ${cityName} for EXACT segment date ${exactDateString}, ${daysFromNow} days from now - NO OFFSET APPLIED`);
+  console.log(`🚨 FIXED: getWeatherDataForTripDate for ${cityName} on ${exactDateString}, ${daysFromNow} days from now`);
 
   const weatherService = EnhancedWeatherService.getInstance();
   
@@ -71,12 +65,11 @@ export const getWeatherDataForTripDate = async (
     }
   }
 
-  // PRIORITY 1: Try to get live forecast first if API key is available and date is within range
+  // FIXED: Try live forecast for 0-5 days from now (including today)
   if (weatherService.hasApiKey() && daysFromNow >= 0 && daysFromNow <= 5) {
-    console.log(`🔮 PRIORITY: Attempting live forecast for ${cityName} on EXACT date ${exactDateString} (${daysFromNow} days from now)`);
+    console.log(`🚨 FIXED: Attempting live forecast for ${cityName} on ${exactDateString} (${daysFromNow} days from now)`);
     
     try {
-      // Add timeout wrapper for API calls
       const timeoutPromise = new Promise<ForecastWeatherData | null>((_, reject) => {
         setTimeout(() => reject(new Error('Weather API timeout')), 8000);
       });
@@ -85,7 +78,7 @@ export const getWeatherDataForTripDate = async (
         coords.lat,
         coords.lng,
         cityName,
-        exactSegmentDate // Use exact segment date
+        exactSegmentDate
       );
       
       const forecastData: ForecastWeatherData | null = await Promise.race([
@@ -93,21 +86,16 @@ export const getWeatherDataForTripDate = async (
         timeoutPromise
       ]);
       
-      // ENHANCED VALIDATION: Accept live forecast if it has ANY valid data and is marked as actual forecast
+      // FIXED: Accept live forecast with any valid data
       if (forecastData && forecastData.isActualForecast === true) {
         const highTemp = forecastData.highTemp || forecastData.temperature || 0;
         const lowTemp = forecastData.lowTemp || forecastData.temperature || 0;
         
-        // More lenient validation - accept if we have any temperature data
         if (highTemp > 0 || lowTemp > 0 || forecastData.temperature !== undefined) {
-          console.log(`✅ LIVE FORECAST SUCCESS: Using live forecast for ${cityName} on ${exactDateString}:`, {
+          console.log(`✅ FIXED: Live forecast SUCCESS for ${cityName} on ${exactDateString}:`, {
             high: highTemp + '°F',
             low: lowTemp + '°F',
-            temperature: forecastData.temperature,
-            isActualForecast: forecastData.isActualForecast,
-            description: forecastData.description,
-            exactDateUsed: exactDateString,
-            priorityOverHistorical: true,
+            isActualForecast: true,
             daysFromNow
           });
           
@@ -127,13 +115,7 @@ export const getWeatherDataForTripDate = async (
         }
       }
       
-      console.log(`⚠️ Live forecast validation failed for ${cityName} on ${exactDateString} - falling back to historical:`, {
-        hasData: !!forecastData,
-        isActualForecast: forecastData?.isActualForecast,
-        hasValidTemps: !!(forecastData?.highTemp || forecastData?.lowTemp || forecastData?.temperature),
-        reason: 'validation_failed',
-        daysFromNow
-      });
+      console.log(`⚠️ Live forecast validation failed for ${cityName} on ${exactDateString} - falling back to historical`);
       
     } catch (error) {
       if (error instanceof Error && error.message === 'Weather API timeout') {
@@ -143,31 +125,13 @@ export const getWeatherDataForTripDate = async (
       }
     }
   } else {
-    console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (not within 0-5 day range), falling back to historical`);
+    console.log(`⚠️ Live forecast not available for ${cityName}: API key = ${weatherService.hasApiKey()}, days from now = ${daysFromNow} (not within 0-5 day range)`);
   }
   
-  // FALLBACK: Historical data using ZERO OFFSET - use the EXACT same segment date
-  console.log(`📊 FALLBACK: Using historical data for ${cityName} on EXACT segment date ${exactDateString} with ZERO OFFSET`);
+  // FALLBACK: Historical data
+  console.log(`📊 FALLBACK: Using historical data for ${cityName} on ${exactDateString}`);
   
-  // CRITICAL FIX: Pass the EXACT segment date to historical service with ZERO offset
-  const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0); // ZERO OFFSET - exact same date
-  
-  // ABSOLUTE validation that historical data uses the EXACT segment date
-  const expectedDateString = DateNormalizationService.toDateString(exactSegmentDate);
-  if (historicalData.alignedDate !== expectedDateString) {
-    console.error(`❌ CRITICAL: Historical data using wrong date for ${cityName}`, {
-      expectedSegmentDate: expectedDateString,
-      historicalDate: historicalData.alignedDate,
-      segmentDateISO: exactSegmentDate.toISOString(),
-      mustBeExactMatch: true
-    });
-    
-    // Force correction to prevent display issues
-    console.log(`🔧 FORCING HISTORICAL DATE CORRECTION: ${historicalData.alignedDate} → ${expectedDateString}`);
-    historicalData.alignedDate = expectedDateString;
-  } else {
-    console.log(`✅ Historical data PERFECTLY aligned for ${cityName} on exact segment date ${expectedDateString}`);
-  }
+  const historicalData = getHistoricalWeatherData(cityName, exactSegmentDate, 0);
   
   return {
     lowTemp: historicalData.low,

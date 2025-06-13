@@ -1,16 +1,21 @@
 
 import React from 'react';
-import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { getWeatherDataForTripDate } from '../getWeatherDataForTripDate';
 import { DateNormalizationService } from '../DateNormalizationService';
-import { SimpleWeatherActions } from './useSimpleWeatherState';
-import { GeocodingService } from '../../../services/GeocodingService';
+import { WeatherDataNormalizer } from '../services/WeatherDataNormalizer';
 
 interface UseWeatherDataFetcherProps {
   segmentEndCity: string;
   segmentDay: number;
   tripStartDate: Date | null;
   hasApiKey: boolean;
-  actions: SimpleWeatherActions;
+  actions: {
+    setWeather: (weather: ForecastWeatherData | null) => void;
+    setLoading: (loading: boolean) => void;
+    setError: (error: string | null) => void;
+    retryCount: number;
+  };
 }
 
 export const useWeatherDataFetcher = ({
@@ -20,7 +25,7 @@ export const useWeatherDataFetcher = ({
   hasApiKey,
   actions
 }: UseWeatherDataFetcherProps) => {
-  // 🎯 DEBUG: Log hook initialization
+  
   console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher initialized:`, {
     component: 'useWeatherDataFetcher',
     segmentEndCity,
@@ -30,131 +35,127 @@ export const useWeatherDataFetcher = ({
     hasApiKey
   });
 
-  const weatherService = EnhancedWeatherService.getInstance();
-
   const fetchWeather = React.useCallback(async () => {
-    console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather called for ${segmentEndCity}:`, {
-      component: 'useWeatherDataFetcher -> fetchWeather',
+    if (!tripStartDate || !hasApiKey) {
+      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher fetchWeather skipped:`, {
+        component: 'useWeatherDataFetcher -> fetchWeather-skipped',
+        segmentEndCity,
+        reason: !tripStartDate ? 'no tripStartDate' : 'no apiKey',
+        hasTripStartDate: !!tripStartDate,
+        hasApiKey
+      });
+      return;
+    }
+
+    console.log(`🚨 FIXED: fetchWeather STARTING for ${segmentEndCity}`, {
+      segmentDay,
+      tripStartDate: tripStartDate.toISOString(),
       hasApiKey,
-      hasTripStartDate: !!tripStartDate,
-      hasWeatherService: !!weatherService
-    });
-
-    if (!hasApiKey || !tripStartDate || !weatherService) {
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather early return for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> early-return',
-        reason: !hasApiKey ? 'no API key' : !tripStartDate ? 'no trip start date' : 'no weather service'
-      });
-      return;
-    }
-
-    const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
-    if (!segmentDate) {
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather no segment date for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> no-segment-date'
-      });
-      return;
-    }
-
-    console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather proceeding for ${segmentEndCity}:`, {
-      component: 'useWeatherDataFetcher -> fetchWeather -> proceeding',
-      segmentDate: segmentDate.toISOString(),
-      segmentDay
+      timestamp: new Date().toISOString()
     });
 
     try {
       actions.setLoading(true);
       actions.setError(null);
 
-      // Get coordinates for the city
-      const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
-      if (!coordinates) {
-        throw new Error(`No coordinates found for ${segmentEndCity}`);
+      // Calculate the exact segment date
+      const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
+      
+      if (!segmentDate) {
+        throw new Error('Could not calculate segment date');
       }
 
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather coordinates found for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> coordinates',
-        coordinates
+      console.log(`🚨 FIXED: Calling getWeatherDataForTripDate for ${segmentEndCity}`, {
+        segmentDate: segmentDate.toISOString(),
+        daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
       });
 
-      // Use the correct method signature with 4 arguments: lat, lng, cityName, date
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather calling weather service for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> service-call',
-        lat: coordinates.lat,
-        lng: coordinates.lng,
-        cityName: segmentEndCity,
-        date: segmentDate.toISOString()
-      });
-
-      const weatherData = await weatherService.getWeatherForDate(
-        coordinates.lat,
-        coordinates.lng,
+      const weatherDisplayData = await getWeatherDataForTripDate(
         segmentEndCity,
         segmentDate
       );
 
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather service response for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> service-response',
-        hasWeatherData: !!weatherData,
-        weatherData: weatherData ? {
-          temperature: weatherData.temperature,
-          description: weatherData.description,
-          isActualForecast: weatherData.isActualForecast
-        } : null
+      console.log(`🚨 FIXED: Weather data received for ${segmentEndCity}:`, {
+        hasData: !!weatherDisplayData,
+        source: weatherDisplayData?.source,
+        isActualForecast: weatherDisplayData?.isActualForecast
       });
 
-      if (weatherData) {
-        actions.setWeather(weatherData);
-        console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather weather set for ${segmentEndCity}:`, {
-          component: 'useWeatherDataFetcher -> fetchWeather -> weather-set-success'
+      if (weatherDisplayData) {
+        // Convert to ForecastWeatherData format
+        const forecastData: ForecastWeatherData = {
+          temperature: Math.round((weatherDisplayData.highTemp + weatherDisplayData.lowTemp) / 2),
+          highTemp: weatherDisplayData.highTemp,
+          lowTemp: weatherDisplayData.lowTemp,
+          description: weatherDisplayData.description,
+          icon: weatherDisplayData.icon,
+          humidity: weatherDisplayData.humidity,
+          windSpeed: weatherDisplayData.windSpeed,
+          precipitationChance: weatherDisplayData.precipitationChance,
+          cityName: weatherDisplayData.cityName,
+          forecast: [],
+          forecastDate: segmentDate,
+          isActualForecast: weatherDisplayData.isActualForecast || weatherDisplayData.source === 'forecast',
+          dateMatchInfo: {
+            requestedDate: DateNormalizationService.toDateString(segmentDate),
+            matchedDate: DateNormalizationService.toDateString(segmentDate),
+            matchType: weatherDisplayData.source === 'forecast' ? 'exact' : 'seasonal-estimate',
+            daysOffset: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+            source: weatherDisplayData.source === 'forecast' ? 'api-forecast' : 'seasonal-estimate',
+            confidence: weatherDisplayData.source === 'forecast' ? 'high' : 'low'
+          }
+        };
+
+        console.log(`🚨 FIXED: Setting weather data for ${segmentEndCity}:`, {
+          temperature: forecastData.temperature,
+          isActualForecast: forecastData.isActualForecast,
+          source: forecastData.dateMatchInfo?.source
         });
+
+        actions.setWeather(forecastData);
       } else {
-        actions.setError('No weather data available');
-        console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather no data for ${segmentEndCity}:`, {
-          component: 'useWeatherDataFetcher -> fetchWeather -> no-data-error'
-        });
+        throw new Error('No weather data available');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Weather fetch failed';
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather error for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> error',
-        error: errorMessage
-      });
-      actions.setError(errorMessage);
+      console.error(`🚨 FIXED: Weather fetch error for ${segmentEndCity}:`, error);
+      actions.setError(error instanceof Error ? error.message : 'Weather fetch failed');
     } finally {
       actions.setLoading(false);
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher.fetchWeather finally for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> fetchWeather -> finally'
-      });
     }
-  }, [hasApiKey, tripStartDate, segmentEndCity, segmentDay, weatherService, actions]);
+  }, [segmentEndCity, segmentDay, tripStartDate, hasApiKey, actions]);
 
-  // Auto-fetch when conditions are met - check against a loading state we track locally
-  const [isCurrentlyLoading, setIsCurrentlyLoading] = React.useState(false);
-
+  // FIXED: Auto-fetch effect that actually triggers
   React.useEffect(() => {
-    console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher auto-fetch effect for ${segmentEndCity}:`, {
-      component: 'useWeatherDataFetcher -> auto-fetch-effect',
+    console.log(`🚨 FIXED: useWeatherDataFetcher auto-fetch effect for ${segmentEndCity}:`, {
       hasApiKey,
       hasTripStartDate: !!tripStartDate,
-      isCurrentlyLoading
+      isCurrentlyLoading: actions.retryCount > 0,
+      retryCount: actions.retryCount,
+      shouldFetch: hasApiKey && tripStartDate
     });
 
-    if (hasApiKey && tripStartDate && !isCurrentlyLoading) {
-      console.log(`🎯 [WEATHER DEBUG] useWeatherDataFetcher triggering auto-fetch for ${segmentEndCity}:`, {
-        component: 'useWeatherDataFetcher -> auto-fetch-effect -> triggering'
-      });
-
-      setIsCurrentlyLoading(true);
-      const timeoutId = setTimeout(() => {
-        fetchWeather().finally(() => setIsCurrentlyLoading(false));
-      }, 100);
-      return () => {
-        clearTimeout(timeoutId);
-        setIsCurrentlyLoading(false);
-      };
+    if (hasApiKey && tripStartDate) {
+      console.log(`🚨 FIXED: TRIGGERING AUTO FETCH for ${segmentEndCity}`);
+      fetchWeather();
     }
-  }, [hasApiKey, tripStartDate, fetchWeather, isCurrentlyLoading, segmentEndCity]);
+  }, [fetchWeather, hasApiKey, tripStartDate, actions.retryCount]);
 
-  return { fetchWeather };
+  return {
+    fetchWeather,
+    handleApiKeySet: React.useCallback(() => {
+      console.log(`🚨 FIXED: handleApiKeySet for ${segmentEndCity}`);
+      if (tripStartDate) {
+        fetchWeather();
+      }
+    }, [fetchWeather, tripStartDate]),
+    handleTimeout: React.useCallback(() => {
+      console.log(`🚨 FIXED: handleTimeout for ${segmentEndCity}`);
+      actions.setError('Weather request timed out');
+      actions.setLoading(false);
+    }, [actions]),
+    handleRetry: React.useCallback(() => {
+      console.log(`🚨 FIXED: handleRetry for ${segmentEndCity}`);
+      fetchWeather();
+    }, [fetchWeather])
+  };
 };
