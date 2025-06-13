@@ -16,6 +16,8 @@ interface SegmentWeatherWidgetProps {
   sectionKey?: string;
   forceExpanded?: boolean;
   isCollapsible?: boolean;
+  isSharedView?: boolean;
+  isPDFExport?: boolean;
 }
 
 const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({ 
@@ -25,7 +27,9 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   tripId,
   sectionKey = 'weather',
   forceExpanded = false,
-  isCollapsible = false
+  isCollapsible = false,
+  isSharedView = false,
+  isPDFExport = false
 }) => {
   // PLAN IMPLEMENTATION: Enhanced component instantiation logging
   console.log(`🔧 PLAN: SegmentWeatherWidget INSTANTIATED for Day ${segment.day} - ${segment.endCity}`, {
@@ -38,6 +42,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     cardIndex,
     tripId,
     sectionKey,
+    isSharedView,
+    isPDFExport,
     timestamp: new Date().toISOString(),
     componentMount: true,
     isDay1: segment.day === 1
@@ -49,6 +55,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       endCity: segment.endCity,
       tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
       sectionKey,
+      isSharedView,
+      isPDFExport,
       timestamp: new Date().toISOString()
     });
   }
@@ -315,8 +323,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
           onApiKeySet={handleApiKeySet}
           onTimeout={weatherHandlers.handleTimeout}
           onRetry={weatherHandlers.handleRetry}
-          isSharedView={sectionKey === 'shared-view'}
-          isPDFExport={sectionKey === 'pdf-export'}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
         />
       </div>
     </WeatherErrorBoundary>
