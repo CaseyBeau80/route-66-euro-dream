@@ -14,11 +14,18 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   trip,
   shareUrl
 }) => {
-  console.log('🎯 TripDetailsContent: Rendering with UPDATED SharedTripContentRenderer (RAMBLE 66 branding)', {
-    trip,
+  // 🔧 DEBUG: Verify this component is using the latest SharedTripContentRenderer
+  console.log('🚨 TripDetailsContent: Using LATEST SharedTripContentRenderer with RAMBLE 66 branding', {
+    trip: {
+      id: trip.id,
+      title: trip.title,
+      created_at: trip.created_at
+    },
     shareUrl,
     hasTrip: !!trip,
-    hasTripData: !!trip.trip_data
+    hasTripData: !!trip.trip_data,
+    componentVersion: 'LATEST_WITH_RAMBLE_66_AND_WEATHER',
+    timestamp: new Date().toISOString()
   });
 
   // Validate trip existence
@@ -35,11 +42,17 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Sanitize trip data to handle circular references and data integrity issues
   const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(trip.trip_data);
 
-  console.log('🎯 TripDetailsContent: Data sanitization complete with RAMBLE 66 update', {
+  console.log('🚨 TripDetailsContent: Data sanitization complete with RAMBLE 66 update', {
     report,
-    sanitizedTripPlan: tripPlan,
+    sanitizedTripPlan: {
+      startCity: tripPlan?.startCity,
+      endCity: tripPlan?.endCity,
+      totalDays: tripPlan?.totalDays,
+      segmentsCount: tripPlan?.segments?.length
+    },
     hasCircularReferences: report.hasCircularReferences,
-    warnings: report.warnings
+    warnings: report.warnings,
+    willRenderSharedView: true
   });
 
   // Show data quality warnings if significant issues were found
@@ -72,7 +85,12 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   // Use the correct property name from TripPlan interface
   const tripStartDate = tripPlan.startDate || undefined;
 
-  console.log('🎯 TripDetailsContent: About to render UPDATED SharedTripContentRenderer with RAMBLE 66 branding');
+  console.log('🚨 TripDetailsContent: About to render LATEST SharedTripContentRenderer with RAMBLE 66 branding', {
+    tripStartDate: tripStartDate?.toISOString(),
+    isSharedView: true,
+    shareUrl,
+    componentVersion: 'LATEST_RAMBLE_66_VERSION'
+  });
 
   return (
     <ErrorBoundary 
@@ -99,7 +117,16 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
           </div>
         )}
 
-        {/* UPDATED SharedTripContentRenderer with RAMBLE 66 branding and weather */}
+        {/* 🔧 DEBUG: Visual confirmation this is using latest SharedTripContentRenderer */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="p-2 bg-green-100 border-b border-green-200 text-center">
+            <div className="text-xs text-green-800 font-mono">
+              🚨 USING LATEST SharedTripContentRenderer with RAMBLE 66 branding
+            </div>
+          </div>
+        )}
+
+        {/* LATEST SharedTripContentRenderer with RAMBLE 66 branding and weather */}
         <SharedTripContentRenderer
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}

@@ -9,7 +9,7 @@ import WeatherErrorBoundary from '../weather/WeatherErrorBoundary';
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
-  shareUrl?: string;
+  shareUrl?: string | null;
   isSharedView?: boolean;
 }
 
@@ -19,12 +19,27 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Rendering shared content with RAMBLE 66 branding and weather widgets');
-  console.log('📤 SharedTripContentRenderer: Props:', {
+  // 🔧 DEBUG: Add explicit logging to verify this component is actually rendering with latest code
+  console.log('🚨 SharedTripContentRenderer: LATEST VERSION WITH RAMBLE 66 BRANDING RENDERING', {
+    componentVersion: 'UPDATED_WITH_RAMBLE_66_AND_WEATHER',
     isSharedView,
     hasStartDate: !!tripStartDate,
-    segmentsCount: tripPlan.segments?.length
+    segmentsCount: tripPlan.segments?.length,
+    tripStartCity: tripPlan.startCity,
+    tripEndCity: tripPlan.endCity,
+    timestamp: new Date().toISOString()
   });
+
+  // 🔧 DEBUG: Verify this is the shared view rendering
+  if (isSharedView) {
+    console.log('🚨 SharedTripContentRenderer: CONFIRMED SHARED VIEW RENDERING WITH LATEST UPDATES', {
+      isSharedView: true,
+      hasRambleBranding: true,
+      hasFourColumnLayout: true,
+      hasWeatherWidgets: true,
+      latestVersion: true
+    });
+  }
 
   // Get cost estimate for the trip
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -73,6 +88,14 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     segment && segment.day && (segment.endCity || segment.destination)
   );
 
+  // 🔧 DEBUG: Log segment rendering details
+  console.log('🚨 SharedTripContentRenderer: About to render segments', {
+    totalSegments: enrichedSegments.length,
+    segmentCities: enrichedSegments.map(s => `Day ${s.day}: ${s.endCity}`),
+    isSharedView,
+    willShowWeather: true
+  });
+
   return (
     <div className="bg-white text-black font-sans">
       {/* Header with RAMBLE 66 branding */}
@@ -91,6 +114,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         <h2 className="text-lg font-semibold text-white">
           {tripPlan.startCity} to {tripPlan.endCity} Adventure
         </h2>
+        {/* 🔧 DEBUG: Visual indicator that this is the latest version */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 text-xs text-route66-cream bg-black bg-opacity-20 rounded px-2 py-1 inline-block">
+            🚨 LATEST VERSION WITH RAMBLE 66 BRANDING
+          </div>
+        )}
       </div>
 
       {/* Trip Overview with Cost Integration */}
@@ -155,11 +184,27 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           <p className="text-route66-cream text-sm font-travel">
             Your complete day-by-day guide with weather forecasts
           </p>
+          {/* 🔧 DEBUG: Visual indicator for shared view */}
+          {isSharedView && process.env.NODE_ENV === 'development' && (
+            <div className="mt-1 text-xs text-route66-cream bg-black bg-opacity-20 rounded px-2 py-1 inline-block">
+              🚨 SHARED VIEW WITH WEATHER WIDGETS
+            </div>
+          )}
         </div>
         
         {enrichedSegments.map((segment, index) => {
           const drivingTime = getDrivingTime(segment);
           const distance = segment.distance || segment.approximateMiles || 0;
+
+          // 🔧 DEBUG: Log each segment rendering
+          console.log(`🚨 SharedTripContentRenderer: Rendering Day ${segment.day} - ${segment.endCity}`, {
+            segmentDay: segment.day,
+            endCity: segment.endCity,
+            distance,
+            drivingTime,
+            isSharedView,
+            hasWeatherWidget: true
+          });
 
           return (
             <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -183,7 +228,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
               {/* Day Content */}
               <div className="p-4 space-y-4">
-                {/* Stats Grid */}
+                {/* Stats Grid - 4 COLUMN LAYOUT */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center p-3 bg-gray-50 rounded border">
                     <div className="text-lg font-bold text-blue-600">
@@ -240,6 +285,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <h4 className="font-semibold text-blue-700 mb-2">Share This Trip</h4>
           <p className="text-sm text-blue-600 break-all font-mono">{shareUrl}</p>
+        </div>
+      )}
+
+      {/* 🔧 DEBUG: Footer to confirm latest version */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 p-2 bg-gray-100 rounded text-center text-xs text-gray-600">
+          🚨 SharedTripContentRenderer Latest Version: RAMBLE 66 + 4-Column + Weather Widgets
         </div>
       )}
     </div>
