@@ -25,16 +25,28 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   cityName
 }) => {
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    console.log('🏷️ WeatherBadge: ENHANCED source detection for', cityName, {
+    console.log('🏷️ WeatherBadge: FIXED source detection for', cityName, {
       source,
       isActualForecast,
       dateMatchSource,
       timestamp: new Date().toISOString()
     });
 
-    // ENHANCED STEP 1: Primary validation - Use dateMatchSource as definitive truth
-    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'historical_fallback') {
-      console.log('🏷️ WeatherBadge: HISTORICAL badge (dateMatchSource)', { cityName, dateMatchSource });
+    // FIXED STEP 1: Check for any historical indicators first (highest priority)
+    const isHistoricalBySource = source === 'historical_fallback';
+    const isHistoricalByFlag = isActualForecast === false;
+    const isHistoricalByDateMatch = dateMatchSource === 'historical_fallback' || 
+                                    dateMatchSource === 'seasonal-estimate';
+
+    // FIXED STEP 2: If ANY indicator points to historical, show historical badge
+    if (isHistoricalBySource || isHistoricalByFlag || isHistoricalByDateMatch) {
+      console.log('🏷️ WeatherBadge: HISTORICAL badge (any historical indicator found)', { 
+        cityName, 
+        isHistoricalBySource,
+        isHistoricalByFlag,
+        isHistoricalByDateMatch,
+        reason: 'any_historical_indicator'
+      });
       return {
         text: '📊 Historical Average',
         bgColor: 'bg-orange-100',
@@ -45,29 +57,19 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    if (dateMatchSource === 'api-forecast' || dateMatchSource === 'enhanced-fallback') {
-      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (dateMatchSource)', { cityName, dateMatchSource });
-      return {
-        text: '📡 Live Forecast',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-800',
-        explanation: 'Real-time weather data from API'
-      };
-    }
-
-    // ENHANCED STEP 2: Secondary validation - Cross-check with explicit source and isActualForecast
-    const isHistoricalBySource = source === 'historical_fallback';
-    const isHistoricalByFlag = isActualForecast === false;
+    // FIXED STEP 3: Only show live forecast if ALL indicators point to live data
     const isLiveBySource = source === 'live_forecast';
     const isLiveByFlag = isActualForecast === true;
+    const isLiveByDateMatch = dateMatchSource === 'api-forecast' || 
+                              dateMatchSource === 'enhanced-fallback';
 
-    // ENHANCED STEP 3: Use strict validation for live forecasts
-    if (isLiveBySource && isLiveByFlag && !isHistoricalBySource && !isHistoricalByFlag) {
-      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (explicit validation)', { 
+    if (isLiveBySource && isLiveByFlag && isLiveByDateMatch) {
+      console.log('🏷️ WeatherBadge: LIVE FORECAST badge (all indicators confirm live)', { 
         cityName, 
-        source, 
-        isActualForecast,
-        validation: 'strict_live_forecast' 
+        isLiveBySource,
+        isLiveByFlag,
+        isLiveByDateMatch,
+        reason: 'all_live_indicators_confirmed'
       });
       return {
         text: '📡 Live Forecast',
@@ -77,31 +79,13 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // ENHANCED STEP 4: Default to historical for any ambiguous or historical indicators
-    if (isHistoricalBySource || isHistoricalByFlag || !isLiveByFlag) {
-      console.log('🏷️ WeatherBadge: HISTORICAL badge (fallback validation)', { 
-        cityName, 
-        source, 
-        isActualForecast,
-        reason: isHistoricalBySource ? 'historical_source' : isHistoricalByFlag ? 'historical_flag' : 'no_live_confirmation'
-      });
-      return {
-        text: '📊 Historical Average',
-        bgColor: 'bg-orange-100',
-        textColor: 'text-orange-800',
-        explanation: 'Based on historical weather patterns',
-        showTooltip: true,
-        tooltipMessage: 'Live forecast unavailable - using historical weather patterns'
-      };
-    }
-
-    // ENHANCED STEP 5: Final fallback with warning
-    console.warn('🏷️ WeatherBadge: UNCERTAIN source detected, defaulting to historical with warning', {
+    // FIXED STEP 4: Default to historical for any ambiguous cases
+    console.warn('🏷️ WeatherBadge: AMBIGUOUS source, defaulting to historical', {
       cityName,
       source,
       isActualForecast,
       dateMatchSource,
-      warning: 'unclear_weather_source'
+      reason: 'ambiguous_or_uncertain_data'
     });
 
     return {

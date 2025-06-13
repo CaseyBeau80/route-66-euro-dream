@@ -1,3 +1,4 @@
+
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -266,9 +267,9 @@ export class WeatherForecastService {
           hasCurrentData: !!currentData
         });
 
-        // Create enhanced forecast from current data if no match found
+        // FIXED: Create fallback forecast with correct source marking
         if (currentData && currentData.main && currentData.main.temp) {
-          return this.createEnhancedForecastFromCurrent(
+          return this.createHistoricalFallbackFromCurrent(
             currentData, 
             cityName, 
             targetDate, 
@@ -291,7 +292,7 @@ export class WeatherForecastService {
     }
   }
 
-  private createEnhancedForecastFromCurrent(
+  private createHistoricalFallbackFromCurrent(
     currentData: any,
     cityName: string,
     targetDate: Date,
@@ -302,10 +303,11 @@ export class WeatherForecastService {
     const currentTemp = currentData.main.temp;
     const tempVariation = 10;
     
-    console.log('🚨 FIXED: createEnhancedForecastFromCurrent - marking as historical fallback', {
+    console.log('🚨 FIXED: createHistoricalFallbackFromCurrent - CONSISTENT historical marking', {
       cityName,
       targetDateString,
-      reason: 'no_forecast_match_found_using_current_as_fallback'
+      reason: 'no_forecast_match_using_current_as_historical_fallback',
+      markingStrategy: 'historical_fallback_consistent'
     });
     
     return {
@@ -320,15 +322,15 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: processedForecast,
       forecastDate: targetDate,
-      isActualForecast: false, // FIXED: Set to false since this is fallback data
-      source: 'historical_fallback' as const, // FIXED: Use historical_fallback for consistency
+      isActualForecast: false, // FIXED: Always false for fallback data
+      source: 'historical_fallback' as const, // FIXED: Consistent historical marking
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: DateNormalizationService.toDateString(new Date()),
         matchType: 'fallback' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'historical_fallback' as const, // FIXED: Use historical_fallback consistently
+        source: 'historical_fallback' as const, // FIXED: Consistent historical source
         confidence: 'low' as const
       }
     };
@@ -340,12 +342,13 @@ export class WeatherForecastService {
     targetDateString: string,
     daysFromNow: number
   ): ForecastWeatherData {
-    console.log('🚨 ENHANCED: WeatherForecastService.getEnhancedFallbackForecast', {
+    console.log('🚨 ENHANCED: WeatherForecastService.getEnhancedFallbackForecast - CONSISTENT historical marking', {
       cityName,
       targetDateString,
       targetMonth: targetDate.getMonth(),
       daysFromNow,
-      reason: 'api_unavailable_or_outside_range'
+      reason: 'api_unavailable_or_outside_range',
+      markingStrategy: 'historical_fallback_consistent'
     });
 
     const month = targetDate.getMonth();
@@ -365,26 +368,27 @@ export class WeatherForecastService {
       forecast: [],
       forecastDate: targetDate,
       isActualForecast: false, // ENHANCED: Always false for seasonal estimates
-      source: 'historical_fallback' as const, // ENHANCED: Consistent source marking
+      source: 'historical_fallback' as const, // ENHANCED: Consistent historical marking
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'seasonal-estimate' as const, // ENHANCED: Use seasonal-estimate for dateMatchSource
+        source: 'historical_fallback' as const, // ENHANCED: Use historical_fallback consistently
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 ENHANCED: WeatherForecastService fallback result with CONSISTENT SOURCE MARKING', {
+    console.log('🚨 ENHANCED: WeatherForecastService fallback result with CONSISTENT HISTORICAL SOURCE MARKING', {
       cityName,
       targetDateString,
       fallbackResult: {
         isActualForecast: fallbackResult.isActualForecast,
         explicitSource: fallbackResult.source,
         dateMatchSource: fallbackResult.dateMatchInfo.source,
-        temperature: fallbackResult.temperature
+        temperature: fallbackResult.temperature,
+        markingConsistency: 'all_historical_fallback'
       }
     });
 

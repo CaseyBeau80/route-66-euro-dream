@@ -10,11 +10,12 @@ export class WeatherDataConverter {
     const highTemp = forecastData.highTemp || forecastData.temperature || 0;
     const lowTemp = forecastData.lowTemp || forecastData.temperature || 0;
 
-    console.log('🔄 WeatherDataConverter: Creating LIVE forecast result', {
+    console.log('🔄 WeatherDataConverter: Creating LIVE forecast result with STRICT validation', {
       cityName,
       hasExplicitSource: !!forecastData.source,
       hasIsActualForecast: typeof forecastData.isActualForecast === 'boolean',
-      sourceMarking: 'live_forecast'
+      isActualForecast: forecastData.isActualForecast,
+      sourceMarking: 'live_forecast_strict'
     });
 
     return {
@@ -42,10 +43,10 @@ export class WeatherDataConverter {
   ): WeatherDisplayData {
     const historicalData = getHistoricalWeatherData(cityName, segmentDate, 0);
     
-    console.log('🔄 WeatherDataConverter: Creating HISTORICAL fallback result', {
+    console.log('🔄 WeatherDataConverter: Creating HISTORICAL fallback result with CONSISTENT marking', {
       cityName,
       segmentDate: segmentDate.toISOString(),
-      sourceMarking: 'historical_fallback'
+      sourceMarking: 'historical_fallback_consistent'
     });
     
     return {
@@ -53,7 +54,7 @@ export class WeatherDataConverter {
       highTemp: historicalData.high,
       icon: '🌡️',
       description: historicalData.condition,
-      source: 'historical_fallback', // ENHANCED: Explicit historical marking
+      source: 'historical_fallback', // ENHANCED: Consistent historical marking
       isAvailable: true,
       humidity: historicalData.humidity,
       windSpeed: historicalData.windSpeed,
@@ -61,7 +62,7 @@ export class WeatherDataConverter {
       cityName: cityName,
       isActualForecast: false, // ENHANCED: Always false for historical data
       dateMatchInfo: {
-        source: 'seasonal-estimate', // ENHANCED: Clear seasonal source marking
+        source: 'historical_fallback', // ENHANCED: Use historical_fallback consistently
         confidence: 'historical',
         explanation: 'Using seasonal weather patterns - live forecast not available for this date'
       }
