@@ -9,7 +9,7 @@ export class WeatherFallbackService {
     targetDateString: string,
     daysFromToday: number
   ): ForecastWeatherData {
-    console.log('🚨 FIXED: WeatherFallbackService.createFallbackForecast - CONSISTENT historical marking', {
+    console.log('🚨 FIXED: WeatherFallbackService.createFallbackForecast - STRICT historical marking', {
       cityName,
       targetDateString,
       targetMonth: targetDate.getMonth(),
@@ -33,7 +33,7 @@ export class WeatherFallbackService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false,
+      isActualForecast: false, // CRITICAL: Must be false for fallback
       source: 'historical_fallback' as const,
       dateMatchInfo: {
         requestedDate: targetDateString,
@@ -41,19 +41,25 @@ export class WeatherFallbackService {
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromToday,
         hoursOffset: 0,
-        source: 'historical_fallback' as const,
+        source: 'historical_fallback' as const, // CRITICAL: Must match main source
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 FIXED: WeatherFallbackService fallback result with CONSISTENT HISTORICAL SOURCE MARKING', {
+    console.log('🚨 FIXED: WeatherFallbackService STRICT FALLBACK RESULT', {
       cityName,
       targetDateString,
+      daysFromToday,
       fallbackResult: {
-        isActualForecast: fallbackResult.isActualForecast,
-        explicitSource: fallbackResult.source,
-        dateMatchSource: fallbackResult.dateMatchInfo.source,
-        temperature: fallbackResult.temperature
+        isActualForecast: fallbackResult.isActualForecast, // Should be false
+        explicitSource: fallbackResult.source, // Should be 'historical_fallback'
+        dateMatchSource: fallbackResult.dateMatchInfo.source, // Should be 'historical_fallback'
+        temperature: fallbackResult.temperature,
+        strictValidation: {
+          allSourcesHistorical: fallbackResult.source === 'historical_fallback' && 
+                               fallbackResult.dateMatchInfo.source === 'historical_fallback',
+          isActualForecastFalse: fallbackResult.isActualForecast === false
+        }
       }
     });
 
