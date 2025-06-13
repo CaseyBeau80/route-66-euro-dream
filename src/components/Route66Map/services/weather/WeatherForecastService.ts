@@ -33,11 +33,10 @@ export class WeatherForecastService {
   constructor(apiKey: string) {
     this.apiHandler = new WeatherForecastApiHandler(apiKey);
     
-    console.log('🔧 FIXED: WeatherForecastService constructor with corrected forecast logic', {
+    console.log('🔧 SIMPLIFIED: WeatherForecastService with clear 5-day logic', {
       hasApiKey: !!apiKey,
-      apiKeyLength: apiKey?.length || 0,
-      forecastThreshold: WeatherDateCalculator.forecastThresholdDays,
-      forecastRangeDescription: '0-5 days inclusive',
+      forecastRange: 'Days 0-5 (inclusive)',
+      historicalRange: 'Day 6 and beyond',
       timestamp: new Date().toISOString()
     });
   }
@@ -48,32 +47,26 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🚨 FIXED: WeatherForecastService.getWeatherForDate ENTRY with corrected date logic', {
+    console.log('🎯 SIMPLIFIED: WeatherForecastService.getWeatherForDate', {
       cityName,
-      targetDate: targetDate.toISOString(),
-      coordinates: { lat, lng },
-      timestamp: new Date().toISOString()
+      targetDate: targetDate.toISOString()
     });
 
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    console.log('🚨 FIXED: Date processing completed', {
-      cityName,
+    console.log('🎯 SIMPLIFIED: Date range decision for', cityName, {
       targetDateString,
       daysFromToday,
       isWithinForecastRange,
-      isToday: daysFromToday === 0,
-      isTomorrow: daysFromToday === 1
+      decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
     });
 
+    // CLEAR LOGIC: If within 0-5 days, try live forecast
     if (isWithinForecastRange) {
-      console.log('🚨 FIXED: Target date IS within live forecast range - attempting API call', {
-        cityName,
-        targetDateString,
-        daysFromToday,
-        coordinates: { lat, lng },
-        reason: 'within_0_5_day_forecast_range_inclusive'
+      console.log('📡 SIMPLIFIED: Attempting live forecast for', cityName, {
+        reason: 'within_5_day_range',
+        daysFromToday
       });
 
       const actualForecast = await this.apiHandler.fetchLiveForecast(
@@ -85,10 +78,8 @@ export class WeatherForecastService {
         daysFromToday
       );
       
-      WeatherDebugService.logForecastApiRawResponse(cityName, actualForecast);
-
       if (actualForecast) {
-        // FIXED: Ensure consistent source marking for live forecasts
+        // Ensure it's properly marked as live forecast
         const enhancedForecast = {
           ...actualForecast,
           source: 'live_forecast' as const,
@@ -99,42 +90,25 @@ export class WeatherForecastService {
           }
         };
         
-        console.log('🚨 FIXED: LIVE FORECAST SUCCESS - returning with CONSISTENT live source marking', {
-          cityName,
-          targetDateString,
+        console.log('✅ SIMPLIFIED: Live forecast SUCCESS for', cityName, {
           daysFromToday,
-          finalResult: {
-            temperature: enhancedForecast.temperature,
-            highTemp: enhancedForecast.highTemp,
-            lowTemp: enhancedForecast.lowTemp,
-            isActualForecast: enhancedForecast.isActualForecast,
-            description: enhancedForecast.description,
-            source: enhancedForecast.source,
-            dateMatchSource: enhancedForecast.dateMatchInfo?.source,
-            shouldShowLiveBadge: true
-          }
+          temperature: enhancedForecast.temperature,
+          source: enhancedForecast.source,
+          isActualForecast: enhancedForecast.isActualForecast
         });
         
         return enhancedForecast;
       }
       
-      console.log('🚨 FIXED: Live forecast API failed within range, using fallback', {
-        cityName,
-        targetDateString,
-        daysFromToday,
-        reason: 'api_call_failed_within_range'
-      });
+      console.log('⚠️ SIMPLIFIED: Live forecast failed, falling back to historical for', cityName);
     } else {
-      console.log('🚨 FIXED: Target date is OUTSIDE live forecast range, using fallback', {
-        cityName,
-        targetDateString,
-        daysFromToday,
-        forecastThreshold: WeatherDateCalculator.forecastThresholdDays,
-        reason: 'outside_0_5_day_forecast_range'
+      console.log('📊 SIMPLIFIED: Using historical weather for', cityName, {
+        reason: 'beyond_5_day_range',
+        daysFromToday
       });
     }
 
-    // Return enhanced fallback with explicit historical source marking
+    // FALLBACK: Use historical weather
     const fallbackForecast = WeatherFallbackService.createFallbackForecast(
       cityName, 
       normalizedTargetDate, 
@@ -142,7 +116,11 @@ export class WeatherForecastService {
       daysFromToday
     );
     
-    WeatherDebugService.logForecastApiRawResponse(cityName, fallbackForecast);
+    console.log('📊 SIMPLIFIED: Historical fallback applied for', cityName, {
+      daysFromToday,
+      source: fallbackForecast.source,
+      isActualForecast: fallbackForecast.isActualForecast
+    });
     
     return fallbackForecast;
   }

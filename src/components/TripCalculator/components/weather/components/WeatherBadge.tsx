@@ -24,46 +24,31 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   dateMatchSource,
   cityName
 }) => {
-  console.log('🔧 FIXED: WeatherBadge ENHANCED DEBUG for', cityName, {
-    receivedProps: {
-      source,
-      isActualForecast,
-      dateMatchSource,
-      cityName
-    },
-    propTypes: {
-      sourceType: typeof source,
-      isActualForecastType: typeof isActualForecast,
-      dateMatchSourceType: typeof dateMatchSource
-    },
-    timestamp: new Date().toISOString()
+  console.log('🎯 SIMPLIFIED: WeatherBadge for', cityName, {
+    source,
+    isActualForecast,
+    dateMatchSource
   });
 
-  // FIXED: Enhanced badge logic with stricter live forecast validation
+  // SIMPLIFIED LOGIC: Only show live forecast if EVERYTHING confirms it's live
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    // CRITICAL FIX: More restrictive live forecast detection
-    // Only show live forecast if ALL conditions are met:
-    // 1. isActualForecast is explicitly true
-    // 2. AND source indicates live forecast
-    // 3. AND dateMatchSource confirms live forecast
+    // STRICT CHECK: Must have ALL live indicators
+    const isDefinitelyLive = (
+      isActualForecast === true &&
+      source === 'live_forecast' &&
+      (dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast')
+    );
     
-    const isExplicitlyLive = isActualForecast === true;
-    const hasLiveSource = source === 'live_forecast';
-    const hasLiveDateMatch = dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast';
-    
-    // STRICT VALIDATION: All three conditions must be true for live forecast
-    const isValidLiveForecast = isExplicitlyLive && hasLiveSource && hasLiveDateMatch;
-    
-    console.log('🔧 FIXED: WeatherBadge STRICT VALIDATION for', cityName, {
-      isExplicitlyLive,
-      hasLiveSource,
-      hasLiveDateMatch,
-      isValidLiveForecast,
-      finalDecision: isValidLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK'
+    console.log('🎯 SIMPLIFIED: Badge decision for', cityName, {
+      isDefinitelyLive,
+      checks: {
+        isActualForecast: isActualForecast === true,
+        sourceLive: source === 'live_forecast',
+        dateMatchLive: dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast'
+      }
     });
 
-    if (isValidLiveForecast) {
-      console.log('✅ FIXED: WeatherBadge LIVE FORECAST badge (all conditions met) for', cityName);
+    if (isDefinitelyLive) {
       return {
         text: '📡 Live Forecast',
         bgColor: 'bg-green-100',
@@ -72,9 +57,8 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // ENHANCED: Check for specific historical/seasonal sources
+    // Everything else is historical/seasonal
     if (source === 'seasonal' || dateMatchSource === 'seasonal-estimate') {
-      console.log('📊 FIXED: WeatherBadge SEASONAL badge for', cityName);
       return {
         text: '📊 Seasonal Average',
         bgColor: 'bg-yellow-100',
@@ -85,14 +69,7 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // Default: Historical/Fallback
-    console.log('📊 FIXED: WeatherBadge HISTORICAL FALLBACK badge for', cityName, {
-      decision: 'historical_fallback_default',
-      source,
-      dateMatchSource,
-      isActualForecast
-    });
-
+    // Default: Historical
     return {
       text: '📊 Historical Average',
       bgColor: 'bg-orange-100',
@@ -102,18 +79,6 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       tooltipMessage: 'Live forecast unavailable - using historical weather patterns for this date'
     };
   }, [isActualForecast, source, dateMatchSource, cityName]);
-
-  // Log final badge configuration
-  console.log('🔧 FIXED: WeatherBadge FINAL CONFIG for', cityName, {
-    badgeText: getBadgeConfig.text,
-    showTooltip: getBadgeConfig.showTooltip,
-    isLiveBadge: getBadgeConfig.text.includes('Live Forecast'),
-    strictValidation: {
-      isActualForecast,
-      source,
-      dateMatchSource
-    }
-  });
 
   const BadgeContent = () => (
     <div className={`text-xs px-2 py-1 rounded ${getBadgeConfig.bgColor} ${getBadgeConfig.textColor}`}>

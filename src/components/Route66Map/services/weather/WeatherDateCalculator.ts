@@ -12,13 +12,19 @@ export class WeatherDateCalculator {
   } {
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
+    
+    // Get today's date and normalize it
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     
+    // Calculate days from today (can be negative for past dates)
     const daysFromToday = Math.floor((normalizedTargetDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS;
     
-    console.log('🚨 FIXED: WeatherDateCalculator date processing', {
+    // SIMPLE LOGIC: Today through Day 5 = forecast range (0, 1, 2, 3, 4, 5)
+    // Day 6 and beyond = historical weather
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
+    
+    console.log('🔧 FIXED: WeatherDateCalculator SIMPLIFIED logic', {
       originalDate: targetDate.toISOString(),
       normalizedDate: normalizedTargetDate.toISOString(),
       targetDateString,
@@ -26,7 +32,8 @@ export class WeatherDateCalculator {
       normalizedToday: normalizedToday.toISOString(),
       daysFromToday,
       isWithinForecastRange,
-      forecastThreshold: this.FORECAST_THRESHOLD_DAYS
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      logic: `Days 0-5 = forecast, Day 6+ = historical`
     });
 
     return {
