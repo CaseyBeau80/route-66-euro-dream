@@ -48,9 +48,9 @@ export class WeatherDataConverter {
       cityName: cityName,
       isActualForecast: false,
       dateMatchInfo: {
-        source: 'historical_fallback',
+        source: 'seasonal-estimate', // ENHANCED: Clear seasonal source marking
         confidence: 'historical',
-        explanation: 'Using historical weather patterns for this date'
+        explanation: 'Using seasonal weather patterns - live forecast not available for this date'
       }
     };
   }

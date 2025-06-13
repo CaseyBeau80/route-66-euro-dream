@@ -58,6 +58,40 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     };
   }, [temperatures, cityName]);
 
+  // Get dynamic footer message based on actual data source
+  const getFooterMessage = React.useMemo(() => {
+    const dateMatchSource = weather.dateMatchInfo?.source;
+    const explicitSource = weather.source;
+
+    console.log('🌤️ SimpleWeatherDisplay: Determining footer message', {
+      cityName,
+      dateMatchSource,
+      explicitSource,
+      isActualForecast: weather.isActualForecast
+    });
+
+    // Check for seasonal/historical fallback sources
+    if (dateMatchSource === 'seasonal-estimate' || dateMatchSource === 'seasonal_fallback') {
+      return 'Seasonal data used due to unavailable live forecast';
+    }
+
+    if (dateMatchSource === 'historical_fallback' || explicitSource === 'historical_fallback') {
+      return 'Historical weather patterns used - live forecast not available';
+    }
+
+    // Check for live forecast sources
+    if (dateMatchSource === 'api-forecast' || dateMatchSource === 'enhanced-fallback' || dateMatchSource === 'live_forecast') {
+      return 'Real-time weather data from API';
+    }
+
+    if (explicitSource === 'live_forecast' && weather.isActualForecast === true) {
+      return 'Real-time weather data from API';
+    }
+
+    // Default fallback message
+    return 'Weather data source uncertain - seasonal estimates displayed';
+  }, [weather.dateMatchInfo?.source, weather.source, weather.isActualForecast, cityName]);
+
   if (!temperatures.isValid) {
     console.warn('❌ SimpleWeatherDisplay: No valid temperature data available for', cityName);
     return (
@@ -105,7 +139,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Weather Badge */}
+        {/* Weather Badge with Dynamic Source Detection */}
         <WeatherBadge
           source={weather.source}
           isActualForecast={weather.isActualForecast}
@@ -139,12 +173,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* Data Source Info */}
+      {/* Dynamic Data Source Footer */}
       <div className="mt-3 text-xs text-blue-500 text-center">
-        {weather.source === 'live_forecast' 
-          ? 'Real-time weather data from API'
-          : 'Based on historical weather patterns'
-        }
+        {getFooterMessage}
       </div>
     </div>
   );

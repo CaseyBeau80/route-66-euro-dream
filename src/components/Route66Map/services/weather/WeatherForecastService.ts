@@ -366,16 +366,17 @@ export class WeatherForecastService {
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'seasonal-estimate' as const,
+        source: 'seasonal-estimate' as const, // ENHANCED: Clear seasonal source marking
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with explicit source', {
+    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with seasonal source', {
       cityName,
       targetDateString,
       fallbackResult,
-      explicitSource: fallbackResult.source
+      explicitSource: fallbackResult.source,
+      dateMatchSource: fallbackResult.dateMatchInfo.source
     });
 
     return fallbackResult;
