@@ -31,8 +31,8 @@ export const useWeatherDataFetcher = ({
       actions.setLoading(true);
       actions.setError(null);
 
-      // Use the correct method name - let's try getWeatherForecast instead
-      const weatherData = await weatherService.getWeatherForecast(
+      // Use the correct method name - getWeatherForDate
+      const weatherData = await weatherService.getWeatherForDate(
         segmentEndCity,
         segmentDate
       );
