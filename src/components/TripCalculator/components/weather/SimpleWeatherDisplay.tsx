@@ -25,6 +25,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   console.log('🌤️ SimpleWeatherDisplay rendering:', {
     cityName,
     weather,
+    rawTemperatureData: {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp
+    },
     hasTemperature: weather.temperature !== undefined,
     hasHighTemp: weather.highTemp !== undefined,
     hasLowTemp: weather.lowTemp !== undefined
@@ -32,6 +37,20 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
 
   // Normalize weather data
   const normalizedWeather = WeatherDataNormalizer.normalizeWeatherData(weather, cityName, segmentDate);
+
+  console.log('🌤️ SimpleWeatherDisplay - Normalized Weather Debug:', {
+    cityName,
+    originalWeather: {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp
+    },
+    normalizedWeather: normalizedWeather ? {
+      temperature: normalizedWeather.temperature,
+      highTemp: normalizedWeather.highTemp,
+      lowTemp: normalizedWeather.lowTemp
+    } : null
+  });
 
   if (!normalizedWeather) {
     console.log('❌ SimpleWeatherDisplay: No valid normalized weather data');
@@ -74,8 +93,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           )}
         </div>
 
-        {/* Temperature Display - FIXED */}
+        {/* Temperature Display - ENHANCED DEBUG */}
         <div className="p-4">
+          <div className="text-xs text-gray-500 mb-2">
+            DEBUG: Passing to TemperatureDisplay - high: {normalizedWeather.highTemp}, low: {normalizedWeather.lowTemp}
+          </div>
           <TemperatureDisplay
             type="range"
             highTemp={normalizedWeather.highTemp}

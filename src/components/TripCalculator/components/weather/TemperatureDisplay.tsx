@@ -17,11 +17,14 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
 }) => {
   const { formatTemperature } = useUnits();
 
-  console.log('🌡️ TemperatureDisplay rendering:', {
+  console.log('🌡️ TemperatureDisplay DEBUG - Raw Props:', {
     type,
     currentTemp,
     highTemp,
     lowTemp,
+    currentTempType: typeof currentTemp,
+    highTempType: typeof highTemp,
+    lowTempType: typeof lowTemp,
     hasFormatTemperature: !!formatTemperature
   });
 
@@ -33,12 +36,22 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     return `${Math.round(temp)}°F`;
   };
 
-  // Validate temperature values
+  // More lenient temperature validation - just check if it's a number
   const isValidTemp = (temp: number | undefined): temp is number => {
-    return temp !== undefined && !isNaN(temp) && temp > -100 && temp < 200;
+    const isValid = temp !== undefined && temp !== null && !isNaN(temp) && typeof temp === 'number';
+    console.log('🌡️ TemperatureDisplay validation:', { temp, isValid, type: typeof temp });
+    return isValid;
   };
 
+  console.log('🌡️ TemperatureDisplay validation results:', {
+    type,
+    currentTempValid: isValidTemp(currentTemp),
+    highTempValid: isValidTemp(highTemp),
+    lowTempValid: isValidTemp(lowTemp)
+  });
+
   if (type === 'current' && isValidTemp(currentTemp)) {
+    console.log('🌡️ TemperatureDisplay: Rendering current temp:', currentTemp);
     return (
       <div className="flex flex-col items-center justify-center bg-white rounded p-3">
         <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -50,6 +63,7 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
   }
 
   if (type === 'range' && isValidTemp(highTemp) && isValidTemp(lowTemp)) {
+    console.log('🌡️ TemperatureDisplay: Rendering range temps:', { highTemp, lowTemp });
     return (
       <div className="flex items-center justify-center gap-3 bg-white rounded p-3">
         {/* Low Temperature - moved to left */}
@@ -91,6 +105,9 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
       <div className="text-xs text-gray-500">Temperature unavailable</div>
       <div className="text-xs text-gray-400 mt-1">
         {type === 'current' ? 'Current temp data missing' : 'Temperature range data missing'}
+      </div>
+      <div className="text-xs text-red-500 mt-1">
+        DEBUG: high={highTemp}, low={lowTemp}, current={currentTemp}
       </div>
     </div>
   );
