@@ -3,6 +3,7 @@ import React from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
+import SegmentWeatherWidget from '../SegmentWeatherWidget';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -17,7 +18,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Rendering PDF-style content for sharing');
+  console.log('📤 SharedTripContentRenderer: Rendering shared content with weather');
   console.log('📤 TripPlan segments data:', tripPlan.segments?.map(s => ({
     day: s.day,
     startCity: s.startCity,
@@ -140,18 +141,18 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </div>
       </div>
 
-      {/* Daily Itinerary Preview - RESTORED */}
+      {/* Daily Itinerary with Weather Information */}
       <div className="space-y-4">
         <div className="text-center p-4 bg-route66-primary rounded">
           <h3 className="text-lg font-bold text-white mb-2 font-route66">
-            📅 DAILY ITINERARY PREVIEW
+            📅 DAILY ITINERARY WITH WEATHER
           </h3>
           <p className="text-route66-cream text-sm font-travel">
-            Your day-by-day guide to the ultimate Route 66 adventure
+            Your complete day-by-day guide with weather forecasts
           </p>
         </div>
         
-        {enrichedSegments.slice(0, 3).map((segment, index) => {
+        {enrichedSegments.map((segment, index) => {
           const drivingTime = getDrivingTime(segment);
           const drivingHours = Math.floor(drivingTime);
           const drivingMinutes = Math.round((drivingTime - drivingHours) * 60);
@@ -169,8 +170,9 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           const distance = segment.distance || segment.approximateMiles || 0;
 
           return (
-            <div key={`preview-day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
+            <div key={`day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+              {/* Day Header */}
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
                     Day {segment.day}
@@ -186,18 +188,23 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   </span>
                 )}
               </div>
+
+              {/* Distance and Drive Time */}
               <p className="text-xs text-gray-600">
                 {Math.round(distance)} miles • {drivingTimeDisplay} driving
               </p>
+
+              {/* Weather Widget for this segment */}
+              <SegmentWeatherWidget
+                segment={segment}
+                tripStartDate={tripStartDate}
+                cardIndex={index}
+                sectionKey="shared-view"
+                isCollapsible={true}
+              />
             </div>
           );
         })}
-        
-        {enrichedSegments.length > 3 && (
-          <div className="text-center text-sm text-gray-500 font-travel">
-            ... and {enrichedSegments.length - 3} more adventure-filled days!
-          </div>
-        )}
       </div>
 
       {/* Share URL section for shared view */}
