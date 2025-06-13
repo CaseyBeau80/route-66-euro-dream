@@ -42,7 +42,13 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     error,
     retryCount,
     isSharedView,
-    isPDFExport
+    isPDFExport,
+    weatherData: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      isActualForecast: weather.isActualForecast
+    } : null
   });
 
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {

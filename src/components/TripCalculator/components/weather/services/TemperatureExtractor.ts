@@ -13,14 +13,16 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TemperatureExtractor.extractTemperatures FIXED VERSION:', {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures ENHANCED FOR SHARED VIEWS:', {
       cityName,
       rawWeatherInput: weather,
       availableProperties: Object.keys(weather || {}),
       temperature: weather?.temperature,
       highTemp: weather?.highTemp,
       lowTemp: weather?.lowTemp,
-      matchedForecastDay: weather?.matchedForecastDay
+      matchedForecastDay: weather?.matchedForecastDay,
+      isActualForecast: weather?.isActualForecast,
+      source: weather?.source
     });
 
     if (!weather) {
@@ -62,12 +64,58 @@ export class TemperatureExtractor {
           low = this.extractSingleTemperature(matched.temperature.low, 'low-matched');
         }
         if (isNaN(current) && 'high' in matched.temperature && 'low' in matched.temperature) {
-          current = Math.round((matched.temperature.high + matched.temperature.low) / 2);
-          console.log('🌡️ TemperatureExtractor: Calculated current from high/low:', current);
+          const tempHigh = this.extractSingleTemperature(matched.temperature.high, 'calc-high');
+          const tempLow = this.extractSingleTemperature(matched.temperature.low, 'calc-low');
+          if (!isNaN(tempHigh) && !isNaN(tempLow)) {
+            current = Math.round((tempHigh + tempLow) / 2);
+            console.log('🌡️ TemperatureExtractor: Calculated current from high/low:', current);
+          }
         }
       } else if (typeof matched.temperature === 'number') {
         if (isNaN(current)) {
           current = this.extractSingleTemperature(matched.temperature, 'current-matched');
+        }
+      }
+
+      // Try extracting directly from matched day if it has main properties
+      if (matched.main) {
+        if (isNaN(current) && matched.main.temp) {
+          current = this.extractSingleTemperature(matched.main.temp, 'current-main');
+        }
+        if (isNaN(high) && matched.main.temp_max) {
+          high = this.extractSingleTemperature(matched.main.temp_max, 'high-main');
+        }
+        if (isNaN(low) && matched.main.temp_min) {
+          low = this.extractSingleTemperature(matched.main.temp_min, 'low-main');
+        }
+      }
+    }
+
+    // Path 3: Enhanced fallback - check for common weather API response formats
+    if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather) {
+      // OpenWeatherMap current weather format
+      if (weather.main) {
+        if (isNaN(current) && weather.main.temp) {
+          current = this.extractSingleTemperature(weather.main.temp, 'current-owm');
+        }
+        if (isNaN(high) && weather.main.temp_max) {
+          high = this.extractSingleTemperature(weather.main.temp_max, 'high-owm');
+        }
+        if (isNaN(low) && weather.main.temp_min) {
+          low = this.extractSingleTemperature(weather.main.temp_min, 'low-owm');
+        }
+      }
+
+      // Try temp object format
+      if (weather.temp) {
+        if (isNaN(current) && weather.temp.day) {
+          current = this.extractSingleTemperature(weather.temp.day, 'current-temp-day');
+        }
+        if (isNaN(high) && weather.temp.max) {
+          high = this.extractSingleTemperature(weather.temp.max, 'high-temp-max');
+        }
+        if (isNaN(low) && weather.temp.min) {
+          low = this.extractSingleTemperature(weather.temp.min, 'low-temp-min');
         }
       }
     }
@@ -86,6 +134,7 @@ export class TemperatureExtractor {
     let finalHigh = high;
     let finalLow = low;
 
+    // Enhanced smart fallbacks
     // If we have high/low but not current, calculate current as average
     if (!this.isValidTemperature(finalCurrent) && this.isValidTemperature(finalHigh) && this.isValidTemperature(finalLow)) {
       finalCurrent = Math.round((finalHigh + finalLow) / 2);
@@ -99,6 +148,18 @@ export class TemperatureExtractor {
       }
       if (!this.isValidTemperature(finalLow)) {
         finalLow = finalCurrent - 8; // Estimate low temp
+      }
+    }
+
+    // If we only have one temperature value, use it for all
+    if (!this.isValidTemperature(finalCurrent) && !this.isValidTemperature(finalHigh) && !this.isValidTemperature(finalLow)) {
+      // Last resort: check if there's any temperature value anywhere
+      const anyTemp = this.findAnyTemperature(weather);
+      if (anyTemp !== null) {
+        finalCurrent = anyTemp;
+        finalHigh = anyTemp + 5;
+        finalLow = anyTemp - 5;
+        console.log('🌡️ TemperatureExtractor: Used any available temperature:', anyTemp);
       }
     }
 
@@ -116,6 +177,35 @@ export class TemperatureExtractor {
 
     console.log('🌡️ TemperatureExtractor FINAL RESULT:', result);
     return result;
+  }
+
+  private static findAnyTemperature(weather: any): number | null {
+    // Deep search for any temperature value in the weather object
+    const searchForTemp = (obj: any, path: string = ''): number | null => {
+      if (typeof obj === 'number' && !isNaN(obj) && obj > -150 && obj < 150) {
+        console.log(`🌡️ Found temperature at ${path}:`, obj);
+        return obj;
+      }
+
+      if (typeof obj === 'object' && obj !== null) {
+        for (const [key, value] of Object.entries(obj)) {
+          if (key.toLowerCase().includes('temp') || key.toLowerCase().includes('temperature')) {
+            const temp = searchForTemp(value, `${path}.${key}`);
+            if (temp !== null) return temp;
+          }
+        }
+        
+        // Search in other properties
+        for (const [key, value] of Object.entries(obj)) {
+          const temp = searchForTemp(value, `${path}.${key}`);
+          if (temp !== null) return temp;
+        }
+      }
+
+      return null;
+    };
+
+    return searchForTemp(weather);
   }
 
   private static extractSingleTemperature(temp: any, type: string): number {
@@ -146,23 +236,14 @@ export class TemperatureExtractor {
     // Handle object format like { high: 75, low: 65 }
     if (temp && typeof temp === 'object') {
       console.log(`🔍 TemperatureExtractor: Object extraction [${type}]:`, temp);
-      if ('high' in temp && typeof temp.high === 'number' && !isNaN(temp.high)) {
-        return Math.round(temp.high);
-      }
-      if ('low' in temp && typeof temp.low === 'number' && !isNaN(temp.low)) {
-        return Math.round(temp.low);
-      }
-      if ('temp' in temp && typeof temp.temp === 'number' && !isNaN(temp.temp)) {
-        return Math.round(temp.temp);
-      }
-      if ('day' in temp && typeof temp.day === 'number' && !isNaN(temp.day)) {
-        return Math.round(temp.day);
-      }
-      if ('max' in temp && typeof temp.max === 'number' && !isNaN(temp.max)) {
-        return Math.round(temp.max);
-      }
-      if ('min' in temp && typeof temp.min === 'number' && !isNaN(temp.min)) {
-        return Math.round(temp.min);
+      
+      const possibleKeys = ['high', 'low', 'temp', 'day', 'max', 'min', 'avg', 'current'];
+      for (const key of possibleKeys) {
+        if (key in temp && typeof temp[key] === 'number' && !isNaN(temp[key])) {
+          const rounded = Math.round(temp[key]);
+          console.log(`✅ TemperatureExtractor: Object key extraction [${type}] from ${key}:`, rounded);
+          return rounded;
+        }
       }
     }
 

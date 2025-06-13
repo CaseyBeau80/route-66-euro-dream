@@ -23,20 +23,33 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SimpleWeatherDisplay for', cityName, {
+  console.log('🔧 SimpleWeatherDisplay ENHANCED FOR TEMPERATURE DISPLAY:', cityName, {
     temperature: weather.temperature,
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source,
-    hasTemperature: !!weather.temperature
+    hasTemperature: !!weather.temperature,
+    isSharedView,
+    matchedForecastDay: weather.matchedForecastDay
   });
 
-  // Extract temperatures with memoization to prevent recalculation
+  // Extract temperatures with enhanced logic for shared views
   const temperatures = React.useMemo(() => {
     const extracted = TemperatureExtractor.extractTemperatures(weather, cityName);
-    console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures:', extracted);
+    console.log('🌡️ SimpleWeatherDisplay: Extracted temperatures for shared view:', {
+      cityName,
+      isSharedView,
+      extracted,
+      originalWeather: {
+        temperature: weather.temperature,
+        highTemp: weather.highTemp,
+        lowTemp: weather.lowTemp
+      }
+    });
     return extracted;
-  }, [weather.temperature, weather.highTemp, weather.lowTemp, weather.matchedForecastDay, cityName]);
+  }, [weather.temperature, weather.highTemp, weather.lowTemp, weather.matchedForecastDay, weather.main, weather.temp, cityName]);
 
   // Memoize weather type detection
   const weatherType = React.useMemo(() => {
@@ -50,31 +63,42 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
     [weather.source, weather.isActualForecast]
   );
 
-  // Check if we have any displayable data
+  // Enhanced validation for shared views
   if (!temperatures.isValid) {
-    console.warn('❌ SimpleWeatherDisplay: No valid temperature data for', cityName);
+    console.warn('❌ SimpleWeatherDisplay: No valid temperature data for shared view:', cityName, {
+      temperatures,
+      weather,
+      isSharedView
+    });
+    
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
         <div className="text-yellow-800 font-medium mb-2">
           Weather information unavailable
         </div>
         <div className="text-sm text-yellow-600">
-          Unable to display weather data for {cityName}
+          Unable to display temperature data for {cityName}
         </div>
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-yellow-500 mt-2">
+            Debug: current={temperatures.current}, high={temperatures.high}, low={temperatures.low}
+          </div>
+        )}
       </div>
     );
   }
 
-  // Determine what to show
-  const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
+  // Determine what to show - prioritize range for shared views
+  const showRange = (!isNaN(temperatures.high) || !isNaN(temperatures.low)) && isSharedView;
   const showCurrent = !isNaN(temperatures.current) && !showRange;
 
-  console.log('🔧 FIXED: Using centralized WeatherTypeDetector for display decision:', {
+  console.log('🔧 SimpleWeatherDisplay: Display decision for shared view:', {
     cityName,
     showRange,
     showCurrent,
     weatherType,
     temperatures,
+    isSharedView,
     weatherSource: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source
   });
@@ -111,7 +135,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
         />
       </div>
 
-      {/* Temperature Display */}
+      {/* Enhanced Temperature Display for Shared Views */}
       <div className="mb-3">
         {showCurrent && (
           <TemperatureDisplay
@@ -127,6 +151,25 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
             lowTemp={temperatures.low}
           />
         )}
+
+        {/* Fallback: show both if available */}
+        {!showCurrent && !showRange && temperatures.isValid && (
+          <div className="space-y-2">
+            {!isNaN(temperatures.current) && (
+              <TemperatureDisplay
+                type="current"
+                currentTemp={temperatures.current}
+              />
+            )}
+            {(!isNaN(temperatures.high) || !isNaN(temperatures.low)) && (
+              <TemperatureDisplay
+                type="range"
+                highTemp={temperatures.high}
+                lowTemp={temperatures.low}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Additional Weather Info */}
@@ -141,10 +184,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
         {footerMessage}
       </div>
 
-      {/* Debug info in development */}
+      {/* Enhanced debug info for shared views */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-2 text-xs text-gray-500 text-center border-t pt-2">
-          Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}, dateMatch={weather.dateMatchInfo?.source}
+          <div>Debug: temp={weather.temperature}, source={weather.source}, isLive={weather.isActualForecast}</div>
+          <div>Extracted: current={temperatures.current}, high={temperatures.high}, low={temperatures.low}</div>
+          <div>Display: showRange={showRange}, showCurrent={showCurrent}, isSharedView={isSharedView}</div>
         </div>
       )}
     </div>
@@ -159,7 +204,8 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = React.memo(({
     prevProps.weather.isActualForecast === nextProps.weather.isActualForecast &&
     prevProps.weather.dateMatchInfo?.source === nextProps.weather.dateMatchInfo?.source &&
     prevProps.cityName === nextProps.cityName &&
-    prevProps.segmentDate?.getTime() === nextProps.segmentDate?.getTime()
+    prevProps.segmentDate?.getTime() === nextProps.segmentDate?.getTime() &&
+    prevProps.isSharedView === nextProps.isSharedView
   );
 });
 
