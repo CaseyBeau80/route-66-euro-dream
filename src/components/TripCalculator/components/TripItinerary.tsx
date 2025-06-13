@@ -97,6 +97,16 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     timestamp: new Date().toISOString()
   });
 
+  // 🚨 PLAN IMPLEMENTATION: Log WeatherForecastColumn instantiation before render
+  React.useEffect(() => {
+    console.log('🚀 [PLAN] About to instantiate WeatherForecastColumn with:', {
+      segmentsCount: tripPlan.segments.length,
+      tripStartDate: validatedTripStartDate?.toISOString(),
+      tripId: tripPlan.id,
+      hasDay1: tripPlan.segments.some(s => s.day === 1)
+    });
+  }, [tripPlan.segments, validatedTripStartDate, tripPlan.id]);
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
@@ -114,14 +124,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
             </ErrorBoundary>
             
             <ErrorBoundary context="WeatherForecastColumn">
-              {/* 🚨 PLAN IMPLEMENTATION: Log WeatherForecastColumn instantiation */}
-              {console.log('🚀 [PLAN] Instantiating WeatherForecastColumn with:', {
-                segmentsCount: tripPlan.segments.length,
-                tripStartDate: validatedTripStartDate?.toISOString(),
-                tripId: tripPlan.id,
-                hasDay1: tripPlan.segments.some(s => s.day === 1)
-              })}
-              
               <WeatherForecastColumn 
                 segments={tripPlan.segments} 
                 tripStartDate={validatedTripStartDate}

@@ -179,6 +179,18 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
               segmentComplete: !!(segment && segment.endCity && segmentDate)
             });
           }
+
+          // 🚨 PLAN IMPLEMENTATION: SegmentWeatherWidget instantiation logging before JSX
+          if (segment.day === 1) {
+            console.log('🚀 [PLAN] About to render SegmentWeatherWidget for DAY 1:', {
+              segment: { day: segment.day, endCity: segment.endCity },
+              tripStartDate: validTripStartDate.toISOString(),
+              segmentDate: segmentDate?.toISOString(),
+              cardIndex: index,
+              tripId,
+              sectionKey: 'weather-column'
+            });
+          }
           
           return (
             <ErrorBoundary key={`weather-segment-${segment.day}-${index}`} context={`WeatherForecastColumn-Segment-${index}`}>
@@ -205,16 +217,6 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
                 
                 {/* Weather Content */}
                 <div className="p-4">
-                  {/* 🚨 PLAN IMPLEMENTATION: SegmentWeatherWidget instantiation logging */}
-                  {segment.day === 1 && console.log('🚀 [PLAN] About to render SegmentWeatherWidget for DAY 1:', {
-                    segment: { day: segment.day, endCity: segment.endCity },
-                    tripStartDate: validTripStartDate.toISOString(),
-                    segmentDate: segmentDate?.toISOString(),
-                    cardIndex: index,
-                    tripId,
-                    sectionKey: 'weather-column'
-                  })}
-                  
                   <SegmentWeatherWidget
                     segment={segment}
                     tripStartDate={validTripStartDate}

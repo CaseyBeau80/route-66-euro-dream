@@ -294,21 +294,23 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
+  // 🚨 PLAN IMPLEMENTATION: Day 1 specific content rendering confirmation (before JSX)
+  if (segment.day === 1) {
+    console.log('🎨 [PLAN] *** DAY 1 CONTENT RENDERING CONFIRMED ***', {
+      endCity: segment.endCity,
+      hasApiKey,
+      loading: weatherState.loading,
+      hasWeather: !!weatherState.weather,
+      hasSegmentDate: !!segmentDate
+    });
+  }
+
   return (
     <WeatherErrorBoundary 
       segmentEndCity={segment.endCity}
       fallbackMessage={`Weather service error for ${segment.endCity} Day ${segment.day}`}
     >
       <div className={`space-y-3 ${containerClass}`} data-segment-day={segment.day}>
-        {/* 🚨 PLAN IMPLEMENTATION: Day 1 specific content rendering confirmation */}
-        {segment.day === 1 && console.log('🎨 [PLAN] *** DAY 1 CONTENT RENDERING CONFIRMED ***', {
-          endCity: segment.endCity,
-          hasApiKey,
-          loading: weatherState.loading,
-          hasWeather: !!weatherState.weather,
-          hasSegmentDate: !!segmentDate
-        })}
-        
         <SegmentWeatherContent
           hasApiKey={hasApiKey}
           loading={weatherState.loading}
