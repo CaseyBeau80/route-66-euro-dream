@@ -24,7 +24,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDataDisplay rendering for', cityName, {
+  console.log('🎯 WeatherDataDisplay FIXED VERSION for', cityName, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
@@ -32,23 +32,17 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null
   });
 
-  // If we have valid weather data, display it
+  // FIXED: Always try to display weather data if we have it
   if (weather && segmentDate) {
     const weatherType = WeatherTypeDetector.detectWeatherType(weather);
     
-    // For shared views, if weather is historical/fallback, use our enhanced seasonal display
-    if ((isSharedView || isPDFExport) && weatherType.isHistoricalData && !weatherType.isLiveForecast) {
-      console.log(`🌱 Using enhanced seasonal display for ${cityName} in shared view`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={cityName}
-          compact={true}
-        />
-      );
-    }
+    console.log(`🎯 WeatherDataDisplay: Using regular weather display for ${cityName}`, {
+      isActualForecast: weather.isActualForecast,
+      source: weather.source,
+      weatherType
+    });
 
-    // Use the regular weather display for live forecasts or non-shared views
+    // Always use the regular weather display - let it handle the data properly
     return (
       <SimpleWeatherDisplay
         weather={weather}
@@ -60,21 +54,19 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // No weather data available
-  if (isSharedView || isPDFExport) {
-    // For shared views, show seasonal fallback if we have a date
-    if (segmentDate) {
-      console.log(`🌱 No weather data, showing seasonal fallback for ${cityName} in shared view`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={cityName}
-          compact={true}
-        />
-      );
-    }
+  // No weather data available - show seasonal fallback only in shared views
+  if ((isSharedView || isPDFExport) && segmentDate) {
+    console.log(`🌱 No weather data, showing seasonal fallback for ${cityName} in shared view`);
+    return (
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={cityName}
+        compact={true}
+      />
+    );
+  }
 
-    // No date available in shared view
+  if (isSharedView || isPDFExport) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>

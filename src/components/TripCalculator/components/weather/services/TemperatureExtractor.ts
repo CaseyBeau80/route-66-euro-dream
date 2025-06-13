@@ -15,7 +15,7 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TemperatureExtractor.extractTemperatures FOR SHARED VIEW:', {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures FIXED VERSION:', {
       cityName,
       rawWeatherInput: weather,
       temperature: weather?.temperature,
@@ -29,19 +29,19 @@ export class TemperatureExtractor {
     }
 
     const extracted = this.performExtraction(weather);
-    const enhanced = this.applySmartFallbacks(extracted);
+    // REMOVED: Smart fallbacks that were creating identical temperatures
     
     const result = {
-      current: enhanced.current,
-      high: enhanced.high,
-      low: enhanced.low,
-      isValid: TemperatureValidation.hasAnyValidTemperature(enhanced)
+      current: extracted.current,
+      high: extracted.high,
+      low: extracted.low,
+      isValid: TemperatureValidation.hasAnyValidTemperature(extracted)
     };
 
-    console.log('🌡️ TemperatureExtractor FINAL RESULT FOR SHARED VIEW:', {
+    console.log('🌡️ TemperatureExtractor FIXED RESULT:', {
       cityName,
       result,
-      hasValidRange: !isNaN(result.high) || !isNaN(result.low)
+      hasValidRange: !isNaN(result.high) && !isNaN(result.low) && result.high !== result.low
     });
     
     return result;
@@ -107,30 +107,6 @@ export class TemperatureExtractor {
       if (isNaN(low) && 'temp_min' in matched.main) {
         low = TemperatureFormatter.extractSingleTemperature(matched.main.temp_min, 'low-main');
       }
-    }
-
-    return { current, high, low };
-  }
-
-  private static applySmartFallbacks(temps: { current: number; high: number; low: number }) {
-    let { current, high, low } = temps;
-
-    // If we have current but not high/low, estimate them
-    if (TemperatureValidation.isValidTemperature(current) && 
-        (!TemperatureValidation.isValidTemperature(high) || !TemperatureValidation.isValidTemperature(low))) {
-      if (!TemperatureValidation.isValidTemperature(high)) {
-        high = current + 5;
-      }
-      if (!TemperatureValidation.isValidTemperature(low)) {
-        low = current - 5;
-      }
-    }
-
-    // If we have high/low but not current, calculate current as average
-    if (!TemperatureValidation.isValidTemperature(current) && 
-        TemperatureValidation.isValidTemperature(high) && 
-        TemperatureValidation.isValidTemperature(low)) {
-      current = Math.round((high + low) / 2);
     }
 
     return { current, high, low };

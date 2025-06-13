@@ -35,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ SegmentWeatherContent render for', segmentEndCity, {
+  console.log('🌤️ SegmentWeatherContent FIXED VERSION for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
@@ -55,10 +55,11 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // For shared views or PDF exports, ALWAYS show seasonal fallback if no weather data
-  if ((isSharedView || isPDFExport) && !weather && !loading) {
+  // FIXED: For shared views, still try to fetch weather if API key exists
+  // Only fall back to seasonal if no API key AND no weather data
+  if ((isSharedView || isPDFExport) && !hasApiKey && !weather && !loading) {
     if (segmentDate) {
-      console.log(`🌱 No weather data - showing seasonal fallback for ${segmentEndCity} in shared view`);
+      console.log(`🌱 No API key in shared view - showing seasonal fallback for ${segmentEndCity}`);
       return (
         <SeasonalWeatherFallback 
           segmentDate={segmentDate}
@@ -68,29 +69,6 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       );
     }
     
-    // No date available in shared view
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-        <p className="text-xs text-gray-600">Weather information not available</p>
-      </div>
-    );
-  }
-
-  // For shared views without API key, show seasonal fallback immediately
-  if (!hasApiKey && (isSharedView || isPDFExport)) {
-    if (segmentDate) {
-      console.log(`🌱 No API key - showing seasonal fallback for ${segmentEndCity} in shared view`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          compact={true}
-        />
-      );
-    }
-    
-    // No date available in shared view
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -100,7 +78,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   }
 
   // For regular views without API key, show the API key input
-  if (!hasApiKey) {
+  if (!hasApiKey && !isSharedView && !isPDFExport) {
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -141,24 +119,15 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // No weather data available - show fallback for shared views
-  if (isSharedView || isPDFExport) {
-    if (segmentDate) {
-      console.log(`🌱 Final fallback - no weather data, showing seasonal fallback for ${segmentEndCity} in shared view`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          compact={true}
-        />
-      );
-    }
-    
+  // FIXED: Only show seasonal fallback as last resort in shared views
+  if ((isSharedView || isPDFExport) && segmentDate) {
+    console.log(`🌱 Final fallback - showing seasonal fallback for ${segmentEndCity} in shared view`);
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-        <p className="text-xs text-gray-600">Weather information not available</p>
-      </div>
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        compact={true}
+      />
     );
   }
 
@@ -174,8 +143,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         )}
       </div>
 
-      {/* Retry section for errors - hide in shared/PDF views */}
-      {retryCount < 3 && (
+      {retryCount < 3 && !isSharedView && !isPDFExport && (
         <div className="text-center">
           <button
             onClick={onRetry}

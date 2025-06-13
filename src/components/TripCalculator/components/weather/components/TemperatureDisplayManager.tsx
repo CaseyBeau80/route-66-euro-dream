@@ -20,19 +20,23 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
   const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
   
-  // For shared views, ALWAYS prioritize high/low range over current temp
-  const shouldShowRange = isSharedView ? (hasValidHigh || hasValidLow) : (hasValidHigh && hasValidLow);
-  const shouldShowCurrent = !shouldShowRange && hasValidCurrent && !isSharedView;
+  // FIXED: Only show range if we have DIFFERENT high/low values
+  const hasValidRange = hasValidHigh && hasValidLow && temperatures.high !== temperatures.low;
+  
+  // For shared views, prioritize range over current, but only if range is valid
+  const shouldShowRange = isSharedView ? hasValidRange : hasValidRange;
+  const shouldShowCurrent = !shouldShowRange && hasValidCurrent;
 
-  console.log('🌡️ TemperatureDisplayManager: Display decision', {
+  console.log('🌡️ TemperatureDisplayManager: FIXED Display decision', {
     isSharedView,
     hasValidHigh,
     hasValidLow,
     hasValidCurrent,
+    hasValidRange,
     shouldShowRange,
     shouldShowCurrent,
     temperatures,
-    prioritizeRangeForShared: isSharedView
+    highLowSame: temperatures.high === temperatures.low
   });
 
   if (shouldShowRange) {
