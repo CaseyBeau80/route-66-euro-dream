@@ -303,6 +303,12 @@ export class WeatherForecastService {
     const currentTemp = currentData.main.temp;
     const tempVariation = 10;
     
+    console.log('🚨 FIXED: createEnhancedForecastFromCurrent - marking as historical fallback', {
+      cityName,
+      targetDateString,
+      reason: 'no_forecast_match_found_using_current_as_fallback'
+    });
+    
     return {
       temperature: Math.round(currentTemp),
       highTemp: Math.round(currentTemp + tempVariation/2),
@@ -315,16 +321,16 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: processedForecast,
       forecastDate: targetDate,
-      isActualForecast: true,
-      source: 'live_forecast' as const,
+      isActualForecast: false, // FIXED: Set to false since this is fallback data
+      source: 'historical_fallback' as const, // FIXED: Use historical_fallback for consistency
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: DateNormalizationService.toDateString(new Date()),
         matchType: 'fallback' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'enhanced-fallback' as const,
-        confidence: 'medium' as const
+        source: 'historical_fallback' as const, // FIXED: Use historical_fallback consistently
+        confidence: 'low' as const
       }
     };
   }
