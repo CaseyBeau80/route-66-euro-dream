@@ -123,6 +123,9 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
     timestamp: new Date().toISOString()
   });
 
+  // 🚨 FORCE LOG: Rendering itinerary tab content - moved outside JSX
+  console.log('🚨 FORCE LOG: Rendering itinerary tab content with WeatherForecastColumn');
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs defaultValue="itinerary" className="w-full">
@@ -134,8 +137,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ tripPlan, tripStartDate }
         </TabsList>
 
         <TabsContent value="itinerary" className="mt-6">
-          {/* 🚨 FORCE LOG: Rendering itinerary tab content */}
-          {console.log('🚨 FORCE LOG: Rendering itinerary tab content with WeatherForecastColumn')}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary context="TripItineraryColumn">
               <TripItineraryColumn segments={tripPlan.segments} tripStartDate={validatedTripStartDate} />
