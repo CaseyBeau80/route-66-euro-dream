@@ -79,6 +79,14 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     return 0;
   };
 
+  // Helper function to format drive time like PDF export
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
+  };
+
   const segments = tripPlan.segments || [];
   const enrichedSegments = segments.filter(segment => 
     segment && segment.day && (segment.endCity || segment.destination)
@@ -154,54 +162,70 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         
         {enrichedSegments.map((segment, index) => {
           const drivingTime = getDrivingTime(segment);
-          const drivingHours = Math.floor(drivingTime);
-          const drivingMinutes = Math.round((drivingTime - drivingHours) * 60);
-          const drivingTimeDisplay = drivingHours > 0 ? 
-            `${drivingHours}h${drivingMinutes > 0 ? ` ${drivingMinutes}m` : ''}` : 
-            `${drivingMinutes}m`;
-
-          console.log('🚗 Final driving time display for day', segment.day, ':', {
-            originalTime: drivingTime,
-            hours: drivingHours,
-            minutes: drivingMinutes,
-            display: drivingTimeDisplay
-          });
-
           const distance = segment.distance || segment.approximateMiles || 0;
 
           return (
-            <div key={`day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+            <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
               {/* Day Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-route66-primary bg-route66-accent-light px-2 py-1 rounded">
-                    Day {segment.day}
-                  </span>
-                  <span className="text-gray-300">•</span>
-                  <h5 className="text-sm font-semibold text-route66-text-primary">
-                    {segment.startCity} → {segment.endCity}
-                  </h5>
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold">Day {segment.day}</h3>
+                    <p className="text-blue-100">
+                      {tripStartDate && (
+                        format(new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEEE, MMMM d, yyyy')
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">{segment.endCity}</p>
+                    <p className="text-blue-100 text-sm">Destination</p>
+                  </div>
                 </div>
-                {tripStartDate && (
-                  <span className="text-xs text-gray-500">
-                    {format(new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEE, MMM d')}
-                  </span>
-                )}
               </div>
 
-              {/* Distance and Drive Time */}
-              <p className="text-xs text-gray-600">
-                {Math.round(distance)} miles • {drivingTimeDisplay} driving
-              </p>
+              {/* Day Content */}
+              <div className="p-4 space-y-4">
+                {/* Stats Grid - Same format as PDF export */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="text-center p-3 bg-gray-50 rounded border">
+                    <div className="text-lg font-bold text-blue-600">
+                      🗺️ {Math.round(distance)}
+                    </div>
+                    <div className="text-xs text-gray-600">Miles</div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-gray-50 rounded border">
+                    <div className="text-lg font-bold text-purple-600">
+                      ⏱️ {formatTime(drivingTime)}
+                    </div>
+                    <div className="text-xs text-gray-600">Drive Time</div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-gray-50 rounded border">
+                    <div className="text-sm font-medium text-gray-700">
+                      🚗 From
+                    </div>
+                    <div className="text-xs text-gray-600">{segment.startCity}</div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-gray-50 rounded border">
+                    <div className="text-sm font-medium text-gray-700">
+                      🏁 To
+                    </div>
+                    <div className="text-xs text-gray-600">{segment.endCity}</div>
+                  </div>
+                </div>
 
-              {/* Weather Widget for this segment */}
-              <SegmentWeatherWidget
-                segment={segment}
-                tripStartDate={tripStartDate}
-                cardIndex={index}
-                sectionKey="shared-view"
-                isCollapsible={true}
-              />
+                {/* Weather Widget for this segment */}
+                <SegmentWeatherWidget
+                  segment={segment}
+                  tripStartDate={tripStartDate}
+                  cardIndex={index}
+                  sectionKey="shared-view"
+                  isCollapsible={true}
+                />
+              </div>
             </div>
           );
         })}
