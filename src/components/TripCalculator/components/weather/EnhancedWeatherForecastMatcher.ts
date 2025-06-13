@@ -16,7 +16,7 @@ export interface EnhancedMatchResult {
 
 export class EnhancedWeatherForecastMatcher {
   /**
-   * ENHANCED: Find best weather forecast match with multiple strategies
+   * FIXED: Find best weather forecast match with more lenient strategies
    */
   static findBestMatch(
     processedForecast: ForecastDay[], 
@@ -24,7 +24,7 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string,
     cityName: string
   ): EnhancedMatchResult {
-    console.log(`🎯 EnhancedWeatherForecastMatcher: Starting enhanced matching for ${cityName} on ${targetDateString}:`, {
+    console.log(`🎯 FIXED: EnhancedWeatherForecastMatcher starting for ${cityName} on ${targetDateString}:`, {
       targetDate: targetDate.toISOString(),
       targetDateString,
       forecastCount: processedForecast.length,
@@ -44,19 +44,19 @@ export class EnhancedWeatherForecastMatcher {
       return exactMatch;
     }
     
-    // STRATEGY 2: Closest date within 24 hours
+    // STRATEGY 2: Closest date within 48 hours (more lenient)
     const closestMatch = this.findClosestMatch(processedForecast, targetDate, targetDateString, cityName);
     if (closestMatch) {
       return closestMatch;
     }
     
-    // STRATEGY 3: Adjacent date (±1 day)
+    // STRATEGY 3: Adjacent date (±2 days, more lenient)
     const adjacentMatch = this.findAdjacentMatch(processedForecast, targetDate, targetDateString, cityName);
     if (adjacentMatch) {
       return adjacentMatch;
     }
     
-    // STRATEGY 4: Best available forecast as fallback
+    // STRATEGY 4: Any available forecast as fallback (most lenient)
     const fallbackMatch = this.findFallbackMatch(processedForecast, targetDate, targetDateString, cityName);
     if (fallbackMatch) {
       return fallbackMatch;
@@ -118,8 +118,8 @@ export class EnhancedWeatherForecastMatcher {
         const offsetHours = Math.abs((forecastDate.getTime() - normalizedTarget.getTime()) / (60 * 60 * 1000));
         const dayOffset = Math.round((forecastDate.getTime() - normalizedTarget.getTime()) / (24 * 60 * 60 * 1000));
         
-        // Only consider forecasts within 24 hours
-        if (offsetHours <= 24 && offsetHours < smallestOffsetHours) {
+        // FIXED: More lenient - consider forecasts within 48 hours
+        if (offsetHours <= 48 && offsetHours < smallestOffsetHours) {
           closestForecast = forecast;
           smallestOffsetHours = offsetHours;
           actualDayOffset = dayOffset;
@@ -130,7 +130,7 @@ export class EnhancedWeatherForecastMatcher {
     }
     
     if (closestForecast) {
-      console.log(`📍 CLOSEST MATCH found for ${cityName}: ${targetDateString} → ${closestForecast.dateString} (${smallestOffsetHours.toFixed(1)}h offset)`);
+      console.log(`📍 FIXED: CLOSEST MATCH found for ${cityName}: ${targetDateString} → ${closestForecast.dateString} (${smallestOffsetHours.toFixed(1)}h offset)`);
       
       return {
         matchedForecast: closestForecast,
@@ -140,7 +140,7 @@ export class EnhancedWeatherForecastMatcher {
           matchType: 'closest',
           daysOffset: actualDayOffset,
           hoursOffset: smallestOffsetHours,
-          confidence: smallestOffsetHours <= 12 ? 'high' : 'medium',
+          confidence: smallestOffsetHours <= 24 ? 'high' : 'medium',
           availableDates: forecasts.map(f => f.dateString).filter(Boolean)
         }
       };
@@ -155,44 +155,32 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string, 
     cityName: string
   ): EnhancedMatchResult | null {
-    // Try ±1 day from target
-    const yesterday = new Date(targetDate.getTime() - 24 * 60 * 60 * 1000);
-    const tomorrow = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
+    // FIXED: Try ±2 days from target (more lenient)
+    const testDates = [];
+    for (let i = -2; i <= 2; i++) {
+      if (i === 0) continue; // Skip exact match (already tried)
+      const testDate = new Date(targetDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const testDateString = DateNormalizationService.toDateString(testDate);
+      testDates.push({ offset: i, dateString: testDateString });
+    }
     
-    const yesterdayString = DateNormalizationService.toDateString(yesterday);
-    const tomorrowString = DateNormalizationService.toDateString(tomorrow);
-    
-    for (const forecast of forecasts) {
-      if (forecast.dateString === yesterdayString) {
-        console.log(`📅 ADJACENT MATCH found for ${cityName}: ${targetDateString} → ${yesterdayString} (-1 day)`);
-        
-        return {
-          matchedForecast: forecast,
-          matchInfo: {
-            requestedDate: targetDateString,
-            matchedDate: forecast.dateString,
-            matchType: 'adjacent',
-            daysOffset: -1,
-            confidence: 'medium',
-            availableDates: forecasts.map(f => f.dateString).filter(Boolean)
-          }
-        };
-      }
-      
-      if (forecast.dateString === tomorrowString) {
-        console.log(`📅 ADJACENT MATCH found for ${cityName}: ${targetDateString} → ${tomorrowString} (+1 day)`);
-        
-        return {
-          matchedForecast: forecast,
-          matchInfo: {
-            requestedDate: targetDateString,
-            matchedDate: forecast.dateString,
-            matchType: 'adjacent',
-            daysOffset: 1,
-            confidence: 'medium',
-            availableDates: forecasts.map(f => f.dateString).filter(Boolean)
-          }
-        };
+    for (const testDate of testDates) {
+      for (const forecast of forecasts) {
+        if (forecast.dateString === testDate.dateString) {
+          console.log(`📅 FIXED: ADJACENT MATCH found for ${cityName}: ${targetDateString} → ${testDate.dateString} (${testDate.offset > 0 ? '+' : ''}${testDate.offset} day${Math.abs(testDate.offset) > 1 ? 's' : ''})`);
+          
+          return {
+            matchedForecast: forecast,
+            matchInfo: {
+              requestedDate: targetDateString,
+              matchedDate: forecast.dateString,
+              matchType: 'adjacent',
+              daysOffset: testDate.offset,
+              confidence: Math.abs(testDate.offset) === 1 ? 'medium' : 'low',
+              availableDates: forecasts.map(f => f.dateString).filter(Boolean)
+            }
+          };
+        }
       }
     }
     
