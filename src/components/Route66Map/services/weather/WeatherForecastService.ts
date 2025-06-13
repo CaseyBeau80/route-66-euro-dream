@@ -1,4 +1,3 @@
-
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -345,7 +344,8 @@ export class WeatherForecastService {
       cityName,
       targetDateString,
       targetMonth: targetDate.getMonth(),
-      daysFromNow
+      daysFromNow,
+      reason: 'api_unavailable_or_outside_range'
     });
 
     const month = targetDate.getMonth();
@@ -364,26 +364,28 @@ export class WeatherForecastService {
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: false, // FIXED: Set to false for historical data
-      source: 'historical_fallback' as const,
+      isActualForecast: false, // ENHANCED: Always false for seasonal estimates
+      source: 'historical_fallback' as const, // ENHANCED: Consistent source marking
       dateMatchInfo: {
         requestedDate: targetDateString,
         matchedDate: 'seasonal-estimate',
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromNow,
         hoursOffset: 0,
-        source: 'historical_fallback' as const, // FIXED: Use historical_fallback consistently
+        source: 'seasonal-estimate' as const, // ENHANCED: Use seasonal-estimate for dateMatchSource
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 ENHANCED: WeatherForecastService fallback result created with historical source', {
+    console.log('🚨 ENHANCED: WeatherForecastService fallback result with CONSISTENT SOURCE MARKING', {
       cityName,
       targetDateString,
-      fallbackResult,
-      explicitSource: fallbackResult.source,
-      dateMatchSource: fallbackResult.dateMatchInfo.source,
-      isActualForecast: fallbackResult.isActualForecast
+      fallbackResult: {
+        isActualForecast: fallbackResult.isActualForecast,
+        explicitSource: fallbackResult.source,
+        dateMatchSource: fallbackResult.dateMatchInfo.source,
+        temperature: fallbackResult.temperature
+      }
     });
 
     return fallbackResult;
