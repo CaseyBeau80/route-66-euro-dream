@@ -1,6 +1,6 @@
 
 import { WEATHER_API_KEY } from '@/config/weatherConfig';
-import { ApiKeyRetrievalService } from '@/components/Route66Map/services/weather/ApiKeyRetrievalService';
+import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 
 export interface WeatherConfigValidation {
   isValid: boolean;
@@ -17,38 +17,53 @@ export interface WeatherConfigValidation {
 
 export class WeatherConfigValidationService {
   /**
-   * Validate weather configuration and provide recommendations
+   * Validate weather configuration using the same logic as main app
    */
   static validateConfiguration(): WeatherConfigValidation {
-    console.log('🔍 WeatherConfigValidationService: Starting enhanced configuration validation');
+    console.log('🔍 WeatherConfigValidationService: Starting configuration validation');
     
     const details: any = {};
     const recommendations: string[] = [];
     let isValid = false;
     let source: 'config-file' | 'localStorage' | 'none' = 'none';
     
-    // FIXED: Use ApiKeyRetrievalService for consistent validation
-    const refreshedKey = ApiKeyRetrievalService.refreshApiKey();
-    const keySource = ApiKeyRetrievalService.getKeySource(refreshedKey);
+    // FIXED: Use the same WeatherApiKeyManager that works in the main app
+    const hasApiKey = WeatherApiKeyManager.hasApiKey();
+    const apiKey = WeatherApiKeyManager.getApiKey();
+    const debugInfo = WeatherApiKeyManager.getDebugInfo();
     
-    if (refreshedKey) {
+    console.log('🔍 WeatherConfigValidationService: Using WeatherApiKeyManager:', {
+      hasApiKey,
+      debugInfo
+    });
+    
+    if (hasApiKey && apiKey) {
       isValid = true;
-      source = keySource === 'config-file' ? 'config-file' : 'localStorage';
-      details.keyLength = refreshedKey.length;
+      details.keyLength = debugInfo.keyLength;
       
       // Check if it's from config file
-      if (keySource === 'config-file') {
-        details.configFileKey = true;
-        details.isConfiguredKey = true;
-        details.isPlaceholder = false;
-        console.log('✅ WeatherConfigValidationService: Valid config file key detected', {
-          keyLength: refreshedKey.length,
-          keyPreview: refreshedKey.substring(0, 8) + '...'
-        });
-      } else {
-        details.localStorageKey = true;
-        details.isConfiguredKey = false;
-        console.log('✅ WeatherConfigValidationService: Valid localStorage key detected');
+      if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+        const configKey = WEATHER_API_KEY as string;
+        if (configKey.trim() === apiKey.trim() && 
+            configKey !== 'your_api_key_here' && 
+            !configKey.toLowerCase().includes('your_api_key')) {
+          source = 'config-file';
+          details.configFileKey = true;
+          details.isConfiguredKey = true;
+          details.isPlaceholder = false;
+          console.log('✅ WeatherConfigValidationService: Valid config file key detected');
+        }
+      }
+      
+      // Check localStorage if not from config
+      if (source === 'none') {
+        const primaryKey = localStorage.getItem('openweathermap_api_key');
+        if (primaryKey && primaryKey.trim() === apiKey.trim()) {
+          source = 'localStorage';
+          details.localStorageKey = true;
+          details.isConfiguredKey = false;
+          console.log('✅ WeatherConfigValidationService: Valid localStorage key detected');
+        }
       }
     } else {
       // Check if config has placeholder
@@ -61,7 +76,7 @@ export class WeatherConfigValidationService {
       details.isConfiguredKey = false;
     }
     
-    // Generate enhanced recommendations
+    // Generate recommendations
     if (!isValid) {
       if (details.isPlaceholder) {
         recommendations.push('Replace the placeholder API key in src/config/weatherConfig.ts with a real OpenWeatherMap API key');
@@ -77,12 +92,11 @@ export class WeatherConfigValidationService {
       recommendations.push('Get a free API key from https://openweathermap.org/api');
     }
     
-    console.log('✅ WeatherConfigValidationService: Enhanced validation complete:', {
+    console.log('✅ WeatherConfigValidationService: Validation complete:', {
       isValid,
       source,
       details,
-      recommendationsCount: recommendations.length,
-      hasConfiguredKey: details.isConfiguredKey
+      recommendationsCount: recommendations.length
     });
     
     return {
