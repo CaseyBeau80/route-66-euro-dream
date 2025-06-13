@@ -113,7 +113,8 @@ export class ForecastSourceAuditor {
     if (audit) {
       // Determine final source based on weather data
       if (weather.isActualForecast === true && 
-          (weather.dateMatchInfo?.source === 'api-forecast' || weather.dateMatchInfo?.source === 'forecast')) {
+          (weather.dateMatchInfo?.source === 'api-forecast' || 
+           weather.dateMatchInfo?.source === 'enhanced-fallback')) {
         audit.finalSource = 'live';
       } else {
         audit.finalSource = 'historical';

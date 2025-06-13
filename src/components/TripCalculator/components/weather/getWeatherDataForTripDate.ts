@@ -137,7 +137,7 @@ export const getWeatherDataForTripDate = async (
       if (forecastData) {
         const isValidLiveForecast = forecastData.isActualForecast === true && 
           (forecastData.dateMatchInfo?.source === 'api-forecast' || 
-           forecastData.dateMatchInfo?.source === 'forecast');
+           forecastData.dateMatchInfo?.source === 'enhanced-fallback');
         
         console.log(`🚨 [FORECAST AUDIT] Live forecast validation for ${cityName}:`, {
           isValidLiveForecast,
@@ -145,7 +145,7 @@ export const getWeatherDataForTripDate = async (
             isActualForecast: forecastData.isActualForecast,
             expectedValue: true,
             source: forecastData.dateMatchInfo?.source,
-            allowedSources: ['api-forecast', 'forecast']
+            allowedSources: ['api-forecast', 'enhanced-fallback']
           },
           auditPoint: 'LIVE_FORECAST_VALIDATION'
         });
