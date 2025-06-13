@@ -1,3 +1,4 @@
+
 export interface Route66Town {
   latLng: [number, number]; // Explicitly defining as a tuple with 2 numbers
   name: string;
@@ -24,7 +25,6 @@ export const route66Towns: Route66Town[] = [
   { latLng: [35.1894, -114.0530], name: "Kingman, AZ" },
   { latLng: [34.7361, -116.9954], name: "Needles, CA" },
   { latLng: [34.9983, -117.1858], name: "Barstow, CA" },
-  { latLng: [34.7444, -117.2483], name: "Victorville, CA" },
   { latLng: [34.0529, -117.1822], name: "San Bernardino, CA" },
   { latLng: [34.1341, -118.3215], name: "Los Angeles, CA" },
   { latLng: [34.0099, -118.4960], name: "Santa Monica, CA" }

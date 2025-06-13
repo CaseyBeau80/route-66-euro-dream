@@ -1,3 +1,4 @@
+
 import { SupabaseConnectionService } from './SupabaseConnectionService';
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -99,13 +100,12 @@ export class EnhancedSupabaseDataService {
   }
 
   /**
-   * Get static fallback data with only destination cities (no waypoints)
+   * Get static fallback data with only destination cities (no waypoints like Victorville)
    */
   private static getStaticFallbackStops(): UnifiedTripStop[] {
-    console.log('📋 Enhanced: Using static fallback data with destination cities only');
+    console.log('📋 Enhanced: Using static fallback data with destination cities only (Victorville removed)');
     
     return [
-      // ... keep existing code (static destination cities data) the same ...
       {
         id: "chicago-start",
         name: "Chicago",
