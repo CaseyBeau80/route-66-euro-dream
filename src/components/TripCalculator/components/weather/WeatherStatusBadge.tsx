@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface WeatherStatusBadgeProps {
-  type: 'current' | 'forecast' | 'historical';
+  type: 'current' | 'forecast' | 'historical' | 'seasonal';
   daysFromNow?: number;
 }
 
@@ -34,6 +34,13 @@ const WeatherStatusBadge: React.FC<WeatherStatusBadgeProps> = ({
           bgColor: 'bg-orange-100',
           textColor: 'text-orange-800',
           icon: '📊'
+        };
+      case 'seasonal':
+        return {
+          text: 'Seasonal Average',
+          bgColor: 'bg-purple-100',
+          textColor: 'text-purple-800',
+          icon: '📅'
         };
       default:
         return {
