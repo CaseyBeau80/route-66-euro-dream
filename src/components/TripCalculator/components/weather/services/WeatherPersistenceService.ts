@@ -1,3 +1,6 @@
+
+import { DateNormalizationService } from '../DateNormalizationService';
+
 export class WeatherPersistenceService {
   private static readonly CACHE_PREFIX = 'weather_';
   private static readonly CACHE_DURATION_HOURS = 6; // Cache for 6 hours
@@ -49,17 +52,28 @@ export class WeatherPersistenceService {
       const cacheAge = now - cacheEntry.timestamp;
       const maxAge = this.CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
-      // FIXED: For forecast range dates (0-6 days), don't use cache to force live forecast attempts
+      // FIXED: Use DateNormalizationService for consistent date calculations
       const today = new Date();
-      const targetDate = new Date(date);
-      const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+      const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+      const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(date);
+      const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
+
+      console.log('💾 FIXED: WeatherPersistenceService cache decision with normalized dates', {
+        cacheKey,
+        normalizedToday: normalizedToday.toISOString(),
+        normalizedTargetDate: normalizedTargetDate.toISOString(),
+        daysFromToday,
+        isWithinForecastRange,
+        cacheDecision: isWithinForecastRange ? 'SKIP_CACHE_FOR_LIVE_FORECAST' : 'USE_CACHE_IF_VALID'
+      });
 
       if (isWithinForecastRange) {
         console.log('💾 FIXED: Skipping cache for forecast range date to force live attempt', {
           cacheKey,
           daysFromToday,
-          isWithinForecastRange
+          isWithinForecastRange,
+          reason: 'within_0_to_6_day_forecast_range'
         });
         return null;
       }
@@ -76,7 +90,9 @@ export class WeatherPersistenceService {
 
       console.log('✅ WeatherPersistenceService: Retrieved cached weather data', {
         cacheKey,
-        temperature: cacheEntry.data.temperature
+        temperature: cacheEntry.data.temperature,
+        daysFromToday,
+        reason: 'beyond_forecast_range_or_expired_cache'
       });
 
       return cacheEntry.data;

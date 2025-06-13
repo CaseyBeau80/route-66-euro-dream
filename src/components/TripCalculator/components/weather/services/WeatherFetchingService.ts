@@ -22,26 +22,32 @@ export class WeatherFetchingService {
     const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
     const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
     
-    // FIXED: Calculate days from today to determine if we should attempt live forecast
+    // FIXED: Use consistent normalized date calculation for forecast range check
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
     
-    console.log('🔧 FIXED: WeatherFetchingService - FORECAST RANGE CHECK', {
+    console.log('🔧 FIXED: WeatherFetchingService - CONSISTENT FORECAST RANGE CHECK', {
       cityName: segmentEndCity,
+      normalizedToday: normalizedToday.toISOString(),
+      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
       daysFromToday,
       isWithinForecastRange,
       shouldAttemptLiveForecast: isWithinForecastRange && this.weatherService.hasApiKey(),
       segmentDateString,
-      normalizedSegmentDate: normalizedSegmentDate.toISOString()
+      dateCalculationMethod: 'DateNormalizationService'
     });
 
     // FIXED: Only use cached data immediately if we're beyond forecast range OR no API key
     if (!isWithinForecastRange || !this.weatherService.hasApiKey()) {
       const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
       if (cachedWeather) {
-        console.log('💾 WeatherFetchingService: Using cached weather data for', segmentEndCity, '(beyond forecast range or no API key)');
+        console.log('💾 FIXED: Using cached weather data for', segmentEndCity, {
+          reason: !isWithinForecastRange ? 'beyond_forecast_range' : 'no_api_key',
+          daysFromToday,
+          isWithinForecastRange
+        });
         
         const forecastData: ForecastWeatherData = {
           temperature: cachedWeather.temperature,
@@ -66,6 +72,8 @@ export class WeatherFetchingService {
       }
     }
 
+    // FIXED: For forecast range dates (0-6 days), the cache check above returns null
+    // so we proceed with live forecast attempt
     WeatherDataDebugger.debugWeatherFlow(
       `WeatherFetchingService.fetchWeatherForSegment [${segmentEndCity}] - LIVE FORECAST ATTEMPT`,
       {
@@ -75,7 +83,8 @@ export class WeatherFetchingService {
         daysFromToday,
         isWithinForecastRange,
         hasApiKey: this.weatherService.hasApiKey(),
-        willAttemptLiveForecast: true
+        willAttemptLiveForecast: true,
+        cacheSkipped: isWithinForecastRange
       }
     );
 
@@ -97,7 +106,8 @@ export class WeatherFetchingService {
         coordinates,
         daysFromToday,
         isWithinForecastRange,
-        reason: 'within_forecast_range_forcing_live_attempt'
+        reason: 'within_forecast_range_with_normalized_dates',
+        normalizedCalculation: true
       });
 
       const weatherPromise = this.weatherService.getWeatherForDate(
@@ -119,7 +129,8 @@ export class WeatherFetchingService {
         source: weatherData?.source,
         temperature: weatherData?.temperature,
         daysFromToday,
-        shouldBeLiveForecast: isWithinForecastRange
+        shouldBeLiveForecast: isWithinForecastRange,
+        normalizedDateUsed: true
       });
 
       if (weatherData) {
@@ -127,7 +138,8 @@ export class WeatherFetchingService {
           daysFromToday,
           source: weatherData.source,
           isActualForecast: weatherData.isActualForecast,
-          temperature: weatherData.temperature
+          temperature: weatherData.temperature,
+          normalizedCalculation: true
         });
         
         WeatherDebugService.logForecastApiRawResponse(segmentEndCity, weatherData);
@@ -151,7 +163,8 @@ export class WeatherFetchingService {
               isActualForecast: weatherData.isActualForecast,
               source: weatherData.source,
               daysFromToday,
-              liveForecastSuccess: true
+              liveForecastSuccess: true,
+              normalizedDateUsed: true
             }
           );
 
@@ -226,7 +239,7 @@ export class WeatherFetchingService {
       } else {
         WeatherDataDebugger.debugWeatherFlow(
           `WeatherFetchingService.error [${segmentEndCity}]`,
-          { error: errorMessage, hasApiKey: this.weatherService.hasApiKey(), daysFromToday }
+          { error: errorMessage, hasApiKey: this.weatherService.hasApiKey(), daysFromToday, normalizedCalculation: true }
         );
         
         console.error(`❌ Weather fetch error for ${segmentEndCity} on ${segmentDateString}:`, err);
