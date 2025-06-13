@@ -12,7 +12,7 @@ export class StopEnhancementService {
     maxStops: number
   ): Promise<TripStop[]> {
     try {
-      console.log(`🚀 TRIGGERING ENHANCED SELECTION for ${startCity} → ${endCity}`);
+      console.log(`🚀 TRIGGERING ENHANCED SELECTION (Destination Cities Only) for ${startCity} → ${endCity}`);
       
       // Create mock start/end stops
       const startStop: TripStop = convertToTripStop({
@@ -37,6 +37,7 @@ export class StopEnhancementService {
         category: 'destination_city'
       });
       
+      // Fetch only destination cities
       const allStops = await ErrorHandlingService.handleAsyncError(
         () => SupabaseDataService.fetchAllStops(),
         'StopEnhancementService.fetchAllStops',
@@ -44,20 +45,24 @@ export class StopEnhancementService {
       );
       
       if (!allStops || allStops.length === 0) {
-        console.warn('⚠️ No stops data available for enhanced selection');
+        console.warn('⚠️ No destination cities data available for enhanced selection');
         return [];
       }
       
+      // Verify all stops are destination cities
+      const destinationCitiesOnly = allStops.filter(stop => stop.category === 'destination_city');
+      console.log(`🏛️ Using ${destinationCitiesOnly.length} destination cities out of ${allStops.length} total stops`);
+      
       const enhanced = await ErrorHandlingService.handleAsyncError(
         () => EnhancedStopSelectionService.selectStopsForSegment(
-          startStop, endStop, allStops, maxStops
+          startStop, endStop, destinationCitiesOnly, maxStops
         ),
         'StopEnhancementService.selectStopsForSegment',
         []
       );
       
       if (enhanced && enhanced.length > 0) {
-        console.log(`✅ Enhanced selection found ${enhanced.length} stops`);
+        console.log(`✅ Enhanced selection found ${enhanced.length} destination cities`);
         return enhanced.map(stop => convertToTripStop(stop));
       }
       

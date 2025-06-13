@@ -4,7 +4,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 
 export class RouteStopFilteringService {
   /**
-   * Get stops that are along the route with strict destination city prioritization
+   * Get destination cities that are along the route with strict filtering
    */
   static getStopsAlongRoute(startStop: TripStop, endStop: TripStop, allStops: TripStop[], maxStops: number = 40): TripStop[] {
     const totalDistance = DistanceCalculationService.calculateDistance(
@@ -12,10 +12,15 @@ export class RouteStopFilteringService {
       endStop.latitude, endStop.longitude
     );
 
-    // Filter stops that are roughly between start and end points
-    const routeStops = allStops.filter(stop => {
+    // CRITICAL: Only use destination cities as stops
+    const destinationCities = allStops.filter(stop => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) {
+        return false;
+      }
+
+      // ENFORCE: Only destination cities allowed
+      if (stop.category !== 'destination_city') {
         return false;
       }
 
@@ -28,25 +33,26 @@ export class RouteStopFilteringService {
         endStop.latitude, endStop.longitude
       );
       
-      // Much more lenient tolerance for destination cities
-      const isDestinationCity = stop.category === 'destination_city';
-      const tolerance = isDestinationCity ? 1.8 : (totalDistance > 1000 ? 1.4 : 1.3);
+      // Generous tolerance for destination cities since they're the only allowed stops
+      const tolerance = 1.8;
       const isOnRoute = distanceFromStart + distanceFromEnd <= totalDistance * tolerance;
       
-      // Very small minimum distance for destination cities
-      const minDistance = isDestinationCity ? 3 : 8;
+      // Small minimum distance for proper spacing
+      const minDistance = 10;
       const farEnoughFromStart = distanceFromStart >= minDistance;
       const farEnoughFromEnd = distanceFromEnd >= minDistance;
       
       return isOnRoute && farEnoughFromStart && farEnoughFromEnd;
     });
 
-    console.log(`🛤️ Route stops: ${routeStops.length} stops found along ${Math.round(totalDistance)}mi route`);
-    return routeStops.slice(0, maxStops);
+    console.log(`🛤️ Route destination cities: ${destinationCities.length} cities found along ${Math.round(totalDistance)}mi route`);
+    console.log(`🏛️ Destination cities: ${destinationCities.map(c => c.name).join(', ')}`);
+    
+    return destinationCities.slice(0, maxStops);
   }
 
   /**
-   * Find stops between start and end for a specific segment
+   * Find destination cities between start and end for a specific segment
    */
   static getSegmentStops(
     startStop: TripStop, 
@@ -58,7 +64,13 @@ export class RouteStopFilteringService {
       endStop.latitude, endStop.longitude
     );
 
+    // ENFORCE: Only destination cities
     return availableStops.filter(stop => {
+      // Only destination cities allowed
+      if (stop.category !== 'destination_city') {
+        return false;
+      }
+
       const distFromStart = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude, 
         stop.latitude, stop.longitude
@@ -68,13 +80,12 @@ export class RouteStopFilteringService {
         endStop.latitude, endStop.longitude
       );
       
-      // Very lenient tolerance for destination cities
-      const isDestinationCity = stop.category === 'destination_city';
-      const tolerance = isDestinationCity ? 1.5 : (segmentDistance > 500 ? 1.3 : 1.2);
+      // Generous tolerance for destination cities
+      const tolerance = 1.5;
       const isInSegment = distFromStart + distFromEnd <= segmentDistance * tolerance;
       
-      // Very small minimum distance for destination cities
-      const minDistance = isDestinationCity ? 3 : 8;
+      // Minimum distance for proper spacing
+      const minDistance = 10;
       const farEnoughFromStart = distFromStart >= minDistance;
       const farEnoughFromEnd = distFromEnd >= minDistance;
       

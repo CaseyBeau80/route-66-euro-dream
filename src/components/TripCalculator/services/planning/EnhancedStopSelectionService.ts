@@ -5,7 +5,7 @@ import { DatabaseAuditService } from '../data/DatabaseAuditService';
 
 export class EnhancedStopSelectionService {
   /**
-   * Select stops with lowered quality thresholds and enhanced geographic filtering
+   * Select only destination cities with enhanced geographic filtering
    */
   static async selectStopsForSegment(
     startStop: TripStop,
@@ -13,7 +13,7 @@ export class EnhancedStopSelectionService {
     allStops: TripStop[],
     maxStops: number = 5
   ): Promise<TripStop[]> {
-    console.log(`🎯 ENHANCED SELECTION: ${startStop.city_name} → ${endStop.city_name}`);
+    console.log(`🎯 ENHANCED SELECTION (Destination Cities Only): ${startStop.city_name} → ${endStop.city_name}`);
     
     // First, audit the data to understand what's available
     await DatabaseAuditService.auditStopsBetweenLocations(
@@ -30,34 +30,46 @@ export class EnhancedStopSelectionService {
       endStop.latitude, endStop.longitude
     );
     
-    // STEP 1: Generous geographic filtering
+    // STEP 1: Filter to only destination cities
+    const destinationCities = allStops.filter(stop => {
+      if (stop.id === startStop.id || stop.id === endStop.id) return false;
+      
+      // CRITICAL: Only destination cities allowed
+      if (stop.category !== 'destination_city') {
+        console.log(`🚫 Rejecting non-destination city: ${stop.name} (${stop.category})`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    console.log(`🏛️ Found ${destinationCities.length} destination cities to consider`);
+    
+    // STEP 2: Geographic filtering with generous tolerance for destination cities
     const candidateStops = this.getGeographicCandidates(
-      startStop, endStop, allStops, segmentDistance
+      startStop, endStop, destinationCities, segmentDistance
     );
     
-    console.log(`📍 Geographic candidates: ${candidateStops.length}`);
+    console.log(`📍 Geographic candidates: ${candidateStops.length} destination cities`);
     
-    // STEP 2: Category prioritization with inclusive filtering
-    const categorizedStops = this.categorizeStops(candidateStops);
-    
-    // STEP 3: Score and select with lowered thresholds
-    const selectedStops = this.scoreAndSelectStops(
-      categorizedStops, startStop, maxStops
+    // STEP 3: Score and select destination cities
+    const selectedStops = this.scoreAndSelectDestinationCities(
+      candidateStops, startStop, maxStops
     );
     
-    console.log(`✅ ENHANCED SELECTION RESULT: ${selectedStops.length} stops selected`);
+    console.log(`✅ ENHANCED SELECTION RESULT: ${selectedStops.length} destination cities selected`);
+    console.log(`🏛️ Selected: ${selectedStops.map(s => s.name).join(', ')}`);
+    
     return selectedStops;
   }
   
   private static getGeographicCandidates(
     startStop: TripStop,
     endStop: TripStop,
-    allStops: TripStop[],
+    destinationCities: TripStop[],
     segmentDistance: number
   ): TripStop[] {
-    return allStops.filter(stop => {
-      if (stop.id === startStop.id || stop.id === endStop.id) return false;
-      
+    return destinationCities.filter(stop => {
       const distanceFromStart = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude,
         stop.latitude, stop.longitude
@@ -68,109 +80,58 @@ export class EnhancedStopSelectionService {
         endStop.latitude, endStop.longitude
       );
       
-      // MUCH more generous geographic filtering
+      // Very generous geographic filtering for destination cities
       const totalViaStop = distanceFromStart + distanceFromEnd;
       const detourFactor = totalViaStop / segmentDistance;
       
-      // Allow up to 100% detour or 200 miles, whichever is larger
-      const maxDetour = Math.max(segmentDistance * 1.0, 200);
+      // Allow up to 150% detour or 300 miles, whichever is larger for destination cities
+      const maxDetour = Math.max(segmentDistance * 1.5, 300);
       const isWithinDetour = (totalViaStop - segmentDistance) <= maxDetour;
       
-      // Also allow stops that are simply close to either endpoint
-      const isCloseToRoute = distanceFromStart <= segmentDistance * 0.8 || distanceFromEnd <= segmentDistance * 0.8;
+      // Also allow destination cities that are simply close to either endpoint
+      const isCloseToRoute = distanceFromStart <= segmentDistance * 0.9 || distanceFromEnd <= segmentDistance * 0.9;
       
       return isWithinDetour || isCloseToRoute;
     });
   }
   
-  private static categorizeStops(stops: TripStop[]): {
-    priority1: TripStop[];
-    priority2: TripStop[];
-    priority3: TripStop[];
-  } {
-    const priority1 = stops.filter(stop => 
-      ['destination_city', 'attraction', 'hidden_gem'].includes(stop.category)
-    );
-    
-    const priority2 = stops.filter(stop => 
-      ['diner', 'restaurant', 'motel', 'hotel', 'museum'].includes(stop.category)
-    );
-    
-    const priority3 = stops.filter(stop => 
-      !priority1.includes(stop) && !priority2.includes(stop)
-    );
-    
-    console.log(`📊 Categorized stops:`, {
-      priority1: priority1.length,
-      priority2: priority2.length, 
-      priority3: priority3.length
-    });
-    
-    return { priority1, priority2, priority3 };
-  }
-  
-  private static scoreAndSelectStops(
-    categorized: { priority1: TripStop[]; priority2: TripStop[]; priority3: TripStop[] },
+  private static scoreAndSelectDestinationCities(
+    destinationCities: TripStop[],
     startStop: TripStop,
     maxStops: number
   ): TripStop[] {
-    const selectedStops: TripStop[] = [];
-    
-    // Take from priority 1 first
-    const scored1 = this.scoreStops(categorized.priority1, startStop);
-    selectedStops.push(...scored1.slice(0, Math.min(maxStops, scored1.length)));
-    
-    // Fill remaining slots with priority 2
-    if (selectedStops.length < maxStops) {
-      const remaining = maxStops - selectedStops.length;
-      const scored2 = this.scoreStops(categorized.priority2, startStop);
-      selectedStops.push(...scored2.slice(0, Math.min(remaining, scored2.length)));
-    }
-    
-    // Fill remaining slots with priority 3 if needed
-    if (selectedStops.length < maxStops) {
-      const remaining = maxStops - selectedStops.length;
-      const scored3 = this.scoreStops(categorized.priority3, startStop);
-      selectedStops.push(...scored3.slice(0, Math.min(remaining, scored3.length)));
-    }
-    
-    return selectedStops;
-  }
-  
-  private static scoreStops(stops: TripStop[], startStop: TripStop): TripStop[] {
-    return stops
+    const scoredCities = destinationCities
       .map(stop => ({
         stop,
-        score: this.calculateScore(stop, startStop)
+        score: this.calculateDestinationCityScore(stop, startStop)
       }))
       .sort((a, b) => b.score - a.score)
       .map(item => item.stop);
+    
+    return scoredCities.slice(0, Math.min(maxStops, scoredCities.length));
   }
   
-  private static calculateScore(stop: TripStop, startStop: TripStop): number {
-    let score = 0;
-    
-    // Category bonuses
-    switch (stop.category) {
-      case 'destination_city': score += 15; break;
-      case 'attraction': score += 12; break;
-      case 'hidden_gem': score += 10; break;
-      case 'museum': score += 8; break;
-      case 'diner': score += 6; break;
-      default: score += 3; break;
-    }
+  private static calculateDestinationCityScore(stop: TripStop, startStop: TripStop): number {
+    let score = 20; // Base score for being a destination city
     
     // Major stop bonus
-    if (stop.is_major_stop) score += 5;
+    if (stop.is_major_stop) score += 10;
     
-    // Distance factor (prefer stops not too close to start)
+    // Official destination bonus
+    if (stop.is_official_destination) score += 8;
+    
+    // Distance factor (prefer cities not too close to start)
     const distance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       stop.latitude, stop.longitude
     );
     
-    if (distance > 20) score += 3; // Bonus for not being too close
-    if (distance > 50) score += 2; // Additional bonus for reasonable distance
+    if (distance > 30) score += 5; // Bonus for not being too close
+    if (distance > 100) score += 3; // Additional bonus for reasonable distance
+    
+    // State capital or major city bonuses
+    const name = stop.name.toLowerCase();
+    if (name.includes('capital') || name.includes('city')) score += 3;
     
     return score;
   }
