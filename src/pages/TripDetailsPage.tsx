@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import NavigationBar from '@/components/NavigationBar';
 import { TripService, SavedTrip } from '@/components/TripCalculator/services/TripService';
 import { toast } from '@/hooks/use-toast';
@@ -92,9 +93,17 @@ const TripDetailsPage: React.FC = () => {
   const handleBackToHome = () => navigate('/');
   const handlePlanNewTrip = () => navigate('/trip-calculator');
 
+  // Dynamic page title for shared trips
+  const pageTitle = trip 
+    ? `${trip.trip_data?.startCity} to ${trip.trip_data?.endCity} - RAMBLE 66`
+    : 'RAMBLE 66 - Route 66 Trip Planner';
+
   if (loading) {
     return (
       <TripDetailsErrorBoundary>
+        <Helmet>
+          <title>Loading Trip - RAMBLE 66</title>
+        </Helmet>
         <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
           <NavigationBar language={language} setLanguage={setLanguage} />
           <TripDetailsLoading shareCode={shareCode} />
@@ -106,6 +115,9 @@ const TripDetailsPage: React.FC = () => {
   if (error || !trip) {
     return (
       <TripDetailsErrorBoundary>
+        <Helmet>
+          <title>Trip Not Found - RAMBLE 66</title>
+        </Helmet>
         <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
           <NavigationBar language={language} setLanguage={setLanguage} />
           <TripDetailsError 
@@ -123,6 +135,10 @@ const TripDetailsPage: React.FC = () => {
 
   return (
     <TripDetailsErrorBoundary>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={`Route 66 trip from ${trip.trip_data?.startCity} to ${trip.trip_data?.endCity} - Plan your perfect Route 66 adventure`} />
+      </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section">
         <NavigationBar language={language} setLanguage={setLanguage} />
         

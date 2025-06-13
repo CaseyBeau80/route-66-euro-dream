@@ -54,8 +54,26 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // Show API key input if no API key
+  // For shared views, show a different message when no API key is available
   if (!hasApiKey) {
+    if (isSharedView || isPDFExport) {
+      return (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="text-center">
+            <div className="text-blue-600 text-sm font-medium mb-2">
+              🌤️ Weather Information
+            </div>
+            <div className="text-blue-700 text-sm">
+              Current weather conditions for {segmentEndCity}
+            </div>
+            <div className="text-xs text-blue-600 mt-2">
+              Live weather forecasts are available when viewing this trip with an API key configured.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -81,14 +99,6 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Don't show any header in SegmentWeatherContent - let the parent component handle it
-  // This eliminates the conflict between different header determinations
-  console.log('🔧 FIXED: SegmentWeatherContent removed header to prevent conflicts for', segmentEndCity, {
-    hasWeather: !!weather,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast
-  });
-
   return (
     <div className="space-y-3">
       <WeatherDataDisplay
@@ -101,7 +111,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
         isPDFExport={isPDFExport}
       />
 
-      {/* Retry section for errors */}
+      {/* Retry section for errors - hide in shared/PDF views */}
       {error && retryCount < 3 && !isSharedView && !isPDFExport && (
         <div className="mt-2 text-center">
           <button
