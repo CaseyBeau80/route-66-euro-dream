@@ -57,18 +57,28 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     }
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Weather state management - fix the destructuring to match the actual return type
+  // Weather state management - FIXED: correct hook call
   const weatherState = useSimpleWeatherState(
     segment.endCity,
     segmentDate,
     sectionKey
   );
 
-  // Weather data fetcher - fix the call to match expected arguments
-  const weatherActions = useWeatherDataFetcher(
-    segment.endCity,
-    segmentDate
-  );
+  // Weather data fetcher - FIXED: correct hook call with proper parameters
+  const weatherActions = useWeatherDataFetcher({
+    segmentEndCity: segment.endCity,
+    segmentDay: segment.day,
+    tripStartDate,
+    hasApiKey: weatherState.hasApiKey,
+    actions: {
+      setWeather: weatherState.setWeather,
+      setLoading: weatherState.setLoading,
+      setError: weatherState.setError,
+      retryCount: weatherState.retryCount,
+      incrementRetry: weatherState.incrementRetry,
+      reset: weatherState.reset
+    }
+  });
 
   console.log('🚨 [PLAN] Weather handlers initialized for Day', segment.day, '-', segment.endCity, {
     hasHandlers: !!(weatherActions.handleApiKeySet && weatherActions.handleTimeout && weatherActions.handleRetry),
