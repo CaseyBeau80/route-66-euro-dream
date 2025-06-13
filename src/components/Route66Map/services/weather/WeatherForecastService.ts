@@ -1,4 +1,3 @@
-
 import { WeatherApiClient } from './WeatherApiClient';
 import { WeatherDataProcessor } from './WeatherDataProcessor';
 import { WeatherData, ForecastDay } from './WeatherServiceTypes';
@@ -16,14 +15,14 @@ export interface ForecastWeatherData extends WeatherData {
   lowTemp?: number;
   precipitationChance?: number;
   matchedForecastDay?: ForecastDay;
-  source?: 'live_forecast' | 'historical_fallback';
+  source?: 'live_forecast' | 'historical_fallback' | 'seasonal';
   dateMatchInfo?: {
     requestedDate: string;
     matchedDate: string;
     matchType: 'exact' | 'closest' | 'adjacent' | 'fallback' | 'none' | 'seasonal-estimate';
     daysOffset: number;
     hoursOffset?: number;
-    source: 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate' | 'historical_fallback';
+    source: 'live_forecast' | 'api-forecast' | 'enhanced-fallback' | 'seasonal-estimate' | 'historical_fallback';
     confidence?: 'high' | 'medium' | 'low';
     availableDates?: string[];
   };
@@ -247,7 +246,7 @@ export class WeatherForecastService {
           matchedForecastDay: forecast,
           dateMatchInfo: {
             ...matchResult.matchInfo,
-            source: 'api-forecast' as const
+            source: 'live_forecast' as const
           }
         };
 
