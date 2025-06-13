@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { WeatherTypeDetector } from '../utils/WeatherTypeDetector';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface WeatherBadgeProps {
   source: 'live_forecast' | 'historical_fallback' | 'seasonal';
@@ -21,30 +23,31 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
     dateMatchSource
   });
 
-  // FIXED LOGIC: Properly detect historical data
-  const isHistoricalData = (
-    isActualForecast === false ||
-    source === 'historical_fallback' ||
-    source === 'seasonal' ||
-    dateMatchSource === 'historical_fallback' ||
-    dateMatchSource === 'seasonal-estimate'
-  );
+  // Create a minimal weather object for the WeatherTypeDetector
+  const weatherData: ForecastWeatherData = {
+    source,
+    isActualForecast,
+    dateMatchInfo: { source: dateMatchSource },
+    temperature: 0, // Not used for type detection
+    description: '', // Not used for type detection
+    icon: '', // Not used for type detection
+    humidity: null,
+    windSpeed: null,
+    precipitationChance: null,
+    highTemp: null,
+    lowTemp: null
+  };
 
-  // Only show live forecast if explicitly marked as actual forecast AND not from fallback sources
-  const isLiveForecast = (
-    isActualForecast === true &&
-    source === 'live_forecast' &&
-    dateMatchSource !== 'historical_fallback' &&
-    dateMatchSource !== 'seasonal-estimate'
-  );
+  // FIXED: Use centralized WeatherTypeDetector for consistent badge logic
+  const weatherType = WeatherTypeDetector.detectWeatherType(weatherData);
 
-  console.log('🎯 FIXED: Badge decision for', cityName, {
-    isHistoricalData,
-    isLiveForecast,
-    decision: isLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL_DATA'
+  console.log('🎯 FIXED: WeatherBadge using WeatherTypeDetector result:', {
+    cityName,
+    weatherType,
+    decision: weatherType.isLiveForecast ? 'LIVE_FORECAST' : 'HISTORICAL_DATA'
   });
 
-  if (isLiveForecast) {
+  if (weatherType.isLiveForecast) {
     return (
       <div className="text-xs px-2 py-1 rounded bg-green-100 text-green-800">
         📡 Live Forecast

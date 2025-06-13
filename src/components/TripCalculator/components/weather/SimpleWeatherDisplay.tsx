@@ -6,6 +6,7 @@ import TemperatureDisplay from './TemperatureDisplay';
 import WeatherIcon from './WeatherIcon';
 import WeatherBadge from './components/WeatherBadge';
 import WeatherInfo from './components/WeatherInfo';
+import { WeatherTypeDetector } from './utils/WeatherTypeDetector';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -56,34 +57,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const showRange = !isNaN(temperatures.high) || !isNaN(temperatures.low);
   const showCurrent = !isNaN(temperatures.current) && !showRange;
 
-  // FIXED: Properly determine if this is live forecast data - must match WeatherBadge logic exactly
-  const isHistoricalData = (
-    weather.isActualForecast === false ||
-    weather.source === 'historical_fallback' ||
-    weather.source === 'seasonal' ||
-    weather.dateMatchInfo?.source === 'historical_fallback' ||
-    weather.dateMatchInfo?.source === 'seasonal-estimate'
-  );
+  // FIXED: Use centralized WeatherTypeDetector for consistent type detection
+  const weatherType = WeatherTypeDetector.detectWeatherType(weather);
+  const footerMessage = WeatherTypeDetector.getFooterMessage(weather);
 
-  const isLiveForecast = (
-    weather.isActualForecast === true &&
-    weather.source === 'live_forecast' &&
-    weather.dateMatchInfo?.source !== 'historical_fallback' &&
-    weather.dateMatchInfo?.source !== 'seasonal-estimate'
-  );
-
-  // FIXED: Use the same logic as WeatherBadge to determine the section type
-  const weatherSectionType = isLiveForecast ? 'Live Forecast' : 'Historical Data';
-  const footerMessage = isLiveForecast 
-    ? 'Real-time weather forecast from API'
-    : 'Historical weather patterns - live forecast not available';
-
-  console.log('🔧 FIXED: Display decision for', cityName, {
+  console.log('🔧 FIXED: Using WeatherTypeDetector for display decision:', {
+    cityName,
     showRange,
     showCurrent,
-    isHistoricalData,
-    isLiveForecast,
-    weatherSectionType,
+    weatherType,
     temperatures,
     weatherSource: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source
@@ -99,7 +81,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           )}
           <div>
             <h4 className="font-medium text-blue-900">
-              {weather.description || weatherSectionType}
+              {weather.description || weatherType.displayLabel}
             </h4>
             {segmentDate && (
               <div className="text-sm text-blue-600">

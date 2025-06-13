@@ -4,6 +4,7 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import WeatherDataDisplay from './WeatherDataDisplay';
 import { WeatherDebugService } from './services/WeatherDebugService';
+import { WeatherTypeDetector } from './utils/WeatherTypeDetector';
 
 interface SegmentWeatherContentProps {
   hasApiKey: boolean;
@@ -80,37 +81,10 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: Determine weather section header based on actual data type
-  const getWeatherSectionHeader = () => {
-    if (!weather) return 'Weather Information';
-    
-    const isHistoricalData = (
-      weather.isActualForecast === false ||
-      weather.source === 'historical_fallback' ||
-      weather.source === 'seasonal' ||
-      weather.dateMatchInfo?.source === 'historical_fallback' ||
-      weather.dateMatchInfo?.source === 'seasonal-estimate'
-    );
+  // FIXED: Use centralized WeatherTypeDetector for consistent header determination
+  const weatherSectionHeader = WeatherTypeDetector.getSectionHeader(weather);
 
-    const isLiveForecast = (
-      weather.isActualForecast === true &&
-      weather.source === 'live_forecast' &&
-      weather.dateMatchInfo?.source !== 'historical_fallback' &&
-      weather.dateMatchInfo?.source !== 'seasonal-estimate'
-    );
-
-    if (isLiveForecast) {
-      return 'Live Forecast';
-    } else if (isHistoricalData) {
-      return 'Historical Data';
-    } else {
-      return 'Weather Information';
-    }
-  };
-
-  const weatherSectionHeader = getWeatherSectionHeader();
-
-  console.log('🔧 FIXED: Weather section header determination', {
+  console.log('🔧 FIXED: Using WeatherTypeDetector for section header:', {
     segmentEndCity,
     weatherSectionHeader,
     weatherSource: weather?.source,
