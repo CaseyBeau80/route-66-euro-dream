@@ -1,3 +1,4 @@
+
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -6,26 +7,26 @@ export type { UnifiedTripStop as TripStop };
 
 export class SupabaseDataService {
   /**
-   * Fetch all stops from database or mock data
+   * Fetch only destination cities from database or mock data
    */
   static async fetchAllStops(): Promise<UnifiedTripStop[]> {
-    console.log('🔍 Fetching all Route 66 stops...');
+    console.log('🔍 Fetching Route 66 destination cities only...');
     
-    // In a real implementation, this would fetch from Supabase
-    // For now, return mock data that matches our unified TripStop interface
-    return mockStopsData.map(stop => ({
+    // In a real implementation, this would fetch only from destination_cities table
+    // For now, return mock data that only includes destination cities
+    return mockDestinationCitiesData.map(stop => ({
       id: stop.id || `stop-${Math.random()}`,
       name: stop.name || 'Unknown Stop',
       description: stop.description || `Discover ${stop.name || 'this location'} along your Route 66 journey`,
-      category: stop.category || 'attraction',
+      category: 'destination_city', // Always destination_city
       city_name: stop.city_name || 'Unknown',
       city: stop.city || stop.city_name || 'Unknown City',
       state: stop.state || 'Unknown',
       latitude: stop.latitude || 0,
       longitude: stop.longitude || 0,
       image_url: stop.image_url,
-      is_major_stop: stop.is_major_stop,
-      is_official_destination: stop.is_official_destination
+      is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
+      is_official_destination: stop.is_official_destination || false
     }));
   }
   
@@ -50,8 +51,8 @@ export class SupabaseDataService {
   }
   
   static async fetchMajorStops(): Promise<UnifiedTripStop[]> {
-    const allStops = await this.fetchAllStops();
-    return allStops.filter(stop => stop.is_major_stop === true);
+    // All destination cities are major stops
+    return this.fetchAllStops();
   }
   
   static async fetchOfficialDestinations(): Promise<UnifiedTripStop[]> {
@@ -60,8 +61,8 @@ export class SupabaseDataService {
   }
 }
 
-// Enhanced mock data with complete Missouri coverage and additional attractions
-const mockStopsData: Partial<UnifiedTripStop>[] = [
+// Mock data with only destination cities (no waypoints)
+const mockDestinationCitiesData: Partial<UnifiedTripStop>[] = [
   {
     id: "chicago-start",
     name: "Chicago",
@@ -132,10 +133,21 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     city: "Litchfield",
     state: "IL",
     latitude: 39.1753,
-    longitude: -89.6542
+    longitude: -89.6542,
+    is_major_stop: true
   },
-  
-  // ENHANCED MISSOURI COVERAGE with ALL missing cities
+  {
+    id: "st-louis-mo",
+    name: "St. Louis",
+    description: "Gateway to the West with historic Route 66 landmarks",
+    category: "destination_city",
+    city_name: "St. Louis",
+    city: "St. Louis",
+    state: "MO",
+    latitude: 38.6270,
+    longitude: -90.1994,
+    is_major_stop: true
+  },
   {
     id: "springfield-mo",
     name: "Springfield",
@@ -162,300 +174,16 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     is_major_stop: true
   },
   {
-    id: "carthage-mo",
-    name: "Carthage",
-    description: "Historic Route 66 town known for its Victorian architecture",
+    id: "tulsa-ok",
+    name: "Tulsa",
+    description: "Oil capital with rich Route 66 history",
     category: "destination_city",
-    city_name: "Carthage",
-    city: "Carthage",
-    state: "MO",
-    latitude: 37.1765,
-    longitude: -94.3100
-  },
-  {
-    id: "webb-city-mo",
-    name: "Webb City",
-    description: "Small Route 66 town in Missouri",
-    category: "destination_city",
-    city_name: "Webb City",
-    city: "Webb City",
-    state: "MO",
-    latitude: 37.1467,
-    longitude: -94.4663
-  },
-  {
-    id: "rolla-mo",
-    name: "Rolla",
-    description: "University town and important Route 66 stop in Missouri",
-    category: "destination_city",
-    city_name: "Rolla",
-    city: "Rolla",
-    state: "MO",
-    latitude: 37.9514,
-    longitude: -91.7735,
-    is_major_stop: true
-  },
-  {
-    id: "lebanon-mo",
-    name: "Lebanon",
-    description: "Historic Route 66 town in the Missouri Ozarks",
-    category: "destination_city",
-    city_name: "Lebanon",
-    city: "Lebanon",
-    state: "MO",
-    latitude: 37.6806,
-    longitude: -92.6638
-  },
-  {
-    id: "marshfield-mo",
-    name: "Marshfield",
-    description: "Route 66 town between Springfield and Lebanon",
-    category: "destination_city",
-    city_name: "Marshfield",
-    city: "Marshfield",
-    state: "MO",
-    latitude: 37.3389,
-    longitude: -92.9068
-  },
-  {
-    id: "strafford-mo",
-    name: "Strafford",
-    description: "Small Route 66 community near Springfield",
-    category: "destination_city",
-    city_name: "Strafford",
-    city: "Strafford",
-    state: "MO",
-    latitude: 37.2725,
-    longitude: -93.1185
-  },
-
-  {
-    id: "lou-mitchells",
-    name: "Lou Mitchell's",
-    description: "Famous breakfast spot at the start of Route 66",
-    category: "restaurant",
-    city_name: "Chicago",
-    city: "Chicago",
-    state: "IL",
-    latitude: 41.8786,
-    longitude: -87.6393
-  },
-  {
-    id: "gemini-giant",
-    name: "Gemini Giant",
-    description: "Iconic Route 66 roadside attraction",
-    category: "attraction",
-    city_name: "Wilmington",
-    city: "Wilmington",
-    state: "IL",
-    latitude: 41.3081,
-    longitude: -88.1487
-  },
-  {
-    id: "chain-of-rocks-bridge",
-    name: "Chain of Rocks Bridge",
-    description: "Historic Route 66 bridge over the Mississippi River",
-    category: "historic_site",
-    city_name: "St. Louis",
-    city: "St. Louis",
-    state: "MO",
-    latitude: 38.7584,
-    longitude: -90.1780
-  },
-  {
-    id: "gateway-arch",
-    name: "Gateway Arch",
-    description: "Iconic St. Louis landmark near Route 66",
-    category: "attraction",
-    city_name: "St. Louis",
-    city: "St. Louis",
-    state: "MO",
-    latitude: 38.6247,
-    longitude: -90.1848,
-    is_major_stop: true
-  },
-  {
-    id: "st-louis-mo",
-    name: "St. Louis",
-    description: "Gateway to the West with historic Route 66 landmarks",
-    category: "destination_city",
-    city_name: "St. Louis",
-    city: "St. Louis",
-    state: "MO",
-    latitude: 38.6270,
-    longitude: -90.1994,
-    is_major_stop: true
-  },
-  {
-    id: "meramec-caverns",
-    name: "Meramec Caverns",
-    description: "Famous cave system and Route 66 attraction",
-    category: "attraction",
-    city_name: "Stanton",
-    city: "Stanton",
-    state: "MO",
-    latitude: 38.2342,
-    longitude: -91.1137
-  },
-
-  // MISSOURI ATTRACTIONS - Enhanced for Joplin area
-  {
-    id: "precious-moments-chapel",
-    name: "Precious Moments Chapel & Gardens",
-    description: "Beautiful chapel and gardens featuring Precious Moments artwork near Carthage",
-    category: "attraction",
-    city_name: "Carthage",
-    city: "Carthage",
-    state: "MO",
-    latitude: 37.1456,
-    longitude: -94.3458
-  },
-  {
-    id: "george-washington-carver-monument",
-    name: "George Washington Carver National Monument",
-    description: "Historic site honoring the famous scientist, near Joplin",
-    category: "historic_site",
-    city_name: "Joplin",
-    city: "Joplin",
-    state: "MO",
-    latitude: 36.9889,
-    longitude: -94.3472
-  },
-  {
-    id: "joplin-museum-complex",
-    name: "Joplin Museum Complex",
-    description: "Local history museum showcasing Joplin's mining heritage and Route 66 history",
-    category: "museum",
-    city_name: "Joplin",
-    city: "Joplin",
-    state: "MO",
-    latitude: 37.0811,
-    longitude: -94.5069
-  },
-  {
-    id: "spiva-center-arts",
-    name: "Spiva Center for the Arts",
-    description: "Regional arts center in Joplin featuring local and touring exhibitions",
-    category: "attraction",
-    city_name: "Joplin",
-    city: "Joplin",
-    state: "MO",
-    latitude: 37.0844,
-    longitude: -94.5133
-  },
-  {
-    id: "grand-falls",
-    name: "Grand Falls",
-    description: "Missouri's largest natural waterfall, located near Joplin",
-    category: "scenic_view",
-    city_name: "Joplin",
-    city: "Joplin",
-    state: "MO",
-    latitude: 37.1378,
-    longitude: -94.6202
-  },
-  {
-    id: "route66-mural-webb-city",
-    name: "Route 66 Mural",
-    description: "Historic Route 66 mural celebrating the Mother Road heritage",
-    category: "roadside_attraction",
-    city_name: "Webb City",
-    city: "Webb City",
-    state: "MO",
-    latitude: 37.1469,
-    longitude: -94.4658
-  },
-  {
-    id: "civil-war-museum-carthage",
-    name: "Civil War Museum",
-    description: "Museum dedicated to the Civil War Battle of Carthage",
-    category: "museum",
-    city_name: "Carthage",
-    city: "Carthage",
-    state: "MO",
-    latitude: 37.1748,
-    longitude: -94.3107
-  },
-  {
-    id: "maple-leaf-cemetery-carthage",
-    name: "Maple Leaf Cemetery",
-    description: "Historic cemetery with unique Victorian-era monuments",
-    category: "historic_site",
-    city_name: "Carthage",
-    city: "Carthage",
-    state: "MO",
-    latitude: 37.1789,
-    longitude: -94.3145
-  },
-
-  // SPRINGFIELD MO ATTRACTIONS - Enhanced coverage
-  {
-    id: "fantastic-caverns-springfield",
-    name: "Fantastic Caverns",
-    description: "America's only ride-through cave attraction in Springfield, MO",
-    category: "attraction",
-    city_name: "Springfield",
-    city: "Springfield",
-    state: "MO",
-    latitude: 37.2745,
-    longitude: -93.3376,
-    is_major_stop: true
-  },
-  {
-    id: "wilson-creek-battlefield",
-    name: "Wilson's Creek National Battlefield",
-    description: "Civil War battlefield near Springfield, MO",
-    category: "historic_site",
-    city_name: "Springfield",
-    city: "Springfield", 
-    state: "MO",
-    latitude: 37.1011,
-    longitude: -93.4074
-  },
-  {
-    id: "bass-pro-shops-outdoor-world",
-    name: "Bass Pro Shops Outdoor World",
-    description: "Massive outdoor retail store and tourist attraction in Springfield",
-    category: "attraction",
-    city_name: "Springfield",
-    city: "Springfield",
-    state: "MO",
-    latitude: 37.2081,
-    longitude: -93.2923,
-    is_major_stop: true
-  },
-  {
-    id: "route66-car-museum",
-    name: "Route 66 Car Museum",
-    description: "Classic car museum celebrating Route 66 automotive heritage",
-    category: "museum",
-    city_name: "Springfield",
-    city: "Springfield",
-    state: "MO",
-    latitude: 37.2156,
-    longitude: -93.2985
-  },
-  {
-    id: "discovery-center-springfield",
-    name: "Discovery Center of Springfield",
-    description: "Interactive science museum perfect for families",
-    category: "museum",
-    city_name: "Springfield",
-    city: "Springfield",
-    state: "MO",
-    latitude: 37.2089,
-    longitude: -93.2923
-  },
-  {
-    id: "blue-whale-catoosa",
-    name: "Blue Whale of Catoosa",
-    description: "Beloved Route 66 roadside attraction",
-    category: "attraction",
-    city_name: "Catoosa",
-    city: "Catoosa",
+    city_name: "Tulsa",
+    city: "Tulsa",
     state: "OK",
-    latitude: 36.1895,
-    longitude: -95.7313
+    latitude: 36.1540,
+    longitude: -95.9928,
+    is_major_stop: true
   },
   {
     id: "oklahoma-city-ok",
@@ -470,33 +198,33 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     is_major_stop: true
   },
   {
-    id: "tulsa-ok",
-    name: "Tulsa",
-    description: "Oil capital with rich Route 66 history",
+    id: "elk-city-ok",
+    name: "Elk City",
+    description: "Historic Route 66 town in western Oklahoma",
     category: "destination_city",
-    city_name: "Tulsa",
-    city: "Tulsa",
+    city_name: "Elk City",
+    city: "Elk City", 
     state: "OK",
-    latitude: 36.1540,
-    longitude: -95.9928,
+    latitude: 35.4112,
+    longitude: -99.4043,
     is_major_stop: true
   },
   {
-    id: "cadillac-ranch",
-    name: "Cadillac Ranch",
-    description: "Famous art installation of half-buried Cadillacs",
-    category: "attraction",
-    city_name: "Amarillo",
-    city: "Amarillo",
+    id: "shamrock-tx",
+    name: "Shamrock",
+    description: "First major Route 66 stop in Texas",
+    category: "destination_city",
+    city_name: "Shamrock",
+    city: "Shamrock",
     state: "TX",
-    latitude: 35.1872,
-    longitude: -101.9871,
+    latitude: 35.2197,
+    longitude: -100.2462,
     is_major_stop: true
   },
   {
     id: "amarillo-tx",
     name: "Amarillo",
-    description: "Texas Panhandle city famous for Cadillac Ranch",
+    description: "Texas Panhandle city famous for Cadillac Ranch", 
     category: "destination_city",
     city_name: "Amarillo",
     city: "Amarillo",
@@ -506,26 +234,41 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     is_major_stop: true
   },
   {
-    id: "midpoint-cafe",
-    name: "Midpoint Cafe",
-    description: "Restaurant marking the midpoint of Route 66",
-    category: "restaurant",
-    city_name: "Adrian",
-    city: "Adrian",
-    state: "TX",
-    latitude: 35.2742,
-    longitude: -102.6769
-  },
-  {
-    id: "blue-swallow-motel",
-    name: "Blue Swallow Motel",
-    description: "Historic Route 66 motel with vintage neon sign",
-    category: "lodging",
+    id: "tucumcari-nm",
+    name: "Tucumcari",
+    description: "Historic Route 66 town with vintage neon signs",
+    category: "destination_city", 
     city_name: "Tucumcari",
     city: "Tucumcari",
     state: "NM",
     latitude: 35.1719,
-    longitude: -103.7249
+    longitude: -103.7249,
+    is_major_stop: true
+  },
+  {
+    id: "santa-rosa-nm",
+    name: "Santa Rosa",
+    description: "The City of Natural Lakes on Route 66",
+    category: "destination_city",
+    city_name: "Santa Rosa", 
+    city: "Santa Rosa",
+    state: "NM", 
+    latitude: 34.9394,
+    longitude: -104.6819,
+    is_major_stop: true
+  },
+  {
+    id: "santa-fe-nm",
+    name: "Santa Fe", 
+    description: "Historic capital city and famous Route 66 branch destination",
+    category: "destination_city",
+    city_name: "Santa Fe",
+    city: "Santa Fe",
+    state: "NM",
+    latitude: 35.6870,
+    longitude: -105.9378,
+    is_major_stop: true,
+    is_official_destination: true
   },
   {
     id: "albuquerque-nm",
@@ -533,93 +276,154 @@ const mockStopsData: Partial<UnifiedTripStop>[] = [
     description: "High desert city with vibrant Route 66 culture",
     category: "destination_city",
     city_name: "Albuquerque",
-    city: "Albuquerque",
+    city: "Albuquerque", 
     state: "NM",
     latitude: 35.0844,
     longitude: -106.6504,
     is_major_stop: true
   },
   {
-    id: "petrified-forest",
-    name: "Petrified Forest National Park",
-    description: "National park featuring petrified wood and the Painted Desert",
-    category: "attraction",
-    city_name: "Holbrook",
-    city: "Holbrook",
-    state: "AZ",
-    latitude: 34.9099,
-    longitude: -109.8068,
+    id: "gallup-nm", 
+    name: "Gallup",
+    description: "Trading center and gateway to the Southwest",
+    category: "destination_city",
+    city_name: "Gallup",
+    city: "Gallup",
+    state: "NM",
+    latitude: 35.5281,
+    longitude: -108.7426,
     is_major_stop: true
   },
   {
-    id: "wigwam-motel",
-    name: "Wigwam Motel",
-    description: "Iconic motel with teepee-shaped rooms",
-    category: "lodging",
+    id: "holbrook-az",
+    name: "Holbrook", 
+    description: "Home to the famous Wigwam Motel",
+    category: "destination_city",
     city_name: "Holbrook",
     city: "Holbrook",
     state: "AZ",
-    latitude: 34.9011,
-    longitude: -110.1662
+    latitude: 34.9025,
+    longitude: -110.1665,
+    is_major_stop: true
+  },
+  {
+    id: "winslow-az",
+    name: "Winslow",
+    description: "Take it easy in this famous Route 66 town",
+    category: "destination_city", 
+    city_name: "Winslow",
+    city: "Winslow",
+    state: "AZ",
+    latitude: 35.0242,
+    longitude: -110.6973,
+    is_major_stop: true
   },
   {
     id: "flagstaff-az",
     name: "Flagstaff",
-    description: "Mountain city and gateway to Grand Canyon",
+    description: "Mountain town and Route 66 hub in northern Arizona",
     category: "destination_city",
     city_name: "Flagstaff",
-    city: "Flagstaff",
+    city: "Flagstaff", 
     state: "AZ",
     latitude: 35.1983,
     longitude: -111.6513,
     is_major_stop: true
   },
   {
-    id: "grand-canyon",
-    name: "Grand Canyon",
-    description: "Natural wonder near Route 66",
-    category: "attraction",
+    id: "williams-az",
+    name: "Williams",
+    description: "Gateway to the Grand Canyon and last Route 66 town to be bypassed",
+    category: "destination_city",
     city_name: "Williams",
     city: "Williams",
-    state: "AZ",
-    latitude: 36.0544,
-    longitude: -112.1401,
+    state: "AZ", 
+    latitude: 35.2494,
+    longitude: -112.1901,
     is_major_stop: true
   },
   {
-    id: "roy's-motel-cafe",
-    name: "Roy's Motel & Cafe",
-    description: "Iconic Route 66 motel and cafe",
-    category: "lodging",
-    city_name: "Amboy",
-    city: "Amboy",
-    state: "CA",
-    latitude: 34.5583,
-    longitude: -115.7458
-  },
-  {
-    id: "santa-monica-pier",
-    name: "Santa Monica Pier",
-    description: "The official end point of Route 66",
+    id: "seligman-az",
+    name: "Seligman", 
+    description: "Birthplace of the Historic Route 66 movement",
     category: "destination_city",
-    city_name: "Santa Monica",
-    city: "Santa Monica",
-    state: "CA",
-    latitude: 34.0089,
-    longitude: -118.4973,
-    is_major_stop: true,
-    is_official_destination: true
+    city_name: "Seligman",
+    city: "Seligman",
+    state: "AZ",
+    latitude: 35.3258,
+    longitude: -112.8738,
+    is_major_stop: true
   },
   {
-    id: "los-angeles-ca",
+    id: "kingman-az",
+    name: "Kingman",
+    description: "Heart of Historic Route 66 in Arizona",
+    category: "destination_city", 
+    city_name: "Kingman",
+    city: "Kingman",
+    state: "AZ", 
+    latitude: 35.1894,
+    longitude: -114.0530,
+    is_major_stop: true
+  },
+  {
+    id: "needles-ca",
+    name: "Needles",
+    description: "Desert town on the California-Arizona border",
+    category: "destination_city",
+    city_name: "Needles",
+    city: "Needles", 
+    state: "CA",
+    latitude: 34.8483,
+    longitude: -114.6144,
+    is_major_stop: true
+  },
+  {
+    id: "barstow-ca",
+    name: "Barstow",
+    description: "Major Route 66 stop in the Mojave Desert",
+    category: "destination_city",
+    city_name: "Barstow",
+    city: "Barstow",
+    state: "CA", 
+    latitude: 34.8958,
+    longitude: -117.0228,
+    is_major_stop: true
+  },
+  {
+    id: "san-bernardino-ca",
+    name: "San Bernardino",
+    description: "Historic Route 66 city in Southern California",
+    category: "destination_city",
+    city_name: "San Bernardino",
+    city: "San Bernardino",
+    state: "CA",
+    latitude: 34.1083,
+    longitude: -117.2898,
+    is_major_stop: true
+  },
+  {
+    id: "los-angeles-ca", 
     name: "Los Angeles",
-    description: "The City of Angels - Western terminus of Route 66",
+    description: "The City of Angels and Route 66's western terminus region",
     category: "destination_city",
     city_name: "Los Angeles",
     city: "Los Angeles",
     state: "CA",
     latitude: 34.0522,
     longitude: -118.2437,
+    is_major_stop: true
+  },
+  {
+    id: "santa-monica-ca",
+    name: "Santa Monica",
+    description: "The official western terminus of Route 66 at the Pacific Ocean",
+    category: "destination_city",
+    city_name: "Santa Monica",
+    city: "Santa Monica", 
+    state: "CA",
+    latitude: 34.0195,
+    longitude: -118.4912,
     is_major_stop: true,
     is_official_destination: true
   }

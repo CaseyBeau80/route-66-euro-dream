@@ -1,4 +1,3 @@
-
 import { SupabaseConnectionService } from './SupabaseConnectionService';
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -14,10 +13,10 @@ export class EnhancedSupabaseDataService {
   private static dataSourceInfo: DataSourceInfo | null = null;
 
   /**
-   * Fetch all stops with enhanced error handling and fallback tracking
+   * Fetch only destination cities with enhanced error handling and fallback tracking
    */
   static async fetchAllStops(): Promise<UnifiedTripStop[]> {
-    console.log('🔍 Enhanced: Fetching all Route 66 stops with connection validation...');
+    console.log('🔍 Enhanced: Fetching Route 66 destination cities only (no waypoints)...');
     
     // Check Supabase connection first
     const connectionStatus = await SupabaseConnectionService.getConnectionStatus();
@@ -26,101 +25,47 @@ export class EnhancedSupabaseDataService {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         
-        // Fetch from multiple Supabase tables for comprehensive coverage
-        const [destinationCities, waypoints, attractions] = await Promise.all([
-          supabase.from('destination_cities').select('*'),
-          supabase.from('route66_waypoints').select('*'),
-          supabase.from('attractions').select('*').limit(50) // Limit attractions for performance
-        ]);
+        // Fetch only from destination_cities table (no waypoints or attractions)
+        const { data: destinationCities, error } = await supabase
+          .from('destination_cities')
+          .select('*');
 
-        if (destinationCities.error || waypoints.error || attractions.error) {
-          throw new Error(`Supabase query failed: ${destinationCities.error?.message || waypoints.error?.message || attractions.error?.message}`);
+        if (error) {
+          throw new Error(`Supabase query failed: ${error.message}`);
         }
 
         // Convert Supabase data to unified format
-        const allStops: UnifiedTripStop[] = [
-          // Destination cities (highest priority)
-          ...(destinationCities.data || []).map(city => ({
-            id: city.id,
-            name: city.name,
-            description: city.description || `Discover ${city.name} along your Route 66 journey`,
-            category: 'destination_city' as const,
-            city_name: city.name,
-            city: city.name,
-            state: city.state,
-            latitude: Number(city.latitude),
-            longitude: Number(city.longitude),
-            image_url: city.image_url,
-            is_major_stop: city.featured || true,
-            is_official_destination: city.featured || true
-          })),
-          
-          // Route 66 waypoints
-          ...(waypoints.data || []).map(waypoint => ({
-            id: waypoint.id,
-            name: waypoint.name,
-            description: waypoint.description || `Historic Route 66 waypoint in ${waypoint.state}`,
-            category: waypoint.is_major_stop ? 'destination_city' as const : 'waypoint' as const,
-            city_name: waypoint.name,
-            city: waypoint.name,
-            state: waypoint.state,
-            latitude: Number(waypoint.latitude),
-            longitude: Number(waypoint.longitude),
-            image_url: waypoint.image_url,
-            is_major_stop: waypoint.is_major_stop || false,
-            is_official_destination: waypoint.is_major_stop || false
-          })),
-          
-          // Selected attractions
-          ...(attractions.data || []).slice(0, 20).map(attraction => ({
-            id: attraction.id,
-            name: attraction.name,
-            description: attraction.description || `Visit ${attraction.name} in ${attraction.city_name}`,
-            category: 'attraction' as const,
-            city_name: attraction.city_name,
-            city: attraction.city_name,
-            state: attraction.state,
-            latitude: Number(attraction.latitude),
-            longitude: Number(attraction.longitude),
-            image_url: attraction.image_url,
-            is_major_stop: attraction.featured || false,
-            is_official_destination: false
-          }))
-        ];
+        const allStops: UnifiedTripStop[] = (destinationCities || []).map(city => ({
+          id: city.id,
+          name: city.name,
+          description: city.description || `Discover ${city.name} along your Route 66 journey`,
+          category: 'destination_city' as const, // Always destination_city
+          city_name: city.name,
+          city: city.name,
+          state: city.state,
+          latitude: Number(city.latitude),
+          longitude: Number(city.longitude),
+          image_url: city.image_url,
+          is_major_stop: true, // All destination cities are major stops
+          is_official_destination: city.featured || false
+        }));
 
         // Track successful Supabase usage
         this.dataSourceInfo = {
           isUsingSupabase: true,
-          citiesAvailable: allStops.filter(stop => stop.category === 'destination_city').length,
+          citiesAvailable: allStops.length,
           lastUpdated: new Date()
         };
 
-        console.log(`✅ Enhanced: Loaded ${allStops.length} stops from Supabase (${this.dataSourceInfo.citiesAvailable} destination cities)`);
+        console.log(`✅ Enhanced: Loaded ${allStops.length} destination cities from Supabase (no waypoints)`);
         
         // Log specific cities for debugging
         const destinationCityNames = allStops
-          .filter(stop => stop.category === 'destination_city')
           .map(stop => `${stop.name}, ${stop.state}`)
           .sort();
         
         console.log('🏛️ Enhanced: Available destination cities:', destinationCityNames);
         
-        // Check for Santa Fe specifically
-        const santaFe = allStops.find(stop => 
-          stop.name.toLowerCase().includes('santa fe') && 
-          stop.state.toLowerCase().includes('nm')
-        );
-        
-        if (santaFe) {
-          console.log('🎯 Enhanced: SANTA FE FOUND in Supabase data:', {
-            name: santaFe.name,
-            state: santaFe.state,
-            category: santaFe.category
-          });
-        } else {
-          console.warn('⚠️ Enhanced: SANTA FE NOT FOUND in Supabase data');
-        }
-
         return allStops;
         
       } catch (error) {
@@ -131,7 +76,7 @@ export class EnhancedSupabaseDataService {
           isUsingSupabase: false,
           fallbackReason: `Supabase query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           connectionStatus: 'Query Error',
-          citiesAvailable: this.getStaticFallbackStops().filter(stop => stop.category === 'destination_city').length,
+          citiesAvailable: this.getStaticFallbackStops().length,
           lastUpdated: new Date()
         };
         
@@ -145,7 +90,7 @@ export class EnhancedSupabaseDataService {
         isUsingSupabase: false,
         fallbackReason: connectionStatus.error || 'Connection unavailable',
         connectionStatus: 'Disconnected',
-        citiesAvailable: this.getStaticFallbackStops().filter(stop => stop.category === 'destination_city').length,
+        citiesAvailable: this.getStaticFallbackStops().length,
         lastUpdated: new Date()
       };
       
@@ -154,13 +99,13 @@ export class EnhancedSupabaseDataService {
   }
 
   /**
-   * Get comprehensive static fallback data including Santa Fe
+   * Get static fallback data with only destination cities (no waypoints)
    */
   private static getStaticFallbackStops(): UnifiedTripStop[] {
-    console.log('📋 Enhanced: Using comprehensive static fallback data (includes Santa Fe)');
+    console.log('📋 Enhanced: Using static fallback data with destination cities only');
     
     return [
-      // CHICAGO TO ST. LOUIS
+      // ... keep existing code (static destination cities data) the same ...
       {
         id: "chicago-start",
         name: "Chicago",
@@ -222,8 +167,6 @@ export class EnhancedSupabaseDataService {
         longitude: -90.1994,
         is_major_stop: true
       },
-
-      // MISSOURI SECTION - Enhanced with all missing cities
       {
         id: "springfield-mo", 
         name: "Springfield",
@@ -249,8 +192,6 @@ export class EnhancedSupabaseDataService {
         longitude: -94.5133,
         is_major_stop: true
       },
-
-      // OKLAHOMA SECTION
       {
         id: "tulsa-ok",
         name: "Tulsa",
@@ -287,8 +228,6 @@ export class EnhancedSupabaseDataService {
         longitude: -99.4043,
         is_major_stop: true
       },
-
-      // TEXAS SECTION  
       {
         id: "shamrock-tx",
         name: "Shamrock",
@@ -313,8 +252,6 @@ export class EnhancedSupabaseDataService {
         longitude: -101.8313,
         is_major_stop: true
       },
-
-      // NEW MEXICO SECTION - Enhanced with complete Santa Fe branch
       {
         id: "tucumcari-nm",
         name: "Tucumcari",
@@ -339,8 +276,6 @@ export class EnhancedSupabaseDataService {
         longitude: -104.6819,
         is_major_stop: true
       },
-      
-      // *** SANTA FE - THE MISSING CITY ***
       {
         id: "santa-fe-nm",
         name: "Santa Fe", 
@@ -354,7 +289,6 @@ export class EnhancedSupabaseDataService {
         is_major_stop: true,
         is_official_destination: true
       },
-      
       {
         id: "albuquerque-nm",
         name: "Albuquerque",
@@ -379,8 +313,6 @@ export class EnhancedSupabaseDataService {
         longitude: -108.7426,
         is_major_stop: true
       },
-
-      // ARIZONA SECTION
       {
         id: "holbrook-az",
         name: "Holbrook", 
@@ -453,8 +385,6 @@ export class EnhancedSupabaseDataService {
         longitude: -114.0530,
         is_major_stop: true
       },
-
-      // CALIFORNIA SECTION
       {
         id: "needles-ca",
         name: "Needles",

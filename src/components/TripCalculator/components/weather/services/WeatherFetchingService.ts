@@ -1,6 +1,7 @@
 
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 import { GeocodingService } from '../../../services/GeocodingService';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { WeatherDataDebugger } from '../WeatherDataDebugger';
@@ -28,7 +29,7 @@ export class WeatherFetchingService {
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7; // PLAN: Standardized to 0-7
     
-    console.log('🔧 PLAN: WeatherFetchingService - STANDARDIZED FORECAST RANGE 0-7 WITH LOCAL DATES', {
+    console.log('🔧 PLAN: WeatherFetchingService - STANDARDIZED FORECAST RANGE 0-7 WITH FALLBACK ENABLED', {
       cityName: segmentEndCity,
       normalizedToday: normalizedToday.toISOString(),
       normalizedTodayLocal: normalizedToday.toLocaleDateString(),
@@ -39,28 +40,30 @@ export class WeatherFetchingService {
       shouldAttemptLiveForecast: isWithinForecastRange && this.weatherService.hasApiKey(),
       segmentDateString,
       dateCalculationMethod: 'DateNormalizationService_LOCAL',
-      forecastLogic: 'Days 0-7 = FORCE live forecast, Day 8+ = historical',
+      forecastLogic: 'Days 0-7 = TRY live forecast then fallback, Day 8+ = direct fallback',
       standardizedRange: true,
-      localDateCalculation: true
+      localDateCalculation: true,
+      fallbackEnabled: true
     });
 
-    // PLAN: For forecast range dates (0-7), skip cache completely and go straight to live forecast
+    // PLAN: For forecast range dates (0-7), attempt live forecast but fallback on failure
     if (isWithinForecastRange && this.weatherService.hasApiKey()) {
-      console.log('🔧 PLAN: FORCING live forecast attempt for STANDARDIZED forecast range date', {
+      console.log('🔧 PLAN: ATTEMPTING live forecast with fallback for forecast range date', {
         cityName: segmentEndCity,
         daysFromToday,
-        reason: 'within_0_to_7_day_range_MUST_attempt_live',
-        skippingCacheCompletely: true,
+        reason: 'within_0_to_7_day_range_attempt_live_then_fallback',
         standardizedForecastRange: true,
-        localDateCalculation: true
+        localDateCalculation: true,
+        fallbackEnabled: true
       });
 
       setLoading(true);
-      setError(null);
+      setError(null); // Clear any previous errors
 
       try {
         const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
         if (!coordinates) {
+          console.warn(`🌤️ No coordinates found for ${segmentEndCity}, using fallback weather`);
           throw new Error(`No coordinates found for ${segmentEndCity}`);
         }
 
@@ -68,10 +71,11 @@ export class WeatherFetchingService {
           coordinates,
           daysFromToday,
           isWithinForecastRange,
-          reason: 'standardized_forecast_range_date_MUST_use_live',
+          reason: 'standardized_forecast_range_date_with_fallback',
           normalizedDateUsed: true,
           localDateCalculation: true,
-          standardizedRange: true
+          standardizedRange: true,
+          fallbackEnabled: true
         });
 
         const weatherPromise = this.weatherService.getWeatherForDate(
@@ -96,18 +100,20 @@ export class WeatherFetchingService {
           shouldBeLiveForecast: isWithinForecastRange,
           normalizedDateUsed: true,
           standardizedForecastRangeEnforced: true,
-          localDateCalculation: true
+          localDateCalculation: true,
+          fallbackEnabled: true
         });
 
         if (weatherData) {
-          console.log('🔧 PLAN: Live forecast SUCCESS for standardized forecast range date', segmentEndCity, {
+          console.log('🔧 PLAN: Live forecast SUCCESS for forecast range date', segmentEndCity, {
             daysFromToday,
             source: weatherData.source,
             isActualForecast: weatherData.isActualForecast,
             temperature: weatherData.temperature,
             normalizedCalculation: true,
             standardizedForecastRangeEnforced: true,
-            localDateCalculation: true
+            localDateCalculation: true,
+            fallbackEnabled: true
           });
           
           WeatherDebugService.logForecastApiRawResponse(segmentEndCity, weatherData);
@@ -126,63 +132,102 @@ export class WeatherFetchingService {
             WeatherPersistenceService.storeWeatherData(segmentEndCity, normalizedSegmentDate, normalizedData);
             
             WeatherDataDebugger.debugWeatherFlow(
-              `WeatherFetchingService.success [${segmentEndCity}] - LIVE FORECAST ENFORCED STANDARDIZED RANGE`,
+              `WeatherFetchingService.success [${segmentEndCity}] - LIVE FORECAST SUCCESS`,
               {
                 isActualForecast: weatherData.isActualForecast,
                 source: weatherData.source,
                 daysFromToday,
-                liveForecastEnforced: true,
+                liveForecastSucceeded: true,
                 normalizedDateUsed: true,
                 standardizedForecastRangeEnforced: true,
-                localDateCalculation: true
+                localDateCalculation: true,
+                fallbackEnabled: true
               }
             );
 
             WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
             setWeather(weatherData);
-            console.log(`✅ PLAN: LIVE FORECAST SET for standardized forecast range date ${segmentEndCity}:`, normalizedData);
+            setLoading(false);
+            console.log(`✅ PLAN: LIVE FORECAST SET for forecast range date ${segmentEndCity}:`, normalizedData);
+            return; // Success - exit early
           } else {
-            console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}, using raw data`);
-            WeatherDebugService.logWeatherStateSet(segmentEndCity, weatherData);
-            setWeather(weatherData);
+            console.warn(`⚠️ Weather data normalization failed for ${segmentEndCity}, attempting fallback`);
+            throw new Error('Weather data normalization failed');
           }
         } else {
-          throw new Error('Live forecast returned null for standardized forecast range date');
+          throw new Error('Live forecast returned null');
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
         
-        console.error(`❌ PLAN: Live forecast failed for standardized forecast range date ${segmentEndCity}:`, err);
+        console.warn(`⚠️ PLAN: Live forecast failed for ${segmentEndCity}, using fallback weather:`, err);
         
         WeatherDataDebugger.debugWeatherFlow(
-          `WeatherFetchingService.error [${segmentEndCity}] - STANDARDIZED FORECAST RANGE LIVE ATTEMPT FAILED`,
+          `WeatherFetchingService.liveFailed [${segmentEndCity}] - USING FALLBACK`,
           { 
             error: errorMessage, 
             hasApiKey: this.weatherService.hasApiKey(), 
             daysFromToday, 
             standardizedForecastRangeEnforced: true,
-            localDateCalculation: true 
+            localDateCalculation: true,
+            fallbackEnabled: true,
+            fallbackReason: 'live_forecast_failed'
           }
         );
         
-        console.error(`❌ Weather fetch error for standardized forecast range date ${segmentEndCity} on ${segmentDateString}:`, err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+        // DON'T set error - instead use fallback weather
+        console.log(`🔧 PLAN: FALLBACK WEATHER for failed live forecast ${segmentEndCity}`);
+        
+        try {
+          const fallbackWeather = WeatherFallbackService.createFallbackForecast(
+            segmentEndCity,
+            normalizedSegmentDate,
+            segmentDateString,
+            daysFromToday
+          );
+          
+          // Add debug footer for fallback due to location error
+          const enhancedFallbackWeather = {
+            ...fallbackWeather,
+            source: 'historical_fallback' as const,
+            dateMatchInfo: {
+              ...fallbackWeather.dateMatchInfo,
+              source: 'fallback_historical_due_to_location_error' as const
+            }
+          };
+
+          console.log(`✅ PLAN: FALLBACK WEATHER SUCCESS for ${segmentEndCity}:`, {
+            temperature: enhancedFallbackWeather.temperature,
+            source: enhancedFallbackWeather.source,
+            isActualForecast: enhancedFallbackWeather.isActualForecast,
+            fallbackReason: 'live_forecast_failed'
+          });
+
+          WeatherDebugService.logWeatherStateSet(segmentEndCity, enhancedFallbackWeather);
+          setWeather(enhancedFallbackWeather);
+          setLoading(false);
+          // DON'T set error - weather fallback worked
+          return;
+        } catch (fallbackErr) {
+          console.error(`❌ PLAN: Both live forecast AND fallback failed for ${segmentEndCity}:`, fallbackErr);
+          setError(`Weather service temporarily unavailable for ${segmentEndCity}`);
+          setLoading(false);
+          return;
+        }
       }
-      return;
     }
 
-    // PLAN: Only check cache for dates beyond standardized forecast range OR when no API key
+    // PLAN: For beyond forecast range OR no API key, use cached or fallback directly
     if (!isWithinForecastRange || !this.weatherService.hasApiKey()) {
       const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, normalizedSegmentDate);
       if (cachedWeather) {
-        console.log('💾 PLAN: Using cached weather data for beyond-standardized-forecast-range date', segmentEndCity, {
+        console.log('💾 PLAN: Using cached weather data for beyond-forecast-range date', segmentEndCity, {
           reason: !isWithinForecastRange ? 'beyond_standardized_forecast_range' : 'no_api_key',
           daysFromToday,
           isWithinForecastRange,
           standardizedRange: true,
-          localDateCalculation: true
+          localDateCalculation: true,
+          fallbackEnabled: true
         });
         
         const forecastData: ForecastWeatherData = {
@@ -206,16 +251,43 @@ export class WeatherFetchingService {
         setWeather(forecastData);
         return;
       }
+
+      // Use fallback weather directly for beyond forecast range
+      console.log(`🔧 PLAN: DIRECT FALLBACK for beyond-forecast-range date ${segmentEndCity}`);
+      
+      try {
+        const fallbackWeather = WeatherFallbackService.createFallbackForecast(
+          segmentEndCity,
+          normalizedSegmentDate,
+          segmentDateString,
+          daysFromToday
+        );
+
+        console.log(`✅ PLAN: DIRECT FALLBACK SUCCESS for ${segmentEndCity}:`, {
+          temperature: fallbackWeather.temperature,
+          source: fallbackWeather.source,
+          isActualForecast: fallbackWeather.isActualForecast,
+          reason: !isWithinForecastRange ? 'beyond_forecast_range' : 'no_api_key'
+        });
+
+        WeatherDebugService.logWeatherStateSet(segmentEndCity, fallbackWeather);
+        setWeather(fallbackWeather);
+        return;
+      } catch (fallbackErr) {
+        console.error(`❌ PLAN: Direct fallback failed for ${segmentEndCity}:`, fallbackErr);
+        setError(`Weather service configuration error for ${segmentEndCity}`);
+        return;
+      }
     }
 
-    // This should never be reached for standardized forecast range dates with API key
-    console.error(`❌ PLAN ERROR: Reached fallback path for standardized forecast range date ${segmentEndCity}`, {
+    // This should never be reached
+    console.error(`❌ PLAN ERROR: Unexpected code path for ${segmentEndCity}`, {
       daysFromToday,
       isWithinForecastRange,
       hasApiKey: this.weatherService.hasApiKey(),
-      shouldNotReachHere: isWithinForecastRange && this.weatherService.hasApiKey(),
       standardizedRange: true,
-      localDateCalculation: true
+      localDateCalculation: true,
+      fallbackEnabled: true
     });
 
     setError(`Weather service configuration error for ${segmentEndCity}`);
