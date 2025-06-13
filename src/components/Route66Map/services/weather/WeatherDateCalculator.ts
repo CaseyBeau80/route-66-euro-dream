@@ -2,7 +2,7 @@
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDateCalculator {
-  private static readonly FORECAST_THRESHOLD_DAYS = 7; // PLAN IMPLEMENTATION: Changed from 5 to 7
+  private static readonly FORECAST_THRESHOLD_DAYS = 5; // FIXED: Back to 5 days for reliable API forecasts
 
   static calculateDaysFromToday(targetDate: Date): {
     normalizedTargetDate: Date;
@@ -10,22 +10,21 @@ export class WeatherDateCalculator {
     daysFromToday: number;
     isWithinForecastRange: boolean;
   } {
-    // PLAN IMPLEMENTATION: Normalize the target date to local midnight
+    // Normalize the target date to local midnight
     const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
     const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
     
-    // PLAN IMPLEMENTATION: Normalize today's date to local midnight for consistent comparison
+    // Normalize today's date to local midnight for consistent comparison
     const today = new Date();
     const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
     
-    // PLAN IMPLEMENTATION: Calculate days from today using normalized local dates
+    // Calculate days from today using normalized local dates
     const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
     
-    // PLAN IMPLEMENTATION: Days 0-7 = forecast range (today through 7 days out), Day 8+ = historical
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
+    // FIXED: Days 0-5 = forecast range (today through 5 days out), Day 6+ = historical
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // PLAN IMPLEMENTATION: Enhanced debug output
-    console.log('🔧 PLAN: WeatherDateCalculator.calculateDaysFromToday - EXPANDED FORECAST RANGE 0-7', {
+    console.log('🔧 FIXED: WeatherDateCalculator.calculateDaysFromToday - CORRECTED FORECAST RANGE 0-5', {
       input: {
         originalTargetDate: targetDate.toISOString(),
         originalTargetLocal: targetDate.toLocaleDateString(),
@@ -43,13 +42,13 @@ export class WeatherDateCalculator {
         daysFromToday,
         isWithinForecastRange,
         forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        logic: 'Days 0-7 = LIVE FORECAST, Day 8+ = historical',
-        expandedRange: true
+        logic: 'Days 0-5 = LIVE FORECAST, Day 6+ = historical',
+        correctedRange: true
       },
       decision: {
         useCase: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
-        reason: isWithinForecastRange ? 'within_8_day_range' : 'beyond_8_day_range',
-        forecastRangeExpanded: true
+        reason: isWithinForecastRange ? 'within_5_day_range' : 'beyond_5_day_range',
+        forecastRangeCorrected: true
       }
     });
 

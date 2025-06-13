@@ -1,4 +1,3 @@
-
 import { DateNormalizationService } from '../DateNormalizationService';
 
 export class WeatherPersistenceService {
@@ -52,14 +51,14 @@ export class WeatherPersistenceService {
       const cacheAge = now - cacheEntry.timestamp;
       const maxAge = this.CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
-      // PLAN IMPLEMENTATION: Use DateNormalizationService for consistent LOCAL date calculations
+      // Use DateNormalizationService for consistent LOCAL date calculations
       const today = new Date();
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
       const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(date);
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
-      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7; // PLAN IMPLEMENTATION: Expanded to 0-7
+      const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5; // FIXED: Back to 0-5 range
 
-      console.log('💾 PLAN: WeatherPersistenceService cache decision with EXPANDED forecast range 0-7', {
+      console.log('💾 FIXED: WeatherPersistenceService cache decision with CORRECTED forecast range 0-5', {
         cacheKey,
         normalizedToday: normalizedToday.toISOString(),
         normalizedTodayLocal: normalizedToday.toLocaleDateString(),
@@ -67,21 +66,21 @@ export class WeatherPersistenceService {
         normalizedTargetLocal: normalizedTargetDate.toLocaleDateString(),
         daysFromToday,
         isWithinForecastRange,
-        forecastRange: 'Days 0-7 = FORCE live forecast attempt, Day 8+ = allow cache',
-        expandedRange: true,
+        forecastRange: 'Days 0-5 = FORCE live forecast attempt, Day 6+ = allow cache',
+        correctedRange: true,
         localDateCalculation: true,
         cacheDecision: isWithinForecastRange ? 'FORCE_SKIP_CACHE_FOR_LIVE_ATTEMPT' : 'USE_CACHE_IF_VALID'
       });
 
-      // PLAN IMPLEMENTATION: NEVER return cached data for forecast range dates (0-7)
-      // This forces the system to attempt live forecasts for days 0-7
+      // NEVER return cached data for forecast range dates (0-5)
+      // This forces the system to attempt live forecasts for days 0-5
       if (isWithinForecastRange) {
-        console.log('💾 PLAN: FORCING cache skip for expanded forecast range date to ensure live forecast attempt', {
+        console.log('💾 FIXED: FORCING cache skip for forecast range date to ensure live forecast attempt', {
           cacheKey,
           daysFromToday,
           isWithinForecastRange,
-          reason: 'within_0_to_7_day_forecast_range_MUST_attempt_live',
-          expandedForecastRange: true,
+          reason: 'within_0_to_5_day_forecast_range_MUST_attempt_live',
+          correctedForecastRange: true,
           localDateCalculation: true
         });
         return null;
@@ -102,7 +101,7 @@ export class WeatherPersistenceService {
         temperature: cacheEntry.data.temperature,
         daysFromToday,
         reason: 'beyond_forecast_range_and_cache_valid',
-        expandedForecastRange: true
+        correctedForecastRange: true
       });
 
       return cacheEntry.data;
