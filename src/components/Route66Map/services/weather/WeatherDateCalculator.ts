@@ -2,7 +2,7 @@
 import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
 
 export class WeatherDateCalculator {
-  private static readonly FORECAST_THRESHOLD_DAYS = 5;
+  private static readonly FORECAST_THRESHOLD_DAYS = 6;
 
   static calculateDaysFromToday(targetDate: Date): {
     normalizedTargetDate: Date;
@@ -20,11 +20,11 @@ export class WeatherDateCalculator {
     // Calculate days from today (can be negative for past dates)
     const daysFromToday = Math.floor((normalizedTargetDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
     
-    // SIMPLE LOGIC: Today through Day 5 = forecast range (0, 1, 2, 3, 4, 5)
-    // Day 6 and beyond = historical weather
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
+    // FIXED LOGIC: Today through Day 6 = forecast range (0, 1, 2, 3, 4, 5, 6)
+    // Day 7 and beyond = historical weather
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6;
     
-    console.log('🔧 FIXED: WeatherDateCalculator SIMPLIFIED logic', {
+    console.log('🔧 FIXED: WeatherDateCalculator CORRECTED off-by-one logic', {
       originalDate: targetDate.toISOString(),
       normalizedDate: normalizedTargetDate.toISOString(),
       targetDateString,
@@ -33,7 +33,7 @@ export class WeatherDateCalculator {
       daysFromToday,
       isWithinForecastRange,
       forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-      logic: `Days 0-5 = forecast, Day 6+ = historical`
+      logic: `Days 0-6 = forecast, Day 7+ = historical`
     });
 
     return {

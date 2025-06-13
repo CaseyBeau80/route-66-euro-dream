@@ -33,10 +33,10 @@ export class WeatherForecastService {
   constructor(apiKey: string) {
     this.apiHandler = new WeatherForecastApiHandler(apiKey);
     
-    console.log('🔧 SIMPLIFIED: WeatherForecastService with clear 5-day logic', {
+    console.log('🔧 FIXED: WeatherForecastService with corrected 7-day logic', {
       hasApiKey: !!apiKey,
-      forecastRange: 'Days 0-5 (inclusive)',
-      historicalRange: 'Day 6 and beyond',
+      forecastRange: 'Days 0-6 (inclusive)',
+      historicalRange: 'Day 7 and beyond',
       timestamp: new Date().toISOString()
     });
   }
@@ -47,7 +47,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🎯 SIMPLIFIED: WeatherForecastService.getWeatherForDate', {
+    console.log('🎯 FIXED: WeatherForecastService.getWeatherForDate', {
       cityName,
       targetDate: targetDate.toISOString()
     });
@@ -55,17 +55,17 @@ export class WeatherForecastService {
     const dateInfo = WeatherDateCalculator.calculateDaysFromToday(targetDate);
     const { normalizedTargetDate, targetDateString, daysFromToday, isWithinForecastRange } = dateInfo;
 
-    console.log('🎯 SIMPLIFIED: Date range decision for', cityName, {
+    console.log('🎯 FIXED: Date range decision for', cityName, {
       targetDateString,
       daysFromToday,
       isWithinForecastRange,
       decision: isWithinForecastRange ? 'USE_LIVE_FORECAST' : 'USE_HISTORICAL_FALLBACK'
     });
 
-    // CLEAR LOGIC: If within 0-5 days, try live forecast
+    // CORRECTED LOGIC: If within 0-6 days, try live forecast
     if (isWithinForecastRange) {
-      console.log('📡 SIMPLIFIED: Attempting live forecast for', cityName, {
-        reason: 'within_5_day_range',
+      console.log('📡 FIXED: Attempting live forecast for', cityName, {
+        reason: 'within_7_day_range',
         daysFromToday
       });
 
@@ -90,7 +90,7 @@ export class WeatherForecastService {
           }
         };
         
-        console.log('✅ SIMPLIFIED: Live forecast SUCCESS for', cityName, {
+        console.log('✅ FIXED: Live forecast SUCCESS for', cityName, {
           daysFromToday,
           temperature: enhancedForecast.temperature,
           source: enhancedForecast.source,
@@ -100,10 +100,10 @@ export class WeatherForecastService {
         return enhancedForecast;
       }
       
-      console.log('⚠️ SIMPLIFIED: Live forecast failed, falling back to historical for', cityName);
+      console.log('⚠️ FIXED: Live forecast failed, falling back to historical for', cityName);
     } else {
-      console.log('📊 SIMPLIFIED: Using historical weather for', cityName, {
-        reason: 'beyond_5_day_range',
+      console.log('📊 FIXED: Using historical weather for', cityName, {
+        reason: 'beyond_7_day_range',
         daysFromToday
       });
     }
@@ -116,7 +116,7 @@ export class WeatherForecastService {
       daysFromToday
     );
     
-    console.log('📊 SIMPLIFIED: Historical fallback applied for', cityName, {
+    console.log('📊 FIXED: Historical fallback applied for', cityName, {
       daysFromToday,
       source: fallbackForecast.source,
       isActualForecast: fallbackForecast.isActualForecast
