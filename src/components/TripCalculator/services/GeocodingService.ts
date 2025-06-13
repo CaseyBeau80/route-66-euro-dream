@@ -1,4 +1,3 @@
-
 export class GeocodingService {
   private static coordinates: { [key: string]: { lat: number; lng: number } } = {
     // Illinois cities
@@ -58,7 +57,6 @@ export class GeocodingService {
     'Sorento, IL': { lat: 39.0283, lng: -89.5712 },
     'Hillsboro, IL': { lat: 39.1614, lng: -89.4931 },
     'Butler, IL': { lat: 39.2028, lng: -89.5334 },
-    'Litchfield, IL': { lat: 39.1753, lng: -89.6542 },
 
     // Missouri cities
     'St. Louis, MO': { lat: 38.6270, lng: -90.1994 },
