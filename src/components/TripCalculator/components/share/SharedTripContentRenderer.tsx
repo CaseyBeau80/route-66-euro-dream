@@ -25,6 +25,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     distance: s.distance,
     drivingTime: s.drivingTime,
     driveTimeHours: s.driveTimeHours,
+    approximateMiles: s.approximateMiles,
     allProperties: Object.keys(s)
   })));
 
@@ -46,10 +47,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       day: segment.day,
       drivingTime: segment.drivingTime,
       driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance
+      distance: segment.distance,
+      approximateMiles: segment.approximateMiles
     });
     
-    // Try multiple possible properties for driving time
+    // Try multiple possible properties for driving time in order of preference
     const possibleTimes = [
       segment.drivingTime,
       segment.driveTimeHours
@@ -63,10 +65,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     }
     
     // Fallback: calculate from distance if available
-    if (segment.distance && typeof segment.distance === 'number' && !isNaN(segment.distance)) {
+    const distance = segment.distance || segment.approximateMiles;
+    if (distance && typeof distance === 'number' && !isNaN(distance) && distance > 0) {
       // Assume average speed of 55 mph for Route 66
-      const calculatedTime = segment.distance / 55;
-      console.log('🚗 Calculated driving time from distance:', calculatedTime);
+      const calculatedTime = distance / 55;
+      console.log('🚗 Calculated driving time from distance:', calculatedTime, 'from distance:', distance);
       return calculatedTime;
     }
     
@@ -153,10 +156,17 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           const drivingHours = Math.floor(drivingTime);
           const drivingMinutes = Math.round((drivingTime - drivingHours) * 60);
           const drivingTimeDisplay = drivingHours > 0 ? 
-            `${drivingHours}h ${drivingMinutes > 0 ? drivingMinutes + 'm' : ''}` : 
+            `${drivingHours}h${drivingMinutes > 0 ? ` ${drivingMinutes}m` : ''}` : 
             `${drivingMinutes}m`;
 
-          console.log('🚗 Final driving time display for day', segment.day, ':', drivingTimeDisplay);
+          console.log('🚗 Final driving time display for day', segment.day, ':', {
+            originalTime: drivingTime,
+            hours: drivingHours,
+            minutes: drivingMinutes,
+            display: drivingTimeDisplay
+          });
+
+          const distance = segment.distance || segment.approximateMiles || 0;
 
           return (
             <div key={`preview-day-${segment.day}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -177,7 +187,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                 )}
               </div>
               <p className="text-xs text-gray-600">
-                {Math.round(segment.distance || 0)} miles • {drivingTimeDisplay} driving
+                {Math.round(distance)} miles • {drivingTimeDisplay} driving
               </p>
             </div>
           );
