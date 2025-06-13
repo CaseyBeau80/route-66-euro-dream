@@ -3,6 +3,7 @@ import React from 'react';
 import { EnhancedWeatherService } from '@/components/Route66Map/services/weather/EnhancedWeatherService';
 import { DateNormalizationService } from '../DateNormalizationService';
 import { SimpleWeatherActions } from './useSimpleWeatherState';
+import { GeocodingService } from '../../../services/GeocodingService';
 
 interface UseWeatherDataFetcherProps {
   segmentEndCity: string;
@@ -31,8 +32,16 @@ export const useWeatherDataFetcher = ({
       actions.setLoading(true);
       actions.setError(null);
 
-      // Use the correct method name - getWeatherForDate
+      // Get coordinates for the city
+      const coordinates = GeocodingService.getCoordinatesForCity(segmentEndCity);
+      if (!coordinates) {
+        throw new Error(`No coordinates found for ${segmentEndCity}`);
+      }
+
+      // Use the correct method signature with 4 arguments: lat, lng, cityName, date
       const weatherData = await weatherService.getWeatherForDate(
+        coordinates.lat,
+        coordinates.lng,
         segmentEndCity,
         segmentDate
       );
