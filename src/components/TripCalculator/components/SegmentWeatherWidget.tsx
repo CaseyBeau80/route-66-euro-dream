@@ -159,7 +159,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     setWeather: weatherState.setWeather,
     setLoading: weatherState.setLoading,
     setError: weatherState.setError,
-    setRetryCount: weatherState.setRetryCount
+    setRetryCount: weatherState.incrementRetry
   });
 
   // PLAN IMPLEMENTATION: Enhanced weather handlers initialization logging

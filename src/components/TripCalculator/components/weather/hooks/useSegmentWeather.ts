@@ -15,7 +15,7 @@ interface UseSegmentWeatherProps {
   setWeather: (weather: ForecastWeatherData | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setRetryCount: (count: number) => void;
+  setRetryCount: () => void; // This is actually incrementRetry
 }
 
 export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
@@ -30,7 +30,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     setWeather,
     setLoading,
     setError,
-    setRetryCount
+    setRetryCount: incrementRetry
   } = props;
 
   // FIXED: Memoize the fetch function to prevent recreation on every render
@@ -98,32 +98,32 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     // Clear existing data and refetch
     setWeather(null);
     setError(null);
-    setRetryCount(0);
+    incrementRetry(); // Reset retry count to 0
     
     // Fetch will be triggered by the effect above when weather becomes null
-  }, [segmentEndCity, setWeather, setError, setRetryCount]);
+  }, [segmentEndCity, setWeather, setError, incrementRetry]);
 
   const handleTimeout = React.useCallback(() => {
     console.log('🔧 useSegmentWeather: handleTimeout called for', segmentEndCity);
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.handleTimeout [${segmentEndCity}]`, { retryCount });
     
     if (retryCount < 2) {
-      setRetryCount(retryCount + 1);
+      incrementRetry();
       fetchWeather();
     } else {
       setError('Weather service timeout - please try again later');
       setLoading(false);
     }
-  }, [segmentEndCity, retryCount, setRetryCount, setError, setLoading, fetchWeather]);
+  }, [segmentEndCity, retryCount, incrementRetry, setError, setLoading, fetchWeather]);
 
   const handleRetry = React.useCallback(() => {
     console.log('🔧 useSegmentWeather: handleRetry called for', segmentEndCity);
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.handleRetry [${segmentEndCity}]`, { retryCount });
     
     setError(null);
-    setRetryCount(0);
+    incrementRetry(); // Reset retry count to 0
     fetchWeather();
-  }, [segmentEndCity, setError, setRetryCount, fetchWeather]);
+  }, [segmentEndCity, setError, incrementRetry, fetchWeather]);
 
   return {
     handleApiKeySet,

@@ -3,10 +3,10 @@ import { EnhancedWeatherService as MainEnhancedWeatherService } from '@/componen
 
 export class EnhancedWeatherService {
   static hasApiKey(): boolean {
-    return MainEnhancedWeatherService.hasApiKey();
+    return MainEnhancedWeatherService.getInstance().hasApiKey();
   }
   
   static getApiKey(): string | null {
-    return MainEnhancedWeatherService.getApiKey();
+    return MainEnhancedWeatherService.getInstance().getApiKey();
   }
 }
