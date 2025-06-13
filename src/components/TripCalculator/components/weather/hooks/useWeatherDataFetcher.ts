@@ -16,6 +16,7 @@ interface UseWeatherDataFetcherProps {
     setError: (error: string | null) => void;
     retryCount: number;
     incrementRetry: () => void;
+    reset: () => void;
   };
 }
 
