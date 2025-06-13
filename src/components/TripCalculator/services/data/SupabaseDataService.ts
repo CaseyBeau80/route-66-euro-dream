@@ -20,11 +20,11 @@ export class SupabaseDataService {
       description: stop.description || `Discover ${stop.name || 'this location'} along your Route 66 journey`,
       category: 'destination_city', // Always destination_city
       city_name: stop.city_name || 'Unknown',
-      city: stop.city || stop.city_name || 'Unknown City',
+      city: stop.city_name || 'Unknown City', // Use city_name for city property
       state: stop.state || 'Unknown',
       latitude: stop.latitude || 0,
       longitude: stop.longitude || 0,
-      image_url: stop.image_url,
+      image_url: stop.image_url || undefined, // Handle optional image_url
       is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
       is_official_destination: stop.is_official_destination || false
     }));
