@@ -4,6 +4,7 @@ import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
+import WeatherErrorBoundary from '../weather/WeatherErrorBoundary';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -18,17 +19,12 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('📤 SharedTripContentRenderer: Rendering shared content with RAMBLE 66 branding');
-  console.log('📤 TripPlan segments data:', tripPlan.segments?.map(s => ({
-    day: s.day,
-    startCity: s.startCity,
-    endCity: s.endCity,
-    distance: s.distance,
-    drivingTime: s.drivingTime,
-    driveTimeHours: s.driveTimeHours,
-    approximateMiles: s.approximateMiles,
-    allProperties: Object.keys(s)
-  })));
+  console.log('📤 SharedTripContentRenderer: Rendering shared content with RAMBLE 66 branding and weather widgets');
+  console.log('📤 SharedTripContentRenderer: Props:', {
+    isSharedView,
+    hasStartDate: !!tripStartDate,
+    segmentsCount: tripPlan.segments?.length
+  });
 
   // Get cost estimate for the trip
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -44,15 +40,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   // Helper function to safely get driving time
   const getDrivingTime = (segment: any): number => {
-    console.log('🚗 Getting driving time for segment:', {
-      day: segment.day,
-      drivingTime: segment.drivingTime,
-      driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance,
-      approximateMiles: segment.approximateMiles
-    });
-    
-    // Try multiple possible properties for driving time in order of preference
     const possibleTimes = [
       segment.drivingTime,
       segment.driveTimeHours
@@ -60,7 +47,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     
     for (const time of possibleTimes) {
       if (typeof time === 'number' && !isNaN(time) && time > 0) {
-        console.log('🚗 Found valid driving time:', time);
         return time;
       }
     }
@@ -68,18 +54,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
     // Fallback: calculate from distance if available
     const distance = segment.distance || segment.approximateMiles;
     if (distance && typeof distance === 'number' && !isNaN(distance) && distance > 0) {
-      // Assume average speed of 55 mph for Route 66
-      const calculatedTime = distance / 55;
-      console.log('🚗 Calculated driving time from distance:', calculatedTime, 'from distance:', distance);
-      return calculatedTime;
+      return distance / 55; // Assume average speed of 55 mph for Route 66
     }
     
-    // Final fallback
-    console.log('🚗 No valid driving time found, returning 0');
     return 0;
   };
 
-  // Helper function to format drive time like PDF export
+  // Helper function to format drive time
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
@@ -94,7 +75,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* Header with RAMBLE 66 branding - UPDATED */}
+      {/* Header with RAMBLE 66 branding */}
       <div className="text-center mb-6 p-6 bg-gradient-to-r from-route66-primary to-route66-rust rounded-lg">
         <div className="flex items-center justify-center gap-2 mb-3">
           <div className="bg-white rounded-full p-2">
@@ -112,7 +93,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </h2>
       </div>
 
-      {/* Trip Overview Header with Cost Integration */}
+      {/* Trip Overview with Cost Integration */}
       <div className="mb-8 p-6 bg-gradient-to-r from-route66-cream to-route66-vintage-beige rounded-lg border-2 border-route66-vintage-brown">
         <h2 className="text-xl font-bold text-route66-vintage-red mb-4 font-route66 text-center">
           🛣️ YOUR ROUTE 66 JOURNEY OVERVIEW
@@ -134,7 +115,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(tripPlan.totalDistance)}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Historic Miles</div>
           </div>
-          {/* Estimated Cost Card - Only show if cost estimate is available */}
           {costEstimate && (
             <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
               <div className="font-bold text-route66-vintage-red text-lg font-route66">
@@ -152,7 +132,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             the heart of Route 66, featuring historic landmarks, classic diners, vintage motels, and unforgettable 
             roadside attractions that define the spirit of the open road.
           </p>
-          {/* Cost breakdown summary if available */}
           {costEstimate && (
             <div className="mt-3 pt-3 border-t border-route66-tan">
               <p className="text-xs text-route66-vintage-brown font-travel">
@@ -204,7 +183,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
               {/* Day Content */}
               <div className="p-4 space-y-4">
-                {/* Stats Grid - Same format as PDF export */}
+                {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center p-3 bg-gray-50 rounded border">
                     <div className="text-lg font-bold text-blue-600">
@@ -235,14 +214,21 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   </div>
                 </div>
 
-                {/* Weather Widget for this segment */}
-                <SegmentWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  cardIndex={index}
-                  sectionKey="shared-view"
-                  isCollapsible={true}
-                />
+                {/* Weather Widget with Error Boundary */}
+                <WeatherErrorBoundary 
+                  segmentEndCity={segment.endCity}
+                  fallbackMessage={`Weather information for ${segment.endCity} temporarily unavailable`}
+                >
+                  <SegmentWeatherWidget
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    cardIndex={index}
+                    sectionKey="shared-trip-view"
+                    isCollapsible={true}
+                    isSharedView={isSharedView}
+                    isPDFExport={false}
+                  />
+                </WeatherErrorBoundary>
               </div>
             </div>
           );
