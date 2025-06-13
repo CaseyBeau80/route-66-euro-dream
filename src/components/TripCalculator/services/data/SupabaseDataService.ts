@@ -24,7 +24,7 @@ export class SupabaseDataService {
       state: stop.state || 'Unknown',
       latitude: stop.latitude || 0,
       longitude: stop.longitude || 0,
-      image_url: stop.image_url || undefined, // Handle optional image_url
+      image_url: stop.image_url, // This property now exists in mock data
       is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
       is_official_destination: stop.is_official_destination || false
     }));
@@ -76,7 +76,8 @@ const mockDestinationCitiesData = [
     latitude: 41.8781,
     longitude: -87.6298,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'springfield-il',
@@ -87,7 +88,8 @@ const mockDestinationCitiesData = [
     latitude: 39.7817,
     longitude: -89.6501,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'st-louis-mo',
@@ -98,7 +100,8 @@ const mockDestinationCitiesData = [
     latitude: 38.6270,
     longitude: -90.1994,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'joplin-mo',
@@ -109,7 +112,8 @@ const mockDestinationCitiesData = [
     latitude: 37.0842,
     longitude: -94.5133,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'tulsa-ok',
@@ -120,7 +124,8 @@ const mockDestinationCitiesData = [
     latitude: 36.1540,
     longitude: -95.9928,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'oklahoma-city-ok',
@@ -131,7 +136,8 @@ const mockDestinationCitiesData = [
     latitude: 35.4676,
     longitude: -97.5164,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'amarillo-tx',
@@ -142,7 +148,8 @@ const mockDestinationCitiesData = [
     latitude: 35.2220,
     longitude: -101.8313,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'albuquerque-nm',
@@ -153,7 +160,8 @@ const mockDestinationCitiesData = [
     latitude: 35.0844,
     longitude: -106.6504,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'santa-fe-nm',
@@ -164,7 +172,8 @@ const mockDestinationCitiesData = [
     latitude: 35.6870,
     longitude: -105.9378,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'flagstaff-az',
@@ -175,7 +184,8 @@ const mockDestinationCitiesData = [
     latitude: 35.1983,
     longitude: -111.6513,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'williams-az',
@@ -186,7 +196,8 @@ const mockDestinationCitiesData = [
     latitude: 35.2494,
     longitude: -112.1901,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'kingman-az',
@@ -197,7 +208,8 @@ const mockDestinationCitiesData = [
     latitude: 35.1895,
     longitude: -114.0530,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'needles-ca',
@@ -208,7 +220,8 @@ const mockDestinationCitiesData = [
     latitude: 34.8481,
     longitude: -114.6142,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'barstow-ca',
@@ -219,7 +232,8 @@ const mockDestinationCitiesData = [
     latitude: 34.8958,
     longitude: -117.0228,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'san-bernardino-ca',
@@ -230,7 +244,8 @@ const mockDestinationCitiesData = [
     latitude: 34.1083,
     longitude: -117.2898,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'los-angeles-ca',
@@ -241,7 +256,8 @@ const mockDestinationCitiesData = [
     latitude: 34.0522,
     longitude: -118.2437,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   },
   {
     id: 'santa-monica-ca',
@@ -252,6 +268,7 @@ const mockDestinationCitiesData = [
     latitude: 34.0195,
     longitude: -118.4912,
     is_major_stop: true,
-    is_official_destination: true
+    is_official_destination: true,
+    image_url: undefined
   }
 ];
