@@ -1,4 +1,3 @@
-
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -65,7 +64,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data with only Route 66 destination cities
+// Mock data with enhanced Route 66 destination cities including missing ones
 const mockDestinationCitiesData = [
   {
     id: 'chicago-il',
@@ -267,6 +266,78 @@ const mockDestinationCitiesData = [
     description: 'Western terminus of Route 66 at the famous Santa Monica Pier.',
     latitude: 34.0195,
     longitude: -118.4912,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'shamrock-tx',
+    name: 'Shamrock, TX',
+    city_name: 'Shamrock',
+    state: 'Texas',
+    description: 'Historic Texas Route 66 town known for its Irish heritage and water tower.',
+    latitude: 35.2070,
+    longitude: -100.2437,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'tucumcari-nm',
+    name: 'Tucumcari, NM',
+    city_name: 'Tucumcari',
+    state: 'New Mexico',
+    description: 'Famous Route 66 town with vintage neon signs and classic motels.',
+    latitude: 35.1717,
+    longitude: -103.7250,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'gallup-nm',
+    name: 'Gallup, NM',
+    city_name: 'Gallup',
+    state: 'New Mexico',
+    description: 'Trading post town and gateway to Native American country.',
+    latitude: 35.5281,
+    longitude: -108.7426,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'holbrook-az',
+    name: 'Holbrook, AZ',
+    city_name: 'Holbrook',
+    state: 'Arizona',
+    description: 'Home to the famous Wigwam Motel and Petrified Forest National Park.',
+    latitude: 34.9025,
+    longitude: -110.1618,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'winslow-az',
+    name: 'Winslow, AZ',
+    city_name: 'Winslow',
+    state: 'Arizona',
+    description: 'Famous for the Eagles song "Take It Easy" and historic downtown.',
+    latitude: 35.0242,
+    longitude: -110.6974,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'seligman-az',
+    name: 'Seligman, AZ',
+    city_name: 'Seligman',
+    state: 'Arizona',
+    description: 'Birthplace of Historic Route 66 with classic roadside attractions.',
+    latitude: 35.3258,
+    longitude: -112.8738,
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined

@@ -23,12 +23,12 @@ export class WeatherFetchingService {
     onError: (error: string | null) => void,
     onWeatherSet: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
-    console.log('🔧 PLAN: WeatherFetchingService.fetchWeatherForSegment - ENHANCED PROCESSING', {
+    console.log('🔧 ENHANCED: WeatherFetchingService.fetchWeatherForSegment - IMPROVED GEOCODING', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       hasApiKey: EnhancedWeatherService.hasApiKey(),
       timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-      planImplementation: true
+      enhancedGeocoding: true
     });
 
     // Cancel any existing request for this city to prevent race conditions
@@ -41,16 +41,16 @@ export class WeatherFetchingService {
     this.activeRequests.set(requestKey, abortController);
 
     try {
-      // PLAN IMPLEMENTATION: Enhanced date calculation with consistent normalization
+      // ENHANCED: Date calculation with consistent normalization
       const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(new Date());
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
       const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
 
-      // PLAN IMPLEMENTATION: ENHANCED forecast range logic (0-7 days)
+      // ENHANCED: Forecast range logic (0-7 days for live forecast)
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('🔧 PLAN: Enhanced date calculations for forecast range determination', {
+      console.log('🔧 ENHANCED: Date calculations with improved geocoding fallback', {
         cityName,
         normalizedSegmentDate: normalizedSegmentDate.toISOString(),
         normalizedToday: normalizedToday.toISOString(),
@@ -58,8 +58,7 @@ export class WeatherFetchingService {
         isWithinForecastRange,
         forecastRange: 'Days 0-7 = LIVE FORECAST attempt, Day 8+ = immediate historical',
         segmentDateString,
-        day2SpecialCase: daysFromToday === 1 ? 'THIS_IS_DAY_2_ENHANCED_PROCESSING' : 'other_day',
-        planImplementation: true
+        improvedGeocoding: true
       });
 
       // Set loading state
@@ -68,25 +67,52 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 PLAN: Request aborted for', cityName);
+        console.log('🔧 ENHANCED: Request aborted for', cityName);
         return;
       }
 
-      // PLAN IMPLEMENTATION: Enhanced live forecast attempt for forecast range (0-7 days)
+      // ENHANCED: Always attempt geocoding first to verify coordinates exist
+      console.log('🗺️ ENHANCED: Pre-checking coordinates for', cityName);
+      const coordinates = await GeocodingService.getCoordinates(cityName);
+      
+      if (!coordinates) {
+        console.warn('⚠️ ENHANCED: No coordinates found for', cityName, '- using location-based fallback');
+        
+        // Use location error fallback immediately if no coordinates
+        const locationErrorFallback = WeatherFallbackService.createFallbackForecast(
+          cityName,
+          normalizedSegmentDate,
+          segmentDateString,
+          daysFromToday
+        );
+        
+        // Check if request was aborted
+        if (abortController.signal.aborted) {
+          console.log('🔧 ENHANCED: Request aborted after location error fallback for', cityName);
+          return;
+        }
+        
+        onLoadingChange(false);
+        onWeatherSet(locationErrorFallback);
+        return;
+      }
+
+      console.log('✅ ENHANCED: Coordinates verified for', cityName, coordinates);
+
+      // ENHANCED: Attempt live forecast for cities within forecast range with valid coordinates
       if (isWithinForecastRange && EnhancedWeatherService.hasApiKey()) {
-        console.log('🔧 PLAN: *** ATTEMPTING ENHANCED LIVE FORECAST ***', {
+        console.log('🔧 ENHANCED: *** ATTEMPTING LIVE FORECAST WITH VERIFIED COORDINATES ***', {
           cityName,
           daysFromToday,
+          coordinates,
           timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-          isDay2: daysFromToday === 1,
-          day2Enhancement: daysFromToday === 1 ? 'DAY_2_SPECIAL_PROCESSING' : 'other_forecast_day',
-          planImplementation: true
+          verifiedCoordinates: true
         });
 
         try {
-          // PLAN IMPLEMENTATION: Enhanced live forecast with improved API handler
-          const liveForecastPromise = this.attemptEnhancedLiveForecast(
+          const liveForecastPromise = this.attemptLiveForecastWithCoordinates(
             cityName,
+            coordinates,
             normalizedSegmentDate,
             segmentDateString,
             daysFromToday,
@@ -104,20 +130,18 @@ export class WeatherFetchingService {
 
           // Check if request was aborted
           if (abortController.signal.aborted) {
-            console.log('🔧 PLAN: Request aborted after live forecast attempt for', cityName);
+            console.log('🔧 ENHANCED: Request aborted after live forecast attempt for', cityName);
             return;
           }
 
           if (result && result.isActualForecast) {
-            console.log('✅ PLAN: *** ENHANCED LIVE FORECAST SUCCESS ***', {
+            console.log('✅ ENHANCED: *** LIVE FORECAST SUCCESS WITH VERIFIED COORDINATES ***', {
               cityName,
               temperature: result.temperature,
               highTemp: result.highTemp,
               lowTemp: result.lowTemp,
               source: result.source,
-              isDay2Success: daysFromToday === 1,
-              timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-              planImplementation: true
+              verifiedCoordinates: true
             });
             onLoadingChange(false);
             onWeatherSet(result);
@@ -125,29 +149,30 @@ export class WeatherFetchingService {
           }
         } catch (error) {
           const isTimeout = error instanceof Error && error.message === 'Live forecast timeout';
-          console.log(`⚠️ PLAN: Enhanced live forecast ${isTimeout ? 'TIMEOUT' : 'FAILED'}`, {
+          console.log(`⚠️ ENHANCED: Live forecast ${isTimeout ? 'TIMEOUT' : 'API FAILED'}`, {
             cityName,
             isTimeout,
-            isDay2: daysFromToday === 1,
             error: error instanceof Error ? error.message : String(error),
             timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-            fallingBackToHistorical: true,
-            planImplementation: true
+            coordinatesWereValid: true,
+            fallingBackToHistorical: true
           });
           // Continue to fallback - don't set error state
         }
       }
 
-      // PLAN IMPLEMENTATION: Enhanced fallback weather - either beyond range or live forecast failed
-      const fallbackReason = isWithinForecastRange ? 'live_forecast_timeout_or_failed' : 'beyond_forecast_range';
-      console.log('🔄 PLAN: Using enhanced historical fallback weather', {
+      // ENHANCED: Historical fallback with clear reasoning
+      const fallbackReason = !isWithinForecastRange ? 'beyond_forecast_range' 
+        : !EnhancedWeatherService.hasApiKey() ? 'no_api_key'
+        : 'live_forecast_timeout_or_api_failed';
+        
+      console.log('🔄 ENHANCED: Using historical fallback weather with verified coordinates', {
         cityName,
         reason: fallbackReason,
         daysFromToday,
         isWithinForecastRange,
         hadApiKey: EnhancedWeatherService.hasApiKey(),
-        isDay2Fallback: daysFromToday === 1,
-        planImplementation: true
+        hadValidCoordinates: true
       });
 
       const fallbackWeather = WeatherFallbackService.createFallbackForecast(
@@ -159,7 +184,7 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 PLAN: Request aborted after fallback creation for', cityName);
+        console.log('🔧 ENHANCED: Request aborted after fallback creation for', cityName);
         return;
       }
 
@@ -168,10 +193,10 @@ export class WeatherFetchingService {
       onWeatherSet(fallbackWeather);
 
     } catch (error) {
-      console.error('❌ PLAN: Critical error in enhanced weather fetching for', cityName, ':', error);
+      console.error('❌ ENHANCED: Critical error in weather fetching for', cityName, ':', error);
       
       if (!abortController.signal.aborted) {
-        // Provide fallback even on critical error
+        // Provide emergency fallback
         const emergencyFallback = WeatherFallbackService.createFallbackForecast(
           cityName,
           segmentDate,
@@ -188,66 +213,46 @@ export class WeatherFetchingService {
     }
   }
 
-  private static async attemptEnhancedLiveForecast(
+  private static async attemptLiveForecastWithCoordinates(
     cityName: string,
+    coordinates: { lat: number; lng: number },
     normalizedSegmentDate: Date,
     targetDateString: string,
     daysFromToday: number,
     abortController: AbortController
   ): Promise<ForecastWeatherData | null> {
-    console.log('🔧 PLAN: attemptEnhancedLiveForecast starting', {
+    console.log('🔧 ENHANCED: attemptLiveForecastWithCoordinates starting', {
       cityName,
+      coordinates,
       targetDateString,
       daysFromToday,
-      isDay2: daysFromToday === 1,
-      planImplementation: true
+      preVerifiedCoordinates: true
     });
 
-    // Get coordinates with enhanced error handling
-    const coordinates = await GeocodingService.getCoordinates(cityName);
-    
     if (abortController.signal.aborted) {
-      console.log('🔧 PLAN: Aborted after geocoding for', cityName);
+      console.log('🔧 ENHANCED: Aborted before API call for', cityName);
       return null;
     }
-
-    if (!coordinates) {
-      console.error('❌ PLAN: Enhanced geocoding failed for', cityName, {
-        cityName,
-        day2Issue: daysFromToday === 1,
-        planImplementation: true
-      });
-      return null;
-    }
-
-    console.log('✅ PLAN: Enhanced geocoding success for', cityName, {
-      coordinates,
-      lat: coordinates.lat,
-      lng: coordinates.lng,
-      isDay2: daysFromToday === 1,
-      planImplementation: true
-    });
 
     const apiKey = EnhancedWeatherService.getApiKey();
     if (!apiKey || apiKey === 'key-available') {
-      console.log('⚠️ PLAN: No valid API key for enhanced live forecast', { 
+      console.log('⚠️ ENHANCED: No valid API key for live forecast', { 
         apiKey,
-        planImplementation: true 
+        preVerifiedCoordinates: true
       });
       return null;
     }
 
-    console.log('🔧 PLAN: Attempting enhanced weather API call', {
+    console.log('🔧 ENHANCED: Attempting weather API call with verified coordinates', {
       cityName,
       coordinates,
       targetDateString,
       daysFromToday,
-      isDay2: daysFromToday === 1,
       apiKey: apiKey ? 'present' : 'missing',
-      planImplementation: true
+      coordinatesPreVerified: true
     });
 
-    // PLAN IMPLEMENTATION: Use enhanced API handler with improved processing
+    // Use enhanced API handler with improved processing
     const apiHandler = new WeatherForecastApiHandler(apiKey);
     const weather = await apiHandler.fetchLiveForecast(
       coordinates.lat,
@@ -259,19 +264,18 @@ export class WeatherFetchingService {
     );
 
     if (abortController.signal.aborted) {
-      console.log('🔧 PLAN: Aborted after enhanced weather fetch for', cityName);
+      console.log('🔧 ENHANCED: Aborted after weather fetch for', cityName);
       return null;
     }
 
-    console.log('🔧 PLAN: Enhanced live forecast result', {
+    console.log('🔧 ENHANCED: Live forecast result with verified coordinates', {
       cityName,
       hasWeather: !!weather,
       isActualForecast: weather?.isActualForecast,
       temperature: weather?.temperature,
       source: weather?.source,
-      isDay2Result: daysFromToday === 1,
-      day2Success: daysFromToday === 1 && !!weather?.isActualForecast,
-      planImplementation: true
+      coordinatesUsed: coordinates,
+      preVerifiedSuccess: true
     });
 
     return weather;
