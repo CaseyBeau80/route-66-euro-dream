@@ -22,15 +22,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // PLAN IMPLEMENTATION: Enhanced debugging with defensive logic
-  console.log('🔧 PLAN: SimpleWeatherDisplay ENHANCED DEBUG for', cityName, {
+  console.log('🔧 ENHANCED: SimpleWeatherDisplay for', cityName, {
     completeWeatherObject: weather,
     isActualForecast: weather.isActualForecast,
     source: weather.source,
     dateMatchSource: weather.dateMatchInfo?.source,
     temperature: weather.temperature,
-    hasSource: !!weather.source,
-    hasDateMatchInfo: !!weather.dateMatchInfo,
     timestamp: new Date().toISOString()
   });
 
@@ -54,23 +51,25 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     };
   }, [temperatures]);
 
-  // PLAN IMPLEMENTATION: Enhanced WeatherBadge props with defensive fallbacks
+  // ENHANCED: More robust source determination with defensive fallbacks
   const weatherBadgeProps = React.useMemo(() => {
-    // Determine source with defensive fallbacks
+    // Start with a sensible default
     let determinedSource: 'live_forecast' | 'historical_fallback' | 'seasonal' = 'historical_fallback';
     
+    // Primary source determination (most reliable)
     if (weather.source) {
       determinedSource = weather.source;
-    } else if (weather.dateMatchInfo?.source) {
-      // Map dateMatchInfo source to badge source
-      if (weather.dateMatchInfo.source === 'live_forecast') {
+    }
+    // Secondary: Check dateMatchInfo source
+    else if (weather.dateMatchInfo?.source) {
+      if (weather.dateMatchInfo.source === 'live_forecast' || weather.dateMatchInfo.source === 'api-forecast') {
         determinedSource = 'live_forecast';
       } else if (weather.dateMatchInfo.source === 'seasonal-estimate') {
         determinedSource = 'seasonal';
-      } else {
-        determinedSource = 'historical_fallback';
       }
-    } else if (weather.isActualForecast === true) {
+    }
+    // Tertiary: Use isActualForecast flag
+    else if (weather.isActualForecast === true) {
       determinedSource = 'live_forecast';
     }
     
@@ -81,7 +80,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       cityName: cityName
     };
     
-    console.log('🔧 PLAN: SimpleWeatherDisplay: WeatherBadge props for', cityName, {
+    console.log('🔧 ENHANCED: WeatherBadge props for', cityName, {
       originalSource: weather.source,
       originalIsActualForecast: weather.isActualForecast,
       originalDateMatchSource: weather.dateMatchInfo?.source,
@@ -92,13 +91,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return props;
   }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, cityName]);
 
-  // PLAN IMPLEMENTATION: Enhanced footer message logic with defensive fallbacks
+  // ENHANCED: More reliable footer message with multiple fallback checks
   const getFooterMessage = React.useMemo(() => {
+    // Check multiple indicators for live forecast
     const isLive = weather.isActualForecast === true || 
                    weather.source === 'live_forecast' || 
-                   weather.dateMatchInfo?.source === 'live_forecast';
+                   weather.dateMatchInfo?.source === 'live_forecast' ||
+                   weather.dateMatchInfo?.source === 'api-forecast';
     
-    console.log('🔧 PLAN: SimpleWeatherDisplay ENHANCED footer for', cityName, {
+    console.log('🔧 ENHANCED: Footer message for', cityName, {
       isActualForecast: weather.isActualForecast,
       source: weather.source,
       dateMatchSource: weather.dateMatchInfo?.source,
@@ -160,7 +161,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Weather Badge - using enhanced props with defensive fallbacks */}
+        {/* Enhanced Weather Badge with defensive props */}
         <WeatherBadge {...weatherBadgeProps} />
       </div>
 
@@ -189,7 +190,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         precipitationChance={weather.precipitationChance}
       />
 
-      {/* Enhanced footer message with defensive logic */}
+      {/* Enhanced footer message with multiple fallback checks */}
       <div className="mt-3 text-xs text-blue-500 text-center">
         {getFooterMessage}
       </div>

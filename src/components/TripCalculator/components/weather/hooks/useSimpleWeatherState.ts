@@ -54,9 +54,9 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     setRetryCount(prev => prev + 1);
   }, [segmentEndCity]);
 
-  // FIXED: Enhanced setWeather with STRICT live forecast validation
+  // ENHANCED: More permissive setWeather with improved validation
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
-    console.log(`🔒 [PROTECTION] setWeather called for ${segmentEndCity}:`, {
+    console.log(`🔒 [ENHANCED] setWeather called for ${segmentEndCity}:`, {
       hasNewWeather: !!newWeather,
       newSource: newWeather?.source,
       newDateMatchSource: newWeather?.dateMatchInfo?.source,
@@ -65,77 +65,60 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     });
 
     const now = Date.now();
+    
+    if (!newWeather) {
+      weatherQualityRef.current = null;
+      setWeatherState(null);
+      return;
+    }
+
+    // ENHANCED: More flexible live forecast detection
     const newIsLive = newWeather?.isActualForecast === true;
     const newSource = newWeather?.source || 'unknown';
     const newDateMatchSource = newWeather?.dateMatchInfo?.source || 'unknown';
 
-    // CRITICAL: STRICT validation for live forecasts
-    if (newWeather && newIsLive) {
-      // STRICT VALIDATION: All sources must confirm this is a live forecast
-      const hasValidMainSource = newSource === 'live_forecast';
-      const hasValidDateMatchSource = ['live_forecast', 'api-forecast'].includes(newDateMatchSource);
-      
-      console.log(`🔧 [STRICT VALIDATION] Live forecast validation for ${segmentEndCity}:`, {
-        newSource,
-        newDateMatchSource,
-        hasValidMainSource,
-        hasValidDateMatchSource,
-        isActualForecast: newIsLive,
-        allConditionsMet: hasValidMainSource && hasValidDateMatchSource && newIsLive
-      });
+    // Determine if this is a live forecast using multiple indicators
+    const hasLiveIndicators = (
+      newIsLive ||
+      newSource === 'live_forecast' ||
+      newDateMatchSource === 'live_forecast' ||
+      newDateMatchSource === 'api-forecast'
+    );
 
-      // REJECT if not ALL conditions are met
-      if (!hasValidMainSource || !hasValidDateMatchSource) {
-        console.log(`🚨 [BLOCKED] Invalid live forecast rejected for ${segmentEndCity}:`, {
-          mainSource: newSource,
-          dateMatchSource: newDateMatchSource,
-          isActualForecast: newIsLive,
-          reason: 'STRICT_LIVE_VALIDATION_FAILED'
+    console.log(`🔧 [ENHANCED] Live forecast validation for ${segmentEndCity}:`, {
+      newSource,
+      newDateMatchSource,
+      isActualForecast: newIsLive,
+      hasLiveIndicators,
+      decision: hasLiveIndicators ? 'ACCEPT_AS_LIVE' : 'ACCEPT_AS_HISTORICAL'
+    });
+
+    // ENHANCED PROTECTION: Only prevent obvious downgrades
+    if (weatherQualityRef.current?.isLive && newWeather && !hasLiveIndicators) {
+      // Allow the update if it's been more than 5 minutes (more reasonable timeout)
+      if ((now - weatherQualityRef.current.timestamp) < 300000) {
+        console.log(`🚨 [BLOCKED] Recent live forecast protection for ${segmentEndCity}:`, {
+          ageMinutes: Math.round((now - weatherQualityRef.current.timestamp) / 60000),
+          reason: 'RECENT_LIVE_PROTECTION'
         });
         return;
       }
     }
 
-    // PROTECTION LAYER 1: Block any downgrade from live to non-live
-    if (weatherQualityRef.current?.isLive && newWeather && !newIsLive) {
-      console.log(`🚨 [BLOCKED] Preventing downgrade from live to fallback for ${segmentEndCity}:`, {
-        currentIsLive: true,
-        newIsLive: false,
-        currentSource: weatherQualityRef.current.source,
-        newSource,
-        reason: 'LIVE_TO_FALLBACK_BLOCKED'
-      });
-      return;
-    }
-
-    // PROTECTION LAYER 2: Block if we have recent live data (within 10 minutes)
-    if (weatherQualityRef.current?.isLive && 
-        (now - weatherQualityRef.current.timestamp) < 600000) {
-      console.log(`🚨 [BLOCKED] Recent live forecast protection for ${segmentEndCity}:`, {
-        ageMinutes: Math.round((now - weatherQualityRef.current.timestamp) / 60000),
-        reason: 'RECENT_LIVE_PROTECTION'
-      });
-      return;
-    }
-
     // Update quality tracking
-    if (newWeather) {
-      weatherQualityRef.current = {
-        isLive: newIsLive,
-        timestamp: now,
-        source: newSource
-      };
+    weatherQualityRef.current = {
+      isLive: hasLiveIndicators,
+      timestamp: now,
+      source: newSource
+    };
 
-      console.log(`✅ [ACCEPTED] Weather update for ${segmentEndCity}:`, {
-        isLive: newIsLive,
-        source: newSource,
-        dateMatchSource: newDateMatchSource,
-        temperature: newWeather.temperature,
-        protection: 'PASSED_ALL_LAYERS'
-      });
-    } else {
-      weatherQualityRef.current = null;
-    }
+    console.log(`✅ [ENHANCED] Weather update accepted for ${segmentEndCity}:`, {
+      isLive: hasLiveIndicators,
+      source: newSource,
+      dateMatchSource: newDateMatchSource,
+      temperature: newWeather.temperature,
+      protection: 'PASSED_ENHANCED_VALIDATION'
+    });
 
     setWeatherState(newWeather);
   }, [segmentEndCity]);

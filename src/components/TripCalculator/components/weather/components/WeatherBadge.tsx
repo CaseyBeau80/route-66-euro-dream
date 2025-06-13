@@ -24,31 +24,33 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   dateMatchSource,
   cityName
 }) => {
-  console.log('🎯 SIMPLIFIED: WeatherBadge for', cityName, {
+  console.log('🎯 ENHANCED: WeatherBadge for', cityName, {
     source,
     isActualForecast,
     dateMatchSource
   });
 
-  // SIMPLIFIED LOGIC: Only show live forecast if EVERYTHING confirms it's live
+  // ENHANCED LOGIC: More permissive live forecast detection
   const getBadgeConfig = React.useMemo((): BadgeConfig => {
-    // STRICT CHECK: Must have ALL live indicators
-    const isDefinitelyLive = (
-      isActualForecast === true &&
-      source === 'live_forecast' &&
-      (dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast')
-    );
+    // Check for live forecast indicators - any one of these confirms it's live
+    const hasLiveSource = source === 'live_forecast';
+    const hasLiveForecastFlag = isActualForecast === true;
+    const hasLiveDateMatch = dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast';
     
-    console.log('🎯 SIMPLIFIED: Badge decision for', cityName, {
-      isDefinitelyLive,
+    // If ANY indicator suggests this is a live forecast, treat it as live
+    const isLiveForecast = hasLiveSource || hasLiveForecastFlag || hasLiveDateMatch;
+    
+    console.log('🎯 ENHANCED: Badge decision for', cityName, {
+      isLiveForecast,
       checks: {
-        isActualForecast: isActualForecast === true,
-        sourceLive: source === 'live_forecast',
-        dateMatchLive: dateMatchSource === 'live_forecast' || dateMatchSource === 'api-forecast'
-      }
+        hasLiveSource,
+        hasLiveForecastFlag,
+        hasLiveDateMatch
+      },
+      decision: isLiveForecast ? 'LIVE_FORECAST' : 'FALLBACK'
     });
 
-    if (isDefinitelyLive) {
+    if (isLiveForecast) {
       return {
         text: '📡 Live Forecast',
         bgColor: 'bg-green-100',
@@ -57,7 +59,7 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
       };
     }
 
-    // Everything else is historical/seasonal
+    // Check for seasonal data
     if (source === 'seasonal' || dateMatchSource === 'seasonal-estimate') {
       return {
         text: '📊 Seasonal Average',
