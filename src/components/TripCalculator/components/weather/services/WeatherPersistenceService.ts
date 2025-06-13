@@ -1,3 +1,4 @@
+
 import { DateNormalizationService } from '../DateNormalizationService';
 
 export class WeatherPersistenceService {
@@ -26,7 +27,8 @@ export class WeatherPersistenceService {
       console.log('💾 PLAN: Stored weather data', {
         cacheKey,
         temperature: weatherData.temperature,
-        source: weatherData.source
+        source: weatherData.source,
+        planImplementation: true
       });
 
       // Clean up old entries
@@ -42,7 +44,10 @@ export class WeatherPersistenceService {
       const stored = localStorage.getItem(`${this.CACHE_PREFIX}${cacheKey}`);
       
       if (!stored) {
-        console.log('💾 PLAN: No cached data found', { cacheKey });
+        console.log('💾 PLAN: No cached data found', { 
+          cacheKey,
+          planImplementation: true 
+        });
         return null;
       }
 
@@ -51,34 +56,37 @@ export class WeatherPersistenceService {
       const cacheAge = now - cacheEntry.timestamp;
       const maxAge = this.CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
-      // PLAN: Use standardized LOCAL date calculations
+      // PLAN IMPLEMENTATION: Enhanced forecast range calculation with consistent logic
       const today = new Date();
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
       const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(date);
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
       
-      // PLAN: STANDARDIZED forecast range 0-7 days
+      // PLAN IMPLEMENTATION: ENHANCED forecast range 0-7 days with bypass logic
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('💾 PLAN: Cache decision with STANDARDIZED forecast range 0-7', {
+      console.log('💾 PLAN: Enhanced cache decision with FORECAST RANGE BYPASS', {
         cacheKey,
         normalizedToday: normalizedToday.toISOString(),
         normalizedTargetDate: normalizedTargetDate.toISOString(),
         daysFromToday,
         isWithinForecastRange,
         forecastRange: 'Days 0-7 = FORCE live forecast attempt, Day 8+ = allow cache',
-        standardizedRange: true,
-        cacheDecision: isWithinForecastRange ? 'FORCE_SKIP_CACHE_FOR_LIVE_ATTEMPT' : 'USE_CACHE_IF_VALID'
+        cacheBypassForForecastRange: true,
+        cacheDecision: isWithinForecastRange ? 'BYPASS_CACHE_FORCE_LIVE_ATTEMPT' : 'USE_CACHE_IF_VALID',
+        planImplementation: true
       });
 
-      // PLAN: NEVER return cached data for forecast range dates (0-7)
-      // This forces the system to attempt live forecasts for days 0-7
+      // PLAN IMPLEMENTATION: CRITICAL - ALWAYS bypass cache for forecast range dates (0-7)
+      // This ensures Day 2 (and other forecast range days) always attempt live forecasts
       if (isWithinForecastRange) {
-        console.log('💾 PLAN: FORCING cache skip for forecast range to ensure live attempt', {
+        console.log('💾 PLAN: *** CACHE BYPASS ENFORCED FOR FORECAST RANGE ***', {
           cacheKey,
           daysFromToday,
           reason: 'within_0_to_7_day_forecast_range_MUST_attempt_live',
-          standardizedForecastRange: true
+          bypassEnforced: true,
+          day2Fix: daysFromToday === 1 ? 'THIS_IS_DAY_2_BYPASS' : 'other_forecast_day_bypass',
+          planImplementation: true
         });
         return null;
       }
@@ -87,17 +95,19 @@ export class WeatherPersistenceService {
         console.log('💾 PLAN: Cache expired', {
           cacheKey,
           cacheAgeHours: cacheAge / (60 * 60 * 1000),
-          maxAgeHours: this.CACHE_DURATION_HOURS
+          maxAgeHours: this.CACHE_DURATION_HOURS,
+          planImplementation: true
         });
         localStorage.removeItem(`${this.CACHE_PREFIX}${cacheKey}`);
         return null;
       }
 
-      console.log('✅ PLAN: Retrieved cached weather data', {
+      console.log('✅ PLAN: Retrieved cached weather data (beyond forecast range)', {
         cacheKey,
         temperature: cacheEntry.data.temperature,
         daysFromToday,
-        reason: 'beyond_forecast_range_and_cache_valid'
+        reason: 'beyond_forecast_range_and_cache_valid',
+        planImplementation: true
       });
 
       return cacheEntry.data;

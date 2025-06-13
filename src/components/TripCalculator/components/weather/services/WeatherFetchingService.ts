@@ -4,6 +4,7 @@ import { WeatherFallbackService } from '@/components/Route66Map/services/weather
 import { GeocodingService } from './GeocodingService';
 import { EnhancedWeatherService } from './EnhancedWeatherService';
 import { DateNormalizationService } from '../DateNormalizationService';
+import { WeatherForecastApiHandler } from '@/components/Route66Map/services/weather/WeatherForecastApiHandler';
 
 export interface WeatherFetchCallbacks {
   onLoadingChange: (loading: boolean) => void;
@@ -13,7 +14,7 @@ export interface WeatherFetchCallbacks {
 
 export class WeatherFetchingService {
   private static activeRequests = new Map<string, AbortController>();
-  private static readonly LIVE_FORECAST_TIMEOUT_MS = 5000; // PLAN: 5-second timeout for live forecasts
+  private static readonly LIVE_FORECAST_TIMEOUT_MS = 5000;
 
   static async fetchWeatherForSegment(
     cityName: string,
@@ -22,11 +23,12 @@ export class WeatherFetchingService {
     onError: (error: string | null) => void,
     onWeatherSet: (weather: ForecastWeatherData | null) => void
   ): Promise<void> {
-    console.log('🔧 FIXED: WeatherFetchingService.fetchWeatherForSegment - ENHANCED GEOCODING', {
+    console.log('🔧 PLAN: WeatherFetchingService.fetchWeatherForSegment - ENHANCED PROCESSING', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       hasApiKey: EnhancedWeatherService.hasApiKey(),
-      timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS
+      timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
+      planImplementation: true
     });
 
     // Cancel any existing request for this city to prevent race conditions
@@ -39,24 +41,25 @@ export class WeatherFetchingService {
     this.activeRequests.set(requestKey, abortController);
 
     try {
-      // PLAN: Use standardized date calculation with LOCAL time normalization
+      // PLAN IMPLEMENTATION: Enhanced date calculation with consistent normalization
       const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(new Date());
       const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
       const segmentDateString = DateNormalizationService.toDateString(normalizedSegmentDate);
 
-      // PLAN: STANDARDIZED forecast range 0-7 days
+      // PLAN IMPLEMENTATION: ENHANCED forecast range logic (0-7 days)
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('🔧 FIXED: STANDARDIZED date calculations with enhanced geocoding', {
+      console.log('🔧 PLAN: Enhanced date calculations for forecast range determination', {
         cityName,
         normalizedSegmentDate: normalizedSegmentDate.toISOString(),
         normalizedToday: normalizedToday.toISOString(),
         daysFromToday,
         isWithinForecastRange,
         forecastRange: 'Days 0-7 = LIVE FORECAST attempt, Day 8+ = immediate historical',
-        localNormalization: true,
-        standardizedRange: true
+        segmentDateString,
+        day2SpecialCase: daysFromToday === 1 ? 'THIS_IS_DAY_2_ENHANCED_PROCESSING' : 'other_day',
+        planImplementation: true
       });
 
       // Set loading state
@@ -65,23 +68,28 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 FIXED: Request aborted for', cityName);
+        console.log('🔧 PLAN: Request aborted for', cityName);
         return;
       }
 
-      // PLAN: For forecast range (0-7 days), attempt live forecast with timeout
+      // PLAN IMPLEMENTATION: Enhanced live forecast attempt for forecast range (0-7 days)
       if (isWithinForecastRange && EnhancedWeatherService.hasApiKey()) {
-        console.log('🔧 FIXED: ATTEMPTING live forecast with enhanced geocoding for', cityName, {
+        console.log('🔧 PLAN: *** ATTEMPTING ENHANCED LIVE FORECAST ***', {
+          cityName,
           daysFromToday,
           timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-          standardizedRange: true
+          isDay2: daysFromToday === 1,
+          day2Enhancement: daysFromToday === 1 ? 'DAY_2_SPECIAL_PROCESSING' : 'other_forecast_day',
+          planImplementation: true
         });
 
         try {
-          // PLAN: Implement 5-second timeout using Promise.race
-          const liveForecastPromise = this.attemptLiveForecast(
+          // PLAN IMPLEMENTATION: Enhanced live forecast with improved API handler
+          const liveForecastPromise = this.attemptEnhancedLiveForecast(
             cityName,
             normalizedSegmentDate,
+            segmentDateString,
+            daysFromToday,
             abortController
           );
 
@@ -96,15 +104,20 @@ export class WeatherFetchingService {
 
           // Check if request was aborted
           if (abortController.signal.aborted) {
-            console.log('🔧 FIXED: Request aborted after live forecast attempt for', cityName);
+            console.log('🔧 PLAN: Request aborted after live forecast attempt for', cityName);
             return;
           }
 
           if (result && result.isActualForecast) {
-            console.log('✅ FIXED: Live forecast SUCCESS within timeout for', cityName, {
+            console.log('✅ PLAN: *** ENHANCED LIVE FORECAST SUCCESS ***', {
+              cityName,
               temperature: result.temperature,
+              highTemp: result.highTemp,
+              lowTemp: result.lowTemp,
               source: result.source,
-              timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS
+              isDay2Success: daysFromToday === 1,
+              timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
+              planImplementation: true
             });
             onLoadingChange(false);
             onWeatherSet(result);
@@ -112,23 +125,29 @@ export class WeatherFetchingService {
           }
         } catch (error) {
           const isTimeout = error instanceof Error && error.message === 'Live forecast timeout';
-          console.log(`⚠️ FIXED: Live forecast ${isTimeout ? 'TIMEOUT' : 'FAILED'} for`, cityName, {
+          console.log(`⚠️ PLAN: Enhanced live forecast ${isTimeout ? 'TIMEOUT' : 'FAILED'}`, {
+            cityName,
             isTimeout,
+            isDay2: daysFromToday === 1,
             error: error instanceof Error ? error.message : String(error),
             timeoutMs: this.LIVE_FORECAST_TIMEOUT_MS,
-            fallingBackToHistorical: true
+            fallingBackToHistorical: true,
+            planImplementation: true
           });
           // Continue to fallback - don't set error state
         }
       }
 
-      // PLAN: Use fallback weather (historical) - either because beyond range or live forecast failed/timed out
+      // PLAN IMPLEMENTATION: Enhanced fallback weather - either beyond range or live forecast failed
       const fallbackReason = isWithinForecastRange ? 'live_forecast_timeout_or_failed' : 'beyond_forecast_range';
-      console.log('🔄 FIXED: Using historical fallback weather for', cityName, {
+      console.log('🔄 PLAN: Using enhanced historical fallback weather', {
+        cityName,
         reason: fallbackReason,
         daysFromToday,
         isWithinForecastRange,
-        hadApiKey: EnhancedWeatherService.hasApiKey()
+        hadApiKey: EnhancedWeatherService.hasApiKey(),
+        isDay2Fallback: daysFromToday === 1,
+        planImplementation: true
       });
 
       const fallbackWeather = WeatherFallbackService.createFallbackForecast(
@@ -140,7 +159,7 @@ export class WeatherFetchingService {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('🔧 FIXED: Request aborted after fallback creation for', cityName);
+        console.log('🔧 PLAN: Request aborted after fallback creation for', cityName);
         return;
       }
 
@@ -149,7 +168,7 @@ export class WeatherFetchingService {
       onWeatherSet(fallbackWeather);
 
     } catch (error) {
-      console.error('❌ FIXED: Critical error for', cityName, ':', error);
+      console.error('❌ PLAN: Critical error in enhanced weather fetching for', cityName, ':', error);
       
       if (!abortController.signal.aborted) {
         // Provide fallback even on critical error
@@ -169,67 +188,90 @@ export class WeatherFetchingService {
     }
   }
 
-  private static async attemptLiveForecast(
+  private static async attemptEnhancedLiveForecast(
     cityName: string,
     normalizedSegmentDate: Date,
+    targetDateString: string,
+    daysFromToday: number,
     abortController: AbortController
   ): Promise<ForecastWeatherData | null> {
-    console.log('🔧 FIXED: attemptLiveForecast starting with enhanced geocoding for', cityName);
+    console.log('🔧 PLAN: attemptEnhancedLiveForecast starting', {
+      cityName,
+      targetDateString,
+      daysFromToday,
+      isDay2: daysFromToday === 1,
+      planImplementation: true
+    });
 
     // Get coordinates with enhanced error handling
     const coordinates = await GeocodingService.getCoordinates(cityName);
     
     if (abortController.signal.aborted) {
-      console.log('🔧 FIXED: Aborted after geocoding for', cityName);
+      console.log('🔧 PLAN: Aborted after geocoding for', cityName);
       return null;
     }
 
     if (!coordinates) {
-      console.error('❌ FIXED: GEOCODING FAILED for', cityName, {
+      console.error('❌ PLAN: Enhanced geocoding failed for', cityName, {
         cityName,
-        attemptedNormalization: true,
-        fallbackToHistorical: true,
-        geocodingEnhanced: true
+        day2Issue: daysFromToday === 1,
+        planImplementation: true
       });
       return null;
     }
 
-    console.log('✅ FIXED: Geocoding SUCCESS for', cityName, {
+    console.log('✅ PLAN: Enhanced geocoding success for', cityName, {
       coordinates,
       lat: coordinates.lat,
-      lng: coordinates.lng
+      lng: coordinates.lng,
+      isDay2: daysFromToday === 1,
+      planImplementation: true
     });
 
     const apiKey = EnhancedWeatherService.getApiKey();
     if (!apiKey || apiKey === 'key-available') {
-      console.log('⚠️ FIXED: No valid API key for live forecast', { apiKey });
+      console.log('⚠️ PLAN: No valid API key for enhanced live forecast', { 
+        apiKey,
+        planImplementation: true 
+      });
       return null;
     }
 
-    console.log('🔧 FIXED: Attempting actual weather API call for', cityName, {
+    console.log('🔧 PLAN: Attempting enhanced weather API call', {
+      cityName,
       coordinates,
-      apiKey: apiKey ? 'present' : 'missing'
+      targetDateString,
+      daysFromToday,
+      isDay2: daysFromToday === 1,
+      apiKey: apiKey ? 'present' : 'missing',
+      planImplementation: true
     });
 
-    // Try to get actual weather service instance
-    const weatherService = new WeatherForecastService(apiKey);
-    const weather = await weatherService.getWeatherForDate(
+    // PLAN IMPLEMENTATION: Use enhanced API handler with improved processing
+    const apiHandler = new WeatherForecastApiHandler(apiKey);
+    const weather = await apiHandler.fetchLiveForecast(
       coordinates.lat,
       coordinates.lng,
       cityName,
-      normalizedSegmentDate
+      normalizedSegmentDate,
+      targetDateString,
+      daysFromToday
     );
 
     if (abortController.signal.aborted) {
-      console.log('🔧 FIXED: Aborted after weather fetch for', cityName);
+      console.log('🔧 PLAN: Aborted after enhanced weather fetch for', cityName);
       return null;
     }
 
-    console.log('🔧 FIXED: Live forecast result for', cityName, {
+    console.log('🔧 PLAN: Enhanced live forecast result', {
+      cityName,
       hasWeather: !!weather,
       isActualForecast: weather?.isActualForecast,
       temperature: weather?.temperature,
-      source: weather?.source
+      source: weather?.source,
+      isDay2Result: daysFromToday === 1,
+      day2Success: daysFromToday === 1 && !!weather?.isActualForecast,
+      planImplementation: true
     });
 
     return weather;

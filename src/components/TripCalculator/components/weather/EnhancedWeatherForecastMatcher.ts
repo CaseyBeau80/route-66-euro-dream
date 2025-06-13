@@ -17,7 +17,7 @@ export interface EnhancedMatchResult {
 
 export class EnhancedWeatherForecastMatcher {
   /**
-   * FIXED: Find best weather forecast match with more lenient strategies
+   * PLAN IMPLEMENTATION: Enhanced forecast matching with comprehensive debugging
    */
   static findBestMatch(
     processedForecast: ForecastDay[], 
@@ -25,45 +25,93 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string,
     cityName: string
   ): EnhancedMatchResult {
-    console.log(`🎯 FIXED: EnhancedWeatherForecastMatcher starting for ${cityName} on ${targetDateString}:`, {
+    console.log(`🎯 PLAN: Enhanced forecast matching starting for ${cityName} on ${targetDateString}:`, {
       targetDate: targetDate.toISOString(),
       targetDateString,
       forecastCount: processedForecast.length,
-      availableDates: processedForecast.map(f => f.dateString).filter(Boolean)
+      availableDates: processedForecast.map(f => f.dateString).filter(Boolean),
+      planImplementation: true,
+      enhancedDebugging: true
     });
     
     const availableDates = processedForecast.map(f => f.dateString).filter(Boolean);
     
     if (processedForecast.length === 0) {
-      console.log(`❌ No forecasts available for ${cityName}`);
+      console.log(`❌ PLAN: No forecasts available for ${cityName}`, {
+        reason: 'empty_forecast_array',
+        planImplementation: true
+      });
       return this.createNoMatchResult(targetDateString, availableDates);
     }
     
-    // STRATEGY 1: Exact date match
+    // PLAN IMPLEMENTATION: Enhanced Strategy 1 - Exact date match
+    console.log(`🔍 PLAN: Attempting EXACT MATCH for ${cityName}`, {
+      targetDateString,
+      availableDates,
+      planImplementation: true
+    });
     const exactMatch = this.findExactMatch(processedForecast, targetDateString, cityName);
     if (exactMatch) {
+      console.log(`✅ PLAN: EXACT MATCH SUCCESS for ${cityName}`, {
+        matchedDate: exactMatch.matchedForecast?.dateString,
+        temperature: exactMatch.matchedForecast?.temperature,
+        planImplementation: true
+      });
       return exactMatch;
     }
     
-    // STRATEGY 2: Closest date within 48 hours (more lenient)
+    // PLAN IMPLEMENTATION: Enhanced Strategy 2 - Closest date within 72 hours (more lenient)
+    console.log(`🔍 PLAN: Attempting CLOSEST MATCH for ${cityName}`, {
+      targetDateString,
+      maxHoursOffset: 72,
+      planImplementation: true
+    });
     const closestMatch = this.findClosestMatch(processedForecast, targetDate, targetDateString, cityName);
     if (closestMatch) {
+      console.log(`✅ PLAN: CLOSEST MATCH SUCCESS for ${cityName}`, {
+        matchedDate: closestMatch.matchedForecast?.dateString,
+        hoursOffset: closestMatch.matchInfo.hoursOffset,
+        planImplementation: true
+      });
       return closestMatch;
     }
     
-    // STRATEGY 3: Adjacent date (±2 days, more lenient)
+    // PLAN IMPLEMENTATION: Enhanced Strategy 3 - Adjacent date (±3 days, more lenient)
+    console.log(`🔍 PLAN: Attempting ADJACENT MATCH for ${cityName}`, {
+      targetDateString,
+      maxDaysOffset: 3,
+      planImplementation: true
+    });
     const adjacentMatch = this.findAdjacentMatch(processedForecast, targetDate, targetDateString, cityName);
     if (adjacentMatch) {
+      console.log(`✅ PLAN: ADJACENT MATCH SUCCESS for ${cityName}`, {
+        matchedDate: adjacentMatch.matchedForecast?.dateString,
+        daysOffset: adjacentMatch.matchInfo.daysOffset,
+        planImplementation: true
+      });
       return adjacentMatch;
     }
     
-    // STRATEGY 4: Any available forecast as fallback (most lenient)
+    // PLAN IMPLEMENTATION: Enhanced Strategy 4 - Any available forecast as fallback
+    console.log(`🔍 PLAN: Attempting FALLBACK MATCH for ${cityName}`, {
+      targetDateString,
+      availableForecasts: processedForecast.length,
+      planImplementation: true
+    });
     const fallbackMatch = this.findFallbackMatch(processedForecast, targetDate, targetDateString, cityName);
     if (fallbackMatch) {
+      console.log(`✅ PLAN: FALLBACK MATCH SUCCESS for ${cityName}`, {
+        matchedDate: fallbackMatch.matchedForecast?.dateString,
+        planImplementation: true
+      });
       return fallbackMatch;
     }
     
-    console.log(`❌ No suitable weather match found for ${cityName} on ${targetDateString}`);
+    console.log(`❌ PLAN: ALL MATCHING STRATEGIES FAILED for ${cityName} on ${targetDateString}`, {
+      availableDates,
+      strategiesTried: ['exact', 'closest', 'adjacent', 'fallback'],
+      planImplementation: true
+    });
     return this.createNoMatchResult(targetDateString, availableDates);
   }
 
@@ -74,10 +122,11 @@ export class EnhancedWeatherForecastMatcher {
   ): EnhancedMatchResult | null {
     for (const forecast of forecasts) {
       if (forecast.dateString === targetDateString) {
-        console.log(`✅ EXACT MATCH found for ${cityName} on ${targetDateString}:`, {
+        console.log(`✅ PLAN: EXACT MATCH FOUND for ${cityName} on ${targetDateString}:`, {
           matchedDate: forecast.dateString,
           temperature: forecast.temperature,
-          description: forecast.description
+          description: forecast.description,
+          planImplementation: true
         });
         
         return {
@@ -95,7 +144,10 @@ export class EnhancedWeatherForecastMatcher {
       }
     }
     
-    console.log(`⚠️ No exact match for ${cityName} on ${targetDateString}`);
+    console.log(`⚠️ PLAN: No exact match for ${cityName} on ${targetDateString}`, {
+      availableDates: forecasts.map(f => f.dateString).filter(Boolean),
+      planImplementation: true
+    });
     return null;
   }
 
@@ -119,19 +171,36 @@ export class EnhancedWeatherForecastMatcher {
         const offsetHours = Math.abs((forecastDate.getTime() - normalizedTarget.getTime()) / (60 * 60 * 1000));
         const dayOffset = Math.round((forecastDate.getTime() - normalizedTarget.getTime()) / (24 * 60 * 60 * 1000));
         
-        // FIXED: More lenient - consider forecasts within 48 hours
-        if (offsetHours <= 48 && offsetHours < smallestOffsetHours) {
+        console.log(`🔍 PLAN: Evaluating closest match candidate for ${cityName}:`, {
+          forecastDate: forecast.dateString,
+          offsetHours: offsetHours.toFixed(1),
+          dayOffset,
+          currentBest: smallestOffsetHours.toFixed(1),
+          planImplementation: true
+        });
+        
+        // PLAN IMPLEMENTATION: More lenient - consider forecasts within 72 hours
+        if (offsetHours <= 72 && offsetHours < smallestOffsetHours) {
           closestForecast = forecast;
           smallestOffsetHours = offsetHours;
           actualDayOffset = dayOffset;
+          
+          console.log(`🎯 PLAN: New closest match candidate for ${cityName}:`, {
+            forecastDate: forecast.dateString,
+            offsetHours: offsetHours.toFixed(1),
+            dayOffset,
+            planImplementation: true
+          });
         }
       } catch (error) {
-        console.warn(`⚠️ Error processing forecast date for ${cityName}:`, forecast.dateString, error);
+        console.warn(`⚠️ PLAN: Error processing forecast date for ${cityName}:`, forecast.dateString, error);
       }
     }
     
     if (closestForecast) {
-      console.log(`📍 FIXED: CLOSEST MATCH found for ${cityName}: ${targetDateString} → ${closestForecast.dateString} (${smallestOffsetHours.toFixed(1)}h offset)`);
+      console.log(`📍 PLAN: CLOSEST MATCH FOUND for ${cityName}: ${targetDateString} → ${closestForecast.dateString} (${smallestOffsetHours.toFixed(1)}h offset)`, {
+        planImplementation: true
+      });
       
       return {
         matchedForecast: closestForecast,
@@ -141,7 +210,7 @@ export class EnhancedWeatherForecastMatcher {
           matchType: 'closest',
           daysOffset: actualDayOffset,
           hoursOffset: smallestOffsetHours,
-          confidence: smallestOffsetHours <= 24 ? 'high' : 'medium',
+          confidence: smallestOffsetHours <= 24 ? 'high' : smallestOffsetHours <= 48 ? 'medium' : 'low',
           availableDates: forecasts.map(f => f.dateString).filter(Boolean)
         }
       };
@@ -156,19 +225,27 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string, 
     cityName: string
   ): EnhancedMatchResult | null {
-    // FIXED: Try ±2 days from target (more lenient)
+    // PLAN IMPLEMENTATION: Try ±3 days from target (more lenient)
     const testDates = [];
-    for (let i = -2; i <= 2; i++) {
+    for (let i = -3; i <= 3; i++) {
       if (i === 0) continue; // Skip exact match (already tried)
       const testDate = new Date(targetDate.getTime() + i * 24 * 60 * 60 * 1000);
       const testDateString = DateNormalizationService.toDateString(testDate);
       testDates.push({ offset: i, dateString: testDateString });
     }
     
+    console.log(`🔍 PLAN: Testing adjacent dates for ${cityName}:`, {
+      targetDateString,
+      testDates: testDates.map(d => `${d.dateString} (${d.offset > 0 ? '+' : ''}${d.offset})`),
+      planImplementation: true
+    });
+    
     for (const testDate of testDates) {
       for (const forecast of forecasts) {
         if (forecast.dateString === testDate.dateString) {
-          console.log(`📅 FIXED: ADJACENT MATCH found for ${cityName}: ${targetDateString} → ${testDate.dateString} (${testDate.offset > 0 ? '+' : ''}${testDate.offset} day${Math.abs(testDate.offset) > 1 ? 's' : ''})`);
+          console.log(`📅 PLAN: ADJACENT MATCH FOUND for ${cityName}: ${targetDateString} → ${testDate.dateString} (${testDate.offset > 0 ? '+' : ''}${testDate.offset} day${Math.abs(testDate.offset) > 1 ? 's' : ''})`, {
+            planImplementation: true
+          });
           
           return {
             matchedForecast: forecast,
@@ -194,11 +271,13 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string, 
     cityName: string
   ): EnhancedMatchResult | null {
-    // Use the first valid forecast as fallback
+    // PLAN IMPLEMENTATION: Use the first valid forecast as fallback
     const firstValidForecast = forecasts.find(f => f.dateString && f.temperature);
     
     if (firstValidForecast) {
-      console.log(`🔄 FALLBACK MATCH for ${cityName}: ${targetDateString} → ${firstValidForecast.dateString} (using best available)`);
+      console.log(`🔄 PLAN: FALLBACK MATCH for ${cityName}: ${targetDateString} → ${firstValidForecast.dateString} (using best available)`, {
+        planImplementation: true
+      });
       
       return {
         matchedForecast: firstValidForecast,
@@ -217,6 +296,12 @@ export class EnhancedWeatherForecastMatcher {
   }
 
   private static createNoMatchResult(targetDateString: string, availableDates: string[]): EnhancedMatchResult {
+    console.log(`❌ PLAN: Creating NO MATCH result`, {
+      targetDateString,
+      availableDates,
+      planImplementation: true
+    });
+    
     return {
       matchedForecast: null,
       matchInfo: {
