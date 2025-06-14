@@ -35,29 +35,18 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ PLAN: SegmentWeatherContent SHARED VIEW ENHANCED flow for', segmentEndCity, {
+  console.log('🔧 FIXED: SegmentWeatherContent enhanced flow for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
-    weatherType: weather ? (weather.isActualForecast ? 'LIVE_FORECAST' : 'HISTORICAL') : 'NONE',
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
     error,
     isSharedView,
     isPDFExport,
     hasSegmentDate: !!segmentDate,
-    retryCount,
-    SHARED_VIEW_LOGIC: 'enhanced_priority_display'
+    retryCount
   });
-
-  if (weather) {
-    console.log('🌤️ PLAN: Weather data details for', segmentEndCity, {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      isActualForecast: weather.isActualForecast,
-      source: weather.source,
-      SHARED_VIEW_WEATHER_FOUND: true
-    });
-  }
 
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {
     hasApiKey,
@@ -68,9 +57,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // Show loading state first
+  // Show loading state
   if (loading) {
-    console.log('🌤️ PLAN: Showing loading state for', segmentEndCity);
+    console.log('🔄 FIXED: Showing loading state for', segmentEndCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-600">
@@ -81,9 +70,14 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // 🔧 CRITICAL: HIGHEST PRIORITY - If we have weather data, ALWAYS display it
+  // CRITICAL FIX: ALWAYS display weather data if available, regardless of view type
   if (weather) {
-    console.log(`🎯 PLAN: PRIORITY DISPLAY - Using weather data for ${segmentEndCity} in shared view`);
+    console.log(`✅ FIXED: Displaying weather data for ${segmentEndCity}`, {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      temperature: weather.temperature
+    });
+    
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -97,21 +91,37 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // 🔧 SHARED VIEW ENHANCED LOGIC - Try seasonal fallback as second priority
+  // CRITICAL FIX: Force weather fetch attempt for shared views
+  React.useEffect(() => {
+    if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
+      console.log(`🚨 FIXED: Forcing weather fetch for shared view: ${segmentEndCity}`);
+      // Trigger retry to force weather fetch
+      setTimeout(() => {
+        onRetry();
+      }, 100);
+    }
+  }, [isSharedView, isPDFExport, segmentDate, weather, loading, segmentEndCity, onRetry]);
+
+  // Shared view fallback - use seasonal weather while loading
   if ((isSharedView || isPDFExport) && segmentDate) {
-    console.log(`🌱 PLAN: SHARED VIEW - Using seasonal fallback for ${segmentEndCity}`);
+    console.log(`🌱 FIXED: Using seasonal fallback for shared view: ${segmentEndCity}`);
     return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={segmentEndCity}
-        compact={true}
-      />
+      <div className="space-y-2">
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
+        <div className="text-xs text-blue-600 text-center">
+          Loading live weather data...
+        </div>
+      </div>
     );
   }
 
-  // For shared views without date, show a better message
+  // For shared views without date
   if (isSharedView || isPDFExport) {
-    console.log(`🚫 PLAN: SHARED VIEW - No date available for ${segmentEndCity}`);
+    console.log(`🚫 FIXED: No date available for shared view: ${segmentEndCity}`);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
@@ -120,9 +130,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // For regular views without API key, show the API key input
+  // Regular view without API key
   if (!hasApiKey && !isSharedView && !isPDFExport) {
-    console.log(`🔑 PLAN: Showing API key input for ${segmentEndCity} in regular view`);
+    console.log(`🔑 FIXED: Showing API key input for ${segmentEndCity}`);
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -136,8 +146,8 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // Regular view with error - show retry option
-  console.log(`⚠️ PLAN: Showing error state for ${segmentEndCity} in regular view`);
+  // Regular view with error
+  console.log(`⚠️ FIXED: Showing error state for ${segmentEndCity}`);
   return (
     <div className="space-y-3">
       <div className="bg-amber-50 border border-amber-200 rounded p-3">

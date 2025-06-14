@@ -12,12 +12,13 @@ interface UseWeatherCardProps {
 }
 
 export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) => {
-  console.log(`🎯 [WEATHER DEBUG] useWeatherCard SIMPLIFIED for Day ${segment.day} - preventing all loops`);
+  const stateKey = `${segment.endCity}-day-${segment.day}`;
+  console.log(`🎯 FIXED: useWeatherCard for ${stateKey} - preventing infinite loops`);
 
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
-  // CRITICAL FIX: Memoize segment date with primitive dependencies only
+  // CRITICAL FIX: Memoize segment date with stable dependencies
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) return null;
     try {
@@ -27,14 +28,16 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     }
   }, [tripStartDate?.getTime(), segment.day]);
 
-  // CRITICAL FIX: Single stable fetch function with no external dependencies
+  // CRITICAL FIX: Stable fetch function with no infinite loop potential
   const fetchWeather = React.useCallback(async (isSharedView: boolean = false) => {
-    if (!tripStartDate || !segmentDate) {
-      console.log(`❌ SIMPLIFIED: No date available for ${segment.endCity} Day ${segment.day}`);
+    const fetchKey = `${stateKey}-${segmentDate?.getTime()}-${hasApiKey}`;
+    console.log(`🚀 FIXED: Starting weather fetch for ${fetchKey}`, { isSharedView });
+
+    if (!segmentDate) {
+      console.log(`❌ FIXED: No segment date for ${stateKey}`);
+      weatherState.setError('Missing trip date');
       return;
     }
-
-    console.log(`🚀 SIMPLIFIED: Fetching weather for ${segment.endCity} Day ${segment.day}`);
 
     try {
       weatherState.setLoading(true);
@@ -49,33 +52,58 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       });
 
       if (weather) {
-        console.log(`✅ SIMPLIFIED: Weather fetched for ${segment.endCity}:`, weather.temperature);
+        console.log(`✅ FIXED: Weather fetched for ${stateKey}:`, {
+          temperature: weather.temperature,
+          source: weather.source,
+          isActualForecast: weather.isActualForecast
+        });
         weatherState.setWeather(weather);
       } else {
-        console.log(`⚠️ SIMPLIFIED: No weather data for ${segment.endCity}`);
+        console.log(`⚠️ FIXED: No weather data for ${stateKey}`);
         weatherState.setError('Unable to fetch weather data');
       }
     } catch (error) {
-      console.error(`❌ SIMPLIFIED: Weather fetch error for ${segment.endCity}:`, error);
+      console.error(`❌ FIXED: Weather fetch error for ${stateKey}:`, error);
       weatherState.setError('Weather fetch failed');
     } finally {
       weatherState.setLoading(false);
     }
-  }, [segment.endCity, segment.day, hasApiKey, segmentDate?.getTime(), weatherState]);
+  }, [stateKey, segmentDate?.getTime(), hasApiKey, weatherState, segment.endCity, segment.day]);
 
-  // CRITICAL FIX: Only fetch once when all dependencies are stable
+  // CRITICAL FIX: Use ref to track if fetch has been attempted to prevent loops
+  const fetchAttempted = React.useRef(false);
+
+  // CRITICAL FIX: Single auto-fetch effect with proper dependencies
   React.useEffect(() => {
-    if (tripStartDate && segmentDate && !weatherState.weather && !weatherState.loading) {
-      console.log(`🚨 SIMPLIFIED: Auto-fetch for ${segment.endCity} Day ${segment.day}`);
+    const shouldFetch = tripStartDate && 
+                      segmentDate && 
+                      !weatherState.weather && 
+                      !weatherState.loading && 
+                      !fetchAttempted.current;
+
+    if (shouldFetch) {
+      console.log(`🚨 FIXED: Auto-fetch triggered for ${stateKey}`, {
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weatherState.weather,
+        loading: weatherState.loading
+      });
+      
+      fetchAttempted.current = true;
       fetchWeather(false);
     }
-  }, [segmentDate?.getTime(), segment.endCity, segment.day]);
+  }, [tripStartDate?.getTime(), segmentDate?.getTime(), segment.endCity, segment.day]);
 
-  console.log(`🎯 SIMPLIFIED: useWeatherCard stable state for ${segment.endCity}:`, {
+  // Reset fetch attempt when key dependencies change
+  React.useEffect(() => {
+    fetchAttempted.current = false;
+  }, [stateKey, segmentDate?.getTime()]);
+
+  console.log(`🎯 FIXED: useWeatherCard state for ${stateKey}:`, {
     hasApiKey,
     hasWeather: !!weatherState.weather,
     loading: weatherState.loading,
-    hasSegmentDate: !!segmentDate
+    hasSegmentDate: !!segmentDate,
+    fetchAttempted: fetchAttempted.current
   });
 
   return {
