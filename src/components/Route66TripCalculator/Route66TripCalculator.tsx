@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const Route66TripCalculator: React.FC = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 7,
+    dailyDrivingLimit: 300, // Add the missing property
     tripStyle: 'balanced',
     tripStartDate: new Date()
   });

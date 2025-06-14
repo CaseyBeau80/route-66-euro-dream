@@ -54,14 +54,25 @@ export const useUnifiedWeather = ({
       });
 
       const weatherData = await getWeatherDataForTripDate(cityName, segmentDate);
-      setWeather(weatherData);
       
+      // Ensure weatherData conforms to ForecastWeatherData type
       if (weatherData) {
+        const normalizedWeather: ForecastWeatherData = {
+          temperature: weatherData.temperature || 0,
+          forecast: weatherData.forecast || weatherData.description || 'No forecast available',
+          forecastDate: weatherData.forecastDate || segmentDate,
+          description: weatherData.description || 'Weather data',
+          source: weatherData.source || 'api',
+          isActualForecast: weatherData.isActualForecast || false
+        };
+        
+        setWeather(normalizedWeather);
+        
         console.log('✅ useUnifiedWeather: Weather data received:', {
           cityName,
-          temperature: weatherData.temperature,
-          source: weatherData.source,
-          isActualForecast: weatherData.isActualForecast
+          temperature: normalizedWeather.temperature,
+          source: normalizedWeather.source,
+          isActualForecast: normalizedWeather.isActualForecast
         });
       }
     } catch (err) {
