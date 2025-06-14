@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 
 interface UseUnifiedWeatherProps {
@@ -38,16 +37,16 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     setHasFetched(true);
 
     try {
-      // STEP 1: STANDARDIZED API key detection using WeatherApiKeyManager
-      const hasApiKey = WeatherApiKeyManager.hasApiKey();
-      const apiKey = hasApiKey ? WeatherApiKeyManager.getApiKey() : null;
+      // STEP 1: ENHANCED API key detection - check all possible locations
+      const apiKey = getApiKeyFromAllSources();
+      const hasValidApiKey = !!(apiKey && apiKey.length >= 20 && !isPlaceholderKey(apiKey));
 
-      console.log('🔑 STANDARDIZED: API key detection result:', {
+      console.log('🔑 STANDARDIZED: Enhanced API key detection result:', {
         cityName,
-        hasApiKey,
+        hasValidApiKey,
         keyLength: apiKey?.length || 0,
         keyPreview: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
-        usingStandardizedDetection: true
+        enhancedDetection: true
       });
 
       // STEP 2: Calculate days from today for live forecast range
@@ -58,13 +57,13 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         cityName,
         daysFromNow,
         isWithinForecastRange,
-        shouldAttemptLive: hasApiKey && isWithinForecastRange,
-        simplifiedLogic: true
+        shouldAttemptLive: hasValidApiKey && isWithinForecastRange,
+        enhancedLogic: true
       });
 
-      // STEP 3: SIMPLIFIED weather fetching - direct live forecast attempt
-      if (hasApiKey && apiKey && isWithinForecastRange) {
-        console.log('✅ STANDARDIZED: Attempting live forecast with direct call:', cityName);
+      // STEP 3: ATTEMPT LIVE FORECAST if conditions are met
+      if (hasValidApiKey && apiKey && isWithinForecastRange) {
+        console.log('✅ STANDARDIZED: Attempting live forecast with enhanced API key detection:', cityName);
         
         const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
         
@@ -76,7 +75,7 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
             description: liveWeather.description,
             highTemp: liveWeather.highTemp,
             lowTemp: liveWeather.lowTemp,
-            standardizedFlow: true
+            enhancedFlow: true
           });
           setWeather(liveWeather);
           setLoading(false);
@@ -86,8 +85,8 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         }
       } else {
         console.log('📝 STANDARDIZED: Skipping live weather attempt for', cityName, {
-          reason: !hasApiKey ? 'no_api_key' : 'outside_forecast_range',
-          hasApiKey,
+          reason: !hasValidApiKey ? 'no_valid_api_key' : 'outside_forecast_range',
+          hasValidApiKey,
           isWithinForecastRange,
           daysFromNow
         });
@@ -137,7 +136,52 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   };
 };
 
-// STANDARDIZED live weather fetching with proper source and isActualForecast values
+// ENHANCED: Get API key from all possible sources
+const getApiKeyFromAllSources = (): string | null => {
+  // Check primary storage location
+  const primaryKey = localStorage.getItem('weather_api_key');
+  if (primaryKey && primaryKey.trim()) {
+    console.log('🔑 Found API key in primary storage');
+    return primaryKey.trim();
+  }
+
+  // Check legacy storage location
+  const legacyKey = localStorage.getItem('openweathermap_api_key');
+  if (legacyKey && legacyKey.trim()) {
+    console.log('🔑 Found API key in legacy storage');
+    return legacyKey.trim();
+  }
+
+  // Check other possible storage keys
+  const alternativeKeys = [
+    'openweather_api_key',
+    'weather-api-key',
+    'weatherApiKey',
+    'owm_api_key'
+  ];
+
+  for (const keyName of alternativeKeys) {
+    const key = localStorage.getItem(keyName);
+    if (key && key.trim()) {
+      console.log('🔑 Found API key in alternative storage:', keyName);
+      return key.trim();
+    }
+  }
+
+  console.log('🔑 No API key found in any storage location');
+  return null;
+};
+
+// Check if API key is a placeholder
+const isPlaceholderKey = (key: string): boolean => {
+  const lowerKey = key.toLowerCase();
+  return lowerKey.includes('your_api_key') || 
+         lowerKey.includes('replace_with') ||
+         lowerKey.includes('example') ||
+         key === 'PLACEHOLDER_KEY';
+};
+
+// ENHANCED live weather fetching with proper source and isActualForecast values
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
@@ -250,7 +294,7 @@ const fetchLiveWeatherDirect = async (
   }
 };
 
-// Standardized geocoding
+// Enhanced geocoding
 const getCoordinatesStandardized = async (cityName: string, apiKey: string) => {
   try {
     let cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
