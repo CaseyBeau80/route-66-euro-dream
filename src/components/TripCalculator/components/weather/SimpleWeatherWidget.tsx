@@ -20,12 +20,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 FIXED: SimpleWeatherWidget rendering for', segment.endCity, {
+  console.log('🔧 CRITICAL FIX: SimpleWeatherWidget forcing fresh render for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    timestamp: Date.now(),
+    forcingFreshRender: true
   });
 
   // Calculate segment date consistently
@@ -33,11 +35,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     // First priority: use passed tripStartDate
     if (tripStartDate) {
       const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-      console.log('🔧 FIXED: Calculated date from tripStartDate:', {
+      console.log('🔧 CRITICAL FIX: Calculated date from tripStartDate:', {
         tripStartDate: tripStartDate.toISOString(),
         segmentDay: segment.day,
         calculatedDate: calculatedDate?.toISOString(),
-        source: 'passed_trip_start_date'
+        source: 'passed_trip_start_date',
+        timestamp: Date.now()
       });
       return calculatedDate;
     }
@@ -54,18 +57,19 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
               const calculatedDate = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-              console.log('🔧 FIXED: Successfully calculated date from URL params:', {
+              console.log('🔧 CRITICAL FIX: Successfully calculated date from URL params:', {
                 urlParam: tripStartParam,
                 segmentDay: segment.day,
                 calculatedDate: calculatedDate?.toISOString(),
-                source: 'url_parameters'
+                source: 'url_parameters',
+                timestamp: Date.now()
               });
               return calculatedDate;
             }
           }
         }
       } catch (error) {
-        console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ CRITICAL FIX: Failed to parse trip start date from URL:', error);
       }
     }
 
@@ -73,10 +77,11 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     if (isSharedView || isPDFExport) {
       const today = new Date();
       const estimatedDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-      console.log('🔧 FIXED: Using estimated date for shared view:', {
+      console.log('🔧 CRITICAL FIX: Using estimated date for shared view:', {
         segmentDay: segment.day,
         estimatedDate: estimatedDate.toISOString(),
-        source: 'estimated_from_today'
+        source: 'estimated_from_today',
+        timestamp: Date.now()
       });
       return estimatedDate;
     }
@@ -84,7 +89,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather hook
+  // Use unified weather hook with forced refresh
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -96,7 +101,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  console.log('🔧 FIXED: Weather state for', segment.endCity, {
+  console.log('🔧 CRITICAL FIX: Weather state for', segment.endCity, {
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
@@ -105,7 +110,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     error,
     hasSegmentDate: !!segmentDate,
     hasApiKey,
-    isSharedView
+    isSharedView,
+    timestamp: Date.now(),
+    forcingFreshState: true
   });
 
   // Show loading state
@@ -122,16 +129,18 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Show weather if we have it and a valid date
   if (weather && segmentDate) {
-    console.log('✅ FIXED: Displaying weather for', segment.endCity, {
+    console.log('✅ CRITICAL FIX: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       description: weather.description,
-      isSharedView
+      isSharedView,
+      timestamp: Date.now(),
+      criticalFixApplied: true
     });
     
     return (
-      <div className="weather-widget">
+      <div className="weather-widget" key={`weather-display-${segment.endCity}-${Date.now()}`}>
         <SimpleWeatherDisplay
           weather={weather}
           segmentDate={segmentDate}
@@ -175,7 +184,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         </div>
         <SimpleWeatherApiKeyInput 
           onApiKeySet={() => {
-            console.log('🔑 FIXED: API key set, refetching weather for', segment.endCity);
+            console.log('🔑 CRITICAL FIX: API key set, refetching weather for', segment.endCity);
             refetch();
           }}
           cityName={segment.endCity}

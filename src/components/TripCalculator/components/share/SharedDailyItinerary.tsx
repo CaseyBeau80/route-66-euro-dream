@@ -13,18 +13,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔧 SHARED: SharedDailyItinerary rendering with LIVE WEATHER PRIORITY:', {
+  console.log('🔧 CRITICAL FIX: SharedDailyItinerary ensuring fresh weather rendering:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
     sharedViewMode: true,
-    prioritizingLiveWeather: true
+    criticalFix: 'forcing_fresh_weather_rendering'
   });
 
   // Enhanced trip start date determination with aggressive URL parameter checking
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔧 SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔧 CRITICAL FIX: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -38,23 +38,23 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔧 SHARED: Extracted tripStartDate from URL for LIVE WEATHER:', {
+            console.log('🔧 CRITICAL FIX: Extracted tripStartDate from URL for FRESH WEATHER:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              enablesLiveWeather: true
+              enablesFreshWeather: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ SHARED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ CRITICAL FIX: Failed to parse trip start date from URL:', error);
     }
 
     // Fallback: use today for demonstration - this ensures we get live weather
     const today = new Date();
-    console.log('🔧 SHARED: Using today as fallback tripStartDate for LIVE WEATHER:', today.toISOString());
+    console.log('🔧 CRITICAL FIX: Using today as fallback tripStartDate for FRESH WEATHER:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -85,17 +85,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔧 SHARED: Rendering segment ${segment.day} for ${segment.endCity} with LIVE WEATHER PRIORITY`, {
+        console.log(`🔧 CRITICAL FIX: Rendering segment ${segment.day} for ${segment.endCity} with FRESH WEATHER FORCE`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
           isSharedView: true,
-          forcingLiveWeather: true,
-          tripStartDate: effectiveTripStartDate?.toISOString()
+          forcingFreshWeatherRender: true,
+          tripStartDate: effectiveTripStartDate?.toISOString(),
+          uniqueKey: `fresh-weather-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`critical-fix-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -147,7 +148,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Section - PRIORITIZE LIVE WEATHER */}
+              {/* CRITICAL FIX: Enhanced Weather Section - Force Fresh Rendering */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
@@ -156,7 +157,8 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                   <p className="text-xs text-gray-500">Current forecast when available</p>
                 </div>
                 
-                <div className="weather-widget-container">
+                {/* CRITICAL FIX: Force fresh widget with timestamp-based key */}
+                <div className="weather-widget-container" key={`weather-widget-${segment.day}-${Date.now()}`}>
                   <SimpleWeatherWidget
                     segment={segment}
                     tripStartDate={effectiveTripStartDate}
