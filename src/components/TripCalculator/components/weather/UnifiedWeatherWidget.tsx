@@ -2,10 +2,11 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
-import { useUnifiedWeather } from './hooks/useUnifiedWeather';
-import WeatherDisplayDecision from './WeatherDisplayDecision';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
+import SimpleWeatherDisplay from './SimpleWeatherDisplay';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
+import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface UnifiedWeatherWidgetProps {
   segment: DailySegment;
@@ -20,6 +21,9 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
+  const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   // Calculate segment date
@@ -47,31 +51,57 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return keyExists;
   }, [refreshKey]);
 
-  // Use unified weather hook
-  const { weather, loading, error, refetch } = useUnifiedWeather({
-    cityName: segment.endCity,
-    segmentDate,
-    segmentDay: segment.day,
-    prioritizeCachedData: false,
-    cachedWeather: null
-  });
+  // Fetch weather data
+  React.useEffect(() => {
+    if (!segmentDate) {
+      console.log('🔧 UnifiedWeatherWidget: No segment date, skipping fetch');
+      return;
+    }
 
-  console.log('🔧 UnifiedWeatherWidget: Render state:', {
-    cityName: segment.endCity,
-    segmentDay: segment.day,
-    hasSegmentDate: !!segmentDate,
-    hasApiKey,
-    hasWeather: !!weather,
-    loading,
-    error,
-    isSharedView,
-    isPDFExport
-  });
+    const fetchWeather = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        console.log('🔧 UnifiedWeatherWidget: Fetching weather for:', {
+          cityName: segment.endCity,
+          segmentDate: segmentDate.toISOString(),
+          hasApiKey
+        });
+
+        const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
+          cityName: segment.endCity,
+          targetDate: segmentDate,
+          hasApiKey,
+          isSharedView,
+          segmentDay: segment.day
+        });
+
+        if (weatherData) {
+          console.log('✅ UnifiedWeatherWidget: Weather data received:', {
+            cityName: segment.endCity,
+            temperature: weatherData.temperature,
+            source: weatherData.source,
+            isActualForecast: weatherData.isActualForecast
+          });
+          setWeather(weatherData);
+        } else {
+          setError('Weather data unavailable');
+        }
+      } catch (err) {
+        console.error('❌ UnifiedWeatherWidget: Error fetching weather:', err);
+        setError(err instanceof Error ? err.message : 'Weather fetch failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, [segment.endCity, segmentDate, hasApiKey, refreshKey]);
 
   const handleRetry = () => {
     console.log('🔄 UnifiedWeatherWidget: Retrying weather fetch for', segment.endCity);
     setRefreshKey(prev => prev + 1);
-    refetch();
   };
 
   const handleApiKeySet = () => {
@@ -109,12 +139,10 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   // Show weather if available and we have a valid date
   if (weather && segmentDate) {
     return (
-      <WeatherDisplayDecision
+      <SimpleWeatherDisplay
         weather={weather}
         segmentDate={segmentDate}
-        segmentEndCity={segment.endCity}
-        error={error}
-        onRetry={handleRetry}
+        cityName={segment.endCity}
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       />

@@ -36,16 +36,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // CRITICAL FIX: Explicit live weather detection with detailed logging
+  // Determine if this is live forecast data
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay live detection:', {
+  console.log('🌤️ SimpleWeatherDisplay render:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    sourceCheck: weather.source === 'live_forecast',
-    actualForecastCheck: weather.isActualForecast === true,
-    finalResult: isLiveForecast
+    isLiveForecast,
+    temperature: weather.temperature
   });
 
   return (
