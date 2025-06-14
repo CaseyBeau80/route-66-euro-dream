@@ -44,63 +44,27 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     sourceCheck: weather.source === 'live_forecast',
-    forecastCheck: weather.isActualForecast === true,
-    finalIsLiveForecast: isLiveForecast,
-    temperature: weather.temperature,
-    timestamp: new Date().toISOString()
-  });
-
-  // Force re-render key to ensure fresh display
-  const displayKey = `weather-${cityName}-${isLiveForecast ? 'live' : 'historical'}-${Date.now()}`;
-
-  // CRITICAL FIX: Corrected display configuration logic
-  const displayConfig = isLiveForecast ? {
-    sourceLabel: '🟢 Live Weather Forecast',
-    sourceColor: 'text-green-600',
-    badgeText: '✨ Current live forecast',
-    badgeStyle: 'bg-green-100 text-green-700',
-    backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
-    borderStyle: 'border-green-200'
-  } : {
-    sourceLabel: '🟡 Historical Weather Data',
-    sourceColor: 'text-amber-600',
-    badgeText: '📊 Based on historical patterns',
-    badgeStyle: 'bg-amber-100 text-amber-700',
-    backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
-    borderStyle: 'border-blue-200'
-  };
-
-  console.log('🔧 CRITICAL FIX: Display config applied:', {
-    cityName,
-    isLiveForecast,
-    sourceLabel: displayConfig.sourceLabel,
-    badgeText: displayConfig.badgeText,
-    displayKey
+    actualForecastCheck: weather.isActualForecast === true,
+    finalResult: isLiveForecast
   });
 
   return (
-    <div 
-      key={displayKey}
-      className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}
-    >
-      {/* Debug info for development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-1 rounded z-50">
-          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'}
-        </div>
-      )}
-
-      {/* Weather Source Indicator */}
+    <div className={`rounded-lg p-4 border-2 ${
+      isLiveForecast 
+        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-300' 
+        : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300'
+    }`}>
+      {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
-          {displayConfig.sourceLabel}
+        <span className={`text-sm font-bold ${
+          isLiveForecast ? 'text-green-800' : 'text-blue-800'
+        }`}>
+          {isLiveForecast ? '🟢 Live Weather Forecast' : '🔵 Weather Forecast'}
         </span>
-        <span className="text-xs text-gray-500">
-          {formattedDate}
-        </span>
+        <span className="text-xs text-gray-500">{formattedDate}</span>
       </div>
 
-      {/* Main Weather Display */}
+      {/* Weather Content */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="text-3xl">{weatherIcon}</div>
@@ -126,10 +90,14 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Weather Status Badge */}
+      {/* Status Badge */}
       <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${displayConfig.badgeStyle}`}>
-          {displayConfig.badgeText}
+        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${
+          isLiveForecast 
+            ? 'bg-green-100 text-green-800 border-green-300' 
+            : 'bg-blue-100 text-blue-800 border-blue-300'
+        }`}>
+          {isLiveForecast ? '✨ Current forecast data' : '📊 Weather forecast'}
         </span>
       </div>
     </div>
