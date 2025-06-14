@@ -2,7 +2,6 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { useWeatherCard } from './hooks/useWeatherCard';
-import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
 import SegmentWeatherContent from './SegmentWeatherContent';
 
 interface WeatherCardProps {
@@ -25,50 +24,34 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     tripStartDate
   });
 
-  // FIXED: Enhanced API key detection for shared views
-  const effectiveHasApiKey = React.useMemo(() => {
-    if (isSharedView || isPDFExport) {
-      const sharedConfig = ShareWeatherConfigService.getShareWeatherConfig();
-      console.log('🔑 FIXED: WeatherCard shared view API key check for', segment.endCity, {
-        originalHasApiKey: hasApiKey,
-        sharedConfigHasApiKey: sharedConfig.hasApiKey,
-        canFetchLiveWeather: sharedConfig.canFetchLiveWeather,
-        usingSharedConfig: true
-      });
-      return sharedConfig.hasApiKey;
-    }
-    return hasApiKey;
-  }, [hasApiKey, isSharedView, isPDFExport, segment.endCity]);
-
   const [retryCount, setRetryCount] = React.useState(0);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log('🔑 FIXED: API key set, triggering weather fetch for', segment.endCity);
+    console.log('🔑 SIMPLIFIED: API key set, triggering weather fetch for', segment.endCity);
     if (segmentDate) {
       fetchWeather(isSharedView);
     }
   }, [fetchWeather, segmentDate, isSharedView, segment.endCity]);
 
   const handleTimeout = React.useCallback(() => {
-    console.log('⏰ FIXED: Weather fetch timeout for', segment.endCity);
+    console.log('⏰ SIMPLIFIED: Weather fetch timeout for', segment.endCity);
     weatherState.setError('Weather fetch timed out');
     weatherState.setLoading(false);
   }, [weatherState, segment.endCity]);
 
   const handleRetry = React.useCallback(() => {
-    console.log('🔄 FIXED: Manual retry triggered for', segment.endCity, {
+    console.log('🔄 SIMPLIFIED: Manual retry triggered for', segment.endCity, {
       retryCount: retryCount + 1,
-      hasEffectiveApiKey: effectiveHasApiKey
+      hasApiKey
     });
     setRetryCount(prev => prev + 1);
     if (segmentDate) {
       fetchWeather(isSharedView);
     }
-  }, [fetchWeather, segmentDate, retryCount, isSharedView, effectiveHasApiKey, segment.endCity]);
+  }, [fetchWeather, segmentDate, retryCount, isSharedView, hasApiKey, segment.endCity]);
 
-  console.log('🔧 FIXED: WeatherCard render for', segment.endCity, {
-    hasApiKey: hasApiKey,
-    effectiveHasApiKey: effectiveHasApiKey,
+  console.log('🔧 SIMPLIFIED: WeatherCard render for', segment.endCity, {
+    hasApiKey,
     isSharedView,
     hasWeather: !!weatherState.weather,
     loading: weatherState.loading,
@@ -80,7 +63,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   return (
     <SegmentWeatherContent
-      hasApiKey={effectiveHasApiKey}
+      hasApiKey={hasApiKey}
       loading={weatherState.loading}
       weather={weatherState.weather}
       error={weatherState.error}
