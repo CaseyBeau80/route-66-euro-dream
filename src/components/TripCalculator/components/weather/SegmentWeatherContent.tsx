@@ -35,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SegmentWeatherContent enhanced flow for', segmentEndCity, {
+  console.log('🔧 CRITICAL FIX: SegmentWeatherContent render for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
@@ -59,7 +59,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Show loading state
   if (loading) {
-    console.log('🔄 FIXED: Showing loading state for', segmentEndCity);
+    console.log('🔄 CRITICAL FIX: Showing loading state for', segmentEndCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-600">
@@ -72,10 +72,11 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // CRITICAL FIX: ALWAYS display weather data if available, regardless of view type
   if (weather) {
-    console.log(`✅ FIXED: Displaying weather data for ${segmentEndCity}`, {
+    console.log(`✅ CRITICAL FIX: Displaying weather data for ${segmentEndCity}`, {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
-      temperature: weather.temperature
+      temperature: weather.temperature,
+      viewType: isSharedView ? 'shared' : 'regular'
     });
     
     return (
@@ -91,37 +92,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // CRITICAL FIX: Force weather fetch attempt for shared views
-  React.useEffect(() => {
-    if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
-      console.log(`🚨 FIXED: Forcing weather fetch for shared view: ${segmentEndCity}`);
-      // Trigger retry to force weather fetch
-      setTimeout(() => {
-        onRetry();
-      }, 100);
-    }
-  }, [isSharedView, isPDFExport, segmentDate, weather, loading, segmentEndCity, onRetry]);
-
-  // Shared view fallback - use seasonal weather while loading
-  if ((isSharedView || isPDFExport) && segmentDate) {
-    console.log(`🌱 FIXED: Using seasonal fallback for shared view: ${segmentEndCity}`);
-    return (
-      <div className="space-y-2">
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          compact={true}
-        />
-        <div className="text-xs text-blue-600 text-center">
-          Loading live weather data...
-        </div>
-      </div>
-    );
-  }
-
-  // For shared views without date
-  if (isSharedView || isPDFExport) {
-    console.log(`🚫 FIXED: No date available for shared view: ${segmentEndCity}`);
+  // For shared views without weather data and no date - show basic message
+  if ((isSharedView || isPDFExport) && !segmentDate) {
+    console.log(`🚫 CRITICAL FIX: Shared view without date for ${segmentEndCity}`);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
@@ -130,9 +103,37 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
+  // For shared views with date but no weather - trigger retry and show seasonal fallback
+  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
+    console.log(`🚨 CRITICAL FIX: Shared view needs weather for ${segmentEndCity} - triggering retry`);
+    
+    // Trigger retry in next tick to avoid infinite loops
+    React.useEffect(() => {
+      const timeoutId = setTimeout(() => {
+        console.log(`🔄 CRITICAL FIX: Auto-retry for shared view: ${segmentEndCity}`);
+        onRetry();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }, [onRetry, segmentEndCity]);
+
+    return (
+      <div className="space-y-2">
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
+        <div className="text-xs text-blue-600 text-center">
+          Loading weather data...
+        </div>
+      </div>
+    );
+  }
+
   // Regular view without API key
   if (!hasApiKey && !isSharedView && !isPDFExport) {
-    console.log(`🔑 FIXED: Showing API key input for ${segmentEndCity}`);
+    console.log(`🔑 CRITICAL FIX: Showing API key input for ${segmentEndCity}`);
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -146,8 +147,14 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // Regular view with error
-  console.log(`⚠️ FIXED: Showing error state for ${segmentEndCity}`);
+  // Regular view with error or no weather
+  console.log(`⚠️ CRITICAL FIX: Showing error/retry state for ${segmentEndCity}`, {
+    error,
+    retryCount,
+    hasApiKey,
+    isSharedView
+  });
+  
   return (
     <div className="space-y-3">
       <div className="bg-amber-50 border border-amber-200 rounded p-3">
