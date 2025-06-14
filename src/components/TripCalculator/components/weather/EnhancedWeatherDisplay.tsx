@@ -3,7 +3,6 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
 import { WeatherDataValidator } from './WeatherDataValidator';
-import WeatherDebugOverlay from './WeatherDebugOverlay';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -24,9 +23,6 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   forceKey,
   showDebug = true
 }) => {
-  // CRITICAL FIX: Generate unique render key to force re-render
-  const [renderKey] = React.useState(() => `weather-${cityName}-${Date.now()}`);
-  
   // Validate weather data first
   const validation = React.useMemo(() => {
     return WeatherDataValidator.validateWeatherData(weather, cityName, segmentDate);
@@ -35,66 +31,45 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   // Use validated weather data
   const validatedWeather = validation.normalizedWeather;
 
-  // CRITICAL FIX: Simplified and explicit live weather detection
-  const isLiveForecast = React.useMemo(() => {
-    const isLive = validatedWeather.source === 'live_forecast' && validatedWeather.isActualForecast === true;
-    
-    console.log('🚨 CRITICAL FIX: Live weather detection in EnhancedWeatherDisplay:', {
-      cityName,
-      source: validatedWeather.source,
-      isActualForecast: validatedWeather.isActualForecast,
-      isLive,
-      renderKey,
-      timestamp: new Date().toISOString()
-    });
-    
-    return isLive;
-  }, [validatedWeather.source, validatedWeather.isActualForecast, cityName, renderKey]);
+  // SIMPLIFIED: Direct live weather detection without complex memoization
+  const isLiveForecast = validatedWeather.source === 'live_forecast' && validatedWeather.isActualForecast === true;
 
-  // CRITICAL FIX: Force display config to update based on live detection
-  const displayConfig = React.useMemo(() => {
-    console.log('🚨 CRITICAL FIX: Creating display config for:', {
-      cityName,
-      isLiveForecast,
-      renderKey
-    });
+  console.log('🟢 SIMPLIFIED: EnhancedWeatherDisplay live detection:', {
+    cityName,
+    source: validatedWeather.source,
+    isActualForecast: validatedWeather.isActualForecast,
+    isLiveForecast,
+    directCheck: true
+  });
 
+  // SIMPLIFIED: Direct styling based on live detection
+  const styles = React.useMemo(() => {
     if (isLiveForecast) {
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: 'text-green-600',
         badgeText: '✨ Current live forecast',
-        badgeStyle: 'bg-green-100 text-green-700 border-green-200',
-        backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-        borderStyle: 'border-green-200'
+        badgeClasses: 'bg-green-100 text-green-700 border-green-200',
+        containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+        isLive: true
       };
     } else {
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: 'text-amber-600',
         badgeText: '📊 Based on historical patterns',
-        badgeStyle: 'bg-amber-100 text-amber-700 border-amber-200',
-        backgroundStyle: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200',
-        borderStyle: 'border-amber-200'
+        badgeClasses: 'bg-amber-100 text-amber-700 border-amber-200',
+        containerClasses: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200',
+        isLive: false
       };
     }
-  }, [isLiveForecast, cityName, renderKey]);
+  }, [isLiveForecast]);
 
-  console.log('🚨 CRITICAL FIX: EnhancedWeatherDisplay FINAL RENDER STATE:', {
-    cityName,
+  console.log('🟢 SIMPLIFIED: Final styling for', cityName, {
     isLiveForecast,
-    displayConfig: {
-      sourceLabel: displayConfig.sourceLabel,
-      backgroundStyle: displayConfig.backgroundStyle,
-      badgeStyle: displayConfig.badgeStyle
-    },
-    weatherData: {
-      source: validatedWeather.source,
-      isActualForecast: validatedWeather.isActualForecast,
-      temperature: validatedWeather.temperature
-    },
-    renderKey,
-    forceKey
+    sourceLabel: styles.sourceLabel,
+    isLive: styles.isLive,
+    containerClasses: styles.containerClasses
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -117,32 +92,35 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
 
   return (
     <div 
-      key={renderKey}
-      className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle} relative`}
+      className={`${styles.containerClasses} rounded-lg p-4 border relative`}
+      style={{
+        backgroundColor: isLiveForecast ? '#dcfce7' : '#fef3c7',
+        borderColor: isLiveForecast ? '#bbf7d0' : '#fde68a'
+      }}
     >
-      {/* CRITICAL DEBUG: Show exact state */}
-      <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-        <div className="font-bold mb-1">🚨 CRITICAL FIX: {cityName}</div>
-        <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
-          {isLiveForecast ? '🟢 LIVE DETECTED' : '🟡 HISTORICAL DETECTED'}
+      {/* Simplified Debug Overlay */}
+      {showDebug && (
+        <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
+          <div className="font-bold mb-1">🟢 SIMPLIFIED: {cityName}</div>
+          <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
+            {isLiveForecast ? '🟢 LIVE DETECTED' : '🟡 HISTORICAL DETECTED'}
+          </div>
+          <div>Source: {validatedWeather.source}</div>
+          <div>ActualForecast: {String(validatedWeather.isActualForecast)}</div>
+          <div>isLiveForecast: {String(isLiveForecast)}</div>
+          <div>Styling: {isLiveForecast ? 'GREEN' : 'AMBER'}</div>
         </div>
-        <div>Source: {validatedWeather.source}</div>
-        <div>ActualForecast: {String(validatedWeather.isActualForecast)}</div>
-        <div>isLiveForecast: {String(isLiveForecast)}</div>
-        <div>Label: {displayConfig.sourceLabel}</div>
-        <div>Background: {isLiveForecast ? 'GREEN' : 'AMBER'}</div>
-        <div>Key: {renderKey}</div>
-      </div>
+      )}
 
-      {/* Weather Source Indicator - FORCED STYLING */}
+      {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
         <span 
-          className={`text-xs font-medium ${displayConfig.sourceColor}`}
+          className={`text-xs font-medium ${styles.sourceColor}`}
           style={{ 
-            color: isLiveForecast ? '#059669' : '#d97706' // Force colors
+            color: isLiveForecast ? '#059669' : '#d97706'
           }}
         >
-          {displayConfig.sourceLabel}
+          {styles.sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -175,17 +153,17 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Weather Status Badge - FORCED STYLING */}
+      {/* Weather Status Badge */}
       <div className="mt-2 text-center">
         <span 
-          className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${displayConfig.badgeStyle}`}
+          className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${styles.badgeClasses}`}
           style={{
             backgroundColor: isLiveForecast ? '#dcfce7' : '#fef3c7',
             color: isLiveForecast ? '#166534' : '#92400e',
             borderColor: isLiveForecast ? '#bbf7d0' : '#fde68a'
           }}
         >
-          {displayConfig.badgeText}
+          {styles.badgeText}
         </span>
       </div>
 
