@@ -18,19 +18,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('🚨 PLAN IMPLEMENTATION: SharedTripContentRenderer - COMPREHENSIVE LOGGING', {
-    isSharedView,
-    hasStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString(),
-    segmentsCount: tripPlan.segments?.length,
-    segments: tripPlan.segments?.map(s => ({
-      day: s.day,
-      endCity: s.endCity,
-      startCity: s.startCity
-    })),
-    phase: 'PLAN IMPLEMENTATION - Comprehensive Shared View Debug'
-  });
-
   const { costEstimate } = useCostEstimator(tripPlan);
 
   const formatCurrency = (amount: number) => {
@@ -139,18 +126,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
           const distance = segment.distance || segment.approximateMiles || 0;
 
-          // PLAN IMPLEMENTATION: Comprehensive segment logging as requested
-          console.log('🚨 PLAN IMPLEMENTATION: Rendering segment in shared view', {
-            segmentDay: segment.day,
-            endCity: segment.endCity,
-            startCity: segment.startCity,
-            hasStartDate: !!tripStartDate,
-            tripStartDate: tripStartDate?.toISOString(),
-            isSharedView,
-            segmentIndex: index,
-            phase: 'PLAN IMPLEMENTATION - Segment Render Debug'
-          });
-
           return (
             <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
               {/* Day Header */}
@@ -204,11 +179,8 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   </div>
                 </div>
 
-                {/* PLAN IMPLEMENTATION: Enhanced weather section with proper shared view handling */}
+                {/* FIXED: Enhanced weather section with proper shared view handling and no debug boxes */}
                 <div className="weather-section">
-                  <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-2 text-xs text-yellow-800">
-                    🔧 DEBUG: Weather Widget for Day {segment.day} - {segment.endCity}
-                  </div>
                   <SimpleWeatherWidget
                     segment={segment}
                     tripStartDate={tripStartDate}
