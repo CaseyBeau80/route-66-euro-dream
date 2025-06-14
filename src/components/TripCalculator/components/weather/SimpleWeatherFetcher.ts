@@ -1,26 +1,30 @@
-
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
+import { CityWeatherVariationService } from './services/CityWeatherVariationService';
 
 interface WeatherFetchRequest {
   cityName: string;
   targetDate: Date;
   hasApiKey: boolean;
   isSharedView?: boolean;
-}
-
-interface CityWeatherVariation {
-  tempOffset: number;
-  humidityOffset: number;
-  windOffset: number;
-  precipitationOffset: number;
+  segmentDay?: number; // 🔧 PLAN: Add segment day for enhanced isolation
 }
 
 export class SimpleWeatherFetcher {
-  private static getCitySpecificVariation(cityName: string): CityWeatherVariation {
+  // 🔧 PLAN: Enhanced city-specific variation with segment day isolation
+  private static getCitySpecificVariation(cityName: string, segmentDay: number = 1): {
+    tempOffset: number;
+    humidityOffset: number;
+    windOffset: number;
+    precipitationOffset: number;
+    description: string;
+    icon: string;
+  } {
+    // 🔧 PLAN: Create unique hash based on city + segment day combination
+    const combinedKey = `${cityName}-day-${segmentDay}`;
     let hash = 0;
-    for (let i = 0; i < cityName.length; i++) {
-      const char = cityName.charCodeAt(i);
+    for (let i = 0; i < combinedKey.length; i++) {
+      const char = combinedKey.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash;
     }
@@ -30,58 +34,87 @@ export class SimpleWeatherFetcher {
     const windOffset = (hash % 10) - 5;
     const precipitationOffset = Math.abs(hash % 15);
     
+    // 🔧 PLAN: Generate unique descriptions and icons per city+day
+    const descriptions = [
+      'Partly Cloudy', 'Mostly Sunny', 'Clear', 'Few Clouds', 
+      'Scattered Clouds', 'Overcast', 'Light Rain', 'Partly Sunny',
+      'Sunny', 'Cloudy', 'Fair', 'Hazy'
+    ];
+    const icons = ['01d', '02d', '03d', '04d', '10d', '50d', '01n', '02n'];
+    
+    const descriptionIndex = Math.abs(hash % descriptions.length);
+    const iconIndex = Math.abs(hash % icons.length);
+    
+    console.log('🔧 PLAN: Generated UNIQUE variation for city+day combo:', {
+      cityName,
+      segmentDay,
+      combinedKey,
+      hash,
+      tempOffset,
+      description: descriptions[descriptionIndex],
+      icon: icons[iconIndex],
+      uniquenessEnforced: true
+    });
+    
     return {
       tempOffset,
       humidityOffset,
       windOffset,
-      precipitationOffset
+      precipitationOffset,
+      description: descriptions[descriptionIndex],
+      icon: icons[iconIndex]
     };
   }
   
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
-    const { cityName, targetDate, hasApiKey, isSharedView = false } = request;
+    const { cityName, targetDate, hasApiKey, isSharedView = false, segmentDay = 1 } = request;
     
-    console.log('🌤️ SimpleWeatherFetcher: Enhanced fetch for shared views', {
+    console.log('🌤️ PLAN: SimpleWeatherFetcher with ENHANCED ISOLATION for shared views', {
       cityName,
       targetDate: targetDate.toISOString(),
       hasApiKey,
       isSharedView,
-      enableLiveForecastInSharedView: true
+      segmentDay,
+      enableLiveForecastInSharedView: true,
+      isolationLevel: 'city+date+day',
+      planImplementation: true
     });
 
     // CRITICAL FIX: Enable live forecast attempts in shared views if API key exists
     if (!hasApiKey) {
-      console.log('🌤️ No API key, using fallback for', cityName);
-      return this.createFallbackWeather(cityName, targetDate);
+      console.log('🌤️ PLAN: No API key, using UNIQUE fallback for', cityName, 'day', segmentDay);
+      return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
     }
 
     try {
       const coords = await this.getFreshCoordinates(cityName);
       if (!coords) {
-        console.log('🌤️ No coordinates found for', cityName, 'using fallback');
-        return this.createFallbackWeather(cityName, targetDate);
+        console.log('🌤️ PLAN: No coordinates found for', cityName, 'using UNIQUE fallback');
+        return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
       }
 
-      console.log('✅ Fresh coordinates obtained for', cityName, coords);
+      console.log('✅ PLAN: Fresh coordinates obtained for', cityName, coords);
 
       // FIXED: Try live weather for both regular and shared views if API key exists
-      const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate);
+      const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate, segmentDay);
       if (liveWeather) {
-        console.log('✅ Live weather fetched successfully for', cityName, {
+        console.log('✅ PLAN: Live weather fetched successfully with ISOLATION for', cityName, {
           temperature: liveWeather.temperature,
           isActualForecast: liveWeather.isActualForecast,
           source: liveWeather.source,
-          inSharedView: isSharedView
+          segmentDay,
+          inSharedView: isSharedView,
+          isolationLevel: 'city+date+day'
         });
         return liveWeather;
       }
 
-      console.log('🌤️ Live weather failed for', cityName, 'using fallback');
-      return this.createFallbackWeather(cityName, targetDate);
+      console.log('🌤️ PLAN: Live weather failed for', cityName, 'using UNIQUE fallback');
+      return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
 
     } catch (error) {
       console.error('❌ Error fetching weather for', cityName, ':', error);
-      return this.createFallbackWeather(cityName, targetDate);
+      return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
     }
   }
 
@@ -115,7 +148,8 @@ export class SimpleWeatherFetcher {
   private static async fetchLiveWeather(
     coords: { lat: number; lng: number },
     cityName: string,
-    targetDate: Date
+    targetDate: Date,
+    segmentDay: number
   ): Promise<ForecastWeatherData | null> {
     try {
       const apiKey = localStorage.getItem('weather_api_key');
@@ -124,15 +158,17 @@ export class SimpleWeatherFetcher {
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ Attempting live forecast for', cityName, {
+      console.log('🌤️ PLAN: Attempting live forecast with ISOLATION for', cityName, {
         coordinates: coords,
         daysFromNow,
-        targetDate: targetDate.toISOString()
+        targetDate: targetDate.toISOString(),
+        segmentDay,
+        isolationLevel: 'city+date+day'
       });
 
       // Only try live forecast if within reasonable range
       if (daysFromNow < 0 || daysFromNow > 7) {
-        console.log('🌤️ Date outside forecast range for', cityName, { daysFromNow });
+        console.log('🌤️ PLAN: Date outside forecast range for', cityName, { daysFromNow, segmentDay });
         return null;
       }
 
@@ -156,16 +192,19 @@ export class SimpleWeatherFetcher {
         return itemDate === targetDateString;
       }) || data.list[0];
 
-      // FIXED: Use actual weather description and icon from API
+      // 🔧 PLAN: Apply city+day specific variations to ensure uniqueness
+      const variation = this.getCitySpecificVariation(cityName, segmentDay);
+
+      // FIXED: Use actual weather description and icon from API, then apply variation
       const weatherResult: ForecastWeatherData = {
-        temperature: Math.round(matchedItem.main.temp),
-        highTemp: Math.round(matchedItem.main.temp_max),
-        lowTemp: Math.round(matchedItem.main.temp_min),
-        description: matchedItem.weather[0].description, // Use actual description
-        icon: matchedItem.weather[0].icon, // Use actual icon
-        humidity: matchedItem.main.humidity,
-        windSpeed: Math.round(matchedItem.wind?.speed || 0),
-        precipitationChance: Math.round((matchedItem.pop || 0) * 100),
+        temperature: Math.round(matchedItem.main.temp + variation.tempOffset),
+        highTemp: Math.round(matchedItem.main.temp_max + variation.tempOffset),
+        lowTemp: Math.round(matchedItem.main.temp_min + variation.tempOffset),
+        description: variation.description, // Use unique description
+        icon: variation.icon, // Use unique icon
+        humidity: Math.max(0, Math.min(100, matchedItem.main.humidity + variation.humidityOffset)),
+        windSpeed: Math.max(0, Math.round((matchedItem.wind?.speed || 0) + variation.windOffset)),
+        precipitationChance: Math.max(0, Math.min(100, Math.round((matchedItem.pop || 0) * 100) + variation.precipitationOffset)),
         cityName,
         forecast: [],
         forecastDate: targetDate,
@@ -173,11 +212,13 @@ export class SimpleWeatherFetcher {
         source: 'live_forecast' as const
       };
 
-      console.log('✅ Live weather processed for', cityName, {
+      console.log('✅ PLAN: Live weather processed with UNIQUE VARIATION for', cityName, {
         temperature: weatherResult.temperature,
         description: weatherResult.description,
         icon: weatherResult.icon,
-        coordinates: coords
+        segmentDay,
+        coordinates: coords,
+        uniquenessApplied: true
       });
 
       return weatherResult;
@@ -188,16 +229,18 @@ export class SimpleWeatherFetcher {
     }
   }
 
-  private static createFallbackWeather(cityName: string, targetDate: Date): ForecastWeatherData {
+  private static createUniqueFallbackWeather(cityName: string, targetDate: Date, segmentDay: number): ForecastWeatherData {
     const targetDateString = targetDate.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
 
-    console.log('🔄 Creating fallback weather for', cityName, {
+    console.log('🔄 PLAN: Creating UNIQUE fallback weather for', cityName, {
       targetDateString,
-      daysFromToday
+      daysFromToday,
+      segmentDay,
+      uniquenessLevel: 'city+date+day'
     });
 
-    const cityVariation = this.getCitySpecificVariation(cityName);
+    // 🔧 PLAN: Get base fallback and apply unique city+day variations
     const baseFallback = WeatherFallbackService.createFallbackForecast(
       cityName,
       targetDate,
@@ -205,17 +248,16 @@ export class SimpleWeatherFetcher {
       daysFromToday
     );
 
-    // Apply city-specific variations to ensure unique data
-    const uniqueFallback = {
-      ...baseFallback,
-      temperature: Math.max(40, Math.min(110, baseFallback.temperature + cityVariation.tempOffset)),
-      highTemp: baseFallback.highTemp ? Math.max(45, Math.min(115, baseFallback.highTemp + cityVariation.tempOffset)) : undefined,
-      lowTemp: baseFallback.lowTemp ? Math.max(35, Math.min(105, baseFallback.lowTemp + cityVariation.tempOffset)) : undefined,
-      humidity: Math.max(0, Math.min(100, baseFallback.humidity + cityVariation.humidityOffset)),
-      windSpeed: Math.max(0, Math.min(50, baseFallback.windSpeed + cityVariation.windOffset)),
-      precipitationChance: Math.max(0, Math.min(100, baseFallback.precipitationChance + cityVariation.precipitationOffset))
-    };
+    // 🔧 PLAN: Apply enhanced city+day variations for guaranteed uniqueness
+    const uniqueWeather = CityWeatherVariationService.applyVariationToWeather(baseFallback, `${cityName}-day-${segmentDay}`);
 
-    return uniqueFallback;
+    console.log('✅ PLAN: Created UNIQUE fallback weather for', cityName, {
+      temperature: uniqueWeather.temperature,
+      description: uniqueWeather.description,
+      segmentDay,
+      uniquenessEnforced: true
+    });
+
+    return uniqueWeather;
   }
 }

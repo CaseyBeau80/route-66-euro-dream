@@ -1,4 +1,3 @@
-
 import { DateNormalizationService } from '../DateNormalizationService';
 
 export class WeatherPersistenceService {
@@ -6,28 +5,45 @@ export class WeatherPersistenceService {
   private static readonly CACHE_DURATION_HOURS = 6; // Cache for 6 hours
   private static readonly MAX_CACHE_ENTRIES = 100;
 
-  static generateCacheKey(cityName: string, date: Date): string {
+  // 🔧 PLAN: Enhanced cache key generation with city+date+day isolation
+  static generateCacheKey(cityName: string, date: Date, segmentDay?: number): string {
     const normalizedCity = cityName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const dateString = date.toISOString().split('T')[0];
-    return `${normalizedCity}-${dateString}`;
+    const daySegment = segmentDay ? `-day${segmentDay}` : '';
+    const enhancedKey = `${normalizedCity}-${dateString}${daySegment}`;
+    
+    console.log('🔧 PLAN: Generated ENHANCED cache key with isolation:', {
+      cityName,
+      dateString,
+      segmentDay,
+      enhancedKey,
+      isolationLevel: 'city+date+day'
+    });
+    
+    return enhancedKey;
   }
 
-  static storeWeatherData(cityName: string, date: Date, weatherData: any): void {
+  static storeWeatherData(cityName: string, date: Date, weatherData: any, segmentDay?: number): void {
     try {
-      const cacheKey = this.generateCacheKey(cityName, date);
+      const cacheKey = this.generateCacheKey(cityName, date, segmentDay);
       const cacheEntry = {
         data: weatherData,
         timestamp: Date.now(),
         cityName,
-        date: date.toISOString()
+        date: date.toISOString(),
+        segmentDay: segmentDay || 0,
+        isolationMarker: `${cityName}-${segmentDay || 0}` // 🔧 PLAN: Isolation marker
       };
 
       localStorage.setItem(`${this.CACHE_PREFIX}${cacheKey}`, JSON.stringify(cacheEntry));
       
-      console.log('💾 PLAN: Stored weather data', {
+      console.log('💾 PLAN: Stored weather data with ENHANCED ISOLATION', {
         cacheKey,
         temperature: weatherData.temperature,
         source: weatherData.source,
+        cityName,
+        segmentDay,
+        isolationMarker: cacheEntry.isolationMarker,
         planImplementation: true
       });
 
@@ -38,14 +54,16 @@ export class WeatherPersistenceService {
     }
   }
 
-  static getWeatherData(cityName: string, date: Date): any | null {
+  static getWeatherData(cityName: string, date: Date, segmentDay?: number): any | null {
     try {
-      const cacheKey = this.generateCacheKey(cityName, date);
+      const cacheKey = this.generateCacheKey(cityName, date, segmentDay);
       const stored = localStorage.getItem(`${this.CACHE_PREFIX}${cacheKey}`);
       
       if (!stored) {
-        console.log('💾 PLAN: No cached data found', { 
+        console.log('💾 PLAN: No cached data found with ENHANCED KEY', { 
           cacheKey,
+          cityName,
+          segmentDay,
           planImplementation: true 
         });
         return null;
@@ -56,6 +74,19 @@ export class WeatherPersistenceService {
       const cacheAge = now - cacheEntry.timestamp;
       const maxAge = this.CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
+      // 🔧 PLAN: Enhanced isolation validation
+      const expectedIsolationMarker = `${cityName}-${segmentDay || 0}`;
+      if (cacheEntry.isolationMarker !== expectedIsolationMarker) {
+        console.warn('⚠️ PLAN: ISOLATION MARKER MISMATCH - clearing invalid cache', {
+          cacheKey,
+          expected: expectedIsolationMarker,
+          found: cacheEntry.isolationMarker,
+          ISOLATION_BREACH: true
+        });
+        localStorage.removeItem(`${this.CACHE_PREFIX}${cacheKey}`);
+        return null;
+      }
+
       // PLAN IMPLEMENTATION: Enhanced forecast range calculation with consistent logic
       const today = new Date();
       const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
@@ -65,7 +96,7 @@ export class WeatherPersistenceService {
       // PLAN IMPLEMENTATION: ENHANCED forecast range 0-7 days with bypass logic
       const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-      console.log('💾 PLAN: Enhanced cache decision with FORECAST RANGE BYPASS', {
+      console.log('💾 PLAN: Enhanced cache decision with FORECAST RANGE BYPASS AND ISOLATION', {
         cacheKey,
         normalizedToday: normalizedToday.toISOString(),
         normalizedTargetDate: normalizedTargetDate.toISOString(),
@@ -73,6 +104,7 @@ export class WeatherPersistenceService {
         isWithinForecastRange,
         forecastRange: 'Days 0-7 = FORCE live forecast attempt, Day 8+ = allow cache',
         cacheBypassForForecastRange: true,
+        isolationMarker: cacheEntry.isolationMarker,
         cacheDecision: isWithinForecastRange ? 'BYPASS_CACHE_FORCE_LIVE_ATTEMPT' : 'USE_CACHE_IF_VALID',
         planImplementation: true
       });
@@ -80,11 +112,12 @@ export class WeatherPersistenceService {
       // PLAN IMPLEMENTATION: CRITICAL - ALWAYS bypass cache for forecast range dates (0-7)
       // This ensures Day 2 (and other forecast range days) always attempt live forecasts
       if (isWithinForecastRange) {
-        console.log('💾 PLAN: *** CACHE BYPASS ENFORCED FOR FORECAST RANGE ***', {
+        console.log('💾 PLAN: *** CACHE BYPASS ENFORCED FOR FORECAST RANGE WITH ISOLATION ***', {
           cacheKey,
           daysFromToday,
           reason: 'within_0_to_7_day_forecast_range_MUST_attempt_live',
           bypassEnforced: true,
+          isolationMarker: cacheEntry.isolationMarker,
           day2Fix: daysFromToday === 1 ? 'THIS_IS_DAY_2_BYPASS' : 'other_forecast_day_bypass',
           planImplementation: true
         });
@@ -92,21 +125,23 @@ export class WeatherPersistenceService {
       }
 
       if (cacheAge > maxAge) {
-        console.log('💾 PLAN: Cache expired', {
+        console.log('💾 PLAN: Cache expired with ISOLATION', {
           cacheKey,
           cacheAgeHours: cacheAge / (60 * 60 * 1000),
           maxAgeHours: this.CACHE_DURATION_HOURS,
+          isolationMarker: cacheEntry.isolationMarker,
           planImplementation: true
         });
         localStorage.removeItem(`${this.CACHE_PREFIX}${cacheKey}`);
         return null;
       }
 
-      console.log('✅ PLAN: Retrieved cached weather data (beyond forecast range)', {
+      console.log('✅ PLAN: Retrieved cached weather data with ISOLATION (beyond forecast range)', {
         cacheKey,
         temperature: cacheEntry.data.temperature,
         daysFromToday,
         reason: 'beyond_forecast_range_and_cache_valid',
+        isolationMarker: cacheEntry.isolationMarker,
         planImplementation: true
       });
 

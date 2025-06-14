@@ -1,118 +1,109 @@
-
 export class WeatherDebugService {
-  static logComponentRender(componentName: string, cityName: string, data: any) {
-    console.log(`🎨 PLAN: ${componentName} [${cityName}] render:`, {
-      ...data,
-      timestamp: new Date().toISOString(),
-      standardizedLogging: true
-    });
-  }
+  private static debugLog: Array<{
+    timestamp: string;
+    component: string;
+    cityName: string;
+    segmentDay?: number;
+    action: string;
+    data: any;
+  }> = [];
 
-  static logWeatherFlow(operation: string, data: any) {
-    console.log(`🌊 PLAN: WeatherFlow: ${operation}`, {
-      ...data,
+  static logComponentRender(component: string, cityName: string, data: any, segmentDay?: number) {
+    const logEntry = {
       timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
-  }
-
-  static logDateCalculation(cityName: string, tripStartDate: any, segmentDay: number, calculatedDate: Date | null) {
-    console.log(`📅 PLAN: DateCalculation [${cityName}] - LOCAL NORMALIZATION:`, {
-      tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
+      component,
+      cityName,
       segmentDay,
-      calculatedDate: calculatedDate?.toISOString(),
-      calculatedDateLocal: calculatedDate?.toLocaleDateString(),
+      action: 'render',
+      data
+    };
+
+    this.debugLog.push(logEntry);
+    
+    console.log(`🐛 PLAN: WeatherDebugService - ${component} render for ${cityName}${segmentDay ? ` Day ${segmentDay}` : ''}:`, {
+      ...logEntry,
+      isolation: segmentDay ? `city+day-${segmentDay}` : 'city-only'
+    });
+
+    // Keep only last 50 entries
+    if (this.debugLog.length > 50) {
+      this.debugLog = this.debugLog.slice(-50);
+    }
+  }
+
+  static logWeatherStateChange(cityName: string, segmentDay: number, oldState: any, newState: any) {
+    const logEntry = {
       timestamp: new Date().toISOString(),
-      normalizationMethod: 'LOCAL_MIDNIGHT',
-      planImplementation: true
+      component: 'WeatherState',
+      cityName,
+      segmentDay,
+      action: 'state_change',
+      data: {
+        oldState: {
+          hasWeather: !!oldState?.weather,
+          loading: oldState?.loading,
+          temperature: oldState?.weather?.temperature
+        },
+        newState: {
+          hasWeather: !!newState?.weather,
+          loading: newState?.loading,
+          temperature: newState?.weather?.temperature
+        }
+      }
+    };
+
+    this.debugLog.push(logEntry);
+    
+    console.log(`🐛 PLAN: WeatherDebugService - State change for ${cityName} Day ${segmentDay}:`, {
+      ...logEntry,
+      isolationKey: `${cityName}-day-${segmentDay}`
     });
   }
 
-  static logSegmentRenderAttempt(cityName: string, segmentDay: number, data: any) {
-    console.log(`🎯 PLAN: SegmentRender [${cityName}] Day ${segmentDay}:`, {
-      ...data,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
+  static logNormalizedForecastOutput(cityName: string, normalizedData: any) {
+    console.log(`🎯 PLAN: [NORMALIZED FORECAST OUTPUT] for ${cityName}:`, {
+      temperature: normalizedData.temperature,
+      highTemp: normalizedData.highTemp,
+      lowTemp: normalizedData.lowTemp,
+      description: normalizedData.description,
+      icon: normalizedData.icon,
+      isValid: normalizedData.isValid,
+      source: normalizedData.source,
+      isActualForecast: normalizedData.isActualForecast,
+      debugMarker: 'NORMALIZED_FORECAST_OUTPUT'
     });
   }
 
-  static logWeatherStateSet(cityName: string, weather: any) {
-    console.log(`📊 PLAN: WeatherState [${cityName}] set:`, {
-      temperature: weather?.temperature,
-      highTemp: weather?.highTemp,
-      lowTemp: weather?.lowTemp,
-      isActualForecast: weather?.isActualForecast,
-      source: weather?.source,
-      hasMain: !!weather?.main,
-      hasTemp: !!weather?.temp,
-      hasMatchedForecastDay: !!weather?.matchedForecastDay,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
+  static logPdfWeatherExport(cityName: string, segmentDay: number, enrichedSegment: any) {
+    console.log(`🎯 PLAN: [PDF WEATHER EXPORT] for ${cityName} Day ${segmentDay}:`, {
+      hasWeather: !!(enrichedSegment.weather || enrichedSegment.weatherData),
+      weatherSource: enrichedSegment.weather?.source || enrichedSegment.weatherData?.source,
+      temperature: enrichedSegment.weather?.temperature || enrichedSegment.weatherData?.temperature,
+      isActualForecast: enrichedSegment.weather?.isActualForecast || enrichedSegment.weatherData?.isActualForecast,
+      debugMarker: 'PDF_WEATHER_EXPORT'
     });
   }
 
-  static logForecastApiRawResponse(cityName: string, weather: any) {
-    console.log(`🔧 PLAN: API_RAW_RESPONSE [${cityName}]:`, {
-      fullWeatherObject: weather,
-      temperature: weather?.temperature,
-      highTemp: weather?.highTemp,
-      lowTemp: weather?.lowTemp,
-      main: weather?.main,
-      temp: weather?.temp,
-      matchedForecastDay: weather?.matchedForecastDay,
-      isActualForecast: weather?.isActualForecast,
-      source: weather?.source,
-      allKeys: weather ? Object.keys(weather) : [],
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
+  static getDebugSummary(): {
+    totalEntries: number;
+    citiesTracked: string[];
+    componentCoverage: string[];
+    recentActivity: any[];
+  } {
+    const citiesTracked = [...new Set(this.debugLog.map(entry => entry.cityName))];
+    const componentCoverage = [...new Set(this.debugLog.map(entry => entry.component))];
+    const recentActivity = this.debugLog.slice(-10);
+
+    return {
+      totalEntries: this.debugLog.length,
+      citiesTracked,
+      componentCoverage,
+      recentActivity
+    };
   }
 
-  static logNormalizedForecastOutput(cityName: string, normalized: any) {
-    console.log(`🔄 PLAN: NORMALIZED_OUTPUT [${cityName}]:`, {
-      ...normalized,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
-  }
-
-  static logPdfWeatherExport(cityName: string, day: number, segment: any) {
-    console.log(`📄 PLAN: PDF_EXPORT [${cityName}] Day ${day}:`, {
-      hasWeather: !!(segment.weather || segment.weatherData),
-      weatherData: segment.weather || segment.weatherData,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
-  }
-
-  static logLiveForecastAttempt(cityName: string, daysFromToday: number, timeoutMs: number) {
-    console.log(`🚀 PLAN: LIVE_FORECAST_ATTEMPT [${cityName}]:`, {
-      daysFromToday,
-      timeoutMs,
-      isWithinRange: daysFromToday >= 0 && daysFromToday <= 7,
-      standardizedRange: true,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
-  }
-
-  static logForecastTimeout(cityName: string, timeoutMs: number, reason: string) {
-    console.log(`⏰ PLAN: FORECAST_TIMEOUT [${cityName}]:`, {
-      timeoutMs,
-      reason,
-      fallbackToHistorical: true,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
-  }
-
-  static logHistoricalFallback(cityName: string, reason: string, daysFromToday: number) {
-    console.log(`🏛️ PLAN: HISTORICAL_FALLBACK [${cityName}]:`, {
-      reason,
-      daysFromToday,
-      isExpectedFallback: daysFromToday > 7,
-      timestamp: new Date().toISOString(),
-      planImplementation: true
-    });
+  static clearDebugLog() {
+    this.debugLog = [];
+    console.log('🐛 WeatherDebugService: Debug log cleared');
   }
 }

@@ -18,7 +18,9 @@ export interface SimpleWeatherActions {
 }
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
-  console.log(`🎯 SIMPLIFIED: useSimpleWeatherState for ${segmentEndCity} Day ${day}`);
+  // 🔧 PLAN: Enhanced state isolation with city+day unique key
+  const stateKey = `${segmentEndCity}-day-${day}`;
+  console.log(`🎯 PLAN: useSimpleWeatherState with ENHANCED ISOLATION for ${stateKey}`);
 
   const [weather, setWeatherState] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -26,43 +28,55 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
   const [retryCount, setRetryCount] = React.useState(0);
 
   const reset = React.useCallback(() => {
-    console.log(`🔄 SIMPLIFIED: Resetting weather state for ${segmentEndCity}`);
+    console.log(`🔄 PLAN: Resetting weather state for ${stateKey} - FULL ISOLATION`);
     setWeatherState(null);
     setLoading(false);
     setError(null);
     setRetryCount(0);
-  }, [segmentEndCity]);
+  }, [stateKey]);
 
   const incrementRetry = React.useCallback(() => {
-    console.log(`🔄 SIMPLIFIED: Incrementing retry for ${segmentEndCity}`);
+    console.log(`🔄 PLAN: Incrementing retry for ${stateKey}`);
     setRetryCount(prev => prev + 1);
-  }, [segmentEndCity]);
+  }, [stateKey]);
 
-  // SIMPLIFIED: Accept any weather data without complex validation
+  // 🔧 PLAN: Enhanced weather setting with isolation validation
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
-    console.log(`✅ SIMPLIFIED: Setting weather for ${segmentEndCity}:`, {
+    console.log(`✅ PLAN: Setting ISOLATED weather for ${stateKey}:`, {
       hasWeather: !!newWeather,
       temperature: newWeather?.temperature,
       source: newWeather?.source,
-      isActualForecast: newWeather?.isActualForecast
+      isActualForecast: newWeather?.isActualForecast,
+      cityMatch: newWeather?.cityName === segmentEndCity,
+      isolationKey: stateKey
     });
 
+    // 🔧 PLAN: Validate city match to ensure no cross-contamination
+    if (newWeather && newWeather.cityName !== segmentEndCity) {
+      console.warn(`⚠️ PLAN: ISOLATION BREACH DETECTED - Weather city mismatch:`, {
+        expectedCity: segmentEndCity,
+        receivedCity: newWeather.cityName,
+        isolationKey: stateKey,
+        BREACH: true
+      });
+    }
+
     setWeatherState(newWeather);
-  }, [segmentEndCity]);
+  }, [segmentEndCity, stateKey]);
 
   const enhancedSetLoading = React.useCallback((loading: boolean) => {
-    console.log(`🔄 SIMPLIFIED: Setting loading=${loading} for ${segmentEndCity}`);
+    console.log(`🔄 PLAN: Setting loading=${loading} for ISOLATED ${stateKey}`);
     setLoading(loading);
-  }, [segmentEndCity]);
+  }, [stateKey]);
 
   const enhancedSetError = React.useCallback((error: string | null) => {
-    console.log(`❌ SIMPLIFIED: Setting error for ${segmentEndCity}:`, error);
+    console.log(`❌ PLAN: Setting error for ISOLATED ${stateKey}:`, error);
     setError(error);
-  }, [segmentEndCity]);
+  }, [stateKey]);
 
-  // Reset when city or day changes
+  // 🔧 PLAN: Enhanced dependency tracking for complete isolation
   React.useEffect(() => {
-    console.log(`🔄 SIMPLIFIED: Dependency change for ${segmentEndCity} Day ${day} - resetting`);
+    console.log(`🔄 PLAN: Dependency change for ISOLATED ${stateKey} - resetting for fresh state`);
     reset();
   }, [segmentEndCity, day, reset]);
 
