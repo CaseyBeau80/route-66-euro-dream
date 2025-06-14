@@ -19,42 +19,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ULTIMATE FIX: Force complete re-computation on every render
-  const currentTimestamp = Date.now();
-  
-  // ULTIMATE FIX: Calculate live forecast status with timestamp-based cache busting
-  const isLiveForecast = React.useMemo(() => {
-    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-    console.log('🚨 ULTIMATE FIX: Live forecast calculation with timestamp:', {
-      cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast: result,
-      timestamp: currentTimestamp,
-      ultimateFix: true
-    });
-    return result;
-  }, [weather.source, weather.isActualForecast, segmentDate?.getTime(), currentTimestamp]);
+  // SIMPLIFIED: Direct calculation without any caching, memoization, or timestamps
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  const sourceLabel = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
 
-  // ULTIMATE FIX: Calculate source label with timestamp-based cache busting
-  const sourceLabel = React.useMemo(() => {
-    const label = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
-    console.log('🚨 ULTIMATE FIX: Source label calculation with timestamp:', {
-      cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast,
-      calculatedLabel: label,
-      timestamp: currentTimestamp,
-      ultimateFix: true
-    });
-    return label;
-  }, [weather.source, weather.isActualForecast, isLiveForecast, segmentDate?.getTime(), currentTimestamp]);
-
-  // ULTIMATE FIX: Render key with all critical data to force complete re-render
-  const ultimateRenderKey = `${weather.source}-${weather.isActualForecast}-${weather.temperature}-${isLiveForecast}-${sourceLabel}-${currentTimestamp}`;
-
-  console.log('🚨 ULTIMATE FIX: SimpleWeatherDisplay rendering with forced reactivity:', {
+  console.log('🔍 SIMPLIFIED: SimpleWeatherDisplay render:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
@@ -63,15 +32,11 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
-    description: weather.description,
-    segmentDate: segmentDate.toISOString(),
-    ultimateRenderKey,
-    timestamp: currentTimestamp,
-    ultimateFix: true
+    description: weather.description
   });
 
   return (
-    <div className="space-y-3" key={ultimateRenderKey}>
+    <div className="space-y-3">
       {/* Weather Icon and Description */}
       <div className="flex items-center gap-3">
         <div className="text-3xl">
@@ -89,7 +54,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           <div className="text-lg font-semibold text-gray-800 capitalize">
             {weather.description}
           </div>
-          <div className="text-sm text-gray-600" key={`label-ultimate-${ultimateRenderKey}`}>
+          <div className="text-sm text-gray-600">
             {sourceLabel}
           </div>
         </div>
@@ -100,7 +65,6 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         weather={weather}
         isSharedView={isSharedView}
         segmentDate={segmentDate}
-        key={`temp-ultimate-${ultimateRenderKey}`}
       />
 
       {/* Additional Weather Details */}

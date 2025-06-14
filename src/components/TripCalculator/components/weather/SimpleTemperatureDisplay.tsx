@@ -14,37 +14,16 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // ULTIMATE FIX: Force complete re-computation with timestamp
-  const currentTimestamp = Date.now();
-  
-  // ULTIMATE FIX: Calculate live forecast status with forced reactivity
-  const isLiveForecast = React.useMemo(() => {
-    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-    console.log('🚨 ULTIMATE FIX: Temperature display live forecast calculation:', {
-      cityName: weather.cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast: result,
-      timestamp: currentTimestamp,
-      ultimateFix: true
-    });
-    return result;
-  }, [weather.source, weather.isActualForecast, segmentDate?.getTime(), currentTimestamp]);
+  // SIMPLIFIED: Direct calculation without caching or timestamps
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
 
-  const temperatureKey = `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-${currentTimestamp}`;
-
-  console.log('🚨 ULTIMATE FIX: SimpleTemperatureDisplay with forced reactivity:', {
+  console.log('🔍 SIMPLIFIED: SimpleTemperatureDisplay render:', {
     cityName: weather.cityName,
     high: weather.highTemp,
     low: weather.lowTemp,
     isLiveForecast,
-    isSharedView,
     weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast,
-    segmentDate: segmentDate?.toISOString(),
-    temperatureKey,
-    timestamp: currentTimestamp,
-    ultimateFix: true
+    isActualForecast: weather.isActualForecast
   });
 
   const getTemperatureLabel = (temp: number): string => {
@@ -61,7 +40,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   const highTempLabel = getTemperatureLabel(highTemp);
 
   return (
-    <div className="temperature-display" key={temperatureKey}>
+    <div className="temperature-display">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-gray-800">
@@ -78,7 +57,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
             {highTempLabel}
           </div>
           {isLiveForecast && (
-            <div className="text-xs text-green-600 font-medium" key={`live-indicator-ultimate-${temperatureKey}`}>
+            <div className="text-xs text-green-600 font-medium">
               ✓ Live Forecast
             </div>
           )}
