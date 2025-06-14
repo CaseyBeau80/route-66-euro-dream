@@ -70,8 +70,9 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   };
 
   const getTotalRestaurants = () => {
-    return tripPlan.segments?.reduce((total, segment) => 
-      total + (segment.restaurants?.length || 0), 0) || 0;
+    // Since restaurants property doesn't exist on DailySegment, return 0 for now
+    // This can be updated when restaurant data is added to the segment type
+    return 0;
   };
 
   const formatDrivingTime = (distance: number) => {
