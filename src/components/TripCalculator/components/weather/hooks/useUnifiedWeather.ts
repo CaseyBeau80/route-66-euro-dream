@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { LiveWeatherService } from '../LiveWeatherService';
 
 interface UseUnifiedWeatherProps {
   cityName: string;
@@ -37,12 +37,12 @@ export const useUnifiedWeather = ({
   useEffect(() => {
     const fetchWeather = async () => {
       if (!segmentDate) {
-        console.log('❌ UNIFIED: No segment date provided for', cityName);
+        console.log('❌ useUnifiedWeather: No segment date provided for', cityName);
         setLoading(false);
         return;
       }
 
-      console.log('🌤️ UNIFIED: Starting weather fetch for', cityName, {
+      console.log('🌤️ useUnifiedWeather: Starting weather fetch for', cityName, {
         segmentDate: segmentDate.toISOString(),
         segmentDay,
         refetchTrigger
@@ -52,81 +52,34 @@ export const useUnifiedWeather = ({
       setError(null);
 
       try {
-        // FIXED: More thorough API key checking
-        const apiKey = WeatherApiKeyManager.getApiKey();
-        const hasValidKey = WeatherApiKeyManager.hasApiKey();
-        const isValidKey = WeatherApiKeyManager.validateApiKey();
+        // Try to get live weather first
+        console.log('🚀 useUnifiedWeather: Attempting live weather for', cityName);
+        const liveWeather = await LiveWeatherService.fetchLiveWeather(cityName, segmentDate);
         
-        console.log('🔑 UNIFIED: COMPREHENSIVE API key check for', cityName, {
-          hasValidKey,
-          isValidKey,
-          keyExists: !!apiKey,
-          keyLength: apiKey?.length || 0,
-          keyPreview: apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : 'none',
-          allChecksPass: hasValidKey && isValidKey && !!apiKey
-        });
-
-        // Calculate if we're within forecast range (0-7 days)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const targetDate = new Date(segmentDate);
-        targetDate.setHours(0, 0, 0, 0);
-        
-        const timeDiff = targetDate.getTime() - today.getTime();
-        const daysFromToday = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
-        const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
-
-        console.log('📅 UNIFIED: Date analysis for', cityName, {
-          today: today.toISOString(),
-          targetDate: targetDate.toISOString(),
-          daysFromToday,
-          isWithinForecastRange
-        });
-
-        // FIXED: Use more comprehensive API key validation
-        if (hasValidKey && isValidKey && apiKey && isWithinForecastRange) {
-          console.log('🚀 UNIFIED: ALL CONDITIONS MET - Attempting live weather for', cityName);
-          
-          const liveWeather = await fetchLiveWeatherFixed(cityName, targetDate, apiKey);
-          if (liveWeather) {
-            console.log('✅ UNIFIED: Live weather SUCCESS for', cityName, {
-              temperature: liveWeather.temperature,
-              source: liveWeather.source,
-              isActualForecast: liveWeather.isActualForecast,
-              VERIFICATION: {
-                sourceIsLive: liveWeather.source === 'live_forecast',
-                isActualIsTrue: liveWeather.isActualForecast === true,
-                BOTH_CORRECT: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true
-              }
-            });
-            setWeather(liveWeather);
-            setLoading(false);
-            return;
-          } else {
-            console.log('⚠️ UNIFIED: Live weather API call failed for', cityName, 'falling back to historical');
-          }
-        } else {
-          console.log('📊 UNIFIED: Using historical fallback for', cityName, {
-            hasValidKey,
-            isValidKey,
-            hasApiKey: !!apiKey,
-            isWithinForecastRange,
-            daysFromToday,
-            reason: !hasValidKey ? 'no_valid_key' : !isValidKey ? 'invalid_key' : !apiKey ? 'no_api_key' : !isWithinForecastRange ? 'outside_range' : 'unknown'
+        if (liveWeather) {
+          console.log('✅ useUnifiedWeather: Live weather SUCCESS for', cityName, {
+            temperature: liveWeather.temperature,
+            source: liveWeather.source,
+            isActualForecast: liveWeather.isActualForecast,
+            GUARANTEED_LIVE: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true
           });
+          setWeather(liveWeather);
+          setLoading(false);
+          return;
         }
 
         // Fallback to historical weather
-        const fallbackWeather = createHistoricalWeatherFixed(cityName, targetDate);
-        setWeather(fallbackWeather);
+        console.log('📊 useUnifiedWeather: Using historical fallback for', cityName);
+        const historicalWeather = LiveWeatherService.createHistoricalWeather(cityName, segmentDate);
+        setWeather(historicalWeather);
 
       } catch (err) {
-        console.error('❌ UNIFIED: Weather fetch error for', cityName, ':', err);
+        console.error('❌ useUnifiedWeather: Weather fetch error for', cityName, ':', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
         
         // Still provide fallback weather on error
         if (segmentDate) {
-          const fallbackWeather = createHistoricalWeatherFixed(cityName, segmentDate);
+          const fallbackWeather = LiveWeatherService.createHistoricalWeather(cityName, segmentDate);
           setWeather(fallbackWeather);
         }
       } finally {
@@ -138,161 +91,4 @@ export const useUnifiedWeather = ({
   }, [cityName, segmentDate, segmentDay, refetchTrigger]);
 
   return { weather, loading, error, refetch };
-};
-
-// FIXED: Enhanced live weather fetching with guaranteed live marking
-const fetchLiveWeatherFixed = async (
-  cityName: string,
-  targetDate: Date,
-  apiKey: string
-): Promise<ForecastWeatherData | null> => {
-  try {
-    console.log('🌐 UNIFIED: fetchLiveWeatherFixed starting for', cityName, 'with API key length:', apiKey.length);
-
-    // Get coordinates
-    const coords = await getCoordinatesFixed(cityName, apiKey);
-    if (!coords) {
-      console.log('❌ UNIFIED: No coordinates for', cityName);
-      return null;
-    }
-
-    console.log('📍 UNIFIED: Got coordinates for', cityName, coords);
-
-    // Fetch 5-day forecast
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-    console.log('🌐 UNIFIED: Fetching from OpenWeather API for', cityName, 'URL preview:', forecastUrl.substring(0, 100) + '...');
-    
-    const response = await fetch(forecastUrl);
-
-    if (!response.ok) {
-      console.error('❌ UNIFIED: API response failed:', response.status, response.statusText);
-      return null;
-    }
-
-    const data = await response.json();
-    
-    if (!data.list || data.list.length === 0) {
-      console.log('❌ UNIFIED: No forecast data in API response');
-      return null;
-    }
-
-    console.log('📊 UNIFIED: Processing API forecast data for', cityName, {
-      forecastItems: data.list.length,
-      firstItem: data.list[0]?.dt_txt,
-      lastItem: data.list[data.list.length - 1]?.dt_txt
-    });
-
-    // Find best match for target date
-    const targetDateString = targetDate.toISOString().split('T')[0];
-    let bestMatch = data.list[0]; // Default to first item
-    
-    // Look for exact date match first
-    for (const item of data.list) {
-      const itemDate = new Date(item.dt * 1000);
-      const itemDateString = itemDate.toISOString().split('T')[0];
-      
-      if (itemDateString === targetDateString) {
-        bestMatch = item;
-        console.log('🎯 UNIFIED: Found exact date match for', cityName);
-        break;
-      }
-    }
-
-    // CRITICAL: Create weather object with GUARANTEED live properties
-    const liveWeather: ForecastWeatherData = {
-      temperature: Math.round(bestMatch.main.temp),
-      highTemp: Math.round(bestMatch.main.temp_max || bestMatch.main.temp),
-      lowTemp: Math.round(bestMatch.main.temp_min || bestMatch.main.temp),
-      description: bestMatch.weather[0]?.description || 'Clear',
-      icon: bestMatch.weather[0]?.icon || '01d',
-      humidity: bestMatch.main.humidity || 50,
-      windSpeed: Math.round(bestMatch.wind?.speed || 0),
-      precipitationChance: Math.round((bestMatch.pop || 0) * 100),
-      cityName: cityName,
-      forecast: [],
-      forecastDate: targetDate,
-      // GUARANTEED LIVE PROPERTIES - THESE MUST NEVER CHANGE
-      isActualForecast: true,
-      source: 'live_forecast' as const
-    };
-
-    console.log('🔥 UNIFIED: LIVE WEATHER OBJECT CREATED with GUARANTEED properties:', {
-      cityName,
-      temperature: liveWeather.temperature,
-      isActualForecast: liveWeather.isActualForecast,
-      source: liveWeather.source,
-      CRITICAL_CHECK: {
-        sourceIsLiveForecast: liveWeather.source === 'live_forecast',
-        isActualForecastIsTrue: liveWeather.isActualForecast === true,
-        BOTH_PROPERTIES_CORRECT: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true
-      }
-    });
-
-    return liveWeather;
-  } catch (error) {
-    console.error('❌ UNIFIED: Live weather fetch error:', error);
-    return null;
-  }
-};
-
-// FIXED: Geocoding helper
-const getCoordinatesFixed = async (cityName: string, apiKey: string) => {
-  try {
-    const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
-    const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)}&limit=3&appid=${apiKey}`;
-    
-    const response = await fetch(geocodingUrl);
-    if (!response.ok) {
-      console.error('❌ UNIFIED: Geocoding failed:', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    if (!data || data.length === 0) {
-      console.log('❌ UNIFIED: No geocoding results for', cleanCityName);
-      return null;
-    }
-
-    const result = data.find((r: any) => r.country === 'US') || data[0];
-    return { lat: result.lat, lng: result.lon };
-  } catch (error) {
-    console.error('❌ UNIFIED: Geocoding error:', error);
-    return null;
-  }
-};
-
-// FIXED: Historical fallback weather creation
-const createHistoricalWeatherFixed = (cityName: string, targetDate: Date): ForecastWeatherData => {
-  const month = targetDate.getMonth();
-  const isWinter = month === 11 || month === 0 || month === 1;
-  const isSummer = month >= 5 && month <= 8;
-  
-  const baseTemp = isWinter ? 45 : isSummer ? 85 : 65;
-  const tempVariation = Math.random() * 20 - 10;
-  const temperature = Math.round(baseTemp + tempVariation);
-  
-  const historicalWeather: ForecastWeatherData = {
-    temperature,
-    highTemp: temperature + 8,
-    lowTemp: temperature - 8,
-    description: isWinter ? 'Partly cloudy' : isSummer ? 'Sunny' : 'Clear',
-    icon: isWinter ? '02d' : isSummer ? '01d' : '01d',
-    humidity: Math.round(40 + Math.random() * 40),
-    windSpeed: Math.round(5 + Math.random() * 10),
-    precipitationChance: Math.round(Math.random() * 30),
-    cityName,
-    forecast: [],
-    forecastDate: targetDate,
-    // GUARANTEED HISTORICAL PROPERTIES
-    isActualForecast: false,
-    source: 'historical_fallback' as const
-  };
-
-  console.log('📊 UNIFIED: Created historical weather for', cityName, {
-    temperature: historicalWeather.temperature,
-    isActualForecast: historicalWeather.isActualForecast,
-    source: historicalWeather.source
-  });
-
-  return historicalWeather;
 };
