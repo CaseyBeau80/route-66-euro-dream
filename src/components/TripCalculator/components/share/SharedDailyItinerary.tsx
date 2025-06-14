@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import SharedWeatherWidget from '../weather/SharedWeatherWidget';
+import UnifiedWeatherWidget from '../weather/UnifiedWeatherWidget';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -13,21 +12,20 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 SHARED VIEW: SharedDailyItinerary using DEDICATED shared components:', {
+  console.log('🔥 UNIFIED: SharedDailyItinerary using UNIFIED components:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    dedicatedSharedPath: true
+    unifiedComponentPath: true
   });
 
-  // Use the same trip start date logic as the preview
+  // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 SHARED VIEW: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 UNIFIED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
-    // Extract from URL parameters
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const possibleParams = ['tripStart', 'startDate', 'start_date', 'trip_start', 'tripStartDate'];
@@ -37,23 +35,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 SHARED VIEW: Extracted tripStartDate from URL:', {
+            console.log('🔥 UNIFIED: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              dedicatedSharedExtraction: true
+              unifiedExtraction: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ SHARED VIEW: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ UNIFIED: Failed to parse trip start date from URL:', error);
     }
 
-    // Fallback: use today
     const today = new Date();
-    console.log('🔥 SHARED VIEW: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 UNIFIED: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -84,16 +81,16 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔥 SHARED VIEW: Rendering segment ${segment.day} for ${segment.endCity} with DEDICATED shared components`, {
+        console.log(`🔥 UNIFIED: Rendering segment ${segment.day} for ${segment.endCity} with UNIFIED components`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          dedicatedSharedComponents: true,
-          uniqueKey: `shared-day-${segment.day}-${segment.endCity}-${Date.now()}`
+          unifiedComponents: true,
+          uniqueKey: `unified-day-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`shared-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`unified-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -145,18 +142,20 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* DEDICATED: Use specialized shared weather widget */}
+              {/* UNIFIED: Use the new unified weather widget */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using dedicated shared view components</p>
+                  <p className="text-xs text-gray-500">Using unified weather components</p>
                 </div>
                 
-                <SharedWeatherWidget
+                <UnifiedWeatherWidget
                   segment={segment}
                   tripStartDate={effectiveTripStartDate}
+                  isSharedView={true}
+                  isPDFExport={false}
                 />
               </div>
             </div>
