@@ -4,7 +4,6 @@ import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
 import SimpleWeatherDisplay from './SimpleWeatherDisplay';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 
 interface SimpleWeatherWidgetProps {
@@ -20,15 +19,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 SHARED: SimpleWeatherWidget rendering', segment.endCity, {
+  console.log('🎯 SHARED: SimpleWeatherWidget rendering with enhanced live weather support', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    prioritizingLiveWeather: true
   });
 
-  // Calculate segment date with better URL parameter handling
+  // Calculate segment date with enhanced URL parameter handling
   const segmentDate = React.useMemo(() => {
     // First priority: use passed tripStartDate
     if (tripStartDate) {
@@ -36,12 +36,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       console.log('🔧 SHARED: Calculated date from tripStartDate:', {
         tripStartDate: tripStartDate.toISOString(),
         segmentDay: segment.day,
-        calculatedDate: calculatedDate?.toISOString()
+        calculatedDate: calculatedDate?.toISOString(),
+        source: 'passed_trip_start_date'
       });
       return calculatedDate;
     }
 
-    // Second priority: for shared views, try to get date from URL params with multiple possible parameter names
+    // Second priority: for shared views, try to get date from URL params
     if (isSharedView) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -58,7 +59,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
               console.log('🔧 SHARED: Successfully calculated date from URL params:', {
                 urlParam: tripStartParam,
                 segmentDay: segment.day,
-                calculatedDate: calculatedDate?.toISOString()
+                calculatedDate: calculatedDate?.toISOString(),
+                source: 'url_parameters'
               });
               return calculatedDate;
             }
@@ -71,13 +73,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       }
     }
 
-    // For shared views without a valid date, use today + segment day offset for demonstration
+    // For shared views without a valid date, use today + segment day offset
     if (isSharedView || isPDFExport) {
       const today = new Date();
       const estimatedDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
       console.log('🔧 SHARED: Using estimated date for shared view:', {
         segmentDay: segment.day,
-        estimatedDate: estimatedDate.toISOString()
+        estimatedDate: estimatedDate.toISOString(),
+        source: 'estimated_from_today'
       });
       return estimatedDate;
     }
@@ -85,29 +88,26 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather hook
+  // Use unified weather hook with enhanced live weather priority
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
     segmentDay: segment.day
   });
 
-  // Check if we have API key for non-shared views
-  const hasApiKey = React.useMemo(() => {
-    return WeatherApiKeyManager.hasApiKey();
-  }, []);
-
   console.log('🔧 SHARED: Weather state for', segment.endCity, {
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     temperature: weather?.temperature,
+    highTemp: weather?.highTemp,
+    lowTemp: weather?.lowTemp,
     loading,
     error,
-    hasApiKey,
     hasSegmentDate: !!segmentDate,
     segmentDate: segmentDate?.toISOString(),
-    isSharedView
+    isSharedView,
+    liveWeatherExpected: isSharedView
   });
 
   // Show loading state
@@ -116,7 +116,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+          <span className="text-sm">Loading live weather for {segment.endCity}...</span>
         </div>
       </div>
     );
@@ -124,11 +124,17 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Show weather if we have it and a valid date
   if (weather && segmentDate) {
+    // Log detailed weather information for debugging
     console.log('✅ SHARED: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
       source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      description: weather.description,
       isSharedView,
-      hasValidDate: true
+      hasValidDate: true,
+      weatherType: weather.source === 'live_forecast' ? 'LIVE_FORECAST' : 'FALLBACK_DATA'
     });
     
     return (
@@ -144,13 +150,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // For shared/PDF views without weather but WITH a date, show that we're trying
+  // For shared/PDF views without weather but WITH a date, show enhanced message
   if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
     console.log('⚠️ SHARED: Have date but no weather for', segment.endCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
         <div className="text-blue-600 text-2xl mb-1">🌤️</div>
-        <p className="text-xs text-blue-700 font-medium">Weather forecast unavailable</p>
+        <p className="text-xs text-blue-700 font-medium">Live weather forecast temporarily unavailable</p>
         <p className="text-xs text-blue-600 mt-1">Check current conditions before departure</p>
         {error && <p className="text-xs text-blue-500 mt-1">{error}</p>}
       </div>
@@ -169,46 +175,19 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Regular view without API key
-  if (!hasApiKey && !isSharedView && !isPDFExport) {
-    return (
-      <div className="space-y-2">
-        <div className="text-sm text-gray-600 mb-2">
-          Weather forecast requires an API key
-        </div>
-        <SimpleWeatherApiKeyInput 
-          onApiKeySet={() => {
-            console.log('🔑 API key set, refetching weather for', segment.endCity);
-            refetch();
-          }}
-          cityName={segment.endCity}
-        />
-      </div>
-    );
-  }
-
-  // Error state with retry
+  // Regular view without API key - show API key input
   return (
-    <div className="space-y-3">
-      <div className="bg-amber-50 border border-amber-200 rounded p-3">
-        <div className="text-amber-800 text-sm">
-          Weather information temporarily unavailable
-        </div>
-        {error && (
-          <div className="text-xs text-amber-600 mt-1">{error}</div>
-        )}
+    <div className="space-y-2">
+      <div className="text-sm text-gray-600 mb-2">
+        Weather forecast requires an API key
       </div>
-
-      {!isSharedView && !isPDFExport && (
-        <div className="text-center">
-          <button
-            onClick={refetch}
-            className="text-xs text-blue-600 hover:text-blue-800 underline"
-          >
-            Retry weather fetch
-          </button>
-        </div>
-      )}
+      <SimpleWeatherApiKeyInput 
+        onApiKeySet={() => {
+          console.log('🔑 API key set, refetching weather for', segment.endCity);
+          refetch();
+        }}
+        cityName={segment.endCity}
+      />
     </div>
   );
 };
