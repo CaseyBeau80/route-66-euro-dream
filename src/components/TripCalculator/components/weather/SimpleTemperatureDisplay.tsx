@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface SimpleTemperatureDisplayProps {
   weather: ForecastWeatherData;
@@ -13,16 +14,18 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // CRITICAL FIX: Direct live forecast calculation
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  // CRITICAL FIX: Use centralized service for live forecast detection
+  const isLiveForecast = React.useMemo(() => {
+    return WeatherLabelService.isLiveWeatherData(weather);
+  }, [weather.source, weather.isActualForecast]);
   
-  console.log('🔧 FIXED: SimpleTemperatureDisplay - DIRECT CALCULATION:', {
+  console.log('🎯 CENTRALIZED: SimpleTemperatureDisplay using centralized detection:', {
     cityName: weather.cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    directIsLive: isLiveForecast,
+    isLiveForecast,
     temperature: weather.temperature,
-    fixApplied: true
+    centralizedDetection: true
   });
 
   const getTemperatureLabel = (temp: number): string => {

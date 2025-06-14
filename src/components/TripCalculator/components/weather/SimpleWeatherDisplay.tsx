@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
+import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -18,19 +19,31 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // CRITICAL FIX: Direct label calculation without complex memoization
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
-  const sourceLabel = isLiveForecast ? 'Live Weather Forecast' : 'Historical Weather Data';
+  // CRITICAL FIX: Use centralized service for ALL label determinations
+  const sourceLabel = React.useMemo(() => {
+    const label = WeatherLabelService.getWeatherSourceLabel(weather);
+    console.log('🎯 CENTRALIZED: SimpleWeatherDisplay using centralized label:', {
+      cityName,
+      label,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      centralizedServiceUsed: true
+    });
+    return label;
+  }, [weather.source, weather.isActualForecast, weather.cityName]);
 
-  console.log('🔧 FIXED: SimpleWeatherDisplay - DIRECT LABEL CALCULATION:', {
+  const liveForecastIndicator = React.useMemo(() => {
+    return WeatherLabelService.getLiveForecastIndicator(weather);
+  }, [weather.source, weather.isActualForecast]);
+
+  console.log('🎯 CENTRALIZED: SimpleWeatherDisplay render with centralized labels:', {
     cityName,
+    sourceLabel,
+    liveForecastIndicator,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    directIsLive: isLiveForecast,
-    directLabel: sourceLabel,
-    temperature: weather.temperature,
     segmentDate: segmentDate.toISOString(),
-    fixApplied: true
+    centralizedRender: true
   });
 
   return (

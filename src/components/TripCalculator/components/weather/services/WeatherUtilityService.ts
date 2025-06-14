@@ -1,6 +1,6 @@
-
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { DateNormalizationService } from '../DateNormalizationService';
+import { WeatherLabelService } from './WeatherLabelService';
 
 export interface WeatherSourceInfo {
   isLiveForecast: boolean;
@@ -11,52 +11,40 @@ export interface WeatherSourceInfo {
 
 export class WeatherUtilityService {
   /**
-   * FIXED: Direct and simple live forecast detection
+   * REDIRECTED: Use centralized WeatherLabelService
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
-    if (!weather) {
-      return false;
-    }
-    
-    // CRITICAL FIX: Simple, direct boolean check
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    console.log('🔧 FIXED: WeatherUtilityService.isLiveForecast - DIRECT CHECK:', {
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      directResult: isLive,
-      cityName: weather.cityName,
-      fixApplied: true
+    const result = WeatherLabelService.isLiveWeatherData(weather);
+    console.log('🎯 REDIRECTED: WeatherUtilityService.isLiveForecast -> WeatherLabelService:', {
+      result,
+      weatherSource: weather?.source,
+      isActualForecast: weather?.isActualForecast,
+      cityName: weather?.cityName,
+      redirectedToWeatherLabelService: true
     });
-    
-    return isLive;
+    return result;
   }
 
   /**
-   * FIXED: Direct weather source label without complex logic
+   * REDIRECTED: Use centralized WeatherLabelService
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
-    // CRITICAL FIX: Use direct property checks, not method calls
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
-    
-    console.log('🔧 FIXED: WeatherUtilityService.getWeatherSourceLabel - DIRECT LABEL:', {
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      directIsLive: isLive,
-      selectedLabel: label,
-      cityName: weather.cityName,
-      fixApplied: true
+    const result = WeatherLabelService.getWeatherSourceLabel(weather);
+    console.log('🎯 REDIRECTED: WeatherUtilityService.getWeatherSourceLabel -> WeatherLabelService:', {
+      result,
+      weatherSource: weather?.source,
+      isActualForecast: weather?.isActualForecast,
+      cityName: weather?.cityName,
+      redirectedToWeatherLabelService: true
     });
-    
-    return label;
+    return result;
   }
 
   /**
-   * FIXED: Gets weather confidence and quality info
+   * REDIRECTED: Gets weather confidence and quality info using centralized service
    */
   static getWeatherSourceInfo(weather: ForecastWeatherData, segmentDate?: Date | null): WeatherSourceInfo {
-    const isLive = this.isLiveForecast(weather, segmentDate);
+    const isLive = WeatherLabelService.isLiveWeatherData(weather);
     
     let confidence: 'excellent' | 'good' | 'fair' | 'poor' = 'fair';
     let dataQuality: 'live' | 'historical' | 'fallback' = 'fallback';
@@ -71,7 +59,7 @@ export class WeatherUtilityService {
     
     return {
       isLiveForecast: isLive,
-      sourceLabel: this.getWeatherSourceLabel(weather, segmentDate),
+      sourceLabel: WeatherLabelService.getWeatherSourceLabel(weather),
       confidence,
       dataQuality
     };
