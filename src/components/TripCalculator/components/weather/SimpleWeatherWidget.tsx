@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -19,35 +20,29 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // PLAN: State to track rendering updates
-  const [renderCount, setRenderCount] = React.useState(0);
-
-  console.log('🎯 PLAN: SimpleWeatherWidget rendering with enhanced state management', segment.endCity, {
+  console.log('🎯 FIXED: SimpleWeatherWidget rendering for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString(),
-    renderCount,
-    planImplementation: true
+    tripStartDate: tripStartDate?.toISOString()
   });
 
-  // PLAN: Enhanced URL parameter handling with improved date extraction
+  // Calculate segment date consistently
   const segmentDate = React.useMemo(() => {
     // First priority: use passed tripStartDate
     if (tripStartDate) {
       const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-      console.log('🔧 PLAN: Calculated date from tripStartDate:', {
+      console.log('🔧 FIXED: Calculated date from tripStartDate:', {
         tripStartDate: tripStartDate.toISOString(),
         segmentDay: segment.day,
         calculatedDate: calculatedDate?.toISOString(),
-        source: 'passed_trip_start_date',
-        planImplementation: true
+        source: 'passed_trip_start_date'
       });
       return calculatedDate;
     }
 
-    // PLAN: For shared views, try URL parameters with better parsing
+    // For shared views, try URL parameters
     if (isSharedView) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -56,27 +51,21 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         for (const paramName of possibleParams) {
           const tripStartParam = urlParams.get(paramName);
           if (tripStartParam) {
-            console.log('🔧 PLAN: Found URL param:', paramName, '=', tripStartParam);
-            
-            // Enhanced date parsing with multiple formats
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
               const calculatedDate = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-              console.log('🔧 PLAN: Successfully calculated date from URL params:', {
+              console.log('🔧 FIXED: Successfully calculated date from URL params:', {
                 urlParam: tripStartParam,
                 segmentDay: segment.day,
                 calculatedDate: calculatedDate?.toISOString(),
-                source: 'url_parameters',
-                planImplementation: true
+                source: 'url_parameters'
               });
               return calculatedDate;
             }
           }
         }
-        
-        console.log('🔧 PLAN: No valid trip start date found in URL params');
       } catch (error) {
-        console.warn('⚠️ PLAN: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
       }
     }
 
@@ -84,11 +73,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     if (isSharedView || isPDFExport) {
       const today = new Date();
       const estimatedDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-      console.log('🔧 PLAN: Using estimated date for shared view:', {
+      console.log('🔧 FIXED: Using estimated date for shared view:', {
         segmentDay: segment.day,
         estimatedDate: estimatedDate.toISOString(),
-        source: 'estimated_from_today',
-        planImplementation: true
+        source: 'estimated_from_today'
       });
       return estimatedDate;
     }
@@ -96,62 +84,34 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather hook with standardized logic
+  // Use unified weather hook
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
     segmentDay: segment.day
   });
 
-  // PLAN: API key detection using WeatherApiKeyManager
+  // Check API key
   const hasApiKey = React.useMemo(() => {
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  // PLAN: Effect to track weather state changes and force re-renders
-  React.useEffect(() => {
-    console.log('🔄 PLAN: SimpleWeatherWidget - Weather state effect:', {
-      cityName: segment.endCity,
-      hasWeather: !!weather,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      loading,
-      error,
-      renderCount,
-      planImplementation: true
-    });
-    
-    // Force a re-render when weather data changes
-    setRenderCount(prev => prev + 1);
-  }, [weather?.source, weather?.isActualForecast, weather?.temperature, loading, error, segment.endCity]);
-
-  // PLAN: Weather key for forced re-rendering
-  const weatherKey = React.useMemo(() => {
-    return `${segment.endCity}-${segment.day}-${weather?.source || 'no-weather'}-${weather?.isActualForecast || false}-${renderCount}`;
-  }, [segment.endCity, segment.day, weather?.source, weather?.isActualForecast, renderCount]);
-
-  console.log('🔧 PLAN: Weather state for', segment.endCity, {
+  console.log('🔧 FIXED: Weather state for', segment.endCity, {
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     temperature: weather?.temperature,
-    highTemp: weather?.highTemp,
-    lowTemp: weather?.lowTemp,
     loading,
     error,
     hasSegmentDate: !!segmentDate,
-    segmentDate: segmentDate?.toISOString(),
     hasApiKey,
-    isSharedView,
-    weatherKey,
-    renderCount,
-    planImplementation: true
+    isSharedView
   });
 
   // Show loading state
   if (loading) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3" key={`loading-${weatherKey}`}>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
           <span className="text-sm">Loading weather for {segment.endCity}...</span>
@@ -162,29 +122,22 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Show weather if we have it and a valid date
   if (weather && segmentDate) {
-    console.log('✅ PLAN: Displaying weather for', segment.endCity, {
+    console.log('✅ FIXED: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       description: weather.description,
-      isSharedView,
-      hasValidDate: true,
-      weatherType: weather.source === 'live_forecast' ? 'LIVE_FORECAST' : 'FALLBACK_DATA',
-      weatherKey,
-      planImplementation: true
+      isSharedView
     });
     
     return (
-      <div className="weather-widget" key={weatherKey}>
+      <div className="weather-widget">
         <SimpleWeatherDisplay
           weather={weather}
           segmentDate={segmentDate}
           cityName={segment.endCity}
           isSharedView={isSharedView}
           isPDFExport={isPDFExport}
-          key={`display-${weatherKey}`}
         />
       </div>
     );
@@ -192,9 +145,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // For shared/PDF views without weather but WITH a date, show enhanced message
   if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
-    console.log('⚠️ PLAN: Have date but no weather for', segment.endCity);
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center" key={`no-weather-${weatherKey}`}>
+      <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
         <div className="text-blue-600 text-2xl mb-1">🌤️</div>
         <p className="text-xs text-blue-700 font-medium">Weather forecast temporarily unavailable</p>
         <p className="text-xs text-blue-600 mt-1">Check current conditions before departure</p>
@@ -205,9 +157,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // For shared/PDF views without valid date
   if (isSharedView || isPDFExport) {
-    console.log('⚠️ PLAN: No valid date for weather in', segment.endCity);
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center" key={`no-date-${weatherKey}`}>
+      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
         <p className="text-xs text-amber-700 font-medium">Weather forecast needs trip date</p>
         <p className="text-xs text-amber-600 mt-1">Add trip start date for accurate forecast</p>
@@ -215,16 +166,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // PLAN: Regular view without API key - show API key input
+  // Regular view without API key - show API key input
   if (!hasApiKey) {
     return (
-      <div className="space-y-2" key={`api-key-${weatherKey}`}>
+      <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
           Weather forecast requires an API key
         </div>
         <SimpleWeatherApiKeyInput 
           onApiKeySet={() => {
-            console.log('🔑 PLAN: API key set, refetching weather for', segment.endCity);
+            console.log('🔑 FIXED: API key set, refetching weather for', segment.endCity);
             refetch();
           }}
           cityName={segment.endCity}
@@ -235,7 +186,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Final fallback
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center" key={`fallback-${weatherKey}`}>
+    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
       <div className="text-gray-400 text-2xl mb-1">🌤️</div>
       <p className="text-xs text-gray-600">Weather information not available</p>
       <button
