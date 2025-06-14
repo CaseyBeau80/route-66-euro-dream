@@ -106,17 +106,17 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     }
   }, [stateKey, segmentDate?.getTime(), enhancedApiKeyStatus.hasValidKey, weatherState, segment.endCity, segment.day]);
 
-  // FIXED: Simple state-based auto-fetch without problematic refs
+  // FIXED: Move state declarations to top level to fix hook rules violation
   const [hasFetched, setHasFetched] = React.useState(false);
+  const lastConditionsKeyRef = React.useRef('');
 
   React.useEffect(() => {
     // Reset fetch status when key conditions change
     const conditionsKey = `${tripStartDate?.getTime()}-${segmentDate?.getTime()}-${enhancedApiKeyStatus.hasValidKey}`;
-    const [lastConditionsKey, setLastConditionsKey] = React.useState('');
 
-    if (lastConditionsKey !== conditionsKey) {
+    if (lastConditionsKeyRef.current !== conditionsKey) {
       setHasFetched(false);
-      setLastConditionsKey(conditionsKey);
+      lastConditionsKeyRef.current = conditionsKey;
       console.log(`🔄 FIXED: Reset fetch status for ${stateKey} due to condition change`);
     }
 
