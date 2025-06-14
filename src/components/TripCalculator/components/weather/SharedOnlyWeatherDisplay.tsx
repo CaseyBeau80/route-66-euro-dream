@@ -14,16 +14,17 @@ const SharedOnlyWeatherDisplay: React.FC<SharedOnlyWeatherDisplayProps> = ({
   segmentDate,
   cityName
 }) => {
-  // SIMPLE: Direct check for live weather - no complex services
+  // EXPLICIT: Force live weather check - make it bulletproof
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
 
-  console.log('🔥 SHARED ONLY: SharedOnlyWeatherDisplay - SIMPLE check:', {
+  console.log('🔥 SHARED ONLY DISPLAY DEBUG: Detailed check:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
     temperature: weather.temperature,
-    sharedOnlyComponent: true
+    shouldShowGreen: isLiveForecast,
+    weatherObject: weather
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -44,25 +45,67 @@ const SharedOnlyWeatherDisplay: React.FC<SharedOnlyWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // FORCED: Always show green styling for live weather in shared view
-  const isGreenStyling = isLiveForecast;
-  const sourceLabel = isGreenStyling ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
-  const badgeText = isGreenStyling ? '✨ Current live forecast' : '📊 Based on historical patterns';
+  // FORCE GREEN STYLING for live weather
+  if (isLiveForecast) {
+    console.log('🟢 SHARED ONLY DISPLAY: FORCING GREEN STYLING for', cityName);
+    
+    return (
+      <div className="bg-green-100 border border-green-200 text-green-800 rounded-lg p-4 relative">
+        {/* Weather Source Indicator */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-green-700">
+            🟢 Live Weather Forecast
+          </span>
+          <span className="text-xs text-gray-500">
+            {formattedDate}
+          </span>
+        </div>
 
-  const containerClass = isGreenStyling ? 
-    'bg-green-100 border border-green-200 text-green-800 rounded-lg p-4 relative' :
-    'bg-amber-100 border border-amber-200 text-amber-800 rounded-lg p-4 relative';
+        {/* Main Weather Display */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{weatherIcon}</div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">
+                {Math.round(weather.temperature)}°F
+              </div>
+              <div className="text-sm text-gray-600 capitalize">
+                {weather.description}
+              </div>
+            </div>
+          </div>
 
-  const badgeClass = isGreenStyling ?
-    'bg-green-100 text-green-800 border-green-200' :
-    'bg-amber-100 text-amber-800 border-amber-200';
+          <div className="text-right">
+            {weather.highTemp && weather.lowTemp && (
+              <div className="text-sm text-gray-600">
+                H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
+              </div>
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
+            </div>
+          </div>
+        </div>
 
+        {/* Weather Status Badge */}
+        <div className="mt-2 text-center">
+          <span className="inline-block text-xs px-2 py-1 rounded-full font-medium border bg-green-100 text-green-800 border-green-200">
+            ✨ Current live forecast
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback for historical weather
+  console.log('🟡 SHARED ONLY DISPLAY: Using historical styling for', cityName);
+  
   return (
-    <div className={containerClass}>
+    <div className="bg-amber-100 border border-amber-200 text-amber-800 rounded-lg p-4 relative">
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${isGreenStyling ? 'text-green-700' : 'text-amber-700'}`}>
-          {sourceLabel}
+        <span className="text-xs font-medium text-amber-700">
+          🟡 Historical Weather Data
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -97,8 +140,8 @@ const SharedOnlyWeatherDisplay: React.FC<SharedOnlyWeatherDisplayProps> = ({
 
       {/* Weather Status Badge */}
       <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${badgeClass}`}>
-          {badgeText}
+        <span className="inline-block text-xs px-2 py-1 rounded-full font-medium border bg-amber-100 text-amber-800 border-amber-200">
+          📊 Based on historical patterns
         </span>
       </div>
     </div>

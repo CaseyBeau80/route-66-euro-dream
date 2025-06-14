@@ -13,11 +13,11 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 SHARED ONLY: SharedDailyItinerary using COMPLETELY NEW weather system:', {
+  console.log('🔥 SHARED ONLY: SharedDailyItinerary DEBUG - checking component usage:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    newWeatherSystem: true
+    componentPath: 'SharedDailyItinerary -> SharedOnlyWeatherWidget'
   });
 
   // Same trip start date logic as before
@@ -39,8 +39,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
             console.log('🔥 SHARED ONLY: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
-              parsedDate: parsedDate.toISOString(),
-              newWeatherSystem: true
+              parsedDate: parsedDate.toISOString()
             });
             return parsedDate;
           }
@@ -82,16 +81,15 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔥 SHARED ONLY: Rendering segment ${segment.day} for ${segment.endCity} with NEW weather system`, {
+        console.log(`🔥 SHARED ONLY: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          newWeatherSystem: true,
-          uniqueKey: `shared-only-day-${segment.day}-${segment.endCity}-${Date.now()}`
+          renderingSharedOnlyWeatherWidget: true
         });
 
         return (
-          <div key={`shared-only-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`shared-only-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -143,14 +141,16 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - using COMPLETELY NEW system */}
+              {/* Weather section - DEBUGGING */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using completely new isolated weather system</p>
+                  <p className="text-xs text-gray-500">DEBUG: Using SharedOnlyWeatherWidget directly</p>
                 </div>
+                
+                {console.log(`🔥 DEBUG: About to render SharedOnlyWeatherWidget for ${segment.endCity} Day ${segment.day}`)}
                 
                 <SharedOnlyWeatherWidget
                   segment={segment}
