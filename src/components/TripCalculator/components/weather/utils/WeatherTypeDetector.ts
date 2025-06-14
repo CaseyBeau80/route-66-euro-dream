@@ -1,143 +1,92 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
-export interface WeatherTypeResult {
-  isLiveForecast: boolean;
-  isHistoricalData: boolean;
-  displayLabel: string;
-  badgeType: 'live' | 'historical';
+export type WeatherType = 'live_forecast' | 'historical_fallback' | 'seasonal_estimate' | 'unknown';
+
+export interface WeatherTypeInfo {
+  type: WeatherType;
+  isActualForecast: boolean;
+  source: string;
   confidence: 'high' | 'medium' | 'low';
+  dataQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  description: string;
 }
 
-// Create a partial type for weather type detection
-type WeatherDataForDetection = {
-  source?: string;
-  isActualForecast?: boolean;
-  dateMatchInfo?: { 
-    source?: string;
-    confidence?: 'high' | 'medium' | 'low';
-  };
-  icon?: string;
-  description?: string;
-  temperature?: number;
-  highTemp?: number;
-  lowTemp?: number;
-};
-
 export class WeatherTypeDetector {
-  /**
-   * Centralized logic to determine weather data type
-   * This ensures consistent behavior across all weather components
-   */
-  static detectWeatherType(weather: WeatherDataForDetection | null): WeatherTypeResult {
-    if (!weather) {
+  static detectWeatherType(weather: ForecastWeatherData): WeatherTypeInfo {
+    const isActualForecast = weather.isActualForecast === true;
+    const source = weather.source || 'unknown';
+    
+    console.log('🔍 PLAN: WeatherTypeDetector analyzing weather type:', {
+      cityName: weather.cityName,
+      isActualForecast,
+      source
+    });
+
+    // Live forecast detection
+    if (isActualForecast && source === 'live_forecast') {
       return {
-        isLiveForecast: false,
-        isHistoricalData: true,
-        displayLabel: 'Weather Information',
-        badgeType: 'historical',
-        confidence: 'low'
+        type: 'live_forecast',
+        isActualForecast: true,
+        source,
+        confidence: 'high',
+        dataQuality: 'excellent',
+        description: 'Real-time weather forecast from OpenWeatherMap API'
       };
     }
 
-    console.log('🔍 WeatherTypeDetector analyzing weather data:', {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      dateMatchSource: weather.dateMatchInfo?.source,
-      temperature: weather.temperature,
-      hasValidData: !!(weather.temperature || weather.highTemp || weather.lowTemp)
-    });
-
-    // ENHANCED LOGIC: More robust detection with confidence levels
-    const isHistoricalData = (
-      weather.isActualForecast === false ||
-      weather.source === 'historical_fallback' ||
-      weather.dateMatchInfo?.source === 'historical_fallback' ||
-      weather.dateMatchInfo?.source === 'seasonal-estimate' ||
-      weather.dateMatchInfo?.source === 'fallback_historical_due_to_location_error'
-    );
-
-    // Only show live forecast if explicitly marked as actual forecast AND not from fallback sources
-    const isLiveForecast = (
-      weather.isActualForecast === true &&
-      weather.source === 'live_forecast' &&
-      weather.dateMatchInfo?.source !== 'historical_fallback' &&
-      weather.dateMatchInfo?.source !== 'seasonal-estimate' &&
-      weather.dateMatchInfo?.source !== 'fallback_historical_due_to_location_error'
-    );
-
-    // Determine confidence level
-    let confidence: 'high' | 'medium' | 'low' = 'medium';
-    if (isLiveForecast && weather.dateMatchInfo?.confidence) {
-      confidence = weather.dateMatchInfo.confidence;
-    } else if (isHistoricalData) {
-      confidence = 'low'; // Historical data is always low confidence
+    // Historical fallback detection
+    if (!isActualForecast && source === 'historical_fallback') {
+      return {
+        type: 'historical_fallback',
+        isActualForecast: false,
+        source,
+        confidence: 'medium',
+        dataQuality: 'good',
+        description: 'Seasonal average weather data with city-specific variations'
+      };
     }
 
-    const result: WeatherTypeResult = {
-      isLiveForecast,
-      isHistoricalData,
-      displayLabel: isLiveForecast ? 'Live Forecast' : 'Historical Data',
-      badgeType: isLiveForecast ? 'live' : 'historical',
-      confidence
+    // Seasonal estimate detection
+    if (!isActualForecast && (source.includes('seasonal') || source.includes('fallback'))) {
+      return {
+        type: 'seasonal_estimate',
+        isActualForecast: false,
+        source,
+        confidence: 'low',
+        dataQuality: 'fair',
+        description: 'Estimated weather based on seasonal patterns'
+      };
+    }
+
+    // Unknown or inconsistent data
+    return {
+      type: 'unknown',
+      isActualForecast,
+      source,
+      confidence: 'low',
+      dataQuality: 'poor',
+      description: 'Weather data type could not be determined'
     };
-
-    console.log('✅ WeatherTypeDetector result:', {
-      ...result,
-      weatherSource: weather.source,
-      dateMatchSource: weather.dateMatchInfo?.source,
-      temperature: weather.temperature
-    });
-
-    return result;
   }
 
-  /**
-   * Get section header text for weather components
-   */
-  static getSectionHeader(weather: WeatherDataForDetection | null): string {
-    const result = this.detectWeatherType(weather);
-    return result.displayLabel;
+  static isHighQualityWeather(weather: ForecastWeatherData): boolean {
+    const typeInfo = this.detectWeatherType(weather);
+    return typeInfo.type === 'live_forecast' && typeInfo.confidence === 'high';
   }
 
-  /**
-   * Get footer message for weather displays
-   */
-  static getFooterMessage(weather: WeatherDataForDetection | null): string {
-    const result = this.detectWeatherType(weather);
-    return result.isLiveForecast 
-      ? 'Real-time weather forecast from API'
-      : 'Historical weather patterns - live forecast not available';
-  }
-
-  /**
-   * Validate weather type consistency across components
-   */
-  static validateWeatherTypeConsistency(
-    weather: ForecastWeatherData | null,
-    componentName: string
-  ): boolean {
-    if (!weather) return true;
-
-    const result = this.detectWeatherType(weather);
+  static getWeatherSourceLabel(weather: ForecastWeatherData): string {
+    const typeInfo = this.detectWeatherType(weather);
     
-    // Log validation for debugging
-    console.log(`🔧 WeatherTypeDetector validation for ${componentName}:`, {
-      isLiveForecast: result.isLiveForecast,
-      isHistoricalData: result.isHistoricalData,
-      displayLabel: result.displayLabel,
-      confidence: result.confidence,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast
-    });
-
-    // Basic consistency check: can't be both live and historical
-    const isConsistent = !(result.isLiveForecast && result.isHistoricalData);
-    
-    if (!isConsistent) {
-      console.error(`❌ Weather type inconsistency detected in ${componentName}:`, result);
+    switch (typeInfo.type) {
+      case 'live_forecast':
+        return 'Live Forecast ✅';
+      case 'historical_fallback':
+        return 'Historical Average';
+      case 'seasonal_estimate':
+        return 'Seasonal Estimate';
+      default:
+        return 'Weather Data';
     }
-    
-    return isConsistent;
   }
 }

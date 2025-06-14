@@ -1,7 +1,9 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { CoreWeatherFetcher } from './CoreWeatherFetcher';
-import { DateNormalizationService } from '../DateNormalizationService';
+import { EnhancedApiKeyDetector } from './EnhancedApiKeyDetector';
+import { LiveForecastEnhancer } from './LiveForecastEnhancer';
+import { WeatherSourceVerifier } from './WeatherSourceVerifier';
+import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 
 export interface WeatherFetchCallbacks {
   onLoadingChange: (loading: boolean) => void;
@@ -19,7 +21,11 @@ export class WeatherFetchCoordinator {
   ): Promise<void> {
     const { onLoadingChange, onError, onWeatherSet } = callbacks;
     
-    console.log('🔧 WeatherFetchCoordinator: Starting fetch for', cityName);
+    console.log('🔧 PLAN: WeatherFetchCoordinator enhanced fetch starting:', {
+      cityName,
+      segmentDate: segmentDate.toISOString(),
+      enhancedLogic: true
+    });
 
     const requestKey = `${cityName}-${segmentDate.getTime()}`;
     
@@ -35,25 +41,75 @@ export class WeatherFetchCoordinator {
       onLoadingChange(true);
       onError(null);
 
-      const hasApiKey = !!localStorage.getItem('weather_api_key');
-      
+      // STEP 1: Enhanced API key detection
+      const apiKeyResult = EnhancedApiKeyDetector.detectApiKey();
+      EnhancedApiKeyDetector.logDetectionResult(apiKeyResult, `coordinator-${cityName}`);
+
       if (abortController.signal.aborted) return;
 
-      const weather = await CoreWeatherFetcher.fetchWeatherForCity({
+      // STEP 2: Attempt live forecast if API key is available
+      if (apiKeyResult.hasApiKey && apiKeyResult.isValid) {
+        console.log('🚀 PLAN: Valid API key detected, attempting live forecast');
+        
+        const liveResult = await LiveForecastEnhancer.attemptLiveForecast({
+          cityName,
+          targetDate: segmentDate,
+          isSharedView: true
+        });
+
+        if (abortController.signal.aborted) return;
+
+        if (liveResult.success && liveResult.weather) {
+          // Verify the weather source
+          const verification = WeatherSourceVerifier.verifyWeatherSource(
+            liveResult.weather,
+            segmentDate,
+            apiKeyResult.hasApiKey
+          );
+          
+          WeatherSourceVerifier.logVerificationResult(verification, cityName);
+
+          onLoadingChange(false);
+          onWeatherSet(liveResult.weather);
+          return;
+        } else {
+          console.log('⚠️ PLAN: Live forecast failed, using fallback:', {
+            reason: liveResult.errorReason,
+            attemptDetails: liveResult.attemptDetails
+          });
+        }
+      } else {
+        console.log('ℹ️ PLAN: No valid API key, proceeding to fallback');
+      }
+
+      // STEP 3: Create fallback weather
+      const targetDateString = segmentDate.toISOString().split('T')[0];
+      const daysFromToday = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+      const fallbackWeather = WeatherFallbackService.createFallbackForecast(
         cityName,
-        targetDate: segmentDate,
-        hasApiKey,
-        isSharedView: true
-      });
+        segmentDate,
+        targetDateString,
+        daysFromToday
+      );
 
       if (abortController.signal.aborted) return;
+
+      // Verify fallback weather source
+      const fallbackVerification = WeatherSourceVerifier.verifyWeatherSource(
+        fallbackWeather,
+        segmentDate,
+        apiKeyResult.hasApiKey
+      );
+      
+      WeatherSourceVerifier.logVerificationResult(fallbackVerification, cityName);
 
       onLoadingChange(false);
-      onWeatherSet(weather);
+      onWeatherSet(fallbackWeather);
 
     } catch (error) {
       if (!abortController.signal.aborted) {
-        console.error('❌ Weather fetch error for', cityName, ':', error);
+        console.error('❌ PLAN: WeatherFetchCoordinator error:', error);
         onLoadingChange(false);
         onError(error instanceof Error ? error.message : 'Weather fetch failed');
       }

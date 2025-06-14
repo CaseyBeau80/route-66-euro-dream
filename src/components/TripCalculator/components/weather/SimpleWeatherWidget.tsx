@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
+import { SimplifiedWeatherFetchingService } from './services/SimplifiedWeatherFetchingService';
+import { EnhancedApiKeyDetector } from './services/EnhancedApiKeyDetector';
+import { WeatherSourceVerifier } from './services/WeatherSourceVerifier';
 import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
 import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
 
@@ -35,66 +37,58 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return date;
   }, [tripStartDate, segment.day, isSharedView]);
 
-  // FIXED: Always check for API key, even in shared views
-  const hasApiKey = React.useMemo(() => {
-    const apiKey = localStorage.getItem('weather_api_key');
-    const hasKey = !!(apiKey && apiKey.trim().length > 0);
-    
-    console.log('🔑 SimpleWeatherWidget API key check:', {
-      cityName: segment.endCity,
-      isSharedView,
-      hasKey,
-      keyLength: apiKey?.length || 0
-    });
-    
-    return hasKey;
-  }, [segment.endCity, isSharedView]);
-
   useEffect(() => {
     const fetchWeather = async () => {
       if (!segmentDate) return;
 
-      console.log('🌤️ SimpleWeatherWidget: Starting enhanced fetch', {
+      console.log('🌤️ PLAN: SimpleWeatherWidget starting enhanced fetch:', {
         cityName: segment.endCity,
         day: segment.day,
         segmentDate: segmentDate.toISOString(),
-        hasApiKey,
         isSharedView,
-        enableLiveForecastInSharedView: true
+        enhancedLogic: true
       });
 
-      setLoading(true);
-      setError(null);
+      // Enhanced API key detection
+      const apiKeyResult = EnhancedApiKeyDetector.detectApiKey();
+      EnhancedApiKeyDetector.logDetectionResult(apiKeyResult, `widget-${segment.endCity}`);
 
       try {
-        const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
-          cityName: segment.endCity,
-          targetDate: segmentDate,
-          hasApiKey,
-          isSharedView
-        });
-
-        console.log('✅ SimpleWeatherWidget: Weather fetched', {
-          cityName: segment.endCity,
-          hasWeather: !!weatherData,
-          isActualForecast: weatherData?.isActualForecast,
-          source: weatherData?.source,
-          temperature: weatherData?.temperature,
-          description: weatherData?.description,
-          icon: weatherData?.icon
-        });
-
-        setWeather(weatherData);
+        await SimplifiedWeatherFetchingService.fetchWeatherForSegment(
+          segment.endCity,
+          segmentDate,
+          setLoading,
+          setError,
+          (weatherData) => {
+            if (weatherData) {
+              // Verify the weather source
+              const verification = WeatherSourceVerifier.verifyWeatherSource(
+                weatherData,
+                segmentDate,
+                apiKeyResult.hasApiKey
+              );
+              
+              WeatherSourceVerifier.logVerificationResult(verification, segment.endCity);
+              
+              console.log('✅ PLAN: Weather data received and verified:', {
+                cityName: segment.endCity,
+                isActualForecast: weatherData.isActualForecast,
+                source: weatherData.source,
+                temperature: weatherData.temperature,
+                verification: verification.isValid
+              });
+            }
+            setWeather(weatherData);
+          }
+        );
       } catch (err) {
-        console.error('❌ SimpleWeatherWidget: Weather fetch error:', err);
+        console.error('❌ PLAN: Weather fetch error:', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchWeather();
-  }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
+  }, [segment.endCity, segmentDate, isSharedView, segment.day]);
 
   // Loading state
   if (loading) {
@@ -102,7 +96,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+          <span className="text-sm">Loading enhanced weather for {segment.endCity}...</span>
         </div>
       </div>
     );
