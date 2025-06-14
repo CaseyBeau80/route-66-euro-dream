@@ -89,6 +89,7 @@ export class TripDataSerializer {
         startCity: segment.startCity.substring(0, 15),
         endCity: segment.endCity.substring(0, 15),
         distance: Math.round(segment.distance),
+        driveTimeHours: Math.round((segment.driveTimeHours || 0) * 10) / 10, // Round to 1 decimal
         attractions: segment.attractions?.slice(0, 2).map(attr => ({
           name: attr.name.substring(0, 20),
           type: attr.type
@@ -109,6 +110,7 @@ export class TripDataSerializer {
         startCity: segment.startCity.substring(0, 8),
         endCity: segment.endCity.substring(0, 8),
         distance: Math.round(segment.distance),
+        driveTimeHours: Math.round(segment.driveTimeHours || 0), // Round to whole number for ultra-minimal
         attractions: [] // Remove all attractions for ultra-minimal
       })) || []
     };
