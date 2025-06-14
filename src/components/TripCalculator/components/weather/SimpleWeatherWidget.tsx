@@ -2,6 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
 import WeatherCard from './WeatherCard';
 
 interface SimpleWeatherWidgetProps {
@@ -17,13 +18,28 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 CENTRALIZED: SimpleWeatherWidget rendering for', segment.endCity, {
+  console.log('🎯 FIXED: SimpleWeatherWidget rendering with enhanced shared view support', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString()
   });
+
+  // FIXED: Enhanced shared view API key detection
+  const weatherConfig = React.useMemo(() => {
+    if (isSharedView || isPDFExport) {
+      const config = ShareWeatherConfigService.getShareWeatherConfig();
+      console.log('🔑 FIXED: Shared view weather config for', segment.endCity, {
+        hasApiKey: config.hasApiKey,
+        canFetchLiveWeather: config.canFetchLiveWeather,
+        apiKeySource: config.apiKeySource,
+        keyLength: config.detectionDetails?.keyLength
+      });
+      return config;
+    }
+    return null;
+  }, [isSharedView, isPDFExport, segment.endCity]);
 
   // CENTRALIZED: Enhanced date handling for shared views
   const effectiveTripStartDate = React.useMemo(() => {
@@ -36,17 +52,17 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('✅ CENTRALIZED: Using trip start date from URL params:', parsedDate.toISOString());
+            console.log('✅ FIXED: Using trip start date from URL params:', parsedDate.toISOString());
             return parsedDate;
           }
         }
       } catch (error) {
-        console.warn('⚠️ CENTRALIZED: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
       }
       
       // CENTRALIZED: Fallback to current date for shared views
       const fallbackDate = new Date();
-      console.log('🔄 CENTRALIZED: Using current date as fallback for shared view:', fallbackDate.toISOString());
+      console.log('🔄 FIXED: Using current date as fallback for shared view:', fallbackDate.toISOString());
       return fallbackDate;
     }
     
@@ -56,22 +72,38 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // CENTRALIZED: Calculate segment date using utility service
   const segmentDate = React.useMemo(() => {
     const calculatedDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
-    console.log('✅ CENTRALIZED: Calculated segment date:', {
+    console.log('✅ FIXED: Calculated segment date for shared view:', {
       city: segment.endCity,
       day: segment.day,
       calculatedDate: calculatedDate?.toISOString(),
-      usingFallback: isSharedView && !tripStartDate
+      usingFallback: isSharedView && !tripStartDate,
+      isSharedView,
+      hasWeatherConfig: !!weatherConfig
     });
     return calculatedDate;
   }, [effectiveTripStartDate, segment.day]);
 
-  // CENTRALIZED: Always render WeatherCard to ensure weather fetching
-  console.log('🔧 CENTRALIZED: Rendering WeatherCard with enhanced shared view support', {
+  // FIXED: Log weather configuration for shared views
+  React.useEffect(() => {
+    if ((isSharedView || isPDFExport) && weatherConfig) {
+      console.log('🔧 FIXED: Weather configuration active for shared view:', {
+        city: segment.endCity,
+        hasApiKey: weatherConfig.hasApiKey,
+        canFetchLiveWeather: weatherConfig.canFetchLiveWeather,
+        apiKeySource: weatherConfig.apiKeySource,
+        shouldAttemptLiveWeather: ShareWeatherConfigService.shouldAttemptLiveWeather(),
+        statusMessage: ShareWeatherConfigService.getWeatherStatusMessage(weatherConfig)
+      });
+    }
+  }, [isSharedView, isPDFExport, weatherConfig, segment.endCity]);
+
+  // FIXED: Always render WeatherCard to ensure weather fetching with enhanced shared view support
+  console.log('🔧 FIXED: Rendering WeatherCard with enhanced shared view API key support', {
     segmentEndCity: segment.endCity,
     day: segment.day,
     hasSegmentDate: !!segmentDate,
     isSharedView,
-    usingFallbackDate: isSharedView && !tripStartDate,
+    canFetchLiveWeather: weatherConfig?.canFetchLiveWeather || false,
     shouldFetchWeather: !!segmentDate
   });
 
