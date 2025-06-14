@@ -36,12 +36,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const fetchWeather = async () => {
       if (!segmentDate) return;
 
-      console.log('🌤️ PHASE 1: SimpleWeatherWidget fetching weather for', segment.endCity, {
+      console.log('🚨 PHASE 2 FIX: SimpleWeatherWidget weather fetch', {
+        endCity: segment.endCity,
         segmentDate: segmentDate.toISOString(),
         segmentDay: segment.day,
         hasApiKey,
         isSharedView,
-        phase: 'Fix identical weather data'
+        phase: 'Phase 2 - Shared View Weather Fix'
       });
 
       setLoading(true);
@@ -54,16 +55,17 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           hasApiKey
         });
 
-        console.log('🌤️ PHASE 1: Weather fetched for', segment.endCity, {
+        console.log('🚨 PHASE 2 FIX: Weather fetched', {
+          endCity: segment.endCity,
           hasWeather: !!weatherData,
           isActualForecast: weatherData?.isActualForecast,
-          temperature: weatherData?.temperature,
-          uniqueToCity: true
+          source: weatherData?.source,
+          temperature: weatherData?.temperature
         });
 
         setWeather(weatherData);
       } catch (err) {
-        console.error('❌ PHASE 1: Error fetching weather for', segment.endCity, ':', err);
+        console.error('❌ PHASE 2 FIX: Weather fetch error:', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
       } finally {
         setLoading(false);
@@ -73,6 +75,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     fetchWeather();
   }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
 
+  // PHASE 2 FIX: Loading state
   if (loading) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-3">
@@ -84,7 +87,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
+  // PHASE 2 FIX: Show weather data if available
   if (weather) {
+    console.log('🚨 PHASE 2 FIX: Displaying weather data for', segment.endCity, {
+      isActualForecast: weather.isActualForecast,
+      source: weather.source,
+      temperature: weather.temperature
+    });
+
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-4">
         <div className="flex items-center justify-between">
@@ -121,11 +131,23 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Fallback for shared views when no weather available
+  // PHASE 2 FIX: Enhanced shared view fallback - ALWAYS show something in shared views
   if (isSharedView && segmentDate) {
-    return <SeasonalWeatherFallback segmentDate={segmentDate} cityName={segment.endCity} compact={true} />;
+    console.log('🚨 PHASE 2 FIX: Using seasonal fallback for shared view', {
+      endCity: segment.endCity,
+      segmentDate: segmentDate.toISOString()
+    });
+
+    return (
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={segment.endCity}
+        compact={true}
+      />
+    );
   }
 
+  // PHASE 2 FIX: Non-shared view with error
   if (error) {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3">
@@ -142,6 +164,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
+  // PHASE 2 FIX: Final fallback - should rarely be reached in shared views
   return (
     <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
       <div className="text-gray-400 text-2xl mb-1">🌤️</div>

@@ -3,7 +3,7 @@ import React from 'react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
-import SegmentWeatherWidget from '../SegmentWeatherWidget';
+import SimpleWeatherWidget from '../weather/SimpleWeatherWidget';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -18,10 +18,11 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   shareUrl,
   isSharedView = false
 }) => {
-  console.log('🚨 SharedTripContentRenderer: SIMPLIFIED VERSION RENDERING', {
+  console.log('🚨 PHASE 2 FIX: SharedTripContentRenderer - FIXED WEATHER DISPLAY', {
     isSharedView,
     hasStartDate: !!tripStartDate,
-    segmentsCount: tripPlan.segments?.length
+    segmentsCount: tripPlan.segments?.length,
+    phase: 'Phase 2 - Fix Shared View Weather Display'
   });
 
   const { costEstimate } = useCostEstimator(tripPlan);
@@ -132,6 +133,14 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
           const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
           const distance = segment.distance || segment.approximateMiles || 0;
 
+          console.log('🚨 PHASE 2 FIX: Rendering segment weather in shared view', {
+            segmentDay: segment.day,
+            endCity: segment.endCity,
+            hasStartDate: !!tripStartDate,
+            isSharedView,
+            phase: 'Phase 2 Weather Display Fix'
+          });
+
           return (
             <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
               {/* Day Header */}
@@ -185,12 +194,14 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   </div>
                 </div>
 
-                {/* Weather Widget */}
-                <SegmentWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  isSharedView={isSharedView}
-                />
+                {/* PHASE 2 FIX: Direct SimpleWeatherWidget usage with proper shared view handling */}
+                <div className="weather-section">
+                  <SimpleWeatherWidget
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    isSharedView={true}
+                  />
+                </div>
               </div>
             </div>
           );
