@@ -11,62 +11,66 @@ export interface WeatherSourceInfo {
 
 export class WeatherUtilityService {
   /**
-   * CENTRALIZED: Determines if weather data represents a live forecast
-   * This replaces scattered isLiveForecast logic across components
+   * STANDARDIZED: Determines if weather data represents a live forecast
+   * Uses consistent logic across all views and components
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
-    if (!weather || !segmentDate) return false;
+    if (!weather || !segmentDate) {
+      console.log('🔍 STANDARDIZED: Missing weather or date for live forecast check');
+      return false;
+    }
     
     // Calculate days from today
     const today = new Date();
     const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     
-    // EXACT CRITERIA: Must have live source AND be actual forecast AND within forecast range
+    // STANDARDIZED CRITERIA: Must have live source AND be actual forecast AND within forecast range
     const isVerifiedLive = weather.source === 'live_forecast' && 
                           weather.isActualForecast === true &&
                           daysFromToday >= 0 && 
                           daysFromToday <= 7;
     
-    console.log('🎯 CENTRALIZED: Live forecast validation:', {
+    console.log('🎯 STANDARDIZED: Live forecast validation:', {
       cityName: weather.cityName,
       segmentDate: segmentDate.toISOString(),
       daysFromToday,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       isVerifiedLive,
-      criteria: {
+      standardizedCriteria: {
         hasLiveSource: weather.source === 'live_forecast',
         isActualForecast: weather.isActualForecast === true,
         withinRange: daysFromToday >= 0 && daysFromToday <= 7
-      }
+      },
+      validationMethod: 'standardized'
     });
     
     return isVerifiedLive;
   }
 
   /**
-   * CENTRALIZED: Calculates segment date from trip start date and day number
-   * This replaces scattered date calculation logic
+   * STANDARDIZED: Calculates segment date from trip start date and day number
    */
   static getSegmentDate(tripStartDate: Date | null, segmentDay: number): Date | null {
     if (!tripStartDate) return null;
     
     try {
       const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
-      console.log('📅 CENTRALIZED: Calculated segment date:', {
+      console.log('📅 STANDARDIZED: Calculated segment date:', {
         tripStart: tripStartDate.toISOString(),
         day: segmentDay,
-        calculated: calculatedDate.toISOString()
+        calculated: calculatedDate.toISOString(),
+        standardizedCalculation: true
       });
       return calculatedDate;
     } catch (error) {
-      console.error('❌ CENTRALIZED: Date calculation failed:', error);
+      console.error('❌ STANDARDIZED: Date calculation failed:', error);
       return null;
     }
   }
 
   /**
-   * CENTRALIZED: Gets weather source label for display
+   * STANDARDIZED: Gets weather source label for display
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
     const isLive = this.isLiveForecast(weather, segmentDate);
@@ -74,7 +78,7 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CENTRALIZED: Gets weather confidence and quality info
+   * STANDARDIZED: Gets weather confidence and quality info
    */
   static getWeatherSourceInfo(weather: ForecastWeatherData, segmentDate?: Date | null): WeatherSourceInfo {
     const isLive = this.isLiveForecast(weather, segmentDate);
@@ -99,7 +103,7 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CENTRALIZED: Validates if weather data is within live forecast range
+   * STANDARDIZED: Validates if weather data is within live forecast range
    */
   static isWithinLiveForecastRange(targetDate: Date): boolean {
     const today = new Date();
@@ -108,7 +112,7 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CENTRALIZED: Gets days from today for a given date
+   * STANDARDIZED: Gets days from today for a given date
    */
   static getDaysFromToday(targetDate: Date): number {
     const today = new Date();

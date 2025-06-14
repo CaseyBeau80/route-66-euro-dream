@@ -18,7 +18,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   const high = weather.highTemp || weather.temperature + 5;
   const low = weather.lowTemp || weather.temperature - 5;
 
-  // CENTRALIZED: Remove hardcoded "Hot" labels and use actual temperature ranges
+  // Temperature range labeling
   const getTemperatureLabel = (temperature: number): string => {
     if (temperature >= 90) return 'Hot';
     if (temperature >= 75) return 'Warm';
@@ -29,18 +29,21 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
 
   const highTempLabel = getTemperatureLabel(high);
   
-  // CENTRALIZED: Use WeatherUtilityService for live forecast detection
+  // STANDARDIZED: Use WeatherUtilityService for live forecast detection
   const isLiveForecast = React.useMemo(() => {
     return WeatherUtilityService.isLiveForecast(weather, segmentDate);
   }, [weather, segmentDate]);
 
-  console.log('🌡️ CENTRALIZED: SimpleTemperatureDisplay rendering:', {
+  console.log('🌡️ STANDARDIZED: SimpleTemperatureDisplay rendering:', {
     cityName: weather.cityName,
     high,
     low,
     highTempLabel,
     isLiveForecast,
-    isSharedView
+    isSharedView,
+    weatherSource: weather.source,
+    isActualForecast: weather.isActualForecast,
+    standardizedDetection: true
   });
 
   return (

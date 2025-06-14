@@ -7,12 +7,13 @@ interface UseWeatherApiKeyProps {
 }
 
 export const useWeatherApiKey = (cityName?: string) => {
-  // UNIFIED: Use consistent detection across ALL views
+  // STANDARDIZED: Use WeatherApiKeyManager consistently across ALL views
   const hasApiKey = React.useMemo(() => {
     const keyExists = WeatherApiKeyManager.hasApiKey();
-    console.log(`🔑 UNIFIED: useWeatherApiKey for ${cityName || 'unknown city'}:`, {
+    console.log(`🔑 STANDARDIZED: useWeatherApiKey for ${cityName || 'unknown city'}:`, {
       hasApiKey: keyExists,
-      usingUnifiedDetection: true,
+      usingWeatherApiKeyManager: true,
+      standardizedDetection: true,
       consistentAcrossAllViews: true
     });
     return keyExists;
@@ -20,6 +21,6 @@ export const useWeatherApiKey = (cityName?: string) => {
 
   return { 
     hasApiKey,
-    detectionMethod: 'WeatherApiKeyManager-Unified'
+    detectionMethod: 'WeatherApiKeyManager-Standardized'
   };
 };
