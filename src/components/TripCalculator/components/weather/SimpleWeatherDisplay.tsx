@@ -2,7 +2,6 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -37,19 +36,24 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // FIXED: Direct detection logic without service dependency
+  // CRITICAL FIX: Explicit live weather detection with detailed logging
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🔧 FIXED: SimpleWeatherDisplay direct detection:', {
+  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay live detection:', {
     cityName,
-    source: weather.source,
+    weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    isLiveForecast,
+    sourceCheck: weather.source === 'live_forecast',
+    forecastCheck: weather.isActualForecast === true,
+    finalIsLiveForecast: isLiveForecast,
     temperature: weather.temperature,
-    directDetection: true
+    timestamp: new Date().toISOString()
   });
 
-  // FIXED: Simplified display config without memo
+  // Force re-render key to ensure fresh display
+  const displayKey = `weather-${cityName}-${isLiveForecast ? 'live' : 'historical'}-${Date.now()}`;
+
+  // CRITICAL FIX: Corrected display configuration logic
   const displayConfig = isLiveForecast ? {
     sourceLabel: '🟢 Live Weather Forecast',
     sourceColor: 'text-green-600',
@@ -66,8 +70,26 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     borderStyle: 'border-blue-200'
   };
 
+  console.log('🔧 CRITICAL FIX: Display config applied:', {
+    cityName,
+    isLiveForecast,
+    sourceLabel: displayConfig.sourceLabel,
+    badgeText: displayConfig.badgeText,
+    displayKey
+  });
+
   return (
-    <div className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}>
+    <div 
+      key={displayKey}
+      className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}
+    >
+      {/* Debug info for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-1 rounded z-50">
+          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'}
+        </div>
+      )}
+
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
