@@ -13,95 +13,78 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [fetchKey, setFetchKey] = React.useState(0);
+  const [hasFetched, setHasFetched] = React.useState(false);
 
   const fetchWeather = React.useCallback(async () => {
-    if (!segmentDate) {
-      console.log('🚫 STANDARDIZED: Skipping fetch - no date:', { 
+    if (!segmentDate || hasFetched) {
+      console.log('🚫 STANDARDIZED: Skipping fetch - no date or already fetched:', { 
         cityName, 
-        hasSegmentDate: !!segmentDate
+        hasSegmentDate: !!segmentDate, 
+        hasFetched 
       });
       return;
     }
 
-    console.log('🚀 CRITICAL FIX: Starting weather fetch with IMMEDIATE STATE UPDATE:', cityName, {
+    console.log('🚀 STANDARDIZED: Starting weather fetch with unified logic:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
-      fetchKey,
-      stateUpdateMode: 'immediate'
+      hasFetched,
+      standardizedApiKeyDetection: true
     });
 
     setLoading(true);
     setError(null);
-    // CRITICAL: Clear existing weather immediately to prevent stale data
-    setWeather(null);
+    setHasFetched(true);
 
     try {
-      // STEP 1: CRITICAL FIX - Enhanced API key detection with immediate validation
+      // STEP 1: ENHANCED API key detection - check all possible locations
       const apiKey = getApiKeyFromAllSources();
       const hasValidApiKey = !!(apiKey && apiKey.length >= 20 && !isPlaceholderKey(apiKey));
 
-      console.log('🔑 CRITICAL FIX: Enhanced API key detection result:', {
+      console.log('🔑 STANDARDIZED: Enhanced API key detection result:', {
         cityName,
         hasValidApiKey,
         keyLength: apiKey?.length || 0,
         keyPreview: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
-        immediateValidation: true
+        enhancedDetection: true
       });
 
       // STEP 2: Calculate days from today for live forecast range
       const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
       const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 7;
       
-      console.log('📅 CRITICAL FIX: Date analysis:', {
+      console.log('📅 STANDARDIZED: Date analysis:', {
         cityName,
         daysFromNow,
         isWithinForecastRange,
         shouldAttemptLive: hasValidApiKey && isWithinForecastRange,
-        immediateProcessing: true
+        enhancedLogic: true
       });
 
-      // STEP 3: CRITICAL FIX - ATTEMPT LIVE FORECAST with IMMEDIATE state update
+      // STEP 3: ATTEMPT LIVE FORECAST if conditions are met
       if (hasValidApiKey && apiKey && isWithinForecastRange) {
-        console.log('✅ CRITICAL FIX: Attempting live forecast with IMMEDIATE STATE UPDATE:', cityName);
+        console.log('✅ STANDARDIZED: Attempting live forecast with enhanced API key detection:', cityName);
         
         const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
         
         if (liveWeather) {
-          console.log('🎯 CRITICAL FIX: Live forecast SUCCESS - IMMEDIATE STATE UPDATE:', cityName, {
+          console.log('🎯 STANDARDIZED: Live forecast SUCCESS:', cityName, {
             temperature: liveWeather.temperature,
             source: liveWeather.source,
             isActualForecast: liveWeather.isActualForecast,
             description: liveWeather.description,
             highTemp: liveWeather.highTemp,
             lowTemp: liveWeather.lowTemp,
-            immediateStateUpdate: true,
-            stateUpdateMode: 'immediate'
+            enhancedFlow: true
           });
-          
-          // CRITICAL FIX: IMMEDIATE state update with explicit live forecast properties
-          const liveWeatherWithExplicitProps: ForecastWeatherData = {
-            ...liveWeather,
-            source: 'live_forecast', // EXPLICIT
-            isActualForecast: true   // EXPLICIT
-          };
-          
-          // CRITICAL: Update state IMMEDIATELY and end loading
-          setWeather(liveWeatherWithExplicitProps);
+          setWeather(liveWeather);
           setLoading(false);
-          
-          console.log('✅ CRITICAL FIX: State updated IMMEDIATELY with live forecast:', cityName, {
-            stateWeather: liveWeatherWithExplicitProps,
-            shouldShowLiveBadge: true,
-            immediateUpdate: true
-          });
-          
-          return; // CRITICAL: Exit immediately after successful live forecast
+          return;
         } else {
-          console.warn('⚠️ CRITICAL FIX: Live weather failed, using fallback for', cityName);
+          console.warn('⚠️ STANDARDIZED: Live weather failed, using fallback for', cityName);
         }
       } else {
-        console.log('📝 CRITICAL FIX: Skipping live weather attempt for', cityName, {
+        console.log('📝 STANDARDIZED: Skipping live weather attempt for', cityName, {
           reason: !hasValidApiKey ? 'no_valid_api_key' : 'outside_forecast_range',
           hasValidApiKey,
           isWithinForecastRange,
@@ -109,55 +92,47 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         });
       }
 
-      // STEP 4: Create fallback weather with IMMEDIATE state update
-      console.log('🔄 CRITICAL FIX: Creating fallback weather with IMMEDIATE update for', cityName);
+      // STEP 4: Create fallback weather
+      console.log('🔄 STANDARDIZED: Creating fallback weather for', cityName);
       const fallbackWeather = createStandardizedFallback(cityName, segmentDate, segmentDay);
-      
-      // CRITICAL: Update state IMMEDIATELY
       setWeather(fallbackWeather);
-      
-      console.log('✅ CRITICAL FIX: Fallback weather set IMMEDIATELY:', cityName, {
-        fallbackWeather,
-        immediateUpdate: true
-      });
 
     } catch (err) {
-      console.error('❌ CRITICAL FIX: Weather fetch error for', cityName, err);
+      console.error('❌ STANDARDIZED: Weather fetch error for', cityName, err);
       const fallbackWeather = createStandardizedFallback(cityName, segmentDate, segmentDay);
       setWeather(fallbackWeather);
       setError('Weather temporarily unavailable');
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay, fetchKey]);
+  }, [cityName, segmentDate?.getTime(), segmentDay, hasFetched]);
 
-  // CRITICAL FIX: Auto-fetch when dependencies change with immediate trigger
+  // Auto-fetch when dependencies change and we haven't fetched yet
   React.useEffect(() => {
-    if (segmentDate) {
-      console.log('🔄 CRITICAL FIX: Auto-triggering IMMEDIATE weather fetch for', cityName, {
+    if (segmentDate && !hasFetched && !loading) {
+      console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
         hasSegmentDate: !!segmentDate,
-        fetchKey,
-        triggerCondition: 'dependency_change',
-        immediateExecution: true
+        hasFetched,
+        loading
       });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchKey, cityName, segmentDay]); // CRITICAL: Include all dependencies
+  }, [segmentDate?.getTime(), fetchWeather, hasFetched, loading]);
 
-  // Manual refetch - increment fetchKey to force new fetch
+  // Manual refetch - reset hasFetched to allow new fetch
   const refetch = React.useCallback(() => {
-    console.log('🔄 CRITICAL FIX: Manual refetch triggered with IMMEDIATE reset for', cityName);
-    setFetchKey(prev => prev + 1);
+    console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
+    setHasFetched(false);
     setWeather(null);
     setError(null);
-    setLoading(false);
   }, [cityName]);
 
   return {
     weather,
     loading,
     error,
-    refetch
+    refetch,
+    hasFetched
   };
 };
 
@@ -206,30 +181,30 @@ const isPlaceholderKey = (key: string): boolean => {
          key === 'PLACEHOLDER_KEY';
 };
 
-// FIXED: Enhanced live weather fetching with proper temperature range extraction
+// ENHANCED live weather fetching with proper source and isActualForecast values
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌤️ FIXED: Starting fetchLiveWeatherDirect with proper temperature extraction:', cityName);
+    console.log('🌤️ STANDARDIZED: Starting fetchLiveWeatherDirect:', cityName);
 
     // Get coordinates
     const coords = await getCoordinatesStandardized(cityName, apiKey);
     if (!coords) {
-      console.log('❌ FIXED: Failed to get coordinates for', cityName);
+      console.log('❌ STANDARDIZED: Failed to get coordinates for', cityName);
       return null;
     }
 
-    console.log('✅ FIXED: Got coordinates for', cityName, coords);
+    console.log('✅ STANDARDIZED: Got coordinates for', cityName, coords);
 
     // Fetch weather data
     const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
     const response = await fetch(weatherUrl);
 
     if (!response.ok) {
-      console.log('❌ FIXED: Weather API failed for', cityName, {
+      console.log('❌ STANDARDIZED: Weather API failed for', cityName, {
         status: response.status,
         statusText: response.statusText
       });
@@ -238,68 +213,28 @@ const fetchLiveWeatherDirect = async (
 
     const data = await response.json();
     if (!data.list || data.list.length === 0) {
-      console.log('❌ FIXED: No forecast data for', cityName);
+      console.log('❌ STANDARDIZED: No forecast data for', cityName);
       return null;
     }
 
-    console.log('✅ FIXED: Got forecast data for', cityName, {
+    console.log('✅ STANDARDIZED: Got forecast data for', cityName, {
       forecastItems: data.list.length,
       firstItemDate: data.list[0]?.dt_txt,
       lastItemDate: data.list[data.list.length - 1]?.dt_txt
     });
 
-    // FIXED: Find all forecasts for the target date and calculate proper temperature range
+    // Find best match for target date
     const targetDateString = targetDate.toISOString().split('T')[0];
-    const targetDateForecasts = data.list.filter((item: any) => {
+    let bestMatch = null;
+
+    // Try exact date match first
+    bestMatch = data.list.find((item: any) => {
       const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
       return itemDate === targetDateString;
     });
 
-    console.log('🌡️ FIXED: Found forecasts for target date:', {
-      cityName,
-      targetDateString,
-      matchingForecasts: targetDateForecasts.length,
-      forecastTimes: targetDateForecasts.map((f: any) => f.dt_txt)
-    });
-
-    let bestMatch = null;
-    let calculatedHighTemp = null;
-    let calculatedLowTemp = null;
-
-    if (targetDateForecasts.length > 0) {
-      // FIXED: Calculate proper high/low from all forecasts for that date
-      const temperatures = targetDateForecasts.map((item: any) => ({
-        temp: item.main.temp,
-        temp_max: item.main.temp_max,
-        temp_min: item.main.temp_min,
-        time: item.dt_txt
-      }));
-
-      console.log('🌡️ FIXED: All temperatures for target date:', {
-        cityName,
-        temperatures
-      });
-
-      // Calculate the actual high and low for the day
-      calculatedHighTemp = Math.round(Math.max(...temperatures.map(t => Math.max(t.temp, t.temp_max || t.temp))));
-      calculatedLowTemp = Math.round(Math.min(...temperatures.map(t => Math.min(t.temp, t.temp_min || t.temp))));
-
-      // Use the forecast closest to noon for the main description
-      bestMatch = targetDateForecasts.reduce((closest: any, current: any) => {
-        const currentHour = new Date(current.dt * 1000).getHours();
-        const closestHour = new Date(closest.dt * 1000).getHours();
-        return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
-      });
-
-      console.log('🌡️ FIXED: Calculated temperature range from multiple forecasts:', {
-        cityName,
-        calculatedHighTemp,
-        calculatedLowTemp,
-        temperatureRange: calculatedHighTemp - calculatedLowTemp,
-        selectedForecastTime: bestMatch.dt_txt
-      });
-    } else {
-      // Use closest match if no exact date
+    // Use closest match if no exact date
+    if (!bestMatch) {
       const targetTime = targetDate.getTime();
       bestMatch = data.list.reduce((closest: any, current: any) => {
         const currentTime = new Date(current.dt * 1000).getTime();
@@ -307,30 +242,28 @@ const fetchLiveWeatherDirect = async (
         return Math.abs(currentTime - targetTime) < Math.abs(closestTime - targetTime) 
           ? current : closest;
       });
-
-      // For single forecast, use the temp_max/temp_min if available, otherwise create a range
-      calculatedHighTemp = Math.round(bestMatch.main.temp_max || bestMatch.main.temp + 5);
-      calculatedLowTemp = Math.round(bestMatch.main.temp_min || bestMatch.main.temp - 5);
-
-      console.log('🌡️ FIXED: Using closest forecast with estimated range:', {
-        cityName,
-        matchedTime: bestMatch.dt_txt,
-        calculatedHighTemp,
-        calculatedLowTemp,
-        baseTemp: bestMatch.main.temp
-      });
     }
 
     if (!bestMatch) {
-      console.log('❌ FIXED: No suitable forecast match for', cityName);
+      console.log('❌ STANDARDIZED: No suitable forecast match for', cityName);
       return null;
     }
 
-    // FIXED: Create live forecast with proper temperature range
+    const matchedDate = new Date(bestMatch.dt * 1000).toISOString().split('T')[0];
+    console.log('✅ STANDARDIZED: Weather match found:', {
+      cityName,
+      targetDate: targetDateString,
+      matchedDate,
+      matchType: matchedDate === targetDateString ? 'exact' : 'closest',
+      temperature: Math.round(bestMatch.main.temp),
+      description: bestMatch.weather[0]?.description
+    });
+
+    // CRITICAL: Create live forecast with correct source and isActualForecast values
     const liveWeatherResult: ForecastWeatherData = {
-      temperature: Math.round((calculatedHighTemp + calculatedLowTemp) / 2), // Average for main temp
-      highTemp: calculatedHighTemp,
-      lowTemp: calculatedLowTemp,
+      temperature: Math.round(bestMatch.main.temp),
+      highTemp: Math.round(bestMatch.main.temp_max),
+      lowTemp: Math.round(bestMatch.main.temp_min),
       description: bestMatch.weather[0]?.description || 'Partly Cloudy',
       icon: bestMatch.weather[0]?.icon || '02d',
       humidity: bestMatch.main.humidity || 50,
@@ -339,25 +272,24 @@ const fetchLiveWeatherDirect = async (
       cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: true, // EXPLICIT: This is ALWAYS true for live forecasts
-      source: 'live_forecast' // EXPLICIT: This is ALWAYS 'live_forecast'
+      isActualForecast: true, // CRITICAL: Must be true for live forecasts
+      source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
     };
 
-    console.log('🎯 FIXED: Live forecast created with proper temperature range:', {
+    console.log('🎯 STANDARDIZED: Live forecast created with verified properties:', {
       cityName,
       temperature: liveWeatherResult.temperature,
       highTemp: liveWeatherResult.highTemp,
       lowTemp: liveWeatherResult.lowTemp,
-      temperatureRange: liveWeatherResult.highTemp - liveWeatherResult.lowTemp,
       isActualForecast: liveWeatherResult.isActualForecast,
       source: liveWeatherResult.source,
       description: liveWeatherResult.description,
-      properTemperatureExtraction: true
+      verifiedProperties: true
     });
 
     return liveWeatherResult;
   } catch (error) {
-    console.error('❌ FIXED: fetchLiveWeatherDirect error:', error);
+    console.error('❌ STANDARDIZED: fetchLiveWeatherDirect error:', error);
     return null;
   }
 };
