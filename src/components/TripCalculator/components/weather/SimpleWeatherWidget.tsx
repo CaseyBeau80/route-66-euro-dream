@@ -2,7 +2,6 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
-import { WeatherPersistenceService } from './services/WeatherPersistenceService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
 import SimpleWeatherDisplay from './SimpleWeatherDisplay';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
@@ -21,14 +20,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 CRITICAL FIX: SimpleWeatherWidget forcing fresh render for', segment.endCity, {
+  console.log('🔧 SHARED VIEW FIX: SimpleWeatherWidget forcing fresh render for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
     timestamp: Date.now(),
-    forcingFreshRender: true
+    sharedViewOptimization: true
   });
 
   // Calculate segment date consistently
@@ -36,12 +35,11 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     // First priority: use passed tripStartDate
     if (tripStartDate) {
       const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-      console.log('🔧 CRITICAL FIX: Calculated date from tripStartDate:', {
+      console.log('🔧 SHARED VIEW FIX: Calculated date from tripStartDate:', {
         tripStartDate: tripStartDate.toISOString(),
         segmentDay: segment.day,
         calculatedDate: calculatedDate?.toISOString(),
-        source: 'passed_trip_start_date',
-        timestamp: Date.now()
+        source: 'passed_trip_start_date'
       });
       return calculatedDate;
     }
@@ -58,19 +56,18 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
               const calculatedDate = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-              console.log('🔧 CRITICAL FIX: Successfully calculated date from URL params:', {
+              console.log('🔧 SHARED VIEW FIX: Successfully calculated date from URL params:', {
                 urlParam: tripStartParam,
                 segmentDay: segment.day,
                 calculatedDate: calculatedDate?.toISOString(),
-                source: 'url_parameters',
-                timestamp: Date.now()
+                source: 'url_parameters'
               });
               return calculatedDate;
             }
           }
         }
       } catch (error) {
-        console.warn('⚠️ CRITICAL FIX: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ SHARED VIEW FIX: Failed to parse trip start date from URL:', error);
       }
     }
 
@@ -78,11 +75,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     if (isSharedView || isPDFExport) {
       const today = new Date();
       const estimatedDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-      console.log('🔧 CRITICAL FIX: Using estimated date for shared view:', {
+      console.log('🔧 SHARED VIEW FIX: Using estimated date for shared view:', {
         segmentDay: segment.day,
         estimatedDate: estimatedDate.toISOString(),
-        source: 'estimated_from_today',
-        timestamp: Date.now()
+        source: 'estimated_from_today'
       });
       return estimatedDate;
     }
@@ -90,11 +86,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather hook with forced refresh
+  // CRITICAL FIX: Force fresh weather data for shared views - no caching
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
-    segmentDay: segment.day
+    segmentDay: segment.day,
+    prioritizeCachedData: false, // CRITICAL: Never use cached data for fresh results
+    cachedWeather: null // CRITICAL: Always null to force fresh fetch
   });
 
   // Check API key
@@ -102,7 +100,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  console.log('🔧 CRITICAL FIX: Weather state for', segment.endCity, {
+  console.log('🔧 SHARED VIEW FIX: Weather state for', segment.endCity, {
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
@@ -112,8 +110,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     hasSegmentDate: !!segmentDate,
     hasApiKey,
     isSharedView,
-    timestamp: Date.now(),
-    forcingFreshState: true
+    sharedViewOptimization: true
   });
 
   // Show loading state
@@ -122,7 +119,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+          <span className="text-sm">Loading live weather for {segment.endCity}...</span>
         </div>
       </div>
     );
@@ -130,18 +127,17 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Show weather if we have it and a valid date
   if (weather && segmentDate) {
-    console.log('✅ CRITICAL FIX: Displaying weather for', segment.endCity, {
+    console.log('✅ SHARED VIEW FIX: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       description: weather.description,
       isSharedView,
-      timestamp: Date.now(),
-      criticalFixApplied: true
+      sharedViewSuccess: true
     });
     
     return (
-      <div className="weather-widget" key={`weather-display-${segment.endCity}-${Date.now()}`}>
+      <div className="weather-widget" key={`fresh-weather-${segment.endCity}-${Date.now()}`}>
         <SimpleWeatherDisplay
           weather={weather}
           segmentDate={segmentDate}
@@ -185,7 +181,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         </div>
         <SimpleWeatherApiKeyInput 
           onApiKeySet={() => {
-            console.log('🔑 CRITICAL FIX: API key set, refetching weather for', segment.endCity);
+            console.log('🔑 SHARED VIEW FIX: API key set, refetching weather for', segment.endCity);
             refetch();
           }}
           cityName={segment.endCity}
