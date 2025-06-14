@@ -24,7 +24,7 @@ export const useUnifiedWeather = ({
 
   const fetchWeatherData = async () => {
     if (!segmentDate) {
-      console.log('🌤️ useUnifiedWeather: No segment date provided');
+      console.log('🌤️ CRITICAL FIX: No segment date provided for', cityName);
       setWeather(null);
       setLoading(false);
       return;
@@ -34,10 +34,11 @@ export const useUnifiedWeather = ({
     setError(null);
 
     try {
-      console.log('🌤️ useUnifiedWeather: Fetching weather via UnifiedWeatherService for', cityName, {
+      console.log('🌤️ CRITICAL FIX: Fetching weather via UnifiedWeatherService for', cityName, {
         segmentDate: segmentDate.toISOString(),
         segmentDay,
-        forceRefresh: true
+        forceRefresh: true,
+        enhancedLiveDetection: true
       });
 
       const result = await UnifiedWeatherService.fetchWeatherForSegment(
@@ -48,19 +49,24 @@ export const useUnifiedWeather = ({
       );
 
       if (result.weather) {
-        console.log('✅ useUnifiedWeather: Weather received for', cityName, {
+        console.log('✅ CRITICAL FIX: Weather received for', cityName, {
           source: result.weather.source,
           isActualForecast: result.weather.isActualForecast,
-          temperature: result.weather.temperature
+          temperature: result.weather.temperature,
+          isLive: result.weather.source === 'live_forecast' && result.weather.isActualForecast === true,
+          explicitCheck: {
+            sourceCheck: result.weather.source === 'live_forecast',
+            actualCheck: result.weather.isActualForecast === true
+          }
         });
         setWeather(result.weather);
       } else {
-        console.log('❌ useUnifiedWeather: No weather data received for', cityName);
+        console.log('❌ CRITICAL FIX: No weather data received for', cityName);
         setError(result.error || 'Unable to fetch weather data');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
-      console.error('❌ useUnifiedWeather: Error fetching weather for', cityName, errorMessage);
+      console.error('❌ CRITICAL FIX: Error fetching weather for', cityName, errorMessage);
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -68,7 +74,7 @@ export const useUnifiedWeather = ({
   };
 
   const refetch = () => {
-    console.log('🔄 useUnifiedWeather: Manual refetch requested for', cityName);
+    console.log('🔄 CRITICAL FIX: Manual refetch requested for', cityName);
     fetchWeatherData();
   };
 

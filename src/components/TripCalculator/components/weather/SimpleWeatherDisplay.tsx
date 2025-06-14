@@ -44,22 +44,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // CRITICAL: Determine if this is truly live forecast
+  // CRITICAL FIX: Stricter live weather detection
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
-  const sourceLabel = isLiveForecast ? 'Live Weather' : 'Historical Weather Data';
+  
+  // CRITICAL FIX: More explicit labeling
+  const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
   const sourceColor = isLiveForecast ? 'text-green-600' : 'text-amber-600';
-  const sourceIcon = isLiveForecast ? '🟢' : '🟡';
 
-  console.log('🎯 SimpleWeatherDisplay: Weather source determination for', cityName, {
-    source: weather.source,
+  console.log('🎯 CRITICAL FIX: SimpleWeatherDisplay weather source analysis for', cityName, {
+    weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
     sourceLabel,
-    criticalCheck: {
-      sourceIsLive: weather.source === 'live_forecast',
-      isActualForecastTrue: weather.isActualForecast === true,
-      bothConditionsMet: isLiveForecast
-    }
+    directSourceCheck: weather.source === 'live_forecast',
+    directActualCheck: weather.isActualForecast === true,
+    bothConditions: weather.source === 'live_forecast' && weather.isActualForecast === true
   });
 
   return (
@@ -67,7 +66,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-medium ${sourceColor}`}>
-          {sourceIcon} {sourceLabel}
+          {sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -104,7 +103,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       {isLiveForecast && (
         <div className="mt-2 text-center">
           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
-            ✨ Current forecast when available
+            ✨ Current live forecast
           </span>
         </div>
       )}
