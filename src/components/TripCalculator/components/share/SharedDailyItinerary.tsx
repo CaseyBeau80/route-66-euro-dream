@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
@@ -12,17 +13,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 UNIFIED: SharedDailyItinerary using UNIFIED components:', {
+  console.log('🔥 SHARED: SharedDailyItinerary using EXACT same components as preview:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    unifiedComponentPath: true
+    exactSameAsPreview: true
   });
 
-  // Same trip start date logic as before
+  // Same trip start date logic as preview
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 UNIFIED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -35,22 +36,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 UNIFIED: Extracted tripStartDate from URL:', {
+            console.log('🔥 SHARED: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              unifiedExtraction: true
+              exactSameAsPreview: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ UNIFIED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ SHARED: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 UNIFIED: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 SHARED: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -81,16 +82,16 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔥 UNIFIED: Rendering segment ${segment.day} for ${segment.endCity} with UNIFIED components`, {
+        console.log(`🔥 SHARED: Rendering segment ${segment.day} for ${segment.endCity} with EXACT same components as preview`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          unifiedComponents: true,
-          uniqueKey: `unified-day-${segment.day}-${segment.endCity}-${Date.now()}`
+          exactSameAsPreview: true,
+          uniqueKey: `shared-day-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`unified-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`shared-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -142,13 +143,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* UNIFIED: Use the new unified weather widget */}
+              {/* Weather section - using EXACT same component as preview */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using unified weather components</p>
+                  <p className="text-xs text-gray-500">Using exact same component as preview</p>
                 </div>
                 
                 <UnifiedWeatherWidget
