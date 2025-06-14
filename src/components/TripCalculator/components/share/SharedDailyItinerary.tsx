@@ -81,6 +81,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
+        // Move console.log outside of JSX
         console.log(`🔥 SHARED ONLY: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
@@ -149,8 +150,6 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                   </h4>
                   <p className="text-xs text-gray-500">DEBUG: Using SharedOnlyWeatherWidget directly</p>
                 </div>
-                
-                {console.log(`🔥 DEBUG: About to render SharedOnlyWeatherWidget for ${segment.endCity} Day ${segment.day}`)}
                 
                 <SharedOnlyWeatherWidget
                   segment={segment}
