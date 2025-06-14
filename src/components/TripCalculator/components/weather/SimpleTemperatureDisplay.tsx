@@ -14,12 +14,26 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // FIXED: Use centralized service for consistent live forecast detection
-  const currentTime = Date.now();
-  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-  const temperatureKey = `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-${currentTime}`;
+  // ULTIMATE FIX: Force complete re-computation with timestamp
+  const currentTimestamp = Date.now();
+  
+  // ULTIMATE FIX: Calculate live forecast status with forced reactivity
+  const isLiveForecast = React.useMemo(() => {
+    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+    console.log('🚨 ULTIMATE FIX: Temperature display live forecast calculation:', {
+      cityName: weather.cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast: result,
+      timestamp: currentTimestamp,
+      ultimateFix: true
+    });
+    return result;
+  }, [weather.source, weather.isActualForecast, segmentDate?.getTime(), currentTimestamp]);
 
-  console.log('🎯 FIXED: SimpleTemperatureDisplay - Using centralized service:', {
+  const temperatureKey = `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-${currentTimestamp}`;
+
+  console.log('🚨 ULTIMATE FIX: SimpleTemperatureDisplay with forced reactivity:', {
     cityName: weather.cityName,
     high: weather.highTemp,
     low: weather.lowTemp,
@@ -29,10 +43,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     isActualForecast: weather.isActualForecast,
     segmentDate: segmentDate?.toISOString(),
     temperatureKey,
-    currentTime,
-    fixedImplementation: true,
-    usingCentralizedService: true,
-    methodUsed: 'WeatherUtilityService.isLiveForecast'
+    timestamp: currentTimestamp,
+    ultimateFix: true
   });
 
   const getTemperatureLabel = (temp: number): string => {
@@ -66,7 +78,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
             {highTempLabel}
           </div>
           {isLiveForecast && (
-            <div className="text-xs text-green-600 font-medium" key={`live-indicator-${temperatureKey}`}>
+            <div className="text-xs text-green-600 font-medium" key={`live-indicator-ultimate-${temperatureKey}`}>
               ✓ Live Forecast
             </div>
           )}
