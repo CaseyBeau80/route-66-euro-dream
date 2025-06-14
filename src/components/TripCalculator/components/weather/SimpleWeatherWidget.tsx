@@ -151,14 +151,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // FIXED LOGIC: For shared views OR if we have a date, ALWAYS show seasonal fallback
-  if ((isSharedView || segmentDate) && segmentDate) {
-    console.log('🔧 FIXED: Using seasonal fallback for', segment.endCity, {
-      isSharedView,
-      hasSegmentDate: !!segmentDate,
-      reason: 'no_weather_data_available'
-    });
-
+  // CRITICAL FIX: For shared views, ALWAYS show seasonal fallback if we have a date
+  if (isSharedView && segmentDate) {
+    console.log('🔧 CRITICAL FIX: Shared view with date but no weather - showing seasonal fallback for', segment.endCity);
     return (
       <SeasonalWeatherFallback 
         segmentDate={segmentDate}
@@ -184,12 +179,25 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // FIXED LOGIC: Absolute final fallback
+  // FIXED LOGIC: For regular views with date but no weather, also show seasonal fallback
+  if (!isSharedView && segmentDate) {
+    console.log('🔧 FIXED: Regular view with date but no weather - showing seasonal fallback for', segment.endCity);
+    return (
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={segment.endCity}
+        compact={true}
+      />
+    );
+  }
+
+  // FIXED LOGIC: Absolute final fallback only if no date at all
   console.log('🔧 FIXED: Absolute final fallback for', segment.endCity, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
-    error
+    error,
+    reason: 'no_date_available'
   });
 
   return (
