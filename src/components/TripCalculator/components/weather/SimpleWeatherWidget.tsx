@@ -36,10 +36,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const fetchWeather = async () => {
       if (!segmentDate) return;
 
-      console.log('🌤️ SimpleWeatherWidget: Fetching weather for', segment.endCity, {
+      console.log('🌤️ PHASE 1: SimpleWeatherWidget fetching weather for', segment.endCity, {
         segmentDate: segmentDate.toISOString(),
+        segmentDay: segment.day,
         hasApiKey,
-        isSharedView
+        isSharedView,
+        phase: 'Fix identical weather data'
       });
 
       setLoading(true);
@@ -52,15 +54,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           hasApiKey
         });
 
-        console.log('🌤️ SimpleWeatherWidget: Weather fetched for', segment.endCity, {
+        console.log('🌤️ PHASE 1: Weather fetched for', segment.endCity, {
           hasWeather: !!weatherData,
           isActualForecast: weatherData?.isActualForecast,
-          temperature: weatherData?.temperature
+          temperature: weatherData?.temperature,
+          uniqueToCity: true
         });
 
         setWeather(weatherData);
       } catch (err) {
-        console.error('❌ SimpleWeatherWidget: Error fetching weather:', err);
+        console.error('❌ PHASE 1: Error fetching weather for', segment.endCity, ':', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
       } finally {
         setLoading(false);
@@ -68,14 +71,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     };
 
     fetchWeather();
-  }, [segment.endCity, segmentDate, hasApiKey, isSharedView]);
+  }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
 
   if (loading) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather...</span>
+          <span className="text-sm">Loading weather for {segment.endCity}...</span>
         </div>
       </div>
     );
@@ -91,6 +94,11 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             </h4>
             <p className="text-sm text-gray-600 mb-2">{weather.description}</p>
             <SimpleTemperatureDisplay weather={weather} isSharedView={isSharedView} />
+            {weather.source && (
+              <p className="text-xs text-gray-500 mt-1">
+                Source: {weather.source === 'live_forecast' ? 'Live Forecast' : 'Historical Average'}
+              </p>
+            )}
           </div>
           <div className="text-4xl">
             {weather.icon ? (
@@ -121,7 +129,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   if (error) {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3">
-        <div className="text-amber-800 text-sm">Weather temporarily unavailable</div>
+        <div className="text-amber-800 text-sm">Weather temporarily unavailable for {segment.endCity}</div>
         {!isSharedView && (
           <button
             onClick={() => window.location.reload()}
@@ -137,7 +145,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   return (
     <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
       <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-gray-600">Weather information not available</p>
+      <p className="text-xs text-gray-600">Weather information not available for {segment.endCity}</p>
     </div>
   );
 };
