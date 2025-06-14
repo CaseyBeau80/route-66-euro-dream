@@ -20,6 +20,7 @@ export const useUnifiedWeather = ({
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0);
 
   const fetchLiveWeather = React.useCallback(async () => {
     if (!segmentDate) return null;
@@ -133,6 +134,11 @@ export const useUnifiedWeather = ({
     );
   }, [cityName, segmentDate]);
 
+  const refetch = React.useCallback(() => {
+    console.log('🔄 useUnifiedWeather: Manual refetch requested for', cityName);
+    setRefreshTrigger(prev => prev + 1);
+  }, [cityName]);
+
   React.useEffect(() => {
     if (!segmentDate) return;
 
@@ -155,7 +161,7 @@ export const useUnifiedWeather = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [fetchLiveWeather, createFallbackWeather, cityName, segmentDate]);
+  }, [fetchLiveWeather, createFallbackWeather, cityName, segmentDate, refreshTrigger]);
 
-  return { weather, loading, error };
+  return { weather, loading, error, refetch };
 };
