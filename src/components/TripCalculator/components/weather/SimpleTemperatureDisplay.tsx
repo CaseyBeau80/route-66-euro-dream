@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
 
 interface SimpleTemperatureDisplayProps {
   weather: ForecastWeatherData;
@@ -13,12 +14,12 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // ULTIMATE FIX: Direct calculation with timestamp for absolute uniqueness
+  // FIXED: Use centralized service for consistent live forecast detection
   const currentTime = Date.now();
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
   const temperatureKey = `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-${currentTime}`;
 
-  console.log('🚨 ULTIMATE FIX: SimpleTemperatureDisplay - ZERO CACHING:', {
+  console.log('🎯 FIXED: SimpleTemperatureDisplay - Using centralized service:', {
     cityName: weather.cityName,
     high: weather.highTemp,
     low: weather.lowTemp,
@@ -29,9 +30,9 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     segmentDate: segmentDate?.toISOString(),
     temperatureKey,
     currentTime,
-    ultimateFix: true,
-    directCalculation: true,
-    zeroCaching: true
+    fixedImplementation: true,
+    usingCentralizedService: true,
+    methodUsed: 'WeatherUtilityService.isLiveForecast'
   });
 
   const getTemperatureLabel = (temp: number): string => {

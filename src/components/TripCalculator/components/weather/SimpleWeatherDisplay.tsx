@@ -19,15 +19,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ULTIMATE FIX: Force complete re-computation on every single render
+  // FIXED: Use centralized service for consistent label generation
   const currentTime = Date.now();
   const ultimateRenderKey = `${weather.source}-${weather.isActualForecast}-${weather.temperature}-${currentTime}`;
   
-  // ULTIMATE FIX: Direct calculation with no dependencies or caching whatsoever
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
-  const sourceLabel = isLiveForecast ? 'Live Weather Forecast' : 'Historical Weather Data';
+  // FIXED: Use WeatherUtilityService methods for consistent logic
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  const sourceLabel = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
 
-  console.log('🚨 ULTIMATE FIX: SimpleWeatherDisplay - COMPLETE RECOMPUTATION:', {
+  console.log('🎯 FIXED: SimpleWeatherDisplay - Using centralized service methods:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
@@ -40,9 +40,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     segmentDate: segmentDate.toISOString(),
     ultimateRenderKey,
     currentTime,
-    ultimateFix: true,
-    directCalculation: true,
-    noCaching: true
+    fixedImplementation: true,
+    usingCentralizedService: true,
+    methodUsed: 'WeatherUtilityService.getWeatherSourceLabel'
   });
 
   return (
@@ -64,7 +64,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           <div className="text-lg font-semibold text-gray-800 capitalize">
             {weather.description}
           </div>
-          <div className="text-sm text-gray-600" key={`label-direct-${ultimateRenderKey}`}>
+          <div className="text-sm text-gray-600" key={`label-centralized-${ultimateRenderKey}`}>
             {sourceLabel}
           </div>
         </div>
@@ -75,7 +75,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         weather={weather}
         isSharedView={isSharedView}
         segmentDate={segmentDate}
-        key={`temp-direct-${ultimateRenderKey}`}
+        key={`temp-centralized-${ultimateRenderKey}`}
       />
 
       {/* Additional Weather Details */}

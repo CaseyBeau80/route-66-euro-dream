@@ -23,7 +23,7 @@ export class WeatherUtilityService {
     // FIXED: Primary check - if source is 'live_forecast' AND isActualForecast is true, it's live
     const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🎯 FIXED: Live forecast validation (simplified):', {
+    console.log('🎯 FIXED: Live forecast validation (centralized service):', {
       cityName: weather.cityName,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
@@ -33,7 +33,8 @@ export class WeatherUtilityService {
         isActualForecast: weather.isActualForecast === true,
         bothConditionsMet: isVerifiedLive
       },
-      validationMethod: 'fixed_simplified'
+      validationMethod: 'centralized_service',
+      serviceCall: 'WeatherUtilityService.isLiveForecast'
     });
     
     return isVerifiedLive;
@@ -61,21 +62,23 @@ export class WeatherUtilityService {
   }
 
   /**
-   * FIXED: Gets weather source label for display - CORRECTED to match live forecast detection
+   * FIXED: Gets weather source label for display - CENTRALIZED METHOD
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
     // FIXED: Use the EXACT SAME logic as isLiveForecast method
-    const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    const isVerifiedLive = this.isLiveForecast(weather, segmentDate);
     const label = isVerifiedLive ? 'Live Weather Forecast' : 'Historical Weather Data';
     
-    console.log('🏷️ FIXED: Weather source label (CORRECTED):', {
+    console.log('🎯 FIXED: Weather source label (CENTRALIZED SERVICE):', {
       cityName: weather.cityName,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       isVerifiedLive,
       label,
-      correctedLogic: true,
-      matchesDetection: true
+      centralizedService: true,
+      methodUsed: 'WeatherUtilityService.getWeatherSourceLabel',
+      matchesDetection: true,
+      finalLabel: label
     });
     
     return label;
