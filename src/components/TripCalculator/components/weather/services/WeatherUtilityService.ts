@@ -11,10 +11,19 @@ export class WeatherUtilityService {
     return segmentDate;
   }
 
+  static getDaysFromToday(targetDate: Date): number {
+    return Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  }
+
+  static isWithinLiveForecastRange(targetDate: Date): boolean {
+    const daysFromToday = this.getDaysFromToday(targetDate);
+    return daysFromToday >= -2 && daysFromToday <= 7;
+  }
+
   static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
     if (!weather || !segmentDate) return false;
     
-    const daysFromToday = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    const daysFromToday = this.getDaysFromToday(segmentDate);
     
     console.log('🎯 CENTRALIZED: Live forecast validation:', {
       cityName: weather.cityName,

@@ -4,6 +4,7 @@ export interface WeatherTypeInfo {
   confidence: 'high' | 'medium' | 'low';
   dataQuality: 'real-time' | 'forecast' | 'estimated' | 'fallback';
   isReliable: boolean;
+  displayLabel: string;
 }
 
 export class WeatherTypeDetector {
@@ -20,7 +21,8 @@ export class WeatherTypeDetector {
         type: 'live',
         confidence: 'high',
         dataQuality: 'real-time',
-        isReliable: true
+        isReliable: true,
+        displayLabel: 'Live Weather Forecast'
       };
     }
 
@@ -30,7 +32,8 @@ export class WeatherTypeDetector {
         type: 'forecast',
         confidence: 'high',
         dataQuality: 'forecast',
-        isReliable: true
+        isReliable: true,
+        displayLabel: 'Weather Forecast'
       };
     }
 
@@ -40,7 +43,8 @@ export class WeatherTypeDetector {
         type: 'seasonal',
         confidence: 'medium',
         dataQuality: 'estimated',
-        isReliable: false
+        isReliable: false,
+        displayLabel: 'Seasonal Weather Estimate'
       };
     }
 
@@ -49,7 +53,24 @@ export class WeatherTypeDetector {
       type: 'fallback',
       confidence: 'low',
       dataQuality: 'fallback',
-      isReliable: false
+      isReliable: false,
+      displayLabel: 'Weather Data'
     };
+  }
+
+  static getFooterMessage(weather: { source?: string; isActualForecast?: boolean }): string {
+    if (weather.source === 'live_forecast' && weather.isActualForecast) {
+      return 'Live weather forecast from OpenWeatherMap';
+    }
+    
+    if (weather.source === 'live_forecast') {
+      return 'Weather forecast from OpenWeatherMap API';
+    }
+    
+    if (weather.source === 'historical_fallback') {
+      return 'Seasonal weather estimate based on historical data';
+    }
+    
+    return 'Weather data not available';
   }
 }
