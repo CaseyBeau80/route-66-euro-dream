@@ -81,75 +81,35 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
         segmentDay: segment.day
       });
 
-      if (weather) {
-        console.log(`✅ CENTRALIZED: Weather fetched for ${stateKey}:`, {
-          temperature: weather.temperature,
-          source: weather.source,
-          isActualForecast: weather.isActualForecast
-        });
-        weatherState.setWeather(weather);
-      } else {
-        console.log(`⚠️ CENTRALIZED: No weather data returned for ${stateKey}`);
-        weatherState.setError('Unable to fetch weather data');
-      }
+      console.log(`📊 CENTRALIZED: Weather fetch result for ${stateKey}:`, {
+        hasWeather: !!weather,
+        source: weather?.source,
+        isActualForecast: weather?.isActualForecast,
+        temperature: weather?.temperature
+      });
+
+      weatherState.setWeather(weather);
     } catch (error) {
       console.error(`❌ CENTRALIZED: Weather fetch error for ${stateKey}:`, error);
-      weatherState.setError('Weather fetch failed');
+      weatherState.setError(error instanceof Error ? error.message : 'Weather fetch failed');
     } finally {
       weatherState.setLoading(false);
     }
-  }, [stateKey, segmentDate?.getTime(), enhancedApiKeyStatus.hasValidKey, weatherState, segment.endCity, segment.day]);
+  }, [segmentDate, segment.endCity, segment.day, enhancedApiKeyStatus.hasValidKey, stateKey, weatherState]);
 
-  // CENTRALIZED: Auto-fetch trigger with proper conditions
+  // CENTRALIZED: Auto-fetch when component mounts or dependencies change
   React.useEffect(() => {
-    console.log(`🚨 CENTRALIZED: Auto-fetch check for ${stateKey}`, {
-      conditions: {
-        hasTripStartDate: !!tripStartDate,
-        hasSegmentDate: !!segmentDate,
-        hasNoWeather: !weatherState.weather,
-        isNotLoading: !weatherState.loading,
-        hasValidApiKey: enhancedApiKeyStatus.hasValidKey
-      },
-      decision: 'checking_all_conditions'
-    });
-
-    // CENTRALIZED: Only auto-fetch if ALL conditions are met
-    const shouldAutoFetch = tripStartDate && 
-                           segmentDate && 
-                           !weatherState.weather && 
-                           !weatherState.loading;
-
-    if (shouldAutoFetch) {
-      console.log(`🚨 CENTRALIZED: AUTO-FETCH TRIGGERED for ${stateKey}`, {
-        hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Trigger fetch immediately
+    if (segmentDate && !weatherState.weather && !weatherState.loading) {
+      console.log(`🔄 CENTRALIZED: Auto-fetching weather for ${stateKey}`);
       fetchWeather(false);
-    } else {
-      console.log(`⏸️ CENTRALIZED: Auto-fetch conditions not met for ${stateKey}`, {
-        hasTripStartDate: !!tripStartDate,
-        hasSegmentDate: !!segmentDate,
-        hasWeather: !!weatherState.weather,
-        isLoading: weatherState.loading
-      });
     }
-  }, [
-    tripStartDate?.getTime(), 
-    segmentDate?.getTime(), 
-    weatherState.weather, 
-    weatherState.loading, 
-    enhancedApiKeyStatus.hasValidKey,
-    fetchWeather, 
-    stateKey
-  ]);
+  }, [segmentDate, weatherState.weather, weatherState.loading, fetchWeather, stateKey]);
 
   console.log(`🔑 CENTRALIZED: useWeatherCard final state for ${stateKey}:`, {
     hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
-    hasWeather: Boolean(weatherState.weather),
+    hasWeather: !!weatherState.weather,
     loading: weatherState.loading,
-    hasSegmentDate: Boolean(segmentDate)
+    hasSegmentDate: !!segmentDate
   });
 
   return {
