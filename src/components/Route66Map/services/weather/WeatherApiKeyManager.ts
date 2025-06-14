@@ -5,52 +5,95 @@ export class WeatherApiKeyManager {
   private static readonly STORAGE_KEY = 'openweathermap_api_key';
 
   static getApiKey(): string | null {
-    // First check if API key is configured in code
+    console.log('🔍 WeatherApiKeyManager: Checking for API key...');
+    
+    // Check localStorage first (user input)
+    const localStorageKey = localStorage.getItem(this.STORAGE_KEY);
+    if (localStorageKey && this.isValidKey(localStorageKey)) {
+      console.log('✅ WeatherApiKeyManager: Found valid key in localStorage');
+      return localStorageKey.trim();
+    }
+
+    // Check config file
     if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
-      const apiKey = WEATHER_API_KEY as string; // Explicit type assertion for clarity
-      if (apiKey !== 'your_api_key_here' && 
-          !apiKey.toLowerCase().includes('your_api_key') &&
-          !apiKey.toLowerCase().includes('replace_with') &&
-          apiKey.length >= 20) {
-        return apiKey;
+      const configKey = WEATHER_API_KEY as string;
+      if (this.isValidKey(configKey)) {
+        console.log('✅ WeatherApiKeyManager: Found valid key in config');
+        return configKey.trim();
+      } else {
+        console.log('⚠️ WeatherApiKeyManager: Config key is placeholder/invalid');
       }
     }
-    
-    // Fallback to localStorage
-    return localStorage.getItem(this.STORAGE_KEY);
+
+    console.log('❌ WeatherApiKeyManager: No valid API key found');
+    return null;
   }
 
   static setApiKey(apiKey: string): void {
-    localStorage.setItem(this.STORAGE_KEY, apiKey.trim());
+    const trimmedKey = apiKey.trim();
+    if (!this.isValidKey(trimmedKey)) {
+      throw new Error('Invalid API key provided');
+    }
+    
+    localStorage.setItem(this.STORAGE_KEY, trimmedKey);
+    console.log('✅ WeatherApiKeyManager: API key stored successfully');
   }
 
   static hasApiKey(): boolean {
     const key = this.getApiKey();
-    // More permissive check - just need a reasonable length key
-    return !!(key && key.length >= 20 && !this.isPlaceholderKey(key));
+    const hasKey = !!key;
+    console.log('🔍 WeatherApiKeyManager: hasApiKey() =', hasKey);
+    return hasKey;
   }
 
   static validateApiKey(): boolean {
     const key = this.getApiKey();
-    // OpenWeatherMap API keys are typically 32 characters, but allow some flexibility
-    return !!(key && key.length >= 20 && key.length <= 50 && !this.isPlaceholderKey(key));
+    const isValid = this.isValidKey(key);
+    console.log('🔍 WeatherApiKeyManager: validateApiKey() =', isValid);
+    return isValid;
   }
 
-  private static isPlaceholderKey(key: string): boolean {
-    const lowerKey = key.toLowerCase();
-    return lowerKey.includes('your_api_key') || 
-           lowerKey.includes('replace_with') ||
-           lowerKey.includes('example') ||
-           key === 'PLACEHOLDER_KEY';
+  private static isValidKey(key: string | null): boolean {
+    if (!key || typeof key !== 'string') return false;
+    
+    const trimmedKey = key.trim();
+    
+    // Check for placeholder keys
+    const placeholderPatterns = [
+      'your_api_key_here',
+      'your_api_key',
+      'replace_with',
+      'placeholder'
+    ];
+    
+    const lowerKey = trimmedKey.toLowerCase();
+    for (const pattern of placeholderPatterns) {
+      if (lowerKey.includes(pattern.toLowerCase())) {
+        console.log('❌ WeatherApiKeyManager: Rejected placeholder key');
+        return false;
+      }
+    }
+    
+    // Valid keys should be at least 20 characters
+    if (trimmedKey.length < 20) {
+      console.log('❌ WeatherApiKeyManager: Key too short:', trimmedKey.length);
+      return false;
+    }
+    
+    console.log('✅ WeatherApiKeyManager: Key validation passed');
+    return true;
   }
 
   static getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null; isValid: boolean } {
     const key = this.getApiKey();
-    return {
+    const debugInfo = {
       hasKey: !!key,
       keyLength: key?.length || null,
       keyPreview: key ? `${key.substring(0, 8)}...${key.substring(key.length - 4)}` : null,
       isValid: this.validateApiKey()
     };
+    
+    console.log('🔍 WeatherApiKeyManager: Debug info:', debugInfo);
+    return debugInfo;
   }
 }
