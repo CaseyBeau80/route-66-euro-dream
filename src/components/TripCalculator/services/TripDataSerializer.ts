@@ -1,3 +1,4 @@
+
 import { TripPlan } from './planning/TripPlanBuilder';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
@@ -93,7 +94,7 @@ export class TripDataSerializer {
         icon: weather.icon,
         precipitationChance: weather.precipitationChance,
         windSpeed: weather.windSpeed,
-        source: weather.source,
+        source: weather.source, // Keep original valid source
         isActualForecast: weather.isActualForecast,
         humidity: weather.humidity,
         cityName: weather.cityName.substring(0, 15), // Shorter city name
@@ -120,7 +121,7 @@ export class TripDataSerializer {
           icon: weather.icon,
           precipitationChance: weather.precipitationChance,
           windSpeed: Math.round(weather.windSpeed), // Round to save space
-          source: weather.source.substring(0, 5), // Truncate source
+          source: weather.source, // Keep original valid source
           isActualForecast: weather.isActualForecast,
           humidity: Math.round(weather.humidity || 0), // Round humidity
           cityName: weather.cityName.substring(0, 10), // Short city name
@@ -146,7 +147,7 @@ export class TripDataSerializer {
           icon: weather.icon,
           precipitationChance: Math.round(weather.precipitationChance / 10) * 10, // Round to nearest 10%
           windSpeed: Math.round(weather.windSpeed),
-          source: 'api', // Generic source
+          source: 'enhanced-fallback', // Use valid WeatherSourceType
           isActualForecast: weather.isActualForecast,
           humidity: Math.round((weather.humidity || 0) / 10) * 10, // Round to nearest 10%
           cityName: weather.cityName.substring(0, 8), // Very short city name
