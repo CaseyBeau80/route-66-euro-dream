@@ -24,16 +24,42 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
+  // PLAN: State to track rendering updates
+  const [displayRenderCount, setDisplayRenderCount] = React.useState(0);
+
+  // PLAN: Force re-render key based on weather state
+  const displayKey = React.useMemo(() => {
+    return `${cityName}-${weather?.source || 'no-weather'}-${weather?.isActualForecast || false}-${displayRenderCount}`;
+  }, [cityName, weather?.source, weather?.isActualForecast, displayRenderCount]);
+
+  // PLAN: Effect to track weather data changes and force re-renders
+  React.useEffect(() => {
+    console.log('🔄 PLAN: WeatherDataDisplay - Weather data effect:', {
+      cityName,
+      hasWeather: !!weather,
+      weatherSource: weather?.source,
+      isActualForecast: weather?.isActualForecast,
+      displayRenderCount,
+      displayKey,
+      planImplementation: true
+    });
+    
+    // Force a re-render when weather data changes
+    setDisplayRenderCount(prev => prev + 1);
+  }, [weather?.source, weather?.isActualForecast, weather?.temperature, cityName]);
+
   console.log('🎯 PLAN: WeatherDataDisplay implementation for', cityName, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
     isPDFExport,
     weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null,
-    planImplementation: 'enhanced_weather_data_priority'
+    displayKey,
+    displayRenderCount,
+    planImplementation: true
   });
 
-  // PLAN IMPLEMENTATION: ALWAYS prioritize actual weather data if available
+  // PLAN: ALWAYS prioritize actual weather data if available
   if (weather && segmentDate) {
     const weatherType = WeatherTypeDetector.detectWeatherType(weather);
     
@@ -44,37 +70,44 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
-      planImplementation: 'actual_weather_priority'
+      displayKey,
+      planImplementation: true
     });
 
     return (
-      <SimpleWeatherDisplay
-        weather={weather}
-        segmentDate={segmentDate}
-        cityName={cityName}
-        isSharedView={isSharedView}
-        isPDFExport={isPDFExport}
-      />
+      <div key={displayKey}>
+        <SimpleWeatherDisplay
+          weather={weather}
+          segmentDate={segmentDate}
+          cityName={cityName}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
+          key={`simple-${displayKey}`}
+        />
+      </div>
     );
   }
 
-  // PLAN IMPLEMENTATION: Enhanced fallback logic for shared views
+  // PLAN: Enhanced fallback logic for shared views
   if ((isSharedView || isPDFExport) && segmentDate && !weather) {
     console.log(`🌱 PLAN: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
     return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={cityName}
-        compact={true}
-      />
+      <div key={`seasonal-${displayKey}`}>
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={cityName}
+          compact={true}
+          key={`fallback-${displayKey}`}
+        />
+      </div>
     );
   }
 
-  // PLAN IMPLEMENTATION: Show "not available" only as absolute last resort in shared views
+  // PLAN: Show "not available" only as absolute last resort in shared views
   if (isSharedView || isPDFExport) {
     console.log(`🚫 PLAN: Last resort - no weather or date available for ${cityName} in shared view`);
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center" key={`not-available-${displayKey}`}>
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
         <p className="text-xs text-gray-600">Weather information not available</p>
       </div>
@@ -84,7 +117,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   // Regular view - show error state with retry option
   console.log(`⚠️ PLAN: Showing error state for ${cityName} in regular view`);
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded p-3">
+    <div className="bg-amber-50 border border-amber-200 rounded p-3" key={`error-${displayKey}`}>
       <div className="text-amber-800 text-sm">
         Weather information temporarily unavailable
       </div>

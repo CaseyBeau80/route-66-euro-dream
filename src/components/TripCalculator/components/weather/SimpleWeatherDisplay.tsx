@@ -19,11 +19,52 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // FIXED: Use simplified live forecast detection
-  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-  const sourceLabel = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
+  // PLAN: Memoized live forecast detection with proper dependencies
+  const isLiveForecast = React.useMemo(() => {
+    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+    console.log('🎯 PLAN: SimpleWeatherDisplay - Live forecast detection (memoized):', {
+      cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast: result,
+      memoizedCalculation: true
+    });
+    return result;
+  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
 
-  console.log('🎯 FIXED: SimpleWeatherDisplay rendering with simplified logic:', {
+  // PLAN: Memoized source label with proper dependencies
+  const sourceLabel = React.useMemo(() => {
+    const label = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
+    console.log('🏷️ PLAN: SimpleWeatherDisplay - Source label (memoized):', {
+      cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      sourceLabel: label,
+      memoizedCalculation: true
+    });
+    return label;
+  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+
+  // PLAN: Force component re-render when weather source changes
+  const weatherKey = React.useMemo(() => {
+    return `${weather.source}-${weather.isActualForecast}-${weather.cityName}-${segmentDate?.getTime()}`;
+  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+
+  // PLAN: Effect to log weather data changes and detect stale renders
+  React.useEffect(() => {
+    console.log('🔄 PLAN: SimpleWeatherDisplay - Weather data effect triggered:', {
+      cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast,
+      sourceLabel,
+      weatherKey,
+      triggerReason: 'weather_data_changed',
+      planImplementation: true
+    });
+  }, [weather.source, weather.isActualForecast, isLiveForecast, sourceLabel, weatherKey, cityName]);
+
+  console.log('🎯 PLAN: SimpleWeatherDisplay rendering with enhanced state management:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
@@ -34,11 +75,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     lowTemp: weather.lowTemp,
     description: weather.description,
     segmentDate: segmentDate.toISOString(),
-    fixedLogic: true
+    weatherKey,
+    planImplementation: true
   });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" key={weatherKey}>
       {/* Weather Icon and Description */}
       <div className="flex items-center gap-3">
         <div className="text-3xl">
@@ -56,7 +98,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           <div className="text-lg font-semibold text-gray-800 capitalize">
             {weather.description}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600" key={`label-${weatherKey}`}>
             {sourceLabel}
           </div>
         </div>
@@ -67,6 +109,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         weather={weather}
         isSharedView={isSharedView}
         segmentDate={segmentDate}
+        key={`temp-${weatherKey}`}
       />
 
       {/* Additional Weather Details */}

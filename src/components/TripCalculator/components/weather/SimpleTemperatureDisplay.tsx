@@ -14,10 +14,38 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // FIXED: Use the unified weather utility service for consistent live forecast detection
-  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-  
-  console.log('🌡️ FIXED: SimpleTemperatureDisplay rendering:', {
+  // PLAN: Memoized live forecast detection with enhanced dependencies
+  const isLiveForecast = React.useMemo(() => {
+    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+    console.log('🌡️ PLAN: SimpleTemperatureDisplay - Live forecast check (memoized):', {
+      cityName: weather.cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast: result,
+      memoizedCalculation: true,
+      planImplementation: true
+    });
+    return result;
+  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+
+  // PLAN: Effect to track live forecast state changes
+  React.useEffect(() => {
+    console.log('🔄 PLAN: SimpleTemperatureDisplay - Live forecast state effect:', {
+      cityName: weather.cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast,
+      triggerReason: 'live_forecast_state_changed',
+      planImplementation: true
+    });
+  }, [isLiveForecast, weather.source, weather.isActualForecast, weather.cityName]);
+
+  // PLAN: Force re-render key based on live forecast detection
+  const temperatureKey = React.useMemo(() => {
+    return `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-temp`;
+  }, [weather.cityName, weather.source, weather.isActualForecast, isLiveForecast]);
+
+  console.log('🌡️ PLAN: SimpleTemperatureDisplay rendering with enhanced state:', {
     cityName: weather.cityName,
     high: weather.highTemp,
     low: weather.lowTemp,
@@ -26,7 +54,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     segmentDate: segmentDate?.toISOString(),
-    fixedDetection: true
+    temperatureKey,
+    planImplementation: true
   });
 
   const getTemperatureLabel = (temp: number): string => {
@@ -43,7 +72,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   const highTempLabel = getTemperatureLabel(highTemp);
 
   return (
-    <div className="temperature-display">
+    <div className="temperature-display" key={temperatureKey}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-gray-800">
@@ -60,7 +89,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
             {highTempLabel}
           </div>
           {isLiveForecast && (
-            <div className="text-xs text-green-600 font-medium">
+            <div className="text-xs text-green-600 font-medium" key={`live-${temperatureKey}`}>
               ✓ Live Forecast
             </div>
           )}
