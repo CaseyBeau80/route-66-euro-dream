@@ -35,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SegmentWeatherContent render for', segmentEndCity, {
+  console.log('🔧 PHASE 2 FIX: SegmentWeatherContent with stable retry logic for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: Boolean(weather),
@@ -57,9 +57,12 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
+  // PHASE 2 FIX: Stable auto-retry for shared views (no useEffect loops)
+  const hasTriggeredSharedRetry = React.useRef(false);
+
   // Show loading state
   if (loading) {
-    console.log('🔄 FIXED: Showing loading state for', segmentEndCity);
+    console.log('🔄 PHASE 2 FIX: Showing loading state for', segmentEndCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-600">
@@ -70,9 +73,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: ALWAYS display weather data if available
+  // PHASE 2 FIX: ALWAYS display weather data if available (regardless of hasApiKey)
   if (weather) {
-    console.log(`✅ FIXED: Displaying weather data for ${segmentEndCity}`, {
+    console.log(`✅ PHASE 2 FIX: Displaying weather data for ${segmentEndCity}`, {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
@@ -94,7 +97,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // For shared views without weather data and no date - show basic message
   if ((isSharedView || isPDFExport) && !segmentDate) {
-    console.log(`🚫 FIXED: Shared view without date for ${segmentEndCity}`);
+    console.log(`🚫 PHASE 2 FIX: Shared view without date for ${segmentEndCity}`);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
@@ -103,15 +106,17 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: For shared views with date but no weather - auto-retry immediately
-  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
-    console.log(`🚨 FIXED: Shared view needs weather for ${segmentEndCity} - auto-retrying`);
+  // PHASE 2 FIX: For shared views with date but no weather - stable single retry
+  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading && !hasTriggeredSharedRetry.current) {
+    console.log(`🚨 PHASE 2 FIX: Shared view needs weather for ${segmentEndCity} - triggering stable retry`);
     
-    // Auto-retry immediately for shared views
-    React.useEffect(() => {
-      console.log(`🔄 FIXED: Auto-retry triggered for shared view: ${segmentEndCity}`);
+    hasTriggeredSharedRetry.current = true;
+    
+    // Use setTimeout to avoid direct state updates during render
+    setTimeout(() => {
+      console.log(`🔄 PHASE 2 FIX: Executing delayed retry for shared view: ${segmentEndCity}`);
       onRetry();
-    }, [onRetry, segmentEndCity]);
+    }, 100);
 
     return (
       <div className="space-y-2">
@@ -129,7 +134,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Regular view without API key
   if (!hasApiKey && !isSharedView && !isPDFExport) {
-    console.log(`🔑 FIXED: Showing API key input for ${segmentEndCity}`);
+    console.log(`🔑 PHASE 2 FIX: Showing API key input for ${segmentEndCity}`);
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -144,7 +149,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   }
 
   // Regular view with error or no weather
-  console.log(`⚠️ FIXED: Showing error/retry state for ${segmentEndCity}`, {
+  console.log(`⚠️ PHASE 2 FIX: Showing error/retry state for ${segmentEndCity}`, {
     error,
     retryCount,
     hasApiKey,
