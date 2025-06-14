@@ -15,8 +15,8 @@ export class WeatherApiKeyManager {
       return trimmedKey;
     }
 
-    // Check config file as fallback
-    if (typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.length > 0) {
+    // Check config file as fallback - but only if it's not empty
+    if (typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim().length > 10) {
       const trimmedConfigKey = WEATHER_API_KEY.trim();
       console.log('✅ WeatherApiKeyManager: Using config key, length:', trimmedConfigKey.length);
       return trimmedConfigKey;
@@ -38,7 +38,7 @@ export class WeatherApiKeyManager {
 
   static hasApiKey(): boolean {
     const key = this.getApiKey();
-    const hasKey = !!key && key.length > 0;
+    const hasKey = !!key && key.length > 10;
     console.log('🔍 WeatherApiKeyManager: hasApiKey() =', hasKey);
     return hasKey;
   }
