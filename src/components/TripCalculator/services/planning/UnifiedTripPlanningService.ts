@@ -3,6 +3,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { TripPlan } from './TripPlanBuilder';
 import { TripPlanningService } from './TripPlanningService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
+import { Route66TripPlannerService } from '../Route66TripPlannerService';
 
 export interface TripPlanningResult {
   success: boolean;
@@ -30,18 +31,35 @@ export class UnifiedTripPlanningService {
         tripStyle
       });
 
-      // For now, return a basic success response
-      // This would need to be implemented with actual trip planning logic
+      // Use the existing Route66TripPlannerService to plan the trip
+      const tripPlan = await Route66TripPlannerService.planTrip(
+        startLocation,
+        endLocation,
+        travelDays,
+        tripStyle
+      );
+
+      console.log('✅ UnifiedTripPlanningService: Trip planned successfully', {
+        segmentCount: tripPlan.segments?.length || 0,
+        totalDistance: tripPlan.totalDistance,
+        tripStyle: tripPlan.tripStyle
+      });
+
       return {
-        success: false,
-        error: 'Trip planning service not yet implemented'
+        success: true,
+        tripPlan,
+        tripStyle,
+        warnings: [] // Could add warnings from the planning process if needed
       };
 
     } catch (error) {
       console.error('❌ UnifiedTripPlanningService: Error planning trip', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: errorMessage
       };
     }
   }
