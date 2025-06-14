@@ -5,8 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2 } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
-import ImprovedUrlShareButton from '../../TripCalculator/components/ImprovedUrlShareButton';
-import { useWeatherDataCollection } from '../../TripCalculator/hooks/useWeatherDataCollection';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -19,14 +17,11 @@ const TripResults: React.FC<TripResultsProps> = ({
   tripStartDate,
   onShareTrip
 }) => {
-  const { weatherData } = useWeatherDataCollection(tripPlan, tripStartDate);
-
   console.log('📊 TripResults render:', { 
     tripPlan: !!tripPlan, 
     segmentCount: tripPlan?.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
-    hasShareHandler: !!onShareTrip,
-    weatherDataEntries: Object.keys(weatherData).length
+    hasShareHandler: !!onShareTrip
   });
 
   if (!tripPlan) {
@@ -153,29 +148,14 @@ const TripResults: React.FC<TripResultsProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-        {/* Simple URL Generator - The main button for creating a shareable link */}
-        <ImprovedUrlShareButton
-          tripPlan={tripPlan}
-          tripStartDate={tripStartDate}
-          className="px-6 py-3 text-lg"
-        />
-
-        {/* Traditional Share Modal Button */}
+      <div className="flex justify-center pt-4">
         <Button 
           onClick={handleShareTrip}
-          variant="outline"
-          className="gap-2 px-6 py-3 text-lg border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white"
+          className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-2"
         >
-          <Share2 className="w-5 h-5" />
-          Advanced Share Options
+          <Share2 className="w-4 h-4 mr-2" />
+          Share Trip
         </Button>
-      </div>
-
-      {/* Help Text */}
-      <div className="text-center text-sm text-route66-text-secondary mt-4 p-4 bg-blue-50 rounded-lg">
-        <p className="font-medium mb-1">🔗 Quick Share</p>
-        <p>Click "Generate Trip URL" to create a shareable link with all your trip information and weather forecasts. Perfect for sharing with travel companions!</p>
       </div>
     </div>
   );

@@ -18,22 +18,31 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // FIXED: Simplified and more reliable live weather detection
+  // FIXED: More robust live weather detection with multiple checks
   const isLiveForecast = React.useMemo(() => {
-    // Primary check: source must be 'live_forecast' and isActualForecast must be true
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    // Primary check: both source and isActualForecast must be correct
+    const primaryCheck = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🔧 FIXED: UnifiedWeatherDisplay - Live weather detection:', {
+    // Secondary check: look for realistic temperature variations and proper data structure
+    const hasRealisticData = weather.temperature && weather.temperature > 0 && weather.temperature < 150;
+    const hasProperStructure = weather.highTemp && weather.lowTemp && weather.description;
+    
+    const result = primaryCheck && hasRealisticData && hasProperStructure;
+    
+    console.log('🔧 FIXED: UnifiedWeatherDisplay - Enhanced live weather detection:', {
       cityName,
-      source: weather.source,
+      weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
+      primaryCheck,
+      hasRealisticData,
+      hasProperStructure,
+      finalResult: result,
       temperature: weather.temperature,
-      isLive,
       isSharedView,
-      simplifiedDetection: true
+      detectionMethod: 'enhanced_robust'
     });
     
-    return isLive;
+    return result;
   }, [weather, cityName, isSharedView]);
 
   const getWeatherIcon = (iconCode: string) => {
@@ -54,7 +63,7 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  // Use the simplified detection result
+  // FIXED: Use the enhanced detection result
   const sourceLabel = isLiveForecast ? 'Live Weather Forecast' : 'Historical Weather Data';
   const badgeText = isLiveForecast ? '✅ Current live forecast' : '📊 Based on historical patterns';
   const statusEmoji = isLiveForecast ? '🟢' : '🟡';
@@ -64,7 +73,7 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
       'bg-green-50 border-2 border-green-300 text-green-900 rounded-lg p-4 relative' :
       'bg-amber-50 border-2 border-amber-300 text-amber-900 rounded-lg p-4 relative'
     }>
-      {/* Weather Source Indicator */}
+      {/* Weather Source Indicator - ENHANCED */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{statusEmoji}</span>
@@ -103,7 +112,7 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Status Badge */}
+      {/* Enhanced Status Badge */}
       <div className="mt-3 text-center">
         <span className={`inline-block text-sm px-3 py-1 rounded-full font-bold border-2 ${
           isLiveForecast ? 
