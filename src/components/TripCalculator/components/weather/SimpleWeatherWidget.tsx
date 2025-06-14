@@ -20,12 +20,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ SimpleWeatherWidget rendering for', segment.endCity, {
+  console.log('🌤️ SimpleWeatherWidget UNIFIED SERVICE rendering for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    usingUnifiedService: true
   });
 
   // Calculate segment date
@@ -80,13 +81,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Force fresh weather fetch - never use cached data for shared views
+  // Use the unified weather service - no cached data, always fresh
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
     segmentDay: segment.day,
-    prioritizeCachedData: false, // Always fetch fresh
-    cachedWeather: null // Never use cached data
+    prioritizeCachedData: false,
+    cachedWeather: null
   });
 
   // Check API key availability
@@ -94,7 +95,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  console.log('🌤️ SimpleWeatherWidget: Weather state for', segment.endCity, {
+  console.log('🌤️ SimpleWeatherWidget UNIFIED: Weather state for', segment.endCity, {
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
@@ -103,7 +104,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     error,
     hasSegmentDate: !!segmentDate,
     hasApiKey,
-    isSharedView
+    isSharedView,
+    usingUnifiedService: true
   });
 
   // Loading state
@@ -120,11 +122,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Show weather if available
   if (weather && segmentDate) {
-    console.log('✅ SimpleWeatherWidget: Displaying weather for', segment.endCity, {
+    console.log('✅ SimpleWeatherWidget UNIFIED: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
       source: weather.source,
       isActualForecast: weather.isActualForecast,
-      description: weather.description
+      description: weather.description,
+      usingUnifiedService: true
     });
     
     return (

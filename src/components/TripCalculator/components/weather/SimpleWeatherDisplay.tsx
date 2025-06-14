@@ -44,17 +44,30 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // Determine weather source display
-  const isLiveForecast = weather.isActualForecast && weather.source === 'live_forecast';
+  // CRITICAL: Determine if this is truly live forecast
+  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   const sourceLabel = isLiveForecast ? 'Live Weather' : 'Historical Weather Data';
   const sourceColor = isLiveForecast ? 'text-green-600' : 'text-amber-600';
+  const sourceIcon = isLiveForecast ? '🟢' : '🟡';
+
+  console.log('🎯 SimpleWeatherDisplay: Weather source determination for', cityName, {
+    source: weather.source,
+    isActualForecast: weather.isActualForecast,
+    isLiveForecast,
+    sourceLabel,
+    criticalCheck: {
+      sourceIsLive: weather.source === 'live_forecast',
+      isActualForecastTrue: weather.isActualForecast === true,
+      bothConditionsMet: isLiveForecast
+    }
+  });
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-medium ${sourceColor}`}>
-          {isLiveForecast ? '🟢' : '🟡'} {sourceLabel}
+          {sourceIcon} {sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -92,6 +105,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         <div className="mt-2 text-center">
           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
             ✨ Current forecast when available
+          </span>
+        </div>
+      )}
+
+      {/* Historical Data Notice */}
+      {!isLiveForecast && (
+        <div className="mt-2 text-center">
+          <span className="inline-block bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full font-medium">
+            📊 Based on historical patterns
           </span>
         </div>
       )}
