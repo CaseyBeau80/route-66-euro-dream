@@ -2,27 +2,27 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { useWeatherCard } from './hooks/useWeatherCard';
-import WeatherDebugLogger from './debug/WeatherDebugLogger';
-import ErrorBoundary from '../ErrorBoundary';
-import WeatherCardHeader from './components/WeatherCardHeader';
-import WeatherCardContent from './components/WeatherCardContent';
-import {
-  NoDateState,
-  NoApiKeyState,
-  LoadingState,
-  ErrorState
-} from './components/WeatherCardStates';
+import WeatherDataDisplay from './WeatherDataDisplay';
+import WeatherLoadingDisplay from './WeatherLoadingDisplay';
 
 interface WeatherCardProps {
   segment: DailySegment;
   tripStartDate: Date | null;
-  cardIndex: number;
+  cardIndex?: number;
+  tripId?: string;
+  sectionKey?: string;
+  forceExpanded?: boolean;
+  isCollapsible?: boolean;
+  isSharedView?: boolean;
+  isPDFExport?: boolean;
 }
 
-const WeatherCard: React.FC<WeatherCardProps> = ({
-  segment,
+const WeatherCard: React.FC<WeatherCardProps> = ({ 
+  segment, 
   tripStartDate,
-  cardIndex
+  cardIndex,
+  isSharedView = false,
+  isPDFExport = false
 }) => {
   console.log(`🎯 [WEATHER DEBUG] WeatherCard rendered for Day ${segment.day}:`, {
     component: 'WeatherCard',
@@ -30,83 +30,61 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     segmentEndCity: segment.endCity,
     cardIndex,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    isSharedView,
+    isPDFExport
   });
 
-  const { hasApiKey, weatherState, segmentDate } = useWeatherCard({
-    segment,
-    tripStartDate
+  const {
+    hasApiKey,
+    weatherState: { weather, loading, error },
+    segmentDate,
+    fetchWeather
+  } = useWeatherCard({ segment, tripStartDate });
+
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard state for ${segment.endCity}:`, {
+    hasApiKey,
+    hasWeather: !!weather,
+    loading,
+    hasError: !!error,
+    hasSegmentDate: !!segmentDate,
+    isSharedView,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast
   });
 
-  // No trip date provided
-  if (!tripStartDate || !segmentDate) {
-    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning no-date state for ${segment.endCity}:`, {
-      component: 'WeatherCard -> no-date-state',
-      reason: !tripStartDate ? 'no tripStartDate' : 'no segmentDate'
-    });
-
-    return <NoDateState />;
-  }
-
-  // No API key
-  if (!hasApiKey) {
-    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning no-API-key state for ${segment.endCity}:`, {
-      component: 'WeatherCard -> no-api-key-state'
-    });
-
-    return <NoApiKeyState />;
-  }
-
-  // Loading state
-  if (weatherState.loading) {
+  // Show loading state while fetching
+  if (loading) {
     console.log(`🎯 [WEATHER DEBUG] WeatherCard returning loading state for ${segment.endCity}:`, {
       component: 'WeatherCard -> loading-state'
     });
-
-    return <LoadingState />;
+    
+    return (
+      <WeatherLoadingDisplay 
+        cityName={segment.endCity}
+        isSharedView={isSharedView}
+      />
+    );
   }
 
-  // Error state
-  if (weatherState.error && weatherState.retryCount > 2) {
-    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning error state for ${segment.endCity}:`, {
-      component: 'WeatherCard -> error-state',
-      error: weatherState.error,
-      retryCount: weatherState.retryCount
-    });
-
-    return <ErrorState error={weatherState.error} />;
-  }
-
-  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendering main content for ${segment.endCity}:`, {
-    component: 'WeatherCard -> main-content',
-    hasWeather: !!weatherState.weather,
-    segmentDate: segmentDate.toISOString()
+  // CRITICAL: Always try to render weather data, even in shared views
+  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendering data display for ${segment.endCity}:`, {
+    component: 'WeatherCard -> data-display',
+    hasWeather: !!weather,
+    isSharedView,
+    weatherType: weather ? `${weather.source}_${weather.isActualForecast}` : 'none'
   });
 
   return (
-    <ErrorBoundary context={`WeatherCard-${segment.day}`}>
-      <WeatherDebugLogger
-        componentName="WeatherCard"
-        segmentDay={segment.day}
-        segmentEndCity={segment.endCity}
-        data={{
-          hasApiKey,
-          hasWeather: !!weatherState.weather,
-          loading: weatherState.loading,
-          error: weatherState.error,
-          segmentDate: segmentDate.toISOString()
-        }}
-      />
-      
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow min-h-[200px]">
-        <WeatherCardHeader segment={segment} segmentDate={segmentDate} />
-        <WeatherCardContent
-          weather={weatherState.weather}
-          segmentDate={segmentDate}
-          cityName={segment.endCity}
-        />
-      </div>
-    </ErrorBoundary>
+    <WeatherDataDisplay
+      weather={weather}
+      segmentDate={segmentDate}
+      cityName={segment.endCity}
+      error={error}
+      onRetry={fetchWeather}
+      isSharedView={isSharedView}
+      isPDFExport={isPDFExport}
+    />
   );
 };
 

@@ -1,181 +1,60 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { SimplifiedWeatherFetchingService } from './services/SimplifiedWeatherFetchingService';
-import { EnhancedApiKeyDetector } from './services/EnhancedApiKeyDetector';
-import { WeatherSourceVerifier } from './services/WeatherSourceVerifier';
-import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
-import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
+import { DateNormalizationService } from './DateNormalizationService';
+import WeatherCard from './WeatherCard';
 
 interface SimpleWeatherWidgetProps {
   segment: DailySegment;
   tripStartDate?: Date;
   isSharedView?: boolean;
+  isPDFExport?: boolean;
 }
 
 const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   segment,
   tripStartDate,
-  isSharedView = false
+  isSharedView = false,
+  isPDFExport = false
 }) => {
-  const [weather, setWeather] = useState<ForecastWeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  console.log('🎯 SimpleWeatherWidget: Rendering for', segment.endCity, {
+    day: segment.day,
+    isSharedView,
+    isPDFExport,
+    hasTripStartDate: !!tripStartDate,
+    tripStartDate: tripStartDate?.toISOString()
+  });
 
+  // Calculate segment date - CRITICAL: Always try to calculate for weather fetching
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
-      if (isSharedView) {
-        const fallbackDate = new Date();
-        fallbackDate.setDate(fallbackDate.getDate() + (segment.day - 1));
-        return fallbackDate;
-      }
+      console.log('🚫 SimpleWeatherWidget: No trip start date provided');
       return null;
     }
-    const date = new Date(tripStartDate);
-    date.setDate(date.getDate() + (segment.day - 1));
-    return date;
-  }, [tripStartDate, segment.day, isSharedView]);
-
-  useEffect(() => {
-    const fetchWeather = async () => {
-      if (!segmentDate) return;
-
-      console.log('🌤️ PLAN: SimpleWeatherWidget starting enhanced fetch:', {
-        cityName: segment.endCity,
-        day: segment.day,
-        segmentDate: segmentDate.toISOString(),
-        isSharedView,
-        enhancedLogic: true
-      });
-
-      // Enhanced API key detection
-      const apiKeyResult = EnhancedApiKeyDetector.detectApiKey();
-      EnhancedApiKeyDetector.logDetectionResult(apiKeyResult, `widget-${segment.endCity}`);
-
-      try {
-        await SimplifiedWeatherFetchingService.fetchWeatherForSegment(
-          segment.endCity,
-          segmentDate,
-          setLoading,
-          setError,
-          (weatherData) => {
-            if (weatherData) {
-              // Verify the weather source
-              const verification = WeatherSourceVerifier.verifyWeatherSource(
-                weatherData,
-                segmentDate,
-                apiKeyResult.hasApiKey
-              );
-              
-              WeatherSourceVerifier.logVerificationResult(verification, segment.endCity);
-              
-              console.log('✅ PLAN: Weather data received and verified:', {
-                cityName: segment.endCity,
-                isActualForecast: weatherData.isActualForecast,
-                source: weatherData.source,
-                temperature: weatherData.temperature,
-                verification: verification.isValid
-              });
-            }
-            setWeather(weatherData);
-          }
-        );
-      } catch (err) {
-        console.error('❌ PLAN: Weather fetch error:', err);
-        setError(err instanceof Error ? err.message : 'Weather fetch failed');
-      }
-    };
-
-    fetchWeather();
-  }, [segment.endCity, segmentDate, isSharedView, segment.day]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded p-3">
-        <div className="flex items-center gap-2 text-blue-600">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading enhanced weather for {segment.endCity}...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // If we have actual weather data, show it
-  if (weather) {
-    const isLiveForecast = weather.isActualForecast === true && weather.source === 'live_forecast';
     
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-1">
-              🌤️ Weather for {segment.endCity}
-            </h4>
-            <p className="text-sm text-gray-600 mb-2 capitalize">{weather.description}</p>
-            <SimpleTemperatureDisplay weather={weather} isSharedView={isSharedView} />
-            <p className="text-xs text-gray-500 mt-1">
-              Source: {isLiveForecast ? 'Live Forecast' : 'Historical Average'}
-              {isLiveForecast && ' ✅'}
-            </p>
-          </div>
-          <div className="text-4xl">
-            {weather.icon ? (
-              <img
-                src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-                alt={weather.description}
-                className="w-16 h-16"
-                onError={(e) => {
-                  console.warn('Weather icon failed to load:', weather.icon);
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <span>🌤️</span>
-            )}
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-gray-600">
-          <div>💧 {weather.humidity}% humidity</div>
-          <div>💨 {weather.windSpeed} mph wind</div>
-          <div>☔ {weather.precipitationChance}% rain</div>
-        </div>
-      </div>
-    );
-  }
+    try {
+      const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
+      console.log('✅ SimpleWeatherWidget: Calculated segment date:', {
+        city: segment.endCity,
+        day: segment.day,
+        calculatedDate: calculatedDate.toISOString()
+      });
+      return calculatedDate;
+    } catch (error) {
+      console.error('❌ SimpleWeatherWidget: Date calculation failed:', error);
+      return null;
+    }
+  }, [tripStartDate, segment.day]);
 
-  // For shared views OR when we have a valid segment date, show seasonal fallback
-  if (segmentDate) {
-    return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={segment.endCity}
-        compact={true}
-      />
-    );
-  }
-
-  // Only show error in non-shared views
-  if (error && !isSharedView) {
-    return (
-      <div className="bg-amber-50 border border-amber-200 rounded p-3">
-        <div className="text-amber-800 text-sm">Weather temporarily unavailable for {segment.endCity}</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  // Absolute final fallback
+  // FIXED: Always render WeatherCard for live weather fetching, even in shared views
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-      <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-gray-600">Weather information not available for {segment.endCity}</p>
+    <div className="weather-widget">
+      <WeatherCard
+        segment={segment}
+        tripStartDate={tripStartDate}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
     </div>
   );
 };
