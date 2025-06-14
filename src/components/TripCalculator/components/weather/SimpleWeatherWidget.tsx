@@ -32,7 +32,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return !!localStorage.getItem('weather_api_key');
   }, []);
 
-  console.log("🔧 FIXED: SimpleWeatherWidget render analysis", {
+  console.log("🔧 SHARED VIEW FIX: SimpleWeatherWidget render analysis", {
     cityName: segment.endCity,
     segmentDay: segment.day,
     hasApiKey,
@@ -41,21 +41,22 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     hasWeather: !!weather,
     loading,
     error,
-    logicPath: 'fixed_shared_view_logic'
+    logicPath: 'shared_view_seasonal_fallback_fix'
   });
 
   useEffect(() => {
     const fetchWeather = async () => {
       if (!segmentDate) {
-        console.log('🔧 FIXED: No segmentDate, skipping fetch for', segment.endCity);
+        console.log('🔧 SHARED VIEW FIX: No segmentDate, skipping fetch for', segment.endCity);
         return;
       }
 
-      console.log('🔧 FIXED: Starting weather fetch', {
+      console.log('🔧 SHARED VIEW FIX: Starting weather fetch', {
         endCity: segment.endCity,
         segmentDate: segmentDate.toISOString(),
         hasApiKey,
-        isSharedView
+        isSharedView,
+        willAttemptFetch: true // Always attempt, even in shared view
       });
 
       setLoading(true);
@@ -68,9 +69,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           hasApiKey
         });
 
-        console.log('🔧 FIXED: Weather fetch completed', {
+        console.log('🔧 SHARED VIEW FIX: Weather fetch completed', {
           endCity: segment.endCity,
           hasWeather: !!weatherData,
+          isSharedView,
           weatherData: weatherData ? {
             temperature: weatherData.temperature,
             isActualForecast: weatherData.isActualForecast,
@@ -80,24 +82,27 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
         setWeather(weatherData);
       } catch (err) {
-        console.error('🔧 FIXED: Weather fetch error:', err);
+        console.error('🔧 SHARED VIEW FIX: Weather fetch error:', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
       } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch if not in shared view, or if in shared view with API key
-    if (!isSharedView || hasApiKey) {
-      fetchWeather();
-    } else {
-      console.log('🔧 FIXED: Shared view without API key, skipping fetch for', segment.endCity);
-    }
+    // CRITICAL FIX: Always attempt fetch, regardless of shared view or API key status
+    // The SimpleWeatherFetcher will handle fallback to seasonal data internally
+    console.log('🔧 SHARED VIEW FIX: Always attempting fetch for', segment.endCity, {
+      isSharedView,
+      hasApiKey,
+      reason: 'will_fallback_to_seasonal_if_needed'
+    });
+    
+    fetchWeather();
   }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
 
   // Loading state
   if (loading) {
-    console.log('🔧 FIXED: Showing loading state for', segment.endCity);
+    console.log('🔧 SHARED VIEW FIX: Showing loading state for', segment.endCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-3">
         <div className="flex items-center gap-2 text-blue-600">
@@ -108,11 +113,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // FIXED LOGIC: If we have actual weather data, show it
+  // If we have actual weather data, show it
   if (weather) {
-    console.log('🔧 FIXED: Displaying actual weather data for', segment.endCity, {
+    console.log('🔧 SHARED VIEW FIX: Displaying weather data for', segment.endCity, {
       temperature: weather.temperature,
-      source: weather.source
+      source: weather.source,
+      isSharedView
     });
 
     return (
@@ -151,9 +157,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // CRITICAL FIX: For shared views, ALWAYS show seasonal fallback if we have a date
-  if (isSharedView && segmentDate) {
-    console.log('🔧 CRITICAL FIX: Shared view with date but no weather - showing seasonal fallback for', segment.endCity);
+  // CRITICAL FIX: If no weather data but we have a valid segment date, show seasonal fallback
+  if (segmentDate) {
+    console.log('🔧 SHARED VIEW FIX: No weather data, showing seasonal fallback for', segment.endCity, {
+      isSharedView,
+      hasSegmentDate: !!segmentDate,
+      reason: 'no_weather_data_but_have_date'
+    });
+    
     return (
       <SeasonalWeatherFallback 
         segmentDate={segmentDate}
@@ -163,9 +174,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // FIXED LOGIC: Non-shared view with error
+  // CRITICAL FIX: Error state for non-shared views only
   if (error && !isSharedView) {
-    console.log('🔧 FIXED: Showing error state for', segment.endCity);
+    console.log('🔧 SHARED VIEW FIX: Showing error state for non-shared view', segment.endCity);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3">
         <div className="text-amber-800 text-sm">Weather temporarily unavailable for {segment.endCity}</div>
@@ -179,25 +190,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // FIXED LOGIC: For regular views with date but no weather, also show seasonal fallback
-  if (!isSharedView && segmentDate) {
-    console.log('🔧 FIXED: Regular view with date but no weather - showing seasonal fallback for', segment.endCity);
-    return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={segment.endCity}
-        compact={true}
-      />
-    );
-  }
-
-  // FIXED LOGIC: Absolute final fallback only if no date at all
-  console.log('🔧 FIXED: Absolute final fallback for', segment.endCity, {
+  // Absolute final fallback - only if no date available at all
+  console.log('🔧 SHARED VIEW FIX: Absolute final fallback for', segment.endCity, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
     error,
-    reason: 'no_date_available'
+    reason: 'no_date_available_at_all'
   });
 
   return (
