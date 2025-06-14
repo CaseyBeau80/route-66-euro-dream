@@ -1,114 +1,155 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Calculator, MapPin, Clock, DollarSign, Share2, Sparkles } from 'lucide-react';
+import { TripFormData } from '../TripCalculator/types/tripCalculator';
+import { TripPlan } from '../TripCalculator/services/planning/TripPlanBuilder';
+import { useTripCalculation } from './hooks/useTripCalculation';
+import { useCostEstimator } from '../TripCalculator/hooks/useCostEstimator';
+import { toast } from '@/hooks/use-toast';
+import TripPlannerForm from './components/TripPlannerForm';
+import TripResults from './components/TripResults';
+import TripLoadingDisplay from './components/TripLoadingDisplay';
+import CostEstimatorSection from '../TripCalculator/components/CostEstimatorSection';
+import EnhancedShareTripModal from '../TripCalculator/components/share/EnhancedShareTripModal';
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Calendar, Clock, Route } from 'lucide-react';
-import TripCalculatorForm from '../TripCalculator/TripCalculatorForm';
-import EnhancedTripResults from '../TripCalculator/EnhancedTripResults';
-import ItineraryPreLoader from '../TripCalculator/components/ItineraryPreLoader';
-import { useEnhancedTripCalculation } from '../TripCalculator/hooks/useEnhancedTripCalculation';
+interface Route66TripCalculatorProps {
+  // Define any props here
+}
 
 const Route66TripCalculator: React.FC = () => {
-  const {
-    formData,
-    setFormData,
-    tripPlan,
-    shareUrl,
-    availableEndLocations,
-    calculateTrip,
-    resetTrip,
-    isCalculating,
-    isCalculateDisabled,
-    loadingState
-  } = useEnhancedTripCalculation();
-
-  console.log('🚗 Route66TripCalculator: Rendering with enhanced loading state', {
-    hasTripPlan: !!tripPlan,
-    isCalculating,
-    isPreLoading: loadingState.isPreLoading,
-    loadingProgress: loadingState.progress
+  const [formData, setFormData] = useState<TripFormData>({
+    startLocation: '',
+    endLocation: '',
+    travelDays: 7,
+    tripStyle: 'balanced',
+    tripStartDate: new Date()
   });
+  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
+  const { costEstimate } = useCostEstimator(tripPlan);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  useEffect(() => {
+    console.log('✨ Route66TripCalculator: Component mounted');
+    return () => {
+      console.log('✨ Route66TripCalculator: Component unmounted');
+    };
+  }, []);
+
+  const handlePlanTrip = useCallback(() => {
+    console.log('🚀 Plan trip requested with data:', formData);
+    if (!formData.startLocation || !formData.endLocation) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both a start and end location for your trip.",
+        variant: "destructive",
+      });
+      return;
+    }
+    calculateTrip(formData);
+  }, [formData, calculateTrip]);
+
+  const handleResetTrip = useCallback(() => {
+    console.log('🔄 Reset trip requested');
+    resetTrip();
+  }, [resetTrip]);
+
+  const handleShareTrip = useCallback(() => {
+    console.log('📤 Share trip requested', {
+      hasTripPlan: !!tripPlan,
+      hasStartDate: !!formData.tripStartDate,
+      segments: tripPlan?.segments?.length || 0
+    });
+    
+    if (!tripPlan) {
+      toast({
+        title: "No Trip to Share",
+        description: "Please create a trip plan first before sharing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setShowShareModal(true);
+  }, [tripPlan, formData.tripStartDate]);
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    console.log('📅 Start date changed:', date);
+    setFormData(prev => ({ ...prev, tripStartDate: date }));
+  };
+
+  const handleLocationChange = (type: 'start' | 'end', location: string) => {
+    console.log(`📍 ${type} location changed:`, location);
+    setFormData(prev => ({ ...prev, [`${type}Location`]: location }));
+  };
+
+  const handleTravelDaysChange = (days: number) => {
+    console.log('🗓️ Travel days changed:', days);
+    setFormData(prev => ({ ...prev, travelDays: days }));
+  };
+
+  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+    console.log('🎨 Trip style changed:', style);
+    setFormData(prev => ({ ...prev, tripStyle: style }));
+  };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <div className="space-y-8">
       {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg">
-            <Route className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-800">Route 66 Trip Calculator</h1>
-        </div>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Plan your perfect journey along America's Mother Road. Get detailed itineraries, 
-          weather forecasts, and cost estimates for your Route 66 adventure.
+      <section className="text-center py-12">
+        <h1 className="text-3xl font-bold text-route66-navy mb-4">
+          Plan Your Route 66 Adventure
+        </h1>
+        <p className="text-lg text-route66-gray max-w-3xl mx-auto">
+          Customize your Route 66 trip with our easy-to-use planner. Enter your start and end locations,
+          choose your travel style, and let us create the perfect itinerary for you.
         </p>
-      </div>
+      </section>
 
-      {/* Trip Planning Form */}
-      <Card className="bg-white shadow-lg border-2 border-blue-200">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-orange-50 border-b">
-          <CardTitle className="flex items-center gap-2 text-xl text-gray-800">
-            <MapPin className="h-5 w-5 text-blue-600" />
-            Plan Your Route 66 Adventure
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <TripCalculatorForm
-            formData={formData}
-            setFormData={setFormData}
-            availableEndLocations={availableEndLocations}
-            onCalculate={calculateTrip}
-            isCalculateDisabled={isCalculateDisabled}
-            isCalculating={isCalculating}
-            tripPlan={tripPlan}
-            shareUrl={shareUrl}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Show Pre-loader when loading but no trip plan yet */}
-      {loadingState.isPreLoading && !tripPlan && (
-        <div className="w-full max-w-6xl mx-auto">
-          <ItineraryPreLoader
-            progress={loadingState.progress}
-            currentStep={loadingState.currentStep}
-            totalSegments={loadingState.totalSegments}
-            loadedSegments={loadingState.loadedSegments}
-          />
-        </div>
-      )}
-
-      {/* Trip Results - Only render when we have a valid trip plan */}
-      {tripPlan && (
-        <EnhancedTripResults
-          tripPlan={tripPlan}
-          shareUrl={shareUrl}
-          tripStartDate={formData.tripStartDate}
-          loadingState={loadingState}
+      {/* Planning Form Section */}
+      <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
+        <TripPlannerForm
+          formData={formData}
+          onStartDateChange={handleStartDateChange}
+          onLocationChange={handleLocationChange}
+          onTravelDaysChange={handleTravelDaysChange}
+          onTripStyleChange={handleTripStyleChange}
+          onPlanTrip={handlePlanTrip}
+          onResetTrip={handleResetTrip}
+          isPlanning={isCalculating}
         />
+      </section>
+
+      {/* Trip Results Section */}
+      {(tripPlan || isCalculating) && (
+        <section id="trip-results" className="bg-white rounded-xl shadow-lg border border-route66-tan overflow-hidden">
+          {isCalculating && (
+            <TripLoadingDisplay formData={formData} />
+          )}
+
+          {!isCalculating && tripPlan && (
+            <TripResults
+              tripPlan={tripPlan}
+              tripStartDate={formData.tripStartDate}
+            />
+          )}
+        </section>
       )}
 
-      {/* Features Overview */}
-      {!tripPlan && !loadingState.isPreLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <Card className="text-center p-6 border-2 border-gray-200 hover:border-blue-300 transition-colors">
-            <Calendar className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Smart Itineraries</h3>
-            <p className="text-gray-600">Get day-by-day travel plans optimized for your schedule and preferences.</p>
-          </Card>
-          
-          <Card className="text-center p-6 border-2 border-gray-200 hover:border-orange-300 transition-colors">
-            <Clock className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Weather Forecasts</h3>
-            <p className="text-gray-600">Plan with confidence using detailed weather information for each destination.</p>
-          </Card>
-          
-          <Card className="text-center p-6 border-2 border-gray-200 hover:border-green-300 transition-colors">
-            <MapPin className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Historic Attractions</h3>
-            <p className="text-gray-600">Discover must-see stops, hidden gems, and authentic Route 66 experiences.</p>
-          </Card>
-        </div>
+      {/* Enhanced Share Modal */}
+      {showShareModal && tripPlan && (
+        <EnhancedShareTripModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          tripPlan={tripPlan}
+          tripStartDate={formData.tripStartDate}
+          onShareUrlGenerated={(shareCode, shareUrl) => {
+            console.log('✅ Share URL generated:', { shareCode, shareUrl });
+            // Optionally update state or perform additional actions
+          }}
+        />
       )}
     </div>
   );

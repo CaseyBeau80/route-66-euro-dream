@@ -2,6 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { WeatherPersistenceService } from './services/WeatherPersistenceService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
 import SimpleWeatherDisplay from './SimpleWeatherDisplay';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
