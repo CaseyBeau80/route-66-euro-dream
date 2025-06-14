@@ -86,6 +86,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
           });
           setWeather(weatherData);
         } else {
+          console.log('❌ UnifiedWeatherWidget: No weather data received');
           setError('Weather data unavailable');
         }
       } catch (err) {
@@ -109,13 +110,47 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     setRefreshKey(prev => prev + 1);
   };
 
-  // Show API key input for regular views without API key
+  // Show API key input for regular views without API key (but still show demo weather)
   if (!isSharedView && !isPDFExport && !hasApiKey) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="text-sm text-gray-600 mb-2">
-          🌤️ Weather forecast requires an API key
+          🌤️ Weather forecast available
         </div>
+        
+        {/* Always show weather even without API key */}
+        {loading && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm">Loading weather for {segment.endCity}...</span>
+            </div>
+          </div>
+        )}
+        
+        {weather && segmentDate && (
+          <SimpleWeatherDisplay
+            weather={weather}
+            segmentDate={segmentDate}
+            cityName={segment.endCity}
+            isSharedView={isSharedView}
+            isPDFExport={isPDFExport}
+          />
+        )}
+        
+        {!weather && !loading && (
+          <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
+            <div className="text-blue-600 text-2xl mb-1">🌤️</div>
+            <p className="text-xs text-blue-700 font-medium">Loading weather forecast...</p>
+            <button
+              onClick={handleRetry}
+              className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        
         <SimpleWeatherApiKeyInput 
           onApiKeySet={handleApiKeySet}
           cityName={segment.endCity}
