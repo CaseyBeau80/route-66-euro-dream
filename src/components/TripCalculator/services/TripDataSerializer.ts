@@ -9,8 +9,9 @@ export interface SerializedTripData {
 }
 
 export class TripDataSerializer {
-  private static readonly MAX_URL_LENGTH = 2000; // Much more conservative limit
-  private static readonly FALLBACK_URL_LENGTH = 1500; // Even more conservative fallback
+  private static readonly MAX_URL_LENGTH = 1500; // More conservative limit
+  private static readonly FALLBACK_URL_LENGTH = 1000; // Very conservative fallback
+  private static readonly MINIMAL_URL_LENGTH = 800; // Minimal fallback
   
   static serializeTripData(
     tripPlan: TripPlan,
@@ -35,29 +36,43 @@ export class TripDataSerializer {
         weatherEntries: Object.keys(weatherData || {}).length
       });
 
-      // If still too large, progressively reduce data
+      // Progressive data reduction strategy
       if (compressed.length > this.MAX_URL_LENGTH) {
-        console.warn('⚠️ URL too large, reducing weather data...');
+        console.warn('⚠️ URL too large, reducing weather data (step 1)...');
         
-        // Try with reduced weather data (keep only essential fields)
+        // Step 1: Reduce weather data fields
         const reducedWeatherData = this.reduceWeatherData(weatherData || {});
         const reducedData = { ...data, weatherData: reducedWeatherData };
         jsonString = JSON.stringify(reducedData);
         compressed = this.compressData(jsonString);
         
-        console.log('🔧 After weather reduction:', {
+        console.log('🔧 After weather reduction step 1:', {
           compressedSize: compressed.length,
           weatherEntries: Object.keys(reducedWeatherData).length
         });
       }
 
-      // If still too large, remove weather data entirely
       if (compressed.length > this.FALLBACK_URL_LENGTH) {
-        console.warn('⚠️ Still too large, removing all weather data');
-        const fallbackData = { ...data, weatherData: {} };
-        compressed = this.compressData(JSON.stringify(fallbackData));
+        console.warn('⚠️ Still too large, applying aggressive weather reduction (step 2)...');
         
-        console.log('🔧 Final fallback size:', compressed.length);
+        // Step 2: Keep only essential weather fields
+        const minimalWeatherData = this.createMinimalWeatherData(weatherData || {});
+        const minimalData = { ...data, weatherData: minimalWeatherData };
+        jsonString = JSON.stringify(minimalData);
+        compressed = this.compressData(jsonString);
+        
+        console.log('🔧 After weather reduction step 2:', {
+          compressedSize: compressed.length,
+          weatherEntries: Object.keys(minimalWeatherData).length
+        });
+      }
+
+      if (compressed.length > this.MINIMAL_URL_LENGTH) {
+        console.warn('⚠️ Still too large, removing all weather data (step 3)');
+        const noWeatherData = { ...data, weatherData: {} };
+        compressed = this.compressData(JSON.stringify(noWeatherData));
+        
+        console.log('🔧 Final fallback size (no weather):', compressed.length);
       }
 
       return compressed;
@@ -71,7 +86,7 @@ export class TripDataSerializer {
     const reduced: Record<string, ForecastWeatherData> = {};
     
     Object.entries(weatherData).forEach(([key, weather]) => {
-      // Keep all required fields but remove optional/large ones to save space
+      // Keep essential fields, remove optional/large ones
       reduced[key] = {
         temperature: weather.temperature,
         description: weather.description,
@@ -80,19 +95,43 @@ export class TripDataSerializer {
         windSpeed: weather.windSpeed,
         source: weather.source,
         isActualForecast: weather.isActualForecast,
-        // Include all required fields
         humidity: weather.humidity,
         cityName: weather.cityName,
         forecastDate: weather.forecastDate,
-        // Keep optional fields that are small
+        // Keep only high/low temps, remove forecast array
         highTemp: weather.highTemp,
         lowTemp: weather.lowTemp,
-        // Set forecast to empty array to save space while satisfying TypeScript
         forecast: []
       };
     });
     
     return reduced;
+  }
+
+  private static createMinimalWeatherData(weatherData: Record<string, ForecastWeatherData>): Record<string, ForecastWeatherData> {
+    const minimal: Record<string, ForecastWeatherData> = {};
+    
+    // Only keep every other day's weather data to reduce size
+    const entries = Object.entries(weatherData);
+    entries.forEach(([key, weather], index) => {
+      if (index % 2 === 0) { // Keep every other entry
+        minimal[key] = {
+          temperature: weather.temperature,
+          description: weather.description.substring(0, 20), // Truncate description
+          icon: weather.icon,
+          precipitationChance: weather.precipitationChance,
+          windSpeed: weather.windSpeed,
+          source: weather.source,
+          isActualForecast: weather.isActualForecast,
+          humidity: weather.humidity,
+          cityName: weather.cityName,
+          forecastDate: weather.forecastDate,
+          forecast: []
+        };
+      }
+    });
+    
+    return minimal;
   }
 
   static deserializeTripData(serializedData: string): SerializedTripData {
@@ -164,11 +203,11 @@ export class TripDataSerializer {
       
       console.log('🔗 Generated share URL:', {
         urlLength: shareUrl.length,
-        isWithinLimits: shareUrl.length < 4000,
+        isWithinLimits: shareUrl.length < 3000,
         weatherEntries: Object.keys(weatherData || {}).length
       });
       
-      if (shareUrl.length > 4000) {
+      if (shareUrl.length > 3000) {
         console.warn('⚠️ Generated URL is very long and may cause issues:', shareUrl.length);
       }
       

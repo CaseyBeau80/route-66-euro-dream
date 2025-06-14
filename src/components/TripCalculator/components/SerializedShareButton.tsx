@@ -37,11 +37,11 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
         weatherData
       );
 
-      // Check URL length before copying
-      if (shareUrl.length > 4000) {
+      // Check URL length before copying - lower threshold for warning
+      if (shareUrl.length > 3000) {
         toast({
           title: "URL May Be Too Long",
-          description: "The generated link is very long and may not work in all browsers. Consider reducing trip complexity.",
+          description: "The generated link is very long and may not work in all browsers. Try a shorter trip or fewer days.",
           variant: "destructive"
         });
         return;
@@ -57,7 +57,7 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
         title: hasWeather ? "Weather-Enabled Link Copied!" : "Trip Link Copied!",
         description: hasWeather 
           ? `Link with ${weatherCount} weather forecasts copied to clipboard!`
-          : "Trip link copied to clipboard (weather data was too large to include).",
+          : "Trip link copied to clipboard (weather data was reduced to fit URL limits).",
         variant: "default"
       });
 
@@ -74,7 +74,7 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
       
       toast({
         title: "Failed to Generate Link",
-        description: "Could not create share link. The trip data may be too large. Try a shorter trip or fewer days.",
+        description: "Could not create share link. The trip data may be too large. Try a shorter trip with fewer days.",
         variant: "destructive"
       });
     } finally {
