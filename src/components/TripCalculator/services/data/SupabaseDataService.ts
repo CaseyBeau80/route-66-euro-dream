@@ -1,4 +1,3 @@
-
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -14,7 +13,7 @@ export class SupabaseDataService {
     
     // In a real implementation, this would fetch only from destination_cities table
     // For now, return mock data that only includes destination cities
-    return mockDestinationCitiesData.map(stop => ({
+    const stops = mockDestinationCitiesData.map(stop => ({
       id: stop.id || `stop-${Math.random()}`,
       name: stop.name || 'Unknown Stop',
       description: stop.description || `Discover ${stop.name || 'this location'} along your Route 66 journey`,
@@ -28,6 +27,10 @@ export class SupabaseDataService {
       is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
       is_official_destination: stop.is_official_destination || false
     }));
+    
+    console.log('🔍 SupabaseDataService: Available cities:', stops.map(stop => `${stop.city_name}, ${stop.state}`).sort());
+    
+    return stops;
   }
   
   static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
