@@ -16,11 +16,10 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   const [hasFetched, setHasFetched] = React.useState(false);
 
   const fetchWeather = React.useCallback(async () => {
-    if (!segmentDate || hasFetched) {
-      console.log('🚫 STANDARDIZED: Skipping fetch - no date or already fetched:', { 
+    if (!segmentDate) {
+      console.log('🚫 STANDARDIZED: Skipping fetch - no date:', { 
         cityName, 
-        hasSegmentDate: !!segmentDate, 
-        hasFetched 
+        hasSegmentDate: !!segmentDate
       });
       return;
     }
@@ -105,26 +104,28 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay, hasFetched]);
+  }, [cityName, segmentDate?.getTime(), segmentDay]);
 
-  // Auto-fetch when dependencies change and we haven't fetched yet
+  // FIXED: Auto-fetch when dependencies change - removed hasFetched dependency
   React.useEffect(() => {
-    if (segmentDate && !hasFetched && !loading) {
+    if (segmentDate && !loading && !weather) {
       console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
         hasSegmentDate: !!segmentDate,
-        hasFetched,
-        loading
+        loading,
+        hasWeather: !!weather,
+        triggerCondition: 'has_date_not_loading_no_weather'
       });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchWeather, hasFetched, loading]);
+  }, [segmentDate?.getTime(), fetchWeather, loading, weather]);
 
-  // Manual refetch - reset hasFetched to allow new fetch
+  // Manual refetch - reset state to allow new fetch
   const refetch = React.useCallback(() => {
     console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
     setHasFetched(false);
     setWeather(null);
     setError(null);
+    setLoading(false);
   }, [cityName]);
 
   return {
