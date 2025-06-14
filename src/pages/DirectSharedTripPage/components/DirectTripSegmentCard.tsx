@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import UnifiedWeatherWidget from '@/components/TripCalculator/components/weather/UnifiedWeatherWidget';
+import EnhancedWeatherWidget from '@/components/TripCalculator/components/weather/EnhancedWeatherWidget';
 
 interface DirectTripSegment {
   day: number;
@@ -23,6 +23,16 @@ const DirectTripSegmentCard: React.FC<DirectTripSegmentCardProps> = ({
   const segmentDate = tripStartDate 
     ? new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000)
     : undefined;
+
+  // Convert to DailySegment format for EnhancedWeatherWidget
+  const dailySegment = {
+    day: segment.day,
+    startCity: segment.startCity,
+    endCity: segment.endCity,
+    distance: segment.distance,
+    drivingTime: segment.drivingTime,
+    driveTimeHours: segment.drivingTime
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -71,15 +81,8 @@ const DirectTripSegmentCard: React.FC<DirectTripSegmentCardProps> = ({
           <h4 className="text-sm font-semibold text-gray-700 mb-3">
             🌤️ Live Weather Forecast for {segment.endCity}
           </h4>
-          <UnifiedWeatherWidget
-            segment={{
-              day: segment.day,
-              startCity: segment.startCity,
-              endCity: segment.endCity,
-              distance: segment.distance,
-              drivingTime: segment.drivingTime,
-              driveTimeHours: segment.drivingTime
-            }}
+          <EnhancedWeatherWidget
+            segment={dailySegment}
             tripStartDate={tripStartDate}
             isSharedView={true}
             isPDFExport={false}
