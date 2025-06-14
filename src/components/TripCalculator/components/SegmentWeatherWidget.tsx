@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import SimpleWeatherWidget from './SimpleWeatherWidget';
+import UnifiedWeatherWidget from './weather/UnifiedWeatherWidget';
 
 interface SegmentWeatherWidgetProps {
   segment: DailySegment;
@@ -28,16 +28,17 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     return new Date(tripStartDate);
   }, [tripStartDate]);
 
-  console.log('🔧 SegmentWeatherWidget using SimpleWeatherWidget for', segment.endCity, {
+  console.log('🔧 UNIFIED: SegmentWeatherWidget using unified component for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
-    hasStartDate: !!normalizedTripStartDate
+    hasStartDate: !!normalizedTripStartDate,
+    unifiedComponent: true
   });
 
   return (
     <div className="space-y-3" data-segment-day={segment.day}>
-      <SimpleWeatherWidget
+      <UnifiedWeatherWidget
         segment={segment}
         tripStartDate={normalizedTripStartDate}
         isSharedView={isSharedView}

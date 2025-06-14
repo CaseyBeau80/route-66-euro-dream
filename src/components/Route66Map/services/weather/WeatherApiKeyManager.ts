@@ -5,66 +5,52 @@ export class WeatherApiKeyManager {
   private static readonly STORAGE_KEY = 'openweathermap_api_key';
 
   static getApiKey(): string | null {
-    console.log('🔍 WeatherApiKeyManager: Getting API key...');
+    // First check if API key is configured in code
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+      const apiKey = WEATHER_API_KEY as string; // Explicit type assertion for clarity
+      if (apiKey !== 'your_api_key_here' && 
+          !apiKey.toLowerCase().includes('your_api_key') &&
+          !apiKey.toLowerCase().includes('replace_with') &&
+          apiKey.length >= 20) {
+        return apiKey;
+      }
+    }
     
-    // Check localStorage first (user input) - highest priority
-    const localStorageKey = localStorage.getItem(this.STORAGE_KEY);
-    if (localStorageKey && localStorageKey.trim().length > 0) {
-      const trimmedKey = localStorageKey.trim();
-      console.log('✅ WeatherApiKeyManager: Found key in localStorage, length:', trimmedKey.length);
-      return trimmedKey;
-    }
-
-    // Check config file as fallback - but only if it's not empty
-    if (typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim().length > 10) {
-      const trimmedConfigKey = WEATHER_API_KEY.trim();
-      console.log('✅ WeatherApiKeyManager: Using config key, length:', trimmedConfigKey.length);
-      return trimmedConfigKey;
-    }
-
-    console.log('❌ WeatherApiKeyManager: No API key found');
-    return null;
+    // Fallback to localStorage
+    return localStorage.getItem(this.STORAGE_KEY);
   }
 
   static setApiKey(apiKey: string): void {
-    const trimmedKey = apiKey.trim();
-    if (trimmedKey.length < 10) {
-      throw new Error('API key too short');
-    }
-    
-    localStorage.setItem(this.STORAGE_KEY, trimmedKey);
-    console.log('✅ WeatherApiKeyManager: API key stored successfully, length:', trimmedKey.length);
+    localStorage.setItem(this.STORAGE_KEY, apiKey.trim());
   }
 
   static hasApiKey(): boolean {
     const key = this.getApiKey();
-    const hasKey = !!key && key.length > 10;
-    console.log('🔍 WeatherApiKeyManager: hasApiKey() =', hasKey);
-    return hasKey;
+    // More permissive check - just need a reasonable length key
+    return !!(key && key.length >= 20 && !this.isPlaceholderKey(key));
   }
 
   static validateApiKey(): boolean {
     const key = this.getApiKey();
-    const isValid = !!key && key.length >= 10;
-    console.log('🔍 WeatherApiKeyManager: validateApiKey() =', isValid);
-    return isValid;
+    // OpenWeatherMap API keys are typically 32 characters, but allow some flexibility
+    return !!(key && key.length >= 20 && key.length <= 50 && !this.isPlaceholderKey(key));
+  }
+
+  private static isPlaceholderKey(key: string): boolean {
+    const lowerKey = key.toLowerCase();
+    return lowerKey.includes('your_api_key') || 
+           lowerKey.includes('replace_with') ||
+           lowerKey.includes('example') ||
+           key === 'PLACEHOLDER_KEY';
   }
 
   static getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null; isValid: boolean } {
     const key = this.getApiKey();
-    const debugInfo = {
+    return {
       hasKey: !!key,
       keyLength: key?.length || null,
       keyPreview: key ? `${key.substring(0, 8)}...${key.substring(key.length - 4)}` : null,
       isValid: this.validateApiKey()
     };
-    
-    console.log('🔍 WeatherApiKeyManager: Debug info:', debugInfo);
-    return debugInfo;
-  }
-
-  static clearApiKey(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-    console.log('🗑️ WeatherApiKeyManager: API key cleared');
   }
 }

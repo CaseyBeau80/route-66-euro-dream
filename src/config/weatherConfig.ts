@@ -1,25 +1,30 @@
 
 // Weather API Configuration
-// 
-// IMPORTANT: This application does NOT include a pre-configured API key for weather data.
-// Users must provide their own free OpenWeatherMap API key to enable live weather forecasts.
-//
-// This is intentional for several reasons:
-// 1. Gives users full control over their API usage and data
-// 2. Prevents API rate limiting issues
-// 3. Ensures users get the most reliable weather data
-// 4. Follows security best practices
-//
-// To enable weather features:
-// 1. Visit https://openweathermap.org/api
-// 2. Sign up for a free account (no credit card required)  
-// 3. Generate your free API key (activates in ~10 minutes)
-// 4. Enter your API key when prompted in the weather section
-//
-// Your API key will be stored securely in your browser's local storage
-// and will never be transmitted to our servers.
+// Replace 'your_api_key_here' with your actual OpenWeatherMap API key
+export const WEATHER_API_KEY = 'your_api_key_here';
 
-export const WEATHER_API_KEY = '';
+// ⚠️ WARNING: Default placeholder API key detected!
+// Live weather forecasts will not work until you set a valid API key.
+if (WEATHER_API_KEY === 'your_api_key_here') {
+  console.warn('🔑 WEATHER CONFIG WARNING: Using placeholder API key. Live weather forecasts disabled.');
+  console.warn('📝 To enable live weather:');
+  console.warn('   1. Get a free API key from https://openweathermap.org/api');
+  console.warn('   2. Replace WEATHER_API_KEY in src/config/weatherConfig.ts');
+  console.warn('   3. Or add your key via the weather API key input in the app');
+}
 
-// Example of what a real API key looks like (yours will be different):
-// export const WEATHER_API_KEY = 'a1b2c3d4e5f6789012345678901abcde';
+// To enable live weather forecasts in shared trip views:
+// 1. Go to https://openweathermap.org/api
+// 2. Sign up for a free account (no credit card required)
+// 3. Generate your free API key (takes ~10 minutes to activate)
+// 4. Replace 'your_api_key_here' above with your actual 32-character key
+// 5. Your shared trips will show live weather forecasts for dates within 7 days
+
+// Example of what a real API key looks like:
+// export const WEATHER_API_KEY = 'abcd1234efgh5678ijkl9012mnop3456';
+
+// Benefits of adding an API key:
+// - Live 7-day weather forecasts with actual temperatures
+// - Precipitation, humidity, and wind speed predictions
+// - Enhanced shared trip experiences for users
+// - Historical weather data for dates beyond 7 days

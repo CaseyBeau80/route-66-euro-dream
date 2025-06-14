@@ -2,7 +2,6 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -37,37 +36,64 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // CRITICAL FIX: Use centralized styling service
-  const styling = WeatherLabelService.getWeatherStyling(weather);
+  // CRITICAL FIX: Explicit live weather detection with detailed logging
+  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🔧 CENTRALIZED FIX: SimpleWeatherDisplay using centralized styling for', cityName, {
+  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay live detection:', {
+    cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    centralizedIsLive: styling.isLive,
-    centralizedLabel: styling.sourceLabel,
+    sourceCheck: weather.source === 'live_forecast',
+    forecastCheck: weather.isActualForecast === true,
+    finalIsLiveForecast: isLiveForecast,
     temperature: weather.temperature,
-    centralizedStyling: true
+    timestamp: new Date().toISOString()
+  });
+
+  // Force re-render key to ensure fresh display
+  const displayKey = `weather-${cityName}-${isLiveForecast ? 'live' : 'historical'}-${Date.now()}`;
+
+  // CRITICAL FIX: Corrected display configuration logic
+  const displayConfig = isLiveForecast ? {
+    sourceLabel: '🟢 Live Weather Forecast',
+    sourceColor: 'text-green-600',
+    badgeText: '✨ Current live forecast',
+    badgeStyle: 'bg-green-100 text-green-700',
+    backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
+    borderStyle: 'border-green-200'
+  } : {
+    sourceLabel: '🟡 Historical Weather Data',
+    sourceColor: 'text-amber-600',
+    badgeText: '📊 Based on historical patterns',
+    badgeStyle: 'bg-amber-100 text-amber-700',
+    backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
+    borderStyle: 'border-blue-200'
+  };
+
+  console.log('🔧 CRITICAL FIX: Display config applied:', {
+    cityName,
+    isLiveForecast,
+    sourceLabel: displayConfig.sourceLabel,
+    badgeText: displayConfig.badgeText,
+    displayKey
   });
 
   return (
-    <div className={`${styling.containerStyle} rounded-lg p-4 border relative`}>
+    <div 
+      key={displayKey}
+      className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}
+    >
       {/* Debug info for development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-1 rounded z-50">
-          <div className="font-bold">{cityName}</div>
-          <div className={`font-bold ${styling.isLive ? 'text-green-400' : 'text-yellow-400'}`}>
-            {styling.isLive ? '🟢 CENTRALIZED: LIVE' : '🟡 CENTRALIZED: HISTORICAL'}
-          </div>
-          <div>Source: {weather.source}</div>
-          <div>Actual: {String(weather.isActualForecast)}</div>
-          <div>Temp: {weather.temperature}°F</div>
+          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'}
         </div>
       )}
 
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${styling.sourceColor}`}>
-          {styling.sourceLabel}
+        <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
+          {displayConfig.sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -102,8 +128,8 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
 
       {/* Weather Status Badge */}
       <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${styling.badgeStyle}`}>
-          {styling.badgeText}
+        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${displayConfig.badgeStyle}`}>
+          {displayConfig.badgeText}
         </span>
       </div>
     </div>

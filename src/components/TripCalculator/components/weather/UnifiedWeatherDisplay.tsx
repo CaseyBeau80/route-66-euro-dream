@@ -2,7 +2,6 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface UnifiedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -19,17 +18,32 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Use centralized styling service
-  const styling = WeatherLabelService.getWeatherStyling(weather);
-  
-  console.log('🎯 UNIFIED DISPLAY: Rendering weather using centralized styling for', cityName, {
-    source: weather.source,
-    isActualForecast: weather.isActualForecast,
-    centralizedIsLive: styling.isLive,
-    temperature: weather.temperature,
-    finalClassification: styling.isLive ? 'LIVE WEATHER' : 'HISTORICAL DATA',
-    centralizedStyling: true
-  });
+  // FIXED: More robust live weather detection with multiple checks
+  const isLiveForecast = React.useMemo(() => {
+    // Primary check: both source and isActualForecast must be correct
+    const primaryCheck = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    
+    // Secondary check: look for realistic temperature variations and proper data structure
+    const hasRealisticData = weather.temperature && weather.temperature > 0 && weather.temperature < 150;
+    const hasProperStructure = weather.highTemp && weather.lowTemp && weather.description;
+    
+    const result = primaryCheck && hasRealisticData && hasProperStructure;
+    
+    console.log('🔧 FIXED: UnifiedWeatherDisplay - Enhanced live weather detection:', {
+      cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      primaryCheck,
+      hasRealisticData,
+      hasProperStructure,
+      finalResult: result,
+      temperature: weather.temperature,
+      isSharedView,
+      detectionMethod: 'enhanced_robust'
+    });
+    
+    return result;
+  }, [weather, cityName, isSharedView]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -49,27 +63,25 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  return (
-    <div className={`${styling.containerStyle} rounded-lg p-4 border relative`}>
-      {/* Debug info overlay in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-90 text-white text-xs p-2 rounded z-50">
-          <div className="font-bold mb-1">{cityName}</div>
-          <div className={`font-bold ${styling.isLive ? 'text-green-400' : 'text-yellow-400'}`}>
-            {styling.isLive ? '🟢 CENTRALIZED: LIVE' : '🟡 CENTRALIZED: HISTORICAL'}
-          </div>
-          <div>Source: {weather.source}</div>
-          <div>Actual: {String(weather.isActualForecast)}</div>
-          <div>Temp: {weather.temperature}°F</div>
-        </div>
-      )}
+  // FIXED: Use the enhanced detection result
+  const sourceLabel = isLiveForecast ? 'Live Weather Forecast' : 'Historical Weather Data';
+  const badgeText = isLiveForecast ? '✅ Current live forecast' : '📊 Based on historical patterns';
+  const statusEmoji = isLiveForecast ? '🟢' : '🟡';
 
-      {/* Weather Source Indicator */}
-      <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${styling.sourceColor}`}>
-          {styling.sourceLabel}
-        </span>
-        <span className="text-xs text-gray-500">
+  return (
+    <div className={isLiveForecast ? 
+      'bg-green-50 border-2 border-green-300 text-green-900 rounded-lg p-4 relative' :
+      'bg-amber-50 border-2 border-amber-300 text-amber-900 rounded-lg p-4 relative'
+    }>
+      {/* Weather Source Indicator - ENHANCED */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{statusEmoji}</span>
+          <span className={`text-sm font-bold ${isLiveForecast ? 'text-green-800' : 'text-amber-800'}`}>
+            {sourceLabel}
+          </span>
+        </div>
+        <span className="text-xs text-gray-600">
           {formattedDate}
         </span>
       </div>
@@ -77,12 +89,12 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
       {/* Main Weather Display */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="text-3xl">{weatherIcon}</div>
+          <div className="text-4xl">{weatherIcon}</div>
           <div>
-            <div className="text-2xl font-bold text-gray-800">
+            <div className="text-3xl font-bold text-gray-900">
               {Math.round(weather.temperature)}°F
             </div>
-            <div className="text-sm text-gray-600 capitalize">
+            <div className="text-sm text-gray-700 capitalize font-medium">
               {weather.description}
             </div>
           </div>
@@ -90,22 +102,33 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
 
         <div className="text-right">
           {weather.highTemp && weather.lowTemp && (
-            <div className="text-sm text-gray-600">
+            <div className="text-base text-gray-700 font-medium">
               H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
             </div>
           )}
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-sm text-gray-600 mt-1">
             💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
           </div>
         </div>
       </div>
 
-      {/* Weather Status Badge */}
-      <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${styling.badgeStyle}`}>
-          {styling.badgeText}
+      {/* Enhanced Status Badge */}
+      <div className="mt-3 text-center">
+        <span className={`inline-block text-sm px-3 py-1 rounded-full font-bold border-2 ${
+          isLiveForecast ? 
+            'bg-green-100 text-green-900 border-green-400' :
+            'bg-amber-100 text-amber-900 border-amber-400'
+        }`}>
+          {badgeText}
         </span>
       </div>
+
+      {/* Debug info for troubleshooting */}
+      {isSharedView && (
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          Debug: source={weather.source}, actual={weather.isActualForecast?.toString()}, live={isLiveForecast.toString()}
+        </div>
+      )}
     </div>
   );
 };
