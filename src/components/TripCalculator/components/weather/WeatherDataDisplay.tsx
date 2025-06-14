@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import SimpleWeatherDisplay from './SimpleWeatherDisplay';
 import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
-import { WeatherTypeDetector } from './utils/WeatherTypeDetector';
 
 interface WeatherDataDisplayProps {
   weather: ForecastWeatherData | null;
@@ -23,51 +23,32 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // CRITICAL FIX: State to force re-renders when weather data changes
-  const [displayRenderCount, setDisplayRenderCount] = React.useState(0);
+  // ULTIMATE FIX: Force complete re-render with timestamp
+  const currentTime = Date.now();
+  const displayKey = `${cityName}-${weather?.source || 'no-weather'}-${weather?.isActualForecast || false}-${currentTime}`;
 
-  // CRITICAL FIX: Dynamic key that changes when weather source/forecast status changes
-  const displayKey = `${cityName}-${weather?.source || 'no-weather'}-${weather?.isActualForecast || false}-${displayRenderCount}`;
-
-  // CRITICAL FIX: Force re-render when weather data changes
-  React.useEffect(() => {
-    console.log('🔄 CRITICAL FIX: WeatherDataDisplay - Weather data effect:', {
-      cityName,
-      hasWeather: !!weather,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      displayRenderCount,
-      displayKey,
-      criticalFix: true
-    });
-    
-    setDisplayRenderCount(prev => prev + 1);
-  }, [weather?.source, weather?.isActualForecast, weather?.temperature, cityName]);
-
-  console.log('🎯 CRITICAL FIX: WeatherDataDisplay implementation for', cityName, {
+  console.log('🚨 ULTIMATE FIX: WeatherDataDisplay - TIMESTAMP BASED RENDERING:', {
+    cityName,
     hasWeather: !!weather,
-    hasSegmentDate: !!segmentDate,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
     isSharedView,
     isPDFExport,
-    weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null,
     displayKey,
-    displayRenderCount,
-    criticalFix: true
+    currentTime,
+    ultimateFix: true
   });
 
-  // CRITICAL FIX: ALWAYS prioritize actual weather data if available
+  // ULTIMATE FIX: ALWAYS prioritize actual weather data if available
   if (weather && segmentDate) {
-    const weatherType = WeatherTypeDetector.detectWeatherType(weather);
-    
-    console.log(`🎯 CRITICAL FIX: Using actual weather data for ${cityName}`, {
+    console.log(`🚨 ULTIMATE FIX: Using actual weather data for ${cityName}`, {
       isActualForecast: weather.isActualForecast,
       source: weather.source,
-      weatherType,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp,
       displayKey,
-      criticalFix: true
+      ultimateFix: true
     });
 
     return (
@@ -78,15 +59,15 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
           cityName={cityName}
           isSharedView={isSharedView}
           isPDFExport={isPDFExport}
-          key={`simple-${displayKey}`}
+          key={`simple-display-${displayKey}`}
         />
       </div>
     );
   }
 
-  // PLAN: Enhanced fallback logic for shared views
+  // Enhanced fallback logic for shared views
   if ((isSharedView || isPDFExport) && segmentDate && !weather) {
-    console.log(`🌱 PLAN: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
+    console.log(`🌱 ULTIMATE FIX: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
     return (
       <div key={`seasonal-${displayKey}`}>
         <SeasonalWeatherFallback 
@@ -99,9 +80,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // PLAN: Show "not available" only as absolute last resort in shared views
+  // Show "not available" only as absolute last resort in shared views
   if (isSharedView || isPDFExport) {
-    console.log(`🚫 PLAN: Last resort - no weather or date available for ${cityName} in shared view`);
+    console.log(`🚫 ULTIMATE FIX: Last resort - no weather or date available for ${cityName} in shared view`);
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center" key={`not-available-${displayKey}`}>
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -111,7 +92,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   }
 
   // Regular view - show error state with retry option
-  console.log(`⚠️ PLAN: Showing error state for ${cityName} in regular view`);
+  console.log(`⚠️ ULTIMATE FIX: Showing error state for ${cityName} in regular view`);
   return (
     <div className="bg-amber-50 border border-amber-200 rounded p-3" key={`error-${displayKey}`}>
       <div className="text-amber-800 text-sm">
