@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
 import { Card } from '@/components/ui/card';
@@ -5,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2 } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
 import DirectShareButton from '../../TripCalculator/components/DirectShareButton';
+import SerializedShareButton from '../../TripCalculator/components/SerializedShareButton';
+import { useWeatherDataCollection } from '../../TripCalculator/hooks/useWeatherDataCollection';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -17,11 +20,14 @@ const TripResults: React.FC<TripResultsProps> = ({
   tripStartDate,
   onShareTrip
 }) => {
+  const { weatherData } = useWeatherDataCollection(tripPlan, tripStartDate);
+
   console.log('📊 TripResults render:', { 
     tripPlan: !!tripPlan, 
     segmentCount: tripPlan?.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
-    hasShareHandler: !!onShareTrip
+    hasShareHandler: !!onShareTrip,
+    weatherDataEntries: Object.keys(weatherData).length
   });
 
   if (!tripPlan) {
@@ -160,6 +166,13 @@ const TripResults: React.FC<TripResultsProps> = ({
         <DirectShareButton
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}
+          className="px-6 py-2"
+        />
+
+        <SerializedShareButton
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          weatherData={weatherData}
           className="px-6 py-2"
         />
       </div>

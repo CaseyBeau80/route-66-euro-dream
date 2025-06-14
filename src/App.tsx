@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import TriviaPage from "./pages/TriviaPage";
 import NotFound from "./pages/NotFound";
 import TestUploadPage from "./pages/test-upload";
 import DirectSharedTripPage from './pages/DirectSharedTripPage';
+import SerializedTripPage from './pages/SerializedTripPage';
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,7 @@ function App() {
                 <Route path="/trivia" element={<TriviaPage />} />
                 <Route path="/test-upload" element={<TestUploadPage />} />
                 <Route path="/direct-trip" element={<DirectSharedTripPage />} />
+                <Route path="/serialized-trip" element={<SerializedTripPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
