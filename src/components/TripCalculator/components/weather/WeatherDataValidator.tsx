@@ -32,26 +32,27 @@ export class WeatherDataValidator {
       errors.push(`Invalid temperature: ${weather.temperature}`);
     }
 
-    // Validate source and forecast flags
+    // FIXED: Strict live forecast validation
     const hasLiveSource = weather.source === 'live_forecast';
     const hasLiveFlag = weather.isActualForecast === true;
     const isLiveForecast = hasLiveSource && hasLiveFlag;
 
+    // Validate source consistency
     if (!hasLiveSource && weather.isActualForecast === true) {
       errors.push('Has isActualForecast=true but source is not live_forecast');
     }
 
-    // Create normalized weather data
+    // FIXED: Create properly normalized weather data with explicit live marking
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       cityName,
       forecastDate: segmentDate,
-      // Ensure consistent typing - use only valid source values
-      source: weather.source || 'historical_fallback',
-      isActualForecast: Boolean(weather.isActualForecast)
+      // Ensure the source and isActualForecast are properly set for live weather
+      source: hasLiveSource ? 'live_forecast' : 'historical_fallback',
+      isActualForecast: hasLiveSource ? true : false
     };
 
-    console.log('🔍 WeatherDataValidator result:', {
+    console.log('🔍 FIXED WeatherDataValidator result:', {
       cityName,
       isValid: errors.length === 0,
       isLiveForecast,
@@ -62,6 +63,11 @@ export class WeatherDataValidator {
         source: weather.source,
         isActualForecast: weather.isActualForecast,
         temperature: weather.temperature
+      },
+      normalizedWeather: {
+        source: normalizedWeather.source,
+        isActualForecast: normalizedWeather.isActualForecast,
+        temperature: normalizedWeather.temperature
       }
     });
 
