@@ -5,7 +5,7 @@ export class WeatherApiKeyManager {
   private static readonly STORAGE_KEY = 'openweathermap_api_key';
 
   static getApiKey(): string | null {
-    console.log('🔍 WeatherApiKeyManager: Strict API key check...');
+    console.log('🔍 WeatherApiKeyManager: Getting API key...');
     
     // Check localStorage first (user input)
     const localStorageKey = localStorage.getItem(this.STORAGE_KEY);
@@ -14,14 +14,12 @@ export class WeatherApiKeyManager {
       return localStorageKey.trim();
     }
 
-    // Check config file with STRICT validation
-    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
-      const configKey = WEATHER_API_KEY as string;
+    // Check config file
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim().length > 0) {
+      const configKey = WEATHER_API_KEY.trim();
       if (this.isValidKey(configKey)) {
-        console.log('✅ WeatherApiKeyManager: Using config key');
-        return configKey.trim();
-      } else {
-        console.log('❌ WeatherApiKeyManager: Config key is placeholder/invalid:', configKey);
+        console.log('✅ WeatherApiKeyManager: Using valid config key');
+        return configKey;
       }
     }
 
@@ -42,7 +40,7 @@ export class WeatherApiKeyManager {
   static hasApiKey(): boolean {
     const key = this.getApiKey();
     const hasKey = !!key;
-    console.log('🔍 WeatherApiKeyManager: hasApiKey() =', hasKey, key ? `(${key.length} chars)` : '(no key)');
+    console.log('🔍 WeatherApiKeyManager: hasApiKey() =', hasKey);
     return hasKey;
   }
 
@@ -54,24 +52,21 @@ export class WeatherApiKeyManager {
   }
 
   private static isValidKey(key: string | null): boolean {
-    if (!key || typeof key !== 'string') return false;
+    if (!key || typeof key !== 'string') {
+      console.log('❌ WeatherApiKeyManager: Key is null or not string');
+      return false;
+    }
     
     const trimmedKey = key.trim();
     
-    // STRICT: Check for ANY obvious placeholder patterns
+    // Check for obvious placeholder patterns (be less strict)
     const placeholderPatterns = [
-      'abcd1234',
-      'efgh5678', 
-      'ijkl9012',
-      'mnop3456',
       'your_api_key_here',
       'your_api_key',
       'replace_with',
       'placeholder',
       'example',
-      'test_key',
-      'demo_key',
-      'sample_key'
+      'test_key'
     ];
     
     const lowerKey = trimmedKey.toLowerCase();
@@ -82,19 +77,13 @@ export class WeatherApiKeyManager {
       }
     }
     
-    // Valid OpenWeatherMap keys are exactly 32 characters of alphanumeric
-    if (trimmedKey.length !== 32) {
-      console.log('❌ WeatherApiKeyManager: Invalid length:', trimmedKey.length, '(expected 32)');
+    // Must be at least 15 characters (less strict than before)
+    if (trimmedKey.length < 15) {
+      console.log('❌ WeatherApiKeyManager: Key too short:', trimmedKey.length);
       return false;
     }
     
-    // Check if it's all alphanumeric (OpenWeatherMap format)
-    if (!/^[a-zA-Z0-9]+$/.test(trimmedKey)) {
-      console.log('❌ WeatherApiKeyManager: Invalid format (not alphanumeric)');
-      return false;
-    }
-    
-    console.log('✅ WeatherApiKeyManager: Key validation passed');
+    console.log('✅ WeatherApiKeyManager: Key validation passed, length:', trimmedKey.length);
     return true;
   }
 

@@ -37,12 +37,12 @@ export const useUnifiedWeather = ({
   useEffect(() => {
     const fetchWeather = async () => {
       if (!segmentDate) {
-        console.log('❌ FIXED: No segment date provided for', cityName);
+        console.log('❌ UNIFIED: No segment date provided for', cityName);
         setLoading(false);
         return;
       }
 
-      console.log('🌤️ FIXED: Starting weather fetch for', cityName, {
+      console.log('🌤️ UNIFIED: Starting weather fetch for', cityName, {
         segmentDate: segmentDate.toISOString(),
         segmentDay,
         refetchTrigger
@@ -52,13 +52,14 @@ export const useUnifiedWeather = ({
       setError(null);
 
       try {
-        // Check for valid API key
+        // Check for valid API key with detailed logging
         const apiKey = WeatherApiKeyManager.getApiKey();
-        const hasValidKey = WeatherApiKeyManager.hasApiKey() && apiKey && apiKey.length > 10;
-
-        console.log('🔑 FIXED: API key check for', cityName, {
+        const hasValidKey = WeatherApiKeyManager.hasApiKey();
+        
+        console.log('🔑 UNIFIED: API key check for', cityName, {
           hasValidKey,
-          keyLength: apiKey?.length || 0
+          keyLength: apiKey?.length || 0,
+          keyPreview: apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : 'none'
         });
 
         // Calculate if we're within forecast range (0-7 days)
@@ -71,7 +72,7 @@ export const useUnifiedWeather = ({
         const daysFromToday = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
         const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
 
-        console.log('📅 FIXED: Date analysis for', cityName, {
+        console.log('📅 UNIFIED: Date analysis for', cityName, {
           today: today.toISOString(),
           targetDate: targetDate.toISOString(),
           daysFromToday,
@@ -80,11 +81,11 @@ export const useUnifiedWeather = ({
 
         // Try live weather if conditions are met
         if (hasValidKey && isWithinForecastRange && apiKey) {
-          console.log('🚀 FIXED: Attempting live weather for', cityName);
+          console.log('🚀 UNIFIED: Attempting live weather for', cityName);
           
           const liveWeather = await fetchLiveWeatherFixed(cityName, targetDate, apiKey);
           if (liveWeather) {
-            console.log('✅ FIXED: Live weather SUCCESS for', cityName, {
+            console.log('✅ UNIFIED: Live weather SUCCESS for', cityName, {
               temperature: liveWeather.temperature,
               source: liveWeather.source,
               isActualForecast: liveWeather.isActualForecast,
@@ -97,16 +98,24 @@ export const useUnifiedWeather = ({
             setWeather(liveWeather);
             setLoading(false);
             return;
+          } else {
+            console.log('⚠️ UNIFIED: Live weather failed for', cityName, 'falling back to historical');
           }
+        } else {
+          console.log('📊 UNIFIED: Using historical fallback for', cityName, {
+            hasValidKey,
+            isWithinForecastRange,
+            daysFromToday,
+            reason: !hasValidKey ? 'no_api_key' : !isWithinForecastRange ? 'outside_range' : 'unknown'
+          });
         }
 
         // Fallback to historical weather
-        console.log('🔄 FIXED: Using historical fallback for', cityName);
         const fallbackWeather = createHistoricalWeatherFixed(cityName, targetDate);
         setWeather(fallbackWeather);
 
       } catch (err) {
-        console.error('❌ FIXED: Weather fetch error for', cityName, ':', err);
+        console.error('❌ UNIFIED: Weather fetch error for', cityName, ':', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
         
         // Still provide fallback weather on error
@@ -132,42 +141,42 @@ const fetchLiveWeatherFixed = async (
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌐 FIXED: fetchLiveWeatherFixed starting for', cityName);
+    console.log('🌐 UNIFIED: fetchLiveWeatherFixed starting for', cityName);
 
     // Get coordinates
     const coords = await getCoordinatesFixed(cityName, apiKey);
     if (!coords) {
-      console.log('❌ FIXED: No coordinates for', cityName);
+      console.log('❌ UNIFIED: No coordinates for', cityName);
       return null;
     }
 
-    console.log('📍 FIXED: Got coordinates for', cityName, coords);
+    console.log('📍 UNIFIED: Got coordinates for', cityName, coords);
 
     // Fetch 5-day forecast
     const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-    console.log('🌐 FIXED: Fetching from OpenWeather API for', cityName);
+    console.log('🌐 UNIFIED: Fetching from OpenWeather API for', cityName);
     
     const response = await fetch(forecastUrl);
 
     if (!response.ok) {
-      console.error('❌ FIXED: API response failed:', response.status, response.statusText);
+      console.error('❌ UNIFIED: API response failed:', response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
     
     if (!data.list || data.list.length === 0) {
-      console.log('❌ FIXED: No forecast data in API response');
+      console.log('❌ UNIFIED: No forecast data in API response');
       return null;
     }
 
-    console.log('📊 FIXED: Processing API forecast data for', cityName, {
+    console.log('📊 UNIFIED: Processing API forecast data for', cityName, {
       forecastItems: data.list.length
     });
 
     // Find best match for target date
     const targetDateString = targetDate.toISOString().split('T')[0];
-    let bestMatch = null;
+    let bestMatch = data.list[0]; // Default to first item
     
     // Look for exact date match first
     for (const item of data.list) {
@@ -176,15 +185,9 @@ const fetchLiveWeatherFixed = async (
       
       if (itemDateString === targetDateString) {
         bestMatch = item;
-        console.log('🎯 FIXED: Found exact date match for', cityName);
+        console.log('🎯 UNIFIED: Found exact date match for', cityName);
         break;
       }
-    }
-    
-    // Use first item if no exact match
-    if (!bestMatch) {
-      bestMatch = data.list[0];
-      console.log('🔄 FIXED: Using closest available forecast for', cityName);
     }
 
     // CRITICAL: Create weather object with GUARANTEED live properties
@@ -205,7 +208,7 @@ const fetchLiveWeatherFixed = async (
       source: 'live_forecast' as const
     };
 
-    console.log('🔥 FIXED: LIVE WEATHER OBJECT CREATED with GUARANTEED properties:', {
+    console.log('🔥 UNIFIED: LIVE WEATHER OBJECT CREATED with GUARANTEED properties:', {
       cityName,
       temperature: liveWeather.temperature,
       isActualForecast: liveWeather.isActualForecast,
@@ -219,7 +222,7 @@ const fetchLiveWeatherFixed = async (
 
     return liveWeather;
   } catch (error) {
-    console.error('❌ FIXED: Live weather fetch error:', error);
+    console.error('❌ UNIFIED: Live weather fetch error:', error);
     return null;
   }
 };
@@ -232,20 +235,20 @@ const getCoordinatesFixed = async (cityName: string, apiKey: string) => {
     
     const response = await fetch(geocodingUrl);
     if (!response.ok) {
-      console.error('❌ FIXED: Geocoding failed:', response.status);
+      console.error('❌ UNIFIED: Geocoding failed:', response.status);
       return null;
     }
 
     const data = await response.json();
     if (!data || data.length === 0) {
-      console.log('❌ FIXED: No geocoding results for', cleanCityName);
+      console.log('❌ UNIFIED: No geocoding results for', cleanCityName);
       return null;
     }
 
     const result = data.find((r: any) => r.country === 'US') || data[0];
     return { lat: result.lat, lng: result.lon };
   } catch (error) {
-    console.error('❌ FIXED: Geocoding error:', error);
+    console.error('❌ UNIFIED: Geocoding error:', error);
     return null;
   }
 };
@@ -277,7 +280,7 @@ const createHistoricalWeatherFixed = (cityName: string, targetDate: Date): Forec
     source: 'historical_fallback' as const
   };
 
-  console.log('📊 FIXED: Created historical weather for', cityName, {
+  console.log('📊 UNIFIED: Created historical weather for', cityName, {
     temperature: historicalWeather.temperature,
     isActualForecast: historicalWeather.isActualForecast,
     source: historicalWeather.source
