@@ -10,13 +10,15 @@ interface WeatherCardProps {
   tripStartDate?: Date | null;
   isSharedView?: boolean;
   isPDFExport?: boolean;
+  cardIndex?: number;
 }
 
 const WeatherCard: React.FC<WeatherCardProps> = ({
   segment,
   tripStartDate,
   isSharedView = false,
-  isPDFExport = false
+  isPDFExport = false,
+  cardIndex
 }) => {
   const { hasApiKey, weatherState, segmentDate, fetchWeather } = useWeatherCard({
     segment,
@@ -72,7 +74,8 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     loading: weatherState.loading,
     error: weatherState.error,
     hasSegmentDate: !!segmentDate,
-    retryCount
+    retryCount,
+    cardIndex
   });
 
   return (
