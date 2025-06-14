@@ -96,7 +96,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   {segment.attractions.map((attraction, idx) => (
                     <li key={idx} className="text-gray-700 text-sm flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{attraction}</span>
+                      <span>{attraction.name || attraction.title || attraction}</span>
                     </li>
                   ))}
                 </ul>
