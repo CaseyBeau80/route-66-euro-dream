@@ -106,35 +106,40 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     }
   }, [stateKey, segmentDate?.getTime(), enhancedApiKeyStatus.hasValidKey, weatherState, segment.endCity, segment.day]);
 
-  // FIXED: Move state declarations to top level to fix hook rules violation
-  const [hasFetched, setHasFetched] = React.useState(false);
-  const lastConditionsKeyRef = React.useRef('');
-
+  // CRITICAL FIX: Auto-fetch trigger with proper conditions
   React.useEffect(() => {
-    // Reset fetch status when key conditions change
-    const conditionsKey = `${tripStartDate?.getTime()}-${segmentDate?.getTime()}-${enhancedApiKeyStatus.hasValidKey}`;
+    console.log(`🚨 CRITICAL: Auto-fetch check for ${stateKey}`, {
+      conditions: {
+        hasTripStartDate: !!tripStartDate,
+        hasSegmentDate: !!segmentDate,
+        hasNoWeather: !weatherState.weather,
+        isNotLoading: !weatherState.loading,
+        hasValidApiKey: enhancedApiKeyStatus.hasValidKey
+      },
+      decision: 'checking_all_conditions'
+    });
 
-    if (lastConditionsKeyRef.current !== conditionsKey) {
-      setHasFetched(false);
-      lastConditionsKeyRef.current = conditionsKey;
-      console.log(`🔄 FIXED: Reset fetch status for ${stateKey} due to condition change`);
-    }
+    // CRITICAL FIX: Only auto-fetch if ALL conditions are met
+    const shouldAutoFetch = tripStartDate && 
+                           segmentDate && 
+                           !weatherState.weather && 
+                           !weatherState.loading;
 
-    // Simple fetch trigger
-    const shouldFetch = !hasFetched && 
-                       tripStartDate && 
-                       segmentDate && 
-                       !weatherState.weather && 
-                       !weatherState.loading;
-
-    if (shouldFetch) {
-      console.log(`🚨 FIXED: Auto-fetch triggered for ${stateKey}`, {
+    if (shouldAutoFetch) {
+      console.log(`🚨 CRITICAL: AUTO-FETCH TRIGGERED for ${stateKey}`, {
         hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
-        hasFetched
+        timestamp: new Date().toISOString()
       });
       
-      setHasFetched(true);
+      // Trigger fetch immediately
       fetchWeather(false);
+    } else {
+      console.log(`⏸️ CRITICAL: Auto-fetch conditions not met for ${stateKey}`, {
+        hasTripStartDate: !!tripStartDate,
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weatherState.weather,
+        isLoading: weatherState.loading
+      });
     }
   }, [
     tripStartDate?.getTime(), 
@@ -143,16 +148,14 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     weatherState.loading, 
     enhancedApiKeyStatus.hasValidKey,
     fetchWeather, 
-    stateKey,
-    hasFetched
+    stateKey
   ]);
 
   console.log(`🔑 FIXED: useWeatherCard final state for ${stateKey}:`, {
     hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
     hasWeather: Boolean(weatherState.weather),
     loading: weatherState.loading,
-    hasSegmentDate: Boolean(segmentDate),
-    hasFetched
+    hasSegmentDate: Boolean(segmentDate)
   });
 
   return {
