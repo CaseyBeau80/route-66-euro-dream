@@ -3,7 +3,9 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
+import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import UnifiedWeatherDisplay from './UnifiedWeatherDisplay';
+import WeatherApiKeyInput from './WeatherApiKeyInput';
 
 interface UnifiedWeatherWidgetProps {
   segment: DailySegment;
@@ -49,6 +51,11 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
   }, [tripStartDate, segment.day, isSharedView]);
 
+  // Check if we have a valid API key
+  const hasValidApiKey = React.useMemo(() => {
+    return WeatherApiKeyManager.hasApiKey();
+  }, []);
+
   // Use unified weather hook
   const { weather, loading, error } = useUnifiedWeather({
     cityName: segment.endCity,
@@ -61,6 +68,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   console.log('🔥 UNIFIED: UnifiedWeatherWidget render:', {
     cityName: segment.endCity,
     day: segment.day,
+    hasValidApiKey,
     hasWeather: !!weather,
     loading,
     error,
@@ -71,6 +79,11 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     isPDFExport,
     unifiedPath: true
   });
+
+  // Show API key input if no valid key (but not in PDF export or shared view)
+  if (!hasValidApiKey && !isPDFExport && !isSharedView) {
+    return <WeatherApiKeyInput />;
+  }
 
   // Loading state
   if (loading) {

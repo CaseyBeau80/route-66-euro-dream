@@ -1,7 +1,7 @@
 
 // Weather API Configuration
-// For development/testing - using a sample key format
-export const WEATHER_API_KEY = 'abcd1234efgh5678ijkl9012mnop3456';
+// IMPORTANT: No valid API key is currently configured
+export const WEATHER_API_KEY = '';
 
 // Note: The app will automatically check for API keys in localStorage first,
 // then fall back to this config file. Users can set their API key through
@@ -12,11 +12,11 @@ export const WEATHER_API_KEY = 'abcd1234efgh5678ijkl9012mnop3456';
 // 2. Sign up for a free account (no credit card required)  
 // 3. Generate your free API key (takes ~10 minutes to activate)
 // 4. Either:
-//    - Replace the key above with your actual 32-character key
+//    - Replace the empty string above with your actual 32-character key
 //    - Or add your key via the weather API key input in the app
 
 // Example of what a real API key looks like:
-// export const WEATHER_API_KEY = 'abcd1234efgh5678ijkl9012mnop3456';
+// export const WEATHER_API_KEY = 'a1b2c3d4e5f6789012345678901abcde';
 
 // Benefits of adding an API key:
 // - Live 7-day weather forecasts with actual temperatures
