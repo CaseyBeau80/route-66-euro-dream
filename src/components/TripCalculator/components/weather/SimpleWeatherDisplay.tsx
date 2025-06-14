@@ -37,28 +37,46 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // Use the new detection service
+  // Use the detection service to determine if this is live weather
   const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
-  const sourceLabel = LiveWeatherDetectionService.getWeatherSourceLabel(weather);
-  const sourceColor = LiveWeatherDetectionService.getWeatherSourceColor(weather);
-  const badgeText = LiveWeatherDetectionService.getWeatherBadgeText(weather);
-  const badgeStyle = LiveWeatherDetectionService.getWeatherBadgeStyle(weather);
   
-  console.log('🌤️ DISPLAY: SimpleWeatherDisplay with NEW detection service:', {
+  console.log('🌤️ DISPLAY: SimpleWeatherDisplay rendering decision:', {
     cityName,
     source: weather.source,
     isActualForecast: weather.isActualForecast,
     detectedAsLive: isLiveForecast,
-    sourceLabel,
     temperature: weather.temperature
   });
 
+  // Get display properties based on detection
+  const displayConfig = React.useMemo(() => {
+    if (isLiveForecast) {
+      return {
+        sourceLabel: '🟢 Live Weather Forecast',
+        sourceColor: 'text-green-600',
+        badgeText: '✨ Current live forecast',
+        badgeStyle: 'bg-green-100 text-green-700',
+        backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
+        borderStyle: 'border-green-200'
+      };
+    } else {
+      return {
+        sourceLabel: '🟡 Historical Weather Data',
+        sourceColor: 'text-amber-600',
+        badgeText: '📊 Based on historical patterns',
+        badgeStyle: 'bg-amber-100 text-amber-700',
+        backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
+        borderStyle: 'border-blue-200'
+      };
+    }
+  }, [isLiveForecast]);
+
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+    <div className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}>
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${sourceColor}`}>
-          {sourceLabel}
+        <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
+          {displayConfig.sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -93,8 +111,8 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
 
       {/* Weather Status Badge */}
       <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${badgeStyle}`}>
-          {badgeText}
+        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${displayConfig.badgeStyle}`}>
+          {displayConfig.badgeText}
         </span>
       </div>
     </div>
