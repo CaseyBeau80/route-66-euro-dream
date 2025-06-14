@@ -217,7 +217,8 @@ const DirectSharedTripPage: React.FC = () => {
                         startCity: segment.startCity,
                         endCity: segment.endCity,
                         distance: segment.distance,
-                        drivingTime: segment.drivingTime
+                        drivingTime: segment.drivingTime,
+                        driveTimeHours: segment.drivingTime // Add the missing property
                       }}
                       tripStartDate={tripData.tripStartDate}
                       isSharedView={true}
