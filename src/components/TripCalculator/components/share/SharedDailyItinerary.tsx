@@ -2,8 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import EnhancedWeatherWidget from '../weather/EnhancedWeatherWidget';
-import { WeatherUtilityService } from '../weather/services/WeatherUtilityService';
+import SharedWeatherWidget from '../weather/SharedWeatherWidget';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -14,22 +13,21 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔧 FIXED: SharedDailyItinerary using SAME logic as preview:', {
+  console.log('🔥 SHARED VIEW: SharedDailyItinerary using DEDICATED shared components:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    sharedViewMode: true,
-    sameAsPreview: true
+    dedicatedSharedPath: true
   });
 
   // Use the same trip start date logic as the preview
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔧 FIXED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 SHARED VIEW: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
-    // Extract from URL parameters (same as preview)
+    // Extract from URL parameters
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const possibleParams = ['tripStart', 'startDate', 'start_date', 'trip_start', 'tripStartDate'];
@@ -39,23 +37,23 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔧 FIXED: Extracted tripStartDate from URL for consistent behavior:', {
+            console.log('🔥 SHARED VIEW: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              consistentWithPreview: true
+              dedicatedSharedExtraction: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ SHARED VIEW: Failed to parse trip start date from URL:', error);
     }
 
-    // Fallback: use today (same as preview)
+    // Fallback: use today
     const today = new Date();
-    console.log('🔧 FIXED: Using today as fallback tripStartDate to MATCH preview:', today.toISOString());
+    console.log('🔥 SHARED VIEW: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -86,17 +84,16 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔧 FIXED: Rendering segment ${segment.day} for ${segment.endCity} with SAME weather logic as preview`, {
+        console.log(`🔥 SHARED VIEW: Rendering segment ${segment.day} for ${segment.endCity} with DEDICATED shared components`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          isSharedView: true,
-          sameLogicAsPreview: true,
-          uniqueKey: `fixed-${segment.day}-${segment.endCity}-${Date.now()}`
+          dedicatedSharedComponents: true,
+          uniqueKey: `shared-day-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`fixed-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`shared-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -148,21 +145,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* FIXED: Use EXACT same weather widget as preview */}
+              {/* DEDICATED: Use specialized shared weather widget */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                    🌤️ Live Weather for {segment.endCity}
+                    🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using same logic as preview</p>
+                  <p className="text-xs text-gray-500">Using dedicated shared view components</p>
                 </div>
                 
-                <EnhancedWeatherWidget
+                <SharedWeatherWidget
                   segment={segment}
                   tripStartDate={effectiveTripStartDate}
-                  isSharedView={true}
-                  isPDFExport={false}
-                  forceRefresh={false}
                 />
               </div>
             </div>
