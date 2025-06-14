@@ -58,11 +58,18 @@ export const useUnifiedWeather = ({
       // Ensure weatherData conforms to ForecastWeatherData type
       if (weatherData) {
         const normalizedWeather: ForecastWeatherData = {
-          temperature: weatherData.temperature || 0,
-          forecast: weatherData.forecast || weatherData.description || 'No forecast available',
-          forecastDate: weatherData.forecastDate || segmentDate,
-          description: weatherData.description || 'Weather data',
-          source: weatherData.source === 'api' ? 'live_forecast' : weatherData.source || 'live_forecast',
+          temperature: Math.round((weatherData.highTemp + weatherData.lowTemp) / 2),
+          highTemp: weatherData.highTemp,
+          lowTemp: weatherData.lowTemp,
+          forecast: [],
+          forecastDate: segmentDate,
+          description: weatherData.description || 'Weather forecast',
+          icon: weatherData.icon || '02d',
+          humidity: weatherData.humidity || 60,
+          windSpeed: weatherData.windSpeed || 8,
+          precipitationChance: weatherData.precipitationChance || 20,
+          cityName: weatherData.cityName,
+          source: weatherData.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback',
           isActualForecast: weatherData.isActualForecast || false
         };
         
