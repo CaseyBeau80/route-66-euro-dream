@@ -59,26 +59,25 @@ export class WeatherApiKeyManager {
     
     const trimmedKey = key.trim();
     
-    // Check for obvious placeholder patterns (be less strict)
-    const placeholderPatterns = [
+    // Much more lenient validation - only reject obvious placeholders
+    const strictPlaceholderPatterns = [
       'your_api_key_here',
       'your_api_key',
-      'replace_with',
-      'placeholder',
-      'example',
-      'test_key'
+      'replace_with_your_key',
+      'your_openweather_api_key',
+      'enter_your_api_key'
     ];
     
     const lowerKey = trimmedKey.toLowerCase();
-    for (const pattern of placeholderPatterns) {
-      if (lowerKey.includes(pattern.toLowerCase())) {
-        console.log('❌ WeatherApiKeyManager: Rejected placeholder pattern:', pattern);
+    for (const pattern of strictPlaceholderPatterns) {
+      if (lowerKey === pattern.toLowerCase()) {
+        console.log('❌ WeatherApiKeyManager: Rejected exact placeholder pattern:', pattern);
         return false;
       }
     }
     
-    // Must be at least 15 characters (less strict than before)
-    if (trimmedKey.length < 15) {
+    // Must be at least 10 characters (very lenient)
+    if (trimmedKey.length < 10) {
       console.log('❌ WeatherApiKeyManager: Key too short:', trimmedKey.length);
       return false;
     }

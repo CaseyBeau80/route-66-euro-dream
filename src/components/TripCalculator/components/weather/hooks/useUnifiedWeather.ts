@@ -52,14 +52,18 @@ export const useUnifiedWeather = ({
       setError(null);
 
       try {
-        // Check for valid API key with detailed logging
+        // FIXED: More thorough API key checking
         const apiKey = WeatherApiKeyManager.getApiKey();
         const hasValidKey = WeatherApiKeyManager.hasApiKey();
+        const isValidKey = WeatherApiKeyManager.validateApiKey();
         
-        console.log('🔑 UNIFIED: API key check for', cityName, {
+        console.log('🔑 UNIFIED: COMPREHENSIVE API key check for', cityName, {
           hasValidKey,
+          isValidKey,
+          keyExists: !!apiKey,
           keyLength: apiKey?.length || 0,
-          keyPreview: apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : 'none'
+          keyPreview: apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : 'none',
+          allChecksPass: hasValidKey && isValidKey && !!apiKey
         });
 
         // Calculate if we're within forecast range (0-7 days)
@@ -79,9 +83,9 @@ export const useUnifiedWeather = ({
           isWithinForecastRange
         });
 
-        // Try live weather if conditions are met
-        if (hasValidKey && isWithinForecastRange && apiKey) {
-          console.log('🚀 UNIFIED: Attempting live weather for', cityName);
+        // FIXED: Use more comprehensive API key validation
+        if (hasValidKey && isValidKey && apiKey && isWithinForecastRange) {
+          console.log('🚀 UNIFIED: ALL CONDITIONS MET - Attempting live weather for', cityName);
           
           const liveWeather = await fetchLiveWeatherFixed(cityName, targetDate, apiKey);
           if (liveWeather) {
@@ -99,14 +103,16 @@ export const useUnifiedWeather = ({
             setLoading(false);
             return;
           } else {
-            console.log('⚠️ UNIFIED: Live weather failed for', cityName, 'falling back to historical');
+            console.log('⚠️ UNIFIED: Live weather API call failed for', cityName, 'falling back to historical');
           }
         } else {
           console.log('📊 UNIFIED: Using historical fallback for', cityName, {
             hasValidKey,
+            isValidKey,
+            hasApiKey: !!apiKey,
             isWithinForecastRange,
             daysFromToday,
-            reason: !hasValidKey ? 'no_api_key' : !isWithinForecastRange ? 'outside_range' : 'unknown'
+            reason: !hasValidKey ? 'no_valid_key' : !isValidKey ? 'invalid_key' : !apiKey ? 'no_api_key' : !isWithinForecastRange ? 'outside_range' : 'unknown'
           });
         }
 
@@ -141,7 +147,7 @@ const fetchLiveWeatherFixed = async (
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌐 UNIFIED: fetchLiveWeatherFixed starting for', cityName);
+    console.log('🌐 UNIFIED: fetchLiveWeatherFixed starting for', cityName, 'with API key length:', apiKey.length);
 
     // Get coordinates
     const coords = await getCoordinatesFixed(cityName, apiKey);
@@ -154,7 +160,7 @@ const fetchLiveWeatherFixed = async (
 
     // Fetch 5-day forecast
     const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-    console.log('🌐 UNIFIED: Fetching from OpenWeather API for', cityName);
+    console.log('🌐 UNIFIED: Fetching from OpenWeather API for', cityName, 'URL preview:', forecastUrl.substring(0, 100) + '...');
     
     const response = await fetch(forecastUrl);
 
@@ -171,7 +177,9 @@ const fetchLiveWeatherFixed = async (
     }
 
     console.log('📊 UNIFIED: Processing API forecast data for', cityName, {
-      forecastItems: data.list.length
+      forecastItems: data.list.length,
+      firstItem: data.list[0]?.dt_txt,
+      lastItem: data.list[data.list.length - 1]?.dt_txt
     });
 
     // Find best match for target date

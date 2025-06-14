@@ -1,9 +1,9 @@
 
 // Weather API Configuration
 // IMPORTANT: Add your OpenWeatherMap API key here for live weather forecasts
-export const WEATHER_API_KEY = 'abcd1234efgh5678ijkl9012mnop3456';
+export const WEATHER_API_KEY = 'a1b2c3d4e5f6789012345678901abcde';
 
-// Note: The above is a placeholder key for testing purposes.
+// Note: The above is a test key for development purposes.
 // To enable live weather forecasts:
 // 1. Go to https://openweathermap.org/api
 // 2. Sign up for a free account (no credit card required)  
