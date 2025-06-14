@@ -13,17 +13,17 @@ interface UseWeatherCardProps {
 
 export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) => {
   const stateKey = `${segment.endCity}-day-${segment.day}`;
-  console.log(`🔑 FIXED: useWeatherCard with consistent API key detection for ${stateKey}`);
+  console.log(`🔑 PLAN: useWeatherCard with stable API key detection for ${stateKey}`);
 
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
-  // FIXED: Single source of truth for API key detection
+  // PLAN IMPLEMENTATION: Stable API key detection to prevent loops
   const apiKeyStatus = React.useMemo(() => {
     const storedKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
     const isValid = Boolean(storedKey && storedKey.trim().length > 10);
     
-    console.log(`🔑 FIXED: Consistent API key check for ${stateKey}`, {
+    console.log(`🔑 PLAN: Stable API key check for ${stateKey}`, {
       hasStoredKey: Boolean(storedKey),
       keyLength: storedKey?.length || 0,
       isValid,
@@ -31,25 +31,25 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     });
     
     return { hasKey: isValid, keyValue: storedKey };
-  }, [stateKey]); // Remove hasApiKey dependency to prevent loops
+  }, []); // PLAN: No dependencies to prevent loops
 
-  // FIXED: Stable segment date calculation
+  // PLAN IMPLEMENTATION: Stable segment date calculation
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) return null;
     try {
       const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
-      console.log(`📅 FIXED: Calculated segment date for ${stateKey}:`, calculatedDate.toISOString());
+      console.log(`📅 PLAN: Calculated segment date for ${stateKey}:`, calculatedDate.toISOString());
       return calculatedDate;
     } catch {
-      console.log(`❌ FIXED: Date calculation failed for ${stateKey}`);
+      console.log(`❌ PLAN: Date calculation failed for ${stateKey}`);
       return null;
     }
   }, [tripStartDate?.getTime(), segment.day, stateKey]);
 
-  // FIXED: Enhanced fetch function with proper API key handling
+  // PLAN IMPLEMENTATION: Enhanced fetch function with stable dependencies
   const fetchWeather = React.useCallback(async (isSharedView: boolean = false) => {
-    const fetchKey = `${stateKey}-${segmentDate?.getTime()}-${apiKeyStatus.hasKey}`;
-    console.log(`🚀 FIXED: Weather fetch with proper API key handling for ${fetchKey}`, { 
+    const fetchKey = `${stateKey}-${segmentDate?.getTime()}-${Date.now()}`;
+    console.log(`🚀 PLAN: Weather fetch with stable dependencies for ${fetchKey}`, { 
       isSharedView,
       hasValidApiKey: apiKeyStatus.hasKey,
       segmentDate: segmentDate?.toISOString(),
@@ -57,7 +57,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     });
 
     if (!segmentDate) {
-      console.log(`❌ FIXED: No segment date for ${stateKey}`);
+      console.log(`❌ PLAN: No segment date for ${stateKey}`);
       weatherState.setError('Missing trip date');
       return;
     }
@@ -66,7 +66,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       weatherState.setLoading(true);
       weatherState.setError(null);
 
-      console.log(`🌤️ FIXED: Calling SimpleWeatherFetcher with consistent API key for ${stateKey}`, {
+      console.log(`🌤️ PLAN: Calling SimpleWeatherFetcher with stable API key for ${stateKey}`, {
         hasApiKey: apiKeyStatus.hasKey,
         isSharedView,
         segmentDay: segment.day
@@ -81,7 +81,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       });
 
       if (weather) {
-        console.log(`✅ FIXED: Weather fetched with proper properties for ${stateKey}:`, {
+        console.log(`✅ PLAN: Weather fetched with correct properties for ${stateKey}:`, {
           temperature: weather.temperature,
           source: weather.source,
           isActualForecast: weather.isActualForecast,
@@ -90,21 +90,30 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
         });
         weatherState.setWeather(weather);
       } else {
-        console.log(`⚠️ FIXED: No weather data returned for ${stateKey}`);
+        console.log(`⚠️ PLAN: No weather data returned for ${stateKey}`);
         weatherState.setError('Unable to fetch weather data');
       }
     } catch (error) {
-      console.error(`❌ FIXED: Weather fetch error for ${stateKey}:`, error);
+      console.error(`❌ PLAN: Weather fetch error for ${stateKey}:`, error);
       weatherState.setError('Weather fetch failed');
     } finally {
       weatherState.setLoading(false);
     }
   }, [stateKey, segmentDate?.getTime(), apiKeyStatus.hasKey, weatherState, segment.endCity, segment.day]);
 
-  // FIXED: Stable auto-fetch with proper dependency tracking (NO shared view auto-retry here)
+  // PLAN IMPLEMENTATION: Stable auto-fetch with single attempt tracking
   const hasAttemptedFetch = React.useRef(false);
+  const lastFetchDateKey = React.useRef<string>('');
 
   React.useEffect(() => {
+    const currentDateKey = `${tripStartDate?.getTime()}-${segmentDate?.getTime()}`;
+    
+    // Reset attempt if date changed
+    if (lastFetchDateKey.current !== currentDateKey) {
+      hasAttemptedFetch.current = false;
+      lastFetchDateKey.current = currentDateKey;
+    }
+
     const shouldAttemptFetch = tripStartDate && 
                               segmentDate && 
                               !weatherState.weather && 
@@ -112,7 +121,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
                               !hasAttemptedFetch.current;
 
     if (shouldAttemptFetch) {
-      console.log(`🚨 FIXED: Auto-fetch triggered for ${stateKey}`, {
+      console.log(`🚨 PLAN: Auto-fetch triggered for ${stateKey}`, {
         hasSegmentDate: Boolean(segmentDate),
         hasWeather: Boolean(weatherState.weather),
         loading: weatherState.loading,
@@ -123,14 +132,9 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       hasAttemptedFetch.current = true;
       fetchWeather(false);
     }
-  }, [tripStartDate?.getTime(), segmentDate?.getTime(), apiKeyStatus.hasKey, fetchWeather, stateKey]);
+  }, [tripStartDate?.getTime(), segmentDate?.getTime(), fetchWeather, stateKey]);
 
-  // Reset fetch attempt when key dependencies change
-  React.useEffect(() => {
-    hasAttemptedFetch.current = false;
-  }, [stateKey, segmentDate?.getTime()]);
-
-  console.log(`🔑 FIXED: useWeatherCard final state for ${stateKey}:`, {
+  console.log(`🔑 PLAN: useWeatherCard final state for ${stateKey}:`, {
     hasApiKey: apiKeyStatus.hasKey,
     hasWeather: Boolean(weatherState.weather),
     loading: weatherState.loading,

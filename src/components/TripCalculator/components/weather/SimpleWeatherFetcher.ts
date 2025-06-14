@@ -11,10 +11,11 @@ interface WeatherFetchRequest {
 }
 
 export class SimpleWeatherFetcher {
-  // FIXED: Proper forecast range - only 0-7 days should attempt live API
+  // PLAN IMPLEMENTATION: Strict 7-day forecast range
   private static readonly LIVE_FORECAST_MAX_DAYS = 7;
   
   private static getCitySpecificVariation(cityName: string, segmentDay: number = 1) {
+    // ... keep existing code (variation calculation logic)
     const combinedKey = `${cityName}-day-${segmentDay}`;
     let hash = 0;
     for (let i = 0; i < combinedKey.length; i++) {
@@ -51,12 +52,12 @@ export class SimpleWeatherFetcher {
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, hasApiKey, isSharedView = false, segmentDay = 1 } = request;
     
-    // FIXED: Proper date range validation FIRST
+    // PLAN IMPLEMENTATION: Strict date range validation FIRST
     const today = new Date();
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinLiveForecastRange = daysFromToday >= 0 && daysFromToday <= this.LIVE_FORECAST_MAX_DAYS;
     
-    console.log('🚀 FIXED: SimpleWeatherFetcher - proper date range validation', {
+    console.log('🚀 PLAN: SimpleWeatherFetcher - strict date range validation', {
       cityName,
       targetDate: targetDate.toISOString(),
       daysFromToday,
@@ -64,23 +65,21 @@ export class SimpleWeatherFetcher {
       hasApiKey,
       isSharedView,
       segmentDay,
-      strategy: 'date_range_first_validation'
+      strategy: 'strict_7_day_validation'
     });
 
-    // FIXED: Only attempt live forecast if BOTH conditions are met:
-    // 1. Within 0-7 day range
-    // 2. Has valid API key
+    // PLAN IMPLEMENTATION: Only attempt live forecast if BOTH conditions are met
     if (hasApiKey && isWithinLiveForecastRange) {
-      console.log('🔑 FIXED: Valid conditions for live forecast attempt:', cityName);
+      console.log('🔑 PLAN: Valid conditions for live forecast attempt:', cityName);
       
       try {
         const coords = await this.getEnhancedCoordinates(cityName);
         if (coords) {
-          console.log('✅ FIXED: Coordinates found, fetching live weather for', cityName, coords);
+          console.log('✅ PLAN: Coordinates found, fetching live weather for', cityName, coords);
 
           const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate, segmentDay);
           if (liveWeather) {
-            console.log('🎯 FIXED: LIVE WEATHER SUCCESS with verified properties for', cityName, {
+            console.log('🎯 PLAN: LIVE WEATHER SUCCESS with verified properties for', cityName, {
               temperature: liveWeather.temperature,
               source: liveWeather.source,
               isActualForecast: liveWeather.isActualForecast,
@@ -90,22 +89,22 @@ export class SimpleWeatherFetcher {
             });
             return liveWeather;
           } else {
-            console.log('⚠️ FIXED: Live weather fetch failed, falling back for', cityName);
+            console.log('⚠️ PLAN: Live weather fetch failed, falling back for', cityName);
           }
         } else {
-          console.log('⚠️ FIXED: Could not get coordinates for', cityName);
+          console.log('⚠️ PLAN: Could not get coordinates for', cityName);
         }
       } catch (error) {
-        console.warn('⚠️ FIXED: Live weather error, using fallback:', error);
+        console.warn('⚠️ PLAN: Live weather error, using fallback:', error);
       }
     } else {
       const reason = !hasApiKey ? 'no_api_key' : 
                     !isWithinLiveForecastRange ? `outside_range_day_${daysFromToday}` : 'unknown';
-      console.log('🔄 FIXED: Skipping live forecast attempt:', cityName, { reason, daysFromToday });
+      console.log('🔄 PLAN: Skipping live forecast attempt:', cityName, { reason, daysFromToday });
     }
 
-    // FALLBACK: Create fallback weather with correct source marking
-    console.log('🔄 FIXED: Creating fallback weather for', cityName, { daysFromToday, isWithinLiveForecastRange });
+    // PLAN IMPLEMENTATION: Create fallback weather with correct source marking
+    console.log('🔄 PLAN: Creating fallback weather for', cityName, { daysFromToday, isWithinLiveForecastRange });
     return this.createCorrectFallbackWeather(cityName, targetDate, segmentDay, isWithinLiveForecastRange);
   }
 
@@ -113,7 +112,7 @@ export class SimpleWeatherFetcher {
     try {
       const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
       
-      console.log('🔍 FIXED: API key validation', {
+      console.log('🔍 PLAN: API key validation', {
         hasWeatherApiKey: !!localStorage.getItem('weather_api_key'),
         hasOpenWeatherMapKey: !!localStorage.getItem('openweathermap_api_key'),
         finalApiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
@@ -122,12 +121,12 @@ export class SimpleWeatherFetcher {
       });
       
       if (!apiKey || apiKey.length < 10) {
-        console.log('❌ FIXED: Invalid API key - too short or missing');
+        console.log('❌ PLAN: Invalid API key - too short or missing');
         return null;
       }
 
       const formattedCityName = this.formatCityNameForGeocoding(cityName);
-      console.log('🔍 FIXED: Fetching coordinates', {
+      console.log('🔍 PLAN: Fetching coordinates', {
         originalCity: cityName,
         formattedCity: formattedCityName
       });
@@ -138,7 +137,7 @@ export class SimpleWeatherFetcher {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log('❌ FIXED: Geocoding API failed', {
+        console.log('❌ PLAN: Geocoding API failed', {
           status: response.status,
           statusText: response.statusText,
           errorBody: errorText,
@@ -150,20 +149,20 @@ export class SimpleWeatherFetcher {
       const data = await response.json();
       
       if (!data || data.length === 0) {
-        console.log('❌ FIXED: No geocoding results for', formattedCityName);
+        console.log('❌ PLAN: No geocoding results for', formattedCityName);
         return null;
       }
 
       const bestMatch = this.selectBestGeocodingMatch(data, cityName);
       const coords = { lat: bestMatch.lat, lng: bestMatch.lon };
       
-      console.log('✅ FIXED: Got coordinates for', formattedCityName, {
+      console.log('✅ PLAN: Got coordinates for', formattedCityName, {
         coordinates: coords
       });
       
       return coords;
     } catch (error) {
-      console.error('❌ FIXED: Geocoding error for', cityName, ':', error);
+      console.error('❌ PLAN: Geocoding error for', cityName, ':', error);
       return null;
     }
   }
@@ -196,23 +195,23 @@ export class SimpleWeatherFetcher {
     try {
       const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
       if (!apiKey || apiKey.length < 10) {
-        console.log('❌ FIXED: Invalid API key for weather fetch');
+        console.log('❌ PLAN: Invalid API key for weather fetch');
         return null;
       }
 
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ FIXED: Attempting live forecast for', cityName, {
+      console.log('🌤️ PLAN: Attempting live forecast for', cityName, {
         coordinates: coords,
         daysFromNow,
         targetDate: targetDate.toISOString(),
         segmentDay
       });
 
-      // FIXED: Extended range check but still reasonable
+      // PLAN IMPLEMENTATION: Strict range check
       if (daysFromNow < -1 || daysFromNow > this.LIVE_FORECAST_MAX_DAYS) {
-        console.log('📅 FIXED: Date outside live forecast range for', cityName, { daysFromNow });
+        console.log('📅 PLAN: Date outside live forecast range for', cityName, { daysFromNow });
         return null;
       }
 
@@ -222,7 +221,7 @@ export class SimpleWeatherFetcher {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log('❌ FIXED: Weather API failed for', cityName, {
+        console.log('❌ PLAN: Weather API failed for', cityName, {
           status: response.status,
           errorBody: errorText
         });
@@ -231,7 +230,7 @@ export class SimpleWeatherFetcher {
 
       const data = await response.json();
       if (!data.list || data.list.length === 0) {
-        console.log('❌ FIXED: Empty weather data for', cityName);
+        console.log('❌ PLAN: Empty weather data for', cityName);
         return null;
       }
 
@@ -243,7 +242,7 @@ export class SimpleWeatherFetcher {
 
       const variation = this.getCitySpecificVariation(cityName, segmentDay);
 
-      // CRITICAL: Ensure live forecast properties are correctly set
+      // PLAN IMPLEMENTATION: Ensure live forecast properties are correctly set
       const weatherResult: ForecastWeatherData = {
         temperature: Math.round(matchedItem.main.temp + variation.tempOffset),
         highTemp: Math.round(matchedItem.main.temp_max + variation.tempOffset),
@@ -256,11 +255,11 @@ export class SimpleWeatherFetcher {
         cityName,
         forecast: [],
         forecastDate: targetDate,
-        isActualForecast: true, // CRITICAL: Must be true for live forecasts
-        source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
+        isActualForecast: true, // PLAN: Must be true for live forecasts
+        source: 'live_forecast' as const // PLAN: Must be 'live_forecast'
       };
 
-      console.log('✅ FIXED: LIVE WEATHER DATA CREATED with verified properties for', cityName, {
+      console.log('✅ PLAN: LIVE WEATHER DATA CREATED with verified properties for', cityName, {
         temperature: weatherResult.temperature,
         isActualForecast: weatherResult.isActualForecast,
         source: weatherResult.source,
@@ -270,7 +269,7 @@ export class SimpleWeatherFetcher {
       return weatherResult;
 
     } catch (error) {
-      console.error('❌ FIXED: Live weather fetch error for', cityName, ':', error);
+      console.error('❌ PLAN: Live weather fetch error for', cityName, ':', error);
       return null;
     }
   }
@@ -284,7 +283,7 @@ export class SimpleWeatherFetcher {
     const targetDateString = targetDate.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
 
-    console.log('🔄 FIXED: Creating fallback weather for', cityName, {
+    console.log('🔄 PLAN: Creating fallback weather for', cityName, {
       targetDateString,
       daysFromToday,
       segmentDay,
@@ -302,7 +301,7 @@ export class SimpleWeatherFetcher {
     // Apply city+day variations for uniqueness
     const uniqueWeather = CityWeatherVariationService.applyVariationToWeather(baseFallback, `${cityName}-day-${segmentDay}`);
 
-    console.log('✅ FIXED: Fallback weather created for', cityName, {
+    console.log('✅ PLAN: Fallback weather created for', cityName, {
       temperature: uniqueWeather.temperature,
       description: uniqueWeather.description,
       source: uniqueWeather.source,

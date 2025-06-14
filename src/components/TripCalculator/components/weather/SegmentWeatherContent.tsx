@@ -35,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SegmentWeatherContent for', segmentEndCity, {
+  console.log('🔧 PLAN: SegmentWeatherContent for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: Boolean(weather),
@@ -59,7 +59,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // Show loading state
   if (loading) {
-    console.log('🔄 FIXED: Showing loading state for', segmentEndCity);
+    console.log('🔄 PLAN: Showing loading state for', segmentEndCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-600">
@@ -70,9 +70,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: ALWAYS display weather data if available
+  // PLAN IMPLEMENTATION: ALWAYS display weather data if available
   if (weather) {
-    console.log(`✅ FIXED: Displaying weather data for ${segmentEndCity}`, {
+    console.log(`✅ PLAN: Displaying weather data for ${segmentEndCity}`, {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
@@ -92,20 +92,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: For shared views without weather data and no date - show basic message
-  if ((isSharedView || isPDFExport) && !segmentDate) {
-    console.log(`🚫 FIXED: Shared view without date for ${segmentEndCity}`);
-    return (
-      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
-        <div className="text-amber-600 text-2xl mb-1">⛅</div>
-        <p className="text-xs text-amber-700 font-medium">Check weather before departure</p>
-      </div>
-    );
-  }
-
-  // FIXED: For shared views with date but no weather - show fallback
-  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
-    console.log(`🌱 FIXED: Shared view showing fallback weather for ${segmentEndCity}`);
+  // PLAN IMPLEMENTATION: For shared views, ALWAYS show fallback if we have a date
+  if ((isSharedView || isPDFExport) && segmentDate) {
+    console.log(`🌱 PLAN: Shared view showing fallback weather for ${segmentEndCity}`);
     
     return (
       <SeasonalWeatherFallback 
@@ -116,9 +105,20 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
+  // PLAN IMPLEMENTATION: For shared views without date - show basic message
+  if ((isSharedView || isPDFExport) && !segmentDate) {
+    console.log(`🚫 PLAN: Shared view without date for ${segmentEndCity}`);
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
+        <div className="text-amber-600 text-2xl mb-1">⛅</div>
+        <p className="text-xs text-amber-700 font-medium">Check weather before departure</p>
+      </div>
+    );
+  }
+
   // Regular view without API key
   if (!hasApiKey && !isSharedView && !isPDFExport) {
-    console.log(`🔑 FIXED: Showing API key input for ${segmentEndCity}`);
+    console.log(`🔑 PLAN: Showing API key input for ${segmentEndCity}`);
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -133,7 +133,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   }
 
   // Regular view with error or no weather
-  console.log(`⚠️ FIXED: Showing error/retry state for ${segmentEndCity}`, {
+  console.log(`⚠️ PLAN: Showing error/retry state for ${segmentEndCity}`, {
     error,
     retryCount,
     hasApiKey,

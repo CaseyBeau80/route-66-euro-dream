@@ -19,7 +19,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // CRITICAL FIX: Proper live forecast detection based on date range AND source
+  // PLAN IMPLEMENTATION: Strict live forecast detection
   const isLiveForecast = React.useMemo(() => {
     if (!segmentDate) return false;
     
@@ -27,30 +27,33 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     const today = new Date();
     const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     
-    // FIXED: Live forecast only if:
+    // PLAN REQUIREMENT: Live forecast ONLY if ALL conditions are met:
     // 1. Within 0-7 day range
-    // 2. Has actual forecast properties
-    // 3. Source is live_forecast
+    // 2. weather.source === 'live_forecast'  
+    // 3. weather.isActualForecast === true
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
-    const hasLiveProperties = weather.isActualForecast === true && weather.source === 'live_forecast';
-    const isActuallyLive = isWithinForecastRange && hasLiveProperties;
+    const hasCorrectSource = weather.source === 'live_forecast';
+    const isActualForecast = weather.isActualForecast === true;
     
-    console.log('🎯 FIXED: Live forecast detection for', cityName, {
+    const isActuallyLive = isWithinForecastRange && hasCorrectSource && isActualForecast;
+    
+    console.log('🎯 PLAN: Strict live forecast detection for', cityName, {
       daysFromToday,
       isWithinForecastRange,
       weatherSource: weather.source,
+      hasCorrectSource,
       isActualForecast: weather.isActualForecast,
-      hasLiveProperties,
       isActuallyLive,
-      segmentDate: segmentDate.toISOString()
+      segmentDate: segmentDate.toISOString(),
+      allConditionsMet: isWithinForecastRange && hasCorrectSource && isActualForecast
     });
     
     return isActuallyLive;
-  }, [weather.isActualForecast, weather.source, segmentDate, cityName]);
+  }, [weather.source, weather.isActualForecast, segmentDate, cityName]);
 
   const weatherTypeInfo = WeatherTypeDetector.detectWeatherType(weather);
   
-  // FIXED: Correct source labeling based on actual date range
+  // PLAN IMPLEMENTATION: Correct source labeling
   const sourceLabel = React.useMemo(() => {
     if (isLiveForecast) {
       return 'Live Weather Forecast';
@@ -58,7 +61,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return 'Historical Weather Data';
   }, [isLiveForecast]);
   
-  console.log('🎯 FIXED: SimpleWeatherDisplay rendering with corrected detection:', {
+  console.log('🎯 PLAN: SimpleWeatherDisplay rendering with strict detection:', {
     cityName,
     isLiveForecast,
     weatherSource: weather.source,
@@ -80,7 +83,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
             🌤️ Weather for {cityName}
           </h4>
           
-          {/* FIXED: Only show live indicator for actual live forecasts */}
+          {/* PLAN IMPLEMENTATION: Only show live indicator for actual live forecasts */}
           {isLiveForecast && (
             <div className="mb-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
@@ -127,7 +130,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         <div>☔ {weather.precipitationChance}% rain</div>
       </div>
       
-      {/* FIXED: Correct data quality indicator */}
+      {/* PLAN IMPLEMENTATION: Correct data quality indicator */}
       {!isPDFExport && (
         <div className="mt-2 pt-2 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs">
