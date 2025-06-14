@@ -110,15 +110,15 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     setRefreshKey(prev => prev + 1);
   };
 
-  // Show API key input for regular views without API key (but still show demo weather)
+  // Show API key input for regular views without API key
   if (!isSharedView && !isPDFExport && !hasApiKey) {
     return (
       <div className="space-y-3">
         <div className="text-sm text-gray-600 mb-2">
-          🌤️ Weather forecast available
+          🌤️ Weather forecast available - add API key for live data
         </div>
         
-        {/* Always show weather even without API key */}
+        {/* Show demo weather even without API key */}
         {loading && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex items-center gap-2 text-blue-600">
@@ -165,7 +165,9 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+          <span className="text-sm">
+            {hasApiKey ? 'Loading live weather' : 'Loading weather'} for {segment.endCity}...
+          </span>
         </div>
       </div>
     );
