@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2 } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
+import DirectShareButton from '../../TripCalculator/components/DirectShareButton';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -148,14 +148,20 @@ const TripResults: React.FC<TripResultsProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
         <Button 
           onClick={handleShareTrip}
           className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-2"
         >
           <Share2 className="w-4 h-4 mr-2" />
-          Share Trip
+          Share Trip (Original)
         </Button>
+        
+        <DirectShareButton
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          className="px-6 py-2"
+        />
       </div>
     </div>
   );
