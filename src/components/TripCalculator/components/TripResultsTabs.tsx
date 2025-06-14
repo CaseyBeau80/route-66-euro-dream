@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { TripPlan, DailySegment } from '../services/planning/TripPlanBuilder';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Route, 
   Calendar, 
@@ -34,8 +36,6 @@ interface TripResultsTabsProps {
   isGeneratingShareUrl?: boolean;
 }
 
-type TabType = 'overview' | 'weather' | 'attractions' | 'restaurants' | 'costs';
-
 const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   tripPlan,
   tripStartDate,
@@ -43,7 +43,6 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   onShareTrip,
   isGeneratingShareUrl = false
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [apiKey, setApiKey] = useState('');
   const [isStoringKey, setIsStoringKey] = useState(false);
   const [keyMessage, setKeyMessage] = useState('');
@@ -78,20 +77,11 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   };
 
   console.log('📊 TripResultsTabs render:', {
-    activeTab,
     tripPlan: !!tripPlan,
     tripStartDate: tripStartDate?.toISOString(),
     hasWeatherApiKey,
     segmentCount: tripPlan?.segments?.length
   });
-
-  const tabs = [
-    { id: 'overview' as TabType, label: 'Overview', icon: Route },
-    { id: 'weather' as TabType, label: 'Weather', icon: Cloud },
-    { id: 'attractions' as TabType, label: 'Attractions', icon: Camera },
-    { id: 'restaurants' as TabType, label: 'Restaurants', icon: Utensils },
-    { id: 'costs' as TabType, label: 'Costs', icon: DollarSign }
-  ];
 
   const getTotalAttractions = () => {
     return tripPlan.segments?.reduce((total, segment) => 
@@ -99,8 +89,6 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   };
 
   const getTotalRestaurants = () => {
-    // Since restaurants property doesn't exist on DailySegment, return 0 for now
-    // This can be updated when restaurant data is added to the segment type
     return 0;
   };
 
@@ -186,195 +174,196 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
         </Card>
       )}
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 overflow-x-auto">
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`
-                flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                ${activeTab === id
-                  ? 'border-route66-primary text-route66-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-              {id === 'weather' && hasWeatherApiKey && (
-                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                  ✓
-                </Badge>
-              )}
-              {id === 'attractions' && (
-                <Badge variant="secondary" className="text-xs">
-                  {getTotalAttractions()}
-                </Badge>
-              )}
-              {id === 'restaurants' && (
-                <Badge variant="secondary" className="text-xs">
-                  {getTotalRestaurants()}
-                </Badge>
-              )}
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* Tab System using shadcn/ui Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Route className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          
+          <TabsTrigger value="weather" className="flex items-center gap-2">
+            <Cloud className="h-4 w-4" />
+            Weather
+            {hasWeatherApiKey && (
+              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 ml-1">
+                ✓
+              </Badge>
+            )}
+          </TabsTrigger>
+          
+          <TabsTrigger value="attractions" className="flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            Attractions
+            <Badge variant="secondary" className="text-xs ml-1">
+              {getTotalAttractions()}
+            </Badge>
+          </TabsTrigger>
+          
+          <TabsTrigger value="restaurants" className="flex items-center gap-2">
+            <Utensils className="h-4 w-4" />
+            Restaurants
+            <Badge variant="secondary" className="text-xs ml-1">
+              {getTotalRestaurants()}
+            </Badge>
+          </TabsTrigger>
+          
+          <TabsTrigger value="costs" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Costs
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
         {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Trip Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Calendar className="h-8 w-8 text-route66-primary mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-route66-text-primary">
-                    {tripPlan.segments?.length || 0}
-                  </div>
-                  <div className="text-sm text-route66-text-secondary">Days</div>
-                </CardContent>
-              </Card>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Trip Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Calendar className="h-8 w-8 text-route66-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-route66-text-primary">
+                  {tripPlan.segments?.length || 0}
+                </div>
+                <div className="text-sm text-route66-text-secondary">Days</div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Route className="h-8 w-8 text-route66-primary mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-route66-text-primary">
-                    {Math.round(tripPlan.totalDistance || 0)}
-                  </div>
-                  <div className="text-sm text-route66-text-secondary">Miles</div>
-                </CardContent>
-              </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Route className="h-8 w-8 text-route66-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-route66-text-primary">
+                  {Math.round(tripPlan.totalDistance || 0)}
+                </div>
+                <div className="text-sm text-route66-text-secondary">Miles</div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Clock className="h-8 w-8 text-route66-primary mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-route66-text-primary">
-                    {formatDrivingTime(tripPlan.totalDistance || 0)}
-                  </div>
-                  <div className="text-sm text-route66-text-secondary">Drive Time</div>
-                </CardContent>
-              </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Clock className="h-8 w-8 text-route66-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-route66-text-primary">
+                  {formatDrivingTime(tripPlan.totalDistance || 0)}
+                </div>
+                <div className="text-sm text-route66-text-secondary">Drive Time</div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <MapPin className="h-8 w-8 text-route66-primary mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-route66-text-primary">
-                    {getTotalAttractions()}
-                  </div>
-                  <div className="text-sm text-route66-text-secondary">Attractions</div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <MapPin className="h-8 w-8 text-route66-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-route66-text-primary">
+                  {getTotalAttractions()}
+                </div>
+                <div className="text-sm text-route66-text-secondary">Attractions</div>
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Daily Breakdown */}
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-route66-text-primary">Daily Breakdown</h4>
-              
-              {tripPlan.segments?.map((segment, index) => (
-                <Card key={index} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="font-medium">
-                          Day {segment.day}
-                        </Badge>
-                        <div>
-                          <h5 className="font-semibold text-route66-text-primary">
-                            {segment.startCity} → {segment.endCity}
-                          </h5>
-                          {tripStartDate && (
-                            <p className="text-sm text-route66-text-secondary">
-                              {format(
-                                new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000),
-                                'EEEE, MMMM d, yyyy'
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-route66-text-primary">
-                          {Math.round(segment.distance)} miles
-                        </div>
-                        <div className="text-xs text-route66-text-secondary">
-                          {formatDrivingTime(segment.distance)}
-                        </div>
+          {/* Daily Breakdown */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-route66-text-primary">Daily Breakdown</h4>
+            
+            {tripPlan.segments?.map((segment, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="font-medium">
+                        Day {segment.day}
+                      </Badge>
+                      <div>
+                        <h5 className="font-semibold text-route66-text-primary">
+                          {segment.startCity} → {segment.endCity}
+                        </h5>
+                        {tripStartDate && (
+                          <p className="text-sm text-route66-text-secondary">
+                            {format(
+                              new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000),
+                              'EEEE, MMMM d, yyyy'
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
-
-                    {segment.attractions && segment.attractions.length > 0 && (
-                      <div className="mt-3">
-                        <h6 className="text-sm font-medium text-route66-text-primary mb-2">
-                          Recommended Stops ({segment.attractions.length}):
-                        </h6>
-                        <div className="flex flex-wrap gap-1">
-                          {segment.attractions.slice(0, 3).map((attraction, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {attraction.name}
-                            </Badge>
-                          ))}
-                          {segment.attractions.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{segment.attractions.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
+                    
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-route66-text-primary">
+                        {Math.round(segment.distance)} miles
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="text-xs text-route66-text-secondary">
+                        {formatDrivingTime(segment.distance)}
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Share Section */}
-            <div className="flex justify-center pt-4">
-              <ShareTripButton
-                onShare={onShareTrip}
-                shareUrl={shareUrl}
-                isGenerating={isGeneratingShareUrl}
-              />
-            </div>
+                  {segment.attractions && segment.attractions.length > 0 && (
+                    <div className="mt-3">
+                      <h6 className="text-sm font-medium text-route66-text-primary mb-2">
+                        Recommended Stops ({segment.attractions.length}):
+                      </h6>
+                      <div className="flex flex-wrap gap-1">
+                        {segment.attractions.slice(0, 3).map((attraction, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {attraction.name}
+                          </Badge>
+                        ))}
+                        {segment.attractions.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{segment.attractions.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        )}
+
+          {/* Share Section */}
+          <div className="flex justify-center pt-4">
+            <ShareTripButton
+              onShare={onShareTrip}
+              shareUrl={shareUrl}
+              isGenerating={isGeneratingShareUrl}
+            />
+          </div>
+        </TabsContent>
 
         {/* Weather Tab */}
-        {activeTab === 'weather' && (
+        <TabsContent value="weather">
           <WeatherTabContent
             segments={tripPlan.segments || []}
             tripStartDate={tripStartDate}
             tripId={tripPlan.id}
             isVisible={true}
           />
-        )}
+        </TabsContent>
 
-        {/* Other tabs */}
-        {activeTab === 'attractions' && (
+        {/* Attractions Tab */}
+        <TabsContent value="attractions">
           <AttractionsTabContent
             segments={tripPlan.segments || []}
             isVisible={true}
           />
-        )}
+        </TabsContent>
 
-        {activeTab === 'restaurants' && (
+        {/* Restaurants Tab */}
+        <TabsContent value="restaurants">
           <RestaurantsTabContent
             segments={tripPlan.segments || []}
             isVisible={true}
           />
-        )}
+        </TabsContent>
 
-        {activeTab === 'costs' && (
+        {/* Costs Tab */}
+        <TabsContent value="costs">
           <CostTabContent
             tripPlan={tripPlan}
             isVisible={true}
           />
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
