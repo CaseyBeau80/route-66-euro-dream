@@ -74,7 +74,17 @@ export class WeatherUtilityService {
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
     const isLive = this.isLiveForecast(weather, segmentDate);
-    return isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
+    const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
+    
+    console.log('🏷️ STANDARDIZED: Weather source label:', {
+      cityName: weather.cityName,
+      isLive,
+      label,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast
+    });
+    
+    return label;
   }
 
   /**

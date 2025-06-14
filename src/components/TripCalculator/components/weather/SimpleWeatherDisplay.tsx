@@ -29,7 +29,10 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     isActualForecast: weather.isActualForecast,
     sourceLabel,
     temperature: weather.temperature,
-    description: weather.description
+    highTemp: weather.highTemp,
+    lowTemp: weather.lowTemp,
+    description: weather.description,
+    segmentDate: segmentDate.toISOString()
   });
 
   return (

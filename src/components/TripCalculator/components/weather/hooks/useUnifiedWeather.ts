@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
+import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 
 interface UseUnifiedWeatherProps {
   cityName: string;
@@ -13,40 +14,32 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [hasFetched, setHasFetched] = React.useState(false);
+  const [fetchKey, setFetchKey] = React.useState(0);
 
   const fetchWeather = React.useCallback(async () => {
-    if (!segmentDate || hasFetched) {
-      console.log('🚫 STANDARDIZED: Skipping fetch - no date or already fetched:', { 
-        cityName, 
-        hasSegmentDate: !!segmentDate, 
-        hasFetched 
-      });
+    if (!segmentDate) {
+      console.log('🚫 STANDARDIZED: No segment date provided for', cityName);
       return;
     }
 
     console.log('🚀 STANDARDIZED: Starting weather fetch with unified logic:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
-      hasFetched,
-      standardizedApiKeyDetection: true
+      standardizedApiKeyDetection: true,
+      fetchKey
     });
 
     setLoading(true);
     setError(null);
-    setHasFetched(true);
+    setWeather(null); // Clear existing weather first
 
     try {
-      // STEP 1: ENHANCED API key detection - check all possible locations
-      const apiKey = getApiKeyFromAllSources();
-      const hasValidApiKey = !!(apiKey && apiKey.length >= 20 && !isPlaceholderKey(apiKey));
-
-      console.log('🔑 STANDARDIZED: Enhanced API key detection result:', {
+      // STEP 1: Check for API key using standardized manager
+      const hasValidApiKey = WeatherApiKeyManager.hasApiKey();
+      console.log('🔑 STANDARDIZED: API key detection result:', {
         cityName,
         hasValidApiKey,
-        keyLength: apiKey?.length || 0,
-        keyPreview: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
-        enhancedDetection: true
+        source: 'WeatherApiKeyManager'
       });
 
       // STEP 2: Calculate days from today for live forecast range
@@ -57,31 +50,32 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         cityName,
         daysFromNow,
         isWithinForecastRange,
-        shouldAttemptLive: hasValidApiKey && isWithinForecastRange,
-        enhancedLogic: true
+        shouldAttemptLive: hasValidApiKey && isWithinForecastRange
       });
 
       // STEP 3: ATTEMPT LIVE FORECAST if conditions are met
-      if (hasValidApiKey && apiKey && isWithinForecastRange) {
-        console.log('✅ STANDARDIZED: Attempting live forecast with enhanced API key detection:', cityName);
+      if (hasValidApiKey && isWithinForecastRange) {
+        console.log('✅ STANDARDIZED: Attempting live forecast with direct call:', cityName);
         
-        const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
-        
-        if (liveWeather) {
-          console.log('🎯 STANDARDIZED: Live forecast SUCCESS:', cityName, {
-            temperature: liveWeather.temperature,
-            source: liveWeather.source,
-            isActualForecast: liveWeather.isActualForecast,
-            description: liveWeather.description,
-            highTemp: liveWeather.highTemp,
-            lowTemp: liveWeather.lowTemp,
-            enhancedFlow: true
-          });
-          setWeather(liveWeather);
-          setLoading(false);
-          return;
-        } else {
-          console.warn('⚠️ STANDARDIZED: Live weather failed, using fallback for', cityName);
+        const apiKey = WeatherApiKeyManager.getApiKey();
+        if (apiKey) {
+          const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
+          
+          if (liveWeather) {
+            console.log('🎯 STANDARDIZED: Live forecast SUCCESS:', cityName, {
+              temperature: liveWeather.temperature,
+              highTemp: liveWeather.highTemp,
+              lowTemp: liveWeather.lowTemp,
+              source: liveWeather.source,
+              isActualForecast: liveWeather.isActualForecast,
+              description: liveWeather.description
+            });
+            setWeather(liveWeather);
+            setLoading(false);
+            return;
+          } else {
+            console.warn('⚠️ STANDARDIZED: Live weather failed, using fallback for', cityName);
+          }
         }
       } else {
         console.log('📝 STANDARDIZED: Skipping live weather attempt for', cityName, {
@@ -105,24 +99,24 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay, hasFetched]);
+  }, [cityName, segmentDate?.getTime(), segmentDay, fetchKey]);
 
-  // Auto-fetch when dependencies change and we haven't fetched yet
+  // Auto-fetch when dependencies change
   React.useEffect(() => {
-    if (segmentDate && !hasFetched && !loading) {
+    if (segmentDate && !loading && !weather) {
       console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
         hasSegmentDate: !!segmentDate,
-        hasFetched,
-        loading
+        loading,
+        hasWeather: !!weather
       });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchWeather, hasFetched, loading]);
+  }, [segmentDate?.getTime(), fetchWeather, loading, weather]);
 
-  // Manual refetch - reset hasFetched to allow new fetch
+  // Manual refetch - increment fetchKey to force new fetch
   const refetch = React.useCallback(() => {
     console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
-    setHasFetched(false);
+    setFetchKey(prev => prev + 1);
     setWeather(null);
     setError(null);
   }, [cityName]);
@@ -131,57 +125,11 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     weather,
     loading,
     error,
-    refetch,
-    hasFetched
+    refetch
   };
 };
 
-// ENHANCED: Get API key from all possible sources
-const getApiKeyFromAllSources = (): string | null => {
-  // Check primary storage location
-  const primaryKey = localStorage.getItem('weather_api_key');
-  if (primaryKey && primaryKey.trim()) {
-    console.log('🔑 Found API key in primary storage');
-    return primaryKey.trim();
-  }
-
-  // Check legacy storage location
-  const legacyKey = localStorage.getItem('openweathermap_api_key');
-  if (legacyKey && legacyKey.trim()) {
-    console.log('🔑 Found API key in legacy storage');
-    return legacyKey.trim();
-  }
-
-  // Check other possible storage keys
-  const alternativeKeys = [
-    'openweather_api_key',
-    'weather-api-key',
-    'weatherApiKey',
-    'owm_api_key'
-  ];
-
-  for (const keyName of alternativeKeys) {
-    const key = localStorage.getItem(keyName);
-    if (key && key.trim()) {
-      console.log('🔑 Found API key in alternative storage:', keyName);
-      return key.trim();
-    }
-  }
-
-  console.log('🔑 No API key found in any storage location');
-  return null;
-};
-
-// Check if API key is a placeholder
-const isPlaceholderKey = (key: string): boolean => {
-  const lowerKey = key.toLowerCase();
-  return lowerKey.includes('your_api_key') || 
-         lowerKey.includes('replace_with') ||
-         lowerKey.includes('example') ||
-         key === 'PLACEHOLDER_KEY';
-};
-
-// ENHANCED live weather fetching with proper source and isActualForecast values
+// Enhanced live weather fetching with proper temperature range extraction
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
@@ -223,18 +171,40 @@ const fetchLiveWeatherDirect = async (
       lastItemDate: data.list[data.list.length - 1]?.dt_txt
     });
 
-    // Find best match for target date
+    // Find all forecast items for the target date
     const targetDateString = targetDate.toISOString().split('T')[0];
-    let bestMatch = null;
-
-    // Try exact date match first
-    bestMatch = data.list.find((item: any) => {
+    const dateMatches = data.list.filter((item: any) => {
       const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
       return itemDate === targetDateString;
     });
 
-    // Use closest match if no exact date
-    if (!bestMatch) {
+    let bestMatch = null;
+    let highTemp = -Infinity;
+    let lowTemp = Infinity;
+
+    if (dateMatches.length > 0) {
+      // Use exact date matches and calculate proper temperature range
+      console.log('📅 STANDARDIZED: Found', dateMatches.length, 'exact date matches for', targetDateString);
+      
+      // Calculate temperature range from all forecast items for this date
+      dateMatches.forEach((item: any) => {
+        const temp = item.main.temp;
+        const tempMax = item.main.temp_max;
+        const tempMin = item.main.temp_min;
+        
+        // Track the highest and lowest temperatures across all forecasts for this date
+        highTemp = Math.max(highTemp, temp, tempMax);
+        lowTemp = Math.min(lowTemp, temp, tempMin);
+      });
+      
+      // Use the midday forecast (closest to noon) as representative
+      bestMatch = dateMatches.reduce((closest: any, current: any) => {
+        const currentHour = new Date(current.dt * 1000).getHours();
+        const closestHour = new Date(closest.dt * 1000).getHours();
+        return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
+      });
+    } else {
+      // Use closest match if no exact date
       const targetTime = targetDate.getTime();
       bestMatch = data.list.reduce((closest: any, current: any) => {
         const currentTime = new Date(current.dt * 1000).getTime();
@@ -242,6 +212,10 @@ const fetchLiveWeatherDirect = async (
         return Math.abs(currentTime - targetTime) < Math.abs(closestTime - targetTime) 
           ? current : closest;
       });
+      
+      // For single match, use its temperature range
+      highTemp = Math.max(bestMatch.main.temp, bestMatch.main.temp_max);
+      lowTemp = Math.min(bestMatch.main.temp, bestMatch.main.temp_min);
     }
 
     if (!bestMatch) {
@@ -255,15 +229,17 @@ const fetchLiveWeatherDirect = async (
       targetDate: targetDateString,
       matchedDate,
       matchType: matchedDate === targetDateString ? 'exact' : 'closest',
+      highTemp: Math.round(highTemp),
+      lowTemp: Math.round(lowTemp),
       temperature: Math.round(bestMatch.main.temp),
       description: bestMatch.weather[0]?.description
     });
 
-    // CRITICAL: Create live forecast with correct source and isActualForecast values
+    // Create live forecast with correct source and temperature range
     const liveWeatherResult: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
-      highTemp: Math.round(bestMatch.main.temp_max),
-      lowTemp: Math.round(bestMatch.main.temp_min),
+      highTemp: Math.round(highTemp),
+      lowTemp: Math.round(lowTemp),
       description: bestMatch.weather[0]?.description || 'Partly Cloudy',
       icon: bestMatch.weather[0]?.icon || '02d',
       humidity: bestMatch.main.humidity || 50,
@@ -284,7 +260,7 @@ const fetchLiveWeatherDirect = async (
       isActualForecast: liveWeatherResult.isActualForecast,
       source: liveWeatherResult.source,
       description: liveWeatherResult.description,
-      verifiedProperties: true
+      temperatureRange: `${liveWeatherResult.highTemp}°F/${liveWeatherResult.lowTemp}°F`
     });
 
     return liveWeatherResult;
@@ -359,6 +335,8 @@ const createStandardizedFallback = (cityName: string, targetDate: Date, segmentD
   console.log('✅ STANDARDIZED: Fallback weather created:', {
     cityName,
     temperature: fallbackWeather.temperature,
+    highTemp: fallbackWeather.highTemp,
+    lowTemp: fallbackWeather.lowTemp,
     description: fallbackWeather.description,
     source: fallbackWeather.source,
     isActualForecast: fallbackWeather.isActualForecast
