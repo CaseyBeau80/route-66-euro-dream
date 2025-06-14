@@ -1,3 +1,4 @@
+
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -13,7 +14,7 @@ export class SupabaseDataService {
     
     // In a real implementation, this would fetch only from destination_cities table
     // For now, return mock data that only includes destination cities
-    const stops = mockDestinationCitiesData.map(stop => ({
+    return mockDestinationCitiesData.map(stop => ({
       id: stop.id || `stop-${Math.random()}`,
       name: stop.name || 'Unknown Stop',
       description: stop.description || `Discover ${stop.name || 'this location'} along your Route 66 journey`,
@@ -27,10 +28,6 @@ export class SupabaseDataService {
       is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
       is_official_destination: stop.is_official_destination || false
     }));
-    
-    console.log('🔍 SupabaseDataService: Available cities:', stops.map(stop => `${stop.city_name}, ${stop.state}`).sort());
-    
-    return stops;
   }
   
   static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
@@ -68,7 +65,7 @@ export class SupabaseDataService {
   }
 }
 
-// Enhanced mock data with Los Angeles and all major Route 66 destinations
+// Mock data with enhanced Route 66 destination cities - REMOVED VICTORVILLE as it's a waypoint, not a destination city
 const mockDestinationCitiesData = [
   {
     id: 'chicago-il',
@@ -102,18 +99,6 @@ const mockDestinationCitiesData = [
     description: 'Gateway to the West with the iconic Gateway Arch and Route 66 State Park.',
     latitude: 38.6270,
     longitude: -90.1994,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'springfield-mo',
-    name: 'Springfield, MO',
-    city_name: 'Springfield',
-    state: 'Missouri',
-    description: 'Birthplace of Route 66 and Missouri\'s Queen City of the Ozarks.',
-    latitude: 37.2153,
-    longitude: -93.2982,
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined
@@ -167,30 +152,6 @@ const mockDestinationCitiesData = [
     image_url: undefined
   },
   {
-    id: 'shamrock-tx',
-    name: 'Shamrock, TX',
-    city_name: 'Shamrock',
-    state: 'Texas',
-    description: 'Historic Texas Route 66 town known for its Irish heritage and water tower.',
-    latitude: 35.2070,
-    longitude: -100.2437,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'tucumcari-nm',
-    name: 'Tucumcari, NM',
-    city_name: 'Tucumcari',
-    state: 'New Mexico',
-    description: 'Famous Route 66 town with vintage neon signs and classic motels.',
-    latitude: 35.1717,
-    longitude: -103.7250,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
     id: 'albuquerque-nm',
     name: 'Albuquerque, NM',
     city_name: 'Albuquerque',
@@ -215,42 +176,6 @@ const mockDestinationCitiesData = [
     image_url: undefined
   },
   {
-    id: 'gallup-nm',
-    name: 'Gallup, NM',
-    city_name: 'Gallup',
-    state: 'New Mexico',
-    description: 'Trading post town and gateway to Native American country.',
-    latitude: 35.5281,
-    longitude: -108.7426,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'holbrook-az',
-    name: 'Holbrook, AZ',
-    city_name: 'Holbrook',
-    state: 'Arizona',
-    description: 'Home to the famous Wigwam Motel and Petrified Forest National Park.',
-    latitude: 34.9025,
-    longitude: -110.1618,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'winslow-az',
-    name: 'Winslow, AZ',
-    city_name: 'Winslow',
-    state: 'Arizona',
-    description: 'Famous for the Eagles song "Take It Easy" and historic downtown.',
-    latitude: 35.0242,
-    longitude: -110.6974,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
     id: 'flagstaff-az',
     name: 'Flagstaff, AZ',
     city_name: 'Flagstaff',
@@ -270,18 +195,6 @@ const mockDestinationCitiesData = [
     description: 'Gateway to Grand Canyon and last Route 66 town to be bypassed.',
     latitude: 35.2494,
     longitude: -112.1901,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'seligman-az',
-    name: 'Seligman, AZ',
-    city_name: 'Seligman',
-    state: 'Arizona',
-    description: 'Birthplace of Historic Route 66 movement.',
-    latitude: 35.3258,
-    longitude: -112.8738,
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined
@@ -339,7 +252,7 @@ const mockDestinationCitiesData = [
     name: 'Los Angeles, CA',
     city_name: 'Los Angeles',
     state: 'California',
-    description: 'The City of Angels and major Route 66 destination with Hollywood, beaches, and endless attractions.',
+    description: 'The City of Angels and major Route 66 destination.',
     latitude: 34.0522,
     longitude: -118.2437,
     is_major_stop: true,
@@ -354,6 +267,78 @@ const mockDestinationCitiesData = [
     description: 'Western terminus of Route 66 at the famous Santa Monica Pier.',
     latitude: 34.0195,
     longitude: -118.4912,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'shamrock-tx',
+    name: 'Shamrock, TX',
+    city_name: 'Shamrock',
+    state: 'Texas',
+    description: 'Historic Texas Route 66 town known for its Irish heritage and water tower.',
+    latitude: 35.2070,
+    longitude: -100.2437,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'tucumcari-nm',
+    name: 'Tucumcari, NM',
+    city_name: 'Tucumcari',
+    state: 'New Mexico',
+    description: 'Famous Route 66 town with vintage neon signs and classic motels.',
+    latitude: 35.1717,
+    longitude: -103.7250,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'gallup-nm',
+    name: 'Gallup, NM',
+    city_name: 'Gallup',
+    state: 'New Mexico',
+    description: 'Trading post town and gateway to Native American country.',
+    latitude: 35.5281,
+    longitude: -108.7426,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'holbrook-az',
+    name: 'Holbrook, AZ',
+    city_name: 'Holbrook',
+    state: 'Arizona',
+    description: 'Home to the famous Wigwam Motel and Petrified Forest National Park.',
+    latitude: 34.9025,
+    longitude: -110.1618,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'winslow-az',
+    name: 'Winslow, AZ',
+    city_name: 'Winslow',
+    state: 'Arizona',
+    description: 'Famous for the Eagles song "Take It Easy" and historic downtown.',
+    latitude: 35.0242,
+    longitude: -110.6974,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined
+  },
+  {
+    id: 'seligman-az',
+    name: 'Seligman, AZ',
+    city_name: 'Seligman',
+    state: 'Arizona',
+    description: 'Birthplace of Historic Route 66 with classic roadside attractions.',
+    latitude: 35.3258,
+    longitude: -112.8738,
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined

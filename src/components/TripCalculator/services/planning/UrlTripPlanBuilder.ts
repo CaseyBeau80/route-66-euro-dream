@@ -19,10 +19,14 @@ export interface UrlTripParameters {
 }
 
 export class UrlTripPlanBuilder {
+  /**
+   * Build a trip plan from URL search parameters
+   */
   static async buildTripFromUrl(searchParams: URLSearchParams): Promise<UrlTripBuildResult> {
     try {
       console.log('🔗 UrlTripPlanBuilder: Parsing URL parameters');
 
+      // Parse required parameters
       const startCity = searchParams.get('start') || searchParams.get('startCity');
       const endCity = searchParams.get('end') || searchParams.get('endCity');
       const daysParam = searchParams.get('days') || searchParams.get('travelDays');
@@ -42,11 +46,10 @@ export class UrlTripPlanBuilder {
         };
       }
 
+      // Parse optional parameters
       const tripStyle = this.parseTripStyle(searchParams.get('style') || searchParams.get('tripStyle'));
       const tripStartDate = this.parseTripStartDate(searchParams);
-      
-      // FIXED: Default to true unless explicitly disabled
-      const useLiveWeather = searchParams.get('useLiveWeather') !== 'false';
+      const useLiveWeather = searchParams.get('useLiveWeather') === 'true';
 
       console.log('🔗 UrlTripPlanBuilder: Parsed parameters:', {
         startCity,
@@ -54,10 +57,10 @@ export class UrlTripPlanBuilder {
         days,
         tripStyle,
         tripStartDate: tripStartDate?.toISOString(),
-        useLiveWeather,
-        fixedDefaultToTrue: true
+        useLiveWeather
       });
 
+      // Build the trip plan using the existing service
       const tripPlan = await Route66TripPlannerService.planTrip(
         startCity,
         endCity,
@@ -86,6 +89,9 @@ export class UrlTripPlanBuilder {
     }
   }
 
+  /**
+   * Generate a shareable URL for a trip plan
+   */
   static generateShareUrl(
     tripPlan: TripPlan,
     tripStartDate?: Date,
@@ -94,6 +100,7 @@ export class UrlTripPlanBuilder {
     const baseUrl = window.location.origin;
     const params = new URLSearchParams();
 
+    // Required parameters
     if (tripPlan.startCity && tripPlan.endCity) {
       params.set('start', tripPlan.startCity);
       params.set('end', tripPlan.endCity);
@@ -104,6 +111,7 @@ export class UrlTripPlanBuilder {
 
     params.set('days', tripPlan.totalDays.toString());
 
+    // Optional parameters
     if (tripPlan.tripStyle && tripPlan.tripStyle !== 'balanced') {
       params.set('style', tripPlan.tripStyle);
     }
@@ -112,20 +120,23 @@ export class UrlTripPlanBuilder {
       params.set('tripStart', tripStartDate.toISOString().split('T')[0]);
     }
 
-    // FIXED: Always include useLiveWeather=true to ensure live weather is enabled
-    params.set('useLiveWeather', 'true');
+    if (useLiveWeather) {
+      params.set('useLiveWeather', 'true');
+    }
 
     const shareUrl = `${baseUrl}/shared-trip?${params.toString()}`;
     
-    console.log('🔗 FIXED: UrlTripPlanBuilder generated share URL with live weather enabled:', {
+    console.log('🔗 UrlTripPlanBuilder: Generated share URL:', {
       shareUrl,
-      parameters: Object.fromEntries(params),
-      ensuredLiveWeather: true
+      parameters: Object.fromEntries(params)
     });
 
     return shareUrl;
   }
 
+  /**
+   * Parse trip style from string parameter
+   */
   private static parseTripStyle(styleParam: string | null): 'balanced' | 'destination-focused' {
     if (styleParam === 'destination-focused' || styleParam === 'destination_focused') {
       return 'destination-focused';
@@ -133,6 +144,9 @@ export class UrlTripPlanBuilder {
     return 'balanced';
   }
 
+  /**
+   * Parse trip start date from various possible URL parameters
+   */
   private static parseTripStartDate(searchParams: URLSearchParams): Date | undefined {
     const possibleParams = [
       'tripStart',
@@ -169,6 +183,9 @@ export class UrlTripPlanBuilder {
     return undefined;
   }
 
+  /**
+   * Validate URL parameters without building the trip
+   */
   static validateUrlParameters(searchParams: URLSearchParams): {
     isValid: boolean;
     errors: string[];
@@ -176,6 +193,7 @@ export class UrlTripPlanBuilder {
   } {
     const errors: string[] = [];
 
+    // Check required parameters
     const startCity = searchParams.get('start') || searchParams.get('startCity');
     const endCity = searchParams.get('end') || searchParams.get('endCity');
     const daysParam = searchParams.get('days') || searchParams.get('travelDays');
@@ -204,7 +222,7 @@ export class UrlTripPlanBuilder {
         days: parseInt(daysParam!, 10),
         tripStart: this.parseTripStartDate(searchParams),
         style: this.parseTripStyle(searchParams.get('style') || searchParams.get('tripStyle')),
-        useLiveWeather: searchParams.get('useLiveWeather') !== 'false'
+        useLiveWeather: searchParams.get('useLiveWeather') === 'true'
       }
     };
   }

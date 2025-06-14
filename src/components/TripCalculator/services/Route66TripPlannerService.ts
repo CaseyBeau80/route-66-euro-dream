@@ -24,9 +24,6 @@ export class Route66TripPlannerService {
     const allStops = await EnhancedSupabaseDataService.fetchAllStops();
     console.log(`📊 STRICT: Total stops available for planning: ${allStops.length}`);
     
-    // Debug: Log all available city names
-    console.log(`🔍 DEBUG: All available cities:`, allStops.map(stop => `${stop.city_name}, ${stop.state}`).sort());
-    
     // STRICT: Filter to only destination cities for processing
     const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
     console.log(`🔒 STRICT: Processing only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
@@ -41,38 +38,14 @@ export class Route66TripPlannerService {
       }
     }
     
-    // Enhanced city matching function with improved fuzzy matching and special Los Angeles handling
+    // Enhanced city matching function with improved fuzzy matching
     const findCityStop = (cityName: string): TripStop | undefined => {
-      console.log(`🔍 STRICT: Searching for city: "${cityName}"`);
-      
       // Parse city and state from input (e.g., "Springfield, IL" or "Chicago, IL")
       const parts = cityName.split(',').map(part => part.trim());
       const cityOnly = parts[0].toLowerCase();
       const stateOnly = parts.length > 1 ? parts[1].toLowerCase() : null;
       
-      console.log(`🔍 STRICT: Parsed - city: "${cityOnly}", state: "${stateOnly}"`);
-      
-      // Special handling for Los Angeles variations
-      if (cityOnly.includes('los angeles') || cityOnly === 'la') {
-        console.log(`🎯 STRICT: Special Los Angeles handling activated`);
-        const losAngeles = destinationCitiesOnly.find(stop => {
-          const match = stop.city_name.toLowerCase().includes('los angeles') || 
-                       stop.name.toLowerCase().includes('los angeles');
-          console.log(`🔍 STRICT: Checking ${stop.city_name} for LA match: ${match}`);
-          return match;
-        });
-        
-        if (losAngeles) {
-          console.log(`✅ STRICT: Found Los Angeles: ${losAngeles.name} in ${CityDisplayService.getCityDisplayName(losAngeles)}`);
-          return losAngeles;
-        } else {
-          console.log(`❌ STRICT: Los Angeles not found in destination cities`);
-          console.log(`🔍 STRICT: Available CA cities:`, destinationCitiesOnly
-            .filter(stop => stop.state.toLowerCase().includes('california') || stop.state.toLowerCase().includes('ca'))
-            .map(stop => stop.city_name)
-          );
-        }
-      }
+      console.log(`🔍 STRICT: Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
       
       // Special handling for Santa Fe - most common search terms
       if (cityOnly.includes('santa fe') || cityOnly.includes('santa_fe')) {
@@ -95,8 +68,8 @@ export class Route66TripPlannerService {
           const stopName = stop.name.toLowerCase();
           
           // Check for exact matches with city and state
-          const exactCityStateMatch = stopCity === cityOnly && (stopState === stateOnly || stopState.includes(stateOnly));
-          const nameExactStateMatch = stopName === cityOnly && (stopState === stateOnly || stopState.includes(stateOnly));
+          const exactCityStateMatch = stopCity === cityOnly && stopState === stateOnly;
+          const nameExactStateMatch = stopName === cityOnly && stopState === stateOnly;
           
           return exactCityStateMatch || nameExactStateMatch;
         });
@@ -112,7 +85,7 @@ export class Route66TripPlannerService {
           const stopState = stop.state.toLowerCase();
           const stopName = stop.name.toLowerCase();
           
-          if (!stopState.includes(stateOnly)) return false;
+          if (stopState !== stateOnly) return false;
           
           const cityContains = stopCity.includes(cityOnly) || cityOnly.includes(stopCity);
           const nameContains = stopName.includes(cityOnly) || cityOnly.includes(stopName);
@@ -145,7 +118,7 @@ export class Route66TripPlannerService {
         // Return first match since all are destination cities
         const firstMatch = cityOnlyMatches[0];
         console.log(`✅ STRICT: Found destination city match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
-        if (stateOnly && !firstMatch.state.toLowerCase().includes(stateOnly)) {
+        if (stateOnly && firstMatch.state.toLowerCase() !== stateOnly) {
           console.log(`⚠️ STRICT: Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
         }
         return firstMatch;

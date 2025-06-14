@@ -1,3 +1,4 @@
+
 import { SupabaseConnectionService } from './SupabaseConnectionService';
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -99,10 +100,10 @@ export class EnhancedSupabaseDataService {
   }
 
   /**
-   * Get static fallback data with Los Angeles and all major Route 66 destinations
+   * Get static fallback data with only destination cities (no waypoints like Victorville)
    */
   private static getStaticFallbackStops(): UnifiedTripStop[] {
-    console.log('📋 Enhanced: Using static fallback data with all major destinations including Los Angeles');
+    console.log('📋 Enhanced: Using static fallback data with destination cities only (Victorville removed)');
     
     return [
       {
@@ -117,6 +118,30 @@ export class EnhancedSupabaseDataService {
         longitude: -87.6298,
         is_major_stop: true,
         is_official_destination: true
+      },
+      {
+        id: "joliet-il",
+        name: "Joliet",
+        description: "Historic Route 66 city in Illinois",
+        category: "destination_city",
+        city_name: "Joliet", 
+        city: "Joliet",
+        state: "IL",
+        latitude: 41.5250,
+        longitude: -88.0817,
+        is_major_stop: true
+      },
+      {
+        id: "pontiac-il",
+        name: "Pontiac",
+        description: "Historic Route 66 town in Illinois",
+        category: "destination_city",
+        city_name: "Pontiac",
+        city: "Pontiac", 
+        state: "IL",
+        latitude: 40.8808,
+        longitude: -88.6298,
+        is_major_stop: true
       },
       {
         id: "springfield-il",
@@ -192,15 +217,15 @@ export class EnhancedSupabaseDataService {
         is_major_stop: true
       },
       {
-        id: "amarillo-tx",
-        name: "Amarillo",
-        description: "Texas Panhandle city famous for Cadillac Ranch", 
+        id: "elk-city-ok",
+        name: "Elk City",
+        description: "Historic Route 66 town in western Oklahoma",
         category: "destination_city",
-        city_name: "Amarillo",
-        city: "Amarillo",
-        state: "TX",
-        latitude: 35.2220,
-        longitude: -101.8313,
+        city_name: "Elk City",
+        city: "Elk City", 
+        state: "OK",
+        latitude: 35.4112,
+        longitude: -99.4043,
         is_major_stop: true
       },
       {
@@ -216,6 +241,18 @@ export class EnhancedSupabaseDataService {
         is_major_stop: true
       },
       {
+        id: "amarillo-tx",
+        name: "Amarillo",
+        description: "Texas Panhandle city famous for Cadillac Ranch", 
+        category: "destination_city",
+        city_name: "Amarillo",
+        city: "Amarillo",
+        state: "TX",
+        latitude: 35.2220,
+        longitude: -101.8313,
+        is_major_stop: true
+      },
+      {
         id: "tucumcari-nm",
         name: "Tucumcari",
         description: "Historic Route 66 town with vintage neon signs",
@@ -228,15 +265,15 @@ export class EnhancedSupabaseDataService {
         is_major_stop: true
       },
       {
-        id: "albuquerque-nm",
-        name: "Albuquerque",
-        description: "High desert city with vibrant Route 66 culture",
+        id: "santa-rosa-nm",
+        name: "Santa Rosa",
+        description: "The City of Natural Lakes on Route 66",
         category: "destination_city",
-        city_name: "Albuquerque",
-        city: "Albuquerque", 
-        state: "NM",
-        latitude: 35.0844,
-        longitude: -106.6504,
+        city_name: "Santa Rosa", 
+        city: "Santa Rosa",
+        state: "NM", 
+        latitude: 34.9394,
+        longitude: -104.6819,
         is_major_stop: true
       },
       {
@@ -251,6 +288,18 @@ export class EnhancedSupabaseDataService {
         longitude: -105.9378,
         is_major_stop: true,
         is_official_destination: true
+      },
+      {
+        id: "albuquerque-nm",
+        name: "Albuquerque",
+        description: "High desert city with vibrant Route 66 culture",
+        category: "destination_city",
+        city_name: "Albuquerque",
+        city: "Albuquerque", 
+        state: "NM",
+        latitude: 35.0844,
+        longitude: -106.6504,
+        is_major_stop: true
       },
       {
         id: "gallup-nm", 
@@ -375,15 +424,14 @@ export class EnhancedSupabaseDataService {
       {
         id: "los-angeles-ca", 
         name: "Los Angeles",
-        description: "The City of Angels and major Route 66 destination with Hollywood, beaches, and endless attractions",
+        description: "The City of Angels and Route 66's western terminus region",
         category: "destination_city",
         city_name: "Los Angeles",
         city: "Los Angeles",
         state: "CA",
         latitude: 34.0522,
         longitude: -118.2437,
-        is_major_stop: true,
-        is_official_destination: true
+        is_major_stop: true
       },
       {
         id: "santa-monica-ca",
