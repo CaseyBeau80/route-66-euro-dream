@@ -1,55 +1,36 @@
+
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
-import { useSharedViewWeather } from './useSharedViewWeather';
 
 interface UseUnifiedWeatherProps {
   cityName: string;
   segmentDate: Date | null;
   segmentDay: number;
-  isSharedView?: boolean;
 }
 
-export const useUnifiedWeather = ({ 
-  cityName, 
-  segmentDate, 
-  segmentDay, 
-  isSharedView = false 
-}: UseUnifiedWeatherProps) => {
+export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnifiedWeatherProps) => {
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Use shared view weather hook for shared views
-  const {
-    weather: sharedWeather,
-    loading: sharedLoading,
-    error: sharedError,
-    refetch: refetchShared
-  } = useSharedViewWeather({
-    cityName,
-    segmentDate,
-    segmentDay,
-    isSharedView
-  });
-
-  const fetchRegularWeather = React.useCallback(async () => {
-    if (!segmentDate || isSharedView) {
-      console.log('🚫 UNIFIED: Skipping regular weather - no date or is shared view');
+  const fetchWeather = React.useCallback(async () => {
+    if (!segmentDate) {
+      console.log('🚫 UNIFIED: No segment date, skipping fetch for', cityName);
       return;
     }
 
-    console.log('🚀 UNIFIED: Starting regular weather fetch for:', cityName, {
+    console.log('🚀 UNIFIED: Starting AGGRESSIVE live weather fetch for shared view:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
-      isSharedView: false
+      forcingLiveWeatherForSharedViews: true
     });
 
     setLoading(true);
     setError(null);
 
     try {
-      // Check for API key in regular views
+      // AGGRESSIVE API key detection - check ALL possible storage locations
       const possibleKeys = [
         localStorage.getItem('weather_api_key'),
         localStorage.getItem('openweathermap_api_key'),
@@ -65,96 +46,141 @@ export const useUnifiedWeather = ({
         !key.includes('REPLACE')
       );
 
+      console.log('🔑 UNIFIED: AGGRESSIVE API key detection results:', {
+        cityName,
+        foundKeys: possibleKeys.length,
+        hasValidKey: !!validApiKey,
+        keyLength: validApiKey?.length || 0,
+        keyPreview: validApiKey ? `${validApiKey.substring(0, 8)}...` : 'none',
+        prioritizingLiveWeatherForSharedView: true
+      });
+
+      // Calculate days from today - be MORE permissive for shared views
       const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-      const isWithinForecastRange = daysFromNow >= -2 && daysFromNow <= 7;
+      const isWithinForecastRange = daysFromNow >= -2 && daysFromNow <= 7; // Expanded range for shared views
       
-      // Try live forecast if API key available and within range
+      console.log('📅 UNIFIED: Enhanced date analysis for shared view:', {
+        cityName,
+        daysFromNow,
+        isWithinForecastRange,
+        shouldAttemptLive: validApiKey && isWithinForecastRange,
+        expandedRangeForSharedViews: true
+      });
+
+      // PRIORITIZE live forecast aggressively for shared views
       if (validApiKey && isWithinForecastRange) {
-        console.log('✅ UNIFIED: Attempting live weather with API key');
+        console.log('✅ UNIFIED: Attempting LIVE WEATHER with enhanced shared view support:', cityName);
         
         const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, validApiKey);
         
         if (liveWeather) {
-          console.log('🎯 UNIFIED: Live weather success:', {
+          console.log('🎯 UNIFIED: LIVE WEATHER SUCCESS for shared view:', cityName, {
             temperature: liveWeather.temperature,
             source: liveWeather.source,
-            isActualForecast: liveWeather.isActualForecast
+            isActualForecast: liveWeather.isActualForecast,
+            description: liveWeather.description,
+            highTemp: liveWeather.highTemp,
+            lowTemp: liveWeather.lowTemp
           });
           setWeather(liveWeather);
           setLoading(false);
           return;
+        } else {
+          console.warn('⚠️ UNIFIED: Live weather API failed, will use fallback for', cityName);
         }
+      } else {
+        console.log('📝 UNIFIED: Skipping live weather attempt for', cityName, {
+          reason: !validApiKey ? 'no_valid_api_key' : 'outside_expanded_forecast_range',
+          hasValidKey: !!validApiKey,
+          isWithinForecastRange,
+          daysFromNow
+        });
       }
 
-      // Create fallback weather
+      // Create fallback weather as last resort
+      console.log('🔄 UNIFIED: Creating fallback weather for', cityName);
       const fallbackWeather = createFallbackWeather(cityName, segmentDate, segmentDay);
       setWeather(fallbackWeather);
 
     } catch (err) {
-      console.error('❌ UNIFIED: Weather fetch error:', err);
+      console.error('❌ UNIFIED: Weather fetch error for', cityName, err);
       const fallbackWeather = createFallbackWeather(cityName, segmentDate, segmentDay);
       setWeather(fallbackWeather);
       setError('Weather temporarily unavailable');
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay, isSharedView]);
+  }, [cityName, segmentDate?.getTime(), segmentDay]);
 
-  // Use appropriate weather source based on view type
+  // Auto-fetch when dependencies change
   React.useEffect(() => {
-    if (isSharedView) {
-      // Shared view weather is handled by useSharedViewWeather hook
-      console.log('🌍 UNIFIED: Using shared view weather hook');
-      setWeather(sharedWeather);
-      setLoading(sharedLoading);
-      setError(sharedError);
-    } else if (segmentDate) {
-      // Regular view weather
-      console.log('🔄 UNIFIED: Using regular weather fetch');
-      fetchRegularWeather();
+    if (segmentDate) {
+      console.log('🔄 UNIFIED: Auto-triggering weather fetch for', cityName);
+      fetchWeather();
     }
-  }, [isSharedView, sharedWeather, sharedLoading, sharedError, fetchRegularWeather]);
-
-  const refetch = React.useCallback(() => {
-    if (isSharedView) {
-      refetchShared();
-    } else {
-      fetchRegularWeather();
-    }
-  }, [isSharedView, refetchShared, fetchRegularWeather]);
+  }, [segmentDate?.getTime(), fetchWeather]);
 
   return {
     weather,
     loading,
     error,
-    refetch
+    refetch: fetchWeather
   };
 };
 
-// Enhanced live weather fetching function (unchanged)
+// Enhanced live weather fetching with better error handling for shared views
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    const coords = await getCoordinatesEnhanced(cityName, apiKey);
-    if (!coords) return null;
+    console.log('🌤️ UNIFIED: Starting ENHANCED live weather fetch for shared view:', cityName);
 
+    // Get coordinates with enhanced city name processing
+    const coords = await getCoordinatesEnhanced(cityName, apiKey);
+    if (!coords) {
+      console.log('❌ UNIFIED: Failed to get coordinates for', cityName);
+      return null;
+    }
+
+    console.log('✅ UNIFIED: Got coordinates for', cityName, coords);
+
+    // Fetch weather data with enhanced error handling
     const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
     const response = await fetch(weatherUrl);
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.log('❌ UNIFIED: Weather API failed for', cityName, {
+        status: response.status,
+        statusText: response.statusText
+      });
+      return null;
+    }
 
     const data = await response.json();
-    if (!data.list || data.list.length === 0) return null;
+    if (!data.list || data.list.length === 0) {
+      console.log('❌ UNIFIED: No forecast data for', cityName);
+      return null;
+    }
 
+    console.log('✅ UNIFIED: Got forecast data for', cityName, {
+      forecastItems: data.list.length,
+      firstItemDate: data.list[0]?.dt_txt,
+      lastItemDate: data.list[data.list.length - 1]?.dt_txt
+    });
+
+    // Enhanced date matching strategy
     const targetDateString = targetDate.toISOString().split('T')[0];
-    let bestMatch = data.list.find((item: any) => {
+    let bestMatch = null;
+
+    // Strategy 1: Find exact date match
+    bestMatch = data.list.find((item: any) => {
       const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
       return itemDate === targetDateString;
     });
 
+    // Strategy 2: Find closest match if no exact date
     if (!bestMatch) {
       const targetTime = targetDate.getTime();
       bestMatch = data.list.reduce((closest: any, current: any) => {
@@ -165,9 +191,23 @@ const fetchLiveWeatherDirect = async (
       });
     }
 
-    if (!bestMatch) return null;
+    if (!bestMatch) {
+      console.log('❌ UNIFIED: No suitable forecast match for', cityName);
+      return null;
+    }
 
-    return {
+    const matchedDate = new Date(bestMatch.dt * 1000).toISOString().split('T')[0];
+    console.log('✅ UNIFIED: Enhanced weather match found for shared view:', {
+      cityName,
+      targetDate: targetDateString,
+      matchedDate,
+      matchType: matchedDate === targetDateString ? 'exact' : 'closest',
+      temperature: Math.round(bestMatch.main.temp),
+      description: bestMatch.weather[0]?.description
+    });
+
+    // Create live forecast with verified properties for shared view
+    const liveWeatherResult: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
       highTemp: Math.round(bestMatch.main.temp_max),
       lowTemp: Math.round(bestMatch.main.temp_min),
@@ -179,20 +219,38 @@ const fetchLiveWeatherDirect = async (
       cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: true,
-      source: 'live_forecast' as const
+      isActualForecast: true, // CRITICAL: Must be true for live forecasts
+      source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
     };
+
+    console.log('🎯 UNIFIED: LIVE FORECAST CREATED for shared view:', {
+      cityName,
+      temperature: liveWeatherResult.temperature,
+      highTemp: liveWeatherResult.highTemp,
+      lowTemp: liveWeatherResult.lowTemp,
+      isActualForecast: liveWeatherResult.isActualForecast,
+      source: liveWeatherResult.source,
+      description: liveWeatherResult.description,
+      verifiedForSharedView: true
+    });
+
+    return liveWeatherResult;
   } catch (error) {
-    console.error('❌ UNIFIED: Live weather fetch error:', error);
+    console.error('❌ UNIFIED: Live weather fetch error for shared view:', error);
     return null;
   }
 };
 
+// Enhanced geocoding function with better US city handling
 const getCoordinatesEnhanced = async (cityName: string, apiKey: string) => {
   try {
+    // Enhanced city name processing for better geocoding results
     let cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
     cleanCityName = cleanCityName.replace(/\s*(Route 66|Historic Route 66)/gi, '');
+    
+    console.log('🔍 UNIFIED: Enhanced geocoding for shared view:', cityName, '→', cleanCityName);
 
+    // Try multiple geocoding strategies
     const strategies = [
       `${cleanCityName},US`,
       `${cleanCityName}, United States`,
@@ -209,13 +267,19 @@ const getCoordinatesEnhanced = async (cityName: string, apiKey: string) => {
         const data = await response.json();
         if (!data || data.length === 0) continue;
 
+        // Prefer US results
         const usResult = data.find((r: any) => r.country === 'US') || data[0];
-        return { lat: usResult.lat, lng: usResult.lon };
+        const coords = { lat: usResult.lat, lng: usResult.lon };
+        
+        console.log('✅ UNIFIED: Coordinates found with strategy:', searchTerm, coords);
+        return coords;
       } catch (err) {
+        console.warn('⚠️ UNIFIED: Geocoding strategy failed:', searchTerm, err);
         continue;
       }
     }
     
+    console.log('❌ UNIFIED: All geocoding strategies failed for', cityName);
     return null;
   } catch (error) {
     console.error('❌ UNIFIED: Geocoding error:', error);
@@ -223,6 +287,7 @@ const getCoordinatesEnhanced = async (cityName: string, apiKey: string) => {
   }
 };
 
+// Helper function to create fallback weather
 const createFallbackWeather = (cityName: string, targetDate: Date, segmentDay: number): ForecastWeatherData => {
   const targetDateString = targetDate.toISOString().split('T')[0];
   const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
