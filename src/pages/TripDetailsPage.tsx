@@ -23,16 +23,16 @@ const TripDetailsPage: React.FC = () => {
 
   // Extract trip start date from URL parameters and add to URL if missing
   useEffect(() => {
-    if (trip?.trip_data?.tripStartDate) {
+    if (trip?.trip_data?.startDate) {
       const urlParams = new URLSearchParams(window.location.search);
       const hasStartDateParam = urlParams.has('tripStart') || urlParams.has('startDate');
       
       if (!hasStartDateParam) {
         // Add trip start date to URL for weather widget access
-        urlParams.set('tripStart', trip.trip_data.tripStartDate);
+        urlParams.set('tripStart', trip.trip_data.startDate);
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
         window.history.replaceState({}, '', newUrl);
-        console.log('🔧 TripDetailsPage: Added tripStart to URL:', trip.trip_data.tripStartDate);
+        console.log('🔧 TripDetailsPage: Added tripStart to URL:', trip.trip_data.startDate);
       }
     }
   }, [trip]);
@@ -73,7 +73,7 @@ const TripDetailsPage: React.FC = () => {
           hasTripData: !!tripData.trip_data,
           startCity: tripData.trip_data?.startCity,
           endCity: tripData.trip_data?.endCity,
-          tripStartDate: tripData.trip_data?.tripStartDate
+          startDate: tripData.trip_data?.startDate
         });
         
         // Validate trip data structure before setting state
@@ -128,7 +128,7 @@ const TripDetailsPage: React.FC = () => {
     hasError: !!error,
     hasTrip: !!trip,
     pageTitle,
-    tripStartDate: trip?.trip_data?.tripStartDate
+    startDate: trip?.trip_data?.startDate
   });
 
   if (loading) {
@@ -172,7 +172,7 @@ const TripDetailsPage: React.FC = () => {
     tripTitle: trip.title,
     shareUrl,
     hasShareUrl: !!shareUrl,
-    tripStartDate: trip.trip_data?.tripStartDate
+    startDate: trip.trip_data?.startDate
   });
 
   return (

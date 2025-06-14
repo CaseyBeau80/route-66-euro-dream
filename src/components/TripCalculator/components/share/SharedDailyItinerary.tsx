@@ -87,7 +87,8 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          isSharedView: true
+          isSharedView: true,
+          forcingLiveWeather: true
         });
 
         return (
@@ -143,12 +144,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Section with Trip Start Date */}
+              {/* Enhanced Weather Section - Force Live Weather */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather for {segment.endCity}
                   </h4>
+                  <p className="text-xs text-gray-500">Live forecast when available</p>
                 </div>
                 
                 <div className="weather-widget-container">
