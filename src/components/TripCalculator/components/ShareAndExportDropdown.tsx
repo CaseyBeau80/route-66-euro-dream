@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,8 +18,9 @@ interface ShareAndExportDropdownProps {
   tripTitle: string;
   tripPlan: TripPlan;
   tripStartDate?: Date;
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'primary';
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
   size?: 'default' | 'sm' | 'lg' | 'icon';
+  className?: string;
 }
 
 const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
@@ -29,7 +29,8 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   tripPlan,
   tripStartDate,
   variant = 'default',
-  size = 'default'
+  size = 'default',
+  className
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState<string | null>(shareUrl || null);
@@ -120,7 +121,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant={variant} size={size} className="gap-2">
+          <Button variant={variant} size={size} className={`gap-2 ${className || ''}`}>
             <Share2 className="h-4 w-4" />
             Share & Export
           </Button>
