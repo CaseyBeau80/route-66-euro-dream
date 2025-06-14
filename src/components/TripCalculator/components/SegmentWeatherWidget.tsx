@@ -32,11 +32,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🔧 FIXED: SegmentWeatherWidget for Day ${segment.day} - ${segment.endCity}`, {
+  console.log(`🔧 PLAN: SegmentWeatherWidget enhanced implementation for Day ${segment.day} - ${segment.endCity}`, {
     isSharedView,
     isPDFExport,
     hasValidStartDate: !!tripStartDate,
-    fixedRendering: true
+    segmentDay: segment.day,
+    planImplementation: 'enhanced_widget_flow'
   });
 
   // Use the focused API key hook
@@ -44,23 +45,25 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   
   // Calculate segment date using normalized service
   const segmentDate = React.useMemo(() => {
-    console.log(`🔧 FIXED: Date calculation for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🔧 PLAN: Enhanced date calculation for Day ${segment.day} - ${segment.endCity}`, {
       tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
       segmentDay: segment.day,
-      isSharedView
+      isSharedView,
+      planImplementation: 'enhanced_date_calculation'
     });
 
     if (!tripStartDate) {
-      console.log(`🔧 FIXED: No tripStartDate for Day ${segment.day} - ${segment.endCity}`);
+      console.log(`🔧 PLAN: No tripStartDate for Day ${segment.day} - ${segment.endCity}`);
       return null;
     }
     
     const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log(`🔧 FIXED: Date result for Day ${segment.day} - ${segment.endCity}`, {
+    console.log(`🔧 PLAN: Date result for Day ${segment.day} - ${segment.endCity}`, {
       calculatedDate: calculatedDate?.toISOString(),
       isValid: calculatedDate instanceof Date && !isNaN(calculatedDate.getTime()),
-      isSharedView
+      isSharedView,
+      planImplementation: 'date_validation'
     });
     
     return calculatedDate;
@@ -83,32 +86,40 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     setRetryCount: weatherState.incrementRetry
   });
 
-  // FIXED: Force weather fetch in shared views immediately
+  // PLAN IMPLEMENTATION: Enhanced shared view weather fetching
   React.useEffect(() => {
     if (isSharedView && hasApiKey && segmentDate && !weatherState.weather && !weatherState.loading) {
-      console.log(`🔧 FIXED: Forcing weather fetch for shared view Day ${segment.day} - ${segment.endCity}`);
+      console.log(`🔧 PLAN: Enhanced shared view weather fetch for Day ${segment.day} - ${segment.endCity}`, {
+        hasApiKey,
+        hasSegmentDate: !!segmentDate,
+        hasWeather: !!weatherState.weather,
+        isLoading: weatherState.loading,
+        planImplementation: 'enhanced_shared_view_fetch'
+      });
       weatherHandlers.handleRetry();
     }
   }, [isSharedView, hasApiKey, segmentDate, weatherState.weather, weatherState.loading, segment.endCity, segment.day]);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log(`🔧 FIXED: handleApiKeySet for Day ${segment.day} - ${segment.endCity}`);
+    console.log(`🔧 PLAN: Enhanced handleApiKeySet for Day ${segment.day} - ${segment.endCity}`);
     refreshApiKey();
     weatherHandlers.handleApiKeySet();
   }, [refreshApiKey, weatherHandlers, segment.endCity, segment.day]);
 
-  // Mark weather as ready for rendering
+  // PLAN IMPLEMENTATION: Enhanced weather ready marking with debug info
   React.useEffect(() => {
     if (weatherState.weather && !weatherState.loading && segmentDate) {
-      console.log(`🔧 FIXED: Weather ready for Day ${segment.day} - ${segment.endCity}`, {
+      console.log(`🔧 PLAN: Enhanced weather ready marking for Day ${segment.day} - ${segment.endCity}`, {
         weatherData: {
           temperature: weatherState.weather.temperature,
           highTemp: weatherState.weather.highTemp,
           lowTemp: weatherState.weather.lowTemp,
-          isActualForecast: weatherState.weather.isActualForecast
+          isActualForecast: weatherState.weather.isActualForecast,
+          source: weatherState.weather.source
         },
         isSharedView,
-        sectionKey
+        sectionKey,
+        planImplementation: 'enhanced_ready_marking'
       });
 
       const element = document.querySelector(`[data-segment-day="${segment.day}"]`);
@@ -125,13 +136,14 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
 
   const containerClass = isCollapsible ? 'bg-gray-50 rounded-lg p-3' : '';
 
-  console.log(`🔧 FIXED: Rendering SegmentWeatherWidget for Day ${segment.day} - ${segment.endCity}`, {
+  console.log(`🔧 PLAN: Enhanced rendering SegmentWeatherWidget for Day ${segment.day} - ${segment.endCity}`, {
     hasWeather: !!weatherState.weather,
     loading: weatherState.loading,
     hasApiKey,
     hasSegmentDate: !!segmentDate,
     isSharedView,
-    willRenderContent: true
+    error: weatherState.error,
+    planImplementation: 'enhanced_final_render'
   });
 
   return (

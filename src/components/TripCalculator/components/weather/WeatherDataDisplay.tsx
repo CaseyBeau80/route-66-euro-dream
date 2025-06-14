@@ -24,23 +24,26 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDataDisplay PLAN IMPLEMENTATION for', cityName, {
+  console.log('🎯 PLAN: WeatherDataDisplay implementation for', cityName, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
     isPDFExport,
     weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null,
-    planImplementation: 'prioritize_actual_weather'
+    planImplementation: 'enhanced_weather_data_priority'
   });
 
   // PLAN IMPLEMENTATION: ALWAYS prioritize actual weather data if available
   if (weather && segmentDate) {
     const weatherType = WeatherTypeDetector.detectWeatherType(weather);
     
-    console.log(`🎯 WeatherDataDisplay: PLAN - Using actual weather data for ${cityName}`, {
+    console.log(`🎯 PLAN: Using actual weather data for ${cityName}`, {
       isActualForecast: weather.isActualForecast,
       source: weather.source,
       weatherType,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
       planImplementation: 'actual_weather_priority'
     });
 
@@ -55,7 +58,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // PLAN IMPLEMENTATION: Only show seasonal fallback in shared views if NO weather data after fetch attempts
+  // PLAN IMPLEMENTATION: Enhanced fallback logic for shared views
   if ((isSharedView || isPDFExport) && segmentDate && !weather) {
     console.log(`🌱 PLAN: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
     return (
@@ -69,6 +72,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
 
   // PLAN IMPLEMENTATION: Show "not available" only as absolute last resort in shared views
   if (isSharedView || isPDFExport) {
+    console.log(`🚫 PLAN: Last resort - no weather or date available for ${cityName} in shared view`);
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -78,6 +82,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   }
 
   // Regular view - show error state with retry option
+  console.log(`⚠️ PLAN: Showing error state for ${cityName} in regular view`);
   return (
     <div className="bg-amber-50 border border-amber-200 rounded p-3">
       <div className="text-amber-800 text-sm">

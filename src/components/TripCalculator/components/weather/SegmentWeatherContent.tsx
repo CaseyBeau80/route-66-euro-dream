@@ -35,16 +35,31 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ FIXED: SegmentWeatherContent for', segmentEndCity, {
+  // PLAN IMPLEMENTATION: Enhanced logging for weather data flow
+  console.log('🌤️ PLAN: SegmentWeatherContent enhanced flow analysis for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
+    weatherType: weather ? (weather.isActualForecast ? 'LIVE_FORECAST' : 'HISTORICAL') : 'NONE',
     error,
     isSharedView,
     isPDFExport,
     hasSegmentDate: !!segmentDate,
-    fixedFlow: true
+    retryCount,
+    planImplementation: 'enhanced_logging_and_flow_control'
   });
+
+  if (weather) {
+    console.log('🌤️ PLAN: Weather data details for', segmentEndCity, {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      isActualForecast: weather.isActualForecast,
+      source: weather.source,
+      matchedForecastDay: !!weather.matchedForecastDay,
+      planImplementation: 'weather_data_inspection'
+    });
+  }
 
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {
     hasApiKey,
@@ -55,8 +70,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // FIXED: Show loading state first
+  // PLAN IMPLEMENTATION: Show loading state first - no changes to this logic
   if (loading) {
+    console.log('🌤️ PLAN: Showing loading state for', segmentEndCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-600">
@@ -67,9 +83,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: If we have weather data, ALWAYS display it (highest priority)
+  // PLAN IMPLEMENTATION: If we have weather data, ALWAYS display it (highest priority)
   if (weather) {
-    console.log(`🎯 FIXED: Using actual weather data for ${segmentEndCity}`);
+    console.log(`🎯 PLAN: Using actual weather data for ${segmentEndCity} - PRIORITY DISPLAY`);
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -83,20 +99,30 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: For shared views without weather data, show seasonal fallback ONLY if we have a date
-  if ((isSharedView || isPDFExport) && segmentDate) {
-    console.log(`🌱 FIXED: Using seasonal fallback for ${segmentEndCity} in shared view`);
-    return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={segmentEndCity}
-        compact={true}
-      />
-    );
-  }
-
-  // FIXED: For shared views without date, show not available message
+  // PLAN IMPLEMENTATION: Enhanced shared view logic - prevent premature exits
   if (isSharedView || isPDFExport) {
+    console.log(`🌱 PLAN: Shared view handling for ${segmentEndCity}`, {
+      hasSegmentDate: !!segmentDate,
+      hasApiKey,
+      weatherFetchAttempted: !loading,
+      willShowSeasonalFallback: !!segmentDate,
+      planImplementation: 'enhanced_shared_view_logic'
+    });
+
+    // PLAN: For shared views, show seasonal fallback if we have a date but no weather
+    if (segmentDate) {
+      console.log(`🌱 PLAN: Using seasonal fallback for ${segmentEndCity} in shared view`);
+      return (
+        <SeasonalWeatherFallback 
+          segmentDate={segmentDate}
+          cityName={segmentEndCity}
+          compact={true}
+        />
+      );
+    }
+
+    // PLAN: Only show "not available" if we absolutely have no date
+    console.log(`🚫 PLAN: No date available for ${segmentEndCity} in shared view`);
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -107,6 +133,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
 
   // For regular views without API key, show the API key input
   if (!hasApiKey && !isSharedView && !isPDFExport) {
+    console.log(`🔑 PLAN: Showing API key input for ${segmentEndCity} in regular view`);
     return (
       <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
@@ -121,6 +148,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   }
 
   // Regular view with error - show retry option
+  console.log(`⚠️ PLAN: Showing error state for ${segmentEndCity} in regular view`);
   return (
     <div className="space-y-3">
       <div className="bg-amber-50 border border-amber-200 rounded p-3">

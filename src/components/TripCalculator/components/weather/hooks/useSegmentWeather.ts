@@ -33,32 +33,33 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     setRetryCount: incrementRetry
   } = props;
 
-  // PLAN IMPLEMENTATION: Force weather fetch with aggressive retry logic
+  // PLAN IMPLEMENTATION: Enhanced weather fetch with comprehensive logging
   const fetchWeather = React.useCallback(async () => {
     if (!hasApiKey || !segmentDate) {
-      console.log('🔧 PLAN: useSegmentWeather: Cannot fetch - missing requirements', {
+      console.log('🔧 PLAN: Enhanced useSegmentWeather: Cannot fetch - missing requirements', {
         hasApiKey,
         hasSegmentDate: !!segmentDate,
         city: segmentEndCity,
-        planImplementation: 'force_weather_fetch'
+        planImplementation: 'enhanced_requirements_check'
       });
       return;
     }
 
     // PLAN: Skip fetch if already loading to prevent duplicate requests
     if (loading) {
-      console.log('🔧 PLAN: useSegmentWeather: Skipping fetch - already loading', {
+      console.log('🔧 PLAN: Enhanced useSegmentWeather: Skipping fetch - already loading', {
         city: segmentEndCity,
-        planImplementation: 'prevent_duplicate_fetch'
+        planImplementation: 'enhanced_duplicate_prevention'
       });
       return;
     }
 
-    console.log('🚨 PLAN: FORCE TRIGGERING WEATHER FETCH for', segmentEndCity, {
+    console.log('🚨 PLAN: ENHANCED WEATHER FETCH TRIGGER for', segmentEndCity, {
       segmentDate: segmentDate.toISOString(),
       daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
       retryCount,
-      planImplementation: 'aggressive_weather_fetch'
+      hasExistingWeather: !!weather,
+      planImplementation: 'enhanced_fetch_trigger'
     });
 
     const fetchId = Math.floor(Math.random() * 1000);
@@ -67,7 +68,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
       hasApiKey,
       segmentDate: segmentDate.toISOString(),
       fetchId,
-      planImplementation: 'force_fetch'
+      planImplementation: 'enhanced_fetch_debug'
     });
 
     try {
@@ -79,43 +80,43 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
         setWeather
       );
     } catch (error) {
-      console.error('❌ PLAN: useSegmentWeather: Fetch failed for', segmentEndCity, error);
+      console.error('❌ PLAN: Enhanced useSegmentWeather: Fetch failed for', segmentEndCity, error);
       setError(error instanceof Error ? error.message : 'Weather fetch failed');
       setLoading(false);
     }
-  }, [hasApiKey, segmentDate, loading, segmentEndCity, setLoading, setError, setWeather, retryCount]);
+  }, [hasApiKey, segmentDate, loading, segmentEndCity, setLoading, setError, setWeather, retryCount, weather]);
 
-  // PLAN IMPLEMENTATION: Aggressive auto-fetch effect - fetch even if we have weather data but it's stale
+  // PLAN IMPLEMENTATION: Enhanced auto-fetch with better conditions
   React.useEffect(() => {
     if (hasApiKey && segmentDate && !loading) {
-      // PLAN: Always try to fetch if we have API key and date, regardless of existing weather
-      console.log('🔧 PLAN: Aggressive auto-fetch triggered for', segmentEndCity, {
+      console.log('🔧 PLAN: Enhanced auto-fetch effect triggered for', segmentEndCity, {
         hasApiKey,
         hasSegmentDate: !!segmentDate,
         hasWeather: !!weather,
         loading,
-        planImplementation: 'aggressive_auto_fetch'
+        shouldFetch: true,
+        planImplementation: 'enhanced_auto_fetch'
       });
       fetchWeather();
     }
   }, [hasApiKey, segmentDate, fetchWeather, segmentEndCity]);
 
-  // PLAN: Cleanup effect to cancel requests when component unmounts
+  // PLAN: Enhanced cleanup effect to cancel requests when component unmounts
   React.useEffect(() => {
     return () => {
       if (segmentDate) {
         WeatherFetchingService.cancelRequest(segmentEndCity, segmentDate);
-        console.log('🔧 PLAN: Cleanup - cancelled request for', segmentEndCity);
+        console.log('🔧 PLAN: Enhanced cleanup - cancelled request for', segmentEndCity);
       }
     };
   }, [segmentEndCity, segmentDate]);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log('🔧 PLAN: useSegmentWeather: handleApiKeySet called for', segmentEndCity);
+    console.log('🔧 PLAN: Enhanced useSegmentWeather: handleApiKeySet called for', segmentEndCity);
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.handleApiKeySet [${segmentEndCity}]`, {
       hasApiKey,
       segmentDate: segmentDate?.toISOString(),
-      planImplementation: 'api_key_set_handler'
+      planImplementation: 'enhanced_api_key_set'
     });
     
     // Reset any existing error state
@@ -123,24 +124,28 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     
     // PLAN: Force immediate fetch when API key is set
     if (segmentDate) {
-      console.log('🚨 PLAN: Forcing immediate fetch after API key set');
+      console.log('🚨 PLAN: Enhanced forcing immediate fetch after API key set');
       fetchWeather();
     }
   }, [fetchWeather, segmentDate, segmentEndCity, hasApiKey, setError]);
 
   const handleTimeout = React.useCallback(() => {
-    console.log('🚨 PLAN: handleTimeout for', segmentEndCity);
+    console.log('🚨 PLAN: Enhanced handleTimeout for', segmentEndCity);
     WeatherDebugService.logForecastTimeout(segmentEndCity, 5000, 'user_requested_timeout');
     setError('Weather request timed out');
     setLoading(false);
   }, [setError, setLoading, segmentEndCity]);
 
   const handleRetry = React.useCallback(() => {
-    console.log('🚨 PLAN: handleRetry for', segmentEndCity);
+    console.log('🚨 PLAN: Enhanced handleRetry for', segmentEndCity, {
+      currentRetryCount: retryCount,
+      hasWeather: !!weather,
+      planImplementation: 'enhanced_retry_logic'
+    });
     setError(null);
     incrementRetry();
     fetchWeather();
-  }, [fetchWeather, setError, incrementRetry, segmentEndCity]);
+  }, [fetchWeather, setError, incrementRetry, segmentEndCity, retryCount, weather]);
 
   return {
     handleApiKeySet,

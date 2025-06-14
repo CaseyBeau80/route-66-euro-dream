@@ -20,22 +20,53 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
   const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
   
-  // FIXED: Stable display logic - prevent flickering
+  // PLAN IMPLEMENTATION: Enhanced stable display logic with comprehensive logging
   const shouldShowRange = React.useMemo(() => {
+    console.log('🌡️ PLAN: Enhanced TemperatureDisplayManager analysis', {
+      isSharedView,
+      temperatures,
+      hasValidHigh,
+      hasValidLow,
+      hasValidCurrent,
+      planImplementation: 'enhanced_temperature_analysis'
+    });
+
     if (isSharedView) {
-      // For shared views: ALWAYS prioritize range if we have ANY high/low data
-      return hasValidHigh || hasValidLow;
+      // PLAN: For shared views: ALWAYS prioritize range if we have ANY high/low data
+      const shouldShow = hasValidHigh || hasValidLow;
+      console.log('🌡️ PLAN: Shared view range decision:', {
+        shouldShow,
+        reason: 'prioritize_any_highlow_in_shared_view',
+        planImplementation: 'shared_view_priority'
+      });
+      return shouldShow;
     } else {
-      // For regular views: show range only if we have DIFFERENT high/low values
-      return hasValidHigh && hasValidLow && temperatures.high !== temperatures.low;
+      // PLAN: For regular views: show range only if we have DIFFERENT high/low values
+      const shouldShow = hasValidHigh && hasValidLow && temperatures.high !== temperatures.low;
+      console.log('🌡️ PLAN: Regular view range decision:', {
+        shouldShow,
+        reason: 'require_different_highlow_in_regular_view',
+        highLowSame: temperatures.high === temperatures.low,
+        planImplementation: 'regular_view_logic'
+      });
+      return shouldShow;
     }
-  }, [isSharedView, hasValidHigh, hasValidLow, temperatures.high, temperatures.low]);
+  }, [isSharedView, hasValidHigh, hasValidLow, temperatures.high, temperatures.low, hasValidCurrent]);
 
   const shouldShowCurrent = React.useMemo(() => {
-    return !isSharedView && !shouldShowRange && hasValidCurrent;
+    const shouldShow = !isSharedView && !shouldShowRange && hasValidCurrent;
+    console.log('🌡️ PLAN: Current temperature decision:', {
+      shouldShow,
+      isSharedView,
+      shouldShowRange,
+      hasValidCurrent,
+      reason: 'fallback_to_current_only_in_regular_view',
+      planImplementation: 'current_temp_fallback'
+    });
+    return shouldShow;
   }, [isSharedView, shouldShowRange, hasValidCurrent]);
 
-  console.log('🌡️ FIXED: TemperatureDisplayManager stable decision', {
+  console.log('🌡️ PLAN: Enhanced TemperatureDisplayManager final decision', {
     isSharedView,
     shouldShowRange,
     shouldShowCurrent,
@@ -43,10 +74,11 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
     hasValidHigh,
     hasValidLow,
     hasValidCurrent,
-    preventFlickering: true
+    planImplementation: 'enhanced_final_decision'
   });
 
   if (shouldShowRange) {
+    console.log('🌡️ PLAN: Rendering temperature range display');
     return (
       <TemperatureDisplay
         type="range"
@@ -57,6 +89,7 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   }
   
   if (shouldShowCurrent) {
+    console.log('🌡️ PLAN: Rendering current temperature display');
     return (
       <TemperatureDisplay
         type="current"
@@ -65,6 +98,7 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
     );
   }
 
+  console.log('🌡️ PLAN: No temperature display - no valid data available');
   return null;
 };
 
