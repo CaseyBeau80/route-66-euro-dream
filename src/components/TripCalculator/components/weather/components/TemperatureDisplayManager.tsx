@@ -20,25 +20,30 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
   const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
   
-  // FIXED: For shared views, ALWAYS prioritize range display if we have ANY high/low data
-  // Even if high === low, we show it as a range in shared views
-  const hasAnyRangeData = hasValidHigh || hasValidLow;
-  
-  // For shared views: show range if ANY range data exists, never show current
-  // For regular views: show range only if we have DIFFERENT high/low values
-  const shouldShowRange = isSharedView ? hasAnyRangeData : (hasValidHigh && hasValidLow && temperatures.high !== temperatures.low);
-  const shouldShowCurrent = !isSharedView && !shouldShowRange && hasValidCurrent;
+  // FIXED: Stable display logic - prevent flickering
+  const shouldShowRange = React.useMemo(() => {
+    if (isSharedView) {
+      // For shared views: ALWAYS prioritize range if we have ANY high/low data
+      return hasValidHigh || hasValidLow;
+    } else {
+      // For regular views: show range only if we have DIFFERENT high/low values
+      return hasValidHigh && hasValidLow && temperatures.high !== temperatures.low;
+    }
+  }, [isSharedView, hasValidHigh, hasValidLow, temperatures.high, temperatures.low]);
 
-  console.log('🌡️ TemperatureDisplayManager: PLAN IMPLEMENTATION Display decision', {
+  const shouldShowCurrent = React.useMemo(() => {
+    return !isSharedView && !shouldShowRange && hasValidCurrent;
+  }, [isSharedView, shouldShowRange, hasValidCurrent]);
+
+  console.log('🌡️ FIXED: TemperatureDisplayManager stable decision', {
     isSharedView,
-    hasValidHigh,
-    hasValidLow,
-    hasValidCurrent,
-    hasAnyRangeData,
     shouldShowRange,
     shouldShowCurrent,
     temperatures,
-    planImplementation: 'prioritize_range_in_shared_views'
+    hasValidHigh,
+    hasValidLow,
+    hasValidCurrent,
+    preventFlickering: true
   });
 
   if (shouldShowRange) {

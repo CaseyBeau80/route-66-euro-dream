@@ -35,16 +35,15 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🌤️ SegmentWeatherContent PLAN IMPLEMENTATION for', segmentEndCity, {
+  console.log('🌤️ FIXED: SegmentWeatherContent for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
     error,
-    retryCount,
     isSharedView,
     isPDFExport,
     hasSegmentDate: !!segmentDate,
-    planImplementation: 'content_display_priority'
+    fixedFlow: true
   });
 
   WeatherDebugService.logComponentRender('SegmentWeatherContent', segmentEndCity, {
@@ -56,7 +55,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // PLAN IMPLEMENTATION: Show loading state first
+  // FIXED: Show loading state first
   if (loading) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -68,9 +67,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // PLAN IMPLEMENTATION: If we have weather data, ALWAYS display it (highest priority)
+  // FIXED: If we have weather data, ALWAYS display it (highest priority)
   if (weather) {
-    console.log(`🎯 PLAN: Using actual weather data for ${segmentEndCity}`);
+    console.log(`🎯 FIXED: Using actual weather data for ${segmentEndCity}`);
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -84,19 +83,20 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // PLAN IMPLEMENTATION: For shared views without API key, show seasonal fallback
-  if ((isSharedView || isPDFExport) && !hasApiKey) {
-    if (segmentDate) {
-      console.log(`🌱 PLAN: No API key in shared view - showing seasonal fallback for ${segmentEndCity}`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          compact={true}
-        />
-      );
-    }
-    
+  // FIXED: For shared views without weather data, show seasonal fallback ONLY if we have a date
+  if ((isSharedView || isPDFExport) && segmentDate) {
+    console.log(`🌱 FIXED: Using seasonal fallback for ${segmentEndCity} in shared view`);
+    return (
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        compact={true}
+      />
+    );
+  }
+
+  // FIXED: For shared views without date, show not available message
+  if (isSharedView || isPDFExport) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -117,18 +117,6 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
           cityName={segmentEndCity}
         />
       </div>
-    );
-  }
-
-  // PLAN IMPLEMENTATION: Last resort - seasonal fallback for shared views
-  if ((isSharedView || isPDFExport) && segmentDate) {
-    console.log(`🌱 PLAN: Final fallback - showing seasonal fallback for ${segmentEndCity} in shared view`);
-    return (
-      <SeasonalWeatherFallback 
-        segmentDate={segmentDate}
-        cityName={segmentEndCity}
-        compact={true}
-      />
     );
   }
 
