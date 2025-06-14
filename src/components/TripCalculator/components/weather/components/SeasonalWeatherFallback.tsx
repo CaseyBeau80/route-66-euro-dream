@@ -84,7 +84,10 @@ const SeasonalWeatherFallback: React.FC<SeasonalWeatherFallbackProps> = ({
             🌤️ Weather for {cityName}
           </h4>
           <p className="text-sm text-gray-600 mb-2 capitalize">{weather.description}</p>
-          <SimpleTemperatureDisplay weather={weather} />
+          <SimpleTemperatureDisplay 
+            weather={weather} 
+            segmentDate={segmentDate}
+          />
           <p className="text-xs text-gray-500 mt-1">
             Source: Seasonal Average
           </p>
