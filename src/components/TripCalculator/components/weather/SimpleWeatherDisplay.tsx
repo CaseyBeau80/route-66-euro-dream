@@ -19,31 +19,18 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // CRITICAL FIX: Use centralized service for ALL label determinations
-  const sourceLabel = React.useMemo(() => {
-    const label = WeatherLabelService.getWeatherSourceLabel(weather);
-    console.log('🎯 CENTRALIZED: SimpleWeatherDisplay using centralized label:', {
-      cityName,
-      label,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      centralizedServiceUsed: true
-    });
-    return label;
-  }, [weather.source, weather.isActualForecast, weather.cityName]);
-
-  const liveForecastIndicator = React.useMemo(() => {
-    return WeatherLabelService.getLiveForecastIndicator(weather);
-  }, [weather.source, weather.isActualForecast]);
-
-  console.log('🎯 CENTRALIZED: SimpleWeatherDisplay render with centralized labels:', {
+  // CRITICAL FIX: Remove memoization completely to ensure fresh labels
+  const sourceLabel = WeatherLabelService.getWeatherSourceLabel(weather);
+  const liveForecastIndicator = WeatherLabelService.getLiveForecastIndicator(weather);
+  
+  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay direct label calculation:', {
     cityName,
     sourceLabel,
     liveForecastIndicator,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     segmentDate: segmentDate.toISOString(),
-    centralizedRender: true
+    memoizationRemoved: true
   });
 
   return (

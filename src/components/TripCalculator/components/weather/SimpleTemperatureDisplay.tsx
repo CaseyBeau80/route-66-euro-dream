@@ -14,18 +14,16 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // CRITICAL FIX: Use centralized service for live forecast detection
-  const isLiveForecast = React.useMemo(() => {
-    return WeatherLabelService.isLiveWeatherData(weather);
-  }, [weather.source, weather.isActualForecast]);
+  // CRITICAL FIX: Remove memoization to ensure fresh detection
+  const isLiveForecast = WeatherLabelService.isLiveWeatherData(weather);
   
-  console.log('🎯 CENTRALIZED: SimpleTemperatureDisplay using centralized detection:', {
+  console.log('🔧 CRITICAL FIX: SimpleTemperatureDisplay direct detection:', {
     cityName: weather.cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
     temperature: weather.temperature,
-    centralizedDetection: true
+    memoizationRemoved: true
   });
 
   const getTemperatureLabel = (temp: number): string => {
