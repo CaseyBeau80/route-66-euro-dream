@@ -1,64 +1,71 @@
-
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 export class WeatherValidationService {
   /**
-   * Validate that weather data is properly formatted for live forecast
+   * Ensures live weather data has the correct properties set
    */
-  static validateLiveWeatherData(weather: ForecastWeatherData): {
-    isValid: boolean;
-    issues: string[];
-    correctedWeather?: ForecastWeatherData;
-  } {
-    const issues: string[] = [];
-    
-    // Check critical live weather properties
-    if (weather.source !== 'live_forecast') {
-      issues.push(`Source should be 'live_forecast' but is '${weather.source}'`);
-    }
-    
-    if (weather.isActualForecast !== true) {
-      issues.push(`isActualForecast should be true but is ${weather.isActualForecast}`);
-    }
-    
-    if (!weather.temperature || weather.temperature <= -100 || weather.temperature >= 200) {
-      issues.push(`Invalid temperature: ${weather.temperature}`);
-    }
-    
-    console.log('🔍 WeatherValidationService: Validation result:', {
-      cityName: weather.cityName,
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      temperature: weather.temperature,
-      issues,
-      isValid: issues.length === 0
-    });
-    
-    return {
-      isValid: issues.length === 0,
-      issues,
-      correctedWeather: issues.length === 0 ? undefined : {
+  static ensureLiveWeatherMarking(weather: ForecastWeatherData): ForecastWeatherData {
+    // If this is already marked as live forecast from API, ensure proper marking
+    if (weather.source === 'live_forecast' || weather.isActualForecast === true) {
+      console.log('🔧 WeatherValidationService: Ensuring live weather is properly marked:', {
+        cityName: weather.cityName,
+        originalSource: weather.source,
+        originalIsActualForecast: weather.isActualForecast
+      });
+
+      return {
         ...weather,
         source: 'live_forecast' as const,
         isActualForecast: true
-      }
-    };
+      };
+    }
+
+    // Return unchanged if not live weather
+    return weather;
   }
 
   /**
-   * Ensure weather data is properly marked as live forecast
+   * Validates weather data structure
    */
-  static ensureLiveWeatherMarking(weather: ForecastWeatherData): ForecastWeatherData {
-    const validation = this.validateLiveWeatherData(weather);
+  static validateWeatherData(weather: ForecastWeatherData): boolean {
+    const hasRequiredFields = !!(
+      weather.temperature &&
+      weather.description &&
+      weather.cityName &&
+      weather.source
+    );
+
+    const hasReasonableTemperature = weather.temperature >= -50 && weather.temperature <= 150;
+
+    console.log('🔧 WeatherValidationService: Validating weather data:', {
+      cityName: weather.cityName,
+      hasRequiredFields,
+      hasReasonableTemperature,
+      temperature: weather.temperature,
+      source: weather.source
+    });
+
+    return hasRequiredFields && hasReasonableTemperature;
+  }
+
+  /**
+   * Determines if weather data should be considered live based on multiple factors
+   */
+  static isLiveWeatherData(weather: ForecastWeatherData): boolean {
+    const primaryCheck = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    const hasValidData = this.validateWeatherData(weather);
     
-    if (!validation.isValid && validation.correctedWeather) {
-      console.log('🔧 WeatherValidationService: Correcting weather data marking:', {
-        before: { source: weather.source, isActualForecast: weather.isActualForecast },
-        after: { source: validation.correctedWeather.source, isActualForecast: validation.correctedWeather.isActualForecast }
-      });
-      return validation.correctedWeather;
-    }
+    const result = primaryCheck && hasValidData;
     
-    return weather;
+    console.log('🔧 WeatherValidationService: Live weather determination:', {
+      cityName: weather.cityName,
+      primaryCheck,
+      hasValidData,
+      finalResult: result,
+      source: weather.source,
+      isActualForecast: weather.isActualForecast
+    });
+
+    return result;
   }
 }

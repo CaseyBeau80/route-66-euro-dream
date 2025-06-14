@@ -23,10 +23,11 @@ const TripShareButton: React.FC<TripShareButtonProps> = ({
 
   const handleShare = async () => {
     try {
+      // FIXED: Always use true for live weather to match preview behavior
       const shareUrl = UrlTripPlanBuilder.generateShareUrl(
         tripPlan,
         tripStartDate,
-        useLiveWeather
+        true // Always enable live weather
       );
 
       await navigator.clipboard.writeText(shareUrl);
@@ -38,7 +39,11 @@ const TripShareButton: React.FC<TripShareButtonProps> = ({
         variant: "default"
       });
 
-      // Reset copy state after 2 seconds
+      console.log('🔗 FIXED: TripShareButton generated URL with live weather enabled:', {
+        shareUrl,
+        liveWeatherEnabled: true
+      });
+
       setTimeout(() => setCopied(false), 2000);
 
     } catch (error) {
