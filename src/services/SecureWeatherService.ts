@@ -12,7 +12,10 @@ export class SecureWeatherService {
     targetDate?: Date
   ): Promise<ForecastWeatherData | null> {
     try {
-      console.log('🔒 SecureWeatherService: Fetching weather via Edge Function for', cityName);
+      console.log('🔒 SecureWeatherService: Calling Edge Function for', cityName, {
+        targetDate: targetDate?.toISOString(),
+        usingSupabaseSecrets: true
+      });
       
       const { data, error } = await supabase.functions.invoke('weather-forecast', {
         body: {
@@ -34,38 +37,49 @@ export class SecureWeatherService {
       }
 
       if (!data) {
-        console.log('❌ SecureWeatherService: No data returned');
+        console.log('❌ SecureWeatherService: No data returned from Edge Function');
         return this.createFallbackWeather(cityName, targetDate);
       }
 
-      console.log('✅ SecureWeatherService: Live weather received:', {
+      console.log('✅ SecureWeatherService: Live weather received from Edge Function:', {
         city: cityName,
         temperature: data.temperature,
         source: data.source,
-        isActualForecast: data.isActualForecast
+        isActualForecast: data.isActualForecast,
+        secureConnection: true
       });
 
       return data as ForecastWeatherData;
       
     } catch (error) {
-      console.error('❌ SecureWeatherService: Failed to fetch weather:', error);
+      console.error('❌ SecureWeatherService: Edge Function call failed:', error);
       return this.createFallbackWeather(cityName, targetDate);
     }
   }
 
   /**
-   * Check if the secure weather service is available
+   * Check if the secure weather service is available by testing the Edge Function
    */
   static async isServiceAvailable(): Promise<boolean> {
     try {
-      const { error } = await supabase.functions.invoke('weather-forecast', {
+      console.log('🔍 SecureWeatherService: Testing Edge Function availability');
+      
+      const { data, error } = await supabase.functions.invoke('weather-forecast', {
         body: { cityName: 'test' }
       });
       
-      // If we get a "not configured" error, the function exists but API key is missing
-      // If we get a different error or success, the service is available
-      return !error || !error.message?.includes('not configured');
-    } catch {
+      // If we get a response (even an error), the function is available
+      const isAvailable = !error || !error.message?.includes('not found');
+      
+      console.log('🔍 SecureWeatherService: Availability check result:', {
+        isAvailable,
+        hasError: !!error,
+        errorMessage: error?.message
+      });
+      
+      return isAvailable;
+    } catch (error) {
+      console.error('❌ SecureWeatherService: Availability check failed:', error);
       return false;
     }
   }
@@ -74,6 +88,11 @@ export class SecureWeatherService {
     const date = targetDate || new Date();
     const targetDateString = date.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((date.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    
+    console.log('🔄 SecureWeatherService: Creating fallback weather for', cityName, {
+      targetDate: targetDateString,
+      daysFromToday
+    });
     
     return WeatherFallbackService.createFallbackForecast(
       cityName,

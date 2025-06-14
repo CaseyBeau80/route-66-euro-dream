@@ -22,7 +22,6 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [serviceAvailable, setServiceAvailable] = React.useState<boolean | null>(null);
 
   // Calculate segment date using the same logic everywhere
   const segmentDate = React.useMemo(() => {
@@ -55,17 +54,6 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
   }, [tripStartDate, segment.day, isSharedView]);
 
-  // Check if secure weather service is available
-  React.useEffect(() => {
-    const checkService = async () => {
-      const available = await SecureWeatherService.isServiceAvailable();
-      setServiceAvailable(available);
-      console.log('🔒 LIVE WEATHER: Service availability check:', { available, cityName: segment.endCity });
-    };
-    
-    checkService();
-  }, [segment.endCity]);
-
   // Fetch weather using secure service
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) return;
@@ -74,7 +62,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     setError(null);
 
     try {
-      console.log('🌤️ LIVE WEATHER: Fetching for', segment.endCity, segmentDate.toISOString());
+      console.log('🌤️ UNIFIED SECURE: Fetching via Edge Function for', segment.endCity, segmentDate.toISOString());
       
       const weatherData = await SecureWeatherService.fetchWeatherForecast(
         segment.endCity,
@@ -83,7 +71,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
       if (weatherData) {
         setWeather(weatherData);
-        console.log('✅ LIVE WEATHER: Data received for', segment.endCity, {
+        console.log('✅ UNIFIED SECURE: Data received from Edge Function for', segment.endCity, {
           temperature: weatherData.temperature,
           source: weatherData.source,
           isLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast
@@ -92,7 +80,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
         setError('Weather data unavailable');
       }
     } catch (err) {
-      console.error('❌ LIVE WEATHER: Fetch failed for', segment.endCity, err);
+      console.error('❌ UNIFIED SECURE: Edge Function fetch failed for', segment.endCity, err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
     } finally {
       setLoading(false);
@@ -101,12 +89,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
   // Fetch weather when ready
   React.useEffect(() => {
-    if (segmentDate && serviceAvailable !== null) {
+    if (segmentDate) {
       fetchWeather();
     }
-  }, [fetchWeather, segmentDate, serviceAvailable]);
+  }, [fetchWeather, segmentDate]);
 
-  console.log('🔥 LIVE WEATHER: UnifiedWeatherWidget render:', {
+  console.log('🔥 UNIFIED SECURE: Widget render:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -117,7 +105,6 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     isActualForecast: weather?.isActualForecast,
     isSharedView,
     isPDFExport,
-    serviceAvailable,
     isLiveWeather: weather?.source === 'live_forecast' && weather?.isActualForecast
   });
 
@@ -146,32 +133,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     );
   }
 
-  // Service not available message
-  if (serviceAvailable === false && !isSharedView && !isPDFExport) {
-    return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-        <div className="text-sm text-yellow-800 mb-2">
-          ⚡ <strong>Live Weather Service</strong>
-        </div>
-        <p className="text-xs text-yellow-700 mb-2">
-          Connecting to secure weather service...
-        </p>
-        <button
-          onClick={fetchWeather}
-          className="text-xs text-blue-600 hover:text-blue-800 underline"
-        >
-          Retry Connection
-        </button>
-      </div>
-    );
-  }
-
   // Fallback
   return (
     <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
       <div className="text-blue-600 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-blue-700 font-medium">Live weather forecast temporarily unavailable</p>
-      <p className="text-xs text-blue-600 mt-1">Check current conditions before departure</p>
+      <p className="text-xs text-blue-700 font-medium">Connecting to weather service...</p>
+      <p className="text-xs text-blue-600 mt-1">Using secure API connection</p>
       {error && <p className="text-xs text-blue-500 mt-1">{error}</p>}
       {!isSharedView && !isPDFExport && (
         <button

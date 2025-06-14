@@ -22,7 +22,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [serviceAvailable, setServiceAvailable] = React.useState<boolean | null>(null);
 
   // Calculate segment date
   const segmentDate = React.useMemo(() => {
@@ -32,17 +31,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day]);
 
-  // Check if secure weather service is available
-  React.useEffect(() => {
-    const checkService = async () => {
-      const available = await SecureWeatherService.isServiceAvailable();
-      setServiceAvailable(available);
-      console.log('🔒 LIVE WEATHER: Simple widget service check:', { available, cityName: segment.endCity });
-    };
-    
-    checkService();
-  }, [segment.endCity]);
-
   // Fetch weather data using secure service
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) return;
@@ -51,7 +39,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     setError(null);
 
     try {
-      console.log('🌤️ LIVE WEATHER: Simple widget fetching for:', segment.endCity, segmentDate);
+      console.log('🌤️ SECURE WEATHER: Fetching via Supabase Edge Function for:', segment.endCity, segmentDate);
       
       const weatherData = await SecureWeatherService.fetchWeatherForecast(
         segment.endCity,
@@ -60,7 +48,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
       if (weatherData) {
         setWeather(weatherData);
-        console.log('✅ LIVE WEATHER: Simple widget data received:', {
+        console.log('✅ SECURE WEATHER: Data received from Edge Function:', {
           city: segment.endCity,
           temperature: weatherData.temperature,
           source: weatherData.source,
@@ -70,7 +58,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         setError('Weather data unavailable');
       }
     } catch (err) {
-      console.error('❌ LIVE WEATHER: Simple widget fetch failed:', err);
+      console.error('❌ SECURE WEATHER: Edge Function fetch failed:', err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
     } finally {
       setLoading(false);
@@ -79,10 +67,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Fetch weather when component mounts or dependencies change
   React.useEffect(() => {
-    if (segmentDate && serviceAvailable !== null) {
+    if (segmentDate) {
       fetchWeather();
     }
-  }, [fetchWeather, segmentDate, serviceAvailable]);
+  }, [fetchWeather, segmentDate]);
 
   // Loading state
   if (loading) {
@@ -106,27 +94,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
       />
-    );
-  }
-
-  // Service setup message for admin users
-  if (serviceAvailable === false && !isSharedView && !isPDFExport) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-        <div className="text-sm text-green-800 mb-2">
-          ⚡ <strong>Live Weather Service Ready</strong>
-        </div>
-        <p className="text-xs text-green-700 mb-2">
-          Your OpenWeatherMap API key is configured securely in the backend. 
-          Live weather forecasts are now active!
-        </p>
-        <button
-          onClick={fetchWeather}
-          className="text-xs text-green-600 hover:text-green-800 underline"
-        >
-          Load Weather Data
-        </button>
-      </div>
     );
   }
 
