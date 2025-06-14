@@ -59,7 +59,7 @@ const Route66TripCalculator: React.FC = () => {
   }, [resetTrip]);
 
   const handleShareTrip = useCallback(() => {
-    console.log('📤 Share trip requested', {
+    console.log('📤 Route66TripCalculator: Share trip requested', {
       hasTripPlan: !!tripPlan,
       hasStartDate: !!formData.tripStartDate,
       segments: tripPlan?.segments?.length || 0
@@ -135,6 +135,7 @@ const Route66TripCalculator: React.FC = () => {
             <TripResults
               tripPlan={tripPlan}
               tripStartDate={formData.tripStartDate}
+              onShareTrip={handleShareTrip}
             />
           )}
         </section>

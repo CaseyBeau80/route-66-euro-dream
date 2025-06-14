@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
 import { Card } from '@/components/ui/card';
@@ -8,16 +9,19 @@ import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleW
 interface TripResultsProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
+  onShareTrip?: () => void;
 }
 
 const TripResults: React.FC<TripResultsProps> = ({
   tripPlan,
-  tripStartDate
+  tripStartDate,
+  onShareTrip
 }) => {
   console.log('📊 TripResults render:', { 
     tripPlan: !!tripPlan, 
     segmentCount: tripPlan?.segments?.length,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    hasShareHandler: !!onShareTrip
   });
 
   if (!tripPlan) {
@@ -25,8 +29,12 @@ const TripResults: React.FC<TripResultsProps> = ({
   }
 
   const handleShareTrip = () => {
-    console.log('📤 Share trip button clicked');
-    // This will be handled by the parent component
+    console.log('📤 TripResults: Share button clicked, calling parent handler');
+    if (onShareTrip) {
+      onShareTrip();
+    } else {
+      console.warn('⚠️ TripResults: No share handler provided by parent component');
+    }
   };
 
   return (
