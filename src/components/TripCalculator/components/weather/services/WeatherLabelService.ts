@@ -1,40 +1,38 @@
 
 /**
- * CENTRALIZED: Single source of truth for weather labels across ALL components
+ * FIXED: Ultra-strict centralized weather detection service
  */
 export class WeatherLabelService {
   /**
-   * CRITICAL: The ONLY method that determines if weather is live
+   * CRITICAL: The ONLY method that determines if weather is live - ULTRA STRICT
    */
   static isLiveWeatherData(weather: any): boolean {
     if (!weather) {
-      console.log('🎯 CENTRALIZED: No weather data provided');
+      console.log('🎯 FIXED: No weather data provided to isLiveWeatherData');
       return false;
     }
     
-    console.log('🎯 CENTRALIZED: WeatherLabelService.isLiveWeatherData checking:', {
-      weatherSource: weather.source,
+    console.log('🎯 FIXED: ULTRA-STRICT weather detection for', weather.cityName, {
+      source: weather.source,
       isActualForecast: weather.isActualForecast,
-      cityName: weather.cityName,
-      temperature: weather.temperature,
-      hasSource: !!weather.source,
-      hasIsActualForecast: weather.hasOwnProperty('isActualForecast'),
       sourceType: typeof weather.source,
-      isActualForecastType: typeof weather.isActualForecast
+      isActualType: typeof weather.isActualForecast,
+      sourceValue: JSON.stringify(weather.source),
+      isActualValue: JSON.stringify(weather.isActualForecast)
     });
     
-    // DIRECT CHECK: Both properties must be exactly these values
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    // ULTRA-STRICT: Both properties must be EXACTLY these values
+    const isSourceCorrect = weather.source === 'live_forecast';
+    const isActualCorrect = weather.isActualForecast === true;
+    const isLive = isSourceCorrect && isActualCorrect;
     
-    console.log('🎯 CENTRALIZED: WeatherLabelService detection result:', {
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      result: isLive,
-      cityName: weather.cityName,
-      centralizedCheck: true,
-      matchesLiveSource: weather.source === 'live_forecast',
-      matchesActualForecast: weather.isActualForecast === true,
-      bothMatch: weather.source === 'live_forecast' && weather.isActualForecast === true
+    console.log('🎯 FIXED: ULTRA-STRICT detection result for', weather.cityName, {
+      isSourceCorrect,
+      isActualCorrect,
+      FINAL_RESULT: isLive,
+      sourceCheck: `'${weather.source}' === 'live_forecast' = ${isSourceCorrect}`,
+      actualCheck: `${weather.isActualForecast} === true = ${isActualCorrect}`,
+      GUARANTEED_LIVE_IF_TRUE: isLive
     });
     
     return isLive;
@@ -47,38 +45,17 @@ export class WeatherLabelService {
     const isLive = this.isLiveWeatherData(weather);
     const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
     
-    console.log('🎯 CENTRALIZED: WeatherLabelService.getWeatherSourceLabel:', {
+    console.log('🎯 FIXED: Label generation for', weather?.cityName, {
       isLive,
       label,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName,
-      centralizedLabel: true
+      FINAL_LABEL: label
     });
     
     return label;
   }
 
   /**
-   * CRITICAL: Get live forecast indicator for display
-   */
-  static getLiveForecastIndicator(weather: any): string | null {
-    const isLive = this.isLiveWeatherData(weather);
-    const indicator = isLive ? '✓ Live Forecast' : null;
-    
-    console.log('🎯 CENTRALIZED: WeatherLabelService.getLiveForecastIndicator:', {
-      isLive,
-      indicator,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName
-    });
-    
-    return indicator;
-  }
-
-  /**
-   * CRITICAL: Get styling configuration based on live detection
+   * CRITICAL: Get styling configuration based on ULTRA-STRICT live detection
    */
   static getWeatherStyling(weather: any): {
     sourceLabel: string;
@@ -106,12 +83,10 @@ export class WeatherLabelService {
       isLive: false
     };
 
-    console.log('🎯 CENTRALIZED: WeatherLabelService.getWeatherStyling:', {
+    console.log('🎯 FIXED: Styling config for', weather?.cityName, {
       isLive,
       sourceLabel: config.sourceLabel,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName
+      FINAL_STYLING: isLive ? 'GREEN_LIVE' : 'AMBER_HISTORICAL'
     });
 
     return config;
