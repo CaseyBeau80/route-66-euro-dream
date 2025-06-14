@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { CoreWeatherFetcher } from './services/CoreWeatherFetcher';
+import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
 import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
 import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
 
@@ -35,34 +35,58 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return date;
   }, [tripStartDate, segment.day, isSharedView]);
 
+  // FIXED: Always check for API key, even in shared views
   const hasApiKey = React.useMemo(() => {
-    return !!localStorage.getItem('weather_api_key');
-  }, []);
+    const apiKey = localStorage.getItem('weather_api_key');
+    const hasKey = !!(apiKey && apiKey.trim().length > 0);
+    
+    console.log('🔑 SimpleWeatherWidget API key check:', {
+      cityName: segment.endCity,
+      isSharedView,
+      hasKey,
+      keyLength: apiKey?.length || 0
+    });
+    
+    return hasKey;
+  }, [segment.endCity, isSharedView]);
 
   useEffect(() => {
     const fetchWeather = async () => {
       if (!segmentDate) return;
 
-      if (!hasApiKey && isSharedView) {
-        setLoading(false);
-        setError(null);
-        return;
-      }
+      console.log('🌤️ SimpleWeatherWidget: Starting enhanced fetch', {
+        cityName: segment.endCity,
+        day: segment.day,
+        segmentDate: segmentDate.toISOString(),
+        hasApiKey,
+        isSharedView,
+        enableLiveForecastInSharedView: true
+      });
 
       setLoading(true);
       setError(null);
 
       try {
-        const weatherData = await CoreWeatherFetcher.fetchWeatherForCity({
+        const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
           cityName: segment.endCity,
           targetDate: segmentDate,
           hasApiKey,
           isSharedView
         });
 
+        console.log('✅ SimpleWeatherWidget: Weather fetched', {
+          cityName: segment.endCity,
+          hasWeather: !!weatherData,
+          isActualForecast: weatherData?.isActualForecast,
+          source: weatherData?.source,
+          temperature: weatherData?.temperature,
+          description: weatherData?.description,
+          icon: weatherData?.icon
+        });
+
         setWeather(weatherData);
       } catch (err) {
-        console.error('Weather fetch error:', err);
+        console.error('❌ SimpleWeatherWidget: Weather fetch error:', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
       } finally {
         setLoading(false);
@@ -86,6 +110,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // If we have actual weather data, show it
   if (weather) {
+    const isLiveForecast = weather.isActualForecast === true && weather.source === 'live_forecast';
+    
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-4">
         <div className="flex items-center justify-between">
@@ -93,13 +119,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             <h4 className="font-semibold text-gray-800 mb-1">
               🌤️ Weather for {segment.endCity}
             </h4>
-            <p className="text-sm text-gray-600 mb-2">{weather.description}</p>
+            <p className="text-sm text-gray-600 mb-2 capitalize">{weather.description}</p>
             <SimpleTemperatureDisplay weather={weather} isSharedView={isSharedView} />
-            {weather.source && (
-              <p className="text-xs text-gray-500 mt-1">
-                Source: {weather.source === 'live_forecast' ? 'Live Forecast' : 'Historical Average'}
-              </p>
-            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Source: {isLiveForecast ? 'Live Forecast' : 'Historical Average'}
+              {isLiveForecast && ' ✅'}
+            </p>
           </div>
           <div className="text-4xl">
             {weather.icon ? (
@@ -107,9 +132,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
                 src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
                 alt={weather.description}
                 className="w-16 h-16"
+                onError={(e) => {
+                  console.warn('Weather icon failed to load:', weather.icon);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
             ) : (
-              '🌤️'
+              <span>🌤️</span>
             )}
           </div>
         </div>

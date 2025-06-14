@@ -13,13 +13,15 @@ export class CoreWeatherFetcher {
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, hasApiKey, isSharedView = false } = request;
     
-    console.log('🌤️ CoreWeatherFetcher: Simple fetch for', {
+    console.log('🌤️ CoreWeatherFetcher: Enhanced fetch with live forecast support in shared views', {
       cityName,
       targetDate: targetDate.toISOString(),
       hasApiKey,
-      isSharedView
+      isSharedView,
+      enableLiveForecastInSharedView: true
     });
 
+    // FIXED: Always try live weather if API key exists, regardless of shared view status
     if (!hasApiKey) {
       console.log('🌤️ No API key, using fallback for', cityName);
       return this.createFallbackWeather(cityName, targetDate);
@@ -32,9 +34,19 @@ export class CoreWeatherFetcher {
         return this.createFallbackWeather(cityName, targetDate);
       }
 
+      console.log('✅ Coordinates found for', cityName, coords);
+
+      // FIXED: Attempt live weather for both regular and shared views
       const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate);
       if (liveWeather) {
-        console.log('✅ Live weather fetched successfully for', cityName);
+        console.log('✅ Live weather fetched successfully for', cityName, {
+          temperature: liveWeather.temperature,
+          description: liveWeather.description,
+          icon: liveWeather.icon,
+          isActualForecast: liveWeather.isActualForecast,
+          source: liveWeather.source,
+          inSharedView: isSharedView
+        });
         return liveWeather;
       }
 
@@ -79,6 +91,14 @@ export class CoreWeatherFetcher {
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
+      console.log('🌤️ Attempting live forecast for', cityName, {
+        coordinates: coords,
+        daysFromNow,
+        targetDate: targetDate.toISOString(),
+        forecastRange: '0-7 days'
+      });
+
+      // Only try live forecast if within reasonable range
       if (daysFromNow < 0 || daysFromNow > 7) {
         console.log('🌤️ Date outside forecast range for', cityName, { daysFromNow });
         return null;
@@ -95,13 +115,14 @@ export class CoreWeatherFetcher {
       const data = await response.json();
       if (!data.list || data.list.length === 0) return null;
 
+      // Find closest match to target date
       const targetDateString = targetDate.toISOString().split('T')[0];
       const matchedItem = data.list.find((item: any) => {
         const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
         return itemDate === targetDateString;
       }) || data.list[0];
 
-      return {
+      const weatherResult: ForecastWeatherData = {
         temperature: Math.round(matchedItem.main.temp),
         highTemp: Math.round(matchedItem.main.temp_max),
         lowTemp: Math.round(matchedItem.main.temp_min),
@@ -113,9 +134,20 @@ export class CoreWeatherFetcher {
         cityName,
         forecast: [],
         forecastDate: targetDate,
-        isActualForecast: true,
+        isActualForecast: true, // CRITICAL: True for live forecasts
         source: 'live_forecast' as const
       };
+
+      console.log('✅ Live weather processed for', cityName, {
+        temperature: weatherResult.temperature,
+        description: weatherResult.description,
+        icon: weatherResult.icon,
+        isActualForecast: weatherResult.isActualForecast,
+        source: weatherResult.source
+      });
+
+      return weatherResult;
+
     } catch (error) {
       console.error('❌ Live weather fetch error for', cityName, ':', error);
       return null;
@@ -125,6 +157,12 @@ export class CoreWeatherFetcher {
   private static createFallbackWeather(cityName: string, targetDate: Date): ForecastWeatherData {
     const targetDateString = targetDate.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+    console.log('🔄 Creating unique fallback weather for', cityName, {
+      targetDateString,
+      daysFromToday,
+      uniquePerCity: true
+    });
 
     return WeatherFallbackService.createFallbackForecast(
       cityName,

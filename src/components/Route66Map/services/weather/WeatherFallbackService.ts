@@ -1,6 +1,7 @@
 
 import { ForecastWeatherData } from './WeatherForecastService';
 import { SeasonalWeatherGenerator } from '../../../TripCalculator/components/weather/SeasonalWeatherGenerator';
+import { CityWeatherVariationService } from '../../../TripCalculator/components/weather/services/CityWeatherVariationService';
 
 export class WeatherFallbackService {
   static createFallbackForecast(
@@ -9,21 +10,19 @@ export class WeatherFallbackService {
     targetDateString: string,
     daysFromToday: number
   ): ForecastWeatherData {
-    console.log('🚨 PLAN: WeatherFallbackService.createFallbackForecast - ENHANCED with location error handling', {
+    console.log('🚨 FIXED: WeatherFallbackService.createFallbackForecast with unique city data', {
       cityName,
       targetDateString,
       targetDateLocal: targetDate.toLocaleDateString(),
       targetMonth: targetDate.getMonth(),
       daysFromToday,
-      reason: 'outside_expanded_forecast_range_or_api_unavailable_or_location_error',
-      expandedRange: true,
-      localDateCalculation: true,
-      enhancedFallback: true
+      reason: 'outside_forecast_range_or_api_unavailable',
+      uniqueCityVariation: true
     });
 
     // Validate input parameters
     if (!cityName || !targetDate || isNaN(targetDate.getTime())) {
-      console.warn('🚨 PLAN: Invalid parameters for fallback weather, using defaults');
+      console.warn('🚨 FIXED: Invalid parameters for fallback weather, using defaults');
       
       return {
         temperature: 70,
@@ -45,7 +44,7 @@ export class WeatherFallbackService {
           matchType: 'fallback' as const,
           daysOffset: daysFromToday || 0,
           hoursOffset: 0,
-          source: 'fallback_historical_due_to_location_error' as const,
+          source: 'historical_fallback' as const,
           confidence: 'low' as const
         }
       };
@@ -55,10 +54,8 @@ export class WeatherFallbackService {
     const seasonalTemp = SeasonalWeatherGenerator.getSeasonalTemperature(month);
     const tempVariation = 15;
     
-    // Determine the fallback reason for better tracking
-    const fallbackReason = daysFromToday > 7 ? 'beyond_forecast_range' : 'location_or_api_error';
-    
-    const fallbackResult = {
+    // Base seasonal weather
+    const baseWeather = {
       temperature: seasonalTemp,
       highTemp: seasonalTemp + tempVariation/2,
       lowTemp: seasonalTemp - tempVariation/2,
@@ -66,7 +63,14 @@ export class WeatherFallbackService {
       icon: SeasonalWeatherGenerator.getSeasonalIcon(month),
       humidity: SeasonalWeatherGenerator.getSeasonalHumidity(month),
       windSpeed: 8,
-      precipitationChance: SeasonalWeatherGenerator.getSeasonalPrecipitation(month),
+      precipitationChance: SeasonalWeatherGenerator.getSeasonalPrecipitation(month)
+    };
+
+    // FIXED: Apply city-specific variations to ensure uniqueness
+    const uniqueWeather = CityWeatherVariationService.applyVariationToWeather(baseWeather, cityName);
+    
+    const fallbackResult = {
+      ...uniqueWeather,
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
@@ -74,37 +78,30 @@ export class WeatherFallbackService {
       source: 'historical_fallback' as const,
       dateMatchInfo: {
         requestedDate: targetDateString,
-        matchedDate: 'seasonal-estimate',
+        matchedDate: 'seasonal-estimate-with-city-variation',
         matchType: 'seasonal-estimate' as const,
         daysOffset: daysFromToday,
         hoursOffset: 0,
-        source: fallbackReason === 'location_or_api_error' 
-          ? 'fallback_historical_due_to_location_error' as const
-          : 'historical_fallback' as const,
+        source: 'historical_fallback' as const,
         confidence: 'low' as const
       }
     };
 
-    console.log('🚨 PLAN: WeatherFallbackService ENHANCED FALLBACK RESULT', {
+    console.log('🚨 FIXED: WeatherFallbackService UNIQUE FALLBACK RESULT', {
       cityName,
       targetDateString,
-      targetDateLocal: targetDate.toLocaleDateString(),
-      daysFromToday,
-      fallbackReason,
+      uniqueVariations: {
+        temperature: fallbackResult.temperature,
+        description: fallbackResult.description,
+        icon: fallbackResult.icon,
+        humidity: fallbackResult.humidity,
+        isUnique: true
+      },
       fallbackResult: {
         isActualForecast: fallbackResult.isActualForecast, // Should be false
         explicitSource: fallbackResult.source, // Should be 'historical_fallback'
-        dateMatchSource: fallbackResult.dateMatchInfo.source, // Should indicate reason
-        temperature: fallbackResult.temperature,
-        strictValidation: {
-          allSourcesHistorical: fallbackResult.source === 'historical_fallback',
-          isActualForecastFalse: fallbackResult.isActualForecast === false,
-          hasLocationErrorIndicator: fallbackResult.dateMatchInfo.source.includes('location_error')
-        }
-      },
-      expandedRange: true,
-      localDateCalculation: true,
-      enhancedFallback: true
+        citySpecific: true
+      }
     });
 
     return fallbackResult;
