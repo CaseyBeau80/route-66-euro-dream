@@ -28,9 +28,9 @@ export class SimplifiedWeatherFetchingService {
 
       // STEP 2: Attempt live forecast if conditions are met
       if (apiKeyResult.hasApiKey && apiKeyResult.isValid) {
-        console.log('🚀 PLAN: Attempting live forecast with direct API call');
+        console.log('🚀 PLAN: Attempting live forecast with enhanced API call');
         
-        const liveResult = await this.attemptDirectLiveForecast(cityName, segmentDate);
+        const liveResult = await this.attemptEnhancedLiveForecast(cityName, segmentDate);
 
         if (liveResult) {
           // STEP 3: Verify weather source
@@ -53,7 +53,7 @@ export class SimplifiedWeatherFetchingService {
           onWeatherSet(liveResult);
           return;
         } else {
-          console.log('⚠️ PLAN: Direct live forecast failed, using fallback');
+          console.log('⚠️ PLAN: Enhanced live forecast failed, using fallback');
         }
       } else {
         console.log('ℹ️ PLAN: No valid API key, using fallback weather');
@@ -89,19 +89,26 @@ export class SimplifiedWeatherFetchingService {
     }
   }
 
-  private static async attemptDirectLiveForecast(
+  private static async attemptEnhancedLiveForecast(
     cityName: string,
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
     try {
-      const apiKey = localStorage.getItem('openweathermap_api_key') || localStorage.getItem('weather_api_key');
+      // FIXED: Use the correct API key detection method
+      const apiKeyResult = EnhancedApiKeyDetector.detectApiKey();
+      const apiKey = apiKeyResult.keySource === 'legacy-storage' ? 
+        localStorage.getItem('openweathermap_api_key') || localStorage.getItem('weather_api_key') :
+        localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
+
       if (!apiKey) {
-        console.log('❌ No API key found for direct forecast');
+        console.log('❌ No API key found for enhanced forecast');
         return null;
       }
 
-      // Step 1: Get coordinates
-      const coords = await this.getCoordinates(cityName, apiKey);
+      console.log('🔧 Enhanced live forecast: Getting coordinates for', cityName);
+
+      // Step 1: Get coordinates with enhanced error handling
+      const coords = await this.getEnhancedCoordinates(cityName, apiKey);
       if (!coords) {
         console.log('❌ Could not get coordinates for', cityName);
         return null;
@@ -109,21 +116,26 @@ export class SimplifiedWeatherFetchingService {
 
       console.log('✅ Got coordinates for', cityName, coords);
 
-      // Step 2: Check if date is within forecast range
+      // Step 2: Check if date is within forecast range (extended to 7 days)
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      if (daysFromNow < 0 || daysFromNow > 5) {
-        console.log('📅 Date outside forecast range for', cityName, { daysFromNow });
+      console.log('📅 Date check for', cityName, { daysFromNow, targetDate: targetDate.toISOString() });
+
+      if (daysFromNow < 0 || daysFromNow > 7) {
+        console.log('📅 Date outside extended forecast range for', cityName, { daysFromNow });
         return null;
       }
 
-      // Step 3: Fetch live weather
+      // Step 3: Fetch live weather with enhanced matching
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
+      
+      console.log('🌐 Making enhanced weather API call for', cityName);
+      
       const response = await fetch(weatherUrl);
 
       if (!response.ok) {
-        console.log('❌ Weather API failed for', cityName, response.status);
+        console.log('❌ Weather API failed for', cityName, response.status, response.statusText);
         return null;
       }
 
@@ -133,27 +145,59 @@ export class SimplifiedWeatherFetchingService {
         return null;
       }
 
-      // Step 4: Find best match for target date
+      console.log('✅ Weather API data received for', cityName, {
+        listLength: data.list.length,
+        firstItem: data.list[0]?.dt_txt
+      });
+
+      // Step 4: Enhanced date matching with multiple strategies
       const targetDateString = targetDate.toISOString().split('T')[0];
       
       let bestMatch = null;
       let bestScore = Infinity;
+      let matchType = 'none';
       
+      // Strategy 1: Try exact date match first
       for (const item of data.list) {
         const itemDate = new Date(item.dt * 1000);
         const itemDateString = itemDate.toISOString().split('T')[0];
         
         if (itemDateString === targetDateString) {
           bestMatch = item;
+          matchType = 'exact';
+          console.log('✅ Found exact date match for', cityName, itemDateString);
           break;
         }
-        
-        // Calculate time difference as backup
-        const timeDiff = Math.abs(itemDate.getTime() - targetDate.getTime());
-        if (timeDiff < bestScore) {
-          bestScore = timeDiff;
-          bestMatch = item;
+      }
+      
+      // Strategy 2: If no exact match, find closest within 48 hours
+      if (!bestMatch) {
+        for (const item of data.list) {
+          const itemDate = new Date(item.dt * 1000);
+          const timeDiff = Math.abs(itemDate.getTime() - targetDate.getTime());
+          const hoursDiff = timeDiff / (1000 * 60 * 60);
+          
+          if (hoursDiff <= 48 && timeDiff < bestScore) {
+            bestScore = timeDiff;
+            bestMatch = item;
+            matchType = 'closest';
+          }
         }
+        
+        if (bestMatch) {
+          console.log('✅ Found closest match for', cityName, {
+            targetDate: targetDateString,
+            matchedDate: new Date(bestMatch.dt * 1000).toISOString().split('T')[0],
+            hoursDiff: Math.round(bestScore / (1000 * 60 * 60))
+          });
+        }
+      }
+
+      // Strategy 3: Use first available forecast if within range
+      if (!bestMatch && daysFromNow <= 5) {
+        bestMatch = data.list[0];
+        matchType = 'fallback';
+        console.log('✅ Using first available forecast for', cityName);
       }
 
       if (!bestMatch) {
@@ -161,7 +205,7 @@ export class SimplifiedWeatherFetchingService {
         return null;
       }
 
-      // Step 5: Create forecast data
+      // Step 5: Create enhanced forecast data
       const liveWeather: ForecastWeatherData = {
         temperature: Math.round(bestMatch.main.temp),
         highTemp: Math.round(bestMatch.main.temp_max),
@@ -179,47 +223,72 @@ export class SimplifiedWeatherFetchingService {
         dateMatchInfo: {
           requestedDate: targetDateString,
           matchedDate: new Date(bestMatch.dt * 1000).toISOString().split('T')[0],
-          matchType: 'exact' as const,
+          matchType: matchType as any,
           daysOffset: daysFromNow,
           hoursOffset: 0,
           source: 'live_forecast' as const,
-          confidence: 'high' as const
+          confidence: matchType === 'exact' ? 'high' : matchType === 'closest' ? 'medium' : 'low'
         }
       };
 
-      console.log('✅ Created live forecast for', cityName, {
+      console.log('✅ Created enhanced live forecast for', cityName, {
         temperature: liveWeather.temperature,
         description: liveWeather.description,
         isActualForecast: liveWeather.isActualForecast,
-        source: liveWeather.source
+        source: liveWeather.source,
+        matchType,
+        confidence: liveWeather.dateMatchInfo?.confidence
       });
 
       return liveWeather;
 
     } catch (error) {
-      console.error('❌ Direct live forecast error for', cityName, error);
+      console.error('❌ Enhanced live forecast error for', cityName, error);
       return null;
     }
   }
 
-  private static async getCoordinates(cityName: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
+  private static async getEnhancedCoordinates(cityName: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
     try {
-      const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+      // Enhanced city name processing for better geocoding results
+      const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim(); // Remove state abbreviation
+      const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)}&limit=3&appid=${apiKey}`;
+      
+      console.log('🌐 Enhanced geocoding request for', cityName, '→', cleanCityName);
+      
       const response = await fetch(geocodingUrl);
 
       if (!response.ok) {
+        console.log('❌ Geocoding API failed:', response.status, response.statusText);
         return null;
       }
 
       const data = await response.json();
       if (!data || data.length === 0) {
+        console.log('❌ No geocoding results for', cityName);
         return null;
       }
 
-      return { lat: data[0].lat, lng: data[0].lon };
+      // Use the first result with preference for US locations
+      let selectedResult = data[0];
+      for (const result of data) {
+        if (result.country === 'US') {
+          selectedResult = result;
+          break;
+        }
+      }
+
+      console.log('✅ Enhanced coordinates found for', cityName, {
+        lat: selectedResult.lat,
+        lng: selectedResult.lon,
+        country: selectedResult.country,
+        state: selectedResult.state
+      });
+
+      return { lat: selectedResult.lat, lng: selectedResult.lon };
 
     } catch (error) {
-      console.error('❌ Geocoding error for', cityName, error);
+      console.error('❌ Enhanced geocoding error for', cityName, error);
       return null;
     }
   }
