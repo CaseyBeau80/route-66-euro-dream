@@ -13,7 +13,7 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [hasFetched, setHasFetched] = React.useState(false);
+  const [fetchKey, setFetchKey] = React.useState(0);
 
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) {
@@ -27,13 +27,14 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     console.log('🚀 STANDARDIZED: Starting weather fetch with unified logic:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
-      hasFetched,
+      fetchKey,
       standardizedApiKeyDetection: true
     });
 
     setLoading(true);
     setError(null);
-    setHasFetched(true);
+    // Clear existing weather to ensure fresh state
+    setWeather(null);
 
     try {
       // STEP 1: ENHANCED API key detection - check all possible locations
@@ -67,16 +68,23 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
         
         if (liveWeather) {
-          console.log('🎯 STANDARDIZED: Live forecast SUCCESS:', cityName, {
+          console.log('🎯 STANDARDIZED: Live forecast SUCCESS - FORCING STATE UPDATE:', cityName, {
             temperature: liveWeather.temperature,
             source: liveWeather.source,
             isActualForecast: liveWeather.isActualForecast,
             description: liveWeather.description,
             highTemp: liveWeather.highTemp,
             lowTemp: liveWeather.lowTemp,
-            enhancedFlow: true
+            enhancedFlow: true,
+            forcingStateUpdate: true
           });
-          setWeather(liveWeather);
+          
+          // CRITICAL: Force state update with explicit live forecast properties
+          setWeather({
+            ...liveWeather,
+            source: 'live_forecast',
+            isActualForecast: true
+          });
           setLoading(false);
           return;
         } else {
@@ -104,25 +112,24 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay]);
+  }, [cityName, segmentDate?.getTime(), segmentDay, fetchKey]);
 
-  // FIXED: Auto-fetch when dependencies change - removed hasFetched dependency
+  // CRITICAL: Auto-fetch when dependencies change
   React.useEffect(() => {
-    if (segmentDate && !loading && !weather) {
+    if (segmentDate) {
       console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
         hasSegmentDate: !!segmentDate,
-        loading,
-        hasWeather: !!weather,
-        triggerCondition: 'has_date_not_loading_no_weather'
+        fetchKey,
+        triggerCondition: 'dependency_change'
       });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchWeather, loading, weather]);
+  }, [segmentDate?.getTime(), fetchKey, fetchWeather]);
 
-  // Manual refetch - reset state to allow new fetch
+  // Manual refetch - increment fetchKey to force new fetch
   const refetch = React.useCallback(() => {
     console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
-    setHasFetched(false);
+    setFetchKey(prev => prev + 1);
     setWeather(null);
     setError(null);
     setLoading(false);
@@ -132,8 +139,7 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     weather,
     loading,
     error,
-    refetch,
-    hasFetched
+    refetch
   };
 };
 
@@ -260,7 +266,7 @@ const fetchLiveWeatherDirect = async (
       description: bestMatch.weather[0]?.description
     });
 
-    // CRITICAL: Create live forecast with correct source and isActualForecast values
+    // CRITICAL: Create live forecast with EXPLICIT properties to ensure proper detection
     const liveWeatherResult: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
       highTemp: Math.round(bestMatch.main.temp_max),
@@ -273,11 +279,11 @@ const fetchLiveWeatherDirect = async (
       cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: true, // CRITICAL: Must be true for live forecasts
-      source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
+      isActualForecast: true, // EXPLICIT: This is a live forecast
+      source: 'live_forecast' // EXPLICIT: Mark as live forecast
     };
 
-    console.log('🎯 STANDARDIZED: Live forecast created with verified properties:', {
+    console.log('🎯 STANDARDIZED: CRITICAL - Live forecast created with EXPLICIT properties:', {
       cityName,
       temperature: liveWeatherResult.temperature,
       highTemp: liveWeatherResult.highTemp,
@@ -285,7 +291,8 @@ const fetchLiveWeatherDirect = async (
       isActualForecast: liveWeatherResult.isActualForecast,
       source: liveWeatherResult.source,
       description: liveWeatherResult.description,
-      verifiedProperties: true
+      explicitProperties: true,
+      shouldShowLiveBadge: true
     });
 
     return liveWeatherResult;
