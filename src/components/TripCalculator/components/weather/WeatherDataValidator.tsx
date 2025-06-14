@@ -32,50 +32,53 @@ export class WeatherDataValidator {
       errors.push(`Invalid temperature: ${weather.temperature}`);
     }
 
-    // CRITICAL FIX: Preserve the original source and isActualForecast values
+    // CRITICAL FIX: PRESERVE the original source and isActualForecast values - DO NOT MODIFY THEM
     const originalSource = weather.source;
     const originalIsActualForecast = weather.isActualForecast;
     
-    // FIXED: Direct live forecast detection - use original values without modification
+    // FIXED: Direct live forecast detection using ORIGINAL values without any modification
     const isLiveForecast = originalSource === 'live_forecast' && originalIsActualForecast === true;
 
-    console.log('🔧 CRITICAL FIX: WeatherDataValidator preserving original data:', {
+    console.log('🔧 FIXED: WeatherDataValidator PRESERVING original live weather data:', {
       cityName,
       originalSource,
       originalIsActualForecast,
       isLiveForecast,
       temperature: weather.temperature,
-      preservingOriginalValues: true
+      criticalFix: 'PRESERVING_ORIGINAL_VALUES'
     });
 
-    // CRITICAL FIX: Create normalized weather data that PRESERVES live weather indicators
+    // CRITICAL FIX: Create normalized weather data that PRESERVES ALL original values
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       cityName,
       forecastDate: segmentDate,
-      // PRESERVE original source and isActualForecast - DO NOT override them
+      // CRITICAL: PRESERVE original source and isActualForecast - NEVER override them
       source: originalSource,
-      isActualForecast: originalIsActualForecast
+      isActualForecast: originalIsActualForecast,
+      // Ensure we have sensible defaults for missing optional fields only
+      humidity: weather.humidity || 50,
+      windSpeed: weather.windSpeed || 0,
+      precipitationChance: weather.precipitationChance || 0,
+      highTemp: weather.highTemp || weather.temperature + 5,
+      lowTemp: weather.lowTemp || weather.temperature - 5
     };
 
-    console.log('🔧 CRITICAL FIX: WeatherDataValidator result:', {
+    console.log('🔧 FIXED: WeatherDataValidator final result (NO OVERRIDES):', {
       cityName,
       isValid: errors.length === 0,
       isLiveForecast,
-      preservedOriginalSource: normalizedWeather.source === originalSource,
-      preservedOriginalFlag: normalizedWeather.isActualForecast === originalIsActualForecast,
-      errors,
-      originalWeather: {
+      originalValues: {
         source: originalSource,
-        isActualForecast: originalIsActualForecast,
-        temperature: weather.temperature
+        isActualForecast: originalIsActualForecast
       },
-      normalizedWeather: {
+      preservedValues: {
         source: normalizedWeather.source,
-        isActualForecast: normalizedWeather.isActualForecast,
-        temperature: normalizedWeather.temperature
+        isActualForecast: normalizedWeather.isActualForecast
       },
-      criticalFix: true
+      valuesPreserved: normalizedWeather.source === originalSource && normalizedWeather.isActualForecast === originalIsActualForecast,
+      errors,
+      criticalFix: 'VALUES_PRESERVED_NOT_OVERRIDDEN'
     });
 
     return {
