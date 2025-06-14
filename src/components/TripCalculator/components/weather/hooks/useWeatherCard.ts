@@ -12,28 +12,11 @@ interface UseWeatherCardProps {
 }
 
 export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) => {
-  console.log(`🎯 [WEATHER DEBUG] useWeatherCard hook for Day ${segment.day}:`, {
-    component: 'useWeatherCard',
-    segmentDay: segment.day,
-    segmentEndCity: segment.endCity,
-    hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
-  });
+  console.log(`🎯 [WEATHER DEBUG] useWeatherCard FIXED for Day ${segment.day} - preventing loops`);
 
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
-  console.log(`🎯 [WEATHER DEBUG] useWeatherCard hooks initialized for ${segment.endCity}:`, {
-    component: 'useWeatherCard -> hooks',
-    hasApiKey,
-    weatherState: {
-      hasWeather: !!weatherState.weather,
-      loading: weatherState.loading,
-      error: weatherState.error,
-      retryCount: weatherState.retryCount
-    }
-  });
-
   const { fetchWeather } = useWeatherDataFetcher({
     segmentEndCity: segment.endCity,
     segmentDay: segment.day,
@@ -42,21 +25,21 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     actions: weatherState
   });
 
+  // CRITICAL FIX: Memoize segment date calculation to prevent recreations
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) return null;
     try {
-      // 🔧 FIXED: Use DateNormalizationService for consistent date calculation
       return DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
     } catch {
       return null;
     }
-  }, [tripStartDate, segment.day]);
+  }, [tripStartDate?.getTime(), segment.day]); // Use getTime() to prevent Date object issues
 
-  console.log(`🎯 [WEATHER DEBUG] useWeatherCard segment date calculated for ${segment.endCity}:`, {
-    component: 'useWeatherCard -> segmentDate',
-    calculatedDate: segmentDate?.toISOString(),
-    dayOffset: segment.day - 1,
-    calculationMethod: 'DateNormalizationService.calculateSegmentDate'
+  console.log(`🎯 [WEATHER DEBUG] useWeatherCard STABLE state for ${segment.endCity}:`, {
+    hasApiKey,
+    hasWeather: !!weatherState.weather,
+    loading: weatherState.loading,
+    hasSegmentDate: !!segmentDate
   });
 
   return {

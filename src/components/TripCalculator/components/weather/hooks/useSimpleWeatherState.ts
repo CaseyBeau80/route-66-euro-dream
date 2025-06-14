@@ -19,83 +19,78 @@ export interface SimpleWeatherActions {
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
   const stateKey = `${segmentEndCity}-day-${day}`;
-  console.log(`🎯 PLAN: useSimpleWeatherState with ENHANCED ISOLATION for ${stateKey}`);
+  console.log(`🎯 PLAN: useSimpleWeatherState FIXED for ${stateKey} - preventing infinite loops`);
 
   const [weather, setWeatherState] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
+  // CRITICAL FIX: Use useRef to track if we've initialized to prevent reset loops
+  const isInitialized = React.useRef(false);
+
+  // CRITICAL FIX: Memoize reset function to prevent infinite dependency loops
   const reset = React.useCallback(() => {
-    console.log(`🔄 PLAN: Resetting weather state for ${stateKey} - FULL ISOLATION`);
+    console.log(`🔄 PLAN: Resetting weather state for ${stateKey} - CONTROLLED RESET`);
     setWeatherState(null);
     setLoading(false);
     setError(null);
     setRetryCount(0);
-  }, [stateKey]);
+    isInitialized.current = true;
+  }, []); // Empty deps to prevent recreation
 
   const incrementRetry = React.useCallback(() => {
     console.log(`🔄 PLAN: Incrementing retry for ${stateKey}`);
     setRetryCount(prev => prev + 1);
   }, [stateKey]);
 
-  // Enhanced weather setting with error clearing
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
-    console.log(`✅ PLAN: Setting ISOLATED weather for ${stateKey}:`, {
+    console.log(`✅ PLAN: Setting weather for ${stateKey}:`, {
       hasWeather: !!newWeather,
       temperature: newWeather?.temperature,
       source: newWeather?.source,
-      isActualForecast: newWeather?.isActualForecast,
-      cityMatch: newWeather?.cityName === segmentEndCity,
-      isolationKey: stateKey
+      cityMatch: newWeather?.cityName === segmentEndCity
     });
 
-    // Validate city match to ensure no cross-contamination
     if (newWeather && newWeather.cityName !== segmentEndCity) {
-      console.warn(`⚠️ PLAN: ISOLATION BREACH DETECTED - Weather city mismatch:`, {
-        expectedCity: segmentEndCity,
-        receivedCity: newWeather.cityName,
-        isolationKey: stateKey,
-        BREACH: true
+      console.warn(`⚠️ PLAN: City mismatch for ${stateKey}:`, {
+        expected: segmentEndCity,
+        received: newWeather.cityName
       });
     }
 
     setWeatherState(newWeather);
     
-    // CRITICAL FIX: Clear error when weather is successfully set
     if (newWeather) {
-      console.log(`✅ PLAN: Clearing error state due to successful weather data for ${stateKey}`);
       setError(null);
     }
   }, [segmentEndCity, stateKey]);
 
   const enhancedSetLoading = React.useCallback((loading: boolean) => {
-    console.log(`🔄 PLAN: Setting loading=${loading} for ISOLATED ${stateKey}`);
+    console.log(`🔄 PLAN: Setting loading=${loading} for ${stateKey}`);
     setLoading(loading);
     
-    // CRITICAL FIX: Clear error when starting fresh loading
     if (loading) {
-      console.log(`🔄 PLAN: Clearing error state when starting loading for ${stateKey}`);
       setError(null);
     }
   }, [stateKey]);
 
   const enhancedSetError = React.useCallback((error: string | null) => {
-    console.log(`❌ PLAN: Setting error for ISOLATED ${stateKey}:`, error);
+    console.log(`❌ PLAN: Setting error for ${stateKey}:`, error);
     setError(error);
     
-    // CRITICAL FIX: Clear loading when error is set
     if (error) {
-      console.log(`❌ PLAN: Clearing loading state due to error for ${stateKey}`);
       setLoading(false);
     }
   }, [stateKey]);
 
-  // Enhanced dependency tracking for complete isolation
+  // CRITICAL FIX: Only reset on first mount, not on every dependency change
   React.useEffect(() => {
-    console.log(`🔄 PLAN: Dependency change for ISOLATED ${stateKey} - resetting for fresh state`);
-    reset();
-  }, [segmentEndCity, day, reset]);
+    if (!isInitialized.current) {
+      console.log(`🚀 PLAN: First initialization for ${stateKey} - single reset only`);
+      reset();
+    }
+  }, []); // Empty deps - only run on mount
 
   return {
     weather,

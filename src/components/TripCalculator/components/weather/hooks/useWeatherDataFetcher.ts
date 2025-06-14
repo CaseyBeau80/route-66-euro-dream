@@ -19,7 +19,11 @@ export const useWeatherDataFetcher = ({
   hasApiKey,
   actions
 }: UseWeatherDataFetcherProps) => {
-  console.log(`🎯 PLAN: useWeatherDataFetcher initialized with ENHANCED ISOLATION for ${segmentEndCity} Day ${segmentDay}`);
+  console.log(`🎯 PLAN: useWeatherDataFetcher FIXED for ${segmentEndCity} Day ${segmentDay} - preventing fetch loops`);
+
+  // CRITICAL FIX: Use ref to prevent multiple fetches for the same request
+  const lastFetchRef = React.useRef<string>('');
+  const isFetchingRef = React.useRef(false);
 
   const fetchWeather = React.useCallback(async (isSharedView: boolean = false) => {
     if (!tripStartDate) {
@@ -27,18 +31,22 @@ export const useWeatherDataFetcher = ({
       return;
     }
 
+    // CRITICAL FIX: Create unique request key to prevent duplicate fetches
+    const requestKey = `${segmentEndCity}-${segmentDay}-${tripStartDate.getTime()}-${isSharedView}`;
+    
+    if (isFetchingRef.current || lastFetchRef.current === requestKey) {
+      console.log(`🚫 PLAN: Skipping duplicate fetch for ${segmentEndCity} - already in progress or completed`);
+      return;
+    }
+
+    isFetchingRef.current = true;
+    lastFetchRef.current = requestKey;
+
     try {
       const segmentDate = new Date(tripStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
       
-      console.log(`🚀 PLAN: Starting ENHANCED weather fetch for ${segmentEndCity} Day ${segmentDay}:`, {
-        segmentDate: segmentDate.toISOString(),
-        hasApiKey,
-        isSharedView,
-        isolationLevel: 'city+date+day',
-        ENHANCED_ERROR_HANDLING: true
-      });
+      console.log(`🚀 PLAN: Starting CONTROLLED weather fetch for ${segmentEndCity} Day ${segmentDay}`);
 
-      // CRITICAL FIX: Set loading and clear any existing errors
       actions.setLoading(true);
       actions.setError(null);
 
@@ -46,19 +54,12 @@ export const useWeatherDataFetcher = ({
       if (!isSharedView) {
         const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, segmentDate, segmentDay);
         if (cachedWeather) {
-          console.log(`💾 PLAN: Using ISOLATED cached weather for ${segmentEndCity} Day ${segmentDay}`);
+          console.log(`💾 PLAN: Using cached weather for ${segmentEndCity} Day ${segmentDay}`);
           actions.setWeather(cachedWeather);
           actions.setLoading(false);
           return;
         }
       }
-
-      console.log(`🔧 CRITICAL: ENHANCED weather fetch attempt for ${segmentEndCity}:`, {
-        hasApiKey,
-        isSharedView,
-        willUseFallback: !hasApiKey,
-        ENHANCED_APPROACH: true
-      });
 
       const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
         cityName: segmentEndCity,
@@ -69,19 +70,9 @@ export const useWeatherDataFetcher = ({
       });
 
       if (weather) {
-        console.log(`✅ PLAN: ENHANCED weather fetched for ${segmentEndCity} Day ${segmentDay}:`, {
-          temperature: weather.temperature,
-          source: weather.source,
-          isActualForecast: weather.isActualForecast,
-          isolationLevel: 'city+date+day',
-          ENHANCED_SUCCESS: true
-        });
-
-        // Store weather data for consistency
+        console.log(`✅ PLAN: Weather fetched successfully for ${segmentEndCity} Day ${segmentDay}`);
         WeatherPersistenceService.storeWeatherData(segmentEndCity, segmentDate, weather, segmentDay);
         actions.setWeather(weather);
-        
-        // CRITICAL FIX: Ensure loading is cleared and error is null
         actions.setLoading(false);
         actions.setError(null);
       } else {
@@ -94,16 +85,18 @@ export const useWeatherDataFetcher = ({
       console.error(`❌ PLAN: Weather fetch error for ${segmentEndCity} Day ${segmentDay}:`, error);
       actions.setError(error instanceof Error ? error.message : 'Weather fetch failed');
       actions.setLoading(false);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [segmentEndCity, segmentDay, tripStartDate, hasApiKey, actions]);
 
-  // Auto-fetch for all views with enhanced error handling
+  // CRITICAL FIX: Only auto-fetch once, prevent multiple fetches
   React.useEffect(() => {
-    if (tripStartDate) {
-      console.log(`🚨 PLAN: TRIGGERING ENHANCED AUTO FETCH for ${segmentEndCity} Day ${segmentDay}`);
+    if (tripStartDate && !isFetchingRef.current) {
+      console.log(`🚨 PLAN: SINGLE AUTO FETCH for ${segmentEndCity} Day ${segmentDay}`);
       fetchWeather(false);
     }
-  }, [fetchWeather, tripStartDate]);
+  }, [tripStartDate?.getTime(), segmentEndCity, segmentDay]); // Use getTime() to prevent Date object recreation issues
 
   return { fetchWeather };
 };
