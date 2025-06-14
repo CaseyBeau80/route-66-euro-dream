@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherFetchingService } from '../services/WeatherFetchingService';
+import { WeatherFetchCoordinator } from '../services/WeatherFetchCoordinator';
 import { WeatherDataDebugger } from '../WeatherDataDebugger';
 
 interface UseSegmentWeatherHandlersProps {
@@ -58,7 +58,7 @@ export const useSegmentWeatherHandlers = ({
       return;
     }
 
-    console.log(`🚨 FORCE LOG: fetchWeatherData proceeding with WeatherFetchingService for ${segmentEndCity}`, {
+    console.log(`🚨 FORCE LOG: fetchWeatherData proceeding with WeatherFetchCoordinator for ${segmentEndCity}`, {
       segmentDate: segmentDate.toISOString(),
       retryCount,
       timestamp: new Date().toISOString()
@@ -74,19 +74,21 @@ export const useSegmentWeatherHandlers = ({
     );
 
     try {
-      console.log(`🚨 FORCE LOG: Calling WeatherFetchingService.fetchWeatherForSegment for ${segmentEndCity}`, {
+      console.log(`🚨 FORCE LOG: Calling WeatherFetchCoordinator.fetchWeatherForSegment for ${segmentEndCity}`, {
         timestamp: new Date().toISOString()
       });
 
-      await WeatherFetchingService.fetchWeatherForSegment(
+      await WeatherFetchCoordinator.fetchWeatherForSegment(
         segmentEndCity,
         segmentDate,
-        setLoading,
-        setError,
-        setWeather
+        {
+          onLoadingChange: setLoading,
+          onError: setError,
+          onWeatherSet: setWeather
+        }
       );
 
-      console.log(`🚨 FORCE LOG: WeatherFetchingService.fetchWeatherForSegment completed for ${segmentEndCity}`, {
+      console.log(`🚨 FORCE LOG: WeatherFetchCoordinator.fetchWeatherForSegment completed for ${segmentEndCity}`, {
         timestamp: new Date().toISOString()
       });
     } catch (error) {

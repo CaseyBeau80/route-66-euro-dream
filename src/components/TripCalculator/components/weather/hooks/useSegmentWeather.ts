@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherFetchingService } from '../services/WeatherFetchingService';
+import { WeatherFetchCoordinator } from '../services/WeatherFetchCoordinator';
 import { WeatherDebugService } from '../services/WeatherDebugService';
 
 interface UseSegmentWeatherProps {
@@ -72,12 +72,14 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     });
 
     try {
-      await WeatherFetchingService.fetchWeatherForSegment(
+      await WeatherFetchCoordinator.fetchWeatherForSegment(
         segmentEndCity,
         segmentDate,
-        setLoading,
-        setError,
-        setWeather
+        {
+          onLoadingChange: setLoading,
+          onError: setError,
+          onWeatherSet: setWeather
+        }
       );
     } catch (error) {
       console.error('❌ PLAN: Enhanced useSegmentWeather: Fetch failed for', segmentEndCity, error);
@@ -105,7 +107,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
   React.useEffect(() => {
     return () => {
       if (segmentDate) {
-        WeatherFetchingService.cancelRequest(segmentEndCity, segmentDate);
+        WeatherFetchCoordinator.cancelRequest(segmentEndCity, segmentDate);
         console.log('🔧 PLAN: Enhanced cleanup - cancelled request for', segmentEndCity);
       }
     };
