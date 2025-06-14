@@ -19,33 +19,26 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ENHANCED: Strict live forecast detection with comprehensive validation
+  // FIXED: Simplified live forecast detection with exact criteria
   const isLiveForecast = React.useMemo(() => {
     if (!segmentDate) return false;
     
-    // Calculate days from today using consistent logic
+    // Calculate days from today
     const today = new Date();
     const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     
-    // ENHANCED: Strict criteria - ALL must be true for live forecast badge
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
-    const hasLiveForecastSource = weather.source === 'live_forecast';
-    const isActualForecast = weather.isActualForecast === true;
+    // FIXED: Exact criteria - must have live source AND be actual forecast
+    const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    // All three conditions must be met
-    const isVerifiedLive = isWithinForecastRange && hasLiveForecastSource && isActualForecast;
-    
-    console.log('🎯 ENHANCED: Strict live forecast validation for', cityName, {
+    console.log('🎯 FIXED: Live forecast validation for', cityName, {
       segmentDate: segmentDate.toISOString(),
       daysFromToday,
-      checks: {
-        isWithinForecastRange: `${isWithinForecastRange} (0-7 days)`,
-        hasLiveForecastSource: `${hasLiveForecastSource} (source: ${weather.source})`,
-        isActualForecast: `${isActualForecast} (isActualForecast: ${weather.isActualForecast})`
-      },
-      result: {
-        isVerifiedLive,
-        allConditionsMet: isWithinForecastRange && hasLiveForecastSource && isActualForecast
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isVerifiedLive,
+      criteria: {
+        hasLiveSource: weather.source === 'live_forecast',
+        isActualForecast: weather.isActualForecast === true
       }
     });
     
@@ -54,7 +47,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
 
   const weatherTypeInfo = WeatherTypeDetector.detectWeatherType(weather);
   
-  // ENHANCED: Source labeling based on strict validation
+  // FIXED: Source labeling based on actual weather source
   const sourceLabel = React.useMemo(() => {
     if (isLiveForecast) {
       return 'Live Weather Forecast';
@@ -62,15 +55,14 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return 'Historical Weather Data';
   }, [isLiveForecast]);
   
-  console.log('🎯 ENHANCED: SimpleWeatherDisplay rendering with strict validation:', {
+  console.log('🎯 FIXED: SimpleWeatherDisplay rendering:', {
     cityName,
     isLiveForecast,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     sourceLabel,
     temperature: weather.temperature,
-    description: weather.description,
-    displayType: isLiveForecast ? 'LIVE_FORECAST_BADGE' : 'HISTORICAL_DATA'
+    description: weather.description
   });
 
   return (
@@ -85,7 +77,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
             🌤️ Weather for {cityName}
           </h4>
           
-          {/* ENHANCED: Only show live indicator for verified live forecasts */}
+          {/* FIXED: Only show live indicator for actual live forecasts */}
           {isLiveForecast && (
             <div className="mb-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
@@ -137,7 +129,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         <div>☔ {weather.precipitationChance}% rain</div>
       </div>
       
-      {/* ENHANCED: Correct data quality indicator based on strict validation */}
+      {/* FIXED: Data quality indicator based on actual source */}
       {!isPDFExport && (
         <div className="mt-2 pt-2 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs">

@@ -120,39 +120,56 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     }
   }, [stateKey, segmentDate?.getTime(), enhancedApiKeyStatus.hasValidKey, enhancedApiKeyStatus.keySource, weatherState, segment.endCity, segment.day]);
 
-  // ENHANCED: Auto-fetch with validated API key and single attempt tracking
+  // FIXED: Simplified auto-fetch with single attempt tracking
   const hasAttemptedFetch = React.useRef(false);
-  const lastFetchDateKey = React.useRef<string>('');
 
   React.useEffect(() => {
-    const currentDateKey = `${tripStartDate?.getTime()}-${segmentDate?.getTime()}`;
-    
-    // Reset attempt if date changed
-    if (lastFetchDateKey.current !== currentDateKey) {
+    // Reset attempt flag when key conditions change
+    const resetConditions = [
+      tripStartDate?.getTime(),
+      segmentDate?.getTime(),
+      enhancedApiKeyStatus.hasValidKey
+    ].join('-');
+
+    const lastResetKey = React.useRef('');
+    if (lastResetKey.current !== resetConditions) {
       hasAttemptedFetch.current = false;
-      lastFetchDateKey.current = currentDateKey;
+      lastResetKey.current = resetConditions;
+      console.log(`🔄 ENHANCED: Reset fetch attempt for ${stateKey} due to condition change`);
     }
 
-    const shouldAttemptFetch = tripStartDate && 
-                              segmentDate && 
-                              !weatherState.weather && 
-                              !weatherState.loading && 
-                              !hasAttemptedFetch.current;
+    // FIXED: Simple fetch trigger - only check essential conditions
+    const shouldFetch = !hasAttemptedFetch.current && 
+                       tripStartDate && 
+                       segmentDate && 
+                       !weatherState.weather && 
+                       !weatherState.loading;
 
-    if (shouldAttemptFetch) {
+    if (shouldFetch) {
       console.log(`🚨 ENHANCED: Auto-fetch triggered for ${stateKey}`, {
-        hasSegmentDate: Boolean(segmentDate),
-        hasWeather: Boolean(weatherState.weather),
-        loading: weatherState.loading,
         hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
         keySource: enhancedApiKeyStatus.keySource,
-        hasAttemptedFetch: hasAttemptedFetch.current
+        hasAttemptedFetch: hasAttemptedFetch.current,
+        conditions: {
+          hasTripStartDate: !!tripStartDate,
+          hasSegmentDate: !!segmentDate,
+          hasWeather: !!weatherState.weather,
+          loading: weatherState.loading
+        }
       });
       
       hasAttemptedFetch.current = true;
       fetchWeather(false);
     }
-  }, [tripStartDate?.getTime(), segmentDate?.getTime(), fetchWeather, stateKey, enhancedApiKeyStatus.hasValidKey]);
+  }, [
+    tripStartDate?.getTime(), 
+    segmentDate?.getTime(), 
+    weatherState.weather, 
+    weatherState.loading, 
+    enhancedApiKeyStatus.hasValidKey,
+    fetchWeather, 
+    stateKey
+  ]);
 
   console.log(`🔑 ENHANCED: useWeatherCard final state for ${stateKey}:`, {
     hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
@@ -162,7 +179,8 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     hasSegmentDate: Boolean(segmentDate),
     weatherSource: weatherState.weather?.source,
     isActualForecast: weatherState.weather?.isActualForecast,
-    isLiveForecast: weatherState.weather?.isActualForecast === true && weatherState.weather?.source === 'live_forecast'
+    isLiveForecast: weatherState.weather?.isActualForecast === true && weatherState.weather?.source === 'live_forecast',
+    hasAttemptedFetch: hasAttemptedFetch.current
   });
 
   return {
