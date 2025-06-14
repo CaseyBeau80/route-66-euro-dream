@@ -14,13 +14,17 @@ export class WeatherApiKeyManager {
       return localStorageKey.trim();
     }
 
-    // Check config file
+    // Check config file only if it's not empty
     if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim().length > 0) {
       const configKey = WEATHER_API_KEY.trim();
       if (this.isValidKey(configKey)) {
         console.log('✅ WeatherApiKeyManager: Using valid config key');
         return configKey;
+      } else {
+        console.log('❌ WeatherApiKeyManager: Config key is invalid/placeholder');
       }
+    } else {
+      console.log('🔍 WeatherApiKeyManager: No config key set (empty string)');
     }
 
     console.log('❌ WeatherApiKeyManager: No valid API key found');
@@ -59,6 +63,18 @@ export class WeatherApiKeyManager {
     
     const trimmedKey = key.trim();
     
+    // Reject empty strings
+    if (trimmedKey.length === 0) {
+      console.log('❌ WeatherApiKeyManager: Key is empty string');
+      return false;
+    }
+    
+    // Reject the specific invalid key that was causing issues
+    if (trimmedKey === 'b6907d289e10d714a6e88b30761fae22') {
+      console.log('❌ WeatherApiKeyManager: Rejected known invalid test key');
+      return false;
+    }
+    
     // Reject obvious placeholders
     const placeholderPatterns = [
       'your_api_key_here',
@@ -66,7 +82,7 @@ export class WeatherApiKeyManager {
       'replace_with_your_key',
       'your_openweather_api_key',
       'enter_your_api_key',
-      'a1b2c3d4e5f6789012345678901abcde' // old placeholder
+      'a1b2c3d4e5f6789012345678901abcde' // example pattern
     ];
     
     const lowerKey = trimmedKey.toLowerCase();
