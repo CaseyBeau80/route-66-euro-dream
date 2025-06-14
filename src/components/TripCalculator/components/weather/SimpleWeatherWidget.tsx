@@ -41,7 +41,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     hasWeather: !!weather,
     loading,
     error,
-    logicPath: 'shared_view_seasonal_fallback_fix'
+    logicPath: 'simplified_shared_view_fix'
   });
 
   useEffect(() => {
@@ -55,8 +55,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         endCity: segment.endCity,
         segmentDate: segmentDate.toISOString(),
         hasApiKey,
-        isSharedView,
-        willAttemptFetch: true // Always attempt, even in shared view
+        isSharedView
       });
 
       setLoading(true);
@@ -89,14 +88,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       }
     };
 
-    // CRITICAL FIX: Always attempt fetch, regardless of shared view or API key status
-    // The SimpleWeatherFetcher will handle fallback to seasonal data internally
-    console.log('🔧 SHARED VIEW FIX: Always attempting fetch for', segment.endCity, {
-      isSharedView,
-      hasApiKey,
-      reason: 'will_fallback_to_seasonal_if_needed'
-    });
-    
     fetchWeather();
   }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
 
@@ -113,7 +104,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // If we have actual weather data, show it
+  // CRITICAL FIX: If we have actual weather data, show it
   if (weather) {
     console.log('🔧 SHARED VIEW FIX: Displaying weather data for', segment.endCity, {
       temperature: weather.temperature,
@@ -157,12 +148,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // CRITICAL FIX: If no weather data but we have a valid segment date, show seasonal fallback
+  // CRITICAL FIX: If no weather data but we have a valid segment date, ALWAYS show seasonal fallback
   if (segmentDate) {
     console.log('🔧 SHARED VIEW FIX: No weather data, showing seasonal fallback for', segment.endCity, {
       isSharedView,
       hasSegmentDate: !!segmentDate,
-      reason: 'no_weather_data_but_have_date'
+      reason: 'no_weather_data_available'
     });
     
     return (
@@ -174,7 +165,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // CRITICAL FIX: Error state for non-shared views only
+  // Only show error in non-shared views
   if (error && !isSharedView) {
     console.log('🔧 SHARED VIEW FIX: Showing error state for non-shared view', segment.endCity);
     return (
@@ -190,13 +181,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Absolute final fallback - only if no date available at all
+  // Absolute final fallback
   console.log('🔧 SHARED VIEW FIX: Absolute final fallback for', segment.endCity, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
     error,
-    reason: 'no_date_available_at_all'
+    reason: 'no_date_available'
   });
 
   return (
