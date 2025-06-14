@@ -46,7 +46,15 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // FIXED: Always render WeatherCard for live weather fetching, even in shared views
+  // CRITICAL FIX: Always render WeatherCard to trigger weather fetching, even in shared views
+  console.log('🔧 SimpleWeatherWidget: Rendering WeatherCard with enhanced shared view support', {
+    segmentEndCity: segment.endCity,
+    day: segment.day,
+    hasSegmentDate: !!segmentDate,
+    isSharedView,
+    shouldFetchWeather: !!segmentDate // This should trigger weather fetching
+  });
+
   return (
     <div className="weather-widget">
       <WeatherCard

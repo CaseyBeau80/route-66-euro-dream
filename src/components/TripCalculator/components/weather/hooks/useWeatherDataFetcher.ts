@@ -30,47 +30,58 @@ export const useWeatherDataFetcher = ({
     try {
       const segmentDate = new Date(tripStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
       
-      console.log(`🚀 PLAN: Starting ISOLATED weather fetch for ${segmentEndCity} Day ${segmentDay}:`, {
+      console.log(`🚀 PLAN: Starting SHARED VIEW COMPATIBLE weather fetch for ${segmentEndCity} Day ${segmentDay}:`, {
         segmentDate: segmentDate.toISOString(),
         hasApiKey,
         isSharedView,
-        isolationLevel: 'city+date+day'
+        isolationLevel: 'city+date+day',
+        SHARED_VIEW_ENABLED: true
       });
 
       actions.setLoading(true);
       actions.setError(null);
 
-      // 🔧 PLAN: Check for cached data with enhanced isolation
-      const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, segmentDate, segmentDay);
-      if (cachedWeather) {
-        console.log(`💾 PLAN: Using ISOLATED cached weather for ${segmentEndCity} Day ${segmentDay}`);
-        actions.setWeather(cachedWeather);
-        actions.setLoading(false);
-        return;
+      // 🔧 PLAN: For shared views, still check cache but also try fresh fetch
+      if (!isSharedView) {
+        const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, segmentDate, segmentDay);
+        if (cachedWeather) {
+          console.log(`💾 PLAN: Using ISOLATED cached weather for ${segmentEndCity} Day ${segmentDay}`);
+          actions.setWeather(cachedWeather);
+          actions.setLoading(false);
+          return;
+        }
       }
 
-      // 🔧 PLAN: Fetch fresh weather with enhanced isolation
+      // 🔧 CRITICAL: ALWAYS attempt weather fetch for shared views, even without API key
+      console.log(`🔧 CRITICAL: SHARED VIEW weather fetch attempt for ${segmentEndCity}:`, {
+        hasApiKey,
+        isSharedView,
+        willUseFallback: !hasApiKey,
+        FORCING_FETCH: true
+      });
+
       const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
         cityName: segmentEndCity,
         targetDate: segmentDate,
         hasApiKey,
         isSharedView,
-        segmentDay // 🔧 PLAN: Pass segment day for unique generation
+        segmentDay
       });
 
       if (weather) {
-        console.log(`✅ PLAN: Fresh ISOLATED weather fetched for ${segmentEndCity} Day ${segmentDay}:`, {
+        console.log(`✅ PLAN: SHARED VIEW weather fetched for ${segmentEndCity} Day ${segmentDay}:`, {
           temperature: weather.temperature,
           source: weather.source,
           isActualForecast: weather.isActualForecast,
-          isolationLevel: 'city+date+day'
+          isolationLevel: 'city+date+day',
+          SHARED_VIEW_SUCCESS: true
         });
 
-        // 🔧 PLAN: Store with enhanced isolation
+        // Store weather data even for shared views for consistency
         WeatherPersistenceService.storeWeatherData(segmentEndCity, segmentDate, weather, segmentDay);
         actions.setWeather(weather);
       } else {
-        console.log(`⚠️ PLAN: No weather data returned for ${segmentEndCity} Day ${segmentDay}`);
+        console.log(`⚠️ PLAN: No weather data returned for ${segmentEndCity} Day ${segmentDay} in shared view`);
         actions.setError('Unable to fetch weather data');
       }
 
@@ -83,13 +94,14 @@ export const useWeatherDataFetcher = ({
     }
   }, [segmentEndCity, segmentDay, tripStartDate, hasApiKey, actions]);
 
-  // 🔧 PLAN: Auto-fetch on component mount with isolation
+  // 🔧 CRITICAL: Auto-fetch for ALL views, including shared views
   React.useEffect(() => {
-    if (tripStartDate && hasApiKey) {
-      console.log(`🚨 PLAN: TRIGGERING AUTO FETCH with ISOLATION for ${segmentEndCity} Day ${segmentDay}`);
-      fetchWeather(false);
+    if (tripStartDate) {
+      console.log(`🚨 PLAN: TRIGGERING UNIVERSAL AUTO FETCH for ${segmentEndCity} Day ${segmentDay} (works for shared views)`);
+      // Always fetch weather regardless of API key status for shared views to get fallback data
+      fetchWeather(false); // Let the SimpleWeatherFetcher handle shared view logic internally
     }
-  }, [fetchWeather, tripStartDate, hasApiKey]);
+  }, [fetchWeather, tripStartDate]);
 
   return { fetchWeather };
 };

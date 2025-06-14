@@ -35,8 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // PLAN IMPLEMENTATION: Enhanced logging for weather data flow
-  console.log('🌤️ PLAN: SegmentWeatherContent enhanced flow analysis for', segmentEndCity, {
+  console.log('🌤️ PLAN: SegmentWeatherContent SHARED VIEW ENHANCED flow for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: !!weather,
@@ -46,7 +45,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     isPDFExport,
     hasSegmentDate: !!segmentDate,
     retryCount,
-    planImplementation: 'enhanced_logging_and_flow_control'
+    SHARED_VIEW_LOGIC: 'enhanced_priority_display'
   });
 
   if (weather) {
@@ -56,8 +55,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
       lowTemp: weather.lowTemp,
       isActualForecast: weather.isActualForecast,
       source: weather.source,
-      matchedForecastDay: !!weather.matchedForecastDay,
-      planImplementation: 'weather_data_inspection'
+      SHARED_VIEW_WEATHER_FOUND: true
     });
   }
 
@@ -70,7 +68,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     segmentDate: segmentDate?.toISOString()
   });
 
-  // PLAN IMPLEMENTATION: Show loading state first - no changes to this logic
+  // Show loading state first
   if (loading) {
     console.log('🌤️ PLAN: Showing loading state for', segmentEndCity);
     return (
@@ -83,9 +81,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // PLAN IMPLEMENTATION: If we have weather data, ALWAYS display it (highest priority)
+  // 🔧 CRITICAL: HIGHEST PRIORITY - If we have weather data, ALWAYS display it
   if (weather) {
-    console.log(`🎯 PLAN: Using actual weather data for ${segmentEndCity} - PRIORITY DISPLAY`);
+    console.log(`🎯 PLAN: PRIORITY DISPLAY - Using weather data for ${segmentEndCity} in shared view`);
     return (
       <WeatherDataDisplay
         weather={weather}
@@ -99,34 +97,25 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // PLAN IMPLEMENTATION: Enhanced shared view logic - prevent premature exits
-  if (isSharedView || isPDFExport) {
-    console.log(`🌱 PLAN: Shared view handling for ${segmentEndCity}`, {
-      hasSegmentDate: !!segmentDate,
-      hasApiKey,
-      weatherFetchAttempted: !loading,
-      willShowSeasonalFallback: !!segmentDate,
-      planImplementation: 'enhanced_shared_view_logic'
-    });
-
-    // PLAN: For shared views, show seasonal fallback if we have a date but no weather
-    if (segmentDate) {
-      console.log(`🌱 PLAN: Using seasonal fallback for ${segmentEndCity} in shared view`);
-      return (
-        <SeasonalWeatherFallback 
-          segmentDate={segmentDate}
-          cityName={segmentEndCity}
-          compact={true}
-        />
-      );
-    }
-
-    // PLAN: Only show "not available" if we absolutely have no date
-    console.log(`🚫 PLAN: No date available for ${segmentEndCity} in shared view`);
+  // 🔧 SHARED VIEW ENHANCED LOGIC - Try seasonal fallback as second priority
+  if ((isSharedView || isPDFExport) && segmentDate) {
+    console.log(`🌱 PLAN: SHARED VIEW - Using seasonal fallback for ${segmentEndCity}`);
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-        <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-        <p className="text-xs text-gray-600">Weather information not available</p>
+      <SeasonalWeatherFallback 
+        segmentDate={segmentDate}
+        cityName={segmentEndCity}
+        compact={true}
+      />
+    );
+  }
+
+  // For shared views without date, show a better message
+  if (isSharedView || isPDFExport) {
+    console.log(`🚫 PLAN: SHARED VIEW - No date available for ${segmentEndCity}`);
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
+        <div className="text-amber-600 text-2xl mb-1">⛅</div>
+        <p className="text-xs text-amber-700 font-medium">Check weather before departure</p>
       </div>
     );
   }
