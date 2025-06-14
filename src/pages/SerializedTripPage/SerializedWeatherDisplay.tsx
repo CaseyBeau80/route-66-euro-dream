@@ -33,7 +33,7 @@ const SerializedWeatherDisplay: React.FC<SerializedWeatherDisplayProps> = ({
   const formattedDate = segmentDate ? format(segmentDate, 'EEEE, MMM d') : '';
 
   // Determine if this is live or historical data
-  const isLiveData = weather.isActualForecast || weather.source === 'openweather';
+  const isLiveData = weather.isActualForecast || weather.source === 'live_forecast';
 
   return (
     <div className={`rounded-lg p-4 border-2 ${
