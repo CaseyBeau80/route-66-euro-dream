@@ -28,7 +28,7 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     return new Date(tripStartDate);
   }, [tripStartDate]);
 
-  console.log('🔧 SegmentWeatherWidget: Rendering for', segment.endCity, {
+  console.log('🔧 UNIFIED: SegmentWeatherWidget rendering for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
@@ -40,7 +40,8 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
       <SimpleWeatherWidget
         segment={segment}
         tripStartDate={normalizedTripStartDate}
-        isSharedView={isSharedView || isPDFExport}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
       />
     </div>
   );
