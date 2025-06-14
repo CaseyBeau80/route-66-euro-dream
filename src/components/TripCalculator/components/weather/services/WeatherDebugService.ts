@@ -60,6 +60,55 @@ export class WeatherDebugService {
     });
   }
 
+  static logWeatherFlow(component: string, data: any) {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      component,
+      cityName: data.cityName || 'unknown',
+      action: 'weather_flow',
+      data
+    };
+
+    this.debugLog.push(logEntry);
+    
+    console.log(`🌊 PLAN: WeatherDebugService - Weather flow ${component}:`, {
+      ...logEntry,
+      flowType: 'weather_operation'
+    });
+
+    // Keep only last 50 entries
+    if (this.debugLog.length > 50) {
+      this.debugLog = this.debugLog.slice(-50);
+    }
+  }
+
+  static logForecastTimeout(cityName: string, timeoutMs: number, reason: string) {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      component: 'ForecastTimeout',
+      cityName,
+      action: 'timeout',
+      data: {
+        timeoutMs,
+        reason,
+        timestamp: Date.now()
+      }
+    };
+
+    this.debugLog.push(logEntry);
+    
+    console.log(`⏰ PLAN: WeatherDebugService - Forecast timeout for ${cityName}:`, {
+      ...logEntry,
+      timeoutDuration: `${timeoutMs}ms`,
+      timeoutReason: reason
+    });
+
+    // Keep only last 50 entries
+    if (this.debugLog.length > 50) {
+      this.debugLog = this.debugLog.slice(-50);
+    }
+  }
+
   static logNormalizedForecastOutput(cityName: string, normalizedData: any) {
     console.log(`🎯 PLAN: [NORMALIZED FORECAST OUTPUT] for ${cityName}:`, {
       temperature: normalizedData.temperature,
