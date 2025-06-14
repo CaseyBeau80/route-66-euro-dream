@@ -20,6 +20,42 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
     sharedViewMode: true
   });
 
+  // Try to get trip start date from URL if not provided
+  const effectiveTripStartDate = React.useMemo(() => {
+    if (tripStartDate) {
+      console.log('🔧 SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
+      return tripStartDate;
+    }
+
+    // Try to extract from URL parameters
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const possibleParams = ['tripStart', 'startDate', 'start_date', 'trip_start'];
+      
+      for (const paramName of possibleParams) {
+        const tripStartParam = urlParams.get(paramName);
+        if (tripStartParam) {
+          const parsedDate = new Date(tripStartParam);
+          if (!isNaN(parsedDate.getTime())) {
+            console.log('🔧 SHARED: Extracted tripStartDate from URL:', {
+              param: paramName,
+              value: tripStartParam,
+              parsedDate: parsedDate.toISOString()
+            });
+            return parsedDate;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ SHARED: Failed to parse trip start date from URL:', error);
+    }
+
+    // Fallback: use today as trip start for demonstration
+    const today = new Date();
+    console.log('🔧 SHARED: Using today as fallback tripStartDate:', today.toISOString());
+    return today;
+  }, [tripStartDate]);
+
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
@@ -36,6 +72,11 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         <p className="text-route66-cream text-sm font-travel">
           Your complete day-by-day guide with weather forecasts
         </p>
+        {effectiveTripStartDate && (
+          <p className="text-route66-cream text-xs mt-1">
+            Trip starts: {format(effectiveTripStartDate, 'EEEE, MMMM d, yyyy')}
+          </p>
+        )}
       </div>
       
       {segments.map((segment, index) => {
@@ -45,7 +86,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         console.log(`🔧 SHARED: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
-          hasTripStartDate: !!tripStartDate,
+          hasEffectiveTripStartDate: !!effectiveTripStartDate,
           isSharedView: true
         });
 
@@ -57,8 +98,8 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 <div>
                   <h3 className="text-xl font-bold">Day {segment.day}</h3>
                   <p className="text-blue-100">
-                    {tripStartDate && (
-                      format(new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEEE, MMMM d, yyyy')
+                    {effectiveTripStartDate && (
+                      format(new Date(effectiveTripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEEE, MMMM d, yyyy')
                     )}
                   </p>
                 </div>
@@ -102,7 +143,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Enhanced Weather Section - Fixed for Shared View */}
+              {/* Enhanced Weather Section with Trip Start Date */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
@@ -113,7 +154,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 <div className="weather-widget-container">
                   <SimpleWeatherWidget
                     segment={segment}
-                    tripStartDate={tripStartDate}
+                    tripStartDate={effectiveTripStartDate}
                     isSharedView={true}
                     isPDFExport={false}
                   />

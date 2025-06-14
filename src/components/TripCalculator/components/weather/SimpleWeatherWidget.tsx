@@ -28,20 +28,34 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     tripStartDate: tripStartDate?.toISOString()
   });
 
-  // Calculate segment date
+  // Calculate segment date with better URL parameter handling
   const segmentDate = React.useMemo(() => {
-    if (!tripStartDate) {
-      // For shared views, try to get date from URL params
-      if (isSharedView) {
-        try {
-          const urlParams = new URLSearchParams(window.location.search);
-          const tripStartParam = urlParams.get('tripStart') || urlParams.get('startDate');
-          
+    // First priority: use passed tripStartDate
+    if (tripStartDate) {
+      const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      console.log('🔧 SHARED: Calculated date from tripStartDate:', {
+        tripStartDate: tripStartDate.toISOString(),
+        segmentDay: segment.day,
+        calculatedDate: calculatedDate?.toISOString()
+      });
+      return calculatedDate;
+    }
+
+    // Second priority: for shared views, try to get date from URL params with multiple possible parameter names
+    if (isSharedView) {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const possibleParams = ['tripStart', 'startDate', 'start_date', 'trip_start'];
+        
+        for (const paramName of possibleParams) {
+          const tripStartParam = urlParams.get(paramName);
           if (tripStartParam) {
+            console.log('🔧 SHARED: Found URL param:', paramName, '=', tripStartParam);
+            
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
               const calculatedDate = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-              console.log('🔧 SHARED: Calculated date from URL params:', {
+              console.log('🔧 SHARED: Successfully calculated date from URL params:', {
                 urlParam: tripStartParam,
                 segmentDay: segment.day,
                 calculatedDate: calculatedDate?.toISOString()
@@ -49,21 +63,27 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
               return calculatedDate;
             }
           }
-        } catch (error) {
-          console.warn('⚠️ Failed to parse trip start date from URL:', error);
         }
+        
+        console.log('🔧 SHARED: No valid trip start date found in URL params');
+      } catch (error) {
+        console.warn('⚠️ Failed to parse trip start date from URL:', error);
       }
-      return null;
+    }
+
+    // For shared views without a valid date, use today + segment day offset for demonstration
+    if (isSharedView || isPDFExport) {
+      const today = new Date();
+      const estimatedDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+      console.log('🔧 SHARED: Using estimated date for shared view:', {
+        segmentDay: segment.day,
+        estimatedDate: estimatedDate.toISOString()
+      });
+      return estimatedDate;
     }
     
-    const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-    console.log('🔧 SHARED: Calculated date from tripStartDate:', {
-      tripStartDate: tripStartDate.toISOString(),
-      segmentDay: segment.day,
-      calculatedDate: calculatedDate?.toISOString()
-    });
-    return calculatedDate;
-  }, [tripStartDate, segment.day, isSharedView]);
+    return null;
+  }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
   // Use unified weather hook
   const { weather, loading, error, refetch } = useUnifiedWeather({
@@ -86,6 +106,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     error,
     hasApiKey,
     hasSegmentDate: !!segmentDate,
+    segmentDate: segmentDate?.toISOString(),
     isSharedView
   });
 
@@ -101,12 +122,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Show weather if we have it - THIS IS THE KEY FIX
+  // Show weather if we have it and a valid date
   if (weather && segmentDate) {
     console.log('✅ SHARED: Displaying weather for', segment.endCity, {
       temperature: weather.temperature,
       source: weather.source,
-      isSharedView
+      isSharedView,
+      hasValidDate: true
     });
     
     return (
@@ -122,26 +144,27 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // For shared/PDF views without weather, show basic message
-  if ((isSharedView || isPDFExport) && !segmentDate) {
-    console.log('⚠️ SHARED: No segment date for', segment.endCity);
+  // For shared/PDF views without weather but WITH a date, show that we're trying
+  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
+    console.log('⚠️ SHARED: Have date but no weather for', segment.endCity);
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
-        <div className="text-amber-600 text-2xl mb-1">⛅</div>
-        <p className="text-xs text-amber-700 font-medium">Check weather before departure</p>
-        <p className="text-xs text-amber-600 mt-1">Trip start date needed for weather forecast</p>
+      <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
+        <div className="text-blue-600 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-blue-700 font-medium">Weather forecast unavailable</p>
+        <p className="text-xs text-blue-600 mt-1">Check current conditions before departure</p>
+        {error && <p className="text-xs text-blue-500 mt-1">{error}</p>}
       </div>
     );
   }
 
-  // For shared views where weather failed to load
+  // For shared/PDF views without valid date
   if (isSharedView || isPDFExport) {
-    console.log('⚠️ SHARED: Weather failed for', segment.endCity, { error, hasSegmentDate: !!segmentDate });
+    console.log('⚠️ SHARED: No valid date for weather in', segment.endCity);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
-        <p className="text-xs text-amber-700 font-medium">Check weather before departure</p>
-        {error && <p className="text-xs text-amber-600 mt-1">{error}</p>}
+        <p className="text-xs text-amber-700 font-medium">Weather forecast needs trip date</p>
+        <p className="text-xs text-amber-600 mt-1">Add trip start date for accurate forecast</p>
       </div>
     );
   }
