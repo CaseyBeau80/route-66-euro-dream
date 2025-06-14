@@ -35,7 +35,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 FIXED: SegmentWeatherContent with stable shared view logic for', segmentEndCity, {
+  console.log('🔧 FIXED: SegmentWeatherContent for', segmentEndCity, {
     hasApiKey,
     loading,
     hasWeather: Boolean(weather),
@@ -70,14 +70,13 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: ALWAYS display weather data if available (regardless of view type)
+  // FIXED: ALWAYS display weather data if available
   if (weather) {
     console.log(`✅ FIXED: Displaying weather data for ${segmentEndCity}`, {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
-      viewType: isSharedView ? 'shared' : 'regular',
-      isLiveForecast: weather.isActualForecast === true && weather.source === 'live_forecast'
+      viewType: isSharedView ? 'shared' : 'regular'
     });
     
     return (
@@ -93,7 +92,7 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // For shared views without weather data and no date - show basic message
+  // FIXED: For shared views without weather data and no date - show basic message
   if ((isSharedView || isPDFExport) && !segmentDate) {
     console.log(`🚫 FIXED: Shared view without date for ${segmentEndCity}`);
     return (
@@ -104,9 +103,9 @@ const SegmentWeatherContent: React.FC<SegmentWeatherContentProps> = ({
     );
   }
 
-  // FIXED: For shared views with date but no weather - show fallback immediately (NO AUTO-RETRY)
+  // FIXED: For shared views with date but no weather - show fallback
   if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
-    console.log(`🌱 FIXED: Shared view showing fallback weather for ${segmentEndCity} - no auto-retry`);
+    console.log(`🌱 FIXED: Shared view showing fallback weather for ${segmentEndCity}`);
     
     return (
       <SeasonalWeatherFallback 
