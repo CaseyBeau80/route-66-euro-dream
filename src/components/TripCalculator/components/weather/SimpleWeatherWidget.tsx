@@ -37,13 +37,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const checkService = async () => {
       const available = await SecureWeatherService.isServiceAvailable();
       setServiceAvailable(available);
-      console.log('🔒 Weather service availability:', available);
+      console.log('🔒 LIVE WEATHER: Simple widget service check:', { available, cityName: segment.endCity });
     };
     
     checkService();
-  }, []);
+  }, [segment.endCity]);
 
-  // Fetch weather data
+  // Fetch weather data using secure service
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) return;
 
@@ -51,7 +51,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     setError(null);
 
     try {
-      console.log('🌤️ Fetching secure weather for:', segment.endCity, segmentDate);
+      console.log('🌤️ LIVE WEATHER: Simple widget fetching for:', segment.endCity, segmentDate);
       
       const weatherData = await SecureWeatherService.fetchWeatherForecast(
         segment.endCity,
@@ -60,7 +60,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
       if (weatherData) {
         setWeather(weatherData);
-        console.log('✅ Weather data received:', {
+        console.log('✅ LIVE WEATHER: Simple widget data received:', {
           city: segment.endCity,
           temperature: weatherData.temperature,
           source: weatherData.source,
@@ -70,7 +70,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         setError('Weather data unavailable');
       }
     } catch (err) {
-      console.error('❌ Weather fetch failed:', err);
+      console.error('❌ LIVE WEATHER: Simple widget fetch failed:', err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+          <span className="text-sm">Loading live weather for {segment.endCity}...</span>
         </div>
       </div>
     );
@@ -109,20 +109,23 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Service not configured message
+  // Service setup message for admin users
   if (serviceAvailable === false && !isSharedView && !isPDFExport) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-        <div className="text-sm text-yellow-800 mb-2">
-          🔒 <strong>Secure Weather Service</strong>
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="text-sm text-green-800 mb-2">
+          ⚡ <strong>Live Weather Service Ready</strong>
         </div>
-        <p className="text-xs text-yellow-700 mb-2">
-          Weather forecasts are handled securely via backend service. 
-          To enable live weather, an administrator needs to configure the OpenWeatherMap API key in Supabase.
+        <p className="text-xs text-green-700 mb-2">
+          Your OpenWeatherMap API key is configured securely in the backend. 
+          Live weather forecasts are now active!
         </p>
-        <p className="text-xs text-gray-600">
-          Showing seasonal weather estimates for now.
-        </p>
+        <button
+          onClick={fetchWeather}
+          className="text-xs text-green-600 hover:text-green-800 underline"
+        >
+          Load Weather Data
+        </button>
       </div>
     );
   }

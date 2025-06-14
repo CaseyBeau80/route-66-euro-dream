@@ -18,119 +18,112 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  const getWeatherIcon = (iconCode: string) => {
-    const iconMap: { [key: string]: string } = {
-      '01d': '☀️', '01n': '🌙',
-      '02d': '⛅', '02n': '☁️',
-      '03d': '☁️', '03n': '☁️',
-      '04d': '☁️', '04n': '☁️',
-      '09d': '🌧️', '09n': '🌧️',
-      '10d': '🌦️', '10n': '🌧️',
-      '11d': '⛈️', '11n': '⛈️',
-      '13d': '🌨️', '13n': '🌨️',
-      '50d': '🌫️', '50n': '🌫️'
-    };
-    return iconMap[iconCode] || '⛅';
-  };
-
-  const weatherIcon = getWeatherIcon(weather.icon);
-  const formattedDate = format(segmentDate, 'EEEE, MMM d');
+  const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  // CRITICAL FIX: Explicit live weather detection with detailed logging
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
-  
-  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay live detection:', {
+  console.log('🌤️ LIVE WEATHER: SimpleWeatherDisplay rendering:', {
     cityName,
-    weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast,
-    sourceCheck: weather.source === 'live_forecast',
-    forecastCheck: weather.isActualForecast === true,
-    finalIsLiveForecast: isLiveForecast,
     temperature: weather.temperature,
-    timestamp: new Date().toISOString()
-  });
-
-  // Force re-render key to ensure fresh display
-  const displayKey = `weather-${cityName}-${isLiveForecast ? 'live' : 'historical'}-${Date.now()}`;
-
-  // CRITICAL FIX: Corrected display configuration logic
-  const displayConfig = isLiveForecast ? {
-    sourceLabel: '🟢 Live Weather Forecast',
-    sourceColor: 'text-green-600',
-    badgeText: '✨ Current live forecast',
-    badgeStyle: 'bg-green-100 text-green-700',
-    backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
-    borderStyle: 'border-green-200'
-  } : {
-    sourceLabel: '🟡 Historical Weather Data',
-    sourceColor: 'text-amber-600',
-    badgeText: '📊 Based on historical patterns',
-    badgeStyle: 'bg-amber-100 text-amber-700',
-    backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
-    borderStyle: 'border-blue-200'
-  };
-
-  console.log('🔧 CRITICAL FIX: Display config applied:', {
-    cityName,
-    isLiveForecast,
-    sourceLabel: displayConfig.sourceLabel,
-    badgeText: displayConfig.badgeText,
-    displayKey
+    source: weather.source,
+    isActualForecast: weather.isActualForecast,
+    isLiveWeather,
+    description: weather.description
   });
 
   return (
-    <div 
-      key={displayKey}
-      className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}
-    >
-      {/* Debug info for development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-1 rounded z-50">
-          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'}
+    <div className="weather-display bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-200 rounded-lg p-4">
+      {/* Header with city and date */}
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-800 mb-1">
+            {cityName}
+          </h4>
+          <p className="text-xs text-gray-600">
+            {format(segmentDate, 'EEEE, MMM d')}
+          </p>
         </div>
-      )}
-
-      {/* Weather Source Indicator */}
-      <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
-          {displayConfig.sourceLabel}
-        </span>
-        <span className="text-xs text-gray-500">
-          {formattedDate}
-        </span>
+        
+        {/* Live weather indicator */}
+        {isLiveWeather && (
+          <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-medium">LIVE</span>
+          </div>
+        )}
+        
+        {/* Fallback weather indicator */}
+        {!isLiveWeather && (
+          <div className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+            <span className="text-xs font-medium">ESTIMATE</span>
+          </div>
+        )}
       </div>
 
-      {/* Main Weather Display */}
+      {/* Main weather info */}
       <div className="flex items-center justify-between">
+        {/* Temperature and description */}
         <div className="flex items-center gap-3">
-          <div className="text-3xl">{weatherIcon}</div>
-          <div>
-            <div className="text-2xl font-bold text-gray-800">
-              {Math.round(weather.temperature)}°F
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-700">
+              {weather.temperature}°F
             </div>
-            <div className="text-sm text-gray-600 capitalize">
+            {weather.highTemp && weather.lowTemp && (
+              <div className="text-xs text-gray-600">
+                H: {weather.highTemp}° L: {weather.lowTemp}°
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <div className="text-sm font-medium text-gray-700 capitalize mb-1">
               {weather.description}
             </div>
+            
+            {/* Weather details */}
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+              {weather.humidity && (
+                <div>💧 {weather.humidity}%</div>
+              )}
+              {weather.windSpeed && (
+                <div>💨 {weather.windSpeed} mph</div>
+              )}
+              {weather.precipitationChance > 0 && (
+                <div>☔ {weather.precipitationChance}%</div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="text-right">
-          {weather.highTemp && weather.lowTemp && (
-            <div className="text-sm text-gray-600">
-              H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
-            </div>
-          )}
-          <div className="text-xs text-gray-500 mt-1">
-            💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
+        {/* Weather icon */}
+        {weather.icon && (
+          <div className="text-4xl">
+            <img 
+              src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+              alt={weather.description}
+              className="w-16 h-16"
+              onError={(e) => {
+                // Fallback to emoji if icon fails to load
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling!.textContent = isLiveWeather ? '🌤️' : '📊';
+              }}
+            />
+            <div className="text-center text-2xl" style={{ display: 'none' }}>🌤️</div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Weather Status Badge */}
-      <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${displayConfig.badgeStyle}`}>
-          {displayConfig.badgeText}
-        </span>
+      {/* Source information */}
+      <div className="mt-3 pt-2 border-t border-blue-100">
+        <div className="text-xs text-gray-500 text-center">
+          {isLiveWeather ? (
+            <span className="text-green-600 font-medium">
+              ✅ Live forecast from OpenWeatherMap
+            </span>
+          ) : (
+            <span className="text-yellow-600">
+              📊 Seasonal weather estimate
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
