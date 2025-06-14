@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 
@@ -15,6 +14,7 @@ interface UseUnifiedWeatherReturn {
   weather: ForecastWeatherData | null;
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export const useUnifiedWeather = ({
@@ -27,6 +27,11 @@ export const useUnifiedWeather = ({
   const [weather, setWeather] = useState<ForecastWeatherData | null>(cachedWeather);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+
+  const refetch = useCallback(() => {
+    setRefetchTrigger(prev => prev + 1);
+  }, []);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -38,7 +43,8 @@ export const useUnifiedWeather = ({
 
       console.log('🌤️ UNIFIED: useUnifiedWeather fetching for', cityName, {
         segmentDate: segmentDate.toISOString(),
-        segmentDay
+        segmentDay,
+        refetchTrigger
       });
 
       setLoading(true);
@@ -109,9 +115,9 @@ export const useUnifiedWeather = ({
     };
 
     fetchWeather();
-  }, [cityName, segmentDate, segmentDay]);
+  }, [cityName, segmentDate, segmentDay, refetchTrigger]);
 
-  return { weather, loading, error };
+  return { weather, loading, error, refetch };
 };
 
 // Live weather fetching function
@@ -182,12 +188,12 @@ const fetchLiveWeather = async (
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      // CRITICAL: GUARANTEE these values for live weather
+      // CRITICAL: GUARANTEEN these values for live weather
       isActualForecast: true,
       source: 'live_forecast' as const
     };
 
-    console.log('✅ UNIFIED: Created GUARANTEED live weather object:', {
+    console.log('✅ UNIFIED: Created GUARANTEEN live weather object:', {
       cityName,
       temperature: liveWeather.temperature,
       isActualForecast: liveWeather.isActualForecast,
