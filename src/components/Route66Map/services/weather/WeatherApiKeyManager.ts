@@ -15,11 +15,11 @@ export class WeatherApiKeyManager {
     }
 
     // Check config file only if it's not empty
-    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.trim().length > 0) {
-      const configKey = WEATHER_API_KEY.trim();
-      if (this.isValidKey(configKey)) {
+    if (typeof WEATHER_API_KEY === 'string' && WEATHER_API_KEY.length > 0) {
+      const trimmedConfigKey = WEATHER_API_KEY.trim();
+      if (trimmedConfigKey.length > 0 && this.isValidKey(trimmedConfigKey)) {
         console.log('✅ WeatherApiKeyManager: Using valid config key');
-        return configKey;
+        return trimmedConfigKey;
       } else {
         console.log('❌ WeatherApiKeyManager: Config key is invalid/placeholder');
       }
