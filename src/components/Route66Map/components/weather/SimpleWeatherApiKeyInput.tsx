@@ -8,6 +8,7 @@ import ApiKeyTestResult from './components/ApiKeyTestResult';
 import ApiKeyDebugInfo from './components/ApiKeyDebugInfo';
 import ApiKeyActions from './components/ApiKeyActions';
 import ApiKeyForm from './components/ApiKeyForm';
+import ApiKeyDebugButton from './ApiKeyDebugButton';
 
 interface SimpleWeatherApiKeyInputProps {
   onApiKeySet: () => void;
@@ -90,6 +91,8 @@ const SimpleWeatherApiKeyInput: React.FC<SimpleWeatherApiKeyInputProps> = ({
       </ApiKeyForm>
       
       {debugInfo && <ApiKeyDebugInfo debugInfo={debugInfo} />}
+      
+      <ApiKeyDebugButton />
       
       <a
         href="https://openweathermap.org/api"
