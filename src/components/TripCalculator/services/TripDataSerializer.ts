@@ -80,15 +80,15 @@ export class TripDataSerializer {
         windSpeed: weather.windSpeed,
         source: weather.source,
         isActualForecast: weather.isActualForecast,
-        // Include required fields
+        // Include all required fields
         humidity: weather.humidity,
         cityName: weather.cityName,
+        forecastDate: weather.forecastDate,
         // Keep optional fields that are small
         highTemp: weather.highTemp,
         lowTemp: weather.lowTemp,
-        // Remove large optional fields to save space
-        // forecast: weather.forecast, // This can be large, so we omit it
-        forecastDate: weather.forecastDate
+        // Set forecast to empty array to save space while satisfying TypeScript
+        forecast: []
       };
     });
     
