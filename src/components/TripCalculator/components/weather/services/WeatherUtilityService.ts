@@ -61,20 +61,21 @@ export class WeatherUtilityService {
   }
 
   /**
-   * FIXED: Gets weather source label for display - simplified logic
+   * FIXED: Gets weather source label for display - CORRECTED to match live forecast detection
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
-    // FIXED: Use the simplified live forecast detection
-    const isLive = this.isLiveForecast(weather, segmentDate);
-    const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
+    // FIXED: Use the EXACT SAME logic as isLiveForecast method
+    const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    const label = isVerifiedLive ? 'Live Weather Forecast' : 'Historical Weather Data';
     
-    console.log('🏷️ FIXED: Weather source label (simplified):', {
+    console.log('🏷️ FIXED: Weather source label (CORRECTED):', {
       cityName: weather.cityName,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
-      isLive,
+      isVerifiedLive,
       label,
-      fixedLogic: true
+      correctedLogic: true,
+      matchesDetection: true
     });
     
     return label;
