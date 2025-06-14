@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -28,11 +27,15 @@ const TripDetailsPage: React.FC = () => {
       const hasStartDateParam = urlParams.has('tripStart') || urlParams.has('startDate');
       
       if (!hasStartDateParam) {
-        // Add trip start date to URL for weather widget access
-        urlParams.set('tripStart', trip.trip_data.startDate);
+        // Convert Date to ISO string for URL parameter
+        const startDateString = trip.trip_data.startDate instanceof Date 
+          ? trip.trip_data.startDate.toISOString() 
+          : trip.trip_data.startDate;
+        
+        urlParams.set('tripStart', startDateString);
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
         window.history.replaceState({}, '', newUrl);
-        console.log('🔧 TripDetailsPage: Added tripStart to URL:', trip.trip_data.startDate);
+        console.log('🔧 TripDetailsPage: Added tripStart to URL:', startDateString);
       }
     }
   }, [trip]);
