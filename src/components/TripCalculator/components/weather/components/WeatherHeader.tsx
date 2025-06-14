@@ -37,6 +37,17 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
       const validSource: "live_forecast" | "historical_fallback" = 
         weather.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback';
       
+      // Create a proper DateMatchInfo object
+      const dateMatchInfo = {
+        requestedDate: segmentDate?.toISOString() || new Date().toISOString(),
+        matchedDate: weather.forecastDate?.toISOString() || new Date().toISOString(),
+        matchType: 'fallback' as const,
+        daysOffset: 0,
+        hoursOffset: 0,
+        source: validSource,
+        confidence: 'medium' as const
+      };
+      
       // Create a complete weather object for type detection
       const completeWeather = {
         temperature: weather.temperature,
@@ -50,7 +61,7 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
         forecastDate: weather.forecastDate || new Date(),
         isActualForecast: weather.isActualForecast || false,
         source: validSource,
-        dateMatchInfo: weather.dateMatchInfo
+        dateMatchInfo: dateMatchInfo
       };
       return WeatherTypeDetector.detectWeatherType(completeWeather);
     }
@@ -65,7 +76,7 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
       description: 'Incomplete weather data',
       displayLabel: weather.description || 'Weather Data'
     };
-  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, weather.temperature, weather.humidity, weather.windSpeed, cityName]);
+  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, weather.temperature, weather.humidity, weather.windSpeed, cityName, segmentDate]);
 
   // Safely convert source to WeatherSourceType with fallback
   const sourceType: WeatherSourceType = (weather.source as WeatherSourceType) || 'historical_fallback';
