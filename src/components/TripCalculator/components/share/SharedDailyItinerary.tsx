@@ -2,9 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-// CRITICAL FIX: Import EnhancedWeatherDisplay directly instead of using intermediate widgets
-import EnhancedWeatherDisplay from '../weather/EnhancedWeatherDisplay';
-import { useUnifiedWeather } from '../weather/hooks/useUnifiedWeather';
+import EnhancedWeatherWidget from '../weather/EnhancedWeatherWidget';
 import { WeatherUtilityService } from '../weather/services/WeatherUtilityService';
 
 interface SharedDailyItineraryProps {
@@ -16,18 +14,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔧 CRITICAL FIX: SharedDailyItinerary using DIRECT EnhancedWeatherDisplay:', {
+  console.log('🔧 FIXED: SharedDailyItinerary using SAME logic as preview:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
     sharedViewMode: true,
-    directWeatherDisplay: true
+    sameAsPreview: true
   });
 
   // Use the same trip start date logic as the preview
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔧 CRITICAL FIX: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔧 FIXED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -41,7 +39,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔧 CRITICAL FIX: Extracted tripStartDate from URL for consistent behavior:', {
+            console.log('🔧 FIXED: Extracted tripStartDate from URL for consistent behavior:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
@@ -52,12 +50,12 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ CRITICAL FIX: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
     }
 
     // Fallback: use today (same as preview)
     const today = new Date();
-    console.log('🔧 CRITICAL FIX: Using today as fallback tripStartDate to MATCH preview:', today.toISOString());
+    console.log('🔧 FIXED: Using today as fallback tripStartDate to MATCH preview:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -88,23 +86,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        // Calculate segment date
-        const segmentDate = effectiveTripStartDate ? 
-          WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day) : 
-          new Date();
-
-        console.log(`🔧 CRITICAL FIX: Rendering segment ${segment.day} for ${segment.endCity} with DIRECT weather`, {
+        console.log(`🔧 FIXED: Rendering segment ${segment.day} for ${segment.endCity} with SAME weather logic as preview`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
-          segmentDate: segmentDate.toISOString(),
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
           isSharedView: true,
-          directWeatherDisplay: true,
-          uniqueKey: `critical-fix-${segment.day}-${segment.endCity}-${Date.now()}`
+          sameLogicAsPreview: true,
+          uniqueKey: `fixed-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`critical-fix-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`fixed-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -156,96 +148,27 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* CRITICAL FIX: Use DIRECT weather fetching and display */}
-              <DirectWeatherSection 
-                segment={segment}
-                segmentDate={segmentDate}
-                isSharedView={true}
-              />
+              {/* FIXED: Use EXACT same weather widget as preview */}
+              <div className="weather-section bg-gray-50 rounded-lg p-4 border">
+                <div className="mb-2">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                    🌤️ Live Weather for {segment.endCity}
+                  </h4>
+                  <p className="text-xs text-gray-500">Using same logic as preview</p>
+                </div>
+                
+                <EnhancedWeatherWidget
+                  segment={segment}
+                  tripStartDate={effectiveTripStartDate}
+                  isSharedView={true}
+                  isPDFExport={false}
+                  forceRefresh={false}
+                />
+              </div>
             </div>
           </div>
         );
       })}
-    </div>
-  );
-};
-
-// CRITICAL FIX: Direct weather component that bypasses all intermediate layers
-const DirectWeatherSection: React.FC<{
-  segment: DailySegment;
-  segmentDate: Date;
-  isSharedView: boolean;
-}> = ({ segment, segmentDate, isSharedView }) => {
-  // Use unified weather hook directly
-  const { weather, loading, error } = useUnifiedWeather({
-    cityName: segment.endCity,
-    segmentDate,
-    segmentDay: segment.day,
-    prioritizeCachedData: false,
-    cachedWeather: null
-  });
-
-  console.log('🔧 CRITICAL FIX: DirectWeatherSection for', segment.endCity, {
-    hasWeather: !!weather,
-    loading,
-    error,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    directFetch: true
-  });
-
-  if (loading) {
-    return (
-      <div className="weather-section bg-gray-50 rounded-lg p-4 border">
-        <div className="mb-2">
-          <h4 className="text-sm font-semibold text-gray-700 mb-1">
-            🌤️ Loading Weather for {segment.endCity}
-          </h4>
-        </div>
-        <div className="flex items-center gap-2 text-blue-600">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading live forecast...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (weather) {
-    return (
-      <div className="weather-section bg-gray-50 rounded-lg p-4 border">
-        <div className="mb-2">
-          <h4 className="text-sm font-semibold text-gray-700 mb-1">
-            🌤️ Live Weather for {segment.endCity}
-          </h4>
-          <p className="text-xs text-gray-500">Current forecast when available</p>
-        </div>
-        
-        {/* CRITICAL FIX: Use EnhancedWeatherDisplay DIRECTLY */}
-        <EnhancedWeatherDisplay
-          weather={weather}
-          segmentDate={segmentDate}
-          cityName={segment.endCity}
-          isSharedView={isSharedView}
-          isPDFExport={false}
-          forceKey={`critical-fix-${segment.endCity}-${Date.now()}`}
-          showDebug={true}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="weather-section bg-gray-50 rounded-lg p-4 border">
-      <div className="mb-2">
-        <h4 className="text-sm font-semibold text-gray-700 mb-1">
-          🌤️ Weather for {segment.endCity}
-        </h4>
-      </div>
-      <div className="text-center text-gray-500">
-        <div className="text-2xl mb-1">🌤️</div>
-        <p className="text-xs">Weather forecast temporarily unavailable</p>
-        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-      </div>
     </div>
   );
 };
