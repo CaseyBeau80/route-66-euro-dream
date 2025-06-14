@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
@@ -24,74 +23,84 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
       return;
     }
 
-    console.log('🚀 STANDARDIZED: Starting weather fetch with unified logic:', cityName, {
+    console.log('🚀 CRITICAL FIX: Starting weather fetch with IMMEDIATE STATE UPDATE:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
       fetchKey,
-      standardizedApiKeyDetection: true
+      stateUpdateMode: 'immediate'
     });
 
     setLoading(true);
     setError(null);
-    // Clear existing weather to ensure fresh state
+    // CRITICAL: Clear existing weather immediately to prevent stale data
     setWeather(null);
 
     try {
-      // STEP 1: ENHANCED API key detection - check all possible locations
+      // STEP 1: CRITICAL FIX - Enhanced API key detection with immediate validation
       const apiKey = getApiKeyFromAllSources();
       const hasValidApiKey = !!(apiKey && apiKey.length >= 20 && !isPlaceholderKey(apiKey));
 
-      console.log('🔑 STANDARDIZED: Enhanced API key detection result:', {
+      console.log('🔑 CRITICAL FIX: Enhanced API key detection result:', {
         cityName,
         hasValidApiKey,
         keyLength: apiKey?.length || 0,
         keyPreview: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
-        enhancedDetection: true
+        immediateValidation: true
       });
 
       // STEP 2: Calculate days from today for live forecast range
       const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
       const isWithinForecastRange = daysFromNow >= 0 && daysFromNow <= 7;
       
-      console.log('📅 STANDARDIZED: Date analysis:', {
+      console.log('📅 CRITICAL FIX: Date analysis:', {
         cityName,
         daysFromNow,
         isWithinForecastRange,
         shouldAttemptLive: hasValidApiKey && isWithinForecastRange,
-        enhancedLogic: true
+        immediateProcessing: true
       });
 
-      // STEP 3: ATTEMPT LIVE FORECAST if conditions are met
+      // STEP 3: CRITICAL FIX - ATTEMPT LIVE FORECAST with IMMEDIATE state update
       if (hasValidApiKey && apiKey && isWithinForecastRange) {
-        console.log('✅ STANDARDIZED: Attempting live forecast with enhanced API key detection:', cityName);
+        console.log('✅ CRITICAL FIX: Attempting live forecast with IMMEDIATE STATE UPDATE:', cityName);
         
         const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
         
         if (liveWeather) {
-          console.log('🎯 STANDARDIZED: Live forecast SUCCESS - FORCING STATE UPDATE:', cityName, {
+          console.log('🎯 CRITICAL FIX: Live forecast SUCCESS - IMMEDIATE STATE UPDATE:', cityName, {
             temperature: liveWeather.temperature,
             source: liveWeather.source,
             isActualForecast: liveWeather.isActualForecast,
             description: liveWeather.description,
             highTemp: liveWeather.highTemp,
             lowTemp: liveWeather.lowTemp,
-            enhancedFlow: true,
-            forcingStateUpdate: true
+            immediateStateUpdate: true,
+            stateUpdateMode: 'immediate'
           });
           
-          // CRITICAL: Force state update with explicit live forecast properties
-          setWeather({
+          // CRITICAL FIX: IMMEDIATE state update with explicit live forecast properties
+          const liveWeatherWithExplicitProps: ForecastWeatherData = {
             ...liveWeather,
-            source: 'live_forecast',
-            isActualForecast: true
-          });
+            source: 'live_forecast', // EXPLICIT
+            isActualForecast: true   // EXPLICIT
+          };
+          
+          // CRITICAL: Update state IMMEDIATELY and end loading
+          setWeather(liveWeatherWithExplicitProps);
           setLoading(false);
-          return;
+          
+          console.log('✅ CRITICAL FIX: State updated IMMEDIATELY with live forecast:', cityName, {
+            stateWeather: liveWeatherWithExplicitProps,
+            shouldShowLiveBadge: true,
+            immediateUpdate: true
+          });
+          
+          return; // CRITICAL: Exit immediately after successful live forecast
         } else {
-          console.warn('⚠️ STANDARDIZED: Live weather failed, using fallback for', cityName);
+          console.warn('⚠️ CRITICAL FIX: Live weather failed, using fallback for', cityName);
         }
       } else {
-        console.log('📝 STANDARDIZED: Skipping live weather attempt for', cityName, {
+        console.log('📝 CRITICAL FIX: Skipping live weather attempt for', cityName, {
           reason: !hasValidApiKey ? 'no_valid_api_key' : 'outside_forecast_range',
           hasValidApiKey,
           isWithinForecastRange,
@@ -99,13 +108,20 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
         });
       }
 
-      // STEP 4: Create fallback weather
-      console.log('🔄 STANDARDIZED: Creating fallback weather for', cityName);
+      // STEP 4: Create fallback weather with IMMEDIATE state update
+      console.log('🔄 CRITICAL FIX: Creating fallback weather with IMMEDIATE update for', cityName);
       const fallbackWeather = createStandardizedFallback(cityName, segmentDate, segmentDay);
+      
+      // CRITICAL: Update state IMMEDIATELY
       setWeather(fallbackWeather);
+      
+      console.log('✅ CRITICAL FIX: Fallback weather set IMMEDIATELY:', cityName, {
+        fallbackWeather,
+        immediateUpdate: true
+      });
 
     } catch (err) {
-      console.error('❌ STANDARDIZED: Weather fetch error for', cityName, err);
+      console.error('❌ CRITICAL FIX: Weather fetch error for', cityName, err);
       const fallbackWeather = createStandardizedFallback(cityName, segmentDate, segmentDay);
       setWeather(fallbackWeather);
       setError('Weather temporarily unavailable');
@@ -114,21 +130,22 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     }
   }, [cityName, segmentDate?.getTime(), segmentDay, fetchKey]);
 
-  // CRITICAL: Auto-fetch when dependencies change
+  // CRITICAL FIX: Auto-fetch when dependencies change with immediate trigger
   React.useEffect(() => {
     if (segmentDate) {
-      console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
+      console.log('🔄 CRITICAL FIX: Auto-triggering IMMEDIATE weather fetch for', cityName, {
         hasSegmentDate: !!segmentDate,
         fetchKey,
-        triggerCondition: 'dependency_change'
+        triggerCondition: 'dependency_change',
+        immediateExecution: true
       });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchKey, fetchWeather]);
+  }, [segmentDate?.getTime(), fetchKey, cityName, segmentDay]); // CRITICAL: Include all dependencies
 
   // Manual refetch - increment fetchKey to force new fetch
   const refetch = React.useCallback(() => {
-    console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
+    console.log('🔄 CRITICAL FIX: Manual refetch triggered with IMMEDIATE reset for', cityName);
     setFetchKey(prev => prev + 1);
     setWeather(null);
     setError(null);
@@ -188,30 +205,30 @@ const isPlaceholderKey = (key: string): boolean => {
          key === 'PLACEHOLDER_KEY';
 };
 
-// ENHANCED live weather fetching with proper source and isActualForecast values
+// CRITICAL FIX: Enhanced live weather fetching with EXPLICIT properties
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌤️ STANDARDIZED: Starting fetchLiveWeatherDirect:', cityName);
+    console.log('🌤️ CRITICAL FIX: Starting fetchLiveWeatherDirect with EXPLICIT properties:', cityName);
 
     // Get coordinates
     const coords = await getCoordinatesStandardized(cityName, apiKey);
     if (!coords) {
-      console.log('❌ STANDARDIZED: Failed to get coordinates for', cityName);
+      console.log('❌ CRITICAL FIX: Failed to get coordinates for', cityName);
       return null;
     }
 
-    console.log('✅ STANDARDIZED: Got coordinates for', cityName, coords);
+    console.log('✅ CRITICAL FIX: Got coordinates for', cityName, coords);
 
     // Fetch weather data
     const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
     const response = await fetch(weatherUrl);
 
     if (!response.ok) {
-      console.log('❌ STANDARDIZED: Weather API failed for', cityName, {
+      console.log('❌ CRITICAL FIX: Weather API failed for', cityName, {
         status: response.status,
         statusText: response.statusText
       });
@@ -220,11 +237,11 @@ const fetchLiveWeatherDirect = async (
 
     const data = await response.json();
     if (!data.list || data.list.length === 0) {
-      console.log('❌ STANDARDIZED: No forecast data for', cityName);
+      console.log('❌ CRITICAL FIX: No forecast data for', cityName);
       return null;
     }
 
-    console.log('✅ STANDARDIZED: Got forecast data for', cityName, {
+    console.log('✅ CRITICAL FIX: Got forecast data for', cityName, {
       forecastItems: data.list.length,
       firstItemDate: data.list[0]?.dt_txt,
       lastItemDate: data.list[data.list.length - 1]?.dt_txt
@@ -252,12 +269,12 @@ const fetchLiveWeatherDirect = async (
     }
 
     if (!bestMatch) {
-      console.log('❌ STANDARDIZED: No suitable forecast match for', cityName);
+      console.log('❌ CRITICAL FIX: No suitable forecast match for', cityName);
       return null;
     }
 
     const matchedDate = new Date(bestMatch.dt * 1000).toISOString().split('T')[0];
-    console.log('✅ STANDARDIZED: Weather match found:', {
+    console.log('✅ CRITICAL FIX: Weather match found:', {
       cityName,
       targetDate: targetDateString,
       matchedDate,
@@ -266,7 +283,7 @@ const fetchLiveWeatherDirect = async (
       description: bestMatch.weather[0]?.description
     });
 
-    // CRITICAL: Create live forecast with EXPLICIT properties to ensure proper detection
+    // CRITICAL FIX: Create live forecast with EXPLICIT properties guaranteed
     const liveWeatherResult: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
       highTemp: Math.round(bestMatch.main.temp_max),
@@ -279,11 +296,11 @@ const fetchLiveWeatherDirect = async (
       cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: true, // EXPLICIT: This is a live forecast
-      source: 'live_forecast' // EXPLICIT: Mark as live forecast
+      isActualForecast: true, // EXPLICIT: This is ALWAYS true for live forecasts
+      source: 'live_forecast' // EXPLICIT: This is ALWAYS 'live_forecast'
     };
 
-    console.log('🎯 STANDARDIZED: CRITICAL - Live forecast created with EXPLICIT properties:', {
+    console.log('🎯 CRITICAL FIX: Live forecast created with GUARANTEED EXPLICIT properties:', {
       cityName,
       temperature: liveWeatherResult.temperature,
       highTemp: liveWeatherResult.highTemp,
@@ -291,13 +308,13 @@ const fetchLiveWeatherDirect = async (
       isActualForecast: liveWeatherResult.isActualForecast,
       source: liveWeatherResult.source,
       description: liveWeatherResult.description,
-      explicitProperties: true,
+      guaranteedProperties: true,
       shouldShowLiveBadge: true
     });
 
     return liveWeatherResult;
   } catch (error) {
-    console.error('❌ STANDARDIZED: fetchLiveWeatherDirect error:', error);
+    console.error('❌ CRITICAL FIX: fetchLiveWeatherDirect error:', error);
     return null;
   }
 };
