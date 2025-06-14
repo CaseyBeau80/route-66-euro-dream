@@ -5,6 +5,7 @@ import { WeatherUtilityService } from '../services/WeatherUtilityService';
 import { useWeatherApiKey } from './useWeatherApiKey';
 import { useSimpleWeatherState } from './useSimpleWeatherState';
 import { SimpleWeatherFetcher } from '../SimpleWeatherFetcher';
+import { ShareWeatherConfigService } from '../../../services/weather/ShareWeatherConfigService';
 
 interface UseWeatherCardProps {
   segment: DailySegment;
@@ -18,8 +19,12 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
-  // FIXED: Stable API key validation
+  // FIXED: Enhanced API key validation for shared views
   const enhancedApiKeyStatus = React.useMemo(() => {
+    // For shared views, use ShareWeatherConfigService
+    const sharedConfig = ShareWeatherConfigService.getShareWeatherConfig();
+    
+    // Primary detection from localStorage
     const primaryKey = localStorage.getItem('weather_api_key');
     const legacyKey = localStorage.getItem('openweathermap_api_key');
     const foundKey = primaryKey || legacyKey;
@@ -29,14 +34,21 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
                       foundKey !== 'your_api_key_here' &&
                       /^[a-zA-Z0-9]+$/.test(foundKey);
     
-    console.log(`🔑 FIXED: API key validation for ${stateKey}`, {
+    // Use shared config for shared views
+    const effectiveHasValidKey = sharedConfig.hasApiKey && sharedConfig.canFetchLiveWeather;
+    
+    console.log(`🔑 FIXED: Enhanced API key validation for ${stateKey}`, {
       hasValidKey: !!isValidKey,
-      keyLength: foundKey?.length || 0
+      keyLength: foundKey?.length || 0,
+      sharedConfigHasKey: sharedConfig.hasApiKey,
+      effectiveHasValidKey,
+      canFetchLiveWeather: sharedConfig.canFetchLiveWeather
     });
     
     return { 
-      hasValidKey: !!isValidKey, 
-      keyValue: foundKey
+      hasValidKey: effectiveHasValidKey, 
+      keyValue: foundKey,
+      sharedConfig
     };
   }, [stateKey]); // Only depend on stateKey, not localStorage changes
 
@@ -57,9 +69,9 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
   const fetchInProgressRef = React.useRef(false);
   const lastFetchKeyRef = React.useRef<string>('');
 
-  // FIXED: Stable fetch function with better error handling
+  // FIXED: Enhanced fetch function for shared views
   const fetchWeather = React.useCallback(async (isSharedView: boolean = false) => {
-    const currentFetchKey = `${stateKey}-${segmentDate?.getTime()}-${enhancedApiKeyStatus.hasValidKey}`;
+    const currentFetchKey = `${stateKey}-${segmentDate?.getTime()}-${enhancedApiKeyStatus.hasValidKey}-${isSharedView}`;
     
     // Prevent duplicate fetches
     if (fetchInProgressRef.current || lastFetchKeyRef.current === currentFetchKey) {
@@ -73,10 +85,11 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       return;
     }
 
-    console.log(`🚀 FIXED: Starting weather fetch for ${stateKey}`, { 
+    console.log(`🚀 FIXED: Starting enhanced weather fetch for ${stateKey}`, { 
       isSharedView,
       hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
-      segmentDate: segmentDate?.toISOString()
+      segmentDate: segmentDate?.toISOString(),
+      canFetchLiveWeather: enhancedApiKeyStatus.sharedConfig.canFetchLiveWeather
     });
 
     fetchInProgressRef.current = true;
@@ -86,6 +99,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       weatherState.setLoading(true);
       weatherState.setError(null);
 
+      // FIXED: Always use enhanced API key status for shared views
       const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
         cityName: segment.endCity,
         targetDate: segmentDate,
@@ -94,7 +108,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
         segmentDay: segment.day
       });
 
-      console.log(`📊 FIXED: Weather fetch result for ${stateKey}:`, {
+      console.log(`📊 FIXED: Enhanced weather fetch result for ${stateKey}:`, {
         hasWeather: !!weather,
         source: weather?.source,
         isActualForecast: weather?.isActualForecast,
@@ -109,26 +123,29 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       weatherState.setLoading(false);
       fetchInProgressRef.current = false;
     }
-  }, [segmentDate?.getTime(), segment.endCity, segment.day, enhancedApiKeyStatus.hasValidKey, stateKey, weatherState]);
+  }, [segmentDate?.getTime(), segment.endCity, segment.day, enhancedApiKeyStatus.hasValidKey, enhancedApiKeyStatus.sharedConfig.canFetchLiveWeather, stateKey, weatherState]);
 
-  // FIXED: Auto-fetch only when conditions are met and no weather exists
+  // FIXED: Auto-fetch with enhanced shared view support
   React.useEffect(() => {
     const shouldAutoFetch = segmentDate && 
                            !weatherState.weather && 
                            !weatherState.loading && 
-                           !fetchInProgressRef.current;
+                           !fetchInProgressRef.current &&
+                           enhancedApiKeyStatus.hasValidKey;
     
     if (shouldAutoFetch) {
-      console.log(`🔄 FIXED: Auto-fetching weather for ${stateKey}`);
-      fetchWeather(false);
+      console.log(`🔄 FIXED: Auto-fetching weather with enhanced logic for ${stateKey}`);
+      // Always pass true for isSharedView since we're using enhanced detection
+      fetchWeather(true);
     }
-  }, [segmentDate?.getTime(), weatherState.weather, weatherState.loading, fetchWeather]);
+  }, [segmentDate?.getTime(), weatherState.weather, weatherState.loading, enhancedApiKeyStatus.hasValidKey, fetchWeather]);
 
   console.log(`🔑 FIXED: useWeatherCard final state for ${stateKey}:`, {
     hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
     hasWeather: !!weatherState.weather,
     loading: weatherState.loading,
-    hasSegmentDate: !!segmentDate
+    hasSegmentDate: !!segmentDate,
+    sharedConfigCanFetch: enhancedApiKeyStatus.sharedConfig.canFetchLiveWeather
   });
 
   return {

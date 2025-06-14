@@ -1,6 +1,8 @@
+
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 import { CityWeatherVariationService } from './services/CityWeatherVariationService';
+import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
 
 interface WeatherFetchRequest {
   cityName: string;
@@ -17,7 +19,7 @@ export class SimpleWeatherFetcher {
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, hasApiKey, isSharedView = false, segmentDay = 1 } = request;
     
-    console.log('🚀 FIXED: Starting weather fetch with enhanced geocoding', {
+    console.log('🚀 FIXED: Starting enhanced weather fetch for shared views', {
       cityName,
       targetDate: targetDate.toISOString(),
       hasApiKey,
@@ -25,47 +27,71 @@ export class SimpleWeatherFetcher {
       segmentDay
     });
 
+    // FIXED: For shared views, always use ShareWeatherConfigService for API key detection
+    let effectiveHasApiKey = hasApiKey;
+    let validApiKey: string | null = null;
+
+    if (isSharedView) {
+      const sharedConfig = ShareWeatherConfigService.getShareWeatherConfig();
+      effectiveHasApiKey = sharedConfig.hasApiKey && sharedConfig.canFetchLiveWeather;
+      
+      if (effectiveHasApiKey) {
+        validApiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
+      }
+      
+      console.log('🔑 FIXED: Shared view API key status', {
+        cityName,
+        originalHasApiKey: hasApiKey,
+        sharedConfigHasApiKey: sharedConfig.hasApiKey,
+        canFetchLiveWeather: sharedConfig.canFetchLiveWeather,
+        effectiveHasApiKey,
+        hasValidApiKey: !!validApiKey
+      });
+    } else {
+      validApiKey = await this.validateApiKey();
+      effectiveHasApiKey = !!validApiKey;
+    }
+
     // Calculate days from today
     const today = new Date();
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinLiveForecastRange = daysFromToday >= 0 && daysFromToday <= this.LIVE_FORECAST_MAX_DAYS;
     
-    console.log('📅 FIXED: Date range analysis:', {
+    console.log('📅 FIXED: Enhanced date range analysis:', {
       cityName,
       targetDate: targetDate.toISOString(),
       daysFromToday,
       isWithinLiveForecastRange,
-      shouldAttemptLive: hasApiKey && isWithinLiveForecastRange
+      shouldAttemptLive: effectiveHasApiKey && isWithinLiveForecastRange,
+      isSharedView
     });
 
-    // Attempt live forecast if conditions are met
-    if (hasApiKey && isWithinLiveForecastRange) {
-      console.log('✅ FIXED: Attempting live forecast for', cityName);
+    // FIXED: Attempt live forecast if conditions are met
+    if (effectiveHasApiKey && validApiKey && isWithinLiveForecastRange) {
+      console.log('✅ FIXED: Attempting live forecast with enhanced shared view support for', cityName);
       
       try {
-        const validApiKey = await this.validateApiKey();
-        if (validApiKey) {
-          const coords = await this.getCoordinatesFixed(cityName, validApiKey);
-          if (coords) {
-            const liveWeather = await this.fetchLiveWeatherData(coords, validApiKey, targetDate, cityName, segmentDay);
-            if (liveWeather) {
-              console.log('🎯 FIXED: Live forecast SUCCESS:', {
-                cityName,
-                temperature: liveWeather.temperature,
-                source: liveWeather.source,
-                isActualForecast: liveWeather.isActualForecast
-              });
-              return liveWeather;
-            }
+        const coords = await this.getCoordinatesFixed(cityName, validApiKey);
+        if (coords) {
+          const liveWeather = await this.fetchLiveWeatherData(coords, validApiKey, targetDate, cityName, segmentDay);
+          if (liveWeather) {
+            console.log('🎯 FIXED: Live forecast SUCCESS for shared view:', {
+              cityName,
+              temperature: liveWeather.temperature,
+              source: liveWeather.source,
+              isActualForecast: liveWeather.isActualForecast,
+              isSharedView
+            });
+            return liveWeather;
           }
         }
       } catch (error) {
-        console.warn('⚠️ FIXED: Live forecast failed, using fallback:', error);
+        console.warn('⚠️ FIXED: Live forecast failed for shared view, using fallback:', error);
       }
     }
 
-    // Create fallback weather
-    console.log('🔄 FIXED: Creating fallback weather for', cityName);
+    // FIXED: Create fallback weather with enhanced variation
+    console.log('🔄 FIXED: Creating enhanced fallback weather for', cityName);
     return this.createFallbackWeather(cityName, targetDate, segmentDay, daysFromToday);
   }
 
@@ -201,7 +227,7 @@ export class SimpleWeatherFetcher {
     segmentDay: number
   ): Promise<ForecastWeatherData | null> {
     try {
-      console.log('🌤️ FIXED: Fetching live weather data', {
+      console.log('🌤️ FIXED: Fetching live weather data with enhanced processing', {
         cityName,
         coordinates: coords,
         targetDate: targetDate.toISOString()
@@ -231,17 +257,17 @@ export class SimpleWeatherFetcher {
         firstItemDate: data.list[0]?.dt_txt
       });
 
-      // Find best match for target date
+      // FIXED: Enhanced date matching strategy
       const targetDateString = targetDate.toISOString().split('T')[0];
       let bestMatch = null;
 
-      // Try exact date match first
+      // Strategy 1: Try exact date match first
       bestMatch = data.list.find((item: any) => {
         const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
         return itemDate === targetDateString;
       });
 
-      // Use closest available if no exact match
+      // Strategy 2: Use closest available if no exact match
       if (!bestMatch) {
         const targetTime = targetDate.getTime();
         bestMatch = data.list.reduce((closest: any, current: any) => {
@@ -259,7 +285,7 @@ export class SimpleWeatherFetcher {
       }
 
       const matchedDate = new Date(bestMatch.dt * 1000).toISOString().split('T')[0];
-      console.log('✅ FIXED: Weather match found', {
+      console.log('✅ FIXED: Enhanced weather match found', {
         cityName,
         targetDate: targetDateString,
         matchedDate,
@@ -269,7 +295,7 @@ export class SimpleWeatherFetcher {
       // Apply city-specific variation for uniqueness
       const variation = this.getCityVariation(cityName, segmentDay);
 
-      // Create live forecast with verified properties
+      // FIXED: Create live forecast with verified properties
       const liveWeatherResult: ForecastWeatherData = {
         temperature: Math.round(bestMatch.main.temp + variation.tempOffset),
         highTemp: Math.round(bestMatch.main.temp_max + variation.tempOffset),
@@ -286,7 +312,7 @@ export class SimpleWeatherFetcher {
         source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
       };
 
-      console.log('🎯 FIXED: Live forecast CREATED:', {
+      console.log('🎯 FIXED: Enhanced live forecast CREATED:', {
         cityName,
         temperature: liveWeatherResult.temperature,
         isActualForecast: liveWeatherResult.isActualForecast,
