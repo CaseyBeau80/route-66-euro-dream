@@ -31,29 +31,25 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   // Use validated weather data
   const validatedWeather = validation.normalizedWeather;
 
-  // FIXED: Direct and strict live weather detection
-  const isLiveForecast = React.useMemo(() => {
-    const hasLiveSource = validatedWeather.source === 'live_forecast';
-    const hasLiveFlag = validatedWeather.isActualForecast === true;
-    const isLive = hasLiveSource && hasLiveFlag;
-    
-    console.log('🟢 FIXED: EnhancedWeatherDisplay strict live detection for', cityName, {
-      source: validatedWeather.source,
-      isActualForecast: validatedWeather.isActualForecast,
-      hasLiveSource,
-      hasLiveFlag,
-      finalResult: isLive,
-      temperature: validatedWeather.temperature,
-      forcingGreenIfLive: isLive ? 'YES_GREEN' : 'NO_AMBER'
-    });
-    
-    return isLive;
-  }, [validatedWeather.source, validatedWeather.isActualForecast, cityName]);
+  // CRITICAL FIX: Use the validation result's isLiveForecast directly
+  const isLiveForecast = validation.isLiveForecast;
 
-  // FIXED: Force green styling when live weather is detected
+  console.log('🚨 CRITICAL FIX: EnhancedWeatherDisplay using validation result for', cityName, {
+    originalWeatherSource: weather.source,
+    originalIsActualForecast: weather.isActualForecast,
+    validationIsLiveForecast: validation.isLiveForecast,
+    normalizedSource: validatedWeather.source,
+    normalizedIsActualForecast: validatedWeather.isActualForecast,
+    finalIsLiveForecast: isLiveForecast,
+    temperature: validatedWeather.temperature,
+    criticalFix: true,
+    shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER'
+  });
+
+  // CRITICAL FIX: Force green styling when validation confirms live weather
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
-      console.log('🟢 FIXED: Forcing GREEN styling for live weather:', cityName);
+      console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', cityName);
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: '#059669', // Green-600
@@ -66,7 +62,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         isLive: true
       };
     } else {
-      console.log('🟡 FIXED: Using AMBER styling for historical weather:', cityName);
+      console.log('🟡 CRITICAL FIX: Using AMBER styling for historical weather:', cityName);
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: '#d97706', // Amber-600
@@ -107,18 +103,20 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         borderColor: styles.borderColor
       }}
     >
-      {/* Debug Overlay - shows exact detection logic */}
+      {/* Debug Overlay - shows validation-based detection */}
       {showDebug && (
         <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-          <div className="font-bold mb-1">🔧 FIXED: {cityName}</div>
+          <div className="font-bold mb-1">🔧 CRITICAL FIX: {cityName}</div>
           <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
-            {isLiveForecast ? '🟢 LIVE DETECTED' : '🟡 HISTORICAL DETECTED'}
+            {isLiveForecast ? '🟢 VALIDATION: LIVE' : '🟡 VALIDATION: HISTORICAL'}
           </div>
-          <div>Source: {validatedWeather.source}</div>
-          <div>ActualForecast: {String(validatedWeather.isActualForecast)}</div>
-          <div>isLiveForecast: {String(isLiveForecast)}</div>
+          <div>Orig Source: {weather.source}</div>
+          <div>Orig ActualForecast: {String(weather.isActualForecast)}</div>
+          <div>Valid Source: {validatedWeather.source}</div>
+          <div>Valid ActualForecast: {String(validatedWeather.isActualForecast)}</div>
+          <div>Validation isLive: {String(validation.isLiveForecast)}</div>
           <div className={isLiveForecast ? 'text-green-400' : 'text-yellow-400'}>
-            Styling: {isLiveForecast ? 'GREEN FORCED' : 'AMBER'}
+            Final Styling: {isLiveForecast ? 'GREEN FORCED' : 'AMBER'}
           </div>
           <div>Temp: {validatedWeather.temperature}°F</div>
         </div>

@@ -32,43 +32,50 @@ export class WeatherDataValidator {
       errors.push(`Invalid temperature: ${weather.temperature}`);
     }
 
-    // FIXED: Strict live forecast validation
-    const hasLiveSource = weather.source === 'live_forecast';
-    const hasLiveFlag = weather.isActualForecast === true;
-    const isLiveForecast = hasLiveSource && hasLiveFlag;
+    // CRITICAL FIX: Preserve the original source and isActualForecast values
+    const originalSource = weather.source;
+    const originalIsActualForecast = weather.isActualForecast;
+    
+    // FIXED: Direct live forecast detection - use original values without modification
+    const isLiveForecast = originalSource === 'live_forecast' && originalIsActualForecast === true;
 
-    // Validate source consistency
-    if (!hasLiveSource && weather.isActualForecast === true) {
-      errors.push('Has isActualForecast=true but source is not live_forecast');
-    }
+    console.log('🔧 CRITICAL FIX: WeatherDataValidator preserving original data:', {
+      cityName,
+      originalSource,
+      originalIsActualForecast,
+      isLiveForecast,
+      temperature: weather.temperature,
+      preservingOriginalValues: true
+    });
 
-    // FIXED: Create properly normalized weather data with explicit live marking
+    // CRITICAL FIX: Create normalized weather data that PRESERVES live weather indicators
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       cityName,
       forecastDate: segmentDate,
-      // Ensure the source and isActualForecast are properly set for live weather
-      source: hasLiveSource ? 'live_forecast' : 'historical_fallback',
-      isActualForecast: hasLiveSource ? true : false
+      // PRESERVE original source and isActualForecast - DO NOT override them
+      source: originalSource,
+      isActualForecast: originalIsActualForecast
     };
 
-    console.log('🔍 FIXED WeatherDataValidator result:', {
+    console.log('🔧 CRITICAL FIX: WeatherDataValidator result:', {
       cityName,
       isValid: errors.length === 0,
       isLiveForecast,
-      hasLiveSource,
-      hasLiveFlag,
+      preservedOriginalSource: normalizedWeather.source === originalSource,
+      preservedOriginalFlag: normalizedWeather.isActualForecast === originalIsActualForecast,
       errors,
       originalWeather: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
+        source: originalSource,
+        isActualForecast: originalIsActualForecast,
         temperature: weather.temperature
       },
       normalizedWeather: {
         source: normalizedWeather.source,
         isActualForecast: normalizedWeather.isActualForecast,
         temperature: normalizedWeather.temperature
-      }
+      },
+      criticalFix: true
     });
 
     return {
