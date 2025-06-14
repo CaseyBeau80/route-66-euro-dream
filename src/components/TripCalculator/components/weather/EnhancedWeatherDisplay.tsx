@@ -4,6 +4,7 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import { format } from 'date-fns';
 import { WeatherDataValidator } from './WeatherDataValidator';
 import WeatherDebugOverlay from './WeatherDebugOverlay';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -27,6 +28,20 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   // Force re-render timestamp
   const [renderTimestamp] = React.useState(() => Date.now());
   
+  // FIXED: Use LiveWeatherDetectionService for consistent detection
+  const isLiveForecast = React.useMemo(() => {
+    const result = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+    console.log('🔧 FIXED: EnhancedWeatherDisplay using LiveWeatherDetectionService:', {
+      cityName,
+      result,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      temperature: weather.temperature,
+      consistentDetection: true
+    });
+    return result;
+  }, [weather, cityName]);
+
   // Validate weather data
   const validation = React.useMemo(() => {
     return WeatherDataValidator.validateWeatherData(weather, cityName, segmentDate);
@@ -34,13 +49,13 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
 
   // Use validated weather data
   const validatedWeather = validation.normalizedWeather;
-  const isLiveForecast = validation.isLiveForecast;
 
-  console.log('🚀 EnhancedWeatherDisplay FORCED RENDER:', {
+  console.log('🚀 FIXED: EnhancedWeatherDisplay CONSISTENT RENDER:', {
     cityName,
     forceKey,
     renderTimestamp,
     isLiveForecast,
+    isSharedView,
     validation: {
       isValid: validation.isValid,
       errors: validation.validationErrors
@@ -49,7 +64,8 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
       source: validatedWeather.source,
       isActualForecast: validatedWeather.isActualForecast,
       temperature: validatedWeather.temperature
-    }
+    },
+    fixedDetection: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -70,26 +86,34 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(validatedWeather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // Determine display configuration based on validation
+  // FIXED: Use LiveWeatherDetectionService for consistent display configuration
   const displayConfig = isLiveForecast ? {
-    sourceLabel: '🟢 Live Weather Forecast',
-    sourceColor: 'text-green-600',
-    badgeText: '✨ Current live forecast',
-    badgeStyle: 'bg-green-100 text-green-700',
+    sourceLabel: LiveWeatherDetectionService.getWeatherSourceLabel(validatedWeather),
+    sourceColor: LiveWeatherDetectionService.getWeatherSourceColor(validatedWeather),
+    badgeText: LiveWeatherDetectionService.getWeatherBadgeText(validatedWeather),
+    badgeStyle: LiveWeatherDetectionService.getWeatherBadgeStyle(validatedWeather),
     backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
     borderStyle: 'border-green-200'
   } : {
-    sourceLabel: '🟡 Historical Weather Data',
-    sourceColor: 'text-amber-600',
-    badgeText: '📊 Based on historical patterns',
-    badgeStyle: 'bg-amber-100 text-amber-700',
+    sourceLabel: LiveWeatherDetectionService.getWeatherSourceLabel(validatedWeather),
+    sourceColor: LiveWeatherDetectionService.getWeatherSourceColor(validatedWeather),
+    badgeText: LiveWeatherDetectionService.getWeatherBadgeText(validatedWeather),
+    badgeStyle: LiveWeatherDetectionService.getWeatherBadgeStyle(validatedWeather),
     backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
     borderStyle: 'border-blue-200'
   };
 
+  console.log('🔧 FIXED: Display config using LiveWeatherDetectionService:', {
+    cityName,
+    isLiveForecast,
+    sourceLabel: displayConfig.sourceLabel,
+    badgeText: displayConfig.badgeText,
+    consistentWithService: true
+  });
+
   return (
     <div 
-      key={`weather-${cityName}-${forceKey}-${renderTimestamp}`}
+      key={`fixed-weather-${cityName}-${forceKey}-${renderTimestamp}`}
       className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle} relative`}
     >
       {/* Debug overlay */}

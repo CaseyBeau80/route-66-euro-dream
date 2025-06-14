@@ -2,7 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import SimpleWeatherWidget from '../weather/SimpleWeatherWidget';
+import EnhancedWeatherWidget from '../weather/EnhancedWeatherWidget';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -13,18 +13,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔧 MIRROR FIX: SharedDailyItinerary ensuring EXACT preview behavior:', {
+  console.log('🔧 FIXED: SharedDailyItinerary using EnhancedWeatherWidget for consistent live weather:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
     sharedViewMode: true,
-    mirrorFix: 'copying_preview_logic'
+    usingEnhancedWidget: true
   });
 
   // Use the same trip start date logic as the preview
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔧 MIRROR FIX: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔧 FIXED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -38,23 +38,23 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔧 MIRROR FIX: Extracted tripStartDate from URL for EXACT preview behavior:', {
+            console.log('🔧 FIXED: Extracted tripStartDate from URL for consistent behavior:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              mirrorPreview: true
+              consistentWithPreview: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ MIRROR FIX: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ FIXED: Failed to parse trip start date from URL:', error);
     }
 
     // Fallback: use today (same as preview)
     const today = new Date();
-    console.log('🔧 MIRROR FIX: Using today as fallback tripStartDate to MATCH preview:', today.toISOString());
+    console.log('🔧 FIXED: Using today as fallback tripStartDate to MATCH preview:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -85,18 +85,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔧 MIRROR FIX: Rendering segment ${segment.day} for ${segment.endCity} with EXACT preview behavior`, {
+        console.log(`🔧 FIXED: Rendering segment ${segment.day} for ${segment.endCity} with EnhancedWeatherWidget`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
           isSharedView: true,
-          mirrorPreview: true,
+          usingEnhancedWidget: true,
           tripStartDate: effectiveTripStartDate?.toISOString(),
-          uniqueKey: `mirror-preview-${segment.day}-${segment.endCity}-${Date.now()}`
+          uniqueKey: `fixed-enhanced-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`mirror-preview-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`fixed-enhanced-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -148,7 +148,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* MIRROR FIX: Use EXACT same weather widget as preview */}
+              {/* FIXED: Use EnhancedWeatherWidget for consistent live weather detection */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
@@ -157,13 +157,14 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                   <p className="text-xs text-gray-500">Current forecast when available</p>
                 </div>
                 
-                {/* MIRROR FIX: Use EXACT same SimpleWeatherWidget as preview with same props */}
-                <div className="weather-widget-container" key={`weather-widget-mirror-${segment.day}-${Date.now()}`}>
-                  <SimpleWeatherWidget
+                {/* FIXED: Use EnhancedWeatherWidget with forceRefresh for consistent behavior */}
+                <div className="weather-widget-container" key={`enhanced-weather-widget-${segment.day}-${Date.now()}`}>
+                  <EnhancedWeatherWidget
                     segment={segment}
                     tripStartDate={effectiveTripStartDate}
                     isSharedView={true}
                     isPDFExport={false}
+                    forceRefresh={true}
                   />
                 </div>
               </div>
