@@ -2,8 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { useWeatherCard } from './hooks/useWeatherCard';
-import WeatherDataDisplay from './WeatherDataDisplay';
-import WeatherLoadingDisplay from './WeatherLoadingDisplay';
+import SegmentWeatherContent from './SegmentWeatherContent';
 
 interface WeatherCardProps {
   segment: DailySegment;
@@ -37,7 +36,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
 
   const {
     hasApiKey,
-    weatherState: { weather, loading, error },
+    weatherState: { weather, loading, error, retryCount },
     segmentDate,
     fetchWeather
   } = useWeatherCard({ segment, tripStartDate });
@@ -50,41 +49,45 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     hasSegmentDate: !!segmentDate,
     isSharedView,
     weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast
+    isActualForecast: weather?.isActualForecast,
+    retryCount
   });
 
-  // Show loading state while fetching
-  if (loading) {
-    console.log(`🎯 [WEATHER DEBUG] WeatherCard returning loading state for ${segment.endCity}:`, {
-      component: 'WeatherCard -> loading-state'
-    });
-    
-    return (
-      <WeatherLoadingDisplay 
-        cityName={segment.endCity}
-        isSharedView={isSharedView}
-      />
-    );
-  }
+  // Enhanced retry function that resets error state
+  const handleRetry = React.useCallback(() => {
+    console.log(`🔄 WeatherCard: Retrying weather fetch for ${segment.endCity}`);
+    fetchWeather();
+  }, [fetchWeather, segment.endCity]);
 
-  // CRITICAL: Always try to render weather data, even in shared views
-  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendering data display for ${segment.endCity}:`, {
-    component: 'WeatherCard -> data-display',
-    hasWeather: !!weather,
-    isSharedView,
-    weatherType: weather ? `${weather.source}_${weather.isActualForecast}` : 'none'
-  });
+  // Enhanced API key callback that triggers fresh fetch
+  const handleApiKeySet = React.useCallback(() => {
+    console.log(`🔑 WeatherCard: API key set, fetching weather for ${segment.endCity}`);
+    fetchWeather();
+  }, [fetchWeather, segment.endCity]);
+
+  // Timeout handler for loading states
+  const handleTimeout = React.useCallback(() => {
+    console.log(`⏰ WeatherCard: Timeout triggered for ${segment.endCity}`);
+    // This could trigger fallback weather in the future
+  }, [segment.endCity]);
 
   return (
-    <WeatherDataDisplay
-      weather={weather}
-      segmentDate={segmentDate}
-      cityName={segment.endCity}
-      error={error}
-      onRetry={fetchWeather}
-      isSharedView={isSharedView}
-      isPDFExport={isPDFExport}
-    />
+    <div className="weather-card">
+      <SegmentWeatherContent
+        hasApiKey={hasApiKey}
+        loading={loading}
+        weather={weather}
+        error={error}
+        retryCount={retryCount}
+        segmentEndCity={segment.endCity}
+        segmentDate={segmentDate}
+        onApiKeySet={handleApiKeySet}
+        onTimeout={handleTimeout}
+        onRetry={handleRetry}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
+    </div>
   );
 };
 

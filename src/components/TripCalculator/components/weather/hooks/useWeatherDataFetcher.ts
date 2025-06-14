@@ -30,18 +30,19 @@ export const useWeatherDataFetcher = ({
     try {
       const segmentDate = new Date(tripStartDate.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
       
-      console.log(`🚀 PLAN: Starting SHARED VIEW COMPATIBLE weather fetch for ${segmentEndCity} Day ${segmentDay}:`, {
+      console.log(`🚀 PLAN: Starting ENHANCED weather fetch for ${segmentEndCity} Day ${segmentDay}:`, {
         segmentDate: segmentDate.toISOString(),
         hasApiKey,
         isSharedView,
         isolationLevel: 'city+date+day',
-        SHARED_VIEW_ENABLED: true
+        ENHANCED_ERROR_HANDLING: true
       });
 
+      // CRITICAL FIX: Set loading and clear any existing errors
       actions.setLoading(true);
       actions.setError(null);
 
-      // 🔧 PLAN: For shared views, still check cache but also try fresh fetch
+      // Check cache first for non-shared views
       if (!isSharedView) {
         const cachedWeather = WeatherPersistenceService.getWeatherData(segmentEndCity, segmentDate, segmentDay);
         if (cachedWeather) {
@@ -52,12 +53,11 @@ export const useWeatherDataFetcher = ({
         }
       }
 
-      // 🔧 CRITICAL: ALWAYS attempt weather fetch for shared views, even without API key
-      console.log(`🔧 CRITICAL: SHARED VIEW weather fetch attempt for ${segmentEndCity}:`, {
+      console.log(`🔧 CRITICAL: ENHANCED weather fetch attempt for ${segmentEndCity}:`, {
         hasApiKey,
         isSharedView,
         willUseFallback: !hasApiKey,
-        FORCING_FETCH: true
+        ENHANCED_APPROACH: true
       });
 
       const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
@@ -69,23 +69,26 @@ export const useWeatherDataFetcher = ({
       });
 
       if (weather) {
-        console.log(`✅ PLAN: SHARED VIEW weather fetched for ${segmentEndCity} Day ${segmentDay}:`, {
+        console.log(`✅ PLAN: ENHANCED weather fetched for ${segmentEndCity} Day ${segmentDay}:`, {
           temperature: weather.temperature,
           source: weather.source,
           isActualForecast: weather.isActualForecast,
           isolationLevel: 'city+date+day',
-          SHARED_VIEW_SUCCESS: true
+          ENHANCED_SUCCESS: true
         });
 
-        // Store weather data even for shared views for consistency
+        // Store weather data for consistency
         WeatherPersistenceService.storeWeatherData(segmentEndCity, segmentDate, weather, segmentDay);
         actions.setWeather(weather);
+        
+        // CRITICAL FIX: Ensure loading is cleared and error is null
+        actions.setLoading(false);
+        actions.setError(null);
       } else {
-        console.log(`⚠️ PLAN: No weather data returned for ${segmentEndCity} Day ${segmentDay} in shared view`);
+        console.log(`⚠️ PLAN: No weather data returned for ${segmentEndCity} Day ${segmentDay}`);
         actions.setError('Unable to fetch weather data');
+        actions.setLoading(false);
       }
-
-      actions.setLoading(false);
 
     } catch (error) {
       console.error(`❌ PLAN: Weather fetch error for ${segmentEndCity} Day ${segmentDay}:`, error);
@@ -94,12 +97,11 @@ export const useWeatherDataFetcher = ({
     }
   }, [segmentEndCity, segmentDay, tripStartDate, hasApiKey, actions]);
 
-  // 🔧 CRITICAL: Auto-fetch for ALL views, including shared views
+  // Auto-fetch for all views with enhanced error handling
   React.useEffect(() => {
     if (tripStartDate) {
-      console.log(`🚨 PLAN: TRIGGERING UNIVERSAL AUTO FETCH for ${segmentEndCity} Day ${segmentDay} (works for shared views)`);
-      // Always fetch weather regardless of API key status for shared views to get fallback data
-      fetchWeather(false); // Let the SimpleWeatherFetcher handle shared view logic internally
+      console.log(`🚨 PLAN: TRIGGERING ENHANCED AUTO FETCH for ${segmentEndCity} Day ${segmentDay}`);
+      fetchWeather(false);
     }
   }, [fetchWeather, tripStartDate]);
 

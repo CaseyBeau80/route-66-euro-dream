@@ -18,7 +18,6 @@ export interface SimpleWeatherActions {
 }
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
-  // 🔧 PLAN: Enhanced state isolation with city+day unique key
   const stateKey = `${segmentEndCity}-day-${day}`;
   console.log(`🎯 PLAN: useSimpleWeatherState with ENHANCED ISOLATION for ${stateKey}`);
 
@@ -40,7 +39,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     setRetryCount(prev => prev + 1);
   }, [stateKey]);
 
-  // 🔧 PLAN: Enhanced weather setting with isolation validation
+  // Enhanced weather setting with error clearing
   const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
     console.log(`✅ PLAN: Setting ISOLATED weather for ${stateKey}:`, {
       hasWeather: !!newWeather,
@@ -51,7 +50,7 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
       isolationKey: stateKey
     });
 
-    // 🔧 PLAN: Validate city match to ensure no cross-contamination
+    // Validate city match to ensure no cross-contamination
     if (newWeather && newWeather.cityName !== segmentEndCity) {
       console.warn(`⚠️ PLAN: ISOLATION BREACH DETECTED - Weather city mismatch:`, {
         expectedCity: segmentEndCity,
@@ -62,19 +61,37 @@ export const useSimpleWeatherState = (segmentEndCity: string, day: number): Simp
     }
 
     setWeatherState(newWeather);
+    
+    // CRITICAL FIX: Clear error when weather is successfully set
+    if (newWeather) {
+      console.log(`✅ PLAN: Clearing error state due to successful weather data for ${stateKey}`);
+      setError(null);
+    }
   }, [segmentEndCity, stateKey]);
 
   const enhancedSetLoading = React.useCallback((loading: boolean) => {
     console.log(`🔄 PLAN: Setting loading=${loading} for ISOLATED ${stateKey}`);
     setLoading(loading);
+    
+    // CRITICAL FIX: Clear error when starting fresh loading
+    if (loading) {
+      console.log(`🔄 PLAN: Clearing error state when starting loading for ${stateKey}`);
+      setError(null);
+    }
   }, [stateKey]);
 
   const enhancedSetError = React.useCallback((error: string | null) => {
     console.log(`❌ PLAN: Setting error for ISOLATED ${stateKey}:`, error);
     setError(error);
+    
+    // CRITICAL FIX: Clear loading when error is set
+    if (error) {
+      console.log(`❌ PLAN: Clearing loading state due to error for ${stateKey}`);
+      setLoading(false);
+    }
   }, [stateKey]);
 
-  // 🔧 PLAN: Enhanced dependency tracking for complete isolation
+  // Enhanced dependency tracking for complete isolation
   React.useEffect(() => {
     console.log(`🔄 PLAN: Dependency change for ISOLATED ${stateKey} - resetting for fresh state`);
     reset();
