@@ -25,10 +25,13 @@ export const useUnifiedWeather = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Detect if we're in a URL-based shared view
+  // FIXED: Detect if we're in a URL-based shared view and check the live weather preference
   const isUrlBasedSharedView = window.location.pathname === '/shared-trip';
-  const shouldUseLiveWeather = isUrlBasedSharedView && 
-    new URLSearchParams(window.location.search).get('useLiveWeather') === 'true';
+  const urlParams = new URLSearchParams(window.location.search);
+  const useLiveWeatherParam = urlParams.get('useLiveWeather');
+  
+  // FIXED: Default to true for live weather unless explicitly disabled
+  const shouldUseLiveWeather = useLiveWeatherParam !== 'false';
 
   const fetchWeatherData = useCallback(async () => {
     if (!segmentDate) {
@@ -42,10 +45,12 @@ export const useUnifiedWeather = ({
     setError(null);
 
     try {
-      console.log('🌤️ ENHANCED: useUnifiedWeather starting fetch for', cityName, {
+      console.log('🌤️ FIXED: useUnifiedWeather starting fetch for', cityName, {
         isUrlBasedSharedView,
         shouldUseLiveWeather,
-        segmentDate: segmentDate.toISOString()
+        useLiveWeatherParam,
+        segmentDate: segmentDate.toISOString(),
+        fixedLogic: true
       });
 
       // Check API key first
@@ -53,7 +58,7 @@ export const useUnifiedWeather = ({
       const hasValidApiKey = !!apiKey && apiKey !== 'YOUR_API_KEY_HERE' && apiKey.length > 10;
 
       if (!hasValidApiKey) {
-        console.log('🌤️ ENHANCED: No valid API key - using fallback weather for', cityName);
+        console.log('🌤️ FIXED: No valid API key - using fallback weather for', cityName);
         const fallbackWeather = WeatherFallbackService.createFallbackForecast(
           cityName,
           segmentDate,
@@ -72,19 +77,24 @@ export const useUnifiedWeather = ({
       targetDate.setHours(0, 0, 0, 0);
       const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ ENHANCED: Date analysis for', cityName, {
+      console.log('🌤️ FIXED: Date analysis for', cityName, {
         today: today.toISOString().split('T')[0],
         targetDate: targetDate.toISOString().split('T')[0],
         daysFromToday,
         isWithinRange: daysFromToday >= 0 && daysFromToday <= 7,
         shouldUseLiveWeather,
-        isUrlBasedSharedView
+        isUrlBasedSharedView,
+        fixedDateLogic: true
       });
 
-      // ENHANCED: For URL-based shared views with useLiveWeather=true, always try live weather if within range
-      if ((daysFromToday >= 0 && daysFromToday <= 7) && 
-          (!isUrlBasedSharedView || shouldUseLiveWeather)) {
-        console.log('🌤️ ENHANCED: Attempting live weather fetch for', cityName);
+      // FIXED: Always attempt live weather if within range AND live weather is enabled
+      if ((daysFromToday >= 0 && daysFromToday <= 7) && shouldUseLiveWeather) {
+        console.log('🌤️ FIXED: Attempting live weather fetch for', cityName, {
+          reason: 'within_range_and_live_enabled',
+          daysFromToday,
+          shouldUseLiveWeather,
+          fixedCondition: true
+        });
         
         // Try live weather fetch with explicit validation
         const liveWeather = await fetchLiveWeatherWithValidation(cityName, segmentDate, apiKey);
@@ -93,13 +103,14 @@ export const useUnifiedWeather = ({
           const validatedWeather = WeatherValidationService.ensureLiveWeatherMarking(liveWeather);
           const isDetectedAsLive = LiveWeatherDetectionService.isLiveWeatherForecast(validatedWeather);
           
-          console.log('✅ ENHANCED: Live weather processed for', cityName, {
+          console.log('✅ FIXED: Live weather processed for', cityName, {
             temperature: validatedWeather.temperature,
             source: validatedWeather.source,
             isActualForecast: validatedWeather.isActualForecast,
             detectedAsLive: isDetectedAsLive,
             isUrlBasedSharedView,
-            shouldUseLiveWeather
+            shouldUseLiveWeather,
+            fixedProcessing: true
           });
           
           setWeather(validatedWeather);
@@ -109,10 +120,12 @@ export const useUnifiedWeather = ({
       }
 
       // Fallback to historical weather
-      console.log('🔄 ENHANCED: Using fallback weather for', cityName, {
-        reason: isUrlBasedSharedView && !shouldUseLiveWeather ? 'URL_SHARED_NO_LIVE_FLAG' : 'OUTSIDE_RANGE_OR_API_FAILED',
+      console.log('🔄 FIXED: Using fallback weather for', cityName, {
+        reason: shouldUseLiveWeather ? 'OUTSIDE_RANGE_OR_API_FAILED' : 'LIVE_WEATHER_DISABLED',
+        daysFromToday,
+        shouldUseLiveWeather,
         isUrlBasedSharedView,
-        shouldUseLiveWeather
+        fixedFallback: true
       });
       
       const fallbackWeather = WeatherFallbackService.createFallbackForecast(
@@ -125,7 +138,7 @@ export const useUnifiedWeather = ({
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
-      console.error('❌ ENHANCED: useUnifiedWeather error:', errorMessage);
+      console.error('❌ FIXED: useUnifiedWeather error:', errorMessage);
       setError(errorMessage);
       
       // Fallback weather on error
@@ -142,7 +155,7 @@ export const useUnifiedWeather = ({
   }, [cityName, segmentDate, segmentDay, isUrlBasedSharedView, shouldUseLiveWeather]);
 
   const refetch = useCallback(() => {
-    console.log('🌤️ ENHANCED: Manual refetch for', cityName);
+    console.log('🌤️ FIXED: Manual refetch for', cityName);
     fetchWeatherData();
   }, [fetchWeatherData, cityName]);
 
@@ -165,12 +178,12 @@ async function fetchLiveWeatherWithValidation(
   apiKey: string
 ): Promise<ForecastWeatherData | null> {
   try {
-    console.log('🌤️ ENHANCED: fetchLiveWeatherWithValidation starting for', cityName);
+    console.log('🌤️ FIXED: fetchLiveWeatherWithValidation starting for', cityName);
     
     // Get coordinates
     const coords = await getCoordinates(cityName, apiKey);
     if (!coords) {
-      console.log('❌ ENHANCED: Could not get coordinates for', cityName);
+      console.log('❌ FIXED: Could not get coordinates for', cityName);
       return null;
     }
 
@@ -179,13 +192,13 @@ async function fetchLiveWeatherWithValidation(
     const response = await fetch(weatherUrl);
 
     if (!response.ok) {
-      console.log('❌ ENHANCED: Weather API failed for', cityName, response.status);
+      console.log('❌ FIXED: Weather API failed for', cityName, response.status);
       return null;
     }
 
     const data = await response.json();
     if (!data.list || data.list.length === 0) {
-      console.log('❌ ENHANCED: No forecast data for', cityName);
+      console.log('❌ FIXED: No forecast data for', cityName);
       return null;
     }
 
@@ -213,16 +226,17 @@ async function fetchLiveWeatherWithValidation(
       source: 'live_forecast' as const // EXPLICIT: Always live_forecast for API data
     };
 
-    console.log('✅ ENHANCED: Created validated live forecast for', cityName, {
+    console.log('✅ FIXED: Created validated live forecast for', cityName, {
       temperature: liveWeather.temperature,
       isActualForecast: liveWeather.isActualForecast,
       source: liveWeather.source,
-      description: liveWeather.description
+      description: liveWeather.description,
+      fixedCreation: true
     });
 
     return liveWeather;
   } catch (error) {
-    console.error('❌ ENHANCED: Live weather fetch failed for', cityName, error);
+    console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
     return null;
   }
 }
@@ -242,7 +256,7 @@ async function getCoordinates(cityName: string, apiKey: string) {
     const result = data.find((r: any) => r.country === 'US') || data[0];
     return { lat: result.lat, lng: result.lon };
   } catch (error) {
-    console.error('❌ ENHANCED: Geocoding error:', error);
+    console.error('❌ FIXED: Geocoding error:', error);
     return null;
   }
 }
