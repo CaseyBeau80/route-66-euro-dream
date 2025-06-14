@@ -13,6 +13,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
+  console.log('🔧 SHARED: SharedDailyItinerary rendering with:', {
+    segmentCount: segments.length,
+    hasTripStartDate: !!tripStartDate,
+    tripStartDate: tripStartDate?.toISOString(),
+    sharedViewMode: true
+  });
+
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
@@ -34,6 +41,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       {segments.map((segment, index) => {
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
+
+        console.log(`🔧 SHARED: Rendering segment ${segment.day} for ${segment.endCity}`, {
+          segmentDay: segment.day,
+          endCity: segment.endCity,
+          hasTripStartDate: !!tripStartDate,
+          isSharedView: true
+        });
 
         return (
           <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -88,13 +102,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section */}
-              <div className="weather-section">
-                <SimpleWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  isSharedView={true}
-                />
+              {/* Enhanced Weather Section - Fixed for Shared View */}
+              <div className="weather-section bg-gray-50 rounded-lg p-4 border">
+                <div className="mb-2">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                    🌤️ Weather for {segment.endCity}
+                  </h4>
+                </div>
+                
+                <div className="weather-widget-container">
+                  <SimpleWeatherWidget
+                    segment={segment}
+                    tripStartDate={tripStartDate}
+                    isSharedView={true}
+                    isPDFExport={false}
+                  />
+                </div>
               </div>
             </div>
           </div>
