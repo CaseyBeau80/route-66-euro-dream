@@ -18,53 +18,50 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // SINGLE SOURCE OF TRUTH: Direct check for live weather
+  // SIMPLIFIED: Direct check for live weather - no complicated logic
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
 
-  console.log('🔥 UNIFIED: UnifiedWeatherDisplay - DIRECT DETECTION:', {
+  console.log('🔥 SIMPLIFIED: UnifiedWeatherDisplay - DIRECT CHECK:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    directDetection: isLiveForecast,
+    isLiveForecast,
     temperature: weather.temperature,
     isSharedView,
-    isPDFExport,
-    unifiedLogic: true
+    simplifiedCheck: true
   });
 
-  // FORCE STYLING BASED ON DIRECT DETECTION
-  const isGreen = isLiveForecast;
-  const styleConfig = React.useMemo(() => {
-    if (isGreen) {
-      return {
-        sourceLabel: '🟢 Live Weather Forecast',
-        sourceColor: '#059669',
-        badgeText: '✨ Current live forecast',
-        containerBg: '#dcfce7',
-        containerBorder: '#bbf7d0',
-        textColor: '#166534',
-        type: 'LIVE'
-      };
-    } else {
-      return {
-        sourceLabel: '🟡 Historical Weather Data',
-        sourceColor: '#d97706',
-        badgeText: '📊 Based on historical patterns',
-        containerBg: '#fef3c7',
-        containerBorder: '#fde68a',
-        textColor: '#92400e',
-        type: 'HISTORICAL'
-      };
-    }
-  }, [isGreen]);
+  // FORCED STYLING: Use simple inline styles to override any CSS conflicts
+  const containerStyle = isLiveForecast ? {
+    backgroundColor: '#dcfce7', // green-100
+    borderColor: '#bbf7d0', // green-200
+    color: '#166534' // green-800
+  } : {
+    backgroundColor: '#fef3c7', // amber-100
+    borderColor: '#fde68a', // amber-200
+    color: '#92400e' // amber-800
+  };
 
-  console.log('🔥 UNIFIED: Applying styling:', {
+  const badgeStyle = isLiveForecast ? {
+    backgroundColor: '#dcfce7', // green-100
+    color: '#166534', // green-800
+    borderColor: '#bbf7d0' // green-200
+  } : {
+    backgroundColor: '#fef3c7', // amber-100
+    color: '#92400e', // amber-800
+    borderColor: '#fde68a' // amber-200
+  };
+
+  const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
+  const badgeText = isLiveForecast ? '✨ Current live forecast' : '📊 Based on historical patterns';
+  const sourceColor = isLiveForecast ? '#059669' : '#d97706';
+
+  console.log('🔥 SIMPLIFIED: Applying forced styling:', {
     cityName,
-    isGreen,
-    styleType: styleConfig.type,
-    containerBg: styleConfig.containerBg,
-    sourceLabel: styleConfig.sourceLabel,
-    unifiedStyling: true
+    isLiveForecast,
+    containerBg: containerStyle.backgroundColor,
+    sourceLabel,
+    forcedStyling: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -88,22 +85,19 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   return (
     <div 
       className="rounded-lg p-4 border relative"
-      style={{
-        backgroundColor: styleConfig.containerBg,
-        borderColor: styleConfig.containerBorder
-      }}
+      style={containerStyle}
     >
       {/* Debug Overlay */}
       <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-        <div className="font-bold mb-1">🔥 UNIFIED: {cityName}</div>
-        <div className={`mb-1 font-bold ${isGreen ? 'text-green-400' : 'text-yellow-400'}`}>
-          {isGreen ? '🟢 UNIFIED: LIVE' : '🟡 UNIFIED: HISTORICAL'}
+        <div className="font-bold mb-1">🔥 SIMPLIFIED: {cityName}</div>
+        <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
+          {isLiveForecast ? '🟢 SIMPLIFIED: LIVE' : '🟡 SIMPLIFIED: HISTORICAL'}
         </div>
         <div>Source: {weather.source}</div>
         <div>ActualForecast: {String(weather.isActualForecast)}</div>
-        <div>Direct Detection: {String(isLiveForecast)}</div>
-        <div className={isGreen ? 'text-green-400' : 'text-yellow-400'}>
-          Style Applied: {styleConfig.type}
+        <div>Direct Check: {String(isLiveForecast)}</div>
+        <div className={isLiveForecast ? 'text-green-400' : 'text-yellow-400'}>
+          Forced Style: {isLiveForecast ? 'GREEN' : 'AMBER'}
         </div>
         <div>View: {isSharedView ? 'SHARED' : 'PREVIEW'}</div>
         <div>Temp: {weather.temperature}°F</div>
@@ -113,9 +107,9 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
       <div className="flex items-center justify-between mb-2">
         <span 
           className="text-xs font-medium"
-          style={{ color: styleConfig.sourceColor }}
+          style={{ color: sourceColor }}
         >
-          {styleConfig.sourceLabel}
+          {sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -152,13 +146,9 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
       <div className="mt-2 text-center">
         <span 
           className="inline-block text-xs px-2 py-1 rounded-full font-medium border"
-          style={{
-            backgroundColor: styleConfig.containerBg,
-            color: styleConfig.textColor,
-            borderColor: styleConfig.containerBorder
-          }}
+          style={badgeStyle}
         >
-          {styleConfig.badgeText}
+          {badgeText}
         </span>
       </div>
     </div>
