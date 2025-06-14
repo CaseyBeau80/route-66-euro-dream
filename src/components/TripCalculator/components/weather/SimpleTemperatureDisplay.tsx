@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherUtilityService } from './services/WeatherUtilityService';
 
 interface SimpleTemperatureDisplayProps {
   weather: ForecastWeatherData;
@@ -14,47 +13,17 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // PLAN: Comprehensive debugging for temperature display
-  const debugKey = `temp-${weather.cityName}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+  // CRITICAL FIX: Direct live forecast calculation
+  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🌡️ PLAN: SimpleTemperatureDisplay COMPREHENSIVE DEBUG:', {
-    debugKey,
-    weatherInput: {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
-    },
-    context: {
-      isSharedView,
-      hasSegmentDate: !!segmentDate
-    },
-    planImplementation: true
+  console.log('🔧 FIXED: SimpleTemperatureDisplay - DIRECT CALCULATION:', {
+    cityName: weather.cityName,
+    weatherSource: weather.source,
+    isActualForecast: weather.isActualForecast,
+    directIsLive: isLiveForecast,
+    temperature: weather.temperature,
+    fixApplied: true
   });
-
-  // PLAN: Deterministic live forecast calculation
-  const isLiveForecast = React.useMemo(() => {
-    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-    
-    console.log('🎯 PLAN: Temperature Display - Live Forecast Calculation:', {
-      debugKey,
-      weatherAnalysis: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        verificationCriteria: {
-          hasLiveSource: weather.source === 'live_forecast',
-          isActualForecast: weather.isActualForecast === true,
-          bothConditionsMet: weather.source === 'live_forecast' && weather.isActualForecast === true
-        }
-      },
-      calculatedResult: result,
-      deterministicCalculation: true,
-      planImplementation: true
-    });
-    
-    return result;
-  }, [weather.source, weather.isActualForecast, segmentDate?.getTime(), debugKey]);
 
   const getTemperatureLabel = (temp: number): string => {
     if (temp >= 90) return 'Hot';
@@ -68,22 +37,6 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   const highTemp = weather.highTemp || weather.temperature;
   const lowTemp = weather.lowTemp || weather.temperature;
   const highTempLabel = getTemperatureLabel(highTemp);
-
-  // PLAN: Final state logging before render
-  console.log('🚀 PLAN: SimpleTemperatureDisplay FINAL RENDER STATE:', {
-    debugKey,
-    finalCalculations: {
-      isLiveForecast,
-      highTemp,
-      lowTemp,
-      highTempLabel
-    },
-    renderDecision: {
-      willShowLiveForecastBadge: isLiveForecast,
-      temperatureDisplay: `${highTemp}°F${lowTemp && lowTemp !== highTemp ? ` / ${lowTemp}°F` : ''}`
-    },
-    planImplementation: 'complete'
-  });
 
   return (
     <div className="temperature-display">

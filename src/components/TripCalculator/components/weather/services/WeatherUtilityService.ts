@@ -1,3 +1,4 @@
+
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { DateNormalizationService } from '../DateNormalizationService';
 
@@ -10,78 +11,42 @@ export interface WeatherSourceInfo {
 
 export class WeatherUtilityService {
   /**
-   * PLAN: Enhanced live forecast detection with comprehensive debugging
+   * FIXED: Direct and simple live forecast detection
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
     if (!weather) {
-      console.log('🔍 PLAN: WeatherUtilityService.isLiveForecast - No weather data provided');
       return false;
     }
     
-    const debugKey = `${weather.cityName}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+    // CRITICAL FIX: Simple, direct boolean check
+    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    // PLAN: Primary verification - both conditions must be true for live forecast
-    const hasLiveSource = weather.source === 'live_forecast';
-    const isVerifiedActual = weather.isActualForecast === true;
-    const isVerifiedLive = hasLiveSource && isVerifiedActual;
-    
-    console.log('🎯 PLAN: WeatherUtilityService.isLiveForecast - ENHANCED VERIFICATION:', {
-      debugKey,
-      inputWeather: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        cityName: weather.cityName,
-        temperature: weather.temperature
-      },
-      verificationProcess: {
-        step1_sourceCheck: {
-          expected: 'live_forecast',
-          actual: weather.source,
-          passes: hasLiveSource
-        },
-        step2_actualForecastCheck: {
-          expected: true,
-          actual: weather.isActualForecast,
-          passes: isVerifiedActual
-        },
-        step3_finalVerification: {
-          bothConditionsMet: isVerifiedLive,
-          result: isVerifiedLive
-        }
-      },
-      methodCall: 'WeatherUtilityService.isLiveForecast',
-      planImplementation: true
+    console.log('🔧 FIXED: WeatherUtilityService.isLiveForecast - DIRECT CHECK:', {
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      directResult: isLive,
+      cityName: weather.cityName,
+      fixApplied: true
     });
     
-    return isVerifiedLive;
+    return isLive;
   }
 
   /**
-   * PLAN: Enhanced weather source label with guaranteed consistency
+   * FIXED: Direct weather source label without complex logic
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
-    const debugKey = `${weather.cityName}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+    // CRITICAL FIX: Use direct property checks, not method calls
+    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
     
-    // PLAN: Use the EXACT SAME logic as isLiveForecast method for consistency
-    const isVerifiedLive = this.isLiveForecast(weather, segmentDate);
-    const label = isVerifiedLive ? 'Live Weather Forecast' : 'Historical Weather Data';
-    
-    console.log('🎯 PLAN: WeatherUtilityService.getWeatherSourceLabel - ENHANCED CONSISTENCY:', {
-      debugKey,
-      weatherAnalysis: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        temperature: weather.temperature
-      },
-      labelCalculation: {
-        isVerifiedLive,
-        selectedLabel: label,
-        usingConsistentLogic: true,
-        matchesDetectionMethod: true
-      },
-      guaranteedConsistency: true,
-      methodCall: 'WeatherUtilityService.getWeatherSourceLabel',
-      planImplementation: true
+    console.log('🔧 FIXED: WeatherUtilityService.getWeatherSourceLabel - DIRECT LABEL:', {
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      directIsLive: isLive,
+      selectedLabel: label,
+      cityName: weather.cityName,
+      fixApplied: true
     });
     
     return label;
