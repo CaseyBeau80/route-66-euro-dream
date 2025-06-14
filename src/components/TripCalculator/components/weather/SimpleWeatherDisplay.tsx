@@ -37,39 +37,34 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // Use the detection service to determine if this is live weather
-  const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+  // FIXED: Direct detection logic without service dependency
+  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🌤️ DISPLAY: SimpleWeatherDisplay rendering decision:', {
+  console.log('🔧 FIXED: SimpleWeatherDisplay direct detection:', {
     cityName,
     source: weather.source,
     isActualForecast: weather.isActualForecast,
-    detectedAsLive: isLiveForecast,
-    temperature: weather.temperature
+    isLiveForecast,
+    temperature: weather.temperature,
+    directDetection: true
   });
 
-  // Get display properties based on detection
-  const displayConfig = React.useMemo(() => {
-    if (isLiveForecast) {
-      return {
-        sourceLabel: '🟢 Live Weather Forecast',
-        sourceColor: 'text-green-600',
-        badgeText: '✨ Current live forecast',
-        badgeStyle: 'bg-green-100 text-green-700',
-        backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
-        borderStyle: 'border-green-200'
-      };
-    } else {
-      return {
-        sourceLabel: '🟡 Historical Weather Data',
-        sourceColor: 'text-amber-600',
-        badgeText: '📊 Based on historical patterns',
-        badgeStyle: 'bg-amber-100 text-amber-700',
-        backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
-        borderStyle: 'border-blue-200'
-      };
-    }
-  }, [isLiveForecast]);
+  // FIXED: Simplified display config without memo
+  const displayConfig = isLiveForecast ? {
+    sourceLabel: '🟢 Live Weather Forecast',
+    sourceColor: 'text-green-600',
+    badgeText: '✨ Current live forecast',
+    badgeStyle: 'bg-green-100 text-green-700',
+    backgroundStyle: 'bg-gradient-to-br from-green-50 to-green-100',
+    borderStyle: 'border-green-200'
+  } : {
+    sourceLabel: '🟡 Historical Weather Data',
+    sourceColor: 'text-amber-600',
+    badgeText: '📊 Based on historical patterns',
+    badgeStyle: 'bg-amber-100 text-amber-700',
+    backgroundStyle: 'bg-gradient-to-br from-blue-50 to-blue-100',
+    borderStyle: 'border-blue-200'
+  };
 
   return (
     <div className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}>
