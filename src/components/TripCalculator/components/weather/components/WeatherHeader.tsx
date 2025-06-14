@@ -13,6 +13,13 @@ interface WeatherHeaderProps {
     source?: string;
     isActualForecast?: boolean;
     dateMatchInfo?: { source?: string };
+    temperature?: number;
+    humidity?: number;
+    windSpeed?: number;
+    precipitationChance?: number;
+    cityName?: string;
+    forecast?: any[];
+    forecastDate?: Date;
   };
   segmentDate?: Date | null;
   cityName: string;
@@ -24,8 +31,37 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
   cityName
 }) => {
   const weatherType = React.useMemo(() => {
-    return WeatherTypeDetector.detectWeatherType(weather);
-  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source]);
+    // Only detect weather type if we have enough data
+    if (weather.temperature !== undefined && weather.humidity !== undefined && weather.windSpeed !== undefined) {
+      // Create a complete weather object for type detection
+      const completeWeather = {
+        temperature: weather.temperature,
+        humidity: weather.humidity,
+        windSpeed: weather.windSpeed,
+        precipitationChance: weather.precipitationChance || 0,
+        cityName: weather.cityName || cityName,
+        description: weather.description || '',
+        icon: weather.icon || '',
+        forecast: weather.forecast || [],
+        forecastDate: weather.forecastDate || new Date(),
+        isActualForecast: weather.isActualForecast || false,
+        source: weather.source || 'unknown',
+        dateMatchInfo: weather.dateMatchInfo
+      };
+      return WeatherTypeDetector.detectWeatherType(completeWeather);
+    }
+    
+    // Return a default type info for incomplete data
+    return {
+      type: 'unknown' as const,
+      isActualForecast: false,
+      source: weather.source || 'unknown',
+      confidence: 'low' as const,
+      dataQuality: 'poor' as const,
+      description: 'Incomplete weather data',
+      displayLabel: weather.description || 'Weather Data'
+    };
+  }, [weather.source, weather.isActualForecast, weather.dateMatchInfo?.source, weather.temperature, weather.humidity, weather.windSpeed, cityName]);
 
   // Safely convert source to WeatherSourceType with fallback
   const sourceType: WeatherSourceType = (weather.source as WeatherSourceType) || 'historical_fallback';

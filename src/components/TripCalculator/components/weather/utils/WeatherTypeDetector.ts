@@ -10,6 +10,7 @@ export interface WeatherTypeInfo {
   confidence: 'high' | 'medium' | 'low';
   dataQuality: 'excellent' | 'good' | 'fair' | 'poor';
   description: string;
+  displayLabel: string;
 }
 
 export class WeatherTypeDetector {
@@ -31,7 +32,8 @@ export class WeatherTypeDetector {
         source,
         confidence: 'high',
         dataQuality: 'excellent',
-        description: 'Real-time weather forecast from OpenWeatherMap API'
+        description: 'Real-time weather forecast from OpenWeatherMap API',
+        displayLabel: 'Live Forecast'
       };
     }
 
@@ -43,7 +45,8 @@ export class WeatherTypeDetector {
         source,
         confidence: 'medium',
         dataQuality: 'good',
-        description: 'Seasonal average weather data with city-specific variations'
+        description: 'Seasonal average weather data with city-specific variations',
+        displayLabel: 'Historical Average'
       };
     }
 
@@ -55,7 +58,8 @@ export class WeatherTypeDetector {
         source,
         confidence: 'low',
         dataQuality: 'fair',
-        description: 'Estimated weather based on seasonal patterns'
+        description: 'Estimated weather based on seasonal patterns',
+        displayLabel: 'Seasonal Estimate'
       };
     }
 
@@ -66,7 +70,8 @@ export class WeatherTypeDetector {
       source,
       confidence: 'low',
       dataQuality: 'poor',
-      description: 'Weather data type could not be determined'
+      description: 'Weather data type could not be determined',
+      displayLabel: 'Weather Data'
     };
   }
 
@@ -88,5 +93,24 @@ export class WeatherTypeDetector {
       default:
         return 'Weather Data';
     }
+  }
+
+  static getFooterMessage(weather: { source?: string; isActualForecast?: boolean }): string {
+    const isActualForecast = weather.isActualForecast === true;
+    const source = weather.source || 'unknown';
+
+    if (isActualForecast && source === 'live_forecast') {
+      return '🔴 Live weather forecast from OpenWeatherMap';
+    }
+
+    if (!isActualForecast && source === 'historical_fallback') {
+      return '📊 Historical weather averages for this time of year';
+    }
+
+    if (source.includes('seasonal') || source.includes('fallback')) {
+      return '🌤️ Seasonal weather estimate based on typical patterns';
+    }
+
+    return '🌤️ Weather information';
   }
 }
