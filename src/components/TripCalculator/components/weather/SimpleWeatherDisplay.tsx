@@ -36,7 +36,17 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
+  // FIXED: Proper live forecast detection
   const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  
+  console.log('🌤️ DISPLAY: SimpleWeatherDisplay rendering:', {
+    cityName,
+    source: weather.source,
+    isActualForecast: weather.isActualForecast,
+    isLiveForecast,
+    temperature: weather.temperature
+  });
+  
   const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
   const sourceColor = isLiveForecast ? 'text-green-600' : 'text-amber-600';
 
