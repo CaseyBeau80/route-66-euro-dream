@@ -71,7 +71,7 @@ export class TripDataSerializer {
     const reduced: Record<string, ForecastWeatherData> = {};
     
     Object.entries(weatherData).forEach(([key, weather]) => {
-      // Keep only essential weather fields
+      // Keep all required fields but remove optional/large ones to save space
       reduced[key] = {
         temperature: weather.temperature,
         description: weather.description,
@@ -80,9 +80,15 @@ export class TripDataSerializer {
         windSpeed: weather.windSpeed,
         source: weather.source,
         isActualForecast: weather.isActualForecast,
-        // Remove optional fields to save space
+        // Include required fields
+        humidity: weather.humidity,
+        cityName: weather.cityName,
+        // Keep optional fields that are small
         highTemp: weather.highTemp,
-        lowTemp: weather.lowTemp
+        lowTemp: weather.lowTemp,
+        // Remove large optional fields to save space
+        // forecast: weather.forecast, // This can be large, so we omit it
+        forecastDate: weather.forecastDate
       };
     });
     
