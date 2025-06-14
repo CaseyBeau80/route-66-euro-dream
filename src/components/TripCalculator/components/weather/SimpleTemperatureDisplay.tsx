@@ -1,21 +1,24 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
 
 interface SimpleTemperatureDisplayProps {
   weather: ForecastWeatherData;
   isSharedView?: boolean;
+  segmentDate?: Date | null;
 }
 
 const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({ 
   weather, 
-  isSharedView = false 
+  isSharedView = false,
+  segmentDate = null
 }) => {
   // Extract temperature values with fallbacks
   const high = weather.highTemp || weather.temperature + 5;
   const low = weather.lowTemp || weather.temperature - 5;
 
-  // FIXED: Remove hardcoded "Hot" labels and use actual temperature ranges
+  // CENTRALIZED: Remove hardcoded "Hot" labels and use actual temperature ranges
   const getTemperatureLabel = (temperature: number): string => {
     if (temperature >= 90) return 'Hot';
     if (temperature >= 75) return 'Warm';
@@ -25,9 +28,13 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   };
 
   const highTempLabel = getTemperatureLabel(high);
-  const isLiveForecast = weather.isActualForecast === true && weather.source === 'live_forecast';
+  
+  // CENTRALIZED: Use WeatherUtilityService for live forecast detection
+  const isLiveForecast = React.useMemo(() => {
+    return WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  }, [weather, segmentDate]);
 
-  console.log('🌡️ SimpleTemperatureDisplay rendering (current temp removed):', {
+  console.log('🌡️ CENTRALIZED: SimpleTemperatureDisplay rendering:', {
     cityName: weather.cityName,
     high,
     low,

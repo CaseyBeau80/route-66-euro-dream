@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
 import WeatherDataDisplay from './WeatherDataDisplay';
 
 interface WeatherDisplayDecisionProps {
@@ -22,47 +23,52 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // ENHANCED STEP 4: Add validation logic before rendering
+  // CENTRALIZED: Enhanced validation logic using utility service
   React.useEffect(() => {
     if (weather) {
-      const daysFromNow = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+      const daysFromNow = WeatherUtilityService.getDaysFromToday(segmentDate);
+      const isWithinRange = WeatherUtilityService.isWithinLiveForecastRange(segmentDate);
+      const isLive = WeatherUtilityService.isLiveForecast(weather, segmentDate);
       
-      console.log('🎯 WeatherDisplayDecision: Enhanced validation check:', {
+      console.log('🎯 CENTRALIZED: WeatherDisplayDecision enhanced validation:', {
         city: segmentEndCity,
         segmentDate: segmentDate.toISOString(),
         daysFromNow,
+        isWithinRange,
+        isLive,
         weather: {
           source: weather.source,
           isActualForecast: weather.isActualForecast,
-          dateMatchSource: weather.dateMatchInfo?.source,
           temperature: weather.temperature,
           highTemp: weather.highTemp,
           lowTemp: weather.lowTemp
         },
         validationChecks: {
           hasExplicitSource: !!weather.source,
-          isWithinForecastRange: daysFromNow >= 0 && daysFromNow <= 5,
-          sourceMatchesRange: weather.source === 'live_forecast' ? daysFromNow <= 5 : true,
+          isWithinForecastRange: isWithinRange,
+          sourceMatchesRange: weather.source === 'live_forecast' ? isWithinRange : true,
           temperatureValid: !!(weather.temperature || (weather.highTemp && weather.lowTemp))
         }
       });
 
-      // Enhanced validation: Check if source matches the date range
-      if (weather.source === 'live_forecast' && daysFromNow > 5) {
-        console.warn('⚠️ WeatherDisplayDecision: Source validation warning:', {
+      // CENTRALIZED: Enhanced validation using utility service
+      if (weather.source === 'live_forecast' && !isWithinRange) {
+        console.warn('⚠️ CENTRALIZED: Source validation warning:', {
           city: segmentEndCity,
           source: weather.source,
           daysFromNow,
-          issue: 'live_forecast_source_outside_5_day_range',
+          isWithinRange,
+          issue: 'live_forecast_source_outside_range',
           recommendation: 'should_be_historical_fallback'
         });
       }
 
-      if (weather.source === 'historical_fallback' && daysFromNow >= 0 && daysFromNow <= 5) {
-        console.warn('⚠️ WeatherDisplayDecision: Source validation warning:', {
+      if (weather.source === 'historical_fallback' && isWithinRange) {
+        console.warn('⚠️ CENTRALIZED: Source validation warning:', {
           city: segmentEndCity,
           source: weather.source,
           daysFromNow,
+          isWithinRange,
           issue: 'historical_fallback_within_forecast_range',
           recommendation: 'consider_live_forecast_if_api_available'
         });
@@ -70,7 +76,7 @@ const WeatherDisplayDecision: React.FC<WeatherDisplayDecisionProps> = ({
     }
   }, [weather, segmentDate, segmentEndCity]);
 
-  console.log('🎯 WeatherDisplayDecision: Enhanced component render:', {
+  console.log('🎯 CENTRALIZED: WeatherDisplayDecision component render:', {
     city: segmentEndCity,
     hasWeather: !!weather,
     weather: weather ? {

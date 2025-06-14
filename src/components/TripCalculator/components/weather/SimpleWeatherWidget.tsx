@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { DateNormalizationService } from './DateNormalizationService';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
 import WeatherCard from './WeatherCard';
 
 interface SimpleWeatherWidgetProps {
@@ -17,7 +17,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 SimpleWeatherWidget: Rendering for', segment.endCity, {
+  console.log('🎯 CENTRALIZED: SimpleWeatherWidget rendering for', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
@@ -25,7 +25,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     tripStartDate: tripStartDate?.toISOString()
   });
 
-  // PLAN IMPLEMENTATION: Enhanced date handling for shared views
+  // CENTRALIZED: Enhanced date handling for shared views
   const effectiveTripStartDate = React.useMemo(() => {
     // Try to get trip start date from URL query params if in shared view
     if (isSharedView && !tripStartDate) {
@@ -36,47 +36,37 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('✅ SimpleWeatherWidget: Using trip start date from URL params:', parsedDate.toISOString());
+            console.log('✅ CENTRALIZED: Using trip start date from URL params:', parsedDate.toISOString());
             return parsedDate;
           }
         }
       } catch (error) {
-        console.warn('⚠️ SimpleWeatherWidget: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ CENTRALIZED: Failed to parse trip start date from URL:', error);
       }
       
-      // PLAN REQUIREMENT: Fallback to current date for shared views
+      // CENTRALIZED: Fallback to current date for shared views
       const fallbackDate = new Date();
-      console.log('🔄 SimpleWeatherWidget: Using current date as fallback for shared view:', fallbackDate.toISOString());
+      console.log('🔄 CENTRALIZED: Using current date as fallback for shared view:', fallbackDate.toISOString());
       return fallbackDate;
     }
     
     return tripStartDate || null;
   }, [tripStartDate, isSharedView]);
 
-  // Calculate segment date - CRITICAL: Always try to calculate for weather fetching
+  // CENTRALIZED: Calculate segment date using utility service
   const segmentDate = React.useMemo(() => {
-    if (!effectiveTripStartDate) {
-      console.log('🚫 SimpleWeatherWidget: No effective trip start date available');
-      return null;
-    }
-    
-    try {
-      const calculatedDate = DateNormalizationService.calculateSegmentDate(effectiveTripStartDate, segment.day);
-      console.log('✅ SimpleWeatherWidget: Calculated segment date:', {
-        city: segment.endCity,
-        day: segment.day,
-        calculatedDate: calculatedDate.toISOString(),
-        usingFallback: isSharedView && !tripStartDate
-      });
-      return calculatedDate;
-    } catch (error) {
-      console.error('❌ SimpleWeatherWidget: Date calculation failed:', error);
-      return null;
-    }
+    const calculatedDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
+    console.log('✅ CENTRALIZED: Calculated segment date:', {
+      city: segment.endCity,
+      day: segment.day,
+      calculatedDate: calculatedDate?.toISOString(),
+      usingFallback: isSharedView && !tripStartDate
+    });
+    return calculatedDate;
   }, [effectiveTripStartDate, segment.day]);
 
-  // PLAN IMPLEMENTATION: Always render WeatherCard to ensure weather fetching
-  console.log('🔧 SimpleWeatherWidget: Rendering WeatherCard with enhanced shared view support', {
+  // CENTRALIZED: Always render WeatherCard to ensure weather fetching
+  console.log('🔧 CENTRALIZED: Rendering WeatherCard with enhanced shared view support', {
     segmentEndCity: segment.endCity,
     day: segment.day,
     hasSegmentDate: !!segmentDate,

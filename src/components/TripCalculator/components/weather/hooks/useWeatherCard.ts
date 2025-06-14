@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../../services/planning/TripPlanBuilder';
-import { DateNormalizationService } from '../DateNormalizationService';
+import { WeatherUtilityService } from '../services/WeatherUtilityService';
 import { useWeatherApiKey } from './useWeatherApiKey';
 import { useSimpleWeatherState } from './useSimpleWeatherState';
 import { SimpleWeatherFetcher } from '../SimpleWeatherFetcher';
@@ -13,12 +13,12 @@ interface UseWeatherCardProps {
 
 export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) => {
   const stateKey = `${segment.endCity}-day-${segment.day}`;
-  console.log(`🔑 FIXED: useWeatherCard with simplified fetch logic for ${stateKey}`);
+  console.log(`🔑 CENTRALIZED: useWeatherCard with centralized utilities for ${stateKey}`);
 
   const { hasApiKey } = useWeatherApiKey(segment.endCity);
   const weatherState = useSimpleWeatherState(segment.endCity, segment.day);
   
-  // FIXED: Simplified API key validation without complex refs
+  // CENTRALIZED: Simplified API key validation without complex refs
   const enhancedApiKeyStatus = React.useMemo(() => {
     const primaryKey = localStorage.getItem('weather_api_key');
     const legacyKey = localStorage.getItem('openweathermap_api_key');
@@ -29,7 +29,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
                       foundKey !== 'your_api_key_here' &&
                       /^[a-zA-Z0-9]+$/.test(foundKey);
     
-    console.log(`🔑 FIXED: Simple API key validation for ${stateKey}`, {
+    console.log(`🔑 CENTRALIZED: Simple API key validation for ${stateKey}`, {
       hasValidKey: !!isValidKey,
       keySource: primaryKey ? 'primary' : legacyKey ? 'legacy' : 'none'
     });
@@ -41,34 +41,28 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     };
   }, []); // Empty dependency array - only check once per mount
 
-  // FIXED: Stable segment date calculation
+  // CENTRALIZED: Use WeatherUtilityService for segment date calculation
   const segmentDate = React.useMemo(() => {
-    if (!tripStartDate) return null;
-    try {
-      const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
-      console.log(`📅 FIXED: Calculated segment date for ${stateKey}:`, {
-        tripStart: tripStartDate.toISOString(),
-        day: segment.day,
-        calculated: calculatedDate.toISOString()
-      });
-      return calculatedDate;
-    } catch (error) {
-      console.log(`❌ FIXED: Date calculation failed for ${stateKey}:`, error);
-      return null;
-    }
+    const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+    console.log(`📅 CENTRALIZED: Segment date for ${stateKey}:`, {
+      tripStart: tripStartDate?.toISOString(),
+      day: segment.day,
+      calculated: calculatedDate?.toISOString()
+    });
+    return calculatedDate;
   }, [tripStartDate?.getTime(), segment.day, stateKey]);
 
-  // FIXED: Weather fetch with simplified logic
+  // CENTRALIZED: Weather fetch with simplified logic
   const fetchWeather = React.useCallback(async (isSharedView: boolean = false) => {
     const fetchKey = `${stateKey}-${segmentDate?.getTime()}-${Date.now()}`;
-    console.log(`🚀 FIXED: Simple weather fetch for ${fetchKey}`, { 
+    console.log(`🚀 CENTRALIZED: Weather fetch for ${fetchKey}`, { 
       isSharedView,
       hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
       segmentDate: segmentDate?.toISOString()
     });
 
     if (!segmentDate) {
-      console.log(`❌ FIXED: No segment date for ${stateKey}`);
+      console.log(`❌ CENTRALIZED: No segment date for ${stateKey}`);
       weatherState.setError('Missing trip date');
       return;
     }
@@ -77,7 +71,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       weatherState.setLoading(true);
       weatherState.setError(null);
 
-      console.log(`🌤️ FIXED: Calling SimpleWeatherFetcher for ${stateKey}`);
+      console.log(`🌤️ CENTRALIZED: Calling SimpleWeatherFetcher for ${stateKey}`);
 
       const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
         cityName: segment.endCity,
@@ -88,27 +82,27 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       });
 
       if (weather) {
-        console.log(`✅ FIXED: Weather fetched for ${stateKey}:`, {
+        console.log(`✅ CENTRALIZED: Weather fetched for ${stateKey}:`, {
           temperature: weather.temperature,
           source: weather.source,
           isActualForecast: weather.isActualForecast
         });
         weatherState.setWeather(weather);
       } else {
-        console.log(`⚠️ FIXED: No weather data returned for ${stateKey}`);
+        console.log(`⚠️ CENTRALIZED: No weather data returned for ${stateKey}`);
         weatherState.setError('Unable to fetch weather data');
       }
     } catch (error) {
-      console.error(`❌ FIXED: Weather fetch error for ${stateKey}:`, error);
+      console.error(`❌ CENTRALIZED: Weather fetch error for ${stateKey}:`, error);
       weatherState.setError('Weather fetch failed');
     } finally {
       weatherState.setLoading(false);
     }
   }, [stateKey, segmentDate?.getTime(), enhancedApiKeyStatus.hasValidKey, weatherState, segment.endCity, segment.day]);
 
-  // CRITICAL FIX: Auto-fetch trigger with proper conditions
+  // CENTRALIZED: Auto-fetch trigger with proper conditions
   React.useEffect(() => {
-    console.log(`🚨 CRITICAL: Auto-fetch check for ${stateKey}`, {
+    console.log(`🚨 CENTRALIZED: Auto-fetch check for ${stateKey}`, {
       conditions: {
         hasTripStartDate: !!tripStartDate,
         hasSegmentDate: !!segmentDate,
@@ -119,14 +113,14 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       decision: 'checking_all_conditions'
     });
 
-    // CRITICAL FIX: Only auto-fetch if ALL conditions are met
+    // CENTRALIZED: Only auto-fetch if ALL conditions are met
     const shouldAutoFetch = tripStartDate && 
                            segmentDate && 
                            !weatherState.weather && 
                            !weatherState.loading;
 
     if (shouldAutoFetch) {
-      console.log(`🚨 CRITICAL: AUTO-FETCH TRIGGERED for ${stateKey}`, {
+      console.log(`🚨 CENTRALIZED: AUTO-FETCH TRIGGERED for ${stateKey}`, {
         hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
         timestamp: new Date().toISOString()
       });
@@ -134,7 +128,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
       // Trigger fetch immediately
       fetchWeather(false);
     } else {
-      console.log(`⏸️ CRITICAL: Auto-fetch conditions not met for ${stateKey}`, {
+      console.log(`⏸️ CENTRALIZED: Auto-fetch conditions not met for ${stateKey}`, {
         hasTripStartDate: !!tripStartDate,
         hasSegmentDate: !!segmentDate,
         hasWeather: !!weatherState.weather,
@@ -151,7 +145,7 @@ export const useWeatherCard = ({ segment, tripStartDate }: UseWeatherCardProps) 
     stateKey
   ]);
 
-  console.log(`🔑 FIXED: useWeatherCard final state for ${stateKey}:`, {
+  console.log(`🔑 CENTRALIZED: useWeatherCard final state for ${stateKey}:`, {
     hasValidApiKey: enhancedApiKeyStatus.hasValidKey,
     hasWeather: Boolean(weatherState.weather),
     loading: weatherState.loading,

@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherTypeDetector } from './utils/WeatherTypeDetector';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
 import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
 
 interface SimpleWeatherDisplayProps {
@@ -19,43 +20,19 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // FIXED: Simplified live forecast detection with exact criteria
+  // CENTRALIZED: Use utility service for live forecast detection
   const isLiveForecast = React.useMemo(() => {
-    if (!segmentDate) return false;
-    
-    // Calculate days from today
-    const today = new Date();
-    const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-    
-    // FIXED: Exact criteria - must have live source AND be actual forecast
-    const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    console.log('🎯 FIXED: Live forecast validation for', cityName, {
-      segmentDate: segmentDate.toISOString(),
-      daysFromToday,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isVerifiedLive,
-      criteria: {
-        hasLiveSource: weather.source === 'live_forecast',
-        isActualForecast: weather.isActualForecast === true
-      }
-    });
-    
-    return isVerifiedLive;
-  }, [weather.source, weather.isActualForecast, segmentDate, cityName]);
+    return WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  }, [weather, segmentDate]);
 
   const weatherTypeInfo = WeatherTypeDetector.detectWeatherType(weather);
   
-  // FIXED: Source labeling based on actual weather source
+  // CENTRALIZED: Use utility service for source labeling
   const sourceLabel = React.useMemo(() => {
-    if (isLiveForecast) {
-      return 'Live Weather Forecast';
-    }
-    return 'Historical Weather Data';
-  }, [isLiveForecast]);
+    return WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
+  }, [weather, segmentDate]);
   
-  console.log('🎯 FIXED: SimpleWeatherDisplay rendering:', {
+  console.log('🎯 CENTRALIZED: SimpleWeatherDisplay rendering:', {
     cityName,
     isLiveForecast,
     weatherSource: weather.source,
@@ -77,7 +54,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
             🌤️ Weather for {cityName}
           </h4>
           
-          {/* FIXED: Only show live indicator for actual live forecasts */}
+          {/* CENTRALIZED: Only show live indicator for actual live forecasts */}
           {isLiveForecast && (
             <div className="mb-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
@@ -129,7 +106,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         <div>☔ {weather.precipitationChance}% rain</div>
       </div>
       
-      {/* FIXED: Data quality indicator based on actual source */}
+      {/* CENTRALIZED: Data quality indicator based on utility service */}
       {!isPDFExport && (
         <div className="mt-2 pt-2 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs">
