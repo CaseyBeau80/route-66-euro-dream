@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { CentralizedWeatherApiKeyManager } from '../services/CentralizedWeatherApiKeyManager';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Cloud, Key } from 'lucide-react';
+import { Cloud, Key, ExternalLink } from 'lucide-react';
 
 interface SimpleWeatherWidgetProps {
   segment: DailySegment;
@@ -27,8 +26,18 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = React.useState(false);
 
-  const apiKeyManager = CentralizedWeatherApiKeyManager.getInstance();
+  // Check API key on mount and update state
+  React.useEffect(() => {
+    const checkApiKey = () => {
+      const keyExists = WeatherApiKeyManager.hasApiKey();
+      setHasApiKey(keyExists);
+      console.log('🔑 SimpleWeatherWidget: API key check for', segment.endCity, '- hasKey:', keyExists);
+    };
+    
+    checkApiKey();
+  }, [segment.endCity]);
 
   // Calculate segment date
   const segmentDate = React.useMemo(() => {
@@ -45,27 +54,20 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // FIXED: Enhanced live weather fetching with better debugging
+  // Enhanced live weather fetching
   const fetchLiveWeather = async (cityName: string, targetDate: Date): Promise<ForecastWeatherData | null> => {
-    console.log('🚀 FIXED SimpleWeatherWidget: Starting live weather fetch for', cityName, {
+    console.log('🌤️ SimpleWeatherWidget: Fetching live weather for', cityName, {
       targetDate: targetDate.toISOString(),
       segment: segment.day
     });
 
-    // Get API key directly
     const apiKey = WeatherApiKeyManager.getApiKey();
-    console.log('🔑 FIXED SimpleWeatherWidget: API key check:', {
-      hasKey: !!apiKey,
-      keyLength: apiKey?.length || 0,
-      keyPreview: apiKey ? apiKey.substring(0, 8) + '...' : 'none'
-    });
-
     if (!apiKey || apiKey.length < 10) {
-      console.log('❌ FIXED SimpleWeatherWidget: Invalid API key');
+      console.log('❌ SimpleWeatherWidget: No valid API key for', cityName);
       return null;
     }
 
-    // Check date range (0-5 days)
+    // Check date range (0-5 days from today)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const normalizedTarget = new Date(targetDate);
@@ -73,79 +75,42 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     
     const daysFromToday = Math.ceil((normalizedTarget.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     
-    console.log('📅 FIXED SimpleWeatherWidget: Date analysis for', cityName, {
-      today: today.toISOString(),
-      target: normalizedTarget.toISOString(),
-      daysFromToday,
-      withinRange: daysFromToday >= 0 && daysFromToday <= 5
-    });
-
     if (daysFromToday < 0 || daysFromToday > 5) {
-      console.log('📅 FIXED SimpleWeatherWidget: Date outside forecast range for', cityName);
+      console.log('📅 SimpleWeatherWidget: Date outside forecast range for', cityName, 'days:', daysFromToday);
       return null;
     }
 
     try {
-      // Step 1: Get coordinates
-      console.log('🗺️ FIXED SimpleWeatherWidget: Getting coordinates for', cityName);
+      // Get coordinates
       const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
       const geocodeUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)}&limit=3&appid=${apiKey}`;
       
       const geocodeResponse = await fetch(geocodeUrl);
-      console.log('🗺️ FIXED SimpleWeatherWidget: Geocode response for', cityName, {
-        status: geocodeResponse.status,
-        ok: geocodeResponse.ok
-      });
-
       if (!geocodeResponse.ok) {
-        console.error('❌ FIXED SimpleWeatherWidget: Geocoding failed for', cityName);
-        return null;
+        throw new Error(`Geocoding failed: ${geocodeResponse.status}`);
       }
 
       const geocodeData = await geocodeResponse.json();
       if (!geocodeData || geocodeData.length === 0) {
-        console.log('❌ FIXED SimpleWeatherWidget: No geocoding results for', cityName);
-        return null;
+        throw new Error('No geocoding results found');
       }
 
       const coords = geocodeData.find((r: any) => r.country === 'US') || geocodeData[0];
-      console.log('📍 FIXED SimpleWeatherWidget: Got coordinates for', cityName, {
-        lat: coords.lat,
-        lon: coords.lon,
-        country: coords.country
-      });
 
-      // Step 2: Get weather forecast
-      console.log('🌤️ FIXED SimpleWeatherWidget: Fetching weather forecast for', cityName);
+      // Get weather forecast
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lon}&appid=${apiKey}&units=imperial`;
       
       const weatherResponse = await fetch(weatherUrl);
-      console.log('🌤️ FIXED SimpleWeatherWidget: Weather response for', cityName, {
-        status: weatherResponse.status,
-        ok: weatherResponse.ok
-      });
-
       if (!weatherResponse.ok) {
-        console.error('❌ FIXED SimpleWeatherWidget: Weather API failed for', cityName, {
-          status: weatherResponse.status,
-          statusText: weatherResponse.statusText
-        });
-        return null;
+        throw new Error(`Weather API failed: ${weatherResponse.status}`);
       }
 
       const weatherData = await weatherResponse.json();
-      console.log('📊 FIXED SimpleWeatherWidget: Got weather data for', cityName, {
-        hasData: !!weatherData,
-        hasList: !!weatherData.list,
-        listLength: weatherData.list?.length || 0
-      });
-
       if (!weatherData.list || weatherData.list.length === 0) {
-        console.log('❌ FIXED SimpleWeatherWidget: No forecast data for', cityName);
-        return null;
+        throw new Error('No forecast data available');
       }
 
-      // Step 3: Find best forecast match
+      // Find best forecast match for the target date
       const targetDateString = normalizedTarget.toISOString().split('T')[0];
       let bestMatch = weatherData.list[0];
       let exactMatch = false;
@@ -157,16 +122,11 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         if (itemDateString === targetDateString) {
           bestMatch = item;
           exactMatch = true;
-          console.log('🎯 FIXED SimpleWeatherWidget: Found EXACT date match for', cityName);
           break;
         }
       }
 
-      if (!exactMatch) {
-        console.log('🎯 FIXED SimpleWeatherWidget: Using closest forecast for', cityName);
-      }
-
-      // Step 4: Create live weather object with GUARANTEED live marking
+      // Create live weather object
       const liveWeather: ForecastWeatherData = {
         temperature: Math.round(bestMatch.main.temp),
         highTemp: Math.round(bestMatch.main.temp_max || bestMatch.main.temp + 5),
@@ -179,7 +139,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         cityName: cityName,
         forecast: [],
         forecastDate: targetDate,
-        // CRITICAL: These values GUARANTEE live weather marking
         isActualForecast: true,
         source: 'live_forecast' as const,
         dateMatchInfo: {
@@ -193,18 +152,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         }
       };
 
-      console.log('✅ FIXED SimpleWeatherWidget: LIVE WEATHER CREATED for', cityName, {
+      console.log('✅ SimpleWeatherWidget: Live weather fetched for', cityName, {
         temperature: liveWeather.temperature,
         source: liveWeather.source,
-        isActualForecast: liveWeather.isActualForecast,
-        exactMatch,
-        GUARANTEED_LIVE: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true
+        exactMatch
       });
 
       return liveWeather;
     } catch (error) {
-      console.error('❌ FIXED SimpleWeatherWidget: Live weather error for', cityName, error);
-      return null;
+      console.error('❌ SimpleWeatherWidget: Live weather error for', cityName, error);
+      throw error;
     }
   };
 
@@ -216,43 +173,27 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       setLoading(true);
       setError(null);
       
-      console.log('🔄 FIXED SimpleWeatherWidget: Loading weather for', segment.endCity, {
-        segmentDate: segmentDate.toISOString(),
-        day: segment.day
+      console.log('🔄 SimpleWeatherWidget: Loading weather for', segment.endCity, {
+        hasApiKey,
+        segmentDate: segmentDate.toISOString()
       });
 
-      // Check if we have an API key
-      const hasApiKey = apiKeyManager.hasApiKey();
-      console.log('🔑 FIXED SimpleWeatherWidget: API key available:', hasApiKey);
-
       if (hasApiKey) {
-        console.log('🚀 FIXED SimpleWeatherWidget: Attempting LIVE weather for', segment.endCity);
-        
         try {
           const liveWeather = await fetchLiveWeather(segment.endCity, segmentDate);
           
           if (liveWeather) {
-            console.log('✅ FIXED SimpleWeatherWidget: LIVE weather SUCCESS for', segment.endCity, {
-              temperature: liveWeather.temperature,
-              source: liveWeather.source,
-              isActualForecast: liveWeather.isActualForecast
-            });
             setWeather(liveWeather);
             setLoading(false);
             return;
-          } else {
-            console.log('⚠️ FIXED SimpleWeatherWidget: Live weather failed, using fallback for', segment.endCity);
           }
         } catch (error) {
-          console.error('❌ FIXED SimpleWeatherWidget: Live weather error for', segment.endCity, error);
+          console.error('❌ SimpleWeatherWidget: Live weather failed for', segment.endCity, error);
           setError(`Live weather failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-      } else {
-        console.log('ℹ️ FIXED SimpleWeatherWidget: No API key, using fallback for', segment.endCity);
       }
       
       // Fallback to historical weather
-      console.log('📊 FIXED SimpleWeatherWidget: Creating fallback weather for', segment.endCity);
       const targetDateString = segmentDate.toISOString().split('T')[0];
       const daysFromToday = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
       
@@ -263,40 +204,42 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         daysFromToday
       );
       
-      console.log('📊 FIXED SimpleWeatherWidget: Fallback weather created for', segment.endCity, {
-        temperature: fallbackWeather.temperature,
-        source: fallbackWeather.source,
-        isActualForecast: fallbackWeather.isActualForecast
-      });
-      
       setWeather(fallbackWeather);
       setLoading(false);
     };
 
     loadWeather();
-  }, [segment.endCity, segmentDate, apiKeyManager]);
+  }, [segment.endCity, segmentDate, hasApiKey]);
 
   const handleSetApiKey = async () => {
-    if (!apiKey.trim()) return;
+    if (!apiKey.trim()) {
+      setError('Please enter an API key');
+      return;
+    }
 
     setIsStoring(true);
+    setError(null);
+    
     try {
       WeatherApiKeyManager.setApiKey(apiKey.trim());
-      apiKeyManager.invalidateCache();
       setApiKey('');
+      setHasApiKey(true);
       
-      // Reload weather with new API key
-      window.location.reload();
+      console.log('✅ SimpleWeatherWidget: API key set successfully');
+      
+      // Reload weather with new API key - trigger useEffect
+      setWeather(null);
+      
     } catch (error) {
-      console.error('Error setting API key:', error);
-      setError('Invalid API key');
+      console.error('❌ SimpleWeatherWidget: Error setting API key:', error);
+      setError('Invalid API key. Please check and try again.');
     } finally {
       setIsStoring(false);
     }
   };
 
   // Show API key input if no key available (except in shared views)
-  if (!apiKeyManager.hasApiKey() && !isSharedView && !isPDFExport) {
+  if (!hasApiKey && !isSharedView && !isPDFExport) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
         <div className="flex items-center gap-2 text-blue-700">
@@ -306,6 +249,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         <p className="text-xs text-blue-600">
           Add your OpenWeatherMap API key to see live weather forecasts
         </p>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded p-2">
+            <p className="text-xs text-red-700">❌ {error}</p>
+          </div>
+        )}
+        
         <div className="flex gap-2">
           <Input
             type="password"
@@ -313,6 +263,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             className="text-sm h-8"
+            disabled={isStoring}
           />
           <Button
             onClick={handleSetApiKey}
@@ -322,6 +273,24 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           >
             {isStoring ? 'Saving...' : 'Save'}
           </Button>
+        </div>
+        
+        <div className="flex items-center gap-1 text-blue-600">
+          <ExternalLink className="w-3 h-3" />
+          <a 
+            href="https://openweathermap.org/api" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs hover:underline"
+          >
+            Get free API key from OpenWeatherMap
+          </a>
+        </div>
+        
+        <div className="text-xs text-blue-600 space-y-1">
+          <p>• 100% free for up to 1,000 calls per day</p>
+          <p>• No credit card required</p>
+          <p>• Keys activate within 10 minutes</p>
         </div>
       </div>
     );
@@ -341,15 +310,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Display weather
   if (weather && segmentDate) {
-    // FIXED: Enhanced live weather detection
     const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    console.log('🎨 FIXED SimpleWeatherWidget: Rendering weather for', segment.endCity, {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLive,
-      temperature: weather.temperature
-    });
     
     return (
       <div className={`${isLive ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'} border rounded-lg p-3`}>
