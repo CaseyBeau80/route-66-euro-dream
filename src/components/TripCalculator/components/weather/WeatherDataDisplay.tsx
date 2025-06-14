@@ -23,23 +23,43 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔍 SIMPLIFIED: WeatherDataDisplay render:', {
-    cityName,
-    hasWeather: !!weather,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    isSharedView,
-    isPDFExport
+  // PLAN: Enhanced debugging for weather data display
+  const debugKey = `display-${cityName}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+  
+  console.log('🔍 PLAN: WeatherDataDisplay ENHANCED DEBUGGING:', {
+    debugKey,
+    inputState: {
+      hasWeather: !!weather,
+      weatherSource: weather?.source,
+      isActualForecast: weather?.isActualForecast,
+      hasSegmentDate: !!segmentDate,
+      cityName,
+      hasError: !!error
+    },
+    displayContext: {
+      isSharedView,
+      isPDFExport
+    },
+    planImplementation: true
   });
 
-  // SIMPLIFIED: Always prioritize actual weather data if available
+  // PLAN: Always prioritize actual weather data if available
   if (weather && segmentDate) {
-    console.log(`✅ SIMPLIFIED: Using actual weather data for ${cityName}`, {
-      isActualForecast: weather.isActualForecast,
-      source: weather.source,
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp
+    console.log(`✅ PLAN: WeatherDataDisplay - Using actual weather data for ${cityName}:`, {
+      debugKey,
+      weatherDetails: {
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        temperature: weather.temperature,
+        highTemp: weather.highTemp,
+        lowTemp: weather.lowTemp,
+        description: weather.description
+      },
+      verificationStatus: {
+        isLiveForecast: weather.source === 'live_forecast' && weather.isActualForecast === true,
+        willShowCorrectLabel: true
+      },
+      planImplementation: true
     });
 
     return (
@@ -55,7 +75,11 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
 
   // Enhanced fallback logic for shared views
   if ((isSharedView || isPDFExport) && segmentDate && !weather) {
-    console.log(`🌱 SIMPLIFIED: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
+    console.log(`🌱 PLAN: WeatherDataDisplay - Using seasonal fallback for ${cityName} in shared view:`, {
+      debugKey,
+      fallbackReason: 'no_weather_data_available',
+      planImplementation: true
+    });
     return (
       <SeasonalWeatherFallback 
         segmentDate={segmentDate}
@@ -67,7 +91,11 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
 
   // Show "not available" only as absolute last resort in shared views
   if (isSharedView || isPDFExport) {
-    console.log(`🚫 SIMPLIFIED: Last resort - no weather or date available for ${cityName} in shared view`);
+    console.log(`🚫 PLAN: WeatherDataDisplay - Last resort fallback for ${cityName}:`, {
+      debugKey,
+      fallbackReason: 'no_weather_or_date_available',
+      planImplementation: true
+    });
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
         <div className="text-gray-400 text-2xl mb-1">🌤️</div>
@@ -77,7 +105,11 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   }
 
   // Regular view - show error state with retry option
-  console.log(`⚠️ SIMPLIFIED: Showing error state for ${cityName} in regular view`);
+  console.log(`⚠️ PLAN: WeatherDataDisplay - Showing error state for ${cityName}:`, {
+    debugKey,
+    error,
+    planImplementation: true
+  });
   return (
     <div className="bg-amber-50 border border-amber-200 rounded p-3">
       <div className="text-amber-800 text-sm">

@@ -14,17 +14,47 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // SIMPLIFIED: Direct calculation without caching or timestamps
-  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-
-  console.log('🔍 SIMPLIFIED: SimpleTemperatureDisplay render:', {
-    cityName: weather.cityName,
-    high: weather.highTemp,
-    low: weather.lowTemp,
-    isLiveForecast,
-    weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast
+  // PLAN: Comprehensive debugging for temperature display
+  const debugKey = `temp-${weather.cityName}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+  
+  console.log('🌡️ PLAN: SimpleTemperatureDisplay COMPREHENSIVE DEBUG:', {
+    debugKey,
+    weatherInput: {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp
+    },
+    context: {
+      isSharedView,
+      hasSegmentDate: !!segmentDate
+    },
+    planImplementation: true
   });
+
+  // PLAN: Deterministic live forecast calculation
+  const isLiveForecast = React.useMemo(() => {
+    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+    
+    console.log('🎯 PLAN: Temperature Display - Live Forecast Calculation:', {
+      debugKey,
+      weatherAnalysis: {
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        verificationCriteria: {
+          hasLiveSource: weather.source === 'live_forecast',
+          isActualForecast: weather.isActualForecast === true,
+          bothConditionsMet: weather.source === 'live_forecast' && weather.isActualForecast === true
+        }
+      },
+      calculatedResult: result,
+      deterministicCalculation: true,
+      planImplementation: true
+    });
+    
+    return result;
+  }, [weather.source, weather.isActualForecast, segmentDate?.getTime(), debugKey]);
 
   const getTemperatureLabel = (temp: number): string => {
     if (temp >= 90) return 'Hot';
@@ -38,6 +68,22 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   const highTemp = weather.highTemp || weather.temperature;
   const lowTemp = weather.lowTemp || weather.temperature;
   const highTempLabel = getTemperatureLabel(highTemp);
+
+  // PLAN: Final state logging before render
+  console.log('🚀 PLAN: SimpleTemperatureDisplay FINAL RENDER STATE:', {
+    debugKey,
+    finalCalculations: {
+      isLiveForecast,
+      highTemp,
+      lowTemp,
+      highTempLabel
+    },
+    renderDecision: {
+      willShowLiveForecastBadge: isLiveForecast,
+      temperatureDisplay: `${highTemp}°F${lowTemp && lowTemp !== highTemp ? ` / ${lowTemp}°F` : ''}`
+    },
+    planImplementation: 'complete'
+  });
 
   return (
     <div className="temperature-display">
