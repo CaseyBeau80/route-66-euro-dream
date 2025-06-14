@@ -19,52 +19,33 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // PLAN: Memoized live forecast detection with proper dependencies
-  const isLiveForecast = React.useMemo(() => {
-    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-    console.log('🎯 PLAN: SimpleWeatherDisplay - Live forecast detection (memoized):', {
-      cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast: result,
-      memoizedCalculation: true
-    });
-    return result;
-  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+  // CRITICAL FIX: Force re-computation on every render to prevent stale data
+  const [renderCount, setRenderCount] = React.useState(0);
 
-  // PLAN: Memoized source label with proper dependencies
-  const sourceLabel = React.useMemo(() => {
-    const label = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
-    console.log('🏷️ PLAN: SimpleWeatherDisplay - Source label (memoized):', {
-      cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      sourceLabel: label,
-      memoizedCalculation: true
-    });
-    return label;
-  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+  // CRITICAL FIX: Use direct calculation instead of memoization to prevent stale closures
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  const sourceLabel = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
 
-  // PLAN: Force component re-render when weather source changes
-  const weatherKey = React.useMemo(() => {
-    return `${weather.source}-${weather.isActualForecast}-${weather.cityName}-${segmentDate?.getTime()}`;
-  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
-
-  // PLAN: Effect to log weather data changes and detect stale renders
+  // CRITICAL FIX: Force component update when weather properties change
   React.useEffect(() => {
-    console.log('🔄 PLAN: SimpleWeatherDisplay - Weather data effect triggered:', {
+    console.log('🔄 CRITICAL FIX: SimpleWeatherDisplay - Force update effect:', {
       cityName,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       isLiveForecast,
       sourceLabel,
-      weatherKey,
-      triggerReason: 'weather_data_changed',
-      planImplementation: true
+      renderCount,
+      triggerReason: 'weather_properties_changed',
+      criticalFix: true
     });
-  }, [weather.source, weather.isActualForecast, isLiveForecast, sourceLabel, weatherKey, cityName]);
+    
+    setRenderCount(prev => prev + 1);
+  }, [weather.source, weather.isActualForecast, weather.temperature, weather.cityName, cityName]);
 
-  console.log('🎯 PLAN: SimpleWeatherDisplay rendering with enhanced state management:', {
+  // CRITICAL FIX: Dynamic key that changes when weather source/forecast status changes
+  const weatherKey = `${weather.source}-${weather.isActualForecast}-${cityName}-${renderCount}`;
+
+  console.log('🎯 CRITICAL FIX: SimpleWeatherDisplay rendering with direct calculation:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
@@ -76,7 +57,9 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     description: weather.description,
     segmentDate: segmentDate.toISOString(),
     weatherKey,
-    planImplementation: true
+    renderCount,
+    criticalFix: true,
+    directCalculation: true
   });
 
   return (

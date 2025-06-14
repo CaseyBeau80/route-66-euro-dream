@@ -14,38 +14,13 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // PLAN: Memoized live forecast detection with enhanced dependencies
-  const isLiveForecast = React.useMemo(() => {
-    const result = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-    console.log('🌡️ PLAN: SimpleTemperatureDisplay - Live forecast check (memoized):', {
-      cityName: weather.cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast: result,
-      memoizedCalculation: true,
-      planImplementation: true
-    });
-    return result;
-  }, [weather.source, weather.isActualForecast, weather.cityName, segmentDate?.getTime()]);
+  // CRITICAL FIX: Use direct calculation instead of memoization to prevent stale data
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
 
-  // PLAN: Effect to track live forecast state changes
-  React.useEffect(() => {
-    console.log('🔄 PLAN: SimpleTemperatureDisplay - Live forecast state effect:', {
-      cityName: weather.cityName,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isLiveForecast,
-      triggerReason: 'live_forecast_state_changed',
-      planImplementation: true
-    });
-  }, [isLiveForecast, weather.source, weather.isActualForecast, weather.cityName]);
+  // CRITICAL FIX: Force component key to change when weather source changes
+  const temperatureKey = `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-temp-direct`;
 
-  // PLAN: Force re-render key based on live forecast detection
-  const temperatureKey = React.useMemo(() => {
-    return `${weather.cityName}-${weather.source}-${weather.isActualForecast}-${isLiveForecast}-temp`;
-  }, [weather.cityName, weather.source, weather.isActualForecast, isLiveForecast]);
-
-  console.log('🌡️ PLAN: SimpleTemperatureDisplay rendering with enhanced state:', {
+  console.log('🌡️ CRITICAL FIX: SimpleTemperatureDisplay rendering with direct calculation:', {
     cityName: weather.cityName,
     high: weather.highTemp,
     low: weather.lowTemp,
@@ -55,7 +30,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     isActualForecast: weather.isActualForecast,
     segmentDate: segmentDate?.toISOString(),
     temperatureKey,
-    planImplementation: true
+    criticalFix: true,
+    directCalculation: true
   });
 
   const getTemperatureLabel = (temp: number): string => {
