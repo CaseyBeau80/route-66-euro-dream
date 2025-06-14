@@ -69,10 +69,6 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             <span>🟢 Live Weather Forecasts</span>
           </div>
         </div>
-
-        {tripPlan.description && (
-          <p className="text-gray-700 mt-4">{tripPlan.description}</p>
-        )}
       </div>
 
       {/* Daily Segments */}
@@ -87,17 +83,10 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   Day {segment.day}: {segment.startCity} → {segment.endCity}
                 </h3>
                 <p className="text-gray-600 mt-1">
-                  {segment.distanceMiles} miles • {segment.drivingTimeHours} hours driving
+                  {Math.round(segment.distance)} miles • {segment.driveTimeHours} hours driving
                 </p>
               </div>
             </div>
-
-            {/* Route Description */}
-            {segment.description && (
-              <div className="mb-4">
-                <p className="text-gray-700">{segment.description}</p>
-              </div>
-            )}
 
             {/* Attractions */}
             {segment.attractions && segment.attractions.length > 0 && (
