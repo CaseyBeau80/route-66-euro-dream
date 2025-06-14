@@ -46,8 +46,8 @@ export class WeatherDataValidator {
       ...weather,
       cityName,
       forecastDate: segmentDate,
-      // Ensure consistent typing
-      source: weather.source || 'historical',
+      // Ensure consistent typing - use only valid source values
+      source: weather.source || 'historical_fallback',
       isActualForecast: Boolean(weather.isActualForecast)
     };
 

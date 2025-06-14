@@ -23,7 +23,7 @@ const TestWeatherComponent: React.FC = () => {
   const toggleWeatherType = () => {
     setTestWeather(prev => ({
       ...prev,
-      source: prev.source === 'live_forecast' ? 'historical' : 'live_forecast',
+      source: prev.source === 'live_forecast' ? 'historical_fallback' : 'live_forecast',
       isActualForecast: prev.source === 'live_forecast' ? false : true
     }));
   };
