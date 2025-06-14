@@ -5,7 +5,7 @@ import { WeatherFallbackService } from '@/components/Route66Map/services/weather
 
 export class SecureWeatherService {
   /**
-   * Fetch weather forecast using secure Supabase Edge Function
+   * Fetch weather forecast using secure Supabase Edge Function with proper date range validation
    */
   static async fetchWeatherForecast(
     cityName: string, 
@@ -15,6 +15,18 @@ export class SecureWeatherService {
       console.log('🔒 SecureWeatherService: Calling Edge Function for', cityName, {
         targetDate: targetDate?.toISOString(),
         usingSupabaseSecrets: true
+      });
+
+      // Calculate days from today for validation
+      const today = new Date()
+      const daysFromToday = targetDate ? Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)) : 0
+      const isWithinReliableRange = daysFromToday >= 0 && daysFromToday <= 6
+
+      console.log('🔒 SecureWeatherService: Date range analysis:', {
+        targetDate: targetDate?.toISOString(),
+        daysFromToday,
+        isWithinReliableRange,
+        reliableRangeLimit: '0-6 days'
       });
       
       const { data, error } = await supabase.functions.invoke('weather-forecast', {
@@ -41,15 +53,29 @@ export class SecureWeatherService {
         return this.createFallbackWeather(cityName, targetDate);
       }
 
-      console.log('✅ SecureWeatherService: Live weather received from Edge Function:', {
+      // Validate that the response correctly handles date ranges
+      const isActuallyLive = data.source === 'live_forecast' && data.isActualForecast === true && isWithinReliableRange;
+
+      console.log('✅ SecureWeatherService: Weather received from Edge Function:', {
         city: cityName,
         temperature: data.temperature,
         source: data.source,
         isActualForecast: data.isActualForecast,
-        secureConnection: true
+        daysFromToday,
+        isWithinReliableRange,
+        isActuallyLive,
+        secureConnection: true,
+        dateRangeValidation: 'applied'
       });
 
-      return data as ForecastWeatherData;
+      // Ensure the data is properly flagged based on our date range validation
+      const validatedData = {
+        ...data,
+        isActualForecast: isActuallyLive,
+        source: isWithinReliableRange ? data.source : 'historical_fallback'
+      } as ForecastWeatherData;
+
+      return validatedData;
       
     } catch (error) {
       console.error('❌ SecureWeatherService: Edge Function call failed:', error);
@@ -91,7 +117,8 @@ export class SecureWeatherService {
     
     console.log('🔄 SecureWeatherService: Creating fallback weather for', cityName, {
       targetDate: targetDateString,
-      daysFromToday
+      daysFromToday,
+      fallbackType: daysFromToday > 6 ? 'seasonal_estimate' : 'api_failure_fallback'
     });
     
     return WeatherFallbackService.createFallbackForecast(
