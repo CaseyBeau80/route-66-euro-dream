@@ -1,8 +1,9 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
+import { LiveWeatherDetectionService } from '../services/LiveWeatherDetectionService';
+import { WeatherValidationService } from '../services/WeatherValidationService';
 
 interface UseUnifiedWeatherParams {
   cityName: string;
@@ -35,20 +36,14 @@ export const useUnifiedWeather = ({
     setError(null);
 
     try {
-      console.log('🌤️ FIXED: useUnifiedWeather - Fetching weather for', cityName, segmentDate.toISOString());
+      console.log('🌤️ NEW APPROACH: useUnifiedWeather starting fresh fetch for', cityName);
 
       // Check API key first
       const apiKey = WeatherApiKeyManager.getApiKey();
       const hasValidApiKey = !!apiKey && apiKey !== 'YOUR_API_KEY_HERE' && apiKey.length > 10;
 
-      console.log('🌤️ FIXED: API key check:', {
-        hasApiKey: !!apiKey,
-        isValidFormat: hasValidApiKey,
-        keyLength: apiKey?.length || 0
-      });
-
       if (!hasValidApiKey) {
-        console.log('🌤️ FIXED: No valid API key - using fallback weather for', cityName);
+        console.log('🌤️ NEW APPROACH: No valid API key - using fallback weather for', cityName);
         const fallbackWeather = WeatherFallbackService.createFallbackForecast(
           cityName,
           segmentDate,
@@ -67,7 +62,7 @@ export const useUnifiedWeather = ({
       targetDate.setHours(0, 0, 0, 0);
       const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ FIXED: Date analysis:', {
+      console.log('🌤️ NEW APPROACH: Date analysis for', cityName, {
         today: today.toISOString().split('T')[0],
         targetDate: targetDate.toISOString().split('T')[0],
         daysFromToday,
@@ -75,25 +70,30 @@ export const useUnifiedWeather = ({
       });
 
       if (daysFromToday >= 0 && daysFromToday <= 7) {
-        console.log('🌤️ FIXED: Attempting live weather fetch for', cityName);
+        console.log('🌤️ NEW APPROACH: Attempting live weather fetch for', cityName);
         
-        // Try live weather fetch
-        const liveWeather = await fetchLiveWeatherDirect(cityName, segmentDate, apiKey);
+        // Try live weather fetch with explicit validation
+        const liveWeather = await fetchLiveWeatherWithValidation(cityName, segmentDate, apiKey);
         
         if (liveWeather) {
-          console.log('✅ FIXED: Live weather success for', cityName, {
-            temperature: liveWeather.temperature,
-            source: liveWeather.source,
-            isActualForecast: liveWeather.isActualForecast
+          const validatedWeather = WeatherValidationService.ensureLiveWeatherMarking(liveWeather);
+          const isDetectedAsLive = LiveWeatherDetectionService.isLiveWeatherForecast(validatedWeather);
+          
+          console.log('✅ NEW APPROACH: Live weather processed for', cityName, {
+            temperature: validatedWeather.temperature,
+            source: validatedWeather.source,
+            isActualForecast: validatedWeather.isActualForecast,
+            detectedAsLive: isDetectedAsLive
           });
-          setWeather(liveWeather);
+          
+          setWeather(validatedWeather);
           setLoading(false);
           return;
         }
       }
 
       // Fallback to historical weather
-      console.log('🔄 FIXED: Using fallback weather for', cityName);
+      console.log('🔄 NEW APPROACH: Using fallback weather for', cityName);
       const fallbackWeather = WeatherFallbackService.createFallbackForecast(
         cityName,
         segmentDate,
@@ -104,7 +104,7 @@ export const useUnifiedWeather = ({
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather';
-      console.error('❌ FIXED: useUnifiedWeather error:', errorMessage);
+      console.error('❌ NEW APPROACH: useUnifiedWeather error:', errorMessage);
       setError(errorMessage);
       
       // Fallback weather on error
@@ -121,7 +121,7 @@ export const useUnifiedWeather = ({
   }, [cityName, segmentDate, segmentDay]);
 
   const refetch = useCallback(() => {
-    console.log('🌤️ FIXED: Manual refetch for', cityName);
+    console.log('🌤️ NEW APPROACH: Manual refetch for', cityName);
     fetchWeatherData();
   }, [fetchWeatherData, cityName]);
 
@@ -137,17 +137,19 @@ export const useUnifiedWeather = ({
   };
 };
 
-// Direct live weather fetching function
-async function fetchLiveWeatherDirect(
+// Enhanced live weather fetching with explicit validation
+async function fetchLiveWeatherWithValidation(
   cityName: string, 
   targetDate: Date, 
   apiKey: string
 ): Promise<ForecastWeatherData | null> {
   try {
+    console.log('🌤️ NEW APPROACH: fetchLiveWeatherWithValidation starting for', cityName);
+    
     // Get coordinates
     const coords = await getCoordinates(cityName, apiKey);
     if (!coords) {
-      console.log('❌ FIXED: Could not get coordinates for', cityName);
+      console.log('❌ NEW APPROACH: Could not get coordinates for', cityName);
       return null;
     }
 
@@ -156,13 +158,13 @@ async function fetchLiveWeatherDirect(
     const response = await fetch(weatherUrl);
 
     if (!response.ok) {
-      console.log('❌ FIXED: Weather API failed for', cityName, response.status);
+      console.log('❌ NEW APPROACH: Weather API failed for', cityName, response.status);
       return null;
     }
 
     const data = await response.json();
     if (!data.list || data.list.length === 0) {
-      console.log('❌ FIXED: No forecast data for', cityName);
+      console.log('❌ NEW APPROACH: No forecast data for', cityName);
       return null;
     }
 
@@ -173,7 +175,7 @@ async function fetchLiveWeatherDirect(
       return itemDate === targetDateString;
     }) || data.list[0];
 
-    // Create live forecast with explicit properties
+    // Create live forecast with EXPLICIT live marking
     const liveWeather: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
       highTemp: Math.round(bestMatch.main.temp_max),
@@ -186,11 +188,11 @@ async function fetchLiveWeatherDirect(
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      isActualForecast: true, // CRITICAL: Always true for live API data
-      source: 'live_forecast' as const // CRITICAL: Always live_forecast for API data
+      isActualForecast: true, // EXPLICIT: Always true for live API data
+      source: 'live_forecast' as const // EXPLICIT: Always live_forecast for API data
     };
 
-    console.log('✅ FIXED: Created live forecast for', cityName, {
+    console.log('✅ NEW APPROACH: Created validated live forecast for', cityName, {
       temperature: liveWeather.temperature,
       isActualForecast: liveWeather.isActualForecast,
       source: liveWeather.source,
@@ -199,7 +201,7 @@ async function fetchLiveWeatherDirect(
 
     return liveWeather;
   } catch (error) {
-    console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
+    console.error('❌ NEW APPROACH: Live weather fetch failed for', cityName, error);
     return null;
   }
 }
@@ -219,7 +221,7 @@ async function getCoordinates(cityName: string, apiKey: string) {
     const result = data.find((r: any) => r.country === 'US') || data[0];
     return { lat: result.lat, lng: result.lon };
   } catch (error) {
-    console.error('❌ FIXED: Geocoding error:', error);
+    console.error('❌ NEW APPROACH: Geocoding error:', error);
     return null;
   }
 }

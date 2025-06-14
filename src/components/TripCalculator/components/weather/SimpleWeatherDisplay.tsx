@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -36,19 +37,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // FIXED: Proper live forecast detection
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  // Use the new detection service
+  const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+  const sourceLabel = LiveWeatherDetectionService.getWeatherSourceLabel(weather);
+  const sourceColor = LiveWeatherDetectionService.getWeatherSourceColor(weather);
+  const badgeText = LiveWeatherDetectionService.getWeatherBadgeText(weather);
+  const badgeStyle = LiveWeatherDetectionService.getWeatherBadgeStyle(weather);
   
-  console.log('🌤️ DISPLAY: SimpleWeatherDisplay rendering:', {
+  console.log('🌤️ DISPLAY: SimpleWeatherDisplay with NEW detection service:', {
     cityName,
     source: weather.source,
     isActualForecast: weather.isActualForecast,
-    isLiveForecast,
+    detectedAsLive: isLiveForecast,
+    sourceLabel,
     temperature: weather.temperature
   });
-  
-  const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
-  const sourceColor = isLiveForecast ? 'text-green-600' : 'text-amber-600';
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -88,23 +91,12 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Live Forecast Badge */}
-      {isLiveForecast && (
-        <div className="mt-2 text-center">
-          <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
-            ✨ Current live forecast
-          </span>
-        </div>
-      )}
-
-      {/* Historical Data Notice */}
-      {!isLiveForecast && (
-        <div className="mt-2 text-center">
-          <span className="inline-block bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full font-medium">
-            📊 Based on historical patterns
-          </span>
-        </div>
-      )}
+      {/* Weather Status Badge */}
+      <div className="mt-2 text-center">
+        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${badgeStyle}`}>
+          {badgeText}
+        </span>
+      </div>
     </div>
   );
 };
