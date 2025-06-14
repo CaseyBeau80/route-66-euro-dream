@@ -14,21 +14,28 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
   const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [hasFetched, setHasFetched] = React.useState(false);
 
   const fetchWeather = React.useCallback(async () => {
-    if (!segmentDate) {
-      console.log('🚫 STANDARDIZED: No segment date, skipping fetch for', cityName);
+    if (!segmentDate || hasFetched) {
+      console.log('🚫 STANDARDIZED: Skipping fetch - no date or already fetched:', { 
+        cityName, 
+        hasSegmentDate: !!segmentDate, 
+        hasFetched 
+      });
       return;
     }
 
     console.log('🚀 STANDARDIZED: Starting weather fetch with unified logic:', cityName, {
       segmentDate: segmentDate.toISOString(),
       segmentDay,
+      hasFetched,
       standardizedApiKeyDetection: true
     });
 
     setLoading(true);
     setError(null);
+    setHasFetched(true);
 
     try {
       // STEP 1: STANDARDIZED API key detection using WeatherApiKeyManager
@@ -99,21 +106,34 @@ export const useUnifiedWeather = ({ cityName, segmentDate, segmentDay }: UseUnif
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate?.getTime(), segmentDay]);
+  }, [cityName, segmentDate?.getTime(), segmentDay, hasFetched]);
 
-  // Auto-fetch when dependencies change
+  // Auto-fetch when dependencies change and we haven't fetched yet
   React.useEffect(() => {
-    if (segmentDate) {
-      console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName);
+    if (segmentDate && !hasFetched && !loading) {
+      console.log('🔄 STANDARDIZED: Auto-triggering weather fetch for', cityName, {
+        hasSegmentDate: !!segmentDate,
+        hasFetched,
+        loading
+      });
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), fetchWeather]);
+  }, [segmentDate?.getTime(), fetchWeather, hasFetched, loading]);
+
+  // Manual refetch - reset hasFetched to allow new fetch
+  const refetch = React.useCallback(() => {
+    console.log('🔄 STANDARDIZED: Manual refetch triggered for', cityName);
+    setHasFetched(false);
+    setWeather(null);
+    setError(null);
+  }, [cityName]);
 
   return {
     weather,
     loading,
     error,
-    refetch: fetchWeather
+    refetch,
+    hasFetched
   };
 };
 
@@ -124,7 +144,7 @@ const fetchLiveWeatherDirect = async (
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌤️ STANDARDIZED: Starting live weather fetch:', cityName);
+    console.log('🌤️ STANDARDIZED: Starting fetchLiveWeatherDirect:', cityName);
 
     // Get coordinates
     const coords = await getCoordinatesStandardized(cityName, apiKey);
@@ -225,7 +245,7 @@ const fetchLiveWeatherDirect = async (
 
     return liveWeatherResult;
   } catch (error) {
-    console.error('❌ STANDARDIZED: Live weather fetch error:', error);
+    console.error('❌ STANDARDIZED: fetchLiveWeatherDirect error:', error);
     return null;
   }
 };
