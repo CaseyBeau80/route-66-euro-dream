@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Calendar, CloudSun } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, CloudSun, AlertTriangle } from 'lucide-react';
 import { TripPlan } from '@/components/TripCalculator/services/planning/TripPlanBuilder';
 import { TripDataSerializer, SerializedTripData } from '@/components/TripCalculator/services/TripDataSerializer';
 import SerializedTripContent from './SerializedTripPage/SerializedTripContent';
@@ -29,24 +28,41 @@ const SerializedTripPage: React.FC = () => {
           throw new Error('No trip data found in URL');
         }
 
+        console.log('🔄 Raw serialized data length:', serializedData.length);
+
         const tripData = TripDataSerializer.deserializeTripData(serializedData);
         setTripData(tripData);
 
+        const weatherCount = Object.keys(tripData.weatherData).length;
+        
         console.log('✅ SerializedTripPage: Trip data loaded successfully', {
           segments: tripData.tripPlan.segments?.length,
-          weatherEntries: Object.keys(tripData.weatherData).length,
+          weatherEntries: weatherCount,
           serializedAt: tripData.serializedAt
         });
 
         toast({
           title: "Trip Loaded Successfully",
-          description: `Viewing trip with ${Object.keys(tripData.weatherData).length} weather forecasts`,
+          description: weatherCount > 0 
+            ? `Viewing trip with ${weatherCount} weather forecasts`
+            : "Trip loaded (no weather data included)",
           variant: "default"
         });
 
       } catch (err) {
         console.error('❌ SerializedTripPage: Error loading trip:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load trip';
+        let errorMessage = 'Failed to load trip';
+        
+        if (err instanceof Error) {
+          if (err.message.includes('decompress') || err.message.includes('JSON')) {
+            errorMessage = 'The trip link appears to be corrupted or invalid';
+          } else if (err.message.includes('No trip data')) {
+            errorMessage = 'No trip data found in the link';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        
         setError(errorMessage);
         
         toast({
@@ -78,13 +94,27 @@ const SerializedTripPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-8 max-w-md">
-          <div className="text-red-500 text-6xl mb-4">🚗💨</div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Trip Not Found</h2>
-          <p className="text-gray-500 mb-6">{error || 'Could not load trip data'}</p>
-          <Button onClick={() => navigate('/trip-calculator')} className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Plan a New Trip
-          </Button>
+          <div className="text-red-500 text-6xl mb-4">
+            <AlertTriangle className="w-16 h-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Trip Link Error</h2>
+          <p className="text-gray-500 mb-4">{error || 'Could not load trip data'}</p>
+          <p className="text-sm text-gray-400 mb-6">
+            This may happen if the trip link is too long or corrupted. Try generating a new link with fewer days or simplified trip data.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => navigate('/trip-calculator')} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Plan a New Trip
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="gap-2"
+            >
+              Try Reloading
+            </Button>
+          </div>
         </div>
       </div>
     );

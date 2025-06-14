@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Share2, Copy, Check, CloudSun } from 'lucide-react';
+import { Share2, Copy, Check, CloudSun, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { TripDataSerializer } from '../services/TripDataSerializer';
@@ -37,12 +37,27 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
         weatherData
       );
 
+      // Check URL length before copying
+      if (shareUrl.length > 4000) {
+        toast({
+          title: "URL May Be Too Long",
+          description: "The generated link is very long and may not work in all browsers. Consider reducing trip complexity.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       
+      const weatherCount = Object.keys(weatherData || {}).length;
+      const hasWeather = weatherCount > 0;
+      
       toast({
-        title: "Weather-Enabled Link Copied!",
-        description: "Link with live weather forecasts copied to clipboard!",
+        title: hasWeather ? "Weather-Enabled Link Copied!" : "Trip Link Copied!",
+        description: hasWeather 
+          ? `Link with ${weatherCount} weather forecasts copied to clipboard!`
+          : "Trip link copied to clipboard (weather data was too large to include).",
         variant: "default"
       });
 
@@ -50,7 +65,8 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
 
       console.log('✅ Serialized share URL generated and copied', {
         urlLength: shareUrl.length,
-        weatherEntries: Object.keys(weatherData || {}).length
+        weatherEntries: weatherCount,
+        hasWeather
       });
 
     } catch (error) {
@@ -58,7 +74,7 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
       
       toast({
         title: "Failed to Generate Link",
-        description: "Could not create weather-enabled share link. Please try again.",
+        description: "Could not create share link. The trip data may be too large. Try a shorter trip or fewer days.",
         variant: "destructive"
       });
     } finally {

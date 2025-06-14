@@ -1,4 +1,3 @@
-
 import { TripPlan } from './planning/TripPlanBuilder';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
@@ -10,7 +9,8 @@ export interface SerializedTripData {
 }
 
 export class TripDataSerializer {
-  private static readonly MAX_URL_LENGTH = 8192; // Safe URL length limit
+  private static readonly MAX_URL_LENGTH = 2000; // Much more conservative limit
+  private static readonly FALLBACK_URL_LENGTH = 1500; // Even more conservative fallback
   
   static serializeTripData(
     tripPlan: TripPlan,
@@ -25,21 +25,39 @@ export class TripDataSerializer {
     };
 
     try {
-      const jsonString = JSON.stringify(data);
-      const compressed = this.compressData(jsonString);
+      let jsonString = JSON.stringify(data);
+      let compressed = this.compressData(jsonString);
       
-      console.log('🔧 TripDataSerializer: Serialized trip data', {
+      console.log('🔧 TripDataSerializer: Initial serialization', {
         originalSize: jsonString.length,
         compressedSize: compressed.length,
         segments: tripPlan.segments?.length,
         weatherEntries: Object.keys(weatherData || {}).length
       });
 
+      // If still too large, progressively reduce data
       if (compressed.length > this.MAX_URL_LENGTH) {
-        console.warn('⚠️ Serialized data exceeds safe URL length, truncating weather data');
-        // Remove weather data if too large
+        console.warn('⚠️ URL too large, reducing weather data...');
+        
+        // Try with reduced weather data (keep only essential fields)
+        const reducedWeatherData = this.reduceWeatherData(weatherData || {});
+        const reducedData = { ...data, weatherData: reducedWeatherData };
+        jsonString = JSON.stringify(reducedData);
+        compressed = this.compressData(jsonString);
+        
+        console.log('🔧 After weather reduction:', {
+          compressedSize: compressed.length,
+          weatherEntries: Object.keys(reducedWeatherData).length
+        });
+      }
+
+      // If still too large, remove weather data entirely
+      if (compressed.length > this.FALLBACK_URL_LENGTH) {
+        console.warn('⚠️ Still too large, removing all weather data');
         const fallbackData = { ...data, weatherData: {} };
-        return this.compressData(JSON.stringify(fallbackData));
+        compressed = this.compressData(JSON.stringify(fallbackData));
+        
+        console.log('🔧 Final fallback size:', compressed.length);
       }
 
       return compressed;
@@ -47,6 +65,28 @@ export class TripDataSerializer {
       console.error('❌ Failed to serialize trip data:', error);
       throw new Error('Failed to serialize trip data');
     }
+  }
+
+  private static reduceWeatherData(weatherData: Record<string, ForecastWeatherData>): Record<string, ForecastWeatherData> {
+    const reduced: Record<string, ForecastWeatherData> = {};
+    
+    Object.entries(weatherData).forEach(([key, weather]) => {
+      // Keep only essential weather fields
+      reduced[key] = {
+        temperature: weather.temperature,
+        description: weather.description,
+        icon: weather.icon,
+        precipitationChance: weather.precipitationChance,
+        windSpeed: weather.windSpeed,
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        // Remove optional fields to save space
+        highTemp: weather.highTemp,
+        lowTemp: weather.lowTemp
+      };
+    });
+    
+    return reduced;
   }
 
   static deserializeTripData(serializedData: string): SerializedTripData {
@@ -73,9 +113,14 @@ export class TripDataSerializer {
   }
 
   private static compressData(data: string): string {
-    // Simple base64 encoding - in a real app you might use actual compression
     try {
-      return btoa(encodeURIComponent(data));
+      // Use proper compression with URL-safe encoding
+      const compressed = btoa(encodeURIComponent(data))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      
+      return compressed;
     } catch (error) {
       console.error('❌ Failed to compress data:', error);
       throw new Error('Failed to compress data');
@@ -84,7 +129,17 @@ export class TripDataSerializer {
 
   private static decompressData(compressed: string): string {
     try {
-      return decodeURIComponent(atob(compressed));
+      // Restore proper base64 format
+      let base64 = compressed
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      
+      // Add padding if needed
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      
+      return decodeURIComponent(atob(base64));
     } catch (error) {
       console.error('❌ Failed to decompress data:', error);
       throw new Error('Failed to decompress data');
@@ -96,10 +151,26 @@ export class TripDataSerializer {
     tripStartDate?: Date,
     weatherData?: Record<string, ForecastWeatherData>
   ): string {
-    const serializedData = this.serializeTripData(tripPlan, tripStartDate, weatherData);
-    const baseUrl = window.location.origin;
-    
-    return `${baseUrl}/serialized-trip?data=${encodeURIComponent(serializedData)}`;
+    try {
+      const serializedData = this.serializeTripData(tripPlan, tripStartDate, weatherData);
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/serialized-trip?data=${encodeURIComponent(serializedData)}`;
+      
+      console.log('🔗 Generated share URL:', {
+        urlLength: shareUrl.length,
+        isWithinLimits: shareUrl.length < 4000,
+        weatherEntries: Object.keys(weatherData || {}).length
+      });
+      
+      if (shareUrl.length > 4000) {
+        console.warn('⚠️ Generated URL is very long and may cause issues:', shareUrl.length);
+      }
+      
+      return shareUrl;
+    } catch (error) {
+      console.error('❌ Failed to generate share URL:', error);
+      throw new Error('Failed to generate share URL');
+    }
   }
 
   static createWeatherDataKey(cityName: string, day: number): string {
