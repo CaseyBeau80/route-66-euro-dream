@@ -166,7 +166,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               tripTitle={tripTitle}
               tripPlan={tripPlan}
               tripStartDate={validTripStartDate}
-              variant="primary"
+              variant="default"
               size="default"
             />
           </div>
