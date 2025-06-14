@@ -48,27 +48,27 @@ export class SimpleWeatherFetcher {
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, hasApiKey, isSharedView = false, segmentDay = 1 } = request;
     
-    console.log('🔑 FIXED: SimpleWeatherFetcher - PRIORITY LIVE FORECAST WITH PROPER API KEY', {
+    console.log('🚀 ENHANCED: SimpleWeatherFetcher - COMPREHENSIVE API KEY VALIDATION', {
       cityName,
       targetDate: targetDate.toISOString(),
       hasApiKey,
       isSharedView,
       segmentDay,
-      strategy: 'live_first_with_proper_api_detection'
+      strategy: 'enhanced_api_validation_and_geocoding'
     });
 
-    // FIXED: Always attempt live forecast FIRST if API key exists with proper detection
+    // ENHANCED: Always attempt live forecast FIRST if API key exists with comprehensive validation
     if (hasApiKey) {
-      console.log('🚀 FIXED: Valid API key detected - attempting live forecast for', cityName);
+      console.log('🔑 ENHANCED: Valid API key detected - attempting comprehensive live forecast for', cityName);
       
       try {
-        const coords = await this.getFreshCoordinates(cityName);
+        const coords = await this.getEnhancedCoordinates(cityName);
         if (coords) {
-          console.log('✅ FIXED: Coordinates found, fetching live weather for', cityName);
+          console.log('✅ ENHANCED: Coordinates found, fetching live weather for', cityName, coords);
 
           const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate, segmentDay);
           if (liveWeather) {
-            console.log('✅ FIXED: LIVE WEATHER SUCCESS with correct properties for', cityName, {
+            console.log('🎯 ENHANCED: LIVE WEATHER SUCCESS with verified properties for', cityName, {
               temperature: liveWeather.temperature,
               source: liveWeather.source,
               isActualForecast: liveWeather.isActualForecast,
@@ -77,54 +77,196 @@ export class SimpleWeatherFetcher {
             });
             return liveWeather;
           } else {
-            console.log('⚠️ FIXED: Live weather fetch failed, falling back for', cityName);
+            console.log('⚠️ ENHANCED: Live weather fetch failed, falling back for', cityName);
           }
         } else {
-          console.log('⚠️ FIXED: Could not get coordinates for', cityName);
+          console.log('⚠️ ENHANCED: Could not get coordinates for', cityName);
         }
       } catch (error) {
-        console.warn('⚠️ FIXED: Live weather error, using fallback:', error);
+        console.warn('⚠️ ENHANCED: Live weather error, using fallback:', error);
       }
     } else {
-      console.log('🔑 FIXED: No valid API key available for', cityName);
+      console.log('🔑 ENHANCED: No valid API key available for', cityName);
     }
 
     // FALLBACK: Create fallback weather only if live forecast failed
-    console.log('🔄 FIXED: Creating fallback weather for', cityName);
+    console.log('🔄 ENHANCED: Creating fallback weather for', cityName);
     return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
   }
 
-  private static async getFreshCoordinates(cityName: string): Promise<{ lat: number; lng: number } | null> {
+  private static async getEnhancedCoordinates(cityName: string): Promise<{ lat: number; lng: number } | null> {
     try {
-      // FIXED: Check both possible API key locations consistently
+      // ENHANCED: Comprehensive API key validation with detailed logging
       const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
-      if (!apiKey) {
-        console.log('❌ FIXED: No API key found in localStorage');
+      
+      console.log('🔍 ENHANCED: Comprehensive API key validation', {
+        hasWeatherApiKey: !!localStorage.getItem('weather_api_key'),
+        hasOpenWeatherMapKey: !!localStorage.getItem('openweathermap_api_key'),
+        finalApiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'none',
+        keyLength: apiKey?.length || 0,
+        keyValid: !!(apiKey && apiKey.length > 10)
+      });
+      
+      if (!apiKey || apiKey.length < 10) {
+        console.log('❌ ENHANCED: Invalid API key - too short or missing', {
+          keyLength: apiKey?.length || 0,
+          required: 'minimum 10 characters'
+        });
         return null;
       }
 
-      console.log('🔍 FIXED: Fetching coordinates for', cityName);
-      const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+      // ENHANCED: Improved city name formatting for better geocoding results
+      const formattedCityName = this.formatCityNameForGeocoding(cityName);
+      console.log('🔍 ENHANCED: Fetching coordinates with improved formatting', {
+        originalCity: cityName,
+        formattedCity: formattedCityName
+      });
+
+      const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(formattedCityName)}&limit=5&appid=${apiKey}`;
+      
+      console.log('🌐 ENHANCED: Making geocoding request', {
+        url: geocodingUrl.replace(apiKey, 'API_KEY_HIDDEN'),
+        cityName: formattedCityName
+      });
+
       const response = await fetch(geocodingUrl);
 
+      console.log('📡 ENHANCED: Geocoding response details', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: {
+          'content-type': response.headers.get('content-type'),
+          'x-cache': response.headers.get('x-cache')
+        }
+      });
+
       if (!response.ok) {
-        console.log('❌ FIXED: Geocoding API failed with status', response.status);
+        const errorText = await response.text();
+        console.log('❌ ENHANCED: Geocoding API failed', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText,
+          cityName: formattedCityName
+        });
         return null;
       }
 
       const data = await response.json();
+      
+      console.log('📊 ENHANCED: Geocoding response data', {
+        cityName: formattedCityName,
+        resultsCount: data?.length || 0,
+        results: data?.slice(0, 2).map((item: any) => ({
+          name: item.name,
+          state: item.state,
+          country: item.country,
+          lat: item.lat,
+          lon: item.lon
+        })) || []
+      });
+
       if (!data || data.length === 0) {
-        console.log('❌ FIXED: No geocoding results for', cityName);
+        console.log('❌ ENHANCED: No geocoding results for', formattedCityName);
+        
+        // ENHANCED: Try alternative city name formats
+        const alternativeFormats = this.getAlternativeCityFormats(cityName);
+        for (const altFormat of alternativeFormats) {
+          console.log('🔄 ENHANCED: Trying alternative format:', altFormat);
+          const altUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(altFormat)}&limit=1&appid=${apiKey}`;
+          const altResponse = await fetch(altUrl);
+          
+          if (altResponse.ok) {
+            const altData = await altResponse.json();
+            if (altData && altData.length > 0) {
+              console.log('✅ ENHANCED: Found coordinates with alternative format', {
+                originalCity: cityName,
+                successfulFormat: altFormat,
+                coordinates: { lat: altData[0].lat, lon: altData[0].lon }
+              });
+              return { lat: altData[0].lat, lng: altData[0].lon };
+            }
+          }
+        }
+        
         return null;
       }
 
-      const coords = { lat: data[0].lat, lng: data[0].lon };
-      console.log('✅ FIXED: Got coordinates for', cityName, coords);
+      // ENHANCED: Select best match with priority for US locations
+      const bestMatch = this.selectBestGeocodingMatch(data, cityName);
+      const coords = { lat: bestMatch.lat, lng: bestMatch.lon };
+      
+      console.log('✅ ENHANCED: Got coordinates for', formattedCityName, {
+        selectedMatch: {
+          name: bestMatch.name,
+          state: bestMatch.state,
+          country: bestMatch.country,
+          coordinates: coords
+        },
+        totalResults: data.length
+      });
+      
       return coords;
     } catch (error) {
-      console.error('❌ FIXED: Geocoding error for', cityName, ':', error);
+      console.error('❌ ENHANCED: Geocoding error for', cityName, ':', error);
       return null;
     }
+  }
+
+  private static formatCityNameForGeocoding(cityName: string): string {
+    // Remove extra spaces and ensure proper formatting
+    let formatted = cityName.trim();
+    
+    // If it already has state, keep as is
+    if (formatted.includes(',')) {
+      return formatted;
+    }
+    
+    // Add US as country for better results
+    return `${formatted},US`;
+  }
+
+  private static getAlternativeCityFormats(cityName: string): string[] {
+    const alternatives = [];
+    const base = cityName.trim();
+    
+    // Try without state abbreviation
+    if (base.includes(',')) {
+      const [city] = base.split(',');
+      alternatives.push(city.trim());
+    }
+    
+    // Try with full state names for common abbreviations
+    const stateMap: { [key: string]: string } = {
+      'IL': 'Illinois',
+      'MO': 'Missouri',
+      'OK': 'Oklahoma',
+      'TX': 'Texas',
+      'NM': 'New Mexico',
+      'AZ': 'Arizona',
+      'CA': 'California'
+    };
+    
+    if (base.includes(',')) {
+      const [city, state] = base.split(',').map(s => s.trim());
+      if (stateMap[state]) {
+        alternatives.push(`${city}, ${stateMap[state]}`);
+        alternatives.push(`${city}, ${stateMap[state]}, US`);
+      }
+    }
+    
+    return alternatives;
+  }
+
+  private static selectBestGeocodingMatch(results: any[], originalCity: string): any {
+    // Prioritize US locations
+    const usResults = results.filter(r => r.country === 'US');
+    if (usResults.length > 0) {
+      return usResults[0];
+    }
+    
+    // Fallback to first result
+    return results[0];
   }
 
   private static async fetchLiveWeather(
@@ -134,47 +276,60 @@ export class SimpleWeatherFetcher {
     segmentDay: number
   ): Promise<ForecastWeatherData | null> {
     try {
-      // FIXED: Consistent API key retrieval
+      // ENHANCED: Consistent API key retrieval with validation
       const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
-      if (!apiKey) {
-        console.log('❌ FIXED: No API key for weather fetch');
+      if (!apiKey || apiKey.length < 10) {
+        console.log('❌ ENHANCED: Invalid API key for weather fetch');
         return null;
       }
 
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ FIXED: Attempting live forecast with proper API key for', cityName, {
+      console.log('🌤️ ENHANCED: Attempting live forecast with validated API key for', cityName, {
         coordinates: coords,
         daysFromNow,
         targetDate: targetDate.toISOString(),
         segmentDay,
-        apiKeyPresent: !!apiKey
+        apiKeyValid: true
       });
 
       // Extended forecast range check
       if (daysFromNow < -1 || daysFromNow > 14) {
-        console.log('📅 FIXED: Date outside forecast range for', cityName, { daysFromNow });
+        console.log('📅 ENHANCED: Date outside forecast range for', cityName, { daysFromNow });
         return null;
       }
 
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-      console.log('🌐 FIXED: Calling weather API for', cityName);
+      console.log('🌐 ENHANCED: Calling weather API for', cityName, {
+        url: weatherUrl.replace(apiKey, 'API_KEY_HIDDEN')
+      });
       
       const response = await fetch(weatherUrl);
 
+      console.log('📡 ENHANCED: Weather API response', {
+        cityName,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        console.log('❌ FIXED: Weather API failed for', cityName, 'Status:', response.status);
+        const errorText = await response.text();
+        console.log('❌ ENHANCED: Weather API failed for', cityName, {
+          status: response.status,
+          errorBody: errorText
+        });
         return null;
       }
 
       const data = await response.json();
       if (!data.list || data.list.length === 0) {
-        console.log('❌ FIXED: Empty weather data for', cityName);
+        console.log('❌ ENHANCED: Empty weather data for', cityName);
         return null;
       }
 
-      console.log('📊 FIXED: Weather API response for', cityName, {
+      console.log('📊 ENHANCED: Weather API response for', cityName, {
         listLength: data.list.length,
         firstItemDate: data.list[0]?.dt_txt,
         lastItemDate: data.list[data.list.length - 1]?.dt_txt
@@ -187,7 +342,7 @@ export class SimpleWeatherFetcher {
         return itemDate === targetDateString;
       }) || data.list[Math.min(Math.max(daysFromNow * 8, 0), data.list.length - 1)];
 
-      console.log('🎯 FIXED: Weather item selected for', cityName, {
+      console.log('🎯 ENHANCED: Weather item selected for', cityName, {
         targetDateString,
         matchedItemDate: new Date(matchedItem.dt * 1000).toISOString(),
         temp: matchedItem.main?.temp,
@@ -197,7 +352,7 @@ export class SimpleWeatherFetcher {
       // Apply city+day specific variations for uniqueness
       const variation = this.getCitySpecificVariation(cityName, segmentDay);
 
-      // FIXED: CRITICAL - Ensure live forecast properties are preserved and correct
+      // ENHANCED: CRITICAL - Ensure live forecast properties are preserved and correct
       const weatherResult: ForecastWeatherData = {
         temperature: Math.round(matchedItem.main.temp + variation.tempOffset),
         highTemp: Math.round(matchedItem.main.temp_max + variation.tempOffset),
@@ -214,7 +369,7 @@ export class SimpleWeatherFetcher {
         source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
       };
 
-      console.log('✅ FIXED: LIVE WEATHER DATA CREATED with correct properties for', cityName, {
+      console.log('✅ ENHANCED: LIVE WEATHER DATA CREATED with verified properties for', cityName, {
         temperature: weatherResult.temperature,
         highTemp: weatherResult.highTemp,
         lowTemp: weatherResult.lowTemp,
@@ -227,7 +382,7 @@ export class SimpleWeatherFetcher {
       return weatherResult;
 
     } catch (error) {
-      console.error('❌ FIXED: Live weather fetch error for', cityName, ':', error);
+      console.error('❌ ENHANCED: Live weather fetch error for', cityName, ':', error);
       return null;
     }
   }
@@ -236,7 +391,7 @@ export class SimpleWeatherFetcher {
     const targetDateString = targetDate.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
 
-    console.log('🔄 FIXED: Creating fallback weather for', cityName, {
+    console.log('🔄 ENHANCED: Creating fallback weather for', cityName, {
       targetDateString,
       daysFromToday,
       segmentDay,
@@ -253,7 +408,7 @@ export class SimpleWeatherFetcher {
     // Apply city+day variations for uniqueness
     const uniqueWeather = CityWeatherVariationService.applyVariationToWeather(baseFallback, `${cityName}-day-${segmentDay}`);
 
-    console.log('✅ FIXED: Fallback weather created for', cityName, {
+    console.log('✅ ENHANCED: Fallback weather created for', cityName, {
       temperature: uniqueWeather.temperature,
       description: uniqueWeather.description,
       source: uniqueWeather.source,
