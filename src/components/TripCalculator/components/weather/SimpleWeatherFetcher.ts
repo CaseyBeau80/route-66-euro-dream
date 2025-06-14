@@ -48,80 +48,81 @@ export class SimpleWeatherFetcher {
   static async fetchWeatherForCity(request: WeatherFetchRequest): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, hasApiKey, isSharedView = false, segmentDay = 1 } = request;
     
-    console.log('🌤️ PHASE 3 FIX: SimpleWeatherFetcher - PRESERVING LIVE FORECAST PROPERTIES', {
+    console.log('🔑 FIXED: SimpleWeatherFetcher - PRIORITY LIVE FORECAST WITH PROPER API KEY', {
       cityName,
       targetDate: targetDate.toISOString(),
       hasApiKey,
       isSharedView,
       segmentDay,
-      strategy: 'live_first_preserve_properties'
+      strategy: 'live_first_with_proper_api_detection'
     });
 
-    // PHASE 3 FIX: Always attempt live forecast FIRST if API key exists
+    // FIXED: Always attempt live forecast FIRST if API key exists with proper detection
     if (hasApiKey) {
-      console.log('🚀 PHASE 3 FIX: API key available - attempting live forecast with property preservation for', cityName);
+      console.log('🚀 FIXED: Valid API key detected - attempting live forecast for', cityName);
       
       try {
         const coords = await this.getFreshCoordinates(cityName);
         if (coords) {
-          console.log('✅ PHASE 3 FIX: Coordinates found, fetching live weather for', cityName);
+          console.log('✅ FIXED: Coordinates found, fetching live weather for', cityName);
 
           const liveWeather = await this.fetchLiveWeather(coords, cityName, targetDate, segmentDay);
           if (liveWeather) {
-            console.log('✅ PHASE 3 FIX: LIVE WEATHER SUCCESS with preserved properties for', cityName, {
+            console.log('✅ FIXED: LIVE WEATHER SUCCESS with correct properties for', cityName, {
               temperature: liveWeather.temperature,
               source: liveWeather.source,
               isActualForecast: liveWeather.isActualForecast,
               description: liveWeather.description,
-              propertiesPreserved: liveWeather.isActualForecast === true && liveWeather.source === 'live_forecast'
+              isLiveForecast: liveWeather.isActualForecast === true && liveWeather.source === 'live_forecast'
             });
             return liveWeather;
           } else {
-            console.log('⚠️ PHASE 3 FIX: Live weather fetch failed, falling back for', cityName);
+            console.log('⚠️ FIXED: Live weather fetch failed, falling back for', cityName);
           }
         } else {
-          console.log('⚠️ PHASE 3 FIX: Could not get coordinates for', cityName);
+          console.log('⚠️ FIXED: Could not get coordinates for', cityName);
         }
       } catch (error) {
-        console.warn('⚠️ PHASE 3 FIX: Live weather error, using fallback:', error);
+        console.warn('⚠️ FIXED: Live weather error, using fallback:', error);
       }
     } else {
-      console.log('ℹ️ PHASE 3 FIX: No API key available for', cityName);
+      console.log('🔑 FIXED: No valid API key available for', cityName);
     }
 
-    // FALLBACK: Create enhanced fallback weather only if live forecast failed
-    console.log('🔄 PHASE 3 FIX: Creating fallback weather for', cityName);
+    // FALLBACK: Create fallback weather only if live forecast failed
+    console.log('🔄 FIXED: Creating fallback weather for', cityName);
     return this.createUniqueFallbackWeather(cityName, targetDate, segmentDay);
   }
 
   private static async getFreshCoordinates(cityName: string): Promise<{ lat: number; lng: number } | null> {
     try {
-      const apiKey = localStorage.getItem('weather_api_key');
+      // FIXED: Check both possible API key locations consistently
+      const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
       if (!apiKey) {
-        console.log('❌ PHASE 3 FIX: No API key in localStorage');
+        console.log('❌ FIXED: No API key found in localStorage');
         return null;
       }
 
-      console.log('🔍 PHASE 3 FIX: Fetching coordinates for', cityName);
+      console.log('🔍 FIXED: Fetching coordinates for', cityName);
       const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
       const response = await fetch(geocodingUrl);
 
       if (!response.ok) {
-        console.log('❌ PHASE 3 FIX: Geocoding API failed with status', response.status);
+        console.log('❌ FIXED: Geocoding API failed with status', response.status);
         return null;
       }
 
       const data = await response.json();
       if (!data || data.length === 0) {
-        console.log('❌ PHASE 3 FIX: No geocoding results for', cityName);
+        console.log('❌ FIXED: No geocoding results for', cityName);
         return null;
       }
 
       const coords = { lat: data[0].lat, lng: data[0].lon };
-      console.log('✅ PHASE 3 FIX: Got coordinates for', cityName, coords);
+      console.log('✅ FIXED: Got coordinates for', cityName, coords);
       return coords;
     } catch (error) {
-      console.error('❌ PHASE 3 FIX: Geocoding error for', cityName, ':', error);
+      console.error('❌ FIXED: Geocoding error for', cityName, ':', error);
       return null;
     }
   }
@@ -133,16 +134,17 @@ export class SimpleWeatherFetcher {
     segmentDay: number
   ): Promise<ForecastWeatherData | null> {
     try {
-      const apiKey = localStorage.getItem('weather_api_key');
+      // FIXED: Consistent API key retrieval
+      const apiKey = localStorage.getItem('weather_api_key') || localStorage.getItem('openweathermap_api_key');
       if (!apiKey) {
-        console.log('❌ PHASE 3 FIX: No API key for weather fetch');
+        console.log('❌ FIXED: No API key for weather fetch');
         return null;
       }
 
       const today = new Date();
       const daysFromNow = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-      console.log('🌤️ PHASE 3 FIX: Attempting live forecast with property preservation for', cityName, {
+      console.log('🌤️ FIXED: Attempting live forecast with proper API key for', cityName, {
         coordinates: coords,
         daysFromNow,
         targetDate: targetDate.toISOString(),
@@ -152,27 +154,27 @@ export class SimpleWeatherFetcher {
 
       // Extended forecast range check
       if (daysFromNow < -1 || daysFromNow > 14) {
-        console.log('📅 PHASE 3 FIX: Date outside extended forecast range for', cityName, { daysFromNow });
+        console.log('📅 FIXED: Date outside forecast range for', cityName, { daysFromNow });
         return null;
       }
 
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-      console.log('🌐 PHASE 3 FIX: Calling weather API for', cityName);
+      console.log('🌐 FIXED: Calling weather API for', cityName);
       
       const response = await fetch(weatherUrl);
 
       if (!response.ok) {
-        console.log('❌ PHASE 3 FIX: Weather API failed for', cityName, 'Status:', response.status);
+        console.log('❌ FIXED: Weather API failed for', cityName, 'Status:', response.status);
         return null;
       }
 
       const data = await response.json();
       if (!data.list || data.list.length === 0) {
-        console.log('❌ PHASE 3 FIX: Empty weather data for', cityName);
+        console.log('❌ FIXED: Empty weather data for', cityName);
         return null;
       }
 
-      console.log('📊 PHASE 3 FIX: Weather API response for', cityName, {
+      console.log('📊 FIXED: Weather API response for', cityName, {
         listLength: data.list.length,
         firstItemDate: data.list[0]?.dt_txt,
         lastItemDate: data.list[data.list.length - 1]?.dt_txt
@@ -185,7 +187,7 @@ export class SimpleWeatherFetcher {
         return itemDate === targetDateString;
       }) || data.list[Math.min(Math.max(daysFromNow * 8, 0), data.list.length - 1)];
 
-      console.log('🎯 PHASE 3 FIX: Weather item selected for', cityName, {
+      console.log('🎯 FIXED: Weather item selected for', cityName, {
         targetDateString,
         matchedItemDate: new Date(matchedItem.dt * 1000).toISOString(),
         temp: matchedItem.main?.temp,
@@ -195,7 +197,7 @@ export class SimpleWeatherFetcher {
       // Apply city+day specific variations for uniqueness
       const variation = this.getCitySpecificVariation(cityName, segmentDay);
 
-      // PHASE 3 FIX: CRITICAL - Ensure live forecast properties are preserved
+      // FIXED: CRITICAL - Ensure live forecast properties are preserved and correct
       const weatherResult: ForecastWeatherData = {
         temperature: Math.round(matchedItem.main.temp + variation.tempOffset),
         highTemp: Math.round(matchedItem.main.temp_max + variation.tempOffset),
@@ -212,20 +214,20 @@ export class SimpleWeatherFetcher {
         source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
       };
 
-      console.log('✅ PHASE 3 FIX: LIVE WEATHER DATA CREATED with preserved properties for', cityName, {
+      console.log('✅ FIXED: LIVE WEATHER DATA CREATED with correct properties for', cityName, {
         temperature: weatherResult.temperature,
         highTemp: weatherResult.highTemp,
         lowTemp: weatherResult.lowTemp,
         description: weatherResult.description,
         isActualForecast: weatherResult.isActualForecast,
         source: weatherResult.source,
-        liveForecastPropertiesPreserved: weatherResult.isActualForecast === true && weatherResult.source === 'live_forecast'
+        isLiveForecast: weatherResult.isActualForecast === true && weatherResult.source === 'live_forecast'
       });
 
       return weatherResult;
 
     } catch (error) {
-      console.error('❌ PHASE 3 FIX: Live weather fetch error for', cityName, ':', error);
+      console.error('❌ FIXED: Live weather fetch error for', cityName, ':', error);
       return null;
     }
   }
@@ -234,7 +236,7 @@ export class SimpleWeatherFetcher {
     const targetDateString = targetDate.toISOString().split('T')[0];
     const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
 
-    console.log('🔄 PHASE 3 FIX: Creating fallback weather for', cityName, {
+    console.log('🔄 FIXED: Creating fallback weather for', cityName, {
       targetDateString,
       daysFromToday,
       segmentDay,
@@ -251,7 +253,7 @@ export class SimpleWeatherFetcher {
     // Apply city+day variations for uniqueness
     const uniqueWeather = CityWeatherVariationService.applyVariationToWeather(baseFallback, `${cityName}-day-${segmentDay}`);
 
-    console.log('✅ PHASE 3 FIX: Fallback weather created for', cityName, {
+    console.log('✅ FIXED: Fallback weather created for', cityName, {
       temperature: uniqueWeather.temperature,
       description: uniqueWeather.description,
       source: uniqueWeather.source,
