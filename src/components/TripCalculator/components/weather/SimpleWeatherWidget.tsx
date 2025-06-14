@@ -17,15 +17,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 SIMPLIFIED: SimpleWeatherWidget rendering', segment.endCity, {
+  console.log('🎯 UNIFIED: SimpleWeatherWidget rendering', segment.endCity, {
     day: segment.day,
     isSharedView,
     isPDFExport,
     hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString()
+    tripStartDate: tripStartDate?.toISOString(),
+    unifiedFlow: true
   });
 
-  // SIMPLIFIED: Enhanced date handling for shared views
+  // UNIFIED: Enhanced date handling for shared views
   const effectiveTripStartDate = React.useMemo(() => {
     // Try to get trip start date from URL query params if in shared view
     if (isSharedView && !tripStartDate) {
@@ -36,17 +37,17 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('✅ SIMPLIFIED: Using trip start date from URL params:', parsedDate.toISOString());
+            console.log('✅ UNIFIED: Using trip start date from URL params:', parsedDate.toISOString());
             return parsedDate;
           }
         }
       } catch (error) {
-        console.warn('⚠️ SIMPLIFIED: Failed to parse trip start date from URL:', error);
+        console.warn('⚠️ UNIFIED: Failed to parse trip start date from URL:', error);
       }
       
       // Fallback to current date for shared views
       const fallbackDate = new Date();
-      console.log('🔄 SIMPLIFIED: Using current date as fallback for shared view:', fallbackDate.toISOString());
+      console.log('🔄 UNIFIED: Using current date as fallback for shared view:', fallbackDate.toISOString());
       return fallbackDate;
     }
     
@@ -56,22 +57,24 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // Calculate segment date using utility service
   const segmentDate = React.useMemo(() => {
     const calculatedDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
-    console.log('✅ SIMPLIFIED: Calculated segment date for shared view:', {
+    console.log('✅ UNIFIED: Calculated segment date:', {
       city: segment.endCity,
       day: segment.day,
       calculatedDate: calculatedDate?.toISOString(),
       usingFallback: isSharedView && !tripStartDate,
-      isSharedView
+      isSharedView,
+      unifiedFlow: true
     });
     return calculatedDate;
   }, [effectiveTripStartDate, segment.day]);
 
-  console.log('🔧 SIMPLIFIED: Rendering WeatherCard with streamlined logic', {
+  console.log('🔧 UNIFIED: Rendering WeatherCard with unified logic', {
     segmentEndCity: segment.endCity,
     day: segment.day,
     hasSegmentDate: !!segmentDate,
     isSharedView,
-    shouldFetchWeather: !!segmentDate
+    shouldFetchWeather: !!segmentDate,
+    unifiedFlow: true
   });
 
   return (

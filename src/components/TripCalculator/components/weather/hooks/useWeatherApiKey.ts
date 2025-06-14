@@ -7,20 +7,19 @@ interface UseWeatherApiKeyProps {
 }
 
 export const useWeatherApiKey = (cityName?: string) => {
-  // FIXED: Use EXACT same detection as preview mode - no localStorage watching needed
+  // UNIFIED: Use consistent detection across ALL views
   const hasApiKey = React.useMemo(() => {
     const keyExists = WeatherApiKeyManager.hasApiKey();
-    console.log(`🔑 FIXED: useWeatherApiKey for ${cityName || 'unknown city'}:`, {
+    console.log(`🔑 UNIFIED: useWeatherApiKey for ${cityName || 'unknown city'}:`, {
       hasApiKey: keyExists,
-      usingWeatherApiKeyManager: true,
-      sameAsPreviewMode: true
+      usingUnifiedDetection: true,
+      consistentAcrossAllViews: true
     });
     return keyExists;
-  }, [cityName]); // Only depend on cityName, not localStorage changes
+  }, [cityName]);
 
   return { 
     hasApiKey,
-    // For debugging - show which detection method we're using
-    detectionMethod: 'WeatherApiKeyManager'
+    detectionMethod: 'WeatherApiKeyManager-Unified'
   };
 };

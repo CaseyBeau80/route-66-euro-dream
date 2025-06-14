@@ -27,30 +27,29 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
   const [retryCount, setRetryCount] = React.useState(0);
 
   const handleApiKeySet = React.useCallback(() => {
-    console.log('🔑 SIMPLIFIED: API key set, triggering weather fetch for', segment.endCity);
+    console.log('🔑 UNIFIED: API key set, triggering weather fetch for', segment.endCity);
     if (segmentDate) {
-      fetchWeather(isSharedView);
+      fetchWeather();
     }
-  }, [fetchWeather, segmentDate, isSharedView, segment.endCity]);
+  }, [fetchWeather, segmentDate, segment.endCity]);
 
   const handleTimeout = React.useCallback(() => {
-    console.log('⏰ SIMPLIFIED: Weather fetch timeout for', segment.endCity);
+    console.log('⏰ UNIFIED: Weather fetch timeout for', segment.endCity);
     weatherState.setError('Weather fetch timed out');
     weatherState.setLoading(false);
   }, [weatherState, segment.endCity]);
 
   const handleRetry = React.useCallback(() => {
-    console.log('🔄 SIMPLIFIED: Manual retry triggered for', segment.endCity, {
-      retryCount: retryCount + 1,
-      hasApiKey
+    console.log('🔄 UNIFIED: Manual retry triggered for', segment.endCity, {
+      retryCount: retryCount + 1
     });
     setRetryCount(prev => prev + 1);
     if (segmentDate) {
-      fetchWeather(isSharedView);
+      fetchWeather();
     }
-  }, [fetchWeather, segmentDate, retryCount, isSharedView, hasApiKey, segment.endCity]);
+  }, [fetchWeather, segmentDate, retryCount, segment.endCity]);
 
-  console.log('🔧 SIMPLIFIED: WeatherCard render for', segment.endCity, {
+  console.log('🔧 UNIFIED: WeatherCard render for', segment.endCity, {
     hasApiKey,
     isSharedView,
     hasWeather: !!weatherState.weather,
@@ -58,7 +57,8 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     error: weatherState.error,
     hasSegmentDate: !!segmentDate,
     retryCount,
-    cardIndex
+    cardIndex,
+    unifiedFlow: true
   });
 
   return (
