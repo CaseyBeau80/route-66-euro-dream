@@ -13,16 +13,18 @@ import {
   Cloud,
   Clock,
   DollarSign,
-  Utensils
+  Utensils,
+  Key,
+  ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 import WeatherTabContent from './WeatherTabContent';
 import AttractionsTabContent from './AttractionsTabContent';
 import RestaurantsTabContent from './RestaurantsTabContent';
 import CostTabContent from './CostTabContent';
 import ShareTripButton from './ShareTripButton';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
-import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 
 interface TripResultsTabsProps {
   tripPlan: TripPlan;
@@ -42,11 +44,38 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   isGeneratingShareUrl = false
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [apiKey, setApiKey] = useState('');
+  const [isStoringKey, setIsStoringKey] = useState(false);
+  const [keyMessage, setKeyMessage] = useState('');
 
   // Check if we have API key for weather
-  const hasWeatherApiKey = React.useMemo(() => {
+  const [hasWeatherApiKey, setHasWeatherApiKey] = React.useState(() => {
     return WeatherApiKeyManager.hasApiKey();
-  }, []);
+  });
+
+  const handleStoreApiKey = async () => {
+    if (!apiKey.trim()) {
+      setKeyMessage('Please enter an API key');
+      return;
+    }
+
+    setIsStoringKey(true);
+    try {
+      WeatherApiKeyManager.setApiKey(apiKey.trim());
+      setKeyMessage('✅ API key saved! Weather forecasts are now enabled.');
+      setApiKey('');
+      setHasWeatherApiKey(true);
+      
+      // Refresh after a moment
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      setKeyMessage('❌ Invalid API key. Please check your key and try again.');
+    } finally {
+      setIsStoringKey(false);
+    }
+  };
 
   console.log('📊 TripResultsTabs render:', {
     activeTab,
@@ -91,6 +120,72 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Weather API Key Setup - Prominent at top when needed */}
+      {!hasWeatherApiKey && (
+        <Card className="border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-3 text-blue-700 mb-4">
+                <Cloud className="w-8 h-8" />
+                <h3 className="text-xl font-bold">🌤️ Enable Live Weather Forecasts</h3>
+              </div>
+              
+              <p className="text-blue-600 text-lg mb-4">
+                Get real-time weather forecasts for each day of your Route 66 journey!
+              </p>
+              
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="flex gap-3">
+                  <Input
+                    type="password"
+                    placeholder="Enter your OpenWeatherMap API key"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="flex-1 text-lg p-3"
+                  />
+                  <Button 
+                    onClick={handleStoreApiKey}
+                    disabled={isStoringKey || !apiKey.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
+                    size="lg"
+                  >
+                    {isStoringKey ? 'Saving...' : 'Enable Weather'}
+                  </Button>
+                </div>
+                
+                {keyMessage && (
+                  <p className={`text-sm font-medium ${keyMessage.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+                    {keyMessage}
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-center gap-2 text-blue-600 mt-4">
+                <ExternalLink className="w-4 h-4" />
+                <a 
+                  href="https://openweathermap.org/api" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-lg hover:underline font-medium"
+                >
+                  Get your free API key from OpenWeatherMap →
+                </a>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 text-left max-w-lg mx-auto">
+                <h5 className="font-medium text-blue-800 mb-2">Quick Setup:</h5>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• 100% free for up to 1,000 calls per day</li>
+                  <li>• No credit card required</li>
+                  <li>• Keys activate within 10 minutes</li>
+                  <li>• Stored securely in your browser only</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Tab Navigation */}
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8 overflow-x-auto">
@@ -108,6 +203,11 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
             >
               <Icon className="h-4 w-4" />
               {label}
+              {id === 'weather' && hasWeatherApiKey && (
+                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                  ✓
+                </Badge>
+              )}
               {id === 'attractions' && (
                 <Badge variant="secondary" className="text-xs">
                   {getTotalAttractions()}
@@ -245,44 +345,12 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
 
         {/* Weather Tab */}
         {activeTab === 'weather' && (
-          <div className="space-y-4">
-            {/* Weather API Key Check */}
-            {!hasWeatherApiKey && (
-              <div className="mb-6">
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="p-6">
-                    <div className="text-center space-y-4">
-                      <Cloud className="h-12 w-12 text-blue-500 mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                          🌤️ Enable Live Weather Forecasts
-                        </h3>
-                        <p className="text-blue-700 mb-4">
-                          Get real-time weather forecasts for each day of your Route 66 journey
-                        </p>
-                      </div>
-                      <div className="max-w-md mx-auto">
-                        <SimpleWeatherApiKeyInput 
-                          onApiKeySet={() => {
-                            console.log('🔑 Weather API key set from main tab');
-                            window.location.reload();
-                          }}
-                          cityName="your Route 66 journey"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            <WeatherTabContent
-              segments={tripPlan.segments || []}
-              tripStartDate={tripStartDate}
-              tripId={tripPlan.id}
-              isVisible={true}
-            />
-          </div>
+          <WeatherTabContent
+            segments={tripPlan.segments || []}
+            tripStartDate={tripStartDate}
+            tripId={tripPlan.id}
+            isVisible={true}
+          />
         )}
 
         {/* Other tabs */}
