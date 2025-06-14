@@ -37,8 +37,8 @@ const SerializedShareButton: React.FC<SerializedShareButtonProps> = ({
         weatherData
       );
 
-      // Check URL length before copying - lower threshold for warning
-      if (shareUrl.length > 3000) {
+      // Only warn for extremely long URLs (raised threshold)
+      if (shareUrl.length > 4000) {
         toast({
           title: "URL May Be Too Long",
           description: "The generated link is very long and may not work in all browsers. Try a shorter trip or fewer days.",
