@@ -2,7 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import SharedOnlyWeatherWidget from '../weather/SharedOnlyWeatherWidget';
+import UnifiedWeatherWidget from '../weather/UnifiedWeatherWidget';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -13,17 +13,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 SHARED ONLY: SharedDailyItinerary DEBUG - checking component usage:', {
+  console.log('🔥 UNIFIED SHARED: SharedDailyItinerary now using UnifiedWeatherWidget:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    componentPath: 'SharedDailyItinerary -> SharedOnlyWeatherWidget'
+    unifiedComponent: true
   });
 
   // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 SHARED ONLY: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 UNIFIED SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -36,7 +36,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 SHARED ONLY: Extracted tripStartDate from URL:', {
+            console.log('🔥 UNIFIED SHARED: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString()
@@ -46,11 +46,11 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ SHARED ONLY: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ UNIFIED SHARED: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 SHARED ONLY: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 UNIFIED SHARED: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -81,16 +81,15 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        // Move console.log outside of JSX
-        console.log(`🔥 SHARED ONLY: Rendering segment ${segment.day} for ${segment.endCity}`, {
+        console.log(`🔥 UNIFIED SHARED: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          renderingSharedOnlyWeatherWidget: true
+          usingUnifiedWeatherWidget: true
         });
 
         return (
-          <div key={`shared-only-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`unified-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -142,18 +141,20 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - DEBUGGING */}
+              {/* Weather section - NOW UNIFIED */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">DEBUG: Using SharedOnlyWeatherWidget directly</p>
+                  <p className="text-xs text-gray-500">Using UnifiedWeatherWidget (same as preview mode)</p>
                 </div>
                 
-                <SharedOnlyWeatherWidget
+                <UnifiedWeatherWidget
                   segment={segment}
                   tripStartDate={effectiveTripStartDate}
+                  isSharedView={true}
+                  isPDFExport={false}
                 />
               </div>
             </div>
