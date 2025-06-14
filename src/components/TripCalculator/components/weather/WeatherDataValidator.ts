@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: Simplified validation that properly detects live weather
+   * CRITICAL FIX: Preserve original source values from fetcher - DO NOT OVERRIDE
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -20,36 +20,27 @@ export class WeatherDataValidator {
   ): WeatherValidationResult {
     const validationErrors: string[] = [];
     
-    console.log('🔍 FIXED: WeatherDataValidator validating for', cityName, {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
+    console.log('🔍 CRITICAL FIX: WeatherDataValidator.ts preserving original values for', cityName, {
+      originalSource: weather.source,
+      originalIsActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
-      segmentDate: segmentDate.toISOString()
+      segmentDate: segmentDate.toISOString(),
+      preservationMode: 'STRICT_NO_OVERRIDES'
     });
 
-    // Check date range for live forecast eligibility
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(segmentDate);
-    targetDate.setHours(0, 0, 0, 0);
+    // CRITICAL FIX: DO NOT recalculate or override - use the original values exactly as they are
+    const originalSource = weather.source;
+    const originalIsActualForecast = weather.isActualForecast;
     
-    const timeDiff = targetDate.getTime() - today.getTime();
-    const daysFromToday = Math.ceil(timeDiff / (24 * 60 * 60 * 1000));
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
+    // CRITICAL FIX: Live forecast detection using ORIGINAL values only
+    const isLiveForecast = originalSource === 'live_forecast' && originalIsActualForecast === true;
 
-    // FIXED: Determine if this is live weather based on explicit criteria
-    const isLiveForecast = (
-      weather.source === 'live_forecast' && 
-      weather.isActualForecast === true && 
-      isWithinForecastRange
-    );
-
-    console.log('🎯 FIXED: Live weather determination for', cityName, {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      isWithinForecastRange,
-      daysFromToday,
-      finalIsLive: isLiveForecast
+    console.log('🎯 CRITICAL FIX: Live weather determination using ORIGINAL values:', {
+      cityName,
+      originalSource,
+      originalIsActualForecast,
+      finalIsLive: isLiveForecast,
+      noOverrides: true
     });
 
     // Validate temperature
@@ -66,13 +57,13 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather icon');
     }
 
-    // Create normalized weather data
+    // CRITICAL FIX: Create normalized weather data that PRESERVES ALL original values
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
-      // Ensure proper source marking
-      source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
-      isActualForecast: isLiveForecast,
-      // Ensure we have sensible defaults
+      // CRITICAL: NEVER override these - preserve exactly what the fetcher set
+      source: originalSource,
+      isActualForecast: originalIsActualForecast,
+      // Only provide defaults for missing optional fields
       humidity: weather.humidity || 50,
       windSpeed: weather.windSpeed || 0,
       precipitationChance: weather.precipitationChance || 0,
@@ -88,11 +79,15 @@ export class WeatherDataValidator {
       weatherQuality: isLiveForecast ? 'live' : 'historical'
     };
 
-    console.log('✅ FIXED: Validation result for', cityName, {
+    console.log('✅ CRITICAL FIX: Validation result preserving original values for', cityName, {
       isValid: result.isValid,
       isLiveForecast: result.isLiveForecast,
       weatherQuality: result.weatherQuality,
-      errors: validationErrors.length
+      inputSource: originalSource,
+      outputSource: normalizedWeather.source,
+      valuesPreserved: normalizedWeather.source === originalSource && normalizedWeather.isActualForecast === originalIsActualForecast,
+      errors: validationErrors.length,
+      guaranteedPreservation: true
     });
 
     return result;
