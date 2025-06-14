@@ -32,17 +32,43 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return !!localStorage.getItem('weather_api_key');
   }, []);
 
+  // PLAN IMPLEMENTATION: Comprehensive debugging logs as requested
+  console.log("🚨 PLAN IMPLEMENTATION: SimpleWeatherWidget comprehensive debug", {
+    cityName: segment.endCity,
+    segmentDay: segment.day,
+    segmentDate: segmentDate?.toISOString(),
+    hasApiKey,
+    isSharedView,
+    hasWeather: !!weather,
+    weatherObject: weather,
+    forecastLength: weather?.forecast?.length,
+    matchedForecastDay: weather?.matchedForecastDay,
+    weatherTemperature: weather?.temperature,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
+    phase: 'PLAN IMPLEMENTATION - Comprehensive Debug'
+  });
+
+  // User requested specific console logs
+  console.log("City:", segment?.endCity);
+  console.log("Date:", segmentDate);
+  console.log("Weather object:", weather);
+  console.log("Forecast length:", weather?.forecast?.length);
+  console.log("Matched forecast:", weather?.matchedForecastDay);
+
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!segmentDate) return;
+      if (!segmentDate) {
+        console.log('🚨 PLAN: No segmentDate available for', segment.endCity);
+        return;
+      }
 
-      console.log('🚨 PHASE 2 FIX: SimpleWeatherWidget weather fetch', {
+      console.log('🚨 PLAN: Starting weather fetch', {
         endCity: segment.endCity,
         segmentDate: segmentDate.toISOString(),
         segmentDay: segment.day,
         hasApiKey,
-        isSharedView,
-        phase: 'Phase 2 - Shared View Weather Fix'
+        isSharedView
       });
 
       setLoading(true);
@@ -55,9 +81,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           hasApiKey
         });
 
-        console.log('🚨 PHASE 2 FIX: Weather fetched', {
+        console.log('🚨 PLAN: Weather fetch result', {
           endCity: segment.endCity,
           hasWeather: !!weatherData,
+          weatherData,
           isActualForecast: weatherData?.isActualForecast,
           source: weatherData?.source,
           temperature: weatherData?.temperature
@@ -65,7 +92,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
         setWeather(weatherData);
       } catch (err) {
-        console.error('❌ PHASE 2 FIX: Weather fetch error:', err);
+        console.error('❌ PLAN: Weather fetch error:', err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
       } finally {
         setLoading(false);
@@ -75,8 +102,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     fetchWeather();
   }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
 
-  // PHASE 2 FIX: Loading state
+  // PLAN: Loading state
   if (loading) {
+    console.log('🚨 PLAN: Showing loading state for', segment.endCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded p-3">
         <div className="flex items-center gap-2 text-blue-600">
@@ -87,12 +115,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // PHASE 2 FIX: Show weather data if available
+  // PLAN IMPLEMENTATION: PRIORITY 1 - If weather exists, ALWAYS show it
   if (weather) {
-    console.log('🚨 PHASE 2 FIX: Displaying weather data for', segment.endCity, {
+    console.log('🎯 PLAN: PRIORITY 1 - Weather data exists, displaying it for', segment.endCity, {
+      temperature: weather.temperature,
       isActualForecast: weather.isActualForecast,
       source: weather.source,
-      temperature: weather.temperature
+      hasMatchedForecastDay: !!weather.matchedForecastDay
     });
 
     return (
@@ -131,11 +160,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // PHASE 2 FIX: Enhanced shared view fallback - ALWAYS show something in shared views
+  // PLAN IMPLEMENTATION: PRIORITY 2 - For shared views, ALWAYS show seasonal fallback if date exists
   if (isSharedView && segmentDate) {
-    console.log('🚨 PHASE 2 FIX: Using seasonal fallback for shared view', {
-      endCity: segment.endCity,
-      segmentDate: segmentDate.toISOString()
+    console.log('🌱 PLAN: PRIORITY 2 - No weather but have segmentDate in shared view, using seasonal fallback for', segment.endCity, {
+      segmentDate: segmentDate.toISOString(),
+      hasWeather: !!weather,
+      isSharedView
     });
 
     return (
@@ -147,24 +177,30 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // PHASE 2 FIX: Non-shared view with error
-  if (error) {
+  // PLAN IMPLEMENTATION: PRIORITY 3 - Non-shared view with error
+  if (error && !isSharedView) {
+    console.log('⚠️ PLAN: PRIORITY 3 - Error state in non-shared view for', segment.endCity);
     return (
       <div className="bg-amber-50 border border-amber-200 rounded p-3">
         <div className="text-amber-800 text-sm">Weather temporarily unavailable for {segment.endCity}</div>
-        {!isSharedView && (
-          <button
-            onClick={() => window.location.reload()}
-            className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
-          >
-            Retry
-          </button>
-        )}
+        <button
+          onClick={() => window.location.reload()}
+          className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
-  // PHASE 2 FIX: Final fallback - should rarely be reached in shared views
+  // PLAN IMPLEMENTATION: PRIORITY 4 - Final fallback (should rarely be reached in shared views)
+  console.log('🚫 PLAN: PRIORITY 4 - Final fallback for', segment.endCity, {
+    hasWeather: !!weather,
+    hasSegmentDate: !!segmentDate,
+    isSharedView,
+    error
+  });
+
   return (
     <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
       <div className="text-gray-400 text-2xl mb-1">🌤️</div>

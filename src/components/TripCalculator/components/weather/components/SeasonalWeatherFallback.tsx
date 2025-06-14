@@ -13,12 +13,14 @@ const SeasonalWeatherFallback: React.FC<SeasonalWeatherFallbackProps> = ({
   cityName,
   compact = false
 }) => {
-  console.log('🚨 PHASE 2 FIX: SeasonalWeatherFallback rendering', {
+  // PLAN IMPLEMENTATION: Enhanced logging for seasonal fallback
+  console.log('🚨 PLAN IMPLEMENTATION: SeasonalWeatherFallback rendering', {
     cityName,
     segmentDate: segmentDate.toISOString(),
+    segmentDateLocal: segmentDate.toLocaleDateString(),
     compact,
     month: segmentDate.getMonth(),
-    phase: 'Phase 2 - Seasonal Fallback Fix'
+    phase: 'PLAN IMPLEMENTATION - Seasonal Fallback Enhanced Debug'
   });
 
   const month = segmentDate.getMonth();
@@ -30,9 +32,23 @@ const SeasonalWeatherFallback: React.FC<SeasonalWeatherFallbackProps> = ({
   const humidity = SeasonalWeatherGenerator.getSeasonalHumidity(month);
   const precipitation = SeasonalWeatherGenerator.getSeasonalPrecipitation(month);
 
+  console.log('🌱 PLAN: Seasonal weather data generated', {
+    cityName,
+    month,
+    seasonalTemp,
+    highTemp,
+    lowTemp,
+    description,
+    humidity,
+    precipitation
+  });
+
   if (compact) {
     return (
       <div className="bg-orange-50 border border-orange-200 rounded p-4">
+        <div className="bg-green-100 border border-green-300 rounded p-1 mb-2 text-xs text-green-800">
+          ✅ SEASONAL FALLBACK: {cityName} - Month {month}
+        </div>
         <div className="flex items-center justify-between">
           <div>
             <h4 className="font-semibold text-gray-800 mb-1">
@@ -61,6 +77,9 @@ const SeasonalWeatherFallback: React.FC<SeasonalWeatherFallbackProps> = ({
 
   return (
     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+      <div className="bg-green-100 border border-green-300 rounded p-1 mb-2 text-xs text-green-800">
+        ✅ SEASONAL FALLBACK: {cityName} - Month {month}
+      </div>
       <h4 className="font-semibold text-gray-800 mb-2">
         🌤️ Historical Weather for {cityName}
       </h4>
