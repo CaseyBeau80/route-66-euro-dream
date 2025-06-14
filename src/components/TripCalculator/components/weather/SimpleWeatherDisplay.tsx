@@ -19,20 +19,22 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
+  // FIXED: Use simplified live forecast detection
   const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
   const sourceLabel = WeatherUtilityService.getWeatherSourceLabel(weather, segmentDate);
 
-  console.log('🎯 CENTRALIZED: SimpleWeatherDisplay rendering:', {
+  console.log('🎯 FIXED: SimpleWeatherDisplay rendering with simplified logic:', {
     cityName,
-    isLiveForecast,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
+    isLiveForecast,
     sourceLabel,
     temperature: weather.temperature,
     highTemp: weather.highTemp,
     lowTemp: weather.lowTemp,
     description: weather.description,
-    segmentDate: segmentDate.toISOString()
+    segmentDate: segmentDate.toISOString(),
+    fixedLogic: true
   });
 
   return (

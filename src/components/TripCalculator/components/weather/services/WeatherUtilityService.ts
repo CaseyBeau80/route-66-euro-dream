@@ -11,38 +11,29 @@ export interface WeatherSourceInfo {
 
 export class WeatherUtilityService {
   /**
-   * STANDARDIZED: Determines if weather data represents a live forecast
-   * Uses consistent logic across all views and components
+   * FIXED: Determines if weather data represents a live forecast
+   * Uses simplified and reliable logic for live forecast detection
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
-    if (!weather || !segmentDate) {
-      console.log('🔍 STANDARDIZED: Missing weather or date for live forecast check');
+    if (!weather) {
+      console.log('🔍 FIXED: No weather data provided for live forecast check');
       return false;
     }
     
-    // Calculate days from today
-    const today = new Date();
-    const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    // FIXED: Primary check - if source is 'live_forecast' AND isActualForecast is true, it's live
+    const isVerifiedLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    // STANDARDIZED CRITERIA: Must have live source AND be actual forecast AND within forecast range
-    const isVerifiedLive = weather.source === 'live_forecast' && 
-                          weather.isActualForecast === true &&
-                          daysFromToday >= 0 && 
-                          daysFromToday <= 7;
-    
-    console.log('🎯 STANDARDIZED: Live forecast validation:', {
+    console.log('🎯 FIXED: Live forecast validation (simplified):', {
       cityName: weather.cityName,
-      segmentDate: segmentDate.toISOString(),
-      daysFromToday,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       isVerifiedLive,
-      standardizedCriteria: {
+      fixedCriteria: {
         hasLiveSource: weather.source === 'live_forecast',
         isActualForecast: weather.isActualForecast === true,
-        withinRange: daysFromToday >= 0 && daysFromToday <= 7
+        bothConditionsMet: isVerifiedLive
       },
-      validationMethod: 'standardized'
+      validationMethod: 'fixed_simplified'
     });
     
     return isVerifiedLive;
@@ -70,25 +61,27 @@ export class WeatherUtilityService {
   }
 
   /**
-   * STANDARDIZED: Gets weather source label for display
+   * FIXED: Gets weather source label for display - simplified logic
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
+    // FIXED: Use the simplified live forecast detection
     const isLive = this.isLiveForecast(weather, segmentDate);
     const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
     
-    console.log('🏷️ STANDARDIZED: Weather source label:', {
+    console.log('🏷️ FIXED: Weather source label (simplified):', {
       cityName: weather.cityName,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
       isLive,
       label,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast
+      fixedLogic: true
     });
     
     return label;
   }
 
   /**
-   * STANDARDIZED: Gets weather confidence and quality info
+   * FIXED: Gets weather confidence and quality info
    */
   static getWeatherSourceInfo(weather: ForecastWeatherData, segmentDate?: Date | null): WeatherSourceInfo {
     const isLive = this.isLiveForecast(weather, segmentDate);
