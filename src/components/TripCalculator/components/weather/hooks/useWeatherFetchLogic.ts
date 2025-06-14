@@ -2,7 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { DateNormalizationService } from '../DateNormalizationService';
-import { WeatherFetchingService } from '../services/WeatherFetchingService';
+import { SimplifiedWeatherFetchingService } from '../services/SimplifiedWeatherFetchingService';
 import { ForecastSourceAuditor } from '../services/ForecastSourceAuditor';
 
 interface WeatherFetchParams {
@@ -50,10 +50,9 @@ export const useWeatherFetchLogic = () => {
 
       ForecastSourceAuditor.startAudit(segmentEndCity, segmentDay, segmentDate);
 
-      // FIXED: Use WeatherFetchingService instead of placeholder function
-      console.log(`🔧 FIXED: Using WeatherFetchingService for ${segmentEndCity} instead of placeholder`);
+      console.log(`🔧 Using SimplifiedWeatherFetchingService for ${segmentEndCity}`);
       
-      await WeatherFetchingService.fetchWeatherForSegment(
+      await SimplifiedWeatherFetchingService.fetchWeatherForSegment(
         segmentEndCity,
         segmentDate,
         actions.setLoading,
@@ -69,10 +68,9 @@ export const useWeatherFetchLogic = () => {
             const isLiveForecast = weather.isActualForecast === true || 
               weather.source === 'live_forecast';
             
-            console.log(`🔧 FIXED: Weather received for ${segmentEndCity}:`, {
+            console.log(`🔧 Weather received for ${segmentEndCity}:`, {
               isActualForecast: weather.isActualForecast,
               source: weather.source,
-              dateMatchSource: weather.dateMatchInfo?.source,
               isLiveForecast,
               temperature: weather.temperature
             });

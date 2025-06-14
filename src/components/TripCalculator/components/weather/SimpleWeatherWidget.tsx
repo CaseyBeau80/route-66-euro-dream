@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
+import { CoreWeatherFetcher } from './services/CoreWeatherFetcher';
 import SimpleTemperatureDisplay from './SimpleTemperatureDisplay';
 import SeasonalWeatherFallback from './components/SeasonalWeatherFallback';
 
@@ -23,7 +23,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) {
-      // For shared views, create a fallback date based on current date + segment day
       if (isSharedView) {
         const fallbackDate = new Date();
         fallbackDate.setDate(fallbackDate.getDate() + (segment.day - 1));
@@ -42,13 +41,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!segmentDate) {
-        return;
-      }
+      if (!segmentDate) return;
 
-      // CRITICAL FIX: For shared views, ALWAYS attempt live forecast if API key exists
       if (!hasApiKey && isSharedView) {
-        // No API key in shared view - use seasonal fallback immediately
         setLoading(false);
         setError(null);
         return;
@@ -58,11 +53,11 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       setError(null);
 
       try {
-        const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
+        const weatherData = await CoreWeatherFetcher.fetchWeatherForCity({
           cityName: segment.endCity,
           targetDate: segmentDate,
           hasApiKey,
-          isSharedView // Pass shared view flag to enable live forecast attempts
+          isSharedView
         });
 
         setWeather(weatherData);
@@ -76,9 +71,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
     fetchWeather();
   }, [segment.endCity, segmentDate, hasApiKey, isSharedView, segment.day]);
-
-  // Hide debug boxes in shared views or production
-  const shouldShowDebug = !isSharedView && process.env.NODE_ENV === 'development';
 
   // Loading state
   if (loading) {
