@@ -6,13 +6,13 @@ import { WeatherUtilityService } from './services/WeatherUtilityService';
 interface SimpleTemperatureDisplayProps {
   weather: ForecastWeatherData;
   isSharedView?: boolean;
-  segmentDate?: Date | null;
+  segmentDate: Date;
 }
 
 const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({ 
   weather, 
   isSharedView = false,
-  segmentDate = null
+  segmentDate
 }) => {
   // Extract temperature values with fallbacks
   const high = weather.highTemp || weather.temperature + 5;
@@ -29,12 +29,12 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
 
   const highTempLabel = getTemperatureLabel(high);
   
-  // STANDARDIZED: Use WeatherUtilityService for live forecast detection
+  // FIXED: Use WeatherUtilityService for live forecast detection with proper segmentDate
   const isLiveForecast = React.useMemo(() => {
     return WeatherUtilityService.isLiveForecast(weather, segmentDate);
   }, [weather, segmentDate]);
 
-  console.log('🌡️ STANDARDIZED: SimpleTemperatureDisplay rendering:', {
+  console.log('🌡️ FIXED: SimpleTemperatureDisplay rendering:', {
     cityName: weather.cityName,
     high,
     low,
@@ -43,7 +43,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     isSharedView,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    standardizedDetection: true
+    segmentDate: segmentDate?.toISOString(),
+    fixedDetection: true
   });
 
   return (
@@ -59,8 +60,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
           {highTempLabel}
         </span>
         {isLiveForecast && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-            Live
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+            Live Forecast
           </span>
         )}
       </div>
