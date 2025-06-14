@@ -2,7 +2,7 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import UnifiedWeatherWidget from '../weather/UnifiedWeatherWidget';
+import SharedOnlyWeatherWidget from '../weather/SharedOnlyWeatherWidget';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -13,17 +13,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 SHARED: SharedDailyItinerary using EXACT same components as preview:', {
+  console.log('🔥 SHARED ONLY: SharedDailyItinerary using COMPLETELY NEW weather system:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    exactSameAsPreview: true
+    newWeatherSystem: true
   });
 
-  // Same trip start date logic as preview
+  // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 SHARED ONLY: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -36,22 +36,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 SHARED: Extracted tripStartDate from URL:', {
+            console.log('🔥 SHARED ONLY: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString(),
-              exactSameAsPreview: true
+              newWeatherSystem: true
             });
             return parsedDate;
           }
         }
       }
     } catch (error) {
-      console.warn('⚠️ SHARED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ SHARED ONLY: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 SHARED: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 SHARED ONLY: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -82,16 +82,16 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
 
-        console.log(`🔥 SHARED: Rendering segment ${segment.day} for ${segment.endCity} with EXACT same components as preview`, {
+        console.log(`🔥 SHARED ONLY: Rendering segment ${segment.day} for ${segment.endCity} with NEW weather system`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          exactSameAsPreview: true,
-          uniqueKey: `shared-day-${segment.day}-${segment.endCity}-${Date.now()}`
+          newWeatherSystem: true,
+          uniqueKey: `shared-only-day-${segment.day}-${segment.endCity}-${Date.now()}`
         });
 
         return (
-          <div key={`shared-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`shared-only-day-${segment.day}-${Date.now()}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -143,20 +143,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - using EXACT same component as preview */}
+              {/* Weather section - using COMPLETELY NEW system */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using exact same component as preview</p>
+                  <p className="text-xs text-gray-500">Using completely new isolated weather system</p>
                 </div>
                 
-                <UnifiedWeatherWidget
+                <SharedOnlyWeatherWidget
                   segment={segment}
                   tripStartDate={effectiveTripStartDate}
-                  isSharedView={true}
-                  isPDFExport={false}
                 />
               </div>
             </div>
