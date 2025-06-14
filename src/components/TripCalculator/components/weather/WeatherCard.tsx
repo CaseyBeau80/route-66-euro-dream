@@ -23,16 +23,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log(`🎯 [WEATHER DEBUG] WeatherCard rendered for Day ${segment.day}:`, {
-    component: 'WeatherCard',
-    segmentDay: segment.day,
-    segmentEndCity: segment.endCity,
-    cardIndex,
-    hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString(),
-    isSharedView,
-    isPDFExport
-  });
+  console.log(`🎯 SIMPLIFIED: WeatherCard rendered for Day ${segment.day} - ${segment.endCity}`);
 
   const {
     hasApiKey,
@@ -41,34 +32,19 @@ const WeatherCard: React.FC<WeatherCardProps> = ({
     fetchWeather
   } = useWeatherCard({ segment, tripStartDate });
 
-  console.log(`🎯 [WEATHER DEBUG] WeatherCard state for ${segment.endCity}:`, {
-    hasApiKey,
-    hasWeather: !!weather,
-    loading,
-    hasError: !!error,
-    hasSegmentDate: !!segmentDate,
-    isSharedView,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    retryCount
-  });
-
-  // Enhanced retry function that resets error state
+  // CRITICAL FIX: All callbacks are now memoized with stable dependencies
   const handleRetry = React.useCallback(() => {
-    console.log(`🔄 WeatherCard: Retrying weather fetch for ${segment.endCity}`);
+    console.log(`🔄 SIMPLIFIED: Retrying weather fetch for ${segment.endCity}`);
     fetchWeather();
-  }, [fetchWeather, segment.endCity]);
+  }, [fetchWeather]);
 
-  // Enhanced API key callback that triggers fresh fetch
   const handleApiKeySet = React.useCallback(() => {
-    console.log(`🔑 WeatherCard: API key set, fetching weather for ${segment.endCity}`);
+    console.log(`🔑 SIMPLIFIED: API key set, fetching weather for ${segment.endCity}`);
     fetchWeather();
-  }, [fetchWeather, segment.endCity]);
+  }, [fetchWeather]);
 
-  // Timeout handler for loading states
   const handleTimeout = React.useCallback(() => {
-    console.log(`⏰ WeatherCard: Timeout triggered for ${segment.endCity}`);
-    // This could trigger fallback weather in the future
+    console.log(`⏰ SIMPLIFIED: Timeout triggered for ${segment.endCity}`);
   }, [segment.endCity]);
 
   return (

@@ -19,78 +19,50 @@ export interface SimpleWeatherActions {
 
 export const useSimpleWeatherState = (segmentEndCity: string, day: number): SimpleWeatherState & SimpleWeatherActions => {
   const stateKey = `${segmentEndCity}-day-${day}`;
-  console.log(`🎯 PLAN: useSimpleWeatherState FIXED for ${stateKey} - preventing infinite loops`);
+  console.log(`🎯 SIMPLIFIED: useSimpleWeatherState for ${stateKey} - no loops`);
 
   const [weather, setWeatherState] = React.useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
 
-  // CRITICAL FIX: Use useRef to track if we've initialized to prevent reset loops
-  const isInitialized = React.useRef(false);
+  // CRITICAL FIX: All callbacks are now completely stable with empty dependencies
+  const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
+    console.log(`✅ SIMPLIFIED: Setting weather for ${stateKey}:`, !!newWeather);
+    setWeatherState(newWeather);
+    if (newWeather) {
+      setError(null);
+    }
+  }, []); // Empty deps - completely stable
 
-  // CRITICAL FIX: Memoize reset function to prevent infinite dependency loops
+  const enhancedSetLoading = React.useCallback((loading: boolean) => {
+    console.log(`🔄 SIMPLIFIED: Setting loading=${loading} for ${stateKey}`);
+    setLoading(loading);
+    if (loading) {
+      setError(null);
+    }
+  }, []); // Empty deps - completely stable
+
+  const enhancedSetError = React.useCallback((error: string | null) => {
+    console.log(`❌ SIMPLIFIED: Setting error for ${stateKey}:`, error);
+    setError(error);
+    if (error) {
+      setLoading(false);
+    }
+  }, []); // Empty deps - completely stable
+
+  const incrementRetry = React.useCallback(() => {
+    console.log(`🔄 SIMPLIFIED: Incrementing retry for ${stateKey}`);
+    setRetryCount(prev => prev + 1);
+  }, []); // Empty deps - completely stable
+
   const reset = React.useCallback(() => {
-    console.log(`🔄 PLAN: Resetting weather state for ${stateKey} - CONTROLLED RESET`);
+    console.log(`🔄 SIMPLIFIED: Resetting weather state for ${stateKey}`);
     setWeatherState(null);
     setLoading(false);
     setError(null);
     setRetryCount(0);
-    isInitialized.current = true;
-  }, []); // Empty deps to prevent recreation
-
-  const incrementRetry = React.useCallback(() => {
-    console.log(`🔄 PLAN: Incrementing retry for ${stateKey}`);
-    setRetryCount(prev => prev + 1);
-  }, [stateKey]);
-
-  const setWeather = React.useCallback((newWeather: ForecastWeatherData | null) => {
-    console.log(`✅ PLAN: Setting weather for ${stateKey}:`, {
-      hasWeather: !!newWeather,
-      temperature: newWeather?.temperature,
-      source: newWeather?.source,
-      cityMatch: newWeather?.cityName === segmentEndCity
-    });
-
-    if (newWeather && newWeather.cityName !== segmentEndCity) {
-      console.warn(`⚠️ PLAN: City mismatch for ${stateKey}:`, {
-        expected: segmentEndCity,
-        received: newWeather.cityName
-      });
-    }
-
-    setWeatherState(newWeather);
-    
-    if (newWeather) {
-      setError(null);
-    }
-  }, [segmentEndCity, stateKey]);
-
-  const enhancedSetLoading = React.useCallback((loading: boolean) => {
-    console.log(`🔄 PLAN: Setting loading=${loading} for ${stateKey}`);
-    setLoading(loading);
-    
-    if (loading) {
-      setError(null);
-    }
-  }, [stateKey]);
-
-  const enhancedSetError = React.useCallback((error: string | null) => {
-    console.log(`❌ PLAN: Setting error for ${stateKey}:`, error);
-    setError(error);
-    
-    if (error) {
-      setLoading(false);
-    }
-  }, [stateKey]);
-
-  // CRITICAL FIX: Only reset on first mount, not on every dependency change
-  React.useEffect(() => {
-    if (!isInitialized.current) {
-      console.log(`🚀 PLAN: First initialization for ${stateKey} - single reset only`);
-      reset();
-    }
-  }, []); // Empty deps - only run on mount
+  }, []); // Empty deps - completely stable
 
   return {
     weather,
