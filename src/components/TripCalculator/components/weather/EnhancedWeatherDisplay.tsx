@@ -3,6 +3,7 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
 import { WeatherDataValidator } from './WeatherDataValidator';
+import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -31,25 +32,25 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   // Use validated weather data
   const validatedWeather = validation.normalizedWeather;
 
-  // CRITICAL FIX: Use the validation result's isLiveForecast directly
-  const isLiveForecast = validation.isLiveForecast;
+  // CRITICAL FIX: Use centralized weather label service
+  const isLiveForecast = WeatherLabelService.isLiveWeatherData(validatedWeather);
+  const sourceLabel = WeatherLabelService.getWeatherSourceLabel(validatedWeather);
 
-  console.log('🚨 CRITICAL FIX: EnhancedWeatherDisplay using validation result for', cityName, {
+  console.log('🚨 CENTRALIZED FIX: EnhancedWeatherDisplay using WeatherLabelService for', cityName, {
     originalWeatherSource: weather.source,
     originalIsActualForecast: weather.isActualForecast,
-    validationIsLiveForecast: validation.isLiveForecast,
-    normalizedSource: validatedWeather.source,
-    normalizedIsActualForecast: validatedWeather.isActualForecast,
-    finalIsLiveForecast: isLiveForecast,
+    validatedSource: validatedWeather.source,
+    validatedIsActualForecast: validatedWeather.isActualForecast,
+    centralizedIsLiveForecast: isLiveForecast,
+    centralizedSourceLabel: sourceLabel,
     temperature: validatedWeather.temperature,
-    criticalFix: true,
-    shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER'
+    centralizedService: true
   });
 
-  // CRITICAL FIX: Force green styling when validation confirms live weather
+  // CRITICAL FIX: Force styling based on centralized detection
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
-      console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', cityName);
+      console.log('🟢 CENTRALIZED FIX: Forcing GREEN styling for validated live weather:', cityName);
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: '#059669', // Green-600
@@ -62,7 +63,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         isLive: true
       };
     } else {
-      console.log('🟡 CRITICAL FIX: Using AMBER styling for historical weather:', cityName);
+      console.log('🟡 CENTRALIZED FIX: Using AMBER styling for historical weather:', cityName);
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: '#d97706', // Amber-600
@@ -103,18 +104,18 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         borderColor: styles.borderColor
       }}
     >
-      {/* Debug Overlay - shows validation-based detection */}
+      {/* Debug Overlay - shows centralized detection */}
       {showDebug && (
         <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-          <div className="font-bold mb-1">🔧 CRITICAL FIX: {cityName}</div>
+          <div className="font-bold mb-1">🔧 CENTRALIZED: {cityName}</div>
           <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
-            {isLiveForecast ? '🟢 VALIDATION: LIVE' : '🟡 VALIDATION: HISTORICAL'}
+            {isLiveForecast ? '🟢 CENTRALIZED: LIVE' : '🟡 CENTRALIZED: HISTORICAL'}
           </div>
           <div>Orig Source: {weather.source}</div>
           <div>Orig ActualForecast: {String(weather.isActualForecast)}</div>
           <div>Valid Source: {validatedWeather.source}</div>
           <div>Valid ActualForecast: {String(validatedWeather.isActualForecast)}</div>
-          <div>Validation isLive: {String(validation.isLiveForecast)}</div>
+          <div>Centralized isLive: {String(isLiveForecast)}</div>
           <div className={isLiveForecast ? 'text-green-400' : 'text-yellow-400'}>
             Final Styling: {isLiveForecast ? 'GREEN FORCED' : 'AMBER'}
           </div>
@@ -122,7 +123,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         </div>
       )}
 
-      {/* Weather Source Indicator - with forced colors */}
+      {/* Weather Source Indicator - with centralized colors */}
       <div className="flex items-center justify-between mb-2">
         <span 
           className="text-xs font-medium"
@@ -163,7 +164,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Weather Status Badge - with forced styling */}
+      {/* Weather Status Badge - with centralized styling */}
       <div className="mt-2 text-center">
         <span 
           className="inline-block text-xs px-2 py-1 rounded-full font-medium border"

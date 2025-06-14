@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -36,24 +37,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
   
-  // CRITICAL FIX: Explicit live weather detection with detailed logging
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  // CRITICAL FIX: Use centralized weather label service instead of local logic
+  const isLiveForecast = WeatherLabelService.isLiveWeatherData(weather);
+  const sourceLabel = WeatherLabelService.getWeatherSourceLabel(weather);
+  const liveForecastIndicator = WeatherLabelService.getLiveForecastIndicator(weather);
   
-  console.log('🔧 CRITICAL FIX: SimpleWeatherDisplay live detection:', {
-    cityName,
+  console.log('🔧 CENTRALIZED FIX: SimpleWeatherDisplay using WeatherLabelService for', cityName, {
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    sourceCheck: weather.source === 'live_forecast',
-    forecastCheck: weather.isActualForecast === true,
-    finalIsLiveForecast: isLiveForecast,
+    centralizedIsLive: isLiveForecast,
+    centralizedLabel: sourceLabel,
     temperature: weather.temperature,
-    timestamp: new Date().toISOString()
+    centralizedService: true
   });
 
-  // Force re-render key to ensure fresh display
-  const displayKey = `weather-${cityName}-${isLiveForecast ? 'live' : 'historical'}-${Date.now()}`;
-
-  // CRITICAL FIX: Corrected display configuration logic
+  // CRITICAL FIX: Use centralized styling based on centralized detection
   const displayConfig = isLiveForecast ? {
     sourceLabel: '🟢 Live Weather Forecast',
     sourceColor: 'text-green-600',
@@ -70,23 +68,21 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     borderStyle: 'border-blue-200'
   };
 
-  console.log('🔧 CRITICAL FIX: Display config applied:', {
-    cityName,
+  console.log('🔧 CENTRALIZED FIX: Display config for', cityName, {
     isLiveForecast,
     sourceLabel: displayConfig.sourceLabel,
     badgeText: displayConfig.badgeText,
-    displayKey
+    centralizedStyling: true
   });
 
   return (
     <div 
-      key={displayKey}
       className={`${displayConfig.backgroundStyle} rounded-lg p-4 border ${displayConfig.borderStyle}`}
     >
       {/* Debug info for development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-1 rounded z-50">
-          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'}
+          {weather.source} | {String(weather.isActualForecast)} | {isLiveForecast ? 'LIVE' : 'HIST'} | CENTRALIZED
         </div>
       )}
 
@@ -132,6 +128,15 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           {displayConfig.badgeText}
         </span>
       </div>
+
+      {/* Live forecast indicator if available */}
+      {liveForecastIndicator && (
+        <div className="mt-1 text-center">
+          <span className="text-xs text-green-600 font-medium">
+            {liveForecastIndicator}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
