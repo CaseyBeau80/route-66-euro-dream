@@ -33,6 +33,10 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
   const weatherType = React.useMemo(() => {
     // Only detect weather type if we have enough data
     if (weather.temperature !== undefined && weather.humidity !== undefined && weather.windSpeed !== undefined) {
+      // Ensure source matches ForecastWeatherData type requirements
+      const validSource: "live_forecast" | "historical_fallback" = 
+        weather.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback';
+      
       // Create a complete weather object for type detection
       const completeWeather = {
         temperature: weather.temperature,
@@ -45,7 +49,7 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
         forecast: weather.forecast || [],
         forecastDate: weather.forecastDate || new Date(),
         isActualForecast: weather.isActualForecast || false,
-        source: weather.source || 'unknown',
+        source: validSource,
         dateMatchInfo: weather.dateMatchInfo
       };
       return WeatherTypeDetector.detectWeatherType(completeWeather);
