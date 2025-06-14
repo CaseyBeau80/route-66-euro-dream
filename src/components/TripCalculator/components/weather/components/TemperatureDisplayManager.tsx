@@ -20,23 +20,25 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
   const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
   
-  // FIXED: Only show range if we have DIFFERENT high/low values
-  const hasValidRange = hasValidHigh && hasValidLow && temperatures.high !== temperatures.low;
+  // FIXED: For shared views, ALWAYS prioritize range display if we have ANY high/low data
+  // Even if high === low, we show it as a range in shared views
+  const hasAnyRangeData = hasValidHigh || hasValidLow;
   
-  // For shared views, prioritize range over current, but only if range is valid
-  const shouldShowRange = isSharedView ? hasValidRange : hasValidRange;
-  const shouldShowCurrent = !shouldShowRange && hasValidCurrent;
+  // For shared views: show range if ANY range data exists, never show current
+  // For regular views: show range only if we have DIFFERENT high/low values
+  const shouldShowRange = isSharedView ? hasAnyRangeData : (hasValidHigh && hasValidLow && temperatures.high !== temperatures.low);
+  const shouldShowCurrent = !isSharedView && !shouldShowRange && hasValidCurrent;
 
-  console.log('🌡️ TemperatureDisplayManager: FIXED Display decision', {
+  console.log('🌡️ TemperatureDisplayManager: PLAN IMPLEMENTATION Display decision', {
     isSharedView,
     hasValidHigh,
     hasValidLow,
     hasValidCurrent,
-    hasValidRange,
+    hasAnyRangeData,
     shouldShowRange,
     shouldShowCurrent,
     temperatures,
-    highLowSame: temperatures.high === temperatures.low
+    planImplementation: 'prioritize_range_in_shared_views'
   });
 
   if (shouldShowRange) {

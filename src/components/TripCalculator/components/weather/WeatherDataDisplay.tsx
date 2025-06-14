@@ -24,25 +24,26 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🎯 WeatherDataDisplay FIXED VERSION for', cityName, {
+  console.log('🎯 WeatherDataDisplay PLAN IMPLEMENTATION for', cityName, {
     hasWeather: !!weather,
     hasSegmentDate: !!segmentDate,
     isSharedView,
     isPDFExport,
-    weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null
+    weatherType: weather ? WeatherTypeDetector.detectWeatherType(weather) : null,
+    planImplementation: 'prioritize_actual_weather'
   });
 
-  // FIXED: Always try to display weather data if we have it
+  // PLAN IMPLEMENTATION: ALWAYS prioritize actual weather data if available
   if (weather && segmentDate) {
     const weatherType = WeatherTypeDetector.detectWeatherType(weather);
     
-    console.log(`🎯 WeatherDataDisplay: Using regular weather display for ${cityName}`, {
+    console.log(`🎯 WeatherDataDisplay: PLAN - Using actual weather data for ${cityName}`, {
       isActualForecast: weather.isActualForecast,
       source: weather.source,
-      weatherType
+      weatherType,
+      planImplementation: 'actual_weather_priority'
     });
 
-    // Always use the regular weather display - let it handle the data properly
     return (
       <SimpleWeatherDisplay
         weather={weather}
@@ -54,9 +55,9 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // No weather data available - show seasonal fallback only in shared views
-  if ((isSharedView || isPDFExport) && segmentDate) {
-    console.log(`🌱 No weather data, showing seasonal fallback for ${cityName} in shared view`);
+  // PLAN IMPLEMENTATION: Only show seasonal fallback in shared views if NO weather data after fetch attempts
+  if ((isSharedView || isPDFExport) && segmentDate && !weather) {
+    console.log(`🌱 PLAN: No actual weather available, using seasonal fallback for ${cityName} in shared view`);
     return (
       <SeasonalWeatherFallback 
         segmentDate={segmentDate}
@@ -66,6 +67,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
+  // PLAN IMPLEMENTATION: Show "not available" only as absolute last resort in shared views
   if (isSharedView || isPDFExport) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
@@ -75,7 +77,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
     );
   }
 
-  // Regular view - show error state
+  // Regular view - show error state with retry option
   return (
     <div className="bg-amber-50 border border-amber-200 rounded p-3">
       <div className="text-amber-800 text-sm">

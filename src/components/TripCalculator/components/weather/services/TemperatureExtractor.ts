@@ -15,12 +15,13 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TemperatureExtractor.extractTemperatures FIXED VERSION:', {
+    console.log('🌡️ TemperatureExtractor.extractTemperatures PLAN IMPLEMENTATION:', {
       cityName,
       rawWeatherInput: weather,
       temperature: weather?.temperature,
       highTemp: weather?.highTemp,
-      lowTemp: weather?.lowTemp
+      lowTemp: weather?.lowTemp,
+      planImplementation: 'avoid_duplicate_temperatures'
     });
 
     if (!weather) {
@@ -28,8 +29,7 @@ export class TemperatureExtractor {
       return this.createInvalidResult();
     }
 
-    const extracted = this.performExtraction(weather);
-    // REMOVED: Smart fallbacks that were creating identical temperatures
+    const extracted = this.performCleanExtraction(weather);
     
     const result = {
       current: extracted.current,
@@ -38,10 +38,11 @@ export class TemperatureExtractor {
       isValid: TemperatureValidation.hasAnyValidTemperature(extracted)
     };
 
-    console.log('🌡️ TemperatureExtractor FIXED RESULT:', {
+    console.log('🌡️ TemperatureExtractor PLAN RESULT:', {
       cityName,
       result,
-      hasValidRange: !isNaN(result.high) && !isNaN(result.low) && result.high !== result.low
+      hasValidRange: !isNaN(result.high) && !isNaN(result.low) && result.high !== result.low,
+      planImplementation: 'clean_extraction_complete'
     });
     
     return result;
@@ -56,12 +57,13 @@ export class TemperatureExtractor {
     };
   }
 
-  private static performExtraction(weather: ForecastWeatherData) {
+  // PLAN IMPLEMENTATION: Clean extraction without smart fallbacks that create duplicates
+  private static performCleanExtraction(weather: ForecastWeatherData) {
     let current = NaN;
     let high = NaN;
     let low = NaN;
 
-    // Direct property extraction
+    // PLAN: Direct property extraction - no fallbacks to prevent duplicates
     if (weather.highTemp !== undefined && weather.highTemp !== null) {
       high = TemperatureFormatter.extractSingleTemperature(weather.highTemp, 'high-direct');
     }
@@ -72,13 +74,23 @@ export class TemperatureExtractor {
       current = TemperatureFormatter.extractSingleTemperature(weather.temperature, 'current-direct');
     }
 
-    // MatchedForecastDay extraction if needed
+    // PLAN: Only use matchedForecastDay if we're missing specific values
     if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
       const extracted = this.extractFromMatchedDay(weather.matchedForecastDay, { current, high, low });
-      current = isNaN(current) ? extracted.current : current;
-      high = isNaN(high) ? extracted.high : high;
-      low = isNaN(low) ? extracted.low : low;
+      
+      // PLAN: Only update if we don't already have the value (prevent overwriting)
+      if (isNaN(current)) current = extracted.current;
+      if (isNaN(high)) high = extracted.high;
+      if (isNaN(low)) low = extracted.low;
     }
+
+    console.log('🌡️ TemperatureExtractor: PLAN - Clean extraction result:', {
+      current: isNaN(current) ? 'NaN' : current,
+      high: isNaN(high) ? 'NaN' : high,
+      low: isNaN(low) ? 'NaN' : low,
+      allDifferent: current !== high && current !== low && high !== low,
+      planImplementation: 'no_smart_fallbacks'
+    });
 
     return { current, high, low };
   }

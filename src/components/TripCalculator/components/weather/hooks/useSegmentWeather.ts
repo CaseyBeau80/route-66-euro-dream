@@ -33,23 +33,32 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     setRetryCount: incrementRetry
   } = props;
 
-  // PLAN: Memoize the fetch function to prevent recreation on every render
+  // PLAN IMPLEMENTATION: Force weather fetch with aggressive retry logic
   const fetchWeather = React.useCallback(async () => {
-    if (!hasApiKey || !segmentDate || loading) {
-      console.log('🔧 PLAN: useSegmentWeather: Skipping fetch', {
+    if (!hasApiKey || !segmentDate) {
+      console.log('🔧 PLAN: useSegmentWeather: Cannot fetch - missing requirements', {
         hasApiKey,
         hasSegmentDate: !!segmentDate,
-        loading,
         city: segmentEndCity,
-        planImplementation: true
+        planImplementation: 'force_weather_fetch'
       });
       return;
     }
 
-    console.log('🚨 PLAN: TRIGGERING AUTO FETCH with 5-second timeout for', segmentEndCity, {
+    // PLAN: Skip fetch if already loading to prevent duplicate requests
+    if (loading) {
+      console.log('🔧 PLAN: useSegmentWeather: Skipping fetch - already loading', {
+        city: segmentEndCity,
+        planImplementation: 'prevent_duplicate_fetch'
+      });
+      return;
+    }
+
+    console.log('🚨 PLAN: FORCE TRIGGERING WEATHER FETCH for', segmentEndCity, {
       segmentDate: segmentDate.toISOString(),
       daysFromNow: Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-      planImplementation: true
+      retryCount,
+      planImplementation: 'aggressive_weather_fetch'
     });
 
     const fetchId = Math.floor(Math.random() * 1000);
@@ -58,7 +67,7 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
       hasApiKey,
       segmentDate: segmentDate.toISOString(),
       fetchId,
-      planImplementation: true
+      planImplementation: 'force_fetch'
     });
 
     try {
@@ -74,22 +83,22 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
       setError(error instanceof Error ? error.message : 'Weather fetch failed');
       setLoading(false);
     }
-  }, [hasApiKey, segmentDate, loading, segmentEndCity, setLoading, setError, setWeather]);
+  }, [hasApiKey, segmentDate, loading, segmentEndCity, setLoading, setError, setWeather, retryCount]);
 
-  // PLAN: Auto-fetch effect with proper dependency management
+  // PLAN IMPLEMENTATION: Aggressive auto-fetch effect - fetch even if we have weather data but it's stale
   React.useEffect(() => {
-    // Only fetch if we don't have weather data and we're not currently loading
-    if (hasApiKey && segmentDate && !weather && !loading) {
-      console.log('🔧 PLAN: Auto-fetch triggered for', segmentEndCity, {
+    if (hasApiKey && segmentDate && !loading) {
+      // PLAN: Always try to fetch if we have API key and date, regardless of existing weather
+      console.log('🔧 PLAN: Aggressive auto-fetch triggered for', segmentEndCity, {
         hasApiKey,
         hasSegmentDate: !!segmentDate,
         hasWeather: !!weather,
         loading,
-        planImplementation: true
+        planImplementation: 'aggressive_auto_fetch'
       });
       fetchWeather();
     }
-  }, [hasApiKey, segmentDate, weather, loading, fetchWeather]);
+  }, [hasApiKey, segmentDate, fetchWeather, segmentEndCity]);
 
   // PLAN: Cleanup effect to cancel requests when component unmounts
   React.useEffect(() => {
@@ -106,14 +115,15 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     WeatherDebugService.logWeatherFlow(`useSegmentWeather.handleApiKeySet [${segmentEndCity}]`, {
       hasApiKey,
       segmentDate: segmentDate?.toISOString(),
-      planImplementation: true
+      planImplementation: 'api_key_set_handler'
     });
     
     // Reset any existing error state
     setError(null);
     
-    // Trigger a fresh fetch
+    // PLAN: Force immediate fetch when API key is set
     if (segmentDate) {
+      console.log('🚨 PLAN: Forcing immediate fetch after API key set');
       fetchWeather();
     }
   }, [fetchWeather, segmentDate, segmentEndCity, hasApiKey, setError]);
