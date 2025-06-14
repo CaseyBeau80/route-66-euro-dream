@@ -62,7 +62,7 @@ export const useUnifiedWeather = ({
           forecast: weatherData.forecast || weatherData.description || 'No forecast available',
           forecastDate: weatherData.forecastDate || segmentDate,
           description: weatherData.description || 'Weather data',
-          source: weatherData.source || 'api',
+          source: weatherData.source === 'api' ? 'live_forecast' : weatherData.source || 'live_forecast',
           isActualForecast: weatherData.isActualForecast || false
         };
         

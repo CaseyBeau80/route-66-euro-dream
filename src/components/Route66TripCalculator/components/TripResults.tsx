@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Clock, Road, Share2 } from 'lucide-react';
+import { MapPin, Calendar, Clock, Route, Share2 } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
 
 interface TripResultsProps {
@@ -92,7 +91,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               
               <div className="flex items-center gap-4 text-sm text-route66-text-secondary mt-2 md:mt-0">
                 <div className="flex items-center gap-1">
-                  <Road className="w-4 h-4" />
+                  <Route className="w-4 h-4" />
                   {Math.round(segment.distance)} miles
                 </div>
                 <div className="flex items-center gap-1">

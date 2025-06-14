@@ -5,12 +5,47 @@ import { TripPlanningService } from './TripPlanningService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 
 export interface TripPlanningResult {
-  tripPlan: TripPlan;
-  tripStyle: string;
+  success: boolean;
+  tripPlan?: TripPlan;
+  tripStyle?: string;
   warnings?: string[];
+  error?: string;
 }
 
 export class UnifiedTripPlanningService {
+  /**
+   * Plan a trip with the given parameters
+   */
+  async planTrip(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): Promise<TripPlanningResult> {
+    try {
+      console.log('🎯 UnifiedTripPlanningService: Planning trip', {
+        startLocation,
+        endLocation,
+        travelDays,
+        tripStyle
+      });
+
+      // For now, return a basic success response
+      // This would need to be implemented with actual trip planning logic
+      return {
+        success: false,
+        error: 'Trip planning service not yet implemented'
+      };
+
+    } catch (error) {
+      console.error('❌ UnifiedTripPlanningService: Error planning trip', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
   /**
    * Create enhanced trip plan with strict destination city enforcement
    */
@@ -61,6 +96,7 @@ export class UnifiedTripPlanningService {
     console.log(`✅ UNIFIED PLANNING COMPLETE: ${tripPlan.segments.length} segments with destination cities only`);
 
     return {
+      success: true,
       tripPlan,
       tripStyle,
       warnings: warnings.length > 0 ? warnings : undefined
