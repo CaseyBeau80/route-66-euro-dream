@@ -1,13 +1,13 @@
 
 // Weather API Configuration
-// TEMPORARY TEST KEY - Replace with your own API key for production use
-export const WEATHER_API_KEY = 'b6907d289e10d714a6e88b30761fae22';
+// No default API key - users must provide their own
+export const WEATHER_API_KEY = '';
 
-// To use your own API key:
+// To use weather features:
 // 1. Go to https://openweathermap.org/api
 // 2. Sign up for a free account (no credit card required)  
 // 3. Generate your free API key (takes ~10 minutes to activate)
-// 4. Replace the key above with your actual 32-character key
+// 4. Enter your API key when prompted in the app
 
 // Example of what a real API key looks like:
 // export const WEATHER_API_KEY = 'a1b2c3d4e5f6789012345678901abcde';
