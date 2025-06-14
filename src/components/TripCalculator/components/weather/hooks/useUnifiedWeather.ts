@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
@@ -205,30 +206,30 @@ const isPlaceholderKey = (key: string): boolean => {
          key === 'PLACEHOLDER_KEY';
 };
 
-// CRITICAL FIX: Enhanced live weather fetching with EXPLICIT properties
+// FIXED: Enhanced live weather fetching with proper temperature range extraction
 const fetchLiveWeatherDirect = async (
   cityName: string,
   targetDate: Date,
   apiKey: string
 ): Promise<ForecastWeatherData | null> => {
   try {
-    console.log('🌤️ CRITICAL FIX: Starting fetchLiveWeatherDirect with EXPLICIT properties:', cityName);
+    console.log('🌤️ FIXED: Starting fetchLiveWeatherDirect with proper temperature extraction:', cityName);
 
     // Get coordinates
     const coords = await getCoordinatesStandardized(cityName, apiKey);
     if (!coords) {
-      console.log('❌ CRITICAL FIX: Failed to get coordinates for', cityName);
+      console.log('❌ FIXED: Failed to get coordinates for', cityName);
       return null;
     }
 
-    console.log('✅ CRITICAL FIX: Got coordinates for', cityName, coords);
+    console.log('✅ FIXED: Got coordinates for', cityName, coords);
 
     // Fetch weather data
     const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
     const response = await fetch(weatherUrl);
 
     if (!response.ok) {
-      console.log('❌ CRITICAL FIX: Weather API failed for', cityName, {
+      console.log('❌ FIXED: Weather API failed for', cityName, {
         status: response.status,
         statusText: response.statusText
       });
@@ -237,28 +238,68 @@ const fetchLiveWeatherDirect = async (
 
     const data = await response.json();
     if (!data.list || data.list.length === 0) {
-      console.log('❌ CRITICAL FIX: No forecast data for', cityName);
+      console.log('❌ FIXED: No forecast data for', cityName);
       return null;
     }
 
-    console.log('✅ CRITICAL FIX: Got forecast data for', cityName, {
+    console.log('✅ FIXED: Got forecast data for', cityName, {
       forecastItems: data.list.length,
       firstItemDate: data.list[0]?.dt_txt,
       lastItemDate: data.list[data.list.length - 1]?.dt_txt
     });
 
-    // Find best match for target date
+    // FIXED: Find all forecasts for the target date and calculate proper temperature range
     const targetDateString = targetDate.toISOString().split('T')[0];
-    let bestMatch = null;
-
-    // Try exact date match first
-    bestMatch = data.list.find((item: any) => {
+    const targetDateForecasts = data.list.filter((item: any) => {
       const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
       return itemDate === targetDateString;
     });
 
-    // Use closest match if no exact date
-    if (!bestMatch) {
+    console.log('🌡️ FIXED: Found forecasts for target date:', {
+      cityName,
+      targetDateString,
+      matchingForecasts: targetDateForecasts.length,
+      forecastTimes: targetDateForecasts.map((f: any) => f.dt_txt)
+    });
+
+    let bestMatch = null;
+    let calculatedHighTemp = null;
+    let calculatedLowTemp = null;
+
+    if (targetDateForecasts.length > 0) {
+      // FIXED: Calculate proper high/low from all forecasts for that date
+      const temperatures = targetDateForecasts.map((item: any) => ({
+        temp: item.main.temp,
+        temp_max: item.main.temp_max,
+        temp_min: item.main.temp_min,
+        time: item.dt_txt
+      }));
+
+      console.log('🌡️ FIXED: All temperatures for target date:', {
+        cityName,
+        temperatures
+      });
+
+      // Calculate the actual high and low for the day
+      calculatedHighTemp = Math.round(Math.max(...temperatures.map(t => Math.max(t.temp, t.temp_max || t.temp))));
+      calculatedLowTemp = Math.round(Math.min(...temperatures.map(t => Math.min(t.temp, t.temp_min || t.temp))));
+
+      // Use the forecast closest to noon for the main description
+      bestMatch = targetDateForecasts.reduce((closest: any, current: any) => {
+        const currentHour = new Date(current.dt * 1000).getHours();
+        const closestHour = new Date(closest.dt * 1000).getHours();
+        return Math.abs(currentHour - 12) < Math.abs(closestHour - 12) ? current : closest;
+      });
+
+      console.log('🌡️ FIXED: Calculated temperature range from multiple forecasts:', {
+        cityName,
+        calculatedHighTemp,
+        calculatedLowTemp,
+        temperatureRange: calculatedHighTemp - calculatedLowTemp,
+        selectedForecastTime: bestMatch.dt_txt
+      });
+    } else {
+      // Use closest match if no exact date
       const targetTime = targetDate.getTime();
       bestMatch = data.list.reduce((closest: any, current: any) => {
         const currentTime = new Date(current.dt * 1000).getTime();
@@ -266,28 +307,30 @@ const fetchLiveWeatherDirect = async (
         return Math.abs(currentTime - targetTime) < Math.abs(closestTime - targetTime) 
           ? current : closest;
       });
+
+      // For single forecast, use the temp_max/temp_min if available, otherwise create a range
+      calculatedHighTemp = Math.round(bestMatch.main.temp_max || bestMatch.main.temp + 5);
+      calculatedLowTemp = Math.round(bestMatch.main.temp_min || bestMatch.main.temp - 5);
+
+      console.log('🌡️ FIXED: Using closest forecast with estimated range:', {
+        cityName,
+        matchedTime: bestMatch.dt_txt,
+        calculatedHighTemp,
+        calculatedLowTemp,
+        baseTemp: bestMatch.main.temp
+      });
     }
 
     if (!bestMatch) {
-      console.log('❌ CRITICAL FIX: No suitable forecast match for', cityName);
+      console.log('❌ FIXED: No suitable forecast match for', cityName);
       return null;
     }
 
-    const matchedDate = new Date(bestMatch.dt * 1000).toISOString().split('T')[0];
-    console.log('✅ CRITICAL FIX: Weather match found:', {
-      cityName,
-      targetDate: targetDateString,
-      matchedDate,
-      matchType: matchedDate === targetDateString ? 'exact' : 'closest',
-      temperature: Math.round(bestMatch.main.temp),
-      description: bestMatch.weather[0]?.description
-    });
-
-    // CRITICAL FIX: Create live forecast with EXPLICIT properties guaranteed
+    // FIXED: Create live forecast with proper temperature range
     const liveWeatherResult: ForecastWeatherData = {
-      temperature: Math.round(bestMatch.main.temp),
-      highTemp: Math.round(bestMatch.main.temp_max),
-      lowTemp: Math.round(bestMatch.main.temp_min),
+      temperature: Math.round((calculatedHighTemp + calculatedLowTemp) / 2), // Average for main temp
+      highTemp: calculatedHighTemp,
+      lowTemp: calculatedLowTemp,
       description: bestMatch.weather[0]?.description || 'Partly Cloudy',
       icon: bestMatch.weather[0]?.icon || '02d',
       humidity: bestMatch.main.humidity || 50,
@@ -300,21 +343,21 @@ const fetchLiveWeatherDirect = async (
       source: 'live_forecast' // EXPLICIT: This is ALWAYS 'live_forecast'
     };
 
-    console.log('🎯 CRITICAL FIX: Live forecast created with GUARANTEED EXPLICIT properties:', {
+    console.log('🎯 FIXED: Live forecast created with proper temperature range:', {
       cityName,
       temperature: liveWeatherResult.temperature,
       highTemp: liveWeatherResult.highTemp,
       lowTemp: liveWeatherResult.lowTemp,
+      temperatureRange: liveWeatherResult.highTemp - liveWeatherResult.lowTemp,
       isActualForecast: liveWeatherResult.isActualForecast,
       source: liveWeatherResult.source,
       description: liveWeatherResult.description,
-      guaranteedProperties: true,
-      shouldShowLiveBadge: true
+      properTemperatureExtraction: true
     });
 
     return liveWeatherResult;
   } catch (error) {
-    console.error('❌ CRITICAL FIX: fetchLiveWeatherDirect error:', error);
+    console.error('❌ FIXED: fetchLiveWeatherDirect error:', error);
     return null;
   }
 };
