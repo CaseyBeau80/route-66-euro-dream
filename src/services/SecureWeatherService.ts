@@ -5,7 +5,7 @@ import { WeatherFallbackService } from '@/components/Route66Map/services/weather
 
 export class SecureWeatherService {
   /**
-   * Fetch weather forecast using secure Supabase Edge Function with proper date range validation
+   * Fetch weather forecast using secure Supabase Edge Function with improved date handling
    */
   static async fetchWeatherForecast(
     cityName: string, 
@@ -14,19 +14,27 @@ export class SecureWeatherService {
     try {
       console.log('🔒 SecureWeatherService: Calling Edge Function for', cityName, {
         targetDate: targetDate?.toISOString(),
+        targetDateLocal: targetDate?.toLocaleDateString(),
         usingSupabaseSecrets: true
       });
 
-      // Calculate days from today for validation
+      // IMPROVED: Better date range calculation with explicit timezone handling
       const today = new Date()
-      const daysFromToday = targetDate ? Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)) : 0
+      // Normalize today to start of day for consistent comparison
+      const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const normalizedTargetDate = targetDate ? new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()) : normalizedToday
+      
+      const daysFromToday = Math.ceil((normalizedTargetDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000))
       const isWithinReliableRange = daysFromToday >= 0 && daysFromToday <= 6
 
-      console.log('🔒 SecureWeatherService: Date range analysis:', {
-        targetDate: targetDate?.toISOString(),
+      console.log('🔒 SecureWeatherService: IMPROVED date range analysis:', {
+        originalTargetDate: targetDate?.toISOString(),
+        normalizedToday: normalizedToday.toISOString(),
+        normalizedTargetDate: normalizedTargetDate.toISOString(),
         daysFromToday,
         isWithinReliableRange,
-        reliableRangeLimit: '0-6 days'
+        reliableRangeLimit: '0-6 days',
+        dateCalculationMethod: 'normalized_start_of_day'
       });
       
       const { data, error } = await supabase.functions.invoke('weather-forecast', {
@@ -53,8 +61,10 @@ export class SecureWeatherService {
         return this.createFallbackWeather(cityName, targetDate);
       }
 
-      // Validate that the response correctly handles date ranges
-      const isActuallyLive = data.source === 'live_forecast' && data.isActualForecast === true && isWithinReliableRange;
+      // IMPROVED: More explicit validation of live weather criteria
+      const isActuallyLive = data.source === 'live_forecast' && 
+                            data.isActualForecast === true && 
+                            isWithinReliableRange;
 
       console.log('✅ SecureWeatherService: Weather received from Edge Function:', {
         city: cityName,
@@ -65,14 +75,15 @@ export class SecureWeatherService {
         isWithinReliableRange,
         isActuallyLive,
         secureConnection: true,
-        dateRangeValidation: 'applied'
+        improvedValidation: true,
+        shouldBeLive: daysFromToday >= 0 && daysFromToday <= 6 ? 'YES' : 'NO'
       });
 
-      // Ensure the data is properly flagged based on our date range validation
+      // IMPROVED: Ensure the data is properly flagged based on validation
       const validatedData = {
         ...data,
         isActualForecast: isActuallyLive,
-        source: isWithinReliableRange ? data.source : 'historical_fallback'
+        source: isWithinReliableRange && data.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback'
       } as ForecastWeatherData;
 
       return validatedData;

@@ -18,24 +18,33 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Calculate if this is a reliable live forecast
+  // IMPROVED: More explicit date range calculation
   const today = new Date()
-  const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+  const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const normalizedSegmentDate = new Date(segmentDate.getFullYear(), segmentDate.getMonth(), segmentDate.getDate())
+  const daysFromToday = Math.ceil((normalizedSegmentDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000))
   const isWithinReliableRange = daysFromToday >= 0 && daysFromToday <= 6
   
-  // A forecast is only "LIVE" if it's from live_forecast source, isActualForecast is true, AND within reliable range
-  const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true && isWithinReliableRange
+  // IMPROVED: More explicit live weather detection
+  const isLiveWeather = weather.source === 'live_forecast' && 
+                       weather.isActualForecast === true && 
+                       isWithinReliableRange
   
-  console.log('🌤️ FIXED LIVE WEATHER: SimpleWeatherDisplay logic:', {
+  console.log('🌤️ IMPROVED: SimpleWeatherDisplay logic with better date handling:', {
     cityName,
     segmentDate: segmentDate.toISOString(),
+    segmentDateLocal: segmentDate.toLocaleDateString(),
+    normalizedToday: normalizedToday.toISOString(),
+    normalizedSegmentDate: normalizedSegmentDate.toISOString(),
     daysFromToday,
     isWithinReliableRange,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     finalIsLiveWeather: isLiveWeather,
     temperature: weather.temperature,
-    description: weather.description
+    description: weather.description,
+    improvedDateCalculation: true,
+    shouldShowLive: daysFromToday >= 0 && daysFromToday <= 6 ? 'YES' : 'NO'
   });
 
   return (
@@ -51,7 +60,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </p>
         </div>
         
-        {/* Live weather indicator - only for reliable forecasts */}
+        {/* IMPROVED: Live weather indicator with explicit conditions */}
         {isLiveWeather && (
           <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -59,14 +68,14 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
           </div>
         )}
         
-        {/* Estimated forecast indicator - for anything outside reliable range or not actual forecast */}
+        {/* IMPROVED: Estimated forecast indicator with clearer conditions */}
         {!isLiveWeather && isWithinReliableRange && weather.source === 'live_forecast' && (
           <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
             <span className="text-xs font-medium">ESTIMATED</span>
           </div>
         )}
         
-        {/* Historical fallback indicator - for dates far in future */}
+        {/* IMPROVED: Seasonal forecast indicator for dates far in future */}
         {!isWithinReliableRange && (
           <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
             <span className="text-xs font-medium">SEASONAL</span>
@@ -127,7 +136,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         )}
       </div>
 
-      {/* Source information with detailed explanations */}
+      {/* IMPROVED: Source information with clearer explanations */}
       <div className="mt-3 pt-2 border-t border-blue-100">
         <div className="text-xs text-gray-500 text-center">
           {isLiveWeather ? (
@@ -141,7 +150,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
             <div className="text-amber-600">
               🔮 Estimated forecast
               <div className="text-xs text-gray-500 mt-1">
-                Based on weather patterns and trends
+                API data unavailable - using weather patterns
               </div>
             </div>
           ) : (
