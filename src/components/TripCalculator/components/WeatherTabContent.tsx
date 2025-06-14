@@ -6,7 +6,7 @@ import { Cloud, Key, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { CentralizedWeatherApiKeyManager } from '../services/CentralizedWeatherApiKeyManager';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 
 interface WeatherTabContentProps {
@@ -25,18 +25,9 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
   const [apiKey, setApiKey] = React.useState('');
   const [isStoring, setIsStoring] = React.useState(false);
   const [message, setMessage] = React.useState('');
-  const [hasApiKey, setHasApiKey] = React.useState(false);
 
-  // Check for API key on mount
-  React.useEffect(() => {
-    const checkApiKey = () => {
-      const keyExists = WeatherApiKeyManager.hasApiKey();
-      setHasApiKey(keyExists);
-      console.log('🔑 WeatherTabContent: API key check:', keyExists);
-    };
-    
-    checkApiKey();
-  }, []);
+  const apiKeyManager = CentralizedWeatherApiKeyManager.getInstance();
+  const hasApiKey = apiKeyManager.hasApiKey();
 
   const handleStoreApiKey = async () => {
     if (!apiKey.trim()) {
@@ -46,10 +37,9 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
 
     setIsStoring(true);
     try {
-      WeatherApiKeyManager.setApiKey(apiKey.trim());
+      apiKeyManager.setApiKey(apiKey.trim());
       setMessage('✅ API key saved! Refreshing weather data...');
       setApiKey('');
-      setHasApiKey(true);
       
       // Refresh the page to reload with new API key
       setTimeout(() => {

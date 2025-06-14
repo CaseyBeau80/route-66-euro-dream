@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TripPlan, DailySegment } from '../services/planning/TripPlanBuilder';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,7 @@ import AttractionsTabContent from './AttractionsTabContent';
 import RestaurantsTabContent from './RestaurantsTabContent';
 import CostTabContent from './CostTabContent';
 import ShareTripButton from './ShareTripButton';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { CentralizedWeatherApiKeyManager } from '../services/CentralizedWeatherApiKeyManager';
 
 interface TripResultsTabsProps {
   tripPlan: TripPlan;
@@ -47,10 +46,9 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
   const [isStoringKey, setIsStoringKey] = useState(false);
   const [keyMessage, setKeyMessage] = useState('');
 
-  // Check if we have API key for weather
-  const [hasWeatherApiKey, setHasWeatherApiKey] = React.useState(() => {
-    return WeatherApiKeyManager.hasApiKey();
-  });
+  // Use centralized API key manager
+  const apiKeyManager = CentralizedWeatherApiKeyManager.getInstance();
+  const hasWeatherApiKey = apiKeyManager.hasApiKey();
 
   const handleStoreApiKey = async () => {
     if (!apiKey.trim()) {
@@ -60,10 +58,9 @@ const TripResultsTabs: React.FC<TripResultsTabsProps> = ({
 
     setIsStoringKey(true);
     try {
-      WeatherApiKeyManager.setApiKey(apiKey.trim());
+      apiKeyManager.setApiKey(apiKey.trim());
       setKeyMessage('✅ API key saved! Weather forecasts are now enabled.');
       setApiKey('');
-      setHasWeatherApiKey(true);
       
       // Refresh after a moment
       setTimeout(() => {
