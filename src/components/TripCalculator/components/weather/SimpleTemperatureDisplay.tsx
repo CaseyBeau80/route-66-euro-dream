@@ -12,9 +12,8 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false 
 }) => {
   // Extract temperature values with fallbacks
-  const temp = weather.temperature;
-  const high = weather.highTemp || temp + 5;
-  const low = weather.lowTemp || temp - 5;
+  const high = weather.highTemp || weather.temperature + 5;
+  const low = weather.lowTemp || weather.temperature - 5;
 
   // FIXED: Remove hardcoded "Hot" labels and use actual temperature ranges
   const getTemperatureLabel = (temperature: number): string => {
@@ -25,15 +24,14 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     return 'Cold';
   };
 
-  const tempLabel = getTemperatureLabel(temp);
+  const highTempLabel = getTemperatureLabel(high);
   const isLiveForecast = weather.isActualForecast === true && weather.source === 'live_forecast';
 
-  console.log('🌡️ SimpleTemperatureDisplay rendering:', {
+  console.log('🌡️ SimpleTemperatureDisplay rendering (current temp removed):', {
     cityName: weather.cityName,
-    temp,
     high,
     low,
-    tempLabel,
+    highTempLabel,
     isLiveForecast,
     isSharedView
   });
@@ -41,17 +39,14 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className="text-2xl font-bold text-gray-800">
-          {Math.round(temp)}°F
-        </span>
         <span className={`text-xs px-2 py-1 rounded ${
-          tempLabel === 'Hot' ? 'bg-red-100 text-red-700' :
-          tempLabel === 'Warm' ? 'bg-orange-100 text-orange-700' :
-          tempLabel === 'Mild' ? 'bg-green-100 text-green-700' :
-          tempLabel === 'Cool' ? 'bg-blue-100 text-blue-700' :
+          highTempLabel === 'Hot' ? 'bg-red-100 text-red-700' :
+          highTempLabel === 'Warm' ? 'bg-orange-100 text-orange-700' :
+          highTempLabel === 'Mild' ? 'bg-green-100 text-green-700' :
+          highTempLabel === 'Cool' ? 'bg-blue-100 text-blue-700' :
           'bg-gray-100 text-gray-700'
         }`}>
-          {tempLabel}
+          {highTempLabel}
         </span>
         {isLiveForecast && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
