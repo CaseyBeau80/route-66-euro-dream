@@ -10,7 +10,7 @@ export interface WeatherFetchResult {
 
 export class UnifiedWeatherService {
   /**
-   * Main entry point for all weather fetching - always tries live first
+   * ENHANCED: Main entry point with comprehensive validation and debugging
    */
   static async fetchWeatherForSegment(
     cityName: string,
@@ -18,25 +18,30 @@ export class UnifiedWeatherService {
     segmentDay: number,
     forceRefresh: boolean = false
   ): Promise<WeatherFetchResult> {
-    console.log('🌤️ CRITICAL FIX: UnifiedWeatherService enhanced live weather fetching for', cityName, {
+    const operationId = `${cityName}-${targetDate.toISOString().split('T')[0]}-${Date.now()}`;
+    
+    console.log('🔍 ENHANCED: UnifiedWeatherService operation started:', {
+      operationId,
+      cityName,
       targetDate: targetDate.toISOString(),
       segmentDay,
       forceRefresh,
-      alwaysTriesLiveFirst: true
+      enhancedDebugMode: true
     });
 
-    // Step 1: Always check for API key first
+    // Step 1: Enhanced API key validation
     const apiKey = WeatherApiKeyManager.getApiKey();
     const hasValidApiKey = !!apiKey && apiKey !== 'YOUR_API_KEY_HERE' && apiKey.length > 10;
 
-    console.log('🔑 CRITICAL FIX: API key validation:', {
+    console.log('🔍 ENHANCED: API key validation:', {
+      operationId,
       hasApiKey: !!apiKey,
       isValidFormat: hasValidApiKey,
       keyLength: apiKey?.length || 0,
       keyPreview: apiKey ? apiKey.substring(0, 8) + '...' : 'none'
     });
 
-    // Step 2: Check if date is within live forecast range
+    // Step 2: Enhanced date analysis
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDateCopy = new Date(targetDate);
@@ -44,7 +49,8 @@ export class UnifiedWeatherService {
     const daysFromToday = Math.ceil((targetDateCopy.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
 
-    console.log('📅 CRITICAL FIX: Date analysis for live forecast:', {
+    console.log('🔍 ENHANCED: Date analysis for live forecast:', {
+      operationId,
       today: today.toISOString(),
       targetDate: targetDateCopy.toISOString(),
       daysFromToday,
@@ -52,28 +58,42 @@ export class UnifiedWeatherService {
       shouldAttemptLive: hasValidApiKey && isWithinForecastRange
     });
 
-    // Step 3: Attempt live forecast if conditions are met
+    // Step 3: Enhanced live forecast attempt
     if (hasValidApiKey && isWithinForecastRange) {
       try {
-        console.log('🌤️ CRITICAL FIX: Attempting live forecast for', cityName);
-        const liveWeather = await this.fetchLiveWeather(cityName, targetDate, apiKey);
+        console.log('🔍 ENHANCED: Attempting live forecast for', cityName, operationId);
+        const liveWeather = await this.fetchLiveWeather(cityName, targetDate, apiKey, operationId);
         
         if (liveWeather) {
-          console.log('✅ CRITICAL FIX: Live forecast SUCCESS for', cityName, {
-            temperature: liveWeather.temperature,
-            source: liveWeather.source,
-            isActualForecast: liveWeather.isActualForecast,
-            liveWeatherConfirmed: true
-          });
-          return { weather: liveWeather, error: null };
+          // ENHANCED: Comprehensive data validation
+          const isValidLiveData = this.validateLiveWeatherData(liveWeather, operationId);
+          
+          if (isValidLiveData) {
+            console.log('✅ ENHANCED: Live forecast SUCCESS and VALIDATED for', cityName, {
+              operationId,
+              temperature: liveWeather.temperature,
+              source: liveWeather.source,
+              isActualForecast: liveWeather.isActualForecast,
+              description: liveWeather.description,
+              validationPassed: true,
+              timestamp: new Date().toISOString()
+            });
+            return { weather: liveWeather, error: null };
+          } else {
+            console.error('❌ ENHANCED: Live weather data failed validation:', liveWeather);
+          }
         }
       } catch (error) {
-        console.error('❌ CRITICAL FIX: Live forecast failed for', cityName, error);
+        console.error('❌ ENHANCED: Live forecast failed for', cityName, {
+          operationId,
+          error: error instanceof Error ? error.message : error
+        });
       }
     }
 
-    // Step 4: Fall back to historical data
-    console.log('🔄 CRITICAL FIX: Using fallback weather for', cityName, {
+    // Step 4: Enhanced fallback to historical data
+    console.log('🔄 ENHANCED: Using fallback weather for', cityName, {
+      operationId,
       reason: !hasValidApiKey ? 'no_api_key' : !isWithinForecastRange ? 'outside_forecast_range' : 'live_fetch_failed'
     });
 
@@ -84,38 +104,56 @@ export class UnifiedWeatherService {
       daysFromToday
     );
 
+    // ENHANCED: Validate fallback data too
+    if (fallbackWeather) {
+      const isValidFallbackData = this.validateFallbackWeatherData(fallbackWeather, operationId);
+      if (isValidFallbackData) {
+        console.log('✅ ENHANCED: Fallback weather validated for', cityName, {
+          operationId,
+          source: fallbackWeather.source,
+          isActualForecast: fallbackWeather.isActualForecast,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
     return { weather: fallbackWeather, error: null };
   }
 
   /**
-   * CRITICAL FIX: Enhanced live weather API call with explicit property setting
+   * ENHANCED: Live weather API call with comprehensive validation
    */
   private static async fetchLiveWeather(
     cityName: string,
     targetDate: Date,
-    apiKey: string
+    apiKey: string,
+    operationId: string
   ): Promise<ForecastWeatherData | null> {
     try {
       // Get coordinates
       const coords = await this.getCoordinates(cityName, apiKey);
       if (!coords) {
-        console.log('❌ CRITICAL FIX: No coordinates for', cityName);
+        console.log('❌ ENHANCED: No coordinates for', cityName, operationId);
         return null;
       }
 
       // Fetch 5-day forecast
       const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-      console.log('🌤️ CRITICAL FIX: Calling OpenWeather API for', cityName);
+      console.log('🔍 ENHANCED: Calling OpenWeather API for', cityName, operationId);
 
       const response = await fetch(forecastUrl);
       if (!response.ok) {
-        console.error('❌ CRITICAL FIX: API call failed:', response.status);
+        console.error('❌ ENHANCED: API call failed:', {
+          operationId,
+          status: response.status,
+          statusText: response.statusText
+        });
         return null;
       }
 
       const data = await response.json();
       if (!data.list || data.list.length === 0) {
-        console.error('❌ CRITICAL FIX: No forecast data returned');
+        console.error('❌ ENHANCED: No forecast data returned', operationId);
         return null;
       }
 
@@ -126,7 +164,7 @@ export class UnifiedWeatherService {
         return itemDate === targetDateString;
       }) || data.list[0]; // Fallback to first available
 
-      // CRITICAL FIX: Create live forecast data with EXPLICIT properties
+      // ENHANCED: Create live forecast data with EXPLICIT and VALIDATED properties
       const liveWeather: ForecastWeatherData = {
         temperature: Math.round(bestMatch.main.temp),
         highTemp: Math.round(bestMatch.main.temp_max),
@@ -139,27 +177,95 @@ export class UnifiedWeatherService {
         cityName: cityName,
         forecast: [],
         forecastDate: targetDate,
-        isActualForecast: true, // CRITICAL: Explicitly true for live API data
-        source: 'live_forecast' // CRITICAL: Explicitly set to live_forecast
+        isActualForecast: true, // ENHANCED: Explicitly true for live API data
+        source: 'live_forecast' as const // ENHANCED: Explicitly typed as const
       };
 
-      console.log('✅ CRITICAL FIX: Live weather data created for', cityName, {
+      console.log('✅ ENHANCED: Live weather data created with validation for', cityName, {
+        operationId,
         temperature: liveWeather.temperature,
         isActualForecast: liveWeather.isActualForecast,
         source: liveWeather.source,
         description: liveWeather.description,
-        explicitLiveProperties: true
+        typeValidation: {
+          sourceType: typeof liveWeather.source,
+          actualType: typeof liveWeather.isActualForecast,
+          sourceValue: liveWeather.source,
+          actualValue: liveWeather.isActualForecast
+        },
+        creationTimestamp: new Date().toISOString()
       });
 
       return liveWeather;
     } catch (error) {
-      console.error('❌ CRITICAL FIX: Live weather fetch error:', error);
+      console.error('❌ ENHANCED: Live weather fetch error:', {
+        operationId,
+        error: error instanceof Error ? error.message : error
+      });
       return null;
     }
   }
 
   /**
-   * Geocoding helper
+   * ENHANCED: Validate live weather data structure and properties
+   */
+  private static validateLiveWeatherData(weather: ForecastWeatherData, operationId: string): boolean {
+    const validations = {
+      hasTemperature: weather.temperature !== undefined && !isNaN(weather.temperature),
+      hasSource: weather.source === 'live_forecast',
+      hasActualForecast: weather.isActualForecast === true,
+      hasDescription: typeof weather.description === 'string' && weather.description.length > 0,
+      hasIcon: typeof weather.icon === 'string' && weather.icon.length > 0
+    };
+
+    const isValid = Object.values(validations).every(Boolean);
+
+    console.log('🔍 ENHANCED: Live weather data validation:', {
+      operationId,
+      validations,
+      isValid,
+      weatherData: {
+        temperature: weather.temperature,
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        description: weather.description,
+        icon: weather.icon
+      }
+    });
+
+    return isValid;
+  }
+
+  /**
+   * ENHANCED: Validate fallback weather data structure
+   */
+  private static validateFallbackWeatherData(weather: ForecastWeatherData, operationId: string): boolean {
+    const validations = {
+      hasTemperature: weather.temperature !== undefined && !isNaN(weather.temperature),
+      hasSource: weather.source === 'historical_fallback',
+      hasActualForecast: weather.isActualForecast === false,
+      hasDescription: typeof weather.description === 'string' && weather.description.length > 0
+    };
+
+    const isValid = Object.values(validations).every(Boolean);
+
+    console.log('🔍 ENHANCED: Fallback weather data validation:', {
+      operationId,
+      validations,
+      isValid,
+      weatherData: {
+        temperature: weather.temperature,
+        source: weather.source,
+        isActualForecast: weather.isActualForecast,
+        description: weather.description
+      }
+    });
+
+    return isValid;
+  }
+
+  /**
+   * Geocoding helper (unchanged but with enhanced logging)
    */
   private static async getCoordinates(cityName: string, apiKey: string) {
     try {
@@ -173,9 +279,10 @@ export class UnifiedWeatherService {
       if (!data || data.length === 0) return null;
 
       const result = data.find((r: any) => r.country === 'US') || data[0];
+      console.log('🔍 ENHANCED: Coordinates found for', cityName, { lat: result.lat, lng: result.lon });
       return { lat: result.lat, lng: result.lon };
     } catch (error) {
-      console.error('❌ CRITICAL FIX: Geocoding error:', error);
+      console.error('❌ ENHANCED: Geocoding error:', error);
       return null;
     }
   }
