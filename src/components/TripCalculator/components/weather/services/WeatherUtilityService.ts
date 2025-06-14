@@ -62,10 +62,20 @@ export class WeatherUtilityService {
   }
 
   /**
-   * Get weather source label for display
+   * FIXED: Get weather source label for display - properly detect live forecasts
    */
   static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
+    // CRITICAL FIX: Use the same live forecast detection logic
     const isLive = this.isLiveForecast(weather, segmentDate);
+    
+    console.log('🔧 FIXED: getWeatherSourceLabel for', weather.cityName, {
+      isLive,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      hasSegmentDate: !!segmentDate,
+      segmentDate: segmentDate?.toISOString(),
+      labelWillBe: isLive ? 'Live Weather Forecast' : 'Historical Weather Data'
+    });
     
     if (isLive) {
       return 'Live Weather Forecast';
