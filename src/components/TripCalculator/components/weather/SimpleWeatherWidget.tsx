@@ -91,7 +91,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
   // Use unified weather hook with standardized logic
-  const { weather, loading, error, refetch, hasFetched } = useUnifiedWeather({
+  const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
     segmentDay: segment.day
@@ -114,7 +114,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     hasSegmentDate: !!segmentDate,
     segmentDate: segmentDate?.toISOString(),
     hasApiKey,
-    hasFetched,
     isSharedView,
     standardizedFlow: true
   });
