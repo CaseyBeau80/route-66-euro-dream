@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
@@ -84,10 +85,16 @@ export const useUnifiedWeather = ({
           
           const liveWeather = await fetchLiveWeather(cityName, targetDate, apiKey);
           if (liveWeather) {
-            console.log('✅ UNIFIED: Live weather successful:', {
+            console.log('✅ UNIFIED: Live weather successful - VERIFYING PROPERTIES:', {
               source: liveWeather.source,
               isActualForecast: liveWeather.isActualForecast,
-              temperature: liveWeather.temperature
+              temperature: liveWeather.temperature,
+              cityName: liveWeather.cityName,
+              sourceType: typeof liveWeather.source,
+              isActualForecastType: typeof liveWeather.isActualForecast,
+              exactSourceMatch: liveWeather.source === 'live_forecast',
+              exactActualForecastMatch: liveWeather.isActualForecast === true,
+              bothPropertiesMatch: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true
             });
             setWeather(liveWeather);
             setLoading(false);
@@ -175,7 +182,7 @@ const fetchLiveWeather = async (
       return null;
     }
 
-    // Create live weather object with GUARANTEED live marking
+    // Create live weather object with EXPLICIT live marking
     const liveWeather: ForecastWeatherData = {
       temperature: Math.round(bestMatch.main.temp),
       highTemp: Math.round(bestMatch.main.temp_max),
@@ -188,16 +195,19 @@ const fetchLiveWeather = async (
       cityName: cityName,
       forecast: [],
       forecastDate: targetDate,
-      // CRITICAL: GUARANTEEN these values for live weather
+      // CRITICAL: EXPLICIT VALUES FOR LIVE WEATHER
       isActualForecast: true,
       source: 'live_forecast' as const
     };
 
-    console.log('✅ UNIFIED: Created GUARANTEEN live weather object:', {
+    console.log('✅ UNIFIED: Created live weather object - FINAL VERIFICATION:', {
       cityName,
       temperature: liveWeather.temperature,
       isActualForecast: liveWeather.isActualForecast,
       source: liveWeather.source,
+      exactSourceCheck: liveWeather.source === 'live_forecast',
+      exactActualForecastCheck: liveWeather.isActualForecast === true,
+      finalLiveCheck: liveWeather.source === 'live_forecast' && liveWeather.isActualForecast === true,
       guaranteedLive: true
     });
 

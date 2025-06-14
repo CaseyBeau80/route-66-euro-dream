@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { WeatherLabelService } from './services/WeatherLabelService';
 
 interface UnifiedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -18,15 +19,16 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Determine if this is live weather data
-  const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  // Use centralized styling service
+  const styling = WeatherLabelService.getWeatherStyling(weather);
   
-  console.log('🎯 UNIFIED DISPLAY: Rendering weather for', cityName, {
+  console.log('🎯 UNIFIED DISPLAY: Rendering weather using centralized styling for', cityName, {
     source: weather.source,
     isActualForecast: weather.isActualForecast,
-    isLiveWeather,
+    centralizedIsLive: styling.isLive,
     temperature: weather.temperature,
-    finalClassification: isLiveWeather ? 'LIVE WEATHER' : 'HISTORICAL DATA'
+    finalClassification: styling.isLive ? 'LIVE WEATHER' : 'HISTORICAL DATA',
+    centralizedStyling: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -46,30 +48,15 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
 
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
-  
-  // Style based on whether it's live or historical
-  const displayConfig = isLiveWeather ? {
-    sourceLabel: '🟢 Live Weather Forecast',
-    sourceColor: 'text-green-600',
-    badgeText: '✨ Current live forecast',
-    badgeStyle: 'bg-green-100 text-green-700 border-green-200',
-    containerStyle: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
-  } : {
-    sourceLabel: '🟡 Historical Weather Data',
-    sourceColor: 'text-amber-600', 
-    badgeText: '📊 Based on historical patterns',
-    badgeStyle: 'bg-amber-100 text-amber-700 border-amber-200',
-    containerStyle: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200'
-  };
 
   return (
-    <div className={`${displayConfig.containerStyle} rounded-lg p-4 border relative`}>
+    <div className={`${styling.containerStyle} rounded-lg p-4 border relative`}>
       {/* Debug info overlay in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black bg-opacity-90 text-white text-xs p-2 rounded z-50">
           <div className="font-bold mb-1">{cityName}</div>
-          <div className={`font-bold ${isLiveWeather ? 'text-green-400' : 'text-yellow-400'}`}>
-            {isLiveWeather ? '🟢 LIVE WEATHER' : '🟡 HISTORICAL'}
+          <div className={`font-bold ${styling.isLive ? 'text-green-400' : 'text-yellow-400'}`}>
+            {styling.isLive ? '🟢 CENTRALIZED: LIVE' : '🟡 CENTRALIZED: HISTORICAL'}
           </div>
           <div>Source: {weather.source}</div>
           <div>Actual: {String(weather.isActualForecast)}</div>
@@ -79,8 +66,8 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
 
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-medium ${displayConfig.sourceColor}`}>
-          {displayConfig.sourceLabel}
+        <span className={`text-xs font-medium ${styling.sourceColor}`}>
+          {styling.sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -115,8 +102,8 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
 
       {/* Weather Status Badge */}
       <div className="mt-2 text-center">
-        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${displayConfig.badgeStyle}`}>
-          {displayConfig.badgeText}
+        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${styling.badgeStyle}`}>
+          {styling.badgeText}
         </span>
       </div>
     </div>
