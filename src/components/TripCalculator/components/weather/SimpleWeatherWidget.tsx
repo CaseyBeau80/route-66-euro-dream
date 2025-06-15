@@ -106,10 +106,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
-    // Try to parse drivingTime if it's a string like "5.5h" or "5h 30m"
+    // FIXED: Safe string handling with explicit type checking
     const drivingTimeValue = segment.drivingTime;
-    if (typeof drivingTimeValue === 'string' && drivingTimeValue.length > 0) {
-      const timeStr = drivingTimeValue.toLowerCase();
+    if (drivingTimeValue != null && typeof drivingTimeValue === 'string') {
+      const timeStr = String(drivingTimeValue).toLowerCase();
       
       // Parse "5h 30m" format
       const hMinMatch = timeStr.match(/(\d+)h\s*(\d+)m/);
