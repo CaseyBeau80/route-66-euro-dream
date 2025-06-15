@@ -21,13 +21,18 @@ const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
   return (
     <div className="bg-blue-600 text-white p-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Day {segment.day}</h3>
-          {segmentDate && (
-            <p className="text-sm text-blue-100">
-              {format(segmentDate, 'EEEE, MMMM d, yyyy')}
-            </p>
-          )}
+        <div className="flex items-center gap-3">
+          <div className="bg-white text-blue-600 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+            {segment.day}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Day {segment.day}</h3>
+            {segmentDate && (
+              <p className="text-sm text-blue-100">
+                {format(segmentDate, 'EEE, MMM d')}
+              </p>
+            )}
+          </div>
         </div>
         
         <div className="text-right">

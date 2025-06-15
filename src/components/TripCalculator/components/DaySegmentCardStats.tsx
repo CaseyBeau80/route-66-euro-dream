@@ -20,47 +20,47 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
   segmentDistance
 }) => {
   return (
-    <div className="grid grid-cols-4 gap-0 bg-white">
+    <div className="grid grid-cols-4 gap-0 bg-white border-b border-gray-200">
       {/* Miles */}
-      <div className="p-4 text-center border-r border-gray-200">
-        <div className="flex items-center justify-center mb-2">
-          <Route className="h-5 w-5 text-blue-500" />
+      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-center mb-1">
+          <Route className="h-4 w-4 text-blue-500" />
         </div>
-        <div className="text-2xl font-bold text-blue-600">
+        <div className="text-lg font-bold text-gray-800">
           {Math.round(segmentDistance)}
         </div>
-        <div className="text-xs text-gray-600 font-medium">Miles</div>
+        <div className="text-xs text-gray-600">miles</div>
       </div>
       
       {/* Drive Time */}
-      <div className="p-4 text-center border-r border-gray-200">
-        <div className="flex items-center justify-center mb-2">
-          <Clock className="h-5 w-5 text-purple-500" />
+      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-center mb-1">
+          <Clock className="h-4 w-4 text-purple-500" />
         </div>
-        <div className="text-lg font-bold text-purple-600">
+        <div className="text-sm font-bold text-gray-800">
           {formattedDriveTime}
         </div>
-        <div className="text-xs text-gray-600 font-medium">Drive Time</div>
+        <div className="text-xs text-gray-600">drive time</div>
       </div>
       
       {/* From */}
-      <div className="p-4 text-center border-r border-gray-200">
-        <div className="flex items-center justify-center mb-2">
-          <MapPin className="h-5 w-5 text-red-500" />
+      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-center mb-1">
+          <MapPin className="h-4 w-4 text-red-500" />
         </div>
-        <div className="text-sm font-bold text-gray-800">From</div>
-        <div className="text-xs text-gray-600 font-medium">
+        <div className="text-xs font-semibold text-gray-800 uppercase">From</div>
+        <div className="text-xs text-gray-600 truncate">
           {segment.startCity || 'Unknown'}
         </div>
       </div>
       
       {/* To */}
-      <div className="p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <MapPin className="h-5 w-5 text-green-500" />
+      <div className="p-3 text-center bg-gray-50">
+        <div className="flex items-center justify-center mb-1">
+          <MapPin className="h-4 w-4 text-green-500" />
         </div>
-        <div className="text-sm font-bold text-gray-800">To</div>
-        <div className="text-xs text-gray-600 font-medium">
+        <div className="text-xs font-semibold text-gray-800 uppercase">To</div>
+        <div className="text-xs text-gray-600 truncate">
           {segment.endCity}
         </div>
       </div>
