@@ -18,7 +18,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
-  // FIXED: Ensure tripStartDate is always a Date object or undefined
+  // Ensure tripStartDate is always a Date object or undefined
   const ensureDateObject = (date: Date | string | undefined): Date | undefined => {
     if (!date) return undefined;
     
@@ -35,54 +35,28 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return undefined;
   };
 
-  // FIXED: Default to today's date if no date is set, with proper normalization
-  const getTripStartDate = (): Date => {
+  // Get the current trip start date or undefined
+  const getCurrentTripStartDate = (): Date | undefined => {
     const currentDate = ensureDateObject(formData.tripStartDate);
     if (currentDate) {
-      console.log('🗓️ FIXED: Using existing tripStartDate:', {
+      console.log('🗓️ Using existing tripStartDate:', {
         original: formData.tripStartDate,
         processed: currentDate.toISOString(),
-        local: currentDate.toLocaleDateString(),
-        components: {
-          year: currentDate.getFullYear(),
-          month: currentDate.getMonth(),
-          date: currentDate.getDate()
-        }
+        local: currentDate.toLocaleDateString()
       });
       return currentDate;
     }
     
-    // FIXED: Default to today's date with proper normalization
-    const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    console.log('🗓️ FIXED: Using normalized today as default:', {
-      originalToday: today.toISOString(),
-      normalizedToday: normalizedToday.toISOString(),
-      local: normalizedToday.toLocaleDateString(),
-      components: {
-        year: normalizedToday.getFullYear(),
-        month: normalizedToday.getMonth(),
-        date: normalizedToday.getDate()
-      }
-    });
-    return normalizedToday;
+    console.log('🗓️ No tripStartDate set, returning undefined');
+    return undefined;
   };
 
-  const tripStartDate = getTripStartDate();
+  const tripStartDate = getCurrentTripStartDate();
 
-  console.log('🚨 FIXED DEBUG: TripDateForm comprehensive state:', {
+  console.log('🚨 DEBUG: TripDateForm state:', {
     formDataTripStartDate: formData.tripStartDate,
-    formDataType: typeof formData.tripStartDate,
-    processedTripStartDate: tripStartDate.toISOString(),
-    processedLocal: tripStartDate.toLocaleDateString(),
-    processedComponents: {
-      year: tripStartDate.getFullYear(),
-      month: tripStartDate.getMonth(),
-      date: tripStartDate.getDate()
-    },
-    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    hasFormDataDate: !!formData.tripStartDate,
-    isUsingDefault: !formData.tripStartDate
+    processedTripStartDate: tripStartDate?.toISOString(),
+    hasFormDataDate: !!formData.tripStartDate
   });
 
   // Calculate end date if start date and travel days are available
@@ -101,28 +75,18 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   const endDate = calculateEndDate();
 
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('🗓️ FIXED: Date selection handler called:', {
+    console.log('🗓️ Date selection handler called:', {
       selectedDate: date?.toISOString(),
-      selectedLocal: date?.toLocaleDateString(),
-      selectedComponents: date ? {
-        year: date.getFullYear(),
-        month: date.getMonth(),
-        date: date.getDate()
-      } : null
+      selectedLocal: date?.toLocaleDateString()
     });
     
     if (date) {
-      // FIXED: Normalize the selected date to start of day
+      // Normalize the selected date to start of day
       const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      console.log('🗓️ FIXED: Normalized selected date:', {
+      console.log('🗓️ Setting normalized date:', {
         original: date.toISOString(),
         normalized: normalizedDate.toISOString(),
-        normalizedLocal: normalizedDate.toLocaleDateString(),
-        normalizedComponents: {
-          year: normalizedDate.getFullYear(),
-          month: normalizedDate.getMonth(),
-          date: normalizedDate.getDate()
-        }
+        normalizedLocal: normalizedDate.toLocaleDateString()
       });
       
       setFormData({ 
@@ -147,8 +111,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       checkDateStart: checkDateStart.toDateString(),
       todayStart: todayStart.toDateString(),
       disabled: shouldDisable,
-      isToday: checkDateStart.getTime() === todayStart.getTime(),
-      comparison: `${checkDateStart.getTime()} < ${todayStart.getTime()} = ${shouldDisable}`
+      isToday: checkDateStart.getTime() === todayStart.getTime()
     });
     
     return shouldDisable;
@@ -194,11 +157,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={formData.tripStartDate ? tripStartDate : undefined}
+            selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
             initialFocus
-            defaultMonth={tripStartDate}
             className="p-3 pointer-events-auto"
           />
         </PopoverContent>
