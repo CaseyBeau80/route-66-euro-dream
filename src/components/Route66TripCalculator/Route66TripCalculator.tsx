@@ -127,7 +127,7 @@ const Route66TripCalculator: React.FC = () => {
       {/* Cost Estimator Section */}
       {tripPlan && (
         <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-          <CostEstimatorSection tripPlan={tripPlan} />
+          <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
         </section>
       )}
 
