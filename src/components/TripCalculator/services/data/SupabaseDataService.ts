@@ -74,7 +74,7 @@ export class SupabaseDataService {
           try {
             const stop = convertToTripStop({
               ...gem,
-              name: gem.title || gem.name, // Use title as name for hidden gems
+              name: gem.title, // Map title to name for hidden gems
               category: 'hidden_gem',
               city: gem.city_name || 'Unknown'
             });
