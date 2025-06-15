@@ -10,36 +10,39 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🎯 [DEBUG] useRecommendedStops hook called:', {
+  console.log('🎯 [FIXED] useRecommendedStops hook called:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     maxStops,
-    hookId: Math.random().toString(36).substr(2, 9)
+    timestamp: new Date().toISOString()
   });
 
-  // Fetch all stops data on mount
+  // Fetch all stops data on mount - FORCE FRESH FETCH
   useEffect(() => {
     let isMounted = true;
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [DEBUG] Starting stops fetch...');
+        console.log('🔍 [FIXED] Starting FRESH stops fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🚫 [DEBUG] Component unmounted, ignoring fetch result');
+          console.log('🚫 [FIXED] Component unmounted, ignoring fetch result');
           return;
         }
         
-        console.log('✅ [DEBUG] Stops fetch completed:', {
+        console.log('✅ [FIXED] FRESH stops fetch completed:', {
           totalStops: stops.length,
-          categories: [...new Set(stops.map(s => s.category))],
-          attractionsCount: stops.filter(s => s.category === 'attraction').length,
-          hiddenGemsCount: stops.filter(s => s.category === 'hidden_gem').length,
-          driveInsCount: stops.filter(s => s.category === 'drive_in').length
+          sampleStops: stops.slice(0, 5).map(s => ({ 
+            id: s.id, 
+            name: s.name, 
+            category: s.category, 
+            city: s.city_name,
+            state: s.state
+          }))
         });
         
         if (stops.length === 0) {
@@ -51,7 +54,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('❌ [DEBUG] Stops fetch failed:', err);
+        console.error('❌ [FIXED] Stops fetch failed:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
@@ -66,45 +69,46 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); // Empty dependency array to fetch once
 
-  // Calculate recommended stops
+  // Calculate recommended stops - FORCE RECALCULATION
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🎯 [DEBUG] useMemo for recommendations triggered:', {
+    console.log('🎯 [FIXED] FORCED recalculation of recommendations:', {
       hasSegment: !!segment,
       segmentDay: segment?.day,
       endCity: segment?.endCity,
       allStopsCount: allStops.length,
       isLoading,
-      error: !!error
+      error: !!error,
+      timestamp: new Date().toISOString()
     });
 
     // Wait for data to load
     if (isLoading) {
-      console.log('⏳ [DEBUG] Still loading, returning empty array');
+      console.log('⏳ [FIXED] Still loading, returning empty array');
       return [];
     }
 
     // Check for errors
     if (error) {
-      console.log('❌ [DEBUG] Error state, returning empty array:', error);
+      console.log('❌ [FIXED] Error state, returning empty array:', error);
       return [];
     }
 
     // Validate segment
     if (!segment || !segment.endCity) {
-      console.log('⚠️ [DEBUG] Invalid segment, returning empty array');
+      console.log('⚠️ [FIXED] Invalid segment, returning empty array');
       return [];
     }
 
     // Validate stops data
     if (!allStops || allStops.length === 0) {
-      console.log('⚠️ [DEBUG] No stops data, returning empty array');
+      console.log('⚠️ [FIXED] No stops data, returning empty array');
       return [];
     }
 
     try {
-      console.log('🚀 [DEBUG] Calling StopRecommendationService...');
+      console.log('🚀 [FIXED] Calling StopRecommendationService with FORCE flag...');
       
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
@@ -112,25 +116,28 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         maxStops
       );
 
-      console.log('✅ [DEBUG] Recommendations generated:', {
+      console.log('✅ [FIXED] FORCED recommendations generated:', {
         count: recommendations.length,
         segmentDay: segment.day,
         endCity: segment.endCity,
-        recommendations: recommendations.map(r => ({ 
+        detailedRecommendations: recommendations.map(r => ({ 
+          id: r.id,
           name: r.name, 
           city: r.city, 
+          state: r.state,
           category: r.category,
+          type: r.type,
           score: r.relevanceScore
         }))
       });
 
       return recommendations;
     } catch (err) {
-      console.error('❌ [DEBUG] Error generating recommendations:', err);
+      console.error('❌ [FIXED] Error generating recommendations:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
       return [];
     }
-  }, [segment, allStops, maxStops, isLoading, error]);
+  }, [segment?.day, segment?.endCity, allStops, maxStops, isLoading, error]); // More specific dependencies
 
   const result = {
     recommendedStops,
@@ -139,14 +146,20 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('📊 [DEBUG] useRecommendedStops returning:', {
+  console.log('📊 [FIXED] useRecommendedStops FINAL result:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     hasStops: result.hasStops,
     stopsCount: result.recommendedStops.length,
     isLoading: result.isLoading,
     error: result.error,
-    stopNames: result.recommendedStops.map(s => s.name)
+    stopDetails: result.recommendedStops.map(s => ({ 
+      id: s.id, 
+      name: s.name, 
+      category: s.category, 
+      city: s.city,
+      state: s.state
+    }))
   });
 
   return result;

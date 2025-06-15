@@ -16,22 +16,23 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 [DEBUG] RecommendedStopsDisplay rendering:', {
+  console.log('🎯 [FIXED] RecommendedStopsDisplay FORCED render:', {
     stopsCount: stops?.length || 0,
     maxDisplay,
-    showLocation,
-    compact,
+    timestamp: new Date().toISOString(),
     actualStops: stops?.map(s => ({ 
+      id: s.id,
       name: s.name, 
       city: s.city, 
+      state: s.state,
       category: s.category, 
       type: s.type 
     })) || []
   });
 
-  // Validate and filter stops
+  // CRITICAL: Validate and filter stops with DETAILED logging
   if (!stops || stops.length === 0) {
-    console.log('⚠️ [DEBUG] No stops provided to display component');
+    console.log('⚠️ [FIXED] NO STOPS provided to display component');
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -46,29 +47,40 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     );
   }
 
-  // Filter valid stops with enhanced validation
+  // ENHANCED validation - filter out invalid stops
   const validStops = stops.filter(stop => {
     const isValid = stop && 
       stop.name && 
       stop.name.trim().length > 0 &&
       stop.category &&
       stop.city &&
+      stop.state &&
       !stop.name.toLowerCase().includes('destination') &&
       stop.name !== stop.city; // Exclude stops that are just city names
     
-    if (!isValid) {
-      console.log(`⚠️ [DEBUG] Filtering out invalid stop:`, stop);
-    }
+    console.log(`🔍 [FIXED] Validating stop: ${stop?.name}`, {
+      hasName: !!stop?.name,
+      hasCategory: !!stop?.category,
+      hasCity: !!stop?.city,
+      hasState: !!stop?.state,
+      isValid,
+      stopDetails: stop
+    });
     
     return isValid;
   }).slice(0, maxDisplay);
 
-  console.log(`🎯 [DEBUG] Valid stops after filtering: ${validStops.length}`, 
-    validStops.map(s => `${s.name} (${s.category}) in ${s.city}`)
+  console.log(`🎯 [FIXED] Valid stops after ENHANCED filtering: ${validStops.length}`, 
+    validStops.map(s => ({ 
+      id: s.id, 
+      name: s.name, 
+      category: s.category, 
+      location: `${s.city}, ${s.state}` 
+    }))
   );
 
   if (validStops.length === 0) {
-    console.log('⚠️ [DEBUG] No valid stops after filtering');
+    console.log('⚠️ [FIXED] NO VALID stops after filtering');
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -78,43 +90,15 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
         <div className="text-sm text-gray-500 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
           <p className="font-medium mb-1">⚠️ No valid attractions found</p>
           <p className="text-xs">The attraction data could not be properly processed for this segment.</p>
+          <div className="text-xs mt-2 text-gray-400">
+            Raw stops received: {stops.length}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (compact) {
-    return (
-      <div className="space-y-2">
-        <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
-          Route 66 Attractions ({validStops.length})
-        </h5>
-        <div className="space-y-1">
-          {validStops.map((stop, index) => {
-            const formatted = StopRecommendationService.formatStopForDisplay(stop);
-            console.log(`🎯 [DEBUG] Rendering compact stop ${index + 1}:`, formatted);
-            return (
-              <div key={`${stop.id}-${index}`} className="text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-600">{formatted.icon}</span>
-                  <span className="font-medium text-gray-800 truncate">
-                    {formatted.name}
-                  </span>
-                </div>
-                {showLocation && (
-                  <div className="text-xs text-gray-500 ml-6 truncate">
-                    {formatted.location} • {formatted.category}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
+  // FORCE render all valid stops with detailed logging
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-gray-800 flex items-center gap-2">
@@ -124,17 +108,23 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       <div className="space-y-3">
         {validStops.map((stop, index) => {
           const formatted = StopRecommendationService.formatStopForDisplay(stop);
-          console.log(`🎯 [DEBUG] Rendering full stop ${index + 1}:`, formatted);
+          
+          console.log(`🎯 [FIXED] FORCE rendering stop ${index + 1}:`, {
+            original: stop,
+            formatted,
+            timestamp: new Date().toISOString()
+          });
+          
           return (
             <div 
-              key={`${stop.id}-${index}`}
+              key={`${stop.id}-${index}-${Date.now()}`} // Force unique key
               className="p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               <div className="flex items-start gap-3">
                 <span className="text-lg mt-0.5">{formatted.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h5 className="font-medium text-gray-800 truncate">
+                    <h5 className="font-medium text-gray-800">
                       {formatted.name}
                     </h5>
                     <ExternalLink className="h-3 w-3 text-gray-400 flex-shrink-0" />
@@ -149,7 +139,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                       {formatted.category}
                     </span>
                     <span className="text-xs text-gray-500">
-                      Score: {stop.relevanceScore}
+                      Score: {stop.relevanceScore.toFixed(1)}
                     </span>
                   </div>
                 </div>
