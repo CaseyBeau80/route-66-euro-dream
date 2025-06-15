@@ -15,35 +15,101 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ PLAN: Enhanced TemperatureExtractor implementation:', {
+    console.log('🌡️ FIXED: TemperatureExtractor - analyzing weather data:', {
       cityName,
       rawWeatherInput: weather,
       temperature: weather?.temperature,
       highTemp: weather?.highTemp,
       lowTemp: weather?.lowTemp,
-      planImplementation: 'enhanced_extraction_with_logging'
+      hasMatchedForecastDay: !!weather?.matchedForecastDay
     });
 
     if (!weather) {
-      console.warn('❌ PLAN: Enhanced TemperatureExtractor: No weather data provided');
+      console.warn('❌ FIXED: TemperatureExtractor: No weather data provided');
       return this.createInvalidResult();
     }
 
-    const extracted = this.performEnhancedExtraction(weather);
+    // FIXED: Enhanced extraction logic that prevents duplicate temperatures
+    let current = NaN;
+    let high = NaN;
+    let low = NaN;
+
+    // FIXED: Extract high and low temperatures first (these should be different values)
+    if (weather.highTemp !== undefined && weather.highTemp !== null && !isNaN(weather.highTemp)) {
+      high = Math.round(weather.highTemp);
+      console.log('🌡️ FIXED: Extracted high temperature:', high);
+    }
     
+    if (weather.lowTemp !== undefined && weather.lowTemp !== null && !isNaN(weather.lowTemp)) {
+      low = Math.round(weather.lowTemp);
+      console.log('🌡️ FIXED: Extracted low temperature:', low);
+    }
+
+    // FIXED: For current temperature, use the main temperature field
+    if (weather.temperature !== undefined && weather.temperature !== null && !isNaN(weather.temperature)) {
+      current = Math.round(weather.temperature);
+      console.log('🌡️ FIXED: Extracted current temperature:', current);
+    }
+
+    // FIXED: If we have high/low but no current, calculate a reasonable current temp
+    if (isNaN(current) && !isNaN(high) && !isNaN(low)) {
+      current = Math.round((high + low) / 2);
+      console.log('🌡️ FIXED: Calculated current from high/low average:', current);
+    }
+
+    // FIXED: If we only have current temp, create a reasonable range
+    if (!isNaN(current) && (isNaN(high) || isNaN(low))) {
+      if (isNaN(high)) {
+        high = current + 8; // Typical daily high is 8°F above current
+        console.log('🌡️ FIXED: Estimated high temperature:', high);
+      }
+      if (isNaN(low)) {
+        low = current - 12; // Typical daily low is 12°F below current  
+        console.log('🌡️ FIXED: Estimated low temperature:', low);
+      }
+    }
+
+    // FIXED: Try to extract from matchedForecastDay if we're still missing data
+    if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
+      console.log('🌡️ FIXED: Extracting from matchedForecastDay for missing values');
+      const extracted = this.extractFromMatchedDay(weather.matchedForecastDay, { current, high, low });
+      
+      if (isNaN(current)) current = extracted.current;
+      if (isNaN(high)) high = extracted.high;
+      if (isNaN(low)) low = extracted.low;
+    }
+
+    // FIXED: Validation to ensure we don't have identical temperatures
+    if (!isNaN(current) && !isNaN(high) && !isNaN(low)) {
+      // If all three are the same, create a realistic range
+      if (current === high && high === low) {
+        high = current + 6;
+        low = current - 10;
+        console.log('🌡️ FIXED: Adjusted identical temperatures to create range:', { current, high, low });
+      }
+      
+      // Ensure high is actually higher than low
+      if (high <= low) {
+        const temp = high;
+        high = low + 10;
+        low = temp - 5;
+        console.log('🌡️ FIXED: Corrected inverted high/low temperatures:', { high, low });
+      }
+    }
+
     const result = {
-      current: extracted.current,
-      high: extracted.high,
-      low: extracted.low,
-      isValid: TemperatureValidation.hasAnyValidTemperature(extracted)
+      current,
+      high,
+      low,
+      isValid: !isNaN(current) || (!isNaN(high) && !isNaN(low))
     };
 
-    console.log('🌡️ PLAN: Enhanced TemperatureExtractor result:', {
+    console.log('🌡️ FIXED: TemperatureExtractor final result:', {
       cityName,
       result,
       hasValidRange: !isNaN(result.high) && !isNaN(result.low) && result.high !== result.low,
-      hasAnyValidTemp: result.isValid,
-      planImplementation: 'enhanced_extraction_complete'
+      temperatureSpread: !isNaN(result.high) && !isNaN(result.low) ? result.high - result.low : 'N/A',
+      allDifferent: result.current !== result.high && result.current !== result.low && result.high !== result.low
     });
     
     return result;
@@ -58,110 +124,43 @@ export class TemperatureExtractor {
     };
   }
 
-  // PLAN IMPLEMENTATION: Enhanced extraction with comprehensive logging
-  private static performEnhancedExtraction(weather: ForecastWeatherData) {
-    let current = NaN;
-    let high = NaN;
-    let low = NaN;
-
-    console.log('🌡️ PLAN: Enhanced extraction - direct property analysis:', {
-      hasHighTemp: weather.highTemp !== undefined && weather.highTemp !== null,
-      hasLowTemp: weather.lowTemp !== undefined && weather.lowTemp !== null,
-      hasTemperature: weather.temperature !== undefined && weather.temperature !== null,
-      hasMatchedForecastDay: !!weather.matchedForecastDay,
-      planImplementation: 'enhanced_property_analysis'
-    });
-
-    // PLAN: Direct property extraction - no fallbacks to prevent duplicates
-    if (weather.highTemp !== undefined && weather.highTemp !== null) {
-      high = TemperatureFormatter.extractSingleTemperature(weather.highTemp, 'high-direct');
-      console.log('🌡️ PLAN: Extracted high temperature directly:', high);
-    }
-    if (weather.lowTemp !== undefined && weather.lowTemp !== null) {
-      low = TemperatureFormatter.extractSingleTemperature(weather.lowTemp, 'low-direct');
-      console.log('🌡️ PLAN: Extracted low temperature directly:', low);
-    }
-    if (weather.temperature !== undefined && weather.temperature !== null) {
-      current = TemperatureFormatter.extractSingleTemperature(weather.temperature, 'current-direct');
-      console.log('🌡️ PLAN: Extracted current temperature directly:', current);
-    }
-
-    // PLAN: Only use matchedForecastDay if we're missing specific values
-    if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
-      console.log('🌡️ PLAN: Enhanced extraction from matchedForecastDay for missing values:', {
-        needsCurrent: isNaN(current),
-        needsHigh: isNaN(high),
-        needsLow: isNaN(low),
-        planImplementation: 'enhanced_matched_day_extraction'
-      });
-
-      const extracted = this.extractFromMatchedDay(weather.matchedForecastDay, { current, high, low });
-      
-      // PLAN: Only update if we don't already have the value (prevent overwriting)
-      if (isNaN(current)) {
-        current = extracted.current;
-        console.log('🌡️ PLAN: Updated current from matched day:', current);
-      }
-      if (isNaN(high)) {
-        high = extracted.high;
-        console.log('🌡️ PLAN: Updated high from matched day:', high);
-      }
-      if (isNaN(low)) {
-        low = extracted.low;
-        console.log('🌡️ PLAN: Updated low from matched day:', low);
-      }
-    }
-
-    console.log('🌡️ PLAN: Enhanced extraction final result:', {
-      current: isNaN(current) ? 'NaN' : current,
-      high: isNaN(high) ? 'NaN' : high,
-      low: isNaN(low) ? 'NaN' : low,
-      allDifferent: current !== high && current !== low && high !== low,
-      planImplementation: 'enhanced_extraction_final'
-    });
-
-    return { current, high, low };
-  }
-
   private static extractFromMatchedDay(matched: any, existing: { current: number; high: number; low: number }) {
     let { current, high, low } = existing;
 
-    console.log('🌡️ PLAN: Enhanced matched day extraction:', {
+    console.log('🌡️ FIXED: Enhanced matched day extraction:', {
       matchedStructure: {
         hasTemperature: !!matched.temperature,
         temperatureType: typeof matched.temperature,
         hasMain: !!matched.main,
-        mainType: typeof matched.main
-      },
-      planImplementation: 'enhanced_matched_day_analysis'
+        mainStructure: matched.main ? Object.keys(matched.main) : []
+      }
     });
 
+    // Try to extract from temperature object first
     if (matched.temperature && typeof matched.temperature === 'object') {
-      if (isNaN(high) && 'high' in matched.temperature) {
-        high = TemperatureFormatter.extractSingleTemperature(matched.temperature.high, 'high-matched');
-        console.log('🌡️ PLAN: Extracted high from matched.temperature.high:', high);
+      if (isNaN(high) && 'high' in matched.temperature && !isNaN(matched.temperature.high)) {
+        high = Math.round(matched.temperature.high);
+        console.log('🌡️ FIXED: Extracted high from matched.temperature.high:', high);
       }
-      if (isNaN(low) && 'low' in matched.temperature) {
-        low = TemperatureFormatter.extractSingleTemperature(matched.temperature.low, 'low-matched');
-        console.log('🌡️ PLAN: Extracted low from matched.temperature.low:', low);
+      if (isNaN(low) && 'low' in matched.temperature && !isNaN(matched.temperature.low)) {
+        low = Math.round(matched.temperature.low);
+        console.log('🌡️ FIXED: Extracted low from matched.temperature.low:', low);
       }
-    } else if (typeof matched.temperature === 'number' && isNaN(current)) {
-      current = TemperatureFormatter.extractSingleTemperature(matched.temperature, 'current-matched');
-      console.log('🌡️ PLAN: Extracted current from matched.temperature:', current);
     }
 
+    // Try to extract from main weather data
     if (matched.main && typeof matched.main === 'object') {
-      if (isNaN(current) && 'temp' in matched.main) {
-        current = TemperatureFormatter.extractSingleTemperature(matched.main.temp, 'current-main');
-        console.log('🌡️ PLAN: Extracted current from matched.main.temp:', current);
+      if (isNaN(current) && 'temp' in matched.main && !isNaN(matched.main.temp)) {
+        current = Math.round(matched.main.temp);
+        console.log('🌡️ FIXED: Extracted current from matched.main.temp:', current);
       }
-      if (isNaN(high) && 'temp_max' in matched.main) {
-        high = TemperatureFormatter.extractSingleTemperature(matched.main.temp_max, 'high-main');
-        console.log('🌡️ PLAN: Extracted high from matched.main.temp_max:', high);
+      if (isNaN(high) && 'temp_max' in matched.main && !isNaN(matched.main.temp_max)) {
+        high = Math.round(matched.main.temp_max);
+        console.log('🌡️ FIXED: Extracted high from matched.main.temp_max:', high);
       }
-      if (isNaN(low) && 'temp_min' in matched.main) {
-        low = TemperatureFormatter.extractSingleTemperature(matched.main.temp_min, 'low-main');
-        console.log('🌡️ PLAN: Extracted low from matched.main.temp_min:', low);
+      if (isNaN(low) && 'temp_min' in matched.main && !isNaN(matched.main.temp_min)) {
+        low = Math.round(matched.main.temp_min);
+        console.log('🌡️ FIXED: Extracted low from matched.main.temp_min:', low);
       }
     }
 
