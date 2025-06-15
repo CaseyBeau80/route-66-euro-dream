@@ -13,7 +13,6 @@ import { toast } from '@/hooks/use-toast';
 import TripPlannerForm from './components/TripPlannerForm';
 import TripResults from './components/TripResults';
 import TripLoadingDisplay from './components/TripLoadingDisplay';
-import CostEstimatorSection from '../TripCalculator/components/CostEstimatorSection';
 import EnhancedShareTripModal from '../TripCalculator/components/share/EnhancedShareTripModal';
 import CostCalculatorBanner from './components/CostCalculatorBanner';
 import FloatingCostPrompt from './components/FloatingCostPrompt';
@@ -126,7 +125,7 @@ const Route66TripCalculator: React.FC = () => {
         </p>
       </section>
 
-      {/* Planning Form Section */}
+      {/* Planning Form Section - Now includes cost calculator */}
       <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
         <TripPlannerForm
           formData={formData}
@@ -137,12 +136,8 @@ const Route66TripCalculator: React.FC = () => {
           onPlanTrip={handlePlanTrip}
           onResetTrip={handleResetTrip}
           isPlanning={isCalculating}
+          tripPlan={tripPlan}
         />
-      </section>
-
-      {/* Cost Estimator Section - Now above trip results */}
-      <section id="cost-estimator-section" className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-        <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
       </section>
 
       {/* Trip Results Section */}

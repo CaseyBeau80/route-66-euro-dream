@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Users, Gauge } from 'lucide-react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import { route66Towns } from '@/types/route66';
+import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 
 interface TripPlannerFormProps {
   formData: TripFormData;
@@ -14,6 +15,7 @@ interface TripPlannerFormProps {
   onPlanTrip: () => void;
   onResetTrip: () => void;
   isPlanning: boolean;
+  tripPlan?: any; // Add tripPlan prop
 }
 
 const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
@@ -24,7 +26,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   onTripStyleChange,
   onPlanTrip,
   onResetTrip,
-  isPlanning
+  isPlanning,
+  tripPlan
 }) => {
   console.log('📝 TripPlannerForm render:', { formData, isPlanning });
 
@@ -166,6 +169,11 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Cost Estimator Section - NOW ABOVE THE PLAN BUTTON */}
+      <div className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
+        <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
       </div>
 
       {/* Action Buttons */}
