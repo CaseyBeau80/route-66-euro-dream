@@ -11,3 +11,10 @@ export interface RecommendedStop {
   relevanceScore: number;
   originalStop: TripStop;
 }
+
+export interface StopFormattingResult {
+  name: string;
+  location: string;
+  category: string;
+  icon: string;
+}
