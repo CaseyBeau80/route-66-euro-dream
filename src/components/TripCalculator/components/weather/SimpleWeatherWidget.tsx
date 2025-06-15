@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -79,7 +80,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // FIXED: Use validation result directly
   const isLiveForecast = weatherValidation?.isLiveForecast || false;
 
-  // FIXED: Robust drive time calculation with proper fallbacks
+  // FIXED: Robust drive time calculation with proper type safety
   const displayDriveTime = React.useMemo(() => {
     console.log('🚗 FIXED: Drive time calculation for segment:', {
       day: segment.day,
@@ -90,7 +91,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     });
 
     // Try driveTimeHours first (most reliable)
-    if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
+    if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       console.log('✅ Using driveTimeHours:', `${hours}h ${minutes}m`);
@@ -98,7 +99,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
     
     // Try drivingTime if it's a number
-    if (segment.drivingTime && typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
+    if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
       const hours = Math.floor(segment.drivingTime);
       const minutes = Math.round((segment.drivingTime - hours) * 60);
       console.log('✅ Using drivingTime number:', `${hours}h ${minutes}m`);
@@ -106,7 +107,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
     
     // Try to parse drivingTime if it's a string like "5.5h" or "5h 30m"
-    if (segment.drivingTime && typeof segment.drivingTime === 'string') {
+    if (typeof segment.drivingTime === 'string' && segment.drivingTime.length > 0) {
       const timeStr = segment.drivingTime.toLowerCase();
       
       // Parse "5h 30m" format
@@ -130,7 +131,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
     
     // Calculate from distance (55 mph average)
-    if (segment.distance && typeof segment.distance === 'number' && segment.distance > 0) {
+    if (typeof segment.distance === 'number' && segment.distance > 0) {
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
