@@ -4,9 +4,12 @@ import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
-import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 import TripSummaryStats from './TripSummaryStats';
+import { useUnifiedWeather } from '../../TripCalculator/components/weather/hooks/useUnifiedWeather';
+import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
+import { format } from 'date-fns';
+import { LiveWeatherDetectionService } from '../../TripCalculator/components/weather/services/LiveWeatherDetectionService';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -31,23 +34,34 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // FIXED: Simplified drive time formatting that uses driveTimeHours directly
+  // FIXED: Use actual driveTimeHours directly from segment data
   const formatDriveTime = (segment: any): string => {
-    if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
+    console.log('🚗 FIXED: formatDriveTime called with segment:', {
+      city: segment.endCity,
+      driveTimeHours: segment.driveTimeHours,
+      distance: segment.distance,
+      day: segment.day
+    });
+    
+    // Use the actual driveTimeHours value if available
+    if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
+      console.log('✅ FIXED: Using actual driveTimeHours:', { hours, minutes, total: segment.driveTimeHours });
       return `${hours}h ${minutes}m`;
     }
     
-    // Fallback calculation from distance only if driveTimeHours is missing
-    if (segment.distance && typeof segment.distance === 'number' && segment.distance > 0) {
-      const driveTimeHours = segment.distance / 55;
-      const hours = Math.floor(driveTimeHours);
-      const minutes = Math.round((driveTimeHours - hours) * 60);
+    // Fallback calculation only if driveTimeHours is missing
+    if (typeof segment.distance === 'number' && segment.distance > 0) {
+      const estimatedHours = segment.distance / 55;
+      const hours = Math.floor(estimatedHours);
+      const minutes = Math.round((estimatedHours - hours) * 60);
+      console.log('⚠️ FIXED: Using distance fallback:', { distance: segment.distance, hours, minutes });
       return `${hours}h ${minutes}m`;
     }
     
-    return '4h 0m';
+    console.log('❌ FIXED: No valid time data, using fallback');
+    return '2h 30m'; // More realistic fallback
   };
 
   return (
@@ -99,15 +113,12 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Weather Widget */}
+            {/* Enhanced Weather Display */}
             {tripStartDate && (
-              <div className="mb-4">
-                <SimpleWeatherWidget
-                  segment={segment}
-                  tripStartDate={tripStartDate}
-                  isSharedView={false}
-                />
-              </div>
+              <WeatherSegmentDisplay
+                segment={segment}
+                tripStartDate={tripStartDate}
+              />
             )}
 
             {/* Attractions */}
@@ -147,6 +158,137 @@ const TripResults: React.FC<TripResultsProps> = ({
           Share Trip
         </Button>
       </div>
+    </div>
+  );
+};
+
+// FIXED: Dedicated weather component that uses the exact same logic as Preview
+const WeatherSegmentDisplay: React.FC<{
+  segment: any;
+  tripStartDate: Date;
+}> = ({ segment, tripStartDate }) => {
+  // Calculate segment date using the same logic as Preview
+  const segmentDate = React.useMemo(() => {
+    return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+  }, [tripStartDate, segment.day]);
+
+  // Use the unified weather hook with the same parameters as Preview
+  const { weather, loading, error } = useUnifiedWeather({
+    cityName: segment.endCity,
+    segmentDate,
+    segmentDay: segment.day,
+    prioritizeCachedData: false,
+    cachedWeather: null
+  });
+
+  // FIXED: Use EXACT same detection logic as Preview
+  const isLiveForecast = React.useMemo(() => {
+    if (!weather) return false;
+    return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+  }, [weather]);
+
+  console.log('🌤️ FIXED: WeatherSegmentDisplay for', segment.endCity, {
+    day: segment.day,
+    hasWeather: !!weather,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
+    isLiveForecast,
+    segmentDate: segmentDate.toISOString(),
+    expectedColor: isLiveForecast ? 'GREEN (Live)' : 'YELLOW (Historical)'
+  });
+
+  const getWeatherIcon = (iconCode: string) => {
+    const iconMap: { [key: string]: string } = {
+      '01d': '☀️', '01n': '🌙',
+      '02d': '⛅', '02n': '☁️',
+      '03d': '☁️', '03n': '☁️',
+      '04d': '☁️', '04n': '☁️',
+      '09d': '🌧️', '09n': '🌧️',
+      '10d': '🌦️', '10n': '🌧️',
+      '11d': '⛈️', '11n': '⛈️',
+      '13d': '🌨️', '13n': '🌨️',
+      '50d': '🌫️', '50n': '🌫️'
+    };
+    return iconMap[iconCode] || '⛅';
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <div className="flex items-center gap-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (weather && segmentDate) {
+    const weatherIcon = getWeatherIcon(weather.icon);
+    const formattedDate = format(segmentDate, 'EEEE, MMM d');
+
+    // FIXED: Use EXACT same styling logic as Preview form
+    const containerClasses = isLiveForecast 
+      ? "bg-green-100 border-green-200 rounded-lg p-4 border mb-4"
+      : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border mb-4";
+    
+    const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
+    const badgeText = isLiveForecast ? '✨ Live weather forecast' : '📊 Historical weather patterns';
+    const badgeClasses = isLiveForecast
+      ? "bg-green-100 text-green-700 border-green-200"
+      : "bg-yellow-100 text-yellow-700 border-yellow-200";
+    const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
+
+    return (
+      <div className={containerClasses}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-xs font-medium ${sourceColor}`}>
+            {sourceLabel}
+          </span>
+          <span className="text-xs text-gray-600">{formattedDate}</span>
+        </div>
+
+        {/* Main Weather Display */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{weatherIcon}</div>
+            <div>
+              <div className="text-2xl font-bold text-gray-800">
+                {Math.round(weather.temperature)}°F
+              </div>
+              <div className="text-sm text-gray-600 capitalize">
+                {weather.description}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-right">
+            {weather.highTemp && weather.lowTemp && (
+              <div className="text-sm text-gray-600">
+                H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
+              </div>
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
+            </div>
+          </div>
+        </div>
+
+        {/* Weather Status Badge */}
+        <div className="mt-2 text-center">
+          <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${badgeClasses}`}>
+            {badgeText}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded p-3 mb-4 text-center">
+      <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+      <p className="text-xs text-gray-600">Weather information not available</p>
     </div>
   );
 };
