@@ -14,17 +14,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // CRITICAL FIX: Remove memoization to ensure fresh detection
   const isLiveForecast = WeatherLabelService.isLiveWeatherData(weather);
-  
-  console.log('🔧 CRITICAL FIX: SimpleTemperatureDisplay direct detection:', {
-    cityName: weather.cityName,
-    weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast,
-    isLiveForecast,
-    temperature: weather.temperature,
-    memoizationRemoved: true
-  });
 
   const getTemperatureLabel = (temp: number): string => {
     if (temp >= 90) return 'Hot';
@@ -35,8 +25,10 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     return 'Cold';
   };
 
+  // Always show high/low range when available
   const highTemp = weather.highTemp || weather.temperature;
   const lowTemp = weather.lowTemp || weather.temperature;
+  const hasRange = highTemp && lowTemp && highTemp !== lowTemp;
   const highTempLabel = getTemperatureLabel(highTemp);
 
   return (
@@ -46,7 +38,7 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
           <span className="text-2xl font-bold text-gray-800">
             {highTemp}°F
           </span>
-          {lowTemp && lowTemp !== highTemp && (
+          {hasRange && (
             <span className="text-lg text-gray-600">
               / {lowTemp}°F
             </span>
