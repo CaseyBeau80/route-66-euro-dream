@@ -71,7 +71,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // FIXED: Simple date comparison that allows today and future dates
+  // Simple date comparison that allows today and future dates
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Normalize to start of day
   
@@ -123,7 +123,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={(date) => {
-              // FIXED: Only disable dates before today
+              // Only disable dates before today
               const checkDate = new Date(date);
               checkDate.setHours(0, 0, 0, 0);
               
