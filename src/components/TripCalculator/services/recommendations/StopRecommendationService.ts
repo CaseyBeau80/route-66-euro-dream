@@ -19,97 +19,144 @@ export class StopRecommendationService {
     allStops: TripStop[],
     maxStops: number = this.DEFAULT_MAX_STOPS
   ): RecommendedStop[] {
-    console.log(`🎯 [FIXED] StopRecommendationService starting for ${segment.startCity} → ${segment.endCity}`);
-    console.log(`📊 [FIXED] Input data:`, {
-      totalStops: allStops.length,
+    console.log(`🎯 [DEBUG] StopRecommendationService starting for ${segment.startCity} → ${segment.endCity}`);
+    console.log(`📊 [DEBUG] Input validation:`, {
+      hasSegment: !!segment,
+      hasEndCity: !!segment?.endCity,
+      totalStops: allStops?.length || 0,
       maxStops,
       segmentInfo: {
-        day: segment.day,
-        startCity: segment.startCity,
-        endCity: segment.endCity
-      },
-      categoryCounts: allStops.reduce((acc, stop) => {
-        acc[stop.category] = (acc[stop.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
+        day: segment?.day,
+        startCity: segment?.startCity,
+        endCity: segment?.endCity
+      }
+    });
+
+    // CRITICAL: Basic validation
+    if (!segment) {
+      console.error('❌ [DEBUG] No segment provided');
+      return [];
+    }
+
+    if (!segment.endCity) {
+      console.error('❌ [DEBUG] Segment missing endCity');
+      return [];
+    }
+
+    if (!allStops || allStops.length === 0) {
+      console.error('❌ [DEBUG] No stops data provided');
+      return [];
+    }
+
+    // Log sample of available stops
+    console.log(`📊 [DEBUG] Available stops sample:`, {
+      totalStops: allStops.length,
+      categories: [...new Set(allStops.map(s => s.category))],
       sampleStops: allStops.slice(0, 5).map(s => ({ 
         id: s.id, 
         name: s.name, 
         category: s.category, 
-        city: s.city_name 
+        city: s.city_name,
+        state: s.state
       }))
     });
 
-    // CRITICAL FIX: Validate input data
-    if (!allStops || allStops.length === 0) {
-      console.error('❌ [FIXED] No stops data provided to recommendation service');
-      return [];
-    }
-
-    if (!segment?.endCity) {
-      console.error('❌ [FIXED] Invalid segment data - missing endCity');
-      return [];
-    }
-
-    // Filter stops that are geographically relevant to this segment
-    const geographicallyRelevantStops = StopGeographyFilter.filterStopsByRouteGeography(segment, allStops);
-    console.log(`📍 [FIXED] Geographic filter results: ${geographicallyRelevantStops.length} stops`, 
-      geographicallyRelevantStops.map(s => ({ 
-        name: s.name, 
-        category: s.category, 
-        city: s.city_name, 
-        state: s.state 
-      }))
-    );
-    
-    // CRITICAL FIX: Early return if no relevant stops found
-    if (geographicallyRelevantStops.length === 0) {
-      console.warn(`⚠️ [FIXED] No geographically relevant stops found for ${segment.endCity}`);
-      return [];
-    }
-    
-    // Score and rank stops by relevance
-    const scoredStops = StopScoringService.scoreStopRelevance(segment, geographicallyRelevantStops);
-    console.log(`⭐ [FIXED] Scored stops: ${scoredStops.length}`, 
-      scoredStops.slice(0, 5).map(s => ({ 
-        name: s.name, 
-        category: s.category, 
-        city: s.city_name, 
-        score: s.relevanceScore 
-      }))
-    );
-    
-    // CRITICAL FIX: Early return if no scored stops
-    if (scoredStops.length === 0) {
-      console.warn(`⚠️ [FIXED] No scored stops found for ${segment.endCity}`);
-      return [];
-    }
-    
-    // Select diverse and high-quality stops
-    const selectedStops = StopScoringService.selectDiverseStops(scoredStops, maxStops);
-    
-    console.log(`✅ [FIXED] Final selected ${selectedStops.length} recommended stops:`, 
-      selectedStops.map(s => ({ 
-        name: s.name, 
-        city: s.city, 
-        category: s.category, 
-        score: s.relevanceScore,
-        type: s.type
-      }))
-    );
-    
-    // CRITICAL FIX: Enhanced validation of final results
-    const validStops = selectedStops.filter(stop => {
-      const isValid = stop && stop.name && stop.name !== segment.endCity && !stop.name.toLowerCase().includes('destination');
-      if (!isValid) {
-        console.warn(`⚠️ [FIXED] Filtering out invalid stop: ${stop?.name}`);
+    try {
+      // Filter stops geographically
+      const geographicallyRelevantStops = StopGeographyFilter.filterStopsByRouteGeography(segment, allStops);
+      console.log(`📍 [DEBUG] Geographic filtering result: ${geographicallyRelevantStops.length} stops`);
+      
+      if (geographicallyRelevantStops.length === 0) {
+        console.warn(`⚠️ [DEBUG] No geographically relevant stops found for ${segment.endCity}`);
+        
+        // FALLBACK: Try to find ANY stops in the same state as destination
+        const fallbackStops = this.findFallbackStops(segment, allStops);
+        console.log(`🔄 [DEBUG] Fallback search found ${fallbackStops.length} stops`);
+        
+        if (fallbackStops.length === 0) {
+          return [];
+        }
+        
+        // Use fallback stops for scoring
+        const scoredFallbackStops = StopScoringService.scoreStopRelevance(segment, fallbackStops);
+        const selectedFallbackStops = StopScoringService.selectDiverseStops(scoredFallbackStops, maxStops);
+        
+        console.log(`✅ [DEBUG] Fallback recommendation complete: ${selectedFallbackStops.length} stops`);
+        return selectedFallbackStops;
       }
-      return isValid;
-    });
+      
+      // Score and select stops normally
+      const scoredStops = StopScoringService.scoreStopRelevance(segment, geographicallyRelevantStops);
+      console.log(`⭐ [DEBUG] Scoring complete: ${scoredStops.length} scored stops`);
+      
+      if (scoredStops.length === 0) {
+        console.warn(`⚠️ [DEBUG] No scored stops found`);
+        return [];
+      }
+      
+      const selectedStops = StopScoringService.selectDiverseStops(scoredStops, maxStops);
+      
+      console.log(`✅ [DEBUG] Final recommendation complete:`, {
+        selectedCount: selectedStops.length,
+        stops: selectedStops.map(s => ({ 
+          name: s.name, 
+          city: s.city, 
+          category: s.category, 
+          score: s.relevanceScore 
+        }))
+      });
+      
+      return selectedStops;
+      
+    } catch (error) {
+      console.error(`❌ [DEBUG] Error in recommendation service:`, error);
+      return [];
+    }
+  }
 
-    console.log(`🔍 [FIXED] After validation: ${validStops.length} valid stops remain`);
+  /**
+   * Fallback method to find stops when geographic filtering fails
+   */
+  private static findFallbackStops(segment: DailySegment, allStops: TripStop[]): TripStop[] {
+    console.log(`🔄 [DEBUG] Running fallback stop search for ${segment.endCity}`);
     
-    return validStops;
+    // Extract state from destination city
+    const destinationState = this.extractStateFromCity(segment.endCity);
+    console.log(`🔍 [DEBUG] Destination state: ${destinationState}`);
+    
+    if (!destinationState) {
+      console.warn(`⚠️ [DEBUG] Could not extract state from ${segment.endCity}`);
+      // Ultimate fallback - return some attractions regardless of location
+      return allStops.filter(stop => 
+        stop.category === 'attraction' || stop.category === 'hidden_gem'
+      ).slice(0, 10);
+    }
+    
+    // Find stops in the same state
+    const stateStops = allStops.filter(stop => {
+      const stopState = stop.state?.toLowerCase();
+      return stopState === destinationState.toLowerCase();
+    });
+    
+    console.log(`🔍 [DEBUG] Found ${stateStops.length} stops in state ${destinationState}`);
+    
+    return stateStops;
+  }
+
+  /**
+   * Extract state from city string
+   */
+  private static extractStateFromCity(cityWithState: string): string | null {
+    if (!cityWithState || !cityWithState.includes(',')) {
+      return null;
+    }
+    
+    const parts = cityWithState.split(',');
+    if (parts.length < 2) {
+      return null;
+    }
+    
+    return parts[1].trim();
   }
 
   /**
