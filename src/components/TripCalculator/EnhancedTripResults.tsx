@@ -9,6 +9,7 @@ import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
+import { DriveTimeCalculator } from './components/utils/DriveTimeCalculator';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
@@ -70,15 +71,13 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     );
   }
 
-  const formatTime = (hours: number): string => {
-    if (!hours || hours === 0) {
-      console.warn('⚠️ formatTime: Invalid hours value:', hours);
-      return '0h 0m';
-    }
-    
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   const formatStartDate = (date?: Date): string => {
@@ -91,33 +90,22 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return addDays(validTripStartDate, tripPlan.totalDays - 1);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
   const endDate = calculateEndDate();
 
-  // Ensure we have a valid drive time value - check both totalDrivingTime and calculate from segments
+  // CRITICAL FIX: Use DriveTimeCalculator for proper drive time calculation
   let totalDrivingTime = tripPlan.totalDrivingTime || 0;
   
-  // If totalDrivingTime is 0 or invalid, calculate it from segments
+  // If totalDrivingTime is 0 or invalid, calculate it from segments using DriveTimeCalculator
   if (!totalDrivingTime && tripPlan.segments?.length > 0) {
-    totalDrivingTime = tripPlan.segments.reduce((total, segment) => {
-      return total + (segment.driveTimeHours || 0);
-    }, 0);
-    console.log(`🔧 Calculated drive time from segments: ${totalDrivingTime.toFixed(1)}h`);
+    totalDrivingTime = DriveTimeCalculator.calculateTotalDriveTime(tripPlan.segments);
+    console.log(`🔧 REFACTORED: Calculated drive time using DriveTimeCalculator: ${totalDrivingTime.toFixed(1)}h`);
   }
   
-  console.log('🚗 Drive time check in EnhancedTripResults:', {
+  console.log('🚗 REFACTORED: Drive time check in EnhancedTripResults:', {
     totalDrivingTime,
-    formatted: formatTime(totalDrivingTime),
+    formatted: DriveTimeCalculator.formatHours(totalDrivingTime),
     segmentCount: tripPlan.segments?.length,
-    segmentTimes: tripPlan.segments?.map(s => ({ day: s.day, hours: s.driveTimeHours }))
+    usingDriveTimeCalculator: true
   });
 
   return (
@@ -161,7 +149,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">{formatTime(totalDrivingTime)}</div>
+              <div className="text-sm font-semibold text-gray-800">{DriveTimeCalculator.formatHours(totalDrivingTime)}</div>
               <div className="text-xs text-gray-600">Drive Time</div>
             </div>
             
