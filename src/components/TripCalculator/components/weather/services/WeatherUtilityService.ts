@@ -1,105 +1,71 @@
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { DateNormalizationService } from '../DateNormalizationService';
-import { WeatherLabelService } from './WeatherLabelService';
 
-export interface WeatherSourceInfo {
-  isLiveForecast: boolean;
-  sourceLabel: string;
-  confidence: 'excellent' | 'good' | 'fair' | 'poor';
-  dataQuality: 'live' | 'historical' | 'fallback';
-}
+import { DateNormalizationService } from '../DateNormalizationService';
 
 export class WeatherUtilityService {
   /**
-   * REDIRECTED: Use centralized WeatherLabelService
+   * Calculate the date for a specific segment day
+   * Uses DateNormalizationService for consistent date calculations
    */
-  static isLiveForecast(weather: ForecastWeatherData, segmentDate?: Date | null): boolean {
-    const result = WeatherLabelService.isLiveWeatherData(weather);
-    console.log('🎯 REDIRECTED: WeatherUtilityService.isLiveForecast -> WeatherLabelService:', {
-      result,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName,
-      redirectedToWeatherLabelService: true
+  static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
+    console.log('🔧 WeatherUtilityService.getSegmentDate called:', {
+      tripStartDate: tripStartDate.toISOString(),
+      tripStartDateLocal: tripStartDate.toLocaleDateString(),
+      segmentDay,
+      usingDateNormalizationService: true
     });
-    return result;
-  }
 
-  /**
-   * REDIRECTED: Use centralized WeatherLabelService
-   */
-  static getWeatherSourceLabel(weather: ForecastWeatherData, segmentDate?: Date | null): string {
-    const result = WeatherLabelService.getWeatherSourceLabel(weather);
-    console.log('🎯 REDIRECTED: WeatherUtilityService.getWeatherSourceLabel -> WeatherLabelService:', {
-      result,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName,
-      redirectedToWeatherLabelService: true
+    const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
+    
+    console.log('🔧 WeatherUtilityService.getSegmentDate result:', {
+      input: {
+        tripStartDate: tripStartDate.toISOString(),
+        segmentDay
+      },
+      output: {
+        segmentDate: segmentDate.toISOString(),
+        segmentDateLocal: segmentDate.toLocaleDateString()
+      },
+      verification: {
+        expectedForDay1: segmentDay === 1 ? 'SHOULD_EQUAL_TRIP_START_DATE' : 'SHOULD_BE_TRIP_START_PLUS_DAYS',
+        actualResult: segmentDay === 1 ? 
+          (segmentDate.toDateString() === tripStartDate.toDateString() ? 'CORRECT' : 'INCORRECT') : 
+          'CALCULATED'
+      }
     });
-    return result;
+
+    return segmentDate;
   }
 
   /**
-   * REDIRECTED: Gets weather confidence and quality info using centralized service
+   * Format a date for display
    */
-  static getWeatherSourceInfo(weather: ForecastWeatherData, segmentDate?: Date | null): WeatherSourceInfo {
-    const isLive = WeatherLabelService.isLiveWeatherData(weather);
-    
-    let confidence: 'excellent' | 'good' | 'fair' | 'poor' = 'fair';
-    let dataQuality: 'live' | 'historical' | 'fallback' = 'fallback';
-    
-    if (isLive) {
-      confidence = 'excellent';
-      dataQuality = 'live';
-    } else if (weather.source === 'historical_fallback') {
-      confidence = 'good';
-      dataQuality = 'historical';
-    }
-    
-    return {
-      isLiveForecast: isLive,
-      sourceLabel: WeatherLabelService.getWeatherSourceLabel(weather),
-      confidence,
-      dataQuality
-    };
+  static formatDisplayDate(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
   /**
-   * STANDARDIZED: Calculates segment date from trip start date and day number
+   * Check if a date is within the reliable weather forecast range
    */
-  static getSegmentDate(tripStartDate: Date | null, segmentDay: number): Date | null {
-    if (!tripStartDate) return null;
-    
-    try {
-      const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
-      console.log('📅 STANDARDIZED: Calculated segment date:', {
-        tripStart: tripStartDate.toISOString(),
-        day: segmentDay,
-        calculated: calculatedDate.toISOString(),
-        standardizedCalculation: true
-      });
-      return calculatedDate;
-    } catch (error) {
-      console.error('❌ STANDARDIZED: Date calculation failed:', error);
-      return null;
-    }
-  }
-
-  /**
-   * STANDARDIZED: Validates if weather data is within live forecast range
-   */
-  static isWithinLiveForecastRange(targetDate: Date): boolean {
+  static isWithinForecastRange(targetDate: Date, daysLimit: number = 5): boolean {
     const today = new Date();
-    const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-    return daysFromToday >= 0 && daysFromToday <= 7;
-  }
-
-  /**
-   * STANDARDIZED: Gets days from today for a given date
-   */
-  static getDaysFromToday(targetDate: Date): number {
-    const today = new Date();
-    return Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+    const normalizedTarget = DateNormalizationService.normalizeSegmentDate(targetDate);
+    
+    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTarget);
+    const isWithinRange = daysFromToday >= 0 && daysFromToday <= daysLimit;
+    
+    console.log('🔧 WeatherUtilityService.isWithinForecastRange:', {
+      targetDate: targetDate.toISOString(),
+      daysFromToday,
+      daysLimit,
+      isWithinRange
+    });
+    
+    return isWithinRange;
   }
 }

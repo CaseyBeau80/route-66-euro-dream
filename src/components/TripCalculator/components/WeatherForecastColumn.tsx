@@ -55,6 +55,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
         }
         console.log('✅ CRITICAL: Valid Date object confirmed in WeatherForecastColumn:', {
           isoString: tripStartDate.toISOString(),
+          localString: tripStartDate.toLocaleDateString(),
           getTime: tripStartDate.getTime(),
           getUTCFullYear: tripStartDate.getUTCFullYear(),
           getUTCMonth: tripStartDate.getUTCMonth(),
@@ -70,6 +71,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
         console.log('✅ CRITICAL: Valid date string converted in WeatherForecastColumn:', {
           original: tripStartDate,
           parsed: parsed.toISOString(),
+          parsedLocal: parsed.toLocaleDateString(),
           getTime: parsed.getTime()
         });
         return parsed;
@@ -86,6 +88,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   console.log('🌤️ WeatherForecastColumn render:', {
     segmentsCount: stableSegments.length,
     tripStartDate: validTripStartDate?.toISOString(),
+    tripStartDateLocal: validTripStartDate?.toLocaleDateString(),
     originalTripStartDate: tripStartDate,
     validationResult: !!validTripStartDate
   });
@@ -130,6 +133,7 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
             day: segment.day,
             endCity: segment.endCity,
             validTripStartDate: validTripStartDate.toISOString(),
+            validTripStartDateLocal: validTripStartDate.toLocaleDateString(),
             timestamp: new Date().toISOString()
           });
 
@@ -141,10 +145,15 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
             
             console.log(`🗓️ FIXED: Consistent date calculation for Day ${segment.day}:`, {
               tripStartDate: validTripStartDate.toISOString(),
+              tripStartDateLocal: validTripStartDate.toLocaleDateString(),
               segmentDay: segment.day,
               calculatedDate: segmentDate?.toISOString(),
+              calculatedDateLocal: segmentDate?.toLocaleDateString(),
               calculationMethod: 'DateNormalizationService.calculateSegmentDate',
-              isValid: segmentDate ? !isNaN(segmentDate.getTime()) : false
+              isValid: segmentDate ? !isNaN(segmentDate.getTime()) : false,
+              verification: segment.day === 1 ? 
+                (segmentDate?.toDateString() === validTripStartDate.toDateString() ? 'DAY_1_MATCHES_START_DATE' : 'DAY_1_MISMATCH') :
+                'OTHER_DAY'
             });
             
             if (!segmentDate || isNaN(segmentDate.getTime())) {
