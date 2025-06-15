@@ -25,7 +25,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🔥 DaySegmentCardContent render - NO STOPS SYSTEM:', {
+  console.log('🔥 DaySegmentCardContent render - SIMPLIFIED:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     sectionKey,
