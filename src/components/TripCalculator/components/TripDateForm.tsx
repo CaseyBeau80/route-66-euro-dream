@@ -35,7 +35,20 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return undefined;
   };
 
-  const tripStartDate = ensureDateObject(formData.tripStartDate);
+  // Default to today's date if no date is set
+  const getTripStartDate = (): Date => {
+    const currentDate = ensureDateObject(formData.tripStartDate);
+    if (currentDate) {
+      return currentDate;
+    }
+    
+    // Default to today's date
+    const today = new Date();
+    console.log('📅 TripDateForm: Using today as default date:', today);
+    return today;
+  };
+
+  const tripStartDate = getTripStartDate();
 
   console.log('📅 TripDateForm: Current state:', {
     originalValue: formData.tripStartDate,
@@ -61,10 +74,11 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   const handleDateSelect = (date: Date | undefined) => {
     console.log('📅 Date selected:', date);
     
-    // Simply set the date - no validation blocking
+    // Set the selected date or default to today if undefined
+    const dateToSet = date || new Date();
     setFormData({ 
       ...formData, 
-      tripStartDate: date 
+      tripStartDate: dateToSet 
     });
   };
 
@@ -117,7 +131,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",
-              !tripStartDate && "text-muted-foreground border-red-300"
+              !formData.tripStartDate && "text-muted-foreground border-red-300"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -135,6 +149,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
             initialFocus
+            defaultMonth={tripStartDate}
             className="p-3 pointer-events-auto"
           />
         </PopoverContent>
