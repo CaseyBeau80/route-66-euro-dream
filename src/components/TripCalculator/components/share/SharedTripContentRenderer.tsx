@@ -119,7 +119,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
                   </div>
                 </div>
                 <div className="text-right text-sm text-gray-500">
-                  {segment.attractions?.length || 0} attractions
+                  {(segment.attractions?.length || 0)} attractions
                 </div>
               </div>
             ))}
