@@ -27,13 +27,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
   onShareViaEmail,
   isSharedView = false
 }) => {
-  console.log('📤 ShareTripModalContent: Rendering with UPDATED SharedTripContentRenderer with RAMBLE 66 branding');
-  console.log('📤 ShareTripModalContent: Trip data:', {
-    startCity: tripPlan?.startCity,
-    endCity: tripPlan?.endCity,
-    totalDays: tripPlan?.totalDays,
-    segmentsCount: tripPlan?.segments?.length
-  });
+  console.log('📤 ShareTripModalContent: Rendering with calendar features and tripStartDate:', tripStartDate?.toISOString());
 
   if (!isTripComplete) {
     return (
@@ -48,7 +42,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* UPDATED Rich Content using SharedTripContentRenderer with RAMBLE 66 branding */}
+      {/* Rich Content using SharedTripContentRenderer with RAMBLE 66 branding */}
       <SharedTripContentRenderer
         tripPlan={tripPlan}
         tripStartDate={tripStartDate}
@@ -56,11 +50,12 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
         isSharedView={isSharedView}
       />
 
-      {/* Sharing Options - Only show in modal, not in shared view */}
+      {/* Sharing Options with Calendar Features - Only show in modal, not in shared view */}
       {!isSharedView && (
-        <div className="mt-8 pt-6 border-t-2 border-route66-primary bg-white">
+        <div className="mt-8 pt-6 border-t-2 border-blue-200 bg-white">
           <ShareTripOptions
             tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
             currentShareUrl={currentShareUrl}
             isGeneratingLink={isGeneratingLink}
             onGenerateLink={onGenerateLink}
