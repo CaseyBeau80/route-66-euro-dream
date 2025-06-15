@@ -15,7 +15,7 @@ export interface RecommendedStop {
 }
 
 export class StopRecommendationService {
-  private static readonly MAX_DISTANCE_FROM_ROUTE = 25; // miles
+  private static readonly MAX_DISTANCE_FROM_ROUTE = 50; // Increased range
   private static readonly DEFAULT_MAX_STOPS = 3;
 
   /**
@@ -30,11 +30,24 @@ export class StopRecommendationService {
     console.log(`📊 Available stops data:`, {
       totalStops: allStops.length,
       categories: [...new Set(allStops.map(s => s.category))],
-      sampleStops: allStops.slice(0, 5).map(s => ({ name: s.name, city: s.city_name, category: s.category }))
+      attractionsCount: allStops.filter(s => s.category === 'attraction').length,
+      hiddenGemsCount: allStops.filter(s => s.category === 'hidden_gem').length,
+      destinationCitiesCount: allStops.filter(s => s.category === 'destination_city').length
     });
 
+    // CRITICAL: Filter out destination cities entirely - we only want attractions and hidden gems
+    const nonDestinationStops = allStops.filter(stop => {
+      const isDestinationCity = stop.category === 'destination_city';
+      if (isDestinationCity) {
+        console.log(`🚫 Excluding destination city: ${stop.name}`);
+      }
+      return !isDestinationCity;
+    });
+
+    console.log(`🎯 After excluding destination cities: ${nonDestinationStops.length} stops remain`);
+
     // Filter stops that are geographically relevant to this segment
-    const geographicallyRelevantStops = this.filterStopsByGeography(segment, allStops);
+    const geographicallyRelevantStops = this.filterStopsByGeography(segment, nonDestinationStops);
     console.log(`📍 Geographically relevant stops: ${geographicallyRelevantStops.length}`);
     
     // Score and rank stops by relevance
@@ -45,7 +58,7 @@ export class StopRecommendationService {
     const selectedStops = this.selectDiverseStops(scoredStops, maxStops);
     
     console.log(`✅ Selected ${selectedStops.length} recommended stops for segment:`, 
-      selectedStops.map(s => ({ name: s.name, city: s.city, score: s.relevanceScore }))
+      selectedStops.map(s => ({ name: s.name, city: s.city, category: s.category, score: s.relevanceScore }))
     );
     return selectedStops;
   }
@@ -57,12 +70,9 @@ export class StopRecommendationService {
     segment: DailySegment,
     allStops: TripStop[]
   ): TripStop[] {
+    console.log(`🗺️ Filtering ${allStops.length} stops for geography near ${segment.endCity}`);
+    
     const relevantStops = allStops.filter(stop => {
-      // Skip destination cities (they're already part of the route)
-      if (stop.category === 'destination_city') {
-        return false;
-      }
-
       // Get the destination city for this segment
       const destinationCity = segment.endCity?.toLowerCase() || '';
       const stopCity = stop.city_name?.toLowerCase() || '';
@@ -87,13 +97,15 @@ export class StopRecommendationService {
       const isRelevant = isNearDestination || isNearStart || isInSameState;
       
       if (isRelevant) {
-        console.log(`✅ Including stop: ${stop.name} in ${stop.city_name}, ${stop.state} (${stop.category})`);
+        console.log(`✅ Including ${stop.category}: ${stop.name} in ${stop.city_name}, ${stop.state}`);
       }
 
       return isRelevant;
     });
 
-    console.log(`📍 Filtered to ${relevantStops.length} geographically relevant stops for ${segment.endCity}`);
+    console.log(`📍 Filtered to ${relevantStops.length} geographically relevant stops for ${segment.endCity}:`, 
+      relevantStops.map(s => ({ name: s.name, category: s.category, city: s.city_name }))
+    );
     return relevantStops;
   }
 
@@ -136,34 +148,39 @@ export class StopRecommendationService {
     return stops.map(stop => {
       let score = 0;
 
-      // Base score by category
+      // Base score by category - prioritize attractions and hidden gems
       switch (stop.category) {
         case 'attraction':
-          score += 10;
+          score += 15; // Higher priority for attractions
           break;
         case 'hidden_gem':
-          score += 8;
+          score += 12; // High priority for hidden gems
           break;
         case 'waypoint':
-          score += 6;
+          score += 8;
+          break;
+        case 'drive_in':
+          score += 10;
           break;
         default:
-          score += 5;
+          score += 6;
       }
 
-      // Bonus for featured/popular stops - safely check if featured exists
+      // Bonus for featured/popular stops
       if (stop.featured) {
-        score += 5;
+        score += 8;
       }
 
       // Bonus for stops with good descriptions
       if (stop.description && stop.description.length > 50) {
-        score += 3;
+        score += 5;
       }
 
       // Bonus for city name relevance
       const cityRelevance = this.calculateCityRelevance(stop, segment);
       score += cityRelevance;
+
+      console.log(`🏆 Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
 
       return { ...stop, relevanceScore: score };
     }).sort((a, b) => b.relevanceScore - a.relevanceScore);
@@ -179,13 +196,13 @@ export class StopRecommendationService {
 
     // Exact city match gets highest bonus
     if (stopCity === endCity || stopCity === startCity) {
-      return 15;
+      return 20;
     }
 
     // Partial city match gets medium bonus
     if (stopCity.includes(endCity) || endCity.includes(stopCity) ||
         stopCity.includes(startCity) || startCity.includes(stopCity)) {
-      return 8;
+      return 12;
     }
 
     return 0;
@@ -201,6 +218,10 @@ export class StopRecommendationService {
     const selectedStops: RecommendedStop[] = [];
     const categoryCount: Record<string, number> = {};
 
+    console.log(`🎯 Selecting from ${scoredStops.length} scored stops:`, 
+      scoredStops.map(s => ({ name: s.name, category: s.category, score: s.relevanceScore }))
+    );
+
     for (const stop of scoredStops) {
       if (selectedStops.length >= maxStops) {
         break;
@@ -209,8 +230,10 @@ export class StopRecommendationService {
       const category = stop.category || 'other';
       const currentCategoryCount = categoryCount[category] || 0;
 
-      // Ensure diversity - don't select more than 2 stops of the same category
-      if (currentCategoryCount >= 2) {
+      // Ensure diversity - don't select more than 2 stops of the same category for small lists
+      const maxPerCategory = maxStops <= 3 ? 2 : Math.ceil(maxStops / 2);
+      if (currentCategoryCount >= maxPerCategory) {
+        console.log(`⚠️ Skipping ${stop.name} - too many ${category} stops already`);
         continue;
       }
 
@@ -220,15 +243,16 @@ export class StopRecommendationService {
         category: stop.category || 'attraction',
         city: stop.city_name || 'Unknown',
         state: stop.state || 'Unknown',
-        distanceFromRoute: 0, // Would calculate actual distance
+        distanceFromRoute: 0, // Would calculate actual distance in a real implementation
         relevanceScore: stop.relevanceScore,
         type: this.mapCategoryToType(stop.category)
       });
 
       categoryCount[category] = currentCategoryCount + 1;
+      console.log(`✅ Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
     }
 
-    console.log(`🎯 Selected diverse stops by category:`, categoryCount);
+    console.log(`🎯 Final selection by category:`, categoryCount);
     return selectedStops;
   }
 
@@ -240,6 +264,7 @@ export class StopRecommendationService {
       case 'hidden_gem':
         return 'hidden_gem';
       case 'waypoint':
+      case 'route66_waypoint':
         return 'waypoint';
       default:
         return 'attraction';
@@ -261,11 +286,21 @@ export class StopRecommendationService {
       waypoint: '📍'
     };
 
+    const categoryLabels = {
+      attraction: 'Attraction',
+      hidden_gem: 'Hidden Gem',
+      waypoint: 'Route 66 Waypoint',
+      drive_in: 'Drive-In Theater',
+      restaurant: 'Restaurant',
+      museum: 'Museum',
+      park: 'Park'
+    };
+
     return {
       name: stop.name,
       location: `${stop.city}, ${stop.state}`,
-      category: stop.category,
-      icon: icons[stop.type] || '📍'
+      category: categoryLabels[stop.category as keyof typeof categoryLabels] || stop.category,
+      icon: icons[stop.type] || '🎯'
     };
   }
 }

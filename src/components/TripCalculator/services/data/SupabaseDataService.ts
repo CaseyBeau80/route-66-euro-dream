@@ -33,7 +33,7 @@ export class SupabaseDataService {
         throw new Error(`Failed to fetch hidden gems: ${hiddenGemsError.message}`);
       }
 
-      // Fetch destination cities (but exclude them from recommendations in the service)
+      // Fetch destination cities
       const { data: destinationCities, error: destinationCitiesError } = await supabase
         .from('destination_cities')
         .select('*');
@@ -68,17 +68,18 @@ export class SupabaseDataService {
         });
       }
 
-      // Add hidden gems
+      // Add hidden gems - CRITICAL: Map 'title' to 'name'
       if (hiddenGems) {
         hiddenGems.forEach(gem => {
           try {
             const stop = convertToTripStop({
               ...gem,
-              name: gem.title, // Hidden gems use 'title' instead of 'name'
+              name: gem.title || gem.name, // Use title as name for hidden gems
               category: 'hidden_gem',
               city: gem.city_name || 'Unknown'
             });
             allStops.push(stop);
+            console.log(`✅ Added hidden gem: ${stop.name} in ${stop.city_name}`);
           } catch (err) {
             console.warn('⚠️ Failed to convert hidden gem:', gem.id, err);
           }
@@ -107,7 +108,9 @@ export class SupabaseDataService {
         byCategory: allStops.reduce((acc, stop) => {
           acc[stop.category] = (acc[stop.category] || 0) + 1;
           return acc;
-        }, {} as Record<string, number>)
+        }, {} as Record<string, number>),
+        attractionNames: allStops.filter(s => s.category === 'attraction').slice(0, 3).map(s => s.name),
+        hiddenGemNames: allStops.filter(s => s.category === 'hidden_gem').slice(0, 3).map(s => s.name)
       });
 
       return allStops;
