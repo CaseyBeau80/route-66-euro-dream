@@ -21,7 +21,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     maxDisplay,
     showLocation,
     compact,
-    stops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category })) || []
+    stops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category, type: s.type })) || []
   });
 
   if (!stops || stops.length === 0) {
@@ -32,22 +32,23 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           <MapPin className="h-4 w-4" />
           Recommended Stops (0)
         </h5>
-        <div className="text-sm text-gray-500">
-          No recommended stops found for this segment.
+        <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border">
+          <p className="font-medium mb-1">No Route 66 attractions found for this segment</p>
+          <p className="text-xs">We're looking for classic diners, roadside attractions, museums, and hidden gems along your route.</p>
         </div>
       </div>
     );
   }
 
   const displayStops = stops.slice(0, maxDisplay);
-  console.log('🎯 RecommendedStopsDisplay: Will display stops:', displayStops.map(s => s.name));
+  console.log('🎯 RecommendedStopsDisplay: Will display stops:', displayStops.map(s => `${s.name} (${s.type})`));
 
   if (compact) {
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
           <MapPin className="h-4 w-4" />
-          Recommended Stops ({displayStops.length})
+          Route 66 Attractions ({displayStops.length})
         </h5>
         <div className="space-y-1">
           {displayStops.map((stop, index) => {
@@ -63,7 +64,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                 </div>
                 {showLocation && (
                   <div className="text-xs text-gray-500 ml-6 truncate">
-                    {formatted.location}
+                    {formatted.location} • {formatted.category}
                   </div>
                 )}
               </div>
@@ -78,7 +79,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     <div className="space-y-3">
       <h4 className="font-medium text-gray-800 flex items-center gap-2">
         <MapPin className="h-5 w-5 text-blue-600" />
-        Recommended Stops ({displayStops.length})
+        Route 66 Attractions ({displayStops.length})
       </h4>
       <div className="space-y-3">
         {displayStops.map((stop, index) => {
@@ -117,6 +118,11 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           );
         })}
       </div>
+      {stops.length > maxDisplay && (
+        <div className="text-xs text-gray-500 text-center">
+          + {stops.length - maxDisplay} more attraction{stops.length - maxDisplay !== 1 ? 's' : ''} available
+        </div>
+      )}
     </div>
   );
 };

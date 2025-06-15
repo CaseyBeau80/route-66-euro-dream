@@ -37,9 +37,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 DaySegmentCardContent DEBUG:', {
+  console.log('🔍 DaySegmentCardContent ENHANCED DEBUG:', {
     segmentDay: segment.day,
-    endCity: segment.endCity,
+    route: `${segment.startCity} → ${segment.endCity}`,
     recommendedStopsCount: recommendedStops.length,
     hasStops,
     isLoadingStops,
@@ -47,11 +47,14 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
     maxAttractions,
     context,
     sectionKey,
-    recommendedStops: recommendedStops.map(stop => ({
+    recommendedStopsDetails: recommendedStops.map(stop => ({
       id: stop.id,
       name: stop.name,
       category: stop.category,
-      city: stop.city
+      city: stop.city,
+      state: stop.state,
+      type: stop.type,
+      score: stop.relevanceScore
     }))
   });
 
@@ -76,17 +79,17 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Recommended Stops Section - ALWAYS SHOW */}
+        {/* Recommended Stops Section - ENHANCED DISPLAY */}
         <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             {isLoadingStops ? (
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                Loading recommended stops...
+                Searching for Route 66 attractions and hidden gems...
               </div>
             ) : error ? (
               <div className="text-sm text-red-600">
-                <div className="font-medium">Error loading recommended stops:</div>
+                <div className="font-medium">Error loading Route 66 attractions:</div>
                 <div className="text-xs mt-1">{error}</div>
               </div>
             ) : hasStops ? (
@@ -98,10 +101,22 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
               />
             ) : (
               <div className="text-sm text-gray-500">
-                <div className="font-medium text-gray-700 mb-1">Recommended Stops</div>
-                <p>No recommended stops found for {segment.endCity}</p>
+                <div className="font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <span>🔍</span>
+                  Route 66 Attractions
+                </div>
+                <p className="mb-2">No classic Route 66 attractions found between {segment.startCity} and {segment.endCity}</p>
+                <div className="text-xs bg-yellow-50 border border-yellow-200 rounded p-2 text-yellow-700">
+                  <p className="font-medium">We're looking for:</p>
+                  <ul className="mt-1 space-y-1">
+                    <li>• Classic diners and drive-ins</li>
+                    <li>• Roadside attractions and museums</li>
+                    <li>• Hidden gems and local favorites</li>
+                    <li>• Historic Route 66 landmarks</li>
+                  </ul>
+                </div>
                 <div className="text-xs mt-2 text-gray-400">
-                  Debug: Segment Day {segment.day}, End City: {segment.endCity}
+                  Debug: Day {segment.day} • {segment.startCity} → {segment.endCity}
                 </div>
               </div>
             )}

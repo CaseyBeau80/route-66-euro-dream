@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from '../planning/TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -14,7 +15,7 @@ export interface RecommendedStop {
 }
 
 export class StopRecommendationService {
-  private static readonly MAX_DISTANCE_FROM_ROUTE = 50; // Increased range
+  private static readonly MAX_DISTANCE_FROM_ROUTE = 100; // Increased for better coverage
   private static readonly DEFAULT_MAX_STOPS = 3;
 
   /**
@@ -46,25 +47,8 @@ export class StopRecommendationService {
       }))
     });
 
-    // CRITICAL: Filter out destination cities entirely - we only want attractions and hidden gems
-    const nonDestinationStops = allStops.filter(stop => {
-      const isDestinationCity = stop.category === 'destination_city';
-      if (isDestinationCity) {
-        console.log(`🚫 [DEBUG] Excluding destination city: ${stop.name}`);
-      }
-      return !isDestinationCity;
-    });
-
-    console.log(`🎯 [DEBUG] After excluding destination cities: ${nonDestinationStops.length} stops remain`);
-    console.log(`📋 [DEBUG] Remaining stop categories:`, 
-      nonDestinationStops.reduce((acc, stop) => {
-        acc[stop.category] = (acc[stop.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    );
-
     // Filter stops that are geographically relevant to this segment
-    const geographicallyRelevantStops = this.filterStopsByGeography(segment, nonDestinationStops);
+    const geographicallyRelevantStops = this.filterStopsByRouteGeography(segment, allStops);
     console.log(`📍 [DEBUG] Geographically relevant stops: ${geographicallyRelevantStops.length}`);
     console.log(`📍 [DEBUG] Geographic filter results:`, 
       geographicallyRelevantStops.map(s => ({ 
@@ -103,7 +87,6 @@ export class StopRecommendationService {
     if (selectedStops.length === 0) {
       console.error(`❌ [DEBUG] NO STOPS SELECTED! Debug info:`, {
         originalStopsCount: allStops.length,
-        afterDestinationFilter: nonDestinationStops.length,
         afterGeographicFilter: geographicallyRelevantStops.length,
         afterScoring: scoredStops.length,
         segmentEndCity: segment.endCity,
@@ -115,45 +98,51 @@ export class StopRecommendationService {
   }
 
   /**
-   * Filter stops by geographical relevance to the segment route
+   * Enhanced geographic filtering based on route progression
    */
-  private static filterStopsByGeography(
+  private static filterStopsByRouteGeography(
     segment: DailySegment,
     allStops: TripStop[]
   ): TripStop[] {
-    console.log(`🗺️ [DEBUG] Starting geographic filtering for ${allStops.length} stops near ${segment.endCity}`);
+    console.log(`🗺️ [DEBUG] Starting enhanced route-based geographic filtering for ${allStops.length} stops`);
     
     const relevantStops = allStops.filter(stop => {
-      // Get the destination city for this segment
-      const destinationCity = segment.endCity?.toLowerCase() || '';
+      const startCity = segment.startCity?.toLowerCase() || '';
+      const endCity = segment.endCity?.toLowerCase() || '';
       const stopCity = stop.city_name?.toLowerCase() || '';
       const stopState = stop.state?.toLowerCase() || '';
       
       console.log(`🔍 [DEBUG] Checking stop: ${stop.name} in ${stop.city_name}, ${stop.state} (category: ${stop.category})`);
-      console.log(`🔍 [DEBUG] Comparing with destination: ${segment.endCity}`);
       
-      // Check if stop is near the destination city
-      const isNearDestination = 
-        stopCity.includes(destinationCity) || 
-        destinationCity.includes(stopCity) ||
-        stopCity === destinationCity;
-
-      // Also check against start city for broader coverage
-      const startCity = segment.startCity?.toLowerCase() || '';
+      // 1. Check if stop is in or near the start city
       const isNearStart = 
         stopCity.includes(startCity) || 
         startCity.includes(stopCity) ||
         stopCity === startCity;
 
-      // For better geographic coverage, also include stops in the same state as the destination
-      const isInSameState = segment.endCity && this.isStopInCityState(stop, segment.endCity);
+      // 2. Check if stop is in or near the destination city
+      const isNearDestination = 
+        stopCity.includes(endCity) || 
+        endCity.includes(stopCity) ||
+        stopCity === endCity;
 
-      const isRelevant = isNearDestination || isNearStart || isInSameState;
+      // 3. Check if stop is in the same state as either start or end city
+      const startState = this.extractStateFromCity(segment.startCity);
+      const endState = this.extractStateFromCity(segment.endCity);
+      const isInRouteStates = 
+        (startState && stopState === startState.toLowerCase()) ||
+        (endState && stopState === endState.toLowerCase());
+
+      // 4. Check if stop is on a major Route 66 corridor between start and end
+      const isOnRoute66Corridor = this.isOnRoute66Corridor(stop, segment);
+
+      const isRelevant = isNearStart || isNearDestination || isInRouteStates || isOnRoute66Corridor;
       
       console.log(`🔍 [DEBUG] Geography check for ${stop.name}:`, {
-        isNearDestination,
-        isNearStart, 
-        isInSameState,
+        isNearStart,
+        isNearDestination, 
+        isInRouteStates,
+        isOnRoute66Corridor,
         finalDecision: isRelevant ? 'INCLUDE' : 'EXCLUDE'
       });
 
@@ -164,55 +153,74 @@ export class StopRecommendationService {
       return isRelevant;
     });
 
-    console.log(`📍 [DEBUG] Geographic filtering complete: ${relevantStops.length}/${allStops.length} stops passed`);
+    console.log(`📍 [DEBUG] Enhanced geographic filtering complete: ${relevantStops.length}/${allStops.length} stops passed`);
     return relevantStops;
   }
 
   /**
-   * Check if a stop is in the same state as a city
+   * Extract state from city string (format: "City, ST" or "City, State")
    */
-  private static isStopInCityState(stop: TripStop, cityWithState: string): boolean {
-    // Extract state from city string (format: "City, ST" or "City, State")
-    const cityParts = cityWithState.split(',');
-    if (cityParts.length < 2) {
-      console.log(`⚠️ [DEBUG] Cannot extract state from city: ${cityWithState}`);
-      return false;
+  private static extractStateFromCity(cityWithState: string): string | null {
+    if (!cityWithState || !cityWithState.includes(',')) {
+      return null;
     }
     
-    const stateFromCity = cityParts[1].trim().toLowerCase();
-    const stopState = stop.state?.toLowerCase() || '';
+    const parts = cityWithState.split(',');
+    if (parts.length < 2) {
+      return null;
+    }
     
-    console.log(`🏛️ [DEBUG] State matching: stop state "${stopState}" vs city state "${stateFromCity}"`);
-    
-    // Handle both abbreviations and full state names
-    const stateAbbreviations: Record<string, string> = {
-      'illinois': 'il', 'il': 'il',
-      'missouri': 'mo', 'mo': 'mo',
-      'kansas': 'ks', 'ks': 'ks',
-      'oklahoma': 'ok', 'ok': 'ok',
-      'texas': 'tx', 'tx': 'tx',
-      'new mexico': 'nm', 'nm': 'nm',
-      'arizona': 'az', 'az': 'az',
-      'california': 'ca', 'ca': 'ca'
-    };
-    
-    const normalizedCityState = stateAbbreviations[stateFromCity] || stateFromCity;
-    const normalizedStopState = stateAbbreviations[stopState] || stopState;
-    
-    const isMatch = normalizedCityState === normalizedStopState;
-    console.log(`🏛️ [DEBUG] State match result: ${isMatch} (${normalizedStopState} === ${normalizedCityState})`);
-    
-    return isMatch;
+    return parts[1].trim();
   }
 
   /**
-   * Score stops by relevance to the segment
+   * Check if a stop is on the Route 66 corridor between start and end cities
+   */
+  private static isOnRoute66Corridor(stop: TripStop, segment: DailySegment): boolean {
+    // Define major Route 66 states in order from east to west
+    const route66States = ['il', 'mo', 'ks', 'ok', 'tx', 'nm', 'az', 'ca'];
+    
+    const startState = this.extractStateFromCity(segment.startCity)?.toLowerCase();
+    const endState = this.extractStateFromCity(segment.endCity)?.toLowerCase();
+    const stopState = stop.state?.toLowerCase();
+    
+    if (!startState || !endState || !stopState) {
+      return false;
+    }
+    
+    const startIndex = route66States.indexOf(startState);
+    const endIndex = route66States.indexOf(endState);
+    const stopIndex = route66States.indexOf(stopState);
+    
+    // If any state is not on Route 66, can't determine corridor
+    if (startIndex === -1 || endIndex === -1 || stopIndex === -1) {
+      return false;
+    }
+    
+    // Check if stop state is between start and end states on Route 66
+    const minIndex = Math.min(startIndex, endIndex);
+    const maxIndex = Math.max(startIndex, endIndex);
+    
+    const isOnCorridor = stopIndex >= minIndex && stopIndex <= maxIndex;
+    
+    console.log(`🛣️ [DEBUG] Route 66 corridor check for ${stop.name}:`, {
+      startState, endState, stopState,
+      startIndex, endIndex, stopIndex,
+      minIndex, maxIndex,
+      isOnCorridor
+    });
+    
+    return isOnCorridor;
+  }
+
+  /**
+   * Score stops by relevance to the segment with enhanced criteria
    */
   private static scoreStopRelevance(
     segment: DailySegment,
     stops: TripStop[]
   ): (TripStop & { relevanceScore: number })[] {
-    console.log(`🏆 [DEBUG] Starting scoring for ${stops.length} stops`);
+    console.log(`🏆 [DEBUG] Starting enhanced scoring for ${stops.length} stops`);
     
     const scoredStops = stops.map(stop => {
       let score = 0;
@@ -220,41 +228,46 @@ export class StopRecommendationService {
       // Base score by category - prioritize attractions and hidden gems
       switch (stop.category) {
         case 'attraction':
-          score += 15; // Higher priority for attractions
+          score += 20; // Higher priority for attractions
           break;
         case 'hidden_gem':
-          score += 12; // High priority for hidden gems
-          break;
-        case 'waypoint':
-          score += 8;
+          score += 18; // High priority for hidden gems
           break;
         case 'drive_in':
+          score += 15; // Good priority for drive-ins
+          break;
+        case 'waypoint':
           score += 10;
           break;
         default:
-          score += 6;
+          score += 8;
       }
 
       // Bonus for featured/popular stops
       if (stop.featured) {
-        score += 8;
+        score += 12;
       }
 
       // Bonus for stops with good descriptions
       if (stop.description && stop.description.length > 50) {
-        score += 5;
+        score += 8;
       }
 
-      // Bonus for city name relevance
-      const cityRelevance = this.calculateCityRelevance(stop, segment);
+      // Enhanced city relevance scoring
+      const cityRelevance = this.calculateEnhancedCityRelevance(stop, segment);
       score += cityRelevance;
+
+      // Route 66 corridor bonus
+      if (this.isOnRoute66Corridor(stop, segment)) {
+        score += 15;
+      }
 
       console.log(`🏆 [DEBUG] Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
 
       return { ...stop, relevanceScore: score };
     }).sort((a, b) => b.relevanceScore - a.relevanceScore);
     
-    console.log(`🏆 [DEBUG] Scoring complete. Top 5 scores:`, 
+    console.log(`🏆 [DEBUG] Enhanced scoring complete. Top 5 scores:`, 
       scoredStops.slice(0, 5).map(s => ({ 
         name: s.name, 
         score: s.relevanceScore, 
@@ -266,22 +279,31 @@ export class StopRecommendationService {
   }
 
   /**
-   * Calculate city relevance bonus
+   * Calculate enhanced city relevance bonus
    */
-  private static calculateCityRelevance(stop: TripStop, segment: DailySegment): number {
+  private static calculateEnhancedCityRelevance(stop: TripStop, segment: DailySegment): number {
     const stopCity = stop.city_name?.toLowerCase() || '';
     const startCity = segment.startCity.toLowerCase();
     const endCity = segment.endCity?.toLowerCase() || '';
 
     // Exact city match gets highest bonus
     if (stopCity === endCity || stopCity === startCity) {
-      return 20;
+      return 25;
     }
 
-    // Partial city match gets medium bonus
+    // Partial city match gets good bonus
     if (stopCity.includes(endCity) || endCity.includes(stopCity) ||
         stopCity.includes(startCity) || startCity.includes(stopCity)) {
-      return 12;
+      return 15;
+    }
+
+    // Same state as start or end gets small bonus
+    const startState = this.extractStateFromCity(segment.startCity)?.toLowerCase();
+    const endState = this.extractStateFromCity(segment.endCity)?.toLowerCase();
+    const stopState = stop.state?.toLowerCase();
+    
+    if ((startState && stopState === startState) || (endState && stopState === endState)) {
+      return 8;
     }
 
     return 0;
