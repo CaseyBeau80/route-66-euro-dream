@@ -3,8 +3,9 @@ import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Clock, Route, Share2 } from 'lucide-react';
+import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
+import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -17,11 +18,15 @@ const TripResults: React.FC<TripResultsProps> = ({
   tripStartDate,
   onShareTrip
 }) => {
+  const { costEstimate } = useCostEstimator(tripPlan);
+
   console.log('📊 TripResults render:', { 
     tripPlan: !!tripPlan, 
     segmentCount: tripPlan?.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
-    hasShareHandler: !!onShareTrip
+    hasShareHandler: !!onShareTrip,
+    hasCostEstimate: !!costEstimate,
+    totalCost: costEstimate?.breakdown?.totalCost
   });
 
   if (!tripPlan) {
@@ -37,6 +42,15 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Trip Summary */}
@@ -48,7 +62,7 @@ const TripResults: React.FC<TripResultsProps> = ({
           {tripPlan.startCity} to {tripPlan.endCity}
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">{tripPlan.segments?.length || 0}</div>
             <div className="text-sm text-route66-text-secondary">Days</div>
@@ -70,6 +84,12 @@ const TripResults: React.FC<TripResultsProps> = ({
               {tripPlan.segments?.filter(s => s.attractions?.length > 0).length || 0}
             </div>
             <div className="text-sm text-route66-text-secondary">Attractions</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Est. Cost</div>
           </div>
         </div>
       </div>
