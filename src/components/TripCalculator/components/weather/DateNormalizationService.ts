@@ -39,14 +39,14 @@ export class DateNormalizationService {
 
   /**
    * CRITICAL FIX: Calculate segment date based on trip start date and day number
-   * CONSISTENT LOGIC: Day 1 = trip start date exactly, Day N = trip start + (N-1) days
-   * This ensures Day 1 always equals the trip start date exactly
+   * ABSOLUTELY FIXED LOGIC: Day 1 = exact same date as trip start, Day N = add (N-1) days using proper date arithmetic
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🚨 CRITICAL FIX: DateNormalizationService.calculateSegmentDate - CONSISTENT VERSION:', {
+    console.log('🚨 ABSOLUTE FIX: DateNormalizationService.calculateSegmentDate - FINAL VERSION:', {
       tripStartDate: {
         iso: tripStartDate.toISOString(),
         local: tripStartDate.toLocaleDateString(),
+        dateString: tripStartDate.toDateString(),
         components: {
           year: tripStartDate.getFullYear(),
           month: tripStartDate.getMonth(),
@@ -54,21 +54,30 @@ export class DateNormalizationService {
         }
       },
       segmentDay,
-      consistentLogic: 'Day 1 = trip start date exactly, Day N = trip start + (N-1) days'
+      absoluteRule: 'Day 1 = EXACT SAME DATE as trip start, no calculation needed'
     });
 
-    // CRITICAL FIX: Normalize the trip start date first to ensure consistent handling
+    // CRITICAL FIX: Normalize the trip start date first
     const normalizedStartDate = this.normalizeSegmentDate(tripStartDate);
     
-    // CRITICAL FIX: For ALL days, use consistent calculation
-    // Day 1: add 0 days (segmentDay - 1 = 0)
-    // Day 2: add 1 day (segmentDay - 1 = 1)
-    // Day N: add (N-1) days
-    const daysToAdd = segmentDay - 1;
-    const segmentDate = new Date(normalizedStartDate);
-    segmentDate.setDate(normalizedStartDate.getDate() + daysToAdd);
+    // ABSOLUTE FIX: For Day 1, return the exact same normalized date - no calculation
+    if (segmentDay === 1) {
+      console.log('🚨 ABSOLUTE FIX: Day 1 - returning EXACT SAME DATE:', {
+        input: normalizedStartDate.toISOString(),
+        inputLocal: normalizedStartDate.toLocaleDateString(),
+        inputDateString: normalizedStartDate.toDateString(),
+        verification: 'DAY_1_GETS_EXACT_SAME_DATE_NO_CALCULATION'
+      });
+      return normalizedStartDate;
+    }
     
-    console.log('🚨 CRITICAL FIX: DateNormalizationService CONSISTENT CALCULATION:', {
+    // ABSOLUTE FIX: For other days, use proper date arithmetic
+    const daysToAdd = segmentDay - 1;
+    
+    // Use proper date arithmetic that handles month/year boundaries correctly
+    const segmentDate = new Date(normalizedStartDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+    
+    console.log('🚨 ABSOLUTE FIX: DateNormalizationService FINAL CALCULATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
@@ -78,27 +87,19 @@ export class DateNormalizationService {
         normalizedStartDate: normalizedStartDate.toISOString(),
         normalizedStartDateLocal: normalizedStartDate.toLocaleDateString(),
         daysToAdd,
-        method: 'setDate(normalizedStartDate.getDate() + daysToAdd)'
+        method: 'new Date(normalizedStartDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000))',
+        millisToAdd: daysToAdd * 24 * 60 * 60 * 1000
       },
       result: {
         segmentDate: segmentDate.toISOString(),
         segmentDateLocal: segmentDate.toLocaleDateString(),
-        segmentDateComponents: {
-          year: segmentDate.getFullYear(),
-          month: segmentDate.getMonth(),
-          date: segmentDate.getDate()
-        }
+        segmentDateString: segmentDate.toDateString()
       },
       verification: {
         day1Check: segmentDay === 1 ? 
-          (segmentDate.toDateString() === normalizedStartDate.toDateString() ? 'PERFECT_MATCH' : 'ERROR_MISMATCH') : 
-          'NOT_DAY_1',
-        dateStringComparison: segmentDay === 1 ? {
-          segmentDateString: segmentDate.toDateString(),
-          normalizedStartDateString: normalizedStartDate.toDateString(),
-          matches: segmentDate.toDateString() === normalizedStartDate.toDateString()
-        } : null,
-        isConsistent: 'USING_SAME_NORMALIZATION_AS_CALENDAR'
+          'NOT_APPLICABLE_DAY_1_HANDLED_SEPARATELY' : 
+          'CALCULATED_USING_MILLISECONDS',
+        isConsistent: 'USING_MILLISECOND_ARITHMETIC_FOR_ACCURACY'
       }
     });
     
