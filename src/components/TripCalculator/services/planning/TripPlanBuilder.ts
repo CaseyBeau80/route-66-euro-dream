@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -110,21 +111,52 @@ export class TripPlanBuilder {
     totalDistance: number
   ): Promise<DailySegment[]> {
     const segments: DailySegment[] = [];
-    const stopsPerDay = Math.max(1, Math.floor(routeStops.length / requestedDays));
+    
+    // FIXED: Calculate realistic segments based on actual daily distances
+    const targetDailyDistance = totalDistance / requestedDays;
+    console.log(`🎯 FIXED: Target daily distance: ${targetDailyDistance.toFixed(1)} miles for ${requestedDays} days`);
     
     let currentStopIndex = 0;
+    let accumulatedDistance = 0;
     
     for (let day = 1; day <= requestedDays; day++) {
       const isLastDay = day === requestedDays;
       const startStopIndex = currentStopIndex;
       
       let endStopIndex: number;
+      let dayDistance = 0;
+      
       if (isLastDay) {
+        // Last day: go to the end
         endStopIndex = routeStops.length - 1;
+        dayDistance = totalDistance - accumulatedDistance;
       } else {
-        endStopIndex = Math.min(
-          startStopIndex + stopsPerDay,
-          routeStops.length - 2
+        // Find the stop that gets us closest to target daily distance
+        endStopIndex = startStopIndex;
+        
+        while (endStopIndex < routeStops.length - 2 && dayDistance < targetDailyDistance) {
+          const nextStopDistance = DistanceCalculationService.calculateDistance(
+            routeStops[endStopIndex].latitude, routeStops[endStopIndex].longitude,
+            routeStops[endStopIndex + 1].latitude, routeStops[endStopIndex + 1].longitude
+          );
+          
+          if (dayDistance + nextStopDistance <= targetDailyDistance * 1.3) { // Allow 30% overage
+            dayDistance += nextStopDistance;
+            endStopIndex++;
+          } else {
+            break;
+          }
+        }
+        
+        // Make sure we don't end on the same stop we started
+        if (endStopIndex === startStopIndex) {
+          endStopIndex = Math.min(startStopIndex + 1, routeStops.length - 1);
+        }
+        
+        // Recalculate actual distance for this segment
+        dayDistance = DistanceCalculationService.calculateDistance(
+          routeStops[startStopIndex].latitude, routeStops[startStopIndex].longitude,
+          routeStops[endStopIndex].latitude, routeStops[endStopIndex].longitude
         );
       }
       
@@ -132,16 +164,11 @@ export class TripPlanBuilder {
       const dayEndStop = routeStops[endStopIndex];
       const dayIntermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
       
-      // Calculate segment distance and drive time
-      const segmentDistance = DistanceCalculationService.calculateDistance(
-        dayStartStop.latitude, dayStartStop.longitude,
-        dayEndStop.latitude, dayEndStop.longitude
-      );
-
-      // Calculate realistic drive time for this segment
-      const segmentDriveTime = this.calculateSegmentDriveTime(segmentDistance);
+      // FIXED: Calculate realistic drive time based on actual distance
+      const segmentDriveTime = this.calculateRealisticDriveTime(dayDistance);
+      accumulatedDistance += dayDistance;
       
-      console.log(`🚗 Day ${day}: ${dayStartStop.name} → ${dayEndStop.name} - Distance: ${segmentDistance.toFixed(1)}mi, Drive Time: ${segmentDriveTime.toFixed(1)}h`);
+      console.log(`🚗 FIXED Day ${day}: ${dayStartStop.name} → ${dayEndStop.name} - Distance: ${dayDistance.toFixed(1)}mi, Drive Time: ${segmentDriveTime.toFixed(1)}h`);
       
       // Get attractions for the destination city
       const attractions = await AttractionService.getAttractionsForStop(dayEndStop);
@@ -153,10 +180,10 @@ export class TripPlanBuilder {
         day,
         startCity: dayStartStop.name,
         endCity: dayEndStop.name,
-        distance: Math.round(segmentDistance),
-        approximateMiles: Math.round(segmentDistance),
-        drivingTime: segmentDriveTime,
-        driveTimeHours: segmentDriveTime, // This is the key property for drive time
+        distance: Math.round(dayDistance),
+        approximateMiles: Math.round(dayDistance),
+        drivingTime: segmentDriveTime, // FIXED: Use calculated drive time
+        driveTimeHours: segmentDriveTime, // FIXED: Use calculated drive time
         attractions: attractions || [],
         subStops: dayIntermediateStops,
         driveTimeCategory,
@@ -172,27 +199,44 @@ export class TripPlanBuilder {
       if (endStopIndex >= routeStops.length - 1) break;
     }
     
-    console.log(`📋 Created ${segments.length} segments with total drive time: ${segments.reduce((t, s) => t + s.driveTimeHours, 0).toFixed(1)}h`);
+    console.log(`📋 FIXED: Created ${segments.length} segments with realistic drive times`);
     return segments;
   }
 
-  private static calculateSegmentDriveTime(distance: number): number {
-    // Realistic drive time calculation based on Route 66 conditions
-    let avgSpeed: number;
+  // FIXED: More realistic drive time calculation
+  private static calculateRealisticDriveTime(distance: number): number {
+    console.log(`🧮 FIXED: Calculating drive time for ${distance.toFixed(1)} miles`);
     
-    if (distance < 50) {
-      avgSpeed = 45; // Urban/city driving with stops
-    } else if (distance < 150) {
-      avgSpeed = 55; // Mixed highway/rural roads
+    // Route 66 specific speed calculations
+    let avgSpeed: number;
+    let breaks = 0;
+    
+    if (distance < 100) {
+      avgSpeed = 45; // Urban areas, frequent stops
+      breaks = 0.25; // 15 min break
+    } else if (distance < 200) {
+      avgSpeed = 50; // Mix of urban and highway
+      breaks = 0.5; // 30 min break
+    } else if (distance < 300) {
+      avgSpeed = 55; // Mostly highway
+      breaks = 0.75; // 45 min break
     } else {
-      avgSpeed = 65; // Highway driving
+      avgSpeed = 55; // Highway but with Route 66 considerations
+      breaks = 1.0; // 1 hour of breaks
     }
     
-    // Calculate base time and add small buffer for stops
+    // Calculate base driving time
     const baseTime = distance / avgSpeed;
-    const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
     
-    return Math.max(baseTime * bufferMultiplier, 0.5);
+    // Add breaks and buffer for Route 66 sightseeing
+    const totalTime = baseTime + breaks;
+    
+    // Round to reasonable precision
+    const finalTime = Math.round(totalTime * 4) / 4; // Quarter hour precision
+    
+    console.log(`🧮 FIXED: ${distance.toFixed(1)}mi @ ${avgSpeed}mph + ${breaks}h breaks = ${finalTime.toFixed(1)}h`);
+    
+    return Math.max(finalTime, 0.5); // Minimum 30 minutes
   }
 
   private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
