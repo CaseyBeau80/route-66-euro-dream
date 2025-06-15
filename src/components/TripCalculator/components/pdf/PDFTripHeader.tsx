@@ -59,7 +59,7 @@ const PDFTripHeader: React.FC<PDFTripHeaderProps> = ({
         
         {costEstimate && (
           <div className="text-center">
-            <div className="text-2xl font-bold">${costEstimate.total?.toLocaleString() || 'N/A'}</div>
+            <div className="text-2xl font-bold">${costEstimate.breakdown.totalCost?.toLocaleString() || 'N/A'}</div>
             <div className="text-sm text-route66-cream">Est. Cost</div>
           </div>
         )}

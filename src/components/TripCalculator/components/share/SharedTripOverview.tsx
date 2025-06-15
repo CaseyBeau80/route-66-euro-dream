@@ -74,7 +74,7 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
           <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="text-2xl font-bold text-orange-600 flex items-center justify-center gap-2">
               <DollarSign className="w-6 h-6" />
-              {costEstimate.total?.toLocaleString() || 'N/A'}
+              {costEstimate.breakdown.totalCost?.toLocaleString() || 'N/A'}
             </div>
             <div className="text-sm text-orange-700 font-medium">Est. Cost</div>
           </div>
