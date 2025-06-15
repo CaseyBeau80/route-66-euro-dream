@@ -104,11 +104,10 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   };
 
   const endDate = calculateEndDate();
-  const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
-      {/* Trip Overview Header - Updated Blue Banner Design */}
+      {/* Trip Overview Header */}
       <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-white">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
           <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">

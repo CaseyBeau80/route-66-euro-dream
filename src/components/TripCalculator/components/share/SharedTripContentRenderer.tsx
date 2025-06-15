@@ -5,6 +5,7 @@ import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
 import { format, addDays } from 'date-fns';
+import SharedDailyItinerary from './SharedDailyItinerary';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -43,7 +44,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
 
   const endDate = calculateEndDate();
 
-  console.log('🎨 SharedTripContentRenderer: Rendering with RAMBLE 66 branding and modern layout');
+  console.log('🎨 SharedTripContentRenderer: Rendering with RAMBLE 66 branding and weather');
 
   return (
     <div className="bg-white text-black font-sans">
@@ -103,34 +104,13 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
         </div>
       </div>
 
-      {/* Trip Highlights */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-blue-700">Trip Highlights</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {tripPlan.segments?.slice(0, 5).map((segment, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <div>
-                  <div className="font-medium">Day {index + 1}: {segment.startCity} → {segment.endCity}</div>
-                  <div className="text-sm text-gray-600">
-                    {Math.round(segment.distance || 0)} miles • {formatTime(segment.driveTimeHours)}
-                  </div>
-                </div>
-                <div className="text-right text-sm text-gray-500">
-                  {(segment.attractions?.length || 0)} attractions
-                </div>
-              </div>
-            ))}
-            {tripPlan.segments && tripPlan.segments.length > 5 && (
-              <div className="text-center text-gray-500 text-sm italic">
-                ...and {tripPlan.segments.length - 5} more days of adventure!
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Daily Itinerary with Weather */}
+      <div className="mb-8">
+        <SharedDailyItinerary 
+          segments={tripPlan.segments}
+          tripStartDate={tripStartDate}
+        />
+      </div>
 
       {/* Footer */}
       <div className="text-center text-gray-500 text-sm mt-8 pt-6 border-t border-gray-200">
