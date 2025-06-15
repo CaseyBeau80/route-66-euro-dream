@@ -1,5 +1,6 @@
 
 import { DateNormalizationService } from '../DateNormalizationService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 export class WeatherUtilityService {
   /**
@@ -67,5 +68,53 @@ export class WeatherUtilityService {
     });
     
     return isWithinRange;
+  }
+
+  /**
+   * Calculate days from today to a target date
+   */
+  static getDaysFromToday(targetDate: Date): number {
+    const today = new Date();
+    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+    const normalizedTarget = DateNormalizationService.normalizeSegmentDate(targetDate);
+    
+    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTarget);
+    
+    console.log('🔧 WeatherUtilityService.getDaysFromToday:', {
+      targetDate: targetDate.toISOString(),
+      daysFromToday
+    });
+    
+    return daysFromToday;
+  }
+
+  /**
+   * Check if a date is within the live forecast range (0-5 days)
+   */
+  static isWithinLiveForecastRange(targetDate: Date): boolean {
+    return this.isWithinForecastRange(targetDate, 5);
+  }
+
+  /**
+   * Determine if weather data represents a live forecast
+   */
+  static isLiveForecast(weather: ForecastWeatherData, targetDate: Date): boolean {
+    const isWithinRange = this.isWithinLiveForecastRange(targetDate);
+    const hasLiveSource = weather.source === 'live_forecast';
+    const isActual = weather.isActualForecast === true;
+    
+    const isLive = hasLiveSource && isActual && isWithinRange;
+    
+    console.log('🔧 WeatherUtilityService.isLiveForecast:', {
+      targetDate: targetDate.toISOString(),
+      isWithinRange,
+      hasLiveSource,
+      isActual,
+      isLive,
+      weatherSource: weather.source,
+      weatherIsActual: weather.isActualForecast
+    });
+    
+    return isLive;
   }
 }
