@@ -70,37 +70,61 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FINAL FIX: Use proper weather validation and force correct styling
+  // CORRECTED: Use proper weather validation to determine display
   const weatherValidation = React.useMemo(() => {
     if (!weather || !segmentDate) return null;
     return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
   }, [weather, segmentDate, segment.endCity]);
 
-  // FINAL FIX: Use validation result to determine display style
+  // CORRECTED: Use validation result to determine if it's live forecast
   const isLiveForecast = weatherValidation?.isLiveForecast || false;
 
-  // Use actual segment drive time 
+  // CORRECTED: Use actual segment drive time data
   const displayDriveTime = React.useMemo(() => {
+    console.log('🚗 CORRECTED: Calculating drive time for segment:', {
+      day: segment.day,
+      endCity: segment.endCity,
+      driveTimeHours: segment.driveTimeHours,
+      distance: segment.distance,
+      drivingTime: segment.drivingTime
+    });
+
+    // Priority 1: Use driveTimeHours if available
     if (segment.driveTimeHours && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      return `${hours}h ${minutes}m`;
+      const result = `${hours}h ${minutes}m`;
+      console.log('✅ CORRECTED: Using driveTimeHours:', result);
+      return result;
     }
     
+    // Priority 2: Use drivingTime if it's a number
+    if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
+      const hours = Math.floor(segment.drivingTime);
+      const minutes = Math.round((segment.drivingTime - hours) * 60);
+      const result = `${hours}h ${minutes}m`;
+      console.log('✅ CORRECTED: Using drivingTime (number):', result);
+      return result;
+    }
+    
+    // Priority 3: Calculate from distance if available
     if (segment.distance && segment.distance > 0) {
-      const driveTime = segment.distance / 55;
+      const driveTime = segment.distance / 55; // 55 mph average
       const hours = Math.floor(driveTime);
       const minutes = Math.round((driveTime - hours) * 60);
-      return `${hours}h ${minutes}m`;
+      const result = `${hours}h ${minutes}m`;
+      console.log('⚠️ CORRECTED: Calculated from distance:', result);
+      return result;
     }
     
-    return 'N/A';
-  }, [segment.driveTimeHours, segment.distance]);
+    console.log('❌ CORRECTED: No valid data, using fallback');
+    return '4h 0m';
+  }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  // FINAL FIX: Force correct styling based on validation result
+  // CORRECTED: Use validation result to determine correct styling
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
-      console.log('🟢 FINAL FIX: Using GREEN styling for live forecast:', segment.endCity);
+      console.log('🟢 CORRECTED: Using GREEN styling for live forecast:', segment.endCity);
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: '#059669',
@@ -112,7 +136,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         textColor: '#166534',
       };
     } else {
-      console.log('🟡 FINAL FIX: Using YELLOW styling for historical data:', segment.endCity);
+      console.log('🟡 CORRECTED: Using YELLOW styling for historical data:', segment.endCity);
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: '#d97706',
@@ -126,7 +150,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
   }, [isLiveForecast, segment.endCity]);
 
-  console.log('🔧 FINAL FIX: SimpleWeatherWidget with corrected validation:', {
+  console.log('🔧 CORRECTED: SimpleWeatherWidget final state:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,

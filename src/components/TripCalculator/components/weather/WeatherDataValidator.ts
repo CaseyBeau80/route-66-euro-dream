@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FINAL FIX: Correct live weather detection based on API key + date range
+   * CORRECTED: Determine if weather should be displayed as live forecast
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -33,17 +33,18 @@ export class WeatherDataValidator {
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // FINAL LOGIC: Live forecast ONLY if API key exists AND within 5-day range
+    // CORRECTED LOGIC: Live forecast ONLY if API key exists AND within 5-day range
     const isLiveForecast = isValidApiKey && isWithinForecastRange;
     
-    console.log('🟢 FINAL FIX: WeatherDataValidator corrected logic:', {
+    console.log('🔧 CORRECTED: WeatherDataValidator logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       daysFromToday,
       isValidApiKey,
       isWithinForecastRange,
       isLiveForecast,
-      expectedDisplay: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
+      shouldShowGreen: isLiveForecast,
+      shouldShowYellow: !isLiveForecast
     });
     
     // Validate basic weather data
@@ -59,7 +60,7 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather icon');
     }
     
-    // FINAL FIX: Ensure correct source assignment
+    // CORRECTED: Force correct source assignment based on validation
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
@@ -75,13 +76,13 @@ export class WeatherDataValidator {
       confidence = 'medium';
     }
     
-    console.log('🟢 FINAL FIX: WeatherDataValidator result:', {
+    console.log('✅ CORRECTED: WeatherDataValidator final result:', {
       cityName,
       daysFromToday,
       isLiveForecast,
       normalizedSource: normalizedWeather.source,
       confidence,
-      shouldDisplayGreen: isLiveForecast
+      displayStyle: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
     });
     
     return {

@@ -31,6 +31,7 @@ const TripResults: React.FC<TripResultsProps> = ({
     segmentDriveTimes: tripPlan?.segments?.map(s => ({ 
       day: s.day, 
       driveTimeHours: s.driveTimeHours,
+      drivingTime: s.drivingTime,
       distance: s.distance 
     }))
   });
@@ -48,35 +49,45 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // FINAL FIX: Use actual segment drive time data from trip plan
+  // CORRECTED: Use actual segment drive time data with proper fallbacks
   const formatDriveTime = (segment: any): string => {
-    console.log('🕐 FINAL FIX: Formatting drive time for segment:', {
+    console.log('🚗 CORRECTED: Formatting drive time for segment:', {
       day: segment.day,
       driveTimeHours: segment.driveTimeHours,
+      drivingTime: segment.drivingTime,
       distance: segment.distance,
       endCity: segment.endCity
     });
 
-    // FINAL PRIORITY: Use segment's actual driveTimeHours if available
+    // Priority 1: Use driveTimeHours if available
     if (segment.driveTimeHours && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ FINAL FIX: Using actual segment driveTimeHours:', formatted);
+      console.log('✅ CORRECTED: Using driveTimeHours:', formatted);
       return formatted;
     }
     
-    // FALLBACK: Calculate from distance if no drive time available
+    // Priority 2: Use drivingTime if it's a number
+    if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
+      const hours = Math.floor(segment.drivingTime);
+      const minutes = Math.round((segment.drivingTime - hours) * 60);
+      const formatted = `${hours}h ${minutes}m`;
+      console.log('✅ CORRECTED: Using drivingTime (number):', formatted);
+      return formatted;
+    }
+    
+    // Priority 3: Calculate from distance if available
     if (segment.distance && segment.distance > 0) {
-      const driveTimeHours = segment.distance / 50; // 50 mph average
+      const driveTimeHours = segment.distance / 55; // 55 mph average
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('⚠️ FINAL FIX: Calculated from distance:', formatted);
+      console.log('⚠️ CORRECTED: Calculated from distance:', formatted);
       return formatted;
     }
     
-    console.log('❌ FINAL FIX: No valid data, using fallback');
+    console.log('❌ CORRECTED: No valid data, using fallback');
     return '4h 0m';
   };
 
