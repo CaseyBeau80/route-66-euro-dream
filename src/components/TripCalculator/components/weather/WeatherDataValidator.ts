@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * SIMPLE: Direct logic to determine if weather should show as live (GREEN) or historical (YELLOW)
+   * FIXED: Proper logic to determine if weather should show as live (GREEN) or historical (YELLOW)
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -20,40 +20,39 @@ export class WeatherDataValidator {
   ): WeatherValidationResult {
     const validationErrors: string[] = [];
     
-    console.log('🔧 SIMPLE: WeatherDataValidator with direct logic:', {
+    console.log('🔧 FIXED: WeatherDataValidator with correct date logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      hasApiKey: WeatherApiKeyManager.hasApiKey()
+      isActualForecast: weather.isActualForecast
     });
     
-    // SIMPLE CHECK 1: Do we have a valid API key?
-    const hasValidApiKey = WeatherApiKeyManager.hasApiKey() && 
-                          WeatherApiKeyManager.getApiKey() !== 'YOUR_API_KEY_HERE' && 
-                          (WeatherApiKeyManager.getApiKey()?.length || 0) > 10;
-    
-    // SIMPLE CHECK 2: Is date within 0-5 days from today?
+    // Calculate days from today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDate = new Date(segmentDate);
     targetDate.setHours(0, 0, 0, 0);
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    
+    // FIXED: Live forecast logic - days 0-5 from today can be live
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // SIMPLE CHECK 3: Does weather data indicate it's live?
-    const hasLiveIndicators = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    // Check if we have a valid API key
+    const hasValidApiKey = WeatherApiKeyManager.hasApiKey() && 
+                          WeatherApiKeyManager.getApiKey() !== 'YOUR_API_KEY_HERE' && 
+                          (WeatherApiKeyManager.getApiKey()?.length || 0) > 10;
     
-    // SIMPLE DECISION: Live forecast = ALL THREE conditions must be true
-    const isLiveForecast = hasValidApiKey && isWithinForecastRange && hasLiveIndicators;
+    // FIXED: Determine if this should be live forecast
+    // For live forecast: must be within range AND have API key
+    const shouldBeLiveForecast = isWithinForecastRange && hasValidApiKey;
     
-    console.log('✅ SIMPLE: Final decision for', cityName, ':', {
-      hasValidApiKey,
-      isWithinForecastRange,
-      hasLiveIndicators,
+    console.log('✅ FIXED: Weather validation decision:', {
+      cityName,
       daysFromToday,
-      isLiveForecast,
-      expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+      isWithinForecastRange,
+      hasValidApiKey,
+      shouldBeLiveForecast,
+      expectedColor: shouldBeLiveForecast ? 'GREEN (Live Forecast)' : 'YELLOW (Historical)'
     });
     
     // Validate basic weather data
@@ -65,18 +64,18 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather description');
     }
     
-    // Create normalized weather with corrected source
+    // Create normalized weather with corrected properties
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
-      source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
-      isActualForecast: isLiveForecast,
+      source: shouldBeLiveForecast ? 'live_forecast' : 'historical_fallback',
+      isActualForecast: shouldBeLiveForecast,
       cityName: weather.cityName || cityName
     };
     
-    const confidence: 'high' | 'medium' | 'low' = validationErrors.length > 0 ? 'low' : (isLiveForecast ? 'high' : 'medium');
+    const confidence: 'high' | 'medium' | 'low' = validationErrors.length > 0 ? 'low' : (shouldBeLiveForecast ? 'high' : 'medium');
     
     return {
-      isLiveForecast,
+      isLiveForecast: shouldBeLiveForecast,
       normalizedWeather,
       validationErrors,
       confidence

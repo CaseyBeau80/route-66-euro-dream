@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -71,7 +70,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use simple validation to determine display
+  // FIXED: Use corrected validation to determine display
   const weatherValidation = React.useMemo(() => {
     if (!weather || !segmentDate) return null;
     return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
@@ -144,7 +143,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return '4h 0m';
   }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  // FIXED: Simple styling based on validation result
+  // FIXED: Correct styling based on validation result
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
       console.log('🟢 USING GREEN styling for live forecast:', segment.endCity);
@@ -181,7 +180,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     error,
     segmentDate: segmentDate?.toISOString(),
     isLiveForecast,
-    displayDriveTime,
     weatherSource: weather?.source,
     validationResult: weatherValidation?.isLiveForecast,
     expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
