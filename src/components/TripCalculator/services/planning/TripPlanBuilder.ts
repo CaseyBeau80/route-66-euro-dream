@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -15,9 +16,46 @@ export interface DailySegment {
   attractions: TripStop[];
   subStops: TripStop[];
   driveTimeCategory: DriveTimeCategory;
+  // Additional properties that components expect
+  title?: string;
+  recommendedStops?: RecommendedStop[];
+  subStopTimings?: SegmentTiming[];
+  routeSection?: string;
+  weatherData?: any;
+  isEnriched?: boolean;
+  notes?: string;
+  recommendations?: string[];
 }
 
-export type DriveTimeCategory = 'light' | 'moderate' | 'heavy' | 'extreme';
+export interface DriveTimeCategory {
+  category: 'light' | 'moderate' | 'heavy' | 'extreme';
+  message: string;
+  color?: string;
+}
+
+export interface RecommendedStop {
+  id?: string;
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  city?: string;
+  city_name?: string;
+  state?: string;
+  type?: string;
+  category?: string;
+  duration?: number;
+}
+
+export interface SegmentTiming {
+  fromStop: TripStop;
+  toStop: TripStop;
+  distance: number;
+  driveTime: number;
+  distanceMiles: number;
+  driveTimeHours: number;
+  drivingTime: number;
+}
 
 export interface TripPlan {
   startCity: string;
@@ -27,6 +65,25 @@ export interface TripPlan {
   totalDrivingTime: number; // This should always be calculated properly
   segments: DailySegment[];
   route: { lat: number; lng: number }[];
+  // Additional properties that components expect
+  title?: string;
+  totalMiles?: number;
+  startDate?: Date;
+  startCityImage?: string;
+  endCityImage?: string;
+  isEnriched?: boolean;
+  lastUpdated?: Date;
+  exportTimestamp?: number;
+  originalDays?: number;
+  driveTimeBalance?: any;
+  wasAdjusted?: boolean;
+  tripStyle?: string;
+  warnings?: string[];
+  enrichmentStatus?: {
+    weatherData: boolean;
+    stopsData: boolean;
+    validationComplete: boolean;
+  };
 }
 
 export class TripPlanBuilder {
@@ -69,7 +126,10 @@ export class TripPlanBuilder {
       totalDays: segments.length,
       totalDrivingTime, // Now properly calculated from segments
       segments,
-      route
+      route,
+      // Set additional properties
+      title: `${startStop.name} to ${endStop.name} Route 66 Adventure`,
+      totalMiles: Math.round(totalDistance)
     };
 
     console.log(`✅ Trip plan built successfully: ${segments.length} days, ${totalDistance.toFixed(0)} miles, ${totalDrivingTime.toFixed(1)}h driving`);
@@ -156,8 +216,8 @@ export class TripPlanBuilder {
       // Get attractions for the destination city
       const attractions = await AttractionService.getAttractionsForStop(dayEndStop);
       
-      // Get drive time category
-      const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(segmentDriveTime);
+      // Get drive time category object instead of string
+      const driveTimeCategory = this.getDriveTimeCategory(segmentDriveTime);
       
       const segment: DailySegment = {
         day,
@@ -169,7 +229,11 @@ export class TripPlanBuilder {
         driveTimeHours: segmentDriveTime,
         attractions,
         subStops: dayIntermediateStops,
-        driveTimeCategory
+        driveTimeCategory,
+        title: `${dayStartStop.name} → ${dayEndStop.name}`,
+        recommendedStops: [], // Initialize empty, will be populated by other services
+        subStopTimings: [], // Initialize empty, will be populated by other services
+        routeSection: this.getRouteSection(day, requestedDays)
       };
       
       segments.push(segment);
@@ -200,5 +264,45 @@ export class TripPlanBuilder {
     const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
     
     return Math.max(baseTime * bufferMultiplier, 0.5);
+  }
+
+  private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
+    if (driveTimeHours <= 3) {
+      return {
+        category: 'light',
+        message: 'Easy driving day with plenty of time for stops and exploration.',
+        color: 'green'
+      };
+    } else if (driveTimeHours <= 5) {
+      return {
+        category: 'moderate',
+        message: 'Comfortable driving day with good balance of travel and sightseeing.',
+        color: 'blue'
+      };
+    } else if (driveTimeHours <= 7) {
+      return {
+        category: 'heavy',
+        message: 'Longer driving day - plan for fewer stops and more focused travel.',
+        color: 'orange'
+      };
+    } else {
+      return {
+        category: 'extreme',
+        message: 'Very long driving day - consider splitting this segment or starting early.',
+        color: 'red'
+      };
+    }
+  }
+
+  private static getRouteSection(day: number, totalDays: number): string {
+    const progress = day / totalDays;
+    
+    if (progress <= 0.33) {
+      return 'Early Route';
+    } else if (progress <= 0.66) {
+      return 'Mid Route';
+    } else {
+      return 'Final Stretch';
+    }
   }
 }
