@@ -16,7 +16,14 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
+  console.log('🎯 RecommendedStopsDisplay: Rendering with stops:', {
+    stopsCount: stops?.length || 0,
+    maxDisplay,
+    stops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category })) || []
+  });
+
   if (!stops || stops.length === 0) {
+    console.log('⚠️ RecommendedStopsDisplay: No stops to display');
     return null;
   }
 
@@ -62,6 +69,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       <div className="space-y-3">
         {displayStops.map((stop, index) => {
           const formatted = StopRecommendationService.formatStopForDisplay(stop);
+          console.log(`🎯 Rendering stop ${index + 1}:`, formatted);
           return (
             <div 
               key={stop.id} 
