@@ -35,27 +35,22 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 [DISPLAY-FIX] DaySegmentCardContent render:', {
+  console.log('🔍 [FIXED-DISPLAY] DaySegmentCardContent render with corrected logic:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     recommendedStopsCount: recommendedStops.length,
     hasStops,
     isLoadingStops,
     error,
+    willShowRecommendedStops: hasStops && recommendedStops.length > 0,
+    willShowLegacyAttractions: !hasStops && !isLoadingStops,
     stopDetails: recommendedStops.map(stop => ({
       id: stop.id,
       name: stop.name,
       category: stop.category,
       city: stop.city,
       state: stop.state,
-      score: stop.relevanceScore,
-      hasDescription: !!stop.originalStop.description,
-      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-      originalStopData: {
-        featured: stop.originalStop.featured,
-        category: stop.originalStop.category,
-        name: stop.originalStop.name
-      }
+      score: stop.relevanceScore
     }))
   });
 
@@ -78,25 +73,31 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Route & Stops Content */}
+      {/* Route & Stops Content - FIXED LOGIC */}
       <div className="space-y-4">
-        {/* PRIORITY: Always show recommended stops section first */}
-        <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-          {isLoadingStops ? (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                Searching for Route 66 attractions and hidden gems...
-              </div>
+        {/* LOADING STATE */}
+        {isLoadingStops && (
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+              Searching for Route 66 attractions and hidden gems...
             </div>
-          ) : error ? (
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
-              <div className="text-sm text-red-600">
-                <div className="font-medium">Error loading Route 66 attractions:</div>
-                <div className="text-xs mt-1">{error}</div>
-              </div>
+          </div>
+        )}
+
+        {/* ERROR STATE */}
+        {!isLoadingStops && error && (
+          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
+            <div className="text-sm text-red-600">
+              <div className="font-medium">Error loading Route 66 attractions:</div>
+              <div className="text-xs mt-1">{error}</div>
             </div>
-          ) : hasStops && recommendedStops.length > 0 ? (
+          </div>
+        )}
+
+        {/* SUCCESS: SHOW RECOMMENDED STOPS WITH RICH DATA */}
+        {!isLoadingStops && !error && hasStops && recommendedStops.length > 0 && (
+          <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
@@ -105,7 +106,13 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                 compact={false}
               />
             </div>
-          ) : (
+          </ErrorBoundary>
+        )}
+
+        {/* FALLBACK: NO RECOMMENDED STOPS FOUND */}
+        {!isLoadingStops && !error && !hasStops && (
+          <div className="space-y-4">
+            {/* Show "no attractions found" message */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500">
                 <div className="font-medium text-gray-700 mb-1 flex items-center gap-2">
@@ -127,17 +134,15 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                 </div>
               </div>
             </div>
-          )}
-        </ErrorBoundary>
 
-        {/* Legacy Attractions - ONLY if no recommended stops AND not loading */}
-        {!isLoadingStops && !hasStops && (
-          <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
-            <SegmentNearbyAttractions 
-              segment={segment} 
-              maxAttractions={maxAttractions}
-            />
-          </ErrorBoundary>
+            {/* Legacy Attractions as absolute fallback */}
+            <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
+              <SegmentNearbyAttractions 
+                segment={segment} 
+                maxAttractions={maxAttractions}
+              />
+            </ErrorBoundary>
+          </div>
         )}
       </div>
     </div>

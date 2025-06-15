@@ -19,19 +19,28 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
 }) => {
   const displayStops = stops.slice(0, maxDisplay);
 
-  console.log('🎯 [DISPLAY-FIX] RecommendedStopsDisplay rendering:', {
+  console.log('🎯 [FIXED-DISPLAY] RecommendedStopsDisplay rendering with rich data:', {
     totalStops: stops.length,
     displayStops: displayStops.length,
     maxDisplay,
+    showLocation,
+    compact,
     stopsData: displayStops.map(stop => ({
+      id: stop.id,
       name: stop.name,
       category: stop.category,
       city: stop.city,
       state: stop.state,
+      type: stop.type,
+      score: stop.relevanceScore,
       hasDescription: !!stop.originalStop.description,
       hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
       featured: stop.originalStop.featured,
-      score: stop.relevanceScore
+      originalStopSample: {
+        name: stop.originalStop.name,
+        category: stop.originalStop.category,
+        description: stop.originalStop.description?.substring(0, 100)
+      }
     }))
   });
 
@@ -55,6 +64,19 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
           const hasImage = !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url);
           const hasDescription = !!stop.originalStop.description;
+          
+          console.log(`🎯 [FIXED-DISPLAY] Rendering stop ${index + 1}:`, {
+            name: stop.name,
+            formattedName: formatted.name,
+            category: stop.category,
+            formattedCategory: formatted.category,
+            icon: formatted.icon,
+            location: formatted.location,
+            hasDescription,
+            hasImage,
+            score: stop.relevanceScore,
+            featured: stop.originalStop.featured
+          });
           
           return (
             <div
