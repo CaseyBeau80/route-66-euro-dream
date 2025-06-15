@@ -2,7 +2,9 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
-import UnifiedWeatherWidget from '../weather/UnifiedWeatherWidget';
+import SimpleWeatherDisplay from '../weather/SimpleWeatherDisplay';
+import { useEdgeFunctionWeather } from '../weather/hooks/useEdgeFunctionWeather';
+import { WeatherUtilityService } from '../weather/services/WeatherUtilityService';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -13,17 +15,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 UNIFIED SHARED: SharedDailyItinerary now using UnifiedWeatherWidget:', {
+  console.log('🔥 CONSISTENT: SharedDailyItinerary with consistent weather details:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    unifiedComponent: true
+    consistentWeatherDisplay: true
   });
 
   // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 UNIFIED SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 CONSISTENT: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -36,7 +38,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 UNIFIED SHARED: Extracted tripStartDate from URL:', {
+            console.log('🔥 CONSISTENT: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString()
@@ -46,11 +48,11 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ UNIFIED SHARED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ CONSISTENT: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 UNIFIED SHARED: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 CONSISTENT: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
@@ -65,10 +67,10 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
     <div className="space-y-4">
       <div className="text-center p-4 bg-route66-primary rounded">
         <h3 className="text-lg font-bold text-white mb-2 font-route66">
-          📅 DAILY ITINERARY WITH LIVE WEATHER
+          📅 DAILY ITINERARY WITH WEATHER
         </h3>
         <p className="text-route66-cream text-sm font-travel">
-          Your complete day-by-day guide with live weather forecasts
+          Your complete day-by-day guide with consistent weather forecasts
         </p>
         {effectiveTripStartDate && (
           <p className="text-route66-cream text-xs mt-1">
@@ -80,25 +82,25 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       {segments.map((segment, index) => {
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
+        const segmentDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
 
-        console.log(`🔥 UNIFIED SHARED: Rendering segment ${segment.day} for ${segment.endCity}`, {
+        console.log(`🔥 CONSISTENT: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
+          segmentDate: segmentDate.toISOString(),
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          usingUnifiedWeatherWidget: true
+          consistentWeatherDisplay: true
         });
 
         return (
-          <div key={`unified-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`consistent-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold">Day {segment.day}</h3>
                   <p className="text-blue-100">
-                    {effectiveTripStartDate && (
-                      format(new Date(effectiveTripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000), 'EEEE, MMMM d, yyyy')
-                    )}
+                    {format(segmentDate, 'EEEE, MMMM d, yyyy')}
                   </p>
                 </div>
                 <div className="text-right">
@@ -141,25 +143,93 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - Clean display without debug text */}
-              <div className="weather-section bg-gray-50 rounded-lg p-4 border">
-                <div className="mb-2">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-1">
-                    🌤️ Weather Forecast for {segment.endCity}
-                  </h4>
-                </div>
-                
-                <UnifiedWeatherWidget
-                  segment={segment}
-                  tripStartDate={effectiveTripStartDate}
-                  isSharedView={true}
-                  isPDFExport={false}
-                />
-              </div>
+              {/* Weather section with consistent display */}
+              <WeatherWidget
+                segment={segment}
+                segmentDate={segmentDate}
+                isSharedView={true}
+              />
             </div>
           </div>
         );
       })}
+    </div>
+  );
+};
+
+// Weather Widget Component for Shared View
+const WeatherWidget: React.FC<{
+  segment: DailySegment;
+  segmentDate: Date;
+  isSharedView: boolean;
+}> = ({ segment, segmentDate, isSharedView }) => {
+  const { weather, loading, error } = useEdgeFunctionWeather({
+    cityName: segment.endCity,
+    segmentDate,
+    segmentDay: segment.day
+  });
+
+  console.log('🌤️ CONSISTENT: WeatherWidget for shared view:', {
+    cityName: segment.endCity,
+    hasWeather: !!weather,
+    loading,
+    error,
+    weatherDetails: weather ? {
+      temperature: weather.temperature,
+      windSpeed: weather.windSpeed,
+      precipitationChance: weather.precipitationChance,
+      humidity: weather.humidity
+    } : null
+  });
+
+  if (loading) {
+    return (
+      <div className="weather-section bg-gray-50 rounded-lg p-4 border">
+        <div className="mb-2">
+          <h4 className="text-sm font-semibold text-gray-700 mb-1">
+            🌤️ Weather Forecast for {segment.endCity}
+          </h4>
+        </div>
+        <div className="flex items-center gap-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-sm">Loading weather...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (weather) {
+    return (
+      <div className="weather-section bg-gray-50 rounded-lg p-4 border">
+        <div className="mb-2">
+          <h4 className="text-sm font-semibold text-gray-700 mb-1">
+            🌤️ Weather Forecast for {segment.endCity}
+          </h4>
+        </div>
+        
+        <SimpleWeatherDisplay
+          weather={weather}
+          segmentDate={segmentDate}
+          cityName={segment.endCity}
+          isSharedView={isSharedView}
+          isPDFExport={false}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="weather-section bg-gray-50 rounded-lg p-4 border">
+      <div className="mb-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-1">
+          🌤️ Weather Forecast for {segment.endCity}
+        </h4>
+      </div>
+      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
+        <div className="text-amber-600 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-amber-700 font-medium">Weather forecast temporarily unavailable</p>
+        {error && <p className="text-xs text-amber-600 mt-1">{error}</p>}
+      </div>
     </div>
   );
 };
