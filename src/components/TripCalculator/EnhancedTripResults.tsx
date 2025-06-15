@@ -56,10 +56,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return undefined;
   }, [tripStartDate]);
 
-  console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
+  console.log("🌤️ EnhancedTripResults: Rendering with drive time data:", {
     segmentsCount: tripPlan.segments?.length || 0,
     hasStartDate: !!validTripStartDate,
     hasCostEstimate: !!costEstimate,
+    totalDrivingTime: tripPlan.totalDrivingTime,
     startDate: validTripStartDate?.toISOString(),
     isPreLoading: loadingState?.isPreLoading
   });
@@ -79,6 +80,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   }
 
   const formatTime = (hours: number): string => {
+    if (!hours || hours === 0) {
+      console.warn('⚠️ formatTime: Invalid hours value:', hours);
+      return '0h 0m';
+    }
+    
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
@@ -104,6 +110,15 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   };
 
   const endDate = calculateEndDate();
+
+  // Ensure we have a valid drive time value
+  const totalDrivingTime = tripPlan.totalDrivingTime || 0;
+  
+  console.log('🚗 Drive time check:', {
+    totalDrivingTime,
+    formatted: formatTime(totalDrivingTime),
+    segmentCount: tripPlan.segments?.length
+  });
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
@@ -146,7 +161,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">{formatTime(tripPlan.totalDrivingTime || 0)}</div>
+              <div className="text-sm font-semibold text-gray-800">{formatTime(totalDrivingTime)}</div>
               <div className="text-xs text-gray-600">Drive Time</div>
             </div>
             
