@@ -10,11 +10,27 @@ export interface NearbyAttraction {
   latitude?: number;
   longitude?: number;
   distanceFromCity: number;
-  attractionType: string;
+  attractionType: "attraction" | "hidden_gem" | "drive_in" | "waypoint";
 }
 
 // Converter function to convert TripStop to NearbyAttraction
 export const convertTripStopToNearbyAttraction = (tripStop: any): NearbyAttraction => {
+  // Ensure attractionType is one of the allowed values
+  const normalizeAttractionType = (type: string): "attraction" | "hidden_gem" | "drive_in" | "waypoint" => {
+    switch (type?.toLowerCase()) {
+      case 'hidden_gem':
+      case 'hidden gem':
+        return 'hidden_gem';
+      case 'drive_in':
+      case 'drive in':
+        return 'drive_in';
+      case 'waypoint':
+        return 'waypoint';
+      default:
+        return 'attraction';
+    }
+  };
+
   return {
     id: tripStop.id || `attraction-${Math.random()}`,
     name: tripStop.name || 'Unknown Attraction',
@@ -26,6 +42,6 @@ export const convertTripStopToNearbyAttraction = (tripStop: any): NearbyAttracti
     latitude: tripStop.latitude,
     longitude: tripStop.longitude,
     distanceFromCity: 0, // Default value
-    attractionType: tripStop.category || 'attraction'
+    attractionType: normalizeAttractionType(tripStop.category || tripStop.attractionType || 'attraction')
   };
 };
