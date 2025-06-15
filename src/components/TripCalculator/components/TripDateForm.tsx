@@ -71,9 +71,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // Get today's date without time for comparison
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Get yesterday's date for comparison - now allows today to be selected
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
 
   return (
     <div className="space-y-2">
@@ -120,7 +121,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             disabled={(date) => {
               const checkDate = new Date(date);
               checkDate.setHours(0, 0, 0, 0);
-              return checkDate < today;
+              return checkDate < yesterday; // Changed from today to yesterday - now allows today
             }}
             initialFocus
             className="p-3 pointer-events-auto"
