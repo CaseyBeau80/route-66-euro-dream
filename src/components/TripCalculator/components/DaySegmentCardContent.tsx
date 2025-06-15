@@ -29,19 +29,17 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // Get enhanced recommended stops
+  // Get enhanced recommended stops - ALWAYS try this first
   const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  console.log('🔍 [DISPLAY-DEBUG] DaySegmentCardContent render state:', {
+  console.log('🎯 [FIXED-DISPLAY] DaySegmentCardContent render state:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     isLoading,
     hasError: !!error,
     hasStops,
     stopsCount: recommendedStops.length,
-    willShowRecommended: hasStops && !isLoading && !error,
-    willShowFallback: !hasStops && !isLoading && !error,
-    stopsPreview: recommendedStops.slice(0, 2).map(stop => ({
+    recommendedStops: recommendedStops.map(stop => ({
       name: stop.name,
       city: stop.city,
       category: stop.category,
@@ -68,9 +66,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Enhanced Recommended Stops Content */}
+      {/* FIXED: Simplified logic to prioritize showing recommended stops */}
       <div className="space-y-4">
-        {/* Loading State */}
+        {/* Show loading state */}
         {isLoading && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -80,8 +78,8 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* Error State */}
-        {!isLoading && error && (
+        {/* Show error state only if there's an error */}
+        {error && !isLoading && (
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
             <div className="text-sm text-red-600">
               <div className="font-medium">Error loading attractions:</div>
@@ -90,8 +88,8 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* SUCCESS: Show enhanced stops */}
-        {!isLoading && !error && hasStops && (
+        {/* PRIORITY: Show enhanced recommended stops if we have ANY stops */}
+        {recommendedStops.length > 0 && !isLoading && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
               ✨ Route 66 Attractions ({recommendedStops.length})
@@ -107,8 +105,8 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* FALLBACK: Show legacy system only if enhanced system has no data */}
-        {!isLoading && !error && !hasStops && (
+        {/* FALLBACK: Show legacy system ONLY if enhanced system has no data AND is not loading */}
+        {recommendedStops.length === 0 && !isLoading && !error && (
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
             <div className="mb-3 text-sm text-gray-600 font-medium">
               🏛️ Nearby Attractions (Legacy System)
