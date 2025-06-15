@@ -10,7 +10,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🚨 [HOOK-DEBUG] useRecommendedStops called:', {
+  console.log('🚨 [HOOK-FIX] useRecommendedStops called:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     maxStops,
@@ -23,33 +23,37 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [HOOK-DEBUG] Starting stops fetch...');
+        console.log('🔍 [HOOK-FIX] Starting enhanced stops fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🚫 [HOOK-DEBUG] Component unmounted, ignoring result');
+          console.log('🚫 [HOOK-FIX] Component unmounted, ignoring result');
           return;
         }
         
-        console.log('✅ [HOOK-DEBUG] Stops fetch completed:', {
+        console.log('✅ [HOOK-FIX] Enhanced stops fetch completed:', {
           totalStops: stops.length,
+          categoryCounts: stops.reduce((acc, s) => {
+            const cat = s.category || 'unknown';
+            acc[cat] = (acc[cat] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>),
+          featuredCount: stops.filter(s => s.featured).length,
+          withDescriptions: stops.filter(s => s.description && s.description.length > 20).length,
+          withImages: stops.filter(s => s.image_url || s.thumbnail_url).length,
           sampleStops: stops.slice(0, 3).map(s => ({ 
             id: s.id, 
             name: s.name, 
             category: s.category, 
             city: s.city_name || s.city,
             state: s.state,
+            featured: s.featured,
             hasDescription: !!s.description,
             hasImage: !!(s.image_url || s.thumbnail_url)
-          })),
-          categoryCounts: stops.reduce((acc, s) => {
-            const cat = s.category || 'unknown';
-            acc[cat] = (acc[cat] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>)
+          }))
         });
         
         if (stops.length === 0) {
@@ -61,7 +65,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('❌ [HOOK-DEBUG] Stops fetch failed:', err);
+        console.error('❌ [HOOK-FIX] Stops fetch failed:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
@@ -80,7 +84,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
   // Calculate recommended stops
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🚨 [HOOK-DEBUG] Computing recommendations:', {
+    console.log('🚨 [HOOK-FIX] Computing recommendations:', {
       hasSegment: !!segment,
       segmentDay: segment?.day,
       endCity: segment?.endCity,
@@ -92,30 +96,30 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
     // Wait for data to load
     if (isLoading) {
-      console.log('⏳ [HOOK-DEBUG] Still loading data...');
+      console.log('⏳ [HOOK-FIX] Still loading data...');
       return [];
     }
 
     // Check for errors
     if (error) {
-      console.log('❌ [HOOK-DEBUG] Error state:', error);
+      console.log('❌ [HOOK-FIX] Error state:', error);
       return [];
     }
 
     // Validate segment
     if (!segment || !segment.endCity) {
-      console.log('⚠️ [HOOK-DEBUG] Invalid segment data');
+      console.log('⚠️ [HOOK-FIX] Invalid segment data');
       return [];
     }
 
     // Validate stops data
     if (!allStops || allStops.length === 0) {
-      console.log('⚠️ [HOOK-DEBUG] No stops data available');
+      console.log('⚠️ [HOOK-FIX] No stops data available');
       return [];
     }
 
     try {
-      console.log('🚀 [HOOK-DEBUG] Calling StopRecommendationService...');
+      console.log('🚀 [HOOK-FIX] Calling StopRecommendationService...');
       
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
@@ -123,7 +127,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         maxStops
       );
 
-      console.log('✅ [HOOK-DEBUG] Recommendations generated:', {
+      console.log('✅ [HOOK-FIX] Recommendations generated successfully:', {
         count: recommendations.length,
         segmentDay: segment.day,
         endCity: segment.endCity,
@@ -135,14 +139,20 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
           category: r.category,
           type: r.type,
           score: r.relevanceScore,
+          featured: r.originalStop.featured,
           hasDescription: !!r.originalStop.description,
-          hasImage: !!(r.originalStop.image_url || r.originalStop.thumbnail_url)
+          hasImage: !!(r.originalStop.image_url || r.originalStop.thumbnail_url),
+          originalStopSample: {
+            name: r.originalStop.name,
+            category: r.originalStop.category,
+            city: r.originalStop.city_name || r.originalStop.city
+          }
         }))
       });
 
       return recommendations;
     } catch (err) {
-      console.error('❌ [HOOK-DEBUG] Error generating recommendations:', err);
+      console.error('❌ [HOOK-FIX] Error generating recommendations:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
       return [];
     }
@@ -155,7 +165,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('📊 [HOOK-DEBUG] Final result:', {
+  console.log('📊 [HOOK-FIX] Final result:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     hasStops: result.hasStops,
@@ -169,6 +179,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
       city: s.city,
       state: s.state,
       score: s.relevanceScore,
+      featured: s.originalStop.featured,
       hasRichData: !!(s.originalStop.description || s.originalStop.image_url)
     }))
   });

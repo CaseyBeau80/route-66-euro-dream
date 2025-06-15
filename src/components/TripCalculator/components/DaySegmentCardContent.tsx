@@ -35,23 +35,27 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 [FIXED] DaySegmentCardContent DEBUG:', {
+  console.log('🔍 [DISPLAY-FIX] DaySegmentCardContent render:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     recommendedStopsCount: recommendedStops.length,
     hasStops,
     isLoadingStops,
     error,
-    recommendedStopsDetails: recommendedStops.map(stop => ({
+    stopDetails: recommendedStops.map(stop => ({
       id: stop.id,
       name: stop.name,
       category: stop.category,
       city: stop.city,
       state: stop.state,
-      type: stop.type,
       score: stop.relevanceScore,
       hasDescription: !!stop.originalStop.description,
-      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url)
+      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
+      originalStopData: {
+        featured: stop.originalStop.featured,
+        category: stop.originalStop.category,
+        name: stop.originalStop.name
+      }
     }))
   });
 
@@ -76,27 +80,33 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* ALWAYS SHOW Recommended Stops Section */}
+        {/* PRIORITY: Always show recommended stops section first */}
         <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-            {isLoadingStops ? (
+          {isLoadingStops ? (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                 Searching for Route 66 attractions and hidden gems...
               </div>
-            ) : error ? (
+            </div>
+          ) : error ? (
+            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
               <div className="text-sm text-red-600">
                 <div className="font-medium">Error loading Route 66 attractions:</div>
                 <div className="text-xs mt-1">{error}</div>
               </div>
-            ) : recommendedStops.length > 0 ? (
+            </div>
+          ) : hasStops && recommendedStops.length > 0 ? (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
                 maxDisplay={3}
                 showLocation={true}
                 compact={false}
               />
-            ) : (
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500">
                 <div className="font-medium text-gray-700 mb-1 flex items-center gap-2">
                   <span>🔍</span>
@@ -116,12 +126,12 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                   Debug: Day {segment.day} • {segment.startCity} → {segment.endCity} • Database query returned {recommendedStops.length} stops
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </ErrorBoundary>
 
         {/* Legacy Attractions - ONLY if no recommended stops AND not loading */}
-        {!isLoadingStops && recommendedStops.length === 0 && (
+        {!isLoadingStops && !hasStops && (
           <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
             <SegmentNearbyAttractions 
               segment={segment} 
