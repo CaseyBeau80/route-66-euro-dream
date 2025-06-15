@@ -2,12 +2,12 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '../types/tripCalculator';
+import SimpleTripCalendar from './SimpleTripCalendar';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -18,9 +18,9 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
-  // FIXED: Simplified date validation and conversion
+  // Simple date handling
   const tripStartDate = React.useMemo(() => {
-    console.log('🔧 FIXED: TripDateForm date validation:', {
+    console.log('🗓️ TripDateForm date processing:', {
       originalTripStartDate: formData.tripStartDate,
       type: typeof formData.tripStartDate,
       isDate: formData.tripStartDate instanceof Date,
@@ -31,36 +31,19 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       return undefined;
     }
     
-    if (formData.tripStartDate instanceof Date) {
-      const isValid = !isNaN(formData.tripStartDate.getTime());
-      console.log('🔧 FIXED: Date object validation:', {
-        isValid,
-        dateString: isValid ? formData.tripStartDate.toISOString() : 'Invalid',
-        localString: isValid ? formData.tripStartDate.toLocaleDateString() : 'Invalid'
-      });
-      return isValid ? formData.tripStartDate : undefined;
-    }
-    
-    if (typeof formData.tripStartDate === 'string') {
-      const parsed = new Date(formData.tripStartDate);
-      const isValid = !isNaN(parsed.getTime());
-      console.log('🔧 FIXED: String to Date conversion:', {
-        original: formData.tripStartDate,
-        parsed: isValid ? parsed.toISOString() : 'Invalid',
-        isValid
-      });
-      return isValid ? parsed : undefined;
+    if (formData.tripStartDate instanceof Date && !isNaN(formData.tripStartDate.getTime())) {
+      return formData.tripStartDate;
     }
     
     return undefined;
   }, [formData.tripStartDate]);
 
-  // Calculate end date if start date and travel days are available
+  // Calculate end date
   const endDate = React.useMemo(() => {
     if (tripStartDate && formData.travelDays > 0) {
       try {
         const calculated = addDays(tripStartDate, formData.travelDays - 1);
-        console.log('🔧 FIXED: End date calculation:', {
+        console.log('🗓️ End date calculation:', {
           startDate: tripStartDate.toISOString(),
           travelDays: formData.travelDays,
           endDate: calculated.toISOString()
@@ -74,37 +57,24 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [tripStartDate, formData.travelDays]);
 
-  // FIXED: Simplified date selection handler
-  const handleDateSelect = React.useCallback((date: Date | undefined) => {
-    console.log('🔧 FIXED: Calendar date selection:', {
-      selectedDate: date?.toISOString(),
-      selectedLocal: date?.toLocaleDateString(),
-      isToday: date ? (date.toDateString() === new Date().toDateString()) : false
+  // Date selection handler
+  const handleDateSelect = React.useCallback((date: Date) => {
+    console.log('🗓️ TripDateForm: Date selected:', {
+      selectedDate: date.toISOString(),
+      selectedLocal: date.toLocaleDateString(),
+      isToday: date.toDateString() === new Date().toDateString()
     });
     
-    if (date) {
-      // Normalize to start of day in local timezone
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      
-      console.log('🔧 FIXED: Normalized date for storage:', {
-        original: date.toISOString(),
-        normalized: normalizedDate.toISOString(),
-        normalizedLocal: normalizedDate.toLocaleDateString(),
-        components: {
-          year: normalizedDate.getFullYear(),
-          month: normalizedDate.getMonth(),
-          date: normalizedDate.getDate()
-        }
-      });
-      
-      setFormData({ 
-        ...formData, 
-        tripStartDate: normalizedDate 
-      });
-    }
+    // Create a clean date object at start of day
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    setFormData({ 
+      ...formData, 
+      tripStartDate: normalizedDate 
+    });
   }, [formData, setFormData]);
 
-  // FIXED: Simplified date disabling logic
+  // Date disabling logic
   const isDateDisabled = React.useCallback((date: Date): boolean => {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -112,24 +82,8 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     
     const shouldDisable = checkDateStart < todayStart;
     
-    console.log('🔧 FIXED: Date disable check:', {
-      checkingDate: date.toDateString(),
-      todayDate: today.toDateString(),
-      disabled: shouldDisable,
-      isToday: checkDateStart.getTime() === todayStart.getTime(),
-      isFuture: checkDateStart > todayStart
-    });
-    
     return shouldDisable;
   }, []);
-
-  console.log('🔧 FIXED: TripDateForm render state:', {
-    hasTripStartDate: !!tripStartDate,
-    tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
-    hasEndDate: !!endDate,
-    endDate: endDate?.toISOString()
-  });
 
   return (
     <div className="space-y-2">
@@ -169,13 +123,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
+          <SimpleTripCalendar
             selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
-            initialFocus
-            className="p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
