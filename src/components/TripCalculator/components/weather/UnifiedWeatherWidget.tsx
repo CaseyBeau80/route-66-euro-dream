@@ -23,7 +23,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
   }, [tripStartDate, segment.day]);
 
-  const { weatherData, isLoading, error } = useWeatherCard({
+  const { weatherState } = useWeatherCard({
     segment,
     tripStartDate
   });
@@ -45,7 +45,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return <Sun className="h-6 w-6 text-yellow-500" />;
   };
 
-  if (isLoading) {
+  if (weatherState.loading) {
     return (
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <div className="flex items-center justify-between">
@@ -65,7 +65,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     );
   }
 
-  if (error || !weatherData) {
+  if (weatherState.error || !weatherState.weather) {
     return (
       <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
         <div className="flex items-center gap-2">
@@ -76,6 +76,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     );
   }
 
+  const weatherData = weatherState.weather;
   const highTemp = weatherData.highTemp || weatherData.temperature;
   const lowTemp = weatherData.lowTemp || weatherData.temperature;
 
