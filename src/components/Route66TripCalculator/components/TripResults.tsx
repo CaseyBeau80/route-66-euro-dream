@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
+import TripSummaryStats from './TripSummaryStats';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -42,15 +43,6 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
   return (
     <div className="space-y-6 p-6">
       {/* Trip Summary */}
@@ -62,36 +54,8 @@ const TripResults: React.FC<TripResultsProps> = ({
           {tripPlan.startCity} to {tripPlan.endCity}
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">{tripPlan.segments?.length || 0}</div>
-            <div className="text-sm text-route66-text-secondary">Days</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">
-              {Math.round(tripPlan.totalDistance || 0)}
-            </div>
-            <div className="text-sm text-route66-text-secondary">Miles</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">
-              {Math.round((tripPlan.totalDistance || 0) / 55)}
-            </div>
-            <div className="text-sm text-route66-text-secondary">Drive Hours</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">
-              {tripPlan.segments?.filter(s => s.attractions?.length > 0).length || 0}
-            </div>
-            <div className="text-sm text-route66-text-secondary">Attractions</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">
-              {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
-            </div>
-            <div className="text-sm text-route66-text-secondary">Est. Cost</div>
-          </div>
-        </div>
+        {/* FIXED: Use new TripSummaryStats component without attractions count */}
+        <TripSummaryStats tripPlan={tripPlan} costEstimate={costEstimate} />
       </div>
 
       {/* Daily Segments */}
