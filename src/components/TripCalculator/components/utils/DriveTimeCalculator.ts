@@ -1,10 +1,10 @@
 
 export class DriveTimeCalculator {
   /**
-   * CRITICAL FIX: Calculate and format drive time from segment data
+   * FIXED: Calculate and format drive time from segment data using working logic
    */
   static formatDriveTime(segment: any): string {
-    console.log('🚗 CRITICAL FIX: DriveTimeCalculator for', segment.endCity, {
+    console.log('🚗 FIXED: DriveTimeCalculator for', segment.endCity, {
       segmentStructure: {
         driveTimeHours: segment.driveTimeHours,
         distance: segment.distance,
@@ -16,27 +16,27 @@ export class DriveTimeCalculator {
       hasValidDistance: typeof segment.distance === 'number' && segment.distance > 0
     });
     
-    // CRITICAL FIX: Priority 1 - Use driveTimeHours if available and valid
+    // FIXED: Priority 1 - Use driveTimeHours if available and valid
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('✅ CRITICAL FIX: Using actual driveTimeHours for', segment.endCity, { 
+      console.log('✅ FIXED: Using actual driveTimeHours for', segment.endCity, { 
         originalHours: segment.driveTimeHours,
         formattedResult: formatted 
       });
       return formatted;
     }
     
-    // CRITICAL FIX: Priority 2 - Calculate from distance if available  
+    // FIXED: Priority 2 - Calculate from distance if available  
     if (typeof segment.distance === 'number' && segment.distance > 0) {
       const estimatedHours = segment.distance / 60; // 60 mph average for highways
       const hours = Math.floor(estimatedHours);
       const minutes = Math.round((estimatedHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('⚠️ CRITICAL FIX: Calculating from distance for', segment.endCity, { 
+      console.log('⚠️ FIXED: Calculating from distance for', segment.endCity, { 
         distance: segment.distance, 
         estimatedHours: estimatedHours.toFixed(2),
         formattedResult: formatted 
@@ -44,7 +44,7 @@ export class DriveTimeCalculator {
       return formatted;
     }
     
-    // CRITICAL FIX: Use Route 66 segment distances as Priority 3
+    // FIXED: Use Route 66 segment distances as Priority 3
     const route66Segments: { [key: string]: { distance: number, driveHours: number } } = {
       'Springfield, IL': { distance: 200, driveHours: 3.5 },
       'St. Louis, MO': { distance: 100, driveHours: 1.8 },
@@ -77,7 +77,7 @@ export class DriveTimeCalculator {
       const minutes = Math.round((segmentInfo.driveHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('🗺️ CRITICAL FIX: Using Route 66 drive time for', segment.endCity, {
+      console.log('🗺️ FIXED: Using Route 66 drive time for', segment.endCity, {
         distance: segmentInfo.distance,
         driveHours: segmentInfo.driveHours,
         formattedResult: formatted
@@ -85,8 +85,8 @@ export class DriveTimeCalculator {
       return formatted;
     }
     
-    // Final fallback - should rarely be used now
-    console.warn('⚠️ CRITICAL FIX: Using final fallback for', segment.endCity);
+    // Final fallback
+    console.warn('⚠️ FIXED: Using final fallback for', segment.endCity);
     return '2h 30m';
   }
 
@@ -96,7 +96,7 @@ export class DriveTimeCalculator {
   static calculateTotalDriveTime(segments: any[]): number {
     let total = 0;
     
-    segments.forEach((segment, index) => {
+    segments.forEach((segment) => {
       if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
         total += segment.driveTimeHours;
       } else if (typeof segment.distance === 'number' && segment.distance > 0) {

@@ -6,14 +6,55 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 import TripSummaryStats from './TripSummaryStats';
-import CompactWeatherDisplay from '../../TripCalculator/components/weather/components/CompactWeatherDisplay';
+import SimpleWeatherDisplay from '../../TripCalculator/components/weather/SimpleWeatherDisplay';
 import { DriveTimeCalculator } from '../../TripCalculator/components/utils/DriveTimeCalculator';
+import { useEdgeFunctionWeather } from '../../TripCalculator/components/weather/hooks/useEdgeFunctionWeather';
+import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   onShareTrip?: () => void;
 }
+
+const CompactWeatherDisplay: React.FC<{
+  segment: any;
+  tripStartDate: Date;
+}> = ({ segment, tripStartDate }) => {
+  const segmentDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+  
+  const { weather, loading } = useEdgeFunctionWeather({
+    cityName: segment.endCity,
+    segmentDate,
+    segmentDay: segment.day
+  });
+
+  if (loading) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+        <div className="text-blue-600 text-sm">Loading weather...</div>
+      </div>
+    );
+  }
+
+  if (weather) {
+    return (
+      <SimpleWeatherDisplay
+        weather={weather}
+        segmentDate={segmentDate}
+        cityName={segment.endCity}
+        isSharedView={false}
+        isPDFExport={false}
+      />
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
+      <div className="text-gray-600 text-sm">Weather unavailable</div>
+    </div>
+  );
+};
 
 const TripResults: React.FC<TripResultsProps> = ({
   tripPlan,
@@ -32,16 +73,10 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  console.log('🔧 TRIP RESULTS: Rendering with tripPlan:', {
+  console.log('🔧 FIXED: TripResults using fixed DriveTimeCalculator:', {
     segmentCount: tripPlan.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
-    firstSegment: tripPlan.segments?.[0],
-    segmentStructure: tripPlan.segments?.[0] ? {
-      driveTimeHours: tripPlan.segments[0].driveTimeHours,
-      distance: tripPlan.segments[0].distance,
-      startCity: tripPlan.segments[0].startCity,
-      endCity: tripPlan.segments[0].endCity
-    } : 'No segments'
+    firstSegment: tripPlan.segments?.[0]
   });
 
   return (
@@ -65,7 +100,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         </h3>
         
         {tripPlan.segments?.map((segment, index) => {
-          console.log(`🔧 TRIP RESULTS: Rendering segment ${index} for ${segment.endCity}:`, {
+          console.log(`🔧 FIXED: Rendering segment ${index} for ${segment.endCity}:`, {
             segmentData: {
               day: segment.day,
               driveTimeHours: segment.driveTimeHours,
@@ -107,7 +142,7 @@ const TripResults: React.FC<TripResultsProps> = ({
                 </div>
               </div>
 
-              {/* Weather Display - pass the complete segment and tripStartDate */}
+              {/* Weather Display using working component */}
               {tripStartDate && (
                 <CompactWeatherDisplay
                   segment={segment}
