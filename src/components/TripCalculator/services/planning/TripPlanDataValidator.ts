@@ -1,6 +1,6 @@
 
 import { TripPlan, DailySegment } from './TripPlanTypes';
-import { getDestinationCityName } from './TripPlanHelpers';
+import { getDestinationCityName } from './TripPlanTypes';
 
 // Enhanced data validation service
 export class TripPlanDataValidator {
@@ -27,6 +27,10 @@ export class TripPlanDataValidator {
     
     if (!tripPlan.totalDistance || isNaN(tripPlan.totalDistance) || tripPlan.totalDistance <= 0) {
       issues.push('Total distance is invalid or missing');
+    }
+    
+    if (!tripPlan.totalDrivingTime || isNaN(tripPlan.totalDrivingTime) || tripPlan.totalDrivingTime <= 0) {
+      issues.push('Total driving time is invalid or missing');
     }
     
     // Validate segments
