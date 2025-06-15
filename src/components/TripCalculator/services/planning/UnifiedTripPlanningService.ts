@@ -1,5 +1,5 @@
 
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { TripPlan } from './TripPlanBuilder';
 import { TripPlanningService } from './TripPlanningService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
