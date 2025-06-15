@@ -5,276 +5,152 @@ import { RecommendedStop } from './RecommendedStopTypes';
 
 export class StopScoringService {
   /**
-   * Score stops by relevance with HEAVY bias toward actual attractions
+   * Score stop relevance for a segment
    */
-  static scoreStopRelevance(
-    segment: DailySegment,
-    stops: TripStop[]
-  ): (TripStop & { relevanceScore: number })[] {
-    console.log(`🏆 [ATTRACTION-FOCUSED] Starting scoring for ${stops.length} stops`);
-    
+  static scoreStopRelevance(segment: DailySegment, stops: TripStop[]): RecommendedStop[] {
+    console.log(`⭐ [SCORING] Starting scoring for ${stops.length} stops near ${segment.endCity}`);
+
+    if (stops.length === 0) {
+      console.log(`❌ [SCORING] No stops to score`);
+      return [];
+    }
+
     const scoredStops = stops.map(stop => {
-      let score = 0;
-
-      // MASSIVE bonus for attractions and hidden gems - these are what we want!
-      switch (stop.category) {
-        case 'attraction':
-          score += 50; // HUGE priority for attractions
-          break;
-        case 'hidden_gem':
-          score += 45; // Very high priority for hidden gems
-          break;
-        case 'drive_in':
-          score += 40; // High priority for drive-ins
-          break;
-        case 'waypoint':
-        case 'route66_waypoint':
-          score += 30; // Good priority for waypoints
-          break;
-        case 'museum':
-          score += 35; // High priority for museums
-          break;
-        case 'diner':
-        case 'restaurant':
-          score += 25; // Good priority for dining
-          break;
-        default:
-          score += 15; // Default for other categories
-      }
-
-      // HUGE bonus for featured stops
-      if (stop.featured) {
-        score += 30;
-      }
-
-      // Bonus for stops with substantial descriptions (indicates quality data)
-      if (stop.description && stop.description.length > 100) {
-        score += 20;
-      } else if (stop.description && stop.description.length > 50) {
-        score += 10;
-      }
-
-      // Enhanced city relevance scoring
-      const cityRelevance = this.calculateEnhancedCityRelevance(stop, segment);
-      score += cityRelevance;
-
-      // Route 66 corridor bonus
-      if (this.isOnRoute66Corridor(stop, segment)) {
-        score += 25;
-      }
-
-      // PENALTY for generic names that sound like cities
-      if (this.seemsLikeGenericLocation(stop)) {
-        score -= 20;
-        console.log(`⚠️ [ATTRACTION-FOCUSED] Generic location penalty: ${stop.name}`);
-      }
-
-      console.log(`🏆 [ATTRACTION-FOCUSED] Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
-
-      return { ...stop, relevanceScore: score };
-    }).sort((a, b) => b.relevanceScore - a.relevanceScore);
-    
-    console.log(`🏆 [ATTRACTION-FOCUSED] Scoring complete. Top 10 scores:`, 
-      scoredStops.slice(0, 10).map(s => ({ 
-        name: s.name, 
-        score: s.relevanceScore, 
-        category: s.category,
-        city: s.city_name
-      }))
-    );
-    
-    return scoredStops;
-  }
-
-  /**
-   * Check if a stop seems like a generic location rather than a specific attraction
-   */
-  private static seemsLikeGenericLocation(stop: TripStop): boolean {
-    const name = stop.name?.toLowerCase() || '';
-    const cityName = stop.city_name?.toLowerCase() || '';
-    
-    // Check if name is just the city name or very similar
-    if (name === cityName || name.includes('destination') || name.includes('attractions in')) {
-      return true;
-    }
-    
-    // Check for generic location indicators
-    const genericTerms = [
-      'points of interest',
-      'tourist attractions',
-      'things to do',
-      'local attractions',
-      'area attractions'
-    ];
-    
-    return genericTerms.some(term => name.includes(term));
-  }
-
-  /**
-   * Calculate enhanced city relevance bonus
-   */
-  private static calculateEnhancedCityRelevance(stop: TripStop, segment: DailySegment): number {
-    const stopCity = stop.city_name?.toLowerCase() || '';
-    const startCity = segment.startCity.toLowerCase();
-    const endCity = segment.endCity?.toLowerCase() || '';
-
-    // Extract just city names without state for comparison
-    const startCityOnly = startCity.split(',')[0].trim();
-    const endCityOnly = endCity.split(',')[0].trim();
-
-    // Exact city match gets highest bonus
-    if (stopCity === endCityOnly || stopCity === startCityOnly) {
-      return 30;
-    }
-
-    // Partial city match gets good bonus
-    if (stopCity.includes(endCityOnly) || endCityOnly.includes(stopCity) ||
-        stopCity.includes(startCityOnly) || startCityOnly.includes(stopCity)) {
-      return 20;
-    }
-
-    // Same state as start or end gets small bonus
-    const startState = this.extractStateFromCity(segment.startCity)?.toLowerCase();
-    const endState = this.extractStateFromCity(segment.endCity)?.toLowerCase();
-    const stopState = stop.state?.toLowerCase();
-    
-    if ((startState && stopState === startState) || (endState && stopState === endState)) {
-      return 10;
-    }
-
-    return 0;
-  }
-
-  /**
-   * Select diverse stops ensuring variety in types and REAL attractions
-   */
-  static selectDiverseStops(
-    scoredStops: (TripStop & { relevanceScore: number })[],
-    maxStops: number
-  ): RecommendedStop[] {
-    console.log(`🎯 [ATTRACTION-FOCUSED] Starting selection from ${scoredStops.length} scored stops (max: ${maxStops})`);
-    
-    const selectedStops: RecommendedStop[] = [];
-    const categoryCount: Record<string, number> = {};
-
-    // FIRST PRIORITY: Select high-scoring attractions and hidden gems
-    const priorityStops = scoredStops.filter(stop => 
-      (stop.category === 'attraction' || stop.category === 'hidden_gem') && 
-      stop.relevanceScore > 40 &&
-      !this.seemsLikeGenericLocation(stop)
-    );
-
-    console.log(`🎯 [ATTRACTION-FOCUSED] Priority attractions found: ${priorityStops.length}`, 
-      priorityStops.map(s => ({ name: s.name, score: s.relevanceScore, category: s.category }))
-    );
-
-    // Add priority stops first
-    for (const stop of priorityStops) {
-      if (selectedStops.length >= maxStops) break;
-      
+      const score = this.calculateRelevanceScore(stop, segment);
       const recommendedStop: RecommendedStop = {
         id: stop.id,
         name: stop.name,
+        city: stop.city_name || stop.city || 'Unknown',
+        state: stop.state || '',
         category: stop.category || 'attraction',
-        city: stop.city_name || 'Unknown',
-        state: stop.state || 'Unknown',
-        distanceFromRoute: 0,
-        relevanceScore: stop.relevanceScore,
-        type: this.mapCategoryToType(stop.category)
+        type: this.getStopType(stop),
+        relevanceScore: score,
+        originalStop: stop
       };
 
-      selectedStops.push(recommendedStop);
-      const category = stop.category || 'other';
-      categoryCount[category] = (categoryCount[category] || 0) + 1;
-      
-      console.log(`✅ [ATTRACTION-FOCUSED] PRIORITY Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
-    }
+      console.log(`⭐ [SCORING] ${stop.name}: score=${score}, category=${stop.category}`);
+      return recommendedStop;
+    });
 
-    // Fill remaining slots with other high-scoring stops if needed
-    const remainingSlots = maxStops - selectedStops.length;
-    if (remainingSlots > 0) {
-      const remainingStops = scoredStops.filter(stop => 
-        !selectedStops.some(selected => selected.id === stop.id) &&
-        !this.seemsLikeGenericLocation(stop)
-      );
-
-      for (const stop of remainingStops.slice(0, remainingSlots)) {
-        const recommendedStop: RecommendedStop = {
-          id: stop.id,
-          name: stop.name,
-          category: stop.category || 'attraction',
-          city: stop.city_name || 'Unknown',
-          state: stop.state || 'Unknown',
-          distanceFromRoute: 0,
-          relevanceScore: stop.relevanceScore,
-          type: this.mapCategoryToType(stop.category)
-        };
-
-        selectedStops.push(recommendedStop);
-        const category = stop.category || 'other';
-        categoryCount[category] = (categoryCount[category] || 0) + 1;
-        
-        console.log(`✅ [ATTRACTION-FOCUSED] SECONDARY Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
-      }
-    }
-
-    console.log(`🎯 [ATTRACTION-FOCUSED] Selection complete. Final counts by category:`, categoryCount);
-    console.log(`🎯 [ATTRACTION-FOCUSED] Selected attractions:`, selectedStops.map(s => ({ name: s.name, category: s.category, type: s.type, score: s.relevanceScore })));
+    // Sort by relevance score (highest first)
+    const sortedStops = scoredStops.sort((a, b) => b.relevanceScore - a.relevanceScore);
     
-    return selectedStops;
+    console.log(`✅ [SCORING] Scoring complete: ${sortedStops.length} scored stops`);
+    console.log(`🏆 [SCORING] Top 3 scores:`, sortedStops.slice(0, 3).map(s => ({ 
+      name: s.name, 
+      score: s.relevanceScore,
+      category: s.category 
+    })));
+
+    return sortedStops;
   }
 
   /**
-   * Map category to type
+   * Calculate relevance score for a stop
    */
-  private static mapCategoryToType(category?: string): 'attraction' | 'hidden_gem' | 'waypoint' {
-    switch (category) {
-      case 'hidden_gem':
-        return 'hidden_gem';
-      case 'waypoint':
-      case 'route66_waypoint':
-        return 'waypoint';
-      default:
-        return 'attraction';
+  private static calculateRelevanceScore(stop: TripStop, segment: DailySegment): number {
+    let score = 0;
+
+    // Base score by category
+    const categoryScores = {
+      'destination_city': 20,
+      'attraction': 15,
+      'hidden_gem': 18,
+      'diner': 12,
+      'motel': 8,
+      'route66_waypoint': 10
+    };
+
+    score += categoryScores[stop.category as keyof typeof categoryScores] || 10;
+
+    // Bonus for major stops
+    if (stop.is_major_stop) score += 10;
+    if (stop.is_official_destination) score += 8;
+
+    // Bonus for having description
+    if (stop.description && stop.description.length > 20) score += 5;
+
+    // Bonus for having images
+    if (stop.image_url) score += 3;
+    if (stop.thumbnail_url) score += 2;
+
+    // Name quality bonus
+    if (stop.name && stop.name.length > 5) score += 2;
+
+    // Featured bonus
+    if (stop.featured) score += 7;
+
+    // City/location relevance
+    const destinationCity = segment.endCity.split(',')[0].toLowerCase();
+    const stopCity = (stop.city_name || stop.city || '').toLowerCase();
+    
+    if (stopCity.includes(destinationCity) || destinationCity.includes(stopCity)) {
+      score += 15; // High bonus for same city
     }
+
+    // State relevance
+    const destinationState = segment.endCity.includes(',') ? segment.endCity.split(',')[1]?.trim().toLowerCase() : '';
+    const stopState = (stop.state || '').toLowerCase();
+    
+    if (destinationState && stopState === destinationState) {
+      score += 8; // Bonus for same state
+    }
+
+    return Math.max(0, score); // Ensure non-negative
   }
 
-  // Helper methods
-  private static extractStateFromCity(cityWithState: string): string | null {
-    if (!cityWithState || !cityWithState.includes(',')) {
-      return null;
-    }
-    
-    const parts = cityWithState.split(',');
-    if (parts.length < 2) {
-      return null;
-    }
-    
-    return parts[1].trim();
+  /**
+   * Get stop type for display
+   */
+  private static getStopType(stop: TripStop): string {
+    const typeMapping = {
+      'destination_city': 'Major Destination',
+      'attraction': 'Tourist Attraction',
+      'hidden_gem': 'Hidden Gem',
+      'diner': 'Classic Diner',
+      'motel': 'Historic Motel',
+      'route66_waypoint': 'Route 66 Landmark'
+    };
+
+    return typeMapping[stop.category as keyof typeof typeMapping] || 'Point of Interest';
   }
 
-  private static isOnRoute66Corridor(stop: TripStop, segment: DailySegment): boolean {
-    const route66States = ['il', 'mo', 'ks', 'ok', 'tx', 'nm', 'az', 'ca'];
-    
-    const startState = this.extractStateFromCity(segment.startCity)?.toLowerCase();
-    const endState = this.extractStateFromCity(segment.endCity)?.toLowerCase();
-    const stopState = stop.state?.toLowerCase();
-    
-    if (!startState || !endState || !stopState) {
-      return false;
+  /**
+   * Select diverse stops ensuring variety
+   */
+  static selectDiverseStops(scoredStops: RecommendedStop[], maxStops: number): RecommendedStop[] {
+    if (scoredStops.length === 0) {
+      console.log(`❌ [DIVERSITY] No scored stops to select from`);
+      return [];
     }
-    
-    const startIndex = route66States.indexOf(startState);
-    const endIndex = route66States.indexOf(endState);
-    const stopIndex = route66States.indexOf(stopState);
-    
-    if (startIndex === -1 || endIndex === -1 || stopIndex === -1) {
-      return false;
+
+    console.log(`🎯 [DIVERSITY] Selecting ${maxStops} diverse stops from ${scoredStops.length} candidates`);
+
+    const selected: RecommendedStop[] = [];
+    const usedCategories = new Set<string>();
+
+    // First pass: select highest scoring stops from different categories
+    for (const stop of scoredStops) {
+      if (selected.length >= maxStops) break;
+
+      if (!usedCategories.has(stop.category)) {
+        selected.push(stop);
+        usedCategories.add(stop.category);
+        console.log(`✅ [DIVERSITY] Selected ${stop.name} (${stop.category}) - score: ${stop.relevanceScore}`);
+      }
     }
-    
-    const minIndex = Math.min(startIndex, endIndex);
-    const maxIndex = Math.max(startIndex, endIndex);
-    
-    return stopIndex >= minIndex && stopIndex <= maxIndex;
+
+    // Second pass: fill remaining slots with best remaining stops
+    for (const stop of scoredStops) {
+      if (selected.length >= maxStops) break;
+
+      if (!selected.find(s => s.id === stop.id)) {
+        selected.push(stop);
+        console.log(`✅ [DIVERSITY] Added ${stop.name} (${stop.category}) - score: ${stop.relevanceScore}`);
+      }
+    }
+
+    console.log(`🏁 [DIVERSITY] Final selection: ${selected.length} stops`);
+    return selected;
   }
 }

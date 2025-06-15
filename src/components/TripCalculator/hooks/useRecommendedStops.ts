@@ -10,44 +10,44 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🚨 [CRITICAL-HOOK] useRecommendedStops hook called:', {
+  console.log('🚨 [HOOK-DEBUG] useRecommendedStops called:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     maxStops,
     timestamp: new Date().toISOString()
   });
 
-  // Fetch all stops data on mount - PRIORITY FRESH FETCH
+  // Fetch all stops data on mount
   useEffect(() => {
     let isMounted = true;
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [CRITICAL-HOOK] Starting PRIORITY stops fetch...');
+        console.log('🔍 [HOOK-DEBUG] Starting stops fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🚫 [CRITICAL-HOOK] Component unmounted, ignoring fetch result');
+          console.log('🚫 [HOOK-DEBUG] Component unmounted, ignoring result');
           return;
         }
         
-        console.log('✅ [CRITICAL-HOOK] PRIORITY stops fetch completed:', {
+        console.log('✅ [HOOK-DEBUG] Stops fetch completed:', {
           totalStops: stops.length,
-          stopsByCategory: stops.reduce((acc, s) => {
-            const cat = s.category || 'unknown';
-            acc[cat] = (acc[cat] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>),
-          sampleStops: stops.slice(0, 5).map(s => ({ 
+          sampleStops: stops.slice(0, 3).map(s => ({ 
             id: s.id, 
             name: s.name, 
             category: s.category, 
-            city: s.city_name,
+            city: s.city_name || s.city,
             state: s.state
-          }))
+          })),
+          categoryCounts: stops.reduce((acc, s) => {
+            const cat = s.category || 'unknown';
+            acc[cat] = (acc[cat] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
         });
         
         if (stops.length === 0) {
@@ -59,7 +59,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('❌ [CRITICAL-HOOK] Stops fetch failed:', err);
+        console.error('❌ [HOOK-DEBUG] Stops fetch failed:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
@@ -74,11 +74,11 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array to fetch once
+  }, []); // Empty dependency array
 
-  // Calculate recommended stops - PRIORITY CALCULATION
+  // Calculate recommended stops
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🚨 [CRITICAL-HOOK] PRIORITY calculation of recommendations:', {
+    console.log('🚨 [HOOK-DEBUG] Computing recommendations:', {
       hasSegment: !!segment,
       segmentDay: segment?.day,
       endCity: segment?.endCity,
@@ -90,30 +90,30 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
     // Wait for data to load
     if (isLoading) {
-      console.log('⏳ [CRITICAL-HOOK] Still loading, returning empty array');
+      console.log('⏳ [HOOK-DEBUG] Still loading data...');
       return [];
     }
 
     // Check for errors
     if (error) {
-      console.log('❌ [CRITICAL-HOOK] Error state, returning empty array:', error);
+      console.log('❌ [HOOK-DEBUG] Error state:', error);
       return [];
     }
 
     // Validate segment
     if (!segment || !segment.endCity) {
-      console.log('⚠️ [CRITICAL-HOOK] Invalid segment, returning empty array');
+      console.log('⚠️ [HOOK-DEBUG] Invalid segment data');
       return [];
     }
 
     // Validate stops data
     if (!allStops || allStops.length === 0) {
-      console.log('⚠️ [CRITICAL-HOOK] No stops data, returning empty array');
+      console.log('⚠️ [HOOK-DEBUG] No stops data available');
       return [];
     }
 
     try {
-      console.log('🚀 [CRITICAL-HOOK] Calling StopRecommendationService with PRIORITY...');
+      console.log('🚀 [HOOK-DEBUG] Calling StopRecommendationService...');
       
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
@@ -121,11 +121,11 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         maxStops
       );
 
-      console.log('✅ [CRITICAL-HOOK] PRIORITY recommendations generated:', {
+      console.log('✅ [HOOK-DEBUG] Recommendations generated:', {
         count: recommendations.length,
         segmentDay: segment.day,
         endCity: segment.endCity,
-        detailedRecommendations: recommendations.map(r => ({ 
+        recommendations: recommendations.map(r => ({ 
           id: r.id,
           name: r.name, 
           city: r.city, 
@@ -138,7 +138,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
       return recommendations;
     } catch (err) {
-      console.error('❌ [CRITICAL-HOOK] Error generating recommendations:', err);
+      console.error('❌ [HOOK-DEBUG] Error generating recommendations:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
       return [];
     }
@@ -151,7 +151,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('📊 [CRITICAL-HOOK] useRecommendedStops PRIORITY result:', {
+  console.log('📊 [HOOK-DEBUG] Final result:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     hasStops: result.hasStops,
@@ -163,7 +163,8 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
       name: s.name, 
       category: s.category, 
       city: s.city,
-      state: s.state
+      state: s.state,
+      score: s.relevanceScore
     }))
   });
 
