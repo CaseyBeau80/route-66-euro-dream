@@ -25,6 +25,13 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   const today = new Date();
   const todayDateString = today.toDateString();
 
+  console.log('🚨 ULTIMATE FIX: SimpleTripCalendar render:', {
+    selectedDate: selected?.toISOString(),
+    selectedDateLocal: selected?.toLocaleDateString(),
+    todayDateString,
+    currentMonth: currentMonth.toISOString()
+  });
+
   // Navigate months
   const goToPreviousMonth = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
@@ -67,15 +74,16 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('📅 SimpleTripCalendar: Date clicked:', {
+    console.log('🚨 ULTIMATE FIX: SimpleTripCalendar handleDateClick:', {
       clickedDate: date.toISOString(),
-      clickedLocal: date.toLocaleDateString(),
+      clickedDateLocal: date.toLocaleDateString(),
+      clickedDateString: date.toDateString(),
       isToday: date.toDateString() === todayDateString,
       isDisabled: disabled?.(date) || false
     });
 
     if (disabled?.(date)) {
-      console.log('📅 SimpleTripCalendar: Date is disabled, ignoring click');
+      console.log('🚨 ULTIMATE FIX: Date is disabled, ignoring click');
       return;
     }
 
@@ -95,17 +103,30 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     return date.toDateString() === todayDateString;
   };
 
+  const handleTodayClick = () => {
+    console.log('🚨 ULTIMATE FIX: Today button clicked:', {
+      todayDate: today.toISOString(),
+      todayDateLocal: today.toLocaleDateString(),
+      todayDateString: todayDateString,
+      isDisabled: isDateDisabled(today)
+    });
+    
+    if (!isDateDisabled(today)) {
+      handleDateClick(today);
+    }
+  };
+
   const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   return (
-    <div className={cn("p-4 bg-white border border-gray-200 rounded-lg shadow-sm", className)}>
+    <div className={cn("p-4 bg-white", className)}>
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-4">
         <Button
           variant="outline"
           size="sm"
           onClick={goToPreviousMonth}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -118,7 +139,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           variant="outline"
           size="sm"
           onClick={goToNextMonth}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -140,7 +161,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
       <div className="grid grid-cols-7 gap-1">
         {monthData.days.map((date, index) => {
           if (!date) {
-            return <div key={index} className="h-8" />;
+            return <div key={index} className="h-10" />;
           }
 
           const isSelected = isDateSelected(date);
@@ -153,13 +174,13 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
               onClick={() => handleDateClick(date)}
               disabled={isDisabled}
               className={cn(
-                "h-8 w-8 flex items-center justify-center text-sm rounded-md transition-colors",
-                "hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+                "h-10 w-10 flex items-center justify-center text-sm rounded-md transition-colors border",
+                "hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
                 {
-                  "bg-blue-600 text-white hover:bg-blue-700": isSelected,
-                  "bg-blue-100 text-blue-800 font-medium": isTodayDate && !isSelected,
-                  "text-gray-400 cursor-not-allowed hover:bg-transparent": isDisabled,
-                  "text-gray-900": !isSelected && !isTodayDate && !isDisabled,
+                  "bg-blue-600 text-white border-blue-600 hover:bg-blue-700": isSelected,
+                  "bg-blue-100 text-blue-800 font-medium border-blue-200": isTodayDate && !isSelected,
+                  "text-gray-400 cursor-not-allowed hover:bg-transparent border-gray-200 bg-gray-50": isDisabled,
+                  "text-gray-900 border-gray-200 hover:border-blue-300": !isSelected && !isTodayDate && !isDisabled,
                 }
               )}
             >
@@ -170,15 +191,18 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
       </div>
 
       {/* Today Button */}
-      <div className="mt-3 pt-3 border-t border-gray-200">
+      <div className="mt-4 pt-3 border-t border-gray-200">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleDateClick(today)}
+          onClick={handleTodayClick}
           disabled={isDateDisabled(today)}
-          className="w-full text-xs"
+          className={cn(
+            "w-full text-xs",
+            isToday(today) && !isDateDisabled(today) && "border-blue-400 text-blue-700 bg-blue-50"
+          )}
         >
-          Today
+          {isToday(today) ? "Select Today" : "Go to Today"}
         </Button>
       </div>
     </div>

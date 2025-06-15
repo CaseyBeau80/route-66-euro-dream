@@ -1,13 +1,10 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { TripFormData } from '../types/tripCalculator';
+import SimpleTripCalendar from './SimpleTripCalendar';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -28,36 +25,40 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // Handle date selection - CONSISTENT DATE HANDLING
-  const handleDateSelect = (date: Date | undefined) => {
-    console.log('📅 FIXED: Date selected:', {
-      date: date?.toISOString(),
-      dateLocal: date?.toLocaleDateString(),
-      dateString: date?.toDateString(),
-      isToday: date ? date.toDateString() === new Date().toDateString() : false,
+  // ULTIMATE FIX: Handle date selection with proper local timezone normalization
+  const handleDateSelect = (date: Date) => {
+    console.log('🚨 ULTIMATE FIX: TripDateForm handleDateSelect:', {
+      selectedDate: date.toISOString(),
+      selectedDateLocal: date.toLocaleDateString(),
+      selectedDateString: date.toDateString(),
+      isToday: date.toDateString() === new Date().toDateString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
     
-    if (date) {
-      // Normalize the date to start of day in local timezone to ensure consistency
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      
-      console.log('📅 FIXED: Normalized date:', {
-        original: date.toISOString(),
-        normalized: normalizedDate.toISOString(),
-        normalizedLocal: normalizedDate.toLocaleDateString(),
-        normalizedDateString: normalizedDate.toDateString()
-      });
-      
-      setFormData({ 
-        ...formData, 
-        tripStartDate: normalizedDate 
-      });
-      setIsCalendarOpen(false);
-    }
+    // Normalize the date to start of day in local timezone to ensure consistency
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    console.log('🚨 ULTIMATE FIX: Normalized date for form storage:', {
+      original: date.toISOString(),
+      normalized: normalizedDate.toISOString(),
+      normalizedLocal: normalizedDate.toLocaleDateString(),
+      normalizedDateString: normalizedDate.toDateString(),
+      verification: {
+        sameYear: date.getFullYear() === normalizedDate.getFullYear(),
+        sameMonth: date.getMonth() === normalizedDate.getMonth(),
+        sameDate: date.getDate() === normalizedDate.getDate(),
+        isStartOfDay: normalizedDate.getHours() === 0 && normalizedDate.getMinutes() === 0
+      }
+    });
+    
+    setFormData({ 
+      ...formData, 
+      tripStartDate: normalizedDate 
+    });
+    setIsCalendarOpen(false);
   };
 
-  // ULTIMATE FIX: Completely rewritten date validation
+  // ULTIMATE FIX: Date validation - disable only past dates
   const isDateDisabled = (date: Date): boolean => {
     // Get current date
     const now = new Date();
@@ -71,33 +72,28 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     // Compare milliseconds - disable only if check date is BEFORE today
     const shouldDisable = checkDateMidnight.getTime() < todayMidnight.getTime();
     
-    // Force detailed logging for debugging
     console.log('🚨 ULTIMATE DATE VALIDATION:', {
       inputDate: date.toDateString(),
-      inputDateISO: date.toISOString(),
       todayDate: now.toDateString(),
-      todayISO: now.toISOString(),
       todayMidnightMs: todayMidnight.getTime(),
       checkDateMidnightMs: checkDateMidnight.getTime(),
       shouldDisable,
       reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
-      isToday: checkDateMidnight.getTime() === todayMidnight.getTime(),
-      isFuture: checkDateMidnight.getTime() > todayMidnight.getTime(),
-      timeDiffMs: checkDateMidnight.getTime() - todayMidnight.getTime()
+      isToday: checkDateMidnight.getTime() === todayMidnight.getTime()
     });
     
     return shouldDisable;
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Label className="text-sm font-medium flex items-center gap-2">
         Trip Start Date
         <span className="text-red-500 text-xs">(Required)</span>
       </Label>
       
       {/* Required notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-start gap-2">
           <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
           <div className="text-sm text-blue-800">
@@ -109,38 +105,31 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !formData.tripStartDate && "text-muted-foreground border-red-300"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {formData.tripStartDate ? (
-              format(formData.tripStartDate, "PPP")
-            ) : (
-              "Select your trip start date"
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={formData.tripStartDate}
-            onSelect={handleDateSelect}
-            disabled={isDateDisabled}
-            initialFocus
-            className="pointer-events-auto"
-          />
-        </PopoverContent>
-      </Popover>
+      {/* Current selection display */}
+      <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+        <div className="text-sm font-medium text-gray-700 mb-1">Selected Start Date:</div>
+        <div className="text-lg font-semibold text-gray-900">
+          {formData.tripStartDate ? (
+            format(formData.tripStartDate, "EEEE, MMMM do, yyyy")
+          ) : (
+            <span className="text-gray-500 italic">No date selected</span>
+          )}
+        </div>
+      </div>
+
+      {/* Custom Calendar */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <SimpleTripCalendar
+          selected={formData.tripStartDate}
+          onSelect={handleDateSelect}
+          disabled={isDateDisabled}
+          className="w-full"
+        />
+      </div>
       
       {/* Display calculated end date */}
       {endDate && (
-        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
           <div className="text-sm font-medium text-green-800">
             Trip End Date: {format(endDate, 'EEEE, MMMM do, yyyy')}
           </div>

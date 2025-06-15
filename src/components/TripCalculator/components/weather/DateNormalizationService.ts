@@ -1,16 +1,17 @@
 
 export class DateNormalizationService {
   /**
-   * CRITICAL FIX: Normalize a date to start of day in local timezone
+   * ULTIMATE FIX: Normalize a date to start of day in local timezone
    * This ensures consistent date handling across the application
    */
   static normalizeSegmentDate(date: Date): Date {
     const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🗓️ CRITICAL FIX: DateNormalizationService.normalizeSegmentDate:', {
+    console.log('🚨 ULTIMATE FIX: DateNormalizationService.normalizeSegmentDate:', {
       input: {
         iso: date.toISOString(),
         local: date.toLocaleDateString(),
+        dateString: date.toDateString(),
         components: {
           year: date.getFullYear(),
           month: date.getMonth(),
@@ -20,6 +21,7 @@ export class DateNormalizationService {
       normalized: {
         iso: normalized.toISOString(),
         local: normalized.toLocaleDateString(),
+        dateString: normalized.toDateString(),
         components: {
           year: normalized.getFullYear(),
           month: normalized.getMonth(),
@@ -38,11 +40,11 @@ export class DateNormalizationService {
   }
 
   /**
-   * CRITICAL FIX: Calculate segment date based on trip start date and day number
+   * ULTIMATE FIX: Calculate segment date based on trip start date and day number
    * ABSOLUTELY FIXED LOGIC: Day 1 = exact same date as trip start, Day N = add (N-1) days using proper date arithmetic
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🚨 ABSOLUTE FIX: DateNormalizationService.calculateSegmentDate - FINAL VERSION:', {
+    console.log('🚨 ULTIMATE FIX: DateNormalizationService.calculateSegmentDate - FINAL VERSION:', {
       tripStartDate: {
         iso: tripStartDate.toISOString(),
         local: tripStartDate.toLocaleDateString(),
@@ -57,12 +59,12 @@ export class DateNormalizationService {
       absoluteRule: 'Day 1 = EXACT SAME DATE as trip start, no calculation needed'
     });
 
-    // CRITICAL FIX: Normalize the trip start date first
+    // ULTIMATE FIX: Normalize the trip start date first
     const normalizedStartDate = this.normalizeSegmentDate(tripStartDate);
     
-    // ABSOLUTE FIX: For Day 1, return the exact same normalized date - no calculation
+    // ULTIMATE FIX: For Day 1, return the exact same normalized date - no calculation
     if (segmentDay === 1) {
-      console.log('🚨 ABSOLUTE FIX: Day 1 - returning EXACT SAME DATE:', {
+      console.log('🚨 ULTIMATE FIX: Day 1 - returning EXACT SAME DATE:', {
         input: normalizedStartDate.toISOString(),
         inputLocal: normalizedStartDate.toLocaleDateString(),
         inputDateString: normalizedStartDate.toDateString(),
@@ -71,13 +73,13 @@ export class DateNormalizationService {
       return normalizedStartDate;
     }
     
-    // ABSOLUTE FIX: For other days, use proper date arithmetic
+    // ULTIMATE FIX: For other days, use proper date arithmetic
     const daysToAdd = segmentDay - 1;
     
     // Use proper date arithmetic that handles month/year boundaries correctly
     const segmentDate = new Date(normalizedStartDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
     
-    console.log('🚨 ABSOLUTE FIX: DateNormalizationService FINAL CALCULATION:', {
+    console.log('🚨 ULTIMATE FIX: DateNormalizationService FINAL CALCULATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
