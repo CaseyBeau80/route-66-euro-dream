@@ -5,43 +5,53 @@ import { RecommendedStop } from './RecommendedStopTypes';
 
 export class StopScoringService {
   /**
-   * Score stops by relevance to the segment with enhanced criteria
+   * Score stops by relevance with HEAVY bias toward actual attractions
    */
   static scoreStopRelevance(
     segment: DailySegment,
     stops: TripStop[]
   ): (TripStop & { relevanceScore: number })[] {
-    console.log(`🏆 [DEBUG] Starting enhanced scoring for ${stops.length} stops`);
+    console.log(`🏆 [ATTRACTION-FOCUSED] Starting scoring for ${stops.length} stops`);
     
     const scoredStops = stops.map(stop => {
       let score = 0;
 
-      // Base score by category - prioritize attractions and hidden gems
+      // MASSIVE bonus for attractions and hidden gems - these are what we want!
       switch (stop.category) {
         case 'attraction':
-          score += 20; // Higher priority for attractions
+          score += 50; // HUGE priority for attractions
           break;
         case 'hidden_gem':
-          score += 18; // High priority for hidden gems
+          score += 45; // Very high priority for hidden gems
           break;
         case 'drive_in':
-          score += 15; // Good priority for drive-ins
+          score += 40; // High priority for drive-ins
           break;
         case 'waypoint':
-          score += 10;
+        case 'route66_waypoint':
+          score += 30; // Good priority for waypoints
+          break;
+        case 'museum':
+          score += 35; // High priority for museums
+          break;
+        case 'diner':
+        case 'restaurant':
+          score += 25; // Good priority for dining
           break;
         default:
-          score += 8;
+          score += 15; // Default for other categories
       }
 
-      // Bonus for featured/popular stops
+      // HUGE bonus for featured stops
       if (stop.featured) {
-        score += 12;
+        score += 30;
       }
 
-      // Bonus for stops with good descriptions
-      if (stop.description && stop.description.length > 50) {
-        score += 8;
+      // Bonus for stops with substantial descriptions (indicates quality data)
+      if (stop.description && stop.description.length > 100) {
+        score += 20;
+      } else if (stop.description && stop.description.length > 50) {
+        score += 10;
       }
 
       // Enhanced city relevance scoring
@@ -50,23 +60,54 @@ export class StopScoringService {
 
       // Route 66 corridor bonus
       if (this.isOnRoute66Corridor(stop, segment)) {
-        score += 15;
+        score += 25;
       }
 
-      console.log(`🏆 [DEBUG] Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
+      // PENALTY for generic names that sound like cities
+      if (this.seemsLikeGenericLocation(stop)) {
+        score -= 20;
+        console.log(`⚠️ [ATTRACTION-FOCUSED] Generic location penalty: ${stop.name}`);
+      }
+
+      console.log(`🏆 [ATTRACTION-FOCUSED] Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
 
       return { ...stop, relevanceScore: score };
     }).sort((a, b) => b.relevanceScore - a.relevanceScore);
     
-    console.log(`🏆 [DEBUG] Enhanced scoring complete. Top 5 scores:`, 
-      scoredStops.slice(0, 5).map(s => ({ 
+    console.log(`🏆 [ATTRACTION-FOCUSED] Scoring complete. Top 10 scores:`, 
+      scoredStops.slice(0, 10).map(s => ({ 
         name: s.name, 
         score: s.relevanceScore, 
-        category: s.category 
+        category: s.category,
+        city: s.city_name
       }))
     );
     
     return scoredStops;
+  }
+
+  /**
+   * Check if a stop seems like a generic location rather than a specific attraction
+   */
+  private static seemsLikeGenericLocation(stop: TripStop): boolean {
+    const name = stop.name?.toLowerCase() || '';
+    const cityName = stop.city_name?.toLowerCase() || '';
+    
+    // Check if name is just the city name or very similar
+    if (name === cityName || name.includes('destination') || name.includes('attractions in')) {
+      return true;
+    }
+    
+    // Check for generic location indicators
+    const genericTerms = [
+      'points of interest',
+      'tourist attractions',
+      'things to do',
+      'local attractions',
+      'area attractions'
+    ];
+    
+    return genericTerms.some(term => name.includes(term));
   }
 
   /**
@@ -77,15 +118,19 @@ export class StopScoringService {
     const startCity = segment.startCity.toLowerCase();
     const endCity = segment.endCity?.toLowerCase() || '';
 
+    // Extract just city names without state for comparison
+    const startCityOnly = startCity.split(',')[0].trim();
+    const endCityOnly = endCity.split(',')[0].trim();
+
     // Exact city match gets highest bonus
-    if (stopCity === endCity || stopCity === startCity) {
-      return 25;
+    if (stopCity === endCityOnly || stopCity === startCityOnly) {
+      return 30;
     }
 
     // Partial city match gets good bonus
-    if (stopCity.includes(endCity) || endCity.includes(stopCity) ||
-        stopCity.includes(startCity) || startCity.includes(stopCity)) {
-      return 15;
+    if (stopCity.includes(endCityOnly) || endCityOnly.includes(stopCity) ||
+        stopCity.includes(startCityOnly) || startCityOnly.includes(stopCity)) {
+      return 20;
     }
 
     // Same state as start or end gets small bonus
@@ -94,61 +139,113 @@ export class StopScoringService {
     const stopState = stop.state?.toLowerCase();
     
     if ((startState && stopState === startState) || (endState && stopState === endState)) {
-      return 8;
+      return 10;
     }
 
     return 0;
   }
 
   /**
-   * Select diverse stops ensuring variety in types
+   * Select diverse stops ensuring variety in types and REAL attractions
    */
   static selectDiverseStops(
     scoredStops: (TripStop & { relevanceScore: number })[],
     maxStops: number
   ): RecommendedStop[] {
-    console.log(`🎯 [DEBUG] Starting diverse selection from ${scoredStops.length} scored stops (max: ${maxStops})`);
+    console.log(`🎯 [ATTRACTION-FOCUSED] Starting selection from ${scoredStops.length} scored stops (max: ${maxStops})`);
     
     const selectedStops: RecommendedStop[] = [];
     const categoryCount: Record<string, number> = {};
 
-    for (const stop of scoredStops) {
-      if (selectedStops.length >= maxStops) {
-        console.log(`🎯 [DEBUG] Reached max stops limit (${maxStops}), stopping selection`);
-        break;
-      }
+    // FIRST PRIORITY: Select high-scoring attractions and hidden gems
+    const priorityStops = scoredStops.filter(stop => 
+      (stop.category === 'attraction' || stop.category === 'hidden_gem') && 
+      stop.relevanceScore > 40 &&
+      !this.seemsLikeGenericLocation(stop)
+    );
 
-      const category = stop.category || 'other';
-      const currentCategoryCount = categoryCount[category] || 0;
+    console.log(`🎯 [ATTRACTION-FOCUSED] Priority attractions found: ${priorityStops.length}`, 
+      priorityStops.map(s => ({ name: s.name, score: s.relevanceScore, category: s.category }))
+    );
 
-      // Ensure diversity - don't select more than 2 stops of the same category for small lists
-      const maxPerCategory = maxStops <= 3 ? 2 : Math.ceil(maxStops / 2);
-      if (currentCategoryCount >= maxPerCategory) {
-        console.log(`⚠️ [DEBUG] Skipping ${stop.name} - too many ${category} stops already (${currentCategoryCount}/${maxPerCategory})`);
-        continue;
-      }
-
+    // Add priority stops first
+    for (const stop of priorityStops) {
+      if (selectedStops.length >= maxStops) break;
+      
       const recommendedStop: RecommendedStop = {
         id: stop.id,
         name: stop.name,
         category: stop.category || 'attraction',
         city: stop.city_name || 'Unknown',
         state: stop.state || 'Unknown',
-        distanceFromRoute: 0, // Would calculate actual distance in a real implementation
+        distanceFromRoute: 0,
         relevanceScore: stop.relevanceScore,
         type: this.mapCategoryToType(stop.category)
       };
 
       selectedStops.push(recommendedStop);
-      categoryCount[category] = currentCategoryCount + 1;
+      const category = stop.category || 'other';
+      categoryCount[category] = (categoryCount[category] || 0) + 1;
       
-      console.log(`✅ [DEBUG] Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
+      console.log(`✅ [ATTRACTION-FOCUSED] PRIORITY Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
     }
 
-    console.log(`🎯 [DEBUG] Selection complete. Final counts by category:`, categoryCount);
-    console.log(`🎯 [DEBUG] Selected stops:`, selectedStops.map(s => ({ name: s.name, category: s.category, type: s.type })));
+    // Fill remaining slots with other high-scoring stops if needed
+    const remainingSlots = maxStops - selectedStops.length;
+    if (remainingSlots > 0) {
+      const remainingStops = scoredStops.filter(stop => 
+        !selectedStops.some(selected => selected.id === stop.id) &&
+        !this.seemsLikeGenericLocation(stop)
+      );
+
+      for (const stop of remainingStops.slice(0, remainingSlots)) {
+        const recommendedStop: RecommendedStop = {
+          id: stop.id,
+          name: stop.name,
+          category: stop.category || 'attraction',
+          city: stop.city_name || 'Unknown',
+          state: stop.state || 'Unknown',
+          distanceFromRoute: 0,
+          relevanceScore: stop.relevanceScore,
+          type: this.mapCategoryToType(stop.category)
+        };
+
+        selectedStops.push(recommendedStop);
+        const category = stop.category || 'other';
+        categoryCount[category] = (categoryCount[category] || 0) + 1;
+        
+        console.log(`✅ [ATTRACTION-FOCUSED] SECONDARY Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
+      }
+    }
+
+    console.log(`🎯 [ATTRACTION-FOCUSED] Selection complete. Final counts by category:`, categoryCount);
+    console.log(`🎯 [ATTRACTION-FOCUSED] Selected attractions:`, selectedStops.map(s => ({ name: s.name, category: s.category, type: s.type, score: s.relevanceScore })));
     
     return selectedStops;
+  }
+
+  /**
+   * Check if a stop seems like a generic location rather than a specific attraction
+   */
+  private static seemsLikeGenericLocation(stop: TripStop): boolean {
+    const name = stop.name?.toLowerCase() || '';
+    const cityName = stop.city_name?.toLowerCase() || '';
+    
+    // Check if name is just the city name or very similar
+    if (name === cityName || name.includes('destination') || name.includes('attractions in')) {
+      return true;
+    }
+    
+    // Check for generic location indicators
+    const genericTerms = [
+      'points of interest',
+      'tourist attractions', 
+      'things to do',
+      'local attractions',
+      'area attractions'
+    ];
+    
+    return genericTerms.some(term => name.includes(term));
   }
 
   /**
@@ -166,7 +263,7 @@ export class StopScoringService {
     }
   }
 
-  // Helper methods from the geography filter
+  // Helper methods
   private static extractStateFromCity(cityWithState: string): string | null {
     if (!cityWithState || !cityWithState.includes(',')) {
       return null;

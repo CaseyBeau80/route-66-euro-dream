@@ -16,7 +16,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 [CRITICAL] RecommendedStopsDisplay PRIORITY render:', {
+  console.log('🎯 [ATTRACTION-FOCUSED] RecommendedStopsDisplay render:', {
     stopsCount: stops?.length || 0,
     maxDisplay,
     timestamp: new Date().toISOString(),
@@ -31,9 +31,9 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     })) || []
   });
 
-  // CRITICAL: Validate and filter stops with DETAILED logging
+  // CRITICAL: Validate and filter stops - ONLY include real attractions
   if (!stops || stops.length === 0) {
-    console.log('⚠️ [CRITICAL] NO STOPS provided to display component');
+    console.log('⚠️ [ATTRACTION-FOCUSED] NO STOPS provided to display component');
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -48,7 +48,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     );
   }
 
-  // ENHANCED validation - filter out invalid stops and city names
+  // ULTRA-STRICT validation - filter out ANYTHING that looks generic
   const validStops = stops.filter(stop => {
     const isValid = stop && 
       stop.name && 
@@ -56,21 +56,25 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       stop.category &&
       stop.city &&
       stop.state &&
-      // CRITICAL: Exclude stops that are just city names or destinations
+      // CRITICAL: Exclude generic location names
       !stop.name.toLowerCase().includes('destination') &&
-      stop.name !== stop.city && // Exclude stops that are just city names
-      stop.name.toLowerCase() !== stop.city.toLowerCase() &&
-      // Exclude generic location names
       !stop.name.toLowerCase().includes('attractions in') &&
-      !stop.name.toLowerCase().includes('points of interest');
+      !stop.name.toLowerCase().includes('points of interest') &&
+      !stop.name.toLowerCase().includes('tourist attractions') &&
+      !stop.name.toLowerCase().includes('things to do') &&
+      // Make sure it's not just the city name
+      stop.name.toLowerCase() !== stop.city.toLowerCase() &&
+      // Make sure it has some substance
+      stop.name.length > 3;
     
-    console.log(`🔍 [CRITICAL] Validating stop: ${stop?.name}`, {
+    console.log(`🔍 [ATTRACTION-FOCUSED] ULTRA-STRICT validation for: ${stop?.name}`, {
       hasName: !!stop?.name,
       hasCategory: !!stop?.category,
       hasCity: !!stop?.city,
       hasState: !!stop?.state,
-      isNotDestination: !stop?.name?.toLowerCase().includes('destination'),
-      isNotJustCityName: stop?.name !== stop?.city,
+      isNotGeneric: !stop?.name?.toLowerCase().includes('destination'),
+      isNotJustCityName: stop?.name?.toLowerCase() !== stop?.city?.toLowerCase(),
+      hasSubstance: (stop?.name?.length || 0) > 3,
       isValid,
       stopDetails: stop
     });
@@ -78,7 +82,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     return isValid;
   }).slice(0, maxDisplay);
 
-  console.log(`🎯 [CRITICAL] Valid stops after ENHANCED filtering: ${validStops.length}`, 
+  console.log(`🎯 [ATTRACTION-FOCUSED] Valid attractions after ULTRA-STRICT filtering: ${validStops.length}`, 
     validStops.map(s => ({ 
       id: s.id, 
       name: s.name, 
@@ -89,7 +93,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   );
 
   if (validStops.length === 0) {
-    console.log('⚠️ [CRITICAL] NO VALID stops after enhanced filtering');
+    console.log('⚠️ [ATTRACTION-FOCUSED] NO VALID attractions after ultra-strict filtering');
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
@@ -97,8 +101,8 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           Route 66 Attractions (0)
         </h5>
         <div className="text-sm text-gray-500 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-          <p className="font-medium mb-1">⚠️ No valid attractions found</p>
-          <p className="text-xs">The attraction data could not be properly processed for this segment.</p>
+          <p className="font-medium mb-1">⚠️ No specific attractions found</p>
+          <p className="text-xs">We're still looking for classic Route 66 attractions like diners, roadside landmarks, and museums in this area.</p>
           <div className="text-xs mt-2 text-gray-400">
             Raw stops received: {stops.length} • Valid after filtering: {validStops.length}
           </div>
@@ -107,7 +111,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     );
   }
 
-  // PRIORITY: Render all valid stops with enhanced formatting
+  // PRIORITY: Render all valid attractions with enhanced formatting
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-gray-800 flex items-center gap-2">
@@ -118,7 +122,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
         {validStops.map((stop, index) => {
           const formatted = StopRecommendationService.formatStopForDisplay(stop);
           
-          console.log(`🎯 [CRITICAL] PRIORITY rendering stop ${index + 1}:`, {
+          console.log(`🎯 [ATTRACTION-FOCUSED] PRIORITY rendering attraction ${index + 1}:`, {
             original: stop,
             formatted,
             timestamp: new Date().toISOString()
@@ -126,7 +130,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           
           return (
             <div 
-              key={`stop-${stop.id}-${index}-${Date.now()}`} // Force unique key
+              key={`attraction-${stop.id}-${index}-${Date.now()}`}
               className="p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               <div className="flex items-start gap-3">

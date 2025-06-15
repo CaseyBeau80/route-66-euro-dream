@@ -6,13 +6,14 @@ export class StopGeographyFilter {
   private static readonly ROUTE_66_STATES = ['il', 'mo', 'ks', 'ok', 'tx', 'nm', 'az', 'ca'];
 
   /**
-   * Enhanced geographic filtering - MORE PERMISSIVE to capture more attractions
+   * MUCH MORE PERMISSIVE geographic filtering to capture attractions
    */
   static filterStopsByRouteGeography(
     segment: DailySegment,
     allStops: TripStop[]
   ): TripStop[] {
-    console.log(`🗺️ [FIXED] Starting PERMISSIVE geographic filtering for ${allStops.length} stops`);
+    console.log(`🗺️ [ULTRA-PERMISSIVE] Starting geographic filtering for ${allStops.length} stops`);
+    console.log(`🗺️ [ULTRA-PERMISSIVE] Segment: ${segment.startCity} → ${segment.endCity}`);
     
     const relevantStops = allStops.filter(stop => {
       const startCity = segment.startCity?.toLowerCase() || '';
@@ -20,50 +21,59 @@ export class StopGeographyFilter {
       const stopCity = stop.city_name?.toLowerCase() || '';
       const stopState = stop.state?.toLowerCase() || '';
       
-      console.log(`🔍 [FIXED] Checking: ${stop.name} in ${stop.city_name}, ${stop.state} (${stop.category})`);
+      // CRITICAL: Extract just city names without state for comparison
+      const startCityOnly = startCity.split(',')[0].trim();
+      const endCityOnly = endCity.split(',')[0].trim();
       
-      // 1. ALWAYS include attractions and hidden gems near destination
+      console.log(`🔍 [ULTRA-PERMISSIVE] Checking: ${stop.name} in ${stop.city_name}, ${stop.state} (${stop.category})`);
+      
+      // 1. ALWAYS include attractions and hidden gems - these are what we want!
+      const isAttraction = stop.category === 'attraction' || stop.category === 'hidden_gem';
+      
+      // 2. Include stops in destination city (loose matching)
       const isNearDestination = 
-        stopCity.includes(endCity) || 
-        endCity.includes(stopCity) ||
-        stopCity === endCity;
+        stopCity.includes(endCityOnly) || 
+        endCityOnly.includes(stopCity) ||
+        stopCity === endCityOnly ||
+        // Also check against start city
+        stopCity.includes(startCityOnly) || 
+        startCityOnly.includes(stopCity) ||
+        stopCity === startCityOnly;
 
-      // 2. Include attractions in the same state as destination
+      // 3. Include stops in the same state as destination
       const endState = this.extractStateFromCity(segment.endCity);
-      const isInDestinationState = 
-        endState && stopState === endState.toLowerCase();
+      const startState = this.extractStateFromCity(segment.startCity);
+      const isInRelevantState = 
+        (endState && stopState === endState.toLowerCase()) ||
+        (startState && stopState === startState.toLowerCase());
 
-      // 3. Include Route 66 corridor attractions
+      // 4. Include Route 66 corridor attractions
       const isOnRoute66Corridor = this.isOnRoute66Corridor(stop, segment);
 
-      // 4. PERMISSIVE: Include popular attractions within reasonable distance
-      const isPopularAttraction = 
-        stop.category === 'attraction' && 
-        (stop.featured || (stop.description && stop.description.length > 50));
+      // 5. Include any featured stops regardless of location
+      const isFeatured = stop.featured === true;
 
-      // 5. ALWAYS include hidden gems - they're special
-      const isHiddenGem = stop.category === 'hidden_gem';
-
-      const isRelevant = isNearDestination || isInDestinationState || isOnRoute66Corridor || isPopularAttraction || isHiddenGem;
+      // ULTRA-PERMISSIVE: Include if ANY condition is met
+      const isRelevant = isAttraction || isNearDestination || isInRelevantState || isOnRoute66Corridor || isFeatured;
       
-      console.log(`🔍 [FIXED] Geography check for ${stop.name}:`, {
-        isNearDestination,
-        isInDestinationState, 
+      console.log(`🔍 [ULTRA-PERMISSIVE] ${stop.name}:`, {
+        isAttraction,
+        isNearDestination, 
+        isInRelevantState,
         isOnRoute66Corridor,
-        isPopularAttraction,
-        isHiddenGem,
+        isFeatured,
         finalDecision: isRelevant ? 'INCLUDE' : 'EXCLUDE'
       });
 
       if (isRelevant) {
-        console.log(`✅ [FIXED] INCLUDING: ${stop.category} - ${stop.name} in ${stop.city_name}, ${stop.state}`);
+        console.log(`✅ [ULTRA-PERMISSIVE] INCLUDING: ${stop.category} - ${stop.name} in ${stop.city_name}, ${stop.state}`);
       }
 
       return isRelevant;
     });
 
-    console.log(`📍 [FIXED] PERMISSIVE filtering complete: ${relevantStops.length}/${allStops.length} stops passed`);
-    console.log(`📍 [FIXED] Included stops:`, relevantStops.map(s => `${s.name} (${s.category})`));
+    console.log(`📍 [ULTRA-PERMISSIVE] Filtering complete: ${relevantStops.length}/${allStops.length} stops passed`);
+    console.log(`📍 [ULTRA-PERMISSIVE] Included stops:`, relevantStops.map(s => `${s.name} (${s.category}) in ${s.city_name}, ${s.state}`));
     
     return relevantStops;
   }
@@ -125,7 +135,7 @@ export class StopGeographyFilter {
     
     const isOnCorridor = stopIndex >= minIndex && stopIndex <= maxIndex;
     
-    console.log(`🛣️ [FIXED] Route 66 corridor check for ${stop.name}:`, {
+    console.log(`🛣️ [ULTRA-PERMISSIVE] Route 66 corridor check for ${stop.name}:`, {
       startState, endState, stopState,
       startIndex, endIndex, stopIndex,
       minIndex, maxIndex,
