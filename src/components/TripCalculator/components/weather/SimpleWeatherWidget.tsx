@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -57,8 +58,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Check API key
   const hasApiKey = React.useMemo(() => {
-    const keyExists = WeatherApiKeyManager.hasApiKey();
-    return keyExists;
+    return WeatherApiKeyManager.hasApiKey();
   }, [forceKey, segment.endCity]);
 
   // Use unified weather
@@ -70,101 +70,30 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use unified detection logic
+  // FIXED: Use EXACT same detection logic as Preview form
   const isLiveForecast = React.useMemo(() => {
     if (!weather) return false;
-    const result = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
-    
-    console.log('🔧 UNIFIED: SimpleWeatherWidget detection result:', {
-      cityName: segment.endCity,
-      day: segment.day,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      detectionResult: result,
-      expectedDisplay: result ? 'GREEN Live Forecast' : 'YELLOW Historical',
-      unifiedLogic: true
-    });
-    
-    return result;
-  }, [weather, segment.endCity, segment.day]);
+    return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+  }, [weather]);
 
-  // FIXED: Improved drive time calculation with better fallbacks
+  // FIXED: Use the actual driveTimeHours value directly
   const displayDriveTime = React.useMemo(() => {
-    console.log('🚗 FIXED: Drive time calculation for segment:', {
-      day: segment.day,
-      endCity: segment.endCity,
-      driveTimeHours: segment.driveTimeHours,
-      drivingTime: segment.drivingTime,
-      distance: segment.distance
-    });
-
-    // Priority 1: driveTimeHours (most reliable)
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      console.log('✅ Using driveTimeHours:', `${hours}h ${minutes}m`);
       return `${hours}h ${minutes}m`;
     }
     
-    // Priority 2: drivingTime if it's a number
-    if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
-      const hours = Math.floor(segment.drivingTime);
-      const minutes = Math.round((segment.drivingTime - hours) * 60);
-      console.log('✅ Using drivingTime number:', `${hours}h ${minutes}m`);
-      return `${hours}h ${minutes}m`;
-    }
-    
-    // Priority 3: Parse drivingTime string
-    if (segment.drivingTime && typeof segment.drivingTime === 'string') {
-      const timeStr = String(segment.drivingTime).toLowerCase();
-      
-      // Parse "5h 30m" format
-      const hMinMatch = timeStr.match(/(\d+)h\s*(\d+)m/);
-      if (hMinMatch) {
-        console.log('✅ Parsed drivingTime h-m format:', `${hMinMatch[1]}h ${hMinMatch[2]}m`);
-        return `${hMinMatch[1]}h ${hMinMatch[2]}m`;
-      }
-      
-      // Parse "5.5h" format
-      const decimalMatch = timeStr.match(/(\d+\.?\d*)h/);
-      if (decimalMatch) {
-        const totalHours = parseFloat(decimalMatch[1]);
-        const hours = Math.floor(totalHours);
-        const minutes = Math.round((totalHours - hours) * 60);
-        console.log('✅ Parsed drivingTime decimal format:', `${hours}h ${minutes}m`);
-        return `${hours}h ${minutes}m`;
-      }
-    }
-    
-    // Priority 4: Calculate from distance
+    // Fallback only if driveTimeHours is not available
     if (typeof segment.distance === 'number' && segment.distance > 0) {
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
-      console.log('⚠️ Calculated from distance:', `${hours}h ${minutes}m`);
       return `${hours}h ${minutes}m`;
     }
     
-    // Final fallback
-    console.log('❌ No valid data, using fallback');
     return '4h 0m';
-  }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
-
-  console.log('🔧 UNIFIED: SimpleWeatherWidget render state:', {
-    cityName: segment.endCity,
-    day: segment.day,
-    hasWeather: !!weather,
-    loading,
-    error,
-    segmentDate: segmentDate?.toISOString(),
-    isLiveForecast,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    willShowGreen: isLiveForecast,
-    willShowYellow: !isLiveForecast,
-    driveTime: displayDriveTime,
-    unifiedLogic: true
-  });
+  }, [segment.driveTimeHours, segment.distance]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -181,10 +110,22 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
+  console.log('🚀 FIXED: SimpleWeatherWidget render:', {
+    cityName: segment.endCity,
+    day: segment.day,
+    hasWeather: !!weather,
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
+    isLiveForecast,
+    driveTimeHours: segment.driveTimeHours,
+    displayDriveTime,
+    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+  });
+
   // Loading state
   if (loading) {
     return (
-      <div key={`loading-${segment.endCity}-${forceKey}`} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-blue-600">Loading weather...</span>
           <span className="text-xs text-gray-500">{displayDriveTime}</span>
@@ -202,7 +143,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // FIXED: Use unified styling logic
+    // FIXED: Use EXACT same styling logic as Preview form
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -214,19 +155,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 UNIFIED: Applying styling for', segment.endCity, {
-      isLiveForecast,
-      containerClasses,
-      sourceLabel,
-      badgeText,
-      unifiedStyling: true
-    });
-
     return (
-      <div 
-        key={`weather-${segment.endCity}-${forceKey}`}
-        className={containerClasses}
-      >
+      <div className={containerClasses}>
         {/* Header with Drive Time */}
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-medium ${sourceColor}`}>
@@ -277,7 +207,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // For shared/PDF views without weather
   if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
     return (
-      <div key={`fallback-${segment.endCity}-${forceKey}`} className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
+      <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-blue-600">⏱️ {displayDriveTime}</span>
         </div>
@@ -292,7 +222,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // For shared/PDF views without valid date
   if (isSharedView || isPDFExport) {
     return (
-      <div key={`no-date-${segment.endCity}-${forceKey}`} className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
+      <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
         <div className="text-amber-600 text-2xl mb-1">⛅</div>
         <p className="text-xs text-amber-700 font-medium">Weather forecast needs trip date</p>
         <p className="text-xs text-amber-600 mt-1">Add trip start date for accurate forecast</p>
@@ -303,13 +233,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   // Regular view without API key
   if (!hasApiKey) {
     return (
-      <div key={`api-key-${segment.endCity}-${forceKey}`} className="space-y-2">
+      <div className="space-y-2">
         <div className="text-sm text-gray-600 mb-2">
           Weather forecast requires an API key
         </div>
         <SimpleWeatherApiKeyInput 
           onApiKeySet={() => {
-            console.log('API key set, refetching weather for', segment.endCity);
             setForceKey(Date.now().toString());
             refetch();
           }}
@@ -321,7 +250,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Final fallback
   return (
-    <div key={`error-${segment.endCity}-${forceKey}`} className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
       <div className="text-gray-400 text-2xl mb-1">🌤️</div>
       <p className="text-xs text-gray-600">Weather information not available</p>
       <button

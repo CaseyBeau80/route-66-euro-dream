@@ -21,99 +21,32 @@ const TripResults: React.FC<TripResultsProps> = ({
 }) => {
   const { costEstimate } = useCostEstimator(tripPlan);
 
-  console.log('📊 TripResults render:', { 
-    tripPlan: !!tripPlan, 
-    segmentCount: tripPlan?.segments?.length,
-    tripStartDate: tripStartDate?.toISOString(),
-    hasShareHandler: !!onShareTrip,
-    hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost,
-    segmentDriveTimes: tripPlan?.segments?.map(s => ({ 
-      day: s.day, 
-      driveTimeHours: s.driveTimeHours,
-      drivingTime: s.drivingTime,
-      distance: s.distance 
-    }))
-  });
-
   if (!tripPlan) {
     return null;
   }
 
   const handleShareTrip = () => {
-    console.log('📤 TripResults: Share button clicked, calling parent handler');
     if (onShareTrip) {
       onShareTrip();
-    } else {
-      console.warn('⚠️ TripResults: No share handler provided by parent component');
     }
   };
 
-  // FIXED: Robust drive time formatting with proper fallbacks
+  // FIXED: Simplified drive time formatting that uses driveTimeHours directly
   const formatDriveTime = (segment: any): string => {
-    console.log('🚗 FIXED: Formatting drive time for segment:', {
-      day: segment.day,
-      driveTimeHours: segment.driveTimeHours,
-      drivingTime: segment.drivingTime,
-      distance: segment.distance,
-      endCity: segment.endCity
-    });
-
-    // Try driveTimeHours first (most reliable)
     if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ Using driveTimeHours:', formatted);
-      return formatted;
+      return `${hours}h ${minutes}m`;
     }
     
-    // Try drivingTime if it's a number
-    if (segment.drivingTime && typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
-      const hours = Math.floor(segment.drivingTime);
-      const minutes = Math.round((segment.drivingTime - hours) * 60);
-      const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ Using drivingTime number:', formatted);
-      return formatted;
-    }
-    
-    // Try to parse drivingTime if it's a string like "5.5h" or "5h 30m"
-    if (segment.drivingTime && typeof segment.drivingTime === 'string') {
-      const timeStr = segment.drivingTime.toLowerCase();
-      
-      // Parse "5h 30m" format
-      const hMinMatch = timeStr.match(/(\d+)h\s*(\d+)m/);
-      if (hMinMatch) {
-        const hours = parseInt(hMinMatch[1]);
-        const minutes = parseInt(hMinMatch[2]);
-        const formatted = `${hours}h ${minutes}m`;
-        console.log('✅ Parsed drivingTime h-m format:', formatted);
-        return formatted;
-      }
-      
-      // Parse "5.5h" format
-      const decimalMatch = timeStr.match(/(\d+\.?\d*)h/);
-      if (decimalMatch) {
-        const totalHours = parseFloat(decimalMatch[1]);
-        const hours = Math.floor(totalHours);
-        const minutes = Math.round((totalHours - hours) * 60);
-        const formatted = `${hours}h ${minutes}m`;
-        console.log('✅ Parsed drivingTime decimal format:', formatted);
-        return formatted;
-      }
-    }
-    
-    // Calculate from distance (55 mph average)
+    // Fallback calculation from distance only if driveTimeHours is missing
     if (segment.distance && typeof segment.distance === 'number' && segment.distance > 0) {
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
-      const formatted = `${hours}h ${minutes}m`;
-      console.log('⚠️ Calculated from distance:', formatted);
-      return formatted;
+      return `${hours}h ${minutes}m`;
     }
     
-    console.log('❌ No valid data, using fallback');
     return '4h 0m';
   };
 
