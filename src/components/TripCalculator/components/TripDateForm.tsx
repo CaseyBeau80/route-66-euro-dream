@@ -15,8 +15,6 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
-  const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
-
   // Calculate end date
   const endDate = React.useMemo(() => {
     if (formData.tripStartDate && formData.travelDays > 0) {
@@ -25,61 +23,42 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // ULTIMATE FIX: Handle date selection with proper local timezone normalization
+  // ULTRA SIMPLE DATE SELECTION: Just create a clean local date
   const handleDateSelect = (date: Date) => {
-    console.log('🚨 ULTIMATE FIX: TripDateForm handleDateSelect:', {
+    console.log('🚨 ULTRA SIMPLE: TripDateForm handleDateSelect:', {
       selectedDate: date.toISOString(),
       selectedDateLocal: date.toLocaleDateString(),
-      selectedDateString: date.toDateString(),
-      isToday: date.toDateString() === new Date().toDateString(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      selectedDateString: date.toDateString()
     });
     
-    // Normalize the date to start of day in local timezone to ensure consistency
-    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // Create a completely clean date in local timezone
+    const cleanDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🚨 ULTIMATE FIX: Normalized date for form storage:', {
-      original: date.toISOString(),
-      normalized: normalizedDate.toISOString(),
-      normalizedLocal: normalizedDate.toLocaleDateString(),
-      normalizedDateString: normalizedDate.toDateString(),
-      verification: {
-        sameYear: date.getFullYear() === normalizedDate.getFullYear(),
-        sameMonth: date.getMonth() === normalizedDate.getMonth(),
-        sameDate: date.getDate() === normalizedDate.getDate(),
-        isStartOfDay: normalizedDate.getHours() === 0 && normalizedDate.getMinutes() === 0
-      }
+    console.log('🚨 ULTRA SIMPLE: Setting form data with clean date:', {
+      cleanDate: cleanDate.toISOString(),
+      cleanDateLocal: cleanDate.toLocaleDateString(),
+      cleanDateString: cleanDate.toDateString()
     });
     
     setFormData({ 
       ...formData, 
-      tripStartDate: normalizedDate 
+      tripStartDate: cleanDate 
     });
-    setIsCalendarOpen(false);
   };
 
-  // ULTIMATE FIX: Date validation - disable only past dates
+  // ULTRA SIMPLE DATE VALIDATION: Only disable dates that are clearly in the past
   const isDateDisabled = (date: Date): boolean => {
-    // Get current date
-    const now = new Date();
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // Create start of today (midnight) for comparison
-    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const shouldDisable = checkDate.getTime() < todayMidnight.getTime();
     
-    // Create start of the check date (midnight) for comparison  
-    const checkDateMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    // Compare milliseconds - disable only if check date is BEFORE today
-    const shouldDisable = checkDateMidnight.getTime() < todayMidnight.getTime();
-    
-    console.log('🚨 ULTIMATE DATE VALIDATION:', {
+    console.log('🚨 ULTRA SIMPLE DATE VALIDATION:', {
       inputDate: date.toDateString(),
-      todayDate: now.toDateString(),
-      todayMidnightMs: todayMidnight.getTime(),
-      checkDateMidnightMs: checkDateMidnight.getTime(),
+      todayDate: today.toDateString(),
       shouldDisable,
-      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
-      isToday: checkDateMidnight.getTime() === todayMidnight.getTime()
+      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future'
     });
     
     return shouldDisable;
@@ -117,15 +96,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Custom Calendar */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <SimpleTripCalendar
-          selected={formData.tripStartDate}
-          onSelect={handleDateSelect}
-          disabled={isDateDisabled}
-          className="w-full"
-        />
-      </div>
+      {/* Ultra Simple Calendar */}
+      <SimpleTripCalendar
+        selected={formData.tripStartDate}
+        onSelect={handleDateSelect}
+        disabled={isDateDisabled}
+        className="w-full"
+      />
       
       {/* Display calculated end date */}
       {endDate && (
