@@ -13,9 +13,22 @@ serve(async (req) => {
   }
 
   try {
-    const { cityName, targetDate } = await req.json()
+    const requestBody = await req.json()
+    console.log('🌤️ FIXED EDGE FUNCTION: Enhanced request processing:', {
+      method: req.method,
+      hasBody: !!requestBody,
+      bodyKeys: requestBody ? Object.keys(requestBody) : [],
+      receivedCityName: requestBody?.cityName,
+      receivedTargetDate: requestBody?.targetDate,
+      requestBodyFull: requestBody
+    });
+
+    // FIXED: Handle both old and new parameter formats for compatibility
+    const cityName = requestBody?.cityName || requestBody?.city;
+    const targetDate = requestBody?.targetDate;
     
     if (!cityName) {
+      console.error('❌ FIXED EDGE FUNCTION: Missing city name in request:', requestBody);
       return new Response(
         JSON.stringify({ error: 'City name is required' }),
         { 
@@ -29,6 +42,7 @@ serve(async (req) => {
     const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY')
     
     if (!apiKey) {
+      console.error('❌ FIXED EDGE FUNCTION: OpenWeatherMap API key not configured');
       return new Response(
         JSON.stringify({ error: 'Weather service not configured' }),
         { 
@@ -51,7 +65,7 @@ serve(async (req) => {
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6
     const targetDateString = normalizedRequestDate.toISOString().split('T')[0]
     
-    console.log('🌤️ TEMPERATURE AGGREGATION: Enhanced weather forecast request:', {
+    console.log('🌤️ FIXED EDGE FUNCTION: Enhanced weather forecast request with proper parameter handling:', {
       cityName,
       targetDate: requestDate.toISOString(),
       targetDateLocal: requestDate.toLocaleDateString(),
@@ -60,7 +74,8 @@ serve(async (req) => {
       daysFromToday,
       isWithinForecastRange,
       willAggregateTemperatures: isWithinForecastRange,
-      apiKeyConfigured: !!apiKey
+      apiKeyConfigured: !!apiKey,
+      parameterFormat: 'fixed_cityName_targetDate'
     })
 
     // Clean city name for geocoding
@@ -71,13 +86,13 @@ serve(async (req) => {
     const geoResponse = await fetch(geocodingUrl)
     
     if (!geoResponse.ok) {
-      console.error('❌ AGGREGATION: Geocoding failed:', geoResponse.status, geoResponse.statusText)
+      console.error('❌ FIXED EDGE FUNCTION: Geocoding failed:', geoResponse.status, geoResponse.statusText)
       throw new Error('Geocoding failed')
     }
     
     const geoData = await geoResponse.json()
     if (!geoData || geoData.length === 0) {
-      console.error('❌ AGGREGATION: City not found for:', cleanCityName)
+      console.error('❌ FIXED EDGE FUNCTION: City not found for:', cleanCityName)
       throw new Error('City not found')
     }
 
@@ -85,7 +100,7 @@ serve(async (req) => {
     const location = geoData.find((r: any) => r.country === 'US') || geoData[0]
     const { lat, lon } = location
 
-    console.log('🌤️ AGGREGATION: Coordinates found:', {
+    console.log('🌤️ FIXED EDGE FUNCTION: Coordinates found:', {
       cityName: cleanCityName,
       lat,
       lon,
@@ -103,17 +118,17 @@ serve(async (req) => {
         const weatherResponse = await fetch(weatherUrl)
         
         if (!weatherResponse.ok) {
-          console.error('❌ AGGREGATION: Weather API failed:', weatherResponse.status, weatherResponse.statusText)
+          console.error('❌ FIXED EDGE FUNCTION: Weather API failed:', weatherResponse.status, weatherResponse.statusText)
           throw new Error('Weather API failed')
         }
         
         const weatherData = await weatherResponse.json()
         if (!weatherData.list || weatherData.list.length === 0) {
-          console.error('❌ AGGREGATION: No weather data available for:', cityName)
+          console.error('❌ FIXED EDGE FUNCTION: No weather data available for:', cityName)
           throw new Error('No weather data available')
         }
 
-        console.log('🌤️ AGGREGATION: Weather API response received:', {
+        console.log('🌤️ FIXED EDGE FUNCTION: Weather API response received:', {
           cityName,
           listLength: weatherData.list.length,
           firstItemDate: weatherData.list[0]?.dt_txt,
@@ -122,14 +137,14 @@ serve(async (req) => {
           willPerformAggregation: true
         })
 
-        // 🔥 NEW AGGREGATION LOGIC: Filter all intervals for the target date
+        // 🔥 AGGREGATION LOGIC: Filter all intervals for the target date
         const targetDateIntervals = weatherData.list.filter((item: any) => {
           const itemDate = new Date(item.dt * 1000)
           const itemDateString = itemDate.toISOString().split('T')[0]
           return itemDateString === targetDateString
         })
 
-        console.log('🌡️ AGGREGATION: Found intervals for target date:', {
+        console.log('🌡️ FIXED EDGE FUNCTION: Found intervals for target date:', {
           targetDateString,
           intervalCount: targetDateIntervals.length,
           intervals: targetDateIntervals.map((item: any) => ({
@@ -149,21 +164,15 @@ serve(async (req) => {
           ]).filter(temp => temp !== undefined && !isNaN(temp))
 
           const allMainTemps = targetDateIntervals.map((item: any) => item.main.temp)
-          const allHighTemps = targetDateIntervals.map((item: any) => item.main.temp_max)
-          const allLowTemps = targetDateIntervals.map((item: any) => item.main.temp_min)
 
           // Calculate aggregated values
           const dailyHigh = Math.max(...allTemperatures)
           const dailyLow = Math.min(...allTemperatures)
           const dailyAverage = allMainTemps.reduce((sum, temp) => sum + temp, 0) / allMainTemps.length
 
-          console.log('🌡️ AGGREGATION: Daily temperature calculations:', {
+          console.log('🌡️ FIXED EDGE FUNCTION: Daily temperature calculations:', {
             cityName,
             targetDateString,
-            allTemperatures,
-            allMainTemps,
-            allHighTemps,
-            allLowTemps,
             calculatedHigh: dailyHigh,
             calculatedLow: dailyLow,
             calculatedAverage: dailyAverage,
@@ -175,14 +184,6 @@ serve(async (req) => {
             const hour = new Date(item.dt * 1000).getHours()
             return hour >= 12 && hour <= 15 // Prefer midday intervals
           }) || targetDateIntervals[Math.floor(targetDateIntervals.length / 2)] || targetDateIntervals[0]
-
-          console.log('🌤️ AGGREGATION: Selected representative interval:', {
-            time: new Date(representativeInterval.dt * 1000).toISOString(),
-            originalTemp: representativeInterval.main.temp,
-            originalTempMax: representativeInterval.main.temp_max,
-            originalTempMin: representativeInterval.main.temp_min,
-            willUseAggregatedValues: true
-          })
 
           // 🔥 CREATE AGGREGATED FORECAST with daily temperature ranges
           forecast = {
@@ -202,7 +203,7 @@ serve(async (req) => {
 
           isActualLiveForecast = true
 
-          console.log('✅ AGGREGATION: Created aggregated live forecast:', {
+          console.log('✅ FIXED EDGE FUNCTION: Created aggregated live forecast:', {
             city: cityName,
             daysFromToday,
             isActualLiveForecast,
@@ -213,12 +214,12 @@ serve(async (req) => {
             aggregatedFromIntervals: targetDateIntervals.length,
             forecastSuccess: true,
             forecastDate: forecast.forecastDate.toISOString(),
-            aggregationSuccessful: true
+            shouldShowGreenBadge: true
           })
 
         } else {
           // Fallback: use range-based forecast if no exact date match
-          console.log('🔄 AGGREGATION: No exact date match, using range fallback for', cityName)
+          console.log('🔄 FIXED EDGE FUNCTION: No exact date match, using range fallback for', cityName)
           
           if (daysFromToday <= 3) {
             const fallbackInterval = weatherData.list[Math.min(daysFromToday * 8, weatherData.list.length - 1)] || weatherData.list[0]
@@ -240,7 +241,7 @@ serve(async (req) => {
 
             isActualLiveForecast = true
 
-            console.log('✅ AGGREGATION: Range fallback forecast created:', {
+            console.log('✅ FIXED EDGE FUNCTION: Range fallback forecast created:', {
               city: cityName,
               daysFromToday,
               temperature: forecast.temperature,
@@ -252,11 +253,11 @@ serve(async (req) => {
         }
 
       } catch (error) {
-        console.error('❌ AGGREGATION: Live forecast failed:', error)
+        console.error('❌ FIXED EDGE FUNCTION: Live forecast failed:', error)
         isActualLiveForecast = false
       }
     } else {
-      console.log('🔄 AGGREGATION: Date outside forecast range, will use historical estimate:', {
+      console.log('🔄 FIXED EDGE FUNCTION: Date outside forecast range, will use historical estimate:', {
         cityName,
         daysFromToday,
         targetDate: targetDateString,
@@ -296,7 +297,7 @@ serve(async (req) => {
         source: isWithinForecastRange ? 'live_forecast' : 'historical_fallback'
       }
 
-      console.log('✅ AGGREGATION: Estimated forecast returned:', {
+      console.log('✅ FIXED EDGE FUNCTION: Estimated forecast returned:', {
         city: cityName,
         daysFromToday,
         isActualForecast: false,
@@ -310,6 +311,16 @@ serve(async (req) => {
       })
     }
 
+    console.log('🎯 FIXED EDGE FUNCTION: Final response being sent:', {
+      cityName,
+      source: forecast.source,
+      isActualForecast: forecast.isActualForecast,
+      temperature: forecast.temperature,
+      highTemp: forecast.highTemp,
+      lowTemp: forecast.lowTemp,
+      shouldDisplayAsLive: forecast.source === 'live_forecast' && forecast.isActualForecast === true
+    });
+
     return new Response(
       JSON.stringify(forecast),
       { 
@@ -318,7 +329,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('❌ AGGREGATION: Weather forecast error:', error)
+    console.error('❌ FIXED EDGE FUNCTION: Weather forecast error:', error)
     
     return new Response(
       JSON.stringify({ 

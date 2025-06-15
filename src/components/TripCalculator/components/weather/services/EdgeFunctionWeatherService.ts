@@ -1,5 +1,6 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface EdgeFunctionWeatherParams {
   cityName: string;
@@ -9,47 +10,54 @@ export interface EdgeFunctionWeatherParams {
 
 export class EdgeFunctionWeatherService {
   /**
-   * Fetch weather data directly from the Edge Function
+   * Fetch weather data directly from the Edge Function using proper Supabase invocation
    */
   static async fetchWeatherFromEdgeFunction(params: EdgeFunctionWeatherParams): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, segmentDay } = params;
     
-    console.log('🌐 EDGE FUNCTION: Fetching weather from Edge Function:', {
+    console.log('🌐 FIXED EDGE FUNCTION: Fetching weather from Edge Function with correct URL:', {
       cityName,
       targetDate: targetDate.toISOString(),
-      segmentDay
+      segmentDay,
+      usingSupabaseFunctionInvoke: true
     });
 
     try {
-      const response = await fetch('/api/weather-forecast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          city: cityName,
-          targetDate: targetDate.toISOString(),
-          segmentDay
-        })
+      // Use proper Supabase function invocation instead of fetch
+      const { data, error } = await supabase.functions.invoke('weather-forecast', {
+        body: {
+          cityName: cityName,
+          targetDate: targetDate.toISOString()
+        }
       });
 
-      if (!response.ok) {
-        console.error('❌ EDGE FUNCTION: API request failed:', response.status);
+      if (error) {
+        console.error('❌ FIXED EDGE FUNCTION: Supabase function invocation error:', {
+          error,
+          errorDetails: error.message || 'Unknown error',
+          cityName,
+          segmentDay
+        });
         return null;
       }
 
-      const data = await response.json();
-      
-      console.log('✅ EDGE FUNCTION: Raw response from Edge Function:', {
+      console.log('✅ FIXED EDGE FUNCTION: Raw response from Edge Function:', {
         cityName,
         data,
-        hasTemperature: data.temperature !== undefined,
-        hasHighTemp: data.highTemp !== undefined,
-        hasLowTemp: data.lowTemp !== undefined
+        hasTemperature: data?.temperature !== undefined,
+        hasHighTemp: data?.highTemp !== undefined,
+        hasLowTemp: data?.lowTemp !== undefined,
+        source: data?.source,
+        isActualForecast: data?.isActualForecast
       });
 
       if (!data || data.temperature === undefined) {
-        console.error('❌ EDGE FUNCTION: Invalid response data');
+        console.error('❌ FIXED EDGE FUNCTION: Invalid response data:', {
+          cityName,
+          hasData: !!data,
+          dataKeys: data ? Object.keys(data) : [],
+          missingTemperature: !data?.temperature
+        });
         return null;
       }
 
@@ -70,24 +78,31 @@ export class EdgeFunctionWeatherService {
         source: data.source || 'historical_fallback'
       };
 
-      console.log('✅ EDGE FUNCTION: Created weather data:', {
+      console.log('✅ FIXED EDGE FUNCTION: Created weather data with proper URL fix:', {
         cityName,
         temperature: weatherData.temperature,
         highTemp: weatherData.highTemp,
         lowTemp: weatherData.lowTemp,
         source: weatherData.source,
         isActualForecast: weatherData.isActualForecast,
-        temperaturesAreDifferent: {
-          currentVsHigh: weatherData.temperature !== weatherData.highTemp,
-          currentVsLow: weatherData.temperature !== weatherData.lowTemp,
-          highVsLow: weatherData.highTemp !== weatherData.lowTemp
+        shouldShowLiveBadge: weatherData.source === 'live_forecast' && weatherData.isActualForecast === true,
+        fixImplemented: {
+          urlFixed: 'Using supabase.functions.invoke instead of fetch',
+          payloadFixed: 'Using cityName and targetDate format',
+          errorHandlingImproved: true
         }
       });
 
       return weatherData;
 
     } catch (error) {
-      console.error('❌ EDGE FUNCTION: Request failed:', error);
+      console.error('❌ FIXED EDGE FUNCTION: Request failed with enhanced error handling:', {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        cityName,
+        segmentDay,
+        requestAttempted: 'supabase.functions.invoke'
+      });
       return null;
     }
   }
