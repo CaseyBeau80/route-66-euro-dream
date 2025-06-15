@@ -102,7 +102,7 @@ export class StopRecommendationService {
           score += 5;
       }
 
-      // Bonus for featured/popular stops
+      // Bonus for featured/popular stops - safely check if featured exists
       if (stop.featured) {
         score += 5;
       }

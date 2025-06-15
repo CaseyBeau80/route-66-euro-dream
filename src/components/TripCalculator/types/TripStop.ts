@@ -12,6 +12,7 @@ export interface TripStop {
   image_url?: string;
   is_major_stop?: boolean;
   is_official_destination?: boolean;
+  featured?: boolean; // Add the featured property
   // Add city property to satisfy destination interface
   city: string;
 }
@@ -45,6 +46,7 @@ export const convertToTripStop = (obj: any): TripStop => {
     longitude: obj.longitude || 0,
     image_url: obj.image_url,
     is_major_stop: obj.is_major_stop,
-    is_official_destination: obj.is_official_destination
+    is_official_destination: obj.is_official_destination,
+    featured: obj.featured || false // Add featured property with default
   };
 };
