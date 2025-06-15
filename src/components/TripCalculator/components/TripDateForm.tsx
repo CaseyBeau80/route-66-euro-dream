@@ -28,9 +28,9 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // Handle date selection - TIMEZONE FIXED VERSION
+  // Handle date selection - CONSISTENT DATE HANDLING
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('📅 TIMEZONE FIXED: Date selected:', {
+    console.log('📅 CONSISTENT DATE: Date selected:', {
       date: date?.toISOString(),
       dateLocal: date?.toLocaleDateString(),
       dateString: date?.toDateString(),
@@ -39,29 +39,38 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
     
     if (date) {
+      // Normalize the date to start of day in local timezone to ensure consistency
+      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      
+      console.log('📅 CONSISTENT DATE: Normalized date:', {
+        original: date.toISOString(),
+        normalized: normalizedDate.toISOString(),
+        normalizedLocal: normalizedDate.toLocaleDateString(),
+        normalizedDateString: normalizedDate.toDateString()
+      });
+      
       setFormData({ 
         ...formData, 
-        tripStartDate: date 
+        tripStartDate: normalizedDate 
       });
       setIsCalendarOpen(false);
     }
   };
 
-  // TIMEZONE FIX - Use date strings instead of Date objects for comparison
+  // Date validation - consistent with normalization
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const todayDateString = today.toDateString();
-    const checkDateString = date.toDateString();
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('📅 TIMEZONE DEBUG:', {
-      todayString: todayDateString,
-      checkString: checkDateString,
-      isBeforeToday: checkDateString < todayDateString,
+    console.log('📅 DATE VALIDATION:', {
+      todayNormalized: normalizedToday.toDateString(),
+      checkDateNormalized: normalizedDate.toDateString(),
+      isBeforeToday: normalizedDate < normalizedToday,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
     
-    // Use string comparison which is timezone-safe
-    return checkDateString < todayDateString;
+    return normalizedDate < normalizedToday;
   };
 
   return (
