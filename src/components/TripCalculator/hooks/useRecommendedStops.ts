@@ -10,31 +10,31 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🎯 [FIXED] useRecommendedStops hook called:', {
+  console.log('🎯 [CRITICAL] useRecommendedStops hook called:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     maxStops,
     timestamp: new Date().toISOString()
   });
 
-  // Fetch all stops data on mount - FORCE FRESH FETCH
+  // Fetch all stops data on mount - PRIORITY FRESH FETCH
   useEffect(() => {
     let isMounted = true;
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [FIXED] Starting FRESH stops fetch...');
+        console.log('🔍 [CRITICAL] Starting PRIORITY stops fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🚫 [FIXED] Component unmounted, ignoring fetch result');
+          console.log('🚫 [CRITICAL] Component unmounted, ignoring fetch result');
           return;
         }
         
-        console.log('✅ [FIXED] FRESH stops fetch completed:', {
+        console.log('✅ [CRITICAL] PRIORITY stops fetch completed:', {
           totalStops: stops.length,
           sampleStops: stops.slice(0, 5).map(s => ({ 
             id: s.id, 
@@ -54,7 +54,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('❌ [FIXED] Stops fetch failed:', err);
+        console.error('❌ [CRITICAL] Stops fetch failed:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
@@ -71,9 +71,9 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     };
   }, []); // Empty dependency array to fetch once
 
-  // Calculate recommended stops - FORCE RECALCULATION
+  // Calculate recommended stops - PRIORITY CALCULATION
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🎯 [FIXED] FORCED recalculation of recommendations:', {
+    console.log('🎯 [CRITICAL] PRIORITY calculation of recommendations:', {
       hasSegment: !!segment,
       segmentDay: segment?.day,
       endCity: segment?.endCity,
@@ -85,30 +85,30 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
     // Wait for data to load
     if (isLoading) {
-      console.log('⏳ [FIXED] Still loading, returning empty array');
+      console.log('⏳ [CRITICAL] Still loading, returning empty array');
       return [];
     }
 
     // Check for errors
     if (error) {
-      console.log('❌ [FIXED] Error state, returning empty array:', error);
+      console.log('❌ [CRITICAL] Error state, returning empty array:', error);
       return [];
     }
 
     // Validate segment
     if (!segment || !segment.endCity) {
-      console.log('⚠️ [FIXED] Invalid segment, returning empty array');
+      console.log('⚠️ [CRITICAL] Invalid segment, returning empty array');
       return [];
     }
 
     // Validate stops data
     if (!allStops || allStops.length === 0) {
-      console.log('⚠️ [FIXED] No stops data, returning empty array');
+      console.log('⚠️ [CRITICAL] No stops data, returning empty array');
       return [];
     }
 
     try {
-      console.log('🚀 [FIXED] Calling StopRecommendationService with FORCE flag...');
+      console.log('🚀 [CRITICAL] Calling StopRecommendationService with PRIORITY...');
       
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
@@ -116,7 +116,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         maxStops
       );
 
-      console.log('✅ [FIXED] FORCED recommendations generated:', {
+      console.log('✅ [CRITICAL] PRIORITY recommendations generated:', {
         count: recommendations.length,
         segmentDay: segment.day,
         endCity: segment.endCity,
@@ -133,11 +133,11 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
       return recommendations;
     } catch (err) {
-      console.error('❌ [FIXED] Error generating recommendations:', err);
+      console.error('❌ [CRITICAL] Error generating recommendations:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
       return [];
     }
-  }, [segment?.day, segment?.endCity, allStops, maxStops, isLoading, error]); // More specific dependencies
+  }, [segment?.day, segment?.endCity, allStops, maxStops, isLoading, error]);
 
   const result = {
     recommendedStops,
@@ -146,7 +146,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('📊 [FIXED] useRecommendedStops FINAL result:', {
+  console.log('📊 [CRITICAL] useRecommendedStops PRIORITY result:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     hasStops: result.hasStops,
