@@ -16,9 +16,14 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
   temperatures,
   isSharedView = false
 }) => {
-  const hasValidHigh = TemperatureValidation.isValidTemperature(temperatures.high);
-  const hasValidLow = TemperatureValidation.isValidTemperature(temperatures.low);
-  const hasValidCurrent = TemperatureValidation.isValidTemperature(temperatures.current);
+  // Helper function to validate individual temperature values
+  const isValidTemperature = (temp: number): boolean => {
+    return !isNaN(temp) && temp > -150 && temp < 150;
+  };
+
+  const hasValidHigh = isValidTemperature(temperatures.high);
+  const hasValidLow = isValidTemperature(temperatures.low);
+  const hasValidCurrent = isValidTemperature(temperatures.current);
   
   // PLAN IMPLEMENTATION: Enhanced stable display logic with comprehensive logging
   const shouldShowRange = React.useMemo(() => {
