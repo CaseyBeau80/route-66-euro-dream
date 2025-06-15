@@ -9,7 +9,6 @@ import TripSummaryStats from './TripSummaryStats';
 import { useUnifiedWeather } from '../../TripCalculator/components/weather/hooks/useUnifiedWeather';
 import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
 import { format } from 'date-fns';
-import { LiveWeatherDetectionService } from '../../TripCalculator/components/weather/services/LiveWeatherDetectionService';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -34,47 +33,37 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // FIXED: Use actual driveTimeHours directly from segment data with proper fallback
+  // EXACT same drive time calculation as Preview
   const formatDriveTime = (segment: any): string => {
-    console.log('🚗 FIXED TripResults: formatDriveTime called with segment:', {
+    console.log('🚗 FIXED: TripResults formatDriveTime (EXACT Preview logic):', {
       city: segment.endCity,
       driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance,
-      day: segment.day,
-      segmentData: segment
+      distance: segment.distance
     });
     
-    // PRIORITY 1: Use the actual driveTimeHours value if available and valid
+    // Priority 1: Use driveTimeHours if available
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      console.log('✅ FIXED TripResults: Using actual driveTimeHours:', { 
-        hours, 
-        minutes, 
-        total: segment.driveTimeHours,
-        formatted: `${hours}h ${minutes}m`
-      });
-      return `${hours}h ${minutes}m`;
+      const formatted = `${hours}h ${minutes}m`;
+      
+      console.log('✅ FIXED: TripResults using driveTimeHours:', { hours, minutes, total: segment.driveTimeHours, formatted });
+      return formatted;
     }
     
-    // PRIORITY 2: Calculate from distance if available
+    // Priority 2: Calculate from distance
     if (typeof segment.distance === 'number' && segment.distance > 0) {
-      const estimatedHours = segment.distance / 55; // Assuming 55 mph average
+      const estimatedHours = segment.distance / 55;
       const hours = Math.floor(estimatedHours);
       const minutes = Math.round((estimatedHours - hours) * 60);
-      console.log('⚠️ FIXED TripResults: Using distance calculation:', { 
-        distance: segment.distance, 
-        estimatedHours,
-        hours, 
-        minutes,
-        formatted: `${hours}h ${minutes}m`
-      });
-      return `${hours}h ${minutes}m`;
+      const formatted = `${hours}h ${minutes}m`;
+      
+      console.log('⚠️ FIXED: TripResults using distance calculation:', { distance: segment.distance, hours, minutes, formatted });
+      return formatted;
     }
     
-    // FALLBACK: Use a reasonable default
-    console.log('❌ FIXED TripResults: Using fallback time - no valid data found');
-    return '3h 30m'; // More realistic fallback than 4h 0m
+    console.log('❌ FIXED: TripResults using fallback time');
+    return '3h 30m';
   };
 
   return (
@@ -126,7 +115,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Weather Display */}
+            {/* Enhanced Weather Display using EXACT Preview logic */}
             {tripStartDate && (
               <WeatherSegmentDisplay
                 segment={segment}
@@ -175,17 +164,17 @@ const TripResults: React.FC<TripResultsProps> = ({
   );
 };
 
-// FIXED: Completely rewritten weather component using EXACT Preview logic
+// FIXED: Weather component using EXACT Preview logic
 const WeatherSegmentDisplay: React.FC<{
   segment: any;
   tripStartDate: Date;
 }> = ({ segment, tripStartDate }) => {
-  // Calculate segment date using the same logic as Preview
+  // Calculate segment date using EXACT same logic as Preview
   const segmentDate = React.useMemo(() => {
     return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
   }, [tripStartDate, segment.day]);
 
-  // Use the unified weather hook with the same parameters as Preview
+  // Use EXACT same unified weather hook as Preview
   const { weather, loading, error } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -194,41 +183,37 @@ const WeatherSegmentDisplay: React.FC<{
     cachedWeather: null
   });
 
-  // CRITICAL FIX: Use EXACT same detection logic as Preview
+  // EXACT same weather detection logic as Preview form
   const isLiveForecast = React.useMemo(() => {
     if (!weather) return false;
     
-    console.log('🔥 CRITICAL FIX: Weather detection in TripResults:', {
+    console.log('🔥 FIXED: TripResults weather detection (EXACT Preview logic):', {
       cityName: segment.endCity,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
-      detectionInputs: {
-        sourceIsLiveForecast: weather.source === 'live_forecast',
-        isActualForecastTrue: weather.isActualForecast === true
-      }
+      detectionLogic: 'EXACT_PREVIEW_LOGIC'
     });
     
-    // EXACT SAME LOGIC AS PREVIEW: Both conditions must be true
+    // EXACT same logic as Preview: both conditions must be true for live forecast
     const result = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🔥 CRITICAL FIX: Final detection result:', {
+    console.log('🔥 FIXED: TripResults final detection result:', {
       cityName: segment.endCity,
       isLiveForecast: result,
-      willShowGreen: result,
-      willShowYellow: !result
+      expectedColor: result ? 'GREEN' : 'YELLOW'
     });
     
     return result;
   }, [weather, segment.endCity]);
 
-  console.log('🌤️ CRITICAL FIX: WeatherSegmentDisplay for', segment.endCity, {
+  console.log('🌤️ FIXED: TripResults WeatherSegmentDisplay final state:', {
+    cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     isLiveForecast,
-    segmentDate: segmentDate.toISOString(),
-    expectedColor: isLiveForecast ? 'GREEN (Live)' : 'YELLOW (Historical)'
+    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -261,7 +246,7 @@ const WeatherSegmentDisplay: React.FC<{
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // CRITICAL FIX: Use EXACT same styling logic as Preview form
+    // EXACT same styling logic as Preview form
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border mb-4"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border mb-4";
@@ -273,11 +258,12 @@ const WeatherSegmentDisplay: React.FC<{
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 CRITICAL FIX: Applied styling for', segment.endCity, {
+    console.log('🎨 FIXED: TripResults weather styling applied:', {
+      cityName: segment.endCity,
       isLiveForecast,
       containerClasses,
       sourceLabel,
-      expectedBackgroundColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+      expectedBackground: isLiveForecast ? 'GREEN' : 'YELLOW'
     });
 
     return (

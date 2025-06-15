@@ -22,7 +22,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 }) => {
   const [forceKey, setForceKey] = React.useState(() => Date.now().toString());
 
-  // Calculate segment date
+  // Calculate segment date - EXACT same logic as Preview
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
       return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
@@ -60,7 +60,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, [forceKey, segment.endCity]);
 
-  // Use unified weather
+  // Use EXACT same unified weather hook as Preview
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -69,77 +69,60 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // CRITICAL FIX: Use EXACT same detection logic as TripResults
+  // EXACT same weather detection logic as Preview form
   const isLiveForecast = React.useMemo(() => {
     if (!weather) return false;
     
-    console.log('🔥 CRITICAL FIX: Weather detection in SimpleWeatherWidget:', {
+    console.log('🔥 FIXED: SimpleWeatherWidget weather detection (EXACT Preview logic):', {
       cityName: segment.endCity,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
-      detectionInputs: {
-        sourceIsLiveForecast: weather.source === 'live_forecast',
-        isActualForecastTrue: weather.isActualForecast === true
-      }
+      detectionLogic: 'EXACT_PREVIEW_LOGIC'
     });
     
-    // EXACT SAME LOGIC AS TRIPRESULTS: Both conditions must be true
+    // EXACT same logic as Preview: both conditions must be true for live forecast
     const result = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🔥 CRITICAL FIX: SimpleWeatherWidget detection result:', {
+    console.log('🔥 FIXED: SimpleWeatherWidget final result:', {
       cityName: segment.endCity,
       isLiveForecast: result,
-      willShowGreen: result,
-      willShowYellow: !result
+      expectedColor: result ? 'GREEN' : 'YELLOW'
     });
     
     return result;
   }, [weather, segment.endCity]);
 
-  // CRITICAL FIX: Use the actual driveTimeHours value directly
+  // EXACT same drive time calculation as Preview
   const displayDriveTime = React.useMemo(() => {
-    console.log('🚗 CRITICAL FIX: SimpleWeatherWidget drive time calculation:', {
+    console.log('🚗 FIXED: SimpleWeatherWidget drive time (EXACT Preview logic):', {
       cityName: segment.endCity,
       driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance,
-      segmentData: segment
+      distance: segment.distance
     });
     
+    // Priority 1: Use driveTimeHours if available
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('✅ CRITICAL FIX: Using actual driveTimeHours:', {
-        hours,
-        minutes,
-        total: segment.driveTimeHours,
-        formatted
-      });
-      
+      console.log('✅ FIXED: Using driveTimeHours:', { hours, minutes, total: segment.driveTimeHours, formatted });
       return formatted;
     }
     
-    // Fallback only if driveTimeHours is not available
+    // Priority 2: Calculate from distance
     if (typeof segment.distance === 'number' && segment.distance > 0) {
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('⚠️ CRITICAL FIX: Using distance fallback:', {
-        distance: segment.distance,
-        calculatedHours: driveTimeHours,
-        hours,
-        minutes,
-        formatted
-      });
-      
+      console.log('⚠️ FIXED: Using distance calculation:', { distance: segment.distance, hours, minutes, formatted });
       return formatted;
     }
     
-    console.log('❌ CRITICAL FIX: Using fallback time - no valid data');
-    return '3h 30m'; // Changed from 4h 0m to match TripResults
+    console.log('❌ FIXED: Using fallback drive time');
+    return '3h 30m';
   }, [segment.driveTimeHours, segment.distance, segment.endCity]);
 
   const getWeatherIcon = (iconCode: string) => {
@@ -157,14 +140,13 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
-  console.log('🚀 CRITICAL FIX: SimpleWeatherWidget render:', {
+  console.log('🚀 FIXED: SimpleWeatherWidget final render state:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     isLiveForecast,
-    driveTimeHours: segment.driveTimeHours,
     displayDriveTime,
     expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
   });
@@ -190,7 +172,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // CRITICAL FIX: Use EXACT same styling logic as TripResults
+    // EXACT same styling logic as Preview form
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -202,12 +184,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 CRITICAL FIX: SimpleWeatherWidget styling:', {
+    console.log('🎨 FIXED: SimpleWeatherWidget styling applied:', {
       cityName: segment.endCity,
       isLiveForecast,
       containerClasses,
       sourceLabel,
-      expectedBackgroundColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+      expectedBackground: isLiveForecast ? 'GREEN' : 'YELLOW'
     });
 
     return (
