@@ -68,14 +68,31 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // Get today's date for comparison
-  const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  
-  console.log('📅 TripDateForm: Today comparison:', {
-    today: today.toISOString(),
-    todayStart: todayStart.toISOString()
-  });
+  // Create a simple date comparison using date strings to avoid timezone issues
+  const isDateDisabled = (date: Date): boolean => {
+    const today = new Date();
+    
+    // Get date strings in YYYY-MM-DD format for reliable comparison
+    const dateStr = date.getFullYear() + '-' + 
+                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(date.getDate()).padStart(2, '0');
+    
+    const todayStr = today.getFullYear() + '-' + 
+                     String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(today.getDate()).padStart(2, '0');
+    
+    const isBeforeToday = dateStr < todayStr;
+    
+    console.log('📅 FIXED Date comparison:', {
+      checkingDate: dateStr,
+      todayDate: todayStr,
+      isBeforeToday,
+      disabled: isBeforeToday,
+      originalDate: date.toDateString()
+    });
+    
+    return isBeforeToday;
+  };
 
   return (
     <div className="space-y-2">
@@ -119,19 +136,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             mode="single"
             selected={tripStartDate}
             onSelect={handleDateSelect}
-            disabled={(date) => {
-              // Only disable dates before today
-              const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-              const isBeforeToday = checkDate < todayStart;
-              
-              console.log('📅 Date check:', {
-                date: checkDate.toDateString(),
-                todayStart: todayStart.toDateString(),
-                isBeforeToday
-              });
-              
-              return isBeforeToday;
-            }}
+            disabled={isDateDisabled}
             initialFocus
             className="p-3 pointer-events-auto"
           />
