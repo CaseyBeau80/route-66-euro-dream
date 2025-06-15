@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
-import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { TripPlan } from '../services/planning/TripPlanTypes';
 import ShareTripDropdown from './ShareTripDropdown';
 import CalendarExportModal from './CalendarExportModal';
 
@@ -17,10 +17,10 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
 
-  // Calculate total drive time from daily segments
-  const totalDriveTimeHours = tripPlan.dailySegments.reduce((total, segment) => {
-    return total + segment.driveTimeHours;
-  }, 0);
+  // Calculate total drive time from segments
+  const totalDriveTimeHours = tripPlan.segments?.reduce((total, segment) => {
+    return total + (segment.driveTimeHours || 0);
+  }, 0) || 0;
 
   const formatDriveTime = (hours: number): string => {
     const wholeHours = Math.floor(hours);
@@ -32,6 +32,11 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
       return `${wholeHours}h ${minutes}m`;
     }
   };
+
+  // Use segments for trip header data
+  const segments = tripPlan.segments || [];
+  const firstSegment = segments[0];
+  const lastSegment = segments[segments.length - 1];
 
   return (
     <>
@@ -52,7 +57,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-primary">Starting Point</h3>
-              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[0]?.startCity || "Unknown"}</p>
+              <p className="text-sm text-route66-text-secondary">{firstSegment?.startCity || tripPlan.startCity}</p>
             </div>
             
             <div className="flex-shrink-0 text-center px-4">
@@ -60,7 +65,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
                 {tripPlan.totalDays} DAYS
               </div>
               <div className="text-route66-text-secondary font-travel text-sm mb-1">
-                {tripPlan.totalMiles} miles
+                {tripPlan.totalMiles || Math.round(tripPlan.totalDistance)} miles
               </div>
               <div className="text-route66-primary font-travel text-sm font-semibold">
                 {formatDriveTime(totalDriveTimeHours)} drive time
@@ -76,7 +81,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-primary">Destination</h3>
-              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
+              <p className="text-sm text-route66-text-secondary">{lastSegment?.endCity || tripPlan.endCity}</p>
             </div>
           </div>
 

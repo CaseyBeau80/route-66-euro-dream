@@ -1,9 +1,8 @@
 
-
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
-  category: 'short' | 'optimal' | 'long' | 'extreme';
+  category: 'light' | 'moderate' | 'heavy' | 'extreme';
   message: string;
   color?: string;
 }
@@ -40,9 +39,10 @@ export interface TripPlan {
   totalDays: number;
   totalDistance: number;
   totalMiles?: number;
-  totalDrivingTime?: number;
+  totalDrivingTime: number; // This should always be calculated properly
   segments: DailySegment[];
-  dailySegments?: DailySegment[];
+  dailySegments?: DailySegment[]; // Legacy compatibility
+  route?: { lat: number; lng: number }[];
   title?: string;
   startCityImage?: string;
   endCityImage?: string;
@@ -67,20 +67,20 @@ export interface DailySegment {
   endCity?: string;
   destination?: string | { city: string; state?: string };
   distance: number;
+  approximateMiles?: number;
   driveTimeHours: number;
   drivingTime?: number;
   recommendedStops?: RecommendedStop[];
   stops?: RecommendedStop[];
+  attractions?: TripStop[];
+  subStops?: TripStop[];
   weather?: any;
   weatherData?: any;
-  attractions?: any[];
   isEnriched?: boolean;
   notes?: string;
   recommendations?: string[];
   title?: string;
   routeSection?: string;
   driveTimeCategory?: DriveTimeCategory;
-  approximateMiles?: number;
   subStopTimings?: SegmentTiming[];
 }
-

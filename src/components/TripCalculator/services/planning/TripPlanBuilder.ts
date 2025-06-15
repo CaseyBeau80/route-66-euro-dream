@@ -1,90 +1,12 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { AttractionService } from './AttractionService';
+import { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanTypes';
 
-export interface DailySegment {
-  day: number;
-  startCity: string;
-  endCity: string;
-  distance: number;
-  approximateMiles: number;
-  drivingTime?: number;
-  driveTimeHours: number;
-  attractions: TripStop[];
-  subStops: TripStop[];
-  driveTimeCategory: DriveTimeCategory;
-  // Additional properties that components expect
-  title?: string;
-  recommendedStops?: RecommendedStop[];
-  subStopTimings?: SegmentTiming[];
-  routeSection?: string;
-  weatherData?: any;
-  isEnriched?: boolean;
-  notes?: string;
-  recommendations?: string[];
-}
-
-export interface DriveTimeCategory {
-  category: 'light' | 'moderate' | 'heavy' | 'extreme';
-  message: string;
-  color?: string;
-}
-
-export interface RecommendedStop {
-  id?: string;
-  name: string;
-  description?: string;
-  latitude: number;
-  longitude: number;
-  city?: string;
-  city_name?: string;
-  state?: string;
-  type?: string;
-  category?: string;
-  duration?: number;
-}
-
-export interface SegmentTiming {
-  fromStop: TripStop;
-  toStop: TripStop;
-  distance: number;
-  driveTime: number;
-  distanceMiles: number;
-  driveTimeHours: number;
-  drivingTime: number;
-}
-
-export interface TripPlan {
-  startCity: string;
-  endCity: string;
-  totalDistance: number;
-  totalDays: number;
-  totalDrivingTime: number; // This should always be calculated properly
-  segments: DailySegment[];
-  route: { lat: number; lng: number }[];
-  // Additional properties that components expect
-  title?: string;
-  totalMiles?: number;
-  startDate?: Date;
-  startCityImage?: string;
-  endCityImage?: string;
-  isEnriched?: boolean;
-  lastUpdated?: Date;
-  exportTimestamp?: number;
-  originalDays?: number;
-  driveTimeBalance?: any;
-  wasAdjusted?: boolean;
-  tripStyle?: string;
-  warnings?: string[];
-  enrichmentStatus?: {
-    weatherData: boolean;
-    stopsData: boolean;
-    validationComplete: boolean;
-  };
-}
+// Re-export types for backward compatibility
+export type { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming };
 
 export class TripPlanBuilder {
   static async buildTripPlan(
@@ -108,10 +30,12 @@ export class TripPlanBuilder {
     
     // Calculate total driving time from all segments
     const totalDrivingTime = segments.reduce((total, segment) => {
-      return total + (segment.driveTimeHours || 0);
+      const segmentDriveTime = segment.driveTimeHours || 0;
+      console.log(`📊 Segment ${segment.day}: ${segment.startCity} → ${segment.endCity} = ${segmentDriveTime.toFixed(1)}h`);
+      return total + segmentDriveTime;
     }, 0);
 
-    console.log(`⏱️ Total driving time calculated: ${totalDrivingTime.toFixed(1)} hours`);
+    console.log(`⏱️ Total driving time calculated: ${totalDrivingTime.toFixed(1)} hours from ${segments.length} segments`);
 
     // Create route coordinates
     const route = routeStops.map(stop => ({
@@ -126,6 +50,7 @@ export class TripPlanBuilder {
       totalDays: segments.length,
       totalDrivingTime, // Now properly calculated from segments
       segments,
+      dailySegments: segments, // For legacy compatibility
       route,
       // Set additional properties
       title: `${startStop.name} to ${endStop.name} Route 66 Adventure`,
@@ -213,6 +138,8 @@ export class TripPlanBuilder {
       // Calculate realistic drive time for this segment
       const segmentDriveTime = this.calculateSegmentDriveTime(segmentDistance);
       
+      console.log(`🚗 Day ${day}: ${dayStartStop.name} → ${dayEndStop.name} - Distance: ${segmentDistance.toFixed(1)}mi, Drive Time: ${segmentDriveTime.toFixed(1)}h`);
+      
       // Get attractions for the destination city
       const attractions = await AttractionService.getAttractionsForStop(dayEndStop);
       
@@ -226,8 +153,8 @@ export class TripPlanBuilder {
         distance: Math.round(segmentDistance),
         approximateMiles: Math.round(segmentDistance),
         drivingTime: segmentDriveTime,
-        driveTimeHours: segmentDriveTime,
-        attractions,
+        driveTimeHours: segmentDriveTime, // This is the key property for drive time
+        attractions: attractions || [],
         subStops: dayIntermediateStops,
         driveTimeCategory,
         title: `${dayStartStop.name} → ${dayEndStop.name}`,
@@ -239,11 +166,10 @@ export class TripPlanBuilder {
       segments.push(segment);
       currentStopIndex = endStopIndex;
       
-      console.log(`📅 Day ${day}: ${dayStartStop.name} → ${dayEndStop.name} (${segmentDistance.toFixed(0)}mi, ${segmentDriveTime.toFixed(1)}h)`);
-      
       if (endStopIndex >= routeStops.length - 1) break;
     }
     
+    console.log(`📋 Created ${segments.length} segments with total drive time: ${segments.reduce((t, s) => t + s.driveTimeHours, 0).toFixed(1)}h`);
     return segments;
   }
 

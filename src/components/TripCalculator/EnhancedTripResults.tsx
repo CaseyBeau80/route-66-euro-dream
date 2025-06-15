@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
-import { TripPlan } from './services/planning/TripPlanBuilder';
+import { TripPlan } from './services/planning/TripPlanTypes';
 import TripItinerary from './components/TripItinerary';
 import TripActionBar from './components/TripActionBar';
 import ItineraryPreLoader from './components/ItineraryPreLoader';
@@ -56,15 +56,6 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return undefined;
   }, [tripStartDate]);
 
-  console.log("🌤️ EnhancedTripResults: Rendering with drive time data:", {
-    segmentsCount: tripPlan.segments?.length || 0,
-    hasStartDate: !!validTripStartDate,
-    hasCostEstimate: !!costEstimate,
-    totalDrivingTime: tripPlan.totalDrivingTime,
-    startDate: validTripStartDate?.toISOString(),
-    isPreLoading: loadingState?.isPreLoading
-  });
-
   // Show pre-loader if loading
   if (loadingState?.isPreLoading) {
     return (
@@ -111,13 +102,22 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // Ensure we have a valid drive time value
-  const totalDrivingTime = tripPlan.totalDrivingTime || 0;
+  // Ensure we have a valid drive time value - check both totalDrivingTime and calculate from segments
+  let totalDrivingTime = tripPlan.totalDrivingTime || 0;
   
-  console.log('🚗 Drive time check:', {
+  // If totalDrivingTime is 0 or invalid, calculate it from segments
+  if (!totalDrivingTime && tripPlan.segments?.length > 0) {
+    totalDrivingTime = tripPlan.segments.reduce((total, segment) => {
+      return total + (segment.driveTimeHours || 0);
+    }, 0);
+    console.log(`🔧 Calculated drive time from segments: ${totalDrivingTime.toFixed(1)}h`);
+  }
+  
+  console.log('🚗 Drive time check in EnhancedTripResults:', {
     totalDrivingTime,
     formatted: formatTime(totalDrivingTime),
-    segmentCount: tripPlan.segments?.length
+    segmentCount: tripPlan.segments?.length,
+    segmentTimes: tripPlan.segments?.map(s => ({ day: s.day, hours: s.driveTimeHours }))
   });
 
   return (
