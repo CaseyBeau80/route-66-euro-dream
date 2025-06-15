@@ -70,36 +70,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // Enhanced weather validation to match first screenshot
+  // FIXED: Use proper weather validation instead of forcing live display
   const weatherValidation = React.useMemo(() => {
     if (!weather || !segmentDate) return null;
     return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
   }, [weather, segmentDate, segment.endCity]);
 
-  // Force live forecast display for valid weather
-  const isLiveForecast = React.useMemo(() => {
-    // If we have weather data and it looks reasonable, show as live
-    if (weather && weather.temperature && weather.temperature > 0) {
-      console.log('🟢 FIXED: Forcing live display for valid weather:', {
-        cityName: segment.endCity,
-        temperature: weather.temperature,
-        hasApiKey
-      });
-      return true;
-    }
-    
-    const isLive = weatherValidation?.isLiveForecast || false;
-    console.log('🟢 FIXED: Weather validation result:', {
-      cityName: segment.endCity,
-      isLive,
-      hasValidation: !!weatherValidation,
-      weatherSource: weather?.source,
-      hasApiKey
-    });
-    return isLive;
-  }, [weatherValidation, segment.endCity, weather, hasApiKey]);
+  // FIXED: Use validation result instead of forcing live display
+  const isLiveForecast = weatherValidation?.isLiveForecast || false;
 
-  // Drive time calculation to show actual segment times
+  // FIXED: Use actual segment drive time instead of generic calculation
   const displayDriveTime = React.useMemo(() => {
     // Use actual segment drive time if available
     if (segment.driveTimeHours && segment.driveTimeHours > 0) {
@@ -108,7 +88,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
-    // Fallback calculation based on distance
+    // Fallback calculation based on distance with proper speed
     if (segment.distance && segment.distance > 0) {
       const driveTime = segment.distance / 55; // 55 mph average
       const hours = Math.floor(driveTime);
@@ -116,25 +96,39 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
-    return '4h 0m'; // Default to match first screenshot
+    return 'N/A'; // Don't use arbitrary default
   }, [segment.driveTimeHours, segment.distance]);
 
-  // Always use green styling for live weather display
+  // FIXED: Use conditional styling based on actual weather validation
   const styles = React.useMemo(() => {
-    console.log('🟢 FIXED: Using GREEN styling to match first screenshot:', segment.endCity);
-    return {
-      sourceLabel: '🟢 Live Weather Forecast',
-      sourceColor: '#059669', // Green-600
-      badgeText: '✨ Live weather forecast',
-      badgeClasses: 'bg-green-100 text-green-700 border-green-200',
-      containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-      backgroundColor: '#dcfce7', // Green-100
-      borderColor: '#bbf7d0', // Green-200
-      textColor: '#166534', // Green-800
-    };
-  }, [segment.endCity]);
+    if (isLiveForecast) {
+      console.log('🟢 FIXED: Using GREEN styling for live forecast:', segment.endCity);
+      return {
+        sourceLabel: '🟢 Live Weather Forecast',
+        sourceColor: '#059669', // Green-600
+        badgeText: '✨ Live weather forecast',
+        badgeClasses: 'bg-green-100 text-green-700 border-green-200',
+        containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+        backgroundColor: '#dcfce7', // Green-100
+        borderColor: '#bbf7d0', // Green-200
+        textColor: '#166534', // Green-800
+      };
+    } else {
+      console.log('🟡 FIXED: Using YELLOW styling for historical data:', segment.endCity);
+      return {
+        sourceLabel: '🟡 Historical Weather Data',
+        sourceColor: '#d97706', // Yellow-600
+        badgeText: '📊 Historical weather patterns',
+        badgeClasses: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        containerClasses: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
+        backgroundColor: '#fef3c7', // Yellow-100
+        borderColor: '#fde68a', // Yellow-200
+        textColor: '#92400e', // Yellow-800
+      };
+    }
+  }, [isLiveForecast, segment.endCity]);
 
-  console.log('🟢 FIXED: SimpleWeatherWidget render with correct drive time:', {
+  console.log('🔧 FIXED: SimpleWeatherWidget with proper validation:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -144,7 +138,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     isLiveForecast,
     displayDriveTime,
     segmentDriveTimeHours: segment.driveTimeHours,
-    segmentDistance: segment.distance
+    segmentDistance: segment.distance,
+    weatherSource: weather?.source,
+    validationResult: weatherValidation?.isLiveForecast
   });
 
   const getWeatherIcon = (iconCode: string) => {

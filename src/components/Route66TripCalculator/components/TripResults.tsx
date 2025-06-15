@@ -43,6 +43,13 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
+  // FIXED: Helper function to format drive time from hours
+  const formatDriveTime = (driveTimeHours: number): string => {
+    const hours = Math.floor(driveTimeHours);
+    const minutes = Math.round((driveTimeHours - hours) * 60);
+    return `${hours}h ${minutes}m`;
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Trip Summary */}
@@ -54,7 +61,6 @@ const TripResults: React.FC<TripResultsProps> = ({
           {tripPlan.startCity} to {tripPlan.endCity}
         </p>
         
-        {/* FIXED: Use new TripSummaryStats component without attractions count */}
         <TripSummaryStats tripPlan={tripPlan} costEstimate={costEstimate} />
       </div>
 
@@ -88,7 +94,8 @@ const TripResults: React.FC<TripResultsProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {Math.round(segment.distance / 55 * 10) / 10} hours
+                  {/* FIXED: Use actual segment drive time if available */}
+                  {segment.driveTimeHours ? formatDriveTime(segment.driveTimeHours) : `${Math.round(segment.distance / 55 * 10) / 10} hours`}
                 </div>
               </div>
             </div>
