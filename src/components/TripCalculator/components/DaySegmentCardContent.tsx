@@ -32,17 +32,24 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   // Get enhanced recommended stops
   const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  console.log('🎯 [FINAL] DaySegmentCardContent render decision:', {
+  // Debug logging to see what we're getting
+  console.log('🔍 [DEBUG] DaySegmentCardContent data check:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     enhancedSystem: {
       isLoading,
       hasError: !!error,
       hasStops,
-      stopsCount: recommendedStops.length
-    },
-    willShowEnhanced: !isLoading && !error && hasStops,
-    willShowFallback: !isLoading && !error && !hasStops
+      stopsCount: recommendedStops.length,
+      stopsData: recommendedStops.map(stop => ({
+        id: stop.id,
+        name: stop.name,
+        hasDescription: !!stop.originalStop.description,
+        hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
+        category: stop.category,
+        city: stop.originalStop.city_name
+      }))
+    }
   });
 
   return (
@@ -86,12 +93,12 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* Success: Show Enhanced Stops */}
+        {/* SUCCESS: Always show enhanced stops if we have them */}
         {!isLoading && !error && hasStops && (
           <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
               <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
-                ✨ Enhanced Route 66 Attractions ({recommendedStops.length})
+                ✨ Route 66 Attractions ({recommendedStops.length})
               </div>
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
@@ -103,18 +110,13 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </ErrorBoundary>
         )}
 
-        {/* Fallback: Legacy System */}
+        {/* FALLBACK: Only show legacy system if enhanced system has no data */}
         {!isLoading && !error && !hasStops && (
           <ErrorBoundary context={`FallbackAttractions-Day${segment.day}`}>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="text-xs text-gray-600 mb-3 flex items-center gap-2">
-                🔄 Using fallback attraction system
-              </div>
-              <SegmentNearbyAttractions 
-                segment={segment} 
-                maxAttractions={AttractionLimitingService.getMaxAttractions()}
-              />
-            </div>
+            <SegmentNearbyAttractions 
+              segment={segment} 
+              maxAttractions={AttractionLimitingService.getMaxAttractions()}
+            />
           </ErrorBoundary>
         )}
       </div>

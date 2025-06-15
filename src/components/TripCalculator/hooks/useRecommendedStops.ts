@@ -22,7 +22,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [ENHANCED] Fetching stops data...');
+        console.log('🔍 [ENHANCED] Fetching stops data from Supabase...');
         setIsLoading(true);
         setError(null);
         
@@ -37,7 +37,15 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
           totalStops: stops.length,
           stopsWithDescriptions: stops.filter(s => s.description && s.description.length > 20).length,
           stopsWithImages: stops.filter(s => s.image_url || s.thumbnail_url).length,
-          featuredStops: stops.filter(s => s.featured).length
+          featuredStops: stops.filter(s => s.featured).length,
+          sampleStops: stops.slice(0, 3).map(s => ({
+            id: s.id,
+            name: s.name,
+            city: s.city_name,
+            hasDescription: !!s.description,
+            hasImage: !!(s.image_url || s.thumbnail_url),
+            featured: s.featured
+          }))
         });
         
         if (stops.length === 0) {
@@ -108,7 +116,17 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     }
 
     try {
-      console.log('🚀 [ENHANCED] Calling StopRecommendationService...');
+      console.log('🚀 [ENHANCED] Calling StopRecommendationService with data:', {
+        segmentCity: segment.endCity,
+        availableStops: allStops.length,
+        maxStops,
+        sampleData: allStops.slice(0, 2).map(s => ({
+          name: s.name,
+          city: s.city_name,
+          category: s.category,
+          hasDescription: !!s.description
+        }))
+      });
       
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
@@ -126,7 +144,12 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
           category: r.category,
           score: r.relevanceScore,
           featured: r.originalStop.featured,
-          hasRichData: !!(r.originalStop.description || r.originalStop.image_url)
+          hasDescription: !!r.originalStop.description,
+          hasImage: !!(r.originalStop.image_url || r.originalStop.thumbnail_url),
+          originalStopData: {
+            city_name: r.originalStop.city_name,
+            description: r.originalStop.description?.substring(0, 50) + '...'
+          }
         }))
       });
 
@@ -150,7 +173,10 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: result.hasStops,
     stopsCount: result.recommendedStops.length,
     isLoading: result.isLoading,
-    error: result.error
+    error: result.error,
+    stopsWithRichData: result.recommendedStops.filter(s => 
+      s.originalStop.description || s.originalStop.image_url || s.originalStop.thumbnail_url
+    ).length
   });
 
   return result;

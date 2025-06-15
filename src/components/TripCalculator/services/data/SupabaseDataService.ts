@@ -1,174 +1,165 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TripStop } from '../../types/TripStop';
+import { TripStop, convertToTripStop } from '../../types/TripStop';
 
 export class SupabaseDataService {
-  /**
-   * Fetch all stops from multiple tables with enhanced data mapping
-   */
   static async fetchAllStops(): Promise<TripStop[]> {
-    console.log('🚨 [ENHANCED-DATA] Starting enhanced stops fetch from all tables...');
+    console.log('🔍 [SUPABASE] SupabaseDataService.fetchAllStops starting...');
     
     try {
-      // Fetch from all relevant tables
-      const [attractionsResult, destinationCitiesResult, hiddenGemsResult, driveInsResult, waypointsResult] = await Promise.all([
+      // Query all relevant tables for stops data
+      const [attractionsResult, destinationCitiesResult, driveInsResult, hiddenGemsResult, waypointsResult] = await Promise.all([
         supabase.from('attractions').select('*'),
         supabase.from('destination_cities').select('*'),
-        supabase.from('hidden_gems').select('*'),
         supabase.from('drive_ins').select('*'),
+        supabase.from('hidden_gems').select('*'),
         supabase.from('route66_waypoints').select('*')
       ]);
 
-      console.log('🚨 [ENHANCED-DATA] Enhanced table fetch results:', {
+      console.log('🔍 [SUPABASE] Raw query results:', {
         attractions: { count: attractionsResult.data?.length || 0, error: attractionsResult.error },
         destinationCities: { count: destinationCitiesResult.data?.length || 0, error: destinationCitiesResult.error },
-        hiddenGems: { count: hiddenGemsResult.data?.length || 0, error: hiddenGemsResult.error },
         driveIns: { count: driveInsResult.data?.length || 0, error: driveInsResult.error },
+        hiddenGems: { count: hiddenGemsResult.data?.length || 0, error: hiddenGemsResult.error },
         waypoints: { count: waypointsResult.data?.length || 0, error: waypointsResult.error }
       });
 
       // Check for errors
-      if (attractionsResult.error) console.error('❌ [ENHANCED-DATA] Attractions fetch error:', attractionsResult.error);
-      if (destinationCitiesResult.error) console.error('❌ [ENHANCED-DATA] Destination cities fetch error:', destinationCitiesResult.error);
-      if (hiddenGemsResult.error) console.error('❌ [ENHANCED-DATA] Hidden gems fetch error:', hiddenGemsResult.error);
-      if (driveInsResult.error) console.error('❌ [ENHANCED-DATA] Drive-ins fetch error:', driveInsResult.error);
-      if (waypointsResult.error) console.error('❌ [ENHANCED-DATA] Waypoints fetch error:', waypointsResult.error);
+      const errors = [attractionsResult.error, destinationCitiesResult.error, driveInsResult.error, hiddenGemsResult.error, waypointsResult.error].filter(Boolean);
+      if (errors.length > 0) {
+        console.error('❌ [SUPABASE] Database query errors:', errors);
+        throw new Error(`Database errors: ${errors.map(e => e.message).join(', ')}`);
+      }
 
       const allStops: TripStop[] = [];
 
-      // Process attractions with enhanced data mapping
+      // Process attractions
       if (attractionsResult.data) {
-        const attractions = attractionsResult.data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || `Discover ${item.name} along your Route 66 journey`,
-          latitude: Number(item.latitude),
-          longitude: Number(item.longitude),
-          city_name: item.city_name,
-          city: item.city_name,
-          state: item.state,
-          category: 'attraction',
-          featured: item.featured || false,
-          image_url: item.image_url,
-          thumbnail_url: item.thumbnail_url
+        const attractionStops = attractionsResult.data.map(attraction => convertToTripStop({
+          id: attraction.id,
+          name: attraction.name,
+          description: attraction.description || `Visit ${attraction.name} in ${attraction.city_name}`,
+          category: attraction.category || 'attraction',
+          city_name: attraction.city_name,
+          city: attraction.city_name,
+          state: attraction.state,
+          latitude: Number(attraction.latitude),
+          longitude: Number(attraction.longitude),
+          image_url: attraction.image_url,
+          thumbnail_url: attraction.thumbnail_url,
+          website: attraction.website,
+          featured: attraction.featured || false
         }));
-        allStops.push(...attractions);
-        console.log(`🎯 [ENHANCED-DATA] Processed ${attractions.length} attractions with rich data`);
+        allStops.push(...attractionStops);
+        console.log(`✅ [SUPABASE] Added ${attractionStops.length} attractions`);
       }
 
-      // Process destination cities with enhanced data mapping
+      // Process destination cities
       if (destinationCitiesResult.data) {
-        const cities = destinationCitiesResult.data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || `Explore ${item.name} on your Route 66 adventure`,
-          latitude: Number(item.latitude),
-          longitude: Number(item.longitude),
-          city_name: item.name,
-          city: item.name,
-          state: item.state,
+        const cityStops = destinationCitiesResult.data.map(city => convertToTripStop({
+          id: city.id,
+          name: city.name,
+          description: city.description || `Explore ${city.name}, a historic Route 66 destination`,
           category: 'destination_city',
-          featured: item.featured || false,
-          image_url: item.image_url,
-          thumbnail_url: item.thumbnail_url,
-          is_official_destination: true,
-          is_major_stop: true
+          city_name: city.name,
+          city: city.name,
+          state: city.state,
+          latitude: Number(city.latitude),
+          longitude: Number(city.longitude),
+          image_url: city.image_url,
+          thumbnail_url: city.thumbnail_url,
+          website: city.website,
+          featured: city.featured || false,
+          is_official_destination: true
         }));
-        allStops.push(...cities);
-        console.log(`🏙️ [ENHANCED-DATA] Processed ${cities.length} destination cities with rich data`);
+        allStops.push(...cityStops);
+        console.log(`✅ [SUPABASE] Added ${cityStops.length} destination cities`);
       }
 
-      // Process hidden gems with enhanced data mapping
-      if (hiddenGemsResult.data) {
-        const gems = hiddenGemsResult.data.map(item => ({
-          id: item.id,
-          name: item.title,
-          description: item.description || `Discover this hidden gem: ${item.title}`,
-          latitude: Number(item.latitude),
-          longitude: Number(item.longitude),
-          city_name: item.city_name,
-          city: item.city_name,
-          state: 'Unknown', // Hidden gems table doesn't have state
-          category: 'hidden_gem',
-          image_url: item.image_url,
-          thumbnail_url: item.thumbnail_url,
-          featured: false
-        }));
-        allStops.push(...gems);
-        console.log(`💎 [ENHANCED-DATA] Processed ${gems.length} hidden gems with rich data`);
-      }
-
-      // Process drive-ins with enhanced data mapping
+      // Process drive-ins
       if (driveInsResult.data) {
-        const driveIns = driveInsResult.data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || `Experience ${item.name} drive-in theater`,
-          latitude: Number(item.latitude),
-          longitude: Number(item.longitude),
-          city_name: item.city_name,
-          city: item.city_name,
-          state: item.state,
+        const driveInStops = driveInsResult.data.map(driveIn => convertToTripStop({
+          id: driveIn.id,
+          name: driveIn.name,
+          description: driveIn.description || `Historic drive-in theater in ${driveIn.city_name}`,
           category: 'drive_in',
-          featured: item.featured || false,
-          image_url: item.image_url,
-          thumbnail_url: item.thumbnail_url
+          city_name: driveIn.city_name,
+          city: driveIn.city_name,
+          state: driveIn.state,
+          latitude: Number(driveIn.latitude),
+          longitude: Number(driveIn.longitude),
+          image_url: driveIn.image_url,
+          thumbnail_url: driveIn.thumbnail_url,
+          website: driveIn.website,
+          featured: driveIn.featured || false
         }));
-        allStops.push(...driveIns);
-        console.log(`🎬 [ENHANCED-DATA] Processed ${driveIns.length} drive-ins with rich data`);
+        allStops.push(...driveInStops);
+        console.log(`✅ [SUPABASE] Added ${driveInStops.length} drive-ins`);
       }
 
-      // Process waypoints with enhanced data mapping
-      if (waypointsResult.data) {
-        const waypoints = waypointsResult.data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || `Route 66 waypoint: ${item.name}`,
-          latitude: Number(item.latitude),
-          longitude: Number(item.longitude),
-          city_name: item.name,
-          city: item.name,
-          state: item.state,
-          category: 'route66_waypoint',
-          is_major_stop: item.is_major_stop || false,
-          image_url: item.image_url,
-          thumbnail_url: item.thumbnail_url,
+      // Process hidden gems
+      if (hiddenGemsResult.data) {
+        const gemStops = hiddenGemsResult.data.map(gem => convertToTripStop({
+          id: gem.id,
+          name: gem.title, // Note: hidden_gems uses 'title' instead of 'name'
+          description: gem.description || `Hidden gem in ${gem.city_name}`,
+          category: 'hidden_gem',
+          city_name: gem.city_name,
+          city: gem.city_name,
+          state: 'Unknown', // hidden_gems table doesn't have state
+          latitude: Number(gem.latitude),
+          longitude: Number(gem.longitude),
+          image_url: gem.image_url,
+          thumbnail_url: gem.thumbnail_url,
+          website: gem.website,
           featured: false
         }));
-        allStops.push(...waypoints);
-        console.log(`🛣️ [ENHANCED-DATA] Processed ${waypoints.length} waypoints with rich data`);
+        allStops.push(...gemStops);
+        console.log(`✅ [SUPABASE] Added ${gemStops.length} hidden gems`);
       }
 
-      // Enhanced data quality analysis
-      const dataQuality = {
+      // Process Route 66 waypoints
+      if (waypointsResult.data) {
+        const waypointStops = waypointsResult.data.map(waypoint => convertToTripStop({
+          id: waypoint.id,
+          name: waypoint.name,
+          description: waypoint.description || `Historic Route 66 waypoint: ${waypoint.name}`,
+          category: 'route66_waypoint',
+          city_name: waypoint.name, // Use waypoint name as city for waypoints
+          city: waypoint.name,
+          state: waypoint.state,
+          latitude: Number(waypoint.latitude),
+          longitude: Number(waypoint.longitude),
+          image_url: waypoint.image_url,
+          thumbnail_url: waypoint.thumbnail_url,
+          featured: false,
+          is_major_stop: waypoint.is_major_stop || false
+        }));
+        allStops.push(...waypointStops);
+        console.log(`✅ [SUPABASE] Added ${waypointStops.length} waypoints`);
+      }
+
+      console.log('✅ [SUPABASE] Final stops summary:', {
         totalStops: allStops.length,
-        withDescriptions: allStops.filter(s => s.description && s.description.length > 20).length,
-        withImages: allStops.filter(s => s.image_url || s.thumbnail_url).length,
-        featured: allStops.filter(s => s.featured).length,
-        majorStops: allStops.filter(s => s.is_major_stop).length,
-        byCategory: allStops.reduce((acc, stop) => {
-          const cat = stop.category || 'unknown';
-          acc[cat] = (acc[cat] || 0) + 1;
+        stopsWithDescriptions: allStops.filter(s => s.description && s.description.length > 20).length,
+        stopsWithImages: allStops.filter(s => s.image_url || s.thumbnail_url).length,
+        featuredStops: allStops.filter(s => s.featured).length,
+        categoryBreakdown: allStops.reduce((acc, stop) => {
+          acc[stop.category] = (acc[stop.category] || 0) + 1;
           return acc;
         }, {} as Record<string, number>),
         sampleStops: allStops.slice(0, 5).map(s => ({
-          id: s.id,
           name: s.name,
-          category: s.category,
           city: s.city_name,
-          state: s.state,
-          featured: s.featured,
+          category: s.category,
           hasDescription: !!s.description,
           hasImage: !!(s.image_url || s.thumbnail_url)
         }))
-      };
-
-      console.log('✅ [ENHANCED-DATA] Enhanced stops compilation with data quality analysis:', dataQuality);
+      });
 
       return allStops;
-
     } catch (error) {
-      console.error('❌ [ENHANCED-DATA] Critical error in enhanced fetchAllStops:', error);
+      console.error('❌ [SUPABASE] Error fetching stops:', error);
       throw error;
     }
   }
