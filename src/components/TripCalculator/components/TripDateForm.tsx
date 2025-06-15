@@ -57,25 +57,27 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // FIXED: Date validation - allow today and future dates, block only past dates
+  // COMPLETELY FIXED: Date validation - allow today and all future dates
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // Get today's date normalized to start of day
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    // Get the check date normalized to start of day  
+    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // CRITICAL FIX: Use <= to block ONLY dates BEFORE today, allowing today to be selectable
-    const isBeforeToday = normalizedDate < normalizedToday;
+    // Only disable dates that are BEFORE today (not including today)
+    const isDisabled = dateStart.getTime() < todayStart.getTime();
     
-    console.log('📅 FIXED DATE VALIDATION:', {
-      todayNormalized: normalizedToday.toDateString(),
-      checkDateNormalized: normalizedDate.toDateString(),
-      isBeforeToday,
-      isToday: normalizedDate.getTime() === normalizedToday.getTime(),
-      allowed: !isBeforeToday,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    console.log('📅 FINAL DATE VALIDATION FIX:', {
+      checkDate: date.toDateString(),
+      todayDate: today.toDateString(),
+      checkDateMs: dateStart.getTime(),
+      todayMs: todayStart.getTime(),
+      isDisabled,
+      reason: isDisabled ? 'Date is before today' : 'Date is allowed (today or future)'
     });
     
-    return isBeforeToday; // Only block dates BEFORE today, allow today and future
+    return isDisabled;
   };
 
   return (
