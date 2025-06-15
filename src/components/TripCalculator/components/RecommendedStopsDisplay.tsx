@@ -16,18 +16,31 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 RecommendedStopsDisplay: Rendering with stops:', {
+  console.log('🎯 RecommendedStopsDisplay: Rendering component:', {
     stopsCount: stops?.length || 0,
     maxDisplay,
+    showLocation,
+    compact,
     stops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category })) || []
   });
 
   if (!stops || stops.length === 0) {
     console.log('⚠️ RecommendedStopsDisplay: No stops to display');
-    return null;
+    return (
+      <div className="space-y-2">
+        <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
+          <MapPin className="h-4 w-4" />
+          Recommended Stops (0)
+        </h5>
+        <div className="text-sm text-gray-500">
+          No recommended stops found for this segment.
+        </div>
+      </div>
+    );
   }
 
   const displayStops = stops.slice(0, maxDisplay);
+  console.log('🎯 RecommendedStopsDisplay: Will display stops:', displayStops.map(s => s.name));
 
   if (compact) {
     return (
@@ -39,6 +52,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
         <div className="space-y-1">
           {displayStops.map((stop, index) => {
             const formatted = StopRecommendationService.formatStopForDisplay(stop);
+            console.log(`🎯 RecommendedStopsDisplay: Rendering compact stop ${index + 1}:`, formatted);
             return (
               <div key={stop.id} className="text-sm">
                 <div className="flex items-center gap-2">
@@ -69,7 +83,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       <div className="space-y-3">
         {displayStops.map((stop, index) => {
           const formatted = StopRecommendationService.formatStopForDisplay(stop);
-          console.log(`🎯 Rendering stop ${index + 1}:`, formatted);
+          console.log(`🎯 RecommendedStopsDisplay: Rendering full stop ${index + 1}:`, formatted);
           return (
             <div 
               key={stop.id} 

@@ -10,24 +10,37 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('🎯 useRecommendedStops: Hook called for segment:', {
+    segmentDay: segment?.day,
+    endCity: segment?.endCity,
+    maxStops
+  });
+
   // Fetch all stops data
   useEffect(() => {
     const fetchStops = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log('🔍 useRecommendedStops: Fetching all stops...');
+        console.log('🔍 useRecommendedStops: Starting fetch...');
         const stops = await SupabaseDataService.fetchAllStops();
-        console.log('✅ useRecommendedStops: Fetched stops:', {
+        console.log('✅ useRecommendedStops: Fetched stops successfully:', {
           totalStops: stops.length,
           categories: [...new Set(stops.map(s => s.category))],
-          sampleStops: stops.slice(0, 3).map(s => ({ id: s.id, name: s.name, city: s.city_name, category: s.category }))
+          attractionsCount: stops.filter(s => s.category === 'attraction').length,
+          hiddenGemsCount: stops.filter(s => s.category === 'hidden_gem').length,
+          sampleStops: stops.slice(0, 5).map(s => ({ 
+            id: s.id, 
+            name: s.name, 
+            city: s.city_name, 
+            category: s.category 
+          }))
         });
         setAllStops(stops);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
         setError(errorMessage);
-        console.error('❌ Failed to fetch stops for recommendations:', err);
+        console.error('❌ useRecommendedStops: Failed to fetch stops:', err);
       } finally {
         setIsLoading(false);
       }
@@ -39,20 +52,21 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   // Calculate recommended stops for the segment
   const recommendedStops = useMemo((): RecommendedStop[] => {
     if (!segment || !allStops.length) {
-      console.log('⚠️ useRecommendedStops: No segment or stops available', {
+      console.log('⚠️ useRecommendedStops: Missing data:', {
         hasSegment: !!segment,
         stopsCount: allStops.length,
-        segmentInfo: segment ? `${segment.startCity} → ${segment.endCity}` : 'none'
+        segmentInfo: segment ? `Day ${segment.day}: ${segment.startCity} → ${segment.endCity}` : 'none'
       });
       return [];
     }
 
     try {
-      console.log('🎯 useRecommendedStops: Calculating recommendations for segment:', {
+      console.log('🎯 useRecommendedStops: Calculating recommendations:', {
         day: segment.day,
         route: `${segment.startCity} → ${segment.endCity}`,
         availableStops: allStops.length,
-        maxStops
+        maxStops,
+        endCityForMatching: segment.endCity
       });
 
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
@@ -63,20 +77,39 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
       console.log('✅ useRecommendedStops: Generated recommendations:', {
         count: recommendations.length,
-        stops: recommendations.map(r => ({ name: r.name, city: r.city, category: r.category, score: r.relevanceScore }))
+        segmentDay: segment.day,
+        endCity: segment.endCity,
+        stops: recommendations.map(r => ({ 
+          name: r.name, 
+          city: r.city, 
+          category: r.category, 
+          score: r.relevanceScore 
+        }))
       });
 
       return recommendations;
     } catch (err) {
-      console.error('❌ Error calculating recommended stops:', err);
+      console.error('❌ useRecommendedStops: Error calculating recommendations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to calculate recommendations');
       return [];
     }
   }, [segment, allStops, maxStops]);
 
-  return {
+  const result = {
     recommendedStops,
     isLoading,
     error,
     hasStops: recommendedStops.length > 0
   };
+
+  console.log('📊 useRecommendedStops: Returning result:', {
+    segmentDay: segment?.day,
+    endCity: segment?.endCity,
+    hasStops: result.hasStops,
+    stopsCount: result.recommendedStops.length,
+    isLoading: result.isLoading,
+    error: result.error
+  });
+
+  return result;
 };

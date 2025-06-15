@@ -30,21 +30,29 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // Get recommended stops for this segment
-  const { recommendedStops, isLoading: isLoadingStops, hasStops } = useRecommendedStops(segment, 3);
+  // Get recommended stops for this segment with detailed logging
+  const { recommendedStops, isLoading: isLoadingStops, hasStops, error } = useRecommendedStops(segment, 3);
   
   // CRITICAL: Use centralized service for consistent limiting
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 DaySegmentCardContent using CENTRALIZED attraction limiting:', {
+  console.log('🔍 DaySegmentCardContent DEBUG:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
+    recommendedStopsCount: recommendedStops.length,
+    hasStops,
+    isLoadingStops,
+    error,
     maxAttractions,
     context,
     sectionKey,
-    hasRecommendedStops: hasStops,
-    recommendedStopsCount: recommendedStops.length
+    recommendedStops: recommendedStops.map(stop => ({
+      id: stop.id,
+      name: stop.name,
+      category: stop.category,
+      city: stop.city
+    }))
   });
 
   return (
@@ -68,26 +76,37 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* Recommended Stops Section - NEW */}
-        {(hasStops || isLoadingStops) && (
-          <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-              {isLoadingStops ? (
-                <div className="flex items-center gap-2 text-sm text-blue-600">
-                  <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  Loading recommended stops...
+        {/* Recommended Stops Section - ALWAYS SHOW */}
+        <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+            {isLoadingStops ? (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                Loading recommended stops...
+              </div>
+            ) : error ? (
+              <div className="text-sm text-red-600">
+                <div className="font-medium">Error loading recommended stops:</div>
+                <div className="text-xs mt-1">{error}</div>
+              </div>
+            ) : hasStops ? (
+              <RecommendedStopsDisplay 
+                stops={recommendedStops}
+                maxDisplay={3}
+                showLocation={true}
+                compact={false}
+              />
+            ) : (
+              <div className="text-sm text-gray-500">
+                <div className="font-medium text-gray-700 mb-1">Recommended Stops</div>
+                <p>No recommended stops found for {segment.endCity}</p>
+                <div className="text-xs mt-2 text-gray-400">
+                  Debug: Segment Day {segment.day}, End City: {segment.endCity}
                 </div>
-              ) : (
-                <RecommendedStopsDisplay 
-                  stops={recommendedStops}
-                  maxDisplay={3}
-                  showLocation={true}
-                  compact={false}
-                />
-              )}
-            </div>
-          </ErrorBoundary>
-        )}
+              </div>
+            )}
+          </div>
+        </ErrorBoundary>
 
         {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
