@@ -1,97 +1,113 @@
 
+import { AttractionSearchResult, AttractionSearchStatus } from './AttractionSearchResult';
 
 export interface NearbyAttraction {
   id: string;
   name: string;
-  description?: string;
-  category?: string;
-  city_name?: string;
-  city?: string;
-  state?: string;
-  latitude?: number;
-  longitude?: number;
+  description: string;
+  type: string;
   distanceFromCity: number;
-  attractionType: "attraction" | "hidden_gem" | "drive_in" | "waypoint";
-}
-
-export interface AttractionSearchResult {
-  status: string;
-  attractions: NearbyAttraction[];
-  message: string;
-  citySearched: string;
-  stateSearched: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export class GeographicAttractionService {
-  static async getAttractionsNearCity(cityName: string): Promise<NearbyAttraction[]> {
-    // Implementation would go here
-    console.log(`Getting attractions near ${cityName}`);
-    return [];
-  }
-
-  static async findAttractionsNearCity(cityName: string, state: string, radiusMiles: number): Promise<AttractionSearchResult> {
-    console.log(`Finding attractions near ${cityName}, ${state} within ${radiusMiles} miles`);
+  static async findAttractionsNearCity(
+    cityName: string,
+    stateName: string,
+    radiusMiles: number = 40
+  ): Promise<AttractionSearchResult> {
+    console.log(`🔍 GeographicAttractionService: Searching for attractions near ${cityName}, ${stateName}`);
     
-    // Mock implementation for now
-    return {
-      status: 'SUCCESS',
-      attractions: [
+    try {
+      // Mock implementation for now
+      const mockAttractions: NearbyAttraction[] = [
         {
-          id: `attraction-${Math.random()}`,
-          name: `Sample Attraction near ${cityName}`,
-          description: `A great attraction in ${cityName}, ${state}`,
-          category: 'attraction',
-          city_name: cityName,
-          city: cityName,
-          state: state,
-          latitude: 35.0,
-          longitude: -101.0,
-          distanceFromCity: Math.random() * radiusMiles,
-          attractionType: 'attraction'
+          id: 'attraction-1',
+          name: `${cityName} Historic District`,
+          description: `Historic downtown area of ${cityName} with vintage shops and restaurants`,
+          type: 'historic-site',
+          distanceFromCity: 0.5
+        },
+        {
+          id: 'attraction-2', 
+          name: `Route 66 Museum`,
+          description: `Local museum showcasing Route 66 history and memorabilia`,
+          type: 'museum',
+          distanceFromCity: 2.1
+        },
+        {
+          id: 'attraction-3',
+          name: `${cityName} Scenic Overlook`,
+          description: `Beautiful viewpoint offering panoramic views of the surrounding area`,
+          type: 'scenic-spot',
+          distanceFromCity: 5.3
         }
-      ],
-      message: `Found attractions near ${cityName}`,
-      citySearched: cityName,
-      stateSearched: state
-    };
+      ];
+
+      return {
+        status: AttractionSearchStatus.SUCCESS,
+        attractions: mockAttractions,
+        message: `Found ${mockAttractions.length} attractions near ${cityName}`,
+        citySearched: cityName,
+        stateSearched: stateName
+      };
+
+    } catch (error) {
+      console.error('❌ GeographicAttractionService error:', error);
+      
+      return {
+        status: AttractionSearchStatus.ERROR,
+        attractions: [],
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        citySearched: cityName,
+        stateSearched: stateName
+      };
+    }
   }
 
-  static async debugCitySearch(cityName: string, state: string): Promise<any> {
-    console.log(`Debugging city search for ${cityName}, ${state}`);
+  static async debugCitySearch(cityName: string, stateName: string): Promise<any> {
+    console.log(`🔍 GeographicAttractionService: Debug search for ${cityName}, ${stateName}`);
     
     return {
-      cityName,
-      state,
-      searchAttempted: true,
-      debug: `Debug info for ${cityName}, ${state}`,
-      timestamp: new Date().toISOString()
+      searchTerm: `${cityName}, ${stateName}`,
+      coordinates: { lat: 35.0, lng: -105.0 }, // Mock coordinates
+      radiusUsed: 40,
+      searchMethod: 'mock-geographic-search'
     };
   }
 
   static getAttractionIcon(attraction: NearbyAttraction): string {
-    switch (attraction.attractionType) {
-      case 'hidden_gem':
-        return '💎';
-      case 'drive_in':
-        return '🎬';
-      case 'waypoint':
-        return '📍';
-      default:
-        return '🎯';
-    }
+    const iconMap: Record<string, string> = {
+      'historic-site': '🏛️',
+      'museum': '🏛️',
+      'scenic-spot': '🏞️',
+      'restaurant': '🍽️',
+      'gas-station': '⛽',
+      'lodging': '🏨',
+      'shopping': '🛍️',
+      'entertainment': '🎭',
+      'nature': '🌲'
+    };
+    
+    return iconMap[attraction.type] || '📍';
   }
 
   static getAttractionTypeLabel(attraction: NearbyAttraction): string {
-    switch (attraction.attractionType) {
-      case 'hidden_gem':
-        return 'Hidden Gem';
-      case 'drive_in':
-        return 'Drive-In';
-      case 'waypoint':
-        return 'Waypoint';
-      default:
-        return 'Attraction';
-    }
+    const labelMap: Record<string, string> = {
+      'historic-site': 'Historic Site',
+      'museum': 'Museum',
+      'scenic-spot': 'Scenic View',
+      'restaurant': 'Restaurant',
+      'gas-station': 'Gas Station',
+      'lodging': 'Lodging',
+      'shopping': 'Shopping',
+      'entertainment': 'Entertainment',
+      'nature': 'Nature'
+    };
+    
+    return labelMap[attraction.type] || 'Attraction';
   }
 }
-
