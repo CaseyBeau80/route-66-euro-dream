@@ -5,44 +5,44 @@ import { RecommendedStop } from './RecommendedStopTypes';
 
 export class StopScoringService {
   /**
-   * Score stop relevance with enhanced fallback bonuses
+   * Score stop relevance with much more generous scoring
    */
   static scoreStopRelevance(segment: DailySegment, stops: TripStop[]): RecommendedStop[] {
     if (!segment?.endCity || stops.length === 0) {
-      console.log('⭐ [ENHANCED-SCORING] Invalid input for scoring');
+      console.log('⭐ [SCORING] Invalid input for scoring');
       return [];
     }
 
-    console.log(`⭐ [ENHANCED-SCORING] Scoring ${stops.length} stops for ${segment.endCity}`);
+    console.log(`⭐ [SCORING] Scoring ${stops.length} stops for ${segment.endCity}`);
 
     const scoredStops = stops.map(stop => {
-      let score = 0;
+      let score = 20; // Higher base score
       const reasons: string[] = [];
 
-      // BASE SCORE: Featured content gets priority
+      // MAJOR BONUSES: Featured content gets huge priority
       if (stop.featured) {
-        score += 40;
+        score += 60;
         reasons.push('featured');
       }
 
       // MAJOR STOPS: Official destinations and major waypoints
       if (stop.is_major_stop || stop.is_official_destination) {
-        score += 35;
+        score += 50;
         reasons.push('major-stop');
       }
 
-      // CONTENT QUALITY: Rich descriptions and images
-      if (stop.description && stop.description.length > 50) {
-        score += 25;
+      // CONTENT QUALITY: Rich descriptions and images get big bonuses
+      if (stop.description && stop.description.length > 30) {
+        score += 35;
         reasons.push('rich-description');
       }
 
       if (stop.image_url || stop.thumbnail_url) {
-        score += 20;
+        score += 30;
         reasons.push('has-image');
       }
 
-      // CATEGORY BONUSES: Route 66 specific categories
+      // CATEGORY BONUSES: All categories get decent bonuses
       const categoryBonus = this.getCategoryBonus(stop.category);
       score += categoryBonus;
       if (categoryBonus > 0) {
@@ -56,23 +56,23 @@ export class StopScoringService {
         reasons.push('route66-relevant');
       }
 
-      // FALLBACK BONUSES: Ensure we always have some content
-      if (stops.length < 5) {
-        score += 15; // Boost all stops when we have few options
-        reasons.push('scarcity-bonus');
-      }
-
+      // DIVERSITY BONUSES: Ensure we have variety
       if (stop.website) {
-        score += 10;
+        score += 15;
         reasons.push('has-website');
       }
 
-      // Ensure minimum score for valid stops
-      score = Math.max(score, 10);
+      if (stop.latitude && stop.longitude) {
+        score += 10;
+        reasons.push('has-location');
+      }
 
-      console.log(`⭐ [ENHANCED-SCORING] ${stop.name}: ${score} points (${reasons.join(', ')})`);
+      // GENEROUS FALLBACK: Give every stop a decent minimum
+      score = Math.max(score, 25);
 
-      // Create the RecommendedStop with proper data mapping
+      console.log(`⭐ [SCORING] ${stop.name}: ${score} points (${reasons.join(', ')})`);
+
+      // Create the RecommendedStop
       const recommendedStop: RecommendedStop = {
         id: stop.id,
         name: stop.name,
@@ -84,29 +84,19 @@ export class StopScoringService {
         originalStop: stop
       };
 
-      console.log(`✅ [ENHANCED-SCORING] Created RecommendedStop:`, {
-        name: recommendedStop.name,
-        city: recommendedStop.city,
-        hasDescription: !!stop.description,
-        hasImage: !!(stop.image_url || stop.thumbnail_url),
-        hasWebsite: !!stop.website,
-        category: recommendedStop.category,
-        score: recommendedStop.relevanceScore
-      });
-
       return recommendedStop;
     });
 
     // Sort by score descending
     const sortedStops = scoredStops.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-    console.log(`⭐ [ENHANCED-SCORING] Scoring complete. Top 3:`, 
-      sortedStops.slice(0, 3).map(s => ({ 
+    console.log(`⭐ [SCORING] Scoring complete. Top 5:`, 
+      sortedStops.slice(0, 5).map(s => ({ 
         name: s.name, 
         score: s.relevanceScore,
+        category: s.category,
         hasDescription: !!s.originalStop.description,
-        hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url),
-        hasWebsite: !!s.originalStop.website
+        hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url)
       }))
     );
 
@@ -114,12 +104,12 @@ export class StopScoringService {
   }
 
   /**
-   * Select diverse stops with balanced categories
+   * Select diverse stops with much more inclusive selection
    */
   static selectDiverseStops(scoredStops: RecommendedStop[], maxStops: number): RecommendedStop[] {
     if (scoredStops.length === 0) return [];
 
-    console.log(`🎯 [ENHANCED-DIVERSITY] Selecting ${maxStops} diverse stops from ${scoredStops.length} candidates`);
+    console.log(`🎯 [DIVERSITY] Selecting ${maxStops} diverse stops from ${scoredStops.length} candidates`);
 
     const selected: RecommendedStop[] = [];
     const usedCategories = new Set<string>();
@@ -131,39 +121,39 @@ export class StopScoringService {
       if (!usedCategories.has(stop.category)) {
         selected.push(stop);
         usedCategories.add(stop.category);
-        console.log(`🎯 [ENHANCED-DIVERSITY] Selected ${stop.name} (${stop.category}, score: ${stop.relevanceScore})`);
+        console.log(`🎯 [DIVERSITY] Selected ${stop.name} (${stop.category}, score: ${stop.relevanceScore})`);
       }
     }
 
-    // Second pass: Fill remaining slots with highest scoring stops
+    // Second pass: Fill remaining slots with highest scoring stops regardless of category
     for (const stop of scoredStops) {
       if (selected.length >= maxStops) break;
 
       if (!selected.find(s => s.id === stop.id)) {
         selected.push(stop);
-        console.log(`🎯 [ENHANCED-DIVERSITY] Filled slot with ${stop.name} (score: ${stop.relevanceScore})`);
+        console.log(`🎯 [DIVERSITY] Filled slot with ${stop.name} (score: ${stop.relevanceScore})`);
       }
     }
 
-    console.log(`🎯 [ENHANCED-DIVERSITY] Final selection: ${selected.length} stops`);
+    console.log(`🎯 [DIVERSITY] Final selection: ${selected.length} stops`);
     return selected;
   }
 
   /**
-   * Get category-specific bonus points
+   * Get category-specific bonus points - more generous
    */
   private static getCategoryBonus(category: string): number {
     const bonuses: Record<string, number> = {
-      'destination_city': 30,
-      'route66_waypoint': 25,
-      'attraction': 20,
-      'hidden_gem': 15,
-      'drive_in': 15,
-      'diner': 10,
-      'motel': 8
+      'destination_city': 40,
+      'route66_waypoint': 35,
+      'attraction': 30,
+      'hidden_gem': 25,
+      'drive_in': 20,
+      'diner': 15,
+      'motel': 10
     };
 
-    return bonuses[category] || 5;
+    return bonuses[category] || 15; // Give unknown categories a decent bonus too
   }
 
   /**
@@ -179,7 +169,7 @@ export class StopScoringService {
     
     for (const keyword of route66Keywords) {
       if (searchText.includes(keyword)) {
-        return 20;
+        return 25;
       }
     }
 
@@ -187,7 +177,7 @@ export class StopScoringService {
   }
 
   /**
-   * Determine stop type for display - Fixed to return proper literal types
+   * Determine stop type for display
    */
   private static getStopType(stop: TripStop): 'destination' | 'major' | 'featured' | 'attraction' {
     if (stop.is_official_destination) return 'destination';

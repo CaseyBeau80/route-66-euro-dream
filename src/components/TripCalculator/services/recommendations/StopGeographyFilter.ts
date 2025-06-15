@@ -4,7 +4,7 @@ import { DailySegment } from '../planning/TripPlanBuilder';
 
 export class StopGeographyFilter {
   /**
-   * Filter stops by route geography with more lenient criteria to ensure we get results
+   * Filter stops by route geography with much more lenient criteria
    */
   static filterStopsByRouteGeography(segment: DailySegment, allStops: TripStop[]): TripStop[] {
     if (!segment?.endCity || !allStops?.length) {
@@ -15,34 +15,44 @@ export class StopGeographyFilter {
     const endCity = segment.endCity.toLowerCase();
     console.log(`🌍 [GEOGRAPHY-FILTER] Filtering ${allStops.length} stops for destination: ${endCity}`);
 
-    // ENHANCED: Multiple filtering strategies with fallbacks
+    // MUCH MORE LENIENT: Try multiple strategies and combine results
     const strategies = [
       // Strategy 1: Exact city match
       () => this.filterByExactCity(allStops, endCity),
       
-      // Strategy 2: State-based filtering  
-      () => this.filterByState(allStops, segment),
+      // Strategy 2: State-based filtering (much more lenient)
+      () => this.filterByStateVeryLenient(allStops, segment),
       
-      // Strategy 3: Regional filtering with Route 66 relevance
-      () => this.filterByRoute66Relevance(allStops),
+      // Strategy 3: Get all featured and major stops regardless of location
+      () => this.filterByQualityOnly(allStops),
       
-      // Strategy 4: Fallback to featured/major stops
-      () => this.filterByQuality(allStops)
+      // Strategy 4: Get stops by category priority
+      () => this.filterByCategory(allStops)
     ];
 
-    // Try each strategy until we get sufficient results
+    const allFilteredStops = new Set<TripStop>();
+
+    // Combine results from all strategies
     for (let i = 0; i < strategies.length; i++) {
       const filtered = strategies[i]();
       console.log(`🌍 [GEOGRAPHY-FILTER] Strategy ${i + 1} result: ${filtered.length} stops`);
       
-      if (filtered.length >= 1) {
-        console.log(`✅ [GEOGRAPHY-FILTER] Using strategy ${i + 1}, found ${filtered.length} stops`);
-        return filtered;
-      }
+      filtered.forEach(stop => allFilteredStops.add(stop));
+      
+      // If we have enough variety, we can stop
+      if (allFilteredStops.size >= 15) break;
     }
 
-    console.log('⚠️ [GEOGRAPHY-FILTER] All strategies failed, returning all stops as fallback');
-    return allStops.slice(0, 10); // Return top 10 as absolute fallback
+    const finalStops = Array.from(allFilteredStops);
+    console.log(`✅ [GEOGRAPHY-FILTER] Combined result: ${finalStops.length} stops from all strategies`);
+    
+    // If still no results, return all stops as ultimate fallback
+    if (finalStops.length === 0) {
+      console.log('⚠️ [GEOGRAPHY-FILTER] No filtered results, returning all stops as fallback');
+      return allStops.slice(0, 20);
+    }
+
+    return finalStops;
   }
 
   /**
@@ -51,78 +61,82 @@ export class StopGeographyFilter {
   private static filterByExactCity(stops: TripStop[], endCity: string): TripStop[] {
     return stops.filter(stop => {
       const cityMatch = stop.city_name?.toLowerCase().includes(endCity) || 
-                      stop.city?.toLowerCase().includes(endCity);
+                      stop.city?.toLowerCase().includes(endCity) ||
+                      stop.name?.toLowerCase().includes(endCity);
       return cityMatch;
     });
   }
 
   /**
-   * Filter by state for broader geographic relevance
+   * Very lenient state-based filtering
    */
-  private static filterByState(stops: TripStop[], segment: DailySegment): TripStop[] {
+  private static filterByStateVeryLenient(stops: TripStop[], segment: DailySegment): TripStop[] {
     const stateMap: Record<string, string[]> = {
-      'illinois': ['chicago', 'springfield', 'joliet'],
-      'missouri': ['st. louis', 'springfield', 'joplin'],
-      'kansas': ['galena'],
-      'oklahoma': ['tulsa', 'oklahoma city', 'commerce'],
-      'texas': ['amarillo', 'shamrock', 'adrian'],
-      'new mexico': ['tucumcari', 'santa rosa', 'albuquerque', 'santa fe'],
-      'arizona': ['holbrook', 'winslow', 'flagstaff', 'williams'],
-      'california': ['needles', 'barstow', 'san bernardino', 'santa monica', 'los angeles']
+      'illinois': ['illinois', 'il'],
+      'missouri': ['missouri', 'mo'], 
+      'kansas': ['kansas', 'ks'],
+      'oklahoma': ['oklahoma', 'ok'],
+      'texas': ['texas', 'tx'],
+      'new mexico': ['new mexico', 'nm'],
+      'arizona': ['arizona', 'az'],
+      'california': ['california', 'ca']
     };
 
     const endCity = segment.endCity.toLowerCase();
     
-    // Find which state the end city belongs to
-    const targetState = Object.keys(stateMap).find(state => 
-      stateMap[state].some(city => city.includes(endCity) || endCity.includes(city))
-    );
+    // Find target states (be very inclusive)
+    const targetStates = new Set<string>();
+    
+    Object.entries(stateMap).forEach(([state, abbreviations]) => {
+      // Check if end city name contains state indicators
+      if (abbreviations.some(abbr => endCity.includes(abbr))) {
+        targetStates.add(state);
+        abbreviations.forEach(abbr => targetStates.add(abbr));
+      }
+    });
 
-    if (targetState) {
-      return stops.filter(stop => {
-        const stopState = stop.state?.toLowerCase();
-        return stopState === targetState || stopState === targetState.substring(0, 2);
-      });
+    // If no state identified, include multiple nearby states
+    if (targetStates.size === 0) {
+      targetStates.add('illinois');
+      targetStates.add('missouri');
+      targetStates.add('oklahoma');
+      targetStates.add('texas');
     }
 
-    return [];
-  }
-
-  /**
-   * Filter by Route 66 relevance
-   */
-  private static filterByRoute66Relevance(stops: TripStop[]): TripStop[] {
     return stops.filter(stop => {
-      const isRelevant = stop.category === 'route66_waypoint' ||
-                        stop.category === 'destination_city' ||
-                        stop.is_major_stop ||
-                        stop.featured ||
-                        this.hasRoute66Keywords(stop);
-      return isRelevant;
+      const stopState = stop.state?.toLowerCase();
+      return stopState && Array.from(targetStates).some(state => 
+        stopState.includes(state) || state.includes(stopState)
+      );
     });
   }
 
   /**
-   * Filter by quality indicators
+   * Filter by quality indicators only - ignore geography
    */
-  private static filterByQuality(stops: TripStop[]): TripStop[] {
+  private static filterByQualityOnly(stops: TripStop[]): TripStop[] {
     return stops.filter(stop => {
       return stop.featured || 
              stop.is_major_stop || 
              stop.is_official_destination ||
-             (stop.description && stop.description.length > 50) ||
+             (stop.description && stop.description.length > 30) ||
              stop.image_url ||
              stop.thumbnail_url;
     });
   }
 
   /**
-   * Check for Route 66 keywords in stop content
+   * Filter by category to ensure variety
    */
-  private static hasRoute66Keywords(stop: TripStop): boolean {
-    const keywords = ['route 66', 'rt 66', 'route66', 'historic highway', 'mother road'];
-    const searchText = `${stop.name || ''} ${stop.description || ''}`.toLowerCase();
-    
-    return keywords.some(keyword => searchText.includes(keyword));
+  private static filterByCategory(stops: TripStop[]): TripStop[] {
+    const categories = ['attraction', 'destination_city', 'route66_waypoint', 'hidden_gem', 'drive_in'];
+    const result: TripStop[] = [];
+
+    categories.forEach(category => {
+      const categoryStops = stops.filter(stop => stop.category === category).slice(0, 5);
+      result.push(...categoryStops);
+    });
+
+    return result;
   }
 }
