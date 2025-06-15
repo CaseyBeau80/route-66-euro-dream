@@ -28,11 +28,14 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // Handle date selection - FRESH SIMPLE IMPLEMENTATION
+  // Handle date selection - TIMEZONE FIXED VERSION
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('📅 FRESH CALENDAR: Date selected:', {
+    console.log('📅 TIMEZONE FIXED: Date selected:', {
       date: date?.toISOString(),
-      isToday: date ? date.toDateString() === new Date().toDateString() : false
+      dateLocal: date?.toLocaleDateString(),
+      dateString: date?.toDateString(),
+      isToday: date ? date.toDateString() === new Date().toDateString() : false,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
     
     if (date) {
@@ -44,14 +47,21 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // FRESH DATE VALIDATION - Only disable dates BEFORE today
+  // TIMEZONE FIX - Use date strings instead of Date objects for comparison
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(23, 59, 59, 999);
+    const todayDateString = today.toDateString();
+    const checkDateString = date.toDateString();
     
-    return date <= yesterday;
+    console.log('📅 TIMEZONE DEBUG:', {
+      todayString: todayDateString,
+      checkString: checkDateString,
+      isBeforeToday: checkDateString < todayDateString,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+    
+    // Use string comparison which is timezone-safe
+    return checkDateString < todayDateString;
   };
 
   return (
