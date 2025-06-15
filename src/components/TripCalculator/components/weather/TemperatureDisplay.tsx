@@ -17,7 +17,7 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
 }) => {
   const { formatTemperature } = useUnits();
 
-  console.log('🌡️ TemperatureDisplay ENHANCED DEBUG - Raw Props:', {
+  console.log('🌡️ REAL FORECAST: TemperatureDisplay ENHANCED DEBUG - Raw Props:', {
     type,
     currentTemp,
     highTemp,
@@ -27,26 +27,27 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     lowTempType: typeof lowTemp,
     currentTempIsNaN: currentTemp !== undefined ? isNaN(currentTemp as number) : 'undefined',
     highTempIsNaN: highTemp !== undefined ? isNaN(highTemp as number) : 'undefined',
-    lowTempIsNaN: lowTemp !== undefined ? isNaN(lowTemp as number) : 'undefined'
+    lowTempIsNaN: lowTemp !== undefined ? isNaN(lowTemp as number) : 'undefined',
+    temperatureRange: highTemp !== undefined && lowTemp !== undefined ? highTemp - lowTemp : 'N/A'
   });
 
   // Enhanced formatting function
   const formatTemp = (temp: number | undefined): string => {
-    console.log('🌡️ TemperatureDisplay formatTemp called with:', { temp, type: typeof temp });
+    console.log('🌡️ REAL FORECAST: formatTemp called with:', { temp, type: typeof temp });
     
     if (temp === undefined || temp === null || isNaN(temp)) {
-      console.log('🌡️ TemperatureDisplay formatTemp: Invalid temperature, returning --°');
+      console.log('🌡️ REAL FORECAST: formatTemp: Invalid temperature, returning --°');
       return '--°';
     }
     
     if (formatTemperature) {
       const formatted = formatTemperature(temp);
-      console.log('🌡️ TemperatureDisplay formatTemp: Using unit context:', formatted);
+      console.log('🌡️ REAL FORECAST: formatTemp: Using unit context:', formatted);
       return formatted;
     }
     
     const defaultFormatted = `${Math.round(temp)}°F`;
-    console.log('🌡️ TemperatureDisplay formatTemp: Using default format:', defaultFormatted);
+    console.log('🌡️ REAL FORECAST: formatTemp: Using default format:', defaultFormatted);
     return defaultFormatted;
   };
 
@@ -59,7 +60,7 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
                    temp > -150 && 
                    temp < 150;
     
-    console.log('🌡️ TemperatureDisplay isDisplayableTemp:', { 
+    console.log('🌡️ REAL FORECAST: isDisplayableTemp:', { 
       temp, 
       isValid,
       checks: {
@@ -74,17 +75,22 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     return isValid;
   };
 
-  console.log('🌡️ TemperatureDisplay validation results:', {
+  console.log('🌡️ REAL FORECAST: TemperatureDisplay validation results:', {
     type,
     currentTempValid: isDisplayableTemp(currentTemp),
     highTempValid: isDisplayableTemp(highTemp),
     lowTempValid: isDisplayableTemp(lowTemp),
     willShowCurrent: type === 'current' && isDisplayableTemp(currentTemp),
-    willShowRange: type === 'range' && (isDisplayableTemp(highTemp) || isDisplayableTemp(lowTemp))
+    willShowRange: type === 'range' && (isDisplayableTemp(highTemp) || isDisplayableTemp(lowTemp)),
+    temperatureDifferences: {
+      currentVsHigh: currentTemp !== undefined && highTemp !== undefined ? Math.abs(currentTemp - highTemp) : 'N/A',
+      currentVsLow: currentTemp !== undefined && lowTemp !== undefined ? Math.abs(currentTemp - lowTemp) : 'N/A',
+      highVsLow: highTemp !== undefined && lowTemp !== undefined ? Math.abs(highTemp - lowTemp) : 'N/A'
+    }
   });
 
   if (type === 'current' && isDisplayableTemp(currentTemp)) {
-    console.log('✅ TemperatureDisplay: Rendering current temp:', currentTemp);
+    console.log('✅ REAL FORECAST: TemperatureDisplay: Rendering current temp:', currentTemp);
     return (
       <div className="flex flex-col items-center justify-center bg-white rounded p-3">
         <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -99,16 +105,18 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
     const hasHigh = isDisplayableTemp(highTemp);
     const hasLow = isDisplayableTemp(lowTemp);
     
-    console.log('🌡️ TemperatureDisplay: Range display check:', {
+    console.log('🌡️ REAL FORECAST: TemperatureDisplay: Range display check:', {
       hasHigh,
       hasLow,
       highTemp,
       lowTemp,
-      willShow: hasHigh || hasLow
+      willShow: hasHigh || hasLow,
+      bothValid: hasHigh && hasLow,
+      actualRange: hasHigh && hasLow ? (highTemp! - lowTemp!) : 'N/A'
     });
 
     if (hasHigh || hasLow) {
-      console.log('✅ TemperatureDisplay: Rendering range temps');
+      console.log('✅ REAL FORECAST: TemperatureDisplay: Rendering range temps with proper separation');
       return (
         <div className="flex items-center justify-center gap-3 bg-white rounded p-3">
           {/* Low Temperature */}
@@ -141,8 +149,8 @@ const TemperatureDisplay: React.FC<TemperatureDisplayProps> = ({
   }
 
   // Enhanced fallback display with more information
-  console.warn('❌ TemperatureDisplay: No valid temperature data to display');
-  console.warn('❌ TemperatureDisplay: Debug info:', {
+  console.warn('❌ REAL FORECAST: TemperatureDisplay: No valid temperature data to display');
+  console.warn('❌ REAL FORECAST: TemperatureDisplay: Debug info:', {
     type,
     providedTemps: { currentTemp, highTemp, lowTemp },
     validationResults: {

@@ -1,3 +1,4 @@
+
 import { WeatherSourceType } from './WeatherServiceTypes';
 import { WeatherFallbackService } from './WeatherFallbackService';
 
@@ -44,7 +45,7 @@ export class WeatherForecastService {
     cityName: string, 
     targetDate: Date
   ): Promise<ForecastWeatherData | null> {
-    console.log('🌤️ WeatherForecastService.getWeatherForDate called:', {
+    console.log('🌤️ REAL FORECAST: WeatherForecastService.getWeatherForDate called:', {
       cityName,
       targetDate: targetDate.toISOString(),
       coordinates: { lat, lng }
@@ -70,17 +71,17 @@ export class WeatherForecastService {
           });
 
           if (matchedForecast) {
-            console.log('✅ Found matching forecast for date:', targetDateString);
+            console.log('✅ REAL FORECAST: Found matching forecast for date:', targetDateString);
             return matchedForecast;
           }
         }
       } catch (error) {
-        console.warn('⚠️ Live forecast failed, using fallback:', error);
+        console.warn('⚠️ REAL FORECAST: Live forecast failed, using fallback:', error);
       }
     }
 
     // Use fallback weather for dates outside forecast range or if API fails
-    console.log('🔄 Using fallback weather for:', cityName);
+    console.log('🔄 REAL FORECAST: Using fallback weather for:', cityName);
     return WeatherFallbackService.createFallbackForecast(
       cityName,
       targetDate,
@@ -101,32 +102,76 @@ export class WeatherForecastService {
 
       const data = await response.json();
       
-      return data.list.map((item: any, index: number) => ({
-        temperature: Math.round(item.main.temp),
-        highTemp: Math.round(item.main.temp_max),
-        lowTemp: Math.round(item.main.temp_min),
-        description: item.weather[0].description,
-        icon: item.weather[0].icon,
-        humidity: item.main.humidity,
-        windSpeed: Math.round(item.wind?.speed || 0),
-        precipitationChance: Math.round((item.pop || 0) * 100),
-        cityName,
-        forecast: [],
-        forecastDate: new Date(item.dt * 1000),
-        isActualForecast: true,
-        source: 'live_forecast' as const,
-        dateMatchInfo: {
-          requestedDate: new Date(item.dt * 1000).toISOString(),
-          matchedDate: new Date(item.dt * 1000).toISOString(),
-          matchType: 'exact' as const,
-          daysOffset: index,
-          hoursOffset: 0,
-          source: 'live_forecast' as const,
-          confidence: 'high' as const
+      console.log('🔍 REAL FORECAST: Raw OpenWeatherMap API response for', cityName, {
+        listLength: data.list?.length,
+        firstItemStructure: data.list?.[0],
+        firstItemMain: data.list?.[0]?.main,
+        temperatureFields: {
+          temp: data.list?.[0]?.main?.temp,
+          temp_max: data.list?.[0]?.main?.temp_max,
+          temp_min: data.list?.[0]?.main?.temp_min
         }
-      }));
+      });
+      
+      return data.list.map((item: any, index: number) => {
+        // CRITICAL: Extract the actual OpenWeatherMap temperature values
+        const currentTemp = Math.round(item.main.temp);
+        const maxTemp = Math.round(item.main.temp_max);
+        const minTemp = Math.round(item.main.temp_min);
+        
+        console.log(`🌡️ REAL FORECAST: Processing forecast item ${index} for ${cityName}:`, {
+          rawTemps: {
+            temp: item.main.temp,
+            temp_max: item.main.temp_max,
+            temp_min: item.main.temp_min
+          },
+          roundedTemps: {
+            current: currentTemp,
+            high: maxTemp,
+            low: minTemp
+          },
+          dateTime: new Date(item.dt * 1000).toISOString(),
+          weather: item.weather[0]
+        });
+
+        const forecastData: ForecastWeatherData = {
+          temperature: currentTemp,
+          highTemp: maxTemp,
+          lowTemp: minTemp,
+          description: item.weather[0].description,
+          icon: item.weather[0].icon,
+          humidity: item.main.humidity,
+          windSpeed: Math.round(item.wind?.speed || 0),
+          precipitationChance: Math.round((item.pop || 0) * 100),
+          cityName,
+          forecast: [],
+          forecastDate: new Date(item.dt * 1000),
+          isActualForecast: true,
+          source: 'live_forecast' as const,
+          matchedForecastDay: item, // Include the original item for debugging
+          dateMatchInfo: {
+            requestedDate: new Date(item.dt * 1000).toISOString(),
+            matchedDate: new Date(item.dt * 1000).toISOString(),
+            matchType: 'exact' as const,
+            daysOffset: index,
+            hoursOffset: 0,
+            source: 'live_forecast' as const,
+            confidence: 'high' as const
+          }
+        };
+
+        console.log(`✅ REAL FORECAST: Created forecast data for ${cityName} item ${index}:`, {
+          temperature: forecastData.temperature,
+          highTemp: forecastData.highTemp,
+          lowTemp: forecastData.lowTemp,
+          temperatureRange: maxTemp - minTemp,
+          isValid: !isNaN(currentTemp) && !isNaN(maxTemp) && !isNaN(minTemp)
+        });
+
+        return forecastData;
+      });
     } catch (error) {
-      console.error('Error fetching weather forecast:', error);
+      console.error('❌ REAL FORECAST: Error fetching weather forecast:', error);
       throw error;
     }
   }
@@ -143,10 +188,30 @@ export class WeatherForecastService {
 
       const data = await response.json();
       
+      console.log('🔍 REAL FORECAST: Raw current weather API response for', cityName, {
+        mainStructure: data.main,
+        temperatureFields: {
+          temp: data.main?.temp,
+          temp_max: data.main?.temp_max,
+          temp_min: data.main?.temp_min
+        }
+      });
+
+      const currentTemp = Math.round(data.main.temp);
+      const maxTemp = Math.round(data.main.temp_max);
+      const minTemp = Math.round(data.main.temp_min);
+
+      console.log('🌡️ REAL FORECAST: Processed current weather for', cityName, {
+        current: currentTemp,
+        high: maxTemp,
+        low: minTemp,
+        range: maxTemp - minTemp
+      });
+      
       return {
-        temperature: Math.round(data.main.temp),
-        highTemp: Math.round(data.main.temp_max),
-        lowTemp: Math.round(data.main.temp_min),
+        temperature: currentTemp,
+        highTemp: maxTemp,
+        lowTemp: minTemp,
         description: data.weather[0].description,
         icon: data.weather[0].icon,
         humidity: data.main.humidity,
@@ -157,6 +222,7 @@ export class WeatherForecastService {
         forecastDate: new Date(),
         isActualForecast: true,
         source: 'live_forecast' as const,
+        matchedForecastDay: data, // Include the original data for debugging
         dateMatchInfo: {
           requestedDate: new Date().toISOString(),
           matchedDate: new Date().toISOString(),
@@ -168,7 +234,7 @@ export class WeatherForecastService {
         }
       };
     } catch (error) {
-      console.error('Error fetching current weather:', error);
+      console.error('❌ REAL FORECAST: Error fetching current weather:', error);
       throw error;
     }
   }
