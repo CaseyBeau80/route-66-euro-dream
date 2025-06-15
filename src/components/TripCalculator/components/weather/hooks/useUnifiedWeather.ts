@@ -28,21 +28,22 @@ export const useUnifiedWeather = ({
       return createFallbackWeather();
     }
 
-    // CRITICAL FIX: Proper API key validation
+    // CRITICAL FIX: Get API key directly and use more lenient validation
     const apiKey = WeatherApiKeyManager.getApiKey();
-    console.log('🔑 CRITICAL FIX: API Key validation:', {
+    console.log('🔑 CRITICAL FIX: API Key check:', {
       hasApiKey: !!apiKey,
-      isValid: apiKey && apiKey !== 'your_api_key_here' && apiKey.length > 10,
       keyLength: apiKey?.length || 0,
+      keyPreview: apiKey ? apiKey.substring(0, 8) + '...' : 'none',
       cityName
     });
 
-    if (!apiKey || apiKey === 'your_api_key_here' || apiKey.length < 10) {
-      console.log('🔄 CRITICAL FIX: Invalid API key - using fallback for', cityName);
+    // FIXED: More lenient API key validation - just check if we have one
+    if (!apiKey || apiKey.length < 15) {
+      console.log('🔄 CRITICAL FIX: No valid API key - using fallback for', cityName);
       return createFallbackWeather();
     }
 
-    // CRITICAL FIX: Accurate date range validation
+    // CRITICAL FIX: More accurate date range validation
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const targetDate = new Date(segmentDate.getFullYear(), segmentDate.getMonth(), segmentDate.getDate());
@@ -52,16 +53,11 @@ export const useUnifiedWeather = ({
       today: today.toISOString().split('T')[0],
       targetDate: targetDate.toISOString().split('T')[0],
       daysFromToday,
-      isWithinRange: daysFromToday >= 0 && daysFromToday <= 5,
-      calculation: {
-        todayTime: today.getTime(),
-        targetTime: targetDate.getTime(),
-        difference: targetDate.getTime() - today.getTime(),
-        differenceDays: (targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
-      }
+      isWithinRange: daysFromToday >= -1 && daysFromToday <= 7
     });
 
-    if (daysFromToday < 0 || daysFromToday > 5) {
+    // FIXED: Extended range to include yesterday and up to 7 days
+    if (daysFromToday < -1 || daysFromToday > 7) {
       console.log('🔄 CRITICAL FIX: Date outside forecast range - using fallback for', cityName, { daysFromToday });
       return createFallbackWeather();
     }
