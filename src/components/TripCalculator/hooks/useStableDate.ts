@@ -1,20 +1,41 @@
 
 import { useMemo } from 'react';
-import { addDays } from 'date-fns';
+import { DateNormalizationService } from '../components/weather/DateNormalizationService';
 
 /**
- * Hook to provide stable date calculations that only change when inputs actually change
+ * CRITICAL FIX: Hook to provide stable date calculations using centralized date logic
+ * Ensures absolute consistency with all other date calculations in the app
  */
 export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Date | null => {
   return useMemo(() => {
+    console.log('🗓️ CRITICAL FIX: useStableDate called with comprehensive validation:', {
+      baseDate: baseDate?.toISOString(),
+      baseDateLocal: baseDate?.toLocaleDateString(),
+      baseDateComponents: baseDate ? {
+        year: baseDate.getFullYear(),
+        month: baseDate.getMonth(),
+        date: baseDate.getDate(),
+        hours: baseDate.getHours(),
+        minutes: baseDate.getMinutes(),
+        seconds: baseDate.getSeconds()
+      } : null,
+      dayOffset,
+      dayOffsetType: typeof dayOffset,
+      isBaseDateValid: baseDate instanceof Date && !isNaN(baseDate.getTime()),
+      isDayOffsetValid: typeof dayOffset === 'number' && !isNaN(dayOffset),
+      usingCentralizedLogic: true
+    });
+
     // Validate inputs more thoroughly
     if (!baseDate || typeof dayOffset !== 'number' || isNaN(dayOffset)) {
-      console.log('🗓️ useStableDate: Invalid inputs', { 
+      console.log('🗓️ CRITICAL FIX: useStableDate invalid inputs detected:', { 
         baseDate, 
         dayOffset, 
         baseDateType: typeof baseDate,
         isBaseDateInstance: baseDate instanceof Date,
-        baseDateValid: baseDate instanceof Date ? !isNaN(baseDate.getTime()) : false
+        baseDateValid: baseDate instanceof Date ? !isNaN(baseDate.getTime()) : false,
+        dayOffsetType: typeof dayOffset,
+        dayOffsetValid: typeof dayOffset === 'number' && !isNaN(dayOffset)
       });
       return null;
     }
@@ -22,7 +43,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
     try {
       // At this point, baseDate is truthy, so check if it's a valid Date object
       if (!(baseDate instanceof Date)) {
-        console.error('❌ useStableDate: baseDate is not a Date instance', { 
+        console.error('❌ CRITICAL FIX: useStableDate baseDate is not a Date instance', { 
           baseDate, 
           type: typeof baseDate
         });
@@ -31,7 +52,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
       
       // Check if it's a valid date
       if (isNaN(baseDate.getTime())) {
-        console.error('❌ useStableDate: Invalid Date object provided', { 
+        console.error('❌ CRITICAL FIX: useStableDate Invalid Date object provided', { 
           baseDate, 
           getTime: 'NaN',
           toString: baseDate.toString()
@@ -40,8 +61,8 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
       }
       
       // Validate dayOffset
-      if (!Number.isInteger(dayOffset) || dayOffset < 0) {
-        console.error('❌ useStableDate: Invalid dayOffset', { 
+      if (!Number.isInteger(dayOffset) || dayOffset < 1) {
+        console.error('❌ CRITICAL FIX: useStableDate Invalid dayOffset (must be >= 1)', { 
           dayOffset, 
           type: typeof dayOffset,
           isInteger: Number.isInteger(dayOffset)
@@ -49,11 +70,12 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      const resultDate = addDays(baseDate, dayOffset - 1);
+      // CRITICAL FIX: Use the centralized date calculation service for absolute consistency
+      const resultDate = DateNormalizationService.calculateSegmentDate(baseDate, dayOffset);
       
       // Final validation of result
       if (isNaN(resultDate.getTime())) {
-        console.error('❌ useStableDate: Calculated date is invalid', {
+        console.error('❌ CRITICAL FIX: useStableDate calculated date is invalid', {
           baseDate: baseDate.toISOString(),
           dayOffset,
           resultDate,
@@ -62,16 +84,30 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      console.log('🗓️ useStableDate: Successfully calculated date', {
+      console.log('🗓️ CRITICAL FIX: useStableDate successfully calculated date using centralized logic:', {
         baseDate: baseDate.toISOString(),
+        baseDateLocal: baseDate.toLocaleDateString(),
         dayOffset,
-        resultDate: resultDate.toISOString()
+        resultDate: resultDate.toISOString(),
+        resultDateLocal: resultDate.toLocaleDateString(),
+        resultComponents: {
+          year: resultDate.getFullYear(),
+          month: resultDate.getMonth(),
+          date: resultDate.getDate()
+        },
+        day1Verification: dayOffset === 1 ? {
+          baseDateString: baseDate.toDateString(),
+          resultDateString: resultDate.toDateString(),
+          matches: baseDate.toDateString() === resultDate.toDateString(),
+          perfectMatch: 'DAY_1_EQUALS_BASE_DATE_EXACTLY'
+        } : null,
+        usingCentralizedService: 'DateNormalizationService.calculateSegmentDate'
       });
       
       return resultDate;
       
     } catch (error) {
-      console.error('❌ useStableDate: Error calculating date:', error, { 
+      console.error('❌ CRITICAL FIX: useStableDate error calculating date:', error, { 
         baseDate, 
         dayOffset,
         baseDateType: typeof baseDate

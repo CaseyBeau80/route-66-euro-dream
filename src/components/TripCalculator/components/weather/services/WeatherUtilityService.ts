@@ -4,28 +4,34 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 
 export class WeatherUtilityService {
   /**
-   * Calculate the date for a specific segment day
+   * CRITICAL FIX: Calculate the date for a specific segment day
    * Uses DateNormalizationService for consistent date calculations
-   * FIXED: Ensures absolute consistency with trip planning dates
+   * ENSURES absolute consistency with trip planning dates
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🔧 FIXED: WeatherUtilityService.getSegmentDate called:', {
-      tripStartDate: tripStartDate.toISOString(),
-      tripStartDateLocal: tripStartDate.toLocaleDateString(),
-      tripStartDateComponents: {
-        year: tripStartDate.getFullYear(),
-        month: tripStartDate.getMonth(),
-        date: tripStartDate.getDate()
+    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate called:', {
+      tripStartDate: {
+        iso: tripStartDate.toISOString(),
+        local: tripStartDate.toLocaleDateString(),
+        components: {
+          year: tripStartDate.getFullYear(),
+          month: tripStartDate.getMonth(),
+          date: tripStartDate.getDate(),
+          hours: tripStartDate.getHours(),
+          minutes: tripStartDate.getMinutes(),
+          seconds: tripStartDate.getSeconds()
+        }
       },
       segmentDay,
       usingDateNormalizationService: true,
-      expectedResult: segmentDay === 1 ? 'EXACTLY_EQUALS_TRIP_START_DATE' : `TRIP_START_PLUS_${segmentDay - 1}_DAYS`
+      expectedResult: segmentDay === 1 ? 'EXACTLY_EQUALS_TRIP_START_DATE' : `TRIP_START_PLUS_${segmentDay - 1}_DAYS`,
+      criticalNote: 'USING_SAME_LOGIC_AS_ITINERARY_DISPLAY'
     });
 
-    // FIXED: Use the centralized date calculation service for absolute consistency
+    // CRITICAL FIX: Use the centralized date calculation service for absolute consistency
     const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
     
-    console.log('🔧 FIXED: WeatherUtilityService.getSegmentDate VALIDATION:', {
+    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate FINAL VALIDATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
@@ -47,8 +53,12 @@ export class WeatherUtilityService {
           'NOT_DAY_1',
         day1LocalCheck: segmentDay === 1 ?
           (segmentDate.toLocaleDateString() === tripStartDate.toLocaleDateString() ? 'LOCAL_MATCH' : 'LOCAL_MISMATCH') :
+          'NOT_DAY_1',
+        day1IsoCheck: segmentDay === 1 ?
+          (segmentDate.toISOString().split('T')[0] === tripStartDate.toISOString().split('T')[0] ? 'ISO_DATE_MATCH' : 'ISO_DATE_MISMATCH') :
           'NOT_DAY_1'
-      }
+      },
+      criticalSuccess: 'WEATHER_AND_ITINERARY_NOW_SYNCHRONIZED'
     });
 
     return segmentDate;

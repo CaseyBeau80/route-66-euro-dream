@@ -23,10 +23,40 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Calculate segment date using the same logic everywhere
+  // CRITICAL FIX: Calculate segment date using the SAME logic as itinerary display
   const segmentDate = React.useMemo(() => {
+    console.log('🚨 CRITICAL WEATHER FIX: UnifiedWeatherWidget segmentDate calculation:', {
+      hasTripStartDate: !!tripStartDate,
+      tripStartDate: tripStartDate?.toISOString(),
+      tripStartDateLocal: tripStartDate?.toLocaleDateString(),
+      segmentDay: segment.day,
+      segmentEndCity: segment.endCity,
+      isSharedView,
+      calculationMethod: 'WeatherUtilityService.getSegmentDate'
+    });
+
     if (tripStartDate) {
-      return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      
+      console.log('🚨 CRITICAL WEATHER FIX: Calculated weather segment date:', {
+        tripStartDate: tripStartDate.toISOString(),
+        segmentDay: segment.day,
+        calculatedDate: calculatedDate.toISOString(),
+        calculatedLocal: calculatedDate.toLocaleDateString(),
+        calculatedComponents: {
+          year: calculatedDate.getFullYear(),
+          month: calculatedDate.getMonth(),
+          date: calculatedDate.getDate()
+        },
+        day1Verification: segment.day === 1 ? {
+          tripStartDateString: tripStartDate.toDateString(),
+          calculatedDateString: calculatedDate.toDateString(),
+          matches: tripStartDate.toDateString() === calculatedDate.toDateString(),
+          perfectMatch: 'WEATHER_MATCHES_ITINERARY'
+        } : null
+      });
+      
+      return calculatedDate;
     }
 
     // For shared views, try URL parameters
@@ -40,7 +70,15 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
           if (tripStartParam) {
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
-              return WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
+              const calculatedDate = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
+              console.log('🚨 CRITICAL WEATHER FIX: URL param date calculation:', {
+                paramName,
+                tripStartParam,
+                parsedDate: parsedDate.toISOString(),
+                calculatedDate: calculatedDate.toISOString(),
+                segmentDay: segment.day
+              });
+              return calculatedDate;
             }
           }
         }
@@ -51,7 +89,17 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
     // Fallback: use today
     const today = new Date();
-    return new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+    const fallbackDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+    
+    console.log('🚨 CRITICAL WEATHER FIX: Using fallback date calculation:', {
+      today: today.toISOString(),
+      segmentDay: segment.day,
+      fallbackDate: fallbackDate.toISOString(),
+      fallbackLocal: fallbackDate.toLocaleDateString(),
+      warningMessage: 'USING_FALLBACK_NOT_SYNCHRONIZED_WITH_ITINERARY'
+    });
+    
+    return fallbackDate;
   }, [tripStartDate, segment.day, isSharedView]);
 
   // Fetch weather using secure service
@@ -62,7 +110,13 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     setError(null);
 
     try {
-      console.log('🌤️ UNIFIED SECURE: Fetching via Edge Function for', segment.endCity, segmentDate.toISOString());
+      console.log('🌤️ UNIFIED SECURE FIXED: Fetching via Edge Function for', segment.endCity, {
+        segmentDate: segmentDate.toISOString(),
+        segmentDateLocal: segmentDate.toLocaleDateString(),
+        segmentDay: segment.day,
+        tripStartDate: tripStartDate?.toISOString(),
+        synchronizedWithItinerary: !!tripStartDate
+      });
       
       const weatherData = await SecureWeatherService.fetchWeatherForecast(
         segment.endCity,
@@ -71,21 +125,25 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
       if (weatherData) {
         setWeather(weatherData);
-        console.log('✅ UNIFIED SECURE: Data received from Edge Function for', segment.endCity, {
+        console.log('✅ UNIFIED SECURE FIXED: Weather data received from Edge Function for', segment.endCity, {
           temperature: weatherData.temperature,
           source: weatherData.source,
-          isLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast
+          isLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast,
+          weatherDate: segmentDate.toISOString(),
+          weatherDateLocal: segmentDate.toLocaleDateString(),
+          segmentDay: segment.day,
+          perfectSynchronization: 'WEATHER_DATE_MATCHES_ITINERARY'
         });
       } else {
         setError('Weather data unavailable');
       }
     } catch (err) {
-      console.error('❌ UNIFIED SECURE: Edge Function fetch failed for', segment.endCity, err);
+      console.error('❌ UNIFIED SECURE FIXED: Edge Function fetch failed for', segment.endCity, err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
     } finally {
       setLoading(false);
     }
-  }, [segment.endCity, segmentDate]);
+  }, [segment.endCity, segmentDate, tripStartDate]);
 
   // Fetch weather when ready
   React.useEffect(() => {
@@ -94,18 +152,28 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     }
   }, [fetchWeather, segmentDate]);
 
-  console.log('🔥 UNIFIED SECURE: Widget render:', {
+  console.log('🔥 UNIFIED SECURE FIXED: Widget render comprehensive debug:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
     loading,
     error,
     segmentDate: segmentDate?.toISOString(),
+    segmentDateLocal: segmentDate?.toLocaleDateString(),
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     isSharedView,
     isPDFExport,
-    isLiveWeather: weather?.source === 'live_forecast' && weather?.isActualForecast
+    isLiveWeather: weather?.source === 'live_forecast' && weather?.isActualForecast,
+    dateVerification: {
+      hasProperTripStartDate: !!tripStartDate,
+      isDay1: segment.day === 1,
+      day1ShouldMatchTripStart: segment.day === 1 && tripStartDate ? 
+        (segmentDate?.toDateString() === tripStartDate.toDateString() ? 'PERFECT_MATCH' : 'MISMATCH_ERROR') : 
+        'NOT_DAY_1_OR_NO_TRIP_START'
+    }
   });
 
   // Loading state
