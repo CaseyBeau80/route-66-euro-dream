@@ -70,61 +70,82 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use proper weather validation to determine display
+  // FIXED: Use simple validation to determine display
   const weatherValidation = React.useMemo(() => {
     if (!weather || !segmentDate) return null;
     return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
   }, [weather, segmentDate, segment.endCity]);
 
-  // FIXED: Use validation result to determine if it's live forecast
+  // FIXED: Use validation result directly
   const isLiveForecast = weatherValidation?.isLiveForecast || false;
 
-  // FIXED: Use actual segment drive time data
+  // FIXED: Robust drive time calculation with proper fallbacks
   const displayDriveTime = React.useMemo(() => {
-    console.log('🚗 FIXED: Calculating drive time for segment:', {
+    console.log('🚗 FIXED: Drive time calculation for segment:', {
       day: segment.day,
       endCity: segment.endCity,
       driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance,
-      drivingTime: segment.drivingTime
+      drivingTime: segment.drivingTime,
+      distance: segment.distance
     });
 
-    // Priority 1: Use driveTimeHours if available
-    if (segment.driveTimeHours && segment.driveTimeHours > 0) {
+    // Try driveTimeHours first (most reliable)
+    if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      const result = `${hours}h ${minutes}m`;
-      console.log('✅ FIXED: Using driveTimeHours:', result);
-      return result;
+      console.log('✅ Using driveTimeHours:', `${hours}h ${minutes}m`);
+      return `${hours}h ${minutes}m`;
     }
     
-    // Priority 2: Use drivingTime if it's a number
-    if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
+    // Try drivingTime if it's a number
+    if (segment.drivingTime && typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
       const hours = Math.floor(segment.drivingTime);
       const minutes = Math.round((segment.drivingTime - hours) * 60);
-      const result = `${hours}h ${minutes}m`;
-      console.log('✅ FIXED: Using drivingTime (number):', result);
-      return result;
+      console.log('✅ Using drivingTime number:', `${hours}h ${minutes}m`);
+      return `${hours}h ${minutes}m`;
     }
     
-    // Priority 3: Calculate from distance if available
-    if (segment.distance && segment.distance > 0) {
-      const driveTime = segment.distance / 55; // 55 mph average
-      const hours = Math.floor(driveTime);
-      const minutes = Math.round((driveTime - hours) * 60);
-      const result = `${hours}h ${minutes}m`;
-      console.log('⚠️ FIXED: Calculated from distance:', result);
-      return result;
+    // Try to parse drivingTime if it's a string like "5.5h" or "5h 30m"
+    if (segment.drivingTime && typeof segment.drivingTime === 'string') {
+      const timeStr = segment.drivingTime.toLowerCase();
+      
+      // Parse "5h 30m" format
+      const hMinMatch = timeStr.match(/(\d+)h\s*(\d+)m/);
+      if (hMinMatch) {
+        const hours = parseInt(hMinMatch[1]);
+        const minutes = parseInt(hMinMatch[2]);
+        console.log('✅ Parsed drivingTime h-m format:', `${hours}h ${minutes}m`);
+        return `${hours}h ${minutes}m`;
+      }
+      
+      // Parse "5.5h" format
+      const decimalMatch = timeStr.match(/(\d+\.?\d*)h/);
+      if (decimalMatch) {
+        const totalHours = parseFloat(decimalMatch[1]);
+        const hours = Math.floor(totalHours);
+        const minutes = Math.round((totalHours - hours) * 60);
+        console.log('✅ Parsed drivingTime decimal format:', `${hours}h ${minutes}m`);
+        return `${hours}h ${minutes}m`;
+      }
     }
     
-    console.log('❌ FIXED: No valid data, using fallback');
+    // Calculate from distance (55 mph average)
+    if (segment.distance && typeof segment.distance === 'number' && segment.distance > 0) {
+      const driveTimeHours = segment.distance / 55;
+      const hours = Math.floor(driveTimeHours);
+      const minutes = Math.round((driveTimeHours - hours) * 60);
+      console.log('⚠️ Calculated from distance:', `${hours}h ${minutes}m`);
+      return `${hours}h ${minutes}m`;
+    }
+    
+    console.log('❌ No valid data, using fallback');
     return '4h 0m';
   }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  // FIXED: Use validation result to determine correct styling
+  // FIXED: Simple styling based on validation result
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
-      console.log('🟢 FIXED: Using GREEN styling for live forecast:', segment.endCity);
+      console.log('🟢 USING GREEN styling for live forecast:', segment.endCity);
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: '#059669',
@@ -136,7 +157,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         textColor: '#166534',
       };
     } else {
-      console.log('🟡 FIXED: Using YELLOW styling for historical data:', segment.endCity);
+      console.log('🟡 USING YELLOW styling for historical data:', segment.endCity);
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: '#d97706',
@@ -150,7 +171,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
   }, [isLiveForecast, segment.endCity]);
 
-  console.log('🔧 FIXED: SimpleWeatherWidget final state:', {
+  console.log('🔧 FINAL SimpleWeatherWidget state:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -161,7 +182,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     displayDriveTime,
     weatherSource: weather?.source,
     validationResult: weatherValidation?.isLiveForecast,
-    expectedStyling: isLiveForecast ? 'GREEN' : 'YELLOW'
+    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
   });
 
   const getWeatherIcon = (iconCode: string) => {

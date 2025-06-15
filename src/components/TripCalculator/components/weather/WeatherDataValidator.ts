@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: Proper logic to determine if weather should be displayed as live forecast
+   * SIMPLE: Direct logic to determine if weather should show as live (GREEN) or historical (YELLOW)
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -20,12 +20,20 @@ export class WeatherDataValidator {
   ): WeatherValidationResult {
     const validationErrors: string[] = [];
     
-    // Check if we have a valid API key
-    const hasValidApiKey = WeatherApiKeyManager.hasApiKey();
-    const apiKey = WeatherApiKeyManager.getApiKey();
-    const isValidApiKey = hasValidApiKey && apiKey !== 'YOUR_API_KEY_HERE' && (apiKey?.length || 0) > 10;
+    console.log('🔧 SIMPLE: WeatherDataValidator with direct logic:', {
+      cityName,
+      segmentDate: segmentDate.toISOString(),
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      hasApiKey: WeatherApiKeyManager.hasApiKey()
+    });
     
-    // Check if date is within live forecast range (0-5 days from today)
+    // SIMPLE CHECK 1: Do we have a valid API key?
+    const hasValidApiKey = WeatherApiKeyManager.hasApiKey() && 
+                          WeatherApiKeyManager.getApiKey() !== 'YOUR_API_KEY_HERE' && 
+                          (WeatherApiKeyManager.getApiKey()?.length || 0) > 10;
+    
+    // SIMPLE CHECK 2: Is date within 0-5 days from today?
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDate = new Date(segmentDate);
@@ -33,17 +41,19 @@ export class WeatherDataValidator {
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // FIXED: Live forecast if API key exists AND within 5-day range
-    const isLiveForecast = isValidApiKey && isWithinForecastRange;
+    // SIMPLE CHECK 3: Does weather data indicate it's live?
+    const hasLiveIndicators = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🔧 FIXED: WeatherDataValidator logic:', {
-      cityName,
-      segmentDate: segmentDate.toISOString(),
-      daysFromToday,
-      isValidApiKey,
+    // SIMPLE DECISION: Live forecast = ALL THREE conditions must be true
+    const isLiveForecast = hasValidApiKey && isWithinForecastRange && hasLiveIndicators;
+    
+    console.log('✅ SIMPLE: Final decision for', cityName, ':', {
+      hasValidApiKey,
       isWithinForecastRange,
+      hasLiveIndicators,
+      daysFromToday,
       isLiveForecast,
-      expectedStyling: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
+      expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
     });
     
     // Validate basic weather data
@@ -55,11 +65,7 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather description');
     }
     
-    if (!weather.icon) {
-      validationErrors.push('Missing weather icon');
-    }
-    
-    // FIXED: Force correct source assignment based on validation
+    // Create normalized weather with corrected source
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
@@ -67,22 +73,7 @@ export class WeatherDataValidator {
       cityName: weather.cityName || cityName
     };
     
-    // Determine confidence level
-    let confidence: 'high' | 'medium' | 'low' = 'high';
-    if (validationErrors.length > 0) {
-      confidence = 'low';
-    } else if (!isLiveForecast && isWithinForecastRange) {
-      confidence = 'medium';
-    }
-    
-    console.log('✅ FIXED: WeatherDataValidator final result:', {
-      cityName,
-      daysFromToday,
-      isLiveForecast,
-      normalizedSource: normalizedWeather.source,
-      confidence,
-      displayStyle: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
-    });
+    const confidence: 'high' | 'medium' | 'low' = validationErrors.length > 0 ? 'low' : (isLiveForecast ? 'high' : 'medium');
     
     return {
       isLiveForecast,
@@ -92,9 +83,6 @@ export class WeatherDataValidator {
     };
   }
   
-  /**
-   * Helper method to check if weather should display as live
-   */
   static shouldDisplayAsLive(weather: ForecastWeatherData, segmentDate: Date): boolean {
     const result = this.validateWeatherData(weather, weather.cityName, segmentDate);
     return result.isLiveForecast;
