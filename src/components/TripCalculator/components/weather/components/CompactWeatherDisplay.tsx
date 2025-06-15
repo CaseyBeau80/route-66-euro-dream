@@ -5,6 +5,7 @@ import { WeatherUtilityService } from '../services/WeatherUtilityService';
 import { useUnifiedWeather } from '../hooks/useUnifiedWeather';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
+import { DriveTimeCalculator } from '../../utils/DriveTimeCalculator';
 import { format } from 'date-fns';
 
 interface CompactWeatherDisplayProps {
@@ -69,58 +70,44 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     cachedWeather: null
   });
 
-  // CRITICAL FIX: Proper weather detection using EXACT same logic as LiveWeatherDetectionService
+  // CRITICAL FIX: Proper live weather detection - check BOTH conditions explicitly
   const isLiveForecast = React.useMemo(() => {
-    if (!weather) return false;
+    if (!weather) {
+      console.log('❌ COMPACT: No weather data for', segment.endCity);
+      return false;
+    }
     
-    console.log('🔥 COMPACT WEATHER: Weather detection for', segment.endCity, {
-      weatherSource: weather.source,
+    console.log('🔍 COMPACT: Weather analysis for', segment.endCity, {
+      source: weather.source,
       isActualForecast: weather.isActualForecast,
-      bothConditions: weather.source === 'live_forecast' && weather.isActualForecast === true
+      temperature: weather.temperature,
+      description: weather.description
     });
     
-    // Both conditions must be true for live forecast
-    const result = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    // BOTH conditions MUST be true for live forecast
+    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🔥 COMPACT WEATHER: Final detection result for', segment.endCity, {
-      isLiveForecast: result,
-      expectedColor: result ? 'GREEN' : 'YELLOW'
+    console.log('🎯 COMPACT: Live detection result for', segment.endCity, {
+      isLive,
+      expectedBackground: isLive ? 'GREEN (bg-green-100)' : 'YELLOW (bg-yellow-100)',
+      sourceCheck: weather.source === 'live_forecast',
+      actualForecastCheck: weather.isActualForecast === true
     });
     
-    return result;
+    return isLive;
   }, [weather, segment.endCity]);
 
-  // CRITICAL FIX: Drive time calculation using actual segment data
+  // CRITICAL FIX: Use DriveTimeCalculator consistently
   const displayDriveTime = React.useMemo(() => {
-    console.log('🚗 COMPACT WEATHER: Drive time calculation for', segment.endCity, {
+    const result = DriveTimeCalculator.formatDriveTime(segment);
+    console.log('🚗 COMPACT: Drive time for', segment.endCity, {
       driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance
+      distance: segment.distance,
+      formatted: result,
+      usingDriveTimeCalculator: true
     });
-    
-    // Priority 1: Use driveTimeHours if available
-    if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
-      const hours = Math.floor(segment.driveTimeHours);
-      const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      const formatted = `${hours}h ${minutes}m`;
-      
-      console.log('✅ COMPACT WEATHER: Using driveTimeHours:', { hours, minutes, total: segment.driveTimeHours, formatted });
-      return formatted;
-    }
-    
-    // Priority 2: Calculate from distance
-    if (typeof segment.distance === 'number' && segment.distance > 0) {
-      const driveTimeHours = segment.distance / 55;
-      const hours = Math.floor(driveTimeHours);
-      const minutes = Math.round((driveTimeHours - hours) * 60);
-      const formatted = `${hours}h ${minutes}m`;
-      
-      console.log('⚠️ COMPACT WEATHER: Using distance calculation:', { distance: segment.distance, hours, minutes, formatted });
-      return formatted;
-    }
-    
-    console.log('❌ COMPACT WEATHER: Using fallback drive time');
-    return '3h 30m';
-  }, [segment.driveTimeHours, segment.distance, segment.endCity]);
+    return result;
+  }, [segment]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -133,13 +120,11 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
-  console.log('🚀 COMPACT WEATHER: Final render state for', segment.endCity, {
+  console.log('🔄 COMPACT: Final render state for', segment.endCity, {
     hasWeather: !!weather,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
     isLiveForecast,
     displayDriveTime,
-    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+    expectedContainerColor: isLiveForecast ? 'GREEN' : 'YELLOW'
   });
 
   // Loading state
@@ -163,7 +148,7 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // CRITICAL FIX: Proper styling based on live forecast detection
+    // CRITICAL FIX: Apply correct styling based on live detection
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -175,11 +160,11 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 COMPACT WEATHER: Styling applied for', segment.endCity, {
+    console.log('🎨 COMPACT: Applied styling for', segment.endCity, {
       isLiveForecast,
       containerClasses,
       sourceLabel,
-      expectedBackground: isLiveForecast ? 'GREEN' : 'YELLOW'
+      actualBackgroundColor: isLiveForecast ? 'GREEN' : 'YELLOW'
     });
 
     return (

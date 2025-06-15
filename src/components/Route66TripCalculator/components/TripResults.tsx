@@ -32,7 +32,7 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  console.log('🔧 REFACTORED: TripResults now using DriveTimeCalculator and CompactWeatherDisplay');
+  console.log('🔧 FIXED: TripResults using DriveTimeCalculator and CompactWeatherDisplay consistently');
 
   return (
     <div className="space-y-6 p-6">
@@ -83,7 +83,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Weather Display using refactored component */}
+            {/* Weather Display using fixed component */}
             {tripStartDate && (
               <CompactWeatherDisplay
                 segment={segment}
