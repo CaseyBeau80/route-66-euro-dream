@@ -32,24 +32,21 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   // Get enhanced recommended stops
   const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  // Debug logging to see what we're getting
-  console.log('🔍 [DEBUG] DaySegmentCardContent data check:', {
+  console.log('🔍 [DISPLAY-DEBUG] DaySegmentCardContent render state:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
-    enhancedSystem: {
-      isLoading,
-      hasError: !!error,
-      hasStops,
-      stopsCount: recommendedStops.length,
-      stopsData: recommendedStops.map(stop => ({
-        id: stop.id,
-        name: stop.name,
-        hasDescription: !!stop.originalStop.description,
-        hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-        category: stop.category,
-        city: stop.originalStop.city_name
-      }))
-    }
+    isLoading,
+    hasError: !!error,
+    hasStops,
+    stopsCount: recommendedStops.length,
+    willShowRecommended: hasStops && !isLoading && !error,
+    willShowFallback: !hasStops && !isLoading && !error,
+    stopsPreview: recommendedStops.slice(0, 2).map(stop => ({
+      name: stop.name,
+      city: stop.city,
+      category: stop.category,
+      score: stop.relevanceScore
+    }))
   });
 
   return (
@@ -93,31 +90,36 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* SUCCESS: Always show enhanced stops if we have them */}
+        {/* SUCCESS: Show enhanced stops */}
         {!isLoading && !error && hasStops && (
-          <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-              <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
-                ✨ Route 66 Attractions ({recommendedStops.length})
-              </div>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+            <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
+              ✨ Route 66 Attractions ({recommendedStops.length})
+            </div>
+            <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
                 maxDisplay={3}
                 showLocation={true}
                 compact={false}
               />
-            </div>
-          </ErrorBoundary>
+            </ErrorBoundary>
+          </div>
         )}
 
-        {/* FALLBACK: Only show legacy system if enhanced system has no data */}
+        {/* FALLBACK: Show legacy system only if enhanced system has no data */}
         {!isLoading && !error && !hasStops && (
-          <ErrorBoundary context={`FallbackAttractions-Day${segment.day}`}>
-            <SegmentNearbyAttractions 
-              segment={segment} 
-              maxAttractions={AttractionLimitingService.getMaxAttractions()}
-            />
-          </ErrorBoundary>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
+            <div className="mb-3 text-sm text-gray-600 font-medium">
+              🏛️ Nearby Attractions (Legacy System)
+            </div>
+            <ErrorBoundary context={`FallbackAttractions-Day${segment.day}`}>
+              <SegmentNearbyAttractions 
+                segment={segment} 
+                maxAttractions={AttractionLimitingService.getMaxAttractions()}
+              />
+            </ErrorBoundary>
+          </div>
         )}
       </div>
     </div>

@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { MapPin, Star, Camera, Clock, ExternalLink } from 'lucide-react';
-import { RecommendedStop } from '../services/recommendations/RecommendedStopTypes';
+import { RecommendedStop } from '../services/recommendations/StopRecommendationService';
 import { StopDisplayFormatter } from '../services/recommendations/StopDisplayFormatter';
 
 interface RecommendedStopsDisplayProps {
@@ -17,122 +16,133 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  const displayStops = stops.slice(0, maxDisplay);
-
-  console.log('🎯 [ENHANCED] RecommendedStopsDisplay rendering:', {
-    totalStops: stops.length,
-    displayStops: displayStops.length,
-    stopsWithRichData: displayStops.filter(s => s.originalStop.description || s.originalStop.image_url).length
+  console.log('🎯 [DISPLAY] RecommendedStopsDisplay rendering:', {
+    stopsCount: stops.length,
+    maxDisplay,
+    showLocation,
+    compact,
+    stopsData: stops.map(s => ({
+      name: s.name,
+      city: s.city,
+      category: s.category,
+      score: s.relevanceScore,
+      hasDescription: !!s.originalStop.description,
+      hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url)
+    }))
   });
 
-  if (displayStops.length === 0) {
+  if (!stops || stops.length === 0) {
+    console.log('❌ [DISPLAY] No stops to display');
     return (
-      <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-500">No Route 66 attractions found for this segment</p>
+      <div className="text-center p-3 text-gray-500 text-sm">
+        No recommended stops found for this segment.
       </div>
     );
   }
 
+  const displayStops = stops.slice(0, maxDisplay);
+
   return (
-    <div className="space-y-4">
-      <div className={`space-y-${compact ? '2' : '3'}`}>
-        {displayStops.map((stop, index) => {
-          const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
-          const hasImage = !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url);
-          const hasDescription = !!stop.originalStop.description;
-          const hasWebsite = !!stop.originalStop.website;
-          
-          return (
-            <div
-              key={`recommended-${stop.id}-${index}`}
-              className={`bg-white rounded-lg border border-blue-200 p-${compact ? '3' : '4'} hover:shadow-lg transition-all duration-200 hover:border-blue-300`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="text-2xl flex-shrink-0 mt-1">
-                  {formatted.icon}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-semibold text-gray-800 text-base leading-tight">
-                        {formatted.name}
-                      </h5>
-                      
-                      {showLocation && (
-                        <p className="text-sm text-blue-600 mt-1 flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {formatted.location}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-                      <Star className="h-3 w-3 fill-current" />
-                      <span>{stop.relevanceScore.toFixed(1)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                      {formatted.category}
-                    </span>
-                    
-                    {stop.originalStop.featured && (
-                      <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current" />
-                        Featured
-                      </span>
-                    )}
+    <div className="space-y-3">
+      {displayStops.map((stop, index) => {
+        const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
+        
+        console.log(`🎯 [DISPLAY] Rendering stop ${index + 1}:`, {
+          name: formatted.name,
+          location: formatted.location,
+          category: formatted.category,
+          icon: formatted.icon,
+          hasDescription: !!stop.originalStop.description,
+          hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url)
+        });
 
-                    {hasImage && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center gap-1">
-                        <Camera className="h-3 w-3" />
-                        Photos
-                      </span>
-                    )}
-
-                    {hasWebsite && (
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium flex items-center gap-1">
-                        <ExternalLink className="h-3 w-3" />
-                        Website
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Rich description content */}
-                  {hasDescription && !compact && (
-                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {stop.originalStop.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Enhanced metadata */}
-                  {!compact && (
-                    <div className="mt-3 pt-2 border-t border-gray-100">
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {stop.type} • {stop.category}
-                        </span>
-                        <span>Relevance: {Math.round(stop.relevanceScore)}%</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+        return (
+          <div 
+            key={`${stop.id}-${index}`} 
+            className={`flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-200 hover:border-blue-300 transition-colors ${
+              compact ? 'p-2' : 'p-3'
+            }`}
+          >
+            {/* Icon */}
+            <div className="text-blue-600 mt-0.5 text-lg">
+              {formatted.icon}
             </div>
-          );
-        })}
-      </div>
-      
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              {/* Name */}
+              <div className="font-medium text-gray-800 truncate">
+                {formatted.name}
+              </div>
+
+              {/* Location */}
+              {showLocation && (
+                <div className="text-gray-600 text-sm mt-1">
+                  📍 {formatted.location}
+                </div>
+              )}
+
+              {/* Description */}
+              {stop.originalStop.description && (
+                <div className="text-gray-600 text-sm mt-2 line-clamp-2">
+                  {stop.originalStop.description}
+                </div>
+              )}
+
+              {/* Meta Information */}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                  {formatted.category}
+                </span>
+                
+                {stop.originalStop.featured && (
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                    ⭐ Featured
+                  </span>
+                )}
+                
+                <span className="text-xs text-gray-500">
+                  Score: {stop.relevanceScore}
+                </span>
+              </div>
+
+              {/* Website Link */}
+              {stop.originalStop.website && (
+                <div className="mt-2">
+                  <a 
+                    href={stop.originalStop.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-xs underline"
+                  >
+                    Visit Website →
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Image */}
+            {(stop.originalStop.image_url || stop.originalStop.thumbnail_url) && (
+              <div className="w-16 h-16 flex-shrink-0">
+                <img
+                  src={stop.originalStop.image_url || stop.originalStop.thumbnail_url}
+                  alt={stop.name}
+                  className="w-full h-full object-cover rounded border"
+                  onError={(e) => {
+                    console.log(`🖼️ [DISPLAY] Image failed to load for ${stop.name}`);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Show count if there are more stops */}
       {stops.length > maxDisplay && (
-        <div className="text-center mt-3">
-          <p className="text-xs text-blue-600 bg-blue-50 rounded-full px-3 py-1 inline-block">
-            + {stops.length - maxDisplay} more Route 66 attractions available
-          </p>
+        <div className="text-center text-sm text-gray-500 py-2">
+          Showing {maxDisplay} of {stops.length} recommended stops
         </div>
       )}
     </div>
