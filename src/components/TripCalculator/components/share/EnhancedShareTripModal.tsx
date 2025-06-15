@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { CostEstimate } from '../../types/costEstimator';
 import { WeatherPreCacheService, WeatherCacheResult } from '../../services/WeatherPreCacheService';
 import { TripService } from '../../services/TripService';
 import { toast } from '@/hooks/use-toast';
@@ -14,6 +15,7 @@ interface EnhancedShareTripModalProps {
   onClose: () => void;
   tripPlan: TripPlan;
   tripStartDate?: Date;
+  costEstimate?: CostEstimate | null;
   onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
 }
 
@@ -22,6 +24,7 @@ const EnhancedShareTripModal: React.FC<EnhancedShareTripModalProps> = ({
   onClose,
   tripPlan,
   tripStartDate,
+  costEstimate,
   onShareUrlGenerated
 }) => {
   const [isPreCaching, setIsPreCaching] = useState(false);

@@ -7,7 +7,7 @@ import { CostEstimate } from '../types/costEstimator';
 interface TripStatsGridProps {
   tripPlan: TripPlan;
   formatTime: (hours: number) => string;
-  costEstimate: CostEstimate | null;
+  costEstimate?: CostEstimate | null;
 }
 
 const TripStatsGrid: React.FC<TripStatsGridProps> = ({
