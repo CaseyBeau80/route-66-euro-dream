@@ -1,4 +1,5 @@
 
+
 export class WeatherUtilityService {
   /**
    * Calculate segment date from trip start date and day number
@@ -57,9 +58,9 @@ export class WeatherUtilityService {
     } else {
       return {
         badgeText: `📊 Historical weather patterns`,
-        badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
+        badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-200',
         sourceLabel: '🟡 Historical Data',
-        containerClass: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200'
+        containerClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200'
       };
     }
   }

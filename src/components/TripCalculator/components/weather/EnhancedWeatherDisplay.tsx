@@ -43,10 +43,10 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
     finalIsLiveForecast: isLiveForecast,
     temperature: validatedWeather.temperature,
     criticalFix: true,
-    shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER'
+    shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_YELLOW'
   });
 
-  // CRITICAL FIX: Force green styling when validation confirms live weather
+  // CRITICAL FIX: Force green styling when validation confirms live weather, YELLOW for historical
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
       console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', cityName);
@@ -62,16 +62,16 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         isLive: true
       };
     } else {
-      console.log('🟡 CRITICAL FIX: Using AMBER styling for historical weather:', cityName);
+      console.log('🟡 CRITICAL FIX: Using YELLOW styling for historical weather:', cityName);
       return {
         sourceLabel: '🟡 Historical Weather Data',
-        sourceColor: '#d97706', // Amber-600
+        sourceColor: '#ca8a04', // Yellow-600
         badgeText: '📊 Based on historical patterns',
-        badgeClasses: 'bg-amber-100 text-amber-700 border-amber-200',
-        containerClasses: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200',
-        backgroundColor: '#fef3c7', // Amber-100
-        borderColor: '#fde68a', // Amber-200
-        textColor: '#92400e', // Amber-800
+        badgeClasses: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        containerClasses: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
+        backgroundColor: '#fef3c7', // Yellow-100
+        borderColor: '#fde047', // Yellow-200
+        textColor: '#a16207', // Yellow-800
         isLive: false
       };
     }
@@ -116,7 +116,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
           <div>Valid ActualForecast: {String(validatedWeather.isActualForecast)}</div>
           <div>Validation isLive: {String(validation.isLiveForecast)}</div>
           <div className={isLiveForecast ? 'text-green-400' : 'text-yellow-400'}>
-            Final Styling: {isLiveForecast ? 'GREEN FORCED' : 'AMBER'}
+            Final Styling: {isLiveForecast ? 'GREEN FORCED' : 'YELLOW'}
           </div>
           <div>Temp: {validatedWeather.temperature}°F</div>
         </div>
