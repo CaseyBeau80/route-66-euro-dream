@@ -2,6 +2,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 
+// Export TripStop for other services to use
+export { TripStop } from '../../types/TripStop';
+
 export class SupabaseDataService {
   /**
    * Fetch all stops from Supabase (attractions, hidden gems, destination cities)

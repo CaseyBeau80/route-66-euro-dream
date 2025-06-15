@@ -1,5 +1,6 @@
 
-import { SupabaseDataService, TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
+import { SupabaseDataService } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { AttractionSearchResult, AttractionSearchStatus } from './AttractionSearchResult';
 import { FallbackCoordinatesService } from './FallbackCoordinatesService';
