@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * CORRECTED: Determine if weather should be displayed as live forecast
+   * FIXED: Proper logic to determine if weather should be displayed as live forecast
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -33,18 +33,17 @@ export class WeatherDataValidator {
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // CORRECTED LOGIC: Live forecast ONLY if API key exists AND within 5-day range
+    // FIXED: Live forecast if API key exists AND within 5-day range
     const isLiveForecast = isValidApiKey && isWithinForecastRange;
     
-    console.log('🔧 CORRECTED: WeatherDataValidator logic:', {
+    console.log('🔧 FIXED: WeatherDataValidator logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       daysFromToday,
       isValidApiKey,
       isWithinForecastRange,
       isLiveForecast,
-      shouldShowGreen: isLiveForecast,
-      shouldShowYellow: !isLiveForecast
+      expectedStyling: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
     });
     
     // Validate basic weather data
@@ -60,7 +59,7 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather icon');
     }
     
-    // CORRECTED: Force correct source assignment based on validation
+    // FIXED: Force correct source assignment based on validation
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
@@ -76,7 +75,7 @@ export class WeatherDataValidator {
       confidence = 'medium';
     }
     
-    console.log('✅ CORRECTED: WeatherDataValidator final result:', {
+    console.log('✅ FIXED: WeatherDataValidator final result:', {
       cityName,
       daysFromToday,
       isLiveForecast,

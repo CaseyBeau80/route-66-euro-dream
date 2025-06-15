@@ -49,9 +49,9 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // CORRECTED: Use actual segment drive time data with proper fallbacks
+  // FIXED: Use actual segment drive time data with proper fallbacks
   const formatDriveTime = (segment: any): string => {
-    console.log('🚗 CORRECTED: Formatting drive time for segment:', {
+    console.log('🚗 FIXED: Formatting drive time for segment:', {
       day: segment.day,
       driveTimeHours: segment.driveTimeHours,
       drivingTime: segment.drivingTime,
@@ -64,7 +64,7 @@ const TripResults: React.FC<TripResultsProps> = ({
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ CORRECTED: Using driveTimeHours:', formatted);
+      console.log('✅ FIXED: Using driveTimeHours:', formatted);
       return formatted;
     }
     
@@ -73,7 +73,7 @@ const TripResults: React.FC<TripResultsProps> = ({
       const hours = Math.floor(segment.drivingTime);
       const minutes = Math.round((segment.drivingTime - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ CORRECTED: Using drivingTime (number):', formatted);
+      console.log('✅ FIXED: Using drivingTime (number):', formatted);
       return formatted;
     }
     
@@ -83,11 +83,11 @@ const TripResults: React.FC<TripResultsProps> = ({
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('⚠️ CORRECTED: Calculated from distance:', formatted);
+      console.log('⚠️ FIXED: Calculated from distance:', formatted);
       return formatted;
     }
     
-    console.log('❌ CORRECTED: No valid data, using fallback');
+    console.log('❌ FIXED: No valid data, using fallback');
     return '4h 0m';
   };
 
