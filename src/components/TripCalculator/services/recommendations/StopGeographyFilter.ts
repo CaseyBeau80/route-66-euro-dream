@@ -4,8 +4,8 @@ import { DailySegment } from '../planning/TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export class StopGeographyFilter {
-  private static readonly MAX_DISTANCE_MILES = 100; // Increased from 50 to 100 miles
-  private static readonly FALLBACK_DISTANCE_MILES = 200; // For fallback searches
+  private static readonly MAX_DISTANCE_MILES = 150; // Increased from 100 to 150 miles
+  private static readonly FALLBACK_DISTANCE_MILES = 300; // Increased fallback range
 
   /**
    * Filter stops by route geography with enhanced fallback logic
@@ -30,21 +30,28 @@ export class StopGeographyFilter {
       return exactCityMatches;
     }
 
-    // STEP 2: Try state-based filtering
+    // STEP 2: Try partial city name matching
+    const partialCityMatches = this.findPartialCityMatches(allStops, destinationCity, destinationState);
+    if (partialCityMatches.length > 0) {
+      console.log(`✅ [GEOGRAPHY-FILTER] Found ${partialCityMatches.length} partial city matches`);
+      return partialCityMatches;
+    }
+
+    // STEP 3: Try state-based filtering with broader criteria
     const stateMatches = this.findStateMatches(allStops, destinationState);
     if (stateMatches.length > 0) {
       console.log(`✅ [GEOGRAPHY-FILTER] Found ${stateMatches.length} state matches`);
-      return stateMatches.slice(0, 10); // Limit to prevent too many results
+      return stateMatches.slice(0, 15); // Increased limit
     }
 
-    // STEP 3: Try city name similarity matching
-    const similarCityMatches = this.findSimilarCityMatches(allStops, destinationCity);
-    if (similarCityMatches.length > 0) {
-      console.log(`✅ [GEOGRAPHY-FILTER] Found ${similarCityMatches.length} similar city matches`);
-      return similarCityMatches;
+    // STEP 4: Try regional matching (neighboring states)
+    const regionalMatches = this.findRegionalMatches(allStops, destinationState);
+    if (regionalMatches.length > 0) {
+      console.log(`✅ [GEOGRAPHY-FILTER] Found ${regionalMatches.length} regional matches`);
+      return regionalMatches.slice(0, 10);
     }
 
-    // STEP 4: Fallback to any attractions/hidden gems (geography-agnostic)
+    // STEP 5: Fallback to high-quality attractions regardless of location
     const fallbackStops = this.getFallbackStops(allStops);
     console.log(`🔄 [GEOGRAPHY-FILTER] Using fallback: ${fallbackStops.length} stops`);
     
@@ -74,10 +81,34 @@ export class StopGeographyFilter {
       const stopCity = (stop.city_name || stop.city || '').toLowerCase();
       const stopState = (stop.state || '').toLowerCase();
       
-      const cityMatch = stopCity.includes(city.toLowerCase()) || city.toLowerCase().includes(stopCity);
+      const cityMatch = stopCity === city.toLowerCase() || 
+                       stopCity.includes(city.toLowerCase()) || 
+                       city.toLowerCase().includes(stopCity);
       const stateMatch = state ? stopState === state.toLowerCase() : true;
       
       return cityMatch && stateMatch;
+    });
+  }
+
+  /**
+   * Find stops with partial city name matches
+   */
+  private static findPartialCityMatches(allStops: TripStop[], city: string, state: string): TripStop[] {
+    const cityLower = city.toLowerCase();
+    
+    return allStops.filter(stop => {
+      const stopCity = (stop.city_name || stop.city || '').toLowerCase();
+      const stopState = (stop.state || '').toLowerCase();
+      
+      // Check for partial matches (at least 3 characters)
+      const hasPartialMatch = cityLower.length >= 3 && stopCity.length >= 3 && (
+        stopCity.includes(cityLower.substring(0, Math.min(cityLower.length, 5))) || 
+        cityLower.includes(stopCity.substring(0, Math.min(stopCity.length, 5)))
+      );
+      
+      const stateMatch = state ? stopState === state.toLowerCase() : true;
+      
+      return hasPartialMatch && stateMatch;
     });
   }
 
@@ -94,17 +125,29 @@ export class StopGeographyFilter {
   }
 
   /**
-   * Find stops with similar city names
+   * Find stops in neighboring states or regions
    */
-  private static findSimilarCityMatches(allStops: TripStop[], city: string): TripStop[] {
-    const cityLower = city.toLowerCase();
-    
+  private static findRegionalMatches(allStops: TripStop[], state: string): TripStop[] {
+    if (!state) return [];
+
+    // Route 66 state groupings
+    const route66Regions: Record<string, string[]> = {
+      'illinois': ['missouri', 'indiana'],
+      'missouri': ['illinois', 'kansas', 'oklahoma'],
+      'kansas': ['missouri', 'oklahoma'],
+      'oklahoma': ['kansas', 'texas', 'missouri'],
+      'texas': ['oklahoma', 'new mexico'],
+      'new mexico': ['texas', 'arizona'],
+      'arizona': ['new mexico', 'california'],
+      'california': ['arizona']
+    };
+
+    const stateLower = state.toLowerCase();
+    const neighboringStates = route66Regions[stateLower] || [];
+
     return allStops.filter(stop => {
-      const stopCity = (stop.city_name || stop.city || '').toLowerCase();
-      
-      // Check for partial matches
-      return stopCity.includes(cityLower.substring(0, 3)) || 
-             cityLower.includes(stopCity.substring(0, 3));
+      const stopState = (stop.state || '').toLowerCase();
+      return neighboringStates.includes(stopState);
     });
   }
 
@@ -112,21 +155,26 @@ export class StopGeographyFilter {
    * Get fallback stops when geographic filtering fails
    */
   private static getFallbackStops(allStops: TripStop[]): TripStop[] {
-    // Prioritize attractions and hidden gems as fallbacks
-    const fallbackStops = allStops.filter(stop => 
-      stop.category === 'attraction' || 
-      stop.category === 'hidden_gem' ||
-      stop.category === 'destination_city' ||
-      stop.category === 'diner'
-    );
-
-    console.log(`🔄 [GEOGRAPHY-FILTER] Fallback categories found:`, {
-      attractions: fallbackStops.filter(s => s.category === 'attraction').length,
-      hiddenGems: fallbackStops.filter(s => s.category === 'hidden_gem').length,
-      destinationCities: fallbackStops.filter(s => s.category === 'destination_city').length,
-      diners: fallbackStops.filter(s => s.category === 'diner').length
+    // Prioritize high-quality stops regardless of location
+    const fallbackStops = allStops.filter(stop => {
+      // Prefer featured stops, major destinations, and popular categories
+      return stop.featured || 
+             stop.is_major_stop || 
+             stop.is_official_destination ||
+             stop.category === 'attraction' || 
+             stop.category === 'hidden_gem' ||
+             stop.category === 'destination_city';
     });
 
-    return fallbackStops.slice(0, 8); // Limit fallback results
+    console.log(`🔄 [GEOGRAPHY-FILTER] Fallback categories found:`, {
+      featured: fallbackStops.filter(s => s.featured).length,
+      majorStops: fallbackStops.filter(s => s.is_major_stop).length,
+      officialDestinations: fallbackStops.filter(s => s.is_official_destination).length,
+      attractions: fallbackStops.filter(s => s.category === 'attraction').length,
+      hiddenGems: fallbackStops.filter(s => s.category === 'hidden_gem').length,
+      destinationCities: fallbackStops.filter(s => s.category === 'destination_city').length
+    });
+
+    return fallbackStops.slice(0, 12); // Increased fallback limit
   }
 }

@@ -1,31 +1,22 @@
 
 import { RecommendedStop } from './RecommendedStopTypes';
-import { StopFormattingResult } from './RecommendedStopTypes';
 
 export class StopDisplayFormatter {
   /**
-   * Format stop for display with proper icons and descriptions
+   * Format a recommended stop for display with consistent UI elements
    */
-  static formatStopForDisplay(stop: RecommendedStop): StopFormattingResult {
-    const icon = this.getCategoryIcon(stop.category);
-    const category = this.getCategoryDisplayName(stop.category);
-    const location = `${stop.city}, ${stop.state}`;
-    
-    // Ensure we display the actual stop name, not city name
-    const name = stop.name && stop.name !== stop.city ? stop.name : `${stop.category} in ${stop.city}`;
-    
-    console.log(`🎨 [FIXED] Formatting stop for display:`, {
-      originalName: stop.name,
-      originalCity: stop.city,
-      formattedName: name,
-      category: stop.category,
-      displayCategory: category,
-      icon,
-      location
-    });
-    
+  static formatStopForDisplay(stop: RecommendedStop): {
+    name: string;
+    location: string;
+    category: string;
+    icon: string;
+  } {
+    const icon = this.getStopIcon(stop.category);
+    const location = this.formatLocation(stop.city, stop.state);
+    const category = this.formatCategory(stop.category);
+
     return {
-      name,
+      name: stop.name,
       location,
       category,
       icon
@@ -33,62 +24,47 @@ export class StopDisplayFormatter {
   }
 
   /**
-   * Get icon for category
+   * Get appropriate icon for stop category
    */
-  private static getCategoryIcon(category: string): string {
-    switch (category) {
-      case 'attraction':
-        return '🎯';
-      case 'hidden_gem':
-        return '💎';
-      case 'drive_in':
-        return '🎬';
-      case 'waypoint':
-      case 'route66_waypoint':
-        return '📍';
-      case 'museum':
-        return '🏛️';
-      case 'diner':
-      case 'restaurant':
-        return '🍽️';
-      case 'gas_station':
-        return '⛽';
-      case 'motel':
-      case 'hotel':
-        return '🏨';
-      default:
-        return '📍';
-    }
+  private static getStopIcon(category: string): string {
+    const iconMap: Record<string, string> = {
+      'destination_city': '🏛️',
+      'attraction': '🎯',
+      'hidden_gem': '💎',
+      'diner': '🍽️',
+      'motel': '🏨',
+      'route66_waypoint': '🛣️',
+      'drive_in': '🎬'
+    };
+
+    return iconMap[category] || '📍';
   }
 
   /**
-   * Get display name for category
+   * Format location string
    */
-  private static getCategoryDisplayName(category: string): string {
-    switch (category) {
-      case 'attraction':
-        return 'Attraction';
-      case 'hidden_gem':
-        return 'Hidden Gem';
-      case 'drive_in':
-        return 'Drive-In Theater';
-      case 'waypoint':
-      case 'route66_waypoint':
-        return 'Route 66 Waypoint';
-      case 'museum':
-        return 'Museum';
-      case 'diner':
-        return 'Classic Diner';
-      case 'restaurant':
-        return 'Restaurant';
-      case 'gas_station':
-        return 'Gas Station';
-      case 'motel':
-        return 'Motel';
-      case 'hotel':
-        return 'Hotel';
-      default:
-        return 'Point of Interest';
-    }
+  private static formatLocation(city: string, state: string): string {
+    if (!city && !state) return 'Unknown Location';
+    if (!state) return city;
+    if (!city) return state;
+    
+    return `${city}, ${state}`;
+  }
+
+  /**
+   * Format category for display
+   */
+  private static formatCategory(category: string): string {
+    const categoryMap: Record<string, string> = {
+      'destination_city': 'Major Destination',
+      'attraction': 'Tourist Attraction',
+      'hidden_gem': 'Hidden Gem',
+      'diner': 'Classic Diner',
+      'motel': 'Historic Motel',
+      'route66_waypoint': 'Route 66 Landmark',
+      'drive_in': 'Drive-In Theater'
+    };
+
+    return categoryMap[category] || 'Point of Interest';
   }
 }

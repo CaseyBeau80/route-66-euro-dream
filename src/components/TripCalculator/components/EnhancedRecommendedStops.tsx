@@ -20,20 +20,19 @@ interface EnhancedRecommendedStopsProps {
 
 const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({ 
   segment, 
-  maxStops = 3 // CRITICAL: Default limit enforced to 3
+  maxStops = 3 
 }) => {
-  // CRITICAL: Enforce safe maxStops limit with fallback
   const safeMaxStops = maxStops ?? 3;
   
   const stableSegment = useStableSegment(segment);
   const { validStops, userRelevantStops, isValid } = useOptimizedValidation(stableSegment);
   
-  // Use the new recommended stops hook
-  const { recommendedStops, isLoading: isLoadingRecommended, hasStops: hasRecommendedStops } = useRecommendedStops(stableSegment, safeMaxStops);
+  // Use the enhanced recommended stops hook
+  const { recommendedStops, isLoading: isLoadingRecommended, hasStops: hasRecommendedStops, error } = useRecommendedStops(stableSegment, safeMaxStops);
   
   const [enhancedStops, setEnhancedStops] = useState<TripStop[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [enhancedError, setEnhancedError] = useState<string | null>(null);
   
   const segmentDay = stableSegment?.day || 0;
   const startCity = stableSegment?.startCity || '';
@@ -48,7 +47,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     if (!shouldTriggerEnhanced) return;
     
     setIsLoading(true);
-    setError(null);
+    setEnhancedError(null);
     
     try {
       const enhanced = await StopEnhancementService.enhanceStopsForSegment(
@@ -57,7 +56,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
       setEnhancedStops(enhanced);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setError(`Failed to load enhanced stops: ${errorMessage}`);
+      setEnhancedError(`Failed to load enhanced stops: ${errorMessage}`);
       console.error('❌ Enhanced selection failed:', error);
     } finally {
       setIsLoading(false);
@@ -71,18 +70,11 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   // Prioritize recommended stops over legacy system
   const finalStops = useMemo(() => {
     if (hasRecommendedStops) {
-      // Convert recommended stops to TripStop format for compatibility
+      // Convert recommended stops to TripStop format for compatibility with legacy components
       return recommendedStops.map(stop => ({
-        id: stop.id,
-        name: stop.name,
-        description: `${stop.category} in ${stop.city}, ${stop.state}`,
-        latitude: 0, // Would need actual coordinates
-        longitude: 0,
-        city_name: stop.city,
-        city: stop.city,
-        state: stop.state,
-        category: stop.category
-      } as TripStop));
+        ...stop.originalStop,
+        relevanceScore: stop.relevanceScore // Add score for debugging
+      } as TripStop & { relevanceScore: number }));
     }
     
     return StopsCombiner.combineStops(userRelevantStops, enhancedStops, safeMaxStops);
@@ -98,7 +90,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     safeMaxStops,
     finalStops: finalStops.length,
     isLoading: isLoading || isLoadingRecommended,
-    error,
+    error: error || enhancedError,
     stopNames: finalStops.map(s => s.name)
   });
 
@@ -112,7 +104,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     );
   }
 
-  // If we have recommended stops, use the new display component
+  // PRIORITY: Use the new RecommendedStopsDisplay for enhanced stops
   if (hasRecommendedStops) {
     return (
       <ErrorBoundary context="RecommendedStopsDisplay">
@@ -126,7 +118,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     );
   }
 
-  // Fallback to legacy system
+  // Fallback to legacy system with enhanced error handling
   return (
     <ErrorBoundary context="EnhancedRecommendedStops">
       <div>
@@ -134,12 +126,12 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
           <MapPin className="h-4 w-4" />
           Recommended Stops ({finalStops.length})
           {(isLoading || isLoadingRecommended) && <span className="text-xs text-gray-500">(searching...)</span>}
-          {error && <span className="text-xs text-red-500">(error)</span>}
+          {(error || enhancedError) && <span className="text-xs text-red-500">(error)</span>}
         </h4>
         
-        {error && (
+        {(error || enhancedError) && (
           <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
-            {error}
+            {error || enhancedError}
           </div>
         )}
         

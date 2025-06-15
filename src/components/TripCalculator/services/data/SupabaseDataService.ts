@@ -4,10 +4,10 @@ import { TripStop } from '../../types/TripStop';
 
 export class SupabaseDataService {
   /**
-   * Fetch all stops from multiple tables with comprehensive debugging
+   * Fetch all stops from multiple tables with enhanced data mapping
    */
   static async fetchAllStops(): Promise<TripStop[]> {
-    console.log('🚨 [CRITICAL-DATA] Starting comprehensive stops fetch from all tables...');
+    console.log('🚨 [ENHANCED-DATA] Starting enhanced stops fetch from all tables...');
     
     try {
       // Fetch from all relevant tables
@@ -19,7 +19,7 @@ export class SupabaseDataService {
         supabase.from('route66_waypoints').select('*')
       ]);
 
-      console.log('🚨 [CRITICAL-DATA] Raw table fetch results:', {
+      console.log('🚨 [ENHANCED-DATA] Enhanced table fetch results:', {
         attractions: { count: attractionsResult.data?.length || 0, error: attractionsResult.error },
         destinationCities: { count: destinationCitiesResult.data?.length || 0, error: destinationCitiesResult.error },
         hiddenGems: { count: hiddenGemsResult.data?.length || 0, error: hiddenGemsResult.error },
@@ -28,15 +28,15 @@ export class SupabaseDataService {
       });
 
       // Check for errors
-      if (attractionsResult.error) console.error('❌ [CRITICAL-DATA] Attractions fetch error:', attractionsResult.error);
-      if (destinationCitiesResult.error) console.error('❌ [CRITICAL-DATA] Destination cities fetch error:', destinationCitiesResult.error);
-      if (hiddenGemsResult.error) console.error('❌ [CRITICAL-DATA] Hidden gems fetch error:', hiddenGemsResult.error);
-      if (driveInsResult.error) console.error('❌ [CRITICAL-DATA] Drive-ins fetch error:', driveInsResult.error);
-      if (waypointsResult.error) console.error('❌ [CRITICAL-DATA] Waypoints fetch error:', waypointsResult.error);
+      if (attractionsResult.error) console.error('❌ [ENHANCED-DATA] Attractions fetch error:', attractionsResult.error);
+      if (destinationCitiesResult.error) console.error('❌ [ENHANCED-DATA] Destination cities fetch error:', destinationCitiesResult.error);
+      if (hiddenGemsResult.error) console.error('❌ [ENHANCED-DATA] Hidden gems fetch error:', hiddenGemsResult.error);
+      if (driveInsResult.error) console.error('❌ [ENHANCED-DATA] Drive-ins fetch error:', driveInsResult.error);
+      if (waypointsResult.error) console.error('❌ [ENHANCED-DATA] Waypoints fetch error:', waypointsResult.error);
 
       const allStops: TripStop[] = [];
 
-      // Process attractions
+      // Process attractions with enhanced data mapping
       if (attractionsResult.data) {
         const attractions = attractionsResult.data.map(item => ({
           id: item.id,
@@ -48,14 +48,15 @@ export class SupabaseDataService {
           city: item.city_name,
           state: item.state,
           category: 'attraction',
-          featured: item.featured,
-          image_url: item.image_url
+          featured: item.featured || false,
+          image_url: item.image_url,
+          thumbnail_url: item.thumbnail_url
         }));
         allStops.push(...attractions);
-        console.log(`🎯 [CRITICAL-DATA] Processed ${attractions.length} attractions`);
+        console.log(`🎯 [ENHANCED-DATA] Processed ${attractions.length} attractions with rich data`);
       }
 
-      // Process destination cities
+      // Process destination cities with enhanced data mapping
       if (destinationCitiesResult.data) {
         const cities = destinationCitiesResult.data.map(item => ({
           id: item.id,
@@ -67,15 +68,17 @@ export class SupabaseDataService {
           city: item.name,
           state: item.state,
           category: 'destination_city',
-          featured: item.featured,
+          featured: item.featured || false,
           image_url: item.image_url,
-          is_official_destination: true
+          thumbnail_url: item.thumbnail_url,
+          is_official_destination: true,
+          is_major_stop: true
         }));
         allStops.push(...cities);
-        console.log(`🏙️ [CRITICAL-DATA] Processed ${cities.length} destination cities`);
+        console.log(`🏙️ [ENHANCED-DATA] Processed ${cities.length} destination cities with rich data`);
       }
 
-      // Process hidden gems
+      // Process hidden gems with enhanced data mapping
       if (hiddenGemsResult.data) {
         const gems = hiddenGemsResult.data.map(item => ({
           id: item.id,
@@ -87,13 +90,15 @@ export class SupabaseDataService {
           city: item.city_name,
           state: 'Unknown', // Hidden gems table doesn't have state
           category: 'hidden_gem',
-          image_url: item.image_url
+          image_url: item.image_url,
+          thumbnail_url: item.thumbnail_url,
+          featured: false
         }));
         allStops.push(...gems);
-        console.log(`💎 [CRITICAL-DATA] Processed ${gems.length} hidden gems`);
+        console.log(`💎 [ENHANCED-DATA] Processed ${gems.length} hidden gems with rich data`);
       }
 
-      // Process drive-ins
+      // Process drive-ins with enhanced data mapping
       if (driveInsResult.data) {
         const driveIns = driveInsResult.data.map(item => ({
           id: item.id,
@@ -105,14 +110,15 @@ export class SupabaseDataService {
           city: item.city_name,
           state: item.state,
           category: 'drive_in',
-          featured: item.featured,
-          image_url: item.image_url
+          featured: item.featured || false,
+          image_url: item.image_url,
+          thumbnail_url: item.thumbnail_url
         }));
         allStops.push(...driveIns);
-        console.log(`🎬 [CRITICAL-DATA] Processed ${driveIns.length} drive-ins`);
+        console.log(`🎬 [ENHANCED-DATA] Processed ${driveIns.length} drive-ins with rich data`);
       }
 
-      // Process waypoints
+      // Process waypoints with enhanced data mapping
       if (waypointsResult.data) {
         const waypoints = waypointsResult.data.map(item => ({
           id: item.id,
@@ -124,15 +130,22 @@ export class SupabaseDataService {
           city: item.name,
           state: item.state,
           category: 'route66_waypoint',
-          is_major_stop: item.is_major_stop,
-          image_url: item.image_url
+          is_major_stop: item.is_major_stop || false,
+          image_url: item.image_url,
+          thumbnail_url: item.thumbnail_url,
+          featured: false
         }));
         allStops.push(...waypoints);
-        console.log(`🛣️ [CRITICAL-DATA] Processed ${waypoints.length} waypoints`);
+        console.log(`🛣️ [ENHANCED-DATA] Processed ${waypoints.length} waypoints with rich data`);
       }
 
-      console.log('✅ [CRITICAL-DATA] Final stops compilation:', {
+      // Enhanced data quality analysis
+      const dataQuality = {
         totalStops: allStops.length,
+        withDescriptions: allStops.filter(s => s.description && s.description.length > 20).length,
+        withImages: allStops.filter(s => s.image_url || s.thumbnail_url).length,
+        featured: allStops.filter(s => s.featured).length,
+        majorStops: allStops.filter(s => s.is_major_stop).length,
         byCategory: allStops.reduce((acc, stop) => {
           const cat = stop.category || 'unknown';
           acc[cat] = (acc[cat] || 0) + 1;
@@ -143,14 +156,19 @@ export class SupabaseDataService {
           name: s.name,
           category: s.category,
           city: s.city_name,
-          state: s.state
+          state: s.state,
+          featured: s.featured,
+          hasDescription: !!s.description,
+          hasImage: !!(s.image_url || s.thumbnail_url)
         }))
-      });
+      };
+
+      console.log('✅ [ENHANCED-DATA] Enhanced stops compilation with data quality analysis:', dataQuality);
 
       return allStops;
 
     } catch (error) {
-      console.error('❌ [CRITICAL-DATA] Critical error in fetchAllStops:', error);
+      console.error('❌ [ENHANCED-DATA] Critical error in enhanced fetchAllStops:', error);
       throw error;
     }
   }
