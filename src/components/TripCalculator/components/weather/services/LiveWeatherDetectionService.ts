@@ -1,8 +1,7 @@
 
 export class LiveWeatherDetectionService {
   /**
-   * CRITICAL: Unified live weather detection logic
-   * This is the SINGLE source of truth for determining if weather is live
+   * CRITICAL FIX: Unified live weather detection logic
    */
   static isLiveWeatherForecast(weather: any): boolean {
     if (!weather) {
@@ -10,17 +9,17 @@ export class LiveWeatherDetectionService {
       return false;
     }
 
-    console.log('🔍 LIVE DETECTION: Analyzing weather data:', {
+    console.log('🔍 CRITICAL FIX: Live weather detection:', {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
       cityName: weather.cityName
     });
 
-    // CRITICAL: Both conditions must be true for live weather
+    // CRITICAL FIX: Both conditions must be true for live weather
     const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    console.log('🎯 LIVE DETECTION: Final result:', {
+    console.log('🎯 CRITICAL FIX: Live detection result:', {
       isLive,
       sourceCheck: weather.source === 'live_forecast',
       actualForecastCheck: weather.isActualForecast === true,

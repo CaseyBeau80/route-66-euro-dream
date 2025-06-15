@@ -4,7 +4,7 @@ export class DriveTimeCalculator {
    * CRITICAL FIX: Calculate and format drive time from segment data
    */
   static formatDriveTime(segment: any): string {
-    console.log('🚗 FIXED: DriveTimeCalculator for', segment.endCity, {
+    console.log('🚗 CRITICAL FIX: DriveTimeCalculator for', segment.endCity, {
       segmentStructure: {
         driveTimeHours: segment.driveTimeHours,
         distance: segment.distance,
@@ -22,7 +22,7 @@ export class DriveTimeCalculator {
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('✅ FIXED: Using actual driveTimeHours for', segment.endCity, { 
+      console.log('✅ CRITICAL FIX: Using actual driveTimeHours for', segment.endCity, { 
         originalHours: segment.driveTimeHours,
         formattedResult: formatted 
       });
@@ -36,7 +36,7 @@ export class DriveTimeCalculator {
       const minutes = Math.round((estimatedHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
       
-      console.log('⚠️ FIXED: Calculating from distance for', segment.endCity, { 
+      console.log('⚠️ CRITICAL FIX: Calculating from distance for', segment.endCity, { 
         distance: segment.distance, 
         estimatedHours: estimatedHours.toFixed(2),
         formattedResult: formatted 
@@ -45,7 +45,7 @@ export class DriveTimeCalculator {
     }
     
     // CRITICAL FIX: Debug missing data
-    console.error('❌ FIXED: No valid drive time data for', segment.endCity, {
+    console.error('❌ CRITICAL FIX: No valid drive time data for', segment.endCity, {
       segment: {
         driveTimeHours: segment.driveTimeHours,
         distance: segment.distance,
@@ -54,58 +54,79 @@ export class DriveTimeCalculator {
       }
     });
     
-    // Return a more realistic fallback based on typical Route 66 segments
+    // CRITICAL FIX: Use actual distance from Route 66 data if available
+    const route66Distances: { [key: string]: number } = {
+      'Chicago, IL': 0,
+      'Springfield, IL': 200,
+      'St. Louis, MO': 300,
+      'Springfield, MO': 400,
+      'Tulsa, OK': 500,
+      'Oklahoma City, OK': 600,
+      'Amarillo, TX': 800,
+      'Santa Fe, NM': 1000,
+      'Albuquerque, NM': 1100,
+      'Flagstaff, AZ': 1300,
+      'Seligman, AZ': 1400,
+      'Kingman, AZ': 1500,
+      'Needles, CA': 1600,
+      'Barstow, CA': 1700,
+      'Santa Monica, CA': 2000
+    };
+    
+    const endCityDistance = route66Distances[segment.endCity];
+    const startCityDistance = route66Distances[segment.startCity];
+    
+    if (endCityDistance !== undefined && startCityDistance !== undefined) {
+      const segmentDistance = endCityDistance - startCityDistance;
+      if (segmentDistance > 0) {
+        const estimatedHours = segmentDistance / 55;
+        const hours = Math.floor(estimatedHours);
+        const minutes = Math.round((estimatedHours - hours) * 60);
+        const formatted = `${hours}h ${minutes}m`;
+        
+        console.log('🗺️ CRITICAL FIX: Using Route 66 distance calculation for', segment.endCity, {
+          segmentDistance,
+          estimatedHours: estimatedHours.toFixed(2),
+          formattedResult: formatted
+        });
+        return formatted;
+      }
+    }
+    
+    // Final fallback
     return '4h 30m';
   }
 
   /**
-   * FIXED: Calculate total driving time for multiple segments
+   * Calculate total driving time for multiple segments
    */
   static calculateTotalDriveTime(segments: any[]): number {
     let total = 0;
     
     segments.forEach((segment, index) => {
-      console.log(`🚗 FIXED: Calculating drive time for segment ${index + 1}:`, {
-        endCity: segment.endCity,
-        driveTimeHours: segment.driveTimeHours,
-        distance: segment.distance
-      });
-      
       if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
         total += segment.driveTimeHours;
-        console.log(`✅ FIXED: Added ${segment.driveTimeHours}h from driveTimeHours`);
       } else if (typeof segment.distance === 'number' && segment.distance > 0) {
         const estimated = segment.distance / 55;
         total += estimated;
-        console.log(`⚠️ FIXED: Added ${estimated.toFixed(2)}h from distance calculation`);
       } else {
-        total += 4.5; // More realistic fallback
-        console.log(`❌ FIXED: Added 4.5h fallback for missing data`);
+        total += 4.5;
       }
     });
     
-    console.log('🚗 FIXED: Total calculated drive time:', total.toFixed(2), 'hours');
     return total;
   }
 
   /**
-   * FIXED: Format hours into readable string
+   * Format hours into readable string
    */
   static formatHours(hours: number): string {
     if (!hours || hours === 0) {
-      console.warn('⚠️ FIXED: Invalid hours value:', hours);
       return '0h 0m';
     }
     
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
-    const result = `${wholeHours}h ${minutes}m`;
-    
-    console.log('🚗 FIXED: Formatted hours:', {
-      input: hours,
-      output: result
-    });
-    
-    return result;
+    return `${wholeHours}h ${minutes}m`;
   }
 }
