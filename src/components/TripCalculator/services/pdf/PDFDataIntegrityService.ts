@@ -1,5 +1,6 @@
 
-import { TripPlan, TripPlanDataValidator } from '../planning/TripPlanBuilder';
+import { TripPlan } from '../planning/TripPlanBuilder';
+import { TripPlanDataValidator } from '../planning/TripPlanDataValidator';
 
 export interface DataIntegrityReport {
   isValid: boolean;
