@@ -3,56 +3,42 @@ import { ExtractedTemperatures } from '../services/TemperatureExtractor';
 
 export class TemperatureValidation {
   /**
-   * TEMPERATURE FIX: Enhanced validation that ensures temperatures are realistic and different
+   * TEMPERATURE FIX: Validation that preserves real API data without artificial manipulation
    */
   static validateTemperatureRange(temperatures: ExtractedTemperatures, cityName: string): boolean {
     const { current, high, low } = temperatures;
     
-    console.log('🌡️ TEMPERATURE FIX: TemperatureValidation.validateTemperatureRange for', cityName, {
+    console.log('🌡️ REAL DATA ONLY: TemperatureValidation.validateTemperatureRange for', cityName, {
       current,
       high,
       low,
-      currentType: typeof current,
-      highType: typeof high,
-      lowType: typeof low
+      preservingRealData: true
     });
 
-    // Check that we have at least one valid temperature
+    // Check that we have at least one valid temperature from real API data
     const hasValidCurrent = !isNaN(current) && current > -150 && current < 150;
     const hasValidHigh = !isNaN(high) && high > -150 && high < 150;
     const hasValidLow = !isNaN(low) && low > -150 && low < 150;
 
-    console.log('🌡️ TEMPERATURE FIX: Individual temperature validation:', {
+    console.log('🌡️ REAL DATA ONLY: Individual temperature validation:', {
       cityName,
       hasValidCurrent,
       hasValidHigh,
       hasValidLow,
-      minimumRequirement: hasValidCurrent || (hasValidHigh && hasValidLow)
+      usingOnlyRealData: true
     });
 
-    // Must have either a current temp, or both high and low
-    if (!hasValidCurrent && !(hasValidHigh && hasValidLow)) {
-      console.warn('❌ TEMPERATURE FIX: No valid temperature combination for', cityName);
+    // Must have at least one real temperature value
+    const hasAnyValid = hasValidCurrent || hasValidHigh || hasValidLow;
+    
+    if (!hasAnyValid) {
+      console.warn('❌ REAL DATA ONLY: No valid real temperature data for', cityName);
       return false;
     }
 
-    // If we have high and low, they should be different (realistic range)
-    if (hasValidHigh && hasValidLow) {
-      const range = Math.abs(high - low);
-      if (range === 0) {
-        console.warn('⚠️ TEMPERATURE FIX: High and low temperatures are identical for', cityName, {
-          high,
-          low,
-          warning: 'This is unusual for real weather data'
-        });
-      } else {
-        console.log('✅ TEMPERATURE FIX: Realistic temperature range for', cityName, {
-          high,
-          low,
-          range
-        });
-      }
-    }
+    console.log('✅ REAL DATA ONLY: Using real temperature data for', cityName, {
+      availableData: { hasValidCurrent, hasValidHigh, hasValidLow }
+    });
 
     return true;
   }
@@ -67,74 +53,44 @@ export class TemperatureValidation {
                      (!isNaN(high) && high > -150 && high < 150) ||
                      (!isNaN(low) && low > -150 && low < 150);
 
-    console.log('🌡️ TEMPERATURE FIX: hasAnyValidTemperature check:', {
+    console.log('🌡️ REAL DATA ONLY: hasAnyValidTemperature check:', {
       current,
       high,
       low,
-      hasValid
+      hasValid,
+      usingOnlyRealData: true
     });
 
     return hasValid;
   }
 
   /**
-   * TEMPERATURE FIX: Normalize temperatures to ensure they make logical sense
+   * REAL DATA ONLY: Return temperatures exactly as received from API - NO artificial manipulation
    */
   static normalizeTemperatures(temperatures: ExtractedTemperatures, cityName: string): ExtractedTemperatures {
-    let { current, high, low } = temperatures;
+    const { current, high, low } = temperatures;
 
-    console.log('🌡️ TEMPERATURE FIX: Normalizing temperatures for', cityName, {
-      input: { current, high, low }
+    console.log('🌡️ REAL DATA ONLY: Preserving exact API temperatures for', cityName, {
+      input: { current, high, low },
+      noArtificialManipulation: true
     });
 
-    // If we have high and low but no current, estimate current as average
-    if (isNaN(current) && !isNaN(high) && !isNaN(low)) {
-      current = Math.round((high + low) / 2);
-      console.log('🌡️ TEMPERATURE FIX: Estimated current temperature from high/low average:', current);
-    }
-
-    // If we have current but missing high/low, create realistic estimates
-    if (!isNaN(current)) {
-      if (isNaN(high)) {
-        high = current + 8; // Typical daily range
-        console.log('🌡️ TEMPERATURE FIX: Estimated high temperature:', high);
-      }
-      if (isNaN(low)) {
-        low = current - 8; // Typical daily range
-        console.log('🌡️ TEMPERATURE FIX: Estimated low temperature:', low);
-      }
-    }
-
-    // Ensure logical ordering: low <= current <= high
-    if (!isNaN(low) && !isNaN(high) && !isNaN(current)) {
-      if (low > high) {
-        [low, high] = [high, low]; // Swap if backwards
-        console.log('🌡️ TEMPERATURE FIX: Swapped low and high temperatures for logical order');
-      }
-      
-      if (current > high) {
-        current = high;
-        console.log('🌡️ TEMPERATURE FIX: Adjusted current temperature to not exceed high');
-      }
-      
-      if (current < low) {
-        current = low;
-        console.log('🌡️ TEMPERATURE FIX: Adjusted current temperature to not go below low');
-      }
-    }
-
-    const normalized = {
-      current,
-      high,
-      low,
+    // Return temperatures exactly as they came from the API
+    // Do NOT create artificial estimates
+    // Do NOT enforce logical ordering that would change real data
+    const result = {
+      current: current, // Keep exact API value or NaN
+      high: high,       // Keep exact API value or NaN  
+      low: low,         // Keep exact API value or NaN
       isValid: this.hasAnyValidTemperature({ current, high, low, isValid: true })
     };
 
-    console.log('🌡️ TEMPERATURE FIX: Normalized temperatures for', cityName, {
-      output: normalized,
-      temperatureRange: !isNaN(high) && !isNaN(low) ? high - low : 'N/A'
+    console.log('✅ REAL DATA ONLY: Preserved exact API temperatures for', cityName, {
+      output: result,
+      preservedRealData: true,
+      noArtificialEstimates: true
     });
 
-    return normalized;
+    return result;
   }
 }

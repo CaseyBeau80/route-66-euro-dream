@@ -14,74 +14,69 @@ export class TemperatureExtractor {
     weather: ForecastWeatherData,
     cityName: string
   ): ExtractedTemperatures {
-    console.log('🌡️ TEMPERATURE FIX: TemperatureExtractor - extracting REAL temperatures for', cityName, {
+    console.log('🌡️ REAL DATA EXTRACTION: TemperatureExtractor - extracting REAL temperatures for', cityName, {
       rawWeatherInput: weather,
       weatherStructure: {
         hasTemperature: weather?.temperature !== undefined,
         hasHighTemp: weather?.highTemp !== undefined,
         hasLowTemp: weather?.lowTemp !== undefined,
-        hasMatchedForecastDay: !!weather?.matchedForecastDay,
         temperature: weather?.temperature,
         highTemp: weather?.highTemp,
         lowTemp: weather?.lowTemp
       },
-      isActualForecast: weather?.isActualForecast,
-      source: weather?.source
+      extractingRealDataOnly: true
     });
 
     if (!weather) {
-      console.warn('❌ TEMPERATURE FIX: No weather data provided');
+      console.warn('❌ REAL DATA EXTRACTION: No weather data provided');
       return this.createInvalidResult();
     }
 
-    // TEMPERATURE FIX: Extract temperatures from actual OpenWeatherMap data ONLY
+    // Extract temperatures from the ForecastWeatherData structure
+    // These should already be the processed values from the API
     let current = NaN;
     let high = NaN;
     let low = NaN;
 
-    // Extract current temperature (temp)
+    // Extract current temperature (this should be the main temp from API)
     if (weather.temperature !== undefined && weather.temperature !== null && !isNaN(weather.temperature)) {
       current = Math.round(weather.temperature);
-      console.log('🌡️ TEMPERATURE FIX: Extracted CURRENT temperature from API:', current);
+      console.log('🌡️ REAL DATA EXTRACTION: Extracted CURRENT temperature:', current);
     }
 
-    // Extract high temperature (temp_max)
+    // Extract high temperature (this should be temp_max from API)
     if (weather.highTemp !== undefined && weather.highTemp !== null && !isNaN(weather.highTemp)) {
       high = Math.round(weather.highTemp);
-      console.log('🌡️ TEMPERATURE FIX: Extracted HIGH temperature from API:', high);
+      console.log('🌡️ REAL DATA EXTRACTION: Extracted HIGH temperature:', high);
     }
     
-    // Extract low temperature (temp_min)
+    // Extract low temperature (this should be temp_min from API)
     if (weather.lowTemp !== undefined && weather.lowTemp !== null && !isNaN(weather.lowTemp)) {
       low = Math.round(weather.lowTemp);
-      console.log('🌡️ TEMPERATURE FIX: Extracted LOW temperature from API:', low);
+      console.log('🌡️ REAL DATA EXTRACTION: Extracted LOW temperature:', low);
     }
 
-    // Try to extract from matchedForecastDay if main data is missing
+    // Try to extract from matchedForecastDay if main data is incomplete
     if ((isNaN(current) || isNaN(high) || isNaN(low)) && weather.matchedForecastDay) {
-      console.log('🌡️ TEMPERATURE FIX: Attempting to extract from matchedForecastDay structure');
+      console.log('🌡️ REAL DATA EXTRACTION: Attempting to extract from matchedForecastDay structure');
       const extracted = this.extractFromMatchedDay(weather.matchedForecastDay, { current, high, low });
       
+      // Only use extracted values if we don't already have them
       if (isNaN(current)) current = extracted.current;
       if (isNaN(high)) high = extracted.high;
       if (isNaN(low)) low = extracted.low;
     }
 
-    // TEMPERATURE FIX: Log extracted values before validation
-    console.log('🌡️ TEMPERATURE FIX: Extracted temperature values (before normalization):', {
+    console.log('🌡️ REAL DATA EXTRACTION: Final extracted values (before validation):', {
       cityName,
       current,
       high,
       low,
-      currentType: typeof current,
-      highType: typeof high,
-      lowType: typeof low,
-      currentIsNaN: isNaN(current),
-      highIsNaN: isNaN(high),
-      lowIsNaN: isNaN(low)
+      allDifferent: (current !== high && high !== low && current !== low),
+      extractedFromRealAPI: true
     });
 
-    // TEMPERATURE FIX: Validate and normalize the temperatures
+    // Use the real-data-only normalization (which preserves exact values)
     const preliminaryResult = { current, high, low, isValid: true };
     const normalizedTemperatures = TemperatureValidation.normalizeTemperatures(preliminaryResult, cityName);
     const isValidRange = TemperatureValidation.validateTemperatureRange(normalizedTemperatures, cityName);
@@ -93,16 +88,15 @@ export class TemperatureExtractor {
       isValid: isValidRange && normalizedTemperatures.isValid
     };
 
-    console.log('🌡️ TEMPERATURE FIX: TemperatureExtractor FINAL result:', {
+    console.log('✅ REAL DATA EXTRACTION: TemperatureExtractor FINAL result:', {
       cityName,
       result,
-      hasValidCurrent: !isNaN(result.current),
-      hasValidHigh: !isNaN(result.high),
-      hasValidLow: !isNaN(result.low),
-      temperatureSpread: !isNaN(result.high) && !isNaN(result.low) ? result.high - result.low : 'N/A',
-      allTemperaturesDifferent: result.current !== result.high || result.high !== result.low,
-      usingRealForecastDataOnly: true,
-      validationPassed: isValidRange
+      temperaturesAreDifferent: {
+        currentVsHigh: !isNaN(result.current) && !isNaN(result.high) ? result.current !== result.high : 'N/A',
+        currentVsLow: !isNaN(result.current) && !isNaN(result.low) ? result.current !== result.low : 'N/A', 
+        highVsLow: !isNaN(result.high) && !isNaN(result.low) ? result.high !== result.low : 'N/A'
+      },
+      usingOnlyRealAPIData: true
     });
     
     return result;
@@ -120,48 +114,33 @@ export class TemperatureExtractor {
   private static extractFromMatchedDay(matched: any, existing: { current: number; high: number; low: number }) {
     let { current, high, low } = existing;
 
-    console.log('🌡️ TEMPERATURE FIX: Extracting from matched day - FULL STRUCTURE DEBUG:', {
+    console.log('🌡️ REAL DATA EXTRACTION: Extracting from matched day - STRUCTURE DEBUG:', {
       matchedDayStructure: matched,
       hasMain: !!matched.main,
-      mainKeys: matched.main ? Object.keys(matched.main) : [],
-      mainValues: matched.main,
-      hasTemperature: !!matched.temperature,
-      temperatureStructure: matched.temperature
+      mainValues: matched.main
     });
 
     // Try to extract from main weather data (standard OpenWeatherMap structure)
     if (matched.main && typeof matched.main === 'object') {
       if (isNaN(current) && 'temp' in matched.main && !isNaN(matched.main.temp)) {
         current = Math.round(matched.main.temp);
-        console.log('🌡️ TEMPERATURE FIX: Extracted current from matched.main.temp:', current);
+        console.log('🌡️ REAL DATA EXTRACTION: Extracted current from matched.main.temp:', current);
       }
       if (isNaN(high) && 'temp_max' in matched.main && !isNaN(matched.main.temp_max)) {
         high = Math.round(matched.main.temp_max);
-        console.log('🌡️ TEMPERATURE FIX: Extracted high from matched.main.temp_max:', high);
+        console.log('🌡️ REAL DATA EXTRACTION: Extracted high from matched.main.temp_max:', high);
       }
       if (isNaN(low) && 'temp_min' in matched.main && !isNaN(matched.main.temp_min)) {
         low = Math.round(matched.main.temp_min);
-        console.log('🌡️ TEMPERATURE FIX: Extracted low from matched.main.temp_min:', low);
+        console.log('🌡️ REAL DATA EXTRACTION: Extracted low from matched.main.temp_min:', low);
       }
     }
 
-    // Try to extract from temperature object if available
-    if (matched.temperature && typeof matched.temperature === 'object') {
-      if (isNaN(high) && 'high' in matched.temperature && !isNaN(matched.temperature.high)) {
-        high = Math.round(matched.temperature.high);
-        console.log('🌡️ TEMPERATURE FIX: Extracted high from matched.temperature.high:', high);
-      }
-      if (isNaN(low) && 'low' in matched.temperature && !isNaN(matched.temperature.low)) {
-        low = Math.round(matched.temperature.low);
-        console.log('🌡️ TEMPERATURE FIX: Extracted low from matched.temperature.low:', low);
-      }
-    }
-
-    console.log('🌡️ TEMPERATURE FIX: Final extraction from matched day:', {
+    console.log('🌡️ REAL DATA EXTRACTION: Final extraction from matched day:', {
       current,
       high,
       low,
-      anyChanges: current !== existing.current || high !== existing.high || low !== existing.low
+      extractedRealData: true
     });
 
     return { current, high, low };
