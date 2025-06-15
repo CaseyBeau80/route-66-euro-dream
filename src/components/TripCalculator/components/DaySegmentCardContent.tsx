@@ -35,22 +35,28 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 [FIXED-DISPLAY] DaySegmentCardContent render with corrected logic:', {
+  console.log('🔍 [FINAL-FIX] DaySegmentCardContent render - ANALYZING DISPLAY DECISION:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     recommendedStopsCount: recommendedStops.length,
     hasStops,
     isLoadingStops,
     error,
-    willShowRecommendedStops: hasStops && recommendedStops.length > 0,
-    willShowLegacyAttractions: !hasStops && !isLoadingStops,
+    CRITICAL_DECISION: {
+      willShowRecommendedStops: !isLoadingStops && !error && hasStops && recommendedStops.length > 0,
+      willShowFallback: !isLoadingStops && !error && !hasStops,
+      willShowError: !isLoadingStops && error,
+      willShowLoading: isLoadingStops
+    },
     stopDetails: recommendedStops.map(stop => ({
       id: stop.id,
       name: stop.name,
       category: stop.category,
       city: stop.city,
       state: stop.state,
-      score: stop.relevanceScore
+      score: stop.relevanceScore,
+      hasDescription: !!stop.originalStop.description,
+      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url)
     }))
   });
 
@@ -95,10 +101,13 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* SUCCESS: SHOW RECOMMENDED STOPS WITH RICH DATA */}
+        {/* PRIMARY SUCCESS: SHOW RECOMMENDED STOPS WITH RICH DATA */}
         {!isLoadingStops && !error && hasStops && recommendedStops.length > 0 && (
           <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+              <div className="mb-2 text-xs text-blue-600 font-medium">
+                ✨ Found {recommendedStops.length} Route 66 attractions with rich data
+              </div>
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
                 maxDisplay={3}
@@ -109,8 +118,8 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </ErrorBoundary>
         )}
 
-        {/* FALLBACK: NO RECOMMENDED STOPS FOUND */}
-        {!isLoadingStops && !error && !hasStops && (
+        {/* FALLBACK: NO RECOMMENDED STOPS FOUND - ONLY SHOW IF NO RICH DATA */}
+        {!isLoadingStops && !error && (!hasStops || recommendedStops.length === 0) && (
           <div className="space-y-4">
             {/* Show "no attractions found" message */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
@@ -119,9 +128,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                   <span>🔍</span>
                   Route 66 Attractions
                 </div>
-                <p className="mb-2">No classic Route 66 attractions found between {segment.startCity} and {segment.endCity}</p>
+                <p className="mb-2">No enhanced Route 66 attractions found between {segment.startCity} and {segment.endCity}</p>
                 <div className="text-xs bg-yellow-50 border border-yellow-200 rounded p-2 text-yellow-700">
-                  <p className="font-medium">We're looking for:</p>
+                  <p className="font-medium">We searched for:</p>
                   <ul className="mt-1 space-y-1">
                     <li>• Classic diners and drive-ins</li>
                     <li>• Roadside attractions and museums</li>
@@ -130,17 +139,20 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                   </ul>
                 </div>
                 <div className="text-xs mt-2 text-gray-400">
-                  Debug: Day {segment.day} • {segment.startCity} → {segment.endCity} • Database query returned {recommendedStops.length} stops
+                  Debug: Day {segment.day} • {segment.startCity} → {segment.endCity} • Enhanced system returned {recommendedStops.length} stops
                 </div>
               </div>
             </div>
 
             {/* Legacy Attractions as absolute fallback */}
             <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
-              <SegmentNearbyAttractions 
-                segment={segment} 
-                maxAttractions={maxAttractions}
-              />
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div className="text-xs text-gray-500 mb-2">Fallback to basic city recommendations:</div>
+                <SegmentNearbyAttractions 
+                  segment={segment} 
+                  maxAttractions={maxAttractions}
+                />
+              </div>
             </ErrorBoundary>
           </div>
         )}

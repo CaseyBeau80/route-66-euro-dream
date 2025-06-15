@@ -19,13 +19,14 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
 }) => {
   const displayStops = stops.slice(0, maxDisplay);
 
-  console.log('🎯 [FIXED-DISPLAY] RecommendedStopsDisplay rendering with rich data:', {
+  console.log('🎯 [CRITICAL-DEBUG] RecommendedStopsDisplay FINAL RENDER ANALYSIS:', {
     totalStops: stops.length,
     displayStops: displayStops.length,
     maxDisplay,
     showLocation,
     compact,
-    stopsData: displayStops.map(stop => ({
+    CRITICAL_DATA_CHECK: displayStops.map((stop, index) => ({
+      index,
       id: stop.id,
       name: stop.name,
       category: stop.category,
@@ -33,18 +34,18 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       state: stop.state,
       type: stop.type,
       score: stop.relevanceScore,
-      hasDescription: !!stop.originalStop.description,
-      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-      featured: stop.originalStop.featured,
-      originalStopSample: {
+      originalStopData: {
         name: stop.originalStop.name,
+        description: stop.originalStop.description ? stop.originalStop.description.substring(0, 50) + '...' : 'No description',
         category: stop.originalStop.category,
-        description: stop.originalStop.description?.substring(0, 100)
+        hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
+        featured: stop.originalStop.featured
       }
     }))
   });
 
   if (displayStops.length === 0) {
+    console.log('🚨 [CRITICAL-DEBUG] RecommendedStopsDisplay - NO STOPS TO DISPLAY');
     return (
       <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-sm text-gray-500">No Route 66 attractions found for this segment</p>
@@ -65,7 +66,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
           const hasImage = !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url);
           const hasDescription = !!stop.originalStop.description;
           
-          console.log(`🎯 [FIXED-DISPLAY] Rendering stop ${index + 1}:`, {
+          console.log(`🎯 [CRITICAL-DEBUG] Rendering stop ${index + 1} with RICH DATA:`, {
             name: stop.name,
             formattedName: formatted.name,
             category: stop.category,
@@ -75,7 +76,8 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
             hasDescription,
             hasImage,
             score: stop.relevanceScore,
-            featured: stop.originalStop.featured
+            featured: stop.originalStop.featured,
+            description: stop.originalStop.description ? stop.originalStop.description.substring(0, 100) + '...' : 'No description'
           });
           
           return (
