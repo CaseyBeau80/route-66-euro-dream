@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -71,25 +70,25 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use EXACT same detection logic as Preview version
+  // FIXED: Use unified detection logic
   const isLiveForecast = React.useMemo(() => {
     if (!weather) return false;
     const result = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
     
-    console.log('🔧 FINAL FIX: SimpleWeatherWidget detection result:', {
+    console.log('🔧 UNIFIED: SimpleWeatherWidget detection result:', {
       cityName: segment.endCity,
       day: segment.day,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       detectionResult: result,
       expectedDisplay: result ? 'GREEN Live Forecast' : 'YELLOW Historical',
-      finalFix: true
+      unifiedLogic: true
     });
     
     return result;
   }, [weather, segment.endCity, segment.day]);
 
-  // FIXED: Robust drive time calculation with proper type safety
+  // FIXED: Improved drive time calculation with better fallbacks
   const displayDriveTime = React.useMemo(() => {
     console.log('🚗 FIXED: Drive time calculation for segment:', {
       day: segment.day,
@@ -99,7 +98,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       distance: segment.distance
     });
 
-    // Try driveTimeHours first (most reliable)
+    // Priority 1: driveTimeHours (most reliable)
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
@@ -107,7 +106,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
-    // Try drivingTime if it's a number
+    // Priority 2: drivingTime if it's a number
     if (typeof segment.drivingTime === 'number' && segment.drivingTime > 0) {
       const hours = Math.floor(segment.drivingTime);
       const minutes = Math.round((segment.drivingTime - hours) * 60);
@@ -115,18 +114,15 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
-    // FIXED: Safe string handling with explicit type checking
-    const drivingTimeValue = segment.drivingTime;
-    if (drivingTimeValue != null && typeof drivingTimeValue === 'string') {
-      const timeStr = String(drivingTimeValue).toLowerCase();
+    // Priority 3: Parse drivingTime string
+    if (segment.drivingTime && typeof segment.drivingTime === 'string') {
+      const timeStr = String(segment.drivingTime).toLowerCase();
       
       // Parse "5h 30m" format
       const hMinMatch = timeStr.match(/(\d+)h\s*(\d+)m/);
       if (hMinMatch) {
-        const hours = parseInt(hMinMatch[1]);
-        const minutes = parseInt(hMinMatch[2]);
-        console.log('✅ Parsed drivingTime h-m format:', `${hours}h ${minutes}m`);
-        return `${hours}h ${minutes}m`;
+        console.log('✅ Parsed drivingTime h-m format:', `${hMinMatch[1]}h ${hMinMatch[2]}m`);
+        return `${hMinMatch[1]}h ${hMinMatch[2]}m`;
       }
       
       // Parse "5.5h" format
@@ -140,7 +136,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       }
     }
     
-    // Calculate from distance (55 mph average)
+    // Priority 4: Calculate from distance
     if (typeof segment.distance === 'number' && segment.distance > 0) {
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
@@ -149,11 +145,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       return `${hours}h ${minutes}m`;
     }
     
+    // Final fallback
     console.log('❌ No valid data, using fallback');
     return '4h 0m';
   }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  console.log('🔧 FINAL FIX: SimpleWeatherWidget render state:', {
+  console.log('🔧 UNIFIED: SimpleWeatherWidget render state:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -165,7 +162,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     isActualForecast: weather?.isActualForecast,
     willShowGreen: isLiveForecast,
     willShowYellow: !isLiveForecast,
-    finalFix: true
+    driveTime: displayDriveTime,
+    unifiedLogic: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -204,7 +202,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // FIXED: Exact same styling logic as Preview - simple conditional classes
+    // FIXED: Use unified styling logic
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -216,12 +214,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 FINAL FIX: Applying styling for', segment.endCity, {
+    console.log('🎨 UNIFIED: Applying styling for', segment.endCity, {
       isLiveForecast,
       containerClasses,
       sourceLabel,
       badgeText,
-      finalStyling: true
+      unifiedStyling: true
     });
 
     return (

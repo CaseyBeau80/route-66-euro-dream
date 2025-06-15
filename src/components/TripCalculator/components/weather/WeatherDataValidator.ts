@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: Use the EXACT same logic as Preview version - only check weather properties
+   * UNIFIED: Use the exact same logic as Preview and LiveWeatherDetectionService
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -20,24 +20,24 @@ export class WeatherDataValidator {
   ): WeatherValidationResult {
     const validationErrors: string[] = [];
     
-    console.log('🔧 FIXED: WeatherDataValidator using Preview logic:', {
+    console.log('🔧 UNIFIED: WeatherDataValidator using unified logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
-      usingPreviewLogic: true
+      unifiedLogic: true
     });
     
-    // FIXED: Use the EXACT same detection as Preview - no date range check
+    // UNIFIED: Use the exact same detection as LiveWeatherDetectionService
     const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
     
-    console.log('✅ FIXED: Weather validation using Preview detection:', {
+    console.log('✅ UNIFIED: Weather validation result:', {
       cityName,
       isLiveForecast,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       expectedColor: isLiveForecast ? 'GREEN (Live Forecast)' : 'YELLOW (Historical)',
-      matchesPreview: true
+      unifiedDetection: true
     });
     
     // Validate basic weather data
@@ -66,7 +66,7 @@ export class WeatherDataValidator {
   }
   
   static shouldDisplayAsLive(weather: ForecastWeatherData, segmentDate: Date): boolean {
-    // FIXED: Use Preview logic directly
+    // UNIFIED: Use the same logic as LiveWeatherDetectionService
     return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   }
 }

@@ -2,7 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -19,24 +19,17 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Use utility service to determine if this is a live forecast
-  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
-  const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate);
+  // UNIFIED: Use the exact same detection logic
+  const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   
-  console.log('🌤️ CONSISTENT: SimpleWeatherDisplay with consistent weather details:', {
+  console.log('🌤️ UNIFIED: SimpleWeatherDisplay with unified detection:', {
     cityName,
     segmentDate: segmentDate.toISOString(),
-    daysFromToday,
     isLiveForecast,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     temperature: weather.temperature,
-    highTemp: weather.highTemp,
-    lowTemp: weather.lowTemp,
-    windSpeed: weather.windSpeed,
-    precipitationChance: weather.precipitationChance,
-    humidity: weather.humidity,
-    consistentDisplay: true
+    unifiedLogic: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -54,18 +47,27 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
-  // Get styling configuration based on forecast type
-  const styleConfig = WeatherUtilityService.getWeatherDisplayStyle(weather, segmentDate);
+  // UNIFIED: Use the exact same styling logic
+  const containerClass = isLiveForecast 
+    ? "bg-green-100 border-green-200"
+    : "bg-yellow-100 border-yellow-200";
+    
+  const badgeClass = isLiveForecast
+    ? "bg-green-100 text-green-700 border-green-200"
+    : "bg-yellow-100 text-yellow-700 border-yellow-200";
+
+  const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
+  const badgeText = isLiveForecast ? '✨ Live weather forecast' : '📊 Historical weather patterns';
   
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
   return (
-    <div className={`${styleConfig.containerClass} rounded-lg p-4 border`}>
+    <div className={`${containerClass} rounded-lg p-4 border`}>
       {/* Weather Source Indicator */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium text-gray-700">
-          {styleConfig.sourceLabel}
+          {sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
@@ -95,7 +97,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* CONSISTENT Weather Details Grid - Wind & Precipitation */}
+      {/* Weather Details Grid - Wind & Precipitation */}
       <div className="grid grid-cols-3 gap-3 mb-3">
         <div className="text-center p-2 bg-white bg-opacity-50 rounded border">
           <div className="text-lg">💧</div>
@@ -124,8 +126,8 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
 
       {/* Weather Status Badge */}
       <div className="text-center">
-        <div className={`inline-block text-xs px-3 py-1 rounded-full font-medium border ${styleConfig.badgeClass}`}>
-          {styleConfig.badgeText}
+        <div className={`inline-block text-xs px-3 py-1 rounded-full font-medium border ${badgeClass}`}>
+          {badgeText}
         </div>
       </div>
     </div>

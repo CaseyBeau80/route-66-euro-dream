@@ -1,4 +1,5 @@
 
+import { LiveWeatherDetectionService } from './LiveWeatherDetectionService';
 
 export class WeatherUtilityService {
   /**
@@ -28,39 +29,49 @@ export class WeatherUtilityService {
   }
 
   /**
-   * Determine if weather data represents a true live forecast
+   * FIXED: Use the EXACT same logic as LiveWeatherDetectionService
    */
-  static isLiveForecast(weather: any, targetDate: Date): boolean {
-    if (!weather || !targetDate) return false;
+  static isLiveForecast(weather: any, targetDate?: Date): boolean {
+    if (!weather) return false;
     
-    const isWithinRange = this.isWithinLiveForecastRange(targetDate);
-    const hasLiveSource = weather.source === 'live_forecast';
-    const isMarkedAsActual = weather.isActualForecast === true;
+    console.log('🔧 FIXED: WeatherUtilityService using LiveWeatherDetectionService logic:', {
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      usingLiveDetectionService: true
+    });
     
-    // All three conditions must be true for genuine live forecast
-    return isWithinRange && hasLiveSource && isMarkedAsActual;
+    // Use the exact same detection logic as LiveWeatherDetectionService
+    return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   }
 
   /**
    * Get appropriate weather display styling based on forecast type
+   * FIXED: Use unified detection logic
    */
-  static getWeatherDisplayStyle(weather: any, targetDate: Date) {
+  static getWeatherDisplayStyle(weather: any, targetDate?: Date) {
     const isLive = this.isLiveForecast(weather, targetDate);
-    const daysFromToday = this.getDaysFromToday(targetDate);
+    
+    console.log('🎨 FIXED: WeatherUtilityService styling using unified detection:', {
+      isLive,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      willShowGreen: isLive,
+      willShowYellow: !isLive
+    });
     
     if (isLive) {
       return {
         badgeText: '✨ Live weather forecast',
         badgeClass: 'bg-green-100 text-green-700 border-green-200',
         sourceLabel: '🟢 Live Forecast',
-        containerClass: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+        containerClass: 'bg-green-100 border-green-200'
       };
     } else {
       return {
-        badgeText: `📊 Historical weather patterns`,
+        badgeText: '📊 Historical weather patterns',
         badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-200',
         sourceLabel: '🟡 Historical Data',
-        containerClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200'
+        containerClass: 'bg-yellow-100 border-yellow-200'
       };
     }
   }
