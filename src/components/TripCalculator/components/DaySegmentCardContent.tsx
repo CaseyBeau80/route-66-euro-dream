@@ -26,10 +26,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🔥 DaySegmentCardContent render:', {
+  console.log('🔥 DaySegmentCardContent render - FIXED VERSION:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
-    sectionKey
+    sectionKey,
+    cardIndex
   });
 
   return (
@@ -51,13 +52,15 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Recommended Stops */}
-      <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-        <SimpleRecommendedStops 
-          segment={segment}
-          maxStops={3}
-        />
-      </ErrorBoundary>
+      {/* Recommended Stops - ALWAYS RENDER */}
+      <div>
+        <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
+          <SimpleRecommendedStops 
+            segment={segment}
+            maxStops={3}
+          />
+        </ErrorBoundary>
+      </div>
     </div>
   );
 };

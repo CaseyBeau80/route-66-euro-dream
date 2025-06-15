@@ -10,30 +10,30 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🔥 [FIXED-HOOK] useRecommendedStops initialized:', {
+  console.log('🔥 [FIXED-HOOK-V2] useRecommendedStops initialized:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
     maxStops
   });
 
-  // Fetch all stops data once on mount
+  // Fetch data once on mount
   useEffect(() => {
     let isMounted = true;
     
     const fetchStops = async () => {
       try {
-        console.log('🔥 [FIXED-HOOK] Starting data fetch...');
+        console.log('🔥 [FIXED-HOOK-V2] Starting data fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🔥 [FIXED-HOOK] Component unmounted, ignoring result');
+          console.log('🔥 [FIXED-HOOK-V2] Component unmounted, ignoring result');
           return;
         }
         
-        console.log('🔥 [FIXED-HOOK] Data fetch result:', {
+        console.log('🔥 [FIXED-HOOK-V2] Data fetch SUCCESS:', {
           totalStops: stops.length,
           categoriesFound: [...new Set(stops.map(s => s.category))],
           featuredCount: stops.filter(s => s.featured).length
@@ -44,12 +44,12 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('🔥 [FIXED-HOOK] Fetch error:', err);
+        console.error('🔥 [FIXED-HOOK-V2] Fetch error:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
         if (isMounted) {
-          console.log('🔥 [FIXED-HOOK] Setting loading to false');
+          console.log('🔥 [FIXED-HOOK-V2] Setting loading to false');
           setIsLoading(false);
         }
       }
@@ -60,11 +60,11 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array - fetch once
+  }, []); // Empty dependency array - fetch once only
 
-  // Calculate recommended stops
+  // Calculate recommendations
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🔥 [FIXED-HOOK] Computing recommendations:', {
+    console.log('🔥 [FIXED-HOOK-V2] Computing recommendations with:', {
       hasSegment: !!segment,
       segmentEndCity: segment?.endCity,
       allStopsCount: allStops.length,
@@ -72,13 +72,13 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
       hasError: !!error
     });
 
-    // Wait for data and validate
+    // Don't calculate if still loading, has error, or missing data
     if (isLoading || error || !segment?.endCity || allStops.length === 0) {
-      console.log('🔥 [FIXED-HOOK] Skipping calculation - not ready');
+      console.log('🔥 [FIXED-HOOK-V2] Skipping calculation - conditions not met');
       return [];
     }
 
-    console.log('🔥 [FIXED-HOOK] All conditions met, calling recommendation service...');
+    console.log('🔥 [FIXED-HOOK-V2] All conditions met, calling recommendation service...');
     
     try {
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
@@ -87,7 +87,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
         maxStops
       );
 
-      console.log('🔥 [FIXED-HOOK] Recommendations generated:', {
+      console.log('🔥 [FIXED-HOOK-V2] Recommendations generated successfully:', {
         count: recommendations.length,
         stops: recommendations.map(r => ({ 
           name: r.name, 
@@ -99,7 +99,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
 
       return recommendations;
     } catch (serviceError) {
-      console.error('🔥 [FIXED-HOOK] Recommendation service error:', serviceError);
+      console.error('🔥 [FIXED-HOOK-V2] Recommendation service error:', serviceError);
       return [];
     }
   }, [segment?.endCity, segment?.day, allStops, maxStops, isLoading, error]);
@@ -111,7 +111,7 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('🔥 [FIXED-HOOK] Final result:', {
+  console.log('🔥 [FIXED-HOOK-V2] Final hook result:', {
     hasStops: result.hasStops,
     stopsCount: result.recommendedStops.length,
     isLoading: result.isLoading,
