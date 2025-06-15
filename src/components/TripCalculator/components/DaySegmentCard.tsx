@@ -99,20 +99,15 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     return stableSegment.distance || stableSegment.approximateMiles;
   }, [stableSegment.distance, stableSegment.approximateMiles]);
 
-  // Card header content with error handling
-  const cardHeader = React.useMemo(() => (
-    <DaySegmentCardHeader 
-      segment={stableSegment}
-      segmentDate={segmentDate}
-      driveTimeStyle={driveTimeStyle}
-    />
-  ), [stableSegment, segmentDate, driveTimeStyle]);
-
   return (
     <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
       <TooltipProvider>
-        <div className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow rounded-lg overflow-hidden bg-white">
-          {cardHeader}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+          <DaySegmentCardHeader 
+            segment={stableSegment}
+            segmentDate={segmentDate}
+            driveTimeStyle={driveTimeStyle}
+          />
           
           <DaySegmentCardStats 
             segment={stableSegment}

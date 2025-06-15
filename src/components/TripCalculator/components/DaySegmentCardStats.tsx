@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Route, Clock, MapPin } from 'lucide-react';
-import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 interface DaySegmentCardStatsProps {
@@ -20,10 +19,8 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
   formattedDriveTime,
   segmentDistance
 }) => {
-  const { formatDistance } = useUnits();
-
   return (
-    <div className="grid grid-cols-4 gap-0 bg-white border-l border-r border-gray-200">
+    <div className="grid grid-cols-4 gap-0 bg-white">
       {/* Miles */}
       <div className="p-4 text-center border-r border-gray-200">
         <div className="flex items-center justify-center mb-2">

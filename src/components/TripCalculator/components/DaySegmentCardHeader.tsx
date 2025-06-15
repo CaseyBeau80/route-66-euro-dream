@@ -19,7 +19,7 @@ const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
   segmentDate
 }) => {
   return (
-    <div className="bg-blue-500 text-white p-4 rounded-t-lg">
+    <div className="bg-blue-600 text-white p-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Day {segment.day}</h3>
