@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
-import { WeatherDataValidator } from './WeatherDataValidator';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import { format } from 'date-fns';
@@ -70,14 +71,23 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use corrected validation to determine display
-  const weatherValidation = React.useMemo(() => {
-    if (!weather || !segmentDate) return null;
-    return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
-  }, [weather, segmentDate, segment.endCity]);
-
-  // FIXED: Use validation result directly
-  const isLiveForecast = weatherValidation?.isLiveForecast || false;
+  // FIXED: Use EXACT same detection logic as Preview version
+  const isLiveForecast = React.useMemo(() => {
+    if (!weather) return false;
+    const result = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+    
+    console.log('🔧 FIXED: SimpleWeatherWidget using Preview detection:', {
+      cityName: segment.endCity,
+      day: segment.day,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      detectionResult: result,
+      expectedColor: result ? 'GREEN' : 'YELLOW',
+      matchesPreview: true
+    });
+    
+    return result;
+  }, [weather, segment.endCity, segment.day]);
 
   // FIXED: Robust drive time calculation with proper type safety
   const displayDriveTime = React.useMemo(() => {
@@ -143,7 +153,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return '4h 0m';
   }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  // FIXED: Correct styling based on validation result
+  // FIXED: Use Preview styling logic exactly
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
       console.log('🟢 USING GREEN styling for live forecast:', segment.endCity);
@@ -181,8 +191,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     segmentDate: segmentDate?.toISOString(),
     isLiveForecast,
     weatherSource: weather?.source,
-    validationResult: weatherValidation?.isLiveForecast,
-    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+    isActualForecast: weather?.isActualForecast,
+    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW',
+    usingPreviewLogic: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -217,9 +228,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   }
 
   // Show weather if available
-  if (weather && segmentDate && weatherValidation) {
-    const validatedWeather = weatherValidation.normalizedWeather;
-    const weatherIcon = getWeatherIcon(validatedWeather.icon);
+  if (weather && segmentDate) {
+    const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
     return (
@@ -251,22 +261,22 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
             <div className="text-3xl">{weatherIcon}</div>
             <div>
               <div className="text-2xl font-bold text-gray-800">
-                {Math.round(validatedWeather.temperature)}°F
+                {Math.round(weather.temperature)}°F
               </div>
               <div className="text-sm text-gray-600 capitalize">
-                {validatedWeather.description}
+                {weather.description}
               </div>
             </div>
           </div>
 
           <div className="text-right">
-            {validatedWeather.highTemp && validatedWeather.lowTemp && (
+            {weather.highTemp && weather.lowTemp && (
               <div className="text-sm text-gray-600">
-                H: {Math.round(validatedWeather.highTemp)}° L: {Math.round(validatedWeather.lowTemp)}°
+                H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
               </div>
             )}
             <div className="text-xs text-gray-500 mt-1">
-              💧 {validatedWeather.precipitationChance}% • 💨 {validatedWeather.windSpeed} mph
+              💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
             </div>
           </div>
         </div>

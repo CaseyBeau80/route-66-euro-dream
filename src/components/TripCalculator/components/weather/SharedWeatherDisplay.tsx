@@ -15,7 +15,7 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
   segmentDate,
   cityName
 }) => {
-  // Use the exact same detection logic as preview
+  // FIXED: Use the exact same detection logic as Preview
   const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   
   console.log('🔥 SHARED: SharedWeatherDisplay - Using exact same detection as preview:', {

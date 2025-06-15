@@ -1,6 +1,6 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 export interface WeatherValidationResult {
   isLiveForecast: boolean;
@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: Proper logic to determine if weather should show as live (GREEN) or historical (YELLOW)
+   * FIXED: Use the EXACT same logic as Preview version - only check weather properties
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -20,39 +20,24 @@ export class WeatherDataValidator {
   ): WeatherValidationResult {
     const validationErrors: string[] = [];
     
-    console.log('🔧 FIXED: WeatherDataValidator with correct date logic:', {
+    console.log('🔧 FIXED: WeatherDataValidator using Preview logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast
+      isActualForecast: weather.isActualForecast,
+      usingPreviewLogic: true
     });
     
-    // Calculate days from today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(segmentDate);
-    targetDate.setHours(0, 0, 0, 0);
-    const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    // FIXED: Use the EXACT same detection as Preview - no date range check
+    const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
     
-    // FIXED: Live forecast logic - days 0-5 from today can be live
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
-    
-    // Check if we have a valid API key
-    const hasValidApiKey = WeatherApiKeyManager.hasApiKey() && 
-                          WeatherApiKeyManager.getApiKey() !== 'YOUR_API_KEY_HERE' && 
-                          (WeatherApiKeyManager.getApiKey()?.length || 0) > 10;
-    
-    // FIXED: Determine if this should be live forecast
-    // For live forecast: must be within range AND have API key
-    const shouldBeLiveForecast = isWithinForecastRange && hasValidApiKey;
-    
-    console.log('✅ FIXED: Weather validation decision:', {
+    console.log('✅ FIXED: Weather validation using Preview detection:', {
       cityName,
-      daysFromToday,
-      isWithinForecastRange,
-      hasValidApiKey,
-      shouldBeLiveForecast,
-      expectedColor: shouldBeLiveForecast ? 'GREEN (Live Forecast)' : 'YELLOW (Historical)'
+      isLiveForecast,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      expectedColor: isLiveForecast ? 'GREEN (Live Forecast)' : 'YELLOW (Historical)',
+      matchesPreview: true
     });
     
     // Validate basic weather data
@@ -64,18 +49,16 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather description');
     }
     
-    // Create normalized weather with corrected properties
+    // Create normalized weather with original properties intact
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
-      source: shouldBeLiveForecast ? 'live_forecast' : 'historical_fallback',
-      isActualForecast: shouldBeLiveForecast,
       cityName: weather.cityName || cityName
     };
     
-    const confidence: 'high' | 'medium' | 'low' = validationErrors.length > 0 ? 'low' : (shouldBeLiveForecast ? 'high' : 'medium');
+    const confidence: 'high' | 'medium' | 'low' = validationErrors.length > 0 ? 'low' : (isLiveForecast ? 'high' : 'medium');
     
     return {
-      isLiveForecast: shouldBeLiveForecast,
+      isLiveForecast,
       normalizedWeather,
       validationErrors,
       confidence
@@ -83,7 +66,7 @@ export class WeatherDataValidator {
   }
   
   static shouldDisplayAsLive(weather: ForecastWeatherData, segmentDate: Date): boolean {
-    const result = this.validateWeatherData(weather, weather.cityName, segmentDate);
-    return result.isLiveForecast;
+    // FIXED: Use Preview logic directly
+    return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   }
 }

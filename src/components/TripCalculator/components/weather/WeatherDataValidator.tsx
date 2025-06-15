@@ -1,5 +1,6 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 export interface WeatherValidationResult {
   isValid: boolean;
@@ -32,76 +33,48 @@ export class WeatherDataValidator {
       errors.push(`Invalid temperature: ${weather.temperature}`);
     }
 
-    // CRITICAL FIX: Validate date range first before trusting source flags
-    const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const normalizedSegmentDate = new Date(segmentDate.getFullYear(), segmentDate.getMonth(), segmentDate.getDate());
-    const daysFromToday = Math.ceil((normalizedSegmentDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
+    // FIXED: Use EXACT same detection logic as Preview version
+    const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
     
-    // Only dates within 0-5 days can be truly live forecasts
-    const isWithinLiveRange = daysFromToday >= 0 && daysFromToday <= 5;
-    
-    const originalSource = weather.source;
-    const originalIsActualForecast = weather.isActualForecast;
-    
-    // FIXED: True live forecast requires BOTH proper source AND being within forecast range
-    const isActuallyLive = originalSource === 'live_forecast' && 
-                          originalIsActualForecast === true && 
-                          isWithinLiveRange;
-
-    console.log('🔧 FIXED: WeatherDataValidator with date range validation:', {
+    console.log('🔧 FIXED: WeatherDataValidator using Preview detection:', {
       cityName,
       segmentDate: segmentDate.toLocaleDateString(),
-      daysFromToday,
-      isWithinLiveRange,
-      originalSource,
-      originalIsActualForecast,
-      isActuallyLive,
-      shouldShowAsLive: isActuallyLive ? 'YES_GREEN' : 'NO_AMBER',
-      validationLogic: 'source_AND_date_range_required'
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      isLiveForecast,
+      shouldShowAsLive: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER',
+      usingPreviewLogic: true
     });
 
-    // CRITICAL FIX: Override source for dates outside live range
-    let finalSource = originalSource;
-    let finalIsActualForecast = originalIsActualForecast;
-    
-    if (!isWithinLiveRange && originalSource === 'live_forecast') {
-      console.log('🔧 OVERRIDE: Date outside live range, forcing historical fallback display');
-      finalSource = 'historical_fallback';
-      finalIsActualForecast = false;
-    }
-
-    // Create normalized weather data with corrected source
+    // Create normalized weather data - preserve original properties
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       cityName,
-      forecastDate: segmentDate,
-      source: finalSource,
-      isActualForecast: finalIsActualForecast
+      forecastDate: segmentDate
     };
 
     console.log('🔧 FIXED: WeatherDataValidator final result:', {
       cityName,
       isValid: errors.length === 0,
-      isLiveForecast: isActuallyLive,
-      daysFromToday,
-      originalData: {
-        source: originalSource,
-        isActualForecast: originalIsActualForecast
-      },
-      finalData: {
-        source: finalSource,
-        isActualForecast: finalIsActualForecast
-      },
-      shouldDisplayGreen: isActuallyLive,
-      dateRangeValidation: true
+      isLiveForecast,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      shouldDisplayGreen: isLiveForecast,
+      usingPreviewLogic: true
     });
 
     return {
       isValid: errors.length === 0,
-      isLiveForecast: isActuallyLive,
+      isLiveForecast,
       validationErrors: errors,
       normalizedWeather
     };
+  }
+
+  static validateLiveForecastData(data: ForecastWeatherData): boolean {
+    if (!data) return false;
+    
+    // FIXED: Use Preview detection logic
+    return LiveWeatherDetectionService.isLiveWeatherForecast(data);
   }
 }
