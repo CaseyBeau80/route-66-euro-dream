@@ -15,19 +15,16 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
   segmentDate,
   cityName
 }) => {
-  // Use the exact same detection logic as preview
   const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   
-  console.log('🔥 SHARED: SharedWeatherDisplay - Using exact same detection as preview:', {
+  console.log('🔥 SHARED: SharedWeatherDisplay - removed current temp display:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
-    temperature: weather.temperature,
-    exactSameAsPreview: true
+    onlyShowingHighLow: true
   });
 
-  // Use the exact same styling logic as preview
   const containerClass = isLiveForecast 
     ? "bg-green-100 border-green-200 text-green-800"
     : "bg-amber-100 border-amber-200 text-amber-800";
@@ -56,6 +53,9 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
 
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
+  
+  const highTemp = weather.highTemp || weather.temperature;
+  const lowTemp = weather.lowTemp || weather.temperature;
 
   return (
     <div className={`rounded-lg p-4 border ${containerClass}`}>
@@ -74,9 +74,16 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
         <div className="flex items-center gap-3">
           <div className="text-3xl">{weatherIcon}</div>
           <div>
-            <div className="text-2xl font-bold text-gray-800">
-              {Math.round(weather.temperature)}°F
-            </div>
+            {/* Only show high/low temperatures, no current temperature */}
+            {highTemp && lowTemp && highTemp !== lowTemp ? (
+              <div className="text-xl font-bold text-gray-800">
+                {Math.round(highTemp)}° / {Math.round(lowTemp)}°F
+              </div>
+            ) : (
+              <div className="text-xl font-bold text-gray-800">
+                {Math.round(highTemp || lowTemp || 0)}°F
+              </div>
+            )}
             <div className="text-sm text-gray-600 capitalize">
               {weather.description}
             </div>
@@ -84,11 +91,6 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
         </div>
 
         <div className="text-right">
-          {weather.highTemp && weather.lowTemp && (
-            <div className="text-sm text-gray-600">
-              H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
-            </div>
-          )}
           <div className="text-xs text-gray-500 mt-1">
             💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
           </div>

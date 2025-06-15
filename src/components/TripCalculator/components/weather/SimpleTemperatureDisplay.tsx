@@ -14,16 +14,14 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
   isSharedView = false,
   segmentDate
 }) => {
-  // CRITICAL FIX: Remove memoization to ensure fresh detection
   const isLiveForecast = WeatherLabelService.isLiveWeatherData(weather);
   
-  console.log('🔧 CRITICAL FIX: SimpleTemperatureDisplay direct detection:', {
+  console.log('🌡️ SimpleTemperatureDisplay - removed current temp display:', {
     cityName: weather.cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
-    temperature: weather.temperature,
-    memoizationRemoved: true
+    onlyShowingHighLow: true
   });
 
   const getTemperatureLabel = (temp: number): string => {
@@ -43,17 +41,19 @@ const SimpleTemperatureDisplay: React.FC<SimpleTemperatureDisplayProps> = ({
     <div className="temperature-display">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-gray-800">
-            {highTemp}°F
-          </span>
-          {lowTemp && lowTemp !== highTemp && (
-            <span className="text-lg text-gray-600">
-              / {lowTemp}°F
+          {/* Only show high/low temperatures, no current temperature */}
+          {highTemp && lowTemp && highTemp !== lowTemp ? (
+            <span className="text-lg font-bold text-gray-800">
+              {Math.round(highTemp)}° / {Math.round(lowTemp)}°F
+            </span>
+          ) : (
+            <span className="text-lg font-bold text-gray-800">
+              {Math.round(highTemp || lowTemp || 0)}°F
             </span>
           )}
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-600">
+          <div className="text-xs text-gray-600">
             {highTempLabel}
           </div>
           {isLiveForecast && (

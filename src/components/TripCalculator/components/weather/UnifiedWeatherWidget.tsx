@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { useEdgeFunctionWeather } from './hooks/useEdgeFunctionWeather';
-import SimpleWeatherDisplay from './SimpleWeatherDisplay';
-import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { useWeatherCard } from '../hooks/useWeatherCard';
+import { format } from 'date-fns';
+import { Cloud, Sun, CloudRain, Snowflake, Wind } from 'lucide-react';
 
 interface UnifiedWeatherWidgetProps {
   segment: DailySegment;
@@ -18,100 +18,109 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // Calculate segment date
   const segmentDate = React.useMemo(() => {
-    if (tripStartDate) {
-      return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-    }
+    if (!tripStartDate) return new Date();
+    return new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+  }, [tripStartDate, segment.day]);
 
-    // For shared views, try URL parameters
-    if (isSharedView) {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const possibleParams = ['tripStart', 'startDate', 'start_date', 'trip_start', 'tripStartDate'];
-        
-        for (const paramName of possibleParams) {
-          const tripStartParam = urlParams.get(paramName);
-          if (tripStartParam) {
-            const parsedDate = new Date(tripStartParam);
-            if (!isNaN(parsedDate.getTime())) {
-              return WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to parse trip start date from URL:', error);
-      }
-    }
-
-    // Fallback for shared/PDF views
-    if (isSharedView || isPDFExport) {
-      const today = new Date();
-      return new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-    }
-    
-    return null;
-  }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
-
-  // Use Edge Function weather hook
-  const { weather, loading, error, refetch } = useEdgeFunctionWeather({
-    cityName: segment.endCity,
-    segmentDate,
-    segmentDay: segment.day
+  const { weatherData, isLoading, error } = useWeatherCard({
+    segmentEndCity: segment.endCity,
+    segmentDay: segment.day,
+    tripStartDate,
+    componentName: 'UnifiedWeatherWidget'
   });
 
-  console.log('🔧 UNIFIED: UnifiedWeatherWidget render:', {
-    cityName: segment.endCity,
-    day: segment.day,
-    hasWeather: !!weather,
-    loading,
-    error,
-    segmentDate: segmentDate?.toISOString(),
-    weatherDetails: weather ? {
-      temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      source: weather.source
-    } : null
-  });
+  const getWeatherIcon = (condition: string) => {
+    const lowerCondition = condition.toLowerCase();
+    if (lowerCondition.includes('rain') || lowerCondition.includes('storm')) {
+      return <CloudRain className="h-6 w-6 text-blue-500" />;
+    }
+    if (lowerCondition.includes('snow')) {
+      return <Snowflake className="h-6 w-6 text-blue-300" />;
+    }
+    if (lowerCondition.includes('cloud')) {
+      return <Cloud className="h-6 w-6 text-gray-500" />;
+    }
+    if (lowerCondition.includes('wind')) {
+      return <Wind className="h-6 w-6 text-gray-600" />;
+    }
+    return <Sun className="h-6 w-6 text-yellow-500" />;
+  };
 
-  // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <div className="flex items-center gap-2 text-blue-600">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-6 bg-gray-200 rounded animate-pulse"></div>
+            <div>
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mb-1"></div>
+              <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="h-6 w-12 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show weather if available
-  if (weather && segmentDate) {
+  if (error || !weatherData) {
     return (
-      <SimpleWeatherDisplay
-        weather={weather}
-        segmentDate={segmentDate}
-        cityName={segment.endCity}
-        isSharedView={isSharedView}
-        isPDFExport={isPDFExport}
-      />
+      <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+        <div className="flex items-center gap-2">
+          <Cloud className="h-5 w-5 text-amber-600" />
+          <span className="text-sm text-amber-700">Weather data unavailable</span>
+        </div>
+      </div>
     );
   }
 
-  // Error or no weather state
+  const highTemp = weatherData.highTemp || weatherData.temperature;
+  const lowTemp = weatherData.lowTemp || weatherData.temperature;
+
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
-      <div className="text-amber-600 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-amber-700 font-medium">Weather forecast temporarily unavailable</p>
-      {error && <p className="text-xs text-amber-600 mt-1">{error}</p>}
-      <button
-        onClick={refetch}
-        className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
-      >
-        Retry
-      </button>
+    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {getWeatherIcon(weatherData.description || '')}
+          <div>
+            <div className="text-sm font-medium text-gray-800">
+              {format(segmentDate, 'MMM d')}
+            </div>
+            <div className="text-xs text-gray-600">
+              {segment.endCity}
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-right">
+          {/* Only show high/low temperatures, no current temperature */}
+          {highTemp && lowTemp && highTemp !== lowTemp ? (
+            <div className="text-lg font-bold text-gray-800">
+              {Math.round(highTemp)}° / {Math.round(lowTemp)}°
+            </div>
+          ) : (
+            <div className="text-lg font-bold text-gray-800">
+              {Math.round(highTemp || lowTemp || 0)}°F
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="mt-2 flex items-center justify-between">
+        <div className="text-xs text-gray-600 capitalize">
+          {weatherData.description || 'Partly Cloudy'}
+        </div>
+        
+        {weatherData.precipitationChance && (
+          <div className="text-xs text-gray-600">
+            💧 {weatherData.precipitationChance}%
+          </div>
+        )}
+      </div>
     </div>
   );
 };
