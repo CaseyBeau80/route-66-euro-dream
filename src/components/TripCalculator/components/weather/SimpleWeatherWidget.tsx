@@ -23,7 +23,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 }) => {
   const [forceKey, setForceKey] = React.useState(() => Date.now().toString());
 
-  // Calculate segment date
+  // FIXED: Always call useMemo hooks in the same order
+  // Calculate segment date - always called
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
       return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
@@ -57,7 +58,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather
+  // FIXED: Always check API key - always called
+  const hasApiKey = React.useMemo(() => {
+    return WeatherApiKeyManager.hasApiKey();
+  }, [forceKey]); // Use forceKey to trigger re-evaluation when needed
+
+  // Use unified weather - always called
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -66,18 +72,45 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // CRITICAL FIX: Use enhanced validation to determine if weather is live
+  // FIXED: Always validate weather data - always called
   const weatherValidation = React.useMemo(() => {
     if (!weather || !segmentDate) return null;
     return WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
   }, [weather, segmentDate, segment.endCity]);
 
-  const isLiveForecast = weatherValidation?.isLiveForecast || false;
+  // FIXED: Always calculate if it's live forecast - always called
+  const isLiveForecast = React.useMemo(() => {
+    return weatherValidation?.isLiveForecast || false;
+  }, [weatherValidation]);
 
-  // Check API key availability
-  const hasApiKey = React.useMemo(() => {
-    return WeatherApiKeyManager.hasApiKey();
-  }, []);
+  // FIXED: Always calculate styles - always called
+  const styles = React.useMemo(() => {
+    if (isLiveForecast) {
+      console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', segment.endCity);
+      return {
+        sourceLabel: '🟢 Live Weather Forecast',
+        sourceColor: '#059669', // Green-600
+        badgeText: '✨ Current live forecast',
+        badgeClasses: 'bg-green-100 text-green-700 border-green-200',
+        containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+        backgroundColor: '#dcfce7', // Green-100
+        borderColor: '#bbf7d0', // Green-200
+        textColor: '#166534', // Green-800
+      };
+    } else {
+      console.log('🟡 CRITICAL FIX: Using YELLOW styling for historical weather:', segment.endCity);
+      return {
+        sourceLabel: '🟡 Historical Weather Data',
+        sourceColor: '#ca8a04', // Yellow-600
+        badgeText: '📊 Based on historical patterns',
+        badgeClasses: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        containerClasses: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
+        backgroundColor: '#fef3c7', // Yellow-100
+        borderColor: '#fde047', // Yellow-200
+        textColor: '#a16207', // Yellow-800
+      };
+    }
+  }, [isLiveForecast, segment.endCity]);
 
   console.log('🚀 SimpleWeatherWidget render:', {
     cityName: segment.endCity,
@@ -108,6 +141,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
+  // FIXED: All early returns now happen after all hooks have been called
   // Loading state
   if (loading) {
     return (
@@ -125,35 +159,6 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const validatedWeather = weatherValidation.normalizedWeather;
     const weatherIcon = getWeatherIcon(validatedWeather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
-
-    // CRITICAL FIX: Force styling based on validation result
-    const styles = React.useMemo(() => {
-      if (isLiveForecast) {
-        console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', segment.endCity);
-        return {
-          sourceLabel: '🟢 Live Weather Forecast',
-          sourceColor: '#059669', // Green-600
-          badgeText: '✨ Current live forecast',
-          badgeClasses: 'bg-green-100 text-green-700 border-green-200',
-          containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-          backgroundColor: '#dcfce7', // Green-100
-          borderColor: '#bbf7d0', // Green-200
-          textColor: '#166534', // Green-800
-        };
-      } else {
-        console.log('🟡 CRITICAL FIX: Using YELLOW styling for historical weather:', segment.endCity);
-        return {
-          sourceLabel: '🟡 Historical Weather Data',
-          sourceColor: '#ca8a04', // Yellow-600
-          badgeText: '📊 Based on historical patterns',
-          badgeClasses: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-          containerClasses: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
-          backgroundColor: '#fef3c7', // Yellow-100
-          borderColor: '#fde047', // Yellow-200
-          textColor: '#a16207', // Yellow-800
-        };
-      }
-    }, [isLiveForecast, segment.endCity]);
 
     return (
       <div 
