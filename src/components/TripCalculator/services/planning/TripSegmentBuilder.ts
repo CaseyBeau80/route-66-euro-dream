@@ -1,6 +1,6 @@
 
 import { DailySegment } from './TripPlanTypes';
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
