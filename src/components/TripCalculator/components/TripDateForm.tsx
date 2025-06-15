@@ -2,12 +2,12 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '../types/tripCalculator';
-import SimpleTripCalendar from './SimpleTripCalendar';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -20,16 +20,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
 
-  // Simple date handling - use the date as-is
-  const selectedDate = formData.tripStartDate;
-
   // Calculate end date
   const endDate = React.useMemo(() => {
-    if (selectedDate && formData.travelDays > 0) {
+    if (formData.tripStartDate && formData.travelDays > 0) {
       try {
-        const calculated = addDays(selectedDate, formData.travelDays - 1);
+        const calculated = addDays(formData.tripStartDate, formData.travelDays - 1);
         console.log('🗓️ End date calculation:', {
-          startDate: selectedDate.toISOString(),
+          startDate: formData.tripStartDate.toISOString(),
           travelDays: formData.travelDays,
           endDate: calculated.toISOString()
         });
@@ -40,30 +37,34 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       }
     }
     return null;
-  }, [selectedDate, formData.travelDays]);
+  }, [formData.tripStartDate, formData.travelDays]);
 
   // Handle date selection
-  const handleDateSelect = React.useCallback((date: Date) => {
-    console.log('🗓️ NEW CALENDAR: Date selected:', {
-      selectedDate: date.toISOString(),
-      selectedLocal: date.toLocaleDateString(),
-      isToday: date.toDateString() === new Date().toDateString()
+  const handleDateSelect = React.useCallback((date: Date | undefined) => {
+    console.log('🗓️ FIXED CALENDAR: Date selected:', {
+      selectedDate: date?.toISOString(),
+      selectedLocal: date?.toLocaleDateString(),
+      isToday: date ? date.toDateString() === new Date().toDateString() : false
     });
     
-    setFormData({ 
-      ...formData, 
-      tripStartDate: date 
-    });
-    setIsCalendarOpen(false);
+    if (date) {
+      setFormData({ 
+        ...formData, 
+        tripStartDate: date 
+      });
+      setIsCalendarOpen(false);
+    }
   }, [formData, setFormData]);
 
-  // Simple date disabling - only disable past dates (before today)
+  // Disable past dates only
   const isDateDisabled = React.useCallback((date: Date): boolean => {
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    today.setHours(0, 0, 0, 0);
     
-    return checkDate.getTime() < todayStart.getTime();
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    return checkDate < today;
   }, []);
 
   return (
@@ -92,24 +93,25 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",
-              !selectedDate && "text-muted-foreground border-red-300"
+              !formData.tripStartDate && "text-muted-foreground border-red-300"
             )}
-            onClick={() => setIsCalendarOpen(true)}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate ? (
-              format(selectedDate, "PPP")
+            {formData.tripStartDate ? (
+              format(formData.tripStartDate, "PPP")
             ) : (
               "Select your trip start date"
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-          <SimpleTripCalendar
-            selected={selectedDate}
+          <Calendar
+            mode="single"
+            selected={formData.tripStartDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
-            className="border-0"
+            initialFocus
+            className="p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
