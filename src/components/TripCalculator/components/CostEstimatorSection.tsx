@@ -85,8 +85,8 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
             </div>
           </div>
           
-          {/* Compact breakdown in a grid */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Compact breakdown in a single row for main categories */}
+          <div className="grid grid-cols-4 gap-3 mb-3">
             <div className="text-center p-2 bg-gray-50 rounded">
               <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.gasCost)}</div>
               <div className="text-xs text-gray-600">Gas</div>
@@ -99,27 +99,29 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
               <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.mealCost)}</div>
               <div className="text-xs text-gray-600">Meals</div>
             </div>
-            
-            {/* Optional items on second row if they exist */}
-            {costEstimate.breakdown.carRentalCost > 0 && (
-              <div className="text-center p-2 bg-gray-50 rounded">
-                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.carRentalCost)}</div>
-                <div className="text-xs text-gray-600">Car Rental</div>
-              </div>
-            )}
-            {costEstimate.breakdown.attractionCost > 0 && (
-              <div className="text-center p-2 bg-gray-50 rounded">
-                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.attractionCost)}</div>
-                <div className="text-xs text-gray-600">Attractions</div>
-              </div>
-            )}
-            {costEstimate.breakdown.tollCost > 0 && (
-              <div className="text-center p-2 bg-gray-50 rounded">
-                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.tollCost)}</div>
-                <div className="text-xs text-gray-600">Tolls</div>
-              </div>
-            )}
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.attractionCost)}</div>
+              <div className="text-xs text-gray-600">Attractions</div>
+            </div>
           </div>
+          
+          {/* Optional items on separate row if they exist */}
+          {(costEstimate.breakdown.carRentalCost > 0 || costEstimate.breakdown.tollCost > 0) && (
+            <div className="grid grid-cols-2 gap-3">
+              {costEstimate.breakdown.carRentalCost > 0 && (
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.carRentalCost)}</div>
+                  <div className="text-xs text-gray-600">Car Rental</div>
+                </div>
+              )}
+              {costEstimate.breakdown.tollCost > 0 && (
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.tollCost)}</div>
+                  <div className="text-xs text-gray-600">Tolls</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
