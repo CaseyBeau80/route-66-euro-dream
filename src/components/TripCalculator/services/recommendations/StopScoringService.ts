@@ -225,30 +225,6 @@ export class StopScoringService {
   }
 
   /**
-   * Check if a stop seems like a generic location rather than a specific attraction
-   */
-  private static seemsLikeGenericLocation(stop: TripStop): boolean {
-    const name = stop.name?.toLowerCase() || '';
-    const cityName = stop.city_name?.toLowerCase() || '';
-    
-    // Check if name is just the city name or very similar
-    if (name === cityName || name.includes('destination') || name.includes('attractions in')) {
-      return true;
-    }
-    
-    // Check for generic location indicators
-    const genericTerms = [
-      'points of interest',
-      'tourist attractions', 
-      'things to do',
-      'local attractions',
-      'area attractions'
-    ];
-    
-    return genericTerms.some(term => name.includes(term));
-  }
-
-  /**
    * Map category to type
    */
   private static mapCategoryToType(category?: string): 'attraction' | 'hidden_gem' | 'waypoint' {
