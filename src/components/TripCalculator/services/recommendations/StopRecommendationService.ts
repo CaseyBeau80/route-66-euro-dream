@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from '../planning/TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -26,40 +25,92 @@ export class StopRecommendationService {
     allStops: TripStop[],
     maxStops: number = this.DEFAULT_MAX_STOPS
   ): RecommendedStop[] {
-    console.log(`🎯 Getting recommended stops for ${segment.startCity} → ${segment.endCity}`);
-    console.log(`📊 Available stops data:`, {
+    console.log(`🎯 [DEBUG] Starting getRecommendedStopsForSegment for ${segment.startCity} → ${segment.endCity}`);
+    console.log(`📊 [DEBUG] Input data:`, {
       totalStops: allStops.length,
-      categories: [...new Set(allStops.map(s => s.category))],
-      attractionsCount: allStops.filter(s => s.category === 'attraction').length,
-      hiddenGemsCount: allStops.filter(s => s.category === 'hidden_gem').length,
-      destinationCitiesCount: allStops.filter(s => s.category === 'destination_city').length
+      maxStops,
+      segmentInfo: {
+        day: segment.day,
+        startCity: segment.startCity,
+        endCity: segment.endCity
+      },
+      categoryCounts: allStops.reduce((acc, stop) => {
+        acc[stop.category] = (acc[stop.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      sampleStops: allStops.slice(0, 5).map(s => ({ 
+        id: s.id, 
+        name: s.name, 
+        category: s.category, 
+        city: s.city_name 
+      }))
     });
 
     // CRITICAL: Filter out destination cities entirely - we only want attractions and hidden gems
     const nonDestinationStops = allStops.filter(stop => {
       const isDestinationCity = stop.category === 'destination_city';
       if (isDestinationCity) {
-        console.log(`🚫 Excluding destination city: ${stop.name}`);
+        console.log(`🚫 [DEBUG] Excluding destination city: ${stop.name}`);
       }
       return !isDestinationCity;
     });
 
-    console.log(`🎯 After excluding destination cities: ${nonDestinationStops.length} stops remain`);
+    console.log(`🎯 [DEBUG] After excluding destination cities: ${nonDestinationStops.length} stops remain`);
+    console.log(`📋 [DEBUG] Remaining stop categories:`, 
+      nonDestinationStops.reduce((acc, stop) => {
+        acc[stop.category] = (acc[stop.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    );
 
     // Filter stops that are geographically relevant to this segment
     const geographicallyRelevantStops = this.filterStopsByGeography(segment, nonDestinationStops);
-    console.log(`📍 Geographically relevant stops: ${geographicallyRelevantStops.length}`);
+    console.log(`📍 [DEBUG] Geographically relevant stops: ${geographicallyRelevantStops.length}`);
+    console.log(`📍 [DEBUG] Geographic filter results:`, 
+      geographicallyRelevantStops.map(s => ({ 
+        name: s.name, 
+        category: s.category, 
+        city: s.city_name, 
+        state: s.state 
+      }))
+    );
     
     // Score and rank stops by relevance
     const scoredStops = this.scoreStopRelevance(segment, geographicallyRelevantStops);
-    console.log(`⭐ Scored stops: ${scoredStops.length}`);
+    console.log(`⭐ [DEBUG] Scored stops: ${scoredStops.length}`);
+    console.log(`⭐ [DEBUG] Top scored stops:`, 
+      scoredStops.slice(0, 10).map(s => ({ 
+        name: s.name, 
+        category: s.category, 
+        city: s.city_name, 
+        score: s.relevanceScore 
+      }))
+    );
     
     // Select diverse and high-quality stops
     const selectedStops = this.selectDiverseStops(scoredStops, maxStops);
     
-    console.log(`✅ Selected ${selectedStops.length} recommended stops for segment:`, 
-      selectedStops.map(s => ({ name: s.name, city: s.city, category: s.category, score: s.relevanceScore }))
+    console.log(`✅ [DEBUG] Final selected ${selectedStops.length} recommended stops:`, 
+      selectedStops.map(s => ({ 
+        name: s.name, 
+        city: s.city, 
+        category: s.category, 
+        score: s.relevanceScore,
+        type: s.type
+      }))
     );
+    
+    if (selectedStops.length === 0) {
+      console.error(`❌ [DEBUG] NO STOPS SELECTED! Debug info:`, {
+        originalStopsCount: allStops.length,
+        afterDestinationFilter: nonDestinationStops.length,
+        afterGeographicFilter: geographicallyRelevantStops.length,
+        afterScoring: scoredStops.length,
+        segmentEndCity: segment.endCity,
+        availableCategories: allStops.map(s => s.category).filter((v, i, a) => a.indexOf(v) === i)
+      });
+    }
+    
     return selectedStops;
   }
 
@@ -70,13 +121,16 @@ export class StopRecommendationService {
     segment: DailySegment,
     allStops: TripStop[]
   ): TripStop[] {
-    console.log(`🗺️ Filtering ${allStops.length} stops for geography near ${segment.endCity}`);
+    console.log(`🗺️ [DEBUG] Starting geographic filtering for ${allStops.length} stops near ${segment.endCity}`);
     
     const relevantStops = allStops.filter(stop => {
       // Get the destination city for this segment
       const destinationCity = segment.endCity?.toLowerCase() || '';
       const stopCity = stop.city_name?.toLowerCase() || '';
       const stopState = stop.state?.toLowerCase() || '';
+      
+      console.log(`🔍 [DEBUG] Checking stop: ${stop.name} in ${stop.city_name}, ${stop.state} (category: ${stop.category})`);
+      console.log(`🔍 [DEBUG] Comparing with destination: ${segment.endCity}`);
       
       // Check if stop is near the destination city
       const isNearDestination = 
@@ -96,16 +150,21 @@ export class StopRecommendationService {
 
       const isRelevant = isNearDestination || isNearStart || isInSameState;
       
+      console.log(`🔍 [DEBUG] Geography check for ${stop.name}:`, {
+        isNearDestination,
+        isNearStart, 
+        isInSameState,
+        finalDecision: isRelevant ? 'INCLUDE' : 'EXCLUDE'
+      });
+
       if (isRelevant) {
-        console.log(`✅ Including ${stop.category}: ${stop.name} in ${stop.city_name}, ${stop.state}`);
+        console.log(`✅ [DEBUG] Including ${stop.category}: ${stop.name} in ${stop.city_name}, ${stop.state}`);
       }
 
       return isRelevant;
     });
 
-    console.log(`📍 Filtered to ${relevantStops.length} geographically relevant stops for ${segment.endCity}:`, 
-      relevantStops.map(s => ({ name: s.name, category: s.category, city: s.city_name }))
-    );
+    console.log(`📍 [DEBUG] Geographic filtering complete: ${relevantStops.length}/${allStops.length} stops passed`);
     return relevantStops;
   }
 
@@ -115,10 +174,15 @@ export class StopRecommendationService {
   private static isStopInCityState(stop: TripStop, cityWithState: string): boolean {
     // Extract state from city string (format: "City, ST" or "City, State")
     const cityParts = cityWithState.split(',');
-    if (cityParts.length < 2) return false;
+    if (cityParts.length < 2) {
+      console.log(`⚠️ [DEBUG] Cannot extract state from city: ${cityWithState}`);
+      return false;
+    }
     
     const stateFromCity = cityParts[1].trim().toLowerCase();
     const stopState = stop.state?.toLowerCase() || '';
+    
+    console.log(`🏛️ [DEBUG] State matching: stop state "${stopState}" vs city state "${stateFromCity}"`);
     
     // Handle both abbreviations and full state names
     const stateAbbreviations: Record<string, string> = {
@@ -135,7 +199,10 @@ export class StopRecommendationService {
     const normalizedCityState = stateAbbreviations[stateFromCity] || stateFromCity;
     const normalizedStopState = stateAbbreviations[stopState] || stopState;
     
-    return normalizedCityState === normalizedStopState;
+    const isMatch = normalizedCityState === normalizedStopState;
+    console.log(`🏛️ [DEBUG] State match result: ${isMatch} (${normalizedStopState} === ${normalizedCityState})`);
+    
+    return isMatch;
   }
 
   /**
@@ -145,7 +212,9 @@ export class StopRecommendationService {
     segment: DailySegment,
     stops: TripStop[]
   ): (TripStop & { relevanceScore: number })[] {
-    return stops.map(stop => {
+    console.log(`🏆 [DEBUG] Starting scoring for ${stops.length} stops`);
+    
+    const scoredStops = stops.map(stop => {
       let score = 0;
 
       // Base score by category - prioritize attractions and hidden gems
@@ -180,10 +249,20 @@ export class StopRecommendationService {
       const cityRelevance = this.calculateCityRelevance(stop, segment);
       score += cityRelevance;
 
-      console.log(`🏆 Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
+      console.log(`🏆 [DEBUG] Scored ${stop.name}: ${score} points (category: ${stop.category}, city: ${stop.city_name})`);
 
       return { ...stop, relevanceScore: score };
     }).sort((a, b) => b.relevanceScore - a.relevanceScore);
+    
+    console.log(`🏆 [DEBUG] Scoring complete. Top 5 scores:`, 
+      scoredStops.slice(0, 5).map(s => ({ 
+        name: s.name, 
+        score: s.relevanceScore, 
+        category: s.category 
+      }))
+    );
+    
+    return scoredStops;
   }
 
   /**
@@ -215,15 +294,14 @@ export class StopRecommendationService {
     scoredStops: (TripStop & { relevanceScore: number })[],
     maxStops: number
   ): RecommendedStop[] {
+    console.log(`🎯 [DEBUG] Starting diverse selection from ${scoredStops.length} scored stops (max: ${maxStops})`);
+    
     const selectedStops: RecommendedStop[] = [];
     const categoryCount: Record<string, number> = {};
 
-    console.log(`🎯 Selecting from ${scoredStops.length} scored stops:`, 
-      scoredStops.map(s => ({ name: s.name, category: s.category, score: s.relevanceScore }))
-    );
-
     for (const stop of scoredStops) {
       if (selectedStops.length >= maxStops) {
+        console.log(`🎯 [DEBUG] Reached max stops limit (${maxStops}), stopping selection`);
         break;
       }
 
@@ -233,11 +311,11 @@ export class StopRecommendationService {
       // Ensure diversity - don't select more than 2 stops of the same category for small lists
       const maxPerCategory = maxStops <= 3 ? 2 : Math.ceil(maxStops / 2);
       if (currentCategoryCount >= maxPerCategory) {
-        console.log(`⚠️ Skipping ${stop.name} - too many ${category} stops already`);
+        console.log(`⚠️ [DEBUG] Skipping ${stop.name} - too many ${category} stops already (${currentCategoryCount}/${maxPerCategory})`);
         continue;
       }
 
-      selectedStops.push({
+      const recommendedStop: RecommendedStop = {
         id: stop.id,
         name: stop.name,
         category: stop.category || 'attraction',
@@ -246,13 +324,17 @@ export class StopRecommendationService {
         distanceFromRoute: 0, // Would calculate actual distance in a real implementation
         relevanceScore: stop.relevanceScore,
         type: this.mapCategoryToType(stop.category)
-      });
+      };
 
+      selectedStops.push(recommendedStop);
       categoryCount[category] = currentCategoryCount + 1;
-      console.log(`✅ Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
+      
+      console.log(`✅ [DEBUG] Selected: ${stop.name} (${stop.category}) - Score: ${stop.relevanceScore}`);
     }
 
-    console.log(`🎯 Final selection by category:`, categoryCount);
+    console.log(`🎯 [DEBUG] Selection complete. Final counts by category:`, categoryCount);
+    console.log(`🎯 [DEBUG] Selected stops:`, selectedStops.map(s => ({ name: s.name, category: s.category, type: s.type })));
+    
     return selectedStops;
   }
 
