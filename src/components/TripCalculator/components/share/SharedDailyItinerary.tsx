@@ -56,11 +56,12 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
     return today;
   }, [tripStartDate]);
 
+  // FIXED: Use the same formatTime function as TripResults (working preview)
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
+    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
 
   return (
@@ -80,6 +81,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       </div>
       
       {segments.map((segment, index) => {
+        // FIXED: Use the same drive time calculation as TripResults (working preview)
         const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
         const distance = segment.distance || segment.approximateMiles || 0;
         const segmentDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
@@ -89,7 +91,10 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
           endCity: segment.endCity,
           segmentDate: segmentDate.toISOString(),
           hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          consistentWeatherDisplay: true
+          consistentWeatherDisplay: true,
+          drivingTime: segment.drivingTime,
+          driveTimeHours: segment.driveTimeHours,
+          actualDriveTime: drivingTime
         });
 
         return (

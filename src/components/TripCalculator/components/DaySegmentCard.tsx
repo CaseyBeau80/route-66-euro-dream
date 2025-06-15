@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -9,7 +10,6 @@ import DaySegmentCardStats from './DaySegmentCardStats';
 import DaySegmentCardContent from './DaySegmentCardContent';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import ErrorBoundary from './ErrorBoundary';
-import { DriveTimeCalculator } from './utils/DriveTimeCalculator';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -85,17 +85,17 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   
   console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
-  // FIXED: Use DriveTimeCalculator for consistent drive time calculation
-  const actualDriveTime = DriveTimeCalculator.getActualDriveTime(stableSegment);
+  // FIXED: Use the same drive time calculation as TripResults (working preview)
+  const drivingTime = stableSegment.drivingTime || stableSegment.driveTimeHours || 0;
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
     try {
-      if (actualDriveTime <= 4) {
+      if (drivingTime <= 4) {
         return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-      } else if (actualDriveTime <= 6) {
+      } else if (drivingTime <= 6) {
         return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-      } else if (actualDriveTime <= 8) {
+      } else if (drivingTime <= 8) {
         return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
       } else {
         return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
@@ -104,12 +104,19 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       console.error('❌ Error getting drive time style:', error);
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
-  }, [actualDriveTime]);
+  }, [drivingTime]);
 
-  // FIXED: Use DriveTimeCalculator for consistent formatting
+  // FIXED: Use the same formatTime function as TripResults
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+  };
+
   const formattedDriveTime = React.useMemo(() => {
-    return DriveTimeCalculator.formatDriveTime(stableSegment);
-  }, [stableSegment]);
+    return formatTime(drivingTime);
+  }, [drivingTime]);
 
   // Memoized segment distance
   const segmentDistance = React.useMemo(() => {
@@ -138,7 +145,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
     consistentDriveTime: formattedDriveTime,
-    actualDriveTime,
+    actualDriveTime: drivingTime,
     drivingTime: stableSegment.drivingTime,
     driveTimeHours: stableSegment.driveTimeHours,
     timestamp: new Date().toISOString()

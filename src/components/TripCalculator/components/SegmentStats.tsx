@@ -4,7 +4,6 @@ import { MapPin, Clock, AlertTriangle, Fuel } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { DriveTimeCalculator } from './utils/DriveTimeCalculator';
 
 interface SegmentStatsProps {
   segment: DailySegment;
@@ -14,21 +13,29 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // FIXED: Use DriveTimeCalculator for consistent drive time calculation
-  const actualDriveTime = DriveTimeCalculator.getActualDriveTime(segment);
-  const formattedDriveTime = DriveTimeCalculator.formatDriveTime(segment);
+  // FIXED: Use the same drive time calculation as TripResults (working preview)
+  const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
+  
+  // FIXED: Use the same formatTime function as TripResults
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+  };
+
+  const formattedDriveTime = formatTime(drivingTime);
   
   const isLongDriveDay = segment.approximateMiles > 500;
-  const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300); // Estimate fuel stops every 300 miles
-
+  const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300);
   const segmentDistance = segment.distance || segment.approximateMiles;
 
-  console.log('📊 FIXED: SegmentStats using DriveTimeCalculator:', {
+  console.log('📊 FIXED: SegmentStats using SAME logic as working preview:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
     drivingTime: segment.drivingTime,
     driveTimeHours: segment.driveTimeHours,
-    actualDriveTime,
+    actualDriveTime: drivingTime,
     formattedDriveTime
   });
 
