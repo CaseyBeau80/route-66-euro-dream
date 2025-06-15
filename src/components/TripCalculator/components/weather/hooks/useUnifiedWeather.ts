@@ -23,77 +23,95 @@ export const useUnifiedWeather = ({
   const [refreshTrigger, setRefreshTrigger] = React.useState(0);
 
   const fetchLiveWeather = React.useCallback(async (): Promise<ForecastWeatherData | null> => {
-    if (!segmentDate) return null;
+    if (!segmentDate) {
+      console.log('🔄 FIXED: No segmentDate - using fallback for', cityName);
+      return createFallbackWeather();
+    }
 
     const apiKey = WeatherApiKeyManager.getApiKey();
+    console.log('🔑 FIXED: API Key check:', {
+      hasApiKey: !!apiKey,
+      isPlaceholder: apiKey === 'your_api_key_here',
+      keyLength: apiKey?.length || 0,
+      cityName
+    });
+
     if (!apiKey || apiKey === 'your_api_key_here') {
-      console.log('🔄 useUnifiedWeather: No valid API key - using fallback for', cityName);
+      console.log('🔄 FIXED: No valid API key - using fallback for', cityName);
       return createFallbackWeather();
     }
 
     // Check if date is within live forecast range (0-7 days from today)
     const today = new Date();
-    const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(segmentDate);
+    targetDate.setHours(0, 0, 0, 0);
+    const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     
-    console.log('🌤️ CRITICAL FIX: Checking forecast range for', cityName, {
-      segmentDate: segmentDate.toISOString(),
+    console.log('🌤️ FIXED: Date range check for', cityName, {
+      today: today.toISOString().split('T')[0],
+      targetDate: targetDate.toISOString().split('T')[0],
       daysFromToday,
       isWithinRange: daysFromToday >= 0 && daysFromToday <= 7
     });
 
     if (daysFromToday < 0 || daysFromToday > 7) {
-      console.log('🔄 useUnifiedWeather: Date outside forecast range - using fallback for', cityName, { daysFromToday });
+      console.log('🔄 FIXED: Date outside forecast range - using fallback for', cityName, { daysFromToday });
       return createFallbackWeather();
     }
 
     try {
-      console.log('🌤️ CRITICAL FIX: Attempting LIVE weather fetch for', cityName, {
-        segmentDate: segmentDate.toISOString(),
+      console.log('🌤️ FIXED: Attempting LIVE weather fetch for', cityName, {
+        targetDate: targetDate.toISOString(),
         daysFromToday,
         shouldBeLive: true
       });
 
-      // Get coordinates
+      // Get coordinates first
       const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
       const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)}&limit=1&appid=${apiKey}`;
       
+      console.log('🌍 FIXED: Geocoding request for', cleanCityName);
       const geoResponse = await fetch(geocodingUrl);
+      
       if (!geoResponse.ok) {
-        console.error('❌ CRITICAL FIX: Geocoding failed for', cityName);
+        console.error('❌ FIXED: Geocoding failed for', cityName, geoResponse.status);
         return createFallbackWeather();
       }
       
       const geoData = await geoResponse.json();
       if (!geoData || geoData.length === 0) {
-        console.error('❌ CRITICAL FIX: City not found:', cityName);
+        console.error('❌ FIXED: City not found:', cityName);
         return createFallbackWeather();
       }
 
       const { lat, lon } = geoData[0];
+      console.log('✅ FIXED: Got coordinates for', cityName, { lat, lon });
       
       // Get weather forecast
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
       
+      console.log('🌤️ FIXED: Weather API request for', cityName);
       const weatherResponse = await fetch(weatherUrl);
+      
       if (!weatherResponse.ok) {
-        console.error('❌ CRITICAL FIX: Weather API failed for', cityName, weatherResponse.status);
+        console.error('❌ FIXED: Weather API failed for', cityName, weatherResponse.status);
         return createFallbackWeather();
       }
       
       const weatherData = await weatherResponse.json();
       if (!weatherData.list || weatherData.list.length === 0) {
-        console.error('❌ CRITICAL FIX: No weather data for', cityName);
+        console.error('❌ FIXED: No weather data for', cityName);
         return createFallbackWeather();
       }
 
-      // CRITICAL FIX: If we reach here, API succeeded - create LIVE weather data
-      console.log('✅ CRITICAL FIX: API call succeeded for', cityName, {
-        responseListLength: weatherData.list.length,
-        shouldCreateLiveWeather: true
+      console.log('🎯 FIXED: Weather API SUCCESS for', cityName, {
+        listLength: weatherData.list.length,
+        firstItem: weatherData.list[0]
       });
 
       // Find the best match for target date
-      const targetDateString = segmentDate.toISOString().split('T')[0];
+      const targetDateString = targetDate.toISOString().split('T')[0];
       
       // Group forecast items by date
       const dailyData = new Map<string, any[]>();
@@ -110,10 +128,11 @@ export const useUnifiedWeather = ({
       if (!targetDayItems && dailyData.size > 0) {
         const firstAvailableDate = Array.from(dailyData.keys())[0];
         targetDayItems = dailyData.get(firstAvailableDate);
+        console.log('🔄 FIXED: Using closest date', firstAvailableDate, 'for target', targetDateString);
       }
 
       if (!targetDayItems || targetDayItems.length === 0) {
-        console.error('❌ CRITICAL FIX: No forecast items for target date');
+        console.error('❌ FIXED: No forecast items for target date');
         return createFallbackWeather();
       }
 
@@ -130,7 +149,7 @@ export const useUnifiedWeather = ({
 
       const representativeItem = targetDayItems[Math.floor(targetDayItems.length / 2)];
 
-      // CRITICAL FIX: Create LIVE weather data since API succeeded
+      // CRITICAL FIX: Create LIVE weather data with explicit properties
       const liveWeatherData: ForecastWeatherData = {
         temperature: Math.round(avgTemp),
         highTemp: Math.round(maxTemp),
@@ -144,60 +163,54 @@ export const useUnifiedWeather = ({
         forecast: [],
         forecastDate: segmentDate,
         isActualForecast: true, // CRITICAL: Must be true for live weather
-        source: 'live_forecast' as const, // CRITICAL: Must be 'live_forecast'
-        matchedForecastDay: representativeItem
+        source: 'live_forecast' as const // CRITICAL: Must be 'live_forecast'
       };
 
-      console.log('✅ CRITICAL FIX: Created LIVE weather data for', cityName, {
+      console.log('✅ FIXED: Created LIVE weather data for', cityName, {
         source: liveWeatherData.source,
         isActualForecast: liveWeatherData.isActualForecast,
         temperature: liveWeatherData.temperature,
-        shouldShowGreen: true,
-        passesDetection: liveWeatherData.source === 'live_forecast' && liveWeatherData.isActualForecast === true
+        willShowGreen: liveWeatherData.source === 'live_forecast' && liveWeatherData.isActualForecast === true
       });
 
       return liveWeatherData;
 
     } catch (error) {
-      console.error('❌ CRITICAL FIX: Live weather fetch failed for', cityName, error);
+      console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
       return createFallbackWeather();
     }
   }, [cityName, segmentDate]);
 
   const createFallbackWeather = React.useCallback((): ForecastWeatherData => {
-    if (!segmentDate) {
-      segmentDate = new Date();
-    }
+    const fallbackDate = segmentDate || new Date();
+    const targetDateString = fallbackDate.toISOString().split('T')[0];
+    const daysFromToday = Math.ceil((fallbackDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
     
-    const targetDateString = segmentDate.toISOString().split('T')[0];
-    const daysFromToday = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-    
-    // CRITICAL FIX: Fallback weather must have correct source and isActualForecast
     const fallbackData = WeatherFallbackService.createFallbackForecast(
       cityName,
-      segmentDate,
+      fallbackDate,
       targetDateString,
       daysFromToday
     );
 
-    // Ensure fallback has correct properties for historical data
+    // Ensure fallback has correct properties
     const finalFallback = {
       ...fallbackData,
-      source: 'historical_fallback' as const, // CRITICAL: Correct source for fallback
-      isActualForecast: false // CRITICAL: Fallback is not actual forecast
+      source: 'historical_fallback' as const,
+      isActualForecast: false
     };
     
-    console.log('⚠️ CRITICAL FIX: Created fallback weather for', cityName, {
+    console.log('⚠️ FIXED: Created fallback weather for', cityName, {
       source: finalFallback.source,
       isActualForecast: finalFallback.isActualForecast,
-      shouldShowYellow: true
+      willShowYellow: true
     });
 
     return finalFallback;
   }, [cityName, segmentDate]);
 
   const refetch = React.useCallback(() => {
-    console.log('🔄 CRITICAL FIX: Manual refetch requested for', cityName);
+    console.log('🔄 FIXED: Manual refetch requested for', cityName);
     setRefreshTrigger(prev => prev + 1);
   }, [cityName]);
 
@@ -210,10 +223,10 @@ export const useUnifiedWeather = ({
     fetchLiveWeather()
       .then((weatherData) => {
         if (weatherData) {
-          console.log('✅ CRITICAL FIX: Setting weather data for', cityName, {
+          console.log('✅ FIXED: Setting weather data for', cityName, {
             source: weatherData.source,
             isActualForecast: weatherData.isActualForecast,
-            isLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast === true
+            temperature: weatherData.temperature
           });
           setWeather(weatherData);
         } else {
@@ -221,7 +234,7 @@ export const useUnifiedWeather = ({
         }
       })
       .catch((err) => {
-        console.error('❌ CRITICAL FIX: Error fetching weather for', cityName, err);
+        console.error('❌ FIXED: Error fetching weather for', cityName, err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
         setWeather(createFallbackWeather());
       })
