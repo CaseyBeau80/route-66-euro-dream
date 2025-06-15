@@ -37,9 +37,8 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
 
   const tripStartDate = ensureDateObject(formData.tripStartDate);
 
-  console.log('📅 TripDateForm: Date validation:', {
+  console.log('📅 TripDateForm: Current state:', {
     originalValue: formData.tripStartDate,
-    originalType: typeof formData.tripStartDate,
     processedValue: tripStartDate,
     isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
   });
@@ -60,24 +59,22 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   const endDate = calculateEndDate();
 
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('📅 Trip start date changed:', date);
+    console.log('📅 Date selected:', date);
     
-    // Ensure we're setting a proper Date object or undefined
-    const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : undefined;
-    
+    // Simply set the date - remove complex validation that might be blocking selection
     setFormData({ 
       ...formData, 
-      tripStartDate: validDate 
+      tripStartDate: date 
     });
   };
 
-  // Simple date comparison that allows today and future dates
+  // Get today's date for comparison
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize to start of day
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   
-  console.log('📅 TripDateForm: Calendar allows today and future dates:', {
+  console.log('📅 TripDateForm: Today comparison:', {
     today: today.toISOString(),
-    todayAllowed: true
+    todayStart: todayStart.toISOString()
   });
 
   return (
@@ -124,16 +121,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             onSelect={handleDateSelect}
             disabled={(date) => {
               // Only disable dates before today
-              const checkDate = new Date(date);
-              checkDate.setHours(0, 0, 0, 0);
-              
-              const isBeforeToday = checkDate < today;
+              const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+              const isBeforeToday = checkDate < todayStart;
               
               console.log('📅 Date check:', {
                 date: checkDate.toDateString(),
-                today: today.toDateString(),
-                isBeforeToday,
-                disabled: isBeforeToday
+                todayStart: todayStart.toDateString(),
+                isBeforeToday
               });
               
               return isBeforeToday;
