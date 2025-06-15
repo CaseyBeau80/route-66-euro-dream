@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp, Calculator } from 'lucide-react';
 import CostEstimatorForm from './CostEstimatorForm';
 import { useCostEstimator } from '../hooks/useCostEstimator';
 import { TripFormData } from '../types/tripCalculator';
@@ -13,7 +13,7 @@ interface CostEstimatorSectionProps {
 }
 
 const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, tripPlan }) => {
-  const [showCostEstimator, setShowCostEstimator] = useState(true); // Default to open
+  const [showCostEstimator, setShowCostEstimator] = useState(true);
   
   const { costData, setCostData, costEstimate } = useCostEstimator(tripPlan);
 
@@ -35,8 +35,17 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-blue-800">Trip Cost Calculator</h3>
+      {/* Streamlined Header */}
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Calculator className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-blue-800">Trip Cost Calculator</h3>
+            <p className="text-sm text-blue-600">Estimate your Route 66 expenses</p>
+          </div>
+        </div>
         <Button
           type="button"
           onClick={() => setShowCostEstimator(!showCostEstimator)}
@@ -45,53 +54,78 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
           className="border-blue-300 text-blue-700 hover:bg-blue-50"
         >
           <DollarSign className="mr-2 h-4 w-4" />
-          {showCostEstimator ? 'Hide Calculator' : 'Show Calculator'}
+          {showCostEstimator ? 'Hide' : 'Show'}
           {showCostEstimator ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
         </Button>
       </div>
 
-      {/* Cost Summary - Always visible when there's an estimate */}
+      {/* Streamlined Cost Summary */}
       {costEstimate && tripPlan && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 mb-3">Estimated Trip Cost</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-            <div>
-              <span className="text-blue-700">Total Cost:</span>
-              <span className="font-bold text-blue-800 ml-2 text-lg">
-                {formatCurrency(costEstimate.breakdown.totalCost)}
-              </span>
-            </div>
-            <div>
-              <span className="text-blue-700">Per Person:</span>
-              <span className="font-bold text-blue-800 ml-2 text-lg">
-                {formatCurrency(costEstimate.breakdown.totalCost / costData.groupSize)}
-              </span>
+        <div className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-blue-800">Estimated Trip Cost</h4>
+            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              {costData.groupSize} {costData.groupSize === 1 ? 'person' : 'people'}
             </div>
           </div>
           
-          {/* Detailed breakdown */}
-          <div className="pt-3 border-t border-blue-200">
-            <div className="grid grid-cols-3 gap-2 text-xs text-blue-600">
-              <div>Gas: {formatCurrency(costEstimate.breakdown.gasCost)}</div>
-              <div>Hotels: {formatCurrency(costEstimate.breakdown.accommodationCost)}</div>
-              <div>Meals: {formatCurrency(costEstimate.breakdown.mealCost)}</div>
-              {costEstimate.breakdown.carRentalCost > 0 && (
-                <div>Car Rental: {formatCurrency(costEstimate.breakdown.carRentalCost)}</div>
-              )}
-              {costEstimate.breakdown.attractionCost > 0 && (
-                <div>Attractions: {formatCurrency(costEstimate.breakdown.attractionCost)}</div>
-              )}
-              {costEstimate.breakdown.tollCost > 0 && (
-                <div>Tolls: {formatCurrency(costEstimate.breakdown.tollCost)}</div>
-              )}
+          {/* Main Cost Display */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-800">
+                {formatCurrency(costEstimate.breakdown.totalCost)}
+              </div>
+              <div className="text-sm text-blue-600">Total Cost</div>
             </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-800">
+                {formatCurrency(costEstimate.breakdown.totalCost / costData.groupSize)}
+              </div>
+              <div className="text-sm text-blue-600">Per Person</div>
+            </div>
+          </div>
+          
+          {/* Compact breakdown in a grid */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.gasCost)}</div>
+              <div className="text-xs text-gray-600">Gas</div>
+            </div>
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.accommodationCost)}</div>
+              <div className="text-xs text-gray-600">Hotels</div>
+            </div>
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.mealCost)}</div>
+              <div className="text-xs text-gray-600">Meals</div>
+            </div>
+            
+            {/* Optional items on second row if they exist */}
+            {costEstimate.breakdown.carRentalCost > 0 && (
+              <div className="text-center p-2 bg-gray-50 rounded">
+                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.carRentalCost)}</div>
+                <div className="text-xs text-gray-600">Car Rental</div>
+              </div>
+            )}
+            {costEstimate.breakdown.attractionCost > 0 && (
+              <div className="text-center p-2 bg-gray-50 rounded">
+                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.attractionCost)}</div>
+                <div className="text-xs text-gray-600">Attractions</div>
+              </div>
+            )}
+            {costEstimate.breakdown.tollCost > 0 && (
+              <div className="text-center p-2 bg-gray-50 rounded">
+                <div className="font-semibold text-gray-800">{formatCurrency(costEstimate.breakdown.tollCost)}</div>
+                <div className="text-xs text-gray-600">Tolls</div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Cost Estimator Form */}
       {showCostEstimator && (
-        <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
           <CostEstimatorForm 
             costData={costData}
             setCostData={setCostData}
@@ -99,9 +133,9 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
           
           {/* Message when no trip plan */}
           {!tripPlan && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-700 text-center">
-                Plan your trip first to see cost estimates
+                Plan your trip first to see detailed cost estimates
               </p>
             </div>
           )}
