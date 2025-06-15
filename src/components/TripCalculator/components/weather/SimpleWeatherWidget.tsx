@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -60,10 +59,16 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // FIXED: Always check API key - always called
   const hasApiKey = React.useMemo(() => {
-    return WeatherApiKeyManager.hasApiKey();
-  }, [forceKey]); // Use forceKey to trigger re-evaluation when needed
+    const keyExists = WeatherApiKeyManager.hasApiKey();
+    console.log('🔧 FIXED: API key check:', {
+      keyExists,
+      cityName: segment.endCity,
+      shouldShowLiveWeather: keyExists
+    });
+    return keyExists;
+  }, [forceKey, segment.endCity]);
 
-  // Use unified weather - always called
+  // Use unified weather - always called with enhanced validation
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -80,13 +85,21 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // FIXED: Always calculate if it's live forecast - always called
   const isLiveForecast = React.useMemo(() => {
-    return weatherValidation?.isLiveForecast || false;
-  }, [weatherValidation]);
+    const isLive = weatherValidation?.isLiveForecast || false;
+    console.log('🔧 FIXED: Live forecast check:', {
+      cityName: segment.endCity,
+      isLive,
+      hasValidation: !!weatherValidation,
+      weatherSource: weather?.source,
+      hasApiKey
+    });
+    return isLive;
+  }, [weatherValidation, segment.endCity, weather?.source, hasApiKey]);
 
-  // FIXED: Always calculate styles - always called
+  // FIXED: Always calculate styles - always called with corrected logic
   const styles = React.useMemo(() => {
     if (isLiveForecast) {
-      console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', segment.endCity);
+      console.log('🟢 FIXED: Using GREEN styling for live weather:', segment.endCity);
       return {
         sourceLabel: '🟢 Live Weather Forecast',
         sourceColor: '#059669', // Green-600
@@ -98,7 +111,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         textColor: '#166534', // Green-800
       };
     } else {
-      console.log('🟡 CRITICAL FIX: Using YELLOW styling for historical weather:', segment.endCity);
+      console.log('🟡 FIXED: Using YELLOW styling for historical weather:', segment.endCity);
       return {
         sourceLabel: '🟡 Historical Weather Data',
         sourceColor: '#ca8a04', // Yellow-600
@@ -112,7 +125,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     }
   }, [isLiveForecast, segment.endCity]);
 
-  console.log('🚀 SimpleWeatherWidget render:', {
+  console.log('🚀 FIXED: SimpleWeatherWidget render:', {
     cityName: segment.endCity,
     day: segment.day,
     forceKey,
@@ -123,7 +136,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
     validationIsLive: isLiveForecast,
-    shouldShowGreen: isLiveForecast
+    shouldShowGreen: isLiveForecast,
+    hasApiKey
   });
 
   const getWeatherIcon = (iconCode: string) => {
