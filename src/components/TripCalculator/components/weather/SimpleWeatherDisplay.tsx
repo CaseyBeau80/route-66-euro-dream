@@ -2,10 +2,10 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { Cloud, Sun, CloudRain, Snowflake, Wind, Thermometer } from 'lucide-react';
-import { WeatherData } from './hooks/useEdgeFunctionWeather';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface SimpleWeatherDisplayProps {
-  weather: WeatherData;
+  weather: ForecastWeatherData;
   segmentDate: Date;
   cityName: string;
   isSharedView?: boolean;
@@ -46,7 +46,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          {getWeatherIcon(weather.condition || '')}
+          {getWeatherIcon(weather.description || '')}
           <div>
             <div className="text-lg font-semibold text-gray-800">
               {format(segmentDate, 'MMM d')}
@@ -71,7 +71,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       
       <div className="flex items-center justify-between">
         <div className="text-sm font-medium text-gray-700">
-          {weather.condition || 'Partly Cloudy'}
+          {weather.description || 'Partly Cloudy'}
         </div>
         
         {weather.humidity && (
