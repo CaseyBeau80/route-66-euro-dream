@@ -68,30 +68,27 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // Create a simple date comparison using date strings to avoid timezone issues
+  // FIXED: Simple and clear date disabling logic - only disable dates that are clearly in the past
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
     
-    // Get date strings in YYYY-MM-DD format for reliable comparison
-    const dateStr = date.getFullYear() + '-' + 
-                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                    String(date.getDate()).padStart(2, '0');
+    // Set both dates to start of day for fair comparison
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const checkDateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    const todayStr = today.getFullYear() + '-' + 
-                     String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                     String(today.getDate()).padStart(2, '0');
+    // Only disable if the date is strictly before today (not including today)
+    const isDisabled = checkDateStart.getTime() < todayStart.getTime();
     
-    const isBeforeToday = dateStr < todayStr;
-    
-    console.log('📅 FIXED Date comparison:', {
-      checkingDate: dateStr,
-      todayDate: todayStr,
-      isBeforeToday,
-      disabled: isBeforeToday,
-      originalDate: date.toDateString()
+    console.log('📅 SIMPLE Date check:', {
+      checkingDate: date.toDateString(),
+      todayDate: today.toDateString(),
+      checkDateStart: checkDateStart.getTime(),
+      todayStart: todayStart.getTime(),
+      isDisabled,
+      allowsToday: !isDisabled && checkDateStart.getTime() === todayStart.getTime()
     });
     
-    return isBeforeToday;
+    return isDisabled;
   };
 
   return (
