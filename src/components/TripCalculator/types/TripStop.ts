@@ -11,6 +11,7 @@ export interface TripStop {
   longitude: number;
   image_url?: string;
   thumbnail_url?: string;
+  website?: string;
   is_major_stop?: boolean;
   is_official_destination?: boolean;
   featured?: boolean;
@@ -47,6 +48,7 @@ export const convertToTripStop = (obj: any): TripStop => {
     longitude: obj.longitude || 0,
     image_url: obj.image_url,
     thumbnail_url: obj.thumbnail_url,
+    website: obj.website,
     is_major_stop: obj.is_major_stop,
     is_official_destination: obj.is_official_destination,
     featured: obj.featured || false
