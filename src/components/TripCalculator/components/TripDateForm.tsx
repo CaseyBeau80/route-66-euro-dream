@@ -71,10 +71,15 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // Get yesterday's date for comparison - now allows today to be selected
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
+  // Create a proper cutoff date - yesterday at start of day
+  const today = new Date();
+  const cutoffDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  
+  console.log('📅 TripDateForm: Date restrictions:', {
+    today: today.toISOString(),
+    cutoffDate: cutoffDate.toISOString(),
+    todayAllowed: true
+  });
 
   return (
     <div className="space-y-2">
@@ -119,9 +124,17 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={(date) => {
-              const checkDate = new Date(date);
-              checkDate.setHours(0, 0, 0, 0);
-              return checkDate < yesterday; // Changed from today to yesterday - now allows today
+              // Only disable dates before today (allow today and future dates)
+              const dateToCheck = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+              const result = dateToCheck < cutoffDate;
+              
+              console.log('📅 Date check:', {
+                dateToCheck: dateToCheck.toISOString(),
+                cutoffDate: cutoffDate.toISOString(),
+                isDisabled: result
+              });
+              
+              return result;
             }}
             initialFocus
             className="p-3 pointer-events-auto"
