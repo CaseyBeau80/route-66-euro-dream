@@ -4,8 +4,8 @@ import { DailySegment } from '../planning/TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export class StopGeographyFilter {
-  private static readonly MAX_DISTANCE_MILES = 150; // Increased from 100 to 150 miles
-  private static readonly FALLBACK_DISTANCE_MILES = 300; // Increased fallback range
+  private static readonly MAX_DISTANCE_MILES = 200; // Increased for better coverage
+  private static readonly FALLBACK_DISTANCE_MILES = 400; // Increased fallback range
 
   /**
    * Filter stops by route geography with enhanced fallback logic
@@ -30,25 +30,25 @@ export class StopGeographyFilter {
       return exactCityMatches;
     }
 
-    // STEP 2: Try partial city name matching
-    const partialCityMatches = this.findPartialCityMatches(allStops, destinationCity, destinationState);
-    if (partialCityMatches.length > 0) {
-      console.log(`✅ [GEOGRAPHY-FILTER] Found ${partialCityMatches.length} partial city matches`);
-      return partialCityMatches;
-    }
-
-    // STEP 3: Try state-based filtering with broader criteria
+    // STEP 2: Try state-based filtering with broader criteria
     const stateMatches = this.findStateMatches(allStops, destinationState);
     if (stateMatches.length > 0) {
       console.log(`✅ [GEOGRAPHY-FILTER] Found ${stateMatches.length} state matches`);
-      return stateMatches.slice(0, 15); // Increased limit
+      return stateMatches.slice(0, 20); // Take more stops for better selection
     }
 
-    // STEP 4: Try regional matching (neighboring states)
+    // STEP 3: Try regional matching (neighboring states)
     const regionalMatches = this.findRegionalMatches(allStops, destinationState);
     if (regionalMatches.length > 0) {
       console.log(`✅ [GEOGRAPHY-FILTER] Found ${regionalMatches.length} regional matches`);
-      return regionalMatches.slice(0, 10);
+      return regionalMatches.slice(0, 15);
+    }
+
+    // STEP 4: Try major Route 66 attractions regardless of location
+    const route66Matches = this.findRoute66Attractions(allStops);
+    if (route66Matches.length > 0) {
+      console.log(`✅ [GEOGRAPHY-FILTER] Found ${route66Matches.length} Route 66 attractions`);
+      return route66Matches.slice(0, 10);
     }
 
     // STEP 5: Fallback to high-quality attractions regardless of location
@@ -87,28 +87,6 @@ export class StopGeographyFilter {
       const stateMatch = state ? stopState === state.toLowerCase() : true;
       
       return cityMatch && stateMatch;
-    });
-  }
-
-  /**
-   * Find stops with partial city name matches
-   */
-  private static findPartialCityMatches(allStops: TripStop[], city: string, state: string): TripStop[] {
-    const cityLower = city.toLowerCase();
-    
-    return allStops.filter(stop => {
-      const stopCity = (stop.city_name || stop.city || '').toLowerCase();
-      const stopState = (stop.state || '').toLowerCase();
-      
-      // Check for partial matches (at least 3 characters)
-      const hasPartialMatch = cityLower.length >= 3 && stopCity.length >= 3 && (
-        stopCity.includes(cityLower.substring(0, Math.min(cityLower.length, 5))) || 
-        cityLower.includes(stopCity.substring(0, Math.min(stopCity.length, 5)))
-      );
-      
-      const stateMatch = state ? stopState === state.toLowerCase() : true;
-      
-      return hasPartialMatch && stateMatch;
     });
   }
 
@@ -152,6 +130,22 @@ export class StopGeographyFilter {
   }
 
   /**
+   * Find Route 66 specific attractions
+   */
+  private static findRoute66Attractions(allStops: TripStop[]): TripStop[] {
+    return allStops.filter(stop => {
+      const name = stop.name.toLowerCase();
+      const description = (stop.description || '').toLowerCase();
+      
+      return name.includes('route 66') || 
+             name.includes('rt 66') ||
+             description.includes('route 66') ||
+             stop.category === 'route66_waypoint' ||
+             stop.category === 'destination_city';
+    });
+  }
+
+  /**
    * Get fallback stops when geographic filtering fails
    */
   private static getFallbackStops(allStops: TripStop[]): TripStop[] {
@@ -175,6 +169,6 @@ export class StopGeographyFilter {
       destinationCities: fallbackStops.filter(s => s.category === 'destination_city').length
     });
 
-    return fallbackStops.slice(0, 12); // Increased fallback limit
+    return fallbackStops.slice(0, 15); // Increased fallback limit
   }
 }

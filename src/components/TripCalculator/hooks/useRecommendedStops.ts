@@ -41,7 +41,9 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
             name: s.name, 
             category: s.category, 
             city: s.city_name || s.city,
-            state: s.state
+            state: s.state,
+            hasDescription: !!s.description,
+            hasImage: !!(s.image_url || s.thumbnail_url)
           })),
           categoryCounts: stops.reduce((acc, s) => {
             const cat = s.category || 'unknown';
@@ -132,7 +134,9 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
           state: r.state,
           category: r.category,
           type: r.type,
-          score: r.relevanceScore
+          score: r.relevanceScore,
+          hasDescription: !!r.originalStop.description,
+          hasImage: !!(r.originalStop.image_url || r.originalStop.thumbnail_url)
         }))
       });
 
@@ -164,7 +168,8 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
       category: s.category, 
       city: s.city,
       state: s.state,
-      score: s.relevanceScore
+      score: s.relevanceScore,
+      hasRichData: !!(s.originalStop.description || s.originalStop.image_url)
     }))
   });
 

@@ -32,20 +32,16 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   // Get recommended stops for this segment
   const { recommendedStops, isLoading: isLoadingStops, hasStops, error } = useRecommendedStops(segment, 3);
   
-  // CRITICAL: Use centralized service for consistent limiting
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 [FIXED] DaySegmentCardContent CRITICAL DEBUG:', {
+  console.log('🔍 [FIXED] DaySegmentCardContent DEBUG:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     recommendedStopsCount: recommendedStops.length,
     hasStops,
     isLoadingStops,
     error,
-    maxAttractions,
-    context,
-    sectionKey,
     recommendedStopsDetails: recommendedStops.map(stop => ({
       id: stop.id,
       name: stop.name,
@@ -53,7 +49,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
       city: stop.city,
       state: stop.state,
       type: stop.type,
-      score: stop.relevanceScore
+      score: stop.relevanceScore,
+      hasDescription: !!stop.originalStop.description,
+      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url)
     }))
   });
 
@@ -78,7 +76,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
-        {/* PRIORITY: Recommended Stops Section - ALWAYS SHOW THIS FIRST */}
+        {/* ALWAYS SHOW Recommended Stops Section */}
         <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             {isLoadingStops ? (
@@ -91,7 +89,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                 <div className="font-medium">Error loading Route 66 attractions:</div>
                 <div className="text-xs mt-1">{error}</div>
               </div>
-            ) : hasStops && recommendedStops.length > 0 ? (
+            ) : recommendedStops.length > 0 ? (
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
                 maxDisplay={3}
@@ -115,15 +113,15 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
                   </ul>
                 </div>
                 <div className="text-xs mt-2 text-gray-400">
-                  Debug: Day {segment.day} • {segment.startCity} → {segment.endCity} • Stops fetched: {recommendedStops.length}
+                  Debug: Day {segment.day} • {segment.startCity} → {segment.endCity} • Database query returned {recommendedStops.length} stops
                 </div>
               </div>
             )}
           </div>
         </ErrorBoundary>
 
-        {/* Nearby Attractions - ONLY SHOW IF NO RECOMMENDED STOPS */}
-        {(!hasStops || recommendedStops.length === 0) && (
+        {/* Legacy Attractions - ONLY if no recommended stops AND not loading */}
+        {!isLoadingStops && recommendedStops.length === 0 && (
           <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
             <SegmentNearbyAttractions 
               segment={segment} 
