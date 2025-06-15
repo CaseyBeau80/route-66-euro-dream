@@ -16,32 +16,29 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 [DISPLAY-FIXED] RecommendedStopsDisplay rendering:', {
+  console.log('🔥 [FINAL-DISPLAY-DEBUG] RecommendedStopsDisplay rendering:', {
     stopsCount: stops.length,
     maxDisplay,
     showLocation,
     compact,
-    stopsData: stops.map(s => ({
+    stopsDetailed: stops.map(s => ({
+      id: s.id,
       name: s.name,
       city: s.city,
       category: s.category,
       score: s.relevanceScore,
-      hasDescription: !!s.originalStop.description,
-      hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url),
-      hasWebsite: !!s.originalStop.website,
-      originalStopData: {
-        name: s.originalStop.name,
-        description: s.originalStop.description ? s.originalStop.description.substring(0, 100) + '...' : 'No description',
-        image_url: s.originalStop.image_url,
-        thumbnail_url: s.originalStop.thumbnail_url,
-        website: s.originalStop.website,
-        featured: s.originalStop.featured
-      }
+      hasOriginalStop: !!s.originalStop,
+      originalStopKeys: s.originalStop ? Object.keys(s.originalStop) : [],
+      hasDescription: !!s.originalStop?.description,
+      hasImage: !!(s.originalStop?.image_url || s.originalStop?.thumbnail_url),
+      hasWebsite: !!s.originalStop?.website,
+      featured: s.originalStop?.featured,
+      description: s.originalStop?.description ? s.originalStop.description.substring(0, 100) + '...' : 'No description'
     }))
   });
 
   if (!stops || stops.length === 0) {
-    console.log('❌ [DISPLAY-FIXED] No stops to display');
+    console.log('❌ [FINAL-DISPLAY-DEBUG] No stops to display');
     return (
       <div className="text-center p-3 text-gray-500 text-sm">
         No recommended stops found for this segment.
@@ -50,21 +47,22 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   }
 
   const displayStops = stops.slice(0, maxDisplay);
+  console.log(`🔥 [FINAL-DISPLAY-DEBUG] Will render ${displayStops.length} stops`);
 
   return (
     <div className="space-y-3">
       {displayStops.map((stop, index) => {
         const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
         
-        console.log(`🎯 [DISPLAY-FIXED] Rendering stop ${index + 1}:`, {
+        console.log(`🔥 [FINAL-DISPLAY-DEBUG] Rendering stop ${index + 1}:`, {
           name: formatted.name,
           location: formatted.location,
           category: formatted.category,
           icon: formatted.icon,
-          hasDescription: !!stop.originalStop.description,
-          hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-          hasWebsite: !!stop.originalStop.website,
-          description: stop.originalStop.description ? stop.originalStop.description.substring(0, 50) + '...' : 'No description'
+          hasDescription: !!stop.originalStop?.description,
+          hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url),
+          hasWebsite: !!stop.originalStop?.website,
+          descriptionLength: stop.originalStop?.description?.length || 0
         });
 
         return (
@@ -75,7 +73,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
             }`}
           >
             {/* Icon */}
-            <div className="text-blue-600 mt-0.5 text-lg">
+            <div className="text-blue-600 mt-0.5 text-lg flex-shrink-0">
               {formatted.icon}
             </div>
 
@@ -93,8 +91,8 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                 </div>
               )}
 
-              {/* Description - Make sure this displays */}
-              {stop.originalStop.description && (
+              {/* Description */}
+              {stop.originalStop?.description && (
                 <div className="text-gray-600 text-sm mt-2 line-clamp-2">
                   {stop.originalStop.description}
                 </div>
@@ -106,7 +104,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                   {formatted.category}
                 </span>
                 
-                {stop.originalStop.featured && (
+                {stop.originalStop?.featured && (
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
                     ⭐ Featured
                   </span>
@@ -118,7 +116,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
               </div>
 
               {/* Website Link */}
-              {stop.originalStop.website && (
+              {stop.originalStop?.website && (
                 <div className="mt-2">
                   <a 
                     href={stop.originalStop.website} 
@@ -133,14 +131,14 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
             </div>
 
             {/* Image */}
-            {(stop.originalStop.image_url || stop.originalStop.thumbnail_url) && (
+            {(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url) && (
               <div className="w-16 h-16 flex-shrink-0">
                 <img
                   src={stop.originalStop.image_url || stop.originalStop.thumbnail_url}
                   alt={stop.name}
                   className="w-full h-full object-cover rounded border"
                   onError={(e) => {
-                    console.log(`🖼️ [DISPLAY-FIXED] Image failed to load for ${stop.name}`);
+                    console.log(`🖼️ [FINAL-DISPLAY-DEBUG] Image failed to load for ${stop.name}`);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
