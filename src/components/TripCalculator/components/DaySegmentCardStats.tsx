@@ -24,13 +24,15 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // CONSISTENT: Use same drive time calculation as shared views
-  const actualDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
+  // FIXED: Use DriveTimeCalculator for consistent drive time calculation
+  const actualDriveTime = DriveTimeCalculator.getActualDriveTime(segment);
   const consistentFormattedTime = DriveTimeCalculator.formatDriveTime(segment);
 
-  console.log('📊 CONSISTENT: DaySegmentCardStats using shared logic:', {
+  console.log('📊 FIXED: DaySegmentCardStats using corrected priority logic:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
+    drivingTime: segment.drivingTime, // Should be prioritized (correct values)
+    driveTimeHours: segment.driveTimeHours, // Often incorrect defaults
     actualDriveTime,
     consistentFormattedTime,
     originalFormattedTime: formattedDriveTime

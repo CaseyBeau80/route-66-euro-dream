@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
@@ -86,8 +85,8 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   
   console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
-  // CONSISTENT: Use same drive time calculation as shared views
-  const actualDriveTime = stableSegment.drivingTime || stableSegment.driveTimeHours || 0;
+  // FIXED: Use DriveTimeCalculator for consistent drive time calculation
+  const actualDriveTime = DriveTimeCalculator.getActualDriveTime(stableSegment);
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -107,7 +106,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [actualDriveTime]);
 
-  // CONSISTENT: Use DriveTimeCalculator for consistent formatting
+  // FIXED: Use DriveTimeCalculator for consistent formatting
   const formattedDriveTime = React.useMemo(() => {
     return DriveTimeCalculator.formatDriveTime(stableSegment);
   }, [stableSegment]);
@@ -135,10 +134,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     </div>
   ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
 
-  console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
+  console.log(`🚗 FIXED: DaySegmentCard final render for Day ${stableSegment.day}`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
     consistentDriveTime: formattedDriveTime,
+    actualDriveTime,
+    drivingTime: stableSegment.drivingTime,
+    driveTimeHours: stableSegment.driveTimeHours,
     timestamp: new Date().toISOString()
   });
 
