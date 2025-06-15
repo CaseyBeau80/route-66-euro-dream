@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
@@ -18,68 +17,35 @@ interface DaySegmentCardHeaderProps {
 
 const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
   segment,
-  segmentDate,
-  driveTimeStyle
+  segmentDate
 }) => {
   return (
-    <div className="space-y-3">
-      {/* Consistent Header Format: Day X • City Name */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs font-medium border-route66-border">
+    <div className="bg-blue-600 text-white p-4 rounded-t-lg">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary" className="bg-white/20 text-white border-white/30 font-medium">
             Day {segment.day}
           </Badge>
-          <span className="text-gray-300">•</span>
-          <h4 className="font-route66 text-base text-route66-text-primary font-semibold">
+          <h4 className="text-lg font-semibold">
             {segment.endCity}
           </h4>
         </div>
         
-        <div className="flex items-center gap-2">
-          {segmentDate && (
-            <div className="flex items-center gap-1 text-xs text-route66-text-secondary">
-              <Calendar className="h-3 w-3" />
+        {segmentDate && (
+          <div className="flex items-center gap-2 text-blue-100">
+            <Calendar className="h-4 w-4" />
+            <span className="text-sm font-medium">
               {format(segmentDate, 'EEE, MMM d')}
-            </div>
-          )}
-          
-          {segment.routeSection && (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge 
-                  variant="outline" 
-                  className="text-xs border-route66-accent-light text-route66-text-secondary"
-                >
-                  {segment.routeSection}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Route section on historic Route 66</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          
-          {/* Drive Time Status Pill */}
-          {segment.driveTimeCategory && (
-            <Tooltip>
-              <TooltipTrigger>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${driveTimeStyle.bg} ${driveTimeStyle.text} ${driveTimeStyle.border}`}>
-                  <Clock className="h-3 w-3" />
-                  <span className="capitalize">{segment.driveTimeCategory.category}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{segment.driveTimeCategory.message}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+            </span>
+          </div>
+        )}
       </div>
-
-      {/* Route Title with Consistent Format */}
-      <h5 className="font-route66 text-sm text-route66-text-primary font-medium">
-        {segment.startCity} → {segment.endCity}
-      </h5>
+      
+      <div className="mt-2">
+        <h5 className="text-sm text-blue-100 font-medium">
+          {segment.startCity} → {segment.endCity}
+        </h5>
+      </div>
     </div>
   );
 };
