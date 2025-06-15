@@ -1,10 +1,8 @@
 
 import React from 'react';
-import { Clock, MapPin, AlertTriangle } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { formatTime } from '../utils/distanceCalculator';
-import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
-import { useRecommendedStops } from '../hooks/useRecommendedStops';
 import DaySegmentCardContent from './DaySegmentCardContent';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -23,7 +21,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🎯 [CONSISTENT] DaySegmentCard rendering with enhanced system:', {
+  console.log('🎯 [SIMPLIFIED] DaySegmentCard rendering:', {
     day: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     cardIndex,
@@ -81,7 +79,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
           </div>
         </div>
 
-        {/* Content - Using consistent enhanced system */}
+        {/* Content */}
         <div className="p-4">
           <DaySegmentCardContent
             segment={segment}
