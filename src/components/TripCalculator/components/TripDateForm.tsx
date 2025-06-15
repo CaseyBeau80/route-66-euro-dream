@@ -23,27 +23,15 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   // Calculate end date
   const endDate = React.useMemo(() => {
     if (formData.tripStartDate && formData.travelDays > 0) {
-      try {
-        const calculated = addDays(formData.tripStartDate, formData.travelDays - 1);
-        console.log('🗓️ End date calculation:', {
-          startDate: formData.tripStartDate.toISOString(),
-          travelDays: formData.travelDays,
-          endDate: calculated.toISOString()
-        });
-        return calculated;
-      } catch (error) {
-        console.error('❌ Error calculating end date:', error);
-        return null;
-      }
+      return addDays(formData.tripStartDate, formData.travelDays - 1);
     }
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // Handle date selection
-  const handleDateSelect = React.useCallback((date: Date | undefined) => {
-    console.log('🗓️ FIXED CALENDAR: Date selected:', {
-      selectedDate: date?.toISOString(),
-      selectedLocal: date?.toLocaleDateString(),
+  // Handle date selection - FRESH SIMPLE IMPLEMENTATION
+  const handleDateSelect = (date: Date | undefined) => {
+    console.log('📅 FRESH CALENDAR: Date selected:', {
+      date: date?.toISOString(),
       isToday: date ? date.toDateString() === new Date().toDateString() : false
     });
     
@@ -54,18 +42,17 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       });
       setIsCalendarOpen(false);
     }
-  }, [formData, setFormData]);
+  };
 
-  // Disable past dates only
-  const isDateDisabled = React.useCallback((date: Date): boolean => {
+  // FRESH DATE VALIDATION - Only disable dates BEFORE today
+  const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(23, 59, 59, 999);
     
-    const checkDate = new Date(date);
-    checkDate.setHours(0, 0, 0, 0);
-    
-    return checkDate < today;
-  }, []);
+    return date <= yesterday;
+  };
 
   return (
     <div className="space-y-2">
@@ -104,14 +91,14 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
             selected={formData.tripStartDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
             initialFocus
-            className="p-3 pointer-events-auto"
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
