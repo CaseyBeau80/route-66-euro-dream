@@ -76,14 +76,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     if (!weather) return false;
     const result = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
     
-    console.log('🔧 FIXED: SimpleWeatherWidget using Preview detection:', {
+    console.log('🔧 FINAL FIX: SimpleWeatherWidget detection result:', {
       cityName: segment.endCity,
       day: segment.day,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
       detectionResult: result,
-      expectedColor: result ? 'GREEN' : 'YELLOW',
-      matchesPreview: true
+      expectedDisplay: result ? 'GREEN Live Forecast' : 'YELLOW Historical',
+      finalFix: true
     });
     
     return result;
@@ -153,36 +153,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return '4h 0m';
   }, [segment.driveTimeHours, segment.drivingTime, segment.distance, segment.day, segment.endCity]);
 
-  // FIXED: Use Preview styling logic exactly
-  const styles = React.useMemo(() => {
-    if (isLiveForecast) {
-      console.log('🟢 USING GREEN styling for live forecast:', segment.endCity);
-      return {
-        sourceLabel: '🟢 Live Weather Forecast',
-        sourceColor: '#059669',
-        badgeText: '✨ Live weather forecast',
-        badgeClasses: 'bg-green-100 text-green-700 border-green-200',
-        containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-        backgroundColor: '#dcfce7',
-        borderColor: '#bbf7d0',
-        textColor: '#166534',
-      };
-    } else {
-      console.log('🟡 USING YELLOW styling for historical data:', segment.endCity);
-      return {
-        sourceLabel: '🟡 Historical Weather Data',
-        sourceColor: '#d97706',
-        badgeText: '📊 Historical weather patterns',
-        badgeClasses: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        containerClasses: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
-        backgroundColor: '#fef3c7',
-        borderColor: '#fde68a',
-        textColor: '#92400e',
-      };
-    }
-  }, [isLiveForecast, segment.endCity]);
-
-  console.log('🔧 FINAL SimpleWeatherWidget state:', {
+  console.log('🔧 FINAL FIX: SimpleWeatherWidget render state:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -192,8 +163,9 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     isLiveForecast,
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
-    expectedColor: isLiveForecast ? 'GREEN' : 'YELLOW',
-    usingPreviewLogic: true
+    willShowGreen: isLiveForecast,
+    willShowYellow: !isLiveForecast,
+    finalFix: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -232,22 +204,35 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
+    // FIXED: Exact same styling logic as Preview - simple conditional classes
+    const containerClasses = isLiveForecast 
+      ? "bg-green-100 border-green-200 rounded-lg p-4 border"
+      : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
+    
+    const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
+    const badgeText = isLiveForecast ? '✨ Live weather forecast' : '📊 Historical weather patterns';
+    const badgeClasses = isLiveForecast
+      ? "bg-green-100 text-green-700 border-green-200"
+      : "bg-yellow-100 text-yellow-700 border-yellow-200";
+    const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
+
+    console.log('🎨 FINAL FIX: Applying styling for', segment.endCity, {
+      isLiveForecast,
+      containerClasses,
+      sourceLabel,
+      badgeText,
+      finalStyling: true
+    });
+
     return (
       <div 
         key={`weather-${segment.endCity}-${forceKey}`}
-        className={`${styles.containerClasses} rounded-lg p-4 border`}
-        style={{
-          backgroundColor: styles.backgroundColor,
-          borderColor: styles.borderColor
-        }}
+        className={containerClasses}
       >
         {/* Header with Drive Time */}
         <div className="flex items-center justify-between mb-2">
-          <span 
-            className="text-xs font-medium"
-            style={{ color: styles.sourceColor }}
-          >
-            {styles.sourceLabel}
+          <span className={`text-xs font-medium ${sourceColor}`}>
+            {sourceLabel}
           </span>
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <span>⏱️ {displayDriveTime}</span>
@@ -283,15 +268,8 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
         {/* Weather Status Badge */}
         <div className="mt-2 text-center">
-          <span 
-            className="inline-block text-xs px-2 py-1 rounded-full font-medium border"
-            style={{
-              backgroundColor: styles.backgroundColor,
-              color: styles.textColor,
-              borderColor: styles.borderColor
-            }}
-          >
-            {styles.badgeText}
+          <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${badgeClasses}`}>
+            {badgeText}
           </span>
         </div>
       </div>
