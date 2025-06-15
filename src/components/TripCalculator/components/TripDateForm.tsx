@@ -57,18 +57,28 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [tripStartDate, formData.travelDays]);
 
-  // Date selection handler
+  // CRITICAL FIX: Date selection handler with proper logging
   const handleDateSelect = React.useCallback((date: Date | undefined) => {
-    if (!date) return;
-    
-    console.log('🗓️ TripDateForm: Date selected:', {
-      selectedDate: date.toISOString(),
-      selectedLocal: date.toLocaleDateString(),
-      isToday: date.toDateString() === new Date().toDateString()
+    console.log('🗓️ CRITICAL FIX: handleDateSelect called:', {
+      selectedDate: date?.toISOString(),
+      selectedLocal: date?.toLocaleDateString(),
+      isToday: date ? date.toDateString() === new Date().toDateString() : false,
+      wasUndefined: date === undefined
     });
+    
+    if (!date) {
+      console.log('🗓️ CRITICAL FIX: Date is undefined, ignoring selection');
+      return;
+    }
     
     // Create a clean date object at start of day
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    console.log('🗓️ CRITICAL FIX: Setting normalized date:', {
+      original: date.toISOString(),
+      normalized: normalizedDate.toISOString(),
+      normalizedLocal: normalizedDate.toLocaleDateString()
+    });
     
     setFormData({ 
       ...formData, 
@@ -76,23 +86,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   }, [formData, setFormData]);
 
-  // FIXED: Date disabling logic - only disable dates BEFORE today
+  // CRITICAL FIX: Simplified date disabling - only disable past dates
   const isDateDisabled = React.useCallback((date: Date): boolean => {
     const today = new Date();
-    // Set today to start of day for accurate comparison
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // Only disable dates that are strictly BEFORE today (not including today)
+    // Only disable dates BEFORE today (allow today and future)
     const shouldDisable = checkDate.getTime() < todayStart.getTime();
     
-    console.log('🗓️ Date disabled check (FIXED):', {
-      checkDate: date.toDateString(),
+    console.log('🗓️ CRITICAL FIX: Date disabled check:', {
+      checkDate: checkDate.toDateString(),
       todayStart: todayStart.toDateString(),
       checkDateTime: checkDate.getTime(),
       todayStartTime: todayStart.getTime(),
       shouldDisable,
-      isToday: checkDate.getTime() === todayStart.getTime()
+      isToday: checkDate.getTime() === todayStart.getTime(),
+      isFuture: checkDate.getTime() > todayStart.getTime()
     });
     
     return shouldDisable;
