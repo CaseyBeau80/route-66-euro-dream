@@ -18,151 +18,136 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // IMPROVED: Enhanced date range calculation with better timezone handling
-  const today = new Date()
-  const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const normalizedSegmentDate = new Date(segmentDate.getFullYear(), segmentDate.getMonth(), segmentDate.getDate())
-  const daysFromToday = Math.ceil((normalizedSegmentDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000))
-  const isWithinReliableRange = daysFromToday >= 0 && daysFromToday <= 5
-  
-  // IMPROVED: Enhanced live weather detection that matches Edge Function logic
-  const isLiveWeather = weather.source === 'live_forecast' && 
-                       weather.isActualForecast === true && 
-                       isWithinReliableRange
+  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
   console.log('🌤️ IMPROVED: SimpleWeatherDisplay with enhanced validation:', {
     cityName,
     segmentDate: segmentDate.toISOString(),
     segmentDateLocal: segmentDate.toLocaleDateString(),
-    normalizedToday: normalizedToday.toISOString(),
-    normalizedSegmentDate: normalizedSegmentDate.toISOString(),
-    daysFromToday,
-    isWithinReliableRange,
+    normalizedToday: new Date().toISOString().split('T')[0] + 'T05:00:00.000Z',
+    normalizedSegmentDate: segmentDate.toISOString(),
+    daysFromToday: Math.ceil((segmentDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)),
+    isWithinReliableRange: Math.ceil((segmentDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) <= 7,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
-    finalIsLiveWeather: isLiveWeather,
+    finalIsLiveWeather: isLiveForecast,
     temperature: weather.temperature,
     description: weather.description,
     improvedValidation: true,
-    validationResult: isLiveWeather ? 'LIVE_FORECAST' : 'ESTIMATED_FORECAST',
-    shouldShowLive: daysFromToday >= 0 && daysFromToday <= 5 ? 'YES' : 'NO'
+    validationResult: isLiveForecast ? 'LIVE_FORECAST' : 'ESTIMATED_FORECAST',
+    shouldShowLive: isLiveForecast ? 'YES' : 'NO'
+  });
+
+  const getWeatherIcon = (iconCode: string) => {
+    const iconMap: { [key: string]: string } = {
+      '01d': '☀️', '01n': '🌙',
+      '02d': '⛅', '02n': '☁️',
+      '03d': '☁️', '03n': '☁️',
+      '04d': '☁️', '04n': '☁️',
+      '09d': '🌧️', '09n': '🌧️',
+      '10d': '🌦️', '10n': '🌧️',
+      '11d': '⛈️', '11n': '⛈️',
+      '13d': '🌨️', '13n': '🌨️',
+      '50d': '🌫️', '50n': '🌫️'
+    };
+    return iconMap[iconCode] || '⛅';
+  };
+
+  const weatherIcon = getWeatherIcon(weather.icon);
+  const formattedDate = format(segmentDate, 'EEEE, MMM d');
+
+  // Determine styling based on forecast type
+  const styles = isLiveForecast ? {
+    containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+    badgeClasses: 'bg-green-100 text-green-700 border-green-200',
+    badgeText: '🟢 Live forecast',
+    sourceLabel: 'Live Weather Forecast'
+  } : {
+    containerClasses: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200', 
+    badgeClasses: 'bg-amber-100 text-amber-700 border-amber-200',
+    badgeText: '📊 Historical estimate',
+    sourceLabel: 'Historical Weather Data'
+  };
+
+  // Determine what temperature info to show
+  const hasValidHigh = weather.highTemp && !isNaN(weather.highTemp);
+  const hasValidLow = weather.lowTemp && !isNaN(weather.lowTemp);
+  const hasValidCurrent = weather.temperature && !isNaN(weather.temperature);
+  
+  const shouldShowRange = hasValidHigh && hasValidLow && weather.highTemp !== weather.lowTemp;
+  const shouldShowCurrent = hasValidCurrent && !shouldShowRange;
+
+  console.log('🌡️ TEMPERATURE DISPLAY: Decision logic:', {
+    cityName,
+    hasValidHigh,
+    hasValidLow, 
+    hasValidCurrent,
+    shouldShowRange,
+    shouldShowCurrent,
+    temperatures: {
+      current: weather.temperature,
+      high: weather.highTemp,
+      low: weather.lowTemp
+    }
   });
 
   return (
-    <div className="weather-display bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-200 rounded-lg p-4">
-      {/* Header with city and date */}
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <h4 className="text-sm font-semibold text-gray-800 mb-1">
-            {cityName}
-          </h4>
-          <p className="text-xs text-gray-600">
-            {format(segmentDate, 'EEEE, MMM d')}
-          </p>
-        </div>
-        
-        {/* IMPROVED: Live weather indicator with enhanced conditions */}
-        {isLiveWeather && (
-          <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-medium">LIVE</span>
-          </div>
-        )}
-        
-        {/* IMPROVED: Estimated forecast indicator with better conditions */}
-        {!isLiveWeather && isWithinReliableRange && weather.source === 'live_forecast' && (
-          <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-            <span className="text-xs font-medium">ESTIMATED</span>
-          </div>
-        )}
-        
-        {/* IMPROVED: Seasonal forecast indicator for dates outside reliable range */}
-        {!isWithinReliableRange && (
-          <div className="flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-            <span className="text-xs font-medium">SEASONAL</span>
-          </div>
-        )}
+    <div className={`${styles.containerClasses} rounded-lg p-4 border`}>
+      {/* Header with date and source */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-medium text-gray-600">
+          {styles.sourceLabel}
+        </span>
+        <span className="text-xs text-gray-500">
+          {formattedDate}
+        </span>
       </div>
 
-      {/* Main weather info */}
+      {/* Main weather display */}
       <div className="flex items-center justify-between">
-        {/* Temperature and description */}
         <div className="flex items-center gap-3">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-700">
-              {weather.temperature}°F
-            </div>
-            {weather.highTemp && weather.lowTemp && (
-              <div className="text-xs text-gray-600">
-                H: {weather.highTemp}° L: {weather.lowTemp}°
+          <div className="text-3xl">{weatherIcon}</div>
+          <div>
+            {/* Temperature Display */}
+            {shouldShowRange ? (
+              <div className="text-2xl font-bold text-gray-800">
+                {Math.round(weather.lowTemp!)}°-{Math.round(weather.highTemp!)}°F
+              </div>
+            ) : shouldShowCurrent ? (
+              <div className="text-2xl font-bold text-gray-800">
+                {Math.round(weather.temperature)}°F
+              </div>
+            ) : (
+              <div className="text-2xl font-bold text-gray-800">
+                Weather Available
               </div>
             )}
-          </div>
-          
-          <div className="flex-1">
-            <div className="text-sm font-medium text-gray-700 capitalize mb-1">
+            
+            <div className="text-sm text-gray-600 capitalize">
               {weather.description}
             </div>
-            
-            {/* Weather details */}
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              {weather.humidity && (
-                <div>💧 {weather.humidity}%</div>
-              )}
-              {weather.windSpeed && (
-                <div>💨 {weather.windSpeed} mph</div>
-              )}
-              {weather.precipitationChance > 0 && (
-                <div>☔ {weather.precipitationChance}%</div>
-              )}
-            </div>
           </div>
         </div>
 
-        {/* Weather icon */}
-        {weather.icon && (
-          <div className="text-4xl">
-            <img 
-              src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-              alt={weather.description}
-              className="w-16 h-16"
-              onError={(e) => {
-                // Fallback to emoji if icon fails to load
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling!.textContent = isLiveWeather ? '🌤️' : '📊';
-              }}
-            />
-            <div className="text-center text-2xl" style={{ display: 'none' }}>🌤️</div>
-          </div>
-        )}
-      </div>
-
-      {/* IMPROVED: Source information with enhanced explanations */}
-      <div className="mt-3 pt-2 border-t border-blue-100">
-        <div className="text-xs text-gray-500 text-center">
-          {isLiveWeather ? (
-            <div className="text-green-600 font-medium">
-              ✅ Live forecast from OpenWeatherMap
-              <div className="text-xs text-gray-500 mt-1">
-                Real-time weather data for {cityName}
-              </div>
-            </div>
-          ) : isWithinReliableRange ? (
-            <div className="text-amber-600">
-              🔮 Estimated forecast
-              <div className="text-xs text-gray-500 mt-1">
-                Based on weather patterns for {cityName}
-              </div>
-            </div>
-          ) : (
-            <div className="text-gray-600">
-              📊 Seasonal weather estimate
-              <div className="text-xs text-gray-500 mt-1">
-                Long-range forecasts (6+ days) are seasonal estimates
-              </div>
-            </div>
+        {/* Weather details */}
+        <div className="text-right text-xs text-gray-600">
+          {weather.humidity && (
+            <div>💧 {weather.humidity}%</div>
+          )}
+          {weather.windSpeed && (
+            <div>💨 {weather.windSpeed} mph</div>
+          )}
+          {weather.precipitationChance && weather.precipitationChance > 0 && (
+            <div>🌧️ {weather.precipitationChance}%</div>
           )}
         </div>
+      </div>
+
+      {/* Source badge */}
+      <div className="mt-3 flex justify-center">
+        <span className={`px-2 py-1 rounded text-xs border ${styles.badgeClasses}`}>
+          {styles.badgeText}
+        </span>
       </div>
     </div>
   );
