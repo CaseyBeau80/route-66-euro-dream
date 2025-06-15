@@ -26,12 +26,40 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // 🚨 FORCE LOG: DaySegmentCard component entry
+  console.log(`🚨 FORCE LOG: DaySegmentCard rendering for Day ${segment?.day} - ${segment?.endCity}`, {
+    segment: {
+      day: segment?.day,
+      endCity: segment?.endCity,
+      title: segment?.title
+    },
+    tripStartDate: tripStartDate?.toISOString(),
+    cardIndex,
+    tripId,
+    sectionKey,
+    timestamp: new Date().toISOString()
+  });
+
   // Use stable segment to prevent cascading re-renders
   const stableSegment = useStableSegment(segment);
   
+  // 🚨 FORCE LOG: Stable segment result
+  console.log(`🚨 FORCE LOG: DaySegmentCard stable segment for Day ${segment?.day}`, {
+    hasStableSegment: !!stableSegment,
+    stableSegmentDay: stableSegment?.day,
+    stableSegmentEndCity: stableSegment?.endCity,
+    timestamp: new Date().toISOString()
+  });
+  
   // Early return for invalid segments with proper type checking
   if (!stableSegment || !DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
+    // Safe access to day property with fallback
     const segmentDay = stableSegment?.day ?? (segment?.day ?? 'Unknown');
+    console.log(`🚨 FORCE LOG: DaySegmentCard INVALID SEGMENT for Day ${segmentDay}`, {
+      hasStableSegment: !!stableSegment,
+      validationFailed: true,
+      timestamp: new Date().toISOString()
+    });
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -46,6 +74,17 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
+  // 🚨 FORCE LOG: Segment date calculation
+  console.log(`🚨 FORCE LOG: DaySegmentCard date calculation for Day ${stableSegment.day}`, {
+    tripStartDate: tripStartDate?.toISOString(),
+    segmentDay: stableSegment.day,
+    calculatedSegmentDate: segmentDate?.toISOString(),
+    hasSegmentDate: !!segmentDate,
+    timestamp: new Date().toISOString()
+  });
+  
+  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
+
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
     if (!stableSegment.driveTimeCategory) return { 
@@ -99,43 +138,52 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     return stableSegment.distance || stableSegment.approximateMiles;
   }, [stableSegment.distance, stableSegment.approximateMiles]);
 
+  // Card header content with error handling
+  const cardHeader = React.useMemo(() => (
+    <div className="space-y-3">
+      <DaySegmentCardHeader 
+        segment={stableSegment}
+        segmentDate={segmentDate}
+        driveTimeStyle={driveTimeStyle}
+      />
+      
+      <DaySegmentCardStats 
+        segment={stableSegment}
+        formattedDriveTime={formattedDriveTime}
+        segmentDistance={segmentDistance}
+        driveTimeStyle={driveTimeStyle}
+      />
+    </div>
+  ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
+
+  console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
+    willRenderCard: true,
+    hasCardHeader: !!cardHeader,
+    timestamp: new Date().toISOString()
+  });
+
   return (
     <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
       <TooltipProvider>
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-          <DaySegmentCardHeader 
+        <EnhancedCollapsibleCard
+          title={cardHeader}
+          defaultExpanded={false}
+          className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
+          headerClassName="border-b border-gray-200"
+          contentClassName="pt-0"
+          cardIndex={cardIndex}
+          tripId={tripId}
+          sectionKey={sectionKey}
+        >
+          <DaySegmentCardContent 
             segment={stableSegment}
-            segmentDate={segmentDate}
+            tripStartDate={tripStartDate}
             driveTimeStyle={driveTimeStyle}
-          />
-          
-          <DaySegmentCardStats 
-            segment={stableSegment}
-            formattedDriveTime={formattedDriveTime}
-            segmentDistance={segmentDistance}
-            driveTimeStyle={driveTimeStyle}
-          />
-          
-          <EnhancedCollapsibleCard
-            title=""
-            defaultExpanded={false}
-            className="border-0 shadow-none"
-            headerClassName="hidden"
-            contentClassName="p-0"
             cardIndex={cardIndex}
             tripId={tripId}
             sectionKey={sectionKey}
-          >
-            <DaySegmentCardContent 
-              segment={stableSegment}
-              tripStartDate={tripStartDate}
-              driveTimeStyle={driveTimeStyle}
-              cardIndex={cardIndex}
-              tripId={tripId}
-              sectionKey={sectionKey}
-            />
-          </EnhancedCollapsibleCard>
-        </div>
+          />
+        </EnhancedCollapsibleCard>
       </TooltipProvider>
     </ErrorBoundary>
   );

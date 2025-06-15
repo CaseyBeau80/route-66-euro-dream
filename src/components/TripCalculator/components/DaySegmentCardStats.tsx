@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Route, Clock, MapPin } from 'lucide-react';
+import { Route, Clock, AlertTriangle } from 'lucide-react';
+import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 interface DaySegmentCardStatsProps {
@@ -17,53 +18,29 @@ interface DaySegmentCardStatsProps {
 const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
   segment,
   formattedDriveTime,
-  segmentDistance
+  segmentDistance,
+  driveTimeStyle
 }) => {
+  const { formatDistance } = useUnits();
+
   return (
-    <div className="grid grid-cols-4 gap-0 bg-white border-b border-gray-200">
-      {/* Miles */}
-      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-center mb-1">
-          <Route className="h-4 w-4 text-blue-500" />
-        </div>
-        <div className="text-lg font-bold text-gray-800">
-          {Math.round(segmentDistance)}
-        </div>
-        <div className="text-xs text-gray-600">miles</div>
+    <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
+      <div className="flex items-center gap-1">
+        <Route className="h-4 w-4" />
+        <span>{formatDistance(segmentDistance)}</span>
       </div>
-      
-      {/* Drive Time */}
-      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-center mb-1">
-          <Clock className="h-4 w-4 text-purple-500" />
-        </div>
-        <div className="text-sm font-bold text-gray-800">
-          {formattedDriveTime}
-        </div>
-        <div className="text-xs text-gray-600">drive time</div>
+      <div className="flex items-center gap-1">
+        <Clock className="h-4 w-4" />
+        <span className={segment.driveTimeHours > 7 ? driveTimeStyle.text : ''}>
+          {formattedDriveTime} driving
+        </span>
       </div>
-      
-      {/* From */}
-      <div className="p-3 text-center border-r border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-center mb-1">
-          <MapPin className="h-4 w-4 text-red-500" />
+      {segment.driveTimeHours > 7 && (
+        <div className="flex items-center gap-1 text-orange-600">
+          <AlertTriangle className="h-4 w-4" />
+          <span className="text-xs font-medium">Long Drive Day</span>
         </div>
-        <div className="text-xs font-semibold text-gray-800 uppercase">From</div>
-        <div className="text-xs text-gray-600 truncate">
-          {segment.startCity || 'Unknown'}
-        </div>
-      </div>
-      
-      {/* To */}
-      <div className="p-3 text-center bg-gray-50">
-        <div className="flex items-center justify-center mb-1">
-          <MapPin className="h-4 w-4 text-green-500" />
-        </div>
-        <div className="text-xs font-semibold text-gray-800 uppercase">To</div>
-        <div className="text-xs text-gray-600 truncate">
-          {segment.endCity}
-        </div>
-      </div>
+      )}
     </div>
   );
 };

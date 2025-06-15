@@ -1,6 +1,7 @@
 
 import React from 'react';
 import TemperatureDisplay from '../TemperatureDisplay';
+import { TemperatureValidation } from '../utils/TemperatureValidation';
 
 interface TemperatureDisplayManagerProps {
   temperatures: {
@@ -57,9 +58,23 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
     }
   }, [isSharedView, hasValidHigh, hasValidLow, temperatures.high, temperatures.low, hasValidCurrent]);
 
+  const shouldShowCurrent = React.useMemo(() => {
+    const shouldShow = !isSharedView && !shouldShowRange && hasValidCurrent;
+    console.log('🌡️ PLAN: Current temperature decision:', {
+      shouldShow,
+      isSharedView,
+      shouldShowRange,
+      hasValidCurrent,
+      reason: 'fallback_to_current_only_in_regular_view',
+      planImplementation: 'current_temp_fallback'
+    });
+    return shouldShow;
+  }, [isSharedView, shouldShowRange, hasValidCurrent]);
+
   console.log('🌡️ PLAN: Enhanced TemperatureDisplayManager final decision', {
     isSharedView,
     shouldShowRange,
+    shouldShowCurrent,
     temperatures,
     hasValidHigh,
     hasValidLow,
@@ -74,6 +89,16 @@ const TemperatureDisplayManager: React.FC<TemperatureDisplayManagerProps> = ({
         type="range"
         highTemp={temperatures.high}
         lowTemp={temperatures.low}
+      />
+    );
+  }
+  
+  if (shouldShowCurrent) {
+    console.log('🌡️ PLAN: Rendering current temperature display');
+    return (
+      <TemperatureDisplay
+        type="current"
+        currentTemp={temperatures.current}
       />
     );
   }
