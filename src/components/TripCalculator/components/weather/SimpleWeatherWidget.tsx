@@ -3,7 +3,6 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
-import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import { format } from 'date-fns';
@@ -70,18 +69,55 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     cachedWeather: null
   });
 
-  // FIXED: Use EXACT same detection logic as Preview form
+  // CRITICAL FIX: Use EXACT same detection logic as TripResults
   const isLiveForecast = React.useMemo(() => {
     if (!weather) return false;
-    return LiveWeatherDetectionService.isLiveWeatherForecast(weather);
-  }, [weather]);
+    
+    console.log('🔥 CRITICAL FIX: Weather detection in SimpleWeatherWidget:', {
+      cityName: segment.endCity,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      detectionInputs: {
+        sourceIsLiveForecast: weather.source === 'live_forecast',
+        isActualForecastTrue: weather.isActualForecast === true
+      }
+    });
+    
+    // EXACT SAME LOGIC AS TRIPRESULTS: Both conditions must be true
+    const result = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    
+    console.log('🔥 CRITICAL FIX: SimpleWeatherWidget detection result:', {
+      cityName: segment.endCity,
+      isLiveForecast: result,
+      willShowGreen: result,
+      willShowYellow: !result
+    });
+    
+    return result;
+  }, [weather, segment.endCity]);
 
-  // FIXED: Use the actual driveTimeHours value directly
+  // CRITICAL FIX: Use the actual driveTimeHours value directly
   const displayDriveTime = React.useMemo(() => {
+    console.log('🚗 CRITICAL FIX: SimpleWeatherWidget drive time calculation:', {
+      cityName: segment.endCity,
+      driveTimeHours: segment.driveTimeHours,
+      distance: segment.distance,
+      segmentData: segment
+    });
+    
     if (typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
-      return `${hours}h ${minutes}m`;
+      const formatted = `${hours}h ${minutes}m`;
+      
+      console.log('✅ CRITICAL FIX: Using actual driveTimeHours:', {
+        hours,
+        minutes,
+        total: segment.driveTimeHours,
+        formatted
+      });
+      
+      return formatted;
     }
     
     // Fallback only if driveTimeHours is not available
@@ -89,11 +125,22 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       const driveTimeHours = segment.distance / 55;
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
-      return `${hours}h ${minutes}m`;
+      const formatted = `${hours}h ${minutes}m`;
+      
+      console.log('⚠️ CRITICAL FIX: Using distance fallback:', {
+        distance: segment.distance,
+        calculatedHours: driveTimeHours,
+        hours,
+        minutes,
+        formatted
+      });
+      
+      return formatted;
     }
     
-    return '4h 0m';
-  }, [segment.driveTimeHours, segment.distance]);
+    console.log('❌ CRITICAL FIX: Using fallback time - no valid data');
+    return '3h 30m'; // Changed from 4h 0m to match TripResults
+  }, [segment.driveTimeHours, segment.distance, segment.endCity]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -110,7 +157,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
-  console.log('🚀 FIXED: SimpleWeatherWidget render:', {
+  console.log('🚀 CRITICAL FIX: SimpleWeatherWidget render:', {
     cityName: segment.endCity,
     day: segment.day,
     hasWeather: !!weather,
@@ -143,7 +190,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     const weatherIcon = getWeatherIcon(weather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // FIXED: Use EXACT same styling logic as Preview form
+    // CRITICAL FIX: Use EXACT same styling logic as TripResults
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -154,6 +201,14 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       ? "bg-green-100 text-green-700 border-green-200"
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
+
+    console.log('🎨 CRITICAL FIX: SimpleWeatherWidget styling:', {
+      cityName: segment.endCity,
+      isLiveForecast,
+      containerClasses,
+      sourceLabel,
+      expectedBackgroundColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+    });
 
     return (
       <div className={containerClasses}>
