@@ -16,21 +16,22 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 RecommendedStopsDisplay: Rendering component:', {
+  console.log('🎯 [FIXED] RecommendedStopsDisplay: Rendering component:', {
     stopsCount: stops?.length || 0,
     maxDisplay,
     showLocation,
     compact,
-    stops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category, type: s.type })) || []
+    actualStops: stops?.map(s => ({ name: s.name, city: s.city, category: s.category, type: s.type })) || []
   });
 
+  // CRITICAL FIX: Enhanced validation
   if (!stops || stops.length === 0) {
-    console.log('⚠️ RecommendedStopsDisplay: No stops to display');
+    console.log('⚠️ [FIXED] RecommendedStopsDisplay: No valid stops to display');
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
           <MapPin className="h-4 w-4" />
-          Recommended Stops (0)
+          Route 66 Attractions (0)
         </h5>
         <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border">
           <p className="font-medium mb-1">No Route 66 attractions found for this segment</p>
@@ -40,22 +41,48 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     );
   }
 
-  const displayStops = stops.slice(0, maxDisplay);
-  console.log('🎯 RecommendedStopsDisplay: Will display stops:', displayStops.map(s => `${s.name} (${s.type})`));
+  // CRITICAL FIX: Filter out any invalid stops
+  const validStops = stops.filter(stop => 
+    stop && 
+    stop.name && 
+    stop.name.trim().length > 0 &&
+    stop.category &&
+    stop.city
+  ).slice(0, maxDisplay);
+
+  console.log('🎯 [FIXED] RecommendedStopsDisplay: Valid stops after filtering:', 
+    validStops.map(s => `${s.name} (${s.type}) in ${s.city}`)
+  );
+
+  if (validStops.length === 0) {
+    console.log('⚠️ [FIXED] RecommendedStopsDisplay: No valid stops after filtering');
+    return (
+      <div className="space-y-2">
+        <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
+          <MapPin className="h-4 w-4" />
+          Route 66 Attractions (0)
+        </h5>
+        <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border">
+          <p className="font-medium mb-1">Invalid attraction data</p>
+          <p className="text-xs">The attraction data could not be properly loaded for this segment.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (compact) {
     return (
       <div className="space-y-2">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
           <MapPin className="h-4 w-4" />
-          Route 66 Attractions ({displayStops.length})
+          Route 66 Attractions ({validStops.length})
         </h5>
         <div className="space-y-1">
-          {displayStops.map((stop, index) => {
+          {validStops.map((stop, index) => {
             const formatted = StopRecommendationService.formatStopForDisplay(stop);
-            console.log(`🎯 RecommendedStopsDisplay: Rendering compact stop ${index + 1}:`, formatted);
+            console.log(`🎯 [FIXED] RecommendedStopsDisplay: Rendering compact stop ${index + 1}:`, formatted);
             return (
-              <div key={stop.id} className="text-sm">
+              <div key={`${stop.id}-${index}`} className="text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-blue-600">{formatted.icon}</span>
                   <span className="font-medium text-gray-800 truncate">
@@ -79,15 +106,15 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     <div className="space-y-3">
       <h4 className="font-medium text-gray-800 flex items-center gap-2">
         <MapPin className="h-5 w-5 text-blue-600" />
-        Route 66 Attractions ({displayStops.length})
+        Route 66 Attractions ({validStops.length})
       </h4>
       <div className="space-y-3">
-        {displayStops.map((stop, index) => {
+        {validStops.map((stop, index) => {
           const formatted = StopRecommendationService.formatStopForDisplay(stop);
-          console.log(`🎯 RecommendedStopsDisplay: Rendering full stop ${index + 1}:`, formatted);
+          console.log(`🎯 [FIXED] RecommendedStopsDisplay: Rendering full stop ${index + 1}:`, formatted);
           return (
             <div 
-              key={stop.id} 
+              key={`${stop.id}-${index}`}
               className="p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               <div className="flex items-start gap-3">
