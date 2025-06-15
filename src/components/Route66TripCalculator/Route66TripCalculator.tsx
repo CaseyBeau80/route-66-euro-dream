@@ -124,6 +124,13 @@ const Route66TripCalculator: React.FC = () => {
         />
       </section>
 
+      {/* Cost Estimator Section */}
+      {tripPlan && (
+        <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
+          <CostEstimatorSection tripPlan={tripPlan} />
+        </section>
+      )}
+
       {/* Trip Results Section */}
       {(tripPlan || isCalculating) && (
         <section id="trip-results" className="bg-white rounded-xl shadow-lg border border-route66-tan overflow-hidden">
