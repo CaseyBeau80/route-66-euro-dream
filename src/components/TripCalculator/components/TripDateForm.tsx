@@ -132,30 +132,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // FIXED: Completely new date disabling logic - only disable dates BEFORE today
+  // CRITICAL FIX: Simple date disabling logic - only disable dates before today
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const checkDateNormalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const checkDateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // Only disable if date is before today (yesterday and earlier)
-    const shouldDisable = checkDateNormalized.getTime() < todayNormalized.getTime();
+    // Only disable dates that are strictly before today (yesterday and earlier)
+    const shouldDisable = checkDateStart < todayStart;
     
-    console.log('🗓️ FIXED: Date disable check (COMPREHENSIVE):', {
+    console.log('🗓️ CRITICAL FIX: Date disable check:', {
       checkingDate: date.toDateString(),
-      checkingLocal: date.toLocaleDateString(),
-      checkDateNormalized: checkDateNormalized.toISOString(),
-      checkDateNormalizedLocal: checkDateNormalized.toLocaleDateString(),
-      todayOriginal: today.toISOString(),
-      todayNormalized: todayNormalized.toISOString(),
-      todayNormalizedLocal: todayNormalized.toLocaleDateString(),
-      checkTime: checkDateNormalized.getTime(),
-      todayTime: todayNormalized.getTime(),
+      todayDate: today.toDateString(),
+      checkDateStart: checkDateStart.toDateString(),
+      todayStart: todayStart.toDateString(),
       disabled: shouldDisable,
-      isToday: checkDateNormalized.getTime() === todayNormalized.getTime(),
-      isTomorrow: checkDateNormalized.getTime() === (todayNormalized.getTime() + 24 * 60 * 60 * 1000),
-      isYesterday: checkDateNormalized.getTime() === (todayNormalized.getTime() - 24 * 60 * 60 * 1000),
-      daysDifference: Math.floor((checkDateNormalized.getTime() - todayNormalized.getTime()) / (24 * 60 * 60 * 1000))
+      isToday: checkDateStart.getTime() === todayStart.getTime(),
+      comparison: `${checkDateStart.getTime()} < ${todayStart.getTime()} = ${shouldDisable}`
     });
     
     return shouldDisable;
