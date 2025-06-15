@@ -41,6 +41,11 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
     }).format(amount);
   };
 
+  // Helper function for singular/plural people count
+  const formatPeopleCount = (count: number) => {
+    return count === 1 ? '1 person' : `${count} people`;
+  };
+
   return (
     <div className="space-y-4">
       {/* Streamlined Header */}
@@ -70,26 +75,19 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
       {/* Streamlined Cost Summary */}
       {costEstimate && tripPlan && (
         <div className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-semibold text-blue-800">Estimated Trip Cost</h4>
-            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-              {costData.groupSize} {costData.groupSize === 1 ? 'person' : 'people'}
-            </div>
-          </div>
-          
-          {/* Main Cost Display */}
+          {/* Main Cost Display - Updated layout */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-800">
                 {formatCurrency(costEstimate.breakdown.totalCost)}
               </div>
-              <div className="text-sm text-blue-600">Total Cost</div>
+              <div className="text-sm text-blue-600">Est. Cost</div>
             </div>
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-800">
                 {formatCurrency(costEstimate.breakdown.totalCost / costData.groupSize)}
               </div>
-              <div className="text-sm text-blue-600">Per Person</div>
+              <div className="text-sm text-blue-600">Per Person ({formatPeopleCount(costData.groupSize)})</div>
             </div>
           </div>
           
