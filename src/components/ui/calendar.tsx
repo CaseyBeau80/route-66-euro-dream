@@ -12,28 +12,11 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  onSelect,
   ...props
 }: CalendarProps) {
-  // FIXED: Enhanced onSelect handler with debug logging
-  const handleSelect = React.useCallback((date: Date | undefined) => {
-    console.log('🔧 CALENDAR FIX: Calendar onSelect handler:', {
-      selectedDate: date?.toISOString(),
-      selectedLocal: date?.toLocaleDateString(),
-      isToday: date ? (date.toDateString() === new Date().toDateString()) : false,
-      hasExternalHandler: typeof onSelect === 'function',
-      timestamp: new Date().toISOString()
-    });
-    
-    if (onSelect && typeof onSelect === 'function') {
-      onSelect(date);
-    }
-  }, [onSelect]);
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      onSelect={handleSelect}
       className={cn("p-3 pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
