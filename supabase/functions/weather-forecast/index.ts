@@ -38,7 +38,7 @@ serve(async (req) => {
       )
     }
 
-    // FIXED: Enhanced date processing with consistent local timezone handling
+    // Enhanced date processing with consistent local timezone handling
     const today = new Date()
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     
@@ -47,23 +47,20 @@ serve(async (req) => {
     
     const daysFromToday = Math.ceil((normalizedRequestDate.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000))
     
-    // FIXED: Reliable forecast range 0-5 days for live weather
-    const isWithinReliableForecastRange = daysFromToday >= 0 && daysFromToday <= 5
+    // Reliable forecast range 0-6 days for live weather with aggregation
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 6
     const targetDateString = normalizedRequestDate.toISOString().split('T')[0]
     
-    console.log('FIXED: Enhanced weather forecast request with consistent date handling:', {
+    console.log('🌤️ TEMPERATURE AGGREGATION: Enhanced weather forecast request:', {
       cityName,
       targetDate: requestDate.toISOString(),
       targetDateLocal: requestDate.toLocaleDateString(),
       normalizedTargetDate: normalizedRequestDate.toISOString(),
-      normalizedTargetDateLocal: normalizedRequestDate.toLocaleDateString(),
       targetDateString,
-      todayLocal: today.toLocaleDateString(),
-      normalizedTodayLocal: normalizedToday.toLocaleDateString(),
       daysFromToday,
-      isWithinReliableForecastRange,
-      apiKeyConfigured: !!apiKey,
-      consistentDateProcessing: true
+      isWithinForecastRange,
+      willAggregateTemperatures: isWithinForecastRange,
+      apiKeyConfigured: !!apiKey
     })
 
     // Clean city name for geocoding
@@ -74,13 +71,13 @@ serve(async (req) => {
     const geoResponse = await fetch(geocodingUrl)
     
     if (!geoResponse.ok) {
-      console.error('FIXED: Geocoding failed:', geoResponse.status, geoResponse.statusText)
+      console.error('❌ AGGREGATION: Geocoding failed:', geoResponse.status, geoResponse.statusText)
       throw new Error('Geocoding failed')
     }
     
     const geoData = await geoResponse.json()
     if (!geoData || geoData.length === 0) {
-      console.error('FIXED: City not found for:', cleanCityName)
+      console.error('❌ AGGREGATION: City not found for:', cleanCityName)
       throw new Error('City not found')
     }
 
@@ -88,7 +85,7 @@ serve(async (req) => {
     const location = geoData.find((r: any) => r.country === 'US') || geoData[0]
     const { lat, lon } = location
 
-    console.log('FIXED: Coordinates found:', {
+    console.log('🌤️ AGGREGATION: Coordinates found:', {
       cityName: cleanCityName,
       lat,
       lon,
@@ -98,139 +95,176 @@ serve(async (req) => {
 
     let forecast
     let isActualLiveForecast = false
-    let matchType = 'none'
 
-    if (isWithinReliableForecastRange) {
+    if (isWithinForecastRange) {
       try {
-        // Get weather forecast for reliable range
+        // Get weather forecast for aggregation range
         const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`
         const weatherResponse = await fetch(weatherUrl)
         
         if (!weatherResponse.ok) {
-          console.error('FIXED: Weather API failed:', weatherResponse.status, weatherResponse.statusText)
+          console.error('❌ AGGREGATION: Weather API failed:', weatherResponse.status, weatherResponse.statusText)
           throw new Error('Weather API failed')
         }
         
         const weatherData = await weatherResponse.json()
         if (!weatherData.list || weatherData.list.length === 0) {
-          console.error('FIXED: No weather data available for:', cityName)
+          console.error('❌ AGGREGATION: No weather data available for:', cityName)
           throw new Error('No weather data available')
         }
 
-        console.log('FIXED: Weather API response received:', {
+        console.log('🌤️ AGGREGATION: Weather API response received:', {
           cityName,
           listLength: weatherData.list.length,
           firstItemDate: weatherData.list[0]?.dt_txt,
           lastItemDate: weatherData.list[weatherData.list.length - 1]?.dt_txt,
-          targetDateString
+          targetDateString,
+          willPerformAggregation: true
         })
 
-        // FIXED: Enhanced date matching with multiple strategies
-        let bestMatch = null
-        let bestScore = Infinity
-        
-        // Strategy 1: Try exact date match first
-        for (const item of weatherData.list) {
+        // 🔥 NEW AGGREGATION LOGIC: Filter all intervals for the target date
+        const targetDateIntervals = weatherData.list.filter((item: any) => {
           const itemDate = new Date(item.dt * 1000)
           const itemDateString = itemDate.toISOString().split('T')[0]
-          
-          if (itemDateString === targetDateString) {
-            bestMatch = item
-            matchType = 'exact'
-            isActualLiveForecast = true
-            console.log('FIXED: Found exact date match:', {
-              targetDate: targetDateString,
-              matchedDate: itemDateString,
-              matchType: 'exact',
-              itemDateTime: itemDate.toISOString()
-            })
-            break
-          }
-        }
-        
-        // Strategy 2: If no exact match, find closest within 24 hours
-        if (!bestMatch) {
-          for (const item of weatherData.list) {
-            const itemDate = new Date(item.dt * 1000)
-            const timeDiff = Math.abs(itemDate.getTime() - normalizedRequestDate.getTime())
-            const hoursDiff = timeDiff / (1000 * 60 * 60)
-            
-            if (hoursDiff <= 24 && timeDiff < bestScore) {
-              bestScore = timeDiff
-              bestMatch = item
-              matchType = 'closest'
-              isActualLiveForecast = true
-            }
-          }
-          
-          if (bestMatch) {
-            console.log('FIXED: Found closest match:', {
-              targetDate: targetDateString,
-              matchedDate: new Date(bestMatch.dt * 1000).toISOString().split('T')[0],
-              hoursDiff: Math.round(bestScore / (1000 * 60 * 60)),
-              matchType: 'closest'
-            })
-          }
-        }
+          return itemDateString === targetDateString
+        })
 
-        // Strategy 3: Use appropriate forecast within range as fallback
-        if (!bestMatch && daysFromToday <= 3) {
-          // For dates within 3 days, use the closest available forecast
-          bestMatch = weatherData.list[Math.min(daysFromToday * 8, weatherData.list.length - 1)] || weatherData.list[0]
-          matchType = 'range_fallback'
-          isActualLiveForecast = true
-          
-          console.log('FIXED: Using range fallback:', {
-            targetDate: targetDateString,
-            daysFromToday,
-            matchType: 'range_fallback',
-            usedItemIndex: Math.min(daysFromToday * 8, weatherData.list.length - 1)
+        console.log('🌡️ AGGREGATION: Found intervals for target date:', {
+          targetDateString,
+          intervalCount: targetDateIntervals.length,
+          intervals: targetDateIntervals.map((item: any) => ({
+            time: new Date(item.dt * 1000).toISOString(),
+            temp: item.main.temp,
+            tempMax: item.main.temp_max,
+            tempMin: item.main.temp_min
+          }))
+        })
+
+        if (targetDateIntervals.length > 0) {
+          // 🔥 TEMPERATURE AGGREGATION: Calculate daily aggregated values
+          const allTemperatures = targetDateIntervals.flatMap((item: any) => [
+            item.main.temp,
+            item.main.temp_max,
+            item.main.temp_min
+          ]).filter(temp => temp !== undefined && !isNaN(temp))
+
+          const allMainTemps = targetDateIntervals.map((item: any) => item.main.temp)
+          const allHighTemps = targetDateIntervals.map((item: any) => item.main.temp_max)
+          const allLowTemps = targetDateIntervals.map((item: any) => item.main.temp_min)
+
+          // Calculate aggregated values
+          const dailyHigh = Math.max(...allTemperatures)
+          const dailyLow = Math.min(...allTemperatures)
+          const dailyAverage = allMainTemps.reduce((sum, temp) => sum + temp, 0) / allMainTemps.length
+
+          console.log('🌡️ AGGREGATION: Daily temperature calculations:', {
+            cityName,
+            targetDateString,
+            allTemperatures,
+            allMainTemps,
+            allHighTemps,
+            allLowTemps,
+            calculatedHigh: dailyHigh,
+            calculatedLow: dailyLow,
+            calculatedAverage: dailyAverage,
+            intervalCount: targetDateIntervals.length
           })
-        }
 
-        if (bestMatch) {
+          // Select representative interval (midday preferably, or first available)
+          const representativeInterval = targetDateIntervals.find((item: any) => {
+            const hour = new Date(item.dt * 1000).getHours()
+            return hour >= 12 && hour <= 15 // Prefer midday intervals
+          }) || targetDateIntervals[Math.floor(targetDateIntervals.length / 2)] || targetDateIntervals[0]
+
+          console.log('🌤️ AGGREGATION: Selected representative interval:', {
+            time: new Date(representativeInterval.dt * 1000).toISOString(),
+            originalTemp: representativeInterval.main.temp,
+            originalTempMax: representativeInterval.main.temp_max,
+            originalTempMin: representativeInterval.main.temp_min,
+            willUseAggregatedValues: true
+          })
+
+          // 🔥 CREATE AGGREGATED FORECAST with daily temperature ranges
           forecast = {
-            temperature: Math.round(bestMatch.main.temp),
-            highTemp: Math.round(bestMatch.main.temp_max),
-            lowTemp: Math.round(bestMatch.main.temp_min),
-            description: bestMatch.weather[0]?.description || 'Partly Cloudy',
-            icon: bestMatch.weather[0]?.icon || '02d',
-            humidity: bestMatch.main.humidity,
-            windSpeed: Math.round(bestMatch.wind?.speed || 0),
-            precipitationChance: Math.round((bestMatch.pop || 0) * 100),
+            temperature: Math.round(dailyAverage), // Use calculated average
+            highTemp: Math.round(dailyHigh), // Use calculated daily high
+            lowTemp: Math.round(dailyLow), // Use calculated daily low
+            description: representativeInterval.weather[0]?.description || 'Partly Cloudy',
+            icon: representativeInterval.weather[0]?.icon || '02d',
+            humidity: representativeInterval.main.humidity,
+            windSpeed: Math.round(representativeInterval.wind?.speed || 0),
+            precipitationChance: Math.round((representativeInterval.pop || 0) * 100),
             cityName: cityName,
-            forecastDate: targetDate ? new Date(targetDate) : new Date(bestMatch.dt * 1000),
-            isActualForecast: isActualLiveForecast,
+            forecastDate: targetDate ? new Date(targetDate) : new Date(representativeInterval.dt * 1000),
+            isActualForecast: true, // TRUE for aggregated live data
             source: 'live_forecast'
           }
 
-          console.log('FIXED: Live forecast created successfully:', {
+          isActualLiveForecast = true
+
+          console.log('✅ AGGREGATION: Created aggregated live forecast:', {
             city: cityName,
             daysFromToday,
             isActualLiveForecast,
-            matchType,
             temperature: forecast.temperature,
-            withinReliableRange: true,
+            highTemp: forecast.highTemp,
+            lowTemp: forecast.lowTemp,
+            temperatureRange: `${forecast.lowTemp}°–${forecast.highTemp}°F`,
+            aggregatedFromIntervals: targetDateIntervals.length,
             forecastSuccess: true,
             forecastDate: forecast.forecastDate.toISOString(),
-            forecastDateLocal: forecast.forecastDate.toLocaleDateString()
+            aggregationSuccessful: true
           })
+
+        } else {
+          // Fallback: use range-based forecast if no exact date match
+          console.log('🔄 AGGREGATION: No exact date match, using range fallback for', cityName)
+          
+          if (daysFromToday <= 3) {
+            const fallbackInterval = weatherData.list[Math.min(daysFromToday * 8, weatherData.list.length - 1)] || weatherData.list[0]
+            
+            forecast = {
+              temperature: Math.round(fallbackInterval.main.temp),
+              highTemp: Math.round(fallbackInterval.main.temp_max),
+              lowTemp: Math.round(fallbackInterval.main.temp_min),
+              description: fallbackInterval.weather[0]?.description || 'Partly Cloudy',
+              icon: fallbackInterval.weather[0]?.icon || '02d',
+              humidity: fallbackInterval.main.humidity,
+              windSpeed: Math.round(fallbackInterval.wind?.speed || 0),
+              precipitationChance: Math.round((fallbackInterval.pop || 0) * 100),
+              cityName: cityName,
+              forecastDate: targetDate ? new Date(targetDate) : new Date(fallbackInterval.dt * 1000),
+              isActualForecast: true,
+              source: 'live_forecast'
+            }
+
+            isActualLiveForecast = true
+
+            console.log('✅ AGGREGATION: Range fallback forecast created:', {
+              city: cityName,
+              daysFromToday,
+              temperature: forecast.temperature,
+              highTemp: forecast.highTemp,
+              lowTemp: forecast.lowTemp,
+              rangeFallback: true
+            })
+          }
         }
 
       } catch (error) {
-        console.error('FIXED: Live forecast failed:', error)
+        console.error('❌ AGGREGATION: Live forecast failed:', error)
         isActualLiveForecast = false
       }
     } else {
-      console.log('FIXED: Date outside reliable range:', {
+      console.log('🔄 AGGREGATION: Date outside forecast range, will use historical estimate:', {
         cityName,
         daysFromToday,
         targetDate: targetDateString,
-        reliableRange: '0-5 days'
+        forecastRange: '0-6 days'
       })
     }
 
-    // If we're outside reliable range or live forecast failed, create estimated forecast
+    // If we're outside forecast range or live forecast failed, create estimated forecast
     if (!forecast || !isActualLiveForecast) {
       // Create estimated forecast based on seasonal patterns
       const month = requestDate.getMonth() + 1
@@ -258,19 +292,21 @@ serve(async (req) => {
         precipitationChance: 20,
         cityName: cityName,
         forecastDate: requestDate,
-        isActualForecast: false, // Always false for estimates
-        source: isWithinReliableForecastRange ? 'live_forecast' : 'historical_fallback'
+        isActualForecast: false, // FALSE for estimates
+        source: isWithinForecastRange ? 'live_forecast' : 'historical_fallback'
       }
 
-      console.log('FIXED: Estimated forecast returned:', {
+      console.log('✅ AGGREGATION: Estimated forecast returned:', {
         city: cityName,
         daysFromToday,
         isActualForecast: false,
         temperature: forecast.temperature,
-        withinReliableRange: isWithinReliableForecastRange,
-        reason: isWithinReliableForecastRange ? 'api_failure_fallback' : 'beyond_reliable_range',
+        highTemp: forecast.highTemp,
+        lowTemp: forecast.lowTemp,
+        withinForecastRange: isWithinForecastRange,
+        reason: isWithinForecastRange ? 'api_failure_fallback' : 'beyond_forecast_range',
         forecastDate: forecast.forecastDate.toISOString(),
-        forecastDateLocal: forecast.forecastDate.toLocaleDateString()
+        estimatedForecast: true
       })
     }
 
@@ -282,7 +318,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('FIXED: Weather forecast error:', error)
+    console.error('❌ AGGREGATION: Weather forecast error:', error)
     
     return new Response(
       JSON.stringify({ 
