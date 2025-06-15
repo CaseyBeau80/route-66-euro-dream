@@ -1,32 +1,33 @@
 
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
+import { CostEstimate } from '../../TripCalculator/types/costEstimator';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
-import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   onShareTrip?: () => void;
+  costEstimate: CostEstimate | null;
 }
 
 const TripResults: React.FC<TripResultsProps> = ({
   tripPlan,
   tripStartDate,
-  onShareTrip
+  onShareTrip,
+  costEstimate
 }) => {
-  const { costEstimate } = useCostEstimator(tripPlan);
-
   console.log('📊 TripResults render:', { 
     tripPlan: !!tripPlan, 
     segmentCount: tripPlan?.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
     hasShareHandler: !!onShareTrip,
     hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost
+    totalCost: costEstimate?.breakdown?.totalCost,
+    usingSharedCostData: true
   });
 
   if (!tripPlan) {

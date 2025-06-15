@@ -31,7 +31,10 @@ const Route66TripCalculator: React.FC = () => {
     tripStartDate: new Date()
   });
   const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
-  const { costEstimate, costData } = useCostEstimator(tripPlan);
+  
+  // CENTRALIZED: Move useCostEstimator here to share state across all components
+  const { costEstimate, costData, setCostData } = useCostEstimator(tripPlan);
+  
   const [showShareModal, setShowShareModal] = useState(false);
   const [hasCostEstimate, setHasCostEstimate] = useState(false);
 
@@ -125,7 +128,7 @@ const Route66TripCalculator: React.FC = () => {
         </p>
       </section>
 
-      {/* Planning Form Section - Now includes cost calculator */}
+      {/* Planning Form Section - Now includes cost calculator with shared state */}
       <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
         <TripPlannerForm
           formData={formData}
@@ -137,6 +140,9 @@ const Route66TripCalculator: React.FC = () => {
           onResetTrip={handleResetTrip}
           isPlanning={isCalculating}
           tripPlan={tripPlan}
+          costData={costData}
+          setCostData={setCostData}
+          costEstimate={costEstimate}
         />
       </section>
 
@@ -153,6 +159,7 @@ const Route66TripCalculator: React.FC = () => {
                 tripPlan={tripPlan}
                 tripStartDate={formData.tripStartDate}
                 onShareTrip={handleShareTrip}
+                costEstimate={costEstimate}
               />
               
               {/* Cost Calculator Banner */}
@@ -176,6 +183,7 @@ const Route66TripCalculator: React.FC = () => {
           onClose={() => setShowShareModal(false)}
           tripPlan={tripPlan}
           tripStartDate={formData.tripStartDate}
+          costEstimate={costEstimate}
           onShareUrlGenerated={(shareCode, shareUrl) => {
             console.log('✅ Share URL generated:', { shareCode, shareUrl });
           }}

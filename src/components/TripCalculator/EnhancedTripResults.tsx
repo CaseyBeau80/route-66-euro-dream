@@ -3,17 +3,18 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
+import { CostEstimate } from './types/costEstimator';
 import TripItinerary from './components/TripItinerary';
 import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
-import { useCostEstimator } from './hooks/useCostEstimator';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
+  costEstimate: CostEstimate | null;
   loadingState?: {
     isPreLoading: boolean;
     progress: number;
@@ -28,6 +29,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripPlan,
   shareUrl,
   tripStartDate,
+  costEstimate,
   loadingState
 }) => {
   const { formatDistance } = useUnits();
@@ -37,8 +39,6 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     console.error('❌ EnhancedTripResults: tripPlan is null or undefined');
     return null;
   }
-
-  const { costEstimate } = useCostEstimator(tripPlan);
 
   // Safely convert tripStartDate to a valid Date object
   const validTripStartDate = React.useMemo(() => {
@@ -56,12 +56,14 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return undefined;
   }, [tripStartDate]);
 
-  console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
+  console.log("🌤️ EnhancedTripResults: Rendering with shared cost data:", {
     segmentsCount: tripPlan.segments?.length || 0,
     hasStartDate: !!validTripStartDate,
     hasCostEstimate: !!costEstimate,
+    totalCost: costEstimate?.breakdown?.totalCost,
     startDate: validTripStartDate?.toISOString(),
-    isPreLoading: loadingState?.isPreLoading
+    isPreLoading: loadingState?.isPreLoading,
+    usingSharedState: true
   });
 
   // Show pre-loader if loading

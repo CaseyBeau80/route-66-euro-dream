@@ -3,25 +3,33 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DollarSign, ChevronDown, ChevronUp, Calculator } from 'lucide-react';
 import CostEstimatorForm from './CostEstimatorForm';
-import { useCostEstimator } from '../hooks/useCostEstimator';
 import { TripFormData } from '../types/tripCalculator';
+import { CostEstimatorData, CostEstimate } from '../types/costEstimator';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 interface CostEstimatorSectionProps {
   formData: TripFormData;
   tripPlan?: TripPlan;
+  costData: CostEstimatorData;
+  setCostData: (data: CostEstimatorData) => void;
+  costEstimate: CostEstimate | null;
 }
 
-const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, tripPlan }) => {
+const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ 
+  formData, 
+  tripPlan, 
+  costData, 
+  setCostData, 
+  costEstimate 
+}) => {
   const [showCostEstimator, setShowCostEstimator] = useState(true);
-  
-  const { costData, setCostData, costEstimate } = useCostEstimator(tripPlan);
 
   console.log('💰 CostEstimatorSection rendering:', {
     hasTripPlan: !!tripPlan,
     hasCostEstimate: !!costEstimate,
     showCostEstimator,
-    totalCost: costEstimate?.breakdown?.totalCost
+    totalCost: costEstimate?.breakdown?.totalCost,
+    usingSharedState: true
   });
 
   const formatCurrency = (amount: number) => {

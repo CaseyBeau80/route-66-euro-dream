@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
+import { CostEstimatorData, CostEstimate } from '../../TripCalculator/types/costEstimator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
@@ -17,6 +18,9 @@ interface TripPlannerFormProps {
   onResetTrip: () => void;
   isPlanning: boolean;
   tripPlan?: any;
+  costData: CostEstimatorData;
+  setCostData: (data: CostEstimatorData) => void;
+  costEstimate: CostEstimate | null;
 }
 
 const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
@@ -28,7 +32,10 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   onPlanTrip,
   onResetTrip,
   isPlanning,
-  tripPlan
+  tripPlan,
+  costData,
+  setCostData,
+  costEstimate
 }) => {
   console.log('📝 TripPlannerForm render:', { formData, isPlanning });
 
@@ -67,9 +74,15 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         onTripStyleChange={onTripStyleChange}
       />
 
-      {/* Cost Estimator Section */}
+      {/* Cost Estimator Section - Pass shared state */}
       <div className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-        <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
+        <CostEstimatorSection 
+          formData={formData} 
+          tripPlan={tripPlan}
+          costData={costData}
+          setCostData={setCostData}
+          costEstimate={costEstimate}
+        />
       </div>
 
       {/* Action Buttons */}
