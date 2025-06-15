@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { useWeatherCard } from '../hooks/useWeatherCard';
+import { useWeatherCard } from './hooks/useWeatherCard';
 import { format } from 'date-fns';
 import { Cloud, Sun, CloudRain, Snowflake, Wind } from 'lucide-react';
 
@@ -24,10 +24,8 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   }, [tripStartDate, segment.day]);
 
   const { weatherData, isLoading, error } = useWeatherCard({
-    segmentEndCity: segment.endCity,
-    segmentDay: segment.day,
-    tripStartDate,
-    componentName: 'UnifiedWeatherWidget'
+    segment,
+    tripStartDate
   });
 
   const getWeatherIcon = (condition: string) => {
