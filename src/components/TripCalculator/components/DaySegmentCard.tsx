@@ -10,6 +10,7 @@ import DaySegmentCardStats from './DaySegmentCardStats';
 import DaySegmentCardContent from './DaySegmentCardContent';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import ErrorBoundary from './ErrorBoundary';
+import { DriveTimeCalculator } from './utils/DriveTimeCalculator';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -85,53 +86,31 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   
   console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
+  // CONSISTENT: Use same drive time calculation as shared views
+  const actualDriveTime = stableSegment.drivingTime || stableSegment.driveTimeHours || 0;
+
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
-    if (!stableSegment.driveTimeCategory) return { 
-      bg: 'bg-gray-100', 
-      text: 'text-gray-700', 
-      border: 'border-gray-300' 
-    };
-    
     try {
-      switch (stableSegment.driveTimeCategory.category) {
-        case 'light':
-          return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-        case 'moderate':
-          return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-        case 'heavy':
-          return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
-        case 'extreme':
-          return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
-        default:
-          return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
+      if (actualDriveTime <= 4) {
+        return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
+      } else if (actualDriveTime <= 6) {
+        return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
+      } else if (actualDriveTime <= 8) {
+        return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
+      } else {
+        return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
       }
     } catch (error) {
       console.error('❌ Error getting drive time style:', error);
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
-  }, [stableSegment.driveTimeCategory]);
+  }, [actualDriveTime]);
 
-  // Memoized drive time formatting
+  // CONSISTENT: Use DriveTimeCalculator for consistent formatting
   const formattedDriveTime = React.useMemo(() => {
-    try {
-      const hours = stableSegment.driveTimeHours;
-      if (typeof hours !== 'number' || isNaN(hours) || hours < 0) {
-        return '0h';
-      }
-      
-      if (hours < 1) {
-        const minutes = Math.round(hours * 60);
-        return `${minutes}m`;
-      }
-      const wholeHours = Math.floor(hours);
-      const minutes = Math.round((hours - wholeHours) * 60);
-      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-    } catch (error) {
-      console.error('❌ Error formatting drive time:', error);
-      return '0h';
-    }
-  }, [stableSegment.driveTimeHours]);
+    return DriveTimeCalculator.formatDriveTime(stableSegment);
+  }, [stableSegment]);
 
   // Memoized segment distance
   const segmentDistance = React.useMemo(() => {
@@ -159,6 +138,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
+    consistentDriveTime: formattedDriveTime,
     timestamp: new Date().toISOString()
   });
 

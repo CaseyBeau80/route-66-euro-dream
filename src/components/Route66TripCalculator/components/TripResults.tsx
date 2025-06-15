@@ -73,11 +73,17 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  console.log('🔧 FIXED: TripResults using fixed DriveTimeCalculator:', {
+  console.log('🔧 CONSISTENT: TripResults using same drive time logic as shared views:', {
     segmentCount: tripPlan.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
     firstSegment: tripPlan.segments?.[0]
   });
+
+  // CONSISTENT: Helper function to format time (same as shared views)
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    return DriveTimeCalculator.formatHours(hours);
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -100,18 +106,21 @@ const TripResults: React.FC<TripResultsProps> = ({
         </h3>
         
         {tripPlan.segments?.map((segment, index) => {
-          console.log(`🔧 FIXED: Rendering segment ${index} for ${segment.endCity}:`, {
+          console.log(`🔧 CONSISTENT: Rendering segment ${index} for ${segment.endCity}:`, {
             segmentData: {
               day: segment.day,
               driveTimeHours: segment.driveTimeHours,
+              drivingTime: segment.drivingTime,
               distance: segment.distance,
               startCity: segment.startCity,
               endCity: segment.endCity
             },
-            hasValidDriveTime: typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0,
-            hasValidDistance: typeof segment.distance === 'number' && segment.distance > 0,
             tripStartDate: tripStartDate?.toISOString()
           });
+
+          // CONSISTENT: Use same drive time calculation as shared views
+          const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
+          const distance = segment.distance || segment.approximateMiles || 0;
 
           return (
             <Card key={index} className="p-4 border border-route66-border">
@@ -133,11 +142,11 @@ const TripResults: React.FC<TripResultsProps> = ({
                 <div className="flex items-center gap-4 text-sm text-route66-text-secondary mt-2 md:mt-0">
                   <div className="flex items-center gap-1">
                     <Route className="w-4 h-4" />
-                    {Math.round(segment.distance)} miles
+                    {Math.round(distance)} miles
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {DriveTimeCalculator.formatDriveTime(segment)}
+                    {formatTime(drivingTime)}
                   </div>
                 </div>
               </div>
