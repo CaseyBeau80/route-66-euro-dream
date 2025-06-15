@@ -57,20 +57,25 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // Date validation - consistent with normalization
+  // FIXED: Date validation - allow today and future dates, block only past dates
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('📅 DATE VALIDATION:', {
+    // CRITICAL FIX: Use <= to block ONLY dates BEFORE today, allowing today to be selectable
+    const isBeforeToday = normalizedDate < normalizedToday;
+    
+    console.log('📅 FIXED DATE VALIDATION:', {
       todayNormalized: normalizedToday.toDateString(),
       checkDateNormalized: normalizedDate.toDateString(),
-      isBeforeToday: normalizedDate < normalizedToday,
+      isBeforeToday,
+      isToday: normalizedDate.getTime() === normalizedToday.getTime(),
+      allowed: !isBeforeToday,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
     
-    return normalizedDate < normalizedToday;
+    return isBeforeToday; // Only block dates BEFORE today, allow today and future
   };
 
   return (
