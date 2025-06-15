@@ -71,15 +71,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // FIXED: Proper date comparison that allows today
+  // FIXED: Simple date comparison that allows today and future dates
   const today = new Date();
-  const todayString = today.toDateString();
+  today.setHours(0, 0, 0, 0); // Normalize to start of day
   
-  console.log('📅 TripDateForm: Date restrictions updated to allow today:', {
+  console.log('📅 TripDateForm: Calendar allows today and future dates:', {
     today: today.toISOString(),
-    todayString,
-    todayAllowed: true,
-    onlyBlockPastDates: true
+    todayAllowed: true
   });
 
   return (
@@ -125,16 +123,17 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={(date) => {
-              // FIXED: Simple comparison - only disable dates before today
-              const dateString = date.toDateString();
-              const isBeforeToday = dateString !== todayString && date < today;
+              // FIXED: Only disable dates before today
+              const checkDate = new Date(date);
+              checkDate.setHours(0, 0, 0, 0);
               
-              console.log('📅 Date check - FIXED logic:', {
-                dateToCheck: dateString,
-                todayString,
+              const isBeforeToday = checkDate < today;
+              
+              console.log('📅 Date check:', {
+                date: checkDate.toDateString(),
+                today: today.toDateString(),
                 isBeforeToday,
-                isToday: dateString === todayString,
-                allowToday: true
+                disabled: isBeforeToday
               });
               
               return isBeforeToday;
