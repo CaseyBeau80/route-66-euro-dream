@@ -9,8 +9,9 @@ const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
 
   useEffect(() => {
-    console.log('🚗 TripCalculator page mounted - simplified version');
+    console.log('🚗 TripCalculator page mounted');
     
+    // Check for any critical errors on mount
     const handleError = (event: ErrorEvent) => {
       console.error('❌ Critical error in TripCalculator:', event.error);
     };

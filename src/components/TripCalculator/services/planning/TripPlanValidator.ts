@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 
 export class TripPlanValidator {

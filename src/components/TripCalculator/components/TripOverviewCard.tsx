@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, Calendar, DollarSign, ChevronDown, ChevronUp, Cloud } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import { CostEstimate } from '../types/costEstimator';
 import { useCostEstimator } from '../hooks/useCostEstimator';
 import TripStatsGrid from './TripStatsGrid';
 import ShareAndExportDropdown from './ShareAndExportDropdown';
@@ -20,7 +18,6 @@ interface TripOverviewCardProps {
   formatTime: (hours: number) => string;
   formatDate: (date: Date) => string;
   handleShare: () => void;
-  costEstimate?: CostEstimate | null;
 }
 
 const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
@@ -31,10 +28,11 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   setShowCostEstimator,
   formatTime,
   formatDate,
-  handleShare,
-  costEstimate
+  handleShare
 }) => {
   console.log("🌤️ TripOverviewCard: Rendering with weather data for trip:", tripPlan.segments.length, "segments");
+  
+  const { costEstimate } = useCostEstimator(tripPlan);
   
   // Calculate end date
   const calculateEndDate = () => {
@@ -90,7 +88,6 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
         <TripStatsGrid
           tripPlan={tripPlan}
           formatTime={formatTime}
-          costEstimate={costEstimate}
         />
 
         {/* FIXED: Weather Information Section - No header, let SegmentWeatherWidget handle everything */}

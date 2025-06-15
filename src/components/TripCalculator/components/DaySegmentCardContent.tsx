@@ -2,6 +2,9 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
+import SegmentNearbyAttractions from './SegmentNearbyAttractions';
+import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardContentProps {
@@ -25,16 +28,21 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🔥 DaySegmentCardContent render - NO STOPS SYSTEM:', {
+  // CRITICAL: Use centralized service for consistent limiting
+  const maxAttractions = AttractionLimitingService.getMaxAttractions();
+  const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
+  
+  console.log('🔍 DaySegmentCardContent using CENTRALIZED attraction limiting:', {
     segmentDay: segment.day,
-    route: `${segment.startCity} → ${segment.endCity}`,
-    sectionKey,
-    cardIndex
+    endCity: segment.endCity,
+    maxAttractions,
+    context,
+    sectionKey
   });
 
   return (
     <div className="space-y-4">
-      {/* Drive Time Warning */}
+      {/* Drive Time Message - Compact */}
       {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
         <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
           <div className="flex items-start gap-2">
@@ -51,14 +59,21 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Simple Route Information */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <div className="text-sm text-gray-600 text-center">
-          Enjoy your drive from {segment.startCity} to {segment.endCity}! 
-          <br />
-          Stop along the way to explore local attractions and Route 66 landmarks.
-        </div>
+      {/* Route & Stops Content */}
+      <div className="space-y-4">
+        {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
+        <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
+          <SegmentNearbyAttractions 
+            segment={segment} 
+            maxAttractions={maxAttractions}
+          />
+        </ErrorBoundary>
       </div>
+
+      {/* Debug Component - Production Safe */}
+      <ErrorBoundary context={`DebugStopSelection-Day${segment.day}`} silent={true}>
+        <DebugStopSelectionWrapper segment={segment} />
+      </ErrorBoundary>
     </div>
   );
 };

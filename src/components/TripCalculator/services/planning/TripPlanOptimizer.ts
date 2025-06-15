@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { TripPlan } from './TripPlanBuilder';
 import { EnhancedDriveTimeBalancer, BalanceResult } from './EnhancedDriveTimeBalancer';
 import { UnifiedTripPlanningService } from './UnifiedTripPlanningService';

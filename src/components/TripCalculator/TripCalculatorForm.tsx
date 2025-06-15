@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
-import { CostEstimatorData, CostEstimate } from './types/costEstimator';
 import { route66Towns } from '@/types/route66';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import FormHeader from './components/FormHeader';
@@ -27,9 +25,6 @@ interface TripCalculatorFormProps {
   isCalculating: boolean;
   tripPlan?: TripPlan;
   shareUrl?: string | null;
-  costData: CostEstimatorData;
-  setCostData: (data: CostEstimatorData) => void;
-  costEstimate: CostEstimate | null;
 }
 
 const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
@@ -40,10 +35,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   isCalculateDisabled,
   isCalculating,
   tripPlan,
-  shareUrl,
-  costData,
-  setCostData,
-  costEstimate
+  shareUrl
 }) => {
   const { isFormValid } = useFormValidation(formData);
 
@@ -119,14 +111,8 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <UnitSelector />
       </div>
 
-      {/* Cost Estimator Section - Pass all required props */}
-      <CostEstimatorSection 
-        formData={formData} 
-        tripPlan={tripPlan}
-        costData={costData}
-        setCostData={setCostData}
-        costEstimate={costEstimate}
-      />
+      {/* Cost Estimator Section - Pass tripPlan for real data */}
+      <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
 
       {/* Form Validation Helper - moved above Plan button */}
       <FormValidationHelper 

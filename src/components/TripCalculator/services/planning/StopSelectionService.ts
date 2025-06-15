@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { CuratedStopSelection, StopCurationConfig, TargetNumbers } from './StopCurationConfig';
 import { CategorizedStops } from './StopCategorizer';
 import { StopScorer } from './StopScorer';

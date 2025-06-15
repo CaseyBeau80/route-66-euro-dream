@@ -1,4 +1,5 @@
-import { TripStop } from '../../types/TripStop';
+
+import { TripStop } from '../data/SupabaseDataService';
 
 export class CityDisplayService {
   /**

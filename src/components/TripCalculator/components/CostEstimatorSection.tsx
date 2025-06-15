@@ -3,33 +3,25 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DollarSign, ChevronDown, ChevronUp, Calculator } from 'lucide-react';
 import CostEstimatorForm from './CostEstimatorForm';
+import { useCostEstimator } from '../hooks/useCostEstimator';
 import { TripFormData } from '../types/tripCalculator';
-import { CostEstimatorData, CostEstimate } from '../types/costEstimator';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 interface CostEstimatorSectionProps {
   formData: TripFormData;
   tripPlan?: TripPlan;
-  costData: CostEstimatorData;
-  setCostData: (data: CostEstimatorData) => void;
-  costEstimate: CostEstimate | null;
 }
 
-const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ 
-  formData, 
-  tripPlan, 
-  costData, 
-  setCostData, 
-  costEstimate 
-}) => {
+const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, tripPlan }) => {
   const [showCostEstimator, setShowCostEstimator] = useState(true);
+  
+  const { costData, setCostData, costEstimate } = useCostEstimator(tripPlan);
 
   console.log('💰 CostEstimatorSection rendering:', {
     hasTripPlan: !!tripPlan,
     hasCostEstimate: !!costEstimate,
     showCostEstimator,
-    totalCost: costEstimate?.breakdown?.totalCost,
-    usingSharedState: true
+    totalCost: costEstimate?.breakdown?.totalCost
   });
 
   const formatCurrency = (amount: number) => {
@@ -39,11 +31,6 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
-  };
-
-  // Helper function for singular/plural people count
-  const formatPeopleCount = (count: number) => {
-    return count === 1 ? '1 person' : `${count} people`;
   };
 
   return (
@@ -75,19 +62,26 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
       {/* Streamlined Cost Summary */}
       {costEstimate && tripPlan && (
         <div className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
-          {/* Main Cost Display - Updated layout */}
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-blue-800">Estimated Trip Cost</h4>
+            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              {costData.groupSize} {costData.groupSize === 1 ? 'person' : 'people'}
+            </div>
+          </div>
+          
+          {/* Main Cost Display */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-800">
                 {formatCurrency(costEstimate.breakdown.totalCost)}
               </div>
-              <div className="text-sm text-blue-600">Est. Cost</div>
+              <div className="text-sm text-blue-600">Total Cost</div>
             </div>
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-800">
                 {formatCurrency(costEstimate.breakdown.totalCost / costData.groupSize)}
               </div>
-              <div className="text-sm text-blue-600">Per Person ({formatPeopleCount(costData.groupSize)})</div>
+              <div className="text-sm text-blue-600">Per Person</div>
             </div>
           </div>
           

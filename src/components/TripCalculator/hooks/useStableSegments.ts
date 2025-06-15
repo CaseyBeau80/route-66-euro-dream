@@ -1,50 +1,68 @@
 
 import { useMemo } from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { SegmentStabilizer } from '../utils/segmentStabilizer';
 
 /**
- * Hook to create stable segment references to prevent unnecessary re-renders
+ * Hook to provide stable segment references that only change when content actually changes
  */
-export const useStableSegment = (segment: DailySegment) => {
+export const useStableSegments = (segments: DailySegment[]): DailySegment[] => {
   return useMemo(() => {
-    if (!segment) return null;
+    if (!Array.isArray(segments)) {
+      console.warn('⚠️ useStableSegments: segments is not an array', segments);
+      return [];
+    }
     
-    return {
-      day: segment.day,
-      startCity: segment.startCity,
-      endCity: segment.endCity,
-      distance: segment.distance,
-      driveTimeHours: segment.driveTimeHours,
-      driveTimeCategory: segment.driveTimeCategory,
-      destination: segment.destination,
-      recommendedStops: segment.recommendedStops || []
-    };
-  }, [
-    segment?.day,
-    segment?.startCity,
-    segment?.endCity,
-    segment?.distance,
-    segment?.driveTimeHours,
-    segment?.driveTimeCategory?.category,
-    segment?.destination,
-    segment?.recommendedStops?.length
-  ]);
+    console.log(`🔧 useStableSegments: Processing ${segments.length} segments`);
+    console.log(`🔧 useStableSegments: Raw input segments:`, segments.map(s => ({ 
+      day: s.day, 
+      endCity: s.endCity, 
+      startCity: s.startCity,
+      hasEndCity: !!s.endCity,
+      hasStartCity: !!s.startCity 
+    })));
+    
+    const stabilizedSegments = segments.map((segment, index) => {
+      console.log(`🔧 useStableSegments: Stabilizing segment ${index + 1}:`, {
+        day: segment.day,
+        endCity: segment.endCity,
+        startCity: segment.startCity,
+        isValid: !!(segment.day && segment.endCity && segment.startCity)
+      });
+      
+      return SegmentStabilizer.stabilize(segment);
+    });
+    
+    console.log(`🔧 useStableSegments: Final stabilized segments:`, stabilizedSegments.map(s => ({
+      day: s.day,
+      endCity: s.endCity,
+      startCity: s.startCity
+    })));
+    
+    // Check for any segments that got filtered out
+    if (stabilizedSegments.length !== segments.length) {
+      console.error('❌ useStableSegments: Segments were lost during stabilization!', {
+        originalCount: segments.length,
+        stabilizedCount: stabilizedSegments.length,
+        originalSegments: segments.map(s => ({ day: s.day, endCity: s.endCity })),
+        stabilizedSegments: stabilizedSegments.map(s => ({ day: s.day, endCity: s.endCity }))
+      });
+    }
+    
+    return stabilizedSegments;
+  }, [segments]);
 };
 
 /**
- * Hook to create stable segment array references
+ * Hook to provide a single stable segment reference
  */
-export const useStableSegments = (segments: DailySegment[]) => {
+export const useStableSegment = (segment: DailySegment): DailySegment => {
   return useMemo(() => {
-    return segments.map(segment => ({
-      day: segment.day,
-      startCity: segment.startCity,
-      endCity: segment.endCity,
-      distance: segment.distance,
-      driveTimeHours: segment.driveTimeHours,
-      driveTimeCategory: segment.driveTimeCategory,
-      destination: segment.destination,
-      recommendedStops: segment.recommendedStops || []
-    }));
-  }, [segments]);
+    if (!segment) {
+      console.warn('⚠️ useStableSegment: segment is null/undefined');
+      return segment;
+    }
+    
+    return SegmentStabilizer.stabilize(segment);
+  }, [segment]);
 };

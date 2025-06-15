@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { EnhancedSegmentStopSelector } from './EnhancedSegmentStopSelector';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 

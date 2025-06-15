@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 
 export class DestinationCityValidator {
   private static readonly MAJOR_DESTINATION_CITIES = new Set([

@@ -1,6 +1,6 @@
 
 import { UnifiedTripPlanningService } from '../UnifiedTripPlanningService';
-import { TripStop } from '../../../types/TripStop';
+import { TripStop } from '../../data/SupabaseDataService';
 
 // Mock data for testing
 const mockStartStop: TripStop = {

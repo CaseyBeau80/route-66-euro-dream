@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { DestinationCandidateService } from './DestinationCandidateService';
@@ -76,7 +76,7 @@ export class SegmentDestinationPlanner {
       
       console.log(`📅 Day ${day + 1}: Looking for destination around ${targetDistanceFromStart.toFixed(0)} miles (${targetDriveTime.toFixed(1)}h drive)`);
 
-      const candidateDestination = this.selectBestDestinationForDay(
+      const candidateDestination = DestinationCandidateService.selectBestDestinationForDay(
         currentStop,
         endStop,
         officialDestinations,
@@ -128,62 +128,6 @@ export class SegmentDestinationPlanner {
 
     console.log(`🎯 Final selection: ${selectedDestinations.length} destinations for ${totalDays} days`);
     return selectedDestinations;
-  }
-
-  /**
-   * Select best destination for a specific day
-   */
-  private static selectBestDestinationForDay(
-    currentStop: TripStop,
-    endStop: TripStop,
-    officialDestinations: TripStop[],
-    otherStops: TripStop[],
-    selectedDestinations: TripStop[],
-    targetDistanceFromStart: number,
-    driveTimeTarget: any
-  ): TripStop | null {
-    // Filter available destinations (not already selected)
-    const availableOfficial = officialDestinations.filter(dest => 
-      !selectedDestinations.some(selected => selected.id === dest.id)
-    );
-    
-    const availableOther = otherStops.filter(stop => 
-      !selectedDestinations.some(selected => selected.id === stop.id)
-    );
-
-    // Try official destinations first
-    for (const dest of availableOfficial) {
-      const candidate = DestinationCandidateService.scoreDestinationCandidate(
-        currentStop,
-        endStop,
-        dest,
-        targetDistanceFromStart,
-        true,
-        driveTimeTarget
-      );
-      
-      if (candidate) {
-        return candidate.stop;
-      }
-    }
-
-    // Fallback to other stops
-    for (const stop of availableOther) {
-      const candidate = DestinationCandidateService.scoreDestinationCandidate(
-        currentStop,
-        endStop,
-        stop,
-        targetDistanceFromStart,
-        false,
-        driveTimeTarget
-      );
-      
-      if (candidate) {
-        return candidate.stop;
-      }
-    }
-
-    return null;
   }
 
   /**

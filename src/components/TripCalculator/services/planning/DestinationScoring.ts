@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeTarget, DriveTimeConstraints } from './DriveTimeConstraints';
 import { DestinationCityValidator } from './DestinationCityValidator';

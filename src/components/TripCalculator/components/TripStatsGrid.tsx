@@ -2,20 +2,19 @@
 import React from 'react';
 import { useUnits } from '@/contexts/UnitContext';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import { CostEstimate } from '../types/costEstimator';
+import { useCostEstimator } from '../hooks/useCostEstimator';
 
 interface TripStatsGridProps {
   tripPlan: TripPlan;
   formatTime: (hours: number) => string;
-  costEstimate?: CostEstimate | null;
 }
 
 const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   tripPlan,
-  formatTime,
-  costEstimate
+  formatTime
 }) => {
   const { formatDistance } = useUnits();
+  const { costEstimate } = useCostEstimator(tripPlan);
 
   const formatCurrencyNoCents = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -30,11 +29,7 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const distanceDisplay = formatDistance(tripPlan.totalDistance);
   const [distanceValue, distanceUnit] = distanceDisplay.split(' ');
 
-  console.log('💰 TripStatsGrid rendering with shared cost estimate:', {
-    hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost,
-    usingSharedState: true
-  });
+  console.log('💰 TripStatsGrid rendering with cost estimate:', costEstimate);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

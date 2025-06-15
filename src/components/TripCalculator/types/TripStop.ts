@@ -10,11 +10,8 @@ export interface TripStop {
   latitude: number;
   longitude: number;
   image_url?: string;
-  thumbnail_url?: string;
-  website?: string;
   is_major_stop?: boolean;
   is_official_destination?: boolean;
-  featured?: boolean;
   // Add city property to satisfy destination interface
   city: string;
 }
@@ -31,7 +28,7 @@ export const isTripStop = (obj: any): obj is TripStop => {
     typeof obj.state === 'string' &&
     typeof obj.latitude === 'number' &&
     typeof obj.longitude === 'number' &&
-    typeof obj.city === 'string';
+    typeof obj.city === 'string'; // Add check for city property
 };
 
 // Converter function to ensure objects match TripStop interface
@@ -42,15 +39,12 @@ export const convertToTripStop = (obj: any): TripStop => {
     description: obj.description || `Discover ${obj.name || 'this location'} along your Route 66 journey`,
     category: obj.category || 'attraction',
     city_name: obj.city_name || 'Unknown',
-    city: obj.city || obj.city_name || 'Unknown',
+    city: obj.city || obj.city_name || 'Unknown', // Ensure city property is set
     state: obj.state || 'Unknown',
     latitude: obj.latitude || 0,
     longitude: obj.longitude || 0,
     image_url: obj.image_url,
-    thumbnail_url: obj.thumbnail_url,
-    website: obj.website,
     is_major_stop: obj.is_major_stop,
-    is_official_destination: obj.is_official_destination,
-    featured: obj.featured || false
+    is_official_destination: obj.is_official_destination
   };
 };

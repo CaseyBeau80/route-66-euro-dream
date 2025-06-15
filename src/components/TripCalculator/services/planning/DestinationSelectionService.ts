@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../types/TripStop';
+import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationOptimizationService } from './DestinationOptimizationService';
 
