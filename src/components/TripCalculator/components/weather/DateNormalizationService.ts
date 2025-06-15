@@ -1,25 +1,20 @@
 
 export class DateNormalizationService {
   /**
-   * FIXED: Normalize a date to start of day in local timezone with comprehensive logging
+   * CRITICAL FIX: Normalize a date to start of day in local timezone
    * This ensures consistent date handling across the application
    */
   static normalizeSegmentDate(date: Date): Date {
-    // FIXED: Use the exact same date without any timezone conversion
-    // This prevents off-by-one errors due to timezone differences
     const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🗓️ FIXED: DateNormalizationService.normalizeSegmentDate COMPREHENSIVE:', {
+    console.log('🗓️ CRITICAL FIX: DateNormalizationService.normalizeSegmentDate:', {
       input: {
         iso: date.toISOString(),
         local: date.toLocaleDateString(),
         components: {
           year: date.getFullYear(),
           month: date.getMonth(),
-          date: date.getDate(),
-          hours: date.getHours(),
-          minutes: date.getMinutes(),
-          seconds: date.getSeconds()
+          date: date.getDate()
         }
       },
       normalized: {
@@ -28,10 +23,7 @@ export class DateNormalizationService {
         components: {
           year: normalized.getFullYear(),
           month: normalized.getMonth(),
-          date: normalized.getDate(),
-          hours: normalized.getHours(),
-          minutes: normalized.getMinutes(),
-          seconds: normalized.getSeconds()
+          date: normalized.getDate()
         }
       },
       verification: {
@@ -39,86 +31,56 @@ export class DateNormalizationService {
         sameMonth: date.getMonth() === normalized.getMonth(),
         sameDate: date.getDate() === normalized.getDate(),
         isStartOfDay: normalized.getHours() === 0 && normalized.getMinutes() === 0 && normalized.getSeconds() === 0
-      },
-      method: 'local_timezone_start_of_day_FIXED'
+      }
     });
     
     return normalized;
   }
 
   /**
-   * FIXED: Calculate segment date based on trip start date and day number
-   * Day 1 = trip start date, Day 2 = trip start date + 1 day, etc.
-   * CRITICAL FIX: Ensures Day 1 always equals the trip start date exactly
+   * CRITICAL FIX: Calculate segment date based on trip start date and day number
+   * FIXED LOGIC: Day 1 = trip start date, Day 2 = trip start date + 1 day, etc.
+   * This ensures Day 1 always equals the trip start date exactly
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🚨 CRITICAL FIXED: DateNormalizationService.calculateSegmentDate COMPREHENSIVE INPUT:', {
+    console.log('🚨 CRITICAL FIX: DateNormalizationService.calculateSegmentDate - FIXED VERSION:', {
       tripStartDate: {
         iso: tripStartDate.toISOString(),
         local: tripStartDate.toLocaleDateString(),
         components: {
           year: tripStartDate.getFullYear(),
           month: tripStartDate.getMonth(),
-          date: tripStartDate.getDate(),
-          hours: tripStartDate.getHours(),
-          minutes: tripStartDate.getMinutes(),
-          seconds: tripStartDate.getSeconds()
+          date: tripStartDate.getDate()
         }
       },
       segmentDay,
-      expectedBehavior: {
-        day1: 'MUST_EQUAL_TRIP_START_DATE_EXACTLY',
-        otherDays: `TRIP_START_DATE_PLUS_${segmentDay - 1}_DAYS`
-      }
+      fixedLogic: 'Day 1 = trip start date exactly, Day N = trip start + (N-1) days'
     });
 
-    // FIXED: Normalize the trip start date first to ensure consistent base
+    // CRITICAL FIX: Normalize the trip start date first
     const normalizedStartDate = this.normalizeSegmentDate(tripStartDate);
     
-    console.log('🚨 CRITICAL FIXED: Normalized start date:', {
-      original: tripStartDate.toISOString(),
-      normalized: normalizedStartDate.toISOString(),
-      normalizedLocal: normalizedStartDate.toLocaleDateString(),
-      normalizedComponents: {
-        year: normalizedStartDate.getFullYear(),
-        month: normalizedStartDate.getMonth(),
-        date: normalizedStartDate.getDate()
-      }
-    });
-    
-    // CRITICAL FIX: For Day 1, return the exact normalized start date
-    if (segmentDay === 1) {
-      console.log('🚨 CRITICAL FIXED: Day 1 - returning EXACT trip start date:', {
-        tripStartDate: tripStartDate.toISOString(),
-        normalizedStartDate: normalizedStartDate.toISOString(),
-        result: normalizedStartDate.toISOString(),
-        resultLocal: normalizedStartDate.toLocaleDateString(),
-        resultComponents: {
-          year: normalizedStartDate.getFullYear(),
-          month: normalizedStartDate.getMonth(),
-          date: normalizedStartDate.getDate()
-        },
-        verification: 'DAY_1_EQUALS_TRIP_START_DATE_EXACTLY'
-      });
-      return normalizedStartDate;
-    }
-    
-    // FIXED: For other days, add the correct number of days
+    // CRITICAL FIX: For ALL days, use consistent calculation
+    // Day 1: add 0 days (segmentDay - 1 = 0)
+    // Day 2: add 1 day (segmentDay - 1 = 1)
+    // Day N: add (N-1) days
+    const daysToAdd = segmentDay - 1;
     const segmentDate = new Date(normalizedStartDate);
-    segmentDate.setDate(normalizedStartDate.getDate() + (segmentDay - 1));
+    segmentDate.setDate(normalizedStartDate.getDate() + daysToAdd);
     
-    console.log('🚨 CRITICAL FIXED: DateNormalizationService.calculateSegmentDate FINAL RESULT:', {
+    console.log('🚨 CRITICAL FIX: DateNormalizationService FINAL CALCULATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay
       },
-      normalized: {
-        normalizedStartDate: normalizedStartDate.toISOString(),
-        normalizedStartDateLocal: normalizedStartDate.toLocaleDateString()
-      },
       calculation: {
-        daysToAdd: segmentDay - 1,
+        normalizedStartDate: normalizedStartDate.toISOString(),
+        normalizedStartDateLocal: normalizedStartDate.toLocaleDateString(),
+        daysToAdd,
+        method: 'setDate(normalizedStartDate.getDate() + daysToAdd)'
+      },
+      result: {
         segmentDate: segmentDate.toISOString(),
         segmentDateLocal: segmentDate.toLocaleDateString(),
         segmentDateComponents: {
@@ -129,17 +91,14 @@ export class DateNormalizationService {
       },
       verification: {
         day1Check: segmentDay === 1 ? 
-          (segmentDate.toDateString() === normalizedStartDate.toDateString() ? 'CORRECT_MATCH' : 'INCORRECT_MISMATCH') : 
-          'NOT_DAY_1',
-        expectedForDay1: segmentDay === 1 ? 'SHOULD_EQUAL_TRIP_START_DATE' : 'OTHER_DAY',
-        actualResult: segmentDay === 1 ? 
           (segmentDate.toDateString() === normalizedStartDate.toDateString() ? 'PERFECT_MATCH' : 'ERROR_MISMATCH') : 
-          'CALCULATED_CORRECTLY',
+          'NOT_DAY_1',
         dateStringComparison: segmentDay === 1 ? {
           segmentDateString: segmentDate.toDateString(),
           normalizedStartDateString: normalizedStartDate.toDateString(),
           matches: segmentDate.toDateString() === normalizedStartDate.toDateString()
-        } : null
+        } : null,
+        consistentLogic: 'SAME_CALCULATION_FOR_ALL_DAYS'
       }
     });
     
