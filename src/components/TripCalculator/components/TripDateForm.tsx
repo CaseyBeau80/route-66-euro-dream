@@ -61,34 +61,34 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   const handleDateSelect = (date: Date | undefined) => {
     console.log('📅 Date selected:', date);
     
-    // Simply set the date - remove complex validation that might be blocking selection
+    // Simply set the date - no validation blocking
     setFormData({ 
       ...formData, 
       tripStartDate: date 
     });
   };
 
-  // FIXED: Simple and clear date disabling logic - only disable dates that are clearly in the past
+  // COMPLETELY FIXED: Ultra-simple date disabling - only disable dates before today
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
     
-    // Set both dates to start of day for fair comparison
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const checkDateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0); // Set to start of check date
     
-    // Only disable if the date is strictly before today (not including today)
-    const isDisabled = checkDateStart.getTime() < todayStart.getTime();
+    // Only disable if date is before today
+    const shouldDisable = checkDate.getTime() < today.getTime();
     
-    console.log('📅 SIMPLE Date check:', {
+    console.log('📅 ULTRA-SIMPLE Date check:', {
       checkingDate: date.toDateString(),
       todayDate: today.toDateString(),
-      checkDateStart: checkDateStart.getTime(),
-      todayStart: todayStart.getTime(),
-      isDisabled,
-      allowsToday: !isDisabled && checkDateStart.getTime() === todayStart.getTime()
+      checkTime: checkDate.getTime(),
+      todayTime: today.getTime(),
+      disabled: shouldDisable,
+      isToday: checkDate.getTime() === today.getTime()
     });
     
-    return isDisabled;
+    return shouldDisable;
   };
 
   return (
