@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
-import ShareAndExportDropdown from './components/ShareAndExportDropdown';
+import TripActionBar from './components/TripActionBar';
 import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
@@ -108,14 +108,14 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
-      {/* Trip Overview Header - Updated to Blue Theme */}
-      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-2xl font-bold text-blue-700 flex items-center justify-center gap-2">
+      {/* Trip Overview Header - Updated Blue Banner Design */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-white">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
             <MapPin className="h-6 w-6" />
             Your Route 66 Adventure
           </CardTitle>
-          <div className="text-gray-600 mt-2 space-y-1">
+          <div className="text-blue-100 mt-2 space-y-1 text-center">
             <p>{tripPlan.startCity} → {tripPlan.endCity}</p>
             {validTripStartDate && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 text-sm">
@@ -130,7 +130,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
+          {/* Four-Column Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
@@ -159,17 +160,12 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             </div>
           </div>
 
-          {/* Share and Export Actions */}
-          <div className="flex justify-center mt-4">
-            <ShareAndExportDropdown
-              shareUrl={shareUrl}
-              tripTitle={tripTitle}
-              tripPlan={tripPlan}
-              tripStartDate={validTripStartDate}
-              variant="default"
-              size="default"
-            />
-          </div>
+          {/* Action Bar with Google Calendar, .ics download, Email sharing */}
+          <TripActionBar
+            tripPlan={tripPlan}
+            tripStartDate={validTripStartDate}
+            shareUrl={shareUrl}
+          />
         </CardContent>
       </Card>
 

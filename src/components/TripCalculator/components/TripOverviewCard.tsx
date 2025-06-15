@@ -53,7 +53,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
   };
 
   return (
-    <Card className="border-2 border-blue-200">
+    <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-white">
       <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700">
         <CardTitle className="font-route66 text-xl flex items-center gap-2 text-white">
           <MapPin className="h-6 w-6" />
@@ -61,10 +61,34 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <TripStatsGrid
-          tripPlan={tripPlan}
-          formatTime={formatTime}
-        />
+        {/* Four-Column Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+            <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+            <div className="text-sm font-semibold text-gray-800">{tripPlan.totalDays} Days</div>
+            <div className="text-xs text-gray-600">Duration</div>
+          </div>
+          
+          <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+            <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+            <div className="text-sm font-semibold text-gray-800">{Math.round(tripPlan.totalDistance)} mi</div>
+            <div className="text-xs text-gray-600">Total Distance</div>
+          </div>
+          
+          <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+            <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+            <div className="text-sm font-semibold text-gray-800">{formatTime(tripPlan.totalDrivingTime || 0)}</div>
+            <div className="text-xs text-gray-600">Drive Time</div>
+          </div>
+          
+          <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+            <DollarSign className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+            <div className="text-sm font-semibold text-gray-800">
+              {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
+            </div>
+            <div className="text-xs text-gray-600">Est. Cost</div>
+          </div>
+        </div>
 
         {/* Cost Estimator Toggle */}
         <div className="mb-6">
@@ -109,7 +133,7 @@ const TripOverviewCard: React.FC<TripOverviewCardProps> = ({
           </div>
         </div>
 
-        {/* Action Bar */}
+        {/* Action Bar with Google Calendar, .ics download, Email sharing */}
         <TripActionBar
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}

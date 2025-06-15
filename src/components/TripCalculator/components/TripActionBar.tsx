@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar, Mail, Download, MapPin } from 'lucide-react';
+import { Calendar, Mail, Download, MapPin, Share2 } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import GoogleCalendarButton from './GoogleCalendarButton';
 import ShareAndExportDropdown from './ShareAndExportDropdown';
@@ -67,6 +67,7 @@ const TripActionBar: React.FC<TripActionBarProps> = ({
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 p-4 bg-gray-50 rounded-lg border">
+      {/* Google Calendar Integration */}
       <GoogleCalendarButton
         tripPlan={tripPlan}
         tripStartDate={tripStartDate}
@@ -75,6 +76,7 @@ const TripActionBar: React.FC<TripActionBarProps> = ({
         size="sm"
       />
       
+      {/* .ics Calendar Download */}
       <Button
         onClick={handleDownloadCalendar}
         variant="outline"
@@ -86,6 +88,7 @@ const TripActionBar: React.FC<TripActionBarProps> = ({
         Download .ics
       </Button>
       
+      {/* Email Sharing */}
       <Button
         onClick={handleEmailShare}
         variant="outline"
@@ -96,6 +99,7 @@ const TripActionBar: React.FC<TripActionBarProps> = ({
         Share via Email
       </Button>
 
+      {/* Map View (if available) */}
       {onShowMap && (
         <Button
           onClick={onShowMap}
@@ -108,6 +112,7 @@ const TripActionBar: React.FC<TripActionBarProps> = ({
         </Button>
       )}
 
+      {/* Advanced Share & Export Options */}
       <ShareAndExportDropdown
         tripPlan={tripPlan}
         shareUrl={shareUrl}
