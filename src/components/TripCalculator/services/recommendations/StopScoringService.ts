@@ -72,23 +72,42 @@ export class StopScoringService {
 
       console.log(`⭐ [ENHANCED-SCORING] ${stop.name}: ${score} points (${reasons.join(', ')})`);
 
-      return {
+      // Create the RecommendedStop with proper data mapping
+      const recommendedStop: RecommendedStop = {
         id: stop.id,
         name: stop.name,
-        city: stop.city_name,
-        state: stop.state,
-        category: stop.category,
+        city: stop.city_name || stop.city || 'Unknown',
+        state: stop.state || 'Unknown',
+        category: stop.category || 'attraction',
         type: this.getStopType(stop),
         relevanceScore: score,
         originalStop: stop
-      } as RecommendedStop;
+      };
+
+      console.log(`✅ [ENHANCED-SCORING] Created RecommendedStop:`, {
+        name: recommendedStop.name,
+        city: recommendedStop.city,
+        hasDescription: !!stop.description,
+        hasImage: !!(stop.image_url || stop.thumbnail_url),
+        hasWebsite: !!stop.website,
+        category: recommendedStop.category,
+        score: recommendedStop.relevanceScore
+      });
+
+      return recommendedStop;
     });
 
     // Sort by score descending
     const sortedStops = scoredStops.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
     console.log(`⭐ [ENHANCED-SCORING] Scoring complete. Top 3:`, 
-      sortedStops.slice(0, 3).map(s => ({ name: s.name, score: s.relevanceScore }))
+      sortedStops.slice(0, 3).map(s => ({ 
+        name: s.name, 
+        score: s.relevanceScore,
+        hasDescription: !!s.originalStop.description,
+        hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url),
+        hasWebsite: !!s.originalStop.website
+      }))
     );
 
     return sortedStops;

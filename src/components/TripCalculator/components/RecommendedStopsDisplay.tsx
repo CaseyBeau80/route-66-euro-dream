@@ -16,7 +16,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🎯 [DISPLAY] RecommendedStopsDisplay rendering:', {
+  console.log('🎯 [DISPLAY-FIXED] RecommendedStopsDisplay rendering:', {
     stopsCount: stops.length,
     maxDisplay,
     showLocation,
@@ -27,12 +27,21 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       category: s.category,
       score: s.relevanceScore,
       hasDescription: !!s.originalStop.description,
-      hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url)
+      hasImage: !!(s.originalStop.image_url || s.originalStop.thumbnail_url),
+      hasWebsite: !!s.originalStop.website,
+      originalStopData: {
+        name: s.originalStop.name,
+        description: s.originalStop.description ? s.originalStop.description.substring(0, 100) + '...' : 'No description',
+        image_url: s.originalStop.image_url,
+        thumbnail_url: s.originalStop.thumbnail_url,
+        website: s.originalStop.website,
+        featured: s.originalStop.featured
+      }
     }))
   });
 
   if (!stops || stops.length === 0) {
-    console.log('❌ [DISPLAY] No stops to display');
+    console.log('❌ [DISPLAY-FIXED] No stops to display');
     return (
       <div className="text-center p-3 text-gray-500 text-sm">
         No recommended stops found for this segment.
@@ -47,13 +56,15 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
       {displayStops.map((stop, index) => {
         const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
         
-        console.log(`🎯 [DISPLAY] Rendering stop ${index + 1}:`, {
+        console.log(`🎯 [DISPLAY-FIXED] Rendering stop ${index + 1}:`, {
           name: formatted.name,
           location: formatted.location,
           category: formatted.category,
           icon: formatted.icon,
           hasDescription: !!stop.originalStop.description,
-          hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url)
+          hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
+          hasWebsite: !!stop.originalStop.website,
+          description: stop.originalStop.description ? stop.originalStop.description.substring(0, 50) + '...' : 'No description'
         });
 
         return (
@@ -82,7 +93,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                 </div>
               )}
 
-              {/* Description */}
+              {/* Description - Make sure this displays */}
               {stop.originalStop.description && (
                 <div className="text-gray-600 text-sm mt-2 line-clamp-2">
                   {stop.originalStop.description}
@@ -129,7 +140,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                   alt={stop.name}
                   className="w-full h-full object-cover rounded border"
                   onError={(e) => {
-                    console.log(`🖼️ [DISPLAY] Image failed to load for ${stop.name}`);
+                    console.log(`🖼️ [DISPLAY-FIXED] Image failed to load for ${stop.name}`);
                     e.currentTarget.style.display = 'none';
                   }}
                 />

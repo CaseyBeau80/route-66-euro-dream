@@ -32,18 +32,24 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   // Get enhanced recommended stops - ALWAYS try this first
   const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  console.log('🎯 [FIXED-DISPLAY] DaySegmentCardContent render state:', {
+  console.log('🎯 [FIXED-DISPLAY-DEBUG] DaySegmentCardContent render state:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     isLoading,
     hasError: !!error,
     hasStops,
     stopsCount: recommendedStops.length,
-    recommendedStops: recommendedStops.map(stop => ({
+    detailedStops: recommendedStops.map(stop => ({
       name: stop.name,
       city: stop.city,
       category: stop.category,
-      score: stop.relevanceScore
+      score: stop.relevanceScore,
+      hasOriginalStop: !!stop.originalStop,
+      originalStopKeys: stop.originalStop ? Object.keys(stop.originalStop) : [],
+      hasDescription: !!stop.originalStop?.description,
+      hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url),
+      hasWebsite: !!stop.originalStop?.website,
+      featured: stop.originalStop?.featured
     }))
   });
 
@@ -66,7 +72,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* FIXED: Simplified logic to prioritize showing recommended stops */}
+      {/* FIXED: Enhanced display logic with better debugging */}
       <div className="space-y-4">
         {/* Show loading state */}
         {isLoading && (
