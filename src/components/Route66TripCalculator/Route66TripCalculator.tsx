@@ -15,6 +15,8 @@ import TripResults from './components/TripResults';
 import TripLoadingDisplay from './components/TripLoadingDisplay';
 import CostEstimatorSection from '../TripCalculator/components/CostEstimatorSection';
 import EnhancedShareTripModal from '../TripCalculator/components/share/EnhancedShareTripModal';
+import CostCalculatorBanner from './components/CostCalculatorBanner';
+import FloatingCostPrompt from './components/FloatingCostPrompt';
 
 interface Route66TripCalculatorProps {
   // Define any props here
@@ -25,13 +27,14 @@ const Route66TripCalculator: React.FC = () => {
     startLocation: '',
     endLocation: '',
     travelDays: 7,
-    dailyDrivingLimit: 300, // Add the missing property
+    dailyDrivingLimit: 300,
     tripStyle: 'balanced',
     tripStartDate: new Date()
   });
   const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
-  const { costEstimate } = useCostEstimator(tripPlan);
+  const { costEstimate, costData } = useCostEstimator(tripPlan);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [hasCostEstimate, setHasCostEstimate] = useState(false);
 
   useEffect(() => {
     console.log('✨ Route66TripCalculator: Component mounted');
@@ -39,6 +42,11 @@ const Route66TripCalculator: React.FC = () => {
       console.log('✨ Route66TripCalculator: Component unmounted');
     };
   }, []);
+
+  // Track if user has used the cost calculator
+  useEffect(() => {
+    setHasCostEstimate(!!costEstimate);
+  }, [costEstimate]);
 
   const handlePlanTrip = useCallback(() => {
     console.log('🚀 Plan trip requested with data:', formData);
@@ -56,6 +64,7 @@ const Route66TripCalculator: React.FC = () => {
   const handleResetTrip = useCallback(() => {
     console.log('🔄 Reset trip requested');
     resetTrip();
+    setHasCostEstimate(false);
   }, [resetTrip]);
 
   const handleShareTrip = useCallback(() => {
@@ -97,6 +106,13 @@ const Route66TripCalculator: React.FC = () => {
     setFormData(prev => ({ ...prev, tripStyle: style }));
   };
 
+  const scrollToCostCalculator = () => {
+    const costSection = document.getElementById('cost-estimator-section');
+    if (costSection) {
+      costSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -124,12 +140,10 @@ const Route66TripCalculator: React.FC = () => {
         />
       </section>
 
-      {/* Cost Estimator Section */}
-      {tripPlan && (
-        <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-          <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
-        </section>
-      )}
+      {/* Cost Estimator Section - Now above trip results */}
+      <section id="cost-estimator-section" className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
+        <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
+      </section>
 
       {/* Trip Results Section */}
       {(tripPlan || isCalculating) && (
@@ -139,13 +153,25 @@ const Route66TripCalculator: React.FC = () => {
           )}
 
           {!isCalculating && tripPlan && (
-            <TripResults
-              tripPlan={tripPlan}
-              tripStartDate={formData.tripStartDate}
-              onShareTrip={handleShareTrip}
-            />
+            <>
+              <TripResults
+                tripPlan={tripPlan}
+                tripStartDate={formData.tripStartDate}
+                onShareTrip={handleShareTrip}
+              />
+              
+              {/* Cost Calculator Banner */}
+              {!hasCostEstimate && (
+                <CostCalculatorBanner onScrollToCalculator={scrollToCostCalculator} />
+              )}
+            </>
           )}
         </section>
+      )}
+
+      {/* Floating Cost Prompt */}
+      {tripPlan && !isCalculating && !hasCostEstimate && (
+        <FloatingCostPrompt onScrollToCalculator={scrollToCostCalculator} />
       )}
 
       {/* Enhanced Share Modal */}
@@ -157,7 +183,6 @@ const Route66TripCalculator: React.FC = () => {
           tripStartDate={formData.tripStartDate}
           onShareUrlGenerated={(shareCode, shareUrl) => {
             console.log('✅ Share URL generated:', { shareCode, shareUrl });
-            // Optionally update state or perform additional actions
           }}
         />
       )}
