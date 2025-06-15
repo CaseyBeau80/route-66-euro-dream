@@ -29,23 +29,24 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // Get enhanced recommended stops - ALWAYS try this first
-  const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
+  // FIXED: Request up to 5 stops to ensure we get 1-3 good ones after filtering
+  const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 5);
   
-  console.log('🔥 [FINAL-DEBUG] DaySegmentCardContent render state:', {
+  console.log('🔥 [FIXED-DISPLAY] DaySegmentCardContent render state:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     isLoading,
     hasError: !!error,
     hasStops,
     stopsCount: recommendedStops.length,
-    recommendedStops: recommendedStops.map(stop => ({
+    targetStopsDisplay: Math.min(3, recommendedStops.length),
+    recommendedStops: recommendedStops.slice(0, 3).map(stop => ({
       name: stop.name,
       city: stop.city,
       category: stop.category,
+      score: stop.relevanceScore,
       hasDescription: !!stop.originalStop?.description,
-      hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url),
-      hasWebsite: !!stop.originalStop?.website
+      hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url)
     }))
   });
 
@@ -68,19 +69,19 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* SIMPLIFIED: Show recommended stops if we have them, otherwise show fallback */}
+      {/* ENHANCED: Cleaner display logic with consistent 1-3 stops target */}
       <div className="space-y-4">
-        {/* Show loading state ONLY when loading */}
+        {/* Show loading state */}
         {isLoading && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="flex items-center gap-2 text-sm text-blue-600">
               <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-              Loading Route 66 attractions...
+              Finding Route 66 attractions...
             </div>
           </div>
         )}
 
-        {/* Show error state if there's an error AND not loading */}
+        {/* Show error state */}
         {error && !isLoading && (
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
             <div className="text-sm text-red-600">
@@ -90,11 +91,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* MAIN DISPLAY: Show recommended stops if we have any AND not loading */}
-        {!isLoading && recommendedStops.length > 0 && (
+        {/* MAIN DISPLAY: Show 1-3 recommended stops */}
+        {!isLoading && !error && recommendedStops.length > 0 && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
-              ✨ Route 66 Attractions ({recommendedStops.length})
+              ✨ Route 66 Attractions ({Math.min(3, recommendedStops.length)})
             </div>
             <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
               <RecommendedStopsDisplay 
@@ -107,7 +108,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* FALLBACK: Show legacy system ONLY if no recommended stops AND not loading AND no error */}
+        {/* FALLBACK: Show legacy system only if no recommended stops */}
         {!isLoading && !error && recommendedStops.length === 0 && (
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
             <div className="mb-3 text-sm text-gray-600 font-medium">

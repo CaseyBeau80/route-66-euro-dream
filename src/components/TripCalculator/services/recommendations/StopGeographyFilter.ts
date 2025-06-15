@@ -4,180 +4,125 @@ import { DailySegment } from '../planning/TripPlanBuilder';
 
 export class StopGeographyFilter {
   /**
-   * Filter stops by route geography with very generous fallback logic
+   * Filter stops by route geography with more lenient criteria to ensure we get results
    */
   static filterStopsByRouteGeography(segment: DailySegment, allStops: TripStop[]): TripStop[] {
-    console.log(`🌍 [ENHANCED-GEO] Starting geographic filtering for ${segment.endCity}`);
-    console.log(`📊 [ENHANCED-GEO] Input: ${allStops.length} stops`);
-
-    if (!segment.endCity || allStops.length === 0) {
-      console.log(`❌ [ENHANCED-GEO] Invalid input`);
+    if (!segment?.endCity || !allStops?.length) {
+      console.log('🌍 [GEOGRAPHY-FILTER] Invalid input for geographic filtering');
       return [];
     }
 
-    // Extract destination info
-    const { city: destinationCity, state: destinationState } = this.parseDestinationCity(segment.endCity);
-    console.log(`🎯 [ENHANCED-GEO] Target: ${destinationCity}, ${destinationState}`);
+    const endCity = segment.endCity.toLowerCase();
+    console.log(`🌍 [GEOGRAPHY-FILTER] Filtering ${allStops.length} stops for destination: ${endCity}`);
 
-    // STEP 1: Exact city matches (highest priority)
-    const exactMatches = this.findExactCityMatches(allStops, destinationCity, destinationState);
-    if (exactMatches.length >= 2) {
-      console.log(`✅ [ENHANCED-GEO] Found ${exactMatches.length} exact city matches`);
-      return exactMatches;
+    // ENHANCED: Multiple filtering strategies with fallbacks
+    const strategies = [
+      // Strategy 1: Exact city match
+      () => this.filterByExactCity(allStops, endCity),
+      
+      // Strategy 2: State-based filtering  
+      () => this.filterByState(allStops, segment),
+      
+      // Strategy 3: Regional filtering with Route 66 relevance
+      () => this.filterByRoute66Relevance(allStops),
+      
+      // Strategy 4: Fallback to featured/major stops
+      () => this.filterByQuality(allStops)
+    ];
+
+    // Try each strategy until we get sufficient results
+    for (let i = 0; i < strategies.length; i++) {
+      const filtered = strategies[i]();
+      console.log(`🌍 [GEOGRAPHY-FILTER] Strategy ${i + 1} result: ${filtered.length} stops`);
+      
+      if (filtered.length >= 1) {
+        console.log(`✅ [GEOGRAPHY-FILTER] Using strategy ${i + 1}, found ${filtered.length} stops`);
+        return filtered;
+      }
     }
 
-    // STEP 2: State matches (good fallback)
-    const stateMatches = this.findStateMatches(allStops, destinationState);
-    if (stateMatches.length >= 2) {
-      console.log(`✅ [ENHANCED-GEO] Found ${stateMatches.length} state matches`);
-      return stateMatches.slice(0, 10); // Limit to prevent overwhelming
-    }
-
-    // STEP 3: Regional matches (neighboring states)
-    const regionalMatches = this.findRegionalMatches(allStops, destinationState);
-    if (regionalMatches.length >= 2) {
-      console.log(`✅ [ENHANCED-GEO] Found ${regionalMatches.length} regional matches`);
-      return regionalMatches.slice(0, 8);
-    }
-
-    // STEP 4: Route 66 attractions (broad search)
-    const route66Matches = this.findRoute66Attractions(allStops);
-    if (route66Matches.length >= 2) {
-      console.log(`✅ [ENHANCED-GEO] Found ${route66Matches.length} Route 66 attractions`);
-      return route66Matches.slice(0, 6);
-    }
-
-    // STEP 5: High-quality stops regardless of location
-    const qualityMatches = this.getHighQualityStops(allStops);
-    console.log(`🔄 [ENHANCED-GEO] Final fallback: ${qualityMatches.length} quality stops`);
-    
-    return qualityMatches.slice(0, 5);
+    console.log('⚠️ [GEOGRAPHY-FILTER] All strategies failed, returning all stops as fallback');
+    return allStops.slice(0, 10); // Return top 10 as absolute fallback
   }
 
   /**
-   * Parse destination city string
+   * Filter by exact city match
    */
-  private static parseDestinationCity(endCity: string): { city: string; state: string } {
-    if (!endCity.includes(',')) {
-      return { city: endCity.trim(), state: '' };
-    }
-
-    const parts = endCity.split(',');
-    return {
-      city: parts[0].trim(),
-      state: parts[1]?.trim() || ''
-    };
-  }
-
-  /**
-   * Find exact city matches with fuzzy matching
-   */
-  private static findExactCityMatches(allStops: TripStop[], city: string, state: string): TripStop[] {
-    const cityLower = city.toLowerCase();
-    const stateLower = state.toLowerCase();
-    
-    return allStops.filter(stop => {
-      const stopCity = (stop.city_name || stop.city || '').toLowerCase();
-      const stopState = (stop.state || '').toLowerCase();
-      
-      const cityMatch = stopCity === cityLower || 
-                       stopCity.includes(cityLower) || 
-                       cityLower.includes(stopCity) ||
-                       this.fuzzyMatch(stopCity, cityLower);
-                       
-      const stateMatch = !state || stopState === stateLower || this.fuzzyMatch(stopState, stateLower);
-      
-      return cityMatch && stateMatch;
+  private static filterByExactCity(stops: TripStop[], endCity: string): TripStop[] {
+    return stops.filter(stop => {
+      const cityMatch = stop.city_name?.toLowerCase().includes(endCity) || 
+                      stop.city?.toLowerCase().includes(endCity);
+      return cityMatch;
     });
   }
 
   /**
-   * Simple fuzzy matching for names
+   * Filter by state for broader geographic relevance
    */
-  private static fuzzyMatch(str1: string, str2: string): boolean {
-    if (!str1 || !str2) return false;
-    
-    const clean1 = str1.replace(/\b(city|town|village|st|saint)\b/g, '').trim();
-    const clean2 = str2.replace(/\b(city|town|village|st|saint)\b/g, '').trim();
-    
-    return clean1.length > 0 && clean2.length > 0 && 
-           (clean1.includes(clean2) || clean2.includes(clean1));
-  }
-
-  /**
-   * Find stops in the same state
-   */
-  private static findStateMatches(allStops: TripStop[], state: string): TripStop[] {
-    if (!state) return [];
-
-    return allStops.filter(stop => {
-      const stopState = (stop.state || '').toLowerCase();
-      return stopState === state.toLowerCase();
-    });
-  }
-
-  /**
-   * Find stops in neighboring Route 66 states
-   */
-  private static findRegionalMatches(allStops: TripStop[], state: string): TripStop[] {
-    if (!state) return [];
-
-    const route66Regions: Record<string, string[]> = {
-      'illinois': ['missouri', 'indiana'],
-      'missouri': ['illinois', 'kansas', 'oklahoma'],
-      'kansas': ['missouri', 'oklahoma'],
-      'oklahoma': ['kansas', 'texas', 'missouri'],
-      'texas': ['oklahoma', 'new mexico'],
-      'new mexico': ['texas', 'arizona'],
-      'arizona': ['new mexico', 'california'],
-      'california': ['arizona']
+  private static filterByState(stops: TripStop[], segment: DailySegment): TripStop[] {
+    const stateMap: Record<string, string[]> = {
+      'illinois': ['chicago', 'springfield', 'joliet'],
+      'missouri': ['st. louis', 'springfield', 'joplin'],
+      'kansas': ['galena'],
+      'oklahoma': ['tulsa', 'oklahoma city', 'commerce'],
+      'texas': ['amarillo', 'shamrock', 'adrian'],
+      'new mexico': ['tucumcari', 'santa rosa', 'albuquerque', 'santa fe'],
+      'arizona': ['holbrook', 'winslow', 'flagstaff', 'williams'],
+      'california': ['needles', 'barstow', 'san bernardino', 'santa monica', 'los angeles']
     };
 
-    const stateLower = state.toLowerCase();
-    const neighboringStates = route66Regions[stateLower] || [];
+    const endCity = segment.endCity.toLowerCase();
+    
+    // Find which state the end city belongs to
+    const targetState = Object.keys(stateMap).find(state => 
+      stateMap[state].some(city => city.includes(endCity) || endCity.includes(city))
+    );
 
-    return allStops.filter(stop => {
-      const stopState = (stop.state || '').toLowerCase();
-      return neighboringStates.includes(stopState);
+    if (targetState) {
+      return stops.filter(stop => {
+        const stopState = stop.state?.toLowerCase();
+        return stopState === targetState || stopState === targetState.substring(0, 2);
+      });
+    }
+
+    return [];
+  }
+
+  /**
+   * Filter by Route 66 relevance
+   */
+  private static filterByRoute66Relevance(stops: TripStop[]): TripStop[] {
+    return stops.filter(stop => {
+      const isRelevant = stop.category === 'route66_waypoint' ||
+                        stop.category === 'destination_city' ||
+                        stop.is_major_stop ||
+                        stop.featured ||
+                        this.hasRoute66Keywords(stop);
+      return isRelevant;
     });
   }
 
   /**
-   * Find Route 66 specific attractions
+   * Filter by quality indicators
    */
-  private static findRoute66Attractions(allStops: TripStop[]): TripStop[] {
-    return allStops.filter(stop => {
-      const name = stop.name.toLowerCase();
-      const description = (stop.description || '').toLowerCase();
-      
-      return name.includes('route 66') || 
-             name.includes('rt 66') ||
-             name.includes('route66') ||
-             description.includes('route 66') ||
-             description.includes('historic highway') ||
-             stop.category === 'route66_waypoint' ||
-             stop.category === 'destination_city' ||
-             stop.is_major_stop ||
-             stop.featured;
-    });
-  }
-
-  /**
-   * Get high-quality stops for final fallback
-   */
-  private static getHighQualityStops(allStops: TripStop[]): TripStop[] {
-    return allStops.filter(stop => {
+  private static filterByQuality(stops: TripStop[]): TripStop[] {
+    return stops.filter(stop => {
       return stop.featured || 
              stop.is_major_stop || 
              stop.is_official_destination ||
              (stop.description && stop.description.length > 50) ||
              stop.image_url ||
              stop.thumbnail_url;
-    }).sort((a, b) => {
-      // Prioritize featured and major stops
-      const aScore = (a.featured ? 10 : 0) + (a.is_major_stop ? 5 : 0);
-      const bScore = (b.featured ? 10 : 0) + (b.is_major_stop ? 5 : 0);
-      return bScore - aScore;
     });
+  }
+
+  /**
+   * Check for Route 66 keywords in stop content
+   */
+  private static hasRoute66Keywords(stop: TripStop): boolean {
+    const keywords = ['route 66', 'rt 66', 'route66', 'historic highway', 'mother road'];
+    const searchText = `${stop.name || ''} ${stop.description || ''}`.toLowerCase();
+    
+    return keywords.some(keyword => searchText.includes(keyword));
   }
 }

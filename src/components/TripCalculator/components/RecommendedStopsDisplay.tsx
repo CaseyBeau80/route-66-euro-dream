@@ -16,29 +16,16 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
   showLocation = true,
   compact = false
 }) => {
-  console.log('🔥 [FINAL-DISPLAY-DEBUG] RecommendedStopsDisplay rendering:', {
-    stopsCount: stops.length,
+  console.log('🔥 [FIXED-DISPLAY] RecommendedStopsDisplay rendering:', {
+    inputStopsCount: stops.length,
     maxDisplay,
+    targetDisplay: Math.min(maxDisplay, stops.length),
     showLocation,
-    compact,
-    stopsDetailed: stops.map(s => ({
-      id: s.id,
-      name: s.name,
-      city: s.city,
-      category: s.category,
-      score: s.relevanceScore,
-      hasOriginalStop: !!s.originalStop,
-      originalStopKeys: s.originalStop ? Object.keys(s.originalStop) : [],
-      hasDescription: !!s.originalStop?.description,
-      hasImage: !!(s.originalStop?.image_url || s.originalStop?.thumbnail_url),
-      hasWebsite: !!s.originalStop?.website,
-      featured: s.originalStop?.featured,
-      description: s.originalStop?.description ? s.originalStop.description.substring(0, 100) + '...' : 'No description'
-    }))
+    compact
   });
 
   if (!stops || stops.length === 0) {
-    console.log('❌ [FINAL-DISPLAY-DEBUG] No stops to display');
+    console.log('❌ [FIXED-DISPLAY] No stops to display');
     return (
       <div className="text-center p-3 text-gray-500 text-sm">
         No recommended stops found for this segment.
@@ -46,29 +33,26 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
     );
   }
 
+  // FIXED: Ensure we display exactly the number requested (1-3)
   const displayStops = stops.slice(0, maxDisplay);
-  console.log(`🔥 [FINAL-DISPLAY-DEBUG] Will render ${displayStops.length} stops`);
+  console.log(`✅ [FIXED-DISPLAY] Will render exactly ${displayStops.length} stops out of ${stops.length} available`);
 
   return (
     <div className="space-y-3">
       {displayStops.map((stop, index) => {
         const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
         
-        console.log(`🔥 [FINAL-DISPLAY-DEBUG] Rendering stop ${index + 1}:`, {
+        console.log(`🔥 [FIXED-DISPLAY] Rendering stop ${index + 1}/${displayStops.length}:`, {
           name: formatted.name,
           location: formatted.location,
           category: formatted.category,
-          icon: formatted.icon,
-          hasDescription: !!stop.originalStop?.description,
-          hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url),
-          hasWebsite: !!stop.originalStop?.website,
-          descriptionLength: stop.originalStop?.description?.length || 0
+          score: stop.relevanceScore
         });
 
         return (
           <div 
             key={`${stop.id}-${index}`} 
-            className={`flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-200 hover:border-blue-300 transition-colors ${
+            className={`flex items-start gap-3 bg-white rounded-lg border border-blue-200 hover:border-blue-300 transition-colors ${
               compact ? 'p-2' : 'p-3'
             }`}
           >
@@ -138,7 +122,7 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                   alt={stop.name}
                   className="w-full h-full object-cover rounded border"
                   onError={(e) => {
-                    console.log(`🖼️ [FINAL-DISPLAY-DEBUG] Image failed to load for ${stop.name}`);
+                    console.log(`🖼️ [FIXED-DISPLAY] Image failed to load for ${stop.name}`);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
@@ -148,12 +132,10 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
         );
       })}
 
-      {/* Show count if there are more stops */}
-      {stops.length > maxDisplay && (
-        <div className="text-center text-sm text-gray-500 py-2">
-          Showing {maxDisplay} of {stops.length} recommended stops
-        </div>
-      )}
+      {/* Show count summary */}
+      <div className="text-center text-xs text-gray-500 py-1">
+        Showing {displayStops.length} of {stops.length} recommended stops
+      </div>
     </div>
   );
 };
