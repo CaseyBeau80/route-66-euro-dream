@@ -4,6 +4,7 @@ import { DailySegment, getDestinationCityName } from '../../services/planning/Tr
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
 import PDFDaySegmentCardStats from './PDFDaySegmentCardStats';
 import PDFDaySegmentCardWeather from './PDFDaySegmentCardWeather';
+import PDFDaySegmentCardStops from './PDFDaySegmentCardStops';
 import PDFDaySegmentCardFooter from './PDFDaySegmentCardFooter';
 
 interface PDFDaySegmentCardProps {
@@ -52,6 +53,16 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
           <PDFDaySegmentCardWeather 
             segment={segment}
             tripStartDate={tripStartDate}
+            exportFormat={exportFormat}
+          />
+        </div>
+      )}
+      
+      {/* Stops and Attractions Section */}
+      {exportFormat !== 'route-only' && (
+        <div className="pdf-stops-section px-4 py-3 bg-route66-cream border-t border-route66-border">
+          <PDFDaySegmentCardStops 
+            segment={segment}
             exportFormat={exportFormat}
           />
         </div>

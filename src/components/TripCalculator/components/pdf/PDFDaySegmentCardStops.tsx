@@ -7,14 +7,14 @@ interface PDFDaySegmentCardStopsProps {
   exportFormat: 'full' | 'summary' | 'route-only';
 }
 
-// Stub implementation - recommendation system removed
+// Simple stub component - no stops displayed
 const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
   segment,
   exportFormat
 }) => {
   console.log('🚫 PDFDaySegmentCardStops: Stops system disabled');
   
-  // Return nothing - stops functionality completely removed
+  // Return null to not render anything
   return null;
 };
 

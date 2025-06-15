@@ -25,7 +25,7 @@ const RouteTabContent: React.FC<RouteTabContentProps> = ({
     <div className="space-y-4">
       <div className="mb-3">
         <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-          Route Overview
+          Route & Recommended Stops
         </h4>
       </div>
       

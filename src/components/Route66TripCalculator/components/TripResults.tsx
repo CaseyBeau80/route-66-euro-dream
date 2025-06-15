@@ -26,7 +26,8 @@ const TripResults: React.FC<TripResultsProps> = ({
     tripStartDate: tripStartDate?.toISOString(),
     hasShareHandler: !!onShareTrip,
     hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost
+    totalCost: costEstimate?.breakdown?.totalCost,
+    usingSharedCostData: true
   });
 
   if (!tripPlan) {
@@ -62,7 +63,7 @@ const TripResults: React.FC<TripResultsProps> = ({
           {tripPlan.startCity} to {tripPlan.endCity}
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">{tripPlan.segments?.length || 0}</div>
             <div className="text-sm text-route66-text-secondary">Days</div>
@@ -78,6 +79,12 @@ const TripResults: React.FC<TripResultsProps> = ({
               {Math.round((tripPlan.totalDistance || 0) / 55)}
             </div>
             <div className="text-sm text-route66-text-secondary">Drive Hours</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {tripPlan.segments?.filter(s => s.attractions?.length > 0).length || 0}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Attractions</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">
@@ -131,6 +138,30 @@ const TripResults: React.FC<TripResultsProps> = ({
                   tripStartDate={tripStartDate}
                   isSharedView={false}
                 />
+              </div>
+            )}
+
+            {/* Attractions */}
+            {segment.attractions && segment.attractions.length > 0 && (
+              <div className="mt-4">
+                <h5 className="font-medium text-route66-text-primary mb-2">
+                  Recommended Stops:
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {segment.attractions.slice(0, 4).map((attraction, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm">
+                      <MapPin className="w-3 h-3 text-route66-primary flex-shrink-0" />
+                      <span className="text-route66-text-secondary truncate">
+                        {attraction.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {segment.attractions.length > 4 && (
+                  <p className="text-xs text-route66-text-secondary mt-2">
+                    +{segment.attractions.length - 4} more attractions
+                  </p>
+                )}
               </div>
             )}
           </Card>
