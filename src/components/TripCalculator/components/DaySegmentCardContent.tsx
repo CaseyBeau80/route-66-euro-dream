@@ -3,7 +3,9 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
+import { useRecommendedStops } from '../hooks/useRecommendedStops';
 import SegmentNearbyAttractions from './SegmentNearbyAttractions';
+import RecommendedStopsDisplay from './RecommendedStopsDisplay';
 import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -28,6 +30,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // Get recommended stops for this segment
+  const { recommendedStops, isLoading: isLoadingStops, hasStops } = useRecommendedStops(segment, 3);
+  
   // CRITICAL: Use centralized service for consistent limiting
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
@@ -37,7 +42,9 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
     endCity: segment.endCity,
     maxAttractions,
     context,
-    sectionKey
+    sectionKey,
+    hasRecommendedStops: hasStops,
+    recommendedStopsCount: recommendedStops.length
   });
 
   return (
@@ -61,6 +68,27 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
 
       {/* Route & Stops Content */}
       <div className="space-y-4">
+        {/* Recommended Stops Section - NEW */}
+        {(hasStops || isLoadingStops) && (
+          <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+              {isLoadingStops ? (
+                <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  Loading recommended stops...
+                </div>
+              ) : (
+                <RecommendedStopsDisplay 
+                  stops={recommendedStops}
+                  maxDisplay={3}
+                  showLocation={true}
+                  compact={false}
+                />
+              )}
+            </div>
+          </ErrorBoundary>
+        )}
+
         {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
           <SegmentNearbyAttractions 

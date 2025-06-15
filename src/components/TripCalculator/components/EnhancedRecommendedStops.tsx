@@ -5,10 +5,12 @@ import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { TripStop } from '../types/TripStop';
 import { useStableSegment } from '../hooks/useStableSegments';
 import { useOptimizedValidation } from '../hooks/useOptimizedValidation';
+import { useRecommendedStops } from '../hooks/useRecommendedStops';
 import { StopEnhancementService } from './stops/StopEnhancementService';
 import { StopsCombiner } from './stops/StopsCombiner';
 import StopItem from './StopItem';
 import StopsEmpty from './StopsEmpty';
+import RecommendedStopsDisplay from './RecommendedStopsDisplay';
 import ErrorBoundary from './ErrorBoundary';
 
 interface EnhancedRecommendedStopsProps {
@@ -26,6 +28,9 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const stableSegment = useStableSegment(segment);
   const { validStops, userRelevantStops, isValid } = useOptimizedValidation(stableSegment);
   
+  // Use the new recommended stops hook
+  const { recommendedStops, isLoading: isLoadingRecommended, hasStops: hasRecommendedStops } = useRecommendedStops(stableSegment, safeMaxStops);
+  
   const [enhancedStops, setEnhancedStops] = useState<TripStop[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +40,8 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
   const endCity = stableSegment?.endCity || '';
   
   const shouldTriggerEnhanced = useMemo(() => 
-    isValid && userRelevantStops.length < 2 && startCity !== '' && endCity !== '',
-    [isValid, userRelevantStops.length, startCity, endCity]
+    isValid && userRelevantStops.length < 2 && !hasRecommendedStops && startCity !== '' && endCity !== '',
+    [isValid, userRelevantStops.length, hasRecommendedStops, startCity, endCity]
   );
   
   const tryEnhancedSelection = useCallback(async () => {
@@ -63,19 +68,36 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     tryEnhancedSelection();
   }, [tryEnhancedSelection]);
   
-  const finalStops = useMemo(() => 
-    StopsCombiner.combineStops(userRelevantStops, enhancedStops, safeMaxStops),
-    [userRelevantStops, enhancedStops, safeMaxStops]
-  );
+  // Prioritize recommended stops over legacy system
+  const finalStops = useMemo(() => {
+    if (hasRecommendedStops) {
+      // Convert recommended stops to TripStop format for compatibility
+      return recommendedStops.map(stop => ({
+        id: stop.id,
+        name: stop.name,
+        description: `${stop.category} in ${stop.city}, ${stop.state}`,
+        latitude: 0, // Would need actual coordinates
+        longitude: 0,
+        city_name: stop.city,
+        city: stop.city,
+        state: stop.state,
+        category: stop.category
+      } as TripStop));
+    }
+    
+    return StopsCombiner.combineStops(userRelevantStops, enhancedStops, safeMaxStops);
+  }, [userRelevantStops, enhancedStops, safeMaxStops, recommendedStops, hasRecommendedStops]);
 
-  console.log('🎯 EnhancedRecommendedStops ENFORCED final result:', {
+  console.log('🎯 EnhancedRecommendedStops ENHANCED final result:', {
     segmentDay,
     route: `${startCity} → ${endCity}`,
     originalStops: userRelevantStops.length,
     enhancedStops: enhancedStops.length,
+    recommendedStops: recommendedStops.length,
+    hasRecommendedStops,
     safeMaxStops,
     finalStops: finalStops.length,
-    isLoading,
+    isLoading: isLoading || isLoadingRecommended,
     error,
     stopNames: finalStops.map(s => s.name)
   });
@@ -90,13 +112,28 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
     );
   }
 
+  // If we have recommended stops, use the new display component
+  if (hasRecommendedStops) {
+    return (
+      <ErrorBoundary context="RecommendedStopsDisplay">
+        <RecommendedStopsDisplay 
+          stops={recommendedStops}
+          maxDisplay={safeMaxStops}
+          showLocation={true}
+          compact={false}
+        />
+      </ErrorBoundary>
+    );
+  }
+
+  // Fallback to legacy system
   return (
     <ErrorBoundary context="EnhancedRecommendedStops">
       <div>
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
           Recommended Stops ({finalStops.length})
-          {isLoading && <span className="text-xs text-gray-500">(searching...)</span>}
+          {(isLoading || isLoadingRecommended) && <span className="text-xs text-gray-500">(searching...)</span>}
           {error && <span className="text-xs text-red-500">(error)</span>}
         </h4>
         
@@ -120,7 +157,7 @@ const EnhancedRecommendedStops: React.FC<EnhancedRecommendedStopsProps> = ({
               </div>
             )}
           </div>
-        ) : isLoading ? (
+        ) : (isLoading || isLoadingRecommended) ? (
           <div className="text-center p-4 bg-route66-background-alt rounded-lg border border-route66-border">
             <div className="animate-spin h-6 w-6 border-2 border-route66-primary border-t-transparent rounded-full mx-auto mb-2"></div>
             <p className="text-sm text-route66-vintage-brown">
