@@ -133,14 +133,6 @@ const TripResults: React.FC<TripResultsProps> = ({
                 />
               </div>
             )}
-
-            {/* Simple travel message */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600 text-center">
-                Enjoy your drive from {segment.startCity} to {segment.endCity}! 
-                Stop along the way to explore local attractions and Route 66 landmarks.
-              </p>
-            </div>
           </Card>
         ))}
       </div>

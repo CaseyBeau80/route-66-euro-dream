@@ -14,16 +14,8 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
 }) => {
   console.log('🚫 PDFDaySegmentCardStops: Stops system disabled');
   
-  // Return simple travel message instead of recommendations
-  return (
-    <div className="text-center py-3">
-      <p className="text-sm text-gray-600">
-        Enjoy your drive from {segment.startCity} to {segment.endCity}! 
-        <br />
-        Stop along the way to explore local attractions and Route 66 landmarks.
-      </p>
-    </div>
-  );
+  // Return nothing - stops functionality completely removed
+  return null;
 };
 
 export default PDFDaySegmentCardStops;
