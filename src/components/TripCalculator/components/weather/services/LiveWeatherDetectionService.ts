@@ -1,96 +1,47 @@
 
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-
 export class LiveWeatherDetectionService {
   /**
-   * Explicit live weather detection with multiple validation checks
+   * CRITICAL: Unified live weather detection logic
+   * This is the SINGLE source of truth for determining if weather is live
    */
-  static isLiveWeatherForecast(weather: ForecastWeatherData): boolean {
-    console.log('🔍 LiveWeatherDetectionService: Analyzing weather data:', {
+  static isLiveWeatherForecast(weather: any): boolean {
+    if (!weather) {
+      console.log('❌ LIVE DETECTION: No weather data provided');
+      return false;
+    }
+
+    console.log('🔍 LIVE DETECTION: Analyzing weather data:', {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
-      hasTemperature: !!weather.temperature,
-      hasHighLow: !!(weather.highTemp && weather.lowTemp),
+      temperature: weather.temperature,
       cityName: weather.cityName
     });
 
-    // PRIMARY CHECK: Both source and isActualForecast must be correct
-    const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    // CRITICAL: Both conditions must be true for live weather
+    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
     
-    // SECONDARY CHECK: Must have real temperature data
-    const hasRealData = weather.temperature !== undefined && weather.temperature > 0;
-    
-    // TERTIARY CHECK: Must have realistic weather values
-    const hasRealisticData = weather.temperature >= -50 && weather.temperature <= 150;
-    
-    const result = isLiveForecast && hasRealData && hasRealisticData;
-    
-    console.log('🔍 LiveWeatherDetectionService: Detection result:', {
-      isLiveForecast,
-      hasRealData,
-      hasRealisticData,
-      finalResult: result,
-      weatherData: {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        temperature: weather.temperature
-      }
-    });
-
-    return result;
-  }
-
-  /**
-   * Get the appropriate weather source label
-   */
-  static getWeatherSourceLabel(weather: ForecastWeatherData): string {
-    const isLive = this.isLiveWeatherForecast(weather);
-    
-    console.log('🏷️ LiveWeatherDetectionService: Getting label for weather:', {
+    console.log('🎯 LIVE DETECTION: Final result:', {
       isLive,
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      cityName: weather.cityName
+      sourceCheck: weather.source === 'live_forecast',
+      actualForecastCheck: weather.isActualForecast === true,
+      expectedStyling: isLive ? 'GREEN' : 'YELLOW'
     });
 
-    if (isLive) {
-      return '🟢 Live Weather Forecast';
-    } else {
-      return '🟡 Historical Weather Data';
-    }
+    return isLive;
   }
 
   /**
-   * Get the appropriate weather source color
+   * Debug helper to analyze weather data structure
    */
-  static getWeatherSourceColor(weather: ForecastWeatherData): string {
-    const isLive = this.isLiveWeatherForecast(weather);
-    return isLive ? 'text-green-600' : 'text-amber-600';
-  }
-
-  /**
-   * Get the appropriate weather badge text
-   */
-  static getWeatherBadgeText(weather: ForecastWeatherData): string {
-    const isLive = this.isLiveWeatherForecast(weather);
-    
-    if (isLive) {
-      return '✨ Current live forecast';
-    } else {
-      return '📊 Based on historical patterns';
-    }
-  }
-
-  /**
-   * Get the appropriate weather badge style
-   */
-  static getWeatherBadgeStyle(weather: ForecastWeatherData): string {
-    const isLive = this.isLiveWeatherForecast(weather);
-    
-    if (isLive) {
-      return 'bg-green-100 text-green-700';
-    } else {
-      return 'bg-amber-100 text-amber-700';
-    }
+  static debugWeatherData(weather: any, cityName: string): void {
+    console.log(`🔧 WEATHER DEBUG for ${cityName}:`, {
+      hasWeather: !!weather,
+      source: weather?.source,
+      isActualForecast: weather?.isActualForecast,
+      temperature: weather?.temperature,
+      description: weather?.description,
+      isLiveResult: this.isLiveWeatherForecast(weather),
+      expectedBackground: this.isLiveWeatherForecast(weather) ? 'GREEN' : 'YELLOW'
+    });
   }
 }

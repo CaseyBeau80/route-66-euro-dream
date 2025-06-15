@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from '../services/WeatherUtilityService';
@@ -6,6 +5,8 @@ import { useUnifiedWeather } from '../hooks/useUnifiedWeather';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import { DriveTimeCalculator } from '../../utils/DriveTimeCalculator';
+import { WeatherDataValidator } from './WeatherDataValidator';
+import { LiveWeatherDetectionService } from '../services/LiveWeatherDetectionService';
 import { format } from 'date-fns';
 
 interface CompactWeatherDisplayProps {
@@ -70,42 +71,44 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     cachedWeather: null
   });
 
-  // CRITICAL FIX: Proper live weather detection - check BOTH conditions explicitly
-  const isLiveForecast = React.useMemo(() => {
-    if (!weather) {
-      console.log('❌ COMPACT: No weather data for', segment.endCity);
-      return false;
-    }
+  // CRITICAL FIX: Validate weather data and use unified detection
+  const weatherValidation = React.useMemo(() => {
+    if (!weather || !segmentDate) return null;
     
-    console.log('🔍 COMPACT: Weather analysis for', segment.endCity, {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      temperature: weather.temperature,
-      description: weather.description
+    const validation = WeatherDataValidator.validateWeatherData(weather, segment.endCity, segmentDate);
+    
+    console.log(`🚨 COMPACT VALIDATION for ${segment.endCity}:`, {
+      hasWeather: !!weather,
+      isLiveForecast: validation.isLiveForecast,
+      originalSource: weather.source,
+      originalIsActual: weather.isActualForecast,
+      validatedSource: validation.normalizedWeather.source,
+      validatedIsActual: validation.normalizedWeather.isActualForecast,
+      shouldShowGreen: validation.isLiveForecast,
+      temperature: validation.normalizedWeather.temperature
     });
     
-    // BOTH conditions MUST be true for live forecast
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    console.log('🎯 COMPACT: Live detection result for', segment.endCity, {
-      isLive,
-      expectedBackground: isLive ? 'GREEN (bg-green-100)' : 'YELLOW (bg-yellow-100)',
-      sourceCheck: weather.source === 'live_forecast',
-      actualForecastCheck: weather.isActualForecast === true
-    });
-    
-    return isLive;
-  }, [weather, segment.endCity]);
+    return validation;
+  }, [weather, segmentDate, segment.endCity]);
 
-  // CRITICAL FIX: Use DriveTimeCalculator consistently
+  // CRITICAL FIX: Use DriveTimeCalculator consistently and debug values
   const displayDriveTime = React.useMemo(() => {
-    const result = DriveTimeCalculator.formatDriveTime(segment);
-    console.log('🚗 COMPACT: Drive time for', segment.endCity, {
-      driveTimeHours: segment.driveTimeHours,
-      distance: segment.distance,
-      formatted: result,
-      usingDriveTimeCalculator: true
+    console.log(`🚗 COMPACT DRIVE TIME DEBUG for ${segment.endCity}:`, {
+      segmentData: {
+        driveTimeHours: segment.driveTimeHours,
+        distance: segment.distance,
+        startCity: segment.startCity,
+        endCity: segment.endCity,
+        day: segment.day
+      },
+      hasValidDriveTime: typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0,
+      hasValidDistance: typeof segment.distance === 'number' && segment.distance > 0
     });
+    
+    const result = DriveTimeCalculator.formatDriveTime(segment);
+    
+    console.log(`🚗 COMPACT FINAL DRIVE TIME for ${segment.endCity}: ${result}`);
+    
     return result;
   }, [segment]);
 
@@ -119,13 +122,6 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     };
     return iconMap[iconCode] || '⛅';
   };
-
-  console.log('🔄 COMPACT: Final render state for', segment.endCity, {
-    hasWeather: !!weather,
-    isLiveForecast,
-    displayDriveTime,
-    expectedContainerColor: isLiveForecast ? 'GREEN' : 'YELLOW'
-  });
 
   // Loading state
   if (loading) {
@@ -143,12 +139,13 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     );
   }
 
-  // Show weather if available
-  if (weather && segmentDate) {
-    const weatherIcon = getWeatherIcon(weather.icon);
+  // Show weather if available and validated
+  if (weatherValidation && segmentDate) {
+    const { isLiveForecast, normalizedWeather } = weatherValidation;
+    const weatherIcon = getWeatherIcon(normalizedWeather.icon);
     const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-    // CRITICAL FIX: Apply correct styling based on live detection
+    // CRITICAL FIX: Force correct styling based on validation result
     const containerClasses = isLiveForecast 
       ? "bg-green-100 border-green-200 rounded-lg p-4 border"
       : "bg-yellow-100 border-yellow-200 rounded-lg p-4 border";
@@ -160,11 +157,12 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
       : "bg-yellow-100 text-yellow-700 border-yellow-200";
     const sourceColor = isLiveForecast ? 'text-green-600' : 'text-yellow-600';
 
-    console.log('🎨 COMPACT: Applied styling for', segment.endCity, {
+    console.log(`🎨 COMPACT FINAL STYLING for ${segment.endCity}:`, {
       isLiveForecast,
       containerClasses,
       sourceLabel,
-      actualBackgroundColor: isLiveForecast ? 'GREEN' : 'YELLOW'
+      actualBackground: isLiveForecast ? 'GREEN' : 'YELLOW',
+      temperature: normalizedWeather.temperature
     });
 
     return (
@@ -186,22 +184,22 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
             <div className="text-3xl">{weatherIcon}</div>
             <div>
               <div className="text-2xl font-bold text-gray-800">
-                {Math.round(weather.temperature)}°F
+                {Math.round(normalizedWeather.temperature)}°F
               </div>
               <div className="text-sm text-gray-600 capitalize">
-                {weather.description}
+                {normalizedWeather.description}
               </div>
             </div>
           </div>
 
           <div className="text-right">
-            {weather.highTemp && weather.lowTemp && (
+            {normalizedWeather.highTemp && normalizedWeather.lowTemp && (
               <div className="text-sm text-gray-600">
-                H: {Math.round(weather.highTemp)}° L: {Math.round(weather.lowTemp)}°
+                H: {Math.round(normalizedWeather.highTemp)}° L: {Math.round(normalizedWeather.lowTemp)}°
               </div>
             )}
             <div className="text-xs text-gray-500 mt-1">
-              💧 {weather.precipitationChance}% • 💨 {weather.windSpeed} mph
+              💧 {normalizedWeather.precipitationChance}% • 💨 {normalizedWeather.windSpeed} mph
             </div>
           </div>
         </div>
@@ -211,6 +209,11 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
           <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${badgeClasses}`}>
             {badgeText}
           </span>
+        </div>
+
+        {/* Debug info for troubleshooting */}
+        <div className="mt-2 text-xs text-gray-500 bg-white bg-opacity-50 p-1 rounded">
+          Debug: {isLiveForecast ? 'LIVE' : 'HISTORICAL'} | Source: {normalizedWeather.source} | Actual: {String(normalizedWeather.isActualForecast)} | Drive: {displayDriveTime}
         </div>
       </div>
     );
