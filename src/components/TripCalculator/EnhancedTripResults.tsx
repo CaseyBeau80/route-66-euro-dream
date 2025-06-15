@@ -9,7 +9,6 @@ import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
-import { DriveTimeCalculator } from './components/utils/DriveTimeCalculator';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
@@ -92,20 +91,31 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // CRITICAL FIX: Use DriveTimeCalculator for proper drive time calculation
+  // CONSISTENT: Use same drive time calculation and formatting as shared views
   let totalDrivingTime = tripPlan.totalDrivingTime || 0;
   
-  // If totalDrivingTime is 0 or invalid, calculate it from segments using DriveTimeCalculator
+  // If totalDrivingTime is 0 or invalid, calculate it from segments
   if (!totalDrivingTime && tripPlan.segments?.length > 0) {
-    totalDrivingTime = DriveTimeCalculator.calculateTotalDriveTime(tripPlan.segments);
-    console.log(`🔧 REFACTORED: Calculated drive time using DriveTimeCalculator: ${totalDrivingTime.toFixed(1)}h`);
+    totalDrivingTime = tripPlan.segments.reduce((total, segment) => {
+      const segmentDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
+      return total + segmentDriveTime;
+    }, 0);
+    console.log(`🔧 CONSISTENT: Calculated total drive time: ${totalDrivingTime.toFixed(1)}h`);
   }
   
-  console.log('🚗 REFACTORED: Drive time check in EnhancedTripResults:', {
+  // CONSISTENT: Use same formatTime function as shared views
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+  };
+  
+  console.log('🚗 CONSISTENT: Drive time check in EnhancedTripResults:', {
     totalDrivingTime,
-    formatted: DriveTimeCalculator.formatHours(totalDrivingTime),
+    formatted: formatTime(totalDrivingTime),
     segmentCount: tripPlan.segments?.length,
-    usingDriveTimeCalculator: true
+    usingConsistentLogic: true
   });
 
   return (
@@ -149,7 +159,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">{DriveTimeCalculator.formatHours(totalDrivingTime)}</div>
+              <div className="text-sm font-semibold text-gray-800">{formatTime(totalDrivingTime)}</div>
               <div className="text-xs text-gray-600">Drive Time</div>
             </div>
             

@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { DailySegment } from '../../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from '../services/WeatherUtilityService';
 import { useUnifiedWeather } from '../hooks/useUnifiedWeather';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
-import { DriveTimeCalculator } from '../../utils/DriveTimeCalculator';
 import { WeatherDataValidator } from './WeatherDataValidator';
 import { LiveWeatherDetectionService } from '../services/LiveWeatherDetectionService';
 import { format } from 'date-fns';
@@ -91,21 +91,33 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     return validation;
   }, [weather, segmentDate, segment.endCity]);
 
-  // CRITICAL FIX: Use DriveTimeCalculator consistently and debug values
+  // CONSISTENT: Use same drive time calculation and format as shared views
   const displayDriveTime = React.useMemo(() => {
     console.log(`🚗 COMPACT DRIVE TIME DEBUG for ${segment.endCity}:`, {
       segmentData: {
         driveTimeHours: segment.driveTimeHours,
+        drivingTime: segment.drivingTime,
         distance: segment.distance,
         startCity: segment.startCity,
         endCity: segment.endCity,
         day: segment.day
       },
-      hasValidDriveTime: typeof segment.driveTimeHours === 'number' && segment.driveTimeHours > 0,
+      hasValidDriveTime: typeof (segment.drivingTime || segment.driveTimeHours) === 'number' && (segment.drivingTime || segment.driveTimeHours) > 0,
       hasValidDistance: typeof segment.distance === 'number' && segment.distance > 0
     });
     
-    const result = DriveTimeCalculator.formatDriveTime(segment);
+    // CONSISTENT: Use same drive time calculation as shared views
+    const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
+    
+    // CONSISTENT: Use same formatTime function as shared views
+    const formatTime = (hours?: number): string => {
+      if (!hours) return 'N/A';
+      const wholeHours = Math.floor(hours);
+      const minutes = Math.round((hours - wholeHours) * 60);
+      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    };
+    
+    const result = formatTime(drivingTime);
     
     console.log(`🚗 COMPACT FINAL DRIVE TIME for ${segment.endCity}: ${result}`);
     

@@ -7,7 +7,6 @@ import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 import TripSummaryStats from './TripSummaryStats';
 import SimpleWeatherDisplay from '../../TripCalculator/components/weather/SimpleWeatherDisplay';
-import { DriveTimeCalculator } from '../../TripCalculator/components/utils/DriveTimeCalculator';
 import { useEdgeFunctionWeather } from '../../TripCalculator/components/weather/hooks/useEdgeFunctionWeather';
 import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
 
@@ -82,7 +81,9 @@ const TripResults: React.FC<TripResultsProps> = ({
   // CONSISTENT: Helper function to format time (same as shared views)
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
-    return DriveTimeCalculator.formatHours(hours);
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
 
   return (
