@@ -19,8 +19,8 @@ export class StopRecommendationService {
     allStops: TripStop[],
     maxStops: number = this.DEFAULT_MAX_STOPS
   ): RecommendedStop[] {
-    console.log(`🎯 [DEBUG] StopRecommendationService starting for ${segment.startCity} → ${segment.endCity}`);
-    console.log(`📊 [DEBUG] Input validation:`, {
+    console.log(`🚨 [CRITICAL-DEBUG] StopRecommendationService starting for ${segment.startCity} → ${segment.endCity}`);
+    console.log(`📊 [CRITICAL-DEBUG] Input validation:`, {
       hasSegment: !!segment,
       hasEndCity: !!segment?.endCity,
       totalStops: allStops?.length || 0,
@@ -29,74 +29,87 @@ export class StopRecommendationService {
         day: segment?.day,
         startCity: segment?.startCity,
         endCity: segment?.endCity
-      }
-    });
-
-    // CRITICAL: Basic validation
-    if (!segment) {
-      console.error('❌ [DEBUG] No segment provided');
-      return [];
-    }
-
-    if (!segment.endCity) {
-      console.error('❌ [DEBUG] Segment missing endCity');
-      return [];
-    }
-
-    if (!allStops || allStops.length === 0) {
-      console.error('❌ [DEBUG] No stops data provided');
-      return [];
-    }
-
-    // Log sample of available stops
-    console.log(`📊 [DEBUG] Available stops sample:`, {
-      totalStops: allStops.length,
-      categories: [...new Set(allStops.map(s => s.category))],
-      sampleStops: allStops.slice(0, 5).map(s => ({ 
+      },
+      sampleStops: allStops?.slice(0, 3).map(s => ({ 
         id: s.id, 
         name: s.name, 
         category: s.category, 
         city: s.city_name,
         state: s.state
-      }))
+      })) || []
     });
+
+    // CRITICAL: Basic validation
+    if (!segment) {
+      console.error('❌ [CRITICAL-DEBUG] No segment provided');
+      return [];
+    }
+
+    if (!segment.endCity) {
+      console.error('❌ [CRITICAL-DEBUG] Segment missing endCity');
+      return [];
+    }
+
+    if (!allStops || allStops.length === 0) {
+      console.error('❌ [CRITICAL-DEBUG] No stops data provided');
+      return [];
+    }
+
+    // Log ALL available stops by category
+    const stopsByCategory = allStops.reduce((acc, stop) => {
+      const category = stop.category || 'unknown';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(stop.name);
+      return acc;
+    }, {} as Record<string, string[]>);
+    
+    console.log(`📊 [CRITICAL-DEBUG] ALL Available stops by category:`, stopsByCategory);
 
     try {
       // Filter stops geographically
+      console.log(`🌍 [CRITICAL-DEBUG] Starting geographic filtering...`);
       const geographicallyRelevantStops = StopGeographyFilter.filterStopsByRouteGeography(segment, allStops);
-      console.log(`📍 [DEBUG] Geographic filtering result: ${geographicallyRelevantStops.length} stops`);
+      console.log(`📍 [CRITICAL-DEBUG] Geographic filtering result: ${geographicallyRelevantStops.length} stops`, 
+        geographicallyRelevantStops.map(s => ({ name: s.name, category: s.category, city: s.city_name }))
+      );
       
       if (geographicallyRelevantStops.length === 0) {
-        console.warn(`⚠️ [DEBUG] No geographically relevant stops found for ${segment.endCity}`);
+        console.warn(`⚠️ [CRITICAL-DEBUG] No geographically relevant stops found for ${segment.endCity}`);
         
         // FALLBACK: Try to find ANY stops in the same state as destination
         const fallbackStops = this.findFallbackStops(segment, allStops);
-        console.log(`🔄 [DEBUG] Fallback search found ${fallbackStops.length} stops`);
+        console.log(`🔄 [CRITICAL-DEBUG] Fallback search found ${fallbackStops.length} stops`);
         
         if (fallbackStops.length === 0) {
+          console.error(`❌ [CRITICAL-DEBUG] Even fallback search found no stops`);
           return [];
         }
         
         // Use fallback stops for scoring
+        console.log(`⭐ [CRITICAL-DEBUG] Scoring fallback stops...`);
         const scoredFallbackStops = StopScoringService.scoreStopRelevance(segment, fallbackStops);
         const selectedFallbackStops = StopScoringService.selectDiverseStops(scoredFallbackStops, maxStops);
         
-        console.log(`✅ [DEBUG] Fallback recommendation complete: ${selectedFallbackStops.length} stops`);
+        console.log(`✅ [CRITICAL-DEBUG] Fallback recommendation complete: ${selectedFallbackStops.length} stops`);
         return selectedFallbackStops;
       }
       
       // Score and select stops normally
+      console.log(`⭐ [CRITICAL-DEBUG] Scoring geographically relevant stops...`);
       const scoredStops = StopScoringService.scoreStopRelevance(segment, geographicallyRelevantStops);
-      console.log(`⭐ [DEBUG] Scoring complete: ${scoredStops.length} scored stops`);
+      console.log(`⭐ [CRITICAL-DEBUG] Scoring complete: ${scoredStops.length} scored stops with scores:`, 
+        scoredStops.map(s => ({ name: s.name, score: s.relevanceScore, category: s.category }))
+      );
       
       if (scoredStops.length === 0) {
-        console.warn(`⚠️ [DEBUG] No scored stops found`);
+        console.warn(`⚠️ [CRITICAL-DEBUG] No scored stops found`);
         return [];
       }
       
+      console.log(`🎯 [CRITICAL-DEBUG] Selecting diverse stops from ${scoredStops.length} scored stops...`);
       const selectedStops = StopScoringService.selectDiverseStops(scoredStops, maxStops);
       
-      console.log(`✅ [DEBUG] Final recommendation complete:`, {
+      console.log(`✅ [CRITICAL-DEBUG] Final recommendation complete:`, {
         selectedCount: selectedStops.length,
         stops: selectedStops.map(s => ({ 
           name: s.name, 
@@ -109,7 +122,7 @@ export class StopRecommendationService {
       return selectedStops;
       
     } catch (error) {
-      console.error(`❌ [DEBUG] Error in recommendation service:`, error);
+      console.error(`❌ [CRITICAL-DEBUG] Error in recommendation service:`, error);
       return [];
     }
   }
@@ -118,18 +131,20 @@ export class StopRecommendationService {
    * Fallback method to find stops when geographic filtering fails
    */
   private static findFallbackStops(segment: DailySegment, allStops: TripStop[]): TripStop[] {
-    console.log(`🔄 [DEBUG] Running fallback stop search for ${segment.endCity}`);
+    console.log(`🔄 [CRITICAL-DEBUG] Running fallback stop search for ${segment.endCity}`);
     
     // Extract state from destination city
     const destinationState = this.extractStateFromCity(segment.endCity);
-    console.log(`🔍 [DEBUG] Destination state: ${destinationState}`);
+    console.log(`🔍 [CRITICAL-DEBUG] Destination state extracted: ${destinationState}`);
     
     if (!destinationState) {
-      console.warn(`⚠️ [DEBUG] Could not extract state from ${segment.endCity}`);
+      console.warn(`⚠️ [CRITICAL-DEBUG] Could not extract state from ${segment.endCity}`);
       // Ultimate fallback - return some attractions regardless of location
-      return allStops.filter(stop => 
+      const attractions = allStops.filter(stop => 
         stop.category === 'attraction' || stop.category === 'hidden_gem'
       ).slice(0, 10);
+      console.log(`🆘 [CRITICAL-DEBUG] Ultimate fallback: returning ${attractions.length} attractions`);
+      return attractions;
     }
     
     // Find stops in the same state
@@ -138,7 +153,9 @@ export class StopRecommendationService {
       return stopState === destinationState.toLowerCase();
     });
     
-    console.log(`🔍 [DEBUG] Found ${stateStops.length} stops in state ${destinationState}`);
+    console.log(`🔍 [CRITICAL-DEBUG] Found ${stateStops.length} stops in state ${destinationState}:`, 
+      stateStops.slice(0, 5).map(s => ({ name: s.name, category: s.category, city: s.city_name }))
+    );
     
     return stateStops;
   }

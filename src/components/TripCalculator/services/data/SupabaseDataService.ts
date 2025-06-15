@@ -1,231 +1,153 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { TripStop, convertToTripStop } from '../../types/TripStop';
+import { TripStop } from '../../types/TripStop';
 
-export type { TripStop } from '../../types/TripStop';
+export interface TripStop {
+  id: string;
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  city_name: string;
+  city?: string;
+  state: string;
+  category?: string;
+  featured?: boolean;
+  is_major_stop?: boolean;
+}
 
 export class SupabaseDataService {
   /**
-   * Extract state from city_name field
-   */
-  private static extractStateFromCityName(cityName: string): string {
-    if (!cityName || !cityName.includes(',')) {
-      return 'Unknown';
-    }
-    
-    const parts = cityName.split(',');
-    if (parts.length < 2) {
-      return 'Unknown';
-    }
-    
-    return parts[1].trim();
-  }
-
-  /**
-   * Fetch and validate all stops from Supabase with enhanced debugging
+   * Fetch all stops from multiple tables with comprehensive debugging
    */
   static async fetchAllStops(): Promise<TripStop[]> {
-    console.log('🔍 [DEBUG] SupabaseDataService: Starting comprehensive data fetch...');
+    console.log('🚨 [CRITICAL-DATA] Starting comprehensive stops fetch from all tables...');
     
     try {
-      // Test database connection first
-      const { data: testQuery, error: testError } = await supabase
-        .from('attractions')
-        .select('count(*)')
-        .limit(1);
-      
-      if (testError) {
-        console.error('❌ [DEBUG] Database connection test failed:', testError);
-        throw new Error(`Database connection failed: ${testError.message}`);
-      }
-      
-      console.log('✅ [DEBUG] Database connection successful');
+      // Fetch from all relevant tables
+      const [attractionsResult, destinationCitiesResult, hiddenGemsResult, driveInsResult, waypointsResult] = await Promise.all([
+        supabase.from('attractions').select('*'),
+        supabase.from('destination_cities').select('*'),
+        supabase.from('hidden_gems').select('*'),
+        supabase.from('drive_ins').select('*'),
+        supabase.from('route66_waypoints').select('*')
+      ]);
 
-      // Fetch attractions with enhanced validation
-      console.log('📡 [DEBUG] Fetching attractions...');
-      const { data: attractions, error: attractionsError } = await supabase
-        .from('attractions')
-        .select('*')
-        .not('name', 'is', null)
-        .neq('name', '')
-        .not('city_name', 'is', null)
-        .neq('city_name', '')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
-
-      if (attractionsError) {
-        console.error('❌ [DEBUG] Attractions fetch error:', attractionsError);
-        throw new Error(`Attractions fetch failed: ${attractionsError.message}`);
-      }
-
-      // Fetch hidden gems with enhanced validation  
-      console.log('📡 [DEBUG] Fetching hidden gems...');
-      const { data: hiddenGems, error: hiddenGemsError } = await supabase
-        .from('hidden_gems')
-        .select('*')
-        .not('title', 'is', null)
-        .neq('title', '')
-        .not('city_name', 'is', null)
-        .neq('city_name', '')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
-
-      if (hiddenGemsError) {
-        console.error('❌ [DEBUG] Hidden gems fetch error:', hiddenGemsError);
-        throw new Error(`Hidden gems fetch failed: ${hiddenGemsError.message}`);
-      }
-
-      // Fetch drive-ins with enhanced validation
-      console.log('📡 [DEBUG] Fetching drive-ins...');
-      const { data: driveIns, error: driveInsError } = await supabase
-        .from('drive_ins')
-        .select('*')
-        .not('name', 'is', null)
-        .neq('name', '')
-        .not('city_name', 'is', null)
-        .neq('city_name', '')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
-
-      if (driveInsError) {
-        console.error('❌ [DEBUG] Drive-ins fetch error:', driveInsError);
-        throw new Error(`Drive-ins fetch failed: ${driveInsError.message}`);
-      }
-
-      console.log('✅ [DEBUG] Raw data fetched successfully:', {
-        attractions: attractions?.length || 0,
-        hiddenGems: hiddenGems?.length || 0,
-        driveIns: driveIns?.length || 0,
-        sampleAttractions: attractions?.slice(0, 3).map(a => a.name) || [],
-        sampleHiddenGems: hiddenGems?.slice(0, 3).map(g => g.title) || [],
-        sampleDriveIns: driveIns?.slice(0, 3).map(d => d.name) || []
+      console.log('🚨 [CRITICAL-DATA] Raw table fetch results:', {
+        attractions: { count: attractionsResult.data?.length || 0, error: attractionsResult.error },
+        destinationCities: { count: destinationCitiesResult.data?.length || 0, error: destinationCitiesResult.error },
+        hiddenGems: { count: hiddenGemsResult.data?.length || 0, error: hiddenGemsResult.error },
+        driveIns: { count: driveInsResult.data?.length || 0, error: driveInsResult.error },
+        waypoints: { count: waypointsResult.data?.length || 0, error: waypointsResult.error }
       });
 
-      // Convert all data to TripStop format
+      // Check for errors
+      if (attractionsResult.error) console.error('❌ [CRITICAL-DATA] Attractions fetch error:', attractionsResult.error);
+      if (destinationCitiesResult.error) console.error('❌ [CRITICAL-DATA] Destination cities fetch error:', destinationCitiesResult.error);
+      if (hiddenGemsResult.error) console.error('❌ [CRITICAL-DATA] Hidden gems fetch error:', hiddenGemsResult.error);
+      if (driveInsResult.error) console.error('❌ [CRITICAL-DATA] Drive-ins fetch error:', driveInsResult.error);
+      if (waypointsResult.error) console.error('❌ [CRITICAL-DATA] Waypoints fetch error:', waypointsResult.error);
+
       const allStops: TripStop[] = [];
-      let conversionErrors = 0;
 
       // Process attractions
-      if (attractions && attractions.length > 0) {
-        console.log(`🔄 [DEBUG] Converting ${attractions.length} attractions...`);
-        attractions.forEach((attraction, index) => {
-          try {
-            if (!attraction.name || !attraction.city_name || 
-                !attraction.latitude || !attraction.longitude) {
-              console.warn(`⚠️ [DEBUG] Skipping invalid attraction ${index}:`, attraction.id);
-              conversionErrors++;
-              return;
-            }
+      if (attractionsResult.data) {
+        const attractions = attractionsResult.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          latitude: Number(item.latitude),
+          longitude: Number(item.longitude),
+          city_name: item.city_name,
+          city: item.city_name,
+          state: item.state,
+          category: 'attraction',
+          featured: item.featured
+        }));
+        allStops.push(...attractions);
+        console.log(`🎯 [CRITICAL-DATA] Processed ${attractions.length} attractions`);
+      }
 
-            const stop = convertToTripStop({
-              ...attraction,
-              category: 'attraction',
-              city: attraction.city_name
-            });
-            
-            allStops.push(stop);
-            
-            if (index < 3) {
-              console.log(`✅ [DEBUG] Converted attraction: ${stop.name} in ${stop.city_name}, ${stop.state}`);
-            }
-          } catch (err) {
-            console.warn(`⚠️ [DEBUG] Failed to convert attraction ${index}:`, err);
-            conversionErrors++;
-          }
-        });
+      // Process destination cities
+      if (destinationCitiesResult.data) {
+        const cities = destinationCitiesResult.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          latitude: Number(item.latitude),
+          longitude: Number(item.longitude),
+          city_name: item.name,
+          city: item.name,
+          state: item.state,
+          category: 'destination_city',
+          featured: item.featured
+        }));
+        allStops.push(...cities);
+        console.log(`🏙️ [CRITICAL-DATA] Processed ${cities.length} destination cities`);
       }
 
       // Process hidden gems
-      if (hiddenGems && hiddenGems.length > 0) {
-        console.log(`🔄 [DEBUG] Converting ${hiddenGems.length} hidden gems...`);
-        hiddenGems.forEach((gem, index) => {
-          try {
-            if (!gem.title || !gem.city_name || 
-                !gem.latitude || !gem.longitude) {
-              console.warn(`⚠️ [DEBUG] Skipping invalid hidden gem ${index}:`, gem.id);
-              conversionErrors++;
-              return;
-            }
-
-            const extractedState = this.extractStateFromCityName(gem.city_name);
-            
-            const stop = convertToTripStop({
-              ...gem,
-              name: gem.title,
-              category: 'hidden_gem',
-              city: gem.city_name,
-              state: extractedState
-            });
-            
-            allStops.push(stop);
-            
-            if (index < 3) {
-              console.log(`✅ [DEBUG] Converted hidden gem: ${stop.name} in ${stop.city_name}, ${stop.state}`);
-            }
-          } catch (err) {
-            console.warn(`⚠️ [DEBUG] Failed to convert hidden gem ${index}:`, err);
-            conversionErrors++;
-          }
-        });
+      if (hiddenGemsResult.data) {
+        const gems = hiddenGemsResult.data.map(item => ({
+          id: item.id,
+          name: item.title,
+          description: item.description,
+          latitude: Number(item.latitude),
+          longitude: Number(item.longitude),
+          city_name: item.city_name,
+          city: item.city_name,
+          state: 'Unknown', // Hidden gems table doesn't have state
+          category: 'hidden_gem'
+        }));
+        allStops.push(...gems);
+        console.log(`💎 [CRITICAL-DATA] Processed ${gems.length} hidden gems`);
       }
 
       // Process drive-ins
-      if (driveIns && driveIns.length > 0) {
-        console.log(`🔄 [DEBUG] Converting ${driveIns.length} drive-ins...`);
-        driveIns.forEach((driveIn, index) => {
-          try {
-            if (!driveIn.name || !driveIn.city_name || 
-                !driveIn.latitude || !driveIn.longitude) {
-              console.warn(`⚠️ [DEBUG] Skipping invalid drive-in ${index}:`, driveIn.id);
-              conversionErrors++;
-              return;
-            }
-
-            const stop = convertToTripStop({
-              ...driveIn,
-              category: 'drive_in',
-              city: driveIn.city_name
-            });
-            
-            allStops.push(stop);
-            
-            if (index < 3) {
-              console.log(`✅ [DEBUG] Converted drive-in: ${stop.name} in ${stop.city_name}, ${stop.state}`);
-            }
-          } catch (err) {
-            console.warn(`⚠️ [DEBUG] Failed to convert drive-in ${index}:`, err);
-            conversionErrors++;
-          }
-        });
+      if (driveInsResult.data) {
+        const driveIns = driveInsResult.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          latitude: Number(item.latitude),
+          longitude: Number(item.longitude),
+          city_name: item.city_name,
+          city: item.city_name,
+          state: item.state,
+          category: 'drive_in',
+          featured: item.featured
+        }));
+        allStops.push(...driveIns);
+        console.log(`🎬 [CRITICAL-DATA] Processed ${driveIns.length} drive-ins`);
       }
 
-      // Final validation
-      const validStops = allStops.filter(stop => {
-        const isValid = stop && 
-          stop.name && 
-          stop.name.trim().length > 0 && 
-          stop.category &&
-          stop.city_name &&
-          stop.latitude &&
-          stop.longitude;
-        
-        if (!isValid) {
-          console.warn(`⚠️ [DEBUG] Final filter removing invalid stop:`, stop);
-          conversionErrors++;
-        }
-        
-        return isValid;
-      });
+      // Process waypoints
+      if (waypointsResult.data) {
+        const waypoints = waypointsResult.data.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          latitude: Number(item.latitude),
+          longitude: Number(item.longitude),
+          city_name: item.name,
+          city: item.name,
+          state: item.state,
+          category: 'route66_waypoint',
+          is_major_stop: item.is_major_stop
+        }));
+        allStops.push(...waypoints);
+        console.log(`🛣️ [CRITICAL-DATA] Processed ${waypoints.length} waypoints`);
+      }
 
-      console.log('✅ [DEBUG] Data processing complete:', {
-        totalConverted: allStops.length,
-        finalValidStops: validStops.length,
-        conversionErrors,
-        byCategory: validStops.reduce((acc, stop) => {
-          acc[stop.category] = (acc[stop.category] || 0) + 1;
+      console.log('✅ [CRITICAL-DATA] Final stops compilation:', {
+        totalStops: allStops.length,
+        byCategory: allStops.reduce((acc, stop) => {
+          const cat = stop.category || 'unknown';
+          acc[cat] = (acc[cat] || 0) + 1;
           return acc;
         }, {} as Record<string, number>),
-        sampleValidStops: validStops.slice(0, 5).map(s => ({
+        sampleStops: allStops.slice(0, 5).map(s => ({
+          id: s.id,
           name: s.name,
           category: s.category,
           city: s.city_name,
@@ -233,13 +155,10 @@ export class SupabaseDataService {
         }))
       });
 
-      if (validStops.length === 0) {
-        throw new Error('No valid stops found after processing all data sources');
-      }
+      return allStops;
 
-      return validStops;
     } catch (error) {
-      console.error('❌ [DEBUG] SupabaseDataService: Critical error:', error);
+      console.error('❌ [CRITICAL-DATA] Critical error in fetchAllStops:', error);
       throw error;
     }
   }
