@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Route, Clock, MapPin, AlertTriangle } from 'lucide-react';
+import { Route, Clock, MapPin } from 'lucide-react';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
@@ -22,60 +22,51 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  const stats = [
-    {
-      icon: Route,
-      label: 'Distance',
-      value: formatDistance(segmentDistance),
-      color: 'text-blue-600'
-    },
-    {
-      icon: Clock,
-      label: 'Drive Time',
-      value: `${formattedDriveTime} driving`,
-      color: segment.driveTimeHours > 7 ? 'text-orange-600' : 'text-green-600'
-    },
-    {
-      icon: MapPin,
-      label: 'Start',
-      value: segment.startCity || 'Unknown',
-      color: 'text-gray-600'
-    },
-    {
-      icon: MapPin,
-      label: 'End',
-      value: segment.endCity,
-      color: 'text-gray-600'
-    }
-  ];
-
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gray-50">
-      {stats.map((stat, index) => {
-        const IconComponent = stat.icon;
-        return (
-          <div key={index} className="bg-white rounded-lg p-3 text-center shadow-sm">
-            <div className="flex items-center justify-center mb-2">
-              <IconComponent className={`h-5 w-5 ${stat.color}`} />
-            </div>
-            <div className="text-xs text-gray-500 font-medium mb-1">
-              {stat.label}
-            </div>
-            <div className="text-sm font-semibold text-gray-900">
-              {stat.value}
-            </div>
-          </div>
-        );
-      })}
-      
-      {segment.driveTimeHours > 7 && (
-        <div className="col-span-2 md:col-span-4 mt-2">
-          <div className="flex items-center justify-center gap-2 text-orange-600 bg-orange-50 rounded-lg p-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="text-xs font-medium">Long Drive Day - Consider breaking this up</span>
-          </div>
+    <div className="grid grid-cols-4 gap-0 bg-white border-l border-r border-gray-200">
+      {/* Miles */}
+      <div className="p-4 text-center border-r border-gray-200">
+        <div className="flex items-center justify-center mb-2">
+          <Route className="h-5 w-5 text-blue-500" />
         </div>
-      )}
+        <div className="text-2xl font-bold text-blue-600">
+          {Math.round(segmentDistance)}
+        </div>
+        <div className="text-xs text-gray-600 font-medium">Miles</div>
+      </div>
+      
+      {/* Drive Time */}
+      <div className="p-4 text-center border-r border-gray-200">
+        <div className="flex items-center justify-center mb-2">
+          <Clock className="h-5 w-5 text-purple-500" />
+        </div>
+        <div className="text-lg font-bold text-purple-600">
+          {formattedDriveTime}
+        </div>
+        <div className="text-xs text-gray-600 font-medium">Drive Time</div>
+      </div>
+      
+      {/* From */}
+      <div className="p-4 text-center border-r border-gray-200">
+        <div className="flex items-center justify-center mb-2">
+          <MapPin className="h-5 w-5 text-red-500" />
+        </div>
+        <div className="text-sm font-bold text-gray-800">From</div>
+        <div className="text-xs text-gray-600 font-medium">
+          {segment.startCity || 'Unknown'}
+        </div>
+      </div>
+      
+      {/* To */}
+      <div className="p-4 text-center">
+        <div className="flex items-center justify-center mb-2">
+          <MapPin className="h-5 w-5 text-green-500" />
+        </div>
+        <div className="text-sm font-bold text-gray-800">To</div>
+        <div className="text-xs text-gray-600 font-medium">
+          {segment.endCity}
+        </div>
+      </div>
     </div>
   );
 };
