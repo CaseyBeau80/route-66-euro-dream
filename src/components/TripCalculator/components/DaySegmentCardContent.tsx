@@ -25,7 +25,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🔥 DaySegmentCardContent render - SIMPLIFIED VERSION:', {
+  console.log('🔥 DaySegmentCardContent render - NO RECOMMENDED STOPS:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     sectionKey,
@@ -51,10 +51,12 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Placeholder for future features */}
+      {/* Route Information - NO RECOMMENDED STOPS SECTION */}
       <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
         <div className="text-sm text-gray-600 text-center">
-          Additional route information and stops will be available here.
+          Enjoy your drive from {segment.startCity} to {segment.endCity}! 
+          <br />
+          Stop along the way to explore local attractions and Route 66 landmarks.
         </div>
       </div>
     </div>
