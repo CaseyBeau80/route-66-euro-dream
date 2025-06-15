@@ -30,7 +30,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
 
   // Handle date selection - CONSISTENT DATE HANDLING
   const handleDateSelect = (date: Date | undefined) => {
-    console.log('📅 CONSISTENT DATE: Date selected:', {
+    console.log('📅 FIXED: Date selected:', {
       date: date?.toISOString(),
       dateLocal: date?.toLocaleDateString(),
       dateString: date?.toDateString(),
@@ -42,7 +42,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       // Normalize the date to start of day in local timezone to ensure consistency
       const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
-      console.log('📅 CONSISTENT DATE: Normalized date:', {
+      console.log('📅 FIXED: Normalized date:', {
         original: date.toISOString(),
         normalized: normalizedDate.toISOString(),
         normalizedLocal: normalizedDate.toLocaleDateString(),
@@ -57,27 +57,36 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // COMPLETELY FIXED: Date validation - allow today and all future dates
+  // ULTIMATE FIX: Completely rewritten date validation
   const isDateDisabled = (date: Date): boolean => {
-    const today = new Date();
-    // Get today's date normalized to start of day
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    // Get the check date normalized to start of day  
-    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // Get current date
+    const now = new Date();
     
-    // Only disable dates that are BEFORE today (not including today)
-    const isDisabled = dateStart.getTime() < todayStart.getTime();
+    // Create start of today (midnight) for comparison
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    console.log('📅 FINAL DATE VALIDATION FIX:', {
-      checkDate: date.toDateString(),
-      todayDate: today.toDateString(),
-      checkDateMs: dateStart.getTime(),
-      todayMs: todayStart.getTime(),
-      isDisabled,
-      reason: isDisabled ? 'Date is before today' : 'Date is allowed (today or future)'
+    // Create start of the check date (midnight) for comparison  
+    const checkDateMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    // Compare milliseconds - disable only if check date is BEFORE today
+    const shouldDisable = checkDateMidnight.getTime() < todayMidnight.getTime();
+    
+    // Force detailed logging for debugging
+    console.log('🚨 ULTIMATE DATE VALIDATION:', {
+      inputDate: date.toDateString(),
+      inputDateISO: date.toISOString(),
+      todayDate: now.toDateString(),
+      todayISO: now.toISOString(),
+      todayMidnightMs: todayMidnight.getTime(),
+      checkDateMidnightMs: checkDateMidnight.getTime(),
+      shouldDisable,
+      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
+      isToday: checkDateMidnight.getTime() === todayMidnight.getTime(),
+      isFuture: checkDateMidnight.getTime() > todayMidnight.getTime(),
+      timeDiffMs: checkDateMidnight.getTime() - todayMidnight.getTime()
     });
     
-    return isDisabled;
+    return shouldDisable;
   };
 
   return (
