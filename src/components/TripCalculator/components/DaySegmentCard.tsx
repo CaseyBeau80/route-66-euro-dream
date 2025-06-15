@@ -95,11 +95,11 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     
     try {
       switch (stableSegment.driveTimeCategory.category) {
-        case 'short':
+        case 'light':
           return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-        case 'optimal':
+        case 'moderate':
           return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-        case 'long':
+        case 'heavy':
           return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
         case 'extreme':
           return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };

@@ -84,3 +84,20 @@ export interface DailySegment {
   driveTimeCategory?: DriveTimeCategory;
   subStopTimings?: SegmentTiming[];
 }
+
+// Helper functions
+export const getDestinationCityName = (destination: string | { city: string; state?: string } | undefined): string => {
+  if (!destination) return 'Unknown';
+  if (typeof destination === 'string') return destination;
+  return destination.city;
+};
+
+// Data validator stub
+export class TripPlanDataValidator {
+  static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
+    return {
+      ...tripPlan,
+      segments: tripPlan.segments?.filter(segment => segment && segment.day) || []
+    };
+  }
+}

@@ -8,6 +8,9 @@ import { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTimi
 // Re-export types for backward compatibility
 export type { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming };
 
+// Re-export utilities
+export { getDestinationCityName, TripPlanDataValidator } from './TripPlanTypes';
+
 export class TripPlanBuilder {
   static async buildTripPlan(
     startStop: TripStop,

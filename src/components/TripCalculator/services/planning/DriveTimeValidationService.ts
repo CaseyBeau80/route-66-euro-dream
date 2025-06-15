@@ -1,5 +1,5 @@
-import { DailySegment } from './TripPlanBuilder';
-import { DriveTimeCategory } from './TripPlanBuilder';
+
+import { DailySegment, DriveTimeCategory } from './TripPlanTypes';
 
 export interface DriveTimeValidationResult {
   isValid: boolean;
@@ -85,21 +85,21 @@ export class DriveTimeValidationService {
   private static calculateDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
     if (driveTimeHours < 3) {
       return {
-        category: 'short',
+        category: 'light',
         color: 'text-green-700',
-        message: 'Short drive day - perfect for exploring attractions along the way'
+        message: 'Light drive day - perfect for exploring attractions along the way'
       };
     } else if (driveTimeHours <= 6) {
       return {
-        category: 'optimal',
+        category: 'moderate',
         color: 'text-blue-700',
-        message: 'Optimal drive time - balanced between driving and sightseeing'
+        message: 'Moderate drive time - balanced between driving and sightseeing'
       };
     } else if (driveTimeHours <= 8) {
       return {
-        category: 'long',
+        category: 'heavy',
         color: 'text-orange-700',
-        message: 'Long drive day - consider breaking up with more stops'
+        message: 'Heavy drive day - consider breaking up with more stops'
       };
     } else {
       return {
