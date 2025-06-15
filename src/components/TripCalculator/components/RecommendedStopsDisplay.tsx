@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Star, Camera, Clock } from 'lucide-react';
+import { MapPin, Star, Camera, Clock, ExternalLink } from 'lucide-react';
 import { RecommendedStop } from '../services/recommendations/RecommendedStopTypes';
 import { StopDisplayFormatter } from '../services/recommendations/StopDisplayFormatter';
 
@@ -19,33 +19,13 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
 }) => {
   const displayStops = stops.slice(0, maxDisplay);
 
-  console.log('🎯 [CRITICAL-DEBUG] RecommendedStopsDisplay FINAL RENDER ANALYSIS:', {
+  console.log('🎯 [ENHANCED] RecommendedStopsDisplay rendering:', {
     totalStops: stops.length,
     displayStops: displayStops.length,
-    maxDisplay,
-    showLocation,
-    compact,
-    CRITICAL_DATA_CHECK: displayStops.map((stop, index) => ({
-      index,
-      id: stop.id,
-      name: stop.name,
-      category: stop.category,
-      city: stop.city,
-      state: stop.state,
-      type: stop.type,
-      score: stop.relevanceScore,
-      originalStopData: {
-        name: stop.originalStop.name,
-        description: stop.originalStop.description ? stop.originalStop.description.substring(0, 50) + '...' : 'No description',
-        category: stop.originalStop.category,
-        hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-        featured: stop.originalStop.featured
-      }
-    }))
+    stopsWithRichData: displayStops.filter(s => s.originalStop.description || s.originalStop.image_url).length
   });
 
   if (displayStops.length === 0) {
-    console.log('🚨 [CRITICAL-DEBUG] RecommendedStopsDisplay - NO STOPS TO DISPLAY');
     return (
       <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-sm text-gray-500">No Route 66 attractions found for this segment</p>
@@ -55,30 +35,12 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
 
   return (
     <div className="space-y-4">
-      <h4 className="font-bold text-blue-700 mb-3 flex items-center gap-2">
-        <MapPin className="h-5 w-5" />
-        Route 66 Attractions ({displayStops.length})
-      </h4>
-      
       <div className={`space-y-${compact ? '2' : '3'}`}>
         {displayStops.map((stop, index) => {
           const formatted = StopDisplayFormatter.formatStopForDisplay(stop);
           const hasImage = !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url);
           const hasDescription = !!stop.originalStop.description;
-          
-          console.log(`🎯 [CRITICAL-DEBUG] Rendering stop ${index + 1} with RICH DATA:`, {
-            name: stop.name,
-            formattedName: formatted.name,
-            category: stop.category,
-            formattedCategory: formatted.category,
-            icon: formatted.icon,
-            location: formatted.location,
-            hasDescription,
-            hasImage,
-            score: stop.relevanceScore,
-            featured: stop.originalStop.featured,
-            description: stop.originalStop.description ? stop.originalStop.description.substring(0, 100) + '...' : 'No description'
-          });
+          const hasWebsite = !!stop.originalStop.website;
           
           return (
             <div
@@ -129,26 +91,33 @@ const RecommendedStopsDisplay: React.FC<RecommendedStopsDisplayProps> = ({
                         Photos
                       </span>
                     )}
+
+                    {hasWebsite && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium flex items-center gap-1">
+                        <ExternalLink className="h-3 w-3" />
+                        Website
+                      </span>
+                    )}
                   </div>
                   
-                  {/* Rich content from original stop */}
+                  {/* Rich description content */}
                   {hasDescription && !compact && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700 leading-relaxed">
                         {stop.originalStop.description}
                       </p>
                     </div>
                   )}
 
-                  {/* Additional metadata for non-compact view */}
+                  {/* Enhanced metadata */}
                   {!compact && (
                     <div className="mt-3 pt-2 border-t border-gray-100">
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {stop.type}
+                          {stop.type} • {stop.category}
                         </span>
-                        <span>Match: {Math.round(stop.relevanceScore)}%</span>
+                        <span>Relevance: {Math.round(stop.relevanceScore)}%</span>
                       </div>
                     </div>
                   )}

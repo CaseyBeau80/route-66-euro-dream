@@ -29,42 +29,25 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // Get recommended stops for this segment
-  const { recommendedStops, isLoading: isLoadingStops, hasStops, error } = useRecommendedStops(segment, 3);
+  // Get enhanced recommended stops
+  const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  const maxAttractions = AttractionLimitingService.getMaxAttractions();
-  const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
-  
-  console.log('🔍 [CRITICAL-FINAL] DaySegmentCardContent render - FINAL DISPLAY DECISION:', {
+  console.log('🎯 [FINAL] DaySegmentCardContent render decision:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
-    recommendedStopsCount: recommendedStops.length,
-    hasStops,
-    isLoadingStops,
-    error,
-    CRITICAL_DISPLAY_LOGIC: {
-      isLoading: isLoadingStops,
+    enhancedSystem: {
+      isLoading,
       hasError: !!error,
-      hasRecommendedStops: hasStops && recommendedStops.length > 0,
-      willShowEnhancedStops: !isLoadingStops && !error && hasStops && recommendedStops.length > 0,
-      willShowFallback: !isLoadingStops && !error && (!hasStops || recommendedStops.length === 0)
+      hasStops,
+      stopsCount: recommendedStops.length
     },
-    enhancedStopsData: recommendedStops.map(stop => ({
-      id: stop.id,
-      name: stop.name,
-      category: stop.category,
-      city: stop.city,
-      state: stop.state,
-      score: stop.relevanceScore,
-      hasDescription: !!stop.originalStop.description,
-      hasImage: !!(stop.originalStop.image_url || stop.originalStop.thumbnail_url),
-      featured: stop.originalStop.featured
-    }))
+    willShowEnhanced: !isLoading && !error && hasStops,
+    willShowFallback: !isLoading && !error && !hasStops
   });
 
   return (
     <div className="space-y-4">
-      {/* Drive Time Message - Compact */}
+      {/* Drive Time Warning */}
       {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
         <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
           <div className="flex items-start gap-2">
@@ -81,34 +64,34 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Route & Stops Content - SIMPLIFIED AND FIXED LOGIC */}
+      {/* Enhanced Recommended Stops Content */}
       <div className="space-y-4">
-        {/* LOADING STATE */}
-        {isLoadingStops && (
+        {/* Loading State */}
+        {isLoading && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="flex items-center gap-2 text-sm text-blue-600">
               <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-              Searching for Route 66 attractions and hidden gems...
+              Finding Route 66 attractions and hidden gems...
             </div>
           </div>
         )}
 
-        {/* ERROR STATE */}
-        {!isLoadingStops && error && (
+        {/* Error State */}
+        {!isLoading && error && (
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200 p-4">
             <div className="text-sm text-red-600">
-              <div className="font-medium">Error loading Route 66 attractions:</div>
+              <div className="font-medium">Error loading attractions:</div>
               <div className="text-xs mt-1">{error}</div>
             </div>
           </div>
         )}
 
-        {/* SUCCESS: SHOW ENHANCED RECOMMENDED STOPS */}
-        {!isLoadingStops && !error && hasStops && recommendedStops.length > 0 && (
+        {/* Success: Show Enhanced Stops */}
+        {!isLoading && !error && hasStops && (
           <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-              <div className="mb-2 text-xs text-blue-600 font-medium">
-                ✨ Found {recommendedStops.length} enhanced Route 66 attractions
+              <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
+                ✨ Enhanced Route 66 Attractions ({recommendedStops.length})
               </div>
               <RecommendedStopsDisplay 
                 stops={recommendedStops}
@@ -120,16 +103,16 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </ErrorBoundary>
         )}
 
-        {/* FALLBACK: NO ENHANCED STOPS FOUND */}
-        {!isLoadingStops && !error && (!hasStops || recommendedStops.length === 0) && (
-          <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-2">
-                ⚠️ Enhanced system found no attractions - using basic fallback:
+        {/* Fallback: Legacy System */}
+        {!isLoading && !error && !hasStops && (
+          <ErrorBoundary context={`FallbackAttractions-Day${segment.day}`}>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="text-xs text-gray-600 mb-3 flex items-center gap-2">
+                🔄 Using fallback attraction system
               </div>
               <SegmentNearbyAttractions 
                 segment={segment} 
-                maxAttractions={maxAttractions}
+                maxAttractions={AttractionLimitingService.getMaxAttractions()}
               />
             </div>
           </ErrorBoundary>
