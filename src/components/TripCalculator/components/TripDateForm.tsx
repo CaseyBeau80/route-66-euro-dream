@@ -132,7 +132,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     }
   };
 
-  // CRITICAL FIX: Simple date disabling logic - only disable dates before today
+  // Simple date disabling logic - only disable dates before today
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -141,7 +141,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     // Only disable dates that are strictly before today (yesterday and earlier)
     const shouldDisable = checkDateStart < todayStart;
     
-    console.log('🗓️ CRITICAL FIX: Date disable check:', {
+    console.log('🗓️ Date disable check:', {
       checkingDate: date.toDateString(),
       todayDate: today.toDateString(),
       checkDateStart: checkDateStart.toDateString(),
