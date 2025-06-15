@@ -141,13 +141,12 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - NOW UNIFIED */}
+              {/* Weather section - Clean display without debug text */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using UnifiedWeatherWidget (same as preview mode)</p>
                 </div>
                 
                 <UnifiedWeatherWidget
