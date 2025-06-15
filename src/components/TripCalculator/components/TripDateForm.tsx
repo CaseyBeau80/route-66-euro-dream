@@ -76,18 +76,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   }, [formData, setFormData]);
 
-  // Date disabling logic - allow today and future dates
+  // FIXED: Date disabling logic - only disable dates BEFORE today
   const isDateDisabled = React.useCallback((date: Date): boolean => {
     const today = new Date();
+    // Set today to start of day for accurate comparison
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const checkDateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    const shouldDisable = checkDateStart < todayStart;
+    // Only disable dates that are strictly BEFORE today (not including today)
+    const shouldDisable = checkDate.getTime() < todayStart.getTime();
     
-    console.log('🗓️ Date disabled check:', {
+    console.log('🗓️ Date disabled check (FIXED):', {
       checkDate: date.toDateString(),
       todayStart: todayStart.toDateString(),
-      shouldDisable
+      checkDateTime: checkDate.getTime(),
+      todayStartTime: todayStart.getTime(),
+      shouldDisable,
+      isToday: checkDate.getTime() === todayStart.getTime()
     });
     
     return shouldDisable;
