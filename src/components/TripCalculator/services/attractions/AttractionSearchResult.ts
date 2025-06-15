@@ -1,16 +1,16 @@
 
 export enum AttractionSearchStatus {
   SUCCESS = 'SUCCESS',
-  CITY_NOT_FOUND = 'CITY_NOT_FOUND', 
-  NO_ATTRACTIONS = 'NO_ATTRACTIONS',
+  ERROR = 'ERROR',
   TIMEOUT = 'TIMEOUT',
-  ERROR = 'ERROR'
+  CITY_NOT_FOUND = 'CITY_NOT_FOUND',
+  NO_ATTRACTIONS = 'NO_ATTRACTIONS'
 }
 
 export interface AttractionSearchResult {
   status: AttractionSearchStatus;
-  attractions: import('./GeographicAttractionService').NearbyAttraction[];
-  message?: string;
-  citySearched?: string;
-  stateSearched?: string;
+  attractions: any[];
+  message: string;
+  citySearched: string;
+  stateSearched: string;
 }
