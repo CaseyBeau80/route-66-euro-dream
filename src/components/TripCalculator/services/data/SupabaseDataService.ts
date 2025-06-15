@@ -2,20 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TripStop } from '../../types/TripStop';
 
-export interface TripStop {
-  id: string;
-  name: string;
-  description?: string;
-  latitude: number;
-  longitude: number;
-  city_name: string;
-  city?: string;
-  state: string;
-  category?: string;
-  featured?: boolean;
-  is_major_stop?: boolean;
-}
-
 export class SupabaseDataService {
   /**
    * Fetch all stops from multiple tables with comprehensive debugging
@@ -55,14 +41,15 @@ export class SupabaseDataService {
         const attractions = attractionsResult.data.map(item => ({
           id: item.id,
           name: item.name,
-          description: item.description,
+          description: item.description || `Discover ${item.name} along your Route 66 journey`,
           latitude: Number(item.latitude),
           longitude: Number(item.longitude),
           city_name: item.city_name,
           city: item.city_name,
           state: item.state,
           category: 'attraction',
-          featured: item.featured
+          featured: item.featured,
+          image_url: item.image_url
         }));
         allStops.push(...attractions);
         console.log(`🎯 [CRITICAL-DATA] Processed ${attractions.length} attractions`);
@@ -73,14 +60,16 @@ export class SupabaseDataService {
         const cities = destinationCitiesResult.data.map(item => ({
           id: item.id,
           name: item.name,
-          description: item.description,
+          description: item.description || `Explore ${item.name} on your Route 66 adventure`,
           latitude: Number(item.latitude),
           longitude: Number(item.longitude),
           city_name: item.name,
           city: item.name,
           state: item.state,
           category: 'destination_city',
-          featured: item.featured
+          featured: item.featured,
+          image_url: item.image_url,
+          is_official_destination: true
         }));
         allStops.push(...cities);
         console.log(`🏙️ [CRITICAL-DATA] Processed ${cities.length} destination cities`);
@@ -91,13 +80,14 @@ export class SupabaseDataService {
         const gems = hiddenGemsResult.data.map(item => ({
           id: item.id,
           name: item.title,
-          description: item.description,
+          description: item.description || `Discover this hidden gem: ${item.title}`,
           latitude: Number(item.latitude),
           longitude: Number(item.longitude),
           city_name: item.city_name,
           city: item.city_name,
           state: 'Unknown', // Hidden gems table doesn't have state
-          category: 'hidden_gem'
+          category: 'hidden_gem',
+          image_url: item.image_url
         }));
         allStops.push(...gems);
         console.log(`💎 [CRITICAL-DATA] Processed ${gems.length} hidden gems`);
@@ -108,14 +98,15 @@ export class SupabaseDataService {
         const driveIns = driveInsResult.data.map(item => ({
           id: item.id,
           name: item.name,
-          description: item.description,
+          description: item.description || `Experience ${item.name} drive-in theater`,
           latitude: Number(item.latitude),
           longitude: Number(item.longitude),
           city_name: item.city_name,
           city: item.city_name,
           state: item.state,
           category: 'drive_in',
-          featured: item.featured
+          featured: item.featured,
+          image_url: item.image_url
         }));
         allStops.push(...driveIns);
         console.log(`🎬 [CRITICAL-DATA] Processed ${driveIns.length} drive-ins`);
@@ -126,14 +117,15 @@ export class SupabaseDataService {
         const waypoints = waypointsResult.data.map(item => ({
           id: item.id,
           name: item.name,
-          description: item.description,
+          description: item.description || `Route 66 waypoint: ${item.name}`,
           latitude: Number(item.latitude),
           longitude: Number(item.longitude),
           city_name: item.name,
           city: item.name,
           state: item.state,
           category: 'route66_waypoint',
-          is_major_stop: item.is_major_stop
+          is_major_stop: item.is_major_stop,
+          image_url: item.image_url
         }));
         allStops.push(...waypoints);
         console.log(`🛣️ [CRITICAL-DATA] Processed ${waypoints.length} waypoints`);

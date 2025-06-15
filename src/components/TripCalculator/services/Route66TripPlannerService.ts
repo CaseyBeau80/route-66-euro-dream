@@ -6,10 +6,10 @@ import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningServic
 import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
+import { TripStop } from '../types/TripStop';
 
 // Re-export types for backward compatibility
-export type { DailySegment, TripPlan, SegmentTiming };
-export type TripStop = import('../types/TripStop').TripStop;
+export type { DailySegment, TripPlan, SegmentTiming, TripStop };
 
 export class Route66TripPlannerService {
   static async planTrip(
