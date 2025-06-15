@@ -187,9 +187,9 @@ export class StopScoringService {
   }
 
   /**
-   * Determine stop type for display
+   * Determine stop type for display - Fixed to return proper literal types
    */
-  private static getStopType(stop: TripStop): string {
+  private static getStopType(stop: TripStop): 'destination' | 'major' | 'featured' | 'attraction' {
     if (stop.is_official_destination) return 'destination';
     if (stop.is_major_stop) return 'major';
     if (stop.featured) return 'featured';
