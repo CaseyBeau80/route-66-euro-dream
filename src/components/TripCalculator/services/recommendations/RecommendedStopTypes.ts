@@ -7,14 +7,7 @@ export interface RecommendedStop {
   city: string;
   state: string;
   category: string;
-  type: string;
+  type: 'destination' | 'major' | 'featured' | 'attraction';
   relevanceScore: number;
   originalStop: TripStop;
-}
-
-export interface StopFormattingResult {
-  name: string;
-  location: string;
-  category: string;
-  icon: string;
 }

@@ -5,181 +5,175 @@ import { RecommendedStop } from './RecommendedStopTypes';
 
 export class StopScoringService {
   /**
-   * Score stop relevance for a segment with enhanced scoring algorithm
+   * Score stop relevance with enhanced fallback bonuses
    */
   static scoreStopRelevance(segment: DailySegment, stops: TripStop[]): RecommendedStop[] {
-    console.log(`⭐ [SCORING] Starting enhanced scoring for ${stops.length} stops near ${segment.endCity}`);
-
-    if (stops.length === 0) {
-      console.log(`❌ [SCORING] No stops to score`);
+    if (!segment?.endCity || stops.length === 0) {
+      console.log('⭐ [ENHANCED-SCORING] Invalid input for scoring');
       return [];
     }
 
+    console.log(`⭐ [ENHANCED-SCORING] Scoring ${stops.length} stops for ${segment.endCity}`);
+
     const scoredStops = stops.map(stop => {
-      const score = this.calculateEnhancedRelevanceScore(stop, segment);
-      const recommendedStop: RecommendedStop = {
+      let score = 0;
+      const reasons: string[] = [];
+
+      // BASE SCORE: Featured content gets priority
+      if (stop.featured) {
+        score += 40;
+        reasons.push('featured');
+      }
+
+      // MAJOR STOPS: Official destinations and major waypoints
+      if (stop.is_major_stop || stop.is_official_destination) {
+        score += 35;
+        reasons.push('major-stop');
+      }
+
+      // CONTENT QUALITY: Rich descriptions and images
+      if (stop.description && stop.description.length > 50) {
+        score += 25;
+        reasons.push('rich-description');
+      }
+
+      if (stop.image_url || stop.thumbnail_url) {
+        score += 20;
+        reasons.push('has-image');
+      }
+
+      // CATEGORY BONUSES: Route 66 specific categories
+      const categoryBonus = this.getCategoryBonus(stop.category);
+      score += categoryBonus;
+      if (categoryBonus > 0) {
+        reasons.push(`category-${stop.category}`);
+      }
+
+      // ROUTE 66 RELEVANCE: Keywords in name/description
+      const route66Score = this.getRoute66RelevanceScore(stop);
+      score += route66Score;
+      if (route66Score > 0) {
+        reasons.push('route66-relevant');
+      }
+
+      // FALLBACK BONUSES: Ensure we always have some content
+      if (stops.length < 5) {
+        score += 15; // Boost all stops when we have few options
+        reasons.push('scarcity-bonus');
+      }
+
+      if (stop.website) {
+        score += 10;
+        reasons.push('has-website');
+      }
+
+      // Ensure minimum score for valid stops
+      score = Math.max(score, 10);
+
+      console.log(`⭐ [ENHANCED-SCORING] ${stop.name}: ${score} points (${reasons.join(', ')})`);
+
+      return {
         id: stop.id,
         name: stop.name,
-        city: stop.city_name || stop.city || 'Unknown',
-        state: stop.state || '',
-        category: stop.category || 'attraction',
+        city: stop.city_name,
+        state: stop.state,
+        category: stop.category,
         type: this.getStopType(stop),
         relevanceScore: score,
         originalStop: stop
-      };
-
-      console.log(`⭐ [SCORING] ${stop.name}: score=${score}, category=${stop.category}, featured=${stop.featured}`);
-      return recommendedStop;
+      } as RecommendedStop;
     });
 
-    // Sort by relevance score (highest first)
+    // Sort by score descending
     const sortedStops = scoredStops.sort((a, b) => b.relevanceScore - a.relevanceScore);
-    
-    console.log(`✅ [SCORING] Enhanced scoring complete: ${sortedStops.length} scored stops`);
-    console.log(`🏆 [SCORING] Top 5 scores:`, sortedStops.slice(0, 5).map(s => ({ 
-      name: s.name, 
-      score: s.relevanceScore,
-      category: s.category,
-      featured: s.originalStop.featured 
-    })));
+
+    console.log(`⭐ [ENHANCED-SCORING] Scoring complete. Top 3:`, 
+      sortedStops.slice(0, 3).map(s => ({ name: s.name, score: s.relevanceScore }))
+    );
 
     return sortedStops;
   }
 
   /**
-   * Calculate enhanced relevance score for a stop
-   */
-  private static calculateEnhancedRelevanceScore(stop: TripStop, segment: DailySegment): number {
-    let score = 0;
-
-    // Base score by category (enhanced)
-    const categoryScores = {
-      'destination_city': 25,
-      'attraction': 20,
-      'hidden_gem': 22,
-      'diner': 15,
-      'motel': 10,
-      'route66_waypoint': 18,
-      'drive_in': 16
-    };
-
-    score += categoryScores[stop.category as keyof typeof categoryScores] || 12;
-
-    // Enhanced feature bonuses
-    if (stop.is_major_stop) score += 15;
-    if (stop.is_official_destination) score += 12;
-    if (stop.featured) score += 20; // Significant bonus for featured stops
-
-    // Content quality bonuses
-    if (stop.description && stop.description.length > 50) score += 8;
-    if (stop.description && stop.description.length > 100) score += 4; // Additional bonus for detailed descriptions
-
-    // Media bonuses
-    if (stop.image_url) score += 6;
-    if (stop.thumbnail_url) score += 4;
-
-    // Name quality bonus
-    if (stop.name && stop.name.length > 10) score += 3;
-
-    // Location relevance (enhanced)
-    const destinationCity = segment.endCity.split(',')[0].toLowerCase();
-    const stopCity = (stop.city_name || stop.city || '').toLowerCase();
-    
-    if (stopCity === destinationCity) {
-      score += 25; // Exact city match
-    } else if (stopCity.includes(destinationCity) || destinationCity.includes(stopCity)) {
-      score += 15; // Partial city match
-    }
-
-    // State relevance
-    const destinationState = segment.endCity.includes(',') ? segment.endCity.split(',')[1]?.trim().toLowerCase() : '';
-    const stopState = (stop.state || '').toLowerCase();
-    
-    if (destinationState && stopState === destinationState) {
-      score += 10; // Same state bonus
-    }
-
-    // Route 66 authenticity bonus
-    if (stop.name.toLowerCase().includes('route 66') || 
-        stop.name.toLowerCase().includes('rt 66') ||
-        stop.description?.toLowerCase().includes('route 66')) {
-      score += 8;
-    }
-
-    // Historic/vintage bonus
-    if (stop.name.toLowerCase().includes('historic') || 
-        stop.name.toLowerCase().includes('vintage') ||
-        stop.name.toLowerCase().includes('classic')) {
-      score += 5;
-    }
-
-    return Math.max(0, score); // Ensure non-negative
-  }
-
-  /**
-   * Get stop type for display
-   */
-  private static getStopType(stop: TripStop): string {
-    const typeMapping = {
-      'destination_city': 'Major Destination',
-      'attraction': 'Tourist Attraction',
-      'hidden_gem': 'Hidden Gem',
-      'diner': 'Classic Diner',
-      'motel': 'Historic Motel',
-      'route66_waypoint': 'Route 66 Landmark',
-      'drive_in': 'Drive-In Theater'
-    };
-
-    return typeMapping[stop.category as keyof typeof typeMapping] || 'Point of Interest';
-  }
-
-  /**
-   * Select diverse stops ensuring variety and quality
+   * Select diverse stops with balanced categories
    */
   static selectDiverseStops(scoredStops: RecommendedStop[], maxStops: number): RecommendedStop[] {
-    if (scoredStops.length === 0) {
-      console.log(`❌ [DIVERSITY] No scored stops to select from`);
-      return [];
-    }
+    if (scoredStops.length === 0) return [];
 
-    console.log(`🎯 [DIVERSITY] Selecting ${maxStops} diverse stops from ${scoredStops.length} candidates`);
+    console.log(`🎯 [ENHANCED-DIVERSITY] Selecting ${maxStops} diverse stops from ${scoredStops.length} candidates`);
 
     const selected: RecommendedStop[] = [];
     const usedCategories = new Set<string>();
 
-    // First pass: select highest scoring featured stops
+    // First pass: Select highest scoring stops with unique categories
     for (const stop of scoredStops) {
       if (selected.length >= maxStops) break;
 
-      if (stop.originalStop.featured && !selected.find(s => s.id === stop.id)) {
+      if (!usedCategories.has(stop.category)) {
         selected.push(stop);
         usedCategories.add(stop.category);
-        console.log(`✅ [DIVERSITY] Selected featured stop: ${stop.name} (${stop.category}) - score: ${stop.relevanceScore}`);
+        console.log(`🎯 [ENHANCED-DIVERSITY] Selected ${stop.name} (${stop.category}, score: ${stop.relevanceScore})`);
       }
     }
 
-    // Second pass: select highest scoring stops from different categories
-    for (const stop of scoredStops) {
-      if (selected.length >= maxStops) break;
-
-      if (!usedCategories.has(stop.category) && !selected.find(s => s.id === stop.id)) {
-        selected.push(stop);
-        usedCategories.add(stop.category);
-        console.log(`✅ [DIVERSITY] Selected diverse stop: ${stop.name} (${stop.category}) - score: ${stop.relevanceScore}`);
-      }
-    }
-
-    // Third pass: fill remaining slots with best remaining stops
+    // Second pass: Fill remaining slots with highest scoring stops
     for (const stop of scoredStops) {
       if (selected.length >= maxStops) break;
 
       if (!selected.find(s => s.id === stop.id)) {
         selected.push(stop);
-        console.log(`✅ [DIVERSITY] Added remaining stop: ${stop.name} (${stop.category}) - score: ${stop.relevanceScore}`);
+        console.log(`🎯 [ENHANCED-DIVERSITY] Filled slot with ${stop.name} (score: ${stop.relevanceScore})`);
       }
     }
 
-    console.log(`🏁 [DIVERSITY] Final selection: ${selected.length} stops with total score: ${selected.reduce((sum, s) => sum + s.relevanceScore, 0)}`);
+    console.log(`🎯 [ENHANCED-DIVERSITY] Final selection: ${selected.length} stops`);
     return selected;
+  }
+
+  /**
+   * Get category-specific bonus points
+   */
+  private static getCategoryBonus(category: string): number {
+    const bonuses: Record<string, number> = {
+      'destination_city': 30,
+      'route66_waypoint': 25,
+      'attraction': 20,
+      'hidden_gem': 15,
+      'drive_in': 15,
+      'diner': 10,
+      'motel': 8
+    };
+
+    return bonuses[category] || 5;
+  }
+
+  /**
+   * Get Route 66 relevance score based on keywords
+   */
+  private static getRoute66RelevanceScore(stop: TripStop): number {
+    const route66Keywords = [
+      'route 66', 'rt 66', 'route66', 'historic highway',
+      'mother road', 'main street of america', 'will rogers highway'
+    ];
+
+    const searchText = `${stop.name} ${stop.description || ''}`.toLowerCase();
+    
+    for (const keyword of route66Keywords) {
+      if (searchText.includes(keyword)) {
+        return 20;
+      }
+    }
+
+    return 0;
+  }
+
+  /**
+   * Determine stop type for display
+   */
+  private static getStopType(stop: TripStop): string {
+    if (stop.is_official_destination) return 'destination';
+    if (stop.is_major_stop) return 'major';
+    if (stop.featured) return 'featured';
+    return 'attraction';
   }
 }

@@ -1,14 +1,11 @@
 
 import React from 'react';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { Clock, MapPin, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { DataValidationService } from '../services/validation/DataValidationService';
-import { useStableSegment } from '../hooks/useStableSegments';
-import { useStableDate } from '../hooks/useStableDate';
-import DaySegmentCardHeader from './DaySegmentCardHeader';
-import DaySegmentCardStats from './DaySegmentCardStats';
+import { formatTime } from '../utils/distanceCalculator';
+import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
+import { useRecommendedStops } from '../hooks/useRecommendedStops';
 import DaySegmentCardContent from './DaySegmentCardContent';
-import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardProps {
@@ -19,172 +16,83 @@ interface DaySegmentCardProps {
   sectionKey?: string;
 }
 
-const DaySegmentCard: React.FC<DaySegmentCardProps> = ({ 
-  segment, 
+const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
+  segment,
   tripStartDate,
   cardIndex = 0,
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // 🚨 FORCE LOG: DaySegmentCard component entry
-  console.log(`🚨 FORCE LOG: DaySegmentCard rendering for Day ${segment?.day} - ${segment?.endCity}`, {
-    segment: {
-      day: segment?.day,
-      endCity: segment?.endCity,
-      title: segment?.title
-    },
-    tripStartDate: tripStartDate?.toISOString(),
+  console.log('🎯 [CONSISTENT] DaySegmentCard rendering with enhanced system:', {
+    day: segment.day,
+    route: `${segment.startCity} → ${segment.endCity}`,
     cardIndex,
-    tripId,
-    sectionKey,
-    timestamp: new Date().toISOString()
+    sectionKey
   });
 
-  // Use stable segment to prevent cascading re-renders
-  const stableSegment = useStableSegment(segment);
-  
-  // 🚨 FORCE LOG: Stable segment result
-  console.log(`🚨 FORCE LOG: DaySegmentCard stable segment for Day ${segment?.day}`, {
-    hasStableSegment: !!stableSegment,
-    stableSegmentDay: stableSegment?.day,
-    stableSegmentEndCity: stableSegment?.endCity,
-    timestamp: new Date().toISOString()
-  });
-  
-  // Early return for invalid segments with proper type checking
-  if (!stableSegment || !DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
-    // Safe access to day property with fallback
-    const segmentDay = stableSegment?.day ?? (segment?.day ?? 'Unknown');
-    console.log(`🚨 FORCE LOG: DaySegmentCard INVALID SEGMENT for Day ${segmentDay}`, {
-      hasStableSegment: !!stableSegment,
-      validationFailed: true,
-      timestamp: new Date().toISOString()
-    });
-    return (
-      <ErrorBoundary context="DaySegmentCard-Invalid">
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-          <p className="text-sm text-red-600">
-            Invalid segment data for Day {segmentDay}
-          </p>
-        </div>
-      </ErrorBoundary>
-    );
-  }
-  
-  // Use stable date calculation
-  const segmentDate = useStableDate(tripStartDate, stableSegment.day);
-  
-  // 🚨 FORCE LOG: Segment date calculation
-  console.log(`🚨 FORCE LOG: DaySegmentCard date calculation for Day ${stableSegment.day}`, {
-    tripStartDate: tripStartDate?.toISOString(),
-    segmentDay: stableSegment.day,
-    calculatedSegmentDate: segmentDate?.toISOString(),
-    hasSegmentDate: !!segmentDate,
-    timestamp: new Date().toISOString()
-  });
-  
-  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
-
-  // Memoized drive time styling to prevent recalculation
-  const driveTimeStyle = React.useMemo(() => {
-    if (!stableSegment.driveTimeCategory) return { 
-      bg: 'bg-gray-100', 
-      text: 'text-gray-700', 
-      border: 'border-gray-300' 
+  // Drive time styling
+  const getDriveTimeStyle = (hours: number) => {
+    if (hours <= 4) return {
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200'
     };
-    
-    try {
-      switch (stableSegment.driveTimeCategory.category) {
-        case 'short':
-          return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-        case 'optimal':
-          return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-        case 'long':
-          return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
-        case 'extreme':
-          return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
-        default:
-          return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
-      }
-    } catch (error) {
-      console.error('❌ Error getting drive time style:', error);
-      return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
-    }
-  }, [stableSegment.driveTimeCategory]);
+    if (hours <= 6) return {
+      bg: 'bg-yellow-50',
+      text: 'text-yellow-700',
+      border: 'border-yellow-200'
+    };
+    return {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200'
+    };
+  };
 
-  // Memoized drive time formatting
-  const formattedDriveTime = React.useMemo(() => {
-    try {
-      const hours = stableSegment.driveTimeHours;
-      if (typeof hours !== 'number' || isNaN(hours) || hours < 0) {
-        return '0h';
-      }
-      
-      if (hours < 1) {
-        const minutes = Math.round(hours * 60);
-        return `${minutes}m`;
-      }
-      const wholeHours = Math.floor(hours);
-      const minutes = Math.round((hours - wholeHours) * 60);
-      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-    } catch (error) {
-      console.error('❌ Error formatting drive time:', error);
-      return '0h';
-    }
-  }, [stableSegment.driveTimeHours]);
-
-  // Memoized segment distance
-  const segmentDistance = React.useMemo(() => {
-    return stableSegment.distance || stableSegment.approximateMiles;
-  }, [stableSegment.distance, stableSegment.approximateMiles]);
-
-  // Card header content with error handling
-  const cardHeader = React.useMemo(() => (
-    <div className="space-y-3">
-      <DaySegmentCardHeader 
-        segment={stableSegment}
-        segmentDate={segmentDate}
-        driveTimeStyle={driveTimeStyle}
-      />
-      
-      <DaySegmentCardStats 
-        segment={stableSegment}
-        formattedDriveTime={formattedDriveTime}
-        segmentDistance={segmentDistance}
-        driveTimeStyle={driveTimeStyle}
-      />
-    </div>
-  ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
-
-  console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
-    willRenderCard: true,
-    hasCardHeader: !!cardHeader,
-    timestamp: new Date().toISOString()
-  });
+  const driveTimeStyle = getDriveTimeStyle(segment.driveTimeHours || 0);
 
   return (
-    <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
-      <TooltipProvider>
-        <EnhancedCollapsibleCard
-          title={cardHeader}
-          defaultExpanded={false}
-          className="border border-route66-border shadow-sm hover:shadow-md transition-shadow rounded-lg"
-          headerClassName="border-b border-gray-200"
-          contentClassName="pt-0"
-          cardIndex={cardIndex}
-          tripId={tripId}
-          sectionKey={sectionKey}
-        >
-          <DaySegmentCardContent 
-            segment={stableSegment}
+    <ErrorBoundary context={`DaySegmentCard-Day${segment.day}`}>
+      <div className="bg-white rounded-lg border border-route66-border shadow-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-route66-primary to-route66-secondary text-white p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-route66 text-xl font-bold">Day {segment.day}</h3>
+              <div className="flex items-center gap-2 text-route66-cream">
+                <MapPin className="h-4 w-4" />
+                <span className="font-travel">
+                  {segment.startCity} → {segment.endCity}
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <div className="flex items-center gap-2 text-route66-cream">
+                <Clock className="h-4 w-4" />
+                <span className="font-travel">
+                  {formatTime(segment.driveTimeHours || 0)}
+                </span>
+              </div>
+              <div className="text-sm text-route66-cream">
+                {Math.round(segment.distance || 0)} miles
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content - Using consistent enhanced system */}
+        <div className="p-4">
+          <DaySegmentCardContent
+            segment={segment}
             tripStartDate={tripStartDate}
             driveTimeStyle={driveTimeStyle}
             cardIndex={cardIndex}
             tripId={tripId}
             sectionKey={sectionKey}
           />
-        </EnhancedCollapsibleCard>
-      </TooltipProvider>
+        </div>
+      </div>
     </ErrorBoundary>
   );
 };
