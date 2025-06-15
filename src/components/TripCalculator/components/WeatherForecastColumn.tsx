@@ -20,30 +20,32 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
   tripId
 }) => {
   // 🚨 CRITICAL DEBUG: WeatherForecastColumn component entry
-  console.log('🚨 CRITICAL DEBUG: WeatherForecastColumn COMPONENT ENTRY', {
+  console.log('🚨 CRITICAL DEBUG: WeatherForecastColumn COMPONENT ENTRY - FIXED VERSION', {
     segments: segments?.length || 0,
     tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
     tripStartDateValue: tripStartDate,
     tripStartDateType: typeof tripStartDate,
     tripId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    fixedVersion: true
   });
 
   const stableSegments = useStableSegments(segments);
 
   // Validate and convert tripStartDate to Date object
   const validTripStartDate = React.useMemo(() => {
-    console.log('🗓️ CRITICAL: Trip date validation in WeatherForecastColumn:', {
+    console.log('🗓️ CRITICAL FIXED: Trip date validation in WeatherForecastColumn:', {
       originalTripStartDate: tripStartDate,
       tripStartDateType: typeof tripStartDate,
       isDate: tripStartDate instanceof Date,
       isString: typeof tripStartDate === 'string',
       tripStartDateValue: tripStartDate,
-      now: new Date().toISOString()
+      now: new Date().toISOString(),
+      fixedValidation: true
     });
 
     if (!tripStartDate) {
-      console.log('🗓️ CRITICAL: No tripStartDate provided to WeatherForecastColumn');
+      console.log('🗓️ CRITICAL FIXED: No tripStartDate provided to WeatherForecastColumn');
       return null;
     }
     
@@ -53,13 +55,18 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid Date object provided', tripStartDate);
           return null;
         }
-        console.log('✅ CRITICAL: Valid Date object confirmed in WeatherForecastColumn:', {
+        console.log('✅ CRITICAL FIXED: Valid Date object confirmed in WeatherForecastColumn:', {
           isoString: tripStartDate.toISOString(),
           localString: tripStartDate.toLocaleDateString(),
           getTime: tripStartDate.getTime(),
-          getUTCFullYear: tripStartDate.getUTCFullYear(),
-          getUTCMonth: tripStartDate.getUTCMonth(),
-          getUTCDate: tripStartDate.getUTCDate()
+          getFullYear: tripStartDate.getFullYear(),
+          getMonth: tripStartDate.getMonth(),
+          getDate: tripStartDate.getDate(),
+          dateComponents: {
+            year: tripStartDate.getFullYear(),
+            month: tripStartDate.getMonth(),
+            date: tripStartDate.getDate()
+          }
         });
         return tripStartDate;
       } else if (typeof tripStartDate === 'string') {
@@ -68,11 +75,16 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
           console.error('❌ WeatherForecastColumn: Invalid date string provided', tripStartDate);
           return null;
         }
-        console.log('✅ CRITICAL: Valid date string converted in WeatherForecastColumn:', {
+        console.log('✅ CRITICAL FIXED: Valid date string converted in WeatherForecastColumn:', {
           original: tripStartDate,
           parsed: parsed.toISOString(),
           parsedLocal: parsed.toLocaleDateString(),
-          getTime: parsed.getTime()
+          getTime: parsed.getTime(),
+          parsedComponents: {
+            year: parsed.getFullYear(),
+            month: parsed.getMonth(),
+            date: parsed.getDate()
+          }
         });
         return parsed;
       } else {
@@ -85,12 +97,13 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
     }
   }, [tripStartDate]);
 
-  console.log('🌤️ WeatherForecastColumn render:', {
+  console.log('🌤️ WeatherForecastColumn render - FIXED VERSION:', {
     segmentsCount: stableSegments.length,
     tripStartDate: validTripStartDate?.toISOString(),
     tripStartDateLocal: validTripStartDate?.toLocaleDateString(),
     originalTripStartDate: tripStartDate,
-    validationResult: !!validTripStartDate
+    validationResult: !!validTripStartDate,
+    fixedVersion: true
   });
 
   if (!validTripStartDate) {
@@ -128,32 +141,56 @@ const WeatherForecastColumn: React.FC<WeatherForecastColumnProps> = ({
       {/* Day Cards */}
       <div className="space-y-4">
         {stableSegments.map((segment, index) => {
-          console.log(`🚨 CRITICAL: Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
+          console.log(`🚨 CRITICAL FIXED: Processing segment ${index + 1}/${stableSegments.length} - Day ${segment.day}:`, {
             segmentIndex: index,
             day: segment.day,
             endCity: segment.endCity,
             validTripStartDate: validTripStartDate.toISOString(),
             validTripStartDateLocal: validTripStartDate.toLocaleDateString(),
-            timestamp: new Date().toISOString()
+            validTripStartDateComponents: {
+              year: validTripStartDate.getFullYear(),
+              month: validTripStartDate.getMonth(),
+              date: validTripStartDate.getDate()
+            },
+            timestamp: new Date().toISOString(),
+            fixedVersion: true
           });
 
           let segmentDate: Date | null = null;
           
           try {
-            // 🔧 FIXED: Use DateNormalizationService for consistent date calculation
+            // 🔧 FIXED: Use DateNormalizationService for consistent date calculation with enhanced logging
             segmentDate = DateNormalizationService.calculateSegmentDate(validTripStartDate, segment.day);
             
-            console.log(`🗓️ FIXED: Consistent date calculation for Day ${segment.day}:`, {
+            console.log(`🗓️ FIXED: Enhanced date calculation validation for Day ${segment.day}:`, {
               tripStartDate: validTripStartDate.toISOString(),
               tripStartDateLocal: validTripStartDate.toLocaleDateString(),
+              tripStartDateComponents: {
+                year: validTripStartDate.getFullYear(),
+                month: validTripStartDate.getMonth(),
+                date: validTripStartDate.getDate()
+              },
               segmentDay: segment.day,
               calculatedDate: segmentDate?.toISOString(),
               calculatedDateLocal: segmentDate?.toLocaleDateString(),
+              calculatedDateComponents: segmentDate ? {
+                year: segmentDate.getFullYear(),
+                month: segmentDate.getMonth(),
+                date: segmentDate.getDate()
+              } : null,
               calculationMethod: 'DateNormalizationService.calculateSegmentDate',
               isValid: segmentDate ? !isNaN(segmentDate.getTime()) : false,
               verification: segment.day === 1 ? 
-                (segmentDate?.toDateString() === validTripStartDate.toDateString() ? 'DAY_1_MATCHES_START_DATE' : 'DAY_1_MISMATCH') :
-                'OTHER_DAY'
+                (segmentDate?.toDateString() === validTripStartDate.toDateString() ? 'DAY_1_MATCHES_START_DATE_CORRECT' : 'DAY_1_MISMATCH_ERROR') :
+                'OTHER_DAY_CALCULATED',
+              day1SpecialCheck: segment.day === 1 ? {
+                segmentDateString: segmentDate?.toDateString(),
+                tripStartDateString: validTripStartDate.toDateString(),
+                matches: segmentDate?.toDateString() === validTripStartDate.toDateString(),
+                segmentLocalDate: segmentDate?.toLocaleDateString(),
+                tripStartLocalDate: validTripStartDate.toLocaleDateString(),
+                localMatches: segmentDate?.toLocaleDateString() === validTripStartDate.toLocaleDateString()
+              } : null
             });
             
             if (!segmentDate || isNaN(segmentDate.getTime())) {

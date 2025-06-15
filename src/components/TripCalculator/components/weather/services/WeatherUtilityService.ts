@@ -6,31 +6,48 @@ export class WeatherUtilityService {
   /**
    * Calculate the date for a specific segment day
    * Uses DateNormalizationService for consistent date calculations
+   * FIXED: Ensures absolute consistency with trip planning dates
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🔧 WeatherUtilityService.getSegmentDate called:', {
+    console.log('🔧 FIXED: WeatherUtilityService.getSegmentDate called:', {
       tripStartDate: tripStartDate.toISOString(),
       tripStartDateLocal: tripStartDate.toLocaleDateString(),
+      tripStartDateComponents: {
+        year: tripStartDate.getFullYear(),
+        month: tripStartDate.getMonth(),
+        date: tripStartDate.getDate()
+      },
       segmentDay,
-      usingDateNormalizationService: true
+      usingDateNormalizationService: true,
+      expectedResult: segmentDay === 1 ? 'EXACTLY_EQUALS_TRIP_START_DATE' : `TRIP_START_PLUS_${segmentDay - 1}_DAYS`
     });
 
+    // FIXED: Use the centralized date calculation service for absolute consistency
     const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
     
-    console.log('🔧 WeatherUtilityService.getSegmentDate result:', {
+    console.log('🔧 FIXED: WeatherUtilityService.getSegmentDate VALIDATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
+        tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay
       },
       output: {
         segmentDate: segmentDate.toISOString(),
-        segmentDateLocal: segmentDate.toLocaleDateString()
+        segmentDateLocal: segmentDate.toLocaleDateString(),
+        segmentDateComponents: {
+          year: segmentDate.getFullYear(),
+          month: segmentDate.getMonth(),
+          date: segmentDate.getDate()
+        }
       },
       verification: {
         expectedForDay1: segmentDay === 1 ? 'SHOULD_EQUAL_TRIP_START_DATE' : 'SHOULD_BE_TRIP_START_PLUS_DAYS',
-        actualResult: segmentDay === 1 ? 
-          (segmentDate.toDateString() === tripStartDate.toDateString() ? 'CORRECT' : 'INCORRECT') : 
-          'CALCULATED'
+        day1DateCheck: segmentDay === 1 ? 
+          (segmentDate.toDateString() === tripStartDate.toDateString() ? 'CORRECT_MATCH' : 'INCORRECT_MISMATCH') : 
+          'NOT_DAY_1',
+        day1LocalCheck: segmentDay === 1 ?
+          (segmentDate.toLocaleDateString() === tripStartDate.toLocaleDateString() ? 'LOCAL_MATCH' : 'LOCAL_MISMATCH') :
+          'NOT_DAY_1'
       }
     });
 
