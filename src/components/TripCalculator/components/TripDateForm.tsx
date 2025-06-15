@@ -2,12 +2,12 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '../types/tripCalculator';
-import SimpleTripCalendar from './SimpleTripCalendar';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -58,7 +58,9 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   }, [tripStartDate, formData.travelDays]);
 
   // Date selection handler
-  const handleDateSelect = React.useCallback((date: Date) => {
+  const handleDateSelect = React.useCallback((date: Date | undefined) => {
+    if (!date) return;
+    
     console.log('🗓️ TripDateForm: Date selected:', {
       selectedDate: date.toISOString(),
       selectedLocal: date.toLocaleDateString(),
@@ -74,13 +76,19 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   }, [formData, setFormData]);
 
-  // Date disabling logic
+  // Date disabling logic - allow today and future dates
   const isDateDisabled = React.useCallback((date: Date): boolean => {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const checkDateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
     const shouldDisable = checkDateStart < todayStart;
+    
+    console.log('🗓️ Date disabled check:', {
+      checkDate: date.toDateString(),
+      todayStart: todayStart.toDateString(),
+      shouldDisable
+    });
     
     return shouldDisable;
   }, []);
@@ -123,10 +131,13 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <SimpleTripCalendar
+          <Calendar
+            mode="single"
             selected={tripStartDate}
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
+            initialFocus
+            className="p-3 pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
