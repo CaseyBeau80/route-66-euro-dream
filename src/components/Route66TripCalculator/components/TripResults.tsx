@@ -27,7 +27,12 @@ const TripResults: React.FC<TripResultsProps> = ({
     tripStartDate: tripStartDate?.toISOString(),
     hasShareHandler: !!onShareTrip,
     hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost
+    totalCost: costEstimate?.breakdown?.totalCost,
+    segmentDriveTimes: tripPlan?.segments?.map(s => ({ 
+      day: s.day, 
+      driveTimeHours: s.driveTimeHours,
+      distance: s.distance 
+    }))
   });
 
   if (!tripPlan) {
@@ -43,11 +48,38 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // FIXED: Helper function to format drive time from hours
-  const formatDriveTime = (driveTimeHours: number): string => {
-    const hours = Math.floor(driveTimeHours);
-    const minutes = Math.round((driveTimeHours - hours) * 60);
-    return `${hours}h ${minutes}m`;
+  // FIXED: Improved drive time formatting with better fallback logic
+  const formatDriveTime = (segment: any): string => {
+    console.log('🕐 Formatting drive time for segment:', {
+      day: segment.day,
+      driveTimeHours: segment.driveTimeHours,
+      distance: segment.distance,
+      endCity: segment.endCity
+    });
+
+    // PRIORITY 1: Use actual segment drive time if available and valid
+    if (segment.driveTimeHours && segment.driveTimeHours > 0) {
+      const hours = Math.floor(segment.driveTimeHours);
+      const minutes = Math.round((segment.driveTimeHours - hours) * 60);
+      const formatted = `${hours}h ${minutes}m`;
+      console.log('✅ Using actual drive time:', formatted);
+      return formatted;
+    }
+    
+    // PRIORITY 2: Calculate from distance with realistic speed
+    if (segment.distance && segment.distance > 0) {
+      // Use 50 mph average (more realistic for Route 66 with stops)
+      const driveTimeHours = segment.distance / 50;
+      const hours = Math.floor(driveTimeHours);
+      const minutes = Math.round((driveTimeHours - hours) * 60);
+      const formatted = `${hours}h ${minutes}m`;
+      console.log('⚠️ Calculated from distance:', formatted, 'for', segment.distance, 'miles');
+      return formatted;
+    }
+    
+    // FALLBACK: Return reasonable default
+    console.log('❌ No valid data, using fallback');
+    return '5h 0m';
   };
 
   return (
@@ -94,8 +126,7 @@ const TripResults: React.FC<TripResultsProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {/* FIXED: Use actual segment drive time if available */}
-                  {segment.driveTimeHours ? formatDriveTime(segment.driveTimeHours) : `${Math.round(segment.distance / 55 * 10) / 10} hours`}
+                  {formatDriveTime(segment)}
                 </div>
               </div>
             </div>
