@@ -29,25 +29,17 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  // FIXED: Request up to 5 stops to ensure we get 1-3 good ones after filtering
-  const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 5);
+  const { recommendedStops, isLoading, hasStops, error } = useRecommendedStops(segment, 3);
   
-  console.log('🔥 [FIXED-DISPLAY] DaySegmentCardContent render state:', {
+  console.log('🎯 [DEBUG-CONTENT] DaySegmentCardContent render:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     isLoading,
     hasError: !!error,
     hasStops,
     stopsCount: recommendedStops.length,
-    targetStopsDisplay: Math.min(3, recommendedStops.length),
-    recommendedStops: recommendedStops.slice(0, 3).map(stop => ({
-      name: stop.name,
-      city: stop.city,
-      category: stop.category,
-      score: stop.relevanceScore,
-      hasDescription: !!stop.originalStop?.description,
-      hasImage: !!(stop.originalStop?.image_url || stop.originalStop?.thumbnail_url)
-    }))
+    errorMessage: error,
+    step: 'RENDER_START'
   });
 
   return (
@@ -69,7 +61,17 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* ENHANCED: Cleaner display logic with consistent 1-3 stops target */}
+      {/* DEBUG: Show current state */}
+      <div className="bg-gray-100 border border-gray-300 rounded p-2 text-xs">
+        <div className="font-bold">🔍 DEBUG INFO:</div>
+        <div>Loading: {isLoading ? 'YES' : 'NO'}</div>
+        <div>Error: {error || 'None'}</div>
+        <div>Has Stops: {hasStops ? 'YES' : 'NO'}</div>
+        <div>Stops Count: {recommendedStops.length}</div>
+        <div>Segment: {segment.startCity} → {segment.endCity}</div>
+      </div>
+
+      {/* Attraction Display Logic */}
       <div className="space-y-4">
         {/* Show loading state */}
         {isLoading && (
@@ -91,11 +93,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
           </div>
         )}
 
-        {/* MAIN DISPLAY: Show 1-3 recommended stops */}
+        {/* MAIN DISPLAY: Show recommended stops */}
         {!isLoading && !error && recommendedStops.length > 0 && (
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
             <div className="mb-3 text-sm text-blue-700 font-semibold flex items-center gap-2">
-              ✨ Route 66 Attractions ({Math.min(3, recommendedStops.length)})
+              ✨ Route 66 Attractions ({recommendedStops.length})
             </div>
             <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
               <RecommendedStopsDisplay 

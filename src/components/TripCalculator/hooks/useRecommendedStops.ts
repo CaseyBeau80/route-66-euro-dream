@@ -10,10 +10,11 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🚀 [ENHANCED-FIXED] useRecommendedStops called for:', {
+  console.log('🚀 [DEBUG-HOOK] useRecommendedStops called:', {
     segmentDay: segment?.day,
     endCity: segment?.endCity,
-    maxStops
+    maxStops,
+    hookInitialized: true
   });
 
   // Fetch all stops data once on mount
@@ -22,45 +23,48 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     
     const fetchStops = async () => {
       try {
-        console.log('🔍 [ENHANCED-FIXED] Fetching stops data from Supabase...');
+        console.log('🔍 [DEBUG-HOOK] Starting data fetch...');
         setIsLoading(true);
         setError(null);
         
         const stops = await SupabaseDataService.fetchAllStops();
         
         if (!isMounted) {
-          console.log('🚫 [ENHANCED-FIXED] Component unmounted, ignoring result');
+          console.log('🚫 [DEBUG-HOOK] Component unmounted, ignoring result');
           return;
         }
         
-        console.log('✅ [ENHANCED-FIXED] Stops fetch successful:', {
+        console.log('📊 [DEBUG-HOOK] Data fetch result:', {
           totalStops: stops.length,
-          sampleStops: stops.slice(0, 5).map(s => ({
+          hasStops: stops.length > 0,
+          firstFewStops: stops.slice(0, 3).map(s => ({
             id: s.id,
             name: s.name,
-            city: s.city_name,
+            city: s.city_name || s.city,
             category: s.category,
-            hasDescription: !!s.description,
-            hasImage: !!(s.image_url || s.thumbnail_url),
             featured: s.featured
           }))
         });
         
         if (stops.length === 0) {
-          setError('No stops data available from database');
+          const errorMsg = 'No stops data available from database';
+          console.error('❌ [DEBUG-HOOK]', errorMsg);
+          setError(errorMsg);
           setAllStops([]);
         } else {
+          console.log('✅ [DEBUG-HOOK] Setting stops data');
           setAllStops(stops);
         }
       } catch (err) {
         if (!isMounted) return;
         
         const errorMessage = err instanceof Error ? err.message : 'Failed to load stops';
-        console.error('❌ [ENHANCED-FIXED] Stops fetch failed:', err);
+        console.error('❌ [DEBUG-HOOK] Fetch error:', err);
         setError(errorMessage);
         setAllStops([]);
       } finally {
         if (isMounted) {
+          console.log('🏁 [DEBUG-HOOK] Fetch complete, setting loading to false');
           setIsLoading(false);
         }
       }
@@ -79,68 +83,73 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     return `${segment.day}-${segment.endCity}`;
   }, [segment?.day, segment?.endCity]);
 
-  // Calculate recommended stops with stable dependencies
+  // Calculate recommended stops with comprehensive logging
   const recommendedStops = useMemo((): RecommendedStop[] => {
-    console.log('🧮 [ENHANCED-FIXED] Computing recommendations:', {
+    console.log('🧮 [DEBUG-HOOK] Computing recommendations:', {
       segmentKey,
       hasSegment: !!segment,
       segmentEndCity: segment?.endCity,
       allStopsCount: allStops.length,
       isLoading,
-      hasError: !!error
+      hasError: !!error,
+      step: 'START_CALCULATION'
     });
 
     // Wait for data to load
     if (isLoading) {
-      console.log('⏳ [ENHANCED-FIXED] Still loading, returning empty array');
+      console.log('⏳ [DEBUG-HOOK] Still loading, returning empty array');
       return [];
     }
 
     // Check for errors
     if (error) {
-      console.log('❌ [ENHANCED-FIXED] Error state, returning empty array:', error);
+      console.log('❌ [DEBUG-HOOK] Error state, returning empty array:', error);
       return [];
     }
 
     // Validate segment
     if (!segment || !segment.endCity || !segmentKey) {
-      console.log('⚠️ [ENHANCED-FIXED] Invalid segment data');
+      console.log('⚠️ [DEBUG-HOOK] Invalid segment data:', {
+        hasSegment: !!segment,
+        hasEndCity: !!segment?.endCity,
+        segmentKey
+      });
       return [];
     }
 
     // Validate stops data
     if (!allStops || allStops.length === 0) {
-      console.log('⚠️ [ENHANCED-FIXED] No stops data available');
+      console.log('⚠️ [DEBUG-HOOK] No stops data available for processing');
       return [];
     }
 
+    console.log('🚀 [DEBUG-HOOK] All validations passed, calling recommendation service...');
+    
     try {
-      console.log('🚀 [ENHANCED-FIXED] Calling StopRecommendationService...');
-      
       const recommendations = StopRecommendationService.getRecommendedStopsForSegment(
         segment,
         allStops,
         maxStops
       );
 
-      console.log('✅ [ENHANCED-FIXED] Recommendations generated:', {
+      console.log('✅ [DEBUG-HOOK] Recommendations generated successfully:', {
         count: recommendations.length,
         segmentKey,
+        maxStops,
         recommendations: recommendations.map(r => ({ 
           id: r.id,
           name: r.name, 
           city: r.city, 
           category: r.category,
           score: r.relevanceScore,
-          featured: r.originalStop.featured,
-          hasDescription: !!r.originalStop.description,
-          hasImage: !!(r.originalStop.image_url || r.originalStop.thumbnail_url)
+          hasOriginalData: !!r.originalStop
         }))
       });
 
       return recommendations;
-    } catch (err) {
-      console.error('❌ [ENHANCED-FIXED] Error in recommendation service:', err);
+    } catch (serviceError) {
+      console.error('❌ [DEBUG-HOOK] Error in recommendation service:', serviceError);
+      setError(`Recommendation service error: ${serviceError instanceof Error ? serviceError.message : 'Unknown error'}`);
       return [];
     }
   }, [segmentKey, allStops, maxStops, isLoading, error, segment]);
@@ -152,12 +161,13 @@ export const useRecommendedStops = (segment: DailySegment, maxStops: number = 3)
     hasStops: recommendedStops.length > 0
   };
 
-  console.log('📊 [ENHANCED-FIXED] Final hook result:', {
+  console.log('📊 [DEBUG-HOOK] Final hook result:', {
     segmentKey,
     hasStops: result.hasStops,
     stopsCount: result.recommendedStops.length,
     isLoading: result.isLoading,
-    error: result.error
+    error: result.error,
+    allStopsAvailable: allStops.length
   });
 
   return result;
