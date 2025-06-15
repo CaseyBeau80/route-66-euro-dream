@@ -1,6 +1,4 @@
-
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 
 export interface DriveTimeCategory {
   category: 'short' | 'optimal' | 'long' | 'extreme';
@@ -83,4 +81,3 @@ export interface DailySegment {
   approximateMiles?: number;
   subStopTimings?: SegmentTiming[];
 }
-
