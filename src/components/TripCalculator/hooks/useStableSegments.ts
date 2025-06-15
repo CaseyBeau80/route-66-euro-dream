@@ -16,7 +16,8 @@ export const useStableSegment = (segment: DailySegment) => {
       distance: segment.distance,
       driveTimeHours: segment.driveTimeHours,
       driveTimeCategory: segment.driveTimeCategory,
-      destination: segment.destination
+      destination: segment.destination,
+      recommendedStops: segment.recommendedStops || []
     };
   }, [
     segment?.day,
@@ -25,7 +26,8 @@ export const useStableSegment = (segment: DailySegment) => {
     segment?.distance,
     segment?.driveTimeHours,
     segment?.driveTimeCategory?.category,
-    segment?.destination?.name
+    segment?.destination,
+    segment?.recommendedStops?.length
   ]);
 };
 
@@ -41,7 +43,8 @@ export const useStableSegments = (segments: DailySegment[]) => {
       distance: segment.distance,
       driveTimeHours: segment.driveTimeHours,
       driveTimeCategory: segment.driveTimeCategory,
-      destination: segment.destination
+      destination: segment.destination,
+      recommendedStops: segment.recommendedStops || []
     }));
   }, [segments]);
 };
