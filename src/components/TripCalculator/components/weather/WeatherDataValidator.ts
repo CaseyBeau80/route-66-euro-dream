@@ -11,7 +11,7 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: More aggressive live weather detection that matches the actual forecast range
+   * FINAL FIX: Correct live weather detection based on API key + date range
    */
   static validateWeatherData(
     weather: ForecastWeatherData,
@@ -25,30 +25,24 @@ export class WeatherDataValidator {
     const apiKey = WeatherApiKeyManager.getApiKey();
     const isValidApiKey = hasValidApiKey && apiKey !== 'YOUR_API_KEY_HERE' && (apiKey?.length || 0) > 10;
     
-    // Check if date is within live forecast range (0-7 days from today)
+    // Check if date is within live forecast range (0-5 days from today)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDate = new Date(segmentDate);
     targetDate.setHours(0, 0, 0, 0);
     const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 5;
     
-    // CRITICAL FIX: If we have API key AND within range, treat as live forecast
-    // This matches the expected behavior from the screenshot
-    const shouldBeLive = isValidApiKey && isWithinForecastRange;
+    // FINAL LOGIC: Live forecast ONLY if API key exists AND within 5-day range
+    const isLiveForecast = isValidApiKey && isWithinForecastRange;
     
-    // FIXED: Force live display when conditions are met
-    const isLiveForecast = shouldBeLive;
-    
-    console.log('🟢 FIXED: WeatherDataValidator with corrected live detection:', {
+    console.log('🟢 FINAL FIX: WeatherDataValidator corrected logic:', {
       cityName,
       segmentDate: segmentDate.toISOString(),
       daysFromToday,
       isValidApiKey,
       isWithinForecastRange,
-      shouldBeLive,
-      forcingLiveForecast: isLiveForecast,
-      weatherSource: weather.source,
+      isLiveForecast,
       expectedDisplay: isLiveForecast ? 'GREEN_LIVE' : 'YELLOW_HISTORICAL'
     });
     
@@ -65,7 +59,7 @@ export class WeatherDataValidator {
       validationErrors.push('Missing weather icon');
     }
     
-    // FIXED: Force correct source based on our live determination
+    // FINAL FIX: Ensure correct source assignment
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
@@ -77,15 +71,15 @@ export class WeatherDataValidator {
     let confidence: 'high' | 'medium' | 'low' = 'high';
     if (validationErrors.length > 0) {
       confidence = 'low';
-    } else if (!isLiveForecast && shouldBeLive) {
+    } else if (!isLiveForecast && isWithinForecastRange) {
       confidence = 'medium';
     }
     
-    console.log('🟢 FIXED: WeatherDataValidator final result:', {
+    console.log('🟢 FINAL FIX: WeatherDataValidator result:', {
       cityName,
-      originalSource: weather.source,
-      normalizedSource: normalizedWeather.source,
+      daysFromToday,
       isLiveForecast,
+      normalizedSource: normalizedWeather.source,
       confidence,
       shouldDisplayGreen: isLiveForecast
     });

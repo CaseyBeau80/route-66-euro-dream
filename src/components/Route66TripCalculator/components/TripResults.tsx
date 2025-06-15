@@ -48,38 +48,36 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  // FIXED: Improved drive time formatting with better fallback logic
+  // FINAL FIX: Use actual segment drive time data from trip plan
   const formatDriveTime = (segment: any): string => {
-    console.log('🕐 Formatting drive time for segment:', {
+    console.log('🕐 FINAL FIX: Formatting drive time for segment:', {
       day: segment.day,
       driveTimeHours: segment.driveTimeHours,
       distance: segment.distance,
       endCity: segment.endCity
     });
 
-    // PRIORITY 1: Use actual segment drive time if available and valid
+    // FINAL PRIORITY: Use segment's actual driveTimeHours if available
     if (segment.driveTimeHours && segment.driveTimeHours > 0) {
       const hours = Math.floor(segment.driveTimeHours);
       const minutes = Math.round((segment.driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('✅ Using actual drive time:', formatted);
+      console.log('✅ FINAL FIX: Using actual segment driveTimeHours:', formatted);
       return formatted;
     }
     
-    // PRIORITY 2: Calculate from distance with realistic speed
+    // FALLBACK: Calculate from distance if no drive time available
     if (segment.distance && segment.distance > 0) {
-      // Use 50 mph average (more realistic for Route 66 with stops)
-      const driveTimeHours = segment.distance / 50;
+      const driveTimeHours = segment.distance / 50; // 50 mph average
       const hours = Math.floor(driveTimeHours);
       const minutes = Math.round((driveTimeHours - hours) * 60);
       const formatted = `${hours}h ${minutes}m`;
-      console.log('⚠️ Calculated from distance:', formatted, 'for', segment.distance, 'miles');
+      console.log('⚠️ FINAL FIX: Calculated from distance:', formatted);
       return formatted;
     }
     
-    // FALLBACK: Return reasonable default
-    console.log('❌ No valid data, using fallback');
-    return '5h 0m';
+    console.log('❌ FINAL FIX: No valid data, using fallback');
+    return '4h 0m';
   };
 
   return (
