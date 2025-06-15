@@ -2,7 +2,6 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import SimpleRecommendedStops from './SimpleRecommendedStops';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardContentProps {
@@ -26,7 +25,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
-  console.log('🔥 DaySegmentCardContent render - FIXED VERSION:', {
+  console.log('🔥 DaySegmentCardContent render - SIMPLIFIED VERSION:', {
     segmentDay: segment.day,
     route: `${segment.startCity} → ${segment.endCity}`,
     sectionKey,
@@ -52,14 +51,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Recommended Stops - ALWAYS RENDER */}
-      <div>
-        <ErrorBoundary context={`RecommendedStops-Day${segment.day}`}>
-          <SimpleRecommendedStops 
-            segment={segment}
-            maxStops={3}
-          />
-        </ErrorBoundary>
+      {/* Placeholder for future features */}
+      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+        <div className="text-sm text-gray-600 text-center">
+          Additional route information and stops will be available here.
+        </div>
       </div>
     </div>
   );
