@@ -54,7 +54,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
               </div>
             )}
 
-            {/* Route Information - NO RECOMMENDED STOPS */}
+            {/* Simple Route Information */}
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600 text-center">
                 Enjoy your drive from {segment.startCity} to {segment.endCity}! 
