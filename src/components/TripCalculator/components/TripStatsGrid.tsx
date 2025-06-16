@@ -15,19 +15,19 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
 
-  // FIXED: Calculate drive time from Google API data only
-  const totalDriveTimeHours = React.useMemo(() => {
+  // NUCLEAR FIX: Calculate drive time from EXCLUSIVE Google API data
+  const totalGoogleAPIDriveTimeHours = React.useMemo(() => {
     if (!tripPlan?.segments?.length) return 0;
     
     const total = tripPlan.segments.reduce((total, segment) => {
-      const hours = segment.driveTimeHours || 0;
+      const hours = segment.driveTimeHours; // EXCLUSIVE Google API data
       return total + hours;
     }, 0);
     
-    console.log('📊 TripStatsGrid FIXED - Google API drive time:', {
-      totalDriveTimeHours: total,
+    console.log('🔥 NUCLEAR FIX TripStatsGrid - EXCLUSIVE Google API drive time:', {
+      totalGoogleAPIDriveTimeHours: total,
       segmentCount: tripPlan.segments.length,
-      usingOnlyGoogleAPI: true
+      usingEXCLUSIVELYGoogleAPI: true
     });
     
     return total;
@@ -46,10 +46,10 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const distanceDisplay = formatDistance(tripPlan.totalDistance);
   const [distanceValue, distanceUnit] = distanceDisplay.split(' ');
 
-  console.log('💰 TripStatsGrid FIXED rendering with Google API data:', {
+  console.log('🔥 NUCLEAR FIX TripStatsGrid rendering with EXCLUSIVE Google API data:', {
     costEstimate,
-    totalDriveTimeHours,
-    usingOnlyGoogleAPI: true
+    totalGoogleAPIDriveTimeHours,
+    usingEXCLUSIVELYGoogleAPI: true
   });
 
   return (
@@ -65,7 +65,7 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
       
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="font-route66 text-2xl text-blue-600">
-          {GoogleDistanceMatrixService.formatDuration(totalDriveTimeHours)}
+          {GoogleDistanceMatrixService.formatDuration(totalGoogleAPIDriveTimeHours)}
         </div>
         <div className="font-travel text-sm text-blue-700">Drive Time (Google API)</div>
       </div>

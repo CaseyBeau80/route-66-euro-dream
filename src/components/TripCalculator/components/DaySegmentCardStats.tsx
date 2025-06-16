@@ -14,33 +14,33 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // FIXED: Only use Google Distance Matrix API data, no fallbacks
-  const apiDistance = segment.distance || 0;
-  const apiDriveTimeHours = segment.driveTimeHours || 0;
-  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours);
+  // NUCLEAR FIX: ONLY use Google API data - no fallbacks or alternatives
+  const googleAPIDistance = segment.distance;
+  const googleAPIDriveTimeHours = segment.driveTimeHours;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(googleAPIDriveTimeHours);
 
-  console.log(`📊 DaySegmentCardStats Day ${segment.day} FIXED - Google API only:`, {
+  console.log(`🔥 NUCLEAR FIX DaySegmentCardStats Day ${segment.day} - EXCLUSIVE Google API:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    apiDistance,
-    apiDriveTimeHours,
+    googleAPIDistance,
+    googleAPIDriveTimeHours,
     formattedDriveTime,
-    usingOnlyGoogleAPI: true
+    usingEXCLUSIVELYGoogleAPI: true
   });
 
   return (
     <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
       <div className="flex items-center gap-1">
         <Route className="h-4 w-4" />
-        <span>{formatDistance(apiDistance)}</span>
+        <span>{formatDistance(googleAPIDistance)} (Google API)</span>
       </div>
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
-        <span className={apiDriveTimeHours > 7 ? 'text-orange-600' : ''}>
+        <span className={googleAPIDriveTimeHours > 7 ? 'text-orange-600' : ''}>
           {formattedDriveTime} (Google API)
         </span>
       </div>
-      {apiDriveTimeHours > 7 && (
+      {googleAPIDriveTimeHours > 7 && (
         <div className="flex items-center gap-1 text-orange-600">
           <AlertTriangle className="h-4 w-4" />
           <span className="text-xs font-medium">Long Drive Day</span>

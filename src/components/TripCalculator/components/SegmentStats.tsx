@@ -14,21 +14,21 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // FIXED: Only use Google Distance Matrix API data, no fallbacks
-  const apiDistance = segment.distance || 0;
-  const apiDriveTimeHours = segment.driveTimeHours || 0;
-  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours);
+  // NUCLEAR FIX: ONLY use Google API data - no fallbacks or alternatives
+  const googleAPIDistance = segment.distance;
+  const googleAPIDriveTimeHours = segment.driveTimeHours;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(googleAPIDriveTimeHours);
   
-  const isLongDriveDay = apiDriveTimeHours > 7;
-  const estimatedFuelStops = Math.ceil(apiDistance / 300);
+  const isLongDriveDay = googleAPIDriveTimeHours > 7;
+  const estimatedFuelStops = Math.ceil(googleAPIDistance / 300);
 
-  console.log(`📊 SegmentStats Day ${segment.day} FIXED - Google API only:`, {
+  console.log(`🔥 NUCLEAR FIX SegmentStats Day ${segment.day} - EXCLUSIVE Google API:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    apiDistance,
-    apiDriveTimeHours,
+    googleAPIDistance,
+    googleAPIDriveTimeHours,
     formattedDriveTime,
-    usingOnlyGoogleAPI: true
+    usingEXCLUSIVELYGoogleAPI: true
   });
 
   if (compact) {
@@ -37,7 +37,7 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
         <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span>{formatDistance(apiDistance)}</span>
+            <span>{formatDistance(googleAPIDistance)} (Google API)</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
@@ -67,7 +67,7 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
         <div className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4 text-route66-primary" />
           <div>
-            <div className="font-medium text-route66-text-primary">{formatDistance(apiDistance)}</div>
+            <div className="font-medium text-route66-text-primary">{formatDistance(googleAPIDistance)}</div>
             <div className="text-xs text-route66-text-secondary">Google API Distance</div>
           </div>
         </div>
