@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { DateNormalizationService } from '../components/weather/DateNormalizationService';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 
 /**
  * CRITICAL FIX: Hook to provide stable date calculations using centralized date logic
@@ -8,7 +8,7 @@ import { DateNormalizationService } from '../components/weather/DateNormalizatio
  */
 export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Date | null => {
   return useMemo(() => {
-    console.log('📅 CRITICAL FIX: useStableDate - FINAL FIXED VERSION:', {
+    console.log('🔍 DEBUG: useStableDate called with:', {
       baseDate: baseDate?.toISOString(),
       baseDateLocal: baseDate?.toLocaleDateString(),
       dayOffset,
@@ -48,8 +48,8 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      // CRITICAL FIX: Use the centralized date calculation service
-      const resultDate = DateNormalizationService.calculateSegmentDate(baseDate, dayOffset);
+      // CRITICAL FIX: Use the unified date calculation service directly
+      const resultDate = UnifiedDateService.calculateSegmentDate(baseDate, dayOffset);
       
       // Final validation of result
       if (isNaN(resultDate.getTime())) {
@@ -62,7 +62,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      console.log('📅 CRITICAL FIX: useStableDate SUCCESS:', {
+      console.log('🔍 DEBUG: useStableDate SUCCESS:', {
         baseDate: baseDate.toISOString(),
         baseDateLocal: baseDate.toLocaleDateString(),
         dayOffset,

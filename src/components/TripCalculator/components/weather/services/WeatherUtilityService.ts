@@ -7,6 +7,13 @@ export class WeatherUtilityService {
    * FIXED: Calculate segment date using corrected unified date service
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date | null {
+    console.log('🔍 DEBUG: WeatherUtilityService.getSegmentDate called with:', {
+      tripStartDate: tripStartDate?.toISOString(),
+      tripStartDateLocal: tripStartDate?.toLocaleDateString(),
+      segmentDay,
+      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
+    });
+
     if (!tripStartDate || !segmentDay || segmentDay < 1) {
       console.error('❌ FIXED WEATHER: Invalid parameters:', {
         tripStartDate,
@@ -19,10 +26,11 @@ export class WeatherUtilityService {
     try {
       const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
       
-      console.log('📅 FIXED WEATHER: Segment date calculation - NO MORE OFF-BY-ONE:', {
+      console.log('🔍 DEBUG: WeatherUtilityService calculated date:', {
         tripStartDate: tripStartDate.toLocaleDateString(),
         segmentDay,
         calculatedDate: segmentDate.toLocaleDateString(),
+        calculatedDateISO: segmentDate.toISOString(),
         verification: segmentDay === 1 ? {
           day1Check: 'Day 1 should match trip start exactly',
           tripStartLocal: tripStartDate.toLocaleDateString(),

@@ -232,35 +232,58 @@ export class UnifiedDateService {
   }
 
   /**
-   * UNIFIED: Get the start of week for a given date
+   * Get the start of week for a given date
    */
   static getStartOfWeek(date: Date): Date {
     const normalized = this.normalizeToLocalMidnight(date);
-    const dayOfWeek = normalized.getDay();
+    const dayOfWeek = normalized.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const startOfWeek = new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() - dayOfWeek);
+    
+    console.log('🔧 UNIFIED: getStartOfWeek:', {
+      input: date.toLocaleDateString(),
+      dayOfWeek,
+      startOfWeek: startOfWeek.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
+    
     return startOfWeek;
   }
 
   /**
-   * UNIFIED: Get the end of week for a given date
+   * Get the end of week for a given date
    */
   static getEndOfWeek(date: Date): Date {
-    const normalized = this.normalizeToLocalMidnight(date);
-    const dayOfWeek = normalized.getDay();
-    const endOfWeek = new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() + (6 - dayOfWeek));
+    const startOfWeek = this.getStartOfWeek(date);
+    const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 6);
+    
+    console.log('🔧 UNIFIED: getEndOfWeek:', {
+      input: date.toLocaleDateString(),
+      endOfWeek: endOfWeek.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
+    
     return endOfWeek;
   }
 
   /**
-   * UNIFIED: Add days to a date
+   * Add days to a date
    */
   static addDays(date: Date, days: number): Date {
     const normalized = this.normalizeToLocalMidnight(date);
-    return new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() + days);
+    const result = new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() + days);
+    
+    console.log('🔧 UNIFIED: addDays:', {
+      input: date.toLocaleDateString(),
+      daysToAdd: days,
+      result: result.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
+    
+    return result;
   }
 
   /**
-   * UNIFIED: Subtract days from a date
+   * Subtract days from a date
    */
   static subtractDays(date: Date, days: number): Date {
     return this.addDays(date, -days);
