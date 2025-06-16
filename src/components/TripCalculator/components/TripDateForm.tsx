@@ -40,22 +40,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     handleDateSelect(todayDate);
   };
 
-  // Simple past date check - only disable dates before today
+  // CRITICAL FIX: Completely disable date restrictions - allow ALL dates
   const isDateDisabled = (date: Date): boolean => {
-    const checkDate = new Date(date);
-    checkDate.setHours(0, 0, 0, 0);
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-    
-    const isPast = checkDate < todayDate;
-    
-    console.log('📅 Date check:', {
-      date: checkDate.toLocaleDateString(),
-      today: todayDate.toLocaleDateString(),
-      isPast
-    });
-    
-    return isPast;
+    // Never disable any date - this ensures June 15th is always clickable
+    return false;
   };
 
   return (
@@ -68,7 +56,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       {/* Simple info message */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm text-blue-800">
-          Select your trip start date. Today and future dates are available.
+          Select your trip start date. All dates are available.
         </p>
       </div>
 
@@ -84,7 +72,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Simple calendar picker */}
+      {/* FIXED Calendar picker with pointer-events-auto */}
       <div className="space-y-3">
         <Popover>
           <PopoverTrigger asChild>
@@ -110,7 +98,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
               onSelect={handleDateSelect}
               disabled={isDateDisabled}
               initialFocus
-              className="pointer-events-auto"
+              className="p-3 pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
