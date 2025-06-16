@@ -38,6 +38,25 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
+  // Calculate total driving time from segments
+  const calculateTotalDrivingTime = (): number => {
+    if (!tripPlan.segments || tripPlan.segments.length === 0) {
+      console.log('🚗 SharedTripOverview: No segments found for driving time calculation');
+      return 0;
+    }
+
+    const totalHours = tripPlan.segments.reduce((total, segment) => {
+      const segmentHours = segment.driveTimeHours || segment.drivingTime || 0;
+      console.log(`🚗 SharedTripOverview: Segment ${segment.day} - ${segment.startCity} to ${segment.endCity}: ${segmentHours} hours`);
+      return total + segmentHours;
+    }, 0);
+
+    console.log(`🚗 SharedTripOverview: Total calculated driving time: ${totalHours} hours`);
+    return totalHours;
+  };
+
+  const totalDrivingTime = calculateTotalDrivingTime();
+
   return (
     <>
       {/* Header with RAMBLE 66 branding */}
@@ -74,7 +93,7 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
           </div>
           <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
             <div className="font-bold text-route66-vintage-red text-lg font-route66">
-              {formatDriveTime(tripPlan.totalDrivingTime || 0)}
+              {formatDriveTime(totalDrivingTime)}
             </div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Total Drive Time</div>
           </div>
