@@ -15,19 +15,18 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
 
-  // NUCLEAR FIX: Calculate drive time from EXCLUSIVE Google API data
-  const totalGoogleAPIDriveTimeHours = React.useMemo(() => {
+  // Use ONLY segment data - no local calculations
+  const totalDriveTimeHours = React.useMemo(() => {
     if (!tripPlan?.segments?.length) return 0;
     
     const total = tripPlan.segments.reduce((total, segment) => {
-      const hours = segment.driveTimeHours; // EXCLUSIVE Google API data
-      return total + hours;
+      return total + segment.driveTimeHours; // Use segment data only
     }, 0);
     
-    console.log('🔥 NUCLEAR FIX TripStatsGrid - EXCLUSIVE Google API drive time:', {
-      totalGoogleAPIDriveTimeHours: total,
+    console.log('🎯 TripStatsGrid - Using segment data only:', {
+      totalDriveTimeHours: total,
       segmentCount: tripPlan.segments.length,
-      usingEXCLUSIVELYGoogleAPI: true
+      dataSource: 'SEGMENT_DATA_ONLY'
     });
     
     return total;
@@ -46,10 +45,10 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
   const distanceDisplay = formatDistance(tripPlan.totalDistance);
   const [distanceValue, distanceUnit] = distanceDisplay.split(' ');
 
-  console.log('🔥 NUCLEAR FIX TripStatsGrid rendering with EXCLUSIVE Google API data:', {
+  console.log('🎯 TripStatsGrid rendering with segment data only:', {
     costEstimate,
-    totalGoogleAPIDriveTimeHours,
-    usingEXCLUSIVELYGoogleAPI: true
+    totalDriveTimeHours,
+    dataSource: 'SEGMENT_DATA_ONLY'
   });
 
   return (
@@ -59,15 +58,15 @@ const TripStatsGrid: React.FC<TripStatsGridProps> = ({
           {distanceValue}
         </div>
         <div className="font-travel text-sm text-blue-700">
-          Total {distanceUnit} (Google API)
+          Total {distanceUnit}
         </div>
       </div>
       
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="font-route66 text-2xl text-blue-600">
-          {GoogleDistanceMatrixService.formatDuration(totalGoogleAPIDriveTimeHours)}
+          {GoogleDistanceMatrixService.formatDuration(totalDriveTimeHours)}
         </div>
-        <div className="font-travel text-sm text-blue-700">Drive Time (Google API)</div>
+        <div className="font-travel text-sm text-blue-700">Drive Time</div>
       </div>
       
       <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">

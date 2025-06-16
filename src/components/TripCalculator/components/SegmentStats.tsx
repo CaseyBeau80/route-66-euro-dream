@@ -14,21 +14,21 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // NUCLEAR FIX: ONLY use Google API data - no fallbacks or alternatives
-  const googleAPIDistance = segment.distance;
-  const googleAPIDriveTimeHours = segment.driveTimeHours;
-  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(googleAPIDriveTimeHours);
+  // Use ONLY segment data - no local calculations
+  const segmentDistance = segment.distance;
+  const segmentDriveTimeHours = segment.driveTimeHours;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(segmentDriveTimeHours);
   
-  const isLongDriveDay = googleAPIDriveTimeHours > 7;
-  const estimatedFuelStops = Math.ceil(googleAPIDistance / 300);
+  const isLongDriveDay = segmentDriveTimeHours > 7;
+  const estimatedFuelStops = Math.ceil(segmentDistance / 300);
 
-  console.log(`🔥 NUCLEAR FIX SegmentStats Day ${segment.day} - EXCLUSIVE Google API:`, {
+  console.log(`🎯 SegmentStats Day ${segment.day} - Using segment data only:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    googleAPIDistance,
-    googleAPIDriveTimeHours,
+    segmentDistance,
+    segmentDriveTimeHours,
     formattedDriveTime,
-    usingEXCLUSIVELYGoogleAPI: true
+    dataSource: 'SEGMENT_DATA_ONLY'
   });
 
   if (compact) {
@@ -37,11 +37,11 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
         <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span>{formatDistance(googleAPIDistance)} (Google API)</span>
+            <span>{formatDistance(segmentDistance)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{formattedDriveTime} (Google API)</span>
+            <span>{formattedDriveTime}</span>
           </div>
           {isLongDriveDay && (
             <Tooltip>
@@ -67,8 +67,8 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
         <div className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4 text-route66-primary" />
           <div>
-            <div className="font-medium text-route66-text-primary">{formatDistance(googleAPIDistance)}</div>
-            <div className="text-xs text-route66-text-secondary">Google API Distance</div>
+            <div className="font-medium text-route66-text-primary">{formatDistance(segmentDistance)}</div>
+            <div className="text-xs text-route66-text-secondary">Distance</div>
           </div>
         </div>
         
@@ -76,7 +76,7 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
           <Clock className="h-4 w-4 text-route66-primary" />
           <div>
             <div className="font-medium text-route66-text-primary">{formattedDriveTime}</div>
-            <div className="text-xs text-route66-text-secondary">Google API Drive Time</div>
+            <div className="text-xs text-route66-text-secondary">Drive Time</div>
           </div>
         </div>
         

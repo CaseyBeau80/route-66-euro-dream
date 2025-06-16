@@ -19,21 +19,25 @@ export class TripPlanBuilder {
     allStops: TripStop[],
     requestedDays: number
   ): Promise<TripPlan> {
-    console.log(`🔥 NUCLEAR FIX TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
-    console.log(`🔑 NUCLEAR FIX TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
+    console.log(`🔥 TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
+    console.log(`🔑 TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
+
+    if (!GoogleDistanceMatrixService.isAvailable()) {
+      throw new Error('Google Distance Matrix API key is required for accurate trip planning');
+    }
 
     // Get all stops between start and end
     const routeStops = this.getRouteStops(startStop, endStop, allStops);
-    console.log(`📍 NUCLEAR FIX TripPlanBuilder: Route includes ${routeStops.length} stops`);
+    console.log(`📍 TripPlanBuilder: Route includes ${routeStops.length} stops`);
 
-    // NUCLEAR FIX: Build segments with ONLY Google API data - no fallbacks ever
-    const segments = await this.buildSegmentsWithExclusiveGoogleAPI(routeStops, requestedDays);
+    // Build segments with ONLY Google API data - no fallbacks
+    const segments = await this.buildSegmentsWithGoogleAPI(routeStops, requestedDays);
     
     // Calculate totals from ACTUAL Google API segment data only
     const totalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
     const totalDrivingTime = segments.reduce((total, segment) => total + segment.driveTimeHours, 0);
 
-    console.log(`🔥 NUCLEAR FIX TripPlanBuilder: Final totals from Google API - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
+    console.log(`🔥 TripPlanBuilder: Final totals from Google API - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
 
     // Create route coordinates
     const route = routeStops.map(stop => ({
@@ -54,7 +58,7 @@ export class TripPlanBuilder {
       totalMiles: Math.round(totalDistance)
     };
 
-    console.log(`🔥 NUCLEAR FIX TripPlanBuilder: Trip plan completed with EXCLUSIVE Google API data:`, {
+    console.log(`🔥 TripPlanBuilder: Trip plan completed with Google API data:`, {
       segmentCount: segments.length,
       totalDistance: totalDistance.toFixed(0),
       totalDriveTime: totalDrivingTime.toFixed(1),
@@ -86,93 +90,129 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  // NUCLEAR FIX: COMPLETELY NEW METHOD that ONLY uses Google API data
-  private static async buildSegmentsWithExclusiveGoogleAPI(
+  // UPDATED METHOD: Uses new getDistanceAndDuration method with NO fallbacks
+  private static async buildSegmentsWithGoogleAPI(
     routeStops: TripStop[],
     requestedDays: number
   ): Promise<DailySegment[]> {
-    console.log(`🔥 NUCLEAR FIX buildSegmentsWithExclusiveGoogleAPI: Creating ${requestedDays} segments with EXCLUSIVE Google API data`);
+    console.log(`🔥 buildSegmentsWithGoogleAPI: Creating ${requestedDays} segments with Google API data`);
     
     // Step 1: Determine which stops will be start/end for each day
     const dayStopPairs = this.calculateDayStopPairs(routeStops, requestedDays);
-    console.log(`🔥 NUCLEAR FIX: Calculated ${dayStopPairs.length} day stop pairs`);
+    console.log(`🔥 Calculated ${dayStopPairs.length} day stop pairs`);
     
-    // Step 2: Get Google API data for each day and build segments immediately
+    // Step 2: Get Google API data for each day and build segments
     const segments: DailySegment[] = [];
     
     for (let i = 0; i < dayStopPairs.length; i++) {
       const pair = dayStopPairs[i];
       const dayNumber = i + 1;
       
-      console.log(`🔥 NUCLEAR FIX: Processing Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}`);
+      console.log(`🔥 Processing Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}`);
       
-      // Get EXCLUSIVE Google API data - no fallbacks allowed
-      let googleDistance = 0;
-      let googleDriveTime = 0;
-      
-      if (GoogleDistanceMatrixService.isAvailable()) {
-        try {
-          const apiResult = await GoogleDistanceMatrixService.calculateDistance(
-            pair.startStop.name,
-            pair.endStop.name
-          );
-          
-          googleDistance = apiResult.distance;
-          googleDriveTime = apiResult.duration;
-          
-          console.log(`🔥 NUCLEAR FIX: Got Google API data for Day ${dayNumber}: ${googleDistance} miles, ${GoogleDistanceMatrixService.formatDuration(googleDriveTime)}`);
-        } catch (error) {
-          console.error(`🔥 NUCLEAR FIX: Google API failed for Day ${dayNumber}:`, error);
-          throw new Error(`Google API failed for Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}`);
-        }
-      } else {
-        console.error(`🔥 NUCLEAR FIX: No Google API key available - cannot build segments`);
-        throw new Error('Google API key is required for accurate trip planning');
+      try {
+        // Use NEW getDistanceAndDuration method - NO fallbacks
+        const apiResult = await GoogleDistanceMatrixService.getDistanceAndDuration(
+          pair.startStop.name,
+          pair.endStop.name
+        );
+        
+        // Convert to expected format
+        const distanceMiles = GoogleDistanceMatrixService.convertKmToMiles(apiResult.distanceKm);
+        const driveTimeHours = GoogleDistanceMatrixService.convertSecondsToHours(apiResult.durationSeconds);
+        
+        console.log(`🔥 Got Google API data for Day ${dayNumber}: ${distanceMiles} miles, ${GoogleDistanceMatrixService.formatDurationFromSeconds(apiResult.durationSeconds)}`);
+        
+        // Get attractions for the destination city
+        const attractions = await AttractionService.getAttractionsForStop(pair.endStop);
+        
+        // Get drive time category based on actual duration
+        const driveTimeCategory = this.getDriveTimeCategory(driveTimeHours);
+        
+        // Create segment with ONLY Google API data
+        const segment: DailySegment = {
+          day: dayNumber,
+          startCity: pair.startStop.name,
+          endCity: pair.endStop.name,
+          distance: distanceMiles, // Google API distance in miles
+          approximateMiles: distanceMiles, // Same value for compatibility
+          drivingTime: driveTimeHours, // Google API duration in hours
+          driveTimeHours: driveTimeHours, // Google API duration in hours
+          attractions: attractions || [],
+          subStops: pair.intermediateStops,
+          driveTimeCategory,
+          title: `${pair.startStop.name} → ${pair.endStop.name}`,
+          recommendedStops: [],
+          subStopTimings: [],
+          routeSection: this.getRouteSection(dayNumber, requestedDays)
+        };
+        
+        console.log(`🔥 Created segment ${segment.day} with Google API data:`, {
+          distance: segment.distance,
+          driveTimeHours: segment.driveTimeHours,
+          startCity: segment.startCity,
+          endCity: segment.endCity,
+          dataSource: 'GOOGLE_API_ONLY'
+        });
+        
+        segments.push(segment);
+        
+      } catch (error) {
+        console.error(`🔥 Google API failed for Day ${dayNumber}:`, error);
+        throw new Error(`Google API failed for Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}. Error: ${error.message}`);
       }
-      
-      // Get attractions for the destination city
-      const attractions = await AttractionService.getAttractionsForStop(pair.endStop);
-      
-      // Get drive time category based on Google API duration
-      const driveTimeCategory = this.getDriveTimeCategory(googleDriveTime);
-      
-      // NUCLEAR FIX: Create segment with ONLY Google API data
-      const segment: DailySegment = {
-        day: dayNumber,
-        startCity: pair.startStop.name,
-        endCity: pair.endStop.name,
-        distance: googleDistance, // EXCLUSIVE Google API distance
-        approximateMiles: googleDistance, // Ensure compatibility - same value
-        drivingTime: googleDriveTime, // EXCLUSIVE Google API duration
-        driveTimeHours: googleDriveTime, // EXCLUSIVE Google API duration
-        attractions: attractions || [],
-        subStops: pair.intermediateStops,
-        driveTimeCategory,
-        title: `${pair.startStop.name} → ${pair.endStop.name}`,
-        recommendedStops: [],
-        subStopTimings: [],
-        routeSection: this.getRouteSection(dayNumber, requestedDays)
-      };
-      
-      console.log(`🔥 NUCLEAR FIX: Created segment ${segment.day} with EXCLUSIVE Google API data:`, {
-        distance: segment.distance,
-        driveTimeHours: segment.driveTimeHours,
-        startCity: segment.startCity,
-        endCity: segment.endCity,
-        dataSource: 'GOOGLE_API_ONLY'
-      });
-      
-      segments.push(segment);
     }
     
-    console.log(`🔥 NUCLEAR FIX: All segments built with EXCLUSIVE Google API data:`, 
+    console.log(`🔥 All segments built with Google API data:`, 
       segments.map(s => `Day ${s.day}: ${s.distance}mi, ${s.driveTimeHours.toFixed(1)}h (${s.startCity} → ${s.endCity})`)
     );
     
     return segments;
   }
 
-  // NUCLEAR FIX: NEW METHOD that calculates day stop pairs
+  // ... keep existing code (calculateDayStopPairs method)
+
+  private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
+    if (driveTimeHours <= 3) {
+      return {
+        category: 'light',
+        message: 'Easy driving day with plenty of time for stops and exploration.',
+        color: 'green'
+      };
+    } else if (driveTimeHours <= 5) {
+      return {
+        category: 'moderate',
+        message: 'Comfortable driving day with good balance of travel and sightseeing.',
+        color: 'blue'
+      };
+    } else if (driveTimeHours <= 7) {
+      return {
+        category: 'heavy',
+        message: 'Longer driving day - plan for fewer stops and more focused travel.',
+        color: 'orange'
+      };
+    } else {
+      return {
+        category: 'extreme',
+        message: 'Very long driving day - consider splitting this segment or starting early.',
+        color: 'red'
+      };
+    }
+  }
+
+  private static getRouteSection(day: number, totalDays: number): string {
+    const progress = day / totalDays;
+    
+    if (progress <= 0.33) {
+      return 'Early Route';
+    } else if (progress <= 0.66) {
+      return 'Mid Route';
+    } else {
+      return 'Final Stretch';
+    }
+  }
+
+  // ... keep existing code (calculateDayStopPairs method)
   private static calculateDayStopPairs(routeStops: TripStop[], requestedDays: number): Array<{
     startStop: TripStop;
     endStop: TripStop;
@@ -218,45 +258,5 @@ export class TripPlanBuilder {
     }
     
     return pairs;
-  }
-
-  private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
-    if (driveTimeHours <= 3) {
-      return {
-        category: 'light',
-        message: 'Easy driving day with plenty of time for stops and exploration.',
-        color: 'green'
-      };
-    } else if (driveTimeHours <= 5) {
-      return {
-        category: 'moderate',
-        message: 'Comfortable driving day with good balance of travel and sightseeing.',
-        color: 'blue'
-      };
-    } else if (driveTimeHours <= 7) {
-      return {
-        category: 'heavy',
-        message: 'Longer driving day - plan for fewer stops and more focused travel.',
-        color: 'orange'
-      };
-    } else {
-      return {
-        category: 'extreme',
-        message: 'Very long driving day - consider splitting this segment or starting early.',
-        color: 'red'
-      };
-    }
-  }
-
-  private static getRouteSection(day: number, totalDays: number): string {
-    const progress = day / totalDays;
-    
-    if (progress <= 0.33) {
-      return 'Early Route';
-    } else if (progress <= 0.66) {
-      return 'Mid Route';
-    } else {
-      return 'Final Stretch';
-    }
   }
 }

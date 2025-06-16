@@ -1,4 +1,3 @@
-
 export interface GoogleDistanceResult {
   distance: number; // in miles
   duration: number; // in hours
@@ -10,9 +9,18 @@ export interface GoogleDistanceResponse {
   status: string;
 }
 
+export interface GoogleDistanceApiResult {
+  distanceKm: number; // in kilometers
+  durationSeconds: number; // in seconds
+  distanceText: string; // e.g., "250 km"
+  durationText: string; // e.g., "4h 15m"
+  status: string;
+}
+
 export class GoogleDistanceMatrixService {
   private static apiKey: string | null = null;
   private static cache = new Map<string, GoogleDistanceResult>();
+  private static apiCache = new Map<string, GoogleDistanceApiResult>();
 
   static setApiKey(key: string) {
     this.apiKey = key;
@@ -36,6 +44,71 @@ export class GoogleDistanceMatrixService {
 
   private static getCacheKey(origin: string, destination: string): string {
     return `${origin}-${destination}`;
+  }
+
+  static async getDistanceAndDuration(
+    originCity: string,
+    destinationCity: string
+  ): Promise<GoogleDistanceApiResult> {
+    console.log(`🗺️ GoogleDistanceMatrixService.getDistanceAndDuration: ${originCity} → ${destinationCity}`);
+    
+    const cacheKey = this.getCacheKey(originCity, destinationCity);
+    
+    // Check API cache first
+    if (this.apiCache.has(cacheKey)) {
+      const cached = this.apiCache.get(cacheKey)!;
+      console.log(`📊 GoogleDistanceMatrixService: Using cached API result: ${cached.distanceText}, ${cached.durationText}`);
+      return cached;
+    }
+
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      throw new Error('Google Maps API key not available');
+    }
+
+    try {
+      const url = `https://maps.googleapis.com/maps/api/distancematrix/json?` +
+        `origins=${encodeURIComponent(originCity)}&` +
+        `destinations=${encodeURIComponent(destinationCity)}&` +
+        `units=metric&` +
+        `mode=driving&` +
+        `key=${apiKey}`;
+
+      console.log(`🌐 GoogleDistanceMatrixService: Making API call for ${originCity} → ${destinationCity}`);
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      console.log(`📡 GoogleDistanceMatrixService: API response status: ${data.status}`);
+
+      if (data.status !== 'OK') {
+        throw new Error(`API status error: ${data.status}`);
+      }
+
+      const element = data.rows[0].elements[0];
+      
+      if (element.status !== 'OK') {
+        throw new Error(`Route status error: ${element.status}`);
+      }
+
+      const result: GoogleDistanceApiResult = {
+        distanceKm: Math.round(element.distance.value / 1000), // Convert meters to km
+        durationSeconds: element.duration.value, // Already in seconds
+        distanceText: element.distance.text,
+        durationText: element.duration.text,
+        status: 'OK'
+      };
+
+      // Cache the result
+      this.apiCache.set(cacheKey, result);
+      
+      console.log(`✅ GoogleDistanceMatrixService: SUCCESS! ${originCity} → ${destinationCity} = ${result.distanceText}, ${result.durationText}`);
+      
+      return result;
+    } catch (error) {
+      console.error(`❌ GoogleDistanceMatrixService: Error getting distance/duration ${originCity} → ${destinationCity}:`, error);
+      throw error;
+    }
   }
 
   static async calculateDistance(
@@ -179,8 +252,28 @@ export class GoogleDistanceMatrixService {
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   }
 
+  static formatDurationFromSeconds(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    
+    if (hours === 0) {
+      return `${minutes}m`;
+    }
+    
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+
+  static convertKmToMiles(km: number): number {
+    return Math.round(km * 0.621371);
+  }
+
+  static convertSecondsToHours(seconds: number): number {
+    return seconds / 3600;
+  }
+
   static clearCache() {
     this.cache.clear();
+    this.apiCache.clear();
     console.log('🗑️ CRITICAL FIX GoogleDistanceMatrixService: Cache cleared');
   }
 }
