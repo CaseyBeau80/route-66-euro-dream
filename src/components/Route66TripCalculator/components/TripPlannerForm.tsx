@@ -35,50 +35,81 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   const isFormValid = formData.startLocation && formData.endLocation && formData.travelDays > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-route66-primary mb-2">
+    <div className="max-w-4xl mx-auto">
+      {/* Unified Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-route66-primary mb-3">
           Plan Your Route 66 Adventure
         </h2>
-        <p className="text-route66-text-secondary">
+        <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto">
           Choose your start and end points, and let us create your perfect itinerary
         </p>
       </div>
 
-      {/* Location Selection */}
-      <LocationSelectionSection
-        startLocation={formData.startLocation}
-        endLocation={formData.endLocation}
-        onLocationChange={onLocationChange}
-      />
+      {/* Main Form Container - Unified styling */}
+      <div className="space-y-6">
+        
+        {/* Location Selection Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-route66-text-primary">Route Selection</h3>
+          </div>
+          <LocationSelectionSection
+            startLocation={formData.startLocation}
+            endLocation={formData.endLocation}
+            onLocationChange={onLocationChange}
+          />
+        </div>
 
-      {/* Trip Details */}
-      <TripDetailsSection
-        tripStartDate={formData.tripStartDate}
-        travelDays={formData.travelDays}
-        onStartDateChange={onStartDateChange}
-        onTravelDaysChange={onTravelDaysChange}
-      />
+        {/* Trip Details Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-route66-text-primary">Trip Details</h3>
+          </div>
+          <TripDetailsSection
+            tripStartDate={formData.tripStartDate}
+            travelDays={formData.travelDays}
+            onStartDateChange={onStartDateChange}
+            onTravelDaysChange={onTravelDaysChange}
+          />
+        </div>
 
-      {/* Trip Style */}
-      <TripStyleSection
-        tripStyle={formData.tripStyle}
-        onTripStyleChange={onTripStyleChange}
-      />
+        {/* Trip Style Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-route66-text-primary">Trip Style</h3>
+          </div>
+          <TripStyleSection
+            tripStyle={formData.tripStyle}
+            onTripStyleChange={onTripStyleChange}
+          />
+        </div>
 
-      {/* Cost Estimator Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-        <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
+        {/* Cost Estimator Card - Unified with other cards */}
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border overflow-hidden">
+          <div className="flex items-center gap-2 p-6 pb-0">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-route66-text-primary">Budget Planning</h3>
+          </div>
+          <div className="p-6 pt-4">
+            <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
+          </div>
+        </div>
+
+        {/* Action Buttons Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
+          <ActionButtonsSection
+            isFormValid={isFormValid}
+            isPlanning={isPlanning}
+            onPlanTrip={onPlanTrip}
+            onResetTrip={onResetTrip}
+          />
+        </div>
+
       </div>
-
-      {/* Action Buttons */}
-      <ActionButtonsSection
-        isFormValid={isFormValid}
-        isPlanning={isPlanning}
-        onPlanTrip={onPlanTrip}
-        onResetTrip={onResetTrip}
-      />
     </div>
   );
 };
