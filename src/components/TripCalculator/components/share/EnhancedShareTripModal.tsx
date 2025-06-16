@@ -176,20 +176,6 @@ const EnhancedShareTripModal: React.FC<EnhancedShareTripModalProps> = ({
           </div>
         )}
 
-        {/* Cache Results */}
-        {cacheResult && preCacheComplete && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <CloudSnow className="h-5 w-5 text-green-600" />
-              <p className="text-green-700 font-medium">Weather Data Cached</p>
-            </div>
-            <p className="text-green-600 text-sm">
-              Successfully cached weather for {cacheResult.cachedSegments} out of {cacheResult.totalSegments} destinations
-              {cacheResult.errors.length > 0 && ` (${cacheResult.errors.length} partial failures)`}
-            </p>
-          </div>
-        )}
-
         {/* Share Button or Content */}
         {!preCacheComplete && !shareUrl ? (
           <div className="text-center py-8">
