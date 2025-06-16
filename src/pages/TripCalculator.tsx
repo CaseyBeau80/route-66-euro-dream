@@ -39,7 +39,7 @@ const TripCalculator = () => {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-4">
                 Plan Your Route 66 Adventure
               </h1>
-              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">Get your kicks with our comprehensive trip planner tool below!</p>
+              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">Use tool planner below</p>
 
               {/* YouTube Video Section */}
               <div className="mb-8">
