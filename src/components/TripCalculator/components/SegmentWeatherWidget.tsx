@@ -21,23 +21,60 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔥 SEGMENT WIDGET: Component rendering for', segment.endCity, {
+  console.log('🎯 SEGMENT WIDGET: Render for', segment.endCity, {
     day: segment.day,
     tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
-    componentName: 'SegmentWeatherWidget'
+    componentName: 'SegmentWeatherWidget',
+    renderTimestamp: new Date().toISOString()
   });
 
-  // Convert string to Date if needed
+  // Convert string to Date if needed and validate
   const normalizedTripStartDate = React.useMemo(() => {
-    if (!tripStartDate) return undefined;
-    if (tripStartDate instanceof Date) return tripStartDate;
-    return new Date(tripStartDate);
-  }, [tripStartDate]);
+    if (!tripStartDate) {
+      console.log('🎯 SEGMENT WIDGET: No trip start date provided for', segment.endCity);
+      return undefined;
+    }
+    
+    try {
+      if (tripStartDate instanceof Date) {
+        if (isNaN(tripStartDate.getTime())) {
+          console.error('🎯 SEGMENT WIDGET: Invalid Date object for', segment.endCity, tripStartDate);
+          return undefined;
+        }
+        console.log('🎯 SEGMENT WIDGET: Valid Date object for', segment.endCity, {
+          date: tripStartDate.toISOString()
+        });
+        return tripStartDate;
+      }
+      
+      if (typeof tripStartDate === 'string') {
+        const parsed = new Date(tripStartDate);
+        if (isNaN(parsed.getTime())) {
+          console.error('🎯 SEGMENT WIDGET: Invalid date string for', segment.endCity, tripStartDate);
+          return undefined;
+        }
+        console.log('🎯 SEGMENT WIDGET: Parsed date string for', segment.endCity, {
+          original: tripStartDate,
+          parsed: parsed.toISOString()
+        });
+        return parsed;
+      }
+      
+      console.error('🎯 SEGMENT WIDGET: Unexpected date type for', segment.endCity, {
+        type: typeof tripStartDate,
+        value: tripStartDate
+      });
+      return undefined;
+    } catch (error) {
+      console.error('🎯 SEGMENT WIDGET: Date processing error for', segment.endCity, error);
+      return undefined;
+    }
+  }, [tripStartDate, segment.endCity]);
 
-  console.log('🔥 SEGMENT WIDGET: Using unified weather component for', segment.endCity, {
+  console.log('🎯 SEGMENT WIDGET: Passing to unified widget for', segment.endCity, {
     day: segment.day,
-    normalizedTripStartDate: normalizedTripStartDate?.toISOString(),
-    componentPath: 'SegmentWeatherWidget -> UnifiedWeatherWidget'
+    hasNormalizedDate: !!normalizedTripStartDate,
+    normalizedDate: normalizedTripStartDate?.toISOString()
   });
 
   return (

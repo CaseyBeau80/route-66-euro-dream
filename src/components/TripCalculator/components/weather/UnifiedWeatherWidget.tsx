@@ -18,16 +18,24 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔥 UNIFIED WIDGET: Component rendering for', segment.endCity, {
+  console.log('🎯 UNIFIED WIDGET: Starting render for', segment.endCity, {
     day: segment.day,
     tripStartDate: tripStartDate?.toISOString(),
-    componentName: 'UnifiedWeatherWidget'
+    componentName: 'UnifiedWeatherWidget',
+    renderTimestamp: new Date().toISOString()
   });
 
   // Calculate segment date
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
-      return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      const calculated = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      console.log('🎯 UNIFIED WIDGET: Date calculation for', segment.endCity, {
+        tripStartDate: tripStartDate.toISOString(),
+        segmentDay: segment.day,
+        calculatedDate: calculated.toISOString(),
+        calculatedLocal: calculated.toLocaleDateString()
+      });
+      return calculated;
     }
 
     // For shared views, try URL parameters
@@ -41,7 +49,14 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
           if (tripStartParam) {
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
-              return WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
+              const calculated = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
+              console.log('🎯 UNIFIED WIDGET: URL date calculation for', segment.endCity, {
+                urlParam: tripStartParam,
+                parsedDate: parsedDate.toISOString(),
+                segmentDay: segment.day,
+                calculatedDate: calculated.toISOString()
+              });
+              return calculated;
             }
           }
         }
@@ -53,35 +68,38 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     // Fallback for shared/PDF views
     if (isSharedView || isPDFExport) {
       const today = new Date();
-      return new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+      const fallbackDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+      console.log('🎯 UNIFIED WIDGET: Fallback date for', segment.endCity, {
+        segmentDay: segment.day,
+        fallbackDate: fallbackDate.toISOString()
+      });
+      return fallbackDate;
     }
     
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use Edge Function weather hook
+  // Use Edge Function weather hook - but only if we have a valid date
   const { weather, loading, error, refetch } = useEdgeFunctionWeather({
     cityName: segment.endCity,
     segmentDate,
     segmentDay: segment.day
   });
 
-  console.log('🔥 UNIFIED WIDGET: Weather data received for', segment.endCity, {
+  console.log('🎯 UNIFIED WIDGET: Weather state for', segment.endCity, {
     day: segment.day,
     hasWeather: !!weather,
     loading,
-    error,
+    hasError: !!error,
     segmentDate: segmentDate?.toISOString(),
-    weatherDetails: weather ? {
-      temperature: weather.temperature,
-      source: weather.source,
-      isActualForecast: weather.isActualForecast
-    } : null,
-    componentName: 'UnifiedWeatherWidget'
+    weatherSource: weather?.source,
+    isActualForecast: weather?.isActualForecast,
+    shouldShowLive: weather?.source === 'live_forecast' && weather?.isActualForecast === true
   });
 
-  // Loading state
+  // Show loading state
   if (loading) {
+    console.log('🎯 UNIFIED WIDGET: Showing loading for', segment.endCity);
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
@@ -94,11 +112,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
   // Show weather if available
   if (weather && segmentDate) {
-    console.log('🔥 UNIFIED WIDGET: Rendering SimpleWeatherDisplay for', segment.endCity, {
+    console.log('🎯 UNIFIED WIDGET: Rendering weather display for', segment.endCity, {
       day: segment.day,
       weatherSource: weather.source,
       isActualForecast: weather.isActualForecast,
-      componentPath: 'UnifiedWeatherWidget -> SimpleWeatherDisplay'
+      temperature: weather.temperature,
+      willShowAsLive: weather.source === 'live_forecast' && weather.isActualForecast === true
     });
 
     return (
@@ -113,6 +132,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   }
 
   // Error or no weather state
+  console.log('🎯 UNIFIED WIDGET: Showing error/fallback for', segment.endCity, {
+    hasWeather: !!weather,
+    hasDate: !!segmentDate,
+    error
+  });
+
   return (
     <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
       <div className="text-amber-600 text-2xl mb-1">🌤️</div>

@@ -5,8 +5,8 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import { WeatherUtilityService } from '../services/WeatherUtilityService';
 
 const supabase = createClient(
-  'https://lgckqzxvoyrlgghjqzwq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxnY2txenh2b3lybGdnaGpxendxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ0Mzc1MjMsImV4cCI6MjA1MDAxMzUyM30.iGLhODRgCGZUL6QoGVuOYkG6_aHBpNzLT8SVHsABYfU'
+  'https://xbwaphzntaxmdfzfsmvt.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo'
 );
 
 interface UseEdgeFunctionWeatherParams {
@@ -27,10 +27,13 @@ export const useEdgeFunctionWeather = ({
 
   const fetchWeatherData = React.useCallback(async () => {
     if (!segmentDate) {
-      console.log('✅ EDGE WEATHER: No segment date provided for', cityName);
+      console.log('🎯 EDGE WEATHER: No segment date provided for', cityName, { segmentDay });
       return;
     }
 
+    // Create a unique key for this request to prevent conflicts
+    const requestKey = `${cityName}-${segmentDay}-${segmentDate.toISOString()}`;
+    
     setLoading(true);
     setError(null);
 
@@ -38,19 +41,20 @@ export const useEdgeFunctionWeather = ({
       const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate);
       const isWithinRange = WeatherUtilityService.isWithinLiveForecastRange(segmentDate);
       
-      console.log('✅ EDGE WEATHER: Starting fetch for', cityName, {
+      console.log('🎯 EDGE WEATHER: Starting fetch for', cityName, {
+        requestKey,
         segmentDay,
         segmentDate: segmentDate.toISOString(),
         segmentDateLocal: segmentDate.toLocaleDateString(),
         daysFromToday,
         isWithinRange,
-        shouldAttemptLive: isWithinRange,
-        directEdgeFunction: true
+        shouldAttemptLive: isWithinRange
       });
 
-      // Always try Edge Function first for dates within range
+      // Always try Edge Function for dates within range
       if (isWithinRange) {
-        console.log('✅ EDGE WEATHER: Calling Edge Function for', cityName, {
+        console.log('🎯 EDGE WEATHER: Calling Edge Function for', cityName, {
+          requestKey,
           targetDate: segmentDate.toISOString(),
           payload: {
             cityName,
@@ -66,21 +70,25 @@ export const useEdgeFunctionWeather = ({
         });
 
         if (edgeError) {
-          console.error('✅ EDGE WEATHER: Edge Function error for', cityName, edgeError);
+          console.error('🎯 EDGE WEATHER: Edge Function error for', cityName, {
+            requestKey,
+            error: edgeError
+          });
           throw new Error(`Edge Function error: ${edgeError.message}`);
         }
 
-        console.log('✅ FIXED EDGE FUNCTION: Raw response from Edge Function:', {
+        console.log('🎯 EDGE WEATHER: Raw response from Edge Function:', {
+          requestKey,
           cityName,
+          segmentDay,
           data: edgeResponse,
           hasTemperature: !!(edgeResponse?.temperature),
-          hasHighTemp: !!(edgeResponse?.highTemp),
-          hasLowTemp: !!(edgeResponse?.lowTemp),
           source: edgeResponse?.source,
-          isActualForecast: edgeResponse?.isActualForecast
+          isActualForecast: edgeResponse?.isActualForecast,
+          responseStructure: Object.keys(edgeResponse || {})
         });
 
-        if (edgeResponse && edgeResponse.temperature) {
+        if (edgeResponse && edgeResponse.temperature !== undefined) {
           const weatherData: ForecastWeatherData = {
             temperature: edgeResponse.temperature,
             highTemp: edgeResponse.highTemp || edgeResponse.temperature,
@@ -93,39 +101,36 @@ export const useEdgeFunctionWeather = ({
             cityName: cityName,
             forecast: [],
             forecastDate: segmentDate,
-            isActualForecast: edgeResponse.isActualForecast !== false, // Default to true unless explicitly false
-            source: edgeResponse.source || 'live_forecast'
+            // CRITICAL: Use exact values from Edge Function response
+            isActualForecast: edgeResponse.isActualForecast === true,
+            source: edgeResponse.source === 'live_forecast' ? 'live_forecast' : 'historical_fallback'
           };
 
-          console.log('✅ FIXED EDGE FUNCTION: Created weather data with proper URL fix:', {
+          console.log('🎯 EDGE WEATHER: Created weather data:', {
+            requestKey,
             cityName,
+            segmentDay,
             temperature: weatherData.temperature,
-            highTemp: weatherData.highTemp,
-            lowTemp: weatherData.lowTemp,
             source: weatherData.source,
             isActualForecast: weatherData.isActualForecast,
-            shouldShowLiveBadge: weatherData.source === 'live_forecast' && weatherData.isActualForecast,
-            fixImplemented: {
-              urlFixed: 'Using supabase.functions.invoke instead of fetch',
-              payloadFixed: 'Using cityName and targetDate format',
-              errorHandlingImproved: true
-            }
+            shouldShowAsLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast === true,
+            edgeResponseSource: edgeResponse.source,
+            edgeResponseIsActual: edgeResponse.isActualForecast
           });
 
           setWeather(weatherData);
-          console.log('✅ EDGE WEATHER: Successfully received weather:', {
-            cityName,
-            temperature: weatherData.temperature,
-            highTemp: weatherData.highTemp,
-            lowTemp: weatherData.lowTemp,
-            source: weatherData.source
-          });
           return;
+        } else {
+          console.warn('🎯 EDGE WEATHER: Edge Function returned invalid data for', cityName, {
+            requestKey,
+            response: edgeResponse
+          });
         }
       }
 
       // Fallback to historical weather for dates outside range or on error
-      console.log('✅ EDGE WEATHER: Using historical fallback for', cityName, {
+      console.log('🎯 EDGE WEATHER: Using historical fallback for', cityName, {
+        requestKey,
         reason: !isWithinRange ? 'outside_forecast_range' : 'edge_function_failed',
         daysFromToday,
         isWithinRange
@@ -150,7 +155,10 @@ export const useEdgeFunctionWeather = ({
       setWeather(fallbackWeather);
 
     } catch (error) {
-      console.error('✅ EDGE WEATHER: Error fetching weather for', cityName, error);
+      console.error('🎯 EDGE WEATHER: Error fetching weather for', cityName, {
+        requestKey,
+        error: error instanceof Error ? error.message : String(error)
+      });
       setError(error instanceof Error ? error.message : 'Weather fetch failed');
       
       // Set fallback weather on error
@@ -174,10 +182,10 @@ export const useEdgeFunctionWeather = ({
     } finally {
       setLoading(false);
     }
-  }, [cityName, segmentDate, refreshTrigger]);
+  }, [cityName, segmentDate, segmentDay, refreshTrigger]);
 
   const refetch = React.useCallback(() => {
-    console.log('✅ EDGE WEATHER: Manual refetch for', cityName, { segmentDay });
+    console.log('🎯 EDGE WEATHER: Manual refetch for', cityName, { segmentDay });
     setRefreshTrigger(prev => prev + 1);
   }, [cityName, segmentDay]);
 
