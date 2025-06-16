@@ -19,13 +19,14 @@ export class WeatherUtilityService {
     try {
       const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
       
-      console.log('📅 CRITICAL FIX: WeatherUtilityService.getSegmentDate:', {
+      console.log('📅 CRITICAL FIX: WeatherUtilityService.getSegmentDate - FINAL ALIGNED:', {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay,
         calculatedDate: segmentDate.toISOString(),
         calculatedDateLocal: segmentDate.toLocaleDateString(),
-        usingConsistentService: true
+        usingConsistentService: true,
+        criticalFix: 'FRONTEND_BACKEND_ALIGNED'
       });
       
       return segmentDate;
@@ -36,7 +37,7 @@ export class WeatherUtilityService {
   }
 
   /**
-   * FIXED: Calculate days from today - treats same calendar date as day 0 (today)
+   * CRITICAL FIX: Calculate days from today - EXACT same logic as backend
    */
   static getDaysFromToday(targetDate: Date): number {
     const today = new Date();
@@ -46,44 +47,48 @@ export class WeatherUtilityService {
     const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
     const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
     
-    console.log('📅 FIXED: getDaysFromToday - treating same calendar date as today:', {
+    console.log('📅 CRITICAL FIX: getDaysFromToday - BACKEND ALIGNED:', {
       targetDate: targetDate.toLocaleDateString(),
       today: today.toLocaleDateString(),
       todayNormalized: todayNormalized.toLocaleDateString(),
       targetNormalized: targetNormalized.toLocaleDateString(),
       daysDiff,
-      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL'
+      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL',
+      backendAligned: true,
+      criticalFix: true
     });
     
     return daysDiff;
   }
 
   /**
-   * FIXED: Forecast range check - day 0 (today) through day 7 are live forecast
+   * CRITICAL FIX: Forecast range check - day 0 (today) through day 7 are live forecast
    */
   static isWithinForecastRange(targetDate: Date): boolean {
     const daysFromToday = this.getDaysFromToday(targetDate);
     const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
     
-    console.log('🌤️ FIXED: isWithinForecastRange - same calendar date is today:', {
+    console.log('🌤️ CRITICAL FIX: isWithinForecastRange - BACKEND ALIGNED:', {
       targetDate: targetDate.toLocaleDateString(),
       daysFromToday,
       isWithinRange,
-      logic: 'Day 0 (same calendar date as today) through Day 7 = LIVE FORECAST'
+      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST',
+      backendAligned: true,
+      criticalFix: true
     });
     
     return isWithinRange;
   }
 
   /**
-   * FIXED: Check if date is within live forecast range (same as isWithinForecastRange)
+   * CRITICAL FIX: Check if date is within live forecast range (same as isWithinForecastRange)
    */
   static isWithinLiveForecastRange(targetDate: Date): boolean {
     return this.isWithinForecastRange(targetDate);
   }
 
   /**
-   * FIXED: Enhanced live forecast detection
+   * CRITICAL FIX: Enhanced live forecast detection
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate: Date): boolean {
     if (!weather || !segmentDate) return false;

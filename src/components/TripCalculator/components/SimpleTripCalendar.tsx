@@ -139,30 +139,31 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     );
   };
 
-  // CRITICAL FIX: Improved date disability check
+  // CRITICAL FIX: Simplified date disability check - only disable dates BEFORE today
   const isDateDisabled = (date: Date): boolean => {
     if (disabled?.(date)) return true;
     
-    // CRITICAL FIX: Only disable dates that are clearly before today
+    // CRITICAL FIX: Only disable dates that are actually BEFORE today (not including today)
     const dateTime = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
     const todayTime = today.getTime();
     
     const shouldDisable = dateTime < todayTime;
     
-    console.log('📅 FIXED CALENDAR: Date disability check:', {
+    console.log('📅 CRITICAL FIX: Date disability check ensures today is selectable:', {
       date: date.toLocaleDateString(),
       today: today.toLocaleDateString(),
       dateTime,
       todayTime,
       shouldDisable,
-      comparison: dateTime < todayTime ? 'BEFORE_TODAY' : 'TODAY_OR_FUTURE'
+      isToday: dateTime === todayTime,
+      comparison: shouldDisable ? 'BEFORE_TODAY_DISABLED' : dateTime === todayTime ? 'TODAY_ENABLED' : 'FUTURE_ENABLED'
     });
     
     return shouldDisable;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 FIXED CALENDAR: Today button clicked:', {
+    console.log('📅 CRITICAL FIX: Today button clicked - ensuring today is selectable:', {
       todayDate: today.toISOString(),
       todayDateLocal: today.toLocaleDateString(),
       isDisabled: isDateDisabled(today)
@@ -251,17 +252,14 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         })}
       </div>
 
-      {/* Today Button */}
+      {/* Today Button - CRITICAL FIX: Always enable today button */}
       <div className="mt-4 pt-3 border-t border-gray-200">
         <Button
           variant="outline"
           size="sm"
           onClick={handleTodayClick}
-          disabled={isDateDisabled(today)}
-          className={cn(
-            "w-full text-xs font-medium",
-            !isDateDisabled(today) && "border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100"
-          )}
+          disabled={false}
+          className="w-full text-xs font-medium border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100"
         >
           Select Today ({today.toLocaleDateString()})
         </Button>

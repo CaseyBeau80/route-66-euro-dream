@@ -54,23 +54,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // FIXED: Allow today to be selected - don't disable today's date
+  // CRITICAL FIX: Simplified date disability - only disable past dates, NOT today
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    // FIXED: Only disable dates that are actually before today
-    const shouldDisable = checkDate.getTime() < todayLocal.getTime();
+    // CRITICAL FIX: Only disable dates that are BEFORE today, NOT today itself
+    const shouldDisable = checkDate.getTime() < todayNormalized.getTime();
     
-    console.log('📅 FIXED: Date validation - today is selectable:', {
+    console.log('📅 CRITICAL FIX: Date validation - today is NOW selectable:', {
       inputDate: date.toLocaleDateString(),
       todayDate: today.toLocaleDateString(),
-      todayLocal: todayLocal.toLocaleDateString(),
+      todayNormalized: todayNormalized.toLocaleDateString(),
       checkDate: checkDate.toLocaleDateString(),
       shouldDisable,
-      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
-      todaySelectable: checkDate.getTime() === todayLocal.getTime() ? 'YES' : 'N/A'
+      isToday: checkDate.getTime() === todayNormalized.getTime(),
+      reason: shouldDisable ? 'DISABLED: Date is before today' : checkDate.getTime() === todayNormalized.getTime() ? 'ENABLED: Today is selectable' : 'ENABLED: Future date'
     });
     
     return shouldDisable;
@@ -91,7 +91,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
             <p className="font-medium mb-1">Start date required for weather forecasts</p>
             <p className="text-blue-700">
               Setting a start date enables accurate weather predictions for each day of your Route 66 journey. 
-              <strong className="text-green-700"> You can start your trip today!</strong>
+              <strong className="text-green-700"> You can start your trip today for live weather!</strong>
             </p>
           </div>
         </div>
@@ -109,7 +109,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Fixed Calendar with Today Selection */}
+      {/* CRITICAL FIX: Calendar with Today Selection Enabled */}
       <SimpleTripCalendar
         selected={formData.tripStartDate}
         onSelect={handleDateSelect}

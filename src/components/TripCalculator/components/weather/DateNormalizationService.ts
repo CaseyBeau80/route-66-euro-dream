@@ -39,10 +39,10 @@ export class DateNormalizationService {
 
   /**
    * CRITICAL FIX: Calculate segment date based on trip start date and day number
-   * FINAL FIXED LOGIC: Day 1 = exact same date as trip start, Day N = add (N-1) days
+   * ALIGNED WITH BACKEND: Day 1 = exact same date as trip start, Day N = add (N-1) days
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('📅 CRITICAL FIX: DateNormalizationService.calculateSegmentDate:', {
+    console.log('📅 CRITICAL FIX: DateNormalizationService.calculateSegmentDate - BACKEND ALIGNED:', {
       tripStartDate: {
         iso: tripStartDate.toISOString(),
         local: tripStartDate.toLocaleDateString(),
@@ -53,7 +53,7 @@ export class DateNormalizationService {
         }
       },
       segmentDay,
-      absoluteRule: 'Day 1 = EXACT SAME DATE as trip start'
+      absoluteRule: 'Day 1 = EXACT SAME DATE as trip start (BACKEND ALIGNED)'
     });
 
     // CRITICAL FIX: Normalize the trip start date first
@@ -61,10 +61,10 @@ export class DateNormalizationService {
     
     // CRITICAL FIX: For Day 1, return the exact same normalized date
     if (segmentDay === 1) {
-      console.log('📅 CRITICAL FIX: Day 1 - returning EXACT SAME DATE:', {
+      console.log('📅 CRITICAL FIX: Day 1 - returning EXACT SAME DATE (BACKEND ALIGNED):', {
         input: normalizedStartDate.toISOString(),
         inputLocal: normalizedStartDate.toLocaleDateString(),
-        verification: 'DAY_1_GETS_EXACT_SAME_DATE'
+        verification: 'DAY_1_GETS_EXACT_SAME_DATE_BACKEND_ALIGNED'
       });
       return normalizedStartDate;
     }
@@ -79,7 +79,7 @@ export class DateNormalizationService {
       normalizedStartDate.getDate() + daysToAdd
     );
     
-    console.log('📅 CRITICAL FIX: DateNormalizationService FINAL CALCULATION:', {
+    console.log('📅 CRITICAL FIX: DateNormalizationService FINAL CALCULATION - BACKEND ALIGNED:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
@@ -106,7 +106,8 @@ export class DateNormalizationService {
           'NOT_APPLICABLE_DAY_1_HANDLED_SEPARATELY' : 
           'CALCULATED_USING_LOCAL_DATE_ARITHMETIC',
         isConsistent: 'USING_LOCAL_TIMEZONE_ARITHMETIC',
-        noTimezoneShift: true
+        backendAligned: true,
+        criticalFix: true
       }
     });
     

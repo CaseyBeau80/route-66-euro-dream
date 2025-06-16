@@ -1,9 +1,11 @@
+
 export class DateCalculationService {
   /**
-   * FIXED: Enhanced days calculation that treats today as day 0 (live forecast)
+   * CRITICAL FIX: Enhanced days calculation that treats today as day 0 (live forecast)
+   * STANDARDIZED with frontend date normalization
    */
   static calculateDaysFromToday(targetDate: Date): number {
-    // FIXED: Normalize both dates to local midnight for accurate comparison
+    // CRITICAL FIX: Normalize both dates to local midnight for accurate comparison
     const today = new Date();
     const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -11,7 +13,7 @@ export class DateCalculationService {
     const timeDifference = targetNormalized.getTime() - todayNormalized.getTime();
     const daysFromToday = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
     
-    console.log('📅 FIXED: Enhanced DateCalculationService.calculateDaysFromToday:', {
+    console.log('📅 CRITICAL FIX: DateCalculationService.calculateDaysFromToday - STANDARDIZED:', {
       targetDate: targetDate.toISOString(),
       targetDateLocal: targetDate.toLocaleDateString(),
       todayNormalized: todayNormalized.toISOString(),
@@ -20,47 +22,51 @@ export class DateCalculationService {
       targetNormalizedLocal: targetNormalized.toLocaleDateString(),
       daysFromToday,
       interpretation: daysFromToday === 0 ? 'TODAY - LIVE FORECAST' : daysFromToday > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL',
-      enhancedForToday: true
+      standardizedWithFrontend: true,
+      criticalFix: true
     });
     
     return daysFromToday;
   }
 
   /**
-   * FIXED: Enhanced forecast range check - day 0 (today) through day 7 are live
+   * CRITICAL FIX: Enhanced forecast range check - day 0 (today) through day 7 are live
    */
   static isWithinForecastRange(daysFromToday: number): boolean {
     const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
     
-    console.log('📅 FIXED: Enhanced DateCalculationService.isWithinForecastRange:', {
+    console.log('📅 CRITICAL FIX: DateCalculationService.isWithinForecastRange - STANDARDIZED:', {
       daysFromToday,
       isWithinRange,
       logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST',
-      todayIncluded: daysFromToday === 0 ? 'YES - TODAY IS LIVE FORECAST' : 'N/A'
+      todayIncluded: daysFromToday === 0 ? 'YES - TODAY IS LIVE FORECAST' : 'N/A',
+      standardizedWithFrontend: true,
+      criticalFix: true
     });
     
     return isWithinRange;
   }
 
   /**
-   * CRITICAL FIX: Normalize date to local midnight
+   * CRITICAL FIX: Normalize date to local midnight - EXACTLY like frontend
    */
   static normalizeDate(date: Date): Date {
     const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('📅 CRITICAL FIX: DateCalculationService.normalizeDate:', {
+    console.log('📅 CRITICAL FIX: DateCalculationService.normalizeDate - FRONTEND ALIGNED:', {
       input: date.toISOString(),
       inputLocal: date.toLocaleDateString(),
       normalized: normalized.toISOString(),
       normalizedLocal: normalized.toLocaleDateString(),
-      method: 'LOCAL_DATE_CONSTRUCTOR'
+      method: 'LOCAL_DATE_CONSTRUCTOR_SAME_AS_FRONTEND',
+      criticalFix: true
     });
     
     return normalized;
   }
 
   /**
-   * CRITICAL FIX: Get target date string using local date components
+   * CRITICAL FIX: Get target date string using local date components - FRONTEND ALIGNED
    */
   static getTargetDateString(date: Date): string {
     const normalized = this.normalizeDate(date);
@@ -69,13 +75,15 @@ export class DateCalculationService {
     const day = String(normalized.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
     
-    console.log('📅 CRITICAL FIX: DateCalculationService.getTargetDateString:', {
+    console.log('📅 CRITICAL FIX: DateCalculationService.getTargetDateString - FRONTEND ALIGNED:', {
       input: date.toISOString(),
       inputLocal: date.toLocaleDateString(),
       normalized: normalized.toISOString(),
       normalizedLocal: normalized.toLocaleDateString(),
       dateString,
-      components: { year, month, day }
+      components: { year, month, day },
+      frontendAligned: true,
+      criticalFix: true
     });
     
     return dateString;
