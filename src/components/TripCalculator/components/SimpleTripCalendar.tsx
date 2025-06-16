@@ -25,10 +25,11 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
   const today = UnifiedDateService.getToday();
 
-  console.log('📅 UNIFIED CALENDAR: Using UnifiedDateService for all operations:', {
+  console.log('📅 CRITICAL FIX: SimpleTripCalendar render with today:', {
     today: today.toLocaleDateString(),
+    todayTime: today.getTime(),
     selected: selected?.toLocaleDateString(),
-    service: 'UnifiedDateService - SINGLE SOURCE OF TRUTH'
+    service: 'UnifiedDateService'
   });
 
   // Navigate months
@@ -69,22 +70,16 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('📅 UNIFIED CALENDAR: Date clicked:', {
+    console.log('📅 CRITICAL FIX: Date clicked in calendar:', {
       clickedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      isDisabled: isDateDisabled(date),
       service: 'UnifiedDateService'
     });
-
-    if (isDateDisabled(date)) {
-      console.log('📅 UNIFIED CALENDAR: Click ignored - date is disabled');
-      return;
-    }
 
     // Use unified service to create clean date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
-    console.log('📅 UNIFIED CALENDAR: Normalized date for selection:', {
+    console.log('📅 CRITICAL FIX: Sending normalized date to parent:', {
       original: date.toLocaleDateString(),
       normalized: cleanDate.toLocaleDateString(),
       service: 'UnifiedDateService'
@@ -98,41 +93,48 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     return UnifiedDateService.isSameDate(date, selected);
   };
 
+  // CRITICAL FIX: Simplified date disability logic with explicit today handling
   const isDateDisabled = (date: Date): boolean => {
-    // First check if there's a custom disabled function from props
+    const isToday = UnifiedDateService.isToday(date);
+    
+    // TODAY IS NEVER DISABLED - CRITICAL FIX
+    if (isToday) {
+      console.log('📅 CRITICAL FIX: Today detected - FORCING ENABLED:', {
+        date: date.toLocaleDateString(),
+        isToday: true,
+        disabled: false,
+        rule: 'TODAY_ALWAYS_ENABLED'
+      });
+      return false;
+    }
+    
+    // Check parent component's disabled function first
     if (disabled && disabled(date)) {
-      console.log('📅 UNIFIED CALENDAR: Date disabled by parent component:', {
+      console.log('📅 CRITICAL FIX: Parent component disabled this date:', {
         date: date.toLocaleDateString()
       });
       return true;
     }
     
-    // FIXED: Only disable dates that are actually in the past (before today)
-    // Today should NOT be disabled
+    // Only disable dates that are actually in the past (before today)
     const isPast = UnifiedDateService.isPastDate(date);
-    const isToday = UnifiedDateService.isToday(date);
     
-    console.log('📅 UNIFIED CALENDAR: Date validation (FIXED):', {
+    console.log('📅 CRITICAL FIX: Date validation for non-today date:', {
       date: date.toLocaleDateString(),
       isPast,
-      isToday,
-      isDisabled: isPast && !isToday, // TODAY IS NEVER DISABLED
-      rule: 'TODAY_IS_ALWAYS_ENABLED',
+      isDisabled: isPast,
       service: 'UnifiedDateService'
     });
     
-    // CRITICAL FIX: Today should never be disabled
-    return isPast && !isToday;
+    return isPast;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 UNIFIED CALENDAR: Today button clicked - selecting today:', {
+    console.log('📅 CRITICAL FIX: Today button clicked - selecting today:', {
       today: today.toLocaleDateString(),
-      isDisabled: isDateDisabled(today),
       service: 'UnifiedDateService'
     });
     
-    // Today should never be disabled now
     handleDateClick(today);
   };
 
@@ -186,23 +188,31 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           const isDisabled = isDateDisabled(date);
           const isTodayDate = UnifiedDateService.isToday(date);
 
+          console.log('📅 CRITICAL FIX: Rendering calendar button:', {
+            date: date.toLocaleDateString(),
+            isSelected,
+            isDisabled,
+            isTodayDate,
+            forcedEnabled: isTodayDate ? 'YES' : 'NO'
+          });
+
           return (
             <button
               key={date.getTime()}
               onClick={() => handleDateClick(date)}
               disabled={isDisabled}
               className={cn(
-                "h-10 w-10 flex items-center justify-center text-sm rounded-md transition-all duration-200",
+                "h-10 w-10 flex items-center justify-center text-sm rounded-md transition-all duration-200 pointer-events-auto",
                 "border border-transparent hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500",
                 {
                   // Selected state
                   "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
                   // Today but not selected - Enhanced styling for today
-                  "bg-green-100 text-green-800 font-bold border-green-300 hover:bg-green-200 ring-2 ring-green-400 shadow-sm": isTodayDate && !isSelected,
+                  "bg-green-100 text-green-800 font-bold border-green-300 hover:bg-green-200 ring-2 ring-green-400 shadow-sm cursor-pointer": isTodayDate && !isSelected,
                   // Disabled state
-                  "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled,
+                  "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent pointer-events-none": isDisabled,
                   // Normal state
-                  "text-gray-700 hover:bg-gray-100": !isSelected && !isTodayDate && !isDisabled,
+                  "text-gray-700 hover:bg-gray-100 cursor-pointer": !isSelected && !isTodayDate && !isDisabled,
                 }
               )}
             >
@@ -218,8 +228,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           variant="outline"
           size="sm"
           onClick={handleTodayClick}
-          disabled={false} // Today button is never disabled
-          className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm"
+          className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm pointer-events-auto cursor-pointer"
         >
           ✨ Select Today ({today.toLocaleDateString()}) - Start Now! ✨
         </Button>
