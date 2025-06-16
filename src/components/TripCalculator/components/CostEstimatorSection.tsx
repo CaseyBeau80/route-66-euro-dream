@@ -34,9 +34,9 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full">
       {/* Compact Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-xl p-4">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-xl px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
@@ -61,9 +61,9 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
         </div>
       </div>
 
-      {/* Cost Summary - Horizontal Layout */}
+      {/* Cost Summary - Aligned with container padding */}
       {costEstimate && tripPlan && (
-        <div className="bg-white border-x border-gray-200 p-4">
+        <div className="bg-white border-x border-gray-200 px-6 py-4">
           {/* Main Cost Cards - Horizontal */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Total Cost Card */}
@@ -158,9 +158,9 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, t
         </div>
       )}
 
-      {/* Cost Estimator Form - Collapsible */}
+      {/* Cost Estimator Form - Collapsible with proper alignment */}
       {showCostEstimator && (
-        <div className="bg-white border-x border-b border-gray-200 rounded-b-xl p-4">
+        <div className="bg-white border-x border-b border-gray-200 rounded-b-xl px-6 py-4">
           <div className="mb-4">
             <h4 className="text-md font-semibold text-gray-800 mb-1">
               Customize Your Cost Estimate
