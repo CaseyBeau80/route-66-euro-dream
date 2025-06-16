@@ -1,86 +1,63 @@
-
-
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
-  category: 'short' | 'optimal' | 'long' | 'extreme';
+  category: string;
   message: string;
-  color?: string;
 }
 
 export interface RecommendedStop {
-  id?: string;
+  stopId: string;
   name: string;
-  description?: string;
+  description: string;
   latitude: number;
   longitude: number;
-  city?: string;
-  city_name?: string;
-  state?: string;
-  type?: string;
-  category?: string;
-  duration?: number;
 }
 
 export interface SegmentTiming {
-  fromStop: TripStop;
-  toStop: TripStop;
-  distance: number;
-  driveTime: number;
-  distanceMiles: number;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  distanceFromLastStop: number;
   driveTimeHours: number;
-  drivingTime: number;
 }
 
 export interface TripPlan {
-  id?: string;
+  id: string;
   startCity: string;
   endCity: string;
-  startDate?: Date;
+  startDate: Date;
   totalDays: number;
   totalDistance: number;
   totalMiles?: number;
   totalDrivingTime?: number;
   segments: DailySegment[];
-  dailySegments?: DailySegment[];
-  title?: string;
+  dailySegments: DailySegment[];
   startCityImage?: string;
   endCityImage?: string;
-  isEnriched?: boolean;
-  lastUpdated?: Date;
-  exportTimestamp?: number;
-  originalDays?: number;
-  driveTimeBalance?: any;
-  wasAdjusted?: boolean;
-  tripStyle?: string;
-  warnings?: string[];
-  enrichmentStatus?: {
-    weatherData: boolean;
-    stopsData: boolean;
-    validationComplete: boolean;
-  };
+  title?: string;
 }
 
 export interface DailySegment {
   day: number;
+  title: string;
   startCity: string;
-  endCity?: string;
-  destination?: string | { city: string; state?: string };
+  endCity: string;
   distance: number;
+  approximateMiles: number;
   driveTimeHours: number;
-  drivingTime?: number;
-  recommendedStops?: RecommendedStop[];
-  stops?: RecommendedStop[];
-  weather?: any;
-  weatherData?: any;
-  attractions?: any[];
-  isEnriched?: boolean;
-  notes?: string;
-  recommendations?: string[];
-  title?: string;
-  routeSection?: string;
+  destination: {
+    city: string;
+    state: string;
+  };
+  recommendedStops: TripStop[];
+  attractions: {
+    name: string;
+    title: string;
+    description: string;
+    city: string;
+  }[];
   driveTimeCategory?: DriveTimeCategory;
-  approximateMiles?: number;
-  subStopTimings?: SegmentTiming[];
+  routeSection?: string;
+  driveTimeWarning?: string; // New property for drive-time validation warnings
 }
-

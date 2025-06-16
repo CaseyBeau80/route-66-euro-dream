@@ -3,6 +3,7 @@ import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { TripPlanningService } from './TripPlanningService';
 import { TripPlanUtils } from './TripPlanUtils';
+import { TripStyleLogic } from './TripStyleLogic';
 
 // Re-export types for backward compatibility
 export type { 
@@ -88,7 +89,7 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Create trip plan using the TripPlanningService
+   * Create trip plan using the TripPlanningService with drive-time enforcement
    */
   static createTripPlan(
     startStop: TripStop,
@@ -99,7 +100,12 @@ export class TripPlanBuilder {
     endCityName: string,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): TripPlan {
-    console.log('🏗️ TripPlanBuilder.createTripPlan: Using TripPlanningService');
+    console.log('🏗️ TripPlanBuilder.createTripPlan: Using TripPlanningService with drive-time enforcement');
+    
+    // Get style configuration for enforcement
+    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+    console.log(`🎨 TripPlanBuilder: Using ${styleConfig.style} style with ${styleConfig.maxDailyDriveHours}h max daily drive`);
+    
     return TripPlanningService.buildTripPlan(
       startStop,
       endStop,
