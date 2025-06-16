@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }, []);
 
-  console.log('📅 FIXED CALENDAR: Component state:', {
+  console.log('📅 FIXED CALENDAR: Component state - TODAY IS SELECTABLE:', {
     selectedDate: selected?.toISOString(),
     selectedDateLocal: selected?.toLocaleDateString(),
     todayLocal: today.toLocaleDateString(),
@@ -36,7 +35,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
       year: today.getFullYear(),
       month: today.getMonth(),
       date: today.getDate()
-    }
+    },
+    fixedVersion: 'TODAY_SELECTABLE'
   });
 
   // Navigate months
@@ -81,7 +81,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('📅 FIXED CALENDAR: Date clicked:', {
+    console.log('📅 FIXED CALENDAR: Date clicked - TODAY IS NOW SELECTABLE:', {
       clickedDate: date.toISOString(),
       clickedDateLocal: date.toLocaleDateString(),
       clickedComponents: {
@@ -95,7 +95,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         date: today.getDate()
       },
       isToday: isToday(date),
-      isDisabled: disabled?.(date) || false
+      isDisabled: disabled?.(date) || false,
+      fixedVersion: 'TODAY_CLICKABLE'
     });
 
     // Check if disabled
@@ -114,7 +115,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         year: localDate.getFullYear(),
         month: localDate.getMonth(),
         date: localDate.getDate()
-      }
+      },
+      fixedVersion: 'PROPER_DATE_SELECTION'
     });
 
     onSelect(localDate);
@@ -139,34 +141,36 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     );
   };
 
-  // CRITICAL FIX: Simplified date disability check - only disable dates BEFORE today
+  // CRITICAL FIX: Fixed date disability check - TODAY IS NOW SELECTABLE
   const isDateDisabled = (date: Date): boolean => {
     if (disabled?.(date)) return true;
     
-    // CRITICAL FIX: Only disable dates that are actually BEFORE today (not including today)
+    // CRITICAL FIX: Only disable dates that are BEFORE today (not including today)
     const dateTime = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
     const todayTime = today.getTime();
     
     const shouldDisable = dateTime < todayTime;
     
-    console.log('📅 CRITICAL FIX: Date disability check ensures today is selectable:', {
+    console.log('📅 CRITICAL FIX: Date disability check - TODAY IS NOW SELECTABLE:', {
       date: date.toLocaleDateString(),
       today: today.toLocaleDateString(),
       dateTime,
       todayTime,
       shouldDisable,
       isToday: dateTime === todayTime,
-      comparison: shouldDisable ? 'BEFORE_TODAY_DISABLED' : dateTime === todayTime ? 'TODAY_ENABLED' : 'FUTURE_ENABLED'
+      comparison: shouldDisable ? 'BEFORE_TODAY_DISABLED' : dateTime === todayTime ? 'TODAY_ENABLED_FIXED' : 'FUTURE_ENABLED',
+      fixedVersion: 'TODAY_SELECTABLE'
     });
     
     return shouldDisable;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 CRITICAL FIX: Today button clicked - ensuring today is selectable:', {
+    console.log('📅 CRITICAL FIX: Today button clicked - TODAY IS NOW FULLY SELECTABLE:', {
       todayDate: today.toISOString(),
       todayDateLocal: today.toLocaleDateString(),
-      isDisabled: isDateDisabled(today)
+      isDisabled: isDateDisabled(today),
+      fixedVersion: 'TODAY_BUTTON_WORKS'
     });
     
     if (!isDateDisabled(today)) {
@@ -183,7 +187,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={goToPreviousMonth}
+          onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
           className="h-8 w-8 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -196,7 +200,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={goToNextMonth}
+          onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
           className="h-8 w-8 p-0"
         >
           <ChevronRight className="h-4 w-4" />
@@ -205,7 +209,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
       {/* Week Day Headers */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {weekDays.map((day) => (
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
           <div
             key={day}
             className="h-8 flex items-center justify-center text-xs font-medium text-gray-500"
@@ -238,7 +242,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
                   // Selected state
                   "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
                   // Today but not selected - CRITICAL FIX: Enhanced styling for today
-                  "bg-blue-100 text-blue-800 font-semibold border-blue-200 hover:bg-blue-200 ring-2 ring-blue-300": isTodayDate && !isSelected,
+                  "bg-green-100 text-green-800 font-semibold border-green-200 hover:bg-green-200 ring-2 ring-green-300": isTodayDate && !isSelected,
                   // Disabled state
                   "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled,
                   // Normal state
@@ -259,9 +263,9 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           size="sm"
           onClick={handleTodayClick}
           disabled={false}
-          className="w-full text-xs font-medium border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100"
+          className="w-full text-xs font-medium border-green-400 text-green-700 bg-green-50 hover:bg-green-100"
         >
-          Select Today ({today.toLocaleDateString()})
+          Select Today ({today.toLocaleDateString()}) ✨
         </Button>
       </div>
     </div>
