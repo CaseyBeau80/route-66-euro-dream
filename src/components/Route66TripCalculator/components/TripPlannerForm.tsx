@@ -36,9 +36,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
       {/* Unified Header */}
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-route66-primary mb-3">Trip Planner Tool</h2>
-        <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto">
-          Choose your start and end points, and let us create your perfect itinerary
-        </p>
+        
       </div>
 
       {/* Main Form Container - Unified styling */}
