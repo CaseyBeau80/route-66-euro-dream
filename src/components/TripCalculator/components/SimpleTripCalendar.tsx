@@ -72,11 +72,11 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     console.log('📅 UNIFIED CALENDAR: Date clicked:', {
       clickedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      isDisabled: disabled?.(date) || false,
+      isDisabled: isDateDisabled(date),
       service: 'UnifiedDateService'
     });
 
-    if (disabled?.(date)) {
+    if (isDateDisabled(date)) {
       console.log('📅 UNIFIED CALENDAR: Click ignored - date is disabled');
       return;
     }
@@ -99,31 +99,41 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   };
 
   const isDateDisabled = (date: Date): boolean => {
-    if (disabled?.(date)) return true;
+    // First check if there's a custom disabled function from props
+    if (disabled && disabled(date)) {
+      console.log('📅 UNIFIED CALENDAR: Date disabled by parent component:', {
+        date: date.toLocaleDateString()
+      });
+      return true;
+    }
     
-    // Use unified service for past date check
+    // FIXED: Only disable dates that are actually in the past (before today)
+    // Today should NOT be disabled
     const isPast = UnifiedDateService.isPastDate(date);
+    const isToday = UnifiedDateService.isToday(date);
     
-    console.log('📅 UNIFIED CALENDAR: Date validation:', {
+    console.log('📅 UNIFIED CALENDAR: Date validation (FIXED):', {
       date: date.toLocaleDateString(),
       isPast,
-      isToday: UnifiedDateService.isToday(date),
-      isDisabled: isPast,
+      isToday,
+      isDisabled: isPast && !isToday, // TODAY IS NEVER DISABLED
+      rule: 'TODAY_IS_ALWAYS_ENABLED',
       service: 'UnifiedDateService'
     });
     
-    return isPast;
+    // CRITICAL FIX: Today should never be disabled
+    return isPast && !isToday;
   };
 
   const handleTodayClick = () => {
     console.log('📅 UNIFIED CALENDAR: Today button clicked - selecting today:', {
       today: today.toLocaleDateString(),
+      isDisabled: isDateDisabled(today),
       service: 'UnifiedDateService'
     });
     
-    if (!isDateDisabled(today)) {
-      handleDateClick(today);
-    }
+    // Today should never be disabled now
+    handleDateClick(today);
   };
 
   return (
@@ -208,7 +218,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           variant="outline"
           size="sm"
           onClick={handleTodayClick}
-          disabled={false}
+          disabled={false} // Today button is never disabled
           className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm"
         >
           ✨ Select Today ({today.toLocaleDateString()}) - Start Now! ✨
