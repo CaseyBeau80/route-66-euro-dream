@@ -1,52 +1,29 @@
 
+import { UnifiedWeatherValidator } from './UnifiedWeatherValidator';
+
 /**
- * CENTRALIZED: Single source of truth for weather labels across ALL components
+ * UPDATED: WeatherLabelService now delegates to UnifiedWeatherValidator
  */
 export class WeatherLabelService {
   /**
-   * CRITICAL: The ONLY method that determines if weather is live
+   * UPDATED: Uses UnifiedWeatherValidator for consistent detection
    */
   static isLiveWeatherData(weather: any): boolean {
-    if (!weather) return false;
-    
-    // DIRECT CHECK: Both properties must be exactly these values
-    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    console.log('🎯 CENTRALIZED: WeatherLabelService.isLiveWeatherData:', {
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      result: isLive,
-      cityName: weather.cityName,
-      centralizedCheck: true
-    });
-    
-    return isLive;
+    return UnifiedWeatherValidator.isLiveWeather(weather);
   }
 
   /**
-   * CRITICAL: The ONLY method that generates weather source labels
+   * UPDATED: Uses UnifiedWeatherValidator for consistent labeling
    */
   static getWeatherSourceLabel(weather: any): string {
-    const isLive = this.isLiveWeatherData(weather);
-    const label = isLive ? 'Live Weather Forecast' : 'Historical Weather Data';
-    
-    console.log('🎯 CENTRALIZED: WeatherLabelService.getWeatherSourceLabel:', {
-      isLive,
-      label,
-      weatherSource: weather?.source,
-      isActualForecast: weather?.isActualForecast,
-      cityName: weather?.cityName,
-      centralizedLabel: true
-    });
-    
-    return label;
+    return UnifiedWeatherValidator.getDisplayLabel(weather);
   }
 
   /**
-   * CRITICAL: Get live forecast indicator for display
+   * UPDATED: Get live forecast indicator for display
    */
   static getLiveForecastIndicator(weather: any): string | null {
-    const isLive = this.isLiveWeatherData(weather);
-    return isLive ? '✓ Live Forecast' : null;
+    const validation = UnifiedWeatherValidator.validateWeatherData(weather);
+    return validation.isLiveForecast ? '✓ Live Forecast' : null;
   }
 }

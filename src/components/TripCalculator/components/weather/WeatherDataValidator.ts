@@ -1,73 +1,67 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { UnifiedDateService } from '../../services/UnifiedDateService';
+import { UnifiedWeatherValidator, UnifiedWeatherValidation } from './services/UnifiedWeatherValidator';
 
 export interface WeatherValidationResult {
+  isValid: boolean;
   isLiveForecast: boolean;
   normalizedWeather: ForecastWeatherData;
-  confidence: 'high' | 'medium' | 'low';
-  explanation: string;
+  validation: UnifiedWeatherValidation;
+  hasTemperatureData: boolean;
+  canDisplay: boolean;
 }
 
 export class WeatherDataValidator {
   /**
-   * CRITICAL FIX: Validate and normalize weather data with strict live forecast detection
+   * UPDATED: Validate weather data using UnifiedWeatherValidator
    */
   static validateWeatherData(
-    weather: ForecastWeatherData,
+    weather: any,
     cityName: string,
-    segmentDate: Date
+    segmentDate?: Date | null
   ): WeatherValidationResult {
-    console.log('🔍 CRITICAL FIX: WeatherDataValidator validating weather for', cityName, {
-      originalSource: weather.source,
-      originalIsActualForecast: weather.isActualForecast,
-      segmentDate: segmentDate.toISOString(),
-      temperature: weather.temperature
-    });
+    console.log('🔍 UPDATED: WeatherDataValidator using UnifiedWeatherValidator for', cityName);
 
-    // CRITICAL FIX: Strict validation - if source is live_forecast AND isActualForecast is true, it's DEFINITELY live
-    const isDefinitelyLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
-    
-    // Additional date-based validation
-    const daysFromToday = UnifiedDateService.getDaysFromToday(segmentDate);
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
-    
-    // CRITICAL FIX: Final determination - prioritize explicit flags
-    const isLiveForecast = isDefinitelyLive && isWithinForecastRange;
+    // Use unified validation
+    const validation = UnifiedWeatherValidator.validateWeatherData(weather);
 
-    console.log('🔍 CRITICAL FIX: WeatherDataValidator final determination for', cityName, {
-      isDefinitelyLive,
-      daysFromToday,
-      isWithinForecastRange,
-      finalIsLiveForecast: isLiveForecast,
-      explanation: isLiveForecast ? 'CONFIRMED_LIVE_FORECAST' : 'HISTORICAL_OR_FALLBACK'
-    });
+    // Check if we have displayable data
+    const hasTemperatureData = !!(weather?.temperature || weather?.highTemp || weather?.lowTemp);
+    const hasDescription = !!weather?.description;
+    const canDisplay = hasTemperatureData || hasDescription;
 
-    // Normalize the weather data
+    // Normalize weather data
     const normalizedWeather: ForecastWeatherData = {
-      ...weather,
-      source: isLiveForecast ? 'live_forecast' : 'historical_fallback',
-      isActualForecast: isLiveForecast,
-      cityName: cityName,
-      temperature: weather.temperature || 70,
-      description: weather.description || 'Partly Cloudy',
-      icon: weather.icon || '02d',
-      humidity: weather.humidity || 50,
-      windSpeed: weather.windSpeed || 5,
-      precipitationChance: weather.precipitationChance || 0
+      temperature: weather?.temperature || weather?.highTemp || 75,
+      highTemp: weather?.highTemp || weather?.temperature || 75,
+      lowTemp: weather?.lowTemp || weather?.temperature || 65,
+      description: weather?.description || 'Partly Cloudy',
+      icon: weather?.icon || '02d',
+      humidity: weather?.humidity || 50,
+      windSpeed: weather?.windSpeed || 5,
+      precipitationChance: weather?.precipitationChance || 20,
+      cityName: weather?.cityName || cityName,
+      forecast: weather?.forecast || [],
+      forecastDate: segmentDate || new Date(),
+      isActualForecast: validation.isLiveForecast,
+      source: validation.source as 'live_forecast' | 'historical_fallback'
     };
 
-    const result: WeatherValidationResult = {
-      isLiveForecast,
+    console.log('✅ UPDATED: WeatherDataValidator result for', cityName, {
+      isValid: canDisplay,
+      isLiveForecast: validation.isLiveForecast,
+      hasTemperatureData,
+      canDisplay,
+      styleTheme: validation.styleTheme
+    });
+
+    return {
+      isValid: canDisplay,
+      isLiveForecast: validation.isLiveForecast,
       normalizedWeather,
-      confidence: isLiveForecast ? 'high' : 'medium',
-      explanation: isLiveForecast 
-        ? `Live forecast confirmed for ${cityName} - source: ${weather.source}, isActualForecast: ${weather.isActualForecast}`
-        : `Historical data for ${cityName} - either not live source or outside forecast range`
+      validation,
+      hasTemperatureData,
+      canDisplay
     };
-
-    console.log('✅ CRITICAL FIX: WeatherDataValidator result for', cityName, result);
-
-    return result;
   }
 }

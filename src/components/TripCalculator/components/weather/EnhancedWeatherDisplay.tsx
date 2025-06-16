@@ -3,6 +3,7 @@ import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
 import { WeatherDataValidator } from './WeatherDataValidator';
+import { UnifiedStylingService } from './services/UnifiedStylingService';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -23,59 +24,21 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   forceKey,
   showDebug = true
 }) => {
-  // Validate weather data first
-  const validation = React.useMemo(() => {
+  // Use unified validation
+  const validationResult = React.useMemo(() => {
     return WeatherDataValidator.validateWeatherData(weather, cityName, segmentDate);
   }, [weather, cityName, segmentDate]);
 
-  // Use validated weather data
-  const validatedWeather = validation.normalizedWeather;
+  const { validation, normalizedWeather, isLiveForecast } = validationResult;
 
-  // CRITICAL FIX: Use the validation result's isLiveForecast directly
-  const isLiveForecast = validation.isLiveForecast;
+  // Use unified styling
+  const styles = UnifiedStylingService.getWeatherStyles(validation.styleTheme);
 
-  console.log('🚨 CRITICAL FIX: EnhancedWeatherDisplay using validation result for', cityName, {
-    originalWeatherSource: weather.source,
-    originalIsActualForecast: weather.isActualForecast,
-    validationIsLiveForecast: validation.isLiveForecast,
-    normalizedSource: validatedWeather.source,
-    normalizedIsActualForecast: validatedWeather.isActualForecast,
-    finalIsLiveForecast: isLiveForecast,
-    temperature: validatedWeather.temperature,
-    criticalFix: true,
+  console.log('🎨 UNIFIED: EnhancedWeatherDisplay using unified styling for', cityName, {
+    validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
+    styleTheme: validation.styleTheme,
     shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER'
   });
-
-  // CRITICAL FIX: Force green styling when validation confirms live weather
-  const styles = React.useMemo(() => {
-    if (isLiveForecast) {
-      console.log('🟢 CRITICAL FIX: Forcing GREEN styling for validated live weather:', cityName);
-      return {
-        sourceLabel: '🟢 Live Weather Forecast',
-        sourceColor: '#059669', // Green-600
-        badgeText: '✨ Current live forecast',
-        badgeClasses: 'bg-green-100 text-green-700 border-green-200',
-        containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-        backgroundColor: '#dcfce7', // Green-100
-        borderColor: '#bbf7d0', // Green-200
-        textColor: '#166534', // Green-800
-        isLive: true
-      };
-    } else {
-      console.log('🟡 CRITICAL FIX: Using AMBER styling for historical weather:', cityName);
-      return {
-        sourceLabel: '🟡 Historical Weather Data',
-        sourceColor: '#d97706', // Amber-600
-        badgeText: '📊 Based on historical patterns',
-        badgeClasses: 'bg-amber-100 text-amber-700 border-amber-200',
-        containerClasses: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200',
-        backgroundColor: '#fef3c7', // Amber-100
-        borderColor: '#fde68a', // Amber-200
-        textColor: '#92400e', // Amber-800
-        isLive: false
-      };
-    }
-  }, [isLiveForecast, cityName]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -92,7 +55,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
-  const weatherIcon = getWeatherIcon(validatedWeather.icon);
+  const weatherIcon = getWeatherIcon(normalizedWeather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
   return (
@@ -103,20 +66,18 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         borderColor: styles.borderColor
       }}
     >
-      {/* Debug Overlay - shows validation-based detection */}
+      {/* Debug Overlay - shows unified validation result */}
       {showDebug && (
         <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-          <div className="font-bold mb-1">🔧 CRITICAL FIX: {cityName}</div>
+          <div className="font-bold mb-1">🎯 UNIFIED: {cityName}</div>
           <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
-            {isLiveForecast ? '🟢 VALIDATION: LIVE' : '🟡 VALIDATION: HISTORICAL'}
+            {isLiveForecast ? '🟢 UNIFIED: LIVE' : '🟡 UNIFIED: HISTORICAL'}
           </div>
-          <div>Orig Source: {weather.source}</div>
-          <div>Orig ActualForecast: {String(weather.isActualForecast)}</div>
-          <div>Valid Source: {validatedWeather.source}</div>
-          <div>Valid ActualForecast: {String(validatedWeather.isActualForecast)}</div>
-          <div>Validation isLive: {String(validation.isLiveForecast)}</div>
+          <div>Source: {normalizedWeather.source}</div>
+          <div>ActualForecast: {String(normalizedWeather.isActualForecast)}</div>
+          <div>Confidence: {validation.confidence}</div>
           <div className="font-bold mt-1">
-            Style: {isLiveForecast ? 'GREEN' : 'AMBER'}
+            Theme: {validation.styleTheme.toUpperCase()}
           </div>
         </div>
       )}
@@ -138,26 +99,26 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         </div>
         <div>
           <div className="text-3xl font-bold" style={{ color: styles.textColor }}>
-            {Math.round(validatedWeather.temperature)}°F
+            {Math.round(normalizedWeather.temperature)}°F
           </div>
           <div className="text-sm capitalize" style={{ color: styles.textColor }}>
-            {validatedWeather.description}
+            {normalizedWeather.description}
           </div>
         </div>
       </div>
 
       {/* Temperature range if available */}
-      {validatedWeather.highTemp && validatedWeather.lowTemp && (
+      {normalizedWeather.highTemp && normalizedWeather.lowTemp && (
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="text-center">
             <div className="text-lg font-bold" style={{ color: styles.textColor }}>
-              {Math.round(validatedWeather.highTemp)}°F
+              {Math.round(normalizedWeather.highTemp)}°F
             </div>
             <div className="text-xs" style={{ color: styles.textColor }}>High</div>
           </div>
           <div className="text-center">
             <div className="text-lg font-bold" style={{ color: styles.textColor }}>
-              {Math.round(validatedWeather.lowTemp)}°F
+              {Math.round(normalizedWeather.lowTemp)}°F
             </div>
             <div className="text-xs" style={{ color: styles.textColor }}>Low</div>
           </div>
@@ -166,9 +127,9 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
       
       {/* Weather details */}
       <div className="flex justify-between text-sm mb-3" style={{ color: styles.textColor }}>
-        <span>💧 {validatedWeather.precipitationChance || 0}%</span>
-        <span>💨 {Math.round(validatedWeather.windSpeed || 0)} mph</span>
-        <span>💦 {validatedWeather.humidity || 0}%</span>
+        <span>💧 {normalizedWeather.precipitationChance || 0}%</span>
+        <span>💨 {Math.round(normalizedWeather.windSpeed || 0)} mph</span>
+        <span>💦 {normalizedWeather.humidity || 0}%</span>
       </div>
 
       {/* Source indicator */}
