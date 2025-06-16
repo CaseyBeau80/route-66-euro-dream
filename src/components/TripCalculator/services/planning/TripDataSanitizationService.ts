@@ -1,5 +1,5 @@
 
-import { TripPlan, DailySegment } from './TripPlanBuilder';
+import { TripPlan, DailySegment } from './TripPlanTypes';
 
 export interface SanitizationReport {
   hasCircularReferences: boolean;
@@ -84,16 +84,17 @@ export class TripDataSanitizationService {
    */
   private static sanitizeTripPlan(data: any, report: SanitizationReport): TripPlan {
     const sanitized: TripPlan = {
+      id: this.sanitizeString(data?.id, `trip-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`),
       title: this.sanitizeString(data?.title, 'Untitled Route 66 Adventure'),
       startCity: this.sanitizeString(data?.startCity, 'Unknown Start'),
       endCity: this.sanitizeString(data?.endCity, 'Unknown End'),
+      startDate: data?.startDate ? new Date(data.startDate) : new Date(),
       totalDays: this.sanitizeNumber(data?.totalDays, 1),
       totalDistance: this.sanitizeNumber(data?.totalDistance, 0),
       totalMiles: this.sanitizeNumber(data?.totalMiles || data?.totalDistance, 0),
       totalDrivingTime: this.sanitizeNumber(data?.totalDrivingTime, 0),
       segments: this.sanitizeSegments(data?.segments || data?.dailySegments, report),
       dailySegments: this.sanitizeSegments(data?.dailySegments || data?.segments, report),
-      startDate: data?.startDate ? new Date(data.startDate) : undefined,
       lastUpdated: new Date()
     };
 
@@ -129,6 +130,7 @@ export class TripDataSanitizationService {
 
     return {
       day: this.sanitizeNumber(segment.day, index + 1),
+      title: this.sanitizeString(segment.title, `Day ${index + 1}`),
       startCity: this.sanitizeString(segment.startCity, 'Unknown'),
       endCity: this.sanitizeString(segment.endCity || segment.destination?.city, 'Unknown'),
       destination: segment.destination ? {
@@ -139,8 +141,8 @@ export class TripDataSanitizationService {
       driveTimeHours: this.sanitizeNumber(segment.driveTimeHours || segment.drivingTime, 0),
       drivingTime: this.sanitizeNumber(segment.drivingTime || segment.driveTimeHours, 0),
       approximateMiles: this.sanitizeNumber(segment.approximateMiles || segment.distance, 0),
-      stops: Array.isArray(segment.stops) ? segment.stops : (Array.isArray(segment.recommendedStops) ? segment.recommendedStops : []),
       recommendedStops: Array.isArray(segment.recommendedStops) ? segment.recommendedStops : (Array.isArray(segment.stops) ? segment.stops : []),
+      attractions: Array.isArray(segment.attractions) ? segment.attractions : [],
       weather: segment.weather || null,
       weatherData: segment.weatherData || segment.weather || null,
       notes: this.sanitizeString(segment.notes, ''),
@@ -162,9 +164,11 @@ export class TripDataSanitizationService {
 
   private static createEmptyTripPlan(): TripPlan {
     return {
+      id: `empty-trip-${Date.now()}`,
       title: 'Invalid Trip Data',
       startCity: 'Unknown',
       endCity: 'Unknown',
+      startDate: new Date(),
       totalDays: 0,
       totalDistance: 0,
       totalMiles: 0,
@@ -178,14 +182,15 @@ export class TripDataSanitizationService {
   private static createEmptySegment(day: number): DailySegment {
     return {
       day,
+      title: `Day ${day}`,
       startCity: 'Unknown',
       endCity: 'Unknown',
       distance: 0,
       driveTimeHours: 0,
       drivingTime: 0,
       approximateMiles: 0,
-      stops: [],
       recommendedStops: [],
+      attractions: [],
       notes: '',
       recommendations: []
     };

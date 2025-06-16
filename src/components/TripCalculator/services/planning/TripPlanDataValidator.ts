@@ -83,7 +83,8 @@ export class TripPlanDataValidator {
       startCity: segment.startCity || 'Unknown',
       endCity: segment.endCity || getDestinationCityName(segment.destination) || 'Unknown',
       approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),
-      stops: segment.stops || segment.recommendedStops || [],
+      recommendedStops: segment.recommendedStops || [],
+      attractions: segment.attractions || [],
       notes: segment.notes || '',
       recommendations: segment.recommendations || []
     };

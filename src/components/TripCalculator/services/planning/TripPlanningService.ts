@@ -5,6 +5,7 @@ import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { EnhancedDestinationSelector } from './EnhancedDestinationSelector';
 import { TripSegmentBuilder } from './TripSegmentBuilder';
 import { TripPlanUtils } from './TripPlanUtils';
+import { TripStyleLogic } from './TripStyleLogic';
 
 export class TripPlanningService {
   /**
@@ -34,12 +35,15 @@ export class TripPlanningService {
       startStop, endStop, allStops, tripDays
     );
 
-    // STEP 3: Build segments with destination cities only
+    // STEP 3: Get style configuration
+    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+
+    // STEP 4: Build segments with destination cities only
     const segments = TripSegmentBuilder.buildSegmentsWithDestinationCities(
-      startStop, endStop, selectedDestinationCities, tripDays
+      startStop, endStop, selectedDestinationCities, tripDays, styleConfig
     );
 
-    // STEP 4: Strict validation and sanitization
+    // STEP 5: Strict validation and sanitization
     const sanitizedSegments = StrictDestinationCityEnforcer.sanitizeTripPlan(segments);
     
     const validation = StrictDestinationCityEnforcer.validateTripPlan(sanitizedSegments);
@@ -49,14 +53,22 @@ export class TripPlanningService {
       console.log(`✅ TRIP PLAN VALIDATION PASSED: All stops are destination cities`);
     }
 
+    const totalDistance = TripPlanUtils.calculateTotalDistance(startStop, endStop, selectedDestinationCities);
+
     return {
+      id: TripPlanUtils.generateId(),
       title: `${tripDays}-Day Route 66 Journey: ${startCityName} to ${endCityName}`,
-      segments: sanitizedSegments,
-      totalDays: tripDays,
-      totalDistance: TripPlanUtils.calculateTotalDistance(startStop, endStop, selectedDestinationCities),
-      tripStyle,
       startCity: startCityName,
-      endCity: endCityName
+      endCity: endCityName,
+      startDate: new Date(),
+      totalDays: tripDays,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime: sanitizedSegments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0),
+      segments: sanitizedSegments,
+      dailySegments: sanitizedSegments,
+      tripStyle,
+      lastUpdated: new Date()
     };
   }
 }

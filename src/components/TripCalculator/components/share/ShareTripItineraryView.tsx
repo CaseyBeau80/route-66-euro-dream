@@ -12,6 +12,14 @@ interface ShareTripItineraryViewProps {
   isSharedView?: boolean;
 }
 
+// Define a simple attraction interface for the attractions array
+interface SimpleAttraction {
+  name: string;
+  title: string;
+  description: string;
+  city: string;
+}
+
 const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({ 
   segments, 
   tripStartDate, 
@@ -44,19 +52,21 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Daily Itinerary</h2>
       
       {segments.map((segment, index) => {
-        // CRITICAL: Use centralized attraction limiting service
+        // Convert attractions to a simple format for limiting
         const segmentContext = `${context}-Day${segment.day}`;
-        const originalAttractions = segment.attractions || [];
+        const originalAttractions: SimpleAttraction[] = (segment.attractions || []).map(attraction => ({
+          name: typeof attraction === 'string' ? attraction : attraction.name || 'Unknown',
+          title: typeof attraction === 'string' ? attraction : attraction.title || attraction.name || 'Unknown',
+          description: typeof attraction === 'string' ? '' : attraction.description || '',
+          city: typeof attraction === 'string' ? '' : attraction.city || 'Unknown'
+        }));
         
-        const limitResult = AttractionLimitingService.limitAttractions(
-          originalAttractions,
-          segmentContext
-        );
+        // Use a simple limiting approach since AttractionLimitingService expects NearbyAttraction[]
+        const maxAttractions = AttractionLimitingService.getMaxAttractions();
+        const limitedAttractions = originalAttractions.slice(0, maxAttractions);
+        const hasMoreAttractions = originalAttractions.length > maxAttractions;
         
-        // Validate the result
-        if (!AttractionLimitingService.validateAttractionLimit(limitResult.limitedAttractions, segmentContext)) {
-          console.error(`🚨 CRITICAL: Attraction limit validation failed for ${segmentContext}`);
-        }
+        console.log(`🎯 ${segmentContext}: Limited ${originalAttractions.length} to ${limitedAttractions.length} attractions`);
 
         return (
           <div key={`day-${segment.day}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -127,30 +137,27 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
                 />
               </div>
 
-              {/* CENTRALIZED ENFORCED Attraction Limit Recommendations */}
-              {limitResult.limitedAttractions.length > 0 && (
+              {/* SIMPLIFIED Attraction Recommendations */}
+              {limitedAttractions.length > 0 && (
                 <div className="bg-green-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    🏛️ Recommended Stops ({limitResult.hasMoreAttractions ? `${limitResult.limitedAttractions.length} of ${limitResult.totalAttractions}` : limitResult.limitedAttractions.length} • max {limitResult.limitApplied})
+                    🏛️ Recommended Stops ({hasMoreAttractions ? `${limitedAttractions.length} of ${originalAttractions.length}` : limitedAttractions.length} • max {maxAttractions})
                   </h4>
                   <ul className="space-y-1">
-                    {limitResult.limitedAttractions.map((attraction, idx) => (
+                    {limitedAttractions.map((attraction, idx) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        {typeof attraction === 'string' 
-                          ? attraction 
-                          : attraction.name || 'Unknown Attraction'
-                        }
+                        {attraction.name}
                       </li>
                     ))}
                   </ul>
                   
                   {/* Truncation indicator when more attractions are available */}
-                  {limitResult.hasMoreAttractions && (
+                  {hasMoreAttractions && (
                     <div className="text-xs text-gray-600 italic text-center p-2 bg-gray-100 rounded border border-gray-200 mt-2">
-                      🚫 Showing only {limitResult.limitedAttractions.length} of {limitResult.totalAttractions} attractions (limited to max {limitResult.limitApplied})
+                      🚫 Showing only {limitedAttractions.length} of {originalAttractions.length} attractions (limited to max {maxAttractions})
                       <div className="text-xs text-gray-500 mt-1">
-                        + {limitResult.remainingCount} more attraction{limitResult.remainingCount !== 1 ? 's' : ''} nearby
+                        + {originalAttractions.length - limitedAttractions.length} more attraction{originalAttractions.length - limitedAttractions.length !== 1 ? 's' : ''} nearby
                       </div>
                     </div>
                   )}

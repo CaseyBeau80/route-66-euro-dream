@@ -11,7 +11,8 @@ export type {
   DailySegment, 
   DriveTimeCategory, 
   RecommendedStop, 
-  SegmentTiming 
+  SegmentTiming,
+  DriveTimeBalance 
 } from './TripPlanTypes';
 
 // Re-export helper functions
