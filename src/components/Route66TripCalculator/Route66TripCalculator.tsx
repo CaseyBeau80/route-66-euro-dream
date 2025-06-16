@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,11 +15,9 @@ import TripLoadingDisplay from './components/TripLoadingDisplay';
 import EnhancedShareTripModal from '../TripCalculator/components/share/EnhancedShareTripModal';
 import CostCalculatorBanner from './components/CostCalculatorBanner';
 import FloatingCostPrompt from './components/FloatingCostPrompt';
-
 interface Route66TripCalculatorProps {
   // Define any props here
 }
-
 const Route66TripCalculator: React.FC = () => {
   const [formData, setFormData] = useState<TripFormData>({
     startLocation: '',
@@ -30,11 +27,19 @@ const Route66TripCalculator: React.FC = () => {
     tripStyle: 'balanced',
     tripStartDate: new Date()
   });
-  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
-  const { costEstimate, costData } = useCostEstimator(tripPlan);
+  const {
+    tripPlan,
+    isCalculating,
+    planningResult,
+    calculateTrip,
+    resetTrip
+  } = useTripCalculation();
+  const {
+    costEstimate,
+    costData
+  } = useCostEstimator(tripPlan);
   const [showShareModal, setShowShareModal] = useState(false);
   const [hasCostEstimate, setHasCostEstimate] = useState(false);
-
   useEffect(() => {
     console.log('✨ Route66TripCalculator: Component mounted');
     return () => {
@@ -46,33 +51,29 @@ const Route66TripCalculator: React.FC = () => {
   useEffect(() => {
     setHasCostEstimate(!!costEstimate);
   }, [costEstimate]);
-
   const handlePlanTrip = useCallback(() => {
     console.log('🚀 Plan trip requested with data:', formData);
     if (!formData.startLocation || !formData.endLocation) {
       toast({
         title: "Missing Information",
         description: "Please select both a start and end location for your trip.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
     calculateTrip(formData);
   }, [formData, calculateTrip]);
-
   const handleResetTrip = useCallback(() => {
     console.log('🔄 Reset trip requested');
     resetTrip();
     setHasCostEstimate(false);
   }, [resetTrip]);
-
   const handleShareTrip = useCallback(() => {
     console.log('📤 Route66TripCalculator: Share trip requested', {
       hasTripPlan: !!tripPlan,
       hasStartDate: !!formData.tripStartDate,
       segments: tripPlan?.segments?.length || 0
     });
-    
     if (!tripPlan) {
       toast({
         title: "No Trip to Share",
@@ -81,108 +82,76 @@ const Route66TripCalculator: React.FC = () => {
       });
       return;
     }
-
     setShowShareModal(true);
   }, [tripPlan, formData.tripStartDate]);
-
   const handleStartDateChange = (date: Date | undefined) => {
     console.log('📅 Start date changed:', date);
-    setFormData(prev => ({ ...prev, tripStartDate: date }));
+    setFormData(prev => ({
+      ...prev,
+      tripStartDate: date
+    }));
   };
-
   const handleLocationChange = (type: 'start' | 'end', location: string) => {
     console.log(`📍 ${type} location changed:`, location);
-    setFormData(prev => ({ ...prev, [`${type}Location`]: location }));
+    setFormData(prev => ({
+      ...prev,
+      [`${type}Location`]: location
+    }));
   };
-
   const handleTravelDaysChange = (days: number) => {
     console.log('🗓️ Travel days changed:', days);
-    setFormData(prev => ({ ...prev, travelDays: days }));
+    setFormData(prev => ({
+      ...prev,
+      travelDays: days
+    }));
   };
-
   const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
     console.log('🎨 Trip style changed:', style);
-    setFormData(prev => ({ ...prev, tripStyle: style }));
+    setFormData(prev => ({
+      ...prev,
+      tripStyle: style
+    }));
   };
-
   const scrollToCostCalculator = () => {
     const costSection = document.getElementById('cost-estimator-section');
     if (costSection) {
-      costSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      costSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     }
   };
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       {/* Header Section */}
-      <section className="text-center py-12">
-        <h1 className="text-3xl font-bold text-route66-navy mb-4">
-          Plan Your Route 66 Adventure
-        </h1>
-        <p className="text-lg text-route66-gray max-w-3xl mx-auto">
-          Customize your Route 66 trip with our easy-to-use planner. Enter your start and end locations,
-          choose your travel style, and let us create the perfect itinerary for you.
-        </p>
-      </section>
+      
 
       {/* Planning Form Section - Now includes cost calculator */}
       <section className="bg-white rounded-xl shadow-lg border border-route66-tan p-6">
-        <TripPlannerForm
-          formData={formData}
-          onStartDateChange={handleStartDateChange}
-          onLocationChange={handleLocationChange}
-          onTravelDaysChange={handleTravelDaysChange}
-          onTripStyleChange={handleTripStyleChange}
-          onPlanTrip={handlePlanTrip}
-          onResetTrip={handleResetTrip}
-          isPlanning={isCalculating}
-          tripPlan={tripPlan}
-        />
+        <TripPlannerForm formData={formData} onStartDateChange={handleStartDateChange} onLocationChange={handleLocationChange} onTravelDaysChange={handleTravelDaysChange} onTripStyleChange={handleTripStyleChange} onPlanTrip={handlePlanTrip} onResetTrip={handleResetTrip} isPlanning={isCalculating} tripPlan={tripPlan} />
       </section>
 
       {/* Trip Results Section */}
-      {(tripPlan || isCalculating) && (
-        <section id="trip-results" className="bg-white rounded-xl shadow-lg border border-route66-tan overflow-hidden">
-          {isCalculating && (
-            <TripLoadingDisplay formData={formData} />
-          )}
+      {(tripPlan || isCalculating) && <section id="trip-results" className="bg-white rounded-xl shadow-lg border border-route66-tan overflow-hidden">
+          {isCalculating && <TripLoadingDisplay formData={formData} />}
 
-          {!isCalculating && tripPlan && (
-            <>
-              <TripResults
-                tripPlan={tripPlan}
-                tripStartDate={formData.tripStartDate}
-                onShareTrip={handleShareTrip}
-              />
+          {!isCalculating && tripPlan && <>
+              <TripResults tripPlan={tripPlan} tripStartDate={formData.tripStartDate} onShareTrip={handleShareTrip} />
               
               {/* Cost Calculator Banner */}
-              {!hasCostEstimate && (
-                <CostCalculatorBanner onScrollToCalculator={scrollToCostCalculator} />
-              )}
-            </>
-          )}
-        </section>
-      )}
+              {!hasCostEstimate && <CostCalculatorBanner onScrollToCalculator={scrollToCostCalculator} />}
+            </>}
+        </section>}
 
       {/* Floating Cost Prompt */}
-      {tripPlan && !isCalculating && !hasCostEstimate && (
-        <FloatingCostPrompt onScrollToCalculator={scrollToCostCalculator} />
-      )}
+      {tripPlan && !isCalculating && !hasCostEstimate && <FloatingCostPrompt onScrollToCalculator={scrollToCostCalculator} />}
 
       {/* Enhanced Share Modal */}
-      {showShareModal && tripPlan && (
-        <EnhancedShareTripModal
-          isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
-          tripPlan={tripPlan}
-          tripStartDate={formData.tripStartDate}
-          onShareUrlGenerated={(shareCode, shareUrl) => {
-            console.log('✅ Share URL generated:', { shareCode, shareUrl });
-          }}
-        />
-      )}
-    </div>
-  );
+      {showShareModal && tripPlan && <EnhancedShareTripModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} tripPlan={tripPlan} tripStartDate={formData.tripStartDate} onShareUrlGenerated={(shareCode, shareUrl) => {
+      console.log('✅ Share URL generated:', {
+        shareCode,
+        shareUrl
+      });
+    }} />}
+    </div>;
 };
-
 export default Route66TripCalculator;
