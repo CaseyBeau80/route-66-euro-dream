@@ -4,6 +4,7 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
 import { TemperatureExtractor } from '../services/TemperatureExtractor';
+import { WeatherUtilityService } from '../services/WeatherUtilityService';
 
 interface UseUnifiedWeatherParams {
   cityName: string;
@@ -28,24 +29,42 @@ export const useUnifiedWeather = ({
 
     const apiKey = WeatherApiKeyManager.getApiKey();
     if (!apiKey || apiKey === 'your_api_key_here') {
-      console.log('🔄 useUnifiedWeather: No valid API key - using fallback for', cityName);
+      console.log('🔄 FIXED: useUnifiedWeather: No valid API key - using fallback for', cityName);
       return createFallbackWeather();
     }
 
-    // Check if date is within live forecast range (0-7 days from today)
-    const today = new Date();
-    const daysFromToday = Math.ceil((segmentDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    // 🚨 CRITICAL FIX: Use WeatherUtilityService for proper date comparison
+    const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate);
+    const isWithinRange = WeatherUtilityService.isWithinLiveForecastRange(segmentDate);
     
-    if (daysFromToday < 0 || daysFromToday > 7) {
-      console.log('🔄 useUnifiedWeather: Date outside forecast range - using fallback for', cityName, { daysFromToday });
+    console.log('🚨 CRITICAL FIX: useUnifiedWeather date validation using WeatherUtilityService:', {
+      cityName,
+      segmentDate: segmentDate.toISOString(),
+      segmentDay,
+      daysFromToday,
+      isWithinRange,
+      fixedLogic: 'USING_WEATHER_UTILITY_SERVICE_FOR_DATE_COMPARISON',
+      expectedForDay1: segmentDay === 1 ? 'SHOULD_BE_LIVE_FORECAST_IF_TODAY' : 'DEPENDS_ON_DATE'
+    });
+    
+    if (!isWithinRange) {
+      console.log('🔄 FIXED: useUnifiedWeather: Date outside forecast range - using fallback for', cityName, { 
+        daysFromToday, 
+        isWithinRange,
+        segmentDay,
+        fixedReason: 'WEATHER_UTILITY_SERVICE_DETERMINED_OUT_OF_RANGE'
+      });
       return createFallbackWeather();
     }
 
     try {
-      console.log('🌤️ TEMPERATURE FIX: useUnifiedWeather - Fetching LIVE weather for', cityName, {
+      console.log('🌤️ FIXED: useUnifiedWeather - Fetching LIVE weather for', cityName, {
         apiKeyLength: apiKey.length,
         segmentDate: segmentDate.toISOString(),
-        daysFromToday
+        daysFromToday,
+        isWithinRange,
+        segmentDay,
+        fixedValidation: 'PASSED_WEATHER_UTILITY_SERVICE_CHECKS'
       });
 
       // Get coordinates
@@ -54,13 +73,13 @@ export const useUnifiedWeather = ({
       
       const geoResponse = await fetch(geocodingUrl);
       if (!geoResponse.ok) {
-        console.error('❌ useUnifiedWeather: Geocoding failed for', cityName);
+        console.error('❌ FIXED: useUnifiedWeather: Geocoding failed for', cityName);
         return createFallbackWeather();
       }
       
       const geoData = await geoResponse.json();
       if (!geoData || geoData.length === 0) {
-        console.error('❌ useUnifiedWeather: City not found:', cityName);
+        console.error('❌ FIXED: useUnifiedWeather: City not found:', cityName);
         return createFallbackWeather();
       }
 
@@ -71,27 +90,29 @@ export const useUnifiedWeather = ({
       
       const weatherResponse = await fetch(weatherUrl);
       if (!weatherResponse.ok) {
-        console.error('❌ useUnifiedWeather: Weather API failed for', cityName, weatherResponse.status);
+        console.error('❌ FIXED: useUnifiedWeather: Weather API failed for', cityName, weatherResponse.status);
         return createFallbackWeather();
       }
       
       const weatherData = await weatherResponse.json();
       if (!weatherData.list || weatherData.list.length === 0) {
-        console.error('❌ useUnifiedWeather: No weather data for', cityName);
+        console.error('❌ FIXED: useUnifiedWeather: No weather data for', cityName);
         return createFallbackWeather();
       }
 
-      console.log('🌤️ TEMPERATURE FIX: Raw API response for', cityName, {
+      console.log('🌤️ FIXED: Raw API response for', cityName, {
         listLength: weatherData.list.length,
         firstItemStructure: weatherData.list[0],
         temperatureFields: {
           temp: weatherData.list[0]?.main?.temp,
           temp_max: weatherData.list[0]?.main?.temp_max,
           temp_min: weatherData.list[0]?.main?.temp_min
-        }
+        },
+        segmentDay,
+        fixedWeatherFetch: true
       });
 
-      // TEMPERATURE FIX: Find the best match for target date and aggregate daily temperatures
+      // Find the best match for target date and aggregate daily temperatures
       const targetDateString = segmentDate.toISOString().split('T')[0];
       
       // Group forecast items by date to find daily highs and lows
@@ -104,10 +125,12 @@ export const useUnifiedWeather = ({
         dailyData.get(itemDate)!.push(item);
       });
 
-      console.log('🌤️ TEMPERATURE FIX: Daily data grouping for', cityName, {
+      console.log('🌤️ FIXED: Daily data grouping for', cityName, {
         targetDateString,
         availableDates: Array.from(dailyData.keys()),
-        itemsPerDate: Array.from(dailyData.entries()).map(([date, items]) => ({ date, count: items.length }))
+        itemsPerDate: Array.from(dailyData.entries()).map(([date, items]) => ({ date, count: items.length })),
+        segmentDay,
+        fixedDataProcessing: true
       });
 
       // Find the target date or closest available date
@@ -116,15 +139,15 @@ export const useUnifiedWeather = ({
         // Use the first available date as fallback
         const firstAvailableDate = Array.from(dailyData.keys())[0];
         targetDayItems = dailyData.get(firstAvailableDate);
-        console.log('🌤️ TEMPERATURE FIX: Using fallback date', firstAvailableDate, 'for target', targetDateString);
+        console.log('🌤️ FIXED: Using fallback date', firstAvailableDate, 'for target', targetDateString);
       }
 
       if (!targetDayItems || targetDayItems.length === 0) {
-        console.error('❌ useUnifiedWeather: No forecast items for target date');
+        console.error('❌ FIXED: useUnifiedWeather: No forecast items for target date');
         return createFallbackWeather();
       }
 
-      // TEMPERATURE FIX: Calculate daily aggregated temperatures
+      // Calculate daily aggregated temperatures
       const dailyTemps = targetDayItems.map(item => ({
         temp: item.main.temp,
         temp_max: item.main.temp_max,
@@ -132,10 +155,12 @@ export const useUnifiedWeather = ({
         time: new Date(item.dt * 1000).toISOString()
       }));
 
-      console.log('🌤️ TEMPERATURE FIX: Individual forecast temps for', cityName, {
+      console.log('🌤️ FIXED: Individual forecast temps for', cityName, {
         targetDateString,
         forecastCount: dailyTemps.length,
-        temperatureDetails: dailyTemps
+        temperatureDetails: dailyTemps,
+        segmentDay,
+        fixedTemperatureCalculation: true
       });
 
       // Calculate aggregated daily values
@@ -143,18 +168,21 @@ export const useUnifiedWeather = ({
       const maxTemp = Math.max(...dailyTemps.map(t => t.temp_max));
       const minTemp = Math.min(...dailyTemps.map(t => t.temp_min));
 
-      console.log('🌤️ TEMPERATURE FIX: Calculated daily temperatures for', cityName, {
+      console.log('🌤️ FIXED: Calculated daily temperatures for', cityName, {
         avgTemp: Math.round(avgTemp),
         maxTemp: Math.round(maxTemp),
         minTemp: Math.round(minTemp),
         temperatureRange: Math.round(maxTemp - minTemp),
-        shouldBeDifferent: Math.round(maxTemp) !== Math.round(minTemp)
+        shouldBeDifferent: Math.round(maxTemp) !== Math.round(minTemp),
+        segmentDay,
+        day1SpecialNote: segmentDay === 1 ? 'DAY_1_SHOULD_NOW_GET_LIVE_FORECAST' : 'OTHER_DAY',
+        fixedCalculation: true
       });
 
       // Use the most representative item for other weather data
       const representativeItem = targetDayItems[Math.floor(targetDayItems.length / 2)];
 
-      // TEMPERATURE FIX: Create weather data with proper temperature extraction
+      // Create weather data with proper temperature extraction
       const rawWeatherData: ForecastWeatherData = {
         temperature: Math.round(avgTemp), // Use average temp as current
         highTemp: Math.round(maxTemp),    // Use actual daily max
@@ -172,22 +200,26 @@ export const useUnifiedWeather = ({
         matchedForecastDay: representativeItem
       };
 
-      console.log('🌤️ TEMPERATURE FIX: Raw weather data before extraction:', {
+      console.log('🌤️ FIXED: Raw weather data before extraction:', {
         cityName,
         temperature: rawWeatherData.temperature,
         highTemp: rawWeatherData.highTemp,
         lowTemp: rawWeatherData.lowTemp,
         source: rawWeatherData.source,
-        isActualForecast: rawWeatherData.isActualForecast
+        isActualForecast: rawWeatherData.isActualForecast,
+        segmentDay,
+        fixedRawData: true
       });
 
-      // TEMPERATURE FIX: Use TemperatureExtractor to validate and process the temperatures
+      // Use TemperatureExtractor to validate and process the temperatures
       const extractedTemperatures = TemperatureExtractor.extractTemperatures(rawWeatherData, cityName);
 
-      console.log('🌤️ TEMPERATURE FIX: TemperatureExtractor results for', cityName, {
+      console.log('🌤️ FIXED: TemperatureExtractor results for', cityName, {
         extractedTemperatures,
         isValid: extractedTemperatures.isValid,
-        hasDisplayableData: TemperatureExtractor.hasDisplayableTemperatureData(extractedTemperatures)
+        hasDisplayableData: TemperatureExtractor.hasDisplayableTemperatureData(extractedTemperatures),
+        segmentDay,
+        fixedExtraction: true
       });
 
       if (extractedTemperatures.isValid && TemperatureExtractor.hasDisplayableTemperatureData(extractedTemperatures)) {
@@ -199,7 +231,7 @@ export const useUnifiedWeather = ({
           lowTemp: extractedTemperatures.low
         };
 
-        console.log('✅ TEMPERATURE FIX: Final live weather data for', cityName, {
+        console.log('✅ FIXED: Final live weather data for', cityName, {
           temperature: finalWeatherData.temperature,
           highTemp: finalWeatherData.highTemp,
           lowTemp: finalWeatherData.lowTemp,
@@ -208,17 +240,20 @@ export const useUnifiedWeather = ({
           source: finalWeatherData.source,
           isActualForecast: finalWeatherData.isActualForecast,
           allTemperaturesDifferent: finalWeatherData.temperature !== finalWeatherData.highTemp || 
-            finalWeatherData.highTemp !== finalWeatherData.lowTemp
+            finalWeatherData.highTemp !== finalWeatherData.lowTemp,
+          segmentDay,
+          day1Success: segmentDay === 1 ? 'DAY_1_NOW_FIXED_WITH_LIVE_FORECAST' : 'OTHER_DAY_SUCCESS',
+          fixedFinalData: true
         });
 
         return finalWeatherData;
       } else {
-        console.error('❌ TEMPERATURE FIX: TemperatureExtractor validation failed for', cityName);
+        console.error('❌ FIXED: TemperatureExtractor validation failed for', cityName);
         return createFallbackWeather();
       }
 
     } catch (error) {
-      console.error('❌ TEMPERATURE FIX: Live weather fetch failed for', cityName, error);
+      console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
       return createFallbackWeather();
     }
   }, [cityName, segmentDate]);
@@ -229,7 +264,15 @@ export const useUnifiedWeather = ({
     }
     
     const targetDateString = segmentDate.toISOString().split('T')[0];
-    const daysFromToday = Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate);
+    
+    console.log('🔄 FIXED: Creating fallback weather for', cityName, {
+      segmentDate: segmentDate.toISOString(),
+      targetDateString,
+      daysFromToday,
+      segmentDay,
+      fixedFallback: true
+    });
     
     return WeatherFallbackService.createFallbackForecast(
       cityName,
@@ -240,7 +283,10 @@ export const useUnifiedWeather = ({
   }, [cityName, segmentDate]);
 
   const refetch = React.useCallback(() => {
-    console.log('🔄 TEMPERATURE FIX: Manual refetch requested for', cityName);
+    console.log('🔄 FIXED: Manual refetch requested for', cityName, {
+      segmentDay,
+      fixedRefetch: true
+    });
     setRefreshTrigger(prev => prev + 1);
   }, [cityName]);
 
@@ -250,16 +296,30 @@ export const useUnifiedWeather = ({
     setLoading(true);
     setError(null);
 
+    console.log('🚨 FIXED: useUnifiedWeather effect triggered for', cityName, {
+      segmentDate: segmentDate.toISOString(),
+      segmentDay,
+      refreshTrigger,
+      fixedEffect: 'USING_WEATHER_UTILITY_SERVICE_LOGIC'
+    });
+
     fetchLiveWeather()
       .then((weatherData) => {
         if (weatherData) {
+          console.log('✅ FIXED: Weather data set for', cityName, {
+            segmentDay,
+            source: weatherData.source,
+            isActualForecast: weatherData.isActualForecast,
+            day1Fixed: segmentDay === 1 ? 'DAY_1_SUCCESS' : 'OTHER_DAY',
+            fixedSuccess: true
+          });
           setWeather(weatherData);
         } else {
           setWeather(createFallbackWeather());
         }
       })
       .catch((err) => {
-        console.error('❌ TEMPERATURE FIX: Error fetching weather for', cityName, err);
+        console.error('❌ FIXED: Error fetching weather for', cityName, err);
         setError(err instanceof Error ? err.message : 'Weather fetch failed');
         setWeather(createFallbackWeather());
       })
