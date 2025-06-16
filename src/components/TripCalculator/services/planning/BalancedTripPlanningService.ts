@@ -2,7 +2,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
-import { DailySegment, TripPlan, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
+import { DailySegment, TripPlan, DriveTimeCategory, RecommendedStop, DriveTimeBalance } from './TripPlanBuilder';
 import { EnhancedDriveTimeBalancer } from './EnhancedDriveTimeBalancer';
 
 export class BalancedTripPlanningService {
@@ -84,7 +84,8 @@ export class BalancedTripPlanningService {
       totalDrivingTime: parseFloat(totalDrivingTime.toFixed(1)),
       segments,
       dailySegments: segments,
-      driveTimeBalance
+      driveTimeBalance,
+      tripStyle: 'balanced'
     };
 
     console.log(`✅ Balanced trip plan: ${optimalDays} days, ${Math.round(totalDistance)}mi, ${totalDrivingTime.toFixed(1)}h`);
@@ -236,8 +237,9 @@ export class BalancedTripPlanningService {
       }
     }
 
-    // Convert TripStops to RecommendedStops
+    // Convert TripStops to RecommendedStops with stopId
     return selectedStops.map(stop => ({
+      stopId: stop.id, // Add required stopId
       id: stop.id,
       name: stop.name,
       description: stop.description,
@@ -302,7 +304,7 @@ export class BalancedTripPlanningService {
   /**
    * Calculate balanced drive time balance metrics
    */
-  private static calculateBalancedDriveTimeBalance(segments: DailySegment[], balanceAnalysis: any) {
+  private static calculateBalancedDriveTimeBalance(segments: DailySegment[], balanceAnalysis: any): DriveTimeBalance {
     const driveTimes = segments.map(seg => seg.driveTimeHours);
     const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
     const variance = Math.sqrt(

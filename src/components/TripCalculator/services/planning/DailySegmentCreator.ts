@@ -1,6 +1,5 @@
-
 import { TripStop } from '../../types/TripStop';
-import { DailySegment, DriveTimeCategory } from './TripPlanBuilder';
+import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -212,6 +211,7 @@ export class DailySegmentCreator {
         state: endStop.state
       },
       recommendedStops: segmentAttractions.map(stop => ({
+        stopId: stop.id, // Add required stopId
         id: stop.id,
         name: stop.name,
         description: stop.description,

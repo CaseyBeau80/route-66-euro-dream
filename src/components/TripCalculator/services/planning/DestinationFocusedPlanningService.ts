@@ -2,7 +2,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { GapDetectionService, RouteGap } from './GapDetectionService';
-import { DailySegment, TripPlan, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
+import { DailySegment, TripPlan, DriveTimeCategory, RecommendedStop, DriveTimeBalance } from './TripPlanBuilder';
 import { ConsecutiveMajorCitiesOptimizer } from './ConsecutiveMajorCitiesOptimizer';
 import { Route66CityClassifier } from './Route66CityClassifier';
 
@@ -366,8 +366,9 @@ export class DestinationFocusedPlanningService {
       .sort((a, b) => b.score - a.score)
       .slice(0, maxAttractions);
 
-    // Convert to RecommendedStops
+    // Convert to RecommendedStops with stopId
     return topStops.map(item => ({
+      stopId: item.stop.id, // Add required stopId
       id: item.stop.id,
       name: item.stop.name,
       description: item.stop.description,
@@ -442,7 +443,7 @@ export class DestinationFocusedPlanningService {
   /**
    * Calculate drive time balance for optimized destination-focused trips
    */
-  private static calculateOptimizedDestinationBalance(segments: DailySegment[], routeAssessment: any, optimizationResult: any) {
+  private static calculateOptimizedDestinationBalance(segments: DailySegment[], routeAssessment: any, optimizationResult: any): DriveTimeBalance {
     const driveTimes = segments.map(seg => seg.driveTimeHours);
     const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
     const variance = Math.sqrt(

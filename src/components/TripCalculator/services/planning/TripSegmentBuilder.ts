@@ -1,5 +1,5 @@
 
-import { DailySegment } from './TripPlanTypes';
+import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -89,8 +89,20 @@ export class TripSegmentBuilder {
         styleConfig
       );
       
-      // Only include destination cities as recommended stops
+      // Only include destination cities as recommended stops with stopId
       const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
+      const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
+        stopId: stop.id, // Add required stopId
+        id: stop.id,
+        name: stop.name,
+        description: stop.description,
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        category: stop.category,
+        city_name: stop.city_name,
+        state: stop.state,
+        city: stop.city || stop.city_name || 'Unknown'
+      }));
       
       const segment: DailySegment = {
         day,
@@ -104,12 +116,12 @@ export class TripSegmentBuilder {
           city: endStop.city_name,
           state: endStop.state
         },
-        recommendedStops: segmentStops,
-        attractions: segmentStops.map(stop => ({
+        recommendedStops,
+        attractions: recommendedStops.map(stop => ({
           name: stop.name,
           title: stop.name,
           description: stop.description,
-          city: stop.city_name
+          city: stop.city
         })),
         driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
         routeSection: TripPlanUtils.getRouteSection(day, segmentPairs.length)

@@ -127,8 +127,9 @@ export class SegmentCreationLoop {
       city: stop.city || stop.city_name
     }));
 
-    // Convert TripStop[] to RecommendedStop[] to satisfy type requirements
+    // Convert TripStop[] to RecommendedStop[] to satisfy type requirements with stopId
     const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
+      stopId: stop.id, // Add required stopId
       id: stop.id,
       name: stop.name,
       description: stop.description,
@@ -142,12 +143,17 @@ export class SegmentCreationLoop {
 
     // Convert SubStopTiming[] to SegmentTiming[] to match TripPlanBuilder interface
     const convertedSegmentTimings: SegmentTiming[] = segmentTimings.map(timing => ({
+      city: timing.toStop.city_name || timing.toStop.name,
+      state: timing.toStop.state,
+      latitude: timing.toStop.latitude,
+      longitude: timing.toStop.longitude,
+      distanceFromLastStop: timing.distance,
+      driveTimeHours: timing.driveTimeHours,
       fromStop: timing.fromStop,
       toStop: timing.toStop,
       distance: timing.distance,
       driveTime: timing.drivingTime, // Map drivingTime to driveTime
       distanceMiles: timing.distanceMiles,
-      driveTimeHours: timing.driveTimeHours,
       drivingTime: timing.drivingTime
     }));
 
@@ -169,7 +175,6 @@ export class SegmentCreationLoop {
         city: dayDestination.name,
         state: dayDestination.state
       }
-      // REMOVED: balanceMetrics property - not part of DailySegment interface
     };
   }
 

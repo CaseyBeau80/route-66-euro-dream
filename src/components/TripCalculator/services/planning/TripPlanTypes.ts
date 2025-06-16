@@ -1,15 +1,14 @@
 
-
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
   category: string;
   message: string;
-  color?: string; // Add missing color property
+  color?: string;
 }
 
 export interface RecommendedStop {
-  stopId: string; // Add missing stopId property
+  stopId: string;
   id: string;
   name: string;
   description: string;
@@ -46,25 +45,37 @@ export interface WeatherData {
   windSpeed?: number;
   precipitation?: number;
   cloudCover?: number;
-  isActualForecast?: boolean; // Add missing property
+  isActualForecast?: boolean;
   main?: {
     temp: number;
     temp_min: number;
     temp_max: number;
     humidity: number;
-  }; // Add missing main property
+  };
   temp?: {
     day: number;
     min: number;
     max: number;
-  }; // Add missing temp property
+  };
   weather?: Array<{
     description: string;
     icon: string;
     main: string;
-  }>; // Add missing weather array property
-  icon?: string; // Add missing icon property
-  source?: string; // Add source property
+  }>;
+  icon?: string;
+  source?: string;
+}
+
+export interface DriveTimeBalance {
+  isBalanced: boolean;
+  averageDriveTime: number;
+  variance: number;
+  driveTimeRange: { min: number; max: number };
+  balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
+  overallScore: number;
+  suggestions: string[];
+  reason: string;
 }
 
 export interface TripPlan {
@@ -89,8 +100,9 @@ export interface TripPlan {
   };
   lastUpdated?: Date;
   exportTimestamp?: number;
-  originalDays?: number; // Add missing property
-  driveTimeBalance?: string; // Add missing property
+  originalDays?: number;
+  driveTimeBalance?: DriveTimeBalance;
+  tripStyle?: 'balanced' | 'destination-focused';
 }
 
 export interface DailySegment {
@@ -116,8 +128,6 @@ export interface DailySegment {
   driveTimeCategory?: DriveTimeCategory;
   routeSection?: string;
   driveTimeWarning?: string;
-  
-  // Add missing properties that are used throughout the codebase
   subStopTimings?: SegmentTiming[];
   notes?: string;
   recommendations?: string[];
