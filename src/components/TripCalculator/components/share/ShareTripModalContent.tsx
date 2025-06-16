@@ -133,7 +133,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
 
       {/* Sharing Options - Only show in modal, not in shared view */}
       {!isSharedView && (
-        <div className="mt-8 pt-6 border-t-2 border-route66-primary bg-white">
+        <div className="mt-8 pt-6 border-t border-gray-200 bg-white">
           <ShareTripOptions
             tripPlan={tripPlan}
             currentShareUrl={currentShareUrl}
@@ -143,18 +143,26 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
             onShareViaEmail={onShareViaEmail}
           />
 
-          {/* Calendar Export Section - Now at the bottom with other sharing options */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-500 p-6 rounded-lg mt-6">
-            <h3 className="font-bold text-blue-800 text-xl mb-4 flex items-center gap-2">
-              📅 Calendar Export
-              <Calendar className="h-6 w-6" />
-            </h3>
+          {/* Calendar Export Section - Improved styling */}
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 p-6 rounded-xl mt-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="font-bold text-blue-800 text-lg">
+                📅 Calendar Export
+              </h3>
+            </div>
+
+            <p className="text-blue-700 text-sm mb-4">
+              Add your Route 66 adventure to your calendar so you never miss a moment
+            </p>
 
             <div className="space-y-3">
               <Button
                 onClick={handleGoogleCalendarExport}
                 disabled={!tripStartDate}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto text-lg font-bold"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-auto text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200"
               >
                 <ExternalLink className="h-5 w-5 mr-3" />
                 Add to Google Calendar
@@ -164,18 +172,21 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
                 onClick={handleICalendarDownload}
                 disabled={!tripStartDate}
                 variant="outline"
-                className="w-full py-3 h-auto border-2 border-green-300 hover:bg-green-50 text-lg font-bold"
+                className="w-full py-3 h-auto border border-blue-300 hover:bg-blue-50 hover:border-blue-400 text-blue-700 hover:text-blue-800 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <Download className="h-5 w-5 mr-3 text-green-600" />
+                <Download className="h-5 w-5 mr-3" />
                 Download iCalendar (.ics)
               </Button>
             </div>
 
             {!tripStartDate && (
-              <div className="mt-4 bg-amber-100 border border-amber-400 p-3 rounded">
-                <p className="text-amber-800 font-semibold">
-                  ⚠️ Please set a trip start date to enable calendar export
-                </p>
+              <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <div className="text-amber-500 text-lg">⚠️</div>
+                  <p className="text-amber-800 font-medium text-sm">
+                    Please set a trip start date to enable calendar export
+                  </p>
+                </div>
               </div>
             )}
           </div>
