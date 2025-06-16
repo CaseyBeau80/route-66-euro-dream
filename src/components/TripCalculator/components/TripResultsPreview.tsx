@@ -35,10 +35,6 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  const totalAttractions = tripPlan.segments?.reduce((total, segment) => {
-    return total + (segment.attractions?.length || 0);
-  }, 0) || 0;
-
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Trip Overview Header - Clean Blue Theme */}
@@ -58,8 +54,8 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
         </CardHeader>
         
         <CardContent className="p-6">
-          {/* Key Stats - Matching Preview Layout */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          {/* Key Stats - Matching Preview Layout (removed Attractions) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 mb-1">{tripPlan.totalDays}</div>
               <div className="text-sm text-gray-600">Days</div>
@@ -80,13 +76,8 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-1">{totalAttractions}</div>
-              <div className="text-sm text-gray-600">Attractions</div>
-            </div>
-            
-            <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 mb-1">
-                {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '$624'}
+                {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '$1,615'}
               </div>
               <div className="text-sm text-gray-600">Est. Cost</div>
             </div>
