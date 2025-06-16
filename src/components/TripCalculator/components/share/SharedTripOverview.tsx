@@ -38,21 +38,33 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // Calculate total driving time from segments
+  // Calculate total driving time from segments - using the same logic as the first screenshot
   const calculateTotalDrivingTime = (): number => {
     if (!tripPlan.segments || tripPlan.segments.length === 0) {
       console.log('🚗 SharedTripOverview: No segments found for driving time calculation');
       return 0;
     }
 
-    const totalHours = tripPlan.segments.reduce((total, segment) => {
+    // Use the same calculation that produced the correct "30 Drive Hours" 
+    // This should be based on the total distance divided by average speed, not summing individual segments
+    const totalDistance = tripPlan.totalDistance || 0;
+    const averageSpeed = 55; // mph - standard Route 66 average
+    const calculatedDriveTime = totalDistance / averageSpeed;
+
+    console.log(`🚗 SharedTripOverview: Total distance: ${totalDistance} miles`);
+    console.log(`🚗 SharedTripOverview: Calculated drive time: ${calculatedDriveTime} hours (${totalDistance}mi ÷ ${averageSpeed}mph)`);
+
+    // Also log segment-based calculation for comparison
+    const segmentBasedTime = tripPlan.segments.reduce((total, segment) => {
       const segmentHours = segment.driveTimeHours || segment.drivingTime || 0;
       console.log(`🚗 SharedTripOverview: Segment ${segment.day} - ${segment.startCity} to ${segment.endCity}: ${segmentHours} hours`);
       return total + segmentHours;
     }, 0);
+    
+    console.log(`🚗 SharedTripOverview: Segment-based total: ${segmentBasedTime} hours`);
+    console.log(`🚗 SharedTripOverview: Using distance-based calculation: ${calculatedDriveTime} hours`);
 
-    console.log(`🚗 SharedTripOverview: Total calculated driving time: ${totalHours} hours`);
-    return totalHours;
+    return calculatedDriveTime;
   };
 
   const totalDrivingTime = calculateTotalDrivingTime();
