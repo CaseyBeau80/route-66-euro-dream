@@ -5,7 +5,7 @@ import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherCo
 import { WeatherConfigValidationService } from '../../services/weather/WeatherConfigValidationService';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 import ErrorBoundary from '../ErrorBoundary';
-import { DateNormalizationService } from '../weather/DateNormalizationService';
+import { UnifiedDateService } from '../../services/UnifiedDateService';
 import { format } from 'date-fns';
 
 interface PDFDaySegmentCardWeatherProps {
@@ -50,13 +50,13 @@ const PDFDaySegmentCardWeather: React.FC<PDFDaySegmentCardWeatherProps> = ({
     }
     
     // Use the centralized service to ensure absolute date consistency
-    const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
+    const calculatedDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segment.day);
     
     console.log(`📄 PDFDaySegmentCardWeather: CENTRALIZED date calculation for ${segment.endCity} (Day ${segment.day}):`, {
       segmentDay: segment.day,
       tripStartDate: tripStartDate.toISOString(),
       calculatedDate: calculatedDate?.toISOString(),
-      calculatedDateString: calculatedDate ? DateNormalizationService.toDateString(calculatedDate) : null,
+      calculatedDateString: calculatedDate ? UnifiedDateService.formatForApi(calculatedDate) : null,
       usingCentralizedService: true
     });
     

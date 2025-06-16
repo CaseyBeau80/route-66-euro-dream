@@ -1,6 +1,6 @@
 
 import { ForecastDay } from '@/components/Route66Map/services/weather/WeatherServiceTypes';
-import { DateNormalizationService } from './DateNormalizationService';
+import { UnifiedDateService } from '../../services/UnifiedDateService';
 
 export interface EnhancedMatchResult {
   matchedForecast: ForecastDay | null;
@@ -157,7 +157,7 @@ export class EnhancedWeatherForecastMatcher {
     targetDateString: string, 
     cityName: string
   ): EnhancedMatchResult | null {
-    const normalizedTarget = DateNormalizationService.normalizeSegmentDate(targetDate);
+    const normalizedTarget = UnifiedDateService.normalizeToLocalMidnight(targetDate);
     
     let closestForecast: ForecastDay | null = null;
     let smallestOffsetHours = Infinity;
@@ -230,7 +230,7 @@ export class EnhancedWeatherForecastMatcher {
     for (let i = -3; i <= 3; i++) {
       if (i === 0) continue; // Skip exact match (already tried)
       const testDate = new Date(targetDate.getTime() + i * 24 * 60 * 60 * 1000);
-      const testDateString = DateNormalizationService.toDateString(testDate);
+      const testDateString = UnifiedDateService.formatForApi(testDate);
       testDates.push({ offset: i, dateString: testDateString });
     }
     
@@ -279,13 +279,16 @@ export class EnhancedWeatherForecastMatcher {
         planImplementation: true
       });
       
+      const daysFromToday = UnifiedDateService.getDaysFromToday(targetDate);
+      const forecastDaysFromToday = UnifiedDateService.getDaysFromToday(new Date(firstValidForecast.dateString + 'T12:00:00Z'));
+      
       return {
         matchedForecast: firstValidForecast,
         matchInfo: {
           requestedDate: targetDateString,
           matchedDate: firstValidForecast.dateString,
           matchType: 'fallback',
-          daysOffset: DateNormalizationService.getDaysDifference(targetDate, new Date(firstValidForecast.dateString + 'T12:00:00Z')),
+          daysOffset: forecastDaysFromToday - daysFromToday,
           confidence: 'low',
           availableDates: forecasts.map(f => f.dateString).filter(Boolean)
         }

@@ -1,5 +1,6 @@
+
 import { ForecastDay } from './WeatherServiceTypes';
-import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
+import { UnifiedDateService } from '../../../TripCalculator/services/UnifiedDateService';
 
 export class WeatherDataProcessor {
   static processCurrentWeather(currentData: any, cityName: string): any {
@@ -64,7 +65,7 @@ export class WeatherDataProcessor {
     forecastData.list.forEach((item: any, index: number) => {
       try {
         const itemDate = new Date(item.dt * 1000);
-        const dateString = DateNormalizationService.toDateString(itemDate);
+        const dateString = UnifiedDateService.formatForApi(itemDate);
         
         if (!forecastsByDate[dateString]) {
           forecastsByDate[dateString] = [];

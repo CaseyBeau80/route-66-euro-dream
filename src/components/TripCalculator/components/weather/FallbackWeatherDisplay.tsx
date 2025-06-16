@@ -3,7 +3,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { SeasonalWeatherGenerator } from './SeasonalWeatherGenerator';
-import { DateNormalizationService } from './DateNormalizationService';
+import { UnifiedDateService } from '../../services/UnifiedDateService';
 
 interface FallbackWeatherDisplayProps {
   cityName: string;
@@ -35,7 +35,7 @@ const FallbackWeatherDisplay: React.FC<FallbackWeatherDisplayProps> = ({
     
     console.log(`🎯 FALLBACK LABEL ABSOLUTE LOCK for ${cityName}:`, {
       segmentDate: segmentDate.toISOString(),
-      segmentDateString: DateNormalizationService.toDateString(segmentDate),
+      segmentDateString: UnifiedDateService.formatForApi(segmentDate),
       formattedDisplay: formattedDate,
       absoluteMatch: true
     });

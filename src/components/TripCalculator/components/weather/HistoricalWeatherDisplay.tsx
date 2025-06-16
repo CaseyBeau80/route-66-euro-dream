@@ -2,7 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { DateNormalizationService } from './DateNormalizationService';
+import { UnifiedDateService } from '../../services/UnifiedDateService';
 
 interface HistoricalWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -28,7 +28,7 @@ const HistoricalWeatherDisplay: React.FC<HistoricalWeatherDisplayProps> = ({
   // Validate date alignment
   React.useEffect(() => {
     if (segmentDate && weather.dateMatchInfo) {
-      const expectedDateString = DateNormalizationService.toDateString(segmentDate);
+      const expectedDateString = UnifiedDateService.formatForApi(segmentDate);
       const { requestedDate, matchedDate } = weather.dateMatchInfo;
       
       if (requestedDate !== expectedDateString) {

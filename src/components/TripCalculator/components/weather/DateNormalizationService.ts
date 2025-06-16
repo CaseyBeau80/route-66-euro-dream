@@ -25,11 +25,30 @@ export class DateNormalizationService {
   }
 
   /**
+   * @deprecated Use UnifiedDateService.normalizeToLocalMidnight instead
+   */
+  static normalizeSegmentDate(date: Date): Date {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.normalizeSegmentDate is deprecated. Use UnifiedDateService.normalizeToLocalMidnight instead.');
+    return UnifiedDateService.normalizeToLocalMidnight(date);
+  }
+
+  /**
    * @deprecated Use UnifiedDateService.getDaysFromToday instead
    */
   static getDaysFromToday(date: Date): number {
     console.warn('⚠️ DEPRECATED: DateNormalizationService.getDaysFromToday is deprecated. Use UnifiedDateService.getDaysFromToday instead.');
     return UnifiedDateService.getDaysFromToday(date);
+  }
+
+  /**
+   * @deprecated Use UnifiedDateService.getDaysFromToday or calculate manually instead
+   */
+  static getDaysDifference(fromDate: Date, toDate: Date): number {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.getDaysDifference is deprecated. Use UnifiedDateService.getDaysFromToday or calculate manually instead.');
+    const normalizedFrom = UnifiedDateService.normalizeToLocalMidnight(fromDate);
+    const normalizedTo = UnifiedDateService.normalizeToLocalMidnight(toDate);
+    const diffTime = normalizedTo.getTime() - normalizedFrom.getTime();
+    return Math.floor(diffTime / (24 * 60 * 60 * 1000));
   }
 
   /**
@@ -45,6 +64,14 @@ export class DateNormalizationService {
    */
   static formatDateForApi(date: Date): string {
     console.warn('⚠️ DEPRECATED: DateNormalizationService.formatDateForApi is deprecated. Use UnifiedDateService.formatForApi instead.');
+    return UnifiedDateService.formatForApi(date);
+  }
+
+  /**
+   * @deprecated Use UnifiedDateService.formatForApi instead
+   */
+  static toDateString(date: Date): string {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.toDateString is deprecated. Use UnifiedDateService.formatForApi instead.');
     return UnifiedDateService.formatForApi(date);
   }
 

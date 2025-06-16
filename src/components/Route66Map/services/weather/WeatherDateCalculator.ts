@@ -1,5 +1,5 @@
 
-import { DateNormalizationService } from '../../../TripCalculator/components/weather/DateNormalizationService';
+import { UnifiedDateService } from '../../../TripCalculator/services/UnifiedDateService';
 
 export class WeatherDateCalculator {
   private static readonly FORECAST_THRESHOLD_DAYS = 7; // PLAN: ENHANCED to 7 days consistent
@@ -11,15 +11,14 @@ export class WeatherDateCalculator {
     isWithinForecastRange: boolean;
   } {
     // PLAN IMPLEMENTATION: Enhanced LOCAL date normalization for consistency
-    const normalizedTargetDate = DateNormalizationService.normalizeSegmentDate(targetDate);
-    const targetDateString = DateNormalizationService.toDateString(normalizedTargetDate);
+    const normalizedTargetDate = UnifiedDateService.normalizeToLocalMidnight(targetDate);
+    const targetDateString = UnifiedDateService.formatForApi(normalizedTargetDate);
     
     // PLAN IMPLEMENTATION: Enhanced LOCAL date normalization for today as well
-    const today = new Date();
-    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+    const today = UnifiedDateService.getToday();
     
     // PLAN IMPLEMENTATION: Enhanced days calculation using standardized LOCAL date arithmetic
-    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTargetDate);
+    const daysFromToday = UnifiedDateService.getDaysFromToday(normalizedTargetDate);
     
     // PLAN IMPLEMENTATION: ENHANCED forecast range 0-7 days (consistent with other services)
     const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
@@ -33,8 +32,8 @@ export class WeatherDateCalculator {
       normalization: {
         normalizedTargetDate: normalizedTargetDate.toISOString(),
         normalizedTargetLocal: normalizedTargetDate.toLocaleDateString(),
-        normalizedToday: normalizedToday.toISOString(),
-        normalizedTodayLocal: normalizedToday.toLocaleDateString(),
+        normalizedToday: today.toISOString(),
+        normalizedTodayLocal: today.toLocaleDateString(),
         targetDateString,
         normalizationMethod: 'ENHANCED_LOCAL_MIDNIGHT_CONSISTENT'
       },
