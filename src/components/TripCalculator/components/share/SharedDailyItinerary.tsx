@@ -15,17 +15,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 CONSISTENT: SharedDailyItinerary with consistent weather details:', {
+  console.log('🔥 PREVIEW FORM: SharedDailyItinerary with preview form drive time:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    consistentWeatherDisplay: true
+    usingPreviewFormLogic: true
   });
 
   // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 CONSISTENT: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 PREVIEW FORM: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -38,7 +38,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 CONSISTENT: Extracted tripStartDate from URL:', {
+            console.log('🔥 PREVIEW FORM: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString()
@@ -48,20 +48,25 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ CONSISTENT: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ PREVIEW FORM: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 CONSISTENT: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 PREVIEW FORM: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
-  // FIXED: Use the same formatTime function as TripResults (working preview)
-  const formatTime = (hours?: number): string => {
-    if (!hours) return 'N/A';
+  // PREVIEW FORM LOGIC: Use exact same calculation as preview form
+  const getPreviewFormDriveTime = (segment: DailySegment): string => {
+    const miles = segment.approximateMiles || segment.distance || 0;
+    const hours = miles / 60; // Same calculation as preview form
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
-    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    
+    if (minutes > 0) {
+      return `${wholeHours}h ${minutes}m`;
+    }
+    return `${wholeHours}h`;
   };
 
   return (
@@ -71,7 +76,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
           📅 DAILY ITINERARY WITH WEATHER
         </h3>
         <p className="text-route66-cream text-sm font-travel">
-          Your complete day-by-day guide with consistent weather forecasts
+          Your complete day-by-day guide with preview form drive times
         </p>
         {effectiveTripStartDate && (
           <p className="text-route66-cream text-xs mt-1">
@@ -81,24 +86,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       </div>
       
       {segments.map((segment, index) => {
-        // FIXED: Use the same drive time calculation as TripResults (working preview)
-        const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
-        const distance = segment.distance || segment.approximateMiles || 0;
+        // PREVIEW FORM LOGIC: Use exact same calculation as preview form
+        const driveTime = getPreviewFormDriveTime(segment);
+        const distance = segment.approximateMiles || segment.distance || 0;
         const segmentDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
 
-        console.log(`🔥 CONSISTENT: Rendering segment ${segment.day} for ${segment.endCity}`, {
+        console.log(`🔥 PREVIEW FORM: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           segmentDate: segmentDate.toISOString(),
-          hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          consistentWeatherDisplay: true,
-          drivingTime: segment.drivingTime,
-          driveTimeHours: segment.driveTimeHours,
-          actualDriveTime: drivingTime
+          previewFormDriveTime: driveTime,
+          approximateMiles: segment.approximateMiles,
+          distance: segment.distance
         });
 
         return (
-          <div key={`consistent-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`preview-form-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -128,7 +131,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 
                 <div className="text-center p-3 bg-gray-50 rounded border">
                   <div className="text-lg font-bold text-purple-600">
-                    ⏱️ {formatTime(drivingTime)}
+                    ⏱️ {driveTime}
                   </div>
                   <div className="text-xs text-gray-600">Drive Time</div>
                 </div>

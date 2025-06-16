@@ -23,26 +23,28 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // FIXED: Use the same drive time calculation as TripResults (working preview)
-  const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
-  
-  // FIXED: Use the same formatTime function as TripResults
-  const formatTime = (hours?: number): string => {
-    if (!hours) return 'N/A';
+  // PREVIEW FORM LOGIC: Use exact same calculation as preview form
+  const getPreviewFormDriveTime = (): string => {
+    const miles = segment.approximateMiles || segment.distance || 0;
+    const hours = miles / 60; // Same calculation as preview form
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
-    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    
+    if (minutes > 0) {
+      return `${wholeHours}h ${minutes}m`;
+    }
+    return `${wholeHours}h`;
   };
 
-  const consistentFormattedTime = formatTime(drivingTime);
+  const previewFormTime = getPreviewFormDriveTime();
+  const driveTimeHours = (segment.approximateMiles || segment.distance || 0) / 60;
 
-  console.log('📊 FIXED: DaySegmentCardStats using SAME logic as working preview:', {
+  console.log('📊 PREVIEW FORM: DaySegmentCardStats using PREVIEW FORM logic:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    drivingTime: segment.drivingTime,
-    driveTimeHours: segment.driveTimeHours,
-    actualDriveTime: drivingTime,
-    consistentFormattedTime,
+    approximateMiles: segment.approximateMiles,
+    distance: segment.distance,
+    previewFormTime,
     originalFormattedTime: formattedDriveTime
   });
 
@@ -54,11 +56,11 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
       </div>
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
-        <span className={drivingTime > 7 ? driveTimeStyle.text : ''}>
-          {consistentFormattedTime} driving
+        <span className={driveTimeHours > 7 ? driveTimeStyle.text : ''}>
+          {previewFormTime} driving
         </span>
       </div>
-      {drivingTime > 7 && (
+      {driveTimeHours > 7 && (
         <div className="flex items-center gap-1 text-orange-600">
           <AlertTriangle className="h-4 w-4" />
           <span className="text-xs font-medium">Long Drive Day</span>

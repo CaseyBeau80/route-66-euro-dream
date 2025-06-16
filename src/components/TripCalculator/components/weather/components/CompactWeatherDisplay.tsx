@@ -91,38 +91,19 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
     return validation;
   }, [weather, segmentDate, segment.endCity]);
 
-  // CONSISTENT: Use same drive time calculation and format as shared views
+  // PREVIEW FORM LOGIC: Calculate drive time using preview form logic
   const displayDriveTime = React.useMemo(() => {
-    console.log(`🚗 COMPACT DRIVE TIME DEBUG for ${segment.endCity}:`, {
-      segmentData: {
-        driveTimeHours: segment.driveTimeHours,
-        drivingTime: segment.drivingTime,
-        distance: segment.distance,
-        startCity: segment.startCity,
-        endCity: segment.endCity,
-        day: segment.day
-      },
-      hasValidDriveTime: typeof (segment.drivingTime || segment.driveTimeHours) === 'number' && (segment.drivingTime || segment.driveTimeHours) > 0,
-      hasValidDistance: typeof segment.distance === 'number' && segment.distance > 0
-    });
+    const miles = segment.approximateMiles || segment.distance || 0;
+    const hours = miles / 60; // Same calculation as preview form
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
     
-    // CONSISTENT: Use same drive time calculation as shared views
-    const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
+    const result = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
     
-    // CONSISTENT: Use same formatTime function as shared views
-    const formatTime = (hours?: number): string => {
-      if (!hours) return 'N/A';
-      const wholeHours = Math.floor(hours);
-      const minutes = Math.round((hours - wholeHours) * 60);
-      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-    };
-    
-    const result = formatTime(drivingTime);
-    
-    console.log(`🚗 COMPACT FINAL DRIVE TIME for ${segment.endCity}: ${result}`);
+    console.log(`🚗 PREVIEW FORM: COMPACT drive time for ${segment.endCity}: ${result}`);
     
     return result;
-  }, [segment]);
+  }, [segment.approximateMiles, segment.distance]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -225,7 +206,7 @@ const CompactWeatherDisplay: React.FC<CompactWeatherDisplayProps> = ({
 
         {/* Debug info for troubleshooting */}
         <div className="mt-2 text-xs text-gray-500 bg-white bg-opacity-50 p-1 rounded">
-          Debug: {isLiveForecast ? 'LIVE' : 'HISTORICAL'} | Source: {normalizedWeather.source} | Actual: {String(normalizedWeather.isActualForecast)} | Drive: {displayDriveTime}
+          Debug: {isLiveForecast ? 'LIVE' : 'HISTORICAL'} | Source: {normalizedWeather.source} | Drive: {displayDriveTime}
         </div>
       </div>
     );

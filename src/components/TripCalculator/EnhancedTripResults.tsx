@@ -91,19 +91,20 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // CONSISTENT: Use same drive time calculation and formatting as shared views
-  let totalDrivingTime = tripPlan.totalDrivingTime || 0;
-  
-  // If totalDrivingTime is 0 or invalid, calculate it from segments
-  if (!totalDrivingTime && tripPlan.segments?.length > 0) {
-    totalDrivingTime = tripPlan.segments.reduce((total, segment) => {
-      const segmentDriveTime = segment.drivingTime || segment.driveTimeHours || 0;
-      return total + segmentDriveTime;
+  // PREVIEW FORM LOGIC: Calculate total drive time using preview form logic
+  const getPreviewFormTotalDriveTime = (): number => {
+    if (!tripPlan.segments?.length) return 0;
+    
+    return tripPlan.segments.reduce((total, segment) => {
+      const miles = segment.approximateMiles || segment.distance || 0;
+      const hours = miles / 60; // Same calculation as preview form
+      return total + hours;
     }, 0);
-    console.log(`🔧 CONSISTENT: Calculated total drive time: ${totalDrivingTime.toFixed(1)}h`);
-  }
+  };
   
-  // CONSISTENT: Use same formatTime function as shared views
+  const totalDrivingTime = getPreviewFormTotalDriveTime();
+  
+  // PREVIEW FORM LOGIC: Use same formatTime function as preview form
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
@@ -111,11 +112,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
   
-  console.log('🚗 CONSISTENT: Drive time check in EnhancedTripResults:', {
+  console.log('🚗 PREVIEW FORM: Drive time check in EnhancedTripResults:', {
     totalDrivingTime,
     formatted: formatTime(totalDrivingTime),
     segmentCount: tripPlan.segments?.length,
-    usingConsistentLogic: true
+    usingPreviewFormLogic: true
   });
 
   return (
