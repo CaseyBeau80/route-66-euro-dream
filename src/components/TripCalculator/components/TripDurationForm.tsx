@@ -59,10 +59,10 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         <Input
           type="number"
           min="2"
-          max="30"
+          max="14"
           value={formData.travelDays > 0 ? formData.travelDays : ''}
           onChange={handleDaysChange}
-          placeholder="Enter number of days (2-30)"
+          placeholder="Enter number of days (2-14)"
           className={`w-full ${
             !isValid ? 'border-red-300 focus:border-red-500' : ''
           }`}
@@ -117,7 +117,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       )}
       
       <p className="text-xs text-route66-text-secondary">
-        How many days do you want to spend on your Route 66 adventure? We'll recommend the minimum based on your route and style.
+        How many days do you want to spend on your Route 66 adventure? Maximum 14 days supported for optimal trip planning.
       </p>
     </div>
   );

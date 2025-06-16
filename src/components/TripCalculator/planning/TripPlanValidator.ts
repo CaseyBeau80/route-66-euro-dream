@@ -102,8 +102,8 @@ export class TripPlanValidator {
       throw new Error('Both start and end cities must be specified.');
     }
 
-    if (tripDays <= 0 || tripDays > 30) {
-      throw new Error('Trip duration must be between 1 and 30 days.');
+    if (tripDays <= 0 || tripDays > 14) { // Updated from 30 to 14 days
+      throw new Error('Trip duration must be between 1 and 14 days.');
     }
 
     if (!tripStartDate) {

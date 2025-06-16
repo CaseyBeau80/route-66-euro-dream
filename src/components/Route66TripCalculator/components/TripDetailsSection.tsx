@@ -41,7 +41,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           value={travelDays}
           onChange={(e) => onTravelDaysChange(parseInt(e.target.value) || 0)}
           min="1"
-          max="30"
+          max="14"
           className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent"
         />
       </div>

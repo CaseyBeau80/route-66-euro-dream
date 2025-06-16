@@ -27,8 +27,8 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     },
     {
       id: 'travel-days',
-      label: 'Trip duration set (1-30 days)',
-      isValid: formData.travelDays > 0 && formData.travelDays <= 30,
+      label: 'Trip duration set (1-14 days)',
+      isValid: formData.travelDays > 0 && formData.travelDays <= 14,
       value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not set'
     },
     {

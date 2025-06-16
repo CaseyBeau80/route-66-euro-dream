@@ -13,7 +13,7 @@ export interface DayValidationResult {
 
 export class TravelDayValidator {
   private static readonly ABSOLUTE_MIN_DAYS = 2;
-  private static readonly ABSOLUTE_MAX_DAYS = 30;
+  private static readonly ABSOLUTE_MAX_DAYS = 14; // Updated from 30 to 14 days
   private static readonly MAX_DAILY_DRIVE_HOURS = 10; // Safety limit
   
   /**
@@ -50,7 +50,7 @@ export class TravelDayValidator {
     const minDaysForStyle = Math.ceil(estimatedDistance / (styleConfig.maxDailyDriveHours * 50));
     const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForStyle);
     
-    // Calculate maximum recommended days (don't make it too slow)
+    // Calculate maximum recommended days (capped at 14 days)
     const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
     
     // Check absolute bounds
@@ -73,7 +73,7 @@ export class TravelDayValidator {
       recommendations.push('Consider more days to stay under 10 hours of daily driving');
     }
     
-    // Check if too many days
+    // Check if too many days (updated for 14-day limit)
     if (requestedDays > maxDaysRecommended) {
       recommendations.push(`${requestedDays} days might be quite leisurely for this distance`);
     }

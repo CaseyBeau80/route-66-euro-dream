@@ -24,7 +24,7 @@ const PlanningDetailsSection: React.FC<PlanningDetailsSectionProps> = ({
             id="trip-duration"
             type="number"
             min="1"
-            max="30"
+            max="14"
             value={formData.tripDuration}
             onChange={(e) => setFormData({ 
               ...formData, 
@@ -72,11 +72,11 @@ const PlanningDetailsSection: React.FC<PlanningDetailsSectionProps> = ({
         </div>
       )}
       
-      {/* Data refresh hint for debugging */}
+      {/* Updated tip for 14-day limit */}
       <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
         <p className="text-xs text-blue-600">
-          💡 <strong>Tip:</strong> If you don't see a city in the dropdown, it may need to be added to our destination cities database. 
-          Try refreshing the page to reload the latest city data.
+          💡 <strong>Tip:</strong> Maximum 14 days supported for optimal Route 66 trip planning. 
+          If you don't see a city in the dropdown, try refreshing to reload the latest city data.
         </p>
       </div>
     </div>
