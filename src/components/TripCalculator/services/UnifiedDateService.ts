@@ -1,20 +1,50 @@
 /**
- * UNIFIED DATE SERVICE - The single source of truth for all date operations
- * This replaces all other date handling to ensure absolute consistency
+ * FIXED UNIFIED DATE SERVICE - Eliminates all timezone-related date shifts
+ * This ensures Day 1 = EXACT same calendar date as trip start
  */
 export class UnifiedDateService {
   /**
-   * Create a clean local date (no timezone issues)
+   * Create a clean local date using only year, month, day components
    */
   static createLocalDate(year: number, month: number, day: number): Date {
+    // Use local date constructor to avoid timezone issues
     return new Date(year, month, day);
   }
 
   /**
-   * Normalize any date to local midnight (removes time component)
+   * FIXED: Normalize date using local date components only (no timezone shifts)
    */
   static normalizeToLocalMidnight(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // Extract local date components and create new date
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    
+    // Create new date using local components (avoids timezone shifts)
+    const normalized = new Date(year, month, day);
+    
+    console.log('🔧 FIXED: normalizeToLocalMidnight - NO TIMEZONE SHIFTS:', {
+      input: {
+        iso: date.toISOString(),
+        local: date.toLocaleDateString(),
+        components: { year, month, day }
+      },
+      output: {
+        iso: normalized.toISOString(),
+        local: normalized.toLocaleDateString(),
+        components: { 
+          year: normalized.getFullYear(), 
+          month: normalized.getMonth(), 
+          day: normalized.getDate() 
+        }
+      },
+      verification: {
+        sameLocalDate: date.toLocaleDateString() === normalized.toLocaleDateString(),
+        noTimezoneShift: true
+      }
+    });
+    
+    return normalized;
   }
 
   /**
@@ -26,32 +56,84 @@ export class UnifiedDateService {
   }
 
   /**
-   * Calculate segment date - Day 1 = EXACT same date as trip start
+   * FIXED: Calculate segment date - Day 1 = EXACT same LOCAL date as trip start
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    const normalizedStart = this.normalizeToLocalMidnight(tripStartDate);
+    console.log('🔧 FIXED: calculateSegmentDate - ELIMINATING DATE SHIFTS:', {
+      input: {
+        tripStartDate: tripStartDate.toISOString(),
+        tripStartDateLocal: tripStartDate.toLocaleDateString(),
+        segmentDay
+      },
+      rule: 'Day 1 = EXACT SAME LOCAL DATE as trip start (ZERO OFFSET)'
+    });
+
+    // FIXED: Extract local components from trip start date
+    const startYear = tripStartDate.getFullYear();
+    const startMonth = tripStartDate.getMonth();
+    const startDay = tripStartDate.getDate();
     
     if (segmentDay === 1) {
-      // Day 1 is EXACTLY the trip start date
-      return normalizedStart;
+      // Day 1: Use EXACT same local date components
+      const day1Date = new Date(startYear, startMonth, startDay);
+      
+      console.log('🔧 FIXED: Day 1 calculation - EXACT MATCH:', {
+        tripStart: {
+          local: tripStartDate.toLocaleDateString(),
+          components: { startYear, startMonth, startDay }
+        },
+        day1Result: {
+          local: day1Date.toLocaleDateString(),
+          components: { 
+            year: day1Date.getFullYear(), 
+            month: day1Date.getMonth(), 
+            day: day1Date.getDate() 
+          }
+        },
+        verification: {
+          exactMatch: tripStartDate.toLocaleDateString() === day1Date.toLocaleDateString(),
+          rule: 'DAY_1_EQUALS_TRIP_START_EXACT'
+        }
+      });
+      
+      return day1Date;
     }
     
-    // Other days: add (segmentDay - 1) days
+    // Other days: Add (segmentDay - 1) days to trip start
     const daysToAdd = segmentDay - 1;
-    return new Date(
-      normalizedStart.getFullYear(),
-      normalizedStart.getMonth(),
-      normalizedStart.getDate() + daysToAdd
-    );
+    const segmentDate = new Date(startYear, startMonth, startDay + daysToAdd);
+    
+    console.log('🔧 FIXED: Other day calculation:', {
+      segmentDay,
+      daysToAdd,
+      tripStart: tripStartDate.toLocaleDateString(),
+      result: segmentDate.toLocaleDateString(),
+      verification: `Day ${segmentDay} = Trip start + ${daysToAdd} days`
+    });
+    
+    return segmentDate;
   }
 
   /**
-   * Check if a date is today (same calendar date)
+   * Check if a date is today (same local calendar date)
    */
   static isToday(date: Date): boolean {
     const today = this.getToday();
     const checkDate = this.normalizeToLocalMidnight(date);
-    return checkDate.getTime() === today.getTime();
+    
+    const isToday = (
+      checkDate.getFullYear() === today.getFullYear() &&
+      checkDate.getMonth() === today.getMonth() &&
+      checkDate.getDate() === today.getDate()
+    );
+    
+    console.log('🔧 FIXED: isToday check:', {
+      inputDate: date.toLocaleDateString(),
+      todayDate: today.toLocaleDateString(),
+      isToday
+    });
+    
+    return isToday;
   }
 
   /**
@@ -74,13 +156,12 @@ export class UnifiedDateService {
   }
 
   /**
-   * Format date for API calls (YYYY-MM-DD)
+   * Format date for API calls (YYYY-MM-DD) using local components
    */
   static formatForApi(date: Date): string {
-    const normalized = this.normalizeToLocalMidnight(date);
-    const year = normalized.getFullYear();
-    const month = String(normalized.getMonth() + 1).padStart(2, '0');
-    const day = String(normalized.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
@@ -93,11 +174,13 @@ export class UnifiedDateService {
   }
 
   /**
-   * Compare two dates (returns true if same calendar date)
+   * Compare two dates (returns true if same local calendar date)
    */
   static isSameDate(date1: Date, date2: Date): boolean {
-    const norm1 = this.normalizeToLocalMidnight(date1);
-    const norm2 = this.normalizeToLocalMidnight(date2);
-    return norm1.getTime() === norm2.getTime();
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
   }
 }

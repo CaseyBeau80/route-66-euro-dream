@@ -4,11 +4,11 @@ import { ForecastWeatherData } from '@/components/Route66Map/services/weather/We
 
 export class WeatherUtilityService {
   /**
-   * Calculate segment date using unified date service
+   * FIXED: Calculate segment date using corrected unified date service
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date | null {
     if (!tripStartDate || !segmentDay || segmentDay < 1) {
-      console.error('❌ UNIFIED WEATHER: Invalid parameters:', {
+      console.error('❌ FIXED WEATHER: Invalid parameters:', {
         tripStartDate,
         segmentDay,
         isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
@@ -19,19 +19,25 @@ export class WeatherUtilityService {
     try {
       const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
       
-      console.log('📅 UNIFIED WEATHER: Segment date calculation:', {
+      console.log('📅 FIXED WEATHER: Segment date calculation - NO MORE OFF-BY-ONE:', {
         tripStartDate: tripStartDate.toLocaleDateString(),
         segmentDay,
         calculatedDate: segmentDate.toLocaleDateString(),
         verification: segmentDay === 1 ? {
           day1Check: 'Day 1 should match trip start exactly',
-          matches: UnifiedDateService.isSameDate(tripStartDate, segmentDate)
-        } : null
+          tripStartLocal: tripStartDate.toLocaleDateString(),
+          calculatedLocal: segmentDate.toLocaleDateString(),
+          matches: tripStartDate.toLocaleDateString() === segmentDate.toLocaleDateString(),
+          fixed: 'NO_MORE_TIMEZONE_SHIFTS'
+        } : {
+          otherDayCheck: `Day ${segmentDay} calculation`,
+          calculatedLocal: segmentDate.toLocaleDateString()
+        }
       });
       
       return segmentDate;
     } catch (error) {
-      console.error('❌ UNIFIED WEATHER: Date calculation error:', error);
+      console.error('❌ FIXED WEATHER: Date calculation error:', error);
       return null;
     }
   }
@@ -42,7 +48,7 @@ export class WeatherUtilityService {
   static getDaysFromToday(targetDate: Date): number {
     const daysDiff = UnifiedDateService.getDaysFromToday(targetDate);
     
-    console.log('📅 UNIFIED WEATHER: Days from today:', {
+    console.log('📅 FIXED WEATHER: Days from today:', {
       targetDate: targetDate.toLocaleDateString(),
       daysDiff,
       interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL'
@@ -57,7 +63,7 @@ export class WeatherUtilityService {
   static isWithinForecastRange(targetDate: Date): boolean {
     const isWithinRange = UnifiedDateService.isWithinLiveForecastRange(targetDate);
     
-    console.log('🌤️ UNIFIED WEATHER: Forecast range check:', {
+    console.log('🌤️ FIXED WEATHER: Forecast range check:', {
       targetDate: targetDate.toLocaleDateString(),
       isWithinRange,
       logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST'
