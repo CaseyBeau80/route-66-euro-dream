@@ -33,9 +33,8 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
   };
 
   const formatDriveTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
+    const roundedHours = Math.round(hours);
+    return `${roundedHours}h`;
   };
 
   // Calculate total driving time from segments - using the same logic as the first screenshot
