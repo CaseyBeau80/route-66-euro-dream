@@ -48,7 +48,11 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-green-700">
           <CheckCircle className="h-5 w-5" />
-          <span className="font-medium">Ready to plan your Route 66 adventure!</span>
+          <span className="font-medium">
+            Ready to plan your Route 66 adventure! 
+            {formData.tripStyle === 'destination-focused' && 
+              ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
+          </span>
         </div>
       </div>
     );
@@ -70,6 +74,12 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
               </li>
             ))}
           </ul>
+          {formData.tripStyle === 'destination-focused' && (
+            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+              💡 <strong>Destination-Focused Mode:</strong> Your trip will prioritize major Route 66 heritage cities 
+              and canonical destinations for an authentic Mother Road experience. Maximum 14 days for optimal planning.
+            </div>
+          )}
         </div>
       </div>
     </div>

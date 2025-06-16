@@ -8,6 +8,7 @@ import { Route66CityClassifier } from './Route66CityClassifier';
 import { Route66SequenceValidator } from './utils/Route66SequenceValidator';
 import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';
 import { EnhancedDestinationSelector } from './EnhancedDestinationSelector';
+import { CanonicalRoute66Cities } from './CanonicalRoute66Cities';
 
 export interface DestinationFocusedResult {
   tripPlan: TripPlan;
@@ -29,13 +30,19 @@ export interface DestinationFocusedResult {
     violations: string[];
     sequenceQuality: 'excellent' | 'good' | 'fair' | 'poor';
   };
+  canonicalCoverage?: {
+    includedCanonical: number;
+    totalCanonical: number;
+    majorIncluded: number;
+    coverage: number;
+  };
 }
 
 export class DestinationFocusedPlanningService {
   private static readonly AVG_SPEED_MPH = 50;
 
   /**
-   * Create a destination-focused trip plan with Route 66 sequence enforcement
+   * Create a destination-focused trip plan with canonical Route 66 cities and 14-day maximum
    */
   static createDestinationFocusedPlan(
     startStop: TripStop,
@@ -45,19 +52,29 @@ export class DestinationFocusedPlanningService {
     inputStartCity: string,
     inputEndCity: string
   ): DestinationFocusedResult {
-    console.log(`🏙️ Creating SEQUENCE-AWARE destination-focused trip plan: ${inputStartCity} → ${inputEndCity} in ${requestedDays} days`);
+    console.log(`🏙️ CANONICAL DESTINATION-FOCUSED: ${inputStartCity} → ${inputEndCity} in ${requestedDays} days (max 14)`);
 
-    // STEP 1: Use enhanced destination selector with sequence enforcement
+    // Enforce 14-day maximum
+    const effectiveDays = Math.min(requestedDays, 14);
+    if (effectiveDays < requestedDays) {
+      console.log(`⚠️ CANONICAL: Limiting trip to ${effectiveDays} days (14-day maximum enforced)`);
+    }
+
+    // STEP 1: Use enhanced destination selector with canonical city prioritization
     const selectedDestinationCities = EnhancedDestinationSelector.selectDestinationCitiesForTrip(
       startStop,
       endStop,
       allStops,
-      requestedDays
+      effectiveDays
     );
 
-    console.log(`🎯 SEQUENCE-SELECTED: ${selectedDestinationCities.length} destination cities with proper Route 66 order`);
+    console.log(`🎯 CANONICAL SELECTED: ${selectedDestinationCities.length} destination cities with canonical prioritization`);
 
-    // STEP 2: Validate sequence integrity before proceeding
+    // STEP 2: Get canonical coverage analysis
+    const canonicalCoverage = CanonicalRoute66Cities.getDestinationCoverage(selectedDestinationCities);
+    console.log(`📊 CANONICAL COVERAGE: ${canonicalCoverage.coverage}% (${canonicalCoverage.includedCanonical}/${canonicalCoverage.totalCanonical} destinations)`);
+
+    // STEP 3: Validate sequence integrity
     const sequenceIntegrity = Route66SequenceEnforcer.validateTripSequenceIntegrity(
       startStop,
       selectedDestinationCities,
@@ -65,27 +82,26 @@ export class DestinationFocusedPlanningService {
     );
 
     if (!sequenceIntegrity.isValid) {
-      console.warn(`⚠️ SEQUENCE INTEGRITY ISSUES:`, sequenceIntegrity.violations);
+      console.warn(`⚠️ CANONICAL SEQUENCE ISSUES:`, sequenceIntegrity.violations);
     }
 
-    // Filter to exclude start and end stops from available stops for optimization
-    const availableStops = allStops.filter(stop => 
-      stop.id !== startStop.id && stop.id !== endStop.id
+    // STEP 4: Protect from over-filtering by ensuring minimum destination coverage
+    const protectedDestinations = this.protectFromOverFiltering(
+      selectedDestinationCities,
+      allStops,
+      effectiveDays,
+      canonicalCoverage
     );
 
-    console.log(`🎯 Found ${availableStops.length} available stops for optimization`);
-
-    // Use the new optimizer with sequence-validated destinations
+    // STEP 5: Use optimizer with protected destinations
     const optimizationResult = ConsecutiveMajorCitiesOptimizer.optimizeRoute(
       startStop,
       endStop,
-      selectedDestinationCities.length > 0 ? selectedDestinationCities : availableStops,
-      requestedDays
+      protectedDestinations,
+      effectiveDays
     );
 
-    console.log(`🏙️ Optimization complete: ${optimizationResult.optimizedStops.length} stops selected`);
-    console.log(`🔗 Consecutive pairs: ${optimizationResult.consecutivePairs.length}`);
-    console.log(`📍 Gap fillers: ${optimizationResult.gapFillers.length}`);
+    console.log(`🏙️ CANONICAL OPTIMIZATION: ${optimizationResult.optimizedStops.length} stops selected with ${optimizationResult.consecutivePairs.length} consecutive pairs`);
 
     // Create segments using optimized stops
     const segments = this.createOptimizedDestinationSegments(
@@ -96,49 +112,43 @@ export class DestinationFocusedPlanningService {
       optimizationResult
     );
 
-    // STEP 3: Enforce Route 66 sequence order in final segments
+    // STEP 6: Enforce Route 66 sequence order in final segments
     const sequenceEnforcement = Route66SequenceEnforcer.enforceSequenceOrder(segments);
-    console.log(`🔒 SEQUENCE ENFORCEMENT: ${sequenceEnforcement.summary}`);
+    console.log(`🔒 CANONICAL SEQUENCE ENFORCEMENT: ${sequenceEnforcement.summary}`);
 
-    // Add sequence violations to warnings
-    const sequenceWarnings = sequenceEnforcement.violations.map(v => 
-      `Day ${v.day}: Sequence violation ${v.from} → ${v.to} (${v.violation})`
+    // Generate warnings with canonical context
+    const warnings = this.generateCanonicalWarnings(
+      optimizationResult, 
+      sequenceEnforcement, 
+      canonicalCoverage,
+      effectiveDays,
+      requestedDays
     );
 
-    // Calculate total distance
+    // Calculate route gaps and assessment
+    const allDestinations = [startStop, ...optimizationResult.optimizedStops, endStop];
+    const routeGaps = GapDetectionService.detectRouteGaps(allDestinations);
+    const baseAssessment = GapDetectionService.getRouteAssessment(routeGaps);
+    
+    // Enhance assessment with canonical coverage
+    const enhancedAssessment = this.enhanceRouteAssessmentWithCanonical(
+      baseAssessment, 
+      optimizationResult, 
+      sequenceEnforcement,
+      canonicalCoverage
+    );
+
+    // Calculate total distance and metrics
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
 
-    // Detect route gaps and generate warnings
-    const allDestinations = [startStop, ...optimizationResult.optimizedStops, endStop];
-    const routeGaps = GapDetectionService.detectRouteGaps(allDestinations);
-    const warnings = GapDetectionService.generateGapWarnings(routeGaps);
-    
-    // Add optimization-specific warnings
-    const optimizationWarnings = this.generateOptimizationWarnings(optimizationResult);
-    warnings.push(...optimizationWarnings);
-    
-    // Add sequence warnings
-    warnings.push(...sequenceWarnings);
-
-    const routeAssessment = GapDetectionService.getRouteAssessment(routeGaps);
-
-    // Enhance route assessment with consecutive city analysis and sequence validation
-    const enhancedAssessment = this.enhanceRouteAssessment(routeAssessment, optimizationResult, sequenceEnforcement);
-
-    console.log(`⚠️ Enhanced route assessment: ${enhancedAssessment.summary} (${optimizationResult.consecutivePairs.length} consecutive pairs, sequence: ${sequenceEnforcement.isValid ? 'valid' : 'invalid'})`);
-
-    // Calculate total metrics
     const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
 
-    // Get sequence quality summary
-    const sequenceQualitySummary = Route66SequenceEnforcer.getSequenceEnforcementSummary(segments);
-
     const tripPlan: TripPlan = {
-      id: `sequence-optimized-trip-${Math.random().toString(36).substring(2, 9)}`,
-      title: `${inputStartCity} to ${inputEndCity} - Sequence-Validated Route 66 Heritage Journey`,
+      id: `canonical-destination-trip-${Math.random().toString(36).substring(2, 9)}`,
+      title: `${inputStartCity} to ${inputEndCity} - Canonical Route 66 Heritage Journey`,
       startCity: inputStartCity,
       endCity: inputEndCity,
       startDate: new Date(),
@@ -148,7 +158,7 @@ export class DestinationFocusedPlanningService {
       totalDrivingTime: parseFloat(totalDrivingTime.toFixed(1)),
       segments,
       dailySegments: segments,
-      driveTimeBalance: this.calculateOptimizedDestinationBalance(segments, enhancedAssessment, optimizationResult)
+      driveTimeBalance: this.calculateCanonicalDestinationBalance(segments, enhancedAssessment, canonicalCoverage)
     };
 
     return {
@@ -165,8 +175,198 @@ export class DestinationFocusedPlanningService {
       sequenceValidation: {
         isValid: sequenceEnforcement.isValid,
         violations: sequenceEnforcement.violations.map(v => `Day ${v.day}: ${v.violation}`),
-        sequenceQuality: sequenceQualitySummary.sequenceQuality
+        sequenceQuality: sequenceEnforcement.isValid ? 'excellent' : 'fair'
+      },
+      canonicalCoverage
+    };
+  }
+
+  /**
+   * Protect from over-filtering by ensuring minimum canonical destination coverage
+   */
+  private static protectFromOverFiltering(
+    selectedDestinations: TripStop[],
+    allStops: TripStop[],
+    effectiveDays: number,
+    canonicalCoverage: any
+  ): TripStop[] {
+    console.log(`🛡️ PROTECTION: Analyzing coverage for ${effectiveDays} days`);
+    
+    // If we have good canonical coverage, use selected destinations
+    if (canonicalCoverage.coverage >= 50 && selectedDestinations.length >= Math.min(effectiveDays - 1, 5)) {
+      console.log(`✅ PROTECTION: Good coverage (${canonicalCoverage.coverage}%), using selected destinations`);
+      return selectedDestinations;
+    }
+
+    // If under-filtered, add more canonical destinations
+    console.log(`⚠️ PROTECTION: Low coverage (${canonicalCoverage.coverage}%), adding more canonical destinations`);
+    
+    const allCanonicalStops = CanonicalRoute66Cities.matchStopsToCanonical(allStops);
+    const additionalStops: TripStop[] = [];
+    const maxNeeded = Math.min(effectiveDays - 1, 8); // Cap at reasonable number
+    
+    // Add high-priority canonical destinations not already included
+    for (const canonical of CanonicalRoute66Cities.getForcedInclusionDestinations()) {
+      if (additionalStops.length + selectedDestinations.length >= maxNeeded) break;
+      
+      const alreadyIncluded = selectedDestinations.some(stop => 
+        CanonicalRoute66Cities.isCanonicalDestination(stop.city_name || stop.name, stop.state)
+      );
+      
+      if (!alreadyIncluded) {
+        const matchingStop = allCanonicalStops.find(stop => 
+          CanonicalRoute66Cities.isCanonicalDestination(stop.city_name || stop.name, stop.state) &&
+          (stop.name.toLowerCase().includes(canonical.name.toLowerCase()) ||
+           stop.city_name.toLowerCase().includes(canonical.name.toLowerCase())) &&
+          stop.state.toLowerCase() === canonical.state.toLowerCase()
+        );
+        
+        if (matchingStop) {
+          additionalStops.push(matchingStop);
+          console.log(`✅ PROTECTION: Added canonical destination ${canonical.name}, ${canonical.state}`);
+        }
       }
+    }
+    
+    const protectedDestinations = [...selectedDestinations, ...additionalStops];
+    console.log(`🛡️ PROTECTION: Final count ${protectedDestinations.length} destinations (added ${additionalStops.length})`);
+    
+    return protectedDestinations;
+  }
+
+  /**
+   * Generate canonical-aware warnings
+   */
+  private static generateCanonicalWarnings(
+    optimizationResult: any,
+    sequenceEnforcement: any,
+    canonicalCoverage: any,
+    effectiveDays: number,
+    requestedDays: number
+  ): string[] {
+    const warnings: string[] = [];
+    
+    // 14-day limit warning
+    if (effectiveDays < requestedDays) {
+      warnings.push(`Trip limited to ${effectiveDays} days (14-day maximum for optimal planning)`);
+    }
+    
+    // Canonical coverage warnings
+    if (canonicalCoverage.coverage < 30) {
+      warnings.push(`Low canonical destination coverage (${canonicalCoverage.coverage}%) - consider more days for full Route 66 experience`);
+    }
+    
+    if (canonicalCoverage.majorIncluded < 3) {
+      warnings.push(`Only ${canonicalCoverage.majorIncluded} major Route 66 destinations included - consider extending trip for more heritage cities`);
+    }
+    
+    // Optimization warnings
+    if (optimizationResult.gapFillers.length > 0) {
+      const longGaps = optimizationResult.gapFillers.filter((f: any) => f.gapHours > 9);
+      if (longGaps.length > 0) {
+        warnings.push(`${longGaps.length} drive days exceed 9 hours due to canonical destination prioritization`);
+      }
+    }
+    
+    // Sequence warnings
+    if (!sequenceEnforcement.isValid) {
+      warnings.push(`Route contains ${sequenceEnforcement.violations.length} sequence violations - some backtracking may occur`);
+    }
+    
+    return warnings;
+  }
+
+  /**
+   * Enhance route assessment with canonical coverage context
+   */
+  private static enhanceRouteAssessmentWithCanonical(
+    baseAssessment: any,
+    optimizationResult: any,
+    sequenceEnforcement: any,
+    canonicalCoverage: any
+  ) {
+    let enhancedSummary = baseAssessment.summary;
+    
+    // Add canonical coverage context
+    enhancedSummary += ` Features ${canonicalCoverage.includedCanonical} canonical Route 66 destinations (${canonicalCoverage.coverage}% coverage) including ${canonicalCoverage.majorIncluded} major heritage cities.`;
+    
+    if (optimizationResult.consecutivePairs.length > 0) {
+      enhancedSummary += ` Includes ${optimizationResult.consecutivePairs.length} consecutive major city connections for authentic Route 66 heritage experience.`;
+    }
+
+    // Sequence validation context
+    if (sequenceEnforcement.isValid) {
+      enhancedSummary += ` ✅ Maintains proper Route 66 sequence order.`;
+    } else {
+      enhancedSummary += ` ⚠️ Contains some sequence variations for optimal destination coverage.`;
+    }
+    
+    // Adjust recommendation based on canonical coverage
+    const isRecommended = baseAssessment.isRecommended && 
+                         canonicalCoverage.coverage >= 40 &&
+                         canonicalCoverage.majorIncluded >= 2;
+    
+    return {
+      ...baseAssessment,
+      isRecommended,
+      summary: enhancedSummary,
+      canonicalCoverage: canonicalCoverage.coverage,
+      majorDestinations: canonicalCoverage.majorIncluded
+    };
+  }
+
+  /**
+   * Calculate drive time balance with canonical destination context
+   */
+  private static calculateCanonicalDestinationBalance(
+    segments: DailySegment[], 
+    routeAssessment: any, 
+    canonicalCoverage: any
+  ): DriveTimeBalance {
+    const driveTimes = segments.map(seg => seg.driveTimeHours);
+    const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
+    const maxTime = Math.max(...driveTimes);
+
+    // Score based on canonical coverage and heritage value
+    const canonicalBonus = canonicalCoverage.coverage;
+    const majorCityBonus = canonicalCoverage.majorIncluded * 15;
+    const sequenceBonus = routeAssessment.isRecommended ? 20 : -10;
+    const safetyPenalty = Math.max(0, maxTime - 10) * 20;
+    
+    const isBalanced = maxTime <= 10 && canonicalCoverage.coverage >= 40;
+
+    const balanceQuality: 'excellent' | 'good' | 'fair' | 'poor' = 
+      isBalanced && canonicalCoverage.coverage >= 60 && canonicalCoverage.majorIncluded >= 4 ? 'excellent' :
+      isBalanced && canonicalCoverage.coverage >= 50 && canonicalCoverage.majorIncluded >= 3 ? 'good' :
+      isBalanced && canonicalCoverage.coverage >= 40 ? 'fair' : 'poor';
+
+    const overallScore = Math.max(0, 
+      50 + canonicalBonus + majorCityBonus + sequenceBonus - safetyPenalty
+    );
+
+    const suggestions: string[] = [];
+    if (maxTime > 10) {
+      suggestions.push(`Day with ${maxTime.toFixed(1)}h drive exceeds safe limits`);
+    }
+    if (canonicalCoverage.coverage < 40) {
+      suggestions.push('Consider adding more days to include additional canonical Route 66 destinations');
+    }
+    if (canonicalCoverage.majorIncluded < 3) {
+      suggestions.push('Route could benefit from more major heritage cities');
+    }
+
+    return {
+      isBalanced,
+      averageDriveTime: parseFloat(averageDriveTime.toFixed(1)),
+      variance: 0, // Simplified for canonical focus
+      driveTimeRange: { min: Math.min(...driveTimes), max: maxTime },
+      balanceQuality,
+      qualityGrade: balanceQuality === 'excellent' ? 'A' : balanceQuality === 'good' ? 'B' : balanceQuality === 'fair' ? 'C' : 'D',
+      overallScore: Math.round(overallScore),
+      suggestions,
+      reason: isBalanced ? 
+        `Canonical Route 66 heritage experience with ${canonicalCoverage.coverage}% destination coverage` :
+        `Prioritizes canonical destinations but ${maxTime > 10 ? 'requires challenging drive times' : 'needs more heritage city coverage'}`
     };
   }
 
@@ -207,7 +407,7 @@ export class DestinationFocusedPlanningService {
       const sequenceValidation = Route66SequenceValidator.validateSequence(currentStop, nextStop, endStop);
       
       if (!sequenceValidation.isValid) {
-        console.warn(`⚠️ SEQUENCE WARNING Day ${day}: ${sequenceValidation.reason}`);
+        console.warn(`⚠️ CANONICAL SEQUENCE WARNING Day ${day}: ${sequenceValidation.reason}`);
       }
 
       // Calculate segment metrics
@@ -225,7 +425,7 @@ export class DestinationFocusedPlanningService {
         4
       );
 
-      // Determine drive time category with optimization context
+      // Determine drive time category with canonical context
       const driveTimeCategory = this.getOptimizedDriveTimeCategory(
         driveTimeHours,
         currentStop,
@@ -238,8 +438,8 @@ export class DestinationFocusedPlanningService {
       const currentClassification = Route66CityClassifier.classifyCity(currentStop);
       const nextClassification = Route66CityClassifier.classifyCity(nextStop);
 
-      // Create enhanced title with city tier information and sequence validation
-      const title = this.createEnhancedSegmentTitle(
+      // Create enhanced title with canonical context
+      const title = this.createCanonicalSegmentTitle(
         day,
         currentStop,
         nextStop,
@@ -269,7 +469,7 @@ export class DestinationFocusedPlanningService {
           city: stop.city || stop.city_name || 'Unknown'
         })),
         driveTimeCategory,
-        routeSection: `Historic Route 66 - ${nextStop.state} ${this.getSegmentContext(nextStop, gapFillerMap)}`
+        routeSection: `Historic Route 66 - ${nextStop.state} ${this.getCanonicalSegmentContext(nextStop, gapFillerMap)}`
       };
 
       // Add sequence validation warning if needed
@@ -278,16 +478,16 @@ export class DestinationFocusedPlanningService {
       }
 
       segments.push(segment);
-      console.log(`🏙️ Day ${day}: ${startStop.name} → ${nextStop.name} | ${segmentDistance.toFixed(1)}mi | ${driveTimeHours.toFixed(1)}h | Sequence: ${sequenceValidation.isValid ? 'Valid' : 'Invalid'}`);
+      console.log(`🏙️ CANONICAL Day ${day}: ${currentStop.name} → ${nextStop.name} | ${segmentDistance.toFixed(1)}mi | ${driveTimeHours.toFixed(1)}h`);
     }
 
     return segments;
   }
 
   /**
-   * Create enhanced segment title with sequence validation status
+   * Create enhanced segment title with canonical context
    */
-  private static createEnhancedSegmentTitle(
+  private static createCanonicalSegmentTitle(
     day: number,
     currentStop: TripStop,
     nextStop: TripStop,
@@ -298,102 +498,62 @@ export class DestinationFocusedPlanningService {
   ): string {
     const baseTitle = `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(nextStop)}`;
     
-    // Check if this is a consecutive pair
-    const pairKey = `${currentStop.id}-${nextStop.id}`;
-    const consecutivePair = consecutivePairMap.get(pairKey);
+    // Check canonical status
+    const isCanonical = CanonicalRoute66Cities.isCanonicalDestination(
+      nextStop.city_name || nextStop.name,
+      nextStop.state
+    );
+    
+    const canonicalInfo = CanonicalRoute66Cities.getDestinationInfo(
+      nextStop.city_name || nextStop.name,
+      nextStop.state
+    );
     
     // Add sequence validation indicator
     const sequenceIndicator = sequenceValidation.isValid ? '' : ' ⚠️';
     
+    if (isCanonical && canonicalInfo) {
+      if (canonicalInfo.tier === 'major') {
+        return `${baseTitle} 🏛️ Canonical Route 66 Heritage City${sequenceIndicator}`;
+      } else {
+        return `${baseTitle} 🎯 Official Route 66 Destination${sequenceIndicator}`;
+      }
+    }
+    
+    // Check if this is a consecutive pair
+    const pairKey = `${currentStop.id}-${nextStop.id}`;
+    const consecutivePair = consecutivePairMap.get(pairKey);
+    
     if (consecutivePair && consecutivePair.bonus > 0) {
-      return `${baseTitle} ⭐ Iconic Route 66 Heritage Corridor${sequenceIndicator}`;
-    }
-    
-    if (nextClassification.tier === 'major') {
-      return `${baseTitle} 🏙️ Major Route 66 Destination${sequenceIndicator}`;
-    }
-    
-    if (nextClassification.tier === 'secondary') {
-      return `${baseTitle} 🎯 Historic Route 66 Stop${sequenceIndicator}`;
+      return `${baseTitle} ⭐ Heritage Corridor Connection${sequenceIndicator}`;
     }
     
     return `${baseTitle}${sequenceIndicator}`;
   }
 
   /**
-   * Get segment context for route section
+   * Get canonical segment context for route section
    */
-  private static getSegmentContext(stop: TripStop, gapFillerMap: Map<string, any>): string {
+  private static getCanonicalSegmentContext(stop: TripStop, gapFillerMap: Map<string, any>): string {
+    const isCanonical = CanonicalRoute66Cities.isCanonicalDestination(
+      stop.city_name || stop.name,
+      stop.state
+    );
+    
+    if (isCanonical) {
+      const canonicalInfo = CanonicalRoute66Cities.getDestinationInfo(
+        stop.city_name || stop.name,
+        stop.state
+      );
+      return canonicalInfo?.tier === 'major' ? '(Canonical Heritage City)' : '(Official Destination)';
+    }
+    
     const gapFiller = gapFillerMap.get(stop.id);
     if (gapFiller) {
       return `(Strategic Stop)`;
     }
     
-    const classification = Route66CityClassifier.classifyCity(stop);
-    return classification.tier === 'major' ? '(Heritage City)' : '';
-  }
-
-  /**
-   * Generate optimization-specific warnings
-   */
-  private static generateOptimizationWarnings(optimizationResult: any): string[] {
-    const warnings: string[] = [];
-    
-    if (optimizationResult.gapFillers.length > 0) {
-      const longGaps = optimizationResult.gapFillers.filter((f: any) => f.gapHours > 9);
-      if (longGaps.length > 0) {
-        warnings.push(`${longGaps.length} drive days exceed 9 hours due to major city prioritization`);
-      }
-    }
-    
-    if (optimizationResult.consecutivePairs.length === 0) {
-      warnings.push('No consecutive major cities found - route may have long gaps between heritage destinations');
-    }
-    
-    return warnings;
-  }
-
-  /**
-   * Enhance route assessment with consecutive city analysis and sequence validation
-   */
-  private static enhanceRouteAssessment(
-    baseAssessment: any,
-    optimizationResult: any,
-    sequenceEnforcement: any
-  ) {
-    const consecutivePairs = optimizationResult.consecutivePairs.length;
-    const gapFillers = optimizationResult.gapFillers.length;
-    
-    let enhancedSummary = baseAssessment.summary;
-    
-    if (consecutivePairs > 0) {
-      enhancedSummary += ` Features ${consecutivePairs} consecutive major city pairs for authentic Route 66 heritage experience.`;
-    }
-    
-    if (gapFillers > 0) {
-      enhancedSummary += ` Includes ${gapFillers} strategic stops to maintain reasonable drive times.`;
-    }
-
-    // Add sequence validation summary
-    if (sequenceEnforcement.isValid) {
-      enhancedSummary += ` ✅ Maintains proper Route 66 sequence order with no backtracking.`;
-    } else {
-      enhancedSummary += ` ⚠️ Contains ${sequenceEnforcement.violations.length} sequence violations requiring attention.`;
-    }
-    
-    // Adjust recommendation based on optimization success and sequence validation
-    const isRecommended = baseAssessment.isRecommended && 
-                         sequenceEnforcement.isValid &&
-                         (consecutivePairs >= 2 && gapFillers <= 2);
-    
-    return {
-      ...baseAssessment,
-      isRecommended,
-      summary: enhancedSummary,
-      consecutivePairs,
-      optimizationScore: optimizationResult.priorityScore,
-      sequenceValid: sequenceEnforcement.isValid
-    };
+    return '';
   }
 
   /**
@@ -476,7 +636,7 @@ export class DestinationFocusedPlanningService {
   }
 
   /**
-   * Get optimized drive time category with context
+   * Get optimized drive time category with canonical context
    */
   private static getOptimizedDriveTimeCategory(
     driveTimeHours: number,
@@ -488,98 +648,35 @@ export class DestinationFocusedPlanningService {
     const pairKey = `${currentStop.id}-${nextStop.id}`;
     const isConsecutivePair = consecutivePairMap.has(pairKey);
     const isGapFiller = gapFillerMap.has(nextStop.id);
+    const isCanonical = CanonicalRoute66Cities.isCanonicalDestination(
+      nextStop.city_name || nextStop.name,
+      nextStop.state
+    );
     
     if (driveTimeHours <= 4) {
       return {
         category: 'short',
-        message: `${driveTimeHours.toFixed(1)} hours - ${isConsecutivePair ? 'Quick hop between major heritage cities' : 'Relaxed pace with time for attractions'}`,
+        message: `${driveTimeHours.toFixed(1)} hours - ${isCanonical ? 'Quick hop to canonical destination' : isConsecutivePair ? 'Quick hop between major heritage cities' : 'Relaxed pace with time for attractions'}`,
         color: 'text-green-800'
       };
     } else if (driveTimeHours <= 6) {
       return {
         category: 'optimal',
-        message: `${driveTimeHours.toFixed(1)} hours - ${isConsecutivePair ? 'Perfect connection between Route 66 destinations' : 'Comfortable drive with exploration time'}`,
+        message: `${driveTimeHours.toFixed(1)} hours - ${isCanonical ? 'Perfect drive to canonical Route 66 city' : isConsecutivePair ? 'Perfect connection between Route 66 destinations' : 'Comfortable drive with exploration time'}`,
         color: 'text-blue-800'
       };
     } else if (driveTimeHours <= 8) {
       return {
         category: 'long',
-        message: `${driveTimeHours.toFixed(1)} hours - ${isConsecutivePair ? 'Longer drive connecting major heritage cities' : isGapFiller ? 'Strategic stop preventing extreme drive day' : 'Substantial drive day'}`,
+        message: `${driveTimeHours.toFixed(1)} hours - ${isCanonical ? 'Longer drive for canonical destination access' : isConsecutivePair ? 'Longer drive connecting major heritage cities' : isGapFiller ? 'Strategic stop preventing extreme drive day' : 'Substantial drive day'}`,
         color: 'text-orange-800'
       };
     } else {
       return {
         category: 'extreme',
-        message: `${driveTimeHours.toFixed(1)} hours - ${isConsecutivePair ? 'Extended drive for major city connection - plan rest stops' : 'Very long drive day, consider breaking up'}`,
+        message: `${driveTimeHours.toFixed(1)} hours - ${isCanonical ? 'Extended drive for canonical destination - plan rest stops' : isConsecutivePair ? 'Extended drive for major city connection - plan rest stops' : 'Very long drive day, consider breaking up'}`,
         color: 'text-red-800'
       };
     }
-  }
-
-  /**
-   * Calculate drive time balance for optimized destination-focused trips
-   */
-  private static calculateOptimizedDestinationBalance(segments: DailySegment[], routeAssessment: any, optimizationResult: any): DriveTimeBalance {
-    const driveTimes = segments.map(seg => seg.driveTimeHours);
-    const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
-    const variance = Math.sqrt(
-      driveTimes.reduce((sum, time) => sum + Math.pow(time - averageDriveTime, 2), 0) / driveTimes.length
-    );
-
-    const minTime = Math.min(...driveTimes);
-    const maxTime = Math.max(...driveTimes);
-
-    // For optimized destination-focused, balance heritage value with safety and sequence adherence
-    const consecutivePairBonus = optimizationResult.consecutivePairs.length * 10;
-    const sequenceBonus = routeAssessment.sequenceValid ? 20 : -30; // Big penalty for sequence violations
-    const safetyPenalty = Math.max(0, maxTime - 10) * 20;
-    
-    const isBalanced = maxTime <= 10 && routeAssessment.isRecommended && routeAssessment.sequenceValid;
-
-    const balanceQuality: 'excellent' | 'good' | 'fair' | 'poor' = 
-      isBalanced && maxTime <= 6 && optimizationResult.consecutivePairs.length >= 2 && routeAssessment.sequenceValid ? 'excellent' :
-      isBalanced && maxTime <= 8 && optimizationResult.consecutivePairs.length >= 1 && routeAssessment.sequenceValid ? 'good' :
-      isBalanced && maxTime <= 10 && routeAssessment.sequenceValid ? 'fair' : 'poor';
-
-    const qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F' = 
-      balanceQuality === 'excellent' ? 'A' :
-      balanceQuality === 'good' ? 'B' :
-      balanceQuality === 'fair' ? 'C' :
-      maxTime <= 10 && routeAssessment.sequenceValid ? 'D' : 'F';
-
-    // Score based on heritage optimization success and sequence adherence
-    const overallScore = Math.max(0, 
-      70 + consecutivePairBonus + sequenceBonus - safetyPenalty - (variance * 5)
-    );
-
-    const suggestions: string[] = [];
-    if (maxTime > 10) {
-      suggestions.push(`Day with ${maxTime.toFixed(1)}h drive time exceeds safe limits`);
-    }
-    if (!routeAssessment.sequenceValid) {
-      suggestions.push('Route contains backtracking - consider reordering stops');
-    }
-    if (optimizationResult.consecutivePairs.length === 0) {
-      suggestions.push('Consider switching to Balanced mode for more evenly distributed stops');
-    }
-    if (optimizationResult.gapFillers.length > 2) {
-      suggestions.push('Route requires multiple gap-filling stops - consider adding more days');
-    }
-
-    return {
-      isBalanced,
-      averageDriveTime: parseFloat(averageDriveTime.toFixed(1)),
-      variance: parseFloat(variance.toFixed(1)),
-      driveTimeRange: { min: minTime, max: maxTime },
-      balanceQuality,
-      qualityGrade,
-      overallScore: Math.round(overallScore),
-      suggestions,
-      reason: isBalanced && routeAssessment.sequenceValid ? 
-        `Sequence-validated Route 66 heritage experience with ${optimizationResult.consecutivePairs.length} consecutive major city connections` :
-        !routeAssessment.sequenceValid ? 'Route contains backtracking violations of Route 66 sequence order' :
-        maxTime > 10 ? `Maximum drive time (${maxTime.toFixed(1)}h) exceeds safe limits` :
-        'Route prioritizes major heritage cities but requires challenging drive times'
-    };
   }
 }

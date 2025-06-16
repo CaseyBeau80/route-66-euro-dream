@@ -116,9 +116,18 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         </div>
       )}
       
-      <p className="text-xs text-route66-text-secondary">
-        How many days do you want to spend on your Route 66 adventure? Maximum 14 days supported for optimal trip planning.
-      </p>
+      {/* Enhanced description with destination-focused context */}
+      <div className="text-xs text-route66-text-secondary space-y-1">
+        <p>How many days do you want to spend on your Route 66 adventure? Maximum 14 days supported for optimal trip planning.</p>
+        {formData.tripStyle === 'destination-focused' && (
+          <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+            <p className="text-amber-700">
+              🏛️ <strong>Destination-Focused:</strong> Your trip will prioritize canonical Route 66 heritage cities 
+              and major destinations. Longer trips allow for more comprehensive coverage of iconic Route 66 locations.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
