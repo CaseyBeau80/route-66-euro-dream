@@ -18,6 +18,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
+  console.log('🔥 UNIFIED WIDGET: Component rendering for', segment.endCity, {
+    day: segment.day,
+    tripStartDate: tripStartDate?.toISOString(),
+    componentName: 'UnifiedWeatherWidget'
+  });
+
   // Calculate segment date
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
@@ -60,8 +66,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     segmentDay: segment.day
   });
 
-  console.log('🔧 UNIFIED: UnifiedWeatherWidget render:', {
-    cityName: segment.endCity,
+  console.log('🔥 UNIFIED WIDGET: Weather data received for', segment.endCity, {
     day: segment.day,
     hasWeather: !!weather,
     loading,
@@ -69,10 +74,10 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     segmentDate: segmentDate?.toISOString(),
     weatherDetails: weather ? {
       temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      source: weather.source
-    } : null
+      source: weather.source,
+      isActualForecast: weather.isActualForecast
+    } : null,
+    componentName: 'UnifiedWeatherWidget'
   });
 
   // Loading state
@@ -89,6 +94,13 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
   // Show weather if available
   if (weather && segmentDate) {
+    console.log('🔥 UNIFIED WIDGET: Rendering SimpleWeatherDisplay for', segment.endCity, {
+      day: segment.day,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      componentPath: 'UnifiedWeatherWidget -> SimpleWeatherDisplay'
+    });
+
     return (
       <SimpleWeatherDisplay
         weather={weather}

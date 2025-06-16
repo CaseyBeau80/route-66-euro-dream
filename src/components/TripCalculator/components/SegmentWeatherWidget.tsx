@@ -21,6 +21,12 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
+  console.log('🔥 SEGMENT WIDGET: Component rendering for', segment.endCity, {
+    day: segment.day,
+    tripStartDate: typeof tripStartDate === 'string' ? tripStartDate : tripStartDate?.toISOString(),
+    componentName: 'SegmentWeatherWidget'
+  });
+
   // Convert string to Date if needed
   const normalizedTripStartDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
@@ -28,12 +34,10 @@ const SegmentWeatherWidget: React.FC<SegmentWeatherWidgetProps> = ({
     return new Date(tripStartDate);
   }, [tripStartDate]);
 
-  console.log('🔧 UNIFIED: SegmentWeatherWidget using unified component for', segment.endCity, {
+  console.log('🔥 SEGMENT WIDGET: Using unified weather component for', segment.endCity, {
     day: segment.day,
-    isSharedView,
-    isPDFExport,
-    hasStartDate: !!normalizedTripStartDate,
-    unifiedComponent: true
+    normalizedTripStartDate: normalizedTripStartDate?.toISOString(),
+    componentPath: 'SegmentWeatherWidget -> UnifiedWeatherWidget'
   });
 
   return (

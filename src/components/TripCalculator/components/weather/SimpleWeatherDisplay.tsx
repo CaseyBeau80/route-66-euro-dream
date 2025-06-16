@@ -19,34 +19,25 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // CRITICAL FIX: Use the weather data properties directly for live determination
-  const weatherValidation = React.useMemo(() => {
-    const normalizedToday = DateNormalizationService.normalizeSegmentDate(new Date());
-    const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
-    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
-    
-    // CRITICAL FIX: Trust the weather data's source and isActualForecast properties
-    const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true;
-
-    console.log('🚨 CRITICAL FIX: SimpleWeatherDisplay using weather data properties directly:', {
-      cityName,
-      segmentDate: segmentDate.toISOString(),
-      daysFromToday,
-      weatherSource: weather.source,
+  console.log('🔥 SIMPLE WEATHER DISPLAY: Component rendering for', cityName, {
+    weather: {
+      source: weather.source,
       isActualForecast: weather.isActualForecast,
-      directWeatherCheck: isLiveWeather,
-      temperature: weather.temperature,
-      description: weather.description,
-      criticalFix: 'USING_WEATHER_DATA_PROPERTIES_DIRECTLY',
-      shouldShowLive: isLiveWeather ? 'YES_LIVE_FORECAST' : 'NO_HISTORICAL_DATA'
-    });
+      temperature: weather.temperature
+    },
+    segmentDate: segmentDate.toISOString(),
+    componentName: 'SimpleWeatherDisplay'
+  });
 
-    return {
-      isLiveWeather,
-      daysFromToday,
-      isWithinReliableRange: daysFromToday >= 0 && daysFromToday <= 5
-    };
-  }, [weather.source, weather.isActualForecast, segmentDate, cityName]);
+  // ULTIMATE FIX: Direct weather data property check without any date logic
+  const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true;
+  
+  console.log('🔥 SIMPLE WEATHER DISPLAY: Direct live weather check for', cityName, {
+    source: weather.source,
+    isActualForecast: weather.isActualForecast,
+    isLiveWeather,
+    explanation: isLiveWeather ? 'SHOULD_SHOW_GREEN_LIVE' : 'SHOULD_SHOW_YELLOW_HISTORICAL'
+  });
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -86,31 +77,31 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  // CRITICAL FIX: Style based on the weather data properties directly
-  const containerStyles = weatherValidation.isLiveWeather
+  // ULTIMATE FIX: Use direct weather data properties for styling
+  const containerStyles = isLiveWeather
     ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
     : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200';
 
-  const sourceLabel = weatherValidation.isLiveWeather
+  const sourceLabel = isLiveWeather
     ? '🟢 Live Weather Forecast'
     : '🟡 Historical Weather Data';
 
-  const sourceColor = weatherValidation.isLiveWeather
+  const sourceColor = isLiveWeather
     ? '#059669' // Green-600
     : '#d97706'; // Amber-600
 
-  const badgeText = weatherValidation.isLiveWeather
+  const badgeText = isLiveWeather
     ? '✨ Live forecast'
     : '📊 Historical estimate';
 
-  console.log('🚨 CRITICAL FIX: Final display decision for', cityName, {
-    isLiveWeather: weatherValidation.isLiveWeather,
+  console.log('🔥 SIMPLE WEATHER DISPLAY: Final rendering styles for', cityName, {
+    isLiveWeather,
     containerStyles,
     sourceLabel,
     badgeText,
-    weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast,
-    criticalFix: 'DISPLAY_USING_WEATHER_DATA_PROPERTIES'
+    sourceColor,
+    shouldAppearGreen: isLiveWeather,
+    componentRendering: 'SimpleWeatherDisplay'
   });
 
   return (
@@ -152,7 +143,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
       <div className="mt-2 text-center">
         <span 
           className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${
-            weatherValidation.isLiveWeather 
+            isLiveWeather 
               ? 'bg-green-100 text-green-700 border-green-200'
               : 'bg-amber-100 text-amber-700 border-amber-200'
           }`}
