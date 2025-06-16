@@ -2,15 +2,33 @@
 export class DateCalculationService {
   static calculateDaysFromToday(targetDate: Date): number {
     const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const normalizedTarget = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const targetStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     
-    const timeDifference = normalizedTarget.getTime() - normalizedToday.getTime();
-    return Math.round(timeDifference / (24 * 60 * 60 * 1000));
+    const timeDifference = targetStart.getTime() - todayStart.getTime();
+    const daysFromToday = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
+    
+    console.log('📅 FIXED: DateCalculationService.calculateDaysFromToday:', {
+      targetDate: targetDate.toISOString(),
+      todayStart: todayStart.toISOString(), 
+      targetStart: targetStart.toISOString(),
+      daysFromToday,
+      calculation: 'SIMPLIFIED_MIDNIGHT_COMPARISON'
+    });
+    
+    return daysFromToday;
   }
 
   static isWithinForecastRange(daysFromToday: number): boolean {
-    return daysFromToday >= 0 && daysFromToday <= 4;
+    const isWithinRange = daysFromToday >= 0 && daysFromToday <= 4;
+    
+    console.log('📅 FIXED: DateCalculationService.isWithinForecastRange:', {
+      daysFromToday,
+      isWithinRange,
+      logic: 'Days 0-4 = live forecast, Day 5+ = historical'
+    });
+    
+    return isWithinRange;
   }
 
   static normalizeDate(date: Date): Date {
@@ -18,6 +36,7 @@ export class DateCalculationService {
   }
 
   static getTargetDateString(date: Date): string {
-    return this.normalizeDate(date).toISOString().split('T')[0];
+    const normalized = this.normalizeDate(date);
+    return normalized.toISOString().split('T')[0];
   }
 }
