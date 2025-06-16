@@ -92,28 +92,28 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
               </div>
             </div>
 
-            {/* Calendar Export Section - Make sure this is always visible */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+            {/* Calendar Export Section - Always visible */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200 shadow-sm">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-blue-800">Export to Calendar</h3>
-                  <p className="text-sm text-blue-600">
-                    Add your trip to Google Calendar or download as .ics file
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-800 text-lg mb-2">📅 Export to Calendar</h3>
+                  <p className="text-sm text-blue-600 mb-2">
+                    Add your Route 66 trip to Google Calendar or download as .ics file for other calendar apps
                   </p>
                   {!tripStartDate && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      ⚠️ Set a trip start date to enable calendar export
+                    <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                      ⚠️ Please set a trip start date to enable calendar export
                     </p>
                   )}
                 </div>
                 <Button
                   onClick={handleOpenCalendarModal}
-                  variant="outline"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 ml-4"
                   disabled={!tripStartDate}
                 >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Export
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Export Calendar
                 </Button>
               </div>
             </div>
