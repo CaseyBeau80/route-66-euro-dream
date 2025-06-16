@@ -56,29 +56,44 @@ const TripCalculator = () => {
               </div>
 
               {/* Feature Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                {/* Regular Custom Routes Card */}
                 <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="text-route66-primary text-2xl mb-2">🛣️</div>
                   <h3 className="font-bold text-route66-text-primary mb-2">Custom Routes</h3>
                   <p className="text-sm text-route66-text-secondary">Plan your perfect Route 66 journey with personalized stops and attractions</p>
                 </div>
                 
-                <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="text-route66-primary text-2xl mb-2">⏱️</div>
-                  <h3 className="font-bold text-route66-text-primary mb-2">Time Estimates</h3>
-                  <p className="text-sm text-route66-text-secondary">Get accurate travel times and duration estimates for your entire trip</p>
+                {/* Highlighted Time Estimates Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-blue-600 text-2xl mb-2">⏱️</div>
+                  <h3 className="font-bold text-blue-800 mb-2">Time Estimates</h3>
+                  <p className="text-sm text-blue-700">Get accurate travel times and duration estimates for your entire trip</p>
                 </div>
                 
-                <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="text-route66-primary text-2xl mb-2">📍</div>
-                  <h3 className="font-bold text-route66-text-primary mb-2">Must-See Stops</h3>
-                  <p className="text-sm text-route66-text-secondary">Discover iconic landmarks, hidden gems, and authentic Route 66 experiences</p>
+                {/* Highlighted Must-See Stops Card */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-green-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-green-600 text-2xl mb-2">📍</div>
+                  <h3 className="font-bold text-green-800 mb-2">Destination Stops</h3>
+                  <p className="text-sm text-green-700">Discover iconic landmarks, hidden gems, and authentic Route 66 experiences</p>
                 </div>
                 
-                <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="text-route66-primary text-2xl mb-2">🧮</div>
-                  <h3 className="font-bold text-route66-text-primary mb-2">Trip Planner</h3>
-                  <p className="text-sm text-route66-text-secondary">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
+                {/* Highlighted Weather Card */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-purple-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-purple-600 text-2xl mb-2">🌤️</div>
+                  <h3 className="font-bold text-purple-800 mb-2">Weather</h3>
+                  <p className="text-sm text-purple-700">Get accurate weather forecasts for each day and destination of your journey</p>
+                </div>
+                
+                {/* Highlighted Budget Estimates Card */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-orange-600 text-2xl mb-2">🧮</div>
+                  <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
+                  <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
                 </div>
               </div>
             </div>
