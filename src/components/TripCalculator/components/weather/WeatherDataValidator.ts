@@ -13,18 +13,20 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * FIXED: Validate weather data using UnifiedWeatherValidator WITH REQUIRED segment date
+   * FIXED: Validate weather data using UnifiedWeatherValidator and APPLY the validation results
    */
   static validateWeatherData(
     weather: any,
     cityName: string,
     segmentDate?: Date | null
   ): WeatherValidationResult {
-    console.log('🔍 FIXED: WeatherDataValidator using UnifiedWeatherValidator with REQUIRED segmentDate for', cityName, {
+    console.log('🔍 FIXED: WeatherDataValidator applying unified validation consistently for', cityName, {
       hasWeather: !!weather,
       hasSegmentDate: !!segmentDate,
       segmentDate: segmentDate?.toLocaleDateString(),
-      fixedImplementation: 'REQUIRES_SEGMENT_DATE'
+      originalSource: weather?.source,
+      originalIsActualForecast: weather?.isActualForecast,
+      fixedImplementation: 'APPLIES_UNIFIED_VALIDATION_RESULTS'
     });
 
     // FIXED: Use unified validation with REQUIRED segment date
@@ -35,7 +37,8 @@ export class WeatherDataValidator {
     const hasDescription = !!weather?.description;
     const canDisplay = hasTemperatureData || hasDescription;
 
-    // FIXED: Normalize weather data with corrected source based on validation
+    // CRITICAL FIX: Apply the validation results to the normalized weather data
+    // Do NOT preserve original conflicting source values
     const normalizedWeather: ForecastWeatherData = {
       temperature: weather?.temperature || weather?.highTemp || 75,
       highTemp: weather?.highTemp || weather?.temperature || 75,
@@ -48,20 +51,27 @@ export class WeatherDataValidator {
       cityName: weather?.cityName || cityName,
       forecast: weather?.forecast || [],
       forecastDate: segmentDate || new Date(),
+      // CRITICAL FIX: Apply unified validation results instead of preserving original values
       isActualForecast: validation.isLiveForecast,
       source: validation.source as 'live_forecast' | 'historical_fallback'
     };
 
-    console.log('✅ FIXED: WeatherDataValidator result for', cityName, {
-      isValid: canDisplay,
-      isLiveForecast: validation.isLiveForecast,
-      correctedSource: validation.source,
-      hasTemperatureData,
-      canDisplay,
-      styleTheme: validation.styleTheme,
-      segmentDate: segmentDate?.toLocaleDateString(),
-      daysFromToday: validation.daysFromToday,
-      dateBasedDecision: validation.dateBasedDecision
+    console.log('✅ FIXED: WeatherDataValidator APPLIED unified validation results for', cityName, {
+      originalData: {
+        source: weather?.source,
+        isActualForecast: weather?.isActualForecast
+      },
+      validationResults: {
+        isLiveForecast: validation.isLiveForecast,
+        source: validation.source,
+        dateBasedDecision: validation.dateBasedDecision,
+        daysFromToday: validation.daysFromToday
+      },
+      normalizedData: {
+        source: normalizedWeather.source,
+        isActualForecast: normalizedWeather.isActualForecast
+      },
+      consistencyFixed: true
     });
 
     return {

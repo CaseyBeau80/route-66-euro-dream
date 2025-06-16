@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherDataValidator } from '../WeatherDataValidator';
@@ -33,12 +32,15 @@ export const useUnifiedWeather = ({
     error: null
   });
 
-  // FIXED: Stable key that includes segment date for proper cache invalidation
+  // FIXED: Enhanced stable key that includes validation context to prevent inconsistent caching
   const stableKey = React.useMemo(() => {
-    return `${cityName}-day-${segmentDay}-${segmentDate?.toISOString().split('T')[0] || 'no-date'}`;
+    const dateKey = segmentDate?.toISOString().split('T')[0] || 'no-date';
+    const daysFromToday = segmentDate ? WeatherUtilityService.getDaysFromToday(segmentDate) : -999;
+    const isWithinRange = segmentDate ? WeatherUtilityService.isWithinLiveForecastRange(segmentDate) : false;
+    return `${cityName}-day-${segmentDay}-${dateKey}-range-${isWithinRange}-days-${daysFromToday}`;
   }, [cityName, segmentDay, segmentDate?.getTime()]);
 
-  console.log('🔗 FIXED: useUnifiedWeather with REQUIRED segmentDate:', {
+  console.log('🔗 FIXED: useUnifiedWeather with ENHANCED cache invalidation:', {
     stableKey,
     cityName,
     segmentDay,
@@ -46,7 +48,7 @@ export const useUnifiedWeather = ({
     segmentDate: segmentDate?.toLocaleDateString(),
     prioritizeCachedData,
     hasCachedWeather: !!cachedWeather,
-    fixedImplementation: 'REQUIRES_SEGMENT_DATE_FOR_VALIDATION'
+    fixedImplementation: 'ENHANCED_CACHE_KEY_WITH_VALIDATION_CONTEXT'
   });
 
   // FIXED: Fetch weather function that ensures consistent validation
@@ -201,17 +203,17 @@ export const useUnifiedWeather = ({
     }
   };
 
-  // FIXED: Auto-fetch effect with proper dependencies
+  // FIXED: Auto-fetch effect with proper dependencies and cache invalidation
   React.useEffect(() => {
     if (segmentDate && !state.weather && !state.loading) {
-      console.log(`🔄 FIXED: Auto-fetching weather for ${stableKey}`);
+      console.log(`🔄 FIXED: Auto-fetching weather for enhanced key ${stableKey}`);
       fetchWeather();
     }
   }, [segmentDate?.getTime(), stableKey, state.weather, state.loading, fetchWeather]);
 
-  // Refetch function for manual refresh
+  // Refetch function for manual refresh with cache clearing
   const refetch = React.useCallback(() => {
-    console.log(`🔄 FIXED: Manual refetch for ${stableKey}`);
+    console.log(`🔄 FIXED: Manual refetch with cache clear for ${stableKey}`);
     setState(prev => ({ ...prev, weather: null }));
     fetchWeather();
   }, [fetchWeather, stableKey]);

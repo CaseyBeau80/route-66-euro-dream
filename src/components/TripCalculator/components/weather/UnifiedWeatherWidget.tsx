@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
@@ -79,7 +78,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use unified weather with force refresh
+  // Use unified weather with enhanced cache invalidation
   const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
@@ -93,7 +92,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  console.log('🌤️ FIXED: UnifiedWeatherWidget render:', {
+  console.log('🌤️ FIXED: UnifiedWeatherWidget render with validation consistency:', {
     cityName: segment.endCity,
     day: segment.day,
     forceKey,
@@ -102,17 +101,14 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     error,
     segmentDate: segmentDate?.toISOString(),
     segmentDateLocal: segmentDate?.toLocaleDateString(),
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    weatherDetails: weather ? {
+    weatherValidation: weather ? {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
-      highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      humidity: weather.humidity,
-      windSpeed: weather.windSpeed,
-      description: weather.description
+      daysFromToday: segmentDate ? WeatherUtilityService.getDaysFromToday(segmentDate) : 'no-date',
+      isWithinRange: segmentDate ? WeatherUtilityService.isWithinLiveForecastRange(segmentDate) : false
     } : null,
-    fixedVersion: true
+    fixedVersion: 'VALIDATION_CONSISTENCY_APPLIED'
   });
 
   // Loading state
