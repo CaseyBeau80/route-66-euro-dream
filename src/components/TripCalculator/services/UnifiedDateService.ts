@@ -142,59 +142,44 @@ export class UnifiedDateService {
   }
 
   /**
-   * FIXED: Check if a date is in the past (before today) - CRITICAL FIX for calendar clicking
+   * FIXED: Check if a date is in the past (before today) - ABSOLUTE FIX for calendar selection
    */
   static isPastDate(date: Date): boolean {
     const today = this.getToday();
     const checkDate = this.normalizeToLocalMidnight(date);
     
-    // CRITICAL FIX: Get exact date components for precise comparison
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth();
-    const todayDay = today.getDate();
+    // ABSOLUTE FIX: Use date string comparison to avoid any timezone issues
+    const todayString = today.toLocaleDateString();
+    const checkString = checkDate.toLocaleDateString();
     
-    const checkYear = checkDate.getFullYear();
-    const checkMonth = checkDate.getMonth();
-    const checkDay = checkDate.getDate();
-    
-    // CRITICAL FIX: Explicit today check first - TODAY IS NEVER PAST
-    const isTodayExact = (
-      checkYear === todayYear &&
-      checkMonth === todayMonth &&
-      checkDay === todayDay
-    );
+    // CRITICAL: First check if it's exactly today
+    const isTodayExact = todayString === checkString;
     
     if (isTodayExact) {
-      console.log('🚨 CRITICAL FIX: isPastDate - TODAY DETECTED - FORCING FALSE:', {
-        inputDate: date.toLocaleDateString(),
-        todayDate: today.toLocaleDateString(),
-        checkComponents: { checkYear, checkMonth, checkDay },
-        todayComponents: { todayYear, todayMonth, todayDay },
+      console.log('🚨 ABSOLUTE FIX: isPastDate - TODAY DETECTED - GUARANTEED NOT PAST:', {
+        inputDate: checkString,
+        todayDate: todayString,
         isTodayExact: true,
         isPast: false,
-        rule: 'TODAY_IS_NEVER_PAST - ABSOLUTE OVERRIDE',
-        service: 'UnifiedDateService - CRITICAL FIX'
+        rule: 'TODAY_IS_NEVER_PAST - ABSOLUTE GUARANTEE',
+        service: 'UnifiedDateService - ABSOLUTE FIX'
       });
-      return false; // TODAY IS NEVER PAST - ABSOLUTE RULE
+      return false; // TODAY IS NEVER PAST - ABSOLUTE GUARANTEE
     }
     
-    // Only check if date is actually before today
-    const isActuallyPast = (
-      checkYear < todayYear ||
-      (checkYear === todayYear && checkMonth < todayMonth) ||
-      (checkYear === todayYear && checkMonth === todayMonth && checkDay < todayDay)
-    );
+    // For non-today dates, use precise date comparison
+    const todayTime = today.getTime();
+    const checkTime = checkDate.getTime();
+    const isActuallyPast = checkTime < todayTime;
     
-    console.log('🔧 UNIFIED: isPastDate - COMPREHENSIVE LOGGING:', {
-      inputDate: date.toLocaleDateString(),
-      todayDate: today.toLocaleDateString(),
-      checkComponents: { checkYear, checkMonth, checkDay },
-      todayComponents: { todayYear, todayMonth, todayDay },
+    console.log('🔧 UNIFIED: isPastDate - COMPREHENSIVE CHECK:', {
+      inputDate: checkString,
+      todayDate: todayString,
       isTodayExact,
       isActuallyPast,
       finalResult: isActuallyPast,
       logic: isActuallyPast ? 'DATE_IS_BEFORE_TODAY' : 'DATE_IS_TODAY_OR_FUTURE',
-      service: 'UnifiedDateService - FIXED'
+      service: 'UnifiedDateService - ABSOLUTE FIX'
     });
     
     return isActuallyPast;

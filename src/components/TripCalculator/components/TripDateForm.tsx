@@ -1,11 +1,18 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Calendar } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { TripFormData } from '../types/tripCalculator';
-import SimpleTripCalendar from './SimpleTripCalendar';
 import { UnifiedDateService } from '../services/UnifiedDateService';
+import { Button } from '@/components/ui/button';
+import { Calendar as ShadcnCalendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -24,21 +31,29 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // Use unified service for date selection
-  const handleDateSelect = (date: Date) => {
-    console.log('📅 ABSOLUTE FIX: TripDateForm date selected:', {
+  // Get today's date properly
+  const today = UnifiedDateService.getToday();
+
+  // Handle date selection with proper local date handling
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) {
+      setFormData({ ...formData, tripStartDate: undefined });
+      return;
+    }
+
+    console.log('📅 FIXED: TripDateForm date selected:', {
       selectedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      service: 'UnifiedDateService - ABSOLUTE CONTROL'
+      service: 'UnifiedDateService - FIXED IMPLEMENTATION'
     });
     
-    // Use unified service to create clean date
+    // Use unified service to create clean local date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
-    console.log('📅 ABSOLUTE FIX: TripDateForm normalized date:', {
+    console.log('📅 FIXED: TripDateForm normalized date:', {
       original: date.toLocaleDateString(),
       normalized: cleanDate.toLocaleDateString(),
-      service: 'UnifiedDateService'
+      service: 'UnifiedDateService - FIXED'
     });
     
     setFormData({ 
@@ -47,7 +62,17 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  console.log('📅 ABSOLUTE FIX: TripDateForm rendering with NO DISABLED LOGIC');
+  // Handle today button click
+  const handleTodayClick = () => {
+    console.log('📅 FIXED: Today button clicked:', {
+      today: today.toLocaleDateString(),
+      service: 'UnifiedDateService - FIXED TODAY SELECTION'
+    });
+    
+    handleDateSelect(today);
+  };
+
+  console.log('📅 FIXED: TripDateForm rendering with Shadcn calendar');
 
   return (
     <div className="space-y-4">
@@ -67,7 +92,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
               <strong className="text-green-800"> Choose today for the most accurate weather data and start planning immediately!</strong>
             </p>
             <p className="text-green-600 text-xs mt-1 font-medium">
-              🎯 All date calculations now use a unified system for perfect accuracy
+              🎯 Now using Shadcn calendar with fixed timezone handling
             </p>
           </div>
         </div>
@@ -92,12 +117,60 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* ABSOLUTE FIX: Calendar with ZERO parent interference */}
-      <SimpleTripCalendar
-        selected={formData.tripStartDate}
-        onSelect={handleDateSelect}
-        className="w-full"
-      />
+      {/* FIXED: Shadcn Calendar with proper date handling */}
+      <div className="space-y-3">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !formData.tripStartDate && "text-muted-foreground"
+              )}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {formData.tripStartDate ? (
+                format(formData.tripStartDate, "PPP")
+              ) : (
+                <span>Pick a date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <ShadcnCalendar
+              mode="single"
+              selected={formData.tripStartDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => {
+                // Only disable dates that are actually in the past
+                const isActuallyPast = UnifiedDateService.isPastDate(date);
+                
+                console.log('📅 FIXED: Shadcn calendar date check:', {
+                  date: date.toLocaleDateString(),
+                  isToday: UnifiedDateService.isToday(date),
+                  isPast: isActuallyPast,
+                  disabled: isActuallyPast,
+                  rule: 'TODAY_AND_FUTURE_ENABLED'
+                });
+                
+                return isActuallyPast;
+              }}
+              initialFocus
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+
+        {/* Today button for quick selection */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleTodayClick}
+          className="w-full border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600"
+        >
+          ✨ Select Today ({today.toLocaleDateString()}) ✨
+        </Button>
+      </div>
       
       {/* Display calculated end date */}
       {endDate && (
@@ -113,7 +186,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       
       <p className="text-xs text-gray-600">
         A start date is required to provide accurate weather forecasts for each destination.
-        <strong className="text-green-700"> ✨ Today's date now works perfectly with no parent interference!</strong>
+        <strong className="text-green-700"> ✨ Now using Shadcn calendar with fixed timezone handling!</strong>
       </p>
     </div>
   );
