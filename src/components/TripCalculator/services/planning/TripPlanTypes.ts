@@ -1,9 +1,11 @@
 
+
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
   category: string;
   message: string;
+  color?: string; // Add missing color property
 }
 
 export interface RecommendedStop {
@@ -44,6 +46,25 @@ export interface WeatherData {
   windSpeed?: number;
   precipitation?: number;
   cloudCover?: number;
+  isActualForecast?: boolean; // Add missing property
+  main?: {
+    temp: number;
+    temp_min: number;
+    temp_max: number;
+    humidity: number;
+  }; // Add missing main property
+  temp?: {
+    day: number;
+    min: number;
+    max: number;
+  }; // Add missing temp property
+  weather?: Array<{
+    description: string;
+    icon: string;
+    main: string;
+  }>; // Add missing weather array property
+  icon?: string; // Add missing icon property
+  source?: string; // Add source property
 }
 
 export interface TripPlan {
@@ -68,6 +89,8 @@ export interface TripPlan {
   };
   lastUpdated?: Date;
   exportTimestamp?: number;
+  originalDays?: number; // Add missing property
+  driveTimeBalance?: string; // Add missing property
 }
 
 export interface DailySegment {
