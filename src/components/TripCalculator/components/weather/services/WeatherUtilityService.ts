@@ -9,7 +9,7 @@ export class WeatherUtilityService {
    * ENSURES absolute consistency with trip planning dates
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate called:', {
+    console.log('🚨 ULTIMATE DATE FIX: WeatherUtilityService.getSegmentDate called:', {
       tripStartDate: {
         iso: tripStartDate.toISOString(),
         local: tripStartDate.toLocaleDateString(),
@@ -23,19 +23,25 @@ export class WeatherUtilityService {
         }
       },
       segmentDay,
-      usingDateNormalizationService: true,
       expectedResult: segmentDay === 1 ? 'EXACTLY_EQUALS_TRIP_START_DATE' : `TRIP_START_PLUS_${segmentDay - 1}_DAYS`,
-      criticalNote: 'USING_SAME_LOGIC_AS_ITINERARY_DISPLAY'
+      ultimateFix: true
     });
 
-    // CRITICAL FIX: Use the centralized date calculation service for absolute consistency
-    const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
+    // ULTIMATE FIX: Direct date arithmetic with proper timezone handling
+    // Ensure we work with local midnight dates to avoid timezone issues
+    const normalizedTripStart = new Date(tripStartDate.getFullYear(), tripStartDate.getMonth(), tripStartDate.getDate());
+    const segmentDate = new Date(normalizedTripStart.getTime() + (segmentDay - 1) * 24 * 60 * 60 * 1000);
     
-    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate FINAL VALIDATION:', {
+    console.log('🚨 ULTIMATE DATE FIX: WeatherUtilityService.getSegmentDate RESULT:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay
+      },
+      calculation: {
+        normalizedTripStart: normalizedTripStart.toISOString(),
+        dayOffset: segmentDay - 1,
+        millisecondsOffset: (segmentDay - 1) * 24 * 60 * 60 * 1000
       },
       output: {
         segmentDate: segmentDate.toISOString(),
@@ -49,19 +55,29 @@ export class WeatherUtilityService {
       verification: {
         expectedForDay1: segmentDay === 1 ? 'SHOULD_EQUAL_TRIP_START_DATE' : 'SHOULD_BE_TRIP_START_PLUS_DAYS',
         day1DateCheck: segmentDay === 1 ? 
-          (segmentDate.toDateString() === tripStartDate.toDateString() ? 'CORRECT_MATCH' : 'INCORRECT_MISMATCH') : 
+          (segmentDate.toDateString() === normalizedTripStart.toDateString() ? 'CORRECT_MATCH' : 'INCORRECT_MISMATCH') : 
           'NOT_DAY_1',
         day1LocalCheck: segmentDay === 1 ?
-          (segmentDate.toLocaleDateString() === tripStartDate.toLocaleDateString() ? 'LOCAL_MATCH' : 'LOCAL_MISMATCH') :
+          (segmentDate.toLocaleDateString() === normalizedTripStart.toLocaleDateString() ? 'LOCAL_MATCH' : 'LOCAL_MISMATCH') :
           'NOT_DAY_1',
-        day1IsoCheck: segmentDay === 1 ?
-          (segmentDate.toISOString().split('T')[0] === tripStartDate.toISOString().split('T')[0] ? 'ISO_DATE_MATCH' : 'ISO_DATE_MISMATCH') :
-          'NOT_DAY_1'
+        isToday: segmentDay === 1 ? this.isToday(segmentDate) : 'NOT_DAY_1',
+        daysFromToday: this.getDaysFromToday(segmentDate)
       },
-      criticalSuccess: 'WEATHER_AND_ITINERARY_NOW_SYNCHRONIZED'
+      ultimateFix: 'DIRECT_DATE_ARITHMETIC_WITH_TIMEZONE_NORMALIZATION'
     });
 
     return segmentDate;
+  }
+
+  /**
+   * Check if a date is today
+   */
+  static isToday(date: Date): boolean {
+    const today = new Date();
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    return normalizedDate.getTime() === normalizedToday.getTime();
   }
 
   /**
@@ -81,17 +97,20 @@ export class WeatherUtilityService {
    */
   static isWithinForecastRange(targetDate: Date, daysLimit: number = 5): boolean {
     const today = new Date();
-    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
-    const normalizedTarget = DateNormalizationService.normalizeSegmentDate(targetDate);
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const normalizedTarget = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     
-    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTarget);
+    const daysFromToday = Math.ceil((normalizedTarget.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
     const isWithinRange = daysFromToday >= 0 && daysFromToday <= daysLimit;
     
-    console.log('🔧 WeatherUtilityService.isWithinForecastRange:', {
+    console.log('🔧 ULTIMATE: WeatherUtilityService.isWithinForecastRange:', {
       targetDate: targetDate.toISOString(),
+      normalizedTarget: normalizedTarget.toISOString(),
+      normalizedToday: normalizedToday.toISOString(),
       daysFromToday,
       daysLimit,
-      isWithinRange
+      isWithinRange,
+      ultimateFix: true
     });
     
     return isWithinRange;
@@ -102,14 +121,17 @@ export class WeatherUtilityService {
    */
   static getDaysFromToday(targetDate: Date): number {
     const today = new Date();
-    const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
-    const normalizedTarget = DateNormalizationService.normalizeSegmentDate(targetDate);
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const normalizedTarget = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     
-    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedTarget);
+    const daysFromToday = Math.ceil((normalizedTarget.getTime() - normalizedToday.getTime()) / (24 * 60 * 60 * 1000));
     
-    console.log('🔧 WeatherUtilityService.getDaysFromToday:', {
+    console.log('🔧 ULTIMATE: WeatherUtilityService.getDaysFromToday:', {
       targetDate: targetDate.toISOString(),
-      daysFromToday
+      normalizedTarget: normalizedTarget.toISOString(),
+      normalizedToday: normalizedToday.toISOString(),
+      daysFromToday,
+      ultimateFix: true
     });
     
     return daysFromToday;
@@ -132,14 +154,15 @@ export class WeatherUtilityService {
     
     const isLive = hasLiveSource && isActual && isWithinRange;
     
-    console.log('🔧 WeatherUtilityService.isLiveForecast:', {
+    console.log('🔧 ULTIMATE: WeatherUtilityService.isLiveForecast:', {
       targetDate: targetDate.toISOString(),
       isWithinRange,
       hasLiveSource,
       isActual,
       isLive,
       weatherSource: weather.source,
-      weatherIsActual: weather.isActualForecast
+      weatherIsActual: weather.isActualForecast,
+      ultimateFix: true
     });
     
     return isLive;
