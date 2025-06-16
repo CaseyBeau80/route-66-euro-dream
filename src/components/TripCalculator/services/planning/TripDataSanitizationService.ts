@@ -1,5 +1,8 @@
 
 import { TripPlan, DailySegment } from './TripPlanTypes';
+import { CircularReferenceRemover } from './utils/CircularReferenceRemover';
+import { SegmentSanitizer } from './utils/SegmentSanitizer';
+import { DataSanitizationUtils } from './utils/DataSanitizationUtils';
 
 export interface SanitizationReport {
   hasCircularReferences: boolean;
@@ -31,7 +34,7 @@ export class TripDataSanitizationService {
 
     try {
       // First, detect and remove circular references
-      const deCircularized = this.removeCircularReferences(data, report);
+      const deCircularized = CircularReferenceRemover.removeCircularReferences(data, report);
       
       // Then sanitize the structure
       const sanitized = this.sanitizeTripPlan(deCircularized, report);
@@ -47,54 +50,21 @@ export class TripDataSanitizationService {
   }
 
   /**
-   * Remove circular references using a visited set approach
-   */
-  private static removeCircularReferences(obj: any, report: SanitizationReport, visited = new WeakSet(), path = ''): any {
-    if (obj === null || typeof obj !== 'object') {
-      return obj;
-    }
-
-    if (visited.has(obj)) {
-      report.hasCircularReferences = true;
-      report.circularPaths.push(path);
-      console.warn('🔄 Circular reference detected at path:', path);
-      return '[Circular Reference Removed]';
-    }
-
-    visited.add(obj);
-
-    if (Array.isArray(obj)) {
-      return obj.map((item, index) => 
-        this.removeCircularReferences(item, report, visited, `${path}[${index}]`)
-      );
-    }
-
-    const result: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      const currentPath = path ? `${path}.${key}` : key;
-      result[key] = this.removeCircularReferences(value, report, visited, currentPath);
-    }
-
-    visited.delete(obj);
-    return result;
-  }
-
-  /**
    * Sanitize trip plan structure and ensure all required fields are present
    */
   private static sanitizeTripPlan(data: any, report: SanitizationReport): TripPlan {
     const sanitized: TripPlan = {
-      id: this.sanitizeString(data?.id, `trip-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`),
-      title: this.sanitizeString(data?.title, 'Untitled Route 66 Adventure'),
-      startCity: this.sanitizeString(data?.startCity, 'Unknown Start'),
-      endCity: this.sanitizeString(data?.endCity, 'Unknown End'),
+      id: DataSanitizationUtils.sanitizeString(data?.id, `trip-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`),
+      title: DataSanitizationUtils.sanitizeString(data?.title, 'Untitled Route 66 Adventure'),
+      startCity: DataSanitizationUtils.sanitizeString(data?.startCity, 'Unknown Start'),
+      endCity: DataSanitizationUtils.sanitizeString(data?.endCity, 'Unknown End'),
       startDate: data?.startDate ? new Date(data.startDate) : new Date(),
-      totalDays: this.sanitizeNumber(data?.totalDays, 1),
-      totalDistance: this.sanitizeNumber(data?.totalDistance, 0),
-      totalMiles: this.sanitizeNumber(data?.totalMiles || data?.totalDistance, 0),
-      totalDrivingTime: this.sanitizeNumber(data?.totalDrivingTime, 0),
-      segments: this.sanitizeSegments(data?.segments || data?.dailySegments, report),
-      dailySegments: this.sanitizeSegments(data?.dailySegments || data?.segments, report),
+      totalDays: DataSanitizationUtils.sanitizeNumber(data?.totalDays, 1),
+      totalDistance: DataSanitizationUtils.sanitizeNumber(data?.totalDistance, 0),
+      totalMiles: DataSanitizationUtils.sanitizeNumber(data?.totalMiles || data?.totalDistance, 0),
+      totalDrivingTime: DataSanitizationUtils.sanitizeNumber(data?.totalDrivingTime, 0),
+      segments: SegmentSanitizer.sanitizeSegments(data?.segments || data?.dailySegments, report),
+      dailySegments: SegmentSanitizer.sanitizeSegments(data?.dailySegments || data?.segments, report),
       lastUpdated: new Date()
     };
 
@@ -105,64 +75,6 @@ export class TripDataSanitizationService {
     if (data?.totalDays !== sanitized.totalDays) report.sanitizedFields.push('totalDays');
 
     return sanitized;
-  }
-
-  /**
-   * Sanitize segments array
-   */
-  private static sanitizeSegments(segments: any, report: SanitizationReport): DailySegment[] {
-    if (!Array.isArray(segments)) {
-      report.missingFields.push('segments');
-      return [];
-    }
-
-    return segments.map((segment, index) => this.sanitizeSegment(segment, index, report));
-  }
-
-  /**
-   * Sanitize individual segment
-   */
-  private static sanitizeSegment(segment: any, index: number, report: SanitizationReport): DailySegment {
-    if (!segment || typeof segment !== 'object') {
-      report.warnings.push(`Segment ${index + 1} is invalid`);
-      return this.createEmptySegment(index + 1);
-    }
-
-    return {
-      day: this.sanitizeNumber(segment.day, index + 1),
-      title: this.sanitizeString(segment.title, `Day ${index + 1}`),
-      startCity: this.sanitizeString(segment.startCity, 'Unknown'),
-      endCity: this.sanitizeString(segment.endCity || segment.destination?.city, 'Unknown'),
-      destination: segment.destination ? {
-        city: this.sanitizeString(segment.destination.city || segment.destination.name, 'Unknown'),
-        state: this.sanitizeString(segment.destination.state, 'Unknown')
-      } : {
-        city: this.sanitizeString(segment.endCity, 'Unknown'),
-        state: 'Unknown'
-      },
-      distance: this.sanitizeNumber(segment.distance || segment.approximateMiles, 0),
-      driveTimeHours: this.sanitizeNumber(segment.driveTimeHours || segment.drivingTime, 0),
-      drivingTime: this.sanitizeNumber(segment.drivingTime || segment.driveTimeHours, 0),
-      approximateMiles: this.sanitizeNumber(segment.approximateMiles || segment.distance, 0),
-      recommendedStops: Array.isArray(segment.recommendedStops) ? segment.recommendedStops : (Array.isArray(segment.stops) ? segment.stops : []),
-      attractions: Array.isArray(segment.attractions) ? segment.attractions : [],
-      weather: segment.weather || null,
-      weatherData: segment.weatherData || segment.weather || null,
-      notes: this.sanitizeString(segment.notes, ''),
-      recommendations: Array.isArray(segment.recommendations) ? segment.recommendations : []
-    };
-  }
-
-  private static sanitizeString(value: any, fallback: string | undefined): string | undefined {
-    if (fallback === undefined) {
-      return typeof value === 'string' && value.trim() ? value.trim() : undefined;
-    }
-    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
-  }
-
-  private static sanitizeNumber(value: any, fallback: number): number {
-    const num = Number(value);
-    return isNaN(num) ? fallback : Math.max(0, num);
   }
 
   private static createEmptyTripPlan(): TripPlan {
@@ -179,27 +91,6 @@ export class TripDataSanitizationService {
       segments: [],
       dailySegments: [],
       lastUpdated: new Date()
-    };
-  }
-
-  private static createEmptySegment(day: number): DailySegment {
-    return {
-      day,
-      title: `Day ${day}`,
-      startCity: 'Unknown',
-      endCity: 'Unknown',
-      destination: {
-        city: 'Unknown',
-        state: 'Unknown'
-      },
-      distance: 0,
-      driveTimeHours: 0,
-      drivingTime: 0,
-      approximateMiles: 0,
-      recommendedStops: [],
-      attractions: [],
-      notes: '',
-      recommendations: []
     };
   }
 }
