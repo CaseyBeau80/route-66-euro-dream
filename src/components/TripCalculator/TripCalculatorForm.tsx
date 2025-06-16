@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin } from 'lucide-react';
+import { MapPin, Sparkles } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
 import { route66Towns } from '@/types/route66';
 import { TripPlan } from './services/planning/TripPlanBuilder';
@@ -120,15 +121,54 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         isFormValid={isFormValid}
       />
 
-      {/* Plan Button - Updated text */}
-      <Button
-        onClick={handleCalculateClick}
-        disabled={!isFormValid || isCalculating}
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-lg font-semibold rounded-lg flex items-center justify-center gap-2"
-      >
-        <MapPin className="h-5 w-5" />
-        {isCalculating ? 'Planning Your Route 66 Adventure...' : 'Plan My Route 66 Adventure'}
-      </Button>
+      {/* Enhanced Plan Button - Maximum Attention */}
+      <div className="relative">
+        {/* Animated background glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-xl opacity-20 animate-pulse blur-lg"></div>
+        
+        {/* Main button container */}
+        <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 p-1 rounded-xl shadow-2xl">
+          <Button
+            onClick={handleCalculateClick}
+            disabled={!isFormValid || isCalculating}
+            className="w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white py-6 text-xl font-bold rounded-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none border-0"
+          >
+            {isCalculating ? (
+              <>
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                <span className="animate-pulse">Planning Your Route 66 Adventure...</span>
+                <Sparkles className="h-6 w-6 animate-pulse" />
+              </>
+            ) : (
+              <>
+                <MapPin className="h-6 w-6 animate-bounce" />
+                <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-black tracking-wide">
+                  Plan My Route 66 Adventure
+                </span>
+                <Sparkles className="h-6 w-6 animate-pulse text-yellow-300" />
+              </>
+            )}
+          </Button>
+        </div>
+        
+        {/* Floating sparkle effects */}
+        {!isCalculating && (
+          <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
+        )}
+        {!isCalculating && (
+          <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-blue-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }}></div>
+        )}
+      </div>
+
+      {/* Call-to-action text below button */}
+      <div className="text-center">
+        <p className="text-lg font-semibold text-blue-700 animate-pulse">
+          ✨ Start Your Epic Journey on America's Most Famous Highway! ✨
+        </p>
+        <p className="text-sm text-gray-600 mt-1">
+          Free planning • Instant results • Customizable itinerary
+        </p>
+      </div>
 
       {/* Smart Planning Info */}
       <SmartPlanningInfo />
