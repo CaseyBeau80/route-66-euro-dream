@@ -2,6 +2,7 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
+import { DateNormalizationService } from './DateNormalizationService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -18,25 +19,44 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  const isLiveForecast = weather.source === 'live_forecast' && weather.isActualForecast === true;
-  
-  console.log('🌤️ IMPROVED: SimpleWeatherDisplay with enhanced validation:', {
-    cityName,
-    segmentDate: segmentDate.toISOString(),
-    segmentDateLocal: segmentDate.toLocaleDateString(),
-    normalizedToday: new Date().toISOString().split('T')[0] + 'T05:00:00.000Z',
-    normalizedSegmentDate: segmentDate.toISOString(),
-    daysFromToday: Math.ceil((segmentDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)),
-    isWithinReliableRange: Math.ceil((segmentDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)) <= 7,
-    weatherSource: weather.source,
-    isActualForecast: weather.isActualForecast,
-    finalIsLiveWeather: isLiveForecast,
-    temperature: weather.temperature,
-    description: weather.description,
-    improvedValidation: true,
-    validationResult: isLiveForecast ? 'LIVE_FORECAST' : 'ESTIMATED_FORECAST',
-    shouldShowLive: isLiveForecast ? 'YES' : 'NO'
-  });
+  // Enhanced weather validation using centralized date logic
+  const weatherValidation = React.useMemo(() => {
+    const normalizedToday = DateNormalizationService.normalizeSegmentDate(new Date());
+    const normalizedSegmentDate = DateNormalizationService.normalizeSegmentDate(segmentDate);
+    const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegmentDate);
+    
+    // A date is within reliable forecast range if it's 0-5 days from today
+    const isWithinReliableRange = daysFromToday >= 0 && daysFromToday <= 5;
+    
+    // Determine if this should be treated as live weather
+    const isLiveWeather = weather.source === 'live_forecast' && 
+                         weather.isActualForecast === true && 
+                         isWithinReliableRange;
+
+    console.log('🌤️ IMPROVED: SimpleWeatherDisplay with enhanced validation:', {
+      cityName,
+      segmentDate: segmentDate.toISOString(),
+      segmentDateLocal: segmentDate.toLocaleDateString(),
+      normalizedToday: normalizedToday.toISOString(),
+      normalizedSegmentDate: normalizedSegmentDate.toISOString(),
+      daysFromToday,
+      isWithinReliableRange,
+      weatherSource: weather.source,
+      isActualForecast: weather.isActualForecast,
+      finalIsLiveWeather: isLiveWeather,
+      temperature: weather.temperature,
+      description: weather.description,
+      improvedValidation: true,
+      validationResult: isLiveWeather ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
+      shouldShowLive: isLiveWeather ? 'YES' : 'NO'
+    });
+
+    return {
+      isLiveWeather,
+      daysFromToday,
+      isWithinReliableRange
+    };
+  }, [weather, segmentDate, cityName]);
 
   const getWeatherIcon = (iconCode: string) => {
     const iconMap: { [key: string]: string } = {
@@ -53,100 +73,106 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     return iconMap[iconCode] || '⛅';
   };
 
+  // Temperature display logic
+  const temperatureDisplay = React.useMemo(() => {
+    const hasValidCurrent = !!(weather.temperature && !isNaN(weather.temperature));
+    const hasValidHigh = !!(weather.highTemp && !isNaN(weather.highTemp));
+    const hasValidLow = !!(weather.lowTemp && !isNaN(weather.lowTemp));
+    
+    // Show range if we have both high and low and they're different
+    const shouldShowRange = hasValidHigh && hasValidLow && weather.highTemp !== weather.lowTemp;
+    const shouldShowCurrent = hasValidCurrent && (!shouldShowRange || weather.temperature !== weather.highTemp);
+
+    console.log('🌡️ TEMPERATURE DISPLAY: Decision logic:', {
+      cityName,
+      hasValidHigh,
+      hasValidLow,
+      hasValidCurrent,
+      shouldShowRange,
+      shouldShowCurrent,
+      temperatures: {
+        current: weather.temperature,
+        high: weather.highTemp,
+        low: weather.lowTemp
+      }
+    });
+
+    if (shouldShowCurrent) {
+      return `${Math.round(weather.temperature)}°F`;
+    } else if (shouldShowRange) {
+      return `${Math.round(weather.highTemp)}°F / ${Math.round(weather.lowTemp)}°F`;
+    } else if (hasValidCurrent) {
+      return `${Math.round(weather.temperature)}°F`;
+    } else {
+      return 'N/A';
+    }
+  }, [weather, cityName]);
+
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  // Determine styling based on forecast type
-  const styles = isLiveForecast ? {
-    containerClasses: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
-    badgeClasses: 'bg-green-100 text-green-700 border-green-200',
-    badgeText: '🟢 Live forecast',
-    sourceLabel: 'Live Weather Forecast'
-  } : {
-    containerClasses: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200', 
-    badgeClasses: 'bg-amber-100 text-amber-700 border-amber-200',
-    badgeText: '📊 Historical estimate',
-    sourceLabel: 'Historical Weather Data'
-  };
+  // Style based on whether this is live or historical weather
+  const containerStyles = weatherValidation.isLiveWeather
+    ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+    : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200';
 
-  // Determine what temperature info to show
-  const hasValidHigh = weather.highTemp && !isNaN(weather.highTemp);
-  const hasValidLow = weather.lowTemp && !isNaN(weather.lowTemp);
-  const hasValidCurrent = weather.temperature && !isNaN(weather.temperature);
-  
-  const shouldShowRange = hasValidHigh && hasValidLow && weather.highTemp !== weather.lowTemp;
-  const shouldShowCurrent = hasValidCurrent && !shouldShowRange;
+  const sourceLabel = weatherValidation.isLiveWeather
+    ? '🟢 Live Weather Forecast'
+    : '🟡 Historical Weather Data';
 
-  console.log('🌡️ TEMPERATURE DISPLAY: Decision logic:', {
-    cityName,
-    hasValidHigh,
-    hasValidLow, 
-    hasValidCurrent,
-    shouldShowRange,
-    shouldShowCurrent,
-    temperatures: {
-      current: weather.temperature,
-      high: weather.highTemp,
-      low: weather.lowTemp
-    }
-  });
+  const sourceColor = weatherValidation.isLiveWeather
+    ? '#059669' // Green-600
+    : '#d97706'; // Amber-600
+
+  const badgeText = weatherValidation.isLiveWeather
+    ? '✨ Live forecast'
+    : '📊 Historical estimate';
 
   return (
-    <div className={`${styles.containerClasses} rounded-lg p-4 border`}>
-      {/* Header with date and source */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-gray-600">
-          {styles.sourceLabel}
+    <div className={`${containerStyles} rounded-lg p-4 border`}>
+      {/* Weather Source Indicator */}
+      <div className="flex items-center justify-between mb-2">
+        <span 
+          className="text-xs font-medium"
+          style={{ color: sourceColor }}
+        >
+          {sourceLabel}
         </span>
         <span className="text-xs text-gray-500">
           {formattedDate}
         </span>
       </div>
 
-      {/* Main weather display */}
+      {/* Main Weather Display */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="text-3xl">{weatherIcon}</div>
           <div>
-            {/* Temperature Display */}
-            {shouldShowRange ? (
-              <div className="text-2xl font-bold text-gray-800">
-                {Math.round(weather.lowTemp!)}°-{Math.round(weather.highTemp!)}°F
-              </div>
-            ) : shouldShowCurrent ? (
-              <div className="text-2xl font-bold text-gray-800">
-                {Math.round(weather.temperature)}°F
-              </div>
-            ) : (
-              <div className="text-2xl font-bold text-gray-800">
-                Weather Available
-              </div>
-            )}
-            
+            <div className="text-2xl font-bold text-gray-800">
+              {temperatureDisplay}
+            </div>
             <div className="text-sm text-gray-600 capitalize">
               {weather.description}
             </div>
           </div>
         </div>
 
-        {/* Weather details */}
-        <div className="text-right text-xs text-gray-600">
-          {weather.humidity && (
-            <div>💧 {weather.humidity}%</div>
-          )}
-          {weather.windSpeed && (
-            <div>💨 {weather.windSpeed} mph</div>
-          )}
-          {weather.precipitationChance && weather.precipitationChance > 0 && (
-            <div>🌧️ {weather.precipitationChance}%</div>
-          )}
+        <div className="text-right text-sm text-gray-600">
+          <div>💧 {weather.precipitationChance}%</div>
+          <div>💨 {weather.windSpeed} mph</div>
         </div>
       </div>
 
-      {/* Source badge */}
-      <div className="mt-3 flex justify-center">
-        <span className={`px-2 py-1 rounded text-xs border ${styles.badgeClasses}`}>
-          {styles.badgeText}
+      {/* Weather Status Badge */}
+      <div className="mt-2 text-center">
+        <span 
+          className={`inline-block text-xs px-2 py-1 rounded-full font-medium border ${
+            weatherValidation.isLiveWeather 
+              ? 'bg-green-100 text-green-700 border-green-200'
+              : 'bg-amber-100 text-amber-700 border-amber-200'
+          }`}
+        >
+          {badgeText}
         </span>
       </div>
     </div>
