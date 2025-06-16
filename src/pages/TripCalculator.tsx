@@ -56,14 +56,7 @@ const TripCalculator = () => {
               </div>
 
               {/* Feature Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                {/* Regular Custom Routes Card */}
-                <div className="bg-white rounded-lg border border-route66-border p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="text-route66-primary text-2xl mb-2">🛣️</div>
-                  <h3 className="font-bold text-route66-text-primary mb-2">Custom Routes</h3>
-                  <p className="text-sm text-route66-text-secondary">Plan your perfect Route 66 journey with personalized stops and attractions</p>
-                </div>
-                
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {/* Highlighted Time Estimates Card */}
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-200 to-transparent rounded-bl-full"></div>
@@ -88,10 +81,10 @@ const TripCalculator = () => {
                   <p className="text-sm text-purple-700">Get accurate weather forecasts for each day and destination of your journey</p>
                 </div>
                 
-                {/* Highlighted Budget Estimates Card */}
+                {/* Highlighted Budget Estimates Card with Dollar Sign */}
                 <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
-                  <div className="text-orange-600 text-2xl mb-2">🧮</div>
+                  <div className="text-orange-600 text-2xl mb-2">💲</div>
                   <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
                   <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
                 </div>
