@@ -1,110 +1,63 @@
 
 import { UnifiedDateService } from '../../../services/UnifiedDateService';
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { UnifiedWeatherValidator } from './UnifiedWeatherValidator';
 
 export class WeatherUtilityService {
   /**
-   * FIXED: Calculate segment date using corrected unified date service
+   * FIXED: Calculate segment date using UnifiedDateService for consistency
    */
-  static getSegmentDate(tripStartDate: Date, segmentDay: number): Date | null {
-    console.log('🔍 DEBUG: WeatherUtilityService.getSegmentDate called with:', {
-      tripStartDate: tripStartDate?.toISOString(),
-      tripStartDateLocal: tripStartDate?.toLocaleDateString(),
+  static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
+    const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
+    
+    console.log('📅 FIXED: WeatherUtilityService.getSegmentDate:', {
+      tripStartDate: tripStartDate.toLocaleDateString(),
       segmentDay,
-      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
-    });
-
-    if (!tripStartDate || !segmentDay || segmentDay < 1) {
-      console.error('❌ FIXED WEATHER: Invalid parameters:', {
-        tripStartDate,
-        segmentDay,
-        isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
-      });
-      return null;
-    }
-
-    try {
-      const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
-      
-      console.log('🔍 DEBUG: WeatherUtilityService calculated date:', {
-        tripStartDate: tripStartDate.toLocaleDateString(),
-        segmentDay,
-        calculatedDate: segmentDate.toLocaleDateString(),
-        calculatedDateISO: segmentDate.toISOString(),
-        verification: segmentDay === 1 ? {
-          day1Check: 'Day 1 should match trip start exactly',
-          tripStartLocal: tripStartDate.toLocaleDateString(),
-          calculatedLocal: segmentDate.toLocaleDateString(),
-          matches: tripStartDate.toLocaleDateString() === segmentDate.toLocaleDateString(),
-          fixed: 'NO_MORE_TIMEZONE_SHIFTS'
-        } : {
-          otherDayCheck: `Day ${segmentDay} calculation`,
-          calculatedLocal: segmentDate.toLocaleDateString()
-        }
-      });
-      
-      return segmentDate;
-    } catch (error) {
-      console.error('❌ FIXED WEATHER: Date calculation error:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Calculate days from today using unified service
-   */
-  static getDaysFromToday(targetDate: Date): number {
-    const daysDiff = UnifiedDateService.getDaysFromToday(targetDate);
-    
-    console.log('📅 FIXED WEATHER: Days from today:', {
-      targetDate: targetDate.toLocaleDateString(),
-      daysDiff,
-      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL'
+      calculatedDate: segmentDate.toLocaleDateString(),
+      service: 'UnifiedDateService - CONSISTENT CALCULATION'
     });
     
-    return daysDiff;
+    return segmentDate;
   }
 
   /**
-   * Check if within forecast range using unified service
+   * FIXED: Check if date is within live forecast range using centralized threshold
    */
-  static isWithinForecastRange(targetDate: Date): boolean {
-    const isWithinRange = UnifiedDateService.isWithinLiveForecastRange(targetDate);
-    
-    console.log('🌤️ FIXED WEATHER: Forecast range check:', {
-      targetDate: targetDate.toLocaleDateString(),
-      isWithinRange,
-      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST'
-    });
-    
-    return isWithinRange;
+  static isWithinLiveForecastRange(segmentDate: Date): boolean {
+    return UnifiedWeatherValidator.isDateWithinForecastRange(segmentDate);
   }
 
   /**
-   * Check if date is within live forecast range (same as isWithinForecastRange)
+   * FIXED: Get days from today using UnifiedDateService
    */
-  static isWithinLiveForecastRange(targetDate: Date): boolean {
-    return this.isWithinForecastRange(targetDate);
+  static getDaysFromToday(segmentDate: Date): number {
+    return UnifiedDateService.getDaysFromToday(segmentDate);
   }
 
   /**
-   * Enhanced live forecast detection
+   * FIXED: Determine if weather is live forecast using UnifiedWeatherValidator
    */
-  static isLiveForecast(weather: ForecastWeatherData, segmentDate: Date): boolean {
-    if (!weather || !segmentDate) return false;
-    
-    // Check if the weather source indicates it's a live forecast
-    if (weather.source === 'live_forecast') return true;
-    if (weather.isActualForecast === true) return true;
-    
-    // Also check if the date is within forecast range (including today)
-    return this.isWithinForecastRange(segmentDate);
+  static isLiveForecast(weather: any, segmentDate: Date): boolean {
+    return UnifiedWeatherValidator.isLiveWeather(weather, segmentDate);
   }
 
   /**
-   * Format date for API requests using unified service
+   * FIXED: Get centralized forecast threshold
    */
-  static formatDateForApi(date: Date): string {
-    return UnifiedDateService.formatForApi(date);
+  static getForecastThresholdDays(): number {
+    return UnifiedWeatherValidator.getForecastThresholdDays();
+  }
+
+  /**
+   * FIXED: Format weather source label using UnifiedWeatherValidator
+   */
+  static formatWeatherSourceLabel(weather: any, segmentDate: Date): string {
+    return UnifiedWeatherValidator.getDisplayLabel(weather, segmentDate);
+  }
+
+  /**
+   * FIXED: Get weather style theme using UnifiedWeatherValidator
+   */
+  static getWeatherStyleTheme(weather: any, segmentDate: Date): 'green' | 'amber' | 'gray' {
+    return UnifiedWeatherValidator.getStyleTheme(weather, segmentDate);
   }
 }

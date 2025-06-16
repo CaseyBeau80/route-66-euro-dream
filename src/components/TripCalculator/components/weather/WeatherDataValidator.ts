@@ -13,24 +13,29 @@ export interface WeatherValidationResult {
 
 export class WeatherDataValidator {
   /**
-   * UPDATED: Validate weather data using UnifiedWeatherValidator
+   * FIXED: Validate weather data using UnifiedWeatherValidator WITH REQUIRED segment date
    */
   static validateWeatherData(
     weather: any,
     cityName: string,
     segmentDate?: Date | null
   ): WeatherValidationResult {
-    console.log('🔍 UPDATED: WeatherDataValidator using UnifiedWeatherValidator for', cityName);
+    console.log('🔍 FIXED: WeatherDataValidator using UnifiedWeatherValidator with REQUIRED segmentDate for', cityName, {
+      hasWeather: !!weather,
+      hasSegmentDate: !!segmentDate,
+      segmentDate: segmentDate?.toLocaleDateString(),
+      fixedImplementation: 'REQUIRES_SEGMENT_DATE'
+    });
 
-    // Use unified validation
-    const validation = UnifiedWeatherValidator.validateWeatherData(weather);
+    // FIXED: Use unified validation with REQUIRED segment date
+    const validation = UnifiedWeatherValidator.validateWeatherData(weather, segmentDate || undefined);
 
     // Check if we have displayable data
     const hasTemperatureData = !!(weather?.temperature || weather?.highTemp || weather?.lowTemp);
     const hasDescription = !!weather?.description;
     const canDisplay = hasTemperatureData || hasDescription;
 
-    // Normalize weather data
+    // FIXED: Normalize weather data with corrected source based on validation
     const normalizedWeather: ForecastWeatherData = {
       temperature: weather?.temperature || weather?.highTemp || 75,
       highTemp: weather?.highTemp || weather?.temperature || 75,
@@ -47,12 +52,16 @@ export class WeatherDataValidator {
       source: validation.source as 'live_forecast' | 'historical_fallback'
     };
 
-    console.log('✅ UPDATED: WeatherDataValidator result for', cityName, {
+    console.log('✅ FIXED: WeatherDataValidator result for', cityName, {
       isValid: canDisplay,
       isLiveForecast: validation.isLiveForecast,
+      correctedSource: validation.source,
       hasTemperatureData,
       canDisplay,
-      styleTheme: validation.styleTheme
+      styleTheme: validation.styleTheme,
+      segmentDate: segmentDate?.toLocaleDateString(),
+      daysFromToday: validation.daysFromToday,
+      dateBasedDecision: validation.dateBasedDecision
     });
 
     return {
