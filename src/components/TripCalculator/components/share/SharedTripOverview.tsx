@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
+import { TripPlan } from '../../services/planning/TripPlanBuilder';
 
 interface SharedTripOverviewProps {
   tripPlan: TripPlan;
@@ -32,6 +32,12 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
     }).format(amount);
   };
 
+  const formatDriveTime = (hours: number): string => {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
+  };
+
   return (
     <>
       {/* Header with RAMBLE 66 branding */}
@@ -57,15 +63,7 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
         <h2 className="text-xl font-bold text-route66-vintage-red mb-4 font-route66 text-center">
           🛣️ YOUR ROUTE 66 JOURNEY OVERVIEW
         </h2>
-        <div className={`grid gap-4 text-sm ${costEstimate ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
-          <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">From {tripPlan.startCity}</div>
-            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Starting Point</div>
-          </div>
-          <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
-            <div className="font-bold text-route66-primary text-lg font-route66">To {tripPlan.endCity}</div>
-            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Destination</div>
-          </div>
+        <div className={`grid gap-4 text-sm ${costEstimate ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
           <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
             <div className="font-bold text-route66-vintage-red text-lg font-route66">{tripPlan.totalDays}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Adventure Days</div>
@@ -73,6 +71,12 @@ const SharedTripOverview: React.FC<SharedTripOverviewProps> = ({
           <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
             <div className="font-bold text-route66-vintage-red text-lg font-route66">{Math.round(tripPlan.totalDistance)}</div>
             <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Historic Miles</div>
+          </div>
+          <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
+            <div className="font-bold text-route66-vintage-red text-lg font-route66">
+              {formatDriveTime(tripPlan.totalDrivingTime || 0)}
+            </div>
+            <div className="text-route66-vintage-brown text-xs mt-1 font-travel">Total Drive Time</div>
           </div>
           {costEstimate && (
             <div className="text-center p-4 bg-white rounded-lg border-2 border-route66-tan">
