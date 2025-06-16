@@ -36,7 +36,7 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CRITICAL FIX: Calculate days from today using consistent logic
+   * CRITICAL FIX: Calculate days from today with live forecast buffer
    */
   static getDaysFromToday(targetDate: Date): number {
     const today = new Date();
@@ -44,22 +44,40 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CRITICAL FIX: Check if date is within weather forecast range
+   * FIXED: Enhanced forecast range check - includes today as live forecast
    */
   static isWithinForecastRange(targetDate: Date): boolean {
-    const daysFromToday = this.getDaysFromToday(targetDate);
-    return daysFromToday >= 0 && daysFromToday <= 7;
+    const today = new Date();
+    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    // Calculate difference in days
+    const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
+    const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
+    
+    // FIXED: Today (day 0) through day 7 are live forecast
+    const isWithinRange = daysDiff >= 0 && daysDiff <= 7;
+    
+    console.log('🌤️ FIXED: Enhanced forecast range check:', {
+      targetDate: targetDate.toLocaleDateString(),
+      today: today.toLocaleDateString(),
+      daysDiff,
+      isWithinRange,
+      logic: 'Day 0 (today) through Day 7 = LIVE FORECAST'
+    });
+    
+    return isWithinRange;
   }
 
   /**
-   * CRITICAL FIX: Check if date is within live forecast range (alias for isWithinForecastRange)
+   * FIXED: Check if date is within live forecast range (same as isWithinForecastRange)
    */
   static isWithinLiveForecastRange(targetDate: Date): boolean {
     return this.isWithinForecastRange(targetDate);
   }
 
   /**
-   * CRITICAL FIX: Check if weather data is from live forecast
+   * FIXED: Enhanced live forecast detection
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate: Date): boolean {
     if (!weather || !segmentDate) return false;
@@ -68,7 +86,7 @@ export class WeatherUtilityService {
     if (weather.source === 'live_forecast') return true;
     if (weather.isActualForecast === true) return true;
     
-    // Also check if the date is within forecast range
+    // Also check if the date is within forecast range (including today)
     return this.isWithinForecastRange(segmentDate);
   }
 

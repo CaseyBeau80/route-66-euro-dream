@@ -1,4 +1,3 @@
-
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
@@ -13,7 +12,7 @@ export interface WeatherFetchParams {
 
 export class SimpleWeatherFetcher {
   /**
-   * CRITICAL FIX: Unified weather fetching that works consistently in ALL views
+   * FIXED: Enhanced weather fetching with today included as live forecast
    */
   static async fetchWeatherForCity(params: WeatherFetchParams): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, isSharedView, segmentDay } = params;
@@ -22,15 +21,15 @@ export class SimpleWeatherFetcher {
     const actualApiKey = WeatherApiKeyManager.getApiKey();
     const hasActualApiKey = !!actualApiKey && actualApiKey !== 'YOUR_API_KEY_HERE';
     
-    console.log('🔧 FIXED: SimpleWeatherFetcher unified check:', {
+    console.log('🔧 FIXED: SimpleWeatherFetcher enhanced for today:', {
       cityName,
       targetDate: targetDate.toISOString(),
+      targetDateLocal: targetDate.toLocaleDateString(),
       isSharedView,
       hasActualApiKey,
       apiKeyLength: actualApiKey?.length || 0,
-      apiKeyPreview: actualApiKey?.substring(0, 8) + '...',
       segmentDay,
-      unifiedPath: true
+      enhancedForToday: true
     });
 
     // If no valid API key, return fallback immediately
@@ -39,25 +38,42 @@ export class SimpleWeatherFetcher {
       return this.createFallbackWeather(cityName, targetDate);
     }
 
-    // Check if date is within live forecast range (0-7 days from today)
+    // FIXED: Enhanced date range check - today is live forecast
     const today = new Date();
-    const daysFromToday = Math.ceil((targetDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     
-    if (daysFromToday < 0 || daysFromToday > 7) {
-      console.log('🔄 FIXED: Date outside forecast range - returning fallback for', cityName, { daysFromToday });
+    const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
+    const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
+    
+    // FIXED: Today (day 0) through day 7 are live forecast
+    const isWithinForecastRange = daysDiff >= 0 && daysDiff <= 7;
+    
+    console.log('🌤️ FIXED: Enhanced date analysis for live forecast:', {
+      cityName,
+      targetDateLocal: targetDate.toLocaleDateString(),
+      todayLocal: today.toLocaleDateString(),
+      daysDiff,
+      isWithinForecastRange,
+      logic: 'Day 0 (TODAY) is LIVE FORECAST'
+    });
+
+    if (!isWithinForecastRange) {
+      console.log('🔄 FIXED: Date outside forecast range - returning fallback for', cityName, { daysDiff });
       return this.createFallbackWeather(cityName, targetDate);
     }
 
-    // Try to fetch live weather
+    // Try to fetch live weather for today and future dates
     try {
-      console.log('🌤️ FIXED: Attempting live weather fetch for', cityName);
+      console.log('🌤️ FIXED: Attempting live weather fetch for', cityName, 'daysDiff:', daysDiff);
       const liveWeather = await this.fetchLiveWeatherDirect(cityName, targetDate, actualApiKey);
       
       if (liveWeather) {
         console.log('✅ FIXED: Live weather successful for', cityName, {
           temperature: liveWeather.temperature,
           source: liveWeather.source,
-          isActualForecast: liveWeather.isActualForecast
+          isActualForecast: liveWeather.isActualForecast,
+          daysDiff
         });
         return liveWeather;
       }
@@ -71,7 +87,7 @@ export class SimpleWeatherFetcher {
   }
 
   /**
-   * CRITICAL FIX: Direct live weather fetching with proper error handling
+   * FIXED: Enhanced live weather fetching for today and future dates
    */
   private static async fetchLiveWeatherDirect(
     cityName: string, 
@@ -86,7 +102,88 @@ export class SimpleWeatherFetcher {
         return null;
       }
 
-      // Fetch weather forecast
+      // FIXED: For today, use current weather. For future dates, use forecast
+      const today = new Date();
+      const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      
+      const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
+      const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
+      
+      if (daysDiff === 0) {
+        // For today, get current weather
+        console.log('🌤️ FIXED: Getting current weather for TODAY:', cityName);
+        return await this.fetchCurrentWeather(cityName, targetDate, coords, apiKey);
+      } else {
+        // For future dates, get forecast
+        console.log('🌤️ FIXED: Getting forecast for future date:', cityName, 'daysDiff:', daysDiff);
+        return await this.fetchForecastWeather(cityName, targetDate, coords, apiKey);
+      }
+    } catch (error) {
+      console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
+      return null;
+    }
+  }
+
+  /**
+   * FIXED: Fetch current weather for today
+   */
+  private static async fetchCurrentWeather(
+    cityName: string,
+    targetDate: Date,
+    coords: { lat: number; lng: number },
+    apiKey: string
+  ): Promise<ForecastWeatherData | null> {
+    try {
+      const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
+      const response = await fetch(currentUrl);
+
+      if (!response.ok) {
+        console.log('❌ FIXED: Current weather API failed for', cityName, response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      const currentWeather: ForecastWeatherData = {
+        temperature: Math.round(data.main.temp),
+        highTemp: Math.round(data.main.temp_max),
+        lowTemp: Math.round(data.main.temp_min),
+        description: data.weather[0]?.description || 'Partly Cloudy',
+        icon: data.weather[0]?.icon || '02d',
+        humidity: data.main.humidity,
+        windSpeed: Math.round(data.wind?.speed || 0),
+        precipitationChance: 0, // Current weather doesn't have precipitation probability
+        cityName: cityName,
+        forecast: [],
+        forecastDate: targetDate,
+        isActualForecast: true,
+        source: 'live_forecast' as const
+      };
+
+      console.log('✅ FIXED: Created current weather for TODAY:', cityName, {
+        temperature: currentWeather.temperature,
+        isActualForecast: currentWeather.isActualForecast,
+        source: currentWeather.source
+      });
+
+      return currentWeather;
+    } catch (error) {
+      console.error('❌ FIXED: Current weather fetch failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * FIXED: Fetch forecast weather for future dates
+   */
+  private static async fetchForecastWeather(
+    cityName: string,
+    targetDate: Date,
+    coords: { lat: number; lng: number },
+    apiKey: string
+  ): Promise<ForecastWeatherData | null> {
+    try {
       const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
       const response = await fetch(weatherUrl);
 
@@ -108,8 +205,7 @@ export class SimpleWeatherFetcher {
         return itemDate === targetDateString;
       }) || data.list[0];
 
-      // CRITICAL FIX: Create live forecast with explicit properties
-      const liveWeather: ForecastWeatherData = {
+      const forecastWeather: ForecastWeatherData = {
         temperature: Math.round(bestMatch.main.temp),
         highTemp: Math.round(bestMatch.main.temp_max),
         lowTemp: Math.round(bestMatch.main.temp_min),
@@ -121,20 +217,19 @@ export class SimpleWeatherFetcher {
         cityName: cityName,
         forecast: [],
         forecastDate: targetDate,
-        isActualForecast: true, // CRITICAL: Always true for live API data
-        source: 'live_forecast' as const // CRITICAL: Always live_forecast for API data
+        isActualForecast: true,
+        source: 'live_forecast' as const
       };
 
-      console.log('✅ FIXED: Created live forecast for', cityName, {
-        temperature: liveWeather.temperature,
-        isActualForecast: liveWeather.isActualForecast,
-        source: liveWeather.source,
-        description: liveWeather.description
+      console.log('✅ FIXED: Created forecast weather for future date:', cityName, {
+        temperature: forecastWeather.temperature,
+        isActualForecast: forecastWeather.isActualForecast,
+        source: forecastWeather.source
       });
 
-      return liveWeather;
+      return forecastWeather;
     } catch (error) {
-      console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
+      console.error('❌ FIXED: Forecast weather fetch failed:', error);
       return null;
     }
   }

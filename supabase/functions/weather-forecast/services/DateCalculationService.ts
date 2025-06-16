@@ -1,11 +1,9 @@
-
 export class DateCalculationService {
   /**
-   * CRITICAL FIX: Calculate days from today using local date normalization
-   * This ensures consistent date handling with the frontend
+   * FIXED: Enhanced days calculation that treats today as day 0 (live forecast)
    */
   static calculateDaysFromToday(targetDate: Date): number {
-    // CRITICAL FIX: Normalize both dates to local midnight for accurate comparison
+    // FIXED: Normalize both dates to local midnight for accurate comparison
     const today = new Date();
     const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -13,7 +11,7 @@ export class DateCalculationService {
     const timeDifference = targetNormalized.getTime() - todayNormalized.getTime();
     const daysFromToday = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
     
-    console.log('📅 CRITICAL FIX: DateCalculationService.calculateDaysFromToday:', {
+    console.log('📅 FIXED: Enhanced DateCalculationService.calculateDaysFromToday:', {
       targetDate: targetDate.toISOString(),
       targetDateLocal: targetDate.toLocaleDateString(),
       todayNormalized: todayNormalized.toISOString(),
@@ -21,25 +19,24 @@ export class DateCalculationService {
       targetNormalized: targetNormalized.toISOString(),
       targetNormalizedLocal: targetNormalized.toLocaleDateString(),
       daysFromToday,
-      calculation: 'LOCAL_DATE_NORMALIZED_COMPARISON',
-      timeDifference,
-      fixedVersion: true
+      interpretation: daysFromToday === 0 ? 'TODAY - LIVE FORECAST' : daysFromToday > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL',
+      enhancedForToday: true
     });
     
     return daysFromToday;
   }
 
   /**
-   * CRITICAL FIX: Check if date is within forecast range (0-7 days)
+   * FIXED: Enhanced forecast range check - day 0 (today) through day 7 are live
    */
   static isWithinForecastRange(daysFromToday: number): boolean {
     const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
     
-    console.log('📅 CRITICAL FIX: DateCalculationService.isWithinForecastRange:', {
+    console.log('📅 FIXED: Enhanced DateCalculationService.isWithinForecastRange:', {
       daysFromToday,
       isWithinRange,
-      logic: 'Days 0-7 = live forecast, Day 8+ = historical',
-      extendedRange: true
+      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST',
+      todayIncluded: daysFromToday === 0 ? 'YES - TODAY IS LIVE FORECAST' : 'N/A'
     });
     
     return isWithinRange;
