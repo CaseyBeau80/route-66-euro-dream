@@ -1,5 +1,6 @@
 
 import { DateNormalizationService } from '../DateNormalizationService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 export class WeatherUtilityService {
   /**
@@ -48,6 +49,27 @@ export class WeatherUtilityService {
   static isWithinForecastRange(targetDate: Date): boolean {
     const daysFromToday = this.getDaysFromToday(targetDate);
     return daysFromToday >= 0 && daysFromToday <= 7;
+  }
+
+  /**
+   * CRITICAL FIX: Check if date is within live forecast range (alias for isWithinForecastRange)
+   */
+  static isWithinLiveForecastRange(targetDate: Date): boolean {
+    return this.isWithinForecastRange(targetDate);
+  }
+
+  /**
+   * CRITICAL FIX: Check if weather data is from live forecast
+   */
+  static isLiveForecast(weather: ForecastWeatherData, segmentDate: Date): boolean {
+    if (!weather || !segmentDate) return false;
+    
+    // Check if the weather source indicates it's a live forecast
+    if (weather.source === 'live_forecast') return true;
+    if (weather.isActualForecast === true) return true;
+    
+    // Also check if the date is within forecast range
+    return this.isWithinForecastRange(segmentDate);
   }
 
   /**
