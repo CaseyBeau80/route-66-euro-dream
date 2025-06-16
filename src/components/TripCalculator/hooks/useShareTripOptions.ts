@@ -9,14 +9,21 @@ export interface ShareTripOptions {
   userNote?: string;
 }
 
-export const useShareTripOptions = () => {
+export const useShareTripOptions = (tripPlan?: any) => {
   const [shareOptions, setShareOptions] = useState<ShareTripOptions>({
     includeWeather: true,
     includeStops: true,
     allowPublicAccess: true,
-    title: undefined,
+    title: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip` : undefined,
     userNote: undefined
   });
+
+  const updateShareOptions = (updates: Partial<ShareTripOptions>) => {
+    setShareOptions(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
 
   const updateShareOption = <K extends keyof ShareTripOptions>(
     key: K,
@@ -33,13 +40,14 @@ export const useShareTripOptions = () => {
       includeWeather: true,
       includeStops: true,
       allowPublicAccess: true,
-      title: undefined,
+      title: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip` : undefined,
       userNote: undefined
     });
   };
 
   return {
     shareOptions,
+    updateShareOptions,
     updateShareOption,
     resetToDefaults,
     setShareOptions

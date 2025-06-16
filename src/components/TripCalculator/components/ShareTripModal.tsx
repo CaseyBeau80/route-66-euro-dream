@@ -45,6 +45,10 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   });
 
   const handleOpenCalendarModal = () => {
+    console.log('Opening calendar modal with:', {
+      hasStartDate: !!tripStartDate,
+      startDate: tripStartDate?.toISOString()
+    });
     setIsCalendarModalOpen(true);
   };
 
@@ -96,11 +100,17 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
                   <p className="text-sm text-blue-600">
                     Add your trip to Google Calendar or download as .ics file
                   </p>
+                  {!tripStartDate && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      ⚠️ Set a trip start date to enable calendar export
+                    </p>
+                  )}
                 </div>
                 <Button
                   onClick={handleOpenCalendarModal}
                   variant="outline"
                   className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  disabled={!tripStartDate}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
                   Export
