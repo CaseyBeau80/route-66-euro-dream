@@ -15,16 +15,37 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   dateMatchSource,
   cityName
 }) => {
-  const isLive = isActualForecast === true && source === 'live_forecast';
-  
+  console.log('🏷️ CRITICAL FIX: WeatherBadge - STRICT SOURCE-BASED RENDERING:', {
+    cityName,
+    source,
+    isActualForecast,
+    dateMatchSource,
+    strictLogic: 'SOURCE_DETERMINES_EVERYTHING'
+  });
+
+  // CRITICAL FIX: Strict source-based badge determination
+  const isLiveWeather = source === 'live_forecast' && isActualForecast === true;
+
+  console.log('🏷️ CRITICAL FIX: WeatherBadge determination for', cityName, {
+    source,
+    isActualForecast,
+    isLiveWeather,
+    willShowAsLive: isLiveWeather,
+    strictDetermination: true
+  });
+
+  if (isLiveWeather) {
+    return (
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        🟢 Live Forecast
+      </span>
+    );
+  }
+
   return (
-    <div className={`px-2 py-1 rounded text-xs font-medium ${
-      isLive 
-        ? 'bg-green-100 text-green-700 border border-green-200' 
-        : 'bg-gray-100 text-gray-600 border border-gray-200'
-    }`}>
-      {isLive ? '🔴 Live' : '📊 Historical'}
-    </div>
+    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+      📊 Historical Data
+    </span>
   );
 };
 
