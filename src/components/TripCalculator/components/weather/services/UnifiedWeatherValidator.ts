@@ -20,15 +20,15 @@ export class UnifiedWeatherValidator {
   private static readonly FORECAST_THRESHOLD_DAYS = 7;
 
   /**
-   * PLAN IMPLEMENTATION: Enhanced validation using DATE-BASED validation as PRIMARY decision factor
+   * FIXED: Enhanced validation using ONLY DATE-BASED validation as decision factor
    */
   static validateWeatherData(weather: any, segmentDate?: Date): UnifiedWeatherValidation {
-    console.log('🎯 PLAN IMPLEMENTATION: Enhanced UnifiedWeatherValidator with DATE-BASED primary validation:', {
+    console.log('🎯 FIXED VALIDATION: UnifiedWeatherValidator with CONSISTENT DATE-BASED validation:', {
       weatherExists: !!weather,
       segmentDateProvided: !!segmentDate,
       source: weather?.source,
       isActualForecast: weather?.isActualForecast,
-      planImplementation: 'DATE_BASED_PRIMARY_VALIDATION',
+      fixImplementation: 'CONSISTENT_DATE_BASED_ONLY',
       forecastThreshold: this.FORECAST_THRESHOLD_DAYS
     });
 
@@ -48,158 +48,105 @@ export class UnifiedWeatherValidator {
       };
     }
 
-    // PLAN IMPLEMENTATION: DATE-BASED VALIDATION as PRIMARY decision factor
-    let daysFromToday = -999;
-    let isWithinForecastRange = false;
-    let dateBasedDecision = false;
-
-    if (segmentDate) {
-      daysFromToday = UnifiedDateService.getDaysFromToday(segmentDate);
-      isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS;
-      dateBasedDecision = true;
-
-      console.log('🎯 PLAN: DATE-BASED PRIMARY VALIDATION:', {
-        segmentDate: segmentDate.toLocaleDateString(),
-        daysFromToday,
-        isWithinForecastRange,
-        forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        primaryDecisionFactor: 'DATE_BASED',
-        logic: `Days 0-${this.FORECAST_THRESHOLD_DAYS} = LIVE FORECAST, Day ${this.FORECAST_THRESHOLD_DAYS + 1}+ = HISTORICAL`
-      });
-
-      // PLAN IMPLEMENTATION: If date-based validation is available, use it as PRIMARY factor
-      if (isWithinForecastRange) {
-        console.log('✅ PLAN: DATE-BASED LIVE FORECAST DECISION:', {
-          segmentDate: segmentDate.toLocaleDateString(),
-          daysFromToday,
-          decision: 'LIVE_FORECAST_BY_DATE_RANGE',
-          weatherSource: weather.source,
-          isActualForecast: weather.isActualForecast,
-          primaryFactor: 'DATE_WITHIN_0_TO_7_DAYS'
-        });
-
-        return {
-          isLiveForecast: true,
-          source: 'live_forecast',
-          confidence: 'high',
-          displayLabel: 'Live Weather Forecast',
-          badgeText: '🟢 Live Forecast',
-          styleTheme: 'green',
-          explanation: `Real-time weather forecast (${daysFromToday} days from today)`,
-          dateBasedDecision: true,
-          daysFromToday,
-          forecastRangeCheck: true
-        };
-      } else {
-        console.log('📊 PLAN: DATE-BASED HISTORICAL DECISION:', {
-          segmentDate: segmentDate.toLocaleDateString(),
-          daysFromToday,
-          decision: 'HISTORICAL_BY_DATE_RANGE',
-          weatherSource: weather.source,
-          isActualForecast: weather.isActualForecast,
-          primaryFactor: `DATE_BEYOND_${this.FORECAST_THRESHOLD_DAYS}_DAYS`
-        });
-
-        return {
-          isLiveForecast: false,
-          source: 'historical_fallback',
-          confidence: 'medium',
-          displayLabel: 'Historical Weather Data',
-          badgeText: '📊 Historical Data',
-          styleTheme: 'amber',
-          explanation: `Weather estimate based on historical data (${daysFromToday} days from today)`,
-          dateBasedDecision: true,
-          daysFromToday,
-          forecastRangeCheck: false
-        };
-      }
-    }
-
-    // PLAN IMPLEMENTATION: FALLBACK - Weather object-based validation (when no date available)
-    console.log('⚠️ PLAN: Using FALLBACK weather object-based validation (no date provided):', {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      fallbackReason: 'NO_SEGMENT_DATE_PROVIDED',
-      recommendation: 'PROVIDE_SEGMENT_DATE_FOR_ACCURATE_VALIDATION'
-    });
-
-    // Check for explicit live forecast indicators
-    const hasLiveIndicators = 
-      weather.source === 'live_forecast' || 
-      weather.isActualForecast === true ||
-      (weather.forecast && Array.isArray(weather.forecast) && weather.forecast.length > 0);
-
-    // Check for detailed weather metrics
-    const hasDetailedMetrics = 
-      weather.humidity !== undefined || 
-      weather.windSpeed !== undefined || 
-      weather.precipitationChance !== undefined;
-
-    const isLiveForecast = hasLiveIndicators || hasDetailedMetrics;
-
-    if (isLiveForecast) {
-      console.log('✅ PLAN: FALLBACK LIVE FORECAST detected (object-based):', {
-        source: weather.source,
-        isActualForecast: weather.isActualForecast,
-        hasDetailedMetrics,
-        fallbackDecision: 'LIVE_FORECAST_BY_OBJECT_CHARACTERISTICS',
-        warning: 'DATE_BASED_VALIDATION_PREFERRED'
-      });
-
+    // FIXED: REQUIRE segmentDate for consistent validation
+    if (!segmentDate) {
+      console.warn('⚠️ FIXED VALIDATION: No segmentDate provided - this should not happen in fixed implementation');
       return {
-        isLiveForecast: true,
-        source: 'live_forecast',
-        confidence: 'medium',
-        displayLabel: 'Live Weather Forecast',
-        badgeText: '🟢 Live Forecast',
-        styleTheme: 'green',
-        explanation: 'Real-time weather forecast from API (fallback validation)',
+        isLiveForecast: false,
+        source: 'unknown',
+        confidence: 'low',
+        displayLabel: 'Date Required for Weather Validation',
+        badgeText: 'No date provided',
+        styleTheme: 'gray',
+        explanation: 'Segment date required for accurate weather validation',
         dateBasedDecision: false,
         daysFromToday: -999,
         forecastRangeCheck: false
       };
     }
 
-    // Final fallback
-    console.log('📊 PLAN: FALLBACK HISTORICAL decision (object-based):', {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
-      fallbackDecision: 'HISTORICAL_BY_OBJECT_CHARACTERISTICS',
-      warning: 'DATE_BASED_VALIDATION_PREFERRED'
+    // FIXED: CONSISTENT DATE-BASED VALIDATION for all cases
+    const daysFromToday = UnifiedDateService.getDaysFromToday(segmentDate);
+    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS;
+
+    console.log('🎯 FIXED: CONSISTENT DATE-BASED VALIDATION:', {
+      segmentDate: segmentDate.toLocaleDateString(),
+      daysFromToday,
+      isWithinForecastRange,
+      forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
+      decision: isWithinForecastRange ? 'LIVE_FORECAST' : 'HISTORICAL_FALLBACK',
+      logic: `Days 0-${this.FORECAST_THRESHOLD_DAYS} = LIVE FORECAST, Day ${this.FORECAST_THRESHOLD_DAYS + 1}+ = HISTORICAL`,
+      consistentValidation: true
     });
 
-    return {
-      isLiveForecast: false,
-      source: 'historical_fallback',
-      confidence: 'low',
-      displayLabel: 'Historical Weather Data',
-      badgeText: '📊 Historical Data',
-      styleTheme: 'amber',
-      explanation: 'Weather estimate based on historical data (fallback validation)',
-      dateBasedDecision: false,
-      daysFromToday: -999,
-      forecastRangeCheck: false
-    };
+    // FIXED: Use ONLY date-based decision - no fallback to object characteristics
+    if (isWithinForecastRange) {
+      console.log('✅ FIXED: DATE-BASED LIVE FORECAST DECISION:', {
+        segmentDate: segmentDate.toLocaleDateString(),
+        daysFromToday,
+        decision: 'LIVE_FORECAST_BY_DATE_RANGE_ONLY',
+        weatherSource: weather.source,
+        isActualForecast: weather.isActualForecast,
+        primaryFactor: `DATE_WITHIN_0_TO_${this.FORECAST_THRESHOLD_DAYS}_DAYS`,
+        noFallbackLogic: true
+      });
+
+      return {
+        isLiveForecast: true,
+        source: 'live_forecast',
+        confidence: 'high',
+        displayLabel: 'Live Weather Forecast',
+        badgeText: '🟢 Live Forecast',
+        styleTheme: 'green',
+        explanation: `Real-time weather forecast (${daysFromToday} days from today)`,
+        dateBasedDecision: true,
+        daysFromToday,
+        forecastRangeCheck: true
+      };
+    } else {
+      console.log('📊 FIXED: DATE-BASED HISTORICAL DECISION:', {
+        segmentDate: segmentDate.toLocaleDateString(),
+        daysFromToday,
+        decision: 'HISTORICAL_BY_DATE_RANGE_ONLY',
+        weatherSource: weather.source,
+        isActualForecast: weather.isActualForecast,
+        primaryFactor: `DATE_BEYOND_${this.FORECAST_THRESHOLD_DAYS}_DAYS`,
+        noFallbackLogic: true
+      });
+
+      return {
+        isLiveForecast: false,
+        source: 'historical_fallback',
+        confidence: 'medium',
+        displayLabel: 'Historical Weather Data',
+        badgeText: '📊 Historical Data',
+        styleTheme: 'amber',
+        explanation: `Weather estimate based on historical data (${daysFromToday} days from today)`,
+        dateBasedDecision: true,
+        daysFromToday,
+        forecastRangeCheck: false
+      };
+    }
   }
 
   /**
-   * PLAN IMPLEMENTATION: Enhanced convenience method with date support
+   * FIXED: Enhanced convenience method with REQUIRED date support
    */
   static isLiveWeather(weather: any, segmentDate?: Date): boolean {
     const validation = this.validateWeatherData(weather, segmentDate);
-    console.log('🎯 PLAN: isLiveWeather enhanced result:', {
+    console.log('🎯 FIXED: isLiveWeather consistent result:', {
       cityName: weather?.cityName,
       segmentDate: segmentDate?.toLocaleDateString(),
       isLive: validation.isLiveForecast,
       dateBasedDecision: validation.dateBasedDecision,
       daysFromToday: validation.daysFromToday,
-      planImplementation: true
+      consistentImplementation: true
     });
     return validation.isLiveForecast;
   }
 
   /**
-   * PLAN IMPLEMENTATION: Enhanced display label with date context
+   * FIXED: Enhanced display label with REQUIRED date context
    */
   static getDisplayLabel(weather: any, segmentDate?: Date): string {
     const validation = this.validateWeatherData(weather, segmentDate);
@@ -207,7 +154,7 @@ export class UnifiedWeatherValidator {
   }
 
   /**
-   * PLAN IMPLEMENTATION: Enhanced style theme with date context
+   * FIXED: Enhanced style theme with REQUIRED date context
    */
   static getStyleTheme(weather: any, segmentDate?: Date): 'green' | 'amber' | 'gray' {
     const validation = this.validateWeatherData(weather, segmentDate);
@@ -215,25 +162,26 @@ export class UnifiedWeatherValidator {
   }
 
   /**
-   * PLAN IMPLEMENTATION: Get forecast threshold for consistency
+   * Get forecast threshold for consistency
    */
   static getForecastThresholdDays(): number {
     return this.FORECAST_THRESHOLD_DAYS;
   }
 
   /**
-   * PLAN IMPLEMENTATION: Check if date is within forecast range
+   * Check if date is within forecast range
    */
   static isDateWithinForecastRange(segmentDate: Date): boolean {
     const daysFromToday = UnifiedDateService.getDaysFromToday(segmentDate);
     const isWithinRange = daysFromToday >= 0 && daysFromToday <= this.FORECAST_THRESHOLD_DAYS;
     
-    console.log('🎯 PLAN: Date-based forecast range check:', {
+    console.log('🎯 FIXED: Date-based forecast range check:', {
       segmentDate: segmentDate.toLocaleDateString(),
       daysFromToday,
       isWithinRange,
       forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-      logic: `Days 0-${this.FORECAST_THRESHOLD_DAYS} = LIVE FORECAST RANGE`
+      logic: `Days 0-${this.FORECAST_THRESHOLD_DAYS} = LIVE FORECAST RANGE`,
+      consistentImplementation: true
     });
     
     return isWithinRange;

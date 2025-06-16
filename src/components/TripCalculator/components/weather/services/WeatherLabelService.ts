@@ -2,28 +2,40 @@
 import { UnifiedWeatherValidator } from './UnifiedWeatherValidator';
 
 /**
- * UPDATED: WeatherLabelService now delegates to UnifiedWeatherValidator
+ * FIXED: WeatherLabelService now requires segmentDate for consistent validation
  */
 export class WeatherLabelService {
   /**
-   * UPDATED: Uses UnifiedWeatherValidator for consistent detection
+   * FIXED: Uses UnifiedWeatherValidator with REQUIRED segmentDate for consistent detection
    */
-  static isLiveWeatherData(weather: any): boolean {
-    return UnifiedWeatherValidator.isLiveWeather(weather);
+  static isLiveWeatherData(weather: any, segmentDate?: Date): boolean {
+    if (!segmentDate) {
+      console.warn('⚠️ FIXED: WeatherLabelService.isLiveWeatherData called without segmentDate - this may cause inconsistency');
+      return false;
+    }
+    return UnifiedWeatherValidator.isLiveWeather(weather, segmentDate);
   }
 
   /**
-   * UPDATED: Uses UnifiedWeatherValidator for consistent labeling
+   * FIXED: Uses UnifiedWeatherValidator with REQUIRED segmentDate for consistent labeling
    */
-  static getWeatherSourceLabel(weather: any): string {
-    return UnifiedWeatherValidator.getDisplayLabel(weather);
+  static getWeatherSourceLabel(weather: any, segmentDate?: Date): string {
+    if (!segmentDate) {
+      console.warn('⚠️ FIXED: WeatherLabelService.getWeatherSourceLabel called without segmentDate - using fallback');
+      return 'Weather Data (Date Required)';
+    }
+    return UnifiedWeatherValidator.getDisplayLabel(weather, segmentDate);
   }
 
   /**
-   * UPDATED: Get live forecast indicator for display
+   * FIXED: Get live forecast indicator with REQUIRED segmentDate for display
    */
-  static getLiveForecastIndicator(weather: any): string | null {
-    const validation = UnifiedWeatherValidator.validateWeatherData(weather);
+  static getLiveForecastIndicator(weather: any, segmentDate?: Date): string | null {
+    if (!segmentDate) {
+      console.warn('⚠️ FIXED: WeatherLabelService.getLiveForecastIndicator called without segmentDate');
+      return null;
+    }
+    const validation = UnifiedWeatherValidator.validateWeatherData(weather, segmentDate);
     return validation.isLiveForecast ? '✓ Live Forecast' : null;
   }
 }
