@@ -4,6 +4,7 @@ import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { useUnifiedWeather } from './hooks/useUnifiedWeather';
 import EnhancedWeatherDisplay from './EnhancedWeatherDisplay';
+import WeatherDebugInfo from './WeatherDebugInfo';
 import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 
@@ -30,12 +31,12 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     }
   }, [forceRefresh]);
 
-  // CRITICAL FIX: Calculate segment date using fixed date normalization
+  // Calculate segment date using fixed date normalization
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
       const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
       
-      console.log('📅 CRITICAL FIX: UnifiedWeatherWidget segment date calculation:', {
+      console.log('📅 FIXED: UnifiedWeatherWidget segment date calculation:', {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay: segment.day,
@@ -92,7 +93,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return WeatherApiKeyManager.hasApiKey();
   }, []);
 
-  console.log('🌤️ CRITICAL FIX: UnifiedWeatherWidget render:', {
+  console.log('🌤️ FIXED: UnifiedWeatherWidget render:', {
     cityName: segment.endCity,
     day: segment.day,
     forceKey,
@@ -103,6 +104,14 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     segmentDateLocal: segmentDate?.toLocaleDateString(),
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
+    weatherDetails: weather ? {
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      humidity: weather.humidity,
+      windSpeed: weather.windSpeed,
+      description: weather.description
+    } : null,
     fixedVersion: true
   });
 
@@ -121,15 +130,22 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   // Show weather if available
   if (weather && segmentDate) {
     return (
-      <EnhancedWeatherDisplay
-        weather={weather}
-        segmentDate={segmentDate}
-        cityName={segment.endCity}
-        isSharedView={isSharedView}
-        isPDFExport={isPDFExport}
-        forceKey={forceKey}
-        showDebug={true}
-      />
+      <div key={`weather-display-${segment.endCity}-${forceKey}`}>
+        <EnhancedWeatherDisplay
+          weather={weather}
+          segmentDate={segmentDate}
+          cityName={segment.endCity}
+          isSharedView={isSharedView}
+          isPDFExport={isPDFExport}
+          forceKey={forceKey}
+          showDebug={true}
+        />
+        <WeatherDebugInfo 
+          weather={weather}
+          cityName={segment.endCity}
+          segmentDate={segmentDate}
+        />
+      </div>
     );
   }
 

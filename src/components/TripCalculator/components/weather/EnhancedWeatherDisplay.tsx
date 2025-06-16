@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { WeatherDataValidator } from './WeatherDataValidator';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { UnifiedWeatherValidator } from './services/UnifiedWeatherValidator';
 import { UnifiedStylingService } from './services/UnifiedStylingService';
+import WeatherIcon from './WeatherIcon';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -22,123 +23,131 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false,
   forceKey,
-  showDebug = true
+  showDebug = false
 }) => {
-  // Use unified validation
-  const validationResult = React.useMemo(() => {
-    return WeatherDataValidator.validateWeatherData(weather, cityName, segmentDate);
-  }, [weather, cityName, segmentDate]);
-
-  const { validation, normalizedWeather, isLiveForecast } = validationResult;
-
-  // Use unified styling
+  // Use enhanced unified validation
+  const validation = UnifiedWeatherValidator.validateWeatherData(weather);
   const styles = UnifiedStylingService.getWeatherStyles(validation.styleTheme);
 
-  console.log('🎨 UNIFIED: EnhancedWeatherDisplay using unified styling for', cityName, {
+  console.log('🎨 FIXED: EnhancedWeatherDisplay using enhanced validation:', {
+    cityName,
     validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
     styleTheme: validation.styleTheme,
-    shouldBeGreen: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER'
+    displayLabel: validation.displayLabel,
+    weatherData: {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      temperature: weather.temperature,
+      highTemp: weather.highTemp,
+      lowTemp: weather.lowTemp,
+      hasMetrics: !!(weather.humidity || weather.windSpeed)
+    },
+    forceKey
   });
 
-  const getWeatherIcon = (iconCode: string) => {
-    const iconMap: { [key: string]: string } = {
-      '01d': '☀️', '01n': '🌙',
-      '02d': '⛅', '02n': '☁️',
-      '03d': '☁️', '03n': '☁️',
-      '04d': '☁️', '04n': '☁️',
-      '09d': '🌧️', '09n': '🌧️',
-      '10d': '🌦️', '10n': '🌧️',
-      '11d': '⛈️', '11n': '⛈️',
-      '13d': '🌨️', '13n': '🌨️',
-      '50d': '🌫️', '50n': '🌫️'
-    };
-    return iconMap[iconCode] || '⛅';
+  const formatTime = (hours?: number): string => {
+    if (!hours) return 'N/A';
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
   };
 
-  const weatherIcon = getWeatherIcon(normalizedWeather.icon);
-  const formattedDate = format(segmentDate, 'EEEE, MMM d');
+  const getTemperatureDisplay = (): string => {
+    if (weather.temperature) {
+      return `${Math.round(weather.temperature)}°F`;
+    }
+    if (weather.highTemp && weather.lowTemp) {
+      return `${Math.round(weather.lowTemp)}° - ${Math.round(weather.highTemp)}°F`;
+    }
+    if (weather.highTemp) {
+      return `High: ${Math.round(weather.highTemp)}°F`;
+    }
+    return 'Temperature not available';
+  };
 
   return (
     <div 
-      className={`${styles.containerClasses} rounded-lg p-4 border relative`}
-      style={{
-        backgroundColor: styles.backgroundColor,
-        borderColor: styles.borderColor
-      }}
+      key={`enhanced-weather-${cityName}-${forceKey}`}
+      className={`rounded-lg border p-4 shadow-sm transition-all duration-200 ${styles.containerClasses}`}
+      style={{ backgroundColor: styles.backgroundColor, borderColor: styles.borderColor }}
     >
-      {/* Debug Overlay - shows unified validation result */}
-      {showDebug && (
-        <div className="absolute top-0 right-0 bg-black bg-opacity-95 text-white p-2 text-xs rounded-bl z-50 max-w-xs">
-          <div className="font-bold mb-1">🎯 UNIFIED: {cityName}</div>
-          <div className={`mb-1 font-bold ${isLiveForecast ? 'text-green-400' : 'text-yellow-400'}`}>
-            {isLiveForecast ? '🟢 UNIFIED: LIVE' : '🟡 UNIFIED: HISTORICAL'}
-          </div>
-          <div>Source: {normalizedWeather.source}</div>
-          <div>ActualForecast: {String(normalizedWeather.isActualForecast)}</div>
-          <div>Confidence: {validation.confidence}</div>
-          <div className="font-bold mt-1">
-            Theme: {validation.styleTheme.toUpperCase()}
-          </div>
-        </div>
-      )}
-
-      {/* Header with city and date */}
+      {/* Weather Header */}
       <div className="flex items-center justify-between mb-3">
-        <h5 className="font-semibold" style={{ color: styles.textColor }}>
-          {cityName}
-        </h5>
-        <span className={`text-xs px-2 py-1 rounded ${styles.badgeClasses}`}>
-          {formattedDate}
+        <div className="flex items-center gap-3">
+          {weather.icon && (
+            <WeatherIcon iconCode={weather.icon} className="w-10 h-10" />
+          )}
+          <div>
+            <h4 className="font-semibold text-lg" style={{ color: styles.textColor }}>
+              {weather.description || 'Weather Forecast'}
+            </h4>
+            <div className="text-sm opacity-75" style={{ color: styles.textColor }}>
+              {format(segmentDate, 'EEEE, MMMM d, yyyy')}
+            </div>
+          </div>
+        </div>
+        
+        {/* Enhanced Badge */}
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles.badgeClasses}`}>
+          {validation.badgeText}
         </span>
       </div>
-      
-      {/* Weather icon and temperature */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="text-4xl">
-          {weatherIcon}
+
+      {/* Temperature Display */}
+      <div className="mb-4">
+        <div className="text-3xl font-bold mb-1" style={{ color: styles.textColor }}>
+          {getTemperatureDisplay()}
         </div>
-        <div>
-          <div className="text-3xl font-bold" style={{ color: styles.textColor }}>
-            {Math.round(normalizedWeather.temperature)}°F
-          </div>
-          <div className="text-sm capitalize" style={{ color: styles.textColor }}>
-            {normalizedWeather.description}
-          </div>
+        <div className="text-sm opacity-75" style={{ color: styles.textColor }}>
+          {weather.description || 'Conditions'}
         </div>
       </div>
 
-      {/* Temperature range if available */}
-      {normalizedWeather.highTemp && normalizedWeather.lowTemp && (
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="text-center">
-            <div className="text-lg font-bold" style={{ color: styles.textColor }}>
-              {Math.round(normalizedWeather.highTemp)}°F
+      {/* Weather Details Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        {weather.humidity !== undefined && (
+          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
+            <div className="font-semibold" style={{ color: styles.textColor }}>
+              {weather.humidity}%
             </div>
-            <div className="text-xs" style={{ color: styles.textColor }}>High</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold" style={{ color: styles.textColor }}>
-              {Math.round(normalizedWeather.lowTemp)}°F
+            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
+              Humidity
             </div>
-            <div className="text-xs" style={{ color: styles.textColor }}>Low</div>
           </div>
-        </div>
-      )}
-      
-      {/* Weather details */}
-      <div className="flex justify-between text-sm mb-3" style={{ color: styles.textColor }}>
-        <span>💧 {normalizedWeather.precipitationChance || 0}%</span>
-        <span>💨 {Math.round(normalizedWeather.windSpeed || 0)} mph</span>
-        <span>💦 {normalizedWeather.humidity || 0}%</span>
+        )}
+        
+        {weather.windSpeed !== undefined && (
+          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
+            <div className="font-semibold" style={{ color: styles.textColor }}>
+              {Math.round(weather.windSpeed)} mph
+            </div>
+            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
+              Wind Speed
+            </div>
+          </div>
+        )}
+        
+        {weather.precipitationChance !== undefined && (
+          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
+            <div className="font-semibold" style={{ color: styles.textColor }}>
+              {weather.precipitationChance}%
+            </div>
+            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
+              Rain Chance
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Source indicator */}
-      <div className={`text-xs px-2 py-1 rounded text-center ${styles.badgeClasses}`}>
-        <span style={{ color: styles.sourceColor }}>
-          {styles.sourceLabel}
-        </span>
-        <div className="mt-1 text-xs opacity-80">
-          {styles.badgeText}
+      {/* Source Information */}
+      <div className="pt-3 border-t border-white border-opacity-25">
+        <div className="flex items-center justify-between text-xs" style={{ color: styles.sourceColor }}>
+          <span>{validation.displayLabel}</span>
+          {showDebug && (
+            <span className="font-mono opacity-75">
+              {weather.source || 'unknown'} | {validation.confidence}
+            </span>
+          )}
         </div>
       </div>
     </div>

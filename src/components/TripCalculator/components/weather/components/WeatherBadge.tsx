@@ -19,9 +19,9 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
   cityName,
   weather
 }) => {
-  console.log('🏷️ UNIFIED: WeatherBadge using UnifiedWeatherValidator for', cityName);
+  console.log('🏷️ FIXED: WeatherBadge using enhanced validation for', cityName);
 
-  // Use unified validation for consistent badge display
+  // Use enhanced validation for consistent badge display
   const validation = UnifiedWeatherValidator.validateWeatherData(weather || {
     source,
     isActualForecast,
@@ -30,15 +30,21 @@ const WeatherBadge: React.FC<WeatherBadgeProps> = ({
 
   const badgeStyles = UnifiedStylingService.getBadgeStyles(validation.styleTheme);
 
-  console.log('🏷️ UNIFIED: WeatherBadge final styling for', cityName, {
+  console.log('🏷️ FIXED: WeatherBadge final styling for', cityName, {
     validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
     styleTheme: validation.styleTheme,
-    badgeText: badgeStyles.text
+    badgeText: validation.badgeText,
+    actualWeatherData: weather ? {
+      source: weather.source,
+      isActualForecast: weather.isActualForecast,
+      hasTemperature: !!(weather.temperature || weather.highTemp),
+      hasMetrics: !!(weather.humidity || weather.windSpeed)
+    } : null
   });
 
   return (
     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeStyles.classes}`}>
-      {validation.isLiveForecast ? '🟢 Live Forecast' : '📊 Historical Data'}
+      {validation.badgeText}
     </span>
   );
 };
