@@ -25,11 +25,11 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
   const today = UnifiedDateService.getToday();
 
-  console.log('📅 FINAL FIX: SimpleTripCalendar render with today:', {
+  console.log('📅 ENHANCED CALENDAR: SimpleTripCalendar render with today:', {
     today: today.toLocaleDateString(),
     todayTime: today.getTime(),
     selected: selected?.toLocaleDateString(),
-    service: 'UnifiedDateService - ABSOLUTE TODAY FIX'
+    service: 'UnifiedDateService - ENHANCED CALENDAR FIX'
   });
 
   // Navigate months
@@ -70,16 +70,16 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('📅 FINAL FIX: Date clicked in calendar:', {
+    console.log('📅 ENHANCED CALENDAR: Date clicked in calendar:', {
       clickedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      service: 'UnifiedDateService - ABSOLUTE TODAY FIX'
+      service: 'UnifiedDateService - ENHANCED CALENDAR FIX'
     });
 
     // Use unified service to create clean date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
-    console.log('📅 FINAL FIX: Sending normalized date to parent:', {
+    console.log('📅 ENHANCED CALENDAR: Sending normalized date to parent:', {
       original: date.toLocaleDateString(),
       normalized: cleanDate.toLocaleDateString(),
       service: 'UnifiedDateService'
@@ -93,63 +93,48 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     return UnifiedDateService.isSameDate(date, selected);
   };
 
-  // ABSOLUTE FIX: Completely rewrite date disability logic to guarantee today is clickable
+  // ENHANCED FIX: Completely strengthened date disability logic with absolute today bypass
   const isDateDisabled = (date: Date): boolean => {
-    // Step 1: Get today's date components for exact comparison
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth();
-    const todayDate = today.getDate();
-    
-    // Step 2: Get the date's components
-    const dateYear = date.getFullYear();
-    const dateMonth = date.getMonth();
-    const dateDateNumber = date.getDate();
-    
-    // Step 3: ABSOLUTE TODAY CHECK - if it's today, NEVER disable
-    const isTodayExact = (
-      dateYear === todayYear &&
-      dateMonth === todayMonth &&
-      dateDateNumber === todayDate
-    );
+    // STEP 1: ABSOLUTE TODAY CHECK - COMPLETELY BYPASS ALL OTHER LOGIC
+    const isTodayExact = UnifiedDateService.isToday(date);
     
     if (isTodayExact) {
-      console.log('📅 ABSOLUTE FIX: TODAY DETECTED - FORCING ENABLED:', {
+      console.log('🚨 ENHANCED CALENDAR: ABSOLUTE TODAY BYPASS - FORCING ENABLED:', {
         date: date.toLocaleDateString(),
         today: today.toLocaleDateString(),
         isToday: true,
         disabled: false,
-        rule: 'TODAY_ABSOLUTE_OVERRIDE'
+        rule: 'TODAY_ABSOLUTE_BYPASS - CALENDAR_LEVEL_OVERRIDE',
+        bypassedParentLogic: true,
+        bypassedAllOtherLogic: true
       });
-      return false; // TODAY IS NEVER DISABLED
+      return false; // TODAY IS NEVER DISABLED - ABSOLUTE OVERRIDE
     }
     
-    // Step 4: Check parent component's disabled function first
+    // STEP 2: Check parent component's disabled function (for non-today dates only)
     if (disabled && disabled(date)) {
-      console.log('📅 ABSOLUTE FIX: Parent component disabled this date:', {
-        date: date.toLocaleDateString()
+      console.log('📅 ENHANCED CALENDAR: Parent component disabled this non-today date:', {
+        date: date.toLocaleDateString(),
+        parentDisabled: true
       });
       return true;
     }
     
-    // Step 5: Only disable dates that are actually before today
-    const isBeforeToday = (
-      dateYear < todayYear ||
-      (dateYear === todayYear && dateMonth < todayMonth) ||
-      (dateYear === todayYear && dateMonth === todayMonth && dateDateNumber < todayDate)
-    );
+    // STEP 3: Use the fixed isPastDate method from UnifiedDateService
+    const isActuallyPast = UnifiedDateService.isPastDate(date);
     
-    console.log('📅 ABSOLUTE FIX: Date validation for non-today date:', {
+    console.log('📅 ENHANCED CALENDAR: Date validation for non-today date:', {
       date: date.toLocaleDateString(),
-      isBeforeToday,
-      isDisabled: isBeforeToday,
-      service: 'UnifiedDateService - ABSOLUTE FIX'
+      isActuallyPast,
+      isDisabled: isActuallyPast,
+      service: 'UnifiedDateService - ENHANCED CALENDAR'
     });
     
-    return isBeforeToday;
+    return isActuallyPast;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 ABSOLUTE FIX: Today button clicked - selecting today:', {
+    console.log('📅 ENHANCED CALENDAR: Today button clicked - selecting today:', {
       today: today.toLocaleDateString(),
       service: 'UnifiedDateService'
     });
@@ -207,12 +192,12 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           const isDisabled = isDateDisabled(date);
           const isTodayDate = UnifiedDateService.isToday(date);
 
-          console.log('📅 ABSOLUTE FIX: Rendering calendar button:', {
+          console.log('📅 ENHANCED CALENDAR: Rendering calendar button:', {
             date: date.toLocaleDateString(),
             isSelected,
             isDisabled,
             isTodayDate,
-            absoluteOverride: isTodayDate ? 'TODAY_NEVER_DISABLED' : 'NORMAL_LOGIC'
+            absoluteOverride: isTodayDate ? 'TODAY_ABSOLUTE_CLICKABLE' : 'NORMAL_LOGIC'
           });
 
           return (
@@ -225,18 +210,19 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
                 "border border-transparent hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500",
                 {
                   // Selected state
-                  "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm cursor-pointer": isSelected,
+                  "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
                   // Today but not selected - Enhanced styling for today with ABSOLUTE clickability
-                  "bg-green-100 text-green-800 font-bold border-green-300 hover:bg-green-200 ring-2 ring-green-400 shadow-sm cursor-pointer": isTodayDate && !isSelected,
-                  // Disabled state - ABSOLUTE CHECK: Today should NEVER get these classes
-                  "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled && !isTodayDate,
+                  "bg-green-100 text-green-800 font-bold border-green-300 hover:bg-green-200 ring-2 ring-green-400 shadow-sm": isTodayDate && !isSelected,
+                  // Disabled state - BUT NEVER FOR TODAY
+                  "text-gray-300 bg-gray-50 hover:border-transparent": isDisabled && !isTodayDate,
                   // Normal state
-                  "text-gray-700 hover:bg-gray-100 cursor-pointer": !isSelected && !isTodayDate && !isDisabled,
+                  "text-gray-700 hover:bg-gray-100": !isSelected && !isTodayDate && !isDisabled,
                 }
               )}
               style={{
-                // ABSOLUTE FIX: Force pointer events for today
-                pointerEvents: isTodayDate ? 'auto' : (isDisabled ? 'none' : 'auto')
+                // CRITICAL CSS SAFETY NET: Force pointer events and cursor for today
+                pointerEvents: isTodayDate ? 'auto' : (isDisabled ? 'none' : 'auto'),
+                cursor: isTodayDate ? 'pointer' : (isDisabled ? 'not-allowed' : 'pointer')
               }}
             >
               {date.getDate()}
@@ -245,14 +231,17 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         })}
       </div>
 
-      {/* Enhanced Today Button */}
+      {/* Enhanced Today Button with CSS Safety Net */}
       <div className="mt-4 pt-3 border-t border-gray-200">
         <Button
           variant="outline"
           size="sm"
           onClick={handleTodayClick}
-          className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm cursor-pointer"
-          style={{ pointerEvents: 'auto' }}
+          className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm"
+          style={{ 
+            pointerEvents: 'auto',
+            cursor: 'pointer'
+          }}
         >
           ✨ Select Today ({today.toLocaleDateString()}) - Start Now! ✨
         </Button>

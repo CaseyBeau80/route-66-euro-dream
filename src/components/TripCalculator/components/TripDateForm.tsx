@@ -47,23 +47,35 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // FIXED: Use unified service for date disability - CRITICAL FIX to allow today
+  // CRITICAL FIX: Enhanced parent disabled logic with absolute today bypass
   const isDateDisabled = (date: Date): boolean => {
-    const isPast = UnifiedDateService.isPastDate(date);
-    const isToday = UnifiedDateService.isToday(date);
+    // ABSOLUTE TODAY CHECK FIRST - BYPASS ALL OTHER LOGIC
+    const isTodayExact = UnifiedDateService.isToday(date);
     
-    console.log('📅 UNIFIED DATE FORM: Date validation (FIXED):', {
+    if (isTodayExact) {
+      console.log('🚨 CRITICAL FIX: TripDateForm - TODAY BYPASS ACTIVATED:', {
+        inputDate: date.toLocaleDateString(),
+        isToday: true,
+        isDisabled: false,
+        rule: 'TODAY_ABSOLUTE_BYPASS - NEVER_DISABLED',
+        service: 'UnifiedDateService - PARENT FIX'
+      });
+      return false; // TODAY IS NEVER DISABLED - ABSOLUTE RULE
+    }
+    
+    // For non-today dates, use the fixed isPastDate method
+    const isPast = UnifiedDateService.isPastDate(date);
+    
+    console.log('📅 UNIFIED DATE FORM: Date validation (ENHANCED PARENT FIX):', {
       inputDate: date.toLocaleDateString(),
       isPast,
-      isToday,
-      isDisabled: isPast && !isToday, // CRITICAL FIX: Today is NEVER disabled
-      reason: isPast && !isToday ? 'DISABLED: Date is before today' : isToday ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date',
-      service: 'UnifiedDateService'
+      isToday: isTodayExact,
+      isDisabled: isPast,
+      reason: isPast ? 'DISABLED: Date is before today' : 'ENABLED: Today or future date',
+      service: 'UnifiedDateService - ENHANCED PARENT'
     });
     
-    // CRITICAL FIX: Only disable dates that are actually in the past (before today)
-    // Today should NEVER be disabled
-    return isPast && !isToday;
+    return isPast;
   };
 
   return (
