@@ -4,6 +4,7 @@ import { MapPin, Clock, AlertTriangle, Fuel } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 interface SegmentStatsProps {
   segment: DailySegment;
@@ -13,25 +14,20 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // EXACT PREVIEW FORM LOGIC: Use exact same calculation as preview form
-  const miles = segment.approximateMiles || segment.distance || 0;
-  const hours = miles / 60; // Same calculation as preview form
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
+  // Use Google Distance Matrix API data if available
+  const driveTimeHours = segment.driveTimeHours || 0;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(driveTimeHours);
   
-  const formattedDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-  
-  const isLongDriveDay = segment.approximateMiles > 500;
+  const isLongDriveDay = segment.approximateMiles > 500 || driveTimeHours > 7;
   const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300);
   const segmentDistance = segment.distance || segment.approximateMiles;
 
-  console.log('📊 EXACT PREVIEW FORM: SegmentStats using exact preview form logic:', {
+  console.log('📊 SegmentStats using Google Distance Matrix API data:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    approximateMiles: segment.approximateMiles,
-    distance: segment.distance,
-    formattedDriveTime,
-    exactPreviewFormLogic: true
+    apiDriveTime: formattedDriveTime,
+    driveTimeHours,
+    distance: segmentDistance
   });
 
   if (compact) {

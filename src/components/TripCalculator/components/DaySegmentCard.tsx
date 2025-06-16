@@ -10,6 +10,7 @@ import DaySegmentCardStats from './DaySegmentCardStats';
 import DaySegmentCardContent from './DaySegmentCardContent';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import ErrorBoundary from './ErrorBoundary';
+import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -47,18 +48,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
+  console.log('🗓️ DaySegmentCard render with Google Distance Matrix API integration:', stableSegment.title);
 
-  // EXACT PREVIEW FORM LOGIC: Calculate drive time using exact preview form logic
-  const miles = stableSegment.approximateMiles || stableSegment.distance || 0;
-  const hours = miles / 60; // Same calculation as preview form
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  
-  const formattedDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-  const drivingTimeHours = hours;
+  // Use Google Distance Matrix API data if available, otherwise fallback
+  const drivingTimeHours = stableSegment.driveTimeHours || 0;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(drivingTimeHours);
 
-  // Memoized drive time styling to prevent recalculation
+  // Memoized drive time styling based on actual API data
   const driveTimeStyle = React.useMemo(() => {
     try {
       if (drivingTimeHours <= 4) {
@@ -99,14 +95,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     </div>
   ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
 
-  console.log(`🚗 EXACT PREVIEW FORM: DaySegmentCard final render for Day ${stableSegment.day}`, {
+  console.log(`🚗 DaySegmentCard with Google Distance Matrix API for Day ${stableSegment.day}`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
-    exactPreviewFormDriveTime: formattedDriveTime,
+    apiDriveTime: formattedDriveTime,
     actualDriveTimeHours: drivingTimeHours,
-    approximateMiles: stableSegment.approximateMiles,
     distance: stableSegment.distance,
-    exactPreviewFormLogic: true
+    usingGoogleAPI: true
   });
 
   return (

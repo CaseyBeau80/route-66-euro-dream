@@ -9,6 +9,7 @@ import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
+import { GoogleDistanceMatrixService } from './services/GoogleDistanceMatrixService';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
@@ -91,30 +92,27 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // EXACT PREVIEW FORM LOGIC: Calculate total drive time using exact preview form logic
+  // Use Google Distance Matrix API data for total driving time
   const totalDrivingTime = React.useMemo(() => {
     if (!tripPlan.segments?.length) return 0;
     
     return tripPlan.segments.reduce((total, segment) => {
-      const miles = segment.approximateMiles || segment.distance || 0;
-      const hours = miles / 60; // Same calculation as preview form
+      const hours = segment.driveTimeHours || 0;
       return total + hours;
     }, 0);
   }, [tripPlan.segments]);
   
-  // EXACT PREVIEW FORM LOGIC: Use same formatTime function as preview form
+  // Use Google Distance Matrix Service formatter
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    return GoogleDistanceMatrixService.formatDuration(hours);
   };
   
-  console.log('🚗 EXACT PREVIEW FORM: Drive time check in EnhancedTripResults:', {
+  console.log('🚗 EnhancedTripResults using Google Distance Matrix API data:', {
     totalDrivingTime,
     formatted: formatTime(totalDrivingTime),
     segmentCount: tripPlan.segments?.length,
-    exactPreviewFormLogic: true
+    usingGoogleAPI: true
   });
 
   return (
@@ -159,7 +157,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
               <div className="text-sm font-semibold text-gray-800">{formatTime(totalDrivingTime)}</div>
-              <div className="text-xs text-gray-600">Drive Time</div>
+              <div className="text-xs text-gray-600">Drive Time (Google API)</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">

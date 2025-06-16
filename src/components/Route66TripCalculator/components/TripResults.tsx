@@ -9,6 +9,7 @@ import TripSummaryStats from './TripSummaryStats';
 import SimpleWeatherDisplay from '../../TripCalculator/components/weather/SimpleWeatherDisplay';
 import { useEdgeFunctionWeather } from '../../TripCalculator/components/weather/hooks/useEdgeFunctionWeather';
 import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
+import { GoogleDistanceMatrixService } from '../../TripCalculator/services/GoogleDistanceMatrixService';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -72,24 +73,17 @@ const TripResults: React.FC<TripResultsProps> = ({
     }
   };
 
-  console.log('🔧 TripResults using PREVIEW FORM drive time logic:', {
+  console.log('🔧 TripResults using Google Distance Matrix API drive times:', {
     segmentCount: tripPlan.segments?.length,
     tripStartDate: tripStartDate?.toISOString(),
-    firstSegment: tripPlan.segments?.[0]
+    firstSegment: tripPlan.segments?.[0],
+    usingGoogleAPI: true
   });
 
-  // PREVIEW FORM LOGIC: Use the exact same calculation as preview form
-  const getPreviewFormDriveTime = (segment: any): string => {
-    // Preview form shows consistent "4h" - let's use the approximateMiles to calculate realistic drive time
-    const miles = segment.approximateMiles || segment.distance || 0;
-    const hours = miles / 60; // Realistic highway speed calculation similar to preview
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    
-    if (minutes > 0) {
-      return `${wholeHours}h ${minutes}m`;
-    }
-    return `${wholeHours}h`;
+  // Use Google Distance Matrix API data from segments
+  const getGoogleAPIDriveTime = (segment: any): string => {
+    const driveTimeHours = segment.driveTimeHours || 0;
+    return GoogleDistanceMatrixService.formatDuration(driveTimeHours);
   };
 
   return (
@@ -109,25 +103,25 @@ const TripResults: React.FC<TripResultsProps> = ({
       {/* Daily Segments */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary
+          Daily Itinerary (Google API Drive Times)
         </h3>
         
         {tripPlan.segments?.map((segment, index) => {
-          console.log(`🔧 PREVIEW FORM: Rendering segment ${index} for ${segment.endCity}:`, {
+          console.log(`🔧 Rendering segment ${index} for ${segment.endCity} with Google API data:`, {
             segmentData: {
               day: segment.day,
-              approximateMiles: segment.approximateMiles,
+              driveTimeHours: segment.driveTimeHours,
               distance: segment.distance,
               startCity: segment.startCity,
               endCity: segment.endCity
             },
-            previewFormDriveTime: getPreviewFormDriveTime(segment),
+            googleAPIDriveTime: getGoogleAPIDriveTime(segment),
             tripStartDate: tripStartDate?.toISOString()
           });
 
-          // PREVIEW FORM LOGIC: Use exact same calculation
-          const driveTime = getPreviewFormDriveTime(segment);
-          const distance = segment.approximateMiles || segment.distance || 0;
+          // Use Google Distance Matrix API data
+          const driveTime = getGoogleAPIDriveTime(segment);
+          const distance = segment.distance || segment.approximateMiles || 0;
 
           return (
             <Card key={index} className="p-4 border border-route66-border">
@@ -153,7 +147,7 @@ const TripResults: React.FC<TripResultsProps> = ({
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {driveTime}
+                    {driveTime} (Google API)
                   </div>
                 </div>
               </div>

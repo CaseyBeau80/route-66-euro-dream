@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import SimpleWeatherDisplay from '../weather/SimpleWeatherDisplay';
 import { useEdgeFunctionWeather } from '../weather/hooks/useEdgeFunctionWeather';
 import { WeatherUtilityService } from '../weather/services/WeatherUtilityService';
+import { GoogleDistanceMatrixService } from '../../services/GoogleDistanceMatrixService';
 
 interface SharedDailyItineraryProps {
   segments: DailySegment[];
@@ -15,17 +16,17 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 PREVIEW FORM: SharedDailyItinerary with preview form drive time:', {
+  console.log('🔥 SharedDailyItinerary with Google Distance Matrix API:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    usingPreviewFormLogic: true
+    usingGoogleAPI: true
   });
 
   // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 PREVIEW FORM: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -38,7 +39,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 PREVIEW FORM: Extracted tripStartDate from URL:', {
+            console.log('🔥 Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString()
@@ -48,35 +49,28 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ PREVIEW FORM: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 PREVIEW FORM: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
-  // PREVIEW FORM LOGIC: Use exact same calculation as preview form
-  const getPreviewFormDriveTime = (segment: DailySegment): string => {
-    const miles = segment.approximateMiles || segment.distance || 0;
-    const hours = miles / 60; // Same calculation as preview form
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    
-    if (minutes > 0) {
-      return `${wholeHours}h ${minutes}m`;
-    }
-    return `${wholeHours}h`;
+  // Use Google Distance Matrix API data
+  const getGoogleAPIDriveTime = (segment: DailySegment): string => {
+    const driveTimeHours = segment.driveTimeHours || 0;
+    return GoogleDistanceMatrixService.formatDuration(driveTimeHours);
   };
 
   return (
     <div className="space-y-4">
       <div className="text-center p-4 bg-route66-primary rounded">
         <h3 className="text-lg font-bold text-white mb-2 font-route66">
-          📅 DAILY ITINERARY WITH WEATHER
+          📅 DAILY ITINERARY WITH GOOGLE API DRIVE TIMES
         </h3>
         <p className="text-route66-cream text-sm font-travel">
-          Your complete day-by-day guide with preview form drive times
+          Your complete day-by-day guide with accurate Google Distance Matrix API drive times
         </p>
         {effectiveTripStartDate && (
           <p className="text-route66-cream text-xs mt-1">
@@ -86,22 +80,22 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       </div>
       
       {segments.map((segment, index) => {
-        // PREVIEW FORM LOGIC: Use exact same calculation as preview form
-        const driveTime = getPreviewFormDriveTime(segment);
-        const distance = segment.approximateMiles || segment.distance || 0;
+        // Use Google Distance Matrix API data
+        const driveTime = getGoogleAPIDriveTime(segment);
+        const distance = segment.distance || segment.approximateMiles || 0;
         const segmentDate = WeatherUtilityService.getSegmentDate(effectiveTripStartDate, segment.day);
 
-        console.log(`🔥 PREVIEW FORM: Rendering segment ${segment.day} for ${segment.endCity}`, {
+        console.log(`🔥 Rendering segment ${segment.day} for ${segment.endCity} with Google API`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
           segmentDate: segmentDate.toISOString(),
-          previewFormDriveTime: driveTime,
-          approximateMiles: segment.approximateMiles,
-          distance: segment.distance
+          googleAPIDriveTime: driveTime,
+          driveTimeHours: segment.driveTimeHours,
+          distance: distance
         });
 
         return (
-          <div key={`preview-form-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`google-api-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -133,7 +127,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                   <div className="text-lg font-bold text-purple-600">
                     ⏱️ {driveTime}
                   </div>
-                  <div className="text-xs text-gray-600">Drive Time</div>
+                  <div className="text-xs text-gray-600">Google API Drive Time</div>
                 </div>
                 
                 <div className="text-center p-3 bg-gray-50 rounded border">
@@ -177,7 +171,7 @@ const WeatherWidget: React.FC<{
     segmentDay: segment.day
   });
 
-  console.log('🌤️ CONSISTENT: WeatherWidget for shared view:', {
+  console.log('🌤️ WeatherWidget for shared view:', {
     cityName: segment.endCity,
     hasWeather: !!weather,
     loading,

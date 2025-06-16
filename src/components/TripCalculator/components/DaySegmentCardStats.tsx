@@ -3,6 +3,7 @@ import React from 'react';
 import { Route, Clock, AlertTriangle } from 'lucide-react';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
+import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 interface DaySegmentCardStatsProps {
   segment: DailySegment;
@@ -23,22 +24,16 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // EXACT PREVIEW FORM LOGIC: Use the exact same calculation as preview form
-  const miles = segment.approximateMiles || segment.distance || 0;
-  const hours = miles / 60; // Same calculation as preview form
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  
-  const previewFormDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
-  const driveTimeHours = hours;
+  // Use the formatted drive time from Google Distance Matrix API or fallback to approximation
+  const displayDriveTime = formattedDriveTime || GoogleDistanceMatrixService.formatDuration(segment.driveTimeHours || 0);
+  const driveTimeHours = segment.driveTimeHours || 0;
 
-  console.log('📊 EXACT PREVIEW FORM: DaySegmentCardStats using exact preview form logic:', {
+  console.log('📊 DaySegmentCardStats using Google Distance Matrix API data:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    approximateMiles: segment.approximateMiles,
-    distance: segment.distance,
-    previewFormDriveTime,
-    exactPreviewFormLogic: true
+    apiDriveTime: displayDriveTime,
+    driveTimeHours,
+    distance: segmentDistance
   });
 
   return (
@@ -50,7 +45,7 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
         <span className={driveTimeHours > 7 ? driveTimeStyle.text : ''}>
-          {previewFormDriveTime} driving
+          {displayDriveTime} driving
         </span>
       </div>
       {driveTimeHours > 7 && (

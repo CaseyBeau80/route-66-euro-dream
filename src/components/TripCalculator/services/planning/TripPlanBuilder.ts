@@ -1,10 +1,10 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { AttractionService } from './AttractionService';
 import { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanTypes';
+import { GoogleDistanceMatrixService } from '../GoogleDistanceMatrixService';
 
 // Re-export types for backward compatibility
 export type { TripPlan, DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming };
@@ -19,27 +19,20 @@ export class TripPlanBuilder {
     allStops: TripStop[],
     requestedDays: number
   ): Promise<TripPlan> {
-    console.log(`🏗️ Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
+    console.log(`🏗️ Building trip plan with Google Distance Matrix API: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
 
     // Get all stops between start and end
     const routeStops = this.getRouteStops(startStop, endStop, allStops);
     console.log(`📍 Route includes ${routeStops.length} stops`);
 
-    // Calculate total distance for the entire route
-    const totalDistance = this.calculateTotalRouteDistance(routeStops);
-    console.log(`🗺️ Total route distance: ${totalDistance.toFixed(1)} miles`);
-
-    // Plan daily segments
-    const segments = await this.planDailySegments(routeStops, requestedDays, totalDistance);
+    // Plan daily segments with Google Distance Matrix API
+    const segments = await this.planDailySegmentsWithAPI(routeStops, requestedDays);
     
-    // Calculate total driving time from all segments
-    const totalDrivingTime = segments.reduce((total, segment) => {
-      const segmentDriveTime = segment.driveTimeHours || 0;
-      console.log(`📊 Segment ${segment.day}: ${segment.startCity} → ${segment.endCity} = ${segmentDriveTime.toFixed(1)}h`);
-      return total + segmentDriveTime;
-    }, 0);
+    // Calculate total distance and driving time from segments
+    const totalDistance = segments.reduce((total, segment) => total + (segment.distance || 0), 0);
+    const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
 
-    console.log(`⏱️ Total driving time calculated: ${totalDrivingTime.toFixed(1)} hours from ${segments.length} segments`);
+    console.log(`⏱️ Total driving time calculated from Google API: ${totalDrivingTime.toFixed(1)} hours from ${segments.length} segments`);
 
     // Create route coordinates
     const route = routeStops.map(stop => ({
@@ -52,16 +45,15 @@ export class TripPlanBuilder {
       endCity: endStop.name,
       totalDistance: Math.round(totalDistance),
       totalDays: segments.length,
-      totalDrivingTime, // Now properly calculated from segments
+      totalDrivingTime,
       segments,
-      dailySegments: segments, // For legacy compatibility
+      dailySegments: segments,
       route,
-      // Set additional properties
       title: `${startStop.name} to ${endStop.name} Route 66 Adventure`,
       totalMiles: Math.round(totalDistance)
     };
 
-    console.log(`✅ Trip plan built successfully: ${segments.length} days, ${totalDistance.toFixed(0)} miles, ${totalDrivingTime.toFixed(1)}h driving`);
+    console.log(`✅ Trip plan built with Google API: ${segments.length} days, ${totalDistance.toFixed(0)} miles, ${totalDrivingTime.toFixed(1)}h driving`);
     return tripPlan;
   }
 
@@ -105,138 +97,109 @@ export class TripPlanBuilder {
     return totalDistance;
   }
 
-  private static async planDailySegments(
+  private static async planDailySegmentsWithAPI(
     routeStops: TripStop[],
-    requestedDays: number,
-    totalDistance: number
+    requestedDays: number
   ): Promise<DailySegment[]> {
     const segments: DailySegment[] = [];
     
-    // FIXED: Calculate realistic segments based on actual daily distances
-    const targetDailyDistance = totalDistance / requestedDays;
-    console.log(`🎯 FIXED: Target daily distance: ${targetDailyDistance.toFixed(1)} miles for ${requestedDays} days`);
+    console.log(`🎯 Planning ${requestedDays} daily segments with Google Distance Matrix API`);
     
+    // Calculate segments for Google API
+    const segmentPlans = this.createSegmentPlans(routeStops, requestedDays);
+    
+    // Prepare all segment pairs for batch API calls
+    const segmentPairs = segmentPlans.map(plan => ({
+      startCity: plan.startStop.name,
+      endCity: plan.endStop.name
+    }));
+
+    // Get all distances and durations from Google API
+    const apiResults = await GoogleDistanceMatrixService.calculateRouteSegments(segmentPairs);
+    
+    // Build segments with real API data
+    for (let i = 0; i < segmentPlans.length; i++) {
+      const plan = segmentPlans[i];
+      const apiResult = apiResults.segmentResults[i];
+      
+      console.log(`🚗 Day ${i + 1}: ${plan.startStop.name} → ${plan.endStop.name} - API Distance: ${apiResult.distance}mi, API Duration: ${GoogleDistanceMatrixService.formatDuration(apiResult.duration)}`);
+      
+      // Get attractions for the destination city
+      const attractions = await AttractionService.getAttractionsForStop(plan.endStop);
+      
+      // Get drive time category based on API duration
+      const driveTimeCategory = this.getDriveTimeCategory(apiResult.duration);
+      
+      const segment: DailySegment = {
+        day: i + 1,
+        startCity: plan.startStop.name,
+        endCity: plan.endStop.name,
+        distance: Math.round(apiResult.distance),
+        approximateMiles: Math.round(apiResult.distance),
+        drivingTime: apiResult.duration,
+        driveTimeHours: apiResult.duration,
+        attractions: attractions || [],
+        subStops: plan.intermediateStops,
+        driveTimeCategory,
+        title: `${plan.startStop.name} → ${plan.endStop.name}`,
+        recommendedStops: [],
+        subStopTimings: [],
+        routeSection: this.getRouteSection(i + 1, requestedDays)
+      };
+      
+      segments.push(segment);
+    }
+    
+    console.log(`📋 Created ${segments.length} segments with Google Distance Matrix API data`);
+    return segments;
+  }
+
+  private static createSegmentPlans(routeStops: TripStop[], requestedDays: number): Array<{
+    startStop: TripStop;
+    endStop: TripStop;
+    intermediateStops: TripStop[];
+  }> {
+    const plans: Array<{
+      startStop: TripStop;
+      endStop: TripStop;
+      intermediateStops: TripStop[];
+    }> = [];
+    
+    // Distribute stops across days
+    const stopsPerSegment = Math.max(1, Math.floor(routeStops.length / requestedDays));
     let currentStopIndex = 0;
-    let accumulatedDistance = 0;
     
     for (let day = 1; day <= requestedDays; day++) {
       const isLastDay = day === requestedDays;
       const startStopIndex = currentStopIndex;
       
       let endStopIndex: number;
-      let dayDistance = 0;
-      
       if (isLastDay) {
-        // Last day: go to the end
         endStopIndex = routeStops.length - 1;
-        dayDistance = totalDistance - accumulatedDistance;
       } else {
-        // Find the stop that gets us closest to target daily distance
-        endStopIndex = startStopIndex;
-        
-        while (endStopIndex < routeStops.length - 2 && dayDistance < targetDailyDistance) {
-          const nextStopDistance = DistanceCalculationService.calculateDistance(
-            routeStops[endStopIndex].latitude, routeStops[endStopIndex].longitude,
-            routeStops[endStopIndex + 1].latitude, routeStops[endStopIndex + 1].longitude
-          );
-          
-          if (dayDistance + nextStopDistance <= targetDailyDistance * 1.3) { // Allow 30% overage
-            dayDistance += nextStopDistance;
-            endStopIndex++;
-          } else {
-            break;
-          }
-        }
-        
+        endStopIndex = Math.min(startStopIndex + stopsPerSegment, routeStops.length - 1);
         // Make sure we don't end on the same stop we started
         if (endStopIndex === startStopIndex) {
           endStopIndex = Math.min(startStopIndex + 1, routeStops.length - 1);
         }
-        
-        // Recalculate actual distance for this segment
-        dayDistance = DistanceCalculationService.calculateDistance(
-          routeStops[startStopIndex].latitude, routeStops[startStopIndex].longitude,
-          routeStops[endStopIndex].latitude, routeStops[endStopIndex].longitude
-        );
       }
       
-      const dayStartStop = routeStops[startStopIndex];
-      const dayEndStop = routeStops[endStopIndex];
-      const dayIntermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
+      const startStop = routeStops[startStopIndex];
+      const endStop = routeStops[endStopIndex];
+      const intermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
       
-      // FIXED: Calculate realistic drive time based on actual distance
-      const segmentDriveTime = this.calculateRealisticDriveTime(dayDistance);
-      accumulatedDistance += dayDistance;
+      plans.push({
+        startStop,
+        endStop,
+        intermediateStops
+      });
       
-      console.log(`🚗 FIXED Day ${day}: ${dayStartStop.name} → ${dayEndStop.name} - Distance: ${dayDistance.toFixed(1)}mi, Drive Time: ${segmentDriveTime.toFixed(1)}h`);
-      
-      // Get attractions for the destination city
-      const attractions = await AttractionService.getAttractionsForStop(dayEndStop);
-      
-      // Get drive time category object instead of string
-      const driveTimeCategory = this.getDriveTimeCategory(segmentDriveTime);
-      
-      const segment: DailySegment = {
-        day,
-        startCity: dayStartStop.name,
-        endCity: dayEndStop.name,
-        distance: Math.round(dayDistance),
-        approximateMiles: Math.round(dayDistance),
-        drivingTime: segmentDriveTime, // FIXED: Use calculated drive time
-        driveTimeHours: segmentDriveTime, // FIXED: Use calculated drive time
-        attractions: attractions || [],
-        subStops: dayIntermediateStops,
-        driveTimeCategory,
-        title: `${dayStartStop.name} → ${dayEndStop.name}`,
-        recommendedStops: [], // Initialize empty, will be populated by other services
-        subStopTimings: [], // Initialize empty, will be populated by other services
-        routeSection: this.getRouteSection(day, requestedDays)
-      };
-      
-      segments.push(segment);
       currentStopIndex = endStopIndex;
       
       if (endStopIndex >= routeStops.length - 1) break;
     }
     
-    console.log(`📋 FIXED: Created ${segments.length} segments with realistic drive times`);
-    return segments;
-  }
-
-  // FIXED: More realistic drive time calculation
-  private static calculateRealisticDriveTime(distance: number): number {
-    console.log(`🧮 FIXED: Calculating drive time for ${distance.toFixed(1)} miles`);
-    
-    // Route 66 specific speed calculations
-    let avgSpeed: number;
-    let breaks = 0;
-    
-    if (distance < 100) {
-      avgSpeed = 45; // Urban areas, frequent stops
-      breaks = 0.25; // 15 min break
-    } else if (distance < 200) {
-      avgSpeed = 50; // Mix of urban and highway
-      breaks = 0.5; // 30 min break
-    } else if (distance < 300) {
-      avgSpeed = 55; // Mostly highway
-      breaks = 0.75; // 45 min break
-    } else {
-      avgSpeed = 55; // Highway but with Route 66 considerations
-      breaks = 1.0; // 1 hour of breaks
-    }
-    
-    // Calculate base driving time
-    const baseTime = distance / avgSpeed;
-    
-    // Add breaks and buffer for Route 66 sightseeing
-    const totalTime = baseTime + breaks;
-    
-    // Round to reasonable precision
-    const finalTime = Math.round(totalTime * 4) / 4; // Quarter hour precision
-    
-    console.log(`🧮 FIXED: ${distance.toFixed(1)}mi @ ${avgSpeed}mph + ${breaks}h breaks = ${finalTime.toFixed(1)}h`);
-    
-    return Math.max(finalTime, 0.5); // Minimum 30 minutes
+    return plans;
   }
 
   private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
