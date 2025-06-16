@@ -26,16 +26,16 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
 
   // Use unified service for date selection
   const handleDateSelect = (date: Date) => {
-    console.log('📅 UNIFIED DATE FORM: Date selected:', {
+    console.log('📅 FIXED: TripDateForm date selected:', {
       selectedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      service: 'UnifiedDateService - CONSISTENT HANDLING'
+      service: 'UnifiedDateService - SIMPLIFIED APPROACH'
     });
     
     // Use unified service to create clean date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
-    console.log('📅 UNIFIED DATE FORM: Normalized selected date:', {
+    console.log('📅 FIXED: TripDateForm normalized date:', {
       original: date.toLocaleDateString(),
       normalized: cleanDate.toLocaleDateString(),
       service: 'UnifiedDateService'
@@ -47,36 +47,9 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // CRITICAL FIX: Enhanced parent disabled logic with absolute today bypass
-  const isDateDisabled = (date: Date): boolean => {
-    // ABSOLUTE TODAY CHECK FIRST - BYPASS ALL OTHER LOGIC
-    const isTodayExact = UnifiedDateService.isToday(date);
-    
-    if (isTodayExact) {
-      console.log('🚨 CRITICAL FIX: TripDateForm - TODAY BYPASS ACTIVATED:', {
-        inputDate: date.toLocaleDateString(),
-        isToday: true,
-        isDisabled: false,
-        rule: 'TODAY_ABSOLUTE_BYPASS - NEVER_DISABLED',
-        service: 'UnifiedDateService - PARENT FIX'
-      });
-      return false; // TODAY IS NEVER DISABLED - ABSOLUTE RULE
-    }
-    
-    // For non-today dates, use the fixed isPastDate method
-    const isPast = UnifiedDateService.isPastDate(date);
-    
-    console.log('📅 UNIFIED DATE FORM: Date validation (ENHANCED PARENT FIX):', {
-      inputDate: date.toLocaleDateString(),
-      isPast,
-      isToday: isTodayExact,
-      isDisabled: isPast,
-      reason: isPast ? 'DISABLED: Date is before today' : 'ENABLED: Today or future date',
-      service: 'UnifiedDateService - ENHANCED PARENT'
-    });
-    
-    return isPast;
-  };
+  // SIMPLIFIED: Remove parent disabled logic - let calendar handle everything
+  // This eliminates the conflict where parent logic could disable today
+  console.log('📅 FIXED: TripDateForm rendering without parent disabled logic');
 
   return (
     <div className="space-y-4">
@@ -121,11 +94,10 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Calendar with unified date service */}
+      {/* CRITICAL FIX: Calendar with NO parent disabled logic - calendar handles everything internally */}
       <SimpleTripCalendar
         selected={formData.tripStartDate}
         onSelect={handleDateSelect}
-        disabled={isDateDisabled}
         className="w-full"
       />
       
@@ -143,7 +115,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       
       <p className="text-xs text-gray-600">
         A start date is required to provide accurate weather forecasts for each destination.
-        <strong className="text-green-700"> ✨ Today's date now works perfectly with unified date handling!</strong>
+        <strong className="text-green-700"> ✨ Today's date now works perfectly with simplified date handling!</strong>
       </p>
     </div>
   );
