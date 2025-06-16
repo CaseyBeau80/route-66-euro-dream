@@ -13,7 +13,7 @@ const PreviewDailyItinerary: React.FC<PreviewDailyItineraryProps> = ({
   tripStartDate
 }) => {
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-0">
       {segments.map((segment, index) => (
         <PreviewDayCard
           key={`day-${segment.day}`}
