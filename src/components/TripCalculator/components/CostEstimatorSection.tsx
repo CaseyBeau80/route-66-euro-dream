@@ -13,7 +13,7 @@ interface CostEstimatorSectionProps {
 }
 
 const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ formData, tripPlan }) => {
-  const [showCostEstimator, setShowCostEstimator] = useState(true);
+  const [showCostEstimator, setShowCostEstimator] = useState(false); // Changed from true to false
   
   const { costData, setCostData, costEstimate } = useCostEstimator(tripPlan);
 
