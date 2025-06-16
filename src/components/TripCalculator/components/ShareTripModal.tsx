@@ -92,7 +92,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
               </div>
             </div>
 
-            {/* Calendar Export Button */}
+            {/* Calendar Export Section - Make sure this is always visible */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
               <div className="flex items-center justify-between">
                 <div>
