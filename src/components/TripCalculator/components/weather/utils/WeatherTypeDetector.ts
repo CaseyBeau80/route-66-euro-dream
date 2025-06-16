@@ -101,4 +101,17 @@ export class WeatherTypeDetector {
 
     return isLive;
   }
+
+  /**
+   * Get footer message for weather display
+   */
+  static getFooterMessage(weather: { source?: string; isActualForecast?: boolean }): string {
+    const isLive = weather.source === 'live_forecast' && weather.isActualForecast === true;
+    
+    if (isLive) {
+      return 'Weather data from live forecast API';
+    } else {
+      return 'Weather data from historical patterns';
+    }
+  }
 }
