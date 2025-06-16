@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import { route66Towns } from '@/types/route66';
 import { TripFormData } from '../types/tripCalculator';
-import { Route66TripPlannerService, TripPlan } from '../services/Route66TripPlannerService';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { UnifiedTripPlanningService } from '../services/planning/UnifiedTripPlanningService';
 import { TripService } from '../services/TripService';
+import { TravelDayValidator } from '../services/validation/TravelDayValidator';
+import { TripStyleLogic } from '../services/planning/TripStyleLogic';
 import { toast } from '@/hooks/use-toast';
 import { useItineraryLoading } from './useItineraryLoading';
 
@@ -21,13 +24,12 @@ export const useEnhancedTripCalculation = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   
-  // Add loading state management
   const loadingState = useItineraryLoading();
 
   // Get available end locations based on start location
   const availableEndLocations = route66Towns.filter(town => town.name !== formData.startLocation);
 
-  // Reset function to clear trip plan and allow new planning
+  // Reset function
   const resetTrip = () => {
     setTripPlan(null);
     setShareUrl(null);
@@ -35,7 +37,7 @@ export const useEnhancedTripCalculation = () => {
     console.log('🔄 Trip reset - ready for new planning');
   };
 
-  // Validate form data
+  // Enhanced validation with style-aware logic
   const validateFormData = (): boolean => {
     if (!formData.startLocation) {
       toast({
@@ -50,15 +52,6 @@ export const useEnhancedTripCalculation = () => {
       toast({
         title: "Missing Destination",
         description: "Please select where you want to end your Route 66 journey.",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    if (formData.travelDays <= 0 || formData.travelDays > 30) {
-      toast({
-        title: "Invalid Trip Duration",
-        description: "Please enter a trip duration between 1 and 30 days.",
         variant: "destructive"
       });
       return false;
@@ -82,10 +75,28 @@ export const useEnhancedTripCalculation = () => {
       return false;
     }
 
+    // Enhanced day validation using new services
+    const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
+    const validation = TravelDayValidator.validateTravelDays(
+      formData.startLocation,
+      formData.endLocation,
+      formData.travelDays,
+      styleConfig
+    );
+
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid Trip Duration",
+        description: validation.issues[0] || "Please adjust your trip duration.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     return true;
   };
 
-  // Calculate intelligent trip plan with pre-loading
+  // Enhanced trip calculation
   const calculateTrip = async () => {
     console.log('🔄 Enhanced trip calculation started with:', formData);
     
@@ -94,53 +105,57 @@ export const useEnhancedTripCalculation = () => {
     }
 
     setIsCalculating(true);
-    
-    // Start pre-loading sequence
     loadingState.startPreLoading(formData.travelDays);
     
-    console.log('🚀 Starting Route66TripPlannerService.planTrip...');
-    
     try {
-      // Update progress during planning
-      loadingState.updateProgress('Calculating your Route 66 journey...', 20);
+      loadingState.updateProgress('Analyzing your route preferences...', 20);
       
-      const plan = await Route66TripPlannerService.planTrip(
+      // Use the new unified planning service
+      const planningService = new UnifiedTripPlanningService();
+      const result = await planningService.planTrip(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
         formData.tripStyle
       );
       
-      loadingState.updateProgress('Processing travel segments...', 60);
+      loadingState.updateProgress('Creating optimized daily segments...', 60);
       
-      console.log('✅ Trip plan generated successfully:', plan);
-      setTripPlan(plan);
+      if (!result.success || !result.tripPlan) {
+        throw new Error(result.error || 'Failed to create trip plan');
+      }
       
-      // Auto-save the trip and get share URL
+      console.log('✅ Enhanced trip plan generated:', result);
+      setTripPlan(result.tripPlan);
+      
+      // Show warnings if any
+      if (result.warnings && result.warnings.length > 0) {
+        console.log('⚠️ Planning warnings:', result.warnings);
+      }
+      
+      // Auto-save the trip
       try {
         loadingState.updateProgress('Saving your itinerary...', 80);
         
-        const shareCode = await TripService.saveTrip(plan);
+        const shareCode = await TripService.saveTrip(result.tripPlan);
         const generatedShareUrl = TripService.getShareUrl(shareCode);
         setShareUrl(generatedShareUrl);
         
         console.log('✅ Trip auto-saved with share URL:', generatedShareUrl);
       } catch (saveError) {
         console.error('⚠️ Failed to auto-save trip:', saveError);
-        // Don't show error to user for auto-save failures
       }
       
-      // Complete the loading sequence
       loadingState.completeLoading();
       
       toast({
-        title: "You're All Set!",
-        description: `Your ${formData.travelDays}-day Route 66 journey has been successfully planned with weather forecasts.`,
+        title: "Trip Successfully Planned! 🎉",
+        description: `Your ${formData.travelDays}-day ${formData.tripStyle} Route 66 journey is ready with smart day limits and style optimization.`,
         variant: "default"
       });
       
     } catch (error) {
-      console.error('❌ Trip calculation error:', error);
+      console.error('❌ Enhanced trip calculation error:', error);
       loadingState.resetLoading();
       toast({
         title: "Planning Error",
@@ -152,6 +167,32 @@ export const useEnhancedTripCalculation = () => {
     }
   };
 
+  // Calculate if form is ready (with enhanced validation)
+  const isCalculateDisabled = (() => {
+    if (!formData.startLocation || !formData.endLocation || !formData.tripStartDate) {
+      return true;
+    }
+    
+    if (formData.travelDays <= 0) {
+      return true;
+    }
+    
+    // Check with enhanced validation
+    if (formData.startLocation && formData.endLocation && formData.travelDays > 0) {
+      const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
+      const validation = TravelDayValidator.validateTravelDays(
+        formData.startLocation,
+        formData.endLocation,
+        formData.travelDays,
+        styleConfig
+      );
+      
+      return !validation.isValid;
+    }
+    
+    return false;
+  })();
+
   return {
     formData,
     setFormData,
@@ -161,8 +202,7 @@ export const useEnhancedTripCalculation = () => {
     calculateTrip,
     resetTrip,
     isCalculating,
-    isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays <= 0 || !formData.tripStartDate,
-    // Expose loading state
+    isCalculateDisabled,
     loadingState
   };
 };

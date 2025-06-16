@@ -1,21 +1,24 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { TripPlan } from './TripPlanBuilder';
-import { TripPlanningService } from './TripPlanningService';
+import { TripPlanBuilder, TripPlan } from './TripPlanBuilder';
+import { EnhancedSupabaseDataService } from '../data/EnhancedSupabaseDataService';
+import { TripStyleLogic, TripStyleConfig } from './TripStyleLogic';
+import { TravelDayValidator } from '../validation/TravelDayValidator';
+import { SegmentDensityController } from './SegmentDensityController';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
-import { Route66TripPlannerService } from '../Route66TripPlannerService';
 
 export interface TripPlanningResult {
   success: boolean;
   tripPlan?: TripPlan;
-  tripStyle?: string;
-  warnings?: string[];
   error?: string;
+  warnings?: string[];
+  styleConfig?: TripStyleConfig;
+  validationInfo?: any;
 }
 
 export class UnifiedTripPlanningService {
   /**
-   * Plan a trip with the given parameters
+   * Enhanced trip planning with style logic and validation
    */
   async planTrip(
     startLocation: string,
@@ -23,101 +26,137 @@ export class UnifiedTripPlanningService {
     travelDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlanningResult> {
+    console.log(`🚀 UNIFIED PLANNING: ${travelDays}-day ${tripStyle} trip from ${startLocation} to ${endLocation}`);
+    
     try {
-      console.log('🎯 UnifiedTripPlanningService: Planning trip', {
+      // Step 1: Get style configuration
+      const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+      console.log(`🎨 Style config: ${styleConfig.style}, max ${styleConfig.maxDailyDriveHours}h/day`);
+      
+      // Step 2: Validate travel days
+      const validation = TravelDayValidator.validateTravelDays(
         startLocation,
         endLocation,
         travelDays,
-        tripStyle
-      });
-
-      // Use the existing Route66TripPlannerService to plan the trip
-      const tripPlan = await Route66TripPlannerService.planTrip(
+        styleConfig
+      );
+      
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: `Invalid travel days: ${validation.issues.join(', ')}`,
+          styleConfig,
+          validationInfo: validation
+        };
+      }
+      
+      // Step 3: Get and filter data
+      const allStops = await EnhancedSupabaseDataService.fetchAllStops();
+      const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+      
+      // Step 4: Apply style-based filtering
+      const stopsFilteredByStyle = TripStyleLogic.filterStopsByStyle(
+        destinationCitiesOnly,
+        styleConfig
+      );
+      
+      // Step 5: Apply density control
+      const densityLimits = SegmentDensityController.getDensityLimits(styleConfig);
+      console.log(`🎛️ Density limits: max ${densityLimits.maxStopsPerDay} stops/day, ${densityLimits.minMilesBetweenStops}mi apart`);
+      
+      // Step 6: Find start and end stops
+      const startStop = this.findCityStop(startLocation, stopsFilteredByStyle);
+      const endStop = this.findCityStop(endLocation, stopsFilteredByStyle);
+      
+      if (!startStop || !endStop) {
+        return {
+          success: false,
+          error: `Could not find ${!startStop ? startLocation : endLocation} in destination cities`,
+          styleConfig,
+          validationInfo: validation
+        };
+      }
+      
+      // Step 7: Apply final density control
+      const finalStops = SegmentDensityController.controlStopDensity(
+        stopsFilteredByStyle,
+        startStop,
+        endStop,
+        densityLimits
+      );
+      
+      // Step 8: Create the trip plan with enhanced logic
+      const tripPlan = TripPlanBuilder.createTripPlan(
+        startStop,
+        endStop,
+        finalStops,
+        travelDays,
         startLocation,
         endLocation,
-        travelDays,
         tripStyle
       );
-
-      console.log('✅ UnifiedTripPlanningService: Trip planned successfully', {
-        segmentCount: tripPlan.segments?.length || 0,
-        totalDistance: tripPlan.totalDistance,
-        tripStyle: tripPlan.tripStyle
-      });
-
+      
+      // Step 9: Validate final result
+      const warnings: string[] = [];
+      
+      // Check if we have enough variety
+      if (tripPlan.segments.length < travelDays) {
+        warnings.push(`Generated ${tripPlan.segments.length} segments for ${travelDays} days`);
+      }
+      
+      // Check style-specific metrics
+      const totalDistance = tripPlan.segments.reduce((sum, seg) => sum + seg.distance, 0);
+      const styleMetrics = TripStyleLogic.calculateStyleMetrics(
+        totalDistance,
+        travelDays,
+        styleConfig
+      );
+      
+      if (!styleMetrics.isWithinLimits && styleMetrics.recommendation) {
+        warnings.push(styleMetrics.recommendation);
+      }
+      
+      console.log(`✅ UNIFIED PLANNING complete: ${tripPlan.segments.length} segments, ${warnings.length} warnings`);
+      
       return {
         success: true,
         tripPlan,
-        tripStyle,
-        warnings: [] // Could add warnings from the planning process if needed
+        warnings,
+        styleConfig,
+        validationInfo: validation
       };
-
+      
     } catch (error) {
-      console.error('❌ UnifiedTripPlanningService: Error planning trip', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+      console.error('❌ UNIFIED PLANNING failed:', error);
       return {
         success: false,
-        error: errorMessage
+        error: error instanceof Error ? error.message : 'Unknown planning error'
       };
     }
   }
-
+  
   /**
-   * Create enhanced trip plan with strict destination city enforcement
+   * Enhanced city finding with fuzzy matching
    */
-  static createTripPlan(
-    startStop: TripStop,
-    endStop: TripStop,
-    allStops: TripStop[],
-    tripDays: number,
-    startCityName: string,
-    endCityName: string,
-    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
-  ): TripPlanningResult {
-    console.log(`🎯 UNIFIED PLANNING with STRICT destination city enforcement`);
+  private findCityStop(cityName: string, stops: TripStop[]): TripStop | undefined {
+    const normalizedName = cityName.toLowerCase().trim();
     
-    // STEP 1: Filter all stops to only destination cities
-    const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
-    
-    console.log(`🔒 Using only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
-    
-    // STEP 2: Build trip plan with destination cities only - using TripPlanningService
-    const tripPlan = TripPlanningService.buildTripPlan(
-      startStop,
-      endStop,
-      destinationCitiesOnly, // Only pass destination cities
-      tripDays,
-      startCityName,
-      endCityName,
-      tripStyle
+    // Try exact matches first
+    let match = stops.find(stop => 
+      stop.name.toLowerCase() === normalizedName ||
+      stop.city_name.toLowerCase() === normalizedName
     );
-
-    // STEP 3: Final validation
-    const validation = StrictDestinationCityEnforcer.validateTripPlan(tripPlan.segments);
     
-    const warnings: string[] = [];
+    if (match) return match;
     
-    if (!validation.isValid) {
-      console.error(`❌ FINAL VALIDATION FAILED:`, validation.violations);
-      warnings.push(...validation.violations);
-      warnings.push('Some non-destination cities were removed from the trip plan');
-    }
-
-    // STEP 4: Additional warnings for user awareness
-    const nonDestinationCount = allStops.length - destinationCitiesOnly.length;
-    if (nonDestinationCount > 0) {
-      warnings.push(`Excluded ${nonDestinationCount} non-destination cities to focus on major Route 66 destinations`);
-    }
-
-    console.log(`✅ UNIFIED PLANNING COMPLETE: ${tripPlan.segments.length} segments with destination cities only`);
-
-    return {
-      success: true,
-      tripPlan,
-      tripStyle,
-      warnings: warnings.length > 0 ? warnings : undefined
-    };
+    // Try partial matches
+    match = stops.find(stop => 
+      stop.name.toLowerCase().includes(normalizedName) ||
+      stop.city_name.toLowerCase().includes(normalizedName) ||
+      normalizedName.includes(stop.name.toLowerCase()) ||
+      normalizedName.includes(stop.city_name.toLowerCase())
+    );
+    
+    return match;
   }
 }

@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
-import { DistanceEstimationService } from '../services/utils/DistanceEstimationService';
 import TripStyleHelperMessage from './TripStyleHelperMessage';
 
 interface TripStyleSelectorProps {
@@ -24,37 +23,13 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
     });
   };
 
-  // Calculate estimated days for helper message
+  // Show helper message when we have enough information
   const shouldShowHelperMessage = () => {
-    // Only show for destination-focused trips
-    if (formData.tripStyle !== 'destination-focused') return false;
-    
-    // Need both start and end locations
-    if (!formData.startLocation || !formData.endLocation) return false;
-    
-    // Need valid travel days
-    if (!formData.travelDays || formData.travelDays <= 0) return false;
-    
-    const estimatedDays = DistanceEstimationService.estimateTripDays(
-      formData.startLocation,
-      formData.endLocation
-    );
-    
-    // Show message if actual days is less than estimated days
-    return estimatedDays !== null && formData.travelDays < estimatedDays;
+    return !!(formData.startLocation && 
+             formData.endLocation && 
+             formData.travelDays > 0 && 
+             formData.tripStyle);
   };
-
-  const getEstimatedDays = () => {
-    if (!formData.startLocation || !formData.endLocation) return null;
-    
-    return DistanceEstimationService.estimateTripDays(
-      formData.startLocation,
-      formData.endLocation
-    );
-  };
-
-  const showHelper = shouldShowHelperMessage();
-  const estimatedDays = getEstimatedDays();
 
   return (
     <Card className="border-route66-border bg-route66-background">
@@ -80,7 +55,7 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
                 </div>
               </Label>
               <p className="text-sm text-route66-text-secondary">
-                Evenly distributes driving time across all days for consistent daily travel
+                Evenly distributes driving time (max 6h/day). Uses all types of stops for variety.
               </p>
             </div>
           </div>
@@ -95,17 +70,19 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
                 </div>
               </Label>
               <p className="text-sm text-route66-text-secondary">
-                Prioritizes major Route 66 destination cities as stopping points, drive times may vary
+                Prioritizes major Route 66 heritage cities (max 8h/day). Fewer stops, but iconic destinations.
               </p>
             </div>
           </div>
         </RadioGroup>
 
-        {/* Helper Message */}
-        {showHelper && estimatedDays && (
+        {/* Enhanced Helper Message with Validation */}
+        {shouldShowHelperMessage() && (
           <TripStyleHelperMessage 
-            estimatedDays={estimatedDays}
+            startLocation={formData.startLocation}
+            endLocation={formData.endLocation}
             actualDays={formData.travelDays}
+            tripStyle={formData.tripStyle}
           />
         )}
       </CardContent>
