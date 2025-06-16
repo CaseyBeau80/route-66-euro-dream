@@ -2,7 +2,6 @@
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { format } from 'date-fns';
-import { DateNormalizationService } from './DateNormalizationService';
 
 interface SimpleWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -19,24 +18,27 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔥 SIMPLE WEATHER DISPLAY: Component rendering for', cityName, {
+  console.log('🔥 ULTIMATE SIMPLE DISPLAY: Component rendering for', cityName, {
     weather: {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature
     },
     segmentDate: segmentDate.toISOString(),
-    componentName: 'SimpleWeatherDisplay'
+    componentName: 'SimpleWeatherDisplay',
+    ultimateFix: true
   });
 
-  // ULTIMATE FIX: Direct weather data property check without any date logic
+  // ULTIMATE FIX: Strict source-based determination - no date calculations
   const isLiveWeather = weather.source === 'live_forecast' && weather.isActualForecast === true;
   
-  console.log('🔥 SIMPLE WEATHER DISPLAY: Direct live weather check for', cityName, {
+  console.log('🔥 ULTIMATE SIMPLE DISPLAY: Strict source-based weather determination for', cityName, {
     source: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveWeather,
-    explanation: isLiveWeather ? 'SHOULD_SHOW_GREEN_LIVE' : 'SHOULD_SHOW_YELLOW_HISTORICAL'
+    explanation: isLiveWeather ? 'WILL_SHOW_GREEN_LIVE' : 'WILL_SHOW_YELLOW_HISTORICAL',
+    strictDetermination: true,
+    ultimateFix: true
   });
 
   const getWeatherIcon = (iconCode: string) => {
@@ -77,7 +79,7 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  // ULTIMATE FIX: Use direct weather data properties for styling
+  // ULTIMATE FIX: Force styling based strictly on source and isActualForecast
   const containerStyles = isLiveWeather
     ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
     : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200';
@@ -94,14 +96,16 @@ const SimpleWeatherDisplay: React.FC<SimpleWeatherDisplayProps> = ({
     ? '✨ Live forecast'
     : '📊 Historical estimate';
 
-  console.log('🔥 SIMPLE WEATHER DISPLAY: Final rendering styles for', cityName, {
+  console.log('🔥 ULTIMATE SIMPLE DISPLAY: Final rendering styles for', cityName, {
     isLiveWeather,
     containerStyles,
     sourceLabel,
     badgeText,
     sourceColor,
     shouldAppearGreen: isLiveWeather,
-    componentRendering: 'SimpleWeatherDisplay'
+    shouldAppearAmber: !isLiveWeather,
+    componentRendering: 'SimpleWeatherDisplay',
+    ultimateFix: true
   });
 
   return (
