@@ -25,23 +25,27 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   forceKey,
   showDebug = false
 }) => {
-  // Use enhanced unified validation
-  const validation = UnifiedWeatherValidator.validateWeatherData(weather);
+  // PLAN IMPLEMENTATION: Use enhanced unified validation WITH segment date
+  const validation = UnifiedWeatherValidator.validateWeatherData(weather, segmentDate);
   const styles = UnifiedStylingService.getWeatherStyles(validation.styleTheme);
 
-  console.log('🎨 FIXED: EnhancedWeatherDisplay using enhanced validation:', {
+  console.log('🎨 PLAN: EnhancedWeatherDisplay using ENHANCED date-based validation:', {
     cityName,
+    segmentDate: segmentDate.toLocaleDateString(),
     validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
     styleTheme: validation.styleTheme,
     displayLabel: validation.displayLabel,
+    dateBasedDecision: validation.dateBasedDecision,
+    daysFromToday: validation.daysFromToday,
+    forecastRangeCheck: validation.forecastRangeCheck,
     weatherData: {
       source: weather.source,
       isActualForecast: weather.isActualForecast,
       temperature: weather.temperature,
       highTemp: weather.highTemp,
-      lowTemp: weather.lowTemp,
-      hasMetrics: !!(weather.humidity || weather.windSpeed)
+      lowTemp: weather.lowTemp
     },
+    planImplementation: 'ENHANCED_DATE_BASED_VALIDATION',
     forceKey
   });
 
@@ -87,10 +91,22 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
           </div>
         </div>
         
-        {/* Enhanced Badge */}
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles.badgeClasses}`}>
-          {validation.badgeText}
-        </span>
+        {/* PLAN IMPLEMENTATION: Enhanced Badge with date-based validation */}
+        <div className="flex flex-col items-end gap-1">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles.badgeClasses}`}>
+            {validation.badgeText}
+            {showDebug && validation.dateBasedDecision && (
+              <span className="ml-1 opacity-75">
+                ({validation.daysFromToday}d)
+              </span>
+            )}
+          </span>
+          {showDebug && (
+            <div className="text-xs opacity-60" style={{ color: styles.textColor }}>
+              {validation.dateBasedDecision ? 'Date-based' : 'Object-based'}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Temperature Display */}
@@ -139,14 +155,22 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
         )}
       </div>
 
-      {/* Source Information */}
+      {/* PLAN IMPLEMENTATION: Enhanced Source Information with debug details */}
       <div className="pt-3 border-t border-white border-opacity-25">
         <div className="flex items-center justify-between text-xs" style={{ color: styles.sourceColor }}>
           <span>{validation.displayLabel}</span>
           {showDebug && (
-            <span className="font-mono opacity-75">
-              {weather.source || 'unknown'} | {validation.confidence}
-            </span>
+            <div className="flex gap-2 font-mono opacity-75">
+              <span>{weather.source || 'unknown'}</span>
+              <span>|</span>
+              <span>{validation.confidence}</span>
+              {validation.dateBasedDecision && (
+                <>
+                  <span>|</span>
+                  <span>range: {validation.forecastRangeCheck ? 'YES' : 'NO'}</span>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -1,8 +1,12 @@
 
 import { UnifiedDateService } from '../../../TripCalculator/services/UnifiedDateService';
+import { UnifiedWeatherValidator } from '../../../TripCalculator/components/weather/services/UnifiedWeatherValidator';
 
 export class WeatherDateCalculator {
-  private static readonly FORECAST_THRESHOLD_DAYS = 7; // PLAN: ENHANCED to 7 days consistent
+  // PLAN IMPLEMENTATION: Use centralized forecast threshold from UnifiedWeatherValidator
+  private static get FORECAST_THRESHOLD_DAYS(): number {
+    return UnifiedWeatherValidator.getForecastThresholdDays();
+  }
 
   static calculateDaysFromToday(targetDate: Date): {
     normalizedTargetDate: Date;
@@ -20,10 +24,10 @@ export class WeatherDateCalculator {
     // PLAN IMPLEMENTATION: Enhanced days calculation using standardized LOCAL date arithmetic
     const daysFromToday = UnifiedDateService.getDaysFromToday(normalizedTargetDate);
     
-    // PLAN IMPLEMENTATION: ENHANCED forecast range 0-7 days (consistent with other services)
-    const isWithinForecastRange = daysFromToday >= 0 && daysFromToday <= 7;
+    // PLAN IMPLEMENTATION: Use centralized forecast range check
+    const isWithinForecastRange = UnifiedWeatherValidator.isDateWithinForecastRange(normalizedTargetDate);
     
-    console.log('🔧 PLAN: WeatherDateCalculator - ENHANCED LOCAL date calculation', {
+    console.log('🔧 PLAN: WeatherDateCalculator - CENTRALIZED forecast threshold', {
       input: {
         originalTargetDate: targetDate.toISOString(),
         originalTargetLocal: targetDate.toLocaleDateString(),
@@ -41,18 +45,16 @@ export class WeatherDateCalculator {
         daysFromToday,
         isWithinForecastRange,
         forecastThreshold: this.FORECAST_THRESHOLD_DAYS,
-        logic: 'Days 0-7 = ENHANCED LIVE FORECAST attempt, Day 8+ = historical',
-        enhancedRange: true,
-        localDateArithmetic: true,
-        day2Check: daysFromToday === 1 ? 'THIS_IS_DAY_2' : 'other_day'
+        logic: `Days 0-${this.FORECAST_THRESHOLD_DAYS} = LIVE FORECAST attempt, Day ${this.FORECAST_THRESHOLD_DAYS + 1}+ = historical`,
+        centralizedThreshold: true,
+        localDateArithmetic: true
       },
       decision: {
-        useCase: isWithinForecastRange ? 'ENHANCED_LIVE_FORECAST_ATTEMPT' : 'HISTORICAL_FALLBACK',
-        reason: isWithinForecastRange ? 'within_enhanced_0_to_7_range' : 'beyond_enhanced_range',
-        consistentWithPersistence: true,
-        day2Decision: daysFromToday === 1 ? 'DAY_2_SHOULD_GET_LIVE_FORECAST' : 'other_day_processing'
+        useCase: isWithinForecastRange ? 'LIVE_FORECAST_ATTEMPT' : 'HISTORICAL_FALLBACK',
+        reason: isWithinForecastRange ? `within_0_to_${this.FORECAST_THRESHOLD_DAYS}_range` : 'beyond_range',
+        consistentWithValidator: true
       },
-      planImplementation: true
+      planImplementation: 'CENTRALIZED_FORECAST_THRESHOLD'
     });
 
     return {

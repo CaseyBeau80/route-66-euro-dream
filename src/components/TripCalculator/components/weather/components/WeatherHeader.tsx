@@ -30,13 +30,17 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
   segmentDate,
   cityName
 }) => {
-  // Use unified validation for consistent display
-  const validation = UnifiedWeatherValidator.validateWeatherData(weather);
+  // PLAN IMPLEMENTATION: Use enhanced validation with segment date
+  const validation = UnifiedWeatherValidator.validateWeatherData(weather, segmentDate || undefined);
 
-  console.log('🎯 UNIFIED: WeatherHeader using UnifiedWeatherValidator for', cityName, {
+  console.log('🎯 PLAN: WeatherHeader using ENHANCED date-based validation for', cityName, {
     validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
     displayLabel: validation.displayLabel,
-    styleTheme: validation.styleTheme
+    styleTheme: validation.styleTheme,
+    dateBasedDecision: validation.dateBasedDecision,
+    daysFromToday: validation.daysFromToday,
+    segmentDate: segmentDate?.toLocaleDateString(),
+    planImplementation: 'ENHANCED_DATE_BASED_VALIDATION'
   });
 
   // Safely convert source to WeatherSourceType with fallback
@@ -60,12 +64,14 @@ const WeatherHeader: React.FC<WeatherHeaderProps> = ({
         </div>
       </div>
       
+      {/* PLAN IMPLEMENTATION: Pass segment date to WeatherBadge for enhanced validation */}
       <WeatherBadge
         source={sourceType}
         isActualForecast={weather.isActualForecast}
         dateMatchSource={weather.dateMatchInfo?.source}
         cityName={cityName}
         weather={weather}
+        segmentDate={segmentDate || undefined}
       />
     </div>
   );
