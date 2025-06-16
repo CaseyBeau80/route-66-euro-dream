@@ -27,10 +27,15 @@ export class SegmentBuilderOrchestrator {
       destinations
     );
 
-    // Create all daily segments - using the correct method name
-    const dailySegments = SegmentCreationLoop.createSegments(
-      [startStop.city_name, ...destinations.map(d => d.city_name), endStop.city_name],
-      destinations.length + 1
+    // Create all daily segments
+    const dailySegments = SegmentCreationLoop.createDailySegments(
+      startStop,
+      destinations,
+      endStop,
+      remainingStops,
+      totalDistance,
+      driveTimeTargets,
+      balanceMetrics
     );
 
     // Validate segment count

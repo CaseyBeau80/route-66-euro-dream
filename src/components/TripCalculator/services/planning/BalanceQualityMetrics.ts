@@ -1,90 +1,78 @@
 
+import { DailySegment } from './TripPlanBuilder';
+import { DriveTimeTarget } from './DriveTimeBalancingService';
+import { BalanceMetricsCalculator, BalanceMetrics } from './BalanceMetricsCalculator';
+import { BalanceQualityAnalyzer } from './BalanceQualityAnalyzer';
+import { BalanceIssuesAnalyzer } from './BalanceIssuesAnalyzer';
+
+export type { BalanceMetrics };
+
 export class BalanceQualityMetrics {
-  static getBalanceSummary(balanceMetrics: any): string {
-    if (!balanceMetrics) {
-      return 'No balance metrics available';
-    }
+  /**
+   * Calculate comprehensive balance quality metrics
+   */
+  static calculateBalanceMetrics(
+    segments: DailySegment[],
+    driveTimeTargets?: DriveTimeTarget[]
+  ): BalanceMetrics {
+    // Calculate basic statistics
+    const { driveTimes, averageDriveTime, minTime, maxTime, variance } = 
+      BalanceMetricsCalculator.calculateBasicStats(segments);
     
-    return `Balance quality: ${balanceMetrics.quality || 'unknown'}`;
+    console.log(`📊 Calculating balance metrics: avg=${averageDriveTime.toFixed(1)}h, variance=${variance.toFixed(2)}h`);
+    
+    // Calculate target compliance
+    const targetCompliance = BalanceMetricsCalculator.calculateTargetCompliance(segments, driveTimeTargets);
+    
+    // Calculate destination city balance
+    const destinationCityBalance = BalanceMetricsCalculator.calculateDestinationCityBalance(segments);
+    
+    // Calculate overall score
+    const overallScore = BalanceQualityAnalyzer.calculateOverallScore(
+      variance,
+      averageDriveTime,
+      targetCompliance,
+      destinationCityBalance,
+      minTime,
+      maxTime
+    );
+    
+    // Determine quality grade
+    const qualityGrade = BalanceQualityAnalyzer.getQualityGrade(overallScore);
+    
+    // Generate issues and suggestions
+    const { issues, suggestions } = BalanceIssuesAnalyzer.generateIssuesAndSuggestions(
+      segments,
+      variance,
+      averageDriveTime,
+      minTime,
+      maxTime,
+      destinationCityBalance
+    );
+    
+    const metrics: BalanceMetrics = {
+      overallScore: Math.round(overallScore),
+      variance: Math.round(variance * 100) / 100,
+      averageDriveTime: Math.round(averageDriveTime * 10) / 10,
+      driveTimeRange: { 
+        min: Math.round(minTime * 10) / 10, 
+        max: Math.round(maxTime * 10) / 10 
+      },
+      qualityGrade,
+      issues,
+      suggestions,
+      targetCompliance: Math.round(targetCompliance),
+      destinationCityBalance: Math.round(destinationCityBalance)
+    };
+    
+    console.log(`🎯 Balance metrics: Grade ${qualityGrade}, Score ${metrics.overallScore}/100`);
+    return metrics;
   }
 
-  static calculateBalanceMetrics(dailySegments: any[]): {
-    variance: number;
-    overallScore: number;
-    qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
-    suggestions: string[];
-  } {
-    if (!dailySegments || dailySegments.length === 0) {
-      return {
-        variance: 0,
-        overallScore: 0,
-        qualityGrade: 'F',
-        suggestions: ['No segments to analyze']
-      };
-    }
-
-    // Calculate drive time variance
-    const driveTimes = dailySegments.map(segment => segment.driveTimeHours || 0);
-    const averageDriveTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
-    
-    const variance = driveTimes.reduce((sum, time) => {
-      const diff = time - averageDriveTime;
-      return sum + (diff * diff);
-    }, 0) / driveTimes.length;
-
-    // Calculate overall balance score (0-100)
-    let overallScore = 100;
-    
-    // Penalize high variance
-    if (variance > 2) {
-      overallScore -= 30;
-    } else if (variance > 1) {
-      overallScore -= 15;
-    }
-
-    // Check for extremely unbalanced segments
-    const maxTime = Math.max(...driveTimes);
-    const minTime = Math.min(...driveTimes);
-    const range = maxTime - minTime;
-    
-    if (range > 4) {
-      overallScore -= 25;
-    } else if (range > 2) {
-      overallScore -= 10;
-    }
-
-    // Determine quality grade
-    let qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
-    if (overallScore >= 90) qualityGrade = 'A';
-    else if (overallScore >= 80) qualityGrade = 'B';
-    else if (overallScore >= 70) qualityGrade = 'C';
-    else if (overallScore >= 60) qualityGrade = 'D';
-    else qualityGrade = 'F';
-
-    // Generate suggestions
-    const suggestions: string[] = [];
-    if (variance > 1.5) {
-      suggestions.push('Consider redistributing drive times for better balance');
-    }
-    if (range > 3) {
-      suggestions.push('Some segments have significantly different drive times');
-    }
-    if (averageDriveTime > 6) {
-      suggestions.push('Consider adding more overnight stops to reduce daily drive times');
-    }
-
-    console.log('🎯 BalanceQualityMetrics calculated:', {
-      variance: Math.round(variance * 100) / 100,
-      overallScore,
-      qualityGrade,
-      suggestionsCount: suggestions.length
-    });
-
-    return {
-      variance: Math.round(variance * 100) / 100,
-      overallScore,
-      qualityGrade,
-      suggestions
-    };
+  /**
+   * Get balance quality summary
+   */
+  static getBalanceSummary(metrics: BalanceMetrics): string {
+    return BalanceQualityAnalyzer.getBalanceSummary(metrics.qualityGrade, metrics.overallScore);
   }
 }

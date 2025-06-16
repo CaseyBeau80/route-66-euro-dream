@@ -15,26 +15,26 @@ const SharedWeatherDisplay: React.FC<SharedWeatherDisplayProps> = ({
   segmentDate,
   cityName
 }) => {
-  // UNIFIED: Use the exact same detection logic as everywhere else
+  // Use the exact same detection logic as preview
   const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
   
-  console.log('🔥 UNIFIED: SharedWeatherDisplay with unified detection:', {
+  console.log('🔥 SHARED: SharedWeatherDisplay - Using exact same detection as preview:', {
     cityName,
     weatherSource: weather.source,
     isActualForecast: weather.isActualForecast,
     isLiveForecast,
     temperature: weather.temperature,
-    unifiedLogic: true
+    exactSameAsPreview: true
   });
 
-  // UNIFIED: Use the exact same styling logic
+  // Use the exact same styling logic as preview
   const containerClass = isLiveForecast 
     ? "bg-green-100 border-green-200 text-green-800"
-    : "bg-yellow-100 border-yellow-200 text-yellow-800";
+    : "bg-amber-100 border-amber-200 text-amber-800";
     
   const badgeClass = isLiveForecast
     ? "bg-green-100 text-green-800 border-green-200"
-    : "bg-yellow-100 text-yellow-800 border-yellow-200";
+    : "bg-amber-100 text-amber-800 border-amber-200";
 
   const sourceLabel = isLiveForecast ? '🟢 Live Weather Forecast' : '🟡 Historical Weather Data';
   const badgeText = isLiveForecast ? '✨ Current live forecast' : '📊 Based on historical patterns';

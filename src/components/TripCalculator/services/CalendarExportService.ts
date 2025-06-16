@@ -1,4 +1,3 @@
-
 import { TripPlan, DailySegment } from './planning/TripPlanBuilder';
 
 export interface CalendarEvent {
@@ -16,10 +15,7 @@ export class CalendarExportService {
   static generateCalendarEvents(tripPlan: TripPlan, startDate: Date): CalendarEvent[] {
     const events: CalendarEvent[] = [];
     
-    // Use segments instead of dailySegments
-    const segments = tripPlan.segments || [];
-    
-    segments.forEach((segment: DailySegment, index: number) => {
+    tripPlan.dailySegments.forEach((segment: DailySegment, index: number) => {
       const eventDate = new Date(startDate);
       eventDate.setDate(startDate.getDate() + index);
       
@@ -51,10 +47,12 @@ export class CalendarExportService {
       `Drive time: ~${segment.driveTimeHours.toFixed(1)} hours`
     ];
 
-    if (segment.attractions && segment.attractions.length > 0) {
-      const stops = segment.attractions.slice(0, 3).map(attraction => attraction.name).join(', ');
-      const moreStops = segment.attractions.length > 3 ? ` and ${segment.attractions.length - 3} more` : '';
-      lines.push(`Attractions: ${stops}${moreStops}`);
+    if (segment.recommendedStops && segment.recommendedStops.length > 0) {
+      const stops = segment.recommendedStops.slice(0, 3).map(stop => stop.name).join(', ');
+      const moreStops = segment.recommendedStops.length > 3 ? ` and ${segment.recommendedStops.length - 3} more` : '';
+      lines.push(`Recommended stops: ${stops}${moreStops}`);
+    } else {
+      lines.push('Direct drive with no planned stops');
     }
     
     lines.push('');

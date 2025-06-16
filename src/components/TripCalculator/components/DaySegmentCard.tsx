@@ -10,7 +10,6 @@ import DaySegmentCardStats from './DaySegmentCardStats';
 import DaySegmentCardContent from './DaySegmentCardContent';
 import EnhancedCollapsibleCard from './EnhancedCollapsibleCard';
 import ErrorBoundary from './ErrorBoundary';
-import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -27,13 +26,40 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // 🚨 FORCE LOG: DaySegmentCard component entry
+  console.log(`🚨 FORCE LOG: DaySegmentCard rendering for Day ${segment?.day} - ${segment?.endCity}`, {
+    segment: {
+      day: segment?.day,
+      endCity: segment?.endCity,
+      title: segment?.title
+    },
+    tripStartDate: tripStartDate?.toISOString(),
+    cardIndex,
+    tripId,
+    sectionKey,
+    timestamp: new Date().toISOString()
+  });
+
   // Use stable segment to prevent cascading re-renders
   const stableSegment = useStableSegment(segment);
   
+  // 🚨 FORCE LOG: Stable segment result
+  console.log(`🚨 FORCE LOG: DaySegmentCard stable segment for Day ${segment?.day}`, {
+    hasStableSegment: !!stableSegment,
+    stableSegmentDay: stableSegment?.day,
+    stableSegmentEndCity: stableSegment?.endCity,
+    timestamp: new Date().toISOString()
+  });
+  
   // Early return for invalid segments with proper type checking
   if (!stableSegment || !DataValidationService.validateDailySegment(stableSegment, 'DaySegmentCard.segment')) {
+    // Safe access to day property with fallback
     const segmentDay = stableSegment?.day ?? (segment?.day ?? 'Unknown');
-    console.log(`🚨 DaySegmentCard INVALID SEGMENT for Day ${segmentDay}`);
+    console.log(`🚨 FORCE LOG: DaySegmentCard INVALID SEGMENT for Day ${segmentDay}`, {
+      hasStableSegment: !!stableSegment,
+      validationFailed: true,
+      timestamp: new Date().toISOString()
+    });
     return (
       <ErrorBoundary context="DaySegmentCard-Invalid">
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -48,34 +74,69 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  // Use Google Distance Matrix API data directly from segment
-  const apiDriveTimeHours = stableSegment.driveTimeHours || 0;
-  const apiDistance = stableSegment.distance || 0;
-
-  console.log(`🗓️ DaySegmentCard Day ${stableSegment.day} with Google API data:`, {
-    title: stableSegment.title,
-    apiDistance,
-    apiDriveTimeHours,
-    formattedTime: GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours)
+  // 🚨 FORCE LOG: Segment date calculation
+  console.log(`🚨 FORCE LOG: DaySegmentCard date calculation for Day ${stableSegment.day}`, {
+    tripStartDate: tripStartDate?.toISOString(),
+    segmentDay: stableSegment.day,
+    calculatedSegmentDate: segmentDate?.toISOString(),
+    hasSegmentDate: !!segmentDate,
+    timestamp: new Date().toISOString()
   });
+  
+  console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
-  // Memoized drive time styling based on actual API data
+  // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
+    if (!stableSegment.driveTimeCategory) return { 
+      bg: 'bg-gray-100', 
+      text: 'text-gray-700', 
+      border: 'border-gray-300' 
+    };
+    
     try {
-      if (apiDriveTimeHours <= 4) {
-        return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-      } else if (apiDriveTimeHours <= 6) {
-        return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-      } else if (apiDriveTimeHours <= 8) {
-        return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
-      } else {
-        return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
+      switch (stableSegment.driveTimeCategory.category) {
+        case 'short':
+          return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
+        case 'optimal':
+          return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
+        case 'long':
+          return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
+        case 'extreme':
+          return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
+        default:
+          return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
       }
     } catch (error) {
       console.error('❌ Error getting drive time style:', error);
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
-  }, [apiDriveTimeHours]);
+  }, [stableSegment.driveTimeCategory]);
+
+  // Memoized drive time formatting
+  const formattedDriveTime = React.useMemo(() => {
+    try {
+      const hours = stableSegment.driveTimeHours;
+      if (typeof hours !== 'number' || isNaN(hours) || hours < 0) {
+        return '0h';
+      }
+      
+      if (hours < 1) {
+        const minutes = Math.round(hours * 60);
+        return `${minutes}m`;
+      }
+      const wholeHours = Math.floor(hours);
+      const minutes = Math.round((hours - wholeHours) * 60);
+      return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+    } catch (error) {
+      console.error('❌ Error formatting drive time:', error);
+      return '0h';
+    }
+  }, [stableSegment.driveTimeHours]);
+
+  // Memoized segment distance
+  const segmentDistance = React.useMemo(() => {
+    return stableSegment.distance || stableSegment.approximateMiles;
+  }, [stableSegment.distance, stableSegment.approximateMiles]);
 
   // Card header content with error handling
   const cardHeader = React.useMemo(() => (
@@ -88,16 +149,17 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       
       <DaySegmentCardStats 
         segment={stableSegment}
+        formattedDriveTime={formattedDriveTime}
+        segmentDistance={segmentDistance}
+        driveTimeStyle={driveTimeStyle}
       />
     </div>
-  ), [stableSegment, segmentDate, driveTimeStyle]);
+  ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
 
-  console.log(`🚗 DaySegmentCard Final Render Day ${stableSegment.day}:`, {
+  console.log(`🚨 FORCE LOG: DaySegmentCard final render for Day ${stableSegment.day}`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
-    apiDistance,
-    apiDriveTimeHours,
-    usingGoogleAPI: true
+    timestamp: new Date().toISOString()
   });
 
   return (

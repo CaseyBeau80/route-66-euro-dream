@@ -2,7 +2,9 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
+import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
+import SegmentNearbyAttractions from './SegmentNearbyAttractions';
+import DebugStopSelectionWrapper from './DebugStopSelectionWrapper';
 import ErrorBoundary from './ErrorBoundary';
 
 interface DaySegmentCardContentProps {
@@ -26,6 +28,18 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   tripId,
   sectionKey = 'itinerary'
 }) => {
+  // CRITICAL: Use centralized service for consistent limiting
+  const maxAttractions = AttractionLimitingService.getMaxAttractions();
+  const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
+  
+  console.log('🔍 DaySegmentCardContent using CENTRALIZED attraction limiting:', {
+    segmentDay: segment.day,
+    endCity: segment.endCity,
+    maxAttractions,
+    context,
+    sectionKey
+  });
+
   return (
     <div className="space-y-4">
       {/* Drive Time Message - Compact */}
@@ -45,15 +59,20 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Weather Widget */}
-      <ErrorBoundary context={`SegmentWeather-Day${segment.day}`}>
-        <SegmentWeatherWidget 
-          segment={segment} 
-          tripStartDate={tripStartDate}
-          cardIndex={cardIndex}
-          tripId={tripId}
-          sectionKey={sectionKey}
-        />
+      {/* Route & Stops Content */}
+      <div className="space-y-4">
+        {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
+        <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
+          <SegmentNearbyAttractions 
+            segment={segment} 
+            maxAttractions={maxAttractions}
+          />
+        </ErrorBoundary>
+      </div>
+
+      {/* Debug Component - Production Safe */}
+      <ErrorBoundary context={`DebugStopSelection-Day${segment.day}`} silent={true}>
+        <DebugStopSelectionWrapper segment={segment} />
       </ErrorBoundary>
     </div>
   );

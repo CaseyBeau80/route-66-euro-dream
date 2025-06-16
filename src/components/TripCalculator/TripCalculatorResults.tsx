@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
-import { TripPlan } from './services/planning/TripPlanTypes';
+import { TripPlan } from './services/Route66TripPlannerService';
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
 
@@ -109,8 +109,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     hasCalculation: !!calculation,
     shareUrl,
     tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateType: typeof tripStartDate,
-    tripPlanTotalDrivingTime: tripPlan?.totalDrivingTime
+    tripStartDateType: typeof tripStartDate
   });
   
   // Prioritize enhanced trip plan over legacy calculation

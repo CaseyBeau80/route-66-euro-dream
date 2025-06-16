@@ -4,32 +4,28 @@ import { MapPin, Clock, AlertTriangle, Fuel } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUnits } from '@/contexts/UnitContext';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
 interface SegmentStatsProps {
   segment: DailySegment;
   compact?: boolean;
 }
 
+const formatDriveTime = (hours: number): string => {
+  if (hours < 1) {
+    const minutes = Math.round(hours * 60);
+    return `${minutes}m`;
+  }
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+};
+
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
-  
-  // Use ONLY segment data - no local calculations
-  const segmentDistance = segment.distance;
-  const segmentDriveTimeHours = segment.driveTimeHours;
-  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(segmentDriveTimeHours);
-  
-  const isLongDriveDay = segmentDriveTimeHours > 7;
-  const estimatedFuelStops = Math.ceil(segmentDistance / 300);
+  const isLongDriveDay = segment.approximateMiles > 500;
+  const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300); // Estimate fuel stops every 300 miles
 
-  console.log(`🎯 SegmentStats Day ${segment.day} - Using segment data only:`, {
-    segmentDay: segment.day,
-    endCity: segment.endCity,
-    segmentDistance,
-    segmentDriveTimeHours,
-    formattedDriveTime,
-    dataSource: 'SEGMENT_DATA_ONLY'
-  });
+  const segmentDistance = segment.distance || segment.approximateMiles;
 
   if (compact) {
     return (
@@ -41,7 +37,7 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{formattedDriveTime}</span>
+            <span>{formatDriveTime(segment.driveTimeHours)}</span>
           </div>
           {isLongDriveDay && (
             <Tooltip>
@@ -68,15 +64,15 @@ const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false })
           <MapPin className="h-4 w-4 text-route66-primary" />
           <div>
             <div className="font-medium text-route66-text-primary">{formatDistance(segmentDistance)}</div>
-            <div className="text-xs text-route66-text-secondary">Distance</div>
+            <div className="text-xs text-route66-text-secondary">Total distance</div>
           </div>
         </div>
         
         <div className="flex items-center gap-2 text-sm">
           <Clock className="h-4 w-4 text-route66-primary" />
           <div>
-            <div className="font-medium text-route66-text-primary">{formattedDriveTime}</div>
-            <div className="text-xs text-route66-text-secondary">Drive Time</div>
+            <div className="font-medium text-route66-text-primary">{formatDriveTime(segment.driveTimeHours)}</div>
+            <div className="text-xs text-route66-text-secondary">Drive time</div>
           </div>
         </div>
         

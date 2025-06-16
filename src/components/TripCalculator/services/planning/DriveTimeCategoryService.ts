@@ -1,6 +1,6 @@
 
 import { DriveTimeConstraints } from './DriveTimeConstraints';
-import { DriveTimeCategory } from './TripPlanTypes';
+import { DriveTimeCategory } from './TripPlanBuilder';
 
 export class DriveTimeCategoryService {
   static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
@@ -8,19 +8,19 @@ export class DriveTimeCategoryService {
     
     if (driveTimeHours < constraints.optimalMinHours) {
       return {
-        category: 'light',
-        message: 'Light driving day - great for exploring stops!',
+        category: 'short',
+        message: 'Short driving day - great for exploring stops!',
         color: 'text-green-600'
       };
     } else if (driveTimeHours <= constraints.optimalMaxHours) {
       return {
-        category: 'moderate',
+        category: 'optimal',
         message: 'Perfect driving time for a comfortable day',
         color: 'text-blue-600'
       };
     } else if (driveTimeHours <= constraints.absoluteMaxHours) {
       return {
-        category: 'heavy',
+        category: 'long',
         message: 'Longer driving day - plan for more rest stops',
         color: 'text-orange-600'
       };

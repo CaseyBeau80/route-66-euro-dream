@@ -118,9 +118,9 @@ const SegmentHeader: React.FC<SegmentHeaderProps> = ({
         {/* Drive Time Balance Message - Compact */}
         {segment.driveTimeCategory && (
           <div className={`p-3 rounded-lg border text-sm ${
-            segment.driveTimeCategory.category === 'moderate' ? 'bg-blue-50 border-blue-200 text-blue-800' :
-            segment.driveTimeCategory.category === 'light' ? 'bg-green-50 border-green-200 text-green-800' :
-            segment.driveTimeCategory.category === 'heavy' ? 'bg-orange-50 border-orange-200 text-orange-800' :
+            segment.driveTimeCategory.category === 'optimal' ? 'bg-blue-50 border-blue-200 text-blue-800' :
+            segment.driveTimeCategory.category === 'short' ? 'bg-green-50 border-green-200 text-green-800' :
+            segment.driveTimeCategory.category === 'long' ? 'bg-orange-50 border-orange-200 text-orange-800' :
             'bg-red-50 border-red-200 text-red-800'
           }`}>
             <div className="flex items-center gap-2">

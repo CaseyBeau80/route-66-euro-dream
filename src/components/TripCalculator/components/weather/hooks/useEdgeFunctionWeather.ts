@@ -1,138 +1,86 @@
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import { EdgeFunctionWeatherService } from '../services/EdgeFunctionWeatherService';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
-import { WeatherUtilityService } from '../services/WeatherUtilityService';
 
-interface UseEdgeFunctionWeatherProps {
+interface UseEdgeFunctionWeatherParams {
   cityName: string;
   segmentDate: Date | null;
   segmentDay: number;
-}
-
-interface UseEdgeFunctionWeatherResult {
-  weather: ForecastWeatherData | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
 }
 
 export const useEdgeFunctionWeather = ({
   cityName,
   segmentDate,
   segmentDay
-}: UseEdgeFunctionWeatherProps): UseEdgeFunctionWeatherResult => {
-  const [weather, setWeather] = useState<ForecastWeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+}: UseEdgeFunctionWeatherParams) => {
+  const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0);
 
-  const fetchWeather = async () => {
-    if (!segmentDate || !cityName) {
-      console.log('🌤️ FIXED: Missing required data:', { cityName, segmentDate });
-      return;
-    }
-
-    console.log('🌤️ FIXED: Starting fetch for:', {
-      cityName,
-      segmentDate: segmentDate.toISOString(),
-      segmentDay
-    });
+  const fetchWeather = React.useCallback(async () => {
+    if (!segmentDate) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // FIXED: Check if this should be a live forecast using working logic
-      const isWithinRange = WeatherUtilityService.isWithinLiveForecastRange(segmentDate);
+      console.log('🚀 EDGE WEATHER: Starting fetch for', cityName);
       
-      if (isWithinRange) {
-        // FIXED: Mark as live forecast when within range
-        console.log('🌤️ FIXED: Date within live range, creating live forecast');
-        
-        const fallbackWeather = WeatherFallbackService.createFallbackForecast(
-          cityName,
-          segmentDate,
-          segmentDate.toISOString().split('T')[0],
-          WeatherUtilityService.getDaysFromToday(segmentDate)
-        );
+      const edgeWeather = await EdgeFunctionWeatherService.fetchWeatherFromEdgeFunction({
+        cityName,
+        targetDate: segmentDate,
+        segmentDay
+      });
 
-        if (fallbackWeather) {
-          // FIXED: Override source for live forecast (this simulates the working logic)
-          fallbackWeather.source = 'live_forecast';
-          fallbackWeather.isActualForecast = true;
-          
-          console.log('✅ FIXED: Created live forecast weather:', {
-            source: fallbackWeather.source,
-            isActualForecast: fallbackWeather.isActualForecast,
-            temperature: fallbackWeather.temperature,
-            willShowGreen: true
-          });
-          
-          setWeather(fallbackWeather);
-        }
+      if (edgeWeather) {
+        console.log('✅ EDGE WEATHER: Successfully received weather:', {
+          cityName,
+          temperature: edgeWeather.temperature,
+          highTemp: edgeWeather.highTemp,
+          lowTemp: edgeWeather.lowTemp,
+          source: edgeWeather.source
+        });
+        setWeather(edgeWeather);
       } else {
-        // FIXED: Use historical fallback for dates outside range
-        console.log('🌤️ FIXED: Date outside live range, using historical fallback');
-        
+        console.log('🔄 EDGE WEATHER: Edge Function failed, using fallback for', cityName);
         const fallbackWeather = WeatherFallbackService.createFallbackForecast(
           cityName,
           segmentDate,
           segmentDate.toISOString().split('T')[0],
-          WeatherUtilityService.getDaysFromToday(segmentDate)
+          Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
         );
-
-        // FIXED: Ensure fallback properties are correct
-        if (fallbackWeather) {
-          fallbackWeather.source = 'historical_fallback';
-          fallbackWeather.isActualForecast = false;
-          
-          console.log('✅ FIXED: Created historical fallback weather:', {
-            source: fallbackWeather.source,
-            isActualForecast: fallbackWeather.isActualForecast,
-            temperature: fallbackWeather.temperature,
-            willShowYellow: true
-          });
-        }
-
         setWeather(fallbackWeather);
       }
     } catch (err) {
-      console.error('🌤️ FIXED: Error fetching weather:', err);
+      console.error('❌ EDGE WEATHER: Error fetching weather:', err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
       
       // Use fallback on error
-      const fallbackWeather = WeatherFallbackService.createFallbackForecast(
-        cityName,
-        segmentDate,
-        segmentDate.toISOString().split('T')[0],
-        WeatherUtilityService.getDaysFromToday(segmentDate)
-      );
-      
-      if (fallbackWeather) {
-        fallbackWeather.source = 'historical_fallback';
-        fallbackWeather.isActualForecast = false;
+      if (segmentDate) {
+        const fallbackWeather = WeatherFallbackService.createFallbackForecast(
+          cityName,
+          segmentDate,
+          segmentDate.toISOString().split('T')[0],
+          Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        );
+        setWeather(fallbackWeather);
       }
-      
-      setWeather(fallbackWeather);
     } finally {
       setLoading(false);
     }
-  };
+  }, [cityName, segmentDate, segmentDay]);
 
-  const refetch = () => {
-    setRetryCount(prev => prev + 1);
+  const refetch = React.useCallback(() => {
+    console.log('🔄 EDGE WEATHER: Manual refetch requested for', cityName);
+    setRefreshTrigger(prev => prev + 1);
+  }, [cityName]);
+
+  React.useEffect(() => {
     fetchWeather();
-  };
+  }, [fetchWeather, refreshTrigger]);
 
-  useEffect(() => {
-    fetchWeather();
-  }, [cityName, segmentDate, segmentDay, retryCount]);
-
-  return {
-    weather,
-    loading,
-    error,
-    refetch
-  };
+  return { weather, loading, error, refetch };
 };

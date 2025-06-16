@@ -2,14 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
-import { TripPlan } from './services/planning/TripPlanTypes';
+import { TripPlan } from './services/planning/TripPlanBuilder';
 import TripItinerary from './components/TripItinerary';
-import TripActionBar from './components/TripActionBar';
+import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import ItineraryPreLoader from './components/ItineraryPreLoader';
 import { format, addDays } from 'date-fns';
 import { useUnits } from '@/contexts/UnitContext';
 import { useCostEstimator } from './hooks/useCostEstimator';
-import { GoogleDistanceMatrixService } from './services/GoogleDistanceMatrixService';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
@@ -57,6 +56,14 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return undefined;
   }, [tripStartDate]);
 
+  console.log("🌤️ EnhancedTripResults: Rendering with cost data:", {
+    segmentsCount: tripPlan.segments?.length || 0,
+    hasStartDate: !!validTripStartDate,
+    hasCostEstimate: !!costEstimate,
+    startDate: validTripStartDate?.toISOString(),
+    isPreLoading: loadingState?.isPreLoading
+  });
+
   // Show pre-loader if loading
   if (loadingState?.isPreLoading) {
     return (
@@ -71,13 +78,10 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+  const formatTime = (hours: number): string => {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
   };
 
   const formatStartDate = (date?: Date): string => {
@@ -90,42 +94,28 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return addDays(validTripStartDate, tripPlan.totalDays - 1);
   };
 
-  const endDate = calculateEndDate();
-
-  // FIXED: Use Google Distance Matrix API data ONLY
-  const totalDrivingTime = React.useMemo(() => {
-    if (!tripPlan.segments?.length) return 0;
-    
-    const total = tripPlan.segments.reduce((total, segment) => {
-      const hours = segment.driveTimeHours || 0;
-      return total + hours;
-    }, 0);
-    
-    console.log('🚗 EnhancedTripResults FIXED - Google API total drive time:', {
-      totalDrivingTime: total,
-      segmentCount: tripPlan.segments.length,
-      usingOnlyGoogleAPI: true
-    });
-    
-    return total;
-  }, [tripPlan.segments]);
-  
-  // Use Google Distance Matrix Service formatter
-  const formatTime = (hours?: number): string => {
-    if (!hours) return 'N/A';
-    return GoogleDistanceMatrixService.formatDuration(hours);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
+
+  const endDate = calculateEndDate();
+  const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
-      {/* Trip Overview Header */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-white">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-          <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+      {/* Trip Overview Header - Updated to Blue Theme */}
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-2xl font-bold text-blue-700 flex items-center justify-center gap-2">
             <MapPin className="h-6 w-6" />
             Your Route 66 Adventure
           </CardTitle>
-          <div className="text-blue-100 mt-2 space-y-1 text-center">
+          <div className="text-gray-600 mt-2 space-y-1">
             <p>{tripPlan.startCity} → {tripPlan.endCity}</p>
             {validTripStartDate && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 text-sm">
@@ -140,8 +130,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          {/* Four-Column Stats Grid */}
+        <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
@@ -152,13 +141,13 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-1" />
               <div className="text-sm font-semibold text-gray-800">{formatDistance(tripPlan.totalDistance)}</div>
-              <div className="text-xs text-gray-600">Total Distance (Google API)</div>
+              <div className="text-xs text-gray-600">Total Distance</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm font-semibold text-gray-800">{formatTime(totalDrivingTime)}</div>
-              <div className="text-xs text-gray-600">Drive Time (Google API)</div>
+              <div className="text-sm font-semibold text-gray-800">{formatTime(tripPlan.totalDrivingTime || 0)}</div>
+              <div className="text-xs text-gray-600">Drive Time</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
@@ -170,12 +159,17 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             </div>
           </div>
 
-          {/* Action Bar with Google Calendar, .ics download, Email sharing */}
-          <TripActionBar
-            tripPlan={tripPlan}
-            tripStartDate={validTripStartDate}
-            shareUrl={shareUrl}
-          />
+          {/* Share and Export Actions */}
+          <div className="flex justify-center mt-4">
+            <ShareAndExportDropdown
+              shareUrl={shareUrl}
+              tripTitle={tripTitle}
+              tripPlan={tripPlan}
+              tripStartDate={validTripStartDate}
+              variant="default"
+              size="default"
+            />
+          </div>
         </CardContent>
       </Card>
 

@@ -1,16 +1,14 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock, Calendar, DollarSign } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
-import { format, addDays } from 'date-fns';
+import SharedTripOverview from './SharedTripOverview';
 import SharedDailyItinerary from './SharedDailyItinerary';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
-  shareUrl?: string;
+  shareUrl?: string | null;
   isSharedView?: boolean;
 }
 
@@ -21,102 +19,28 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
   isSharedView = false
 }) => {
   const { costEstimate } = useCostEstimator(tripPlan);
-
-  const formatTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const calculateEndDate = (): Date | null => {
-    if (!tripStartDate) return null;
-    return addDays(tripStartDate, tripPlan.totalDays - 1);
-  };
-
-  const endDate = calculateEndDate();
-
-  console.log('🎨 SharedTripContentRenderer: Rendering with RAMBLE 66 branding and weather');
+  const segments = tripPlan.segments || [];
 
   return (
     <div className="bg-white text-black font-sans">
-      {/* Header with RAMBLE 66 Branding */}
-      <div className="text-center mb-8 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-            <span className="text-2xl font-bold text-blue-600">66</span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">RAMBLE 66</h1>
-            <p className="text-blue-100 text-sm">Route 66 Trip Planner</p>
-          </div>
-        </div>
-        <h2 className="text-xl font-bold mb-2">
-          {tripPlan.startCity} → {tripPlan.endCity}
-        </h2>
-        {tripStartDate && (
-          <div className="text-blue-100 text-sm">
-            <span>Starts: {format(tripStartDate, 'EEEE, MMMM d, yyyy')}</span>
-            {endDate && (
-              <>
-                <span className="mx-2">•</span>
-                <span>Ends: {format(endDate, 'EEEE, MMMM d, yyyy')}</span>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      <SharedTripOverview 
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        costEstimate={costEstimate}
+      />
 
-      {/* Four-Column Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <Calendar className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-          <div className="text-lg font-bold text-gray-800">{tripPlan.totalDays}</div>
-          <div className="text-sm text-gray-600">Days</div>
-        </div>
-        
-        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <MapPin className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-          <div className="text-lg font-bold text-gray-800">{Math.round(tripPlan.totalDistance)}</div>
-          <div className="text-sm text-gray-600">Miles</div>
-        </div>
-        
-        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <Clock className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-          <div className="text-lg font-bold text-gray-800">{formatTime(tripPlan.totalDrivingTime || 0)}</div>
-          <div className="text-sm text-gray-600">Drive Time</div>
-        </div>
-        
-        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <DollarSign className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-          <div className="text-lg font-bold text-gray-800">
-            {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
-          </div>
-          <div className="text-sm text-gray-600">Est. Cost</div>
-        </div>
-      </div>
+      <SharedDailyItinerary 
+        segments={segments}
+        tripStartDate={tripStartDate}
+      />
 
-      {/* Daily Itinerary with Weather */}
-      <div className="mb-8">
-        <SharedDailyItinerary 
-          segments={tripPlan.segments}
-          tripStartDate={tripStartDate}
-        />
-      </div>
-
-      {/* Footer */}
-      <div className="text-center text-gray-500 text-sm mt-8 pt-6 border-t border-gray-200">
-        <p>Plan your own Route 66 adventure at <strong>ramble66.com</strong></p>
-        <p className="mt-1">The ultimate Route 66 trip planning experience</p>
-      </div>
+      {/* Share URL section for shared view */}
+      {isSharedView && shareUrl && (
+        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-semibold text-blue-700 mb-2">Share This Trip</h4>
+          <p className="text-sm text-blue-600 break-all font-mono">{shareUrl}</p>
+        </div>
+      )}
     </div>
   );
 };

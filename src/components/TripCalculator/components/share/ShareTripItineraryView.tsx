@@ -3,7 +3,6 @@ import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
 import { ShareWeatherConfigService } from '../../services/weather/ShareWeatherConfigService';
-import { convertTripStopToNearbyAttraction } from '../../types/NearbyAttraction';
 import SegmentWeatherWidget from '../SegmentWeatherWidget';
 
 interface ShareTripItineraryViewProps {
@@ -49,11 +48,8 @@ const ShareTripItineraryView: React.FC<ShareTripItineraryViewProps> = ({
         const segmentContext = `${context}-Day${segment.day}`;
         const originalAttractions = segment.attractions || [];
         
-        // Convert TripStop[] to NearbyAttraction[] to fix type mismatch
-        const nearbyAttractions = originalAttractions.map(convertTripStopToNearbyAttraction);
-        
         const limitResult = AttractionLimitingService.limitAttractions(
-          nearbyAttractions,
+          originalAttractions,
           segmentContext
         );
         

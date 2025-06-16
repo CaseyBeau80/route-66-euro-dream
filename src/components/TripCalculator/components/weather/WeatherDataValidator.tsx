@@ -1,6 +1,5 @@
 
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { LiveWeatherDetectionService } from './services/LiveWeatherDetectionService';
 
 export interface WeatherValidationResult {
   isValid: boolean;
@@ -33,34 +32,50 @@ export class WeatherDataValidator {
       errors.push(`Invalid temperature: ${weather.temperature}`);
     }
 
-    // FIXED: Use EXACT same detection logic as Preview version
-    const isLiveForecast = LiveWeatherDetectionService.isLiveWeatherForecast(weather);
+    // CRITICAL FIX: Preserve the original source and isActualForecast values
+    const originalSource = weather.source;
+    const originalIsActualForecast = weather.isActualForecast;
     
-    console.log('🔧 FIXED: WeatherDataValidator using Preview detection:', {
+    // FIXED: Direct live forecast detection - use original values without modification
+    const isLiveForecast = originalSource === 'live_forecast' && originalIsActualForecast === true;
+
+    console.log('🔧 CRITICAL FIX: WeatherDataValidator preserving original data:', {
       cityName,
-      segmentDate: segmentDate.toLocaleDateString(),
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
+      originalSource,
+      originalIsActualForecast,
       isLiveForecast,
-      shouldShowAsLive: isLiveForecast ? 'YES_GREEN' : 'NO_AMBER',
-      usingPreviewLogic: true
+      temperature: weather.temperature,
+      preservingOriginalValues: true
     });
 
-    // Create normalized weather data - preserve original properties
+    // CRITICAL FIX: Create normalized weather data that PRESERVES live weather indicators
     const normalizedWeather: ForecastWeatherData = {
       ...weather,
       cityName,
-      forecastDate: segmentDate
+      forecastDate: segmentDate,
+      // PRESERVE original source and isActualForecast - DO NOT override them
+      source: originalSource,
+      isActualForecast: originalIsActualForecast
     };
 
-    console.log('🔧 FIXED: WeatherDataValidator final result:', {
+    console.log('🔧 CRITICAL FIX: WeatherDataValidator result:', {
       cityName,
       isValid: errors.length === 0,
       isLiveForecast,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      shouldDisplayGreen: isLiveForecast,
-      usingPreviewLogic: true
+      preservedOriginalSource: normalizedWeather.source === originalSource,
+      preservedOriginalFlag: normalizedWeather.isActualForecast === originalIsActualForecast,
+      errors,
+      originalWeather: {
+        source: originalSource,
+        isActualForecast: originalIsActualForecast,
+        temperature: weather.temperature
+      },
+      normalizedWeather: {
+        source: normalizedWeather.source,
+        isActualForecast: normalizedWeather.isActualForecast,
+        temperature: normalizedWeather.temperature
+      },
+      criticalFix: true
     });
 
     return {
@@ -69,12 +84,5 @@ export class WeatherDataValidator {
       validationErrors: errors,
       normalizedWeather
     };
-  }
-
-  static validateLiveForecastData(data: ForecastWeatherData): boolean {
-    if (!data) return false;
-    
-    // FIXED: Use Preview detection logic
-    return LiveWeatherDetectionService.isLiveWeatherForecast(data);
   }
 }

@@ -1,33 +1,68 @@
 
 import { DailySegment } from './TripPlanTypes';
-import { TripStopConverter } from '../../utils/TripStopConverter';
-import { DriveTimeCategoryHelper } from '../../utils/DriveTimeCategoryHelper';
+import { TripStop } from '../data/SupabaseDataService';
+import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { CityDisplayService } from '../utils/CityDisplayService';
+import { TripPlanUtils } from './TripPlanUtils';
 
 export class TripSegmentBuilder {
-  static buildSegment(day: number, startCity: string, endCity: string): DailySegment {
-    console.log(`🏗️ TripSegmentBuilder: Building segment for day ${day}`);
+  /**
+   * Build segments with destination cities only
+   */
+  static buildSegmentsWithDestinationCities(
+    startStop: TripStop,
+    endStop: TripStop,
+    destinationCities: TripStop[],
+    tripDays: number
+  ): DailySegment[] {
+    const segments: DailySegment[] = [];
     
-    const distance = 280; // Mock distance
-    const driveTimeHours = 4.5; // Mock drive time
+    // Create array of all stops in order: start, destination cities, end
+    const allDayStops = [startStop, ...destinationCities, endStop];
     
-    return {
-      day,
-      startCity,
-      endCity,
-      distance,
-      driveTimeHours,
-      approximateMiles: Math.round(distance),
-      drivingTime: driveTimeHours,
-      // Use converter for attractions
-      attractions: TripStopConverter.convertSimpleAttractionsToTripStops([
-        {
-          name: `Built Attraction ${day}`,
-          description: `Attraction built for day ${day}`,
-          city: endCity
-        }
-      ]),
-      // Use proper drive time categories with DriveTimeCategoryHelper
-      driveTimeCategory: DriveTimeCategoryHelper.getDriveTimeCategory(driveTimeHours)
-    };
+    for (let day = 1; day <= tripDays; day++) {
+      const currentStop = allDayStops[day - 1];
+      const nextStop = allDayStops[day];
+      
+      if (!currentStop || !nextStop) continue;
+      
+      const segmentDistance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        nextStop.latitude, nextStop.longitude
+      );
+      
+      const driveTimeHours = segmentDistance / 50; // 50 mph average
+      
+      // Only include destination cities as recommended stops
+      const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([nextStop]);
+      
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${currentStop.city_name} to ${nextStop.city_name}`,
+        startCity: CityDisplayService.getCityDisplayName(currentStop),
+        endCity: CityDisplayService.getCityDisplayName(nextStop),
+        distance: segmentDistance,
+        approximateMiles: Math.round(segmentDistance),
+        driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+        destination: {
+          city: nextStop.city_name,
+          state: nextStop.state
+        },
+        recommendedStops: segmentStops,
+        attractions: segmentStops.map(stop => ({
+          name: stop.name,
+          title: stop.name,
+          description: stop.description,
+          city: stop.city_name
+        })),
+        driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
+        routeSection: TripPlanUtils.getRouteSection(day, tripDays)
+      };
+      
+      segments.push(segment);
+    }
+    
+    return segments;
   }
 }

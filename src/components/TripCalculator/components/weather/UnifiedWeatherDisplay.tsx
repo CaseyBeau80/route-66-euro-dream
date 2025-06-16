@@ -57,7 +57,7 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
   const weatherIcon = getWeatherIcon(weather.icon);
   const formattedDate = format(segmentDate, 'EEEE, MMM d');
 
-  // Determine styling based on forecast type - using YELLOW for historical data
+  // Determine styling based on forecast type
   const getDisplayConfig = () => {
     if (isLiveWeather) {
       return {
@@ -70,21 +70,21 @@ const UnifiedWeatherDisplay: React.FC<UnifiedWeatherDisplayProps> = ({
       };
     } else if (isWithinReliableRange) {
       return {
-        containerClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
-        badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        containerClass: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200',
+        badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
         sourceLabel: '🟡 Estimated Forecast',
-        sourceColor: 'text-yellow-600',
+        sourceColor: 'text-amber-600',
         badgeText: '🔮 Weather pattern estimate',
         explanation: 'Based on weather trends and patterns'
       };
     } else {
       return {
-        containerClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
-        badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        sourceLabel: '📊 Historical Data',
-        sourceColor: 'text-yellow-600',
-        badgeText: '📊 Based on historical patterns',
-        explanation: 'Historical weather data for this time of year'
+        containerClass: 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200',
+        badgeClass: 'bg-gray-100 text-gray-700 border-gray-200',
+        sourceLabel: '📊 Seasonal Estimate',
+        sourceColor: 'text-gray-600',
+        badgeText: '📊 Long-range estimate',
+        explanation: 'Forecasts 7+ days out are less reliable'
       };
     }
   };

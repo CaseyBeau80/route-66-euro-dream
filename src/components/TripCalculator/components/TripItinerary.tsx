@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TripPlan } from '../services/planning/TripPlanTypes';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 import TripItineraryColumn from './TripItineraryColumn';
 import SimpleWeatherForecastColumn from './SimpleWeatherForecastColumn';
 import WeatherTabContent from './WeatherTabContent';
@@ -99,6 +99,15 @@ const TripItinerary: React.FC<TripItineraryProps> = ({
             </ErrorBoundary>
             
             <ErrorBoundary context="SimpleWeatherForecastColumn">
+              {(() => {
+                console.log('🎯 [WEATHER DEBUG] About to render SimpleWeatherForecastColumn:', {
+                  component: 'TripItinerary -> SimpleWeatherForecastColumn',
+                  segmentsCount: tripPlan.segments.length,
+                  tripStartDate: validatedTripStartDate?.toISOString(),
+                  tripId: tripPlan.id
+                });
+                return null;
+              })()}
               <SimpleWeatherForecastColumn 
                 segments={tripPlan.segments} 
                 tripStartDate={validatedTripStartDate}

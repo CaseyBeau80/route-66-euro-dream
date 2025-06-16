@@ -1,7 +1,10 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import CompactWeatherDisplay from './components/CompactWeatherDisplay';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
+import SimpleWeatherDisplay from './SimpleWeatherDisplay';
+import { SecureWeatherService } from '@/services/SecureWeatherService';
 
 interface SimpleWeatherWidgetProps {
   segment: DailySegment;
@@ -16,15 +19,99 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  console.log('🔧 REFACTORED: SimpleWeatherWidget now using CompactWeatherDisplay for', segment.endCity);
+  const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
+  // Calculate segment date
+  const segmentDate = React.useMemo(() => {
+    if (tripStartDate) {
+      return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+    }
+    return null;
+  }, [tripStartDate, segment.day]);
+
+  // Fetch weather data using secure service
+  const fetchWeather = React.useCallback(async () => {
+    if (!segmentDate) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('🌤️ SECURE WEATHER: Fetching via Supabase Edge Function for:', segment.endCity, segmentDate);
+      
+      const weatherData = await SecureWeatherService.fetchWeatherForecast(
+        segment.endCity,
+        segmentDate
+      );
+
+      if (weatherData) {
+        setWeather(weatherData);
+        console.log('✅ SECURE WEATHER: Data received from Edge Function:', {
+          city: segment.endCity,
+          temperature: weatherData.temperature,
+          source: weatherData.source,
+          isLive: weatherData.source === 'live_forecast' && weatherData.isActualForecast
+        });
+      } else {
+        setError('Weather data unavailable');
+      }
+    } catch (err) {
+      console.error('❌ SECURE WEATHER: Edge Function fetch failed:', err);
+      setError(err instanceof Error ? err.message : 'Weather fetch failed');
+    } finally {
+      setLoading(false);
+    }
+  }, [segment.endCity, segmentDate]);
+
+  // Fetch weather when component mounts or dependencies change
+  React.useEffect(() => {
+    if (segmentDate) {
+      fetchWeather();
+    }
+  }, [fetchWeather, segmentDate]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-center gap-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-sm">Loading live weather for {segment.endCity}...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show weather if available
+  if (weather && segmentDate) {
+    return (
+      <SimpleWeatherDisplay
+        weather={weather}
+        segmentDate={segmentDate}
+        cityName={segment.endCity}
+        isSharedView={isSharedView}
+        isPDFExport={isPDFExport}
+      />
+    );
+  }
+
+  // Fallback
   return (
-    <CompactWeatherDisplay
-      segment={segment}
-      tripStartDate={tripStartDate}
-      isSharedView={isSharedView}
-      isPDFExport={isPDFExport}
-    />
+    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+      <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+      <p className="text-xs text-gray-600">Weather information not available</p>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {!isSharedView && !isPDFExport && (
+        <button
+          onClick={fetchWeather}
+          className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+        >
+          Retry
+        </button>
+      )}
+    </div>
   );
 };
 

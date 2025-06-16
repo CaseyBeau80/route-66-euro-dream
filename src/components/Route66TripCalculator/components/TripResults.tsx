@@ -4,57 +4,14 @@ import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
+import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
-import TripSummaryStats from './TripSummaryStats';
-import SimpleWeatherDisplay from '../../TripCalculator/components/weather/SimpleWeatherDisplay';
-import { useEdgeFunctionWeather } from '../../TripCalculator/components/weather/hooks/useEdgeFunctionWeather';
-import { WeatherUtilityService } from '../../TripCalculator/components/weather/services/WeatherUtilityService';
-import { GoogleDistanceMatrixService } from '../../TripCalculator/services/GoogleDistanceMatrixService';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
   tripStartDate?: Date;
   onShareTrip?: () => void;
 }
-
-const CompactWeatherDisplay: React.FC<{
-  segment: any;
-  tripStartDate: Date;
-}> = ({ segment, tripStartDate }) => {
-  const segmentDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-  
-  const { weather, loading } = useEdgeFunctionWeather({
-    cityName: segment.endCity,
-    segmentDate,
-    segmentDay: segment.day
-  });
-
-  if (loading) {
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
-        <div className="text-blue-600 text-sm">Loading weather...</div>
-      </div>
-    );
-  }
-
-  if (weather) {
-    return (
-      <SimpleWeatherDisplay
-        weather={weather}
-        segmentDate={segmentDate}
-        cityName={segment.endCity}
-        isSharedView={false}
-        isPDFExport={false}
-      />
-    );
-  }
-
-  return (
-    <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-      <div className="text-gray-600 text-sm">Weather unavailable</div>
-    </div>
-  );
-};
 
 const TripResults: React.FC<TripResultsProps> = ({
   tripPlan,
@@ -63,27 +20,35 @@ const TripResults: React.FC<TripResultsProps> = ({
 }) => {
   const { costEstimate } = useCostEstimator(tripPlan);
 
+  console.log('📊 TripResults render:', { 
+    tripPlan: !!tripPlan, 
+    segmentCount: tripPlan?.segments?.length,
+    tripStartDate: tripStartDate?.toISOString(),
+    hasShareHandler: !!onShareTrip,
+    hasCostEstimate: !!costEstimate,
+    totalCost: costEstimate?.breakdown?.totalCost
+  });
+
   if (!tripPlan) {
     return null;
   }
 
   const handleShareTrip = () => {
+    console.log('📤 TripResults: Share button clicked, calling parent handler');
     if (onShareTrip) {
       onShareTrip();
+    } else {
+      console.warn('⚠️ TripResults: No share handler provided by parent component');
     }
   };
 
-  console.log('🔧 TripResults using Google Distance Matrix API drive times:', {
-    segmentCount: tripPlan.segments?.length,
-    tripStartDate: tripStartDate?.toISOString(),
-    firstSegment: tripPlan.segments?.[0],
-    usingGoogleAPI: true
-  });
-
-  // Use Google Distance Matrix API data from segments
-  const getGoogleAPIDriveTime = (segment: any): string => {
-    const driveTimeHours = segment.driveTimeHours || 0;
-    return GoogleDistanceMatrixService.formatDuration(driveTimeHours);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   return (
@@ -97,95 +62,109 @@ const TripResults: React.FC<TripResultsProps> = ({
           {tripPlan.startCity} to {tripPlan.endCity}
         </p>
         
-        <TripSummaryStats tripPlan={tripPlan} costEstimate={costEstimate} />
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">{tripPlan.segments?.length || 0}</div>
+            <div className="text-sm text-route66-text-secondary">Days</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {Math.round(tripPlan.totalDistance || 0)}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Miles</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {Math.round((tripPlan.totalDistance || 0) / 55)}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Drive Hours</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {tripPlan.segments?.filter(s => s.attractions?.length > 0).length || 0}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Attractions</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-route66-primary">
+              {costEstimate ? formatCurrency(costEstimate.breakdown.totalCost) : '--'}
+            </div>
+            <div className="text-sm text-route66-text-secondary">Est. Cost</div>
+          </div>
+        </div>
       </div>
 
       {/* Daily Segments */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary (Google API Drive Times)
+          Daily Itinerary
         </h3>
         
-        {tripPlan.segments?.map((segment, index) => {
-          console.log(`🔧 Rendering segment ${index} for ${segment.endCity} with Google API data:`, {
-            segmentData: {
-              day: segment.day,
-              driveTimeHours: segment.driveTimeHours,
-              distance: segment.distance,
-              startCity: segment.startCity,
-              endCity: segment.endCity
-            },
-            googleAPIDriveTime: getGoogleAPIDriveTime(segment),
-            tripStartDate: tripStartDate?.toISOString()
-          });
-
-          // Use Google Distance Matrix API data
-          const driveTime = getGoogleAPIDriveTime(segment);
-          const distance = segment.distance || segment.approximateMiles || 0;
-
-          return (
-            <Card key={index} className="p-4 border border-route66-border">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-route66-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
-                    {segment.day}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-route66-text-primary">
-                      Day {segment.day}
-                    </h4>
-                    <p className="text-sm text-route66-text-secondary">
-                      {segment.startCity} → {segment.endCity}
-                    </p>
-                  </div>
+        {tripPlan.segments?.map((segment, index) => (
+          <Card key={index} className="p-4 border border-route66-border">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-route66-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                  {segment.day}
                 </div>
-                
-                <div className="flex items-center gap-4 text-sm text-route66-text-secondary mt-2 md:mt-0">
-                  <div className="flex items-center gap-1">
-                    <Route className="w-4 h-4" />
-                    {Math.round(distance)} miles
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {driveTime} (Google API)
-                  </div>
+                <div>
+                  <h4 className="font-bold text-route66-text-primary">
+                    Day {segment.day}
+                  </h4>
+                  <p className="text-sm text-route66-text-secondary">
+                    {segment.startCity} → {segment.endCity}
+                  </p>
                 </div>
               </div>
+              
+              <div className="flex items-center gap-4 text-sm text-route66-text-secondary mt-2 md:mt-0">
+                <div className="flex items-center gap-1">
+                  <Route className="w-4 h-4" />
+                  {Math.round(segment.distance)} miles
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {Math.round(segment.distance / 55 * 10) / 10} hours
+                </div>
+              </div>
+            </div>
 
-              {/* Weather Display using working component */}
-              {tripStartDate && (
-                <CompactWeatherDisplay
+            {/* Weather Widget */}
+            {tripStartDate && (
+              <div className="mb-4">
+                <SimpleWeatherWidget
                   segment={segment}
                   tripStartDate={tripStartDate}
+                  isSharedView={false}
                 />
-              )}
+              </div>
+            )}
 
-              {/* Attractions */}
-              {segment.attractions && segment.attractions.length > 0 && (
-                <div className="mt-4">
-                  <h5 className="font-medium text-route66-text-primary mb-2">
-                    Recommended Stops:
-                  </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {segment.attractions.slice(0, 4).map((attraction, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-3 h-3 text-route66-primary flex-shrink-0" />
-                        <span className="text-route66-text-secondary truncate">
-                          {attraction.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {segment.attractions.length > 4 && (
-                    <p className="text-xs text-route66-text-secondary mt-2">
-                      +{segment.attractions.length - 4} more attractions
-                    </p>
-                  )}
+            {/* Attractions */}
+            {segment.attractions && segment.attractions.length > 0 && (
+              <div className="mt-4">
+                <h5 className="font-medium text-route66-text-primary mb-2">
+                  Recommended Stops:
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {segment.attractions.slice(0, 4).map((attraction, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm">
+                      <MapPin className="w-3 h-3 text-route66-primary flex-shrink-0" />
+                      <span className="text-route66-text-secondary truncate">
+                        {attraction.name}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </Card>
-          );
-        })}
+                {segment.attractions.length > 4 && (
+                  <p className="text-xs text-route66-text-secondary mt-2">
+                    +{segment.attractions.length - 4} more attractions
+                  </p>
+                )}
+              </div>
+            )}
+          </Card>
+        ))}
       </div>
 
       {/* Action Buttons */}

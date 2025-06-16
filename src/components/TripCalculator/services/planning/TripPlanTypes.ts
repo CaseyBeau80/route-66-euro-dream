@@ -1,8 +1,9 @@
 
+
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
-  category: 'light' | 'moderate' | 'heavy' | 'extreme';
+  category: 'short' | 'optimal' | 'long' | 'extreme';
   message: string;
   color?: string;
 }
@@ -39,10 +40,9 @@ export interface TripPlan {
   totalDays: number;
   totalDistance: number;
   totalMiles?: number;
-  totalDrivingTime: number; // This should always be calculated properly
+  totalDrivingTime?: number;
   segments: DailySegment[];
-  dailySegments?: DailySegment[]; // Legacy compatibility
-  route?: { lat: number; lng: number }[];
+  dailySegments?: DailySegment[];
   title?: string;
   startCityImage?: string;
   endCityImage?: string;
@@ -67,37 +67,20 @@ export interface DailySegment {
   endCity?: string;
   destination?: string | { city: string; state?: string };
   distance: number;
-  approximateMiles?: number;
   driveTimeHours: number;
   drivingTime?: number;
   recommendedStops?: RecommendedStop[];
   stops?: RecommendedStop[];
-  attractions?: TripStop[];
-  subStops?: TripStop[];
   weather?: any;
   weatherData?: any;
+  attractions?: any[];
   isEnriched?: boolean;
   notes?: string;
   recommendations?: string[];
   title?: string;
   routeSection?: string;
   driveTimeCategory?: DriveTimeCategory;
+  approximateMiles?: number;
   subStopTimings?: SegmentTiming[];
 }
 
-// Helper functions
-export const getDestinationCityName = (destination: string | { city: string; state?: string } | undefined): string => {
-  if (!destination) return 'Unknown';
-  if (typeof destination === 'string') return destination;
-  return destination.city;
-};
-
-// Data validator stub
-export class TripPlanDataValidator {
-  static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
-    return {
-      ...tripPlan,
-      segments: tripPlan.segments?.filter(segment => segment && segment.day) || []
-    };
-  }
-}
