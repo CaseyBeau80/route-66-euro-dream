@@ -6,6 +6,7 @@ import { TripStyleLogic, TripStyleConfig } from './TripStyleLogic';
 import { TravelDayValidator } from '../validation/TravelDayValidator';
 import { SegmentDensityController } from './SegmentDensityController';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
+import { CityStateDisambiguationService } from '../utils/CityStateDisambiguationService';
 
 export interface TripPlanningResult {
   success: boolean;
@@ -19,7 +20,7 @@ export interface TripPlanningResult {
 
 export class UnifiedTripPlanningService {
   /**
-   * Enhanced trip planning with style logic and validation
+   * Enhanced trip planning with state disambiguation and style logic
    */
   static async planTrip(
     startLocation: string,
@@ -27,7 +28,7 @@ export class UnifiedTripPlanningService {
     travelDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlanningResult> {
-    console.log(`🚀 UNIFIED PLANNING: ${travelDays}-day ${tripStyle} trip from ${startLocation} to ${endLocation}`);
+    console.log(`🚀 UNIFIED PLANNING with DISAMBIGUATION: ${travelDays}-day ${tripStyle} trip from ${startLocation} to ${endLocation}`);
     
     try {
       // Step 1: Get style configuration
@@ -66,9 +67,9 @@ export class UnifiedTripPlanningService {
       const densityLimits = SegmentDensityController.getDensityLimits(styleConfig);
       console.log(`🎛️ Density limits: max ${densityLimits.maxStopsPerDay} stops/day, ${densityLimits.minMilesBetweenStops}mi apart`);
       
-      // Step 6: Find start and end stops
-      const startStop = this.findCityStop(startLocation, stopsFilteredByStyle);
-      const endStop = this.findCityStop(endLocation, stopsFilteredByStyle);
+      // Step 6: Find start and end stops with enhanced disambiguation
+      const startStop = this.findCityStopWithDisambiguation(startLocation, stopsFilteredByStyle);
+      const endStop = this.findCityStopWithDisambiguation(endLocation, stopsFilteredByStyle);
       
       if (!startStop || !endStop) {
         return {
@@ -79,6 +80,9 @@ export class UnifiedTripPlanningService {
           tripStyle
         };
       }
+      
+      console.log(`🎯 UNIFIED: Selected start: ${startStop.name}, ${startStop.state}`);
+      console.log(`🎯 UNIFIED: Selected end: ${endStop.name}, ${endStop.state}`);
       
       // Step 7: Apply final density control
       const finalStops = SegmentDensityController.controlStopDensity(
@@ -138,6 +142,54 @@ export class UnifiedTripPlanningService {
         tripStyle
       };
     }
+  }
+
+  /**
+   * Enhanced city finding with state disambiguation
+   */
+  private static findCityStopWithDisambiguation(cityName: string, stops: TripStop[]): TripStop | undefined {
+    console.log(`🔍 UNIFIED DISAMBIGUATION: Searching for "${cityName}"`);
+    
+    // Use disambiguation service to find best matches
+    const matches = CityStateDisambiguationService.findBestMatch(cityName, stops);
+    
+    if (matches.length === 0) {
+      console.log(`❌ UNIFIED DISAMBIGUATION: No matches found for "${cityName}"`);
+      return undefined;
+    }
+
+    if (matches.length === 1) {
+      console.log(`✅ UNIFIED DISAMBIGUATION: Single match found: ${matches[0].name}, ${matches[0].state}`);
+      return matches[0] as TripStop;
+    }
+
+    // Multiple matches - apply disambiguation logic
+    const { city: searchCity, state: searchState } = CityStateDisambiguationService.parseCityState(cityName);
+    
+    if (searchState) {
+      const exactMatch = matches.find(match => match.state.toUpperCase() === searchState.toUpperCase());
+      if (exactMatch) {
+        console.log(`✅ UNIFIED DISAMBIGUATION: Exact state match: ${exactMatch.name}, ${exactMatch.state}`);
+        return exactMatch as TripStop;
+      }
+    }
+
+    // Use Route 66 preferences for ambiguous cities
+    if (CityStateDisambiguationService.isAmbiguousCity(searchCity)) {
+      const preference = CityStateDisambiguationService.getRoute66Preference(searchCity);
+      if (preference) {
+        const preferredMatch = matches.find(match => 
+          match.state.toUpperCase() === preference.state.toUpperCase()
+        );
+        if (preferredMatch) {
+          console.log(`🎯 UNIFIED DISAMBIGUATION: Route 66 preference: ${preferredMatch.name}, ${preferredMatch.state}`);
+          return preferredMatch as TripStop;
+        }
+      }
+    }
+
+    console.log(`⚠️ UNIFIED DISAMBIGUATION: Using first match: ${matches[0].name}, ${matches[0].state}`);
+    return matches[0] as TripStop;
   }
 
   /**

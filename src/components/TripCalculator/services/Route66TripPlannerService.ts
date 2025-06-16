@@ -1,4 +1,3 @@
-
 import { EnhancedSupabaseDataService } from './data/EnhancedSupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
@@ -6,6 +5,7 @@ import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningServic
 import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
+import { CityStateDisambiguationService } from './utils/CityStateDisambiguationService';
 
 // Re-export types for backward compatibility
 export type { DailySegment, TripPlan, SegmentTiming };
@@ -18,141 +18,87 @@ export class Route66TripPlannerService {
     tripDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log(`🗺️ STRICT PLANNING: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
+    console.log(`🗺️ ENHANCED CITY MATCHING: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
 
     // Use enhanced data service with fallback tracking
     const allStops = await EnhancedSupabaseDataService.fetchAllStops();
-    console.log(`📊 STRICT: Total stops available for planning: ${allStops.length}`);
+    console.log(`📊 ENHANCED: Total stops available for planning: ${allStops.length}`);
     
     // STRICT: Filter to only destination cities for processing
     const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
-    console.log(`🔒 STRICT: Processing only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
+    console.log(`🔒 ENHANCED: Processing only ${destinationCitiesOnly.length} destination cities from ${allStops.length} total stops`);
     
-    // Log data source status
-    const dataSourceInfo = EnhancedSupabaseDataService.getDataSourceInfo();
-    if (dataSourceInfo) {
-      console.log(`📡 STRICT: Data Source: ${EnhancedSupabaseDataService.getDataSourceMessage()}`);
+    // Enhanced city matching function with proper state disambiguation
+    const findCityStopWithDisambiguation = (cityName: string): TripStop | undefined => {
+      console.log(`🔍 ENHANCED MATCHING: Searching for "${cityName}"`);
       
-      if (!dataSourceInfo.isUsingSupabase) {
-        console.warn(`⚠️ STRICT: Using fallback data due to: ${dataSourceInfo.fallbackReason}`);
+      // Use disambiguation service to find best matches
+      const matches = CityStateDisambiguationService.findBestMatch(cityName, destinationCitiesOnly);
+      
+      if (matches.length === 0) {
+        console.log(`❌ ENHANCED MATCHING: No matches found for "${cityName}"`);
+        return undefined;
       }
-    }
-    
-    // Enhanced city matching function with improved fuzzy matching
-    const findCityStop = (cityName: string): TripStop | undefined => {
-      // Parse city and state from input (e.g., "Springfield, IL" or "Chicago, IL")
-      const parts = cityName.split(',').map(part => part.trim());
-      const cityOnly = parts[0].toLowerCase();
-      const stateOnly = parts.length > 1 ? parts[1].toLowerCase() : null;
-      
-      console.log(`🔍 STRICT: Searching for city: "${cityOnly}", state: "${stateOnly}" from input: "${cityName}"`);
-      
-      // Special handling for Santa Fe - most common search terms
-      if (cityOnly.includes('santa fe') || cityOnly.includes('santa_fe')) {
-        const santaFe = destinationCitiesOnly.find(stop => 
-          stop.name.toLowerCase().includes('santa fe') && 
-          (!stateOnly || stop.state.toLowerCase().includes(stateOnly))
-        );
-        
-        if (santaFe) {
-          console.log(`🎯 STRICT: Found Santa Fe via special handling: ${santaFe.name} in ${CityDisplayService.getCityDisplayName(santaFe)}`);
-          return santaFe;
-        }
-      }
-      
-      // Tier 1: Exact city + state matching (most precise) - destination cities only
-      if (stateOnly) {
-        const exactMatch = destinationCitiesOnly.find(stop => {
-          const stopCity = stop.city_name.toLowerCase();
-          const stopState = stop.state.toLowerCase();
-          const stopName = stop.name.toLowerCase();
-          
-          // Check for exact matches with city and state
-          const exactCityStateMatch = stopCity === cityOnly && stopState === stateOnly;
-          const nameExactStateMatch = stopName === cityOnly && stopState === stateOnly;
-          
-          return exactCityStateMatch || nameExactStateMatch;
-        });
-        
-        if (exactMatch) {
-          console.log(`✅ STRICT: Found exact city+state match: ${exactMatch.name} in ${CityDisplayService.getCityDisplayName(exactMatch)}`);
-          return exactMatch;
-        }
 
-        // Try partial matches with correct state - destination cities only
-        const partialMatch = destinationCitiesOnly.find(stop => {
-          const stopCity = stop.city_name.toLowerCase();
-          const stopState = stop.state.toLowerCase();
-          const stopName = stop.name.toLowerCase();
-          
-          if (stopState !== stateOnly) return false;
-          
-          const cityContains = stopCity.includes(cityOnly) || cityOnly.includes(stopCity);
-          const nameContains = stopName.includes(cityOnly) || cityOnly.includes(stopName);
-          
-          return cityContains || nameContains;
-        });
-        
-        if (partialMatch) {
-          console.log(`✅ STRICT: Found partial city+state match: ${partialMatch.name} in ${CityDisplayService.getCityDisplayName(partialMatch)}`);
-          return partialMatch;
+      if (matches.length === 1) {
+        console.log(`✅ ENHANCED MATCHING: Single match found for "${cityName}": ${matches[0].name}, ${matches[0].state}`);
+        return matches[0] as TripStop;
+      }
+
+      // Multiple matches found - need disambiguation
+      const { city: searchCity, state: searchState } = CityStateDisambiguationService.parseCityState(cityName);
+      
+      if (searchState) {
+        // State was specified, find exact match
+        const exactMatch = matches.find(match => match.state.toUpperCase() === searchState.toUpperCase());
+        if (exactMatch) {
+          console.log(`✅ ENHANCED MATCHING: Exact state match found for "${cityName}": ${exactMatch.name}, ${exactMatch.state}`);
+          return exactMatch as TripStop;
         }
       }
-      
-      // Tier 2: City-only matching (fallback) - destination cities only
-      const cityOnlyMatches = destinationCitiesOnly.filter(stop => {
-        const stopCity = stop.city_name.toLowerCase();
-        const stopName = stop.name.toLowerCase();
-        
-        // Exact matches first
-        if (stopCity === cityOnly || stopName === cityOnly) {
-          return true;
-        }
-        
-        // Then partial matches
-        return stopCity.includes(cityOnly) || stopName.includes(cityOnly) || 
-               cityOnly.includes(stopCity) || cityOnly.includes(stopName);
+
+      // No state specified or exact match not found
+      console.log(`⚠️ ENHANCED MATCHING: Multiple matches found for "${cityName}":`);
+      matches.forEach(match => {
+        console.log(`   - ${match.name}, ${match.state}`);
       });
 
-      if (cityOnlyMatches.length > 0) {
-        // Return first match since all are destination cities
-        const firstMatch = cityOnlyMatches[0];
-        console.log(`✅ STRICT: Found destination city match: ${firstMatch.name} in ${CityDisplayService.getCityDisplayName(firstMatch)}`);
-        if (stateOnly && firstMatch.state.toLowerCase() !== stateOnly) {
-          console.log(`⚠️ STRICT: Warning: State mismatch! Expected ${stateOnly}, found ${firstMatch.state}`);
+      // For ambiguous cities, use Route 66 preference
+      if (CityStateDisambiguationService.isAmbiguousCity(searchCity)) {
+        const preference = CityStateDisambiguationService.getRoute66Preference(searchCity);
+        if (preference) {
+          const preferredMatch = matches.find(match => 
+            match.state.toUpperCase() === preference.state.toUpperCase()
+          );
+          if (preferredMatch) {
+            console.log(`🎯 ENHANCED MATCHING: Using Route 66 preference for "${cityName}": ${preferredMatch.name}, ${preferredMatch.state}`);
+            return preferredMatch as TripStop;
+          }
         }
-        return firstMatch;
       }
-      
-      console.log(`❌ STRICT: No destination city match found for "${cityName}"`);
-      
-      // Enhanced error logging for debugging
-      if (EnhancedSupabaseDataService.isUsingFallback()) {
-        console.log(`💡 STRICT: Search failed with fallback data. Reason: ${EnhancedSupabaseDataService.getDataSourceInfo()?.fallbackReason}`);
-        console.log(`📋 STRICT: Available destination cities in fallback:`, destinationCitiesOnly
-          .map(stop => `${stop.name}, ${stop.state}`)
-          .sort()
-        );
-      }
-      
-      return undefined;
+
+      // Return first match as fallback
+      console.log(`⚠️ ENHANCED MATCHING: Using first match as fallback for "${cityName}": ${matches[0].name}, ${matches[0].state}`);
+      return matches[0] as TripStop;
     };
     
-    // Find start and end stops with enhanced matching
-    const startStop = findCityStop(startCityName);
-    const endStop = findCityStop(endCityName);
+    // Find start and end stops with enhanced disambiguation
+    const startStop = findCityStopWithDisambiguation(startCityName);
+    const endStop = findCityStopWithDisambiguation(endCityName);
 
-    console.log('🔍 STRICT: Start stop found:', startStop ? { 
+    console.log('🔍 ENHANCED: Start stop found:', startStop ? { 
       name: startStop.name, 
       city_display: CityDisplayService.getCityDisplayName(startStop),
       category: startStop.category,
+      state: startStop.state,
       dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     } : 'NOT FOUND');
     
-    console.log('🔍 STRICT: End stop found:', endStop ? { 
+    console.log('🔍 ENHANCED: End stop found:', endStop ? { 
       name: endStop.name, 
       city_display: CityDisplayService.getCityDisplayName(endStop),
       category: endStop.category,
+      state: endStop.state,
       dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase'
     } : 'NOT FOUND');
 
@@ -176,11 +122,13 @@ export class Route66TripPlannerService {
       tripStyle
     );
 
-    console.log('🎯 STRICT: Final trip plan created:', {
+    console.log('🎯 ENHANCED: Final trip plan created:', {
       title: planningResult.tripPlan.title,
       tripStyle: planningResult.tripStyle,
       warnings: planningResult.warnings?.length || 0,
       segmentsCount: planningResult.tripPlan.segments.length,
+      startCity: `${validatedStartStop.name}, ${validatedStartStop.state}`,
+      endCity: `${validatedEndStop.name}, ${validatedEndStop.state}`,
       dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase',
       destinationCitiesOnly: true
     });
