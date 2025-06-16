@@ -17,17 +17,21 @@ export class GoogleDistanceMatrixService {
   static setApiKey(key: string) {
     this.apiKey = key;
     localStorage.setItem('google_maps_api_key', key);
+    console.log('🔑 GoogleDistanceMatrixService: API key set successfully');
   }
 
   static getApiKey(): string | null {
     if (!this.apiKey) {
       this.apiKey = localStorage.getItem('google_maps_api_key');
     }
+    console.log('🔑 GoogleDistanceMatrixService: API key check:', this.apiKey ? 'Available' : 'Not available');
     return this.apiKey;
   }
 
   static isAvailable(): boolean {
-    return !!this.getApiKey();
+    const available = !!this.getApiKey();
+    console.log('🔑 GoogleDistanceMatrixService: Service available:', available);
+    return available;
   }
 
   private static getCacheKey(origin: string, destination: string): string {
@@ -38,17 +42,20 @@ export class GoogleDistanceMatrixService {
     originCity: string,
     destinationCity: string
   ): Promise<GoogleDistanceResult> {
+    console.log(`🗺️ GoogleDistanceMatrixService: Calculating ${originCity} → ${destinationCity}`);
+    
     const cacheKey = this.getCacheKey(originCity, destinationCity);
     
     // Check cache first
     if (this.cache.has(cacheKey)) {
-      console.log(`📊 Using cached distance for ${originCity} → ${destinationCity}`);
-      return this.cache.get(cacheKey)!;
+      const cached = this.cache.get(cacheKey)!;
+      console.log(`📊 GoogleDistanceMatrixService: Using cached result: ${cached.distance}mi, ${this.formatDuration(cached.duration)}`);
+      return cached;
     }
 
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      console.warn('⚠️ Google Maps API key not available, using fallback calculation');
+      console.warn('⚠️ GoogleDistanceMatrixService: No API key available, using fallback');
       return this.getFallbackDistance(originCity, destinationCity);
     }
 
@@ -60,20 +67,22 @@ export class GoogleDistanceMatrixService {
         `mode=driving&` +
         `key=${apiKey}`;
 
-      console.log(`🗺️ Fetching distance: ${originCity} → ${destinationCity}`);
+      console.log(`🌐 GoogleDistanceMatrixService: Making API call to Google for ${originCity} → ${destinationCity}`);
       
       const response = await fetch(url);
       const data = await response.json();
 
+      console.log(`📡 GoogleDistanceMatrixService: API response status: ${data.status}`);
+
       if (data.status !== 'OK') {
-        console.warn(`⚠️ Distance Matrix API status: ${data.status}, using fallback`);
+        console.warn(`⚠️ GoogleDistanceMatrixService: API status error: ${data.status}, using fallback`);
         return this.getFallbackDistance(originCity, destinationCity);
       }
 
       const element = data.rows[0].elements[0];
       
       if (element.status !== 'OK') {
-        console.warn(`⚠️ Route calculation failed: ${element.status}, using fallback`);
+        console.warn(`⚠️ GoogleDistanceMatrixService: Route status error: ${element.status}, using fallback`);
         return this.getFallbackDistance(originCity, destinationCity);
       }
 
@@ -86,21 +95,21 @@ export class GoogleDistanceMatrixService {
       // Cache the result
       this.cache.set(cacheKey, result);
       
-      console.log(`✅ Route segment: ${originCity} → ${destinationCity} = ${result.distance} miles, ${this.formatDuration(result.duration)} drive time`);
+      console.log(`✅ GoogleDistanceMatrixService: SUCCESS! ${originCity} → ${destinationCity} = ${result.distance} miles, ${this.formatDuration(result.duration)}`);
       
       return result;
     } catch (error) {
-      console.error(`❌ Error calculating distance ${originCity} → ${destinationCity}:`, error);
+      console.error(`❌ GoogleDistanceMatrixService: Error calculating distance ${originCity} → ${destinationCity}:`, error);
       return this.getFallbackDistance(originCity, destinationCity);
     }
   }
 
   private static getFallbackDistance(originCity: string, destinationCity: string): GoogleDistanceResult {
-    // Fallback calculation using approximate Route 66 segment distances
+    // IMPORTANT: This should only be called when API fails
     const estimatedMiles = 250; // Average Route 66 daily segment
     const estimatedHours = estimatedMiles / 60; // 60 mph average speed
     
-    console.log(`🔄 Using fallback calculation: ${originCity} → ${destinationCity} = ${estimatedMiles} miles, ${this.formatDuration(estimatedHours)}`);
+    console.log(`🔄 GoogleDistanceMatrixService: FALLBACK calculation: ${originCity} → ${destinationCity} = ${estimatedMiles} miles, ${this.formatDuration(estimatedHours)}`);
     
     return {
       distance: estimatedMiles,
@@ -114,7 +123,7 @@ export class GoogleDistanceMatrixService {
     totalDuration: number;
     segmentResults: GoogleDistanceResult[];
   }> {
-    console.log(`🛣️ Calculating Route 66 distances for ${segments.length} segments`);
+    console.log(`🛣️ GoogleDistanceMatrixService: Calculating ${segments.length} route segments`);
 
     const segmentResults: GoogleDistanceResult[] = [];
     let totalDistance = 0;
@@ -129,12 +138,14 @@ export class GoogleDistanceMatrixService {
         totalDistance += result.distance;
         totalDuration += result.duration;
         
+        console.log(`📍 GoogleDistanceMatrixService: Segment ${i + 1}: ${result.distance}mi, ${this.formatDuration(result.duration)} (${result.status})`);
+        
         // Small delay to respect API rate limits
         if (i < segments.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       } catch (error) {
-        console.error(`❌ Failed to calculate segment ${segments[i].startCity} → ${segments[i].endCity}:`, error);
+        console.error(`❌ GoogleDistanceMatrixService: Failed segment ${segments[i].startCity} → ${segments[i].endCity}:`, error);
         // Use fallback for failed segments
         const fallback = this.getFallbackDistance(segments[i].startCity, segments[i].endCity);
         segmentResults.push(fallback);
@@ -143,7 +154,7 @@ export class GoogleDistanceMatrixService {
       }
     }
 
-    console.log(`🏁 Total Route 66 journey: ${totalDistance} miles, ${this.formatDuration(totalDuration)} drive time`);
+    console.log(`🏁 GoogleDistanceMatrixService: Total journey: ${totalDistance} miles, ${this.formatDuration(totalDuration)}`);
 
     return {
       totalDistance,
@@ -165,6 +176,6 @@ export class GoogleDistanceMatrixService {
 
   static clearCache() {
     this.cache.clear();
-    console.log('🗑️ Distance Matrix cache cleared');
+    console.log('🗑️ GoogleDistanceMatrixService: Cache cleared');
   }
 }
