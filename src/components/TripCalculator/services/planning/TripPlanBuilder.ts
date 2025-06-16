@@ -88,10 +88,9 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Build enhanced trip plan with strict destination city enforcement
-   * @deprecated Use TripPlanningService.buildTripPlan instead
+   * Create trip plan using the TripPlanningService
    */
-  static buildTripPlan(
+  static createTripPlan(
     startStop: TripStop,
     endStop: TripStop,
     allStops: TripStop[],
@@ -100,7 +99,7 @@ export class TripPlanBuilder {
     endCityName: string,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): TripPlan {
-    console.log('⚠️ TripPlanBuilder.buildTripPlan is deprecated. Use TripPlanningService.buildTripPlan instead.');
+    console.log('🏗️ TripPlanBuilder.createTripPlan: Using TripPlanningService');
     return TripPlanningService.buildTripPlan(
       startStop,
       endStop,

@@ -28,9 +28,9 @@ export class DistanceEstimationService {
   }
 
   /**
-   * Calculate estimated number of days needed for a trip between two cities
+   * Estimate distance between two cities in miles
    */
-  static estimateTripDays(startCityName: string, endCityName: string): number | null {
+  static estimateDistance(startCityName: string, endCityName: string): number | null {
     const startTown = this.findTownByName(startCityName);
     const endTown = this.findTownByName(endCityName);
 
@@ -47,12 +47,27 @@ export class DistanceEstimationService {
       endTown.latLng[1]
     );
 
-    // Estimate days based on average daily driving distance
-    const estimatedDays = Math.ceil(distance / this.AVERAGE_DAILY_DISTANCE);
-
     console.log('📏 Distance estimation:', {
       startCity: startTown.name,
       endCity: endTown.name,
+      distance: Math.round(distance)
+    });
+
+    return distance;
+  }
+
+  /**
+   * Calculate estimated number of days needed for a trip between two cities
+   */
+  static estimateTripDays(startCityName: string, endCityName: string): number | null {
+    const distance = this.estimateDistance(startCityName, endCityName);
+    
+    if (!distance) return null;
+
+    // Estimate days based on average daily driving distance
+    const estimatedDays = Math.ceil(distance / this.AVERAGE_DAILY_DISTANCE);
+
+    console.log('📏 Trip days estimation:', {
       distance: Math.round(distance),
       estimatedDays
     });

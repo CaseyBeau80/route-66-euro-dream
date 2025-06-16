@@ -14,13 +14,14 @@ export interface TripPlanningResult {
   warnings?: string[];
   styleConfig?: TripStyleConfig;
   validationInfo?: any;
+  tripStyle: 'balanced' | 'destination-focused';
 }
 
 export class UnifiedTripPlanningService {
   /**
    * Enhanced trip planning with style logic and validation
    */
-  async planTrip(
+  static async planTrip(
     startLocation: string,
     endLocation: string,
     travelDays: number,
@@ -46,7 +47,8 @@ export class UnifiedTripPlanningService {
           success: false,
           error: `Invalid travel days: ${validation.issues.join(', ')}`,
           styleConfig,
-          validationInfo: validation
+          validationInfo: validation,
+          tripStyle
         };
       }
       
@@ -73,7 +75,8 @@ export class UnifiedTripPlanningService {
           success: false,
           error: `Could not find ${!startStop ? startLocation : endLocation} in destination cities`,
           styleConfig,
-          validationInfo: validation
+          validationInfo: validation,
+          tripStyle
         };
       }
       
@@ -123,14 +126,55 @@ export class UnifiedTripPlanningService {
         tripPlan,
         warnings,
         styleConfig,
-        validationInfo: validation
+        validationInfo: validation,
+        tripStyle
       };
       
     } catch (error) {
       console.error('❌ UNIFIED PLANNING failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown planning error'
+        error: error instanceof Error ? error.message : 'Unknown planning error',
+        tripStyle
+      };
+    }
+  }
+
+  /**
+   * Create trip plan - static method for backward compatibility
+   */
+  static createTripPlan(
+    startStop: TripStop,
+    endStop: TripStop,
+    allStops: TripStop[],
+    travelDays: number,
+    startLocation: string,
+    endLocation: string,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): TripPlanningResult {
+    console.log(`🏗️ Creating trip plan: ${travelDays} days, ${tripStyle} style`);
+    
+    try {
+      const tripPlan = TripPlanBuilder.createTripPlan(
+        startStop,
+        endStop,
+        allStops,
+        travelDays,
+        startLocation,
+        endLocation,
+        tripStyle
+      );
+
+      return {
+        success: true,
+        tripPlan,
+        tripStyle
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Trip plan creation failed',
+        tripStyle
       };
     }
   }
@@ -138,7 +182,7 @@ export class UnifiedTripPlanningService {
   /**
    * Enhanced city finding with fuzzy matching
    */
-  private findCityStop(cityName: string, stops: TripStop[]): TripStop | undefined {
+  private static findCityStop(cityName: string, stops: TripStop[]): TripStop | undefined {
     const normalizedName = cityName.toLowerCase().trim();
     
     // Try exact matches first
