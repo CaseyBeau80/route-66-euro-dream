@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -90,7 +91,7 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  // UPDATED METHOD: Uses new getDistanceAndDuration method with NO fallbacks
+  // FIXED METHOD: Uses new getDistanceAndDuration method with NO fallbacks
   private static async buildSegmentsWithGoogleAPI(
     routeStops: TripStop[],
     requestedDays: number
@@ -170,7 +171,58 @@ export class TripPlanBuilder {
     return segments;
   }
 
-  // ... keep existing code (calculateDayStopPairs method)
+  // ADDED: Missing calculateDayStopPairs method
+  private static calculateDayStopPairs(routeStops: TripStop[], requestedDays: number): Array<{
+    startStop: TripStop;
+    endStop: TripStop;
+    intermediateStops: TripStop[];
+  }> {
+    console.log(`🔥 calculateDayStopPairs: Distributing ${routeStops.length} stops across ${requestedDays} days`);
+    
+    const pairs: Array<{
+      startStop: TripStop;
+      endStop: TripStop;
+      intermediateStops: TripStop[];
+    }> = [];
+    
+    // Distribute stops across days
+    const stopsPerSegment = Math.max(1, Math.floor(routeStops.length / requestedDays));
+    let currentStopIndex = 0;
+    
+    for (let day = 1; day <= requestedDays; day++) {
+      const isLastDay = day === requestedDays;
+      const startStopIndex = currentStopIndex;
+      
+      let endStopIndex: number;
+      if (isLastDay) {
+        endStopIndex = routeStops.length - 1;
+      } else {
+        endStopIndex = Math.min(startStopIndex + stopsPerSegment, routeStops.length - 1);
+        if (endStopIndex === startStopIndex) {
+          endStopIndex = Math.min(startStopIndex + 1, routeStops.length - 1);
+        }
+      }
+      
+      const startStop = routeStops[startStopIndex];
+      const endStop = routeStops[endStopIndex];
+      const intermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
+      
+      console.log(`🔥 Day ${day}: ${startStop.name} → ${endStop.name} (${intermediateStops.length} intermediate stops)`);
+      
+      pairs.push({
+        startStop,
+        endStop,
+        intermediateStops
+      });
+      
+      currentStopIndex = endStopIndex;
+      
+      if (endStopIndex >= routeStops.length - 1) break;
+    }
+    
+    console.log(`🔥 Created ${pairs.length} day stop pairs`);
+    return pairs;
+  }
 
   private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
     if (driveTimeHours <= 3) {
@@ -210,53 +262,5 @@ export class TripPlanBuilder {
     } else {
       return 'Final Stretch';
     }
-  }
-
-  // ... keep existing code (calculateDayStopPairs method)
-  private static calculateDayStopPairs(routeStops: TripStop[], requestedDays: number): Array<{
-    startStop: TripStop;
-    endStop: TripStop;
-    intermediateStops: TripStop[];
-  }> {
-    const pairs: Array<{
-      startStop: TripStop;
-      endStop: TripStop;
-      intermediateStops: TripStop[];
-    }> = [];
-    
-    // Distribute stops across days
-    const stopsPerSegment = Math.max(1, Math.floor(routeStops.length / requestedDays));
-    let currentStopIndex = 0;
-    
-    for (let day = 1; day <= requestedDays; day++) {
-      const isLastDay = day === requestedDays;
-      const startStopIndex = currentStopIndex;
-      
-      let endStopIndex: number;
-      if (isLastDay) {
-        endStopIndex = routeStops.length - 1;
-      } else {
-        endStopIndex = Math.min(startStopIndex + stopsPerSegment, routeStops.length - 1);
-        if (endStopIndex === startStopIndex) {
-          endStopIndex = Math.min(startStopIndex + 1, routeStops.length - 1);
-        }
-      }
-      
-      const startStop = routeStops[startStopIndex];
-      const endStop = routeStops[endStopIndex];
-      const intermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
-      
-      pairs.push({
-        startStop,
-        endStop,
-        intermediateStops
-      });
-      
-      currentStopIndex = endStopIndex;
-      
-      if (endStopIndex >= routeStops.length - 1) break;
-    }
-    
-    return pairs;
   }
 }
