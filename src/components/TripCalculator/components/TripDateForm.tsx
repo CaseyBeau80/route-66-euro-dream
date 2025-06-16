@@ -41,19 +41,19 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       return;
     }
 
-    console.log('📅 FIXED: TripDateForm date selected:', {
+    console.log('📅 EMERGENCY FIX: TripDateForm date selected:', {
       selectedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      service: 'UnifiedDateService - FIXED IMPLEMENTATION'
+      service: 'UnifiedDateService - EMERGENCY FIX'
     });
     
     // Use unified service to create clean local date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
-    console.log('📅 FIXED: TripDateForm normalized date:', {
+    console.log('📅 EMERGENCY FIX: TripDateForm normalized date:', {
       original: date.toLocaleDateString(),
       normalized: cleanDate.toLocaleDateString(),
-      service: 'UnifiedDateService - FIXED'
+      service: 'UnifiedDateService - EMERGENCY FIX'
     });
     
     setFormData({ 
@@ -64,15 +64,51 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
 
   // Handle today button click
   const handleTodayClick = () => {
-    console.log('📅 FIXED: Today button clicked:', {
+    console.log('📅 EMERGENCY FIX: Today button clicked:', {
       today: today.toLocaleDateString(),
-      service: 'UnifiedDateService - FIXED TODAY SELECTION'
+      service: 'UnifiedDateService - EMERGENCY FIX'
     });
     
     handleDateSelect(today);
   };
 
-  console.log('📅 FIXED: TripDateForm rendering with Shadcn calendar');
+  // EMERGENCY FIX: Create a more robust disabled function with absolute today override
+  const isDateDisabled = (date: Date): boolean => {
+    const today = new Date();
+    
+    // ABSOLUTE OVERRIDE: Never disable today's date
+    const isTodayAbsolute = (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+    
+    if (isTodayAbsolute) {
+      console.log('🚨 EMERGENCY FIX: TODAY DETECTED - NEVER DISABLED:', {
+        date: date.toLocaleDateString(),
+        today: today.toLocaleDateString(),
+        disabled: false,
+        rule: 'ABSOLUTE_TODAY_OVERRIDE'
+      });
+      return false; // NEVER disable today
+    }
+    
+    // For all other dates, check if they're actually in the past
+    const isPast = UnifiedDateService.isPastDate(date);
+    
+    console.log('🚨 EMERGENCY FIX: Calendar date check:', {
+      date: date.toLocaleDateString(),
+      today: today.toLocaleDateString(),
+      isTodayAbsolute,
+      isPast,
+      disabled: isPast,
+      rule: isPast ? 'PAST_DATE_DISABLED' : 'FUTURE_DATE_ENABLED'
+    });
+    
+    return isPast;
+  };
+
+  console.log('📅 EMERGENCY FIX: TripDateForm rendering with Shadcn calendar');
 
   return (
     <div className="space-y-4">
@@ -92,7 +128,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
               <strong className="text-green-800"> Choose today for the most accurate weather data and start planning immediately!</strong>
             </p>
             <p className="text-green-600 text-xs mt-1 font-medium">
-              🎯 Now using Shadcn calendar with fixed timezone handling
+              🎯 EMERGENCY FIX: Today ({today.toLocaleDateString()}) is guaranteed clickable
             </p>
           </div>
         </div>
@@ -117,7 +153,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* FIXED: Shadcn Calendar with proper date handling */}
+      {/* EMERGENCY FIX: Shadcn Calendar with absolute today override */}
       <div className="space-y-3">
         <Popover>
           <PopoverTrigger asChild>
@@ -141,20 +177,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
               mode="single"
               selected={formData.tripStartDate}
               onSelect={handleDateSelect}
-              disabled={(date) => {
-                // Only disable dates that are actually in the past
-                const isActuallyPast = UnifiedDateService.isPastDate(date);
-                
-                console.log('📅 FIXED: Shadcn calendar date check:', {
-                  date: date.toLocaleDateString(),
-                  isToday: UnifiedDateService.isToday(date),
-                  isPast: isActuallyPast,
-                  disabled: isActuallyPast,
-                  rule: 'TODAY_AND_FUTURE_ENABLED'
-                });
-                
-                return isActuallyPast;
-              }}
+              disabled={isDateDisabled}
               initialFocus
               className="pointer-events-auto"
             />
@@ -186,7 +209,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       
       <p className="text-xs text-gray-600">
         A start date is required to provide accurate weather forecasts for each destination.
-        <strong className="text-green-700"> ✨ Now using Shadcn calendar with fixed timezone handling!</strong>
+        <strong className="text-green-700"> ✨ EMERGENCY FIX: Today guaranteed selectable!</strong>
       </p>
     </div>
   );
