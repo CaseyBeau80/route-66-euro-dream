@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -20,21 +19,21 @@ export class TripPlanBuilder {
     allStops: TripStop[],
     requestedDays: number
   ): Promise<TripPlan> {
-    console.log(`🏗️ ULTRA FIX TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
-    console.log(`🔑 ULTRA FIX TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
+    console.log(`🏗️ CRITICAL FIX TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
+    console.log(`🔑 CRITICAL FIX TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
 
     // Get all stops between start and end
     const routeStops = this.getRouteStops(startStop, endStop, allStops);
-    console.log(`📍 ULTRA FIX TripPlanBuilder: Route includes ${routeStops.length} stops`);
+    console.log(`📍 CRITICAL FIX TripPlanBuilder: Route includes ${routeStops.length} stops`);
 
-    // ULTRA FIX: Plan daily segments with GUARANTEED Google API data
-    const segments = await this.createSegmentsWithGuaranteedGoogleData(routeStops, requestedDays);
+    // CRITICAL FIX: Create segments with ACTUAL Google API data from the start
+    const segments = await this.createSegmentsWithRealGoogleData(routeStops, requestedDays);
     
-    // Calculate totals from ACTUAL segment data (not API calls)
+    // Calculate totals from ACTUAL segment data
     const totalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
     const totalDrivingTime = segments.reduce((total, segment) => total + segment.driveTimeHours, 0);
 
-    console.log(`⏱️ ULTRA FIX TripPlanBuilder: Final totals from segments - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
+    console.log(`⏱️ CRITICAL FIX TripPlanBuilder: Final totals - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
 
     // Create route coordinates
     const route = routeStops.map(stop => ({
@@ -55,11 +54,11 @@ export class TripPlanBuilder {
       totalMiles: Math.round(totalDistance)
     };
 
-    console.log(`✅ ULTRA FIX TripPlanBuilder: Trip plan completed with GUARANTEED Google data:`, {
+    console.log(`✅ CRITICAL FIX TripPlanBuilder: Trip plan completed:`, {
       segmentCount: segments.length,
       totalDistance: totalDistance.toFixed(0),
       totalDriveTime: totalDrivingTime.toFixed(1),
-      allSegmentsHaveGoogleData: segments.every(s => s.distance > 0 && s.driveTimeHours > 0)
+      allSegmentsHaveRealData: segments.every(s => s.distance > 0 && s.driveTimeHours > 0)
     });
 
     return tripPlan;
@@ -87,120 +86,105 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  // ULTRA FIX: NEW METHOD that guarantees Google API data in segments
-  private static async createSegmentsWithGuaranteedGoogleData(
+  // CRITICAL FIX: COMPLETELY NEW METHOD that creates segments with REAL Google API data
+  private static async createSegmentsWithRealGoogleData(
     routeStops: TripStop[],
     requestedDays: number
   ): Promise<DailySegment[]> {
-    console.log(`🎯 ULTRA FIX createSegmentsWithGuaranteedGoogleData: Creating ${requestedDays} segments with GUARANTEED Google data`);
+    console.log(`🎯 CRITICAL FIX createSegmentsWithRealGoogleData: Creating ${requestedDays} segments with REAL Google data`);
     
-    // Create segment plans first
-    const segmentPlans = this.createSegmentPlans(routeStops, requestedDays);
-    console.log(`📋 ULTRA FIX: Created ${segmentPlans.length} segment plans`);
+    // Step 1: Create the segment structure (which stops go in which day)
+    const segmentStructure = this.createSegmentStructure(routeStops, requestedDays);
+    console.log(`📋 CRITICAL FIX: Created ${segmentStructure.length} segment structures`);
     
-    // ULTRA FIX: Get ALL Google API data FIRST, then create segments
-    const googleApiResults: Array<{
-      distance: number;
-      driveTimeHours: number;
-      status: string;
-    }> = [];
+    // Step 2: Get REAL Google API data for each segment
+    const segments: DailySegment[] = [];
     
-    console.log(`🔄 ULTRA FIX: Pre-fetching ALL Google API data before creating any segments...`);
-    
-    for (let i = 0; i < segmentPlans.length; i++) {
-      const plan = segmentPlans[i];
+    for (let i = 0; i < segmentStructure.length; i++) {
+      const structure = segmentStructure[i];
       
-      console.log(`🌐 ULTRA FIX: Pre-fetching Google API data ${i + 1}/${segmentPlans.length}: ${plan.startStop.name} → ${plan.endStop.name}`);
+      console.log(`🌐 CRITICAL FIX: Getting REAL Google API data for segment ${i + 1}: ${structure.startStop.name} → ${structure.endStop.name}`);
       
+      let googleDistance = 0;
+      let googleDriveTime = 0;
+      let apiStatus = 'FALLBACK';
+      
+      // Get REAL Google API data
       if (GoogleDistanceMatrixService.isAvailable()) {
         try {
           const apiResult = await GoogleDistanceMatrixService.calculateDistance(
-            plan.startStop.name,
-            plan.endStop.name
+            structure.startStop.name,
+            structure.endStop.name
           );
           
-          googleApiResults.push({
-            distance: apiResult.distance,
-            driveTimeHours: apiResult.duration,
-            status: apiResult.status
-          });
+          googleDistance = apiResult.distance;
+          googleDriveTime = apiResult.duration;
+          apiStatus = apiResult.status;
           
-          console.log(`✅ ULTRA FIX: Pre-fetched API data ${i + 1}: ${apiResult.distance}mi, ${GoogleDistanceMatrixService.formatDuration(apiResult.duration)}`);
+          console.log(`✅ CRITICAL FIX: Got REAL API data for segment ${i + 1}: ${googleDistance}mi, ${GoogleDistanceMatrixService.formatDuration(googleDriveTime)}`);
         } catch (error) {
-          console.error(`❌ ULTRA FIX: API error for segment ${i + 1}:`, error);
-          googleApiResults.push({
-            distance: 250,
-            driveTimeHours: 4,
-            status: 'FALLBACK_ERROR'
-          });
+          console.error(`❌ CRITICAL FIX: API error for segment ${i + 1}:`, error);
+          // Use fallback ONLY if API fails
+          googleDistance = 250;
+          googleDriveTime = 4;
+          apiStatus = 'FALLBACK_ERROR';
         }
       } else {
-        console.warn(`⚠️ ULTRA FIX: No API key for segment ${i + 1}, using fallback`);
-        googleApiResults.push({
-          distance: 250,
-          driveTimeHours: 4,
-          status: 'NO_API_KEY'
-        });
+        console.warn(`⚠️ CRITICAL FIX: No API key for segment ${i + 1}, using fallback`);
+        googleDistance = 250;
+        googleDriveTime = 4;
+        apiStatus = 'NO_API_KEY';
       }
-    }
-    
-    console.log(`🎯 ULTRA FIX: All Google API data pre-fetched, now creating segments with GUARANTEED data`);
-    
-    // ULTRA FIX: Now create segments with the GUARANTEED Google API data
-    const segments: DailySegment[] = [];
-    
-    for (let i = 0; i < segmentPlans.length; i++) {
-      const plan = segmentPlans[i];
-      const googleData = googleApiResults[i];
       
       // Get attractions for the destination city
-      const attractions = await AttractionService.getAttractionsForStop(plan.endStop);
+      const attractions = await AttractionService.getAttractionsForStop(structure.endStop);
       
-      // Get drive time category based on ACTUAL Google API duration
-      const driveTimeCategory = this.getDriveTimeCategory(googleData.driveTimeHours);
+      // Get drive time category based on REAL Google API duration
+      const driveTimeCategory = this.getDriveTimeCategory(googleDriveTime);
       
-      // ULTRA FIX: Create segment with GUARANTEED Google API data
+      // CRITICAL FIX: Create segment with REAL Google API data ONLY
       const segment: DailySegment = {
         day: i + 1,
-        startCity: plan.startStop.name,
-        endCity: plan.endStop.name,
-        distance: googleData.distance, // GUARANTEED Google API distance
-        approximateMiles: googleData.distance, // Keep for compatibility
-        drivingTime: googleData.driveTimeHours, // GUARANTEED Google API duration
-        driveTimeHours: googleData.driveTimeHours, // GUARANTEED Google API duration
+        startCity: structure.startStop.name,
+        endCity: structure.endStop.name,
+        distance: googleDistance, // REAL Google API distance
+        approximateMiles: googleDistance, // Keep for compatibility
+        drivingTime: googleDriveTime, // REAL Google API duration
+        driveTimeHours: googleDriveTime, // REAL Google API duration
         attractions: attractions || [],
-        subStops: plan.intermediateStops,
+        subStops: structure.intermediateStops,
         driveTimeCategory,
-        title: `${plan.startStop.name} → ${plan.endStop.name}`,
+        title: `${structure.startStop.name} → ${structure.endStop.name}`,
         recommendedStops: [],
         subStopTimings: [],
         routeSection: this.getRouteSection(i + 1, requestedDays)
       };
       
-      console.log(`✅ ULTRA FIX: Created segment ${segment.day} with GUARANTEED Google data:`, {
+      console.log(`✅ CRITICAL FIX: Created segment ${segment.day} with REAL Google data:`, {
         distance: segment.distance,
         driveTimeHours: segment.driveTimeHours,
         startCity: segment.startCity,
         endCity: segment.endCity,
-        status: googleData.status
+        status: apiStatus
       });
       
       segments.push(segment);
     }
     
-    console.log(`🎯 ULTRA FIX: All segments created with GUARANTEED Google API data:`, 
+    console.log(`🎯 CRITICAL FIX: All segments created with REAL Google API data:`, 
       segments.map(s => `Day ${s.day}: ${s.distance}mi, ${s.driveTimeHours.toFixed(1)}h (${s.startCity} → ${s.endCity})`)
     );
     
     return segments;
   }
 
-  private static createSegmentPlans(routeStops: TripStop[], requestedDays: number): Array<{
+  // CRITICAL FIX: NEW METHOD that only creates segment structure (no distance/time data)
+  private static createSegmentStructure(routeStops: TripStop[], requestedDays: number): Array<{
     startStop: TripStop;
     endStop: TripStop;
     intermediateStops: TripStop[];
   }> {
-    const plans: Array<{
+    const structures: Array<{
       startStop: TripStop;
       endStop: TripStop;
       intermediateStops: TripStop[];
@@ -229,7 +213,7 @@ export class TripPlanBuilder {
       const endStop = routeStops[endStopIndex];
       const intermediateStops = routeStops.slice(startStopIndex + 1, endStopIndex);
       
-      plans.push({
+      structures.push({
         startStop,
         endStop,
         intermediateStops
@@ -240,7 +224,7 @@ export class TripPlanBuilder {
       if (endStopIndex >= routeStops.length - 1) break;
     }
     
-    return plans;
+    return structures;
   }
 
   private static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {
