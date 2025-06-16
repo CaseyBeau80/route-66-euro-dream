@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 
 export interface DriveTimeCategory {
@@ -6,11 +7,16 @@ export interface DriveTimeCategory {
 }
 
 export interface RecommendedStop {
-  stopId: string;
+  stopId: string; // Add missing stopId property
+  id: string;
   name: string;
   description: string;
   latitude: number;
   longitude: number;
+  category?: string;
+  city_name?: string;
+  state?: string;
+  city?: string;
 }
 
 export interface SegmentTiming {
@@ -20,6 +26,24 @@ export interface SegmentTiming {
   longitude: number;
   distanceFromLastStop: number;
   driveTimeHours: number;
+  fromStop: TripStop;
+  toStop: TripStop;
+  distance: number;
+  driveTime: number;
+  distanceMiles: number;
+  drivingTime: number;
+}
+
+export interface WeatherData {
+  temperature?: number;
+  highTemp?: number;
+  lowTemp?: number;
+  description?: string;
+  condition?: string;
+  humidity?: number;
+  windSpeed?: number;
+  precipitation?: number;
+  cloudCover?: number;
 }
 
 export interface TripPlan {
@@ -36,6 +60,14 @@ export interface TripPlan {
   startCityImage?: string;
   endCityImage?: string;
   title?: string;
+  isEnriched?: boolean;
+  enrichmentStatus?: {
+    weatherData?: boolean;
+    stopsData?: boolean;
+    validationComplete?: boolean;
+  };
+  lastUpdated?: Date;
+  exportTimestamp?: number;
 }
 
 export interface DailySegment {
@@ -46,11 +78,12 @@ export interface DailySegment {
   distance: number;
   approximateMiles: number;
   driveTimeHours: number;
+  drivingTime?: number;
   destination: {
     city: string;
     state: string;
   };
-  recommendedStops: TripStop[];
+  recommendedStops: RecommendedStop[];
   attractions: {
     name: string;
     title: string;
@@ -59,5 +92,12 @@ export interface DailySegment {
   }[];
   driveTimeCategory?: DriveTimeCategory;
   routeSection?: string;
-  driveTimeWarning?: string; // New property for drive-time validation warnings
+  driveTimeWarning?: string;
+  
+  // Add missing properties that are used throughout the codebase
+  subStopTimings?: SegmentTiming[];
+  notes?: string;
+  recommendations?: string[];
+  weather?: WeatherData;
+  weatherData?: WeatherData;
 }
