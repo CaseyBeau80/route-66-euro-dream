@@ -92,14 +92,22 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // Use Google Distance Matrix API data for total driving time
+  // FIXED: Use Google Distance Matrix API data ONLY
   const totalDrivingTime = React.useMemo(() => {
     if (!tripPlan.segments?.length) return 0;
     
-    return tripPlan.segments.reduce((total, segment) => {
+    const total = tripPlan.segments.reduce((total, segment) => {
       const hours = segment.driveTimeHours || 0;
       return total + hours;
     }, 0);
+    
+    console.log('🚗 EnhancedTripResults FIXED - Google API total drive time:', {
+      totalDrivingTime: total,
+      segmentCount: tripPlan.segments.length,
+      usingOnlyGoogleAPI: true
+    });
+    
+    return total;
   }, [tripPlan.segments]);
   
   // Use Google Distance Matrix Service formatter
@@ -107,13 +115,6 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     if (!hours) return 'N/A';
     return GoogleDistanceMatrixService.formatDuration(hours);
   };
-  
-  console.log('🚗 EnhancedTripResults using Google Distance Matrix API data:', {
-    totalDrivingTime,
-    formatted: formatTime(totalDrivingTime),
-    segmentCount: tripPlan.segments?.length,
-    usingGoogleAPI: true
-  });
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
@@ -151,7 +152,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
               <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-1" />
               <div className="text-sm font-semibold text-gray-800">{formatDistance(tripPlan.totalDistance)}</div>
-              <div className="text-xs text-gray-600">Total Distance</div>
+              <div className="text-xs text-gray-600">Total Distance (Google API)</div>
             </div>
             
             <div className="text-center p-3 bg-white rounded-lg border border-blue-200">

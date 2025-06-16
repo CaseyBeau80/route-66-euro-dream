@@ -14,17 +14,18 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // Use Google Distance Matrix API data directly from segment
+  // FIXED: Only use Google Distance Matrix API data, no fallbacks
   const apiDistance = segment.distance || 0;
   const apiDriveTimeHours = segment.driveTimeHours || 0;
   const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours);
 
-  console.log(`📊 DaySegmentCardStats Day ${segment.day} using Google API data:`, {
+  console.log(`📊 DaySegmentCardStats Day ${segment.day} FIXED - Google API only:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
     apiDistance,
     apiDriveTimeHours,
-    formattedDriveTime
+    formattedDriveTime,
+    usingOnlyGoogleAPI: true
   });
 
   return (
@@ -36,7 +37,7 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
         <span className={apiDriveTimeHours > 7 ? 'text-orange-600' : ''}>
-          {formattedDriveTime} driving (Google API)
+          {formattedDriveTime} (Google API)
         </span>
       </div>
       {apiDriveTimeHours > 7 && (

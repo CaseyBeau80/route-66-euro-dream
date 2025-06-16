@@ -14,20 +14,21 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // Use Google Distance Matrix API data directly from segment
+  // FIXED: Only use Google Distance Matrix API data, no fallbacks
   const apiDistance = segment.distance || 0;
   const apiDriveTimeHours = segment.driveTimeHours || 0;
   const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours);
   
-  const isLongDriveDay = apiDistance > 500 || apiDriveTimeHours > 7;
+  const isLongDriveDay = apiDriveTimeHours > 7;
   const estimatedFuelStops = Math.ceil(apiDistance / 300);
 
-  console.log(`📊 SegmentStats Day ${segment.day} using Google API data:`, {
+  console.log(`📊 SegmentStats Day ${segment.day} FIXED - Google API only:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
     apiDistance,
     apiDriveTimeHours,
-    formattedDriveTime
+    formattedDriveTime,
+    usingOnlyGoogleAPI: true
   });
 
   if (compact) {
