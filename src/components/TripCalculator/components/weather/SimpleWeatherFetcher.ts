@@ -12,7 +12,7 @@ export interface WeatherFetchParams {
 
 export class SimpleWeatherFetcher {
   /**
-   * FIXED: Enhanced weather fetching with today included as live forecast
+   * FIXED: Enhanced weather fetching with proper today handling
    */
   static async fetchWeatherForCity(params: WeatherFetchParams): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, isSharedView, segmentDay } = params;
@@ -21,7 +21,7 @@ export class SimpleWeatherFetcher {
     const actualApiKey = WeatherApiKeyManager.getApiKey();
     const hasActualApiKey = !!actualApiKey && actualApiKey !== 'YOUR_API_KEY_HERE';
     
-    console.log('🔧 FIXED: SimpleWeatherFetcher enhanced for today:', {
+    console.log('🔧 FIXED: SimpleWeatherFetcher with proper today handling:', {
       cityName,
       targetDate: targetDate.toISOString(),
       targetDateLocal: targetDate.toLocaleDateString(),
@@ -29,7 +29,7 @@ export class SimpleWeatherFetcher {
       hasActualApiKey,
       apiKeyLength: actualApiKey?.length || 0,
       segmentDay,
-      enhancedForToday: true
+      todayHandling: 'FIXED'
     });
 
     // If no valid API key, return fallback immediately
@@ -38,7 +38,7 @@ export class SimpleWeatherFetcher {
       return this.createFallbackWeather(cityName, targetDate);
     }
 
-    // FIXED: Enhanced date range check - today is live forecast
+    // FIXED: Enhanced date range check - same calendar date as today is live forecast
     const today = new Date();
     const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -46,16 +46,19 @@ export class SimpleWeatherFetcher {
     const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
     const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
     
-    // FIXED: Today (day 0) through day 7 are live forecast
+    // FIXED: Same calendar date (day 0) through day 7 are live forecast
     const isWithinForecastRange = daysDiff >= 0 && daysDiff <= 7;
     
-    console.log('🌤️ FIXED: Enhanced date analysis for live forecast:', {
+    console.log('🌤️ FIXED: Enhanced date analysis - same calendar date is today:', {
       cityName,
       targetDateLocal: targetDate.toLocaleDateString(),
       todayLocal: today.toLocaleDateString(),
+      todayNormalized: todayNormalized.toLocaleDateString(),
+      targetNormalized: targetNormalized.toLocaleDateString(),
       daysDiff,
       isWithinForecastRange,
-      logic: 'Day 0 (TODAY) is LIVE FORECAST'
+      logic: 'Day 0 (same calendar date as today) = LIVE FORECAST',
+      isSameDayAsToday: daysDiff === 0
     });
 
     if (!isWithinForecastRange) {
@@ -73,7 +76,8 @@ export class SimpleWeatherFetcher {
           temperature: liveWeather.temperature,
           source: liveWeather.source,
           isActualForecast: liveWeather.isActualForecast,
-          daysDiff
+          daysDiff,
+          isSameDayAsToday: daysDiff === 0
         });
         return liveWeather;
       }
@@ -87,7 +91,7 @@ export class SimpleWeatherFetcher {
   }
 
   /**
-   * FIXED: Enhanced live weather fetching for today and future dates
+   * FIXED: Enhanced live weather fetching with proper today detection
    */
   private static async fetchLiveWeatherDirect(
     cityName: string, 
@@ -102,7 +106,7 @@ export class SimpleWeatherFetcher {
         return null;
       }
 
-      // FIXED: For today, use current weather. For future dates, use forecast
+      // FIXED: For same calendar date as today, use current weather
       const today = new Date();
       const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -111,8 +115,8 @@ export class SimpleWeatherFetcher {
       const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
       
       if (daysDiff === 0) {
-        // For today, get current weather
-        console.log('🌤️ FIXED: Getting current weather for TODAY:', cityName);
+        // For same calendar date as today, get current weather
+        console.log('🌤️ FIXED: Getting current weather for TODAY (same calendar date):', cityName);
         return await this.fetchCurrentWeather(cityName, targetDate, coords, apiKey);
       } else {
         // For future dates, get forecast
@@ -153,7 +157,7 @@ export class SimpleWeatherFetcher {
         icon: data.weather[0]?.icon || '02d',
         humidity: data.main.humidity,
         windSpeed: Math.round(data.wind?.speed || 0),
-        precipitationChance: 0, // Current weather doesn't have precipitation probability
+        precipitationChance: 0,
         cityName: cityName,
         forecast: [],
         forecastDate: targetDate,

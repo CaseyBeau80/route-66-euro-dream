@@ -36,34 +36,40 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CRITICAL FIX: Calculate days from today with live forecast buffer
+   * FIXED: Calculate days from today - treats same calendar date as day 0 (today)
    */
   static getDaysFromToday(targetDate: Date): number {
-    const today = new Date();
-    return DateNormalizationService.getDaysDifference(today, targetDate);
-  }
-
-  /**
-   * FIXED: Enhanced forecast range check - includes today as live forecast
-   */
-  static isWithinForecastRange(targetDate: Date): boolean {
     const today = new Date();
     const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     
-    // Calculate difference in days
     const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
     const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
     
-    // FIXED: Today (day 0) through day 7 are live forecast
-    const isWithinRange = daysDiff >= 0 && daysDiff <= 7;
-    
-    console.log('🌤️ FIXED: Enhanced forecast range check:', {
+    console.log('📅 FIXED: getDaysFromToday - treating same calendar date as today:', {
       targetDate: targetDate.toLocaleDateString(),
       today: today.toLocaleDateString(),
+      todayNormalized: todayNormalized.toLocaleDateString(),
+      targetNormalized: targetNormalized.toLocaleDateString(),
       daysDiff,
+      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL'
+    });
+    
+    return daysDiff;
+  }
+
+  /**
+   * FIXED: Forecast range check - day 0 (today) through day 7 are live forecast
+   */
+  static isWithinForecastRange(targetDate: Date): boolean {
+    const daysFromToday = this.getDaysFromToday(targetDate);
+    const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
+    
+    console.log('🌤️ FIXED: isWithinForecastRange - same calendar date is today:', {
+      targetDate: targetDate.toLocaleDateString(),
+      daysFromToday,
       isWithinRange,
-      logic: 'Day 0 (today) through Day 7 = LIVE FORECAST'
+      logic: 'Day 0 (same calendar date as today) through Day 7 = LIVE FORECAST'
     });
     
     return isWithinRange;

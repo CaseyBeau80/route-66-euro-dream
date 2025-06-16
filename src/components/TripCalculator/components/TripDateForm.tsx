@@ -54,26 +54,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // CRITICAL FIX: Enhanced date validation using local date comparison
+  // FIXED: Allow today to be selected - don't disable today's date
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
     const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
+    // FIXED: Only disable dates that are actually before today
     const shouldDisable = checkDate.getTime() < todayLocal.getTime();
     
-    console.log('📅 CRITICAL FIX: Enhanced date validation:', {
+    console.log('📅 FIXED: Date validation - today is selectable:', {
       inputDate: date.toLocaleDateString(),
       todayDate: today.toLocaleDateString(),
       todayLocal: todayLocal.toLocaleDateString(),
       checkDate: checkDate.toLocaleDateString(),
       shouldDisable,
       reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
-      timeComparison: {
-        checkDateTime: checkDate.getTime(),
-        todayLocalTime: todayLocal.getTime(),
-        difference: checkDate.getTime() - todayLocal.getTime()
-      }
+      todaySelectable: checkDate.getTime() === todayLocal.getTime() ? 'YES' : 'N/A'
     });
     
     return shouldDisable;
@@ -93,7 +90,8 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Start date required for weather forecasts</p>
             <p className="text-blue-700">
-              Setting a start date enables accurate weather predictions for each day of your Route 66 journey.
+              Setting a start date enables accurate weather predictions for each day of your Route 66 journey. 
+              <strong className="text-green-700"> You can start your trip today!</strong>
             </p>
           </div>
         </div>
@@ -111,7 +109,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Fixed Calendar with Enhanced Today Selection */}
+      {/* Fixed Calendar with Today Selection */}
       <SimpleTripCalendar
         selected={formData.tripStartDate}
         onSelect={handleDateSelect}
@@ -132,7 +130,8 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       )}
       
       <p className="text-xs text-gray-600">
-        A start date is required to provide accurate weather forecasts for each destination
+        A start date is required to provide accurate weather forecasts for each destination.
+        <strong className="text-green-700"> Today's date will show live weather data!</strong>
       </p>
     </div>
   );
