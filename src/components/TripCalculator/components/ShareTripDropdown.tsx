@@ -5,76 +5,77 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Share2, ChevronDown, Copy, Mail, Calendar, Download } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { CalendarExportService } from '../services/CalendarExportService';
+import { Share2, Calendar, Link2, Mail, Download } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
-import EnhancedPDFExport from './pdf/EnhancedPDFExport';
+import ShareTripModal from './ShareTripModal';
+import CalendarExportModal from './CalendarExportModal';
+import { CalendarExportService } from '../services/CalendarExportService';
+import { GoogleCalendarService } from '../services/GoogleCalendarService';
+import { toast } from '@/hooks/use-toast';
 
 interface ShareTripDropdownProps {
   shareUrl?: string | null;
   tripTitle: string;
-  tripPlan?: TripPlan;
+  tripPlan: TripPlan;
   tripStartDate?: Date;
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  className?: string;
 }
 
-const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({ 
-  shareUrl, 
-  tripTitle, 
+const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
+  shareUrl,
+  tripTitle,
   tripPlan,
-  tripStartDate 
+  tripStartDate,
+  variant = 'default',
+  size = 'default',
+  className
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showPDFModal, setShowPDFModal] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
-  const handleCopyLink = async () => {
-    if (!shareUrl) {
+  const handleQuickGoogleCalendar = () => {
+    if (!tripStartDate) {
       toast({
-        title: "No Link Available",
-        description: "Trip needs to be saved first to generate a shareable link.",
+        title: "Start Date Required",
+        description: "Please set a trip start date to export to Google Calendar.",
         variant: "destructive"
       });
       return;
     }
-    
+
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      const calendarUrl = GoogleCalendarService.createTripCalendarUrl(
+        tripPlan,
+        tripStartDate,
+        shareUrl || undefined
+      );
+      window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+      
       toast({
-        title: "Link copied!",
-        description: "Trip link has been copied to your clipboard.",
+        title: "Opening Google Calendar",
+        description: "Your Route 66 trip is being added to Google Calendar.",
         variant: "default"
       });
-      setIsOpen(false);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      console.error('Google Calendar export error:', error);
       toast({
-        title: "Copy Failed",
-        description: "Could not copy link to clipboard.",
+        title: "Export Failed",
+        description: "Could not export to Google Calendar.",
         variant: "destructive"
       });
     }
   };
 
-  const handleShareViaEmail = () => {
-    const subject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
-    const body = encodeURIComponent(
-      `I've planned an amazing Route 66 road trip and wanted to share it with you!\n\n` +
-      `Trip: ${tripTitle}\n` +
-      (shareUrl ? `View the full plan here: ${shareUrl}\n\n` : '') +
-      `This trip was planned using the Route 66 Trip Planner. Start planning your own adventure at ${window.location.origin}`
-    );
-    
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    setIsOpen(false);
-  };
-
-  const handleAddToCalendar = () => {
-    if (!tripPlan || !tripStartDate) {
+  const handleQuickICalendar = async () => {
+    if (!tripStartDate) {
       toast({
-        title: "Calendar Export Unavailable",
-        description: "Trip plan and start date are required for calendar export.",
+        title: "Start Date Required",
+        description: "Please set a trip start date to download calendar file.",
         variant: "destructive"
       });
       return;
@@ -82,94 +83,99 @@ const ShareTripDropdown: React.FC<ShareTripDropdownProps> = ({
 
     try {
       const events = CalendarExportService.generateCalendarEvents(tripPlan, tripStartDate);
-      CalendarExportService.downloadICSFile(events, `${tripTitle.toLowerCase().replace(/\s+/g, '-')}.ics`);
+      const filename = `route66-trip-${tripPlan.startCity.replace(/\s+/g, '-').toLowerCase()}-to-${tripPlan.endCity.replace(/\s+/g, '-').toLowerCase()}.ics`;
       
+      CalendarExportService.downloadICSFile(events, filename);
+
       toast({
-        title: "Calendar Export Successful!",
-        description: "Your Route 66 trip has been downloaded as a calendar file.",
+        title: "Calendar Downloaded",
+        description: "Your trip calendar file has been downloaded.",
         variant: "default"
       });
-      setIsOpen(false);
     } catch (error) {
-      console.error('Calendar export error:', error);
+      console.error('iCalendar download error:', error);
       toast({
-        title: "Export Failed",
-        description: "Could not export calendar. Please try again.",
+        title: "Download Failed",
+        description: "Could not download calendar file.",
         variant: "destructive"
       });
     }
   };
 
-  const handlePDFExport = () => {
-    setIsOpen(false);
-    setShowPDFModal(true);
-  };
-
   return (
-    <div className="flex items-center gap-2">
-      {/* Share Dropdown */}
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            className="bg-route66-primary hover:bg-route66-rust text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300"
-            aria-label="Share trip options"
-          >
-            <Share2 className="w-4 h-4" />
+          <Button variant={variant} size={size} className={`gap-2 ${className || ''}`}>
+            <Share2 className="h-4 w-4" />
             Share Trip
-            <ChevronDown className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        
-        <DropdownMenuContent 
-          className="w-56 bg-white border border-route66-tan shadow-lg rounded-lg z-50"
-          align="end"
-          sideOffset={5}
-        >
-          <DropdownMenuItem
-            onClick={handleCopyLink}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-          >
-            <Copy className="w-4 h-4 text-route66-vintage-brown" />
-            <span className="text-route66-vintage-brown font-medium">Copy Trip Link</span>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={() => setIsShareModalOpen(true)}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share with Link
           </DropdownMenuItem>
           
-          <DropdownMenuItem
-            onClick={handleShareViaEmail}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-          >
-            <Mail className="w-4 h-4 text-route66-vintage-brown" />
-            <span className="text-route66-vintage-brown font-medium">Share via Email</span>
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem onClick={handleQuickGoogleCalendar}>
+            <Calendar className="mr-2 h-4 w-4" />
+            Add to Google Calendar
           </DropdownMenuItem>
           
-          <DropdownMenuItem
-            onClick={handleAddToCalendar}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-          >
-            <Calendar className="w-4 h-4 text-route66-vintage-brown" />
-            <span className="text-route66-vintage-brown font-medium">Add to Calendar</span>
+          <DropdownMenuItem onClick={handleQuickICalendar}>
+            <Download className="mr-2 h-4 w-4" />
+            Download iCalendar (.ics)
           </DropdownMenuItem>
           
-          <DropdownMenuItem
-            onClick={handlePDFExport}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-route66-vintage-beige cursor-pointer transition-colors"
-          >
-            <Download className="w-4 h-4 text-route66-vintage-brown" />
-            <span className="text-route66-vintage-brown font-medium">Export Trip as PDF</span>
+          <DropdownMenuItem onClick={() => setIsCalendarModalOpen(true)}>
+            <Calendar className="mr-2 h-4 w-4" />
+            Calendar Export Options
           </DropdownMenuItem>
+          
+          <DropdownMenuSeparator />
+          
+          {shareUrl && (
+            <DropdownMenuItem 
+              onClick={() => navigator.clipboard.writeText(shareUrl)}
+            >
+              <Link2 className="mr-2 h-4 w-4" />
+              Copy Link
+            </DropdownMenuItem>
+          )}
+          
+          {shareUrl && (
+            <DropdownMenuItem 
+              onClick={() => {
+                const subject = encodeURIComponent(`Route 66 Trip: ${tripTitle}`);
+                const body = encodeURIComponent(`Check out my Route 66 trip plan:\n\n${shareUrl}`);
+                window.open(`mailto:?subject=${subject}&body=${body}`);
+              }}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Share via Email
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* PDF Export Modal */}
-      {showPDFModal && tripPlan && (
-        <EnhancedPDFExport
-          tripPlan={tripPlan}
-          tripStartDate={tripStartDate}
-          shareUrl={shareUrl || undefined}
-          isOpen={showPDFModal}
-          onClose={() => setShowPDFModal(false)}
-        />
-      )}
-    </div>
+      <ShareTripModal
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        shareUrl={shareUrl}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
+
+      <CalendarExportModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        shareUrl={shareUrl}
+      />
+    </>
   );
 };
 

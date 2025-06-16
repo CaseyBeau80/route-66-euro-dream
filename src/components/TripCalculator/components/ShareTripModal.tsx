@@ -1,35 +1,36 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Settings, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useShareTripOptions } from '../hooks/useShareTripOptions';
 import { useShareTripModal } from './hooks/useShareTripModal';
-import { useTripAutoSaveBeforeShare } from '../hooks/useTripAutoSaveBeforeShare';
-import ShareTripModalContent from './share/ShareTripModalContent';
-import { toast } from '@/hooks/use-toast';
+import ShareTripOptions from './share/ShareTripOptions';
+import { Calendar, Share2 } from 'lucide-react';
+import CalendarExportModal from './CalendarExportModal';
 
 interface ShareTripModalProps {
-  tripPlan: TripPlan;
-  tripStartDate?: Date;
-  shareUrl?: string;
   isOpen: boolean;
   onClose: () => void;
+  tripPlan: TripPlan;
+  tripStartDate?: Date;
+  shareUrl?: string | null;
   onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
 }
 
 const ShareTripModal: React.FC<ShareTripModalProps> = ({
+  isOpen,
+  onClose,
   tripPlan,
   tripStartDate,
   shareUrl,
-  isOpen,
-  onClose,
   onShareUrlGenerated
 }) => {
-  const { shareOptions, updateShareOption } = useShareTripOptions();
-  const { saveBeforeShare, isAutoSaving } = useTripAutoSaveBeforeShare();
-  
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const { shareOptions, updateShareOptions } = useShareTripOptions(tripPlan);
+
   const {
     isGeneratingLink,
     currentShareUrl,
@@ -37,121 +38,113 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   } = useShareTripModal({
     tripPlan,
     tripStartDate,
-    shareUrl,
+    shareUrl: shareUrl || null,
     shareOptions,
     onShareUrlGenerated,
     onClose
   });
 
-  // Check if trip is complete
-  const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
-
-  const handleGenerateLink = async (): Promise<string | null> => {
-    if (!isTripComplete) return null;
-    
-    try {
-      // Use the updated handleGenerateAndShare which integrates with TripService
-      await handleGenerateAndShare();
-      return currentShareUrl;
-    } catch (error) {
-      console.error('❌ Error generating link:', error);
-      return null;
-    }
-  };
-
-  const handleCopyLink = async () => {
-    if (!currentShareUrl) return;
-    
-    try {
-      await navigator.clipboard.writeText(currentShareUrl);
-      toast({
-        title: "Link Copied!",
-        description: "Trip link has been copied to your clipboard.",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      toast({
-        title: "Copy Failed",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleShareViaEmail = async () => {
-    if (!currentShareUrl) {
-      // Generate link first if it doesn't exist
-      await handleGenerateLink();
-      return;
-    }
-
-    const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
-    const emailSubject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
-    const emailBody = encodeURIComponent(
-      `Hi!\n\nI've planned an amazing Route 66 trip and wanted to share it with you!\n\n` +
-      `Trip: ${tripTitle}\n` +
-      `${tripPlan.totalDays} days, ${Math.round(tripPlan.totalDistance)} miles\n\n` +
-      `View the complete itinerary here: ${currentShareUrl}\n\n` +
-      `Planned with Ramble 66 - The ultimate Route 66 trip planner\n` +
-      `Visit ramble66.com to plan your own adventure!`
-    );
-    
-    window.open(`mailto:?subject=${emailSubject}&body=${emailBody}`, '_blank');
+  const handleOpenCalendarModal = () => {
+    setIsCalendarModalOpen(true);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-6xl bg-white shadow-2xl rounded-xl max-h-[95vh] p-0 overflow-hidden flex flex-col"
-        role="dialog"
-        aria-labelledby="share-trip-title"
-      >
-        <DialogHeader className="sr-only">
-          <DialogTitle id="share-trip-title">
-            Share Your Route 66 Adventure
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-blue-600">
+              <Share2 className="h-6 w-6" />
+              Share Your Route 66 Adventure
+            </DialogTitle>
+          </DialogHeader>
 
-        {/* Fixed Header with Close Button */}
-        <div className="relative flex items-center justify-between p-4 border-b bg-route66-primary text-white">
-          <div className="flex items-center gap-3">
-            <div className="bg-white rounded-full p-2">
-              <Settings className="w-5 h-5 text-route66-primary" />
+          <div className="space-y-6">
+            {/* Trip Details Customization */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Trip Title
+                </label>
+                <Input
+                  value={shareOptions.title}
+                  onChange={(e) => updateShareOptions({ title: e.target.value })}
+                  placeholder={`${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Personal Note (Optional)
+                </label>
+                <Textarea
+                  value={shareOptions.userNote}
+                  onChange={(e) => updateShareOptions({ userNote: e.target.value })}
+                  placeholder="Add a personal message about your trip..."
+                  className="w-full"
+                  rows={3}
+                />
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold font-route66">Share Your Route 66 Adventure</h2>
-              <p className="text-sm text-route66-cream font-travel">
-                Share your personalized Route 66 itinerary with friends and family
-              </p>
+
+            {/* Calendar Export Button */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-blue-800">Export to Calendar</h3>
+                  <p className="text-sm text-blue-600">
+                    Add your trip to Google Calendar or download as .ics file
+                  </p>
+                </div>
+                <Button
+                  onClick={handleOpenCalendarModal}
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
             </div>
+
+            {/* Share Options */}
+            <ShareTripOptions
+              tripPlan={tripPlan}
+              currentShareUrl={currentShareUrl}
+              isGeneratingLink={isGeneratingLink}
+              onGenerateLink={async () => {
+                await handleGenerateAndShare();
+                return currentShareUrl;
+              }}
+              onCopyLink={async () => {
+                if (currentShareUrl) {
+                  await navigator.clipboard.writeText(currentShareUrl);
+                }
+              }}
+              onShareViaEmail={async () => {
+                if (currentShareUrl) {
+                  const subject = encodeURIComponent(`Route 66 Trip: ${shareOptions.title}`);
+                  const body = encodeURIComponent(
+                    `Check out my Route 66 trip plan:\n\n${currentShareUrl}\n\n${shareOptions.userNote || ''}`
+                  );
+                  window.open(`mailto:?subject=${subject}&body=${body}`);
+                }
+              }}
+            />
           </div>
-          
-          {/* Close Button - Absolutely positioned within header */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-route66-cream text-xl font-bold transition-colors duration-200 bg-route66-primary-dark hover:bg-route66-rust rounded-full p-2 shadow-lg"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-auto p-6">
-          <ShareTripModalContent
-            tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
-            currentShareUrl={currentShareUrl}
-            isGeneratingLink={isGeneratingLink || isAutoSaving}
-            isTripComplete={isTripComplete}
-            onGenerateLink={handleGenerateLink}
-            onCopyLink={handleCopyLink}
-            onShareViaEmail={handleShareViaEmail}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+      {/* Calendar Export Modal */}
+      <CalendarExportModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        shareUrl={currentShareUrl}
+      />
+    </>
   );
 };
 
