@@ -48,20 +48,25 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   // Use stable date calculation
   const segmentDate = useStableDate(tripStartDate, stableSegment.day);
   
-  console.log('🗓️ DaySegmentCard render with Google Distance Matrix API integration:', stableSegment.title);
+  // Use Google Distance Matrix API data directly from segment
+  const apiDriveTimeHours = stableSegment.driveTimeHours || 0;
+  const apiDistance = stableSegment.distance || 0;
 
-  // Use Google Distance Matrix API data if available, otherwise fallback
-  const drivingTimeHours = stableSegment.driveTimeHours || 0;
-  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(drivingTimeHours);
+  console.log(`🗓️ DaySegmentCard Day ${stableSegment.day} with Google API data:`, {
+    title: stableSegment.title,
+    apiDistance,
+    apiDriveTimeHours,
+    formattedTime: GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours)
+  });
 
   // Memoized drive time styling based on actual API data
   const driveTimeStyle = React.useMemo(() => {
     try {
-      if (drivingTimeHours <= 4) {
+      if (apiDriveTimeHours <= 4) {
         return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
-      } else if (drivingTimeHours <= 6) {
+      } else if (apiDriveTimeHours <= 6) {
         return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
-      } else if (drivingTimeHours <= 8) {
+      } else if (apiDriveTimeHours <= 8) {
         return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' };
       } else {
         return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' };
@@ -70,12 +75,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       console.error('❌ Error getting drive time style:', error);
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
-  }, [drivingTimeHours]);
-
-  // Memoized segment distance
-  const segmentDistance = React.useMemo(() => {
-    return stableSegment.distance || stableSegment.approximateMiles;
-  }, [stableSegment.distance, stableSegment.approximateMiles]);
+  }, [apiDriveTimeHours]);
 
   // Card header content with error handling
   const cardHeader = React.useMemo(() => (
@@ -88,19 +88,15 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       
       <DaySegmentCardStats 
         segment={stableSegment}
-        formattedDriveTime={formattedDriveTime}
-        segmentDistance={segmentDistance}
-        driveTimeStyle={driveTimeStyle}
       />
     </div>
-  ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
+  ), [stableSegment, segmentDate, driveTimeStyle]);
 
-  console.log(`🚗 DaySegmentCard with Google Distance Matrix API for Day ${stableSegment.day}`, {
+  console.log(`🚗 DaySegmentCard Final Render Day ${stableSegment.day}:`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
-    apiDriveTime: formattedDriveTime,
-    actualDriveTimeHours: drivingTimeHours,
-    distance: stableSegment.distance,
+    apiDistance,
+    apiDriveTimeHours,
     usingGoogleAPI: true
   });
 

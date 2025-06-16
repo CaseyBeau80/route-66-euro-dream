@@ -7,48 +7,39 @@ import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixSer
 
 interface DaySegmentCardStatsProps {
   segment: DailySegment;
-  formattedDriveTime: string;
-  segmentDistance: number;
-  driveTimeStyle: {
-    bg: string;
-    text: string;
-    border: string;
-  };
 }
 
 const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
-  segment,
-  formattedDriveTime,
-  segmentDistance,
-  driveTimeStyle
+  segment
 }) => {
   const { formatDistance } = useUnits();
 
-  // Use the formatted drive time from Google Distance Matrix API or fallback to approximation
-  const displayDriveTime = formattedDriveTime || GoogleDistanceMatrixService.formatDuration(segment.driveTimeHours || 0);
-  const driveTimeHours = segment.driveTimeHours || 0;
+  // Use Google Distance Matrix API data directly from segment
+  const apiDistance = segment.distance || 0;
+  const apiDriveTimeHours = segment.driveTimeHours || 0;
+  const formattedDriveTime = GoogleDistanceMatrixService.formatDuration(apiDriveTimeHours);
 
-  console.log('📊 DaySegmentCardStats using Google Distance Matrix API data:', {
+  console.log(`📊 DaySegmentCardStats Day ${segment.day} using Google API data:`, {
     segmentDay: segment.day,
     endCity: segment.endCity,
-    apiDriveTime: displayDriveTime,
-    driveTimeHours,
-    distance: segmentDistance
+    apiDistance,
+    apiDriveTimeHours,
+    formattedDriveTime
   });
 
   return (
     <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
       <div className="flex items-center gap-1">
         <Route className="h-4 w-4" />
-        <span>{formatDistance(segmentDistance)}</span>
+        <span>{formatDistance(apiDistance)}</span>
       </div>
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
-        <span className={driveTimeHours > 7 ? driveTimeStyle.text : ''}>
-          {displayDriveTime} driving
+        <span className={apiDriveTimeHours > 7 ? 'text-orange-600' : ''}>
+          {formattedDriveTime} driving (Google API)
         </span>
       </div>
-      {driveTimeHours > 7 && (
+      {apiDriveTimeHours > 7 && (
         <div className="flex items-center gap-1 text-orange-600">
           <AlertTriangle className="h-4 w-4" />
           <span className="text-xs font-medium">Long Drive Day</span>

@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -79,24 +80,6 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  private static calculateTotalRouteDistance(routeStops: TripStop[]): number {
-    let totalDistance = 0;
-    
-    for (let i = 0; i < routeStops.length - 1; i++) {
-      const currentStop = routeStops[i];
-      const nextStop = routeStops[i + 1];
-      
-      const segmentDistance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        nextStop.latitude, nextStop.longitude
-      );
-      
-      totalDistance += segmentDistance;
-    }
-    
-    return totalDistance;
-  }
-
   private static async planDailySegmentsWithAPI(
     routeStops: TripStop[],
     requestedDays: number
@@ -114,15 +97,29 @@ export class TripPlanBuilder {
       endCity: plan.endStop.name
     }));
 
+    console.log(`🚗 Calling Google Distance Matrix API for ${segmentPairs.length} segments:`, 
+      segmentPairs.map(pair => `${pair.startCity} → ${pair.endCity}`));
+
     // Get all distances and durations from Google API
     const apiResults = await GoogleDistanceMatrixService.calculateRouteSegments(segmentPairs);
+    
+    console.log(`📊 Google API Results Summary:`, {
+      totalDistance: apiResults.totalDistance,
+      totalDuration: apiResults.totalDuration,
+      segmentCount: apiResults.segmentResults.length
+    });
     
     // Build segments with real API data
     for (let i = 0; i < segmentPlans.length; i++) {
       const plan = segmentPlans[i];
       const apiResult = apiResults.segmentResults[i];
       
-      console.log(`🚗 Day ${i + 1}: ${plan.startStop.name} → ${plan.endStop.name} - API Distance: ${apiResult.distance}mi, API Duration: ${GoogleDistanceMatrixService.formatDuration(apiResult.duration)}`);
+      console.log(`🚗 Day ${i + 1}: ${plan.startStop.name} → ${plan.endStop.name}`, {
+        apiDistance: apiResult.distance,
+        apiDuration: apiResult.duration,
+        apiStatus: apiResult.status,
+        formattedTime: GoogleDistanceMatrixService.formatDuration(apiResult.duration)
+      });
       
       // Get attractions for the destination city
       const attractions = await AttractionService.getAttractionsForStop(plan.endStop);
@@ -134,10 +131,10 @@ export class TripPlanBuilder {
         day: i + 1,
         startCity: plan.startStop.name,
         endCity: plan.endStop.name,
-        distance: Math.round(apiResult.distance),
-        approximateMiles: Math.round(apiResult.distance),
-        drivingTime: apiResult.duration,
-        driveTimeHours: apiResult.duration,
+        distance: apiResult.distance, // Use exact API distance
+        approximateMiles: apiResult.distance, // Keep for compatibility
+        drivingTime: apiResult.duration, // Use exact API duration
+        driveTimeHours: apiResult.duration, // Use exact API duration
         attractions: attractions || [],
         subStops: plan.intermediateStops,
         driveTimeCategory,
@@ -147,10 +144,19 @@ export class TripPlanBuilder {
         routeSection: this.getRouteSection(i + 1, requestedDays)
       };
       
+      console.log(`✅ Created segment Day ${segment.day}:`, {
+        distance: segment.distance,
+        driveTimeHours: segment.driveTimeHours,
+        startCity: segment.startCity,
+        endCity: segment.endCity
+      });
+      
       segments.push(segment);
     }
     
-    console.log(`📋 Created ${segments.length} segments with Google Distance Matrix API data`);
+    console.log(`📋 Final segments created with Google Distance Matrix API data:`, 
+      segments.map(s => `Day ${s.day}: ${s.distance}mi, ${s.driveTimeHours.toFixed(1)}h`));
+    
     return segments;
   }
 
