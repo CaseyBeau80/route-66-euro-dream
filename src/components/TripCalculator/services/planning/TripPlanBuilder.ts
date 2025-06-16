@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -63,7 +62,14 @@ export class TripPlanBuilder {
       segmentCount: segments.length,
       totalDistance: totalDistance.toFixed(0),
       totalDriveTime: totalDrivingTime.toFixed(1),
-      allSegmentsHaveGoogleAPIData: segments.every(s => s.distance > 0 && s.driveTimeHours > 0)
+      allSegmentsHaveGoogleAPIData: segments.every(s => s.distance > 0 && s.driveTimeHours > 0),
+      segmentDetails: segments.map(s => ({
+        day: s.day,
+        startCity: s.startCity,
+        endCity: s.endCity,
+        distance: s.distance,
+        driveTimeHours: s.driveTimeHours
+      }))
     });
 
     return tripPlan;
@@ -91,16 +97,19 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  // FIXED METHOD: Uses new getDistanceAndDuration method with NO fallbacks
+  // CRITICAL DEBUG: Enhanced method with detailed logging
   private static async buildSegmentsWithGoogleAPI(
     routeStops: TripStop[],
     requestedDays: number
   ): Promise<DailySegment[]> {
-    console.log(`🔥 buildSegmentsWithGoogleAPI: Creating ${requestedDays} segments with Google API data`);
+    console.log(`🔥 CRITICAL DEBUG buildSegmentsWithGoogleAPI: Creating ${requestedDays} segments with Google API data`);
+    console.log(`🔥 CRITICAL DEBUG: Route stops:`, routeStops.map(s => s.name));
     
     // Step 1: Determine which stops will be start/end for each day
     const dayStopPairs = this.calculateDayStopPairs(routeStops, requestedDays);
-    console.log(`🔥 Calculated ${dayStopPairs.length} day stop pairs`);
+    console.log(`🔥 CRITICAL DEBUG: Calculated ${dayStopPairs.length} day stop pairs:`, 
+      dayStopPairs.map(p => `${p.startStop.name} → ${p.endStop.name}`)
+    );
     
     // Step 2: Get Google API data for each day and build segments
     const segments: DailySegment[] = [];
@@ -109,20 +118,41 @@ export class TripPlanBuilder {
       const pair = dayStopPairs[i];
       const dayNumber = i + 1;
       
-      console.log(`🔥 Processing Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}`);
+      console.log(`🔥 CRITICAL DEBUG: Processing Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}`);
       
       try {
+        // CRITICAL: Log the exact API call being made
+        console.log(`🔥 CRITICAL DEBUG: About to call GoogleDistanceMatrixService.getDistanceAndDuration with:`, {
+          origin: pair.startStop.name,
+          destination: pair.endStop.name,
+          apiAvailable: GoogleDistanceMatrixService.isAvailable()
+        });
+        
         // Use NEW getDistanceAndDuration method - NO fallbacks
         const apiResult = await GoogleDistanceMatrixService.getDistanceAndDuration(
           pair.startStop.name,
           pair.endStop.name
         );
         
+        console.log(`🔥 CRITICAL DEBUG: Raw Google API result for Day ${dayNumber}:`, {
+          apiResult,
+          distanceKm: apiResult.distanceKm,
+          durationSeconds: apiResult.durationSeconds,
+          distanceText: apiResult.distanceText,
+          durationText: apiResult.durationText
+        });
+        
         // Convert to expected format
         const distanceMiles = GoogleDistanceMatrixService.convertKmToMiles(apiResult.distanceKm);
         const driveTimeHours = GoogleDistanceMatrixService.convertSecondsToHours(apiResult.durationSeconds);
         
-        console.log(`🔥 Got Google API data for Day ${dayNumber}: ${distanceMiles} miles, ${GoogleDistanceMatrixService.formatDurationFromSeconds(apiResult.durationSeconds)}`);
+        console.log(`🔥 CRITICAL DEBUG: Converted values for Day ${dayNumber}:`, {
+          originalKm: apiResult.distanceKm,
+          convertedMiles: distanceMiles,
+          originalSeconds: apiResult.durationSeconds,
+          convertedHours: driveTimeHours,
+          formattedTime: GoogleDistanceMatrixService.formatDurationFromSeconds(apiResult.durationSeconds)
+        });
         
         // Get attractions for the destination city
         const attractions = await AttractionService.getAttractionsForStop(pair.endStop);
@@ -148,24 +178,39 @@ export class TripPlanBuilder {
           routeSection: this.getRouteSection(dayNumber, requestedDays)
         };
         
-        console.log(`🔥 Created segment ${segment.day} with Google API data:`, {
-          distance: segment.distance,
-          driveTimeHours: segment.driveTimeHours,
+        console.log(`🔥 CRITICAL DEBUG: Created segment ${segment.day} with verified Google API data:`, {
+          day: segment.day,
           startCity: segment.startCity,
           endCity: segment.endCity,
-          dataSource: 'GOOGLE_API_ONLY'
+          distance: segment.distance,
+          driveTimeHours: segment.driveTimeHours,
+          approximateMiles: segment.approximateMiles,
+          drivingTime: segment.drivingTime,
+          dataSource: 'GOOGLE_API_VERIFIED',
+          isRealData: distanceMiles !== 250 && driveTimeHours !== 4
         });
         
         segments.push(segment);
         
       } catch (error) {
-        console.error(`🔥 Google API failed for Day ${dayNumber}:`, error);
+        console.error(`🔥 CRITICAL DEBUG: Google API failed for Day ${dayNumber}:`, {
+          error: error.message,
+          startCity: pair.startStop.name,
+          endCity: pair.endStop.name,
+          apiAvailable: GoogleDistanceMatrixService.isAvailable()
+        });
         throw new Error(`Google API failed for Day ${dayNumber}: ${pair.startStop.name} → ${pair.endStop.name}. Error: ${error.message}`);
       }
     }
     
-    console.log(`🔥 All segments built with Google API data:`, 
-      segments.map(s => `Day ${s.day}: ${s.distance}mi, ${s.driveTimeHours.toFixed(1)}h (${s.startCity} → ${s.endCity})`)
+    console.log(`🔥 CRITICAL DEBUG: All segments built with Google API data:`, 
+      segments.map(s => ({
+        day: s.day,
+        route: `${s.startCity} → ${s.endCity}`,
+        distance: s.distance,
+        driveTimeHours: s.driveTimeHours,
+        isRealData: s.distance !== 250 && s.driveTimeHours !== 4
+      }))
     );
     
     return segments;
