@@ -115,74 +115,71 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
           <div>Valid Source: {validatedWeather.source}</div>
           <div>Valid ActualForecast: {String(validatedWeather.isActualForecast)}</div>
           <div>Validation isLive: {String(validation.isLiveForecast)}</div>
-          <div className={isLiveForecast ? 'text-green-400' : 'text-yellow-400'}>
-            Final Styling: {isLiveForecast ? 'GREEN FORCED' : 'AMBER'}
+          <div className="font-bold mt-1">
+            Style: {isLiveForecast ? 'GREEN' : 'AMBER'}
           </div>
-          <div>Temp: {validatedWeather.temperature}°F</div>
         </div>
       )}
 
-      {/* Weather Source Indicator - with forced colors */}
-      <div className="flex items-center justify-between mb-2">
-        <span 
-          className="text-xs font-medium"
-          style={{ 
-            color: styles.sourceColor
-          }}
-        >
-          {styles.sourceLabel}
-        </span>
-        <span className="text-xs text-gray-500">
+      {/* Header with city and date */}
+      <div className="flex items-center justify-between mb-3">
+        <h5 className="font-semibold" style={{ color: styles.textColor }}>
+          {cityName}
+        </h5>
+        <span className={`text-xs px-2 py-1 rounded ${styles.badgeClasses}`}>
           {formattedDate}
         </span>
       </div>
-
-      {/* Main Weather Display */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="text-3xl">{weatherIcon}</div>
-          <div>
-            <div className="text-2xl font-bold text-gray-800">
-              {Math.round(validatedWeather.temperature)}°F
-            </div>
-            <div className="text-sm text-gray-600 capitalize">
-              {validatedWeather.description}
-            </div>
-          </div>
+      
+      {/* Weather icon and temperature */}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="text-4xl">
+          {weatherIcon}
         </div>
-
-        <div className="text-right">
-          {validatedWeather.highTemp && validatedWeather.lowTemp && (
-            <div className="text-sm text-gray-600">
-              H: {Math.round(validatedWeather.highTemp)}° L: {Math.round(validatedWeather.lowTemp)}°
-            </div>
-          )}
-          <div className="text-xs text-gray-500 mt-1">
-            💧 {validatedWeather.precipitationChance}% • 💨 {validatedWeather.windSpeed} mph
+        <div>
+          <div className="text-3xl font-bold" style={{ color: styles.textColor }}>
+            {Math.round(validatedWeather.temperature)}°F
+          </div>
+          <div className="text-sm capitalize" style={{ color: styles.textColor }}>
+            {validatedWeather.description}
           </div>
         </div>
       </div>
 
-      {/* Weather Status Badge - with forced styling */}
-      <div className="mt-2 text-center">
-        <span 
-          className="inline-block text-xs px-2 py-1 rounded-full font-medium border"
-          style={{
-            backgroundColor: styles.backgroundColor,
-            color: styles.textColor,
-            borderColor: styles.borderColor
-          }}
-        >
-          {styles.badgeText}
-        </span>
-      </div>
-
-      {/* Validation errors (dev only) */}
-      {showDebug && validation.validationErrors.length > 0 && (
-        <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-          Validation errors: {validation.validationErrors.join(', ')}
+      {/* Temperature range if available */}
+      {validatedWeather.highTemp && validatedWeather.lowTemp && (
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="text-center">
+            <div className="text-lg font-bold" style={{ color: styles.textColor }}>
+              {Math.round(validatedWeather.highTemp)}°F
+            </div>
+            <div className="text-xs" style={{ color: styles.textColor }}>High</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold" style={{ color: styles.textColor }}>
+              {Math.round(validatedWeather.lowTemp)}°F
+            </div>
+            <div className="text-xs" style={{ color: styles.textColor }}>Low</div>
+          </div>
         </div>
       )}
+      
+      {/* Weather details */}
+      <div className="flex justify-between text-sm mb-3" style={{ color: styles.textColor }}>
+        <span>💧 {validatedWeather.precipitationChance || 0}%</span>
+        <span>💨 {Math.round(validatedWeather.windSpeed || 0)} mph</span>
+        <span>💦 {validatedWeather.humidity || 0}%</span>
+      </div>
+
+      {/* Source indicator */}
+      <div className={`text-xs px-2 py-1 rounded text-center ${styles.badgeClasses}`}>
+        <span style={{ color: styles.sourceColor }}>
+          {styles.sourceLabel}
+        </span>
+        <div className="mt-1 text-xs opacity-80">
+          {styles.badgeText}
+        </div>
+      </div>
     </div>
   );
 };
