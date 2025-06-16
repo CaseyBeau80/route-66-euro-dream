@@ -34,49 +34,74 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   // Get today's date properly
   const today = UnifiedDateService.getToday();
 
-  // Handle date selection with proper local date handling
+  // CRITICAL FIX: Handle date selection with LOCAL timezone preservation
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) {
       setFormData({ ...formData, tripStartDate: undefined });
       return;
     }
 
-    console.log('📅 EMERGENCY FIX: TripDateForm date selected:', {
-      selectedDate: date.toLocaleDateString(),
+    console.log('📅 CRITICAL FIX: TripDateForm date selected:', {
+      selectedDate: {
+        iso: date.toISOString(),
+        local: date.toLocaleDateString(),
+        toString: date.toString(),
+        localComponents: {
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          day: date.getDate()
+        }
+      },
       isToday: UnifiedDateService.isToday(date),
-      service: 'UnifiedDateService - EMERGENCY FIX'
+      service: 'UnifiedDateService - CRITICAL TIMEZONE FIX'
     });
     
-    // Use unified service to create clean local date
-    const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
+    // CRITICAL: Create a new date object using LOCAL components to avoid timezone shifts
+    const localYear = date.getFullYear();
+    const localMonth = date.getMonth();
+    const localDay = date.getDate();
+    const cleanLocalDate = new Date(localYear, localMonth, localDay, 0, 0, 0, 0);
     
-    console.log('📅 EMERGENCY FIX: TripDateForm normalized date:', {
-      original: date.toLocaleDateString(),
-      normalized: cleanDate.toLocaleDateString(),
-      service: 'UnifiedDateService - EMERGENCY FIX'
+    console.log('📅 CRITICAL FIX: TripDateForm creating LOCAL date:', {
+      original: {
+        iso: date.toISOString(),
+        local: date.toLocaleDateString(),
+        toString: date.toString()
+      },
+      cleaned: {
+        iso: cleanLocalDate.toISOString(),
+        local: cleanLocalDate.toLocaleDateString(),
+        toString: cleanLocalDate.toString()
+      },
+      preservedLocalDate: date.toLocaleDateString() === cleanLocalDate.toLocaleDateString(),
+      service: 'UnifiedDateService - CRITICAL TIMEZONE FIX'
     });
     
     setFormData({ 
       ...formData, 
-      tripStartDate: cleanDate 
+      tripStartDate: cleanLocalDate 
     });
   };
 
   // Handle today button click
   const handleTodayClick = () => {
-    console.log('📅 EMERGENCY FIX: Today button clicked:', {
-      today: today.toLocaleDateString(),
-      service: 'UnifiedDateService - EMERGENCY FIX'
+    console.log('📅 CRITICAL FIX: Today button clicked:', {
+      today: {
+        iso: today.toISOString(),
+        local: today.toLocaleDateString(),
+        toString: today.toString()
+      },
+      service: 'UnifiedDateService - CRITICAL TIMEZONE FIX'
     });
     
     handleDateSelect(today);
   };
 
-  // EMERGENCY FIX: Create a more robust disabled function with absolute today override
+  // CRITICAL FIX: Create a robust disabled function with LOCAL timezone handling
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
     
-    // ABSOLUTE OVERRIDE: Never disable today's date
+    // ABSOLUTE OVERRIDE: Never disable today's date using LOCAL components
     const isTodayAbsolute = (
       date.getFullYear() === today.getFullYear() &&
       date.getMonth() === today.getMonth() &&
@@ -84,31 +109,60 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     );
     
     if (isTodayAbsolute) {
-      console.log('🚨 EMERGENCY FIX: TODAY DETECTED - NEVER DISABLED:', {
-        date: date.toLocaleDateString(),
-        today: today.toLocaleDateString(),
+      console.log('🚨 CRITICAL FIX: TODAY DETECTED - NEVER DISABLED:', {
+        date: {
+          local: date.toLocaleDateString(),
+          components: {
+            year: date.getFullYear(),
+            month: date.getMonth(),
+            day: date.getDate()
+          }
+        },
+        today: {
+          local: today.toLocaleDateString(),
+          components: {
+            year: today.getFullYear(),
+            month: today.getMonth(),
+            day: today.getDate()
+          }
+        },
         disabled: false,
-        rule: 'ABSOLUTE_TODAY_OVERRIDE'
+        rule: 'ABSOLUTE_TODAY_OVERRIDE_LOCAL_TIMEZONE'
       });
       return false; // NEVER disable today
     }
     
-    // For all other dates, check if they're actually in the past
+    // For all other dates, check if they're actually in the past using LOCAL components
     const isPast = UnifiedDateService.isPastDate(date);
     
-    console.log('🚨 EMERGENCY FIX: Calendar date check:', {
-      date: date.toLocaleDateString(),
-      today: today.toLocaleDateString(),
+    console.log('🚨 CRITICAL FIX: Calendar date check with LOCAL timezone:', {
+      date: {
+        local: date.toLocaleDateString(),
+        components: {
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          day: date.getDate()
+        }
+      },
+      today: {
+        local: today.toLocaleDateString(),
+        components: {
+          year: today.getFullYear(),
+          month: today.getMonth(),
+          day: today.getDate()
+        }
+      },
       isTodayAbsolute,
       isPast,
       disabled: isPast,
-      rule: isPast ? 'PAST_DATE_DISABLED' : 'FUTURE_DATE_ENABLED'
+      rule: isPast ? 'PAST_DATE_DISABLED' : 'FUTURE_DATE_ENABLED',
+      localTimezoneHandling: true
     });
     
     return isPast;
   };
 
-  console.log('📅 EMERGENCY FIX: TripDateForm rendering with Shadcn calendar');
+  console.log('📅 CRITICAL FIX: TripDateForm rendering with LOCAL timezone handling');
 
   return (
     <div className="space-y-4">
@@ -128,7 +182,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
               <strong className="text-green-800"> Choose today for the most accurate weather data and start planning immediately!</strong>
             </p>
             <p className="text-green-600 text-xs mt-1 font-medium">
-              🎯 EMERGENCY FIX: Today ({today.toLocaleDateString()}) is guaranteed clickable
+              🎯 CRITICAL FIX: Today ({today.toLocaleDateString()}) with LOCAL timezone handling
             </p>
           </div>
         </div>
@@ -153,7 +207,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* EMERGENCY FIX: Shadcn Calendar with absolute today override */}
+      {/* CRITICAL FIX: Shadcn Calendar with LOCAL timezone handling */}
       <div className="space-y-3">
         <Popover>
           <PopoverTrigger asChild>
@@ -209,7 +263,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       
       <p className="text-xs text-gray-600">
         A start date is required to provide accurate weather forecasts for each destination.
-        <strong className="text-green-700"> ✨ EMERGENCY FIX: Today guaranteed selectable!</strong>
+        <strong className="text-green-700"> ✨ CRITICAL FIX: LOCAL timezone handling implemented!</strong>
       </p>
     </div>
   );

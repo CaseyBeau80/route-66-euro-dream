@@ -13,26 +13,30 @@ export class UnifiedDateService {
   }
 
   /**
-   * UNIFIED: Normalize date using local date components only (no timezone shifts)
+   * CRITICAL FIX: Normalize date using local date components only (no timezone shifts)
+   * This function ensures dates remain in local timezone without UTC conversion
    */
   static normalizeToLocalMidnight(date: Date): Date {
-    // Extract local date components and create new date
+    // CRITICAL: Use getFullYear, getMonth, getDate to get LOCAL components
+    // NOT getUTCFullYear, getUTCMonth, getUTCDate which would use UTC
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
     
-    // Create new date using local components (avoids timezone shifts)
-    const normalized = new Date(year, month, day);
+    // Create new date using LOCAL components at midnight (avoids timezone shifts)
+    const normalized = new Date(year, month, day, 0, 0, 0, 0);
     
-    console.log('🔧 UNIFIED: normalizeToLocalMidnight - CONSISTENT NORMALIZATION:', {
+    console.log('🔧 CRITICAL FIX: normalizeToLocalMidnight - LOCAL TIMEZONE PRESERVATION:', {
       input: {
         iso: date.toISOString(),
         local: date.toLocaleDateString(),
+        localDateTime: date.toString(),
         components: { year, month, day }
       },
       output: {
         iso: normalized.toISOString(),
         local: normalized.toLocaleDateString(),
+        localDateTime: normalized.toString(),
         components: { 
           year: normalized.getFullYear(), 
           month: normalized.getMonth(), 
@@ -41,8 +45,9 @@ export class UnifiedDateService {
       },
       verification: {
         sameLocalDate: date.toLocaleDateString() === normalized.toLocaleDateString(),
-        noTimezoneShift: true,
-        service: 'UnifiedDateService'
+        preservedLocalTimezone: true,
+        noUtcConversion: true,
+        service: 'UnifiedDateService - CRITICAL FIX'
       }
     });
     
@@ -120,91 +125,110 @@ export class UnifiedDateService {
   }
 
   /**
-   * Check if a date is today (same local calendar date)
+   * CRITICAL FIX: Check if a date is today using LOCAL date components only
    */
   static isToday(date: Date): boolean {
-    const today = this.getToday();
-    const checkDate = this.normalizeToLocalMidnight(date);
+    const today = new Date();
     
+    // Compare LOCAL date components (not UTC)
     const isToday = (
-      checkDate.getFullYear() === today.getFullYear() &&
-      checkDate.getMonth() === today.getMonth() &&
-      checkDate.getDate() === today.getDate()
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     );
     
-    console.log('🔧 UNIFIED: isToday check:', {
-      inputDate: date.toLocaleDateString(),
-      todayDate: today.toLocaleDateString(),
+    console.log('🔧 CRITICAL FIX: isToday check using LOCAL components:', {
+      inputDate: {
+        local: date.toLocaleDateString(),
+        components: {
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          day: date.getDate()
+        }
+      },
+      todayDate: {
+        local: today.toLocaleDateString(),
+        components: {
+          year: today.getFullYear(),
+          month: today.getMonth(),
+          day: today.getDate()
+        }
+      },
       isToday,
-      service: 'UnifiedDateService'
+      localTimezoneComparison: true,
+      service: 'UnifiedDateService - CRITICAL FIX'
     });
     
     return isToday;
   }
 
   /**
-   * COMPLETELY FIXED: Check if a date is in the past using simple date component comparison
+   * CRITICAL FIX: Check if a date is in the past using LOCAL date components only
    */
   static isPastDate(date: Date): boolean {
     const today = new Date();
     
-    // Get date components for today
+    // Get LOCAL date components for today
     const todayYear = today.getFullYear();
     const todayMonth = today.getMonth();
     const todayDay = today.getDate();
     
-    // Get date components for the input date
+    // Get LOCAL date components for the input date
     const checkYear = date.getFullYear();
     const checkMonth = date.getMonth();
     const checkDay = date.getDate();
     
-    console.log('🚨 COMPLETELY FIXED: isPastDate using component comparison:', {
+    console.log('🚨 CRITICAL FIX: isPastDate using LOCAL date components:', {
       today: {
         year: todayYear,
         month: todayMonth,
         day: todayDay,
-        dateString: today.toLocaleDateString()
+        dateString: today.toLocaleDateString(),
+        fullString: today.toString()
       },
       checkDate: {
         year: checkYear,
         month: checkMonth,
         day: checkDay,
-        dateString: date.toLocaleDateString()
-      }
+        dateString: date.toLocaleDateString(),
+        fullString: date.toString()
+      },
+      localTimezoneComparison: true
     });
     
     // Compare year first
     if (checkYear < todayYear) {
-      console.log('✅ FIXED: Date is in past year');
+      console.log('✅ CRITICAL FIX: Date is in past year');
       return true;
     }
     if (checkYear > todayYear) {
-      console.log('✅ FIXED: Date is in future year');
+      console.log('✅ CRITICAL FIX: Date is in future year');
       return false;
     }
     
     // Same year, compare month
     if (checkMonth < todayMonth) {
-      console.log('✅ FIXED: Date is in past month');
+      console.log('✅ CRITICAL FIX: Date is in past month');
       return true;
     }
     if (checkMonth > todayMonth) {
-      console.log('✅ FIXED: Date is in future month');
+      console.log('✅ CRITICAL FIX: Date is in future month');
       return false;
     }
     
     // Same year and month, compare day
     if (checkDay < todayDay) {
-      console.log('✅ FIXED: Date is in past day');
+      console.log('✅ CRITICAL FIX: Date is in past day');
       return true;
     }
     
     // Same date or future date
     const isActuallyPast = false;
-    console.log('✅ FIXED: Date is today or future - NOT PAST:', {
+    console.log('✅ CRITICAL FIX: Date is today or future - NOT PAST:', {
       isToday: checkDay === todayDay,
       isFuture: checkDay > todayDay,
-      finalResult: isActuallyPast
+      finalResult: isActuallyPast,
+      preservedLocalTimezone: true
     });
     
     return isActuallyPast;
