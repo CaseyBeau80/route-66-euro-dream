@@ -8,7 +8,7 @@ import { DateNormalizationService } from '../components/weather/DateNormalizatio
  */
 export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Date | null => {
   return useMemo(() => {
-    console.log('🗓️ CRITICAL FIX: useStableDate - FIXED VERSION:', {
+    console.log('📅 CRITICAL FIX: useStableDate - FINAL FIXED VERSION:', {
       baseDate: baseDate?.toISOString(),
       baseDateLocal: baseDate?.toLocaleDateString(),
       dayOffset,
@@ -17,7 +17,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
 
     // Validate inputs
     if (!baseDate || typeof dayOffset !== 'number' || isNaN(dayOffset)) {
-      console.log('🗓️ CRITICAL FIX: useStableDate invalid inputs:', { 
+      console.log('📅 CRITICAL FIX: useStableDate invalid inputs:', { 
         baseDate, 
         dayOffset, 
         baseDateType: typeof baseDate,
@@ -62,7 +62,7 @@ export const useStableDate = (baseDate: Date | undefined, dayOffset: number): Da
         return null;
       }
       
-      console.log('🗓️ CRITICAL FIX: useStableDate SUCCESS - FIXED CALCULATION:', {
+      console.log('📅 CRITICAL FIX: useStableDate SUCCESS:', {
         baseDate: baseDate.toISOString(),
         baseDateLocal: baseDate.toLocaleDateString(),
         dayOffset,

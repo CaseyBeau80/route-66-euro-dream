@@ -22,14 +22,21 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
-  const today = new Date();
-  const todayDateString = today.toDateString();
+  // CRITICAL FIX: Create today using local date components only
+  const today = React.useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
 
-  console.log('🚨 SIMPLE CALENDAR: Render state:', {
+  console.log('📅 FIXED CALENDAR: Component state:', {
     selectedDate: selected?.toISOString(),
     selectedDateLocal: selected?.toLocaleDateString(),
-    todayDateString,
-    currentMonth: currentMonth.toISOString()
+    todayLocal: today.toLocaleDateString(),
+    todayComponents: {
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      date: today.getDate()
+    }
   });
 
   // Navigate months
@@ -62,7 +69,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
       days.push(null);
     }
     
-    // Add all days of the month
+    // Add all days of the month - CRITICAL FIX: Use local date construction
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
@@ -74,50 +81,90 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('🚨 SIMPLE CALENDAR: Date clicked:', {
+    console.log('📅 FIXED CALENDAR: Date clicked:', {
       clickedDate: date.toISOString(),
       clickedDateLocal: date.toLocaleDateString(),
-      clickedDateString: date.toDateString(),
-      isToday: date.toDateString() === todayDateString,
+      clickedComponents: {
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        date: date.getDate()
+      },
+      todayComponents: {
+        year: today.getFullYear(),
+        month: today.getMonth(),
+        date: today.getDate()
+      },
+      isToday: isToday(date),
       isDisabled: disabled?.(date) || false
     });
 
     // Check if disabled
     if (disabled?.(date)) {
-      console.log('🚨 SIMPLE CALENDAR: Click ignored - date is disabled');
+      console.log('📅 FIXED CALENDAR: Click ignored - date is disabled');
       return;
     }
 
-    // Create a clean date for local timezone
+    // CRITICAL FIX: Create clean local date for consistency
     const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🚨 SIMPLE CALENDAR: Calling onSelect with:', {
+    console.log('📅 FIXED CALENDAR: Calling onSelect with clean local date:', {
       originalDate: date.toISOString(),
-      localDate: localDate.toISOString(),
-      localDateString: localDate.toDateString()
+      cleanLocalDate: localDate.toISOString(),
+      cleanLocalComponents: {
+        year: localDate.getFullYear(),
+        month: localDate.getMonth(),
+        date: localDate.getDate()
+      }
     });
 
     onSelect(localDate);
   };
 
+  // CRITICAL FIX: Compare dates using local date components only
   const isDateSelected = (date: Date): boolean => {
     if (!selected) return false;
-    return date.toDateString() === selected.toDateString();
+    return (
+      date.getFullYear() === selected.getFullYear() &&
+      date.getMonth() === selected.getMonth() &&
+      date.getDate() === selected.getDate()
+    );
   };
 
-  const isDateDisabled = (date: Date): boolean => {
-    return disabled?.(date) || false;
-  };
-
+  // CRITICAL FIX: Compare with today using local date components
   const isToday = (date: Date): boolean => {
-    return date.toDateString() === todayDateString;
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  };
+
+  // CRITICAL FIX: Improved date disability check
+  const isDateDisabled = (date: Date): boolean => {
+    if (disabled?.(date)) return true;
+    
+    // CRITICAL FIX: Only disable dates that are clearly before today
+    const dateTime = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const todayTime = today.getTime();
+    
+    const shouldDisable = dateTime < todayTime;
+    
+    console.log('📅 FIXED CALENDAR: Date disability check:', {
+      date: date.toLocaleDateString(),
+      today: today.toLocaleDateString(),
+      dateTime,
+      todayTime,
+      shouldDisable,
+      comparison: dateTime < todayTime ? 'BEFORE_TODAY' : 'TODAY_OR_FUTURE'
+    });
+    
+    return shouldDisable;
   };
 
   const handleTodayClick = () => {
-    console.log('🚨 SIMPLE CALENDAR: Today button clicked:', {
+    console.log('📅 FIXED CALENDAR: Today button clicked:', {
       todayDate: today.toISOString(),
       todayDateLocal: today.toLocaleDateString(),
-      todayDateString: todayDateString,
       isDisabled: isDateDisabled(today)
     });
     
@@ -189,8 +236,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
                 {
                   // Selected state
                   "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
-                  // Today but not selected
-                  "bg-blue-100 text-blue-800 font-semibold border-blue-200 hover:bg-blue-200": isTodayDate && !isSelected,
+                  // Today but not selected - CRITICAL FIX: Enhanced styling for today
+                  "bg-blue-100 text-blue-800 font-semibold border-blue-200 hover:bg-blue-200 ring-2 ring-blue-300": isTodayDate && !isSelected,
                   // Disabled state
                   "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled,
                   // Normal state
@@ -213,10 +260,10 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
           disabled={isDateDisabled(today)}
           className={cn(
             "w-full text-xs font-medium",
-            isToday(today) && !isDateDisabled(today) && "border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100"
+            !isDateDisabled(today) && "border-blue-400 text-blue-700 bg-blue-50 hover:bg-blue-100"
           )}
         >
-          {isToday(today) ? "Select Today" : "Go to Today"}
+          Select Today ({today.toLocaleDateString()})
         </Button>
       </div>
     </div>

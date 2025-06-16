@@ -1,41 +1,51 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { useEdgeFunctionWeather } from './hooks/useEdgeFunctionWeather';
-import SimpleWeatherDisplay from './SimpleWeatherDisplay';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { useUnifiedWeather } from './hooks/useUnifiedWeather';
+import EnhancedWeatherDisplay from './EnhancedWeatherDisplay';
+import SimpleWeatherApiKeyInput from '@/components/Route66Map/components/weather/SimpleWeatherApiKeyInput';
+import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 
 interface UnifiedWeatherWidgetProps {
   segment: DailySegment;
   tripStartDate?: Date;
   isSharedView?: boolean;
   isPDFExport?: boolean;
+  forceRefresh?: boolean;
 }
 
 const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   segment,
   tripStartDate,
   isSharedView = false,
-  isPDFExport = false
+  isPDFExport = false,
+  forceRefresh = false
 }) => {
-  console.log('🎯 UNIFIED WIDGET: Starting render for', segment.endCity, {
-    day: segment.day,
-    tripStartDate: tripStartDate?.toISOString(),
-    componentName: 'UnifiedWeatherWidget',
-    renderTimestamp: new Date().toISOString()
-  });
+  const [forceKey, setForceKey] = React.useState(() => Date.now().toString());
+  
+  React.useEffect(() => {
+    if (forceRefresh) {
+      setForceKey(Date.now().toString());
+    }
+  }, [forceRefresh]);
 
-  // Calculate segment date
+  // CRITICAL FIX: Calculate segment date using fixed date normalization
   const segmentDate = React.useMemo(() => {
     if (tripStartDate) {
-      const calculated = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
-      console.log('🎯 UNIFIED WIDGET: Date calculation for', segment.endCity, {
+      const calculatedDate = WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+      
+      console.log('📅 CRITICAL FIX: UnifiedWeatherWidget segment date calculation:', {
         tripStartDate: tripStartDate.toISOString(),
+        tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay: segment.day,
-        calculatedDate: calculated.toISOString(),
-        calculatedLocal: calculated.toLocaleDateString()
+        calculatedDate: calculatedDate?.toISOString(),
+        calculatedDateLocal: calculatedDate?.toLocaleDateString(),
+        cityName: segment.endCity,
+        usingFixedCalculation: true
       });
-      return calculated;
+      
+      return calculatedDate;
     }
 
     // For shared views, try URL parameters
@@ -49,14 +59,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
           if (tripStartParam) {
             const parsedDate = new Date(tripStartParam);
             if (!isNaN(parsedDate.getTime())) {
-              const calculated = WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
-              console.log('🎯 UNIFIED WIDGET: URL date calculation for', segment.endCity, {
-                urlParam: tripStartParam,
-                parsedDate: parsedDate.toISOString(),
-                segmentDay: segment.day,
-                calculatedDate: calculated.toISOString()
-              });
-              return calculated;
+              return WeatherUtilityService.getSegmentDate(parsedDate, segment.day);
             }
           }
         }
@@ -68,40 +71,45 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     // Fallback for shared/PDF views
     if (isSharedView || isPDFExport) {
       const today = new Date();
-      const fallbackDate = new Date(today.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
-      console.log('🎯 UNIFIED WIDGET: Fallback date for', segment.endCity, {
-        segmentDay: segment.day,
-        fallbackDate: fallbackDate.toISOString()
-      });
-      return fallbackDate;
+      const fallbackStartDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      return WeatherUtilityService.getSegmentDate(fallbackStartDate, segment.day);
     }
     
     return null;
   }, [tripStartDate, segment.day, isSharedView, isPDFExport]);
 
-  // Use Edge Function weather hook - but only if we have a valid date
-  const { weather, loading, error, refetch } = useEdgeFunctionWeather({
+  // Use unified weather with force refresh
+  const { weather, loading, error, refetch } = useUnifiedWeather({
     cityName: segment.endCity,
     segmentDate,
-    segmentDay: segment.day
+    segmentDay: segment.day,
+    prioritizeCachedData: false,
+    cachedWeather: null
   });
 
-  console.log('🎯 UNIFIED WIDGET: Weather state for', segment.endCity, {
+  // Check API key availability
+  const hasApiKey = React.useMemo(() => {
+    return WeatherApiKeyManager.hasApiKey();
+  }, []);
+
+  console.log('🌤️ CRITICAL FIX: UnifiedWeatherWidget render:', {
+    cityName: segment.endCity,
     day: segment.day,
+    forceKey,
     hasWeather: !!weather,
     loading,
-    hasError: !!error,
+    error,
     segmentDate: segmentDate?.toISOString(),
+    segmentDateLocal: segmentDate?.toLocaleDateString(),
     weatherSource: weather?.source,
     isActualForecast: weather?.isActualForecast,
-    shouldShowLive: weather?.source === 'live_forecast' && weather?.isActualForecast === true
+    fixedVersion: true
   });
 
-  // Show loading state
+  // Loading state
   if (loading) {
-    console.log('🎯 UNIFIED WIDGET: Showing loading for', segment.endCity);
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div key={`loading-${segment.endCity}-${forceKey}`} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-600">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
           <span className="text-sm">Loading weather for {segment.endCity}...</span>
@@ -112,39 +120,71 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
   // Show weather if available
   if (weather && segmentDate) {
-    console.log('🎯 UNIFIED WIDGET: Rendering weather display for', segment.endCity, {
-      day: segment.day,
-      weatherSource: weather.source,
-      isActualForecast: weather.isActualForecast,
-      temperature: weather.temperature,
-      willShowAsLive: weather.source === 'live_forecast' && weather.isActualForecast === true
-    });
-
     return (
-      <SimpleWeatherDisplay
+      <EnhancedWeatherDisplay
         weather={weather}
         segmentDate={segmentDate}
         cityName={segment.endCity}
         isSharedView={isSharedView}
         isPDFExport={isPDFExport}
+        forceKey={forceKey}
+        showDebug={true}
       />
     );
   }
 
-  // Error or no weather state
-  console.log('🎯 UNIFIED WIDGET: Showing error/fallback for', segment.endCity, {
-    hasWeather: !!weather,
-    hasDate: !!segmentDate,
-    error
-  });
+  // For shared/PDF views without weather
+  if ((isSharedView || isPDFExport) && segmentDate && !weather && !loading) {
+    return (
+      <div key={`fallback-${segment.endCity}-${forceKey}`} className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
+        <div className="text-blue-600 text-2xl mb-1">🌤️</div>
+        <p className="text-xs text-blue-700 font-medium">Weather forecast temporarily unavailable</p>
+        <p className="text-xs text-blue-600 mt-1">Check current conditions before departure</p>
+        {error && <p className="text-xs text-blue-500 mt-1">{error}</p>}
+      </div>
+    );
+  }
 
+  // For shared/PDF views without valid date
+  if (isSharedView || isPDFExport) {
+    return (
+      <div key={`no-date-${segment.endCity}-${forceKey}`} className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
+        <div className="text-amber-600 text-2xl mb-1">⛅</div>
+        <p className="text-xs text-amber-700 font-medium">Weather forecast needs trip date</p>
+        <p className="text-xs text-amber-600 mt-1">Add trip start date for accurate forecast</p>
+      </div>
+    );
+  }
+
+  // Regular view without API key
+  if (!hasApiKey) {
+    return (
+      <div key={`api-key-${segment.endCity}-${forceKey}`} className="space-y-2">
+        <div className="text-sm text-gray-600 mb-2">
+          Weather forecast requires an API key
+        </div>
+        <SimpleWeatherApiKeyInput 
+          onApiKeySet={() => {
+            console.log('API key set, refetching weather for', segment.endCity);
+            setForceKey(Date.now().toString());
+            refetch();
+          }}
+          cityName={segment.endCity}
+        />
+      </div>
+    );
+  }
+
+  // Final fallback
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded p-3 text-center">
-      <div className="text-amber-600 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-amber-700 font-medium">Weather forecast temporarily unavailable</p>
-      {error && <p className="text-xs text-amber-600 mt-1">{error}</p>}
+    <div key={`error-${segment.endCity}-${forceKey}`} className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+      <div className="text-gray-400 text-2xl mb-1">🌤️</div>
+      <p className="text-xs text-gray-600">Weather information not available</p>
       <button
-        onClick={refetch}
+        onClick={() => {
+          setForceKey(Date.now().toString());
+          refetch();
+        }}
         className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
       >
         Retry

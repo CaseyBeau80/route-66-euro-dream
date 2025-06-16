@@ -23,21 +23,29 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // ULTRA SIMPLE DATE SELECTION: Just create a clean local date
+  // CRITICAL FIX: Clean date selection using local date components only
   const handleDateSelect = (date: Date) => {
-    console.log('🚨 ULTRA SIMPLE: TripDateForm handleDateSelect:', {
+    console.log('📅 CRITICAL FIX: TripDateForm handleDateSelect:', {
       selectedDate: date.toISOString(),
       selectedDateLocal: date.toLocaleDateString(),
-      selectedDateString: date.toDateString()
+      selectedComponents: {
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        date: date.getDate()
+      }
     });
     
-    // Create a completely clean date in local timezone
+    // CRITICAL FIX: Create absolutely clean local date
     const cleanDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    console.log('🚨 ULTRA SIMPLE: Setting form data with clean date:', {
+    console.log('📅 CRITICAL FIX: Setting form data with perfectly clean date:', {
       cleanDate: cleanDate.toISOString(),
       cleanDateLocal: cleanDate.toLocaleDateString(),
-      cleanDateString: cleanDate.toDateString()
+      cleanComponents: {
+        year: cleanDate.getFullYear(),
+        month: cleanDate.getMonth(),
+        date: cleanDate.getDate()
+      }
     });
     
     setFormData({ 
@@ -46,19 +54,26 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // ULTRA SIMPLE DATE VALIDATION: Only disable dates that are clearly in the past
+  // CRITICAL FIX: Enhanced date validation using local date comparison
   const isDateDisabled = (date: Date): boolean => {
     const today = new Date();
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-    const shouldDisable = checkDate.getTime() < todayMidnight.getTime();
+    const shouldDisable = checkDate.getTime() < todayLocal.getTime();
     
-    console.log('🚨 ULTRA SIMPLE DATE VALIDATION:', {
-      inputDate: date.toDateString(),
-      todayDate: today.toDateString(),
+    console.log('📅 CRITICAL FIX: Enhanced date validation:', {
+      inputDate: date.toLocaleDateString(),
+      todayDate: today.toLocaleDateString(),
+      todayLocal: todayLocal.toLocaleDateString(),
+      checkDate: checkDate.toLocaleDateString(),
       shouldDisable,
-      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future'
+      reason: shouldDisable ? 'DISABLED: Date is before today' : 'ENABLED: Date is today or future',
+      timeComparison: {
+        checkDateTime: checkDate.getTime(),
+        todayLocalTime: todayLocal.getTime(),
+        difference: checkDate.getTime() - todayLocal.getTime()
+      }
     });
     
     return shouldDisable;
@@ -96,7 +111,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* Ultra Simple Calendar */}
+      {/* Fixed Calendar with Enhanced Today Selection */}
       <SimpleTripCalendar
         selected={formData.tripStartDate}
         onSelect={handleDateSelect}
