@@ -47,7 +47,15 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
     onClose
   });
 
+  // Debug logging
+  console.log('ShareTripModal render:', {
+    isOpen,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripPlan: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity}` : 'null'
+  });
+
   const handleGoogleCalendarExport = () => {
+    console.log('Google Calendar export clicked');
     if (!tripStartDate) {
       toast({
         title: "Start Date Required",
@@ -85,6 +93,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   };
 
   const handleICalendarDownload = async () => {
+    console.log('iCalendar download clicked');
     if (!tripStartDate) {
       toast({
         title: "Start Date Required",
@@ -163,12 +172,19 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
               </div>
             </div>
 
-            {/* Calendar Export Section with Direct Action Buttons */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200 shadow-sm">
+            {/* DEBUG: Calendar Export Section - Making it very visible */}
+            <div 
+              className="bg-red-100 border-4 border-red-500 p-6 rounded-lg shadow-lg"
+              style={{ minHeight: '200px' }}
+            >
               <div className="mb-4">
+                <h3 className="font-bold text-red-800 text-xl mb-2">🔴 DEBUG: Calendar Export Section</h3>
                 <h3 className="font-semibold text-blue-800 text-lg mb-2">📅 Export to Calendar</h3>
                 <p className="text-sm text-blue-600 mb-2">
                   Add your Route 66 trip to Google Calendar or download as .ics file for other calendar apps
+                </p>
+                <p className="text-xs text-gray-600 mb-2">
+                  DEBUG: tripStartDate = {tripStartDate ? tripStartDate.toISOString() : 'null'}
                 </p>
                 {!tripStartDate && (
                   <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
