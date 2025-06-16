@@ -135,8 +135,11 @@ export class TripDataSanitizationService {
       endCity: this.sanitizeString(segment.endCity || segment.destination?.city, 'Unknown'),
       destination: segment.destination ? {
         city: this.sanitizeString(segment.destination.city || segment.destination.name, 'Unknown'),
-        state: this.sanitizeString(segment.destination.state, undefined)
-      } : undefined,
+        state: this.sanitizeString(segment.destination.state, 'Unknown')
+      } : {
+        city: this.sanitizeString(segment.endCity, 'Unknown'),
+        state: 'Unknown'
+      },
       distance: this.sanitizeNumber(segment.distance || segment.approximateMiles, 0),
       driveTimeHours: this.sanitizeNumber(segment.driveTimeHours || segment.drivingTime, 0),
       drivingTime: this.sanitizeNumber(segment.drivingTime || segment.driveTimeHours, 0),
@@ -185,6 +188,10 @@ export class TripDataSanitizationService {
       title: `Day ${day}`,
       startCity: 'Unknown',
       endCity: 'Unknown',
+      destination: {
+        city: 'Unknown',
+        state: 'Unknown'
+      },
       distance: 0,
       driveTimeHours: 0,
       drivingTime: 0,
