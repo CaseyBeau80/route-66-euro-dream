@@ -47,15 +47,19 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
     onClose
   });
 
-  // Debug logging
-  console.log('ShareTripModal render:', {
+  // Enhanced debug logging
+  console.log('🔴 ShareTripModal ENHANCED DEBUG:', {
     isOpen,
     tripStartDate: tripStartDate?.toISOString(),
-    tripPlan: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity}` : 'null'
+    tripPlan: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity}` : 'null',
+    modalIsActuallyOpen: isOpen,
+    hasValidTripPlan: !!tripPlan,
+    hasTripStartDate: !!tripStartDate,
+    currentDateTime: new Date().toISOString()
   });
 
   const handleGoogleCalendarExport = () => {
-    console.log('Google Calendar export clicked');
+    console.log('🔴 Google Calendar export clicked - SHOULD BE VISIBLE');
     if (!tripStartDate) {
       toast({
         title: "Start Date Required",
@@ -93,7 +97,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   };
 
   const handleICalendarDownload = async () => {
-    console.log('iCalendar download clicked');
+    console.log('🔴 iCalendar download clicked - SHOULD BE VISIBLE');
     if (!tripStartDate) {
       toast({
         title: "Start Date Required",
@@ -125,12 +129,16 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   };
 
   const handleOpenCalendarModal = () => {
-    console.log('Opening calendar modal with:', {
-      hasStartDate: !!tripStartDate,
-      startDate: tripStartDate?.toISOString()
-    });
+    console.log('🔴 Opening calendar modal - SHOULD BE VISIBLE');
     setIsCalendarModalOpen(true);
   };
+
+  if (!isOpen) {
+    console.log('🔴 Modal is not open, not rendering calendar section');
+    return null;
+  }
+
+  console.log('🔴 Modal IS OPEN, rendering everything including calendar section');
 
   return (
     <>
@@ -144,6 +152,84 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-6">
+            {/* CRITICAL: Calendar Export Section MOVED TO TOP */}
+            <div 
+              className="bg-gradient-to-r from-red-100 to-red-200 border-4 border-red-600 p-8 rounded-lg shadow-xl"
+              style={{ minHeight: '250px', position: 'relative', zIndex: 1000 }}
+            >
+              <div className="mb-6">
+                <h3 className="font-bold text-red-900 text-2xl mb-4">
+                  🚨 URGENT CALENDAR TEST 🚨
+                </h3>
+                <h3 className="font-semibold text-blue-800 text-xl mb-3">📅 Export to Calendar</h3>
+                <p className="text-lg text-blue-700 mb-3 font-medium">
+                  Add your Route 66 trip to Google Calendar or download as .ics file for other calendar apps
+                </p>
+                <div className="bg-white p-4 rounded border-2 border-red-400 mb-4">
+                  <p className="text-sm font-mono text-gray-800">
+                    DEBUG STATUS: tripStartDate = {tripStartDate ? tripStartDate.toISOString() : '❌ NULL'}
+                  </p>
+                  <p className="text-sm font-mono text-gray-800">
+                    Modal Open: {isOpen ? '✅ YES' : '❌ NO'}
+                  </p>
+                  <p className="text-sm font-mono text-gray-800">
+                    Trip Plan: {tripPlan ? '✅ EXISTS' : '❌ NULL'}
+                  </p>
+                </div>
+                {!tripStartDate && (
+                  <div className="bg-amber-100 border-2 border-amber-400 p-4 rounded mb-4">
+                    <p className="text-amber-800 font-semibold">
+                      ⚠️ Please set a trip start date to enable calendar export
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                {/* Google Calendar Button - EXTRA LARGE */}
+                <Button
+                  onClick={handleGoogleCalendarExport}
+                  disabled={!tripStartDate}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-6 h-auto text-lg font-bold"
+                  style={{ minHeight: '80px' }}
+                >
+                  <ExternalLink className="h-8 w-8 mr-3" />
+                  <div className="text-left">
+                    <div className="text-xl font-bold">Add to Google Calendar</div>
+                    <div className="text-sm opacity-90">Opens in new tab</div>
+                  </div>
+                </Button>
+
+                {/* iCalendar Download Button - EXTRA LARGE */}
+                <Button
+                  onClick={handleICalendarDownload}
+                  disabled={!tripStartDate}
+                  variant="outline"
+                  className="flex-1 py-6 h-auto border-4 border-blue-300 hover:bg-blue-50 text-lg font-bold"
+                  style={{ minHeight: '80px' }}
+                >
+                  <Download className="h-8 w-8 mr-3 text-blue-600" />
+                  <div className="text-left">
+                    <div className="text-xl font-bold text-blue-700">Download iCalendar (.ics)</div>
+                    <div className="text-sm text-blue-600">For Apple Calendar, Outlook, etc.</div>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Additional Options Link - EXTRA LARGE */}
+              <div className="text-center">
+                <Button
+                  onClick={handleOpenCalendarModal}
+                  variant="ghost"
+                  size="lg"
+                  className="text-blue-600 hover:text-blue-800 text-lg font-semibold py-4"
+                >
+                  <Calendar className="h-6 w-6 mr-2" />
+                  More calendar options and settings
+                </Button>
+              </div>
+            </div>
+
             {/* Trip Details Customization */}
             <div className="space-y-4">
               <div>
@@ -169,70 +255,6 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
                   className="w-full"
                   rows={3}
                 />
-              </div>
-            </div>
-
-            {/* DEBUG: Calendar Export Section - Making it very visible */}
-            <div 
-              className="bg-red-100 border-4 border-red-500 p-6 rounded-lg shadow-lg"
-              style={{ minHeight: '200px' }}
-            >
-              <div className="mb-4">
-                <h3 className="font-bold text-red-800 text-xl mb-2">🔴 DEBUG: Calendar Export Section</h3>
-                <h3 className="font-semibold text-blue-800 text-lg mb-2">📅 Export to Calendar</h3>
-                <p className="text-sm text-blue-600 mb-2">
-                  Add your Route 66 trip to Google Calendar or download as .ics file for other calendar apps
-                </p>
-                <p className="text-xs text-gray-600 mb-2">
-                  DEBUG: tripStartDate = {tripStartDate ? tripStartDate.toISOString() : 'null'}
-                </p>
-                {!tripStartDate && (
-                  <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                    ⚠️ Please set a trip start date to enable calendar export
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Google Calendar Button */}
-                <Button
-                  onClick={handleGoogleCalendarExport}
-                  disabled={!tripStartDate}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 h-auto"
-                >
-                  <ExternalLink className="h-5 w-5 mr-2" />
-                  <div className="text-left">
-                    <div className="font-semibold">Add to Google Calendar</div>
-                    <div className="text-xs opacity-90">Opens in new tab</div>
-                  </div>
-                </Button>
-
-                {/* iCalendar Download Button */}
-                <Button
-                  onClick={handleICalendarDownload}
-                  disabled={!tripStartDate}
-                  variant="outline"
-                  className="flex-1 py-3 h-auto border-2 border-blue-200 hover:bg-blue-50"
-                >
-                  <Download className="h-5 w-5 mr-2 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-semibold text-blue-700">Download iCalendar (.ics)</div>
-                    <div className="text-xs text-blue-600">For Apple Calendar, Outlook, etc.</div>
-                  </div>
-                </Button>
-              </div>
-
-              {/* Additional Options Link */}
-              <div className="mt-3 text-center">
-                <Button
-                  onClick={handleOpenCalendarModal}
-                  variant="ghost"
-                  size="sm"
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  More calendar options
-                </Button>
               </div>
             </div>
 
