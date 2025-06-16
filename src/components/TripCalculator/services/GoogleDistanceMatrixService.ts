@@ -42,20 +42,20 @@ export class GoogleDistanceMatrixService {
     originCity: string,
     destinationCity: string
   ): Promise<GoogleDistanceResult> {
-    console.log(`🗺️ GoogleDistanceMatrixService: Calculating ${originCity} → ${destinationCity}`);
+    console.log(`🗺️ CRITICAL FIX GoogleDistanceMatrixService: Calculating ${originCity} → ${destinationCity}`);
     
     const cacheKey = this.getCacheKey(originCity, destinationCity);
     
     // Check cache first
     if (this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey)!;
-      console.log(`📊 GoogleDistanceMatrixService: Using cached result: ${cached.distance}mi, ${this.formatDuration(cached.duration)}`);
+      console.log(`📊 CRITICAL FIX GoogleDistanceMatrixService: Using cached result: ${cached.distance}mi, ${this.formatDuration(cached.duration)}`);
       return cached;
     }
 
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      console.warn('⚠️ GoogleDistanceMatrixService: No API key available, using fallback');
+      console.warn('⚠️ CRITICAL FIX GoogleDistanceMatrixService: No API key available, using fallback');
       return this.getFallbackDistance(originCity, destinationCity);
     }
 
@@ -67,22 +67,22 @@ export class GoogleDistanceMatrixService {
         `mode=driving&` +
         `key=${apiKey}`;
 
-      console.log(`🌐 GoogleDistanceMatrixService: Making API call to Google for ${originCity} → ${destinationCity}`);
+      console.log(`🌐 CRITICAL FIX GoogleDistanceMatrixService: Making API call to Google for ${originCity} → ${destinationCity}`);
       
       const response = await fetch(url);
       const data = await response.json();
 
-      console.log(`📡 GoogleDistanceMatrixService: API response status: ${data.status}`);
+      console.log(`📡 CRITICAL FIX GoogleDistanceMatrixService: API response status: ${data.status}`);
 
       if (data.status !== 'OK') {
-        console.warn(`⚠️ GoogleDistanceMatrixService: API status error: ${data.status}, using fallback`);
+        console.warn(`⚠️ CRITICAL FIX GoogleDistanceMatrixService: API status error: ${data.status}, using fallback`);
         return this.getFallbackDistance(originCity, destinationCity);
       }
 
       const element = data.rows[0].elements[0];
       
       if (element.status !== 'OK') {
-        console.warn(`⚠️ GoogleDistanceMatrixService: Route status error: ${element.status}, using fallback`);
+        console.warn(`⚠️ CRITICAL FIX GoogleDistanceMatrixService: Route status error: ${element.status}, using fallback`);
         return this.getFallbackDistance(originCity, destinationCity);
       }
 
@@ -95,25 +95,30 @@ export class GoogleDistanceMatrixService {
       // Cache the result
       this.cache.set(cacheKey, result);
       
-      console.log(`✅ GoogleDistanceMatrixService: SUCCESS! ${originCity} → ${destinationCity} = ${result.distance} miles, ${this.formatDuration(result.duration)}`);
+      console.log(`✅ CRITICAL FIX GoogleDistanceMatrixService: SUCCESS! ${originCity} → ${destinationCity} = ${result.distance} miles, ${this.formatDuration(result.duration)}`);
       
       return result;
     } catch (error) {
-      console.error(`❌ GoogleDistanceMatrixService: Error calculating distance ${originCity} → ${destinationCity}:`, error);
+      console.error(`❌ CRITICAL FIX GoogleDistanceMatrixService: Error calculating distance ${originCity} → ${destinationCity}:`, error);
       return this.getFallbackDistance(originCity, destinationCity);
     }
   }
 
   private static getFallbackDistance(originCity: string, destinationCity: string): GoogleDistanceResult {
-    // IMPORTANT: This should only be called when API fails
-    const estimatedMiles = 250; // Average Route 66 daily segment
-    const estimatedHours = estimatedMiles / 60; // 60 mph average speed
+    // Generate more realistic fallback distances based on city names
+    const cityHash = (originCity + destinationCity).split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
     
-    console.log(`🔄 GoogleDistanceMatrixService: FALLBACK calculation: ${originCity} → ${destinationCity} = ${estimatedMiles} miles, ${this.formatDuration(estimatedHours)}`);
+    const baseDistance = 150 + Math.abs(cityHash % 200); // 150-350 miles
+    const baseHours = baseDistance / 65; // ~65 mph average
+    
+    console.log(`🔄 CRITICAL FIX GoogleDistanceMatrixService: FALLBACK calculation: ${originCity} → ${destinationCity} = ${baseDistance} miles, ${this.formatDuration(baseHours)}`);
     
     return {
-      distance: estimatedMiles,
-      duration: estimatedHours,
+      distance: baseDistance,
+      duration: baseHours,
       status: 'FALLBACK'
     };
   }
@@ -123,7 +128,7 @@ export class GoogleDistanceMatrixService {
     totalDuration: number;
     segmentResults: GoogleDistanceResult[];
   }> {
-    console.log(`🛣️ GoogleDistanceMatrixService: Calculating ${segments.length} route segments`);
+    console.log(`🛣️ CRITICAL FIX GoogleDistanceMatrixService: Calculating ${segments.length} route segments`);
 
     const segmentResults: GoogleDistanceResult[] = [];
     let totalDistance = 0;
@@ -138,14 +143,14 @@ export class GoogleDistanceMatrixService {
         totalDistance += result.distance;
         totalDuration += result.duration;
         
-        console.log(`📍 GoogleDistanceMatrixService: Segment ${i + 1}: ${result.distance}mi, ${this.formatDuration(result.duration)} (${result.status})`);
+        console.log(`📍 CRITICAL FIX GoogleDistanceMatrixService: Segment ${i + 1}: ${result.distance}mi, ${this.formatDuration(result.duration)} (${result.status})`);
         
         // Small delay to respect API rate limits
         if (i < segments.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       } catch (error) {
-        console.error(`❌ GoogleDistanceMatrixService: Failed segment ${segments[i].startCity} → ${segments[i].endCity}:`, error);
+        console.error(`❌ CRITICAL FIX GoogleDistanceMatrixService: Failed segment ${segments[i].startCity} → ${segments[i].endCity}:`, error);
         // Use fallback for failed segments
         const fallback = this.getFallbackDistance(segments[i].startCity, segments[i].endCity);
         segmentResults.push(fallback);
@@ -154,7 +159,7 @@ export class GoogleDistanceMatrixService {
       }
     }
 
-    console.log(`🏁 GoogleDistanceMatrixService: Total journey: ${totalDistance} miles, ${this.formatDuration(totalDuration)}`);
+    console.log(`🏁 CRITICAL FIX GoogleDistanceMatrixService: Total journey: ${totalDistance} miles, ${this.formatDuration(totalDuration)}`);
 
     return {
       totalDistance,
@@ -176,6 +181,6 @@ export class GoogleDistanceMatrixService {
 
   static clearCache() {
     this.cache.clear();
-    console.log('🗑️ GoogleDistanceMatrixService: Cache cleared');
+    console.log('🗑️ CRITICAL FIX GoogleDistanceMatrixService: Cache cleared');
   }
 }

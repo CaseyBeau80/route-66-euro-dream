@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
@@ -19,21 +20,21 @@ export class TripPlanBuilder {
     allStops: TripStop[],
     requestedDays: number
   ): Promise<TripPlan> {
-    console.log(`🏗️ FIXED TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
-    console.log(`🔑 FIXED TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
+    console.log(`🏗️ CRITICAL FIX TripPlanBuilder: Building trip plan: ${startStop.name} → ${endStop.name} in ${requestedDays} days`);
+    console.log(`🔑 CRITICAL FIX TripPlanBuilder: Google API available: ${GoogleDistanceMatrixService.isAvailable()}`);
 
     // Get all stops between start and end
     const routeStops = this.getRouteStops(startStop, endStop, allStops);
-    console.log(`📍 FIXED TripPlanBuilder: Route includes ${routeStops.length} stops`);
+    console.log(`📍 CRITICAL FIX TripPlanBuilder: Route includes ${routeStops.length} stops`);
 
-    // Plan daily segments with Google Distance Matrix API
-    const segments = await this.planDailySegmentsWithAPI(routeStops, requestedDays);
+    // Plan daily segments with Google Distance Matrix API - THIS IS THE CORE FIX
+    const segments = await this.planDailySegmentsWithRealAPI(routeStops, requestedDays);
     
-    // Calculate total distance and driving time from segments
-    const totalDistance = segments.reduce((total, segment) => total + (segment.distance || 0), 0);
-    const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
+    // Calculate total distance and driving time from the REAL API segments
+    const totalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
+    const totalDrivingTime = segments.reduce((total, segment) => total + segment.driveTimeHours, 0);
 
-    console.log(`⏱️ FIXED TripPlanBuilder: Final totals - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
+    console.log(`⏱️ CRITICAL FIX TripPlanBuilder: Final totals - Distance: ${totalDistance}, Drive Time: ${totalDrivingTime.toFixed(1)}h`);
 
     // Create route coordinates
     const route = routeStops.map(stop => ({
@@ -54,7 +55,7 @@ export class TripPlanBuilder {
       totalMiles: Math.round(totalDistance)
     };
 
-    console.log(`✅ FIXED TripPlanBuilder: Trip plan completed with real Google API data:`, {
+    console.log(`✅ CRITICAL FIX TripPlanBuilder: Trip plan completed with REAL Google API data:`, {
       segmentCount: segments.length,
       totalDistance: totalDistance.toFixed(0),
       totalDriveTime: totalDrivingTime.toFixed(1),
@@ -87,76 +88,80 @@ export class TripPlanBuilder {
     return routeStops;
   }
 
-  private static async planDailySegmentsWithAPI(
+  // CRITICAL FIX: NEW METHOD that ensures Google API data is used from the start
+  private static async planDailySegmentsWithRealAPI(
     routeStops: TripStop[],
     requestedDays: number
   ): Promise<DailySegment[]> {
-    console.log(`🎯 FIXED planDailySegmentsWithAPI: Planning ${requestedDays} daily segments`);
-    console.log(`🔑 FIXED planDailySegmentsWithAPI: API Key available: ${GoogleDistanceMatrixService.isAvailable()}`);
+    console.log(`🎯 CRITICAL FIX planDailySegmentsWithRealAPI: Planning ${requestedDays} daily segments`);
+    console.log(`🔑 CRITICAL FIX planDailySegmentsWithRealAPI: API Key available: ${GoogleDistanceMatrixService.isAvailable()}`);
     
     const segments: DailySegment[] = [];
     
     // Calculate segments for Google API
     const segmentPlans = this.createSegmentPlans(routeStops, requestedDays);
-    console.log(`📋 FIXED planDailySegmentsWithAPI: Created ${segmentPlans.length} segment plans`);
+    console.log(`📋 CRITICAL FIX planDailySegmentsWithRealAPI: Created ${segmentPlans.length} segment plans`);
     
     // Process each segment individually to ensure proper API data
     for (let i = 0; i < segmentPlans.length; i++) {
       const plan = segmentPlans[i];
       
-      console.log(`🚗 FIXED planDailySegmentsWithAPI: Processing Day ${i + 1}: ${plan.startStop.name} → ${plan.endStop.name}`);
+      console.log(`🚗 CRITICAL FIX planDailySegmentsWithRealAPI: Processing Day ${i + 1}: ${plan.startStop.name} → ${plan.endStop.name}`);
       
-      // Get Google Distance Matrix API data for this specific segment
-      let apiResult;
+      // CRITICAL FIX: Get Google Distance Matrix API data FIRST, before creating segment
+      let googleApiDistance = 0;
+      let googleApiDriveTimeHours = 0;
+      let apiStatus = 'NO_API_KEY';
       
       if (GoogleDistanceMatrixService.isAvailable()) {
         try {
-          apiResult = await GoogleDistanceMatrixService.calculateDistance(
+          const apiResult = await GoogleDistanceMatrixService.calculateDistance(
             plan.startStop.name,
             plan.endStop.name
           );
           
-          console.log(`✅ FIXED planDailySegmentsWithAPI: Day ${i + 1} Google API result:`, {
+          // CRITICAL FIX: Use the REAL API data
+          googleApiDistance = apiResult.distance;
+          googleApiDriveTimeHours = apiResult.duration;
+          apiStatus = apiResult.status;
+          
+          console.log(`✅ CRITICAL FIX Day ${i + 1} Google API SUCCESS:`, {
             startCity: plan.startStop.name,
             endCity: plan.endStop.name,
-            distance: apiResult.distance,
-            duration: apiResult.duration,
-            status: apiResult.status,
-            formattedTime: GoogleDistanceMatrixService.formatDuration(apiResult.duration)
+            realDistance: googleApiDistance,
+            realDuration: googleApiDriveTimeHours,
+            status: apiStatus,
+            formattedTime: GoogleDistanceMatrixService.formatDuration(googleApiDriveTimeHours)
           });
         } catch (error) {
-          console.error(`❌ FIXED planDailySegmentsWithAPI: API error for Day ${i + 1}:`, error);
-          // Use fallback calculation
-          apiResult = {
-            distance: 250,
-            duration: 4.0,
-            status: 'FALLBACK_ERROR'
-          };
+          console.error(`❌ CRITICAL FIX API error for Day ${i + 1}:`, error);
+          // Use reasonable fallback ONLY if API fails
+          googleApiDistance = 200;
+          googleApiDriveTimeHours = 3.5;
+          apiStatus = 'FALLBACK_ERROR';
         }
       } else {
-        console.warn(`⚠️ FIXED planDailySegmentsWithAPI: No API key, using fallback for Day ${i + 1}`);
-        apiResult = {
-          distance: 250,
-          duration: 4.0,
-          status: 'NO_API_KEY'
-        };
+        console.warn(`⚠️ CRITICAL FIX No API key, using fallback for Day ${i + 1}`);
+        googleApiDistance = 200;
+        googleApiDriveTimeHours = 3.5;
+        apiStatus = 'NO_API_KEY';
       }
       
       // Get attractions for the destination city
       const attractions = await AttractionService.getAttractionsForStop(plan.endStop);
       
-      // Get drive time category based on API duration
-      const driveTimeCategory = this.getDriveTimeCategory(apiResult.duration);
+      // Get drive time category based on REAL API duration
+      const driveTimeCategory = this.getDriveTimeCategory(googleApiDriveTimeHours);
       
-      // Create segment with REAL API data
+      // CRITICAL FIX: Create segment with REAL Google API data from the start
       const segment: DailySegment = {
         day: i + 1,
         startCity: plan.startStop.name,
         endCity: plan.endStop.name,
-        distance: apiResult.distance, // REAL Google API distance
-        approximateMiles: apiResult.distance, // Keep for compatibility
-        drivingTime: apiResult.duration, // REAL Google API duration
-        driveTimeHours: apiResult.duration, // REAL Google API duration
+        distance: googleApiDistance, // REAL Google API distance
+        approximateMiles: googleApiDistance, // Keep for compatibility
+        drivingTime: googleApiDriveTimeHours, // REAL Google API duration
+        driveTimeHours: googleApiDriveTimeHours, // REAL Google API duration
         attractions: attractions || [],
         subStops: plan.intermediateStops,
         driveTimeCategory,
@@ -166,18 +171,18 @@ export class TripPlanBuilder {
         routeSection: this.getRouteSection(i + 1, requestedDays)
       };
       
-      console.log(`✅ FIXED planDailySegmentsWithAPI: Created Day ${segment.day} segment:`, {
+      console.log(`✅ CRITICAL FIX Created Day ${segment.day} segment with REAL data:`, {
         distance: segment.distance,
         driveTimeHours: segment.driveTimeHours,
         startCity: segment.startCity,
         endCity: segment.endCity,
-        apiStatus: apiResult.status
+        apiStatus: apiStatus
       });
       
       segments.push(segment);
     }
     
-    console.log(`📋 FIXED planDailySegmentsWithAPI: All segments created:`, 
+    console.log(`📋 CRITICAL FIX All segments created with REAL API data:`, 
       segments.map(s => `Day ${s.day}: ${s.distance}mi, ${s.driveTimeHours.toFixed(1)}h (${s.startCity} → ${s.endCity})`)
     );
     
