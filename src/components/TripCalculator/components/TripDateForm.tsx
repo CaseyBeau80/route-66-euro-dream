@@ -47,21 +47,23 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // Use unified service for date disability
+  // FIXED: Use unified service for date disability - CRITICAL FIX to allow today
   const isDateDisabled = (date: Date): boolean => {
     const isPast = UnifiedDateService.isPastDate(date);
     const isToday = UnifiedDateService.isToday(date);
     
-    console.log('📅 UNIFIED DATE FORM: Date validation:', {
+    console.log('📅 UNIFIED DATE FORM: Date validation (FIXED):', {
       inputDate: date.toLocaleDateString(),
       isPast,
       isToday,
-      isDisabled: isPast,
-      reason: isPast ? 'DISABLED: Date is before today' : isToday ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date',
+      isDisabled: isPast && !isToday, // CRITICAL FIX: Today is NEVER disabled
+      reason: isPast && !isToday ? 'DISABLED: Date is before today' : isToday ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date',
       service: 'UnifiedDateService'
     });
     
-    return isPast;
+    // CRITICAL FIX: Only disable dates that are actually in the past (before today)
+    // Today should NEVER be disabled
+    return isPast && !isToday;
   };
 
   return (
