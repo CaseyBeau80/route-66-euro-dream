@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { WeatherPreCacheService, WeatherCacheResult } from '../../services/WeatherPreCacheService';
 import { TripService } from '../../services/TripService';
+import { GoogleCalendarService } from '../../services/GoogleCalendarService';
+import { CalendarExportService } from '../../services/CalendarExportService';
 import { toast } from '@/hooks/use-toast';
 import ShareTripModalContent from './ShareTripModalContent';
-import { Loader2, CloudSnow } from 'lucide-react';
+import { Loader2, CloudSnow, Calendar, Download, ExternalLink } from 'lucide-react';
 
 interface EnhancedShareTripModalProps {
   isOpen: boolean;
@@ -29,6 +31,76 @@ const EnhancedShareTripModal: React.FC<EnhancedShareTripModalProps> = ({
   const [cacheResult, setCacheResult] = useState<WeatherCacheResult | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+
+  const handleGoogleCalendarExport = () => {
+    console.log('🔴 Google Calendar export clicked');
+    if (!tripStartDate) {
+      toast({
+        title: "Start Date Required",
+        description: "Please set a trip start date to add to Google Calendar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      GoogleCalendarService.trackCalendarClick(tripPlan);
+      
+      const calendarUrl = GoogleCalendarService.createTripCalendarUrl(
+        tripPlan,
+        tripStartDate,
+        shareUrl || undefined,
+        { useUTC: false }
+      );
+
+      window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+
+      toast({
+        title: "Opening Google Calendar",
+        description: "Your Route 66 trip is being added to Google Calendar.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Google Calendar export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Could not export to Google Calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleICalendarDownload = async () => {
+    console.log('🔴 iCalendar download clicked');
+    if (!tripStartDate) {
+      toast({
+        title: "Start Date Required",
+        description: "Please set a trip start date to download calendar file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const events = CalendarExportService.generateCalendarEvents(tripPlan, tripStartDate);
+      const filename = `route66-trip-${tripPlan.startCity.replace(/\s+/g, '-').toLowerCase()}-to-${tripPlan.endCity.replace(/\s+/g, '-').toLowerCase()}.ics`;
+      
+      CalendarExportService.downloadICSFile(events, filename);
+
+      toast({
+        title: "Calendar Downloaded",
+        description: "Your Route 66 trip calendar file has been downloaded successfully.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('iCalendar download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download calendar file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handlePreCacheAndShare = async () => {
     if (!tripStartDate || !tripPlan.segments) {
@@ -150,6 +222,52 @@ const EnhancedShareTripModal: React.FC<EnhancedShareTripModalProps> = ({
             🗺️ Share Your Route 66 Adventure
           </DialogTitle>
         </DialogHeader>
+
+        {/* CALENDAR EXPORT SECTION - FIRST AND MOST VISIBLE */}
+        <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-500 p-6 rounded-lg mb-6">
+          <h3 className="font-bold text-red-800 text-xl mb-4 flex items-center gap-2">
+            📅 Add to Your Calendar
+            <Calendar className="h-6 w-6" />
+          </h3>
+          
+          <div className="bg-white p-4 rounded border mb-4">
+            <p className="text-sm font-mono text-gray-800">
+              DEBUG: tripStartDate = {tripStartDate ? '✅ ' + tripStartDate.toISOString() : '❌ NULL'}
+            </p>
+            <p className="text-sm font-mono text-gray-800">
+              Trip: {tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity}` : '❌ No trip plan'}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              onClick={handleGoogleCalendarExport}
+              disabled={!tripStartDate}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 h-auto text-lg font-bold"
+            >
+              <ExternalLink className="h-6 w-6 mr-3" />
+              Add to Google Calendar
+            </Button>
+
+            <Button
+              onClick={handleICalendarDownload}
+              disabled={!tripStartDate}
+              variant="outline"
+              className="w-full py-4 h-auto border-2 border-green-300 hover:bg-green-50 text-lg font-bold"
+            >
+              <Download className="h-6 w-6 mr-3 text-green-600" />
+              Download iCalendar (.ics)
+            </Button>
+          </div>
+
+          {!tripStartDate && (
+            <div className="mt-4 bg-amber-100 border border-amber-400 p-3 rounded">
+              <p className="text-amber-800 font-semibold">
+                ⚠️ Please set a trip start date to enable calendar export
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Pre-caching Status */}
         {(isPreCaching || isGeneratingLink) && (
