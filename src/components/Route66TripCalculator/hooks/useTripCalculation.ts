@@ -19,11 +19,8 @@ export const useTripCalculation = () => {
     setPlanningResult(null);
 
     try {
-      // Create planning service instance
-      const planningService = new UnifiedTripPlanningService();
-      
-      // Plan the trip
-      const result = await planningService.planTrip(
+      // Use static method call instead of instance method
+      const result = await UnifiedTripPlanningService.planTrip(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,

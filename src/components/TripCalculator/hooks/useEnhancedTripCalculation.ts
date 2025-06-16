@@ -110,9 +110,8 @@ export const useEnhancedTripCalculation = () => {
     try {
       loadingState.updateProgress('Analyzing your route preferences...', 20);
       
-      // Use the new unified planning service
-      const planningService = new UnifiedTripPlanningService();
-      const result = await planningService.planTrip(
+      // Use static method call instead of instance method
+      const result = await UnifiedTripPlanningService.planTrip(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
