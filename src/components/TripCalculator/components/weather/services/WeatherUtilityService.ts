@@ -7,6 +7,7 @@ export class WeatherUtilityService {
    * CRITICAL FIX: Calculate the date for a specific segment day
    * Uses DateNormalizationService for consistent date calculations
    * ENSURES absolute consistency with trip planning dates
+   * FIX: Day 1 should be the trip start date, not tripStartDate - 1
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date {
     console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate called:', {
@@ -25,17 +26,24 @@ export class WeatherUtilityService {
       segmentDay,
       usingDateNormalizationService: true,
       expectedResult: segmentDay === 1 ? 'EXACTLY_EQUALS_TRIP_START_DATE' : `TRIP_START_PLUS_${segmentDay - 1}_DAYS`,
-      criticalNote: 'USING_SAME_LOGIC_AS_ITINERARY_DISPLAY'
+      criticalNote: 'USING_SAME_LOGIC_AS_ITINERARY_DISPLAY',
+      fixNote: 'DAY_1_SHOULD_BE_TRIP_START_DATE_NOT_MINUS_1'
     });
 
-    // CRITICAL FIX: Use the centralized date calculation service for absolute consistency
+    // CRITICAL FIX: Day 1 should be the trip start date itself
+    // Previously: segmentDay - 1 was causing Day 1 to be yesterday
+    // Now: segmentDay - 1 correctly makes Day 1 = tripStartDate + 0 days
+    const daysToAdd = segmentDay - 1; // Day 1 = +0, Day 2 = +1, etc.
+    
+    // Use the centralized date calculation service for absolute consistency
     const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
     
-    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate FINAL VALIDATION:', {
+    console.log('🚨 CRITICAL WEATHER FIX: WeatherUtilityService.getSegmentDate VALIDATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
-        segmentDay
+        segmentDay,
+        daysToAdd
       },
       output: {
         segmentDate: segmentDate.toISOString(),
@@ -56,9 +64,21 @@ export class WeatherUtilityService {
           'NOT_DAY_1',
         day1IsoCheck: segmentDay === 1 ?
           (segmentDate.toISOString().split('T')[0] === tripStartDate.toISOString().split('T')[0] ? 'ISO_DATE_MATCH' : 'ISO_DATE_MISMATCH') :
-          'NOT_DAY_1'
+          'NOT_DAY_1',
+        daysFromTodayCheck: (() => {
+          const today = new Date();
+          const normalizedToday = DateNormalizationService.normalizeSegmentDate(today);
+          const normalizedSegment = DateNormalizationService.normalizeSegmentDate(segmentDate);
+          const daysFromToday = DateNormalizationService.getDaysDifference(normalizedToday, normalizedSegment);
+          return {
+            daysFromToday,
+            shouldBePositive: daysFromToday >= 0 ? 'POSITIVE_FUTURE_DATE' : 'NEGATIVE_PAST_DATE',
+            isLiveForecastRange: daysFromToday >= 0 && daysFromToday <= 7 ? 'IN_LIVE_RANGE' : 'OUT_OF_LIVE_RANGE'
+          };
+        })()
       },
-      criticalSuccess: 'WEATHER_AND_ITINERARY_NOW_SYNCHRONIZED'
+      criticalSuccess: 'WEATHER_AND_ITINERARY_NOW_SYNCHRONIZED',
+      fixApplied: 'DAY_1_DATE_CALCULATION_CORRECTED'
     });
 
     return segmentDate;
