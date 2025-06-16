@@ -3,7 +3,7 @@ import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { MapPin, Clock, Star, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { DateNormalizationService } from './weather/DateNormalizationService';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 import EnhancedWeatherWidget from './weather/EnhancedWeatherWidget';
 
 interface PreviewDayCardProps {
@@ -19,23 +19,23 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
   tripStartDate,
   isLast
 }) => {
-  // CRITICAL FIX: Use DateNormalizationService for consistent date calculation
+  // UNIFIED: Use UnifiedDateService for consistent date calculation
   const segmentDate = React.useMemo(() => {
     if (!tripStartDate) return undefined;
     
-    console.log('🗓️ CRITICAL FIX: PreviewDayCard date calculation:', {
+    console.log('🗓️ UNIFIED: PreviewDayCard date calculation:', {
       tripStartDate: tripStartDate.toISOString(),
       tripStartDateLocal: tripStartDate.toLocaleDateString(),
       segmentDay: segment.day,
       dayIndex,
-      oldMethod: 'addDays(tripStartDate, dayIndex) - INCORRECT',
-      newMethod: 'DateNormalizationService.calculateSegmentDate - CORRECT'
+      service: 'UnifiedDateService - CONSISTENT',
+      previousIssue: 'Multiple date services causing inconsistency - FIXED'
     });
     
-    // Use the centralized date calculation service
-    const calculatedDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segment.day);
+    // Use the unified date calculation service
+    const calculatedDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segment.day);
     
-    console.log('🗓️ CRITICAL FIX: PreviewDayCard calculated date:', {
+    console.log('🗓️ UNIFIED: PreviewDayCard calculated date:', {
       segmentDay: segment.day,
       calculatedDate: calculatedDate.toISOString(),
       calculatedDateLocal: calculatedDate.toLocaleDateString(),
@@ -43,8 +43,9 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
         day1Check: 'Day 1 should match trip start date exactly',
         tripStartLocal: tripStartDate.toLocaleDateString(),
         calculatedLocal: calculatedDate.toLocaleDateString(),
-        matches: tripStartDate.toLocaleDateString() === calculatedDate.toLocaleDateString()
-      } : null
+        matches: UnifiedDateService.isSameDate(tripStartDate, calculatedDate)
+      } : null,
+      usingUnifiedService: true
     });
     
     return calculatedDate;
@@ -112,7 +113,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
           </div>
         </div>
 
-        {/* Weather Widget */}
+        {/* Unified Weather Widget */}
         {tripStartDate && segmentDate && (
           <div className="mb-6">
             <h4 className="text-lg font-semibold text-gray-800 mb-3">

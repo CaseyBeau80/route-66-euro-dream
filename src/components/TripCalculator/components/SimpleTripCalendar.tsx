@@ -25,9 +25,10 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
   const today = UnifiedDateService.getToday();
 
-  console.log('📅 UNIFIED CALENDAR: Using UnifiedDateService:', {
+  console.log('📅 UNIFIED CALENDAR: Using UnifiedDateService for all operations:', {
     today: today.toLocaleDateString(),
-    selected: selected?.toLocaleDateString()
+    selected: selected?.toLocaleDateString(),
+    service: 'UnifiedDateService - SINGLE SOURCE OF TRUTH'
   });
 
   // Navigate months
@@ -71,7 +72,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     console.log('📅 UNIFIED CALENDAR: Date clicked:', {
       clickedDate: date.toLocaleDateString(),
       isToday: UnifiedDateService.isToday(date),
-      isDisabled: disabled?.(date) || false
+      isDisabled: disabled?.(date) || false,
+      service: 'UnifiedDateService'
     });
 
     if (disabled?.(date)) {
@@ -81,6 +83,13 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
     // Use unified service to create clean date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
+    
+    console.log('📅 UNIFIED CALENDAR: Normalized date for selection:', {
+      original: date.toLocaleDateString(),
+      normalized: cleanDate.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
+    
     onSelect(cleanDate);
   };
 
@@ -95,17 +104,23 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     // Use unified service for past date check
     const isPast = UnifiedDateService.isPastDate(date);
     
-    console.log('📅 UNIFIED CALENDAR: Date check:', {
+    console.log('📅 UNIFIED CALENDAR: Date validation:', {
       date: date.toLocaleDateString(),
       isPast,
-      isToday: UnifiedDateService.isToday(date)
+      isToday: UnifiedDateService.isToday(date),
+      isDisabled: isPast,
+      service: 'UnifiedDateService'
     });
     
     return isPast;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 UNIFIED CALENDAR: Today button clicked');
+    console.log('📅 UNIFIED CALENDAR: Today button clicked - selecting today:', {
+      today: today.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
+    
     if (!isDateDisabled(today)) {
       handleDateClick(today);
     }
@@ -172,8 +187,8 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
                 {
                   // Selected state
                   "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
-                  // Today but not selected
-                  "bg-green-100 text-green-800 font-semibold border-green-200 hover:bg-green-200 ring-2 ring-green-300": isTodayDate && !isSelected,
+                  // Today but not selected - Enhanced styling for today
+                  "bg-green-100 text-green-800 font-bold border-green-300 hover:bg-green-200 ring-2 ring-green-400 shadow-sm": isTodayDate && !isSelected,
                   // Disabled state
                   "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled,
                   // Normal state
@@ -187,16 +202,16 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         })}
       </div>
 
-      {/* Today Button */}
+      {/* Enhanced Today Button */}
       <div className="mt-4 pt-3 border-t border-gray-200">
         <Button
           variant="outline"
           size="sm"
           onClick={handleTodayClick}
           disabled={false}
-          className="w-full text-xs font-medium border-green-400 text-green-700 bg-green-50 hover:bg-green-100"
+          className="w-full text-xs font-bold border-green-500 text-green-800 bg-green-50 hover:bg-green-100 hover:border-green-600 transition-all duration-200 shadow-sm"
         >
-          Select Today ({today.toLocaleDateString()}) ✨
+          ✨ Select Today ({today.toLocaleDateString()}) - Start Now! ✨
         </Button>
       </div>
     </div>

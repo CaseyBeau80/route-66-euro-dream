@@ -4,7 +4,7 @@ import { Cloud } from 'lucide-react';
 import { format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { useStableSegments } from '../hooks/useStableSegments';
-import { DateNormalizationService } from './weather/DateNormalizationService';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 import EnhancedWeatherWidget from './weather/EnhancedWeatherWidget';
 import TestWeatherComponent from './weather/TestWeatherComponent';
 import ErrorBoundary from './ErrorBoundary';
@@ -20,16 +20,17 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
   tripStartDate,
   tripId
 }) => {
-  console.log('🚀 SimpleWeatherForecastColumn ENHANCED RENDER:', {
+  console.log('🚀 SimpleWeatherForecastColumn UNIFIED RENDER:', {
     segments: segments?.length || 0,
     tripStartDate: tripStartDate ? (tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate.toString()) : 'NULL',
     tripId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    usingUnifiedDateService: true
   });
 
   const stableSegments = useStableSegments(segments);
 
-  // Validate and convert tripStartDate to Date object
+  // Validate and convert tripStartDate to Date object using UnifiedDateService
   const validTripStartDate = React.useMemo(() => {
     if (!tripStartDate) {
       console.log('🗓️ SimpleWeatherForecastColumn: No tripStartDate provided');
@@ -42,14 +43,16 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
           console.error('❌ SimpleWeatherForecastColumn: Invalid Date object', tripStartDate);
           return null;
         }
-        return tripStartDate;
+        // Normalize using UnifiedDateService
+        return UnifiedDateService.normalizeToLocalMidnight(tripStartDate);
       } else if (typeof tripStartDate === 'string') {
         const parsed = new Date(tripStartDate);
         if (isNaN(parsed.getTime())) {
           console.error('❌ SimpleWeatherForecastColumn: Invalid date string', tripStartDate);
           return null;
         }
-        return parsed;
+        // Normalize using UnifiedDateService
+        return UnifiedDateService.normalizeToLocalMidnight(parsed);
       } else {
         console.error('❌ SimpleWeatherForecastColumn: Invalid tripStartDate type', { tripStartDate, type: typeof tripStartDate });
         return null;
@@ -88,7 +91,7 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
       {/* Column Label */}
       <div className="mb-3">
         <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-          Enhanced Weather Forecast
+          Unified Weather Forecast
         </h4>
       </div>
       
@@ -105,7 +108,18 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
           let segmentDate: Date | null = null;
           
           try {
-            segmentDate = DateNormalizationService.calculateSegmentDate(validTripStartDate, segment.day);
+            // Use UnifiedDateService for all date calculations
+            segmentDate = UnifiedDateService.calculateSegmentDate(validTripStartDate, segment.day);
+            
+            console.log('🗓️ UNIFIED: SimpleWeatherForecastColumn segment date calculation:', {
+              segment: segment.day,
+              tripStartDate: validTripStartDate.toISOString(),
+              tripStartDateLocal: validTripStartDate.toLocaleDateString(),
+              calculatedDate: segmentDate?.toISOString(),
+              calculatedDateLocal: segmentDate?.toLocaleDateString(),
+              cityName: segment.endCity,
+              usingUnifiedService: true
+            });
             
             if (!segmentDate || isNaN(segmentDate.getTime())) {
               console.error('❌ Invalid calculated date for segment', { 
@@ -120,7 +134,7 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
           }
           
           return (
-            <ErrorBoundary key={`enhanced-weather-segment-${segment.day}-${index}`} context={`EnhancedWeatherColumn-Segment-${index}`}>
+            <ErrorBoundary key={`unified-weather-segment-${segment.day}-${index}`} context={`UnifiedWeatherColumn-Segment-${index}`}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow min-h-[200px]">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100">
@@ -142,7 +156,7 @@ const SimpleWeatherForecastColumn: React.FC<SimpleWeatherForecastColumnProps> = 
                   </div>
                 </div>
                 
-                {/* Enhanced Weather Content */}
+                {/* Unified Weather Content */}
                 <div className="p-4">
                   <EnhancedWeatherWidget
                     segment={segment}

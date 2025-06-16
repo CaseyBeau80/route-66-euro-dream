@@ -4,6 +4,7 @@ import { DailySegment } from '../services/planning/TripPlanBuilder';
 import SegmentWeatherWidget from './SegmentWeatherWidget';
 import ErrorBoundary from './ErrorBoundary';
 import { Cloud } from 'lucide-react';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 
 interface WeatherTabContentProps {
   segments: DailySegment[];
@@ -18,11 +19,13 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
   tripId,
   isVisible
 }) => {
-  console.log('🌤️ WeatherTabContent render:', {
+  console.log('🌤️ UNIFIED WeatherTabContent render:', {
     isVisible,
     segmentsCount: segments.length,
     tripStartDate: tripStartDate?.toISOString(),
-    tripId
+    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
+    tripId,
+    service: 'UnifiedDateService - CONSISTENT WEATHER TAB'
   });
 
   if (!isVisible) {
@@ -31,7 +34,7 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
 
   // If no trip start date is provided, show a message
   if (!tripStartDate) {
-    console.log('⚠️ WeatherTabContent: No trip start date provided');
+    console.log('⚠️ UNIFIED WeatherTabContent: No trip start date provided');
     return (
       <div className="space-y-4">
         <div className="mb-3">
@@ -57,21 +60,29 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
     <div className="space-y-4">
       <div className="mb-3">
         <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-          Weather Forecast for Each Day
+          Unified Weather Forecast for Each Day
         </h4>
       </div>
       
       {segments.map((segment, index) => {
-        // Calculate the date for this segment
-        const segmentDate = new Date(tripStartDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+        // UNIFIED: Calculate the date for this segment using UnifiedDateService
+        const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segment.day);
         
-        console.log(`🌤️ Rendering weather for Day ${segment.day}:`, { 
+        console.log(`🌤️ UNIFIED: Rendering weather for Day ${segment.day}:`, { 
           endCity: segment.endCity,
-          segmentDate: segmentDate.toISOString()
+          tripStartDate: tripStartDate.toISOString(),
+          tripStartDateLocal: tripStartDate.toLocaleDateString(),
+          segmentDate: segmentDate.toISOString(),
+          segmentDateLocal: segmentDate.toLocaleDateString(),
+          verification: segment.day === 1 ? {
+            day1Check: 'Day 1 should match trip start exactly',
+            matches: UnifiedDateService.isSameDate(tripStartDate, segmentDate)
+          } : null,
+          service: 'UnifiedDateService'
         });
 
         return (
-          <ErrorBoundary key={`weather-day-${segment.day}-${segment.endCity}`} context={`WeatherTab-Day-${segment.day}`}>
+          <ErrorBoundary key={`unified-weather-day-${segment.day}-${segment.endCity}`} context={`UnifiedWeatherTab-Day-${segment.day}`}>
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="mb-3">
                 <h5 className="text-lg font-semibold text-gray-800 mb-1">
@@ -84,6 +95,11 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
                     month: 'long', 
                     day: 'numeric' 
                   })}
+                  {UnifiedDateService.isToday(segmentDate) && (
+                    <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                      TODAY ✨
+                    </span>
+                  )}
                 </p>
               </div>
               
@@ -92,7 +108,7 @@ const WeatherTabContent: React.FC<WeatherTabContentProps> = ({
                 tripStartDate={tripStartDate}
                 cardIndex={index}
                 tripId={tripId}
-                sectionKey="weather-tab"
+                sectionKey="unified-weather-tab"
                 forceExpanded={true}
                 isCollapsible={false}
               />

@@ -1,197 +1,58 @@
+
+/**
+ * DEPRECATED: This service has been consolidated into UnifiedDateService
+ * All functionality has been moved to src/components/TripCalculator/services/UnifiedDateService.ts
+ * This file is kept temporarily for reference and will be removed after migration is complete.
+ */
+
+import { UnifiedDateService } from '../../services/UnifiedDateService';
+
 export class DateNormalizationService {
   /**
-   * CRITICAL FIX: Normalize a date to start of day in local timezone
-   * This ensures consistent date handling across the application
-   */
-  static normalizeSegmentDate(date: Date): Date {
-    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    console.log('📅 CRITICAL FIX: DateNormalizationService.normalizeSegmentDate:', {
-      input: {
-        iso: date.toISOString(),
-        local: date.toLocaleDateString(),
-        components: {
-          year: date.getFullYear(),
-          month: date.getMonth(),
-          date: date.getDate()
-        }
-      },
-      normalized: {
-        iso: normalized.toISOString(),
-        local: normalized.toLocaleDateString(),
-        components: {
-          year: normalized.getFullYear(),
-          month: normalized.getMonth(),
-          date: normalized.getDate()
-        }
-      },
-      verification: {
-        sameYear: date.getFullYear() === normalized.getFullYear(),
-        sameMonth: date.getMonth() === normalized.getMonth(),
-        sameDate: date.getDate() === normalized.getDate(),
-        isStartOfDay: normalized.getHours() === 0 && normalized.getMinutes() === 0 && normalized.getSeconds() === 0
-      }
-    });
-    
-    return normalized;
-  }
-
-  /**
-   * CRITICAL FIX: Calculate segment date based on trip start date and day number
-   * FIXED: Day 1 = EXACT SAME DATE as trip start, Day N = add (N-1) days
+   * @deprecated Use UnifiedDateService.calculateSegmentDate instead
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('📅 CRITICAL FIX: DateNormalizationService.calculateSegmentDate - EXACT ALIGNMENT:', {
-      tripStartDate: {
-        iso: tripStartDate.toISOString(),
-        local: tripStartDate.toLocaleDateString(),
-        components: {
-          year: tripStartDate.getFullYear(),
-          month: tripStartDate.getMonth(),
-          date: tripStartDate.getDate()
-        }
-      },
-      segmentDay,
-      fixedRule: 'Day 1 = EXACT SAME DATE as trip start (NO OFFSET)'
-    });
-
-    // CRITICAL FIX: Normalize the trip start date first
-    const normalizedStartDate = this.normalizeSegmentDate(tripStartDate);
-    
-    // CRITICAL FIX: For Day 1, return the EXACT same normalized date (no offset)
-    if (segmentDay === 1) {
-      console.log('📅 CRITICAL FIX: Day 1 - returning EXACT SAME DATE (FIXED):', {
-        input: normalizedStartDate.toISOString(),
-        inputLocal: normalizedStartDate.toLocaleDateString(),
-        verification: 'DAY_1_GETS_EXACT_SAME_DATE_FIXED'
-      });
-      return normalizedStartDate;
-    }
-    
-    // CRITICAL FIX: For other days, add (segmentDay - 1) days
-    const daysToAdd = segmentDay - 1;
-    
-    // Use Date constructor to add days while preserving local timezone
-    const segmentDate = new Date(
-      normalizedStartDate.getFullYear(),
-      normalizedStartDate.getMonth(),
-      normalizedStartDate.getDate() + daysToAdd
-    );
-    
-    console.log('📅 CRITICAL FIX: DateNormalizationService FINAL CALCULATION - FIXED:', {
-      input: {
-        tripStartDate: tripStartDate.toISOString(),
-        tripStartDateLocal: tripStartDate.toLocaleDateString(),
-        segmentDay
-      },
-      calculation: {
-        normalizedStartDate: normalizedStartDate.toISOString(),
-        normalizedStartDateLocal: normalizedStartDate.toLocaleDateString(),
-        daysToAdd,
-        method: 'new Date(year, month, date + daysToAdd)',
-        preservesLocalTimezone: true
-      },
-      result: {
-        segmentDate: segmentDate.toISOString(),
-        segmentDateLocal: segmentDate.toLocaleDateString(),
-        segmentDateComponents: {
-          year: segmentDate.getFullYear(),
-          month: segmentDate.getMonth(),
-          date: segmentDate.getDate()
-        }
-      },
-      verification: {
-        day1Check: segmentDay === 1 ? 
-          'DAY_1_EXACT_MATCH_CONFIRMED' : 
-          `DAY_${segmentDay}_CORRECT_OFFSET_${daysToAdd}`,
-        isConsistent: 'USING_LOCAL_TIMEZONE_ARITHMETIC',
-        fixed: true
-      }
-    });
-    
-    return segmentDate;
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.calculateSegmentDate is deprecated. Use UnifiedDateService.calculateSegmentDate instead.');
+    return UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
   }
 
   /**
-   * Convert date to YYYY-MM-DD string format using local date components
+   * @deprecated Use UnifiedDateService.normalizeToLocalMidnight instead
    */
-  static toDateString(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${day}`;
-    
-    console.log('📅 DateNormalizationService.toDateString:', {
-      input: date.toISOString(),
-      inputLocal: date.toLocaleDateString(),
-      output: dateString,
-      components: { year, month, day }
-    });
-    
-    return dateString;
+  static normalizeDate(date: Date): Date {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.normalizeDate is deprecated. Use UnifiedDateService.normalizeToLocalMidnight instead.');
+    return UnifiedDateService.normalizeToLocalMidnight(date);
   }
 
   /**
-   * Calculate days difference between two dates using local date components
+   * @deprecated Use UnifiedDateService.getDaysFromToday instead
    */
-  static getDaysDifference(startDate: Date, endDate: Date): number {
-    const start = this.normalizeSegmentDate(startDate);
-    const end = this.normalizeSegmentDate(endDate);
-    const diffTime = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffTime / (24 * 60 * 60 * 1000));
-    
-    console.log('📅 DateNormalizationService.getDaysDifference:', {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      normalizedStart: start.toISOString(),
-      normalizedEnd: end.toISOString(),
-      diffDays
-    });
-    
-    return diffDays;
+  static getDaysFromToday(date: Date): number {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.getDaysFromToday is deprecated. Use UnifiedDateService.getDaysFromToday instead.');
+    return UnifiedDateService.getDaysFromToday(date);
   }
 
   /**
-   * CRITICAL FIX: Check if a date is today using local date components
+   * @deprecated Use UnifiedDateService.isWithinLiveForecastRange instead
    */
-  static isToday(date: Date): boolean {
-    const today = new Date();
-    const normalizedToday = this.normalizeSegmentDate(today);
-    const normalizedDate = this.normalizeSegmentDate(date);
-    
-    const isToday = (
-      normalizedDate.getFullYear() === normalizedToday.getFullYear() &&
-      normalizedDate.getMonth() === normalizedToday.getMonth() &&
-      normalizedDate.getDate() === normalizedToday.getDate()
-    );
-    
-    console.log('📅 DateNormalizationService.isToday:', {
-      inputDate: date.toLocaleDateString(),
-      todayDate: today.toLocaleDateString(),
-      isToday,
-      comparison: 'LOCAL_DATE_COMPONENTS_ONLY'
-    });
-    
-    return isToday;
+  static isWithinForecastRange(date: Date): boolean {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.isWithinForecastRange is deprecated. Use UnifiedDateService.isWithinLiveForecastRange instead.');
+    return UnifiedDateService.isWithinLiveForecastRange(date);
   }
 
   /**
-   * CRITICAL FIX: Check if a date is in the past using local date components
+   * @deprecated Use UnifiedDateService.formatForApi instead
    */
-  static isPastDate(date: Date): boolean {
-    const today = new Date();
-    const normalizedToday = this.normalizeSegmentDate(today);
-    const normalizedDate = this.normalizeSegmentDate(date);
-    
-    const isPast = normalizedDate.getTime() < normalizedToday.getTime();
-    
-    console.log('📅 DateNormalizationService.isPastDate:', {
-      inputDate: date.toLocaleDateString(),
-      todayDate: today.toLocaleDateString(),
-      isPast,
-      comparison: 'LOCAL_NORMALIZED_TIME_COMPARISON'
-    });
-    
-    return isPast;
+  static formatDateForApi(date: Date): string {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.formatDateForApi is deprecated. Use UnifiedDateService.formatForApi instead.');
+    return UnifiedDateService.formatForApi(date);
+  }
+
+  /**
+   * @deprecated Use UnifiedDateService.getToday instead
+   */
+  static getToday(): Date {
+    console.warn('⚠️ DEPRECATED: DateNormalizationService.getToday is deprecated. Use UnifiedDateService.getToday instead.');
+    return UnifiedDateService.getToday();
   }
 }

@@ -28,11 +28,18 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   const handleDateSelect = (date: Date) => {
     console.log('📅 UNIFIED DATE FORM: Date selected:', {
       selectedDate: date.toLocaleDateString(),
-      isToday: UnifiedDateService.isToday(date)
+      isToday: UnifiedDateService.isToday(date),
+      service: 'UnifiedDateService - CONSISTENT HANDLING'
     });
     
     // Use unified service to create clean date
     const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
+    
+    console.log('📅 UNIFIED DATE FORM: Normalized selected date:', {
+      original: date.toLocaleDateString(),
+      normalized: cleanDate.toLocaleDateString(),
+      service: 'UnifiedDateService'
+    });
     
     setFormData({ 
       ...formData, 
@@ -43,12 +50,15 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   // Use unified service for date disability
   const isDateDisabled = (date: Date): boolean => {
     const isPast = UnifiedDateService.isPastDate(date);
+    const isToday = UnifiedDateService.isToday(date);
     
     console.log('📅 UNIFIED DATE FORM: Date validation:', {
       inputDate: date.toLocaleDateString(),
       isPast,
-      isToday: UnifiedDateService.isToday(date),
-      reason: isPast ? 'DISABLED: Date is before today' : UnifiedDateService.isToday(date) ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date'
+      isToday,
+      isDisabled: isPast,
+      reason: isPast ? 'DISABLED: Date is before today' : isToday ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date',
+      service: 'UnifiedDateService'
     });
     
     return isPast;
@@ -61,15 +71,18 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         <span className="text-red-500 text-xs">(Required)</span>
       </Label>
       
-      {/* Required notice */}
+      {/* Enhanced today notice */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
         <div className="flex items-start gap-2">
           <AlertCircle className="h-4 w-4 text-green-600 mt-0.5" />
           <div className="text-sm text-green-800">
-            <p className="font-medium mb-1">✨ You can now start your trip TODAY!</p>
+            <p className="font-medium mb-1">✨ Start your Route 66 journey TODAY!</p>
             <p className="text-green-700">
-              Today's date is now selectable and will provide live weather forecasts for your Route 66 journey. 
-              <strong className="text-green-800"> Start today for the most accurate weather data!</strong>
+              Today's date is now selectable and will provide live weather forecasts for your entire adventure. 
+              <strong className="text-green-800"> Choose today for the most accurate weather data and start planning immediately!</strong>
+            </p>
+            <p className="text-green-600 text-xs mt-1 font-medium">
+              🎯 All date calculations now use a unified system for perfect accuracy
             </p>
           </div>
         </div>
@@ -80,7 +93,14 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         <div className="text-sm font-medium text-gray-700 mb-1">Selected Start Date:</div>
         <div className="text-lg font-semibold text-gray-900">
           {formData.tripStartDate ? (
-            format(formData.tripStartDate, "EEEE, MMMM do, yyyy")
+            <div>
+              {format(formData.tripStartDate, "EEEE, MMMM do, yyyy")}
+              {UnifiedDateService.isToday(formData.tripStartDate) && (
+                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                  TODAY ✨
+                </span>
+              )}
+            </div>
           ) : (
             <span className="text-gray-500 italic">No date selected</span>
           )}
@@ -109,7 +129,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
       
       <p className="text-xs text-gray-600">
         A start date is required to provide accurate weather forecasts for each destination.
-        <strong className="text-green-700"> ✨ Today's date now works perfectly for live weather!</strong>
+        <strong className="text-green-700"> ✨ Today's date now works perfectly with unified date handling!</strong>
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
+
 /**
- * FIXED UNIFIED DATE SERVICE - Eliminates all timezone-related date shifts
- * This ensures Day 1 = EXACT same calendar date as trip start
+ * UNIFIED DATE SERVICE - Single source of truth for all date operations
+ * This eliminates all timezone-related date shifts and ensures Day 1 = EXACT same calendar date as trip start
  */
 export class UnifiedDateService {
   /**
@@ -12,7 +13,7 @@ export class UnifiedDateService {
   }
 
   /**
-   * FIXED: Normalize date using local date components only (no timezone shifts)
+   * UNIFIED: Normalize date using local date components only (no timezone shifts)
    */
   static normalizeToLocalMidnight(date: Date): Date {
     // Extract local date components and create new date
@@ -23,7 +24,7 @@ export class UnifiedDateService {
     // Create new date using local components (avoids timezone shifts)
     const normalized = new Date(year, month, day);
     
-    console.log('🔧 FIXED: normalizeToLocalMidnight - NO TIMEZONE SHIFTS:', {
+    console.log('🔧 UNIFIED: normalizeToLocalMidnight - CONSISTENT NORMALIZATION:', {
       input: {
         iso: date.toISOString(),
         local: date.toLocaleDateString(),
@@ -40,7 +41,8 @@ export class UnifiedDateService {
       },
       verification: {
         sameLocalDate: date.toLocaleDateString() === normalized.toLocaleDateString(),
-        noTimezoneShift: true
+        noTimezoneShift: true,
+        service: 'UnifiedDateService'
       }
     });
     
@@ -56,19 +58,20 @@ export class UnifiedDateService {
   }
 
   /**
-   * FIXED: Calculate segment date - Day 1 = EXACT same LOCAL date as trip start
+   * UNIFIED: Calculate segment date - Day 1 = EXACT same LOCAL date as trip start
    */
   static calculateSegmentDate(tripStartDate: Date, segmentDay: number): Date {
-    console.log('🔧 FIXED: calculateSegmentDate - ELIMINATING DATE SHIFTS:', {
+    console.log('🔧 UNIFIED: calculateSegmentDate - CONSISTENT DATE CALCULATION:', {
       input: {
         tripStartDate: tripStartDate.toISOString(),
         tripStartDateLocal: tripStartDate.toLocaleDateString(),
         segmentDay
       },
-      rule: 'Day 1 = EXACT SAME LOCAL DATE as trip start (ZERO OFFSET)'
+      rule: 'Day 1 = EXACT SAME LOCAL DATE as trip start (ZERO OFFSET)',
+      service: 'UnifiedDateService - SINGLE SOURCE OF TRUTH'
     });
 
-    // FIXED: Extract local components from trip start date
+    // UNIFIED: Extract local components from trip start date
     const startYear = tripStartDate.getFullYear();
     const startMonth = tripStartDate.getMonth();
     const startDay = tripStartDate.getDate();
@@ -77,7 +80,7 @@ export class UnifiedDateService {
       // Day 1: Use EXACT same local date components
       const day1Date = new Date(startYear, startMonth, startDay);
       
-      console.log('🔧 FIXED: Day 1 calculation - EXACT MATCH:', {
+      console.log('🔧 UNIFIED: Day 1 calculation - EXACT MATCH GUARANTEED:', {
         tripStart: {
           local: tripStartDate.toLocaleDateString(),
           components: { startYear, startMonth, startDay }
@@ -92,7 +95,8 @@ export class UnifiedDateService {
         },
         verification: {
           exactMatch: tripStartDate.toLocaleDateString() === day1Date.toLocaleDateString(),
-          rule: 'DAY_1_EQUALS_TRIP_START_EXACT'
+          rule: 'DAY_1_EQUALS_TRIP_START_EXACT',
+          service: 'UnifiedDateService'
         }
       });
       
@@ -103,12 +107,13 @@ export class UnifiedDateService {
     const daysToAdd = segmentDay - 1;
     const segmentDate = new Date(startYear, startMonth, startDay + daysToAdd);
     
-    console.log('🔧 FIXED: Other day calculation:', {
+    console.log('🔧 UNIFIED: Other day calculation:', {
       segmentDay,
       daysToAdd,
       tripStart: tripStartDate.toLocaleDateString(),
       result: segmentDate.toLocaleDateString(),
-      verification: `Day ${segmentDay} = Trip start + ${daysToAdd} days`
+      verification: `Day ${segmentDay} = Trip start + ${daysToAdd} days`,
+      service: 'UnifiedDateService'
     });
     
     return segmentDate;
@@ -127,10 +132,11 @@ export class UnifiedDateService {
       checkDate.getDate() === today.getDate()
     );
     
-    console.log('🔧 FIXED: isToday check:', {
+    console.log('🔧 UNIFIED: isToday check:', {
       inputDate: date.toLocaleDateString(),
       todayDate: today.toLocaleDateString(),
-      isToday
+      isToday,
+      service: 'UnifiedDateService'
     });
     
     return isToday;
@@ -152,17 +158,36 @@ export class UnifiedDateService {
     const today = this.getToday();
     const targetDate = this.normalizeToLocalMidnight(date);
     const diffTime = targetDate.getTime() - today.getTime();
-    return Math.floor(diffTime / (24 * 60 * 60 * 1000));
+    const daysDiff = Math.floor(diffTime / (24 * 60 * 60 * 1000));
+    
+    console.log('🔧 UNIFIED: getDaysFromToday calculation:', {
+      targetDate: date.toLocaleDateString(),
+      todayDate: today.toLocaleDateString(),
+      daysDiff,
+      interpretation: daysDiff === 0 ? 'TODAY' : daysDiff > 0 ? 'FUTURE' : 'PAST',
+      service: 'UnifiedDateService'
+    });
+    
+    return daysDiff;
   }
 
   /**
    * Format date for API calls (YYYY-MM-DD) using local components
    */
   static formatForApi(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const normalized = this.normalizeToLocalMidnight(date);
+    const year = normalized.getFullYear();
+    const month = String(normalized.getMonth() + 1).padStart(2, '0');
+    const day = String(normalized.getDate()).padStart(2, '0');
+    const formatted = `${year}-${month}-${day}`;
+    
+    console.log('🔧 UNIFIED: formatForApi:', {
+      input: date.toLocaleDateString(),
+      formatted,
+      service: 'UnifiedDateService'
+    });
+    
+    return formatted;
   }
 
   /**
@@ -170,17 +195,74 @@ export class UnifiedDateService {
    */
   static isWithinLiveForecastRange(date: Date): boolean {
     const daysFromToday = this.getDaysFromToday(date);
-    return daysFromToday >= 0 && daysFromToday <= 7;
+    const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
+    
+    console.log('🔧 UNIFIED: isWithinLiveForecastRange:', {
+      targetDate: date.toLocaleDateString(),
+      daysFromToday,
+      isWithinRange,
+      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST',
+      service: 'UnifiedDateService'
+    });
+    
+    return isWithinRange;
   }
 
   /**
    * Compare two dates (returns true if same local calendar date)
    */
   static isSameDate(date1: Date, date2: Date): boolean {
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
+    const normalized1 = this.normalizeToLocalMidnight(date1);
+    const normalized2 = this.normalizeToLocalMidnight(date2);
+    
+    const isSame = (
+      normalized1.getFullYear() === normalized2.getFullYear() &&
+      normalized1.getMonth() === normalized2.getMonth() &&
+      normalized1.getDate() === normalized2.getDate()
     );
+    
+    console.log('🔧 UNIFIED: isSameDate comparison:', {
+      date1: date1.toLocaleDateString(),
+      date2: date2.toLocaleDateString(),
+      isSame,
+      service: 'UnifiedDateService'
+    });
+    
+    return isSame;
+  }
+
+  /**
+   * UNIFIED: Get the start of week for a given date
+   */
+  static getStartOfWeek(date: Date): Date {
+    const normalized = this.normalizeToLocalMidnight(date);
+    const dayOfWeek = normalized.getDay();
+    const startOfWeek = new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() - dayOfWeek);
+    return startOfWeek;
+  }
+
+  /**
+   * UNIFIED: Get the end of week for a given date
+   */
+  static getEndOfWeek(date: Date): Date {
+    const normalized = this.normalizeToLocalMidnight(date);
+    const dayOfWeek = normalized.getDay();
+    const endOfWeek = new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() + (6 - dayOfWeek));
+    return endOfWeek;
+  }
+
+  /**
+   * UNIFIED: Add days to a date
+   */
+  static addDays(date: Date, days: number): Date {
+    const normalized = this.normalizeToLocalMidnight(date);
+    return new Date(normalized.getFullYear(), normalized.getMonth(), normalized.getDate() + days);
+  }
+
+  /**
+   * UNIFIED: Subtract days from a date
+   */
+  static subtractDays(date: Date, days: number): Date {
+    return this.addDays(date, -days);
   }
 }
