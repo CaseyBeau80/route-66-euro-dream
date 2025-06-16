@@ -49,20 +49,14 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   
   console.log('🗓️ DaySegmentCard render with integrated weather:', stableSegment.title);
 
-  // PREVIEW FORM LOGIC: Calculate drive time using preview form logic
-  const getPreviewFormDriveTime = (): string => {
-    const miles = stableSegment.approximateMiles || stableSegment.distance || 0;
-    const hours = miles / 60; // Same calculation as preview form
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    
-    if (minutes > 0) {
-      return `${wholeHours}h ${minutes}m`;
-    }
-    return `${wholeHours}h`;
-  };
-
-  const drivingTimeHours = (stableSegment.approximateMiles || stableSegment.distance || 0) / 60;
+  // EXACT PREVIEW FORM LOGIC: Calculate drive time using exact preview form logic
+  const miles = stableSegment.approximateMiles || stableSegment.distance || 0;
+  const hours = miles / 60; // Same calculation as preview form
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  
+  const formattedDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+  const drivingTimeHours = hours;
 
   // Memoized drive time styling to prevent recalculation
   const driveTimeStyle = React.useMemo(() => {
@@ -81,10 +75,6 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
     }
   }, [drivingTimeHours]);
-
-  const formattedDriveTime = React.useMemo(() => {
-    return getPreviewFormDriveTime();
-  }, [stableSegment.approximateMiles, stableSegment.distance]);
 
   // Memoized segment distance
   const segmentDistance = React.useMemo(() => {
@@ -109,13 +99,14 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     </div>
   ), [stableSegment, segmentDate, driveTimeStyle, formattedDriveTime, segmentDistance]);
 
-  console.log(`🚗 PREVIEW FORM: DaySegmentCard final render for Day ${stableSegment.day}`, {
+  console.log(`🚗 EXACT PREVIEW FORM: DaySegmentCard final render for Day ${stableSegment.day}`, {
     willRenderCard: true,
     hasCardHeader: !!cardHeader,
-    previewFormDriveTime: formattedDriveTime,
+    exactPreviewFormDriveTime: formattedDriveTime,
     actualDriveTimeHours: drivingTimeHours,
     approximateMiles: stableSegment.approximateMiles,
-    distance: stableSegment.distance
+    distance: stableSegment.distance,
+    exactPreviewFormLogic: true
   });
 
   return (

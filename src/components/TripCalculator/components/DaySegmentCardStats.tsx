@@ -23,29 +23,22 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
 }) => {
   const { formatDistance } = useUnits();
 
-  // PREVIEW FORM LOGIC: Use exact same calculation as preview form
-  const getPreviewFormDriveTime = (): string => {
-    const miles = segment.approximateMiles || segment.distance || 0;
-    const hours = miles / 60; // Same calculation as preview form
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    
-    if (minutes > 0) {
-      return `${wholeHours}h ${minutes}m`;
-    }
-    return `${wholeHours}h`;
-  };
+  // EXACT PREVIEW FORM LOGIC: Use the exact same calculation as preview form
+  const miles = segment.approximateMiles || segment.distance || 0;
+  const hours = miles / 60; // Same calculation as preview form
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  
+  const previewFormDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
+  const driveTimeHours = hours;
 
-  const previewFormTime = getPreviewFormDriveTime();
-  const driveTimeHours = (segment.approximateMiles || segment.distance || 0) / 60;
-
-  console.log('📊 PREVIEW FORM: DaySegmentCardStats using PREVIEW FORM logic:', {
+  console.log('📊 EXACT PREVIEW FORM: DaySegmentCardStats using exact preview form logic:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
     approximateMiles: segment.approximateMiles,
     distance: segment.distance,
-    previewFormTime,
-    originalFormattedTime: formattedDriveTime
+    previewFormDriveTime,
+    exactPreviewFormLogic: true
   });
 
   return (
@@ -57,7 +50,7 @@ const DaySegmentCardStats: React.FC<DaySegmentCardStatsProps> = ({
       <div className="flex items-center gap-1">
         <Clock className="h-4 w-4" />
         <span className={driveTimeHours > 7 ? driveTimeStyle.text : ''}>
-          {previewFormTime} driving
+          {previewFormDriveTime} driving
         </span>
       </div>
       {driveTimeHours > 7 && (

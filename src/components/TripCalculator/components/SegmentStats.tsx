@@ -13,31 +13,25 @@ interface SegmentStatsProps {
 const SegmentStats: React.FC<SegmentStatsProps> = ({ segment, compact = false }) => {
   const { formatDistance } = useUnits();
   
-  // PREVIEW FORM LOGIC: Use exact same calculation as preview form
-  const getPreviewFormDriveTime = (): string => {
-    const miles = segment.approximateMiles || segment.distance || 0;
-    const hours = miles / 60; // Same calculation as preview form
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    
-    if (minutes > 0) {
-      return `${wholeHours}h ${minutes}m`;
-    }
-    return `${wholeHours}h`;
-  };
-
-  const formattedDriveTime = getPreviewFormDriveTime();
+  // EXACT PREVIEW FORM LOGIC: Use exact same calculation as preview form
+  const miles = segment.approximateMiles || segment.distance || 0;
+  const hours = miles / 60; // Same calculation as preview form
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  
+  const formattedDriveTime = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   
   const isLongDriveDay = segment.approximateMiles > 500;
   const estimatedFuelStops = Math.ceil(segment.approximateMiles / 300);
   const segmentDistance = segment.distance || segment.approximateMiles;
 
-  console.log('📊 PREVIEW FORM: SegmentStats using PREVIEW FORM logic:', {
+  console.log('📊 EXACT PREVIEW FORM: SegmentStats using exact preview form logic:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
     approximateMiles: segment.approximateMiles,
     distance: segment.distance,
-    formattedDriveTime
+    formattedDriveTime,
+    exactPreviewFormLogic: true
   });
 
   if (compact) {

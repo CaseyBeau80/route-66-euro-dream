@@ -91,8 +91,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const endDate = calculateEndDate();
 
-  // PREVIEW FORM LOGIC: Calculate total drive time using preview form logic
-  const getPreviewFormTotalDriveTime = (): number => {
+  // EXACT PREVIEW FORM LOGIC: Calculate total drive time using exact preview form logic
+  const totalDrivingTime = React.useMemo(() => {
     if (!tripPlan.segments?.length) return 0;
     
     return tripPlan.segments.reduce((total, segment) => {
@@ -100,11 +100,9 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       const hours = miles / 60; // Same calculation as preview form
       return total + hours;
     }, 0);
-  };
+  }, [tripPlan.segments]);
   
-  const totalDrivingTime = getPreviewFormTotalDriveTime();
-  
-  // PREVIEW FORM LOGIC: Use same formatTime function as preview form
+  // EXACT PREVIEW FORM LOGIC: Use same formatTime function as preview form
   const formatTime = (hours?: number): string => {
     if (!hours) return 'N/A';
     const wholeHours = Math.floor(hours);
@@ -112,11 +110,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
   };
   
-  console.log('🚗 PREVIEW FORM: Drive time check in EnhancedTripResults:', {
+  console.log('🚗 EXACT PREVIEW FORM: Drive time check in EnhancedTripResults:', {
     totalDrivingTime,
     formatted: formatTime(totalDrivingTime),
     segmentCount: tripPlan.segments?.length,
-    usingPreviewFormLogic: true
+    exactPreviewFormLogic: true
   });
 
   return (
