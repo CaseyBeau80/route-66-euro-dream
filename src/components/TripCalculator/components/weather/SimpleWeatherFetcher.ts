@@ -1,6 +1,7 @@
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
 import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
+import { UnifiedDateService } from '../../services/UnifiedDateService';
 
 export interface WeatherFetchParams {
   cityName: string;
@@ -12,86 +13,73 @@ export interface WeatherFetchParams {
 
 export class SimpleWeatherFetcher {
   /**
-   * FIXED: Enhanced weather fetching with proper today handling
+   * UNIFIED: Enhanced weather fetching with proper today handling
    */
   static async fetchWeatherForCity(params: WeatherFetchParams): Promise<ForecastWeatherData | null> {
     const { cityName, targetDate, isSharedView, segmentDay } = params;
     
-    // CRITICAL FIX: Always check API key directly from manager
+    // Use unified date service for API key check
     const actualApiKey = WeatherApiKeyManager.getApiKey();
     const hasActualApiKey = !!actualApiKey && actualApiKey !== 'YOUR_API_KEY_HERE';
     
-    console.log('🔧 FIXED: SimpleWeatherFetcher with proper today handling:', {
+    console.log('🔧 UNIFIED FETCHER: Enhanced weather fetch:', {
       cityName,
-      targetDate: targetDate.toISOString(),
-      targetDateLocal: targetDate.toLocaleDateString(),
+      targetDate: targetDate.toLocaleDateString(),
+      isToday: UnifiedDateService.isToday(targetDate),
       isSharedView,
       hasActualApiKey,
-      apiKeyLength: actualApiKey?.length || 0,
-      segmentDay,
-      todayHandling: 'FIXED'
+      segmentDay
     });
 
     // If no valid API key, return fallback immediately
     if (!hasActualApiKey) {
-      console.log('🔄 FIXED: No API key - returning fallback for', cityName);
+      console.log('🔄 UNIFIED FETCHER: No API key - returning fallback for', cityName);
       return this.createFallbackWeather(cityName, targetDate);
     }
 
-    // FIXED: Enhanced date range check - same calendar date as today is live forecast
-    const today = new Date();
-    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    // Use unified date service for range check
+    const isWithinForecastRange = UnifiedDateService.isWithinLiveForecastRange(targetDate);
+    const daysFromToday = UnifiedDateService.getDaysFromToday(targetDate);
     
-    const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
-    const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
-    
-    // FIXED: Same calendar date (day 0) through day 7 are live forecast
-    const isWithinForecastRange = daysDiff >= 0 && daysDiff <= 7;
-    
-    console.log('🌤️ FIXED: Enhanced date analysis - same calendar date is today:', {
+    console.log('🌤️ UNIFIED FETCHER: Date analysis:', {
       cityName,
-      targetDateLocal: targetDate.toLocaleDateString(),
-      todayLocal: today.toLocaleDateString(),
-      todayNormalized: todayNormalized.toLocaleDateString(),
-      targetNormalized: targetNormalized.toLocaleDateString(),
-      daysDiff,
+      targetDate: targetDate.toLocaleDateString(),
+      daysFromToday,
       isWithinForecastRange,
-      logic: 'Day 0 (same calendar date as today) = LIVE FORECAST',
-      isSameDayAsToday: daysDiff === 0
+      isToday: UnifiedDateService.isToday(targetDate)
     });
 
     if (!isWithinForecastRange) {
-      console.log('🔄 FIXED: Date outside forecast range - returning fallback for', cityName, { daysDiff });
+      console.log('🔄 UNIFIED FETCHER: Date outside forecast range - returning fallback for', cityName, { daysFromToday });
       return this.createFallbackWeather(cityName, targetDate);
     }
 
-    // Try to fetch live weather for today and future dates
+    // Try to fetch live weather
     try {
-      console.log('🌤️ FIXED: Attempting live weather fetch for', cityName, 'daysDiff:', daysDiff);
+      console.log('🌤️ UNIFIED FETCHER: Attempting live weather fetch for', cityName, 'daysFromToday:', daysFromToday);
       const liveWeather = await this.fetchLiveWeatherDirect(cityName, targetDate, actualApiKey);
       
       if (liveWeather) {
-        console.log('✅ FIXED: Live weather successful for', cityName, {
+        console.log('✅ UNIFIED FETCHER: Live weather successful for', cityName, {
           temperature: liveWeather.temperature,
           source: liveWeather.source,
           isActualForecast: liveWeather.isActualForecast,
-          daysDiff,
-          isSameDayAsToday: daysDiff === 0
+          daysFromToday,
+          isToday: UnifiedDateService.isToday(targetDate)
         });
         return liveWeather;
       }
     } catch (error) {
-      console.error('❌ FIXED: Live weather failed for', cityName, error);
+      console.error('❌ UNIFIED FETCHER: Live weather failed for', cityName, error);
     }
 
     // Fallback to historical weather
-    console.log('🔄 FIXED: Using fallback weather for', cityName);
+    console.log('🔄 UNIFIED FETCHER: Using fallback weather for', cityName);
     return this.createFallbackWeather(cityName, targetDate);
   }
 
   /**
-   * FIXED: Enhanced live weather fetching with proper today detection
+   * UNIFIED: Enhanced live weather fetching with proper today detection
    */
   private static async fetchLiveWeatherDirect(
     cityName: string, 
@@ -102,29 +90,25 @@ export class SimpleWeatherFetcher {
       // Get coordinates
       const coords = await this.getCoordinates(cityName, apiKey);
       if (!coords) {
-        console.log('❌ FIXED: Could not get coordinates for', cityName);
+        console.log('❌ UNIFIED FETCHER: Could not get coordinates for', cityName);
         return null;
       }
 
-      // FIXED: For same calendar date as today, use current weather
-      const today = new Date();
-      const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      // Use unified date service to check if today
+      const isToday = UnifiedDateService.isToday(targetDate);
+      const daysFromToday = UnifiedDateService.getDaysFromToday(targetDate);
       
-      const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
-      const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
-      
-      if (daysDiff === 0) {
-        // For same calendar date as today, get current weather
-        console.log('🌤️ FIXED: Getting current weather for TODAY (same calendar date):', cityName);
+      if (isToday) {
+        // For today, get current weather
+        console.log('🌤️ UNIFIED FETCHER: Getting current weather for TODAY:', cityName);
         return await this.fetchCurrentWeather(cityName, targetDate, coords, apiKey);
       } else {
         // For future dates, get forecast
-        console.log('🌤️ FIXED: Getting forecast for future date:', cityName, 'daysDiff:', daysDiff);
+        console.log('🌤️ UNIFIED FETCHER: Getting forecast for future date:', cityName, 'daysFromToday:', daysFromToday);
         return await this.fetchForecastWeather(cityName, targetDate, coords, apiKey);
       }
     } catch (error) {
-      console.error('❌ FIXED: Live weather fetch failed for', cityName, error);
+      console.error('❌ UNIFIED FETCHER: Live weather fetch failed for', cityName, error);
       return null;
     }
   }
@@ -261,11 +245,11 @@ export class SimpleWeatherFetcher {
   }
 
   /**
-   * CRITICAL FIX: Fallback weather creation
+   * UNIFIED: Fallback weather creation using unified date service
    */
   private static createFallbackWeather(cityName: string, targetDate: Date): ForecastWeatherData {
-    const targetDateString = targetDate.toISOString().split('T')[0];
-    const daysFromToday = Math.ceil((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    const targetDateString = UnifiedDateService.formatForApi(targetDate);
+    const daysFromToday = UnifiedDateService.getDaysFromToday(targetDate);
     
     return WeatherFallbackService.createFallbackForecast(
       cityName,

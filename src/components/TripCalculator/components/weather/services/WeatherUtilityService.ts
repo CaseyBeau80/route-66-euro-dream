@@ -1,14 +1,14 @@
 
-import { DateNormalizationService } from '../DateNormalizationService';
+import { UnifiedDateService } from '../../../services/UnifiedDateService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 export class WeatherUtilityService {
   /**
-   * CRITICAL FIX: Calculate segment date using consistent date normalization
+   * Calculate segment date using unified date service
    */
   static getSegmentDate(tripStartDate: Date, segmentDay: number): Date | null {
     if (!tripStartDate || !segmentDay || segmentDay < 1) {
-      console.error('❌ WeatherUtilityService: Invalid parameters:', {
+      console.error('❌ UNIFIED WEATHER: Invalid parameters:', {
         tripStartDate,
         segmentDay,
         isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
@@ -17,78 +17,64 @@ export class WeatherUtilityService {
     }
 
     try {
-      const segmentDate = DateNormalizationService.calculateSegmentDate(tripStartDate, segmentDay);
+      const segmentDate = UnifiedDateService.calculateSegmentDate(tripStartDate, segmentDay);
       
-      console.log('📅 CRITICAL FIX: WeatherUtilityService.getSegmentDate - FINAL ALIGNED:', {
-        tripStartDate: tripStartDate.toISOString(),
-        tripStartDateLocal: tripStartDate.toLocaleDateString(),
+      console.log('📅 UNIFIED WEATHER: Segment date calculation:', {
+        tripStartDate: tripStartDate.toLocaleDateString(),
         segmentDay,
-        calculatedDate: segmentDate.toISOString(),
-        calculatedDateLocal: segmentDate.toLocaleDateString(),
-        usingConsistentService: true,
-        criticalFix: 'FRONTEND_BACKEND_ALIGNED'
+        calculatedDate: segmentDate.toLocaleDateString(),
+        verification: segmentDay === 1 ? {
+          day1Check: 'Day 1 should match trip start exactly',
+          matches: UnifiedDateService.isSameDate(tripStartDate, segmentDate)
+        } : null
       });
       
       return segmentDate;
     } catch (error) {
-      console.error('❌ WeatherUtilityService: Date calculation error:', error);
+      console.error('❌ UNIFIED WEATHER: Date calculation error:', error);
       return null;
     }
   }
 
   /**
-   * CRITICAL FIX: Calculate days from today - EXACT same logic as backend
+   * Calculate days from today using unified service
    */
   static getDaysFromToday(targetDate: Date): number {
-    const today = new Date();
-    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const targetNormalized = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const daysDiff = UnifiedDateService.getDaysFromToday(targetDate);
     
-    const timeDiff = targetNormalized.getTime() - todayNormalized.getTime();
-    const daysDiff = Math.floor(timeDiff / (24 * 60 * 60 * 1000));
-    
-    console.log('📅 CRITICAL FIX: getDaysFromToday - BACKEND ALIGNED:', {
+    console.log('📅 UNIFIED WEATHER: Days from today:', {
       targetDate: targetDate.toLocaleDateString(),
-      today: today.toLocaleDateString(),
-      todayNormalized: todayNormalized.toLocaleDateString(),
-      targetNormalized: targetNormalized.toLocaleDateString(),
       daysDiff,
-      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL',
-      backendAligned: true,
-      criticalFix: true
+      interpretation: daysDiff === 0 ? 'TODAY - LIVE FORECAST' : daysDiff > 0 ? 'FUTURE - LIVE FORECAST' : 'PAST - HISTORICAL'
     });
     
     return daysDiff;
   }
 
   /**
-   * CRITICAL FIX: Forecast range check - day 0 (today) through day 7 are live forecast
+   * Check if within forecast range using unified service
    */
   static isWithinForecastRange(targetDate: Date): boolean {
-    const daysFromToday = this.getDaysFromToday(targetDate);
-    const isWithinRange = daysFromToday >= 0 && daysFromToday <= 7;
+    const isWithinRange = UnifiedDateService.isWithinLiveForecastRange(targetDate);
     
-    console.log('🌤️ CRITICAL FIX: isWithinForecastRange - BACKEND ALIGNED:', {
+    console.log('🌤️ UNIFIED WEATHER: Forecast range check:', {
       targetDate: targetDate.toLocaleDateString(),
-      daysFromToday,
       isWithinRange,
-      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST',
-      backendAligned: true,
-      criticalFix: true
+      logic: 'Day 0 (TODAY) through Day 7 = LIVE FORECAST'
     });
     
     return isWithinRange;
   }
 
   /**
-   * CRITICAL FIX: Check if date is within live forecast range (same as isWithinForecastRange)
+   * Check if date is within live forecast range (same as isWithinForecastRange)
    */
   static isWithinLiveForecastRange(targetDate: Date): boolean {
     return this.isWithinForecastRange(targetDate);
   }
 
   /**
-   * CRITICAL FIX: Enhanced live forecast detection
+   * Enhanced live forecast detection
    */
   static isLiveForecast(weather: ForecastWeatherData, segmentDate: Date): boolean {
     if (!weather || !segmentDate) return false;
@@ -102,9 +88,9 @@ export class WeatherUtilityService {
   }
 
   /**
-   * CRITICAL FIX: Format date for API requests
+   * Format date for API requests using unified service
    */
   static formatDateForApi(date: Date): string {
-    return DateNormalizationService.toDateString(date);
+    return UnifiedDateService.formatForApi(date);
   }
 }

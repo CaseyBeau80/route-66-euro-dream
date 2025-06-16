@@ -5,6 +5,7 @@ import { AlertCircle } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { TripFormData } from '../types/tripCalculator';
 import SimpleTripCalendar from './SimpleTripCalendar';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 
 interface TripDateFormProps {
   formData: TripFormData;
@@ -15,7 +16,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
   formData,
   setFormData
 }) => {
-  // Calculate end date
+  // Calculate end date using unified service
   const endDate = React.useMemo(() => {
     if (formData.tripStartDate && formData.travelDays > 0) {
       return addDays(formData.tripStartDate, formData.travelDays - 1);
@@ -23,32 +24,15 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     return null;
   }, [formData.tripStartDate, formData.travelDays]);
 
-  // CRITICAL FIX: Clean date selection using local date components only
+  // Use unified service for date selection
   const handleDateSelect = (date: Date) => {
-    console.log('📅 CRITICAL FIX: TripDateForm handleDateSelect - TODAY IS NOW SELECTABLE:', {
-      selectedDate: date.toISOString(),
-      selectedDateLocal: date.toLocaleDateString(),
-      selectedComponents: {
-        year: date.getFullYear(),
-        month: date.getMonth(),
-        date: date.getDate()
-      },
-      fixedVersion: 'TODAY_SELECTABLE'
+    console.log('📅 UNIFIED DATE FORM: Date selected:', {
+      selectedDate: date.toLocaleDateString(),
+      isToday: UnifiedDateService.isToday(date)
     });
     
-    // CRITICAL FIX: Create absolutely clean local date
-    const cleanDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    console.log('📅 CRITICAL FIX: Setting form data with perfectly clean date - TODAY WORKS:', {
-      cleanDate: cleanDate.toISOString(),
-      cleanDateLocal: cleanDate.toLocaleDateString(),
-      cleanComponents: {
-        year: cleanDate.getFullYear(),
-        month: cleanDate.getMonth(),
-        date: cleanDate.getDate()
-      },
-      fixedVersion: 'PROPER_DATE_SETTING'
-    });
+    // Use unified service to create clean date
+    const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
     
     setFormData({ 
       ...formData, 
@@ -56,27 +40,18 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
     });
   };
 
-  // CRITICAL FIX: Fixed date disability - TODAY IS NOW SELECTABLE
+  // Use unified service for date disability
   const isDateDisabled = (date: Date): boolean => {
-    const today = new Date();
-    const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const isPast = UnifiedDateService.isPastDate(date);
     
-    // CRITICAL FIX: Only disable dates that are BEFORE today, NOT today itself
-    const shouldDisable = checkDate.getTime() < todayNormalized.getTime();
-    
-    console.log('📅 CRITICAL FIX: Date validation - TODAY IS NOW SELECTABLE:', {
+    console.log('📅 UNIFIED DATE FORM: Date validation:', {
       inputDate: date.toLocaleDateString(),
-      todayDate: today.toLocaleDateString(),
-      todayNormalized: todayNormalized.toLocaleDateString(),
-      checkDate: checkDate.toLocaleDateString(),
-      shouldDisable,
-      isToday: checkDate.getTime() === todayNormalized.getTime(),
-      reason: shouldDisable ? 'DISABLED: Date is before today' : checkDate.getTime() === todayNormalized.getTime() ? 'ENABLED: Today is now selectable ✨' : 'ENABLED: Future date',
-      fixedVersion: 'TODAY_ENABLED'
+      isPast,
+      isToday: UnifiedDateService.isToday(date),
+      reason: isPast ? 'DISABLED: Date is before today' : UnifiedDateService.isToday(date) ? 'ENABLED: Today is selectable ✨' : 'ENABLED: Future date'
     });
     
-    return shouldDisable;
+    return isPast;
   };
 
   return (
@@ -112,7 +87,7 @@ const TripDateForm: React.FC<TripDateFormProps> = ({
         </div>
       </div>
 
-      {/* CRITICAL FIX: Calendar with Today Selection ENABLED */}
+      {/* Calendar with unified date service */}
       <SimpleTripCalendar
         selected={formData.tripStartDate}
         onSelect={handleDateSelect}

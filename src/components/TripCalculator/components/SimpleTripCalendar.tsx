@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { UnifiedDateService } from '../services/UnifiedDateService';
 
 interface SimpleTripCalendarProps {
   selected?: Date;
@@ -17,26 +19,15 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   className
 }) => {
   const [currentMonth, setCurrentMonth] = React.useState(() => {
-    const today = new Date();
+    const today = UnifiedDateService.getToday();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
-  // CRITICAL FIX: Create today using local date components only
-  const today = React.useMemo(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  }, []);
+  const today = UnifiedDateService.getToday();
 
-  console.log('📅 FIXED CALENDAR: Component state - TODAY IS SELECTABLE:', {
-    selectedDate: selected?.toISOString(),
-    selectedDateLocal: selected?.toLocaleDateString(),
-    todayLocal: today.toLocaleDateString(),
-    todayComponents: {
-      year: today.getFullYear(),
-      month: today.getMonth(),
-      date: today.getDate()
-    },
-    fixedVersion: 'TODAY_SELECTABLE'
+  console.log('📅 UNIFIED CALENDAR: Using UnifiedDateService:', {
+    today: today.toLocaleDateString(),
+    selected: selected?.toLocaleDateString()
   });
 
   // Navigate months
@@ -53,15 +44,11 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     
-    // First day of month and how many days
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    
-    // What day of week does month start (0 = Sunday)
     const startDayOfWeek = firstDay.getDay();
     
-    // Generate calendar grid
     const days: (Date | null)[] = [];
     
     // Add empty cells for days before month starts
@@ -69,7 +56,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
       days.push(null);
     }
     
-    // Add all days of the month - CRITICAL FIX: Use local date construction
+    // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
@@ -81,104 +68,48 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
   }, [currentMonth]);
 
   const handleDateClick = (date: Date) => {
-    console.log('📅 FIXED CALENDAR: Date clicked - TODAY IS NOW SELECTABLE:', {
-      clickedDate: date.toISOString(),
-      clickedDateLocal: date.toLocaleDateString(),
-      clickedComponents: {
-        year: date.getFullYear(),
-        month: date.getMonth(),
-        date: date.getDate()
-      },
-      todayComponents: {
-        year: today.getFullYear(),
-        month: today.getMonth(),
-        date: today.getDate()
-      },
-      isToday: isToday(date),
-      isDisabled: disabled?.(date) || false,
-      fixedVersion: 'TODAY_CLICKABLE'
+    console.log('📅 UNIFIED CALENDAR: Date clicked:', {
+      clickedDate: date.toLocaleDateString(),
+      isToday: UnifiedDateService.isToday(date),
+      isDisabled: disabled?.(date) || false
     });
 
-    // Check if disabled
     if (disabled?.(date)) {
-      console.log('📅 FIXED CALENDAR: Click ignored - date is disabled');
+      console.log('📅 UNIFIED CALENDAR: Click ignored - date is disabled');
       return;
     }
 
-    // CRITICAL FIX: Create clean local date for consistency
-    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    console.log('📅 FIXED CALENDAR: Calling onSelect with clean local date:', {
-      originalDate: date.toISOString(),
-      cleanLocalDate: localDate.toISOString(),
-      cleanLocalComponents: {
-        year: localDate.getFullYear(),
-        month: localDate.getMonth(),
-        date: localDate.getDate()
-      },
-      fixedVersion: 'PROPER_DATE_SELECTION'
-    });
-
-    onSelect(localDate);
+    // Use unified service to create clean date
+    const cleanDate = UnifiedDateService.normalizeToLocalMidnight(date);
+    onSelect(cleanDate);
   };
 
-  // CRITICAL FIX: Compare dates using local date components only
   const isDateSelected = (date: Date): boolean => {
     if (!selected) return false;
-    return (
-      date.getFullYear() === selected.getFullYear() &&
-      date.getMonth() === selected.getMonth() &&
-      date.getDate() === selected.getDate()
-    );
+    return UnifiedDateService.isSameDate(date, selected);
   };
 
-  // CRITICAL FIX: Compare with today using local date components
-  const isToday = (date: Date): boolean => {
-    return (
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
-    );
-  };
-
-  // CRITICAL FIX: Fixed date disability check - TODAY IS NOW SELECTABLE
   const isDateDisabled = (date: Date): boolean => {
     if (disabled?.(date)) return true;
     
-    // CRITICAL FIX: Only disable dates that are BEFORE today (not including today)
-    const dateTime = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-    const todayTime = today.getTime();
+    // Use unified service for past date check
+    const isPast = UnifiedDateService.isPastDate(date);
     
-    const shouldDisable = dateTime < todayTime;
-    
-    console.log('📅 CRITICAL FIX: Date disability check - TODAY IS NOW SELECTABLE:', {
+    console.log('📅 UNIFIED CALENDAR: Date check:', {
       date: date.toLocaleDateString(),
-      today: today.toLocaleDateString(),
-      dateTime,
-      todayTime,
-      shouldDisable,
-      isToday: dateTime === todayTime,
-      comparison: shouldDisable ? 'BEFORE_TODAY_DISABLED' : dateTime === todayTime ? 'TODAY_ENABLED_FIXED' : 'FUTURE_ENABLED',
-      fixedVersion: 'TODAY_SELECTABLE'
+      isPast,
+      isToday: UnifiedDateService.isToday(date)
     });
     
-    return shouldDisable;
+    return isPast;
   };
 
   const handleTodayClick = () => {
-    console.log('📅 CRITICAL FIX: Today button clicked - TODAY IS NOW FULLY SELECTABLE:', {
-      todayDate: today.toISOString(),
-      todayDateLocal: today.toLocaleDateString(),
-      isDisabled: isDateDisabled(today),
-      fixedVersion: 'TODAY_BUTTON_WORKS'
-    });
-    
+    console.log('📅 UNIFIED CALENDAR: Today button clicked');
     if (!isDateDisabled(today)) {
       handleDateClick(today);
     }
   };
-
-  const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   return (
     <div className={cn("p-4 bg-white border border-gray-200 rounded-lg", className)}>
@@ -187,7 +118,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+          onClick={goToPreviousMonth}
           className="h-8 w-8 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -200,7 +131,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+          onClick={goToNextMonth}
           className="h-8 w-8 p-0"
         >
           <ChevronRight className="h-4 w-4" />
@@ -228,7 +159,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
 
           const isSelected = isDateSelected(date);
           const isDisabled = isDateDisabled(date);
-          const isTodayDate = isToday(date);
+          const isTodayDate = UnifiedDateService.isToday(date);
 
           return (
             <button
@@ -241,7 +172,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
                 {
                   // Selected state
                   "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm": isSelected,
-                  // Today but not selected - CRITICAL FIX: Enhanced styling for today
+                  // Today but not selected
                   "bg-green-100 text-green-800 font-semibold border-green-200 hover:bg-green-200 ring-2 ring-green-300": isTodayDate && !isSelected,
                   // Disabled state
                   "text-gray-300 cursor-not-allowed bg-gray-50 hover:border-transparent": isDisabled,
@@ -256,7 +187,7 @@ const SimpleTripCalendar: React.FC<SimpleTripCalendarProps> = ({
         })}
       </div>
 
-      {/* Today Button - CRITICAL FIX: Always enable today button */}
+      {/* Today Button */}
       <div className="mt-4 pt-3 border-t border-gray-200">
         <Button
           variant="outline"
