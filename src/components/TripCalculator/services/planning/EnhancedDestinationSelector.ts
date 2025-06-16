@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -17,6 +16,11 @@ export class EnhancedDestinationSelector {
     totalDays: number
   ): TripStop[] {
     console.log(`🎯 ENHANCED CANONICAL SELECTION: ${totalDays} days from ${startStop.name} to ${endStop.name}`);
+    
+    // CRITICAL FIX: Calculate the correct number of intermediate destinations needed
+    const neededIntermediateDestinations = totalDays - 1; // For N days, we need N-1 intermediate destinations
+    
+    console.log(`🎯 NEED ${neededIntermediateDestinations} intermediate destinations for ${totalDays} day trip`);
     
     // STEP 1: Filter to only destination cities
     const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
@@ -41,23 +45,65 @@ export class EnhancedDestinationSelector {
     
     console.log(`🛤️ Sequence-valid canonical cities: ${sequenceValidCities.length}`);
     
-    // STEP 5: Select optimal cities using canonical prioritization
+    // STEP 5: If we don't have enough cities, expand selection beyond canonical
+    let workingCities = sequenceValidCities;
+    
+    if (workingCities.length < neededIntermediateDestinations) {
+      console.log(`📈 Need more cities: expanding beyond canonical destinations`);
+      
+      // Add non-canonical destination cities that are in sequence
+      const nonCanonicalDestinations = destinationCities.filter(city => 
+        city.id !== startStop.id && 
+        city.id !== endStop.id &&
+        !canonicalStops.some(canonical => canonical.id === city.id)
+      );
+      
+      const { validStops: additionalValidCities } = Route66SequenceValidator.filterValidSequenceStops(
+        startStop,
+        nonCanonicalDestinations,
+        endStop
+      );
+      
+      console.log(`🏙️ Additional valid destination cities: ${additionalValidCities.length}`);
+      
+      // Combine canonical and additional cities
+      workingCities = [...sequenceValidCities, ...additionalValidCities];
+    }
+    
+    // STEP 6: Select optimal cities using canonical prioritization
     const selectedCities = this.selectOptimalCanonicalCities(
       startStop, 
       endStop, 
-      sequenceValidCities, 
-      totalDays
+      workingCities, 
+      neededIntermediateDestinations
     );
     
-    // STEP 6: Force inclusion of priority destinations
+    // STEP 7: Force inclusion of priority destinations if we have room
     const enhancedSelection = CanonicalRoute66Cities.enforceDestinationInclusion(
       selectedCities,
-      availableCities,
-      totalDays
+      workingCities,
+      neededIntermediateDestinations
     );
     
-    // STEP 7: Validate final sequence
-    const finalSequence = [startStop, ...enhancedSelection, endStop];
+    // STEP 8: Ensure we have exactly the right number of destinations
+    let finalSelection = enhancedSelection;
+    
+    if (finalSelection.length > neededIntermediateDestinations) {
+      // Too many - trim to the highest priority ones
+      finalSelection = this.trimToTopPriority(finalSelection, neededIntermediateDestinations);
+    } else if (finalSelection.length < neededIntermediateDestinations) {
+      // Too few - add more if available
+      finalSelection = this.expandSelection(
+        finalSelection, 
+        workingCities, 
+        neededIntermediateDestinations,
+        startStop,
+        endStop
+      );
+    }
+    
+    // STEP 9: Validate final sequence
+    const finalSequence = [startStop, ...finalSelection, endStop];
     const sequenceValidation = Route66SequenceValidator.validateTripSequence(finalSequence);
     
     if (!sequenceValidation.isValid) {
@@ -66,13 +112,70 @@ export class EnhancedDestinationSelector {
       console.log(`✅ CANONICAL SEQUENCE VALIDATION PASSED`);
     }
     
-    // STEP 8: Log canonical destination coverage
-    const coverage = CanonicalRoute66Cities.getDestinationCoverage(enhancedSelection);
-    console.log(`📊 CANONICAL COVERAGE: ${coverage.includedCanonical}/${coverage.totalCanonical} destinations (${coverage.coverage}%), ${coverage.majorIncluded} major, ${coverage.forcedIncluded} forced`);
+    // STEP 10: Log final result
+    console.log(`🎯 FINAL SELECTION: ${finalSelection.length}/${neededIntermediateDestinations} destinations for ${totalDays} days`);
+    console.log(`✅ Selected destinations:`, finalSelection.map(c => c.name));
     
-    console.log(`✅ Selected ${enhancedSelection.length} canonical destination cities:`, enhancedSelection.map(c => c.name));
+    return finalSelection;
+  }
+
+  /**
+   * Trim selection to top priority destinations
+   */
+  private static trimToTopPriority(
+    destinations: TripStop[], 
+    needed: number
+  ): TripStop[] {
+    if (destinations.length <= needed) return destinations;
     
-    return enhancedSelection;
+    // Sort by canonical priority and take top N
+    const prioritized = destinations.map(city => {
+      const canonicalInfo = CanonicalRoute66Cities.getDestinationInfo(
+        city.city_name || city.name,
+        city.state
+      );
+      return {
+        city,
+        priority: canonicalInfo ? canonicalInfo.priority : 0
+      };
+    });
+    
+    prioritized.sort((a, b) => b.priority - a.priority);
+    
+    const trimmed = prioritized.slice(0, needed).map(item => item.city);
+    console.log(`✂️ Trimmed to top ${needed} priority destinations`);
+    
+    return trimmed;
+  }
+
+  /**
+   * Expand selection to fill needed destinations
+   */
+  private static expandSelection(
+    currentSelection: TripStop[],
+    availableCities: TripStop[],
+    needed: number,
+    startStop: TripStop,
+    endStop: TripStop
+  ): TripStop[] {
+    const expanded = [...currentSelection];
+    const usedIds = new Set(currentSelection.map(city => city.id));
+    
+    // Add more cities from available pool
+    for (const city of availableCities) {
+      if (expanded.length >= needed) break;
+      
+      if (!usedIds.has(city.id) && 
+          city.id !== startStop.id && 
+          city.id !== endStop.id) {
+        expanded.push(city);
+        usedIds.add(city.id);
+      }
+    }
+    
+    console.log(`📈 Expanded selection from ${currentSelection.length} to ${expanded.length} destinations`);
+    
+    return expanded;
   }
 
   /**
@@ -82,14 +185,12 @@ export class EnhancedDestinationSelector {
     startStop: TripStop,
     endStop: TripStop,
     canonicalCities: TripStop[],
-    totalDays: number
+    neededCities: number
   ): TripStop[] {
-    if (totalDays <= 1 || canonicalCities.length === 0) {
+    if (neededCities <= 0 || canonicalCities.length === 0) {
       return [];
     }
 
-    const neededCities = totalDays - 1; // One less than total days
-    
     if (canonicalCities.length <= neededCities) {
       // Use all available canonical cities, sorted by sequence
       return Route66SequenceUtils.sortBySequence(canonicalCities, this.getTripDirection(startStop, endStop));
@@ -157,34 +258,5 @@ export class EnhancedDestinationSelector {
     
     // Fallback to longitude
     return endStop.longitude < startStop.longitude ? 'east-to-west' : 'west-to-east';
-  }
-
-  private static filterCitiesAlongRoute(
-    startStop: TripStop,
-    endStop: TripStop,
-    destinationCities: TripStop[]
-  ): TripStop[] {
-    const routeDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-
-    return destinationCities.filter(city => {
-      const startToCity = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        city.latitude, city.longitude
-      );
-      
-      const cityToEnd = DistanceCalculationService.calculateDistance(
-        city.latitude, city.longitude,
-        endStop.latitude, endStop.longitude
-      );
-      
-      // City is roughly along the route if total distance via city isn't much longer
-      const detourFactor = (startToCity + cityToEnd) / routeDistance;
-      
-      // Allow generous detour for canonical destination cities
-      return detourFactor <= 1.5;
-    });
   }
 }

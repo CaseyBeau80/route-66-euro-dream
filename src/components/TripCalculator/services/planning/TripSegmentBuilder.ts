@@ -1,4 +1,3 @@
-
 import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -21,45 +20,215 @@ export class TripSegmentBuilder {
     styleConfig: TripStyleConfig
   ): DailySegment[] {
     console.log(`🏗️ Building segments with drive-time enforcement: ${tripDays} days, ${styleConfig.style} style`);
+    console.log(`🏗️ Destination cities provided: ${destinationCities.length}`, destinationCities.map(c => c.name));
     
-    // Create initial segment plan
-    const allDayStops = [startStop, ...destinationCities, endStop];
-    const initialSegments: Array<{ startStop: TripStop; endStop: TripStop }> = [];
+    // CRITICAL FIX: Ensure we have the right number of stops for the trip days
+    // For a 14-day trip, we need 13 intermediate destinations (startStop -> 13 destinations -> endStop)
+    const neededIntermediateStops = tripDays - 1;
     
-    for (let day = 1; day <= tripDays; day++) {
-      const currentStop = allDayStops[day - 1];
-      const nextStop = allDayStops[day];
-      
-      if (!currentStop || !nextStop) continue;
-      
-      initialSegments.push({
-        startStop: currentStop,
-        endStop: nextStop
-      });
+    console.log(`🏗️ CRITICAL: Need ${neededIntermediateStops} intermediate stops for ${tripDays} days`);
+    
+    // If we don't have enough destination cities, we need to space them out properly
+    let selectedDestinations: TripStop[];
+    
+    if (destinationCities.length >= neededIntermediateStops) {
+      // We have enough cities, select the best ones
+      selectedDestinations = destinationCities.slice(0, neededIntermediateStops);
+    } else if (destinationCities.length > 0) {
+      // We don't have enough destination cities, so we need to space out what we have
+      selectedDestinations = this.distributeDestinationsAcrossDays(
+        destinationCities, 
+        neededIntermediateStops
+      );
+    } else {
+      // No destination cities available, create a direct route with intermediate points
+      selectedDestinations = this.createIntermediatePoints(
+        startStop,
+        endStop,
+        neededIntermediateStops
+      );
     }
     
-    // Check if rebalancing is needed
-    if (DriveTimeEnforcementService.requiresRebalancing(initialSegments, styleConfig)) {
-      console.log(`⚖️ Rebalancing required for ${styleConfig.style} trip`);
+    console.log(`🏗️ FINAL SELECTED DESTINATIONS: ${selectedDestinations.length}`, selectedDestinations.map(c => c.name));
+    
+    // Create the complete trip stops array
+    const allTripStops = [startStop, ...selectedDestinations, endStop];
+    
+    console.log(`🏗️ ALL TRIP STOPS (${allTripStops.length}):`, allTripStops.map(s => s.name));
+    
+    // Validate we have the right number of stops
+    if (allTripStops.length !== tripDays + 1) {
+      console.error(`❌ MISMATCH: Expected ${tripDays + 1} stops, got ${allTripStops.length}`);
+    }
+    
+    // Create segments for each day
+    const segments: DailySegment[] = [];
+    
+    for (let day = 1; day <= tripDays; day++) {
+      const currentStop = allTripStops[day - 1];
+      const nextStop = allTripStops[day];
       
-      const balancingResult = SegmentBalancingService.rebalanceSegments(
-        initialSegments,
-        [...destinationCities, startStop, endStop],
-        styleConfig,
-        tripDays
+      if (!currentStop || !nextStop) {
+        console.error(`❌ Missing stop for day ${day}: current=${currentStop?.name}, next=${nextStop?.name}`);
+        continue;
+      }
+      
+      const segment = this.createSingleSegment(
+        currentStop,
+        nextStop,
+        day,
+        styleConfig
       );
       
-      if (balancingResult.success) {
-        console.log(`✅ Successfully rebalanced to ${balancingResult.rebalancedSegments.length} segments`);
-        return this.createDailySegmentsFromPairs(balancingResult.rebalancedSegments, styleConfig);
-      } else {
-        console.warn(`⚠️ Rebalancing failed, using original segments with warnings`);
-        // Continue with original plan but add warnings to segments
+      if (segment) {
+        segments.push(segment);
+        console.log(`✅ Created segment for Day ${day}: ${currentStop.name} → ${nextStop.name}`);
       }
     }
     
-    // Create segments from the plan (original or rebalanced)
-    return this.createDailySegmentsFromPairs(initialSegments, styleConfig);
+    console.log(`🏗️ FINAL SEGMENTS COUNT: ${segments.length} (expected: ${tripDays})`);
+    
+    return segments;
+  }
+
+  /**
+   * Distribute available destination cities across the required number of days
+   */
+  private static distributeDestinationsAcrossDays(
+    availableDestinations: TripStop[],
+    neededStops: number
+  ): TripStop[] {
+    if (availableDestinations.length >= neededStops) {
+      return availableDestinations.slice(0, neededStops);
+    }
+    
+    console.log(`🔄 Distributing ${availableDestinations.length} destinations across ${neededStops} stops`);
+    
+    // Calculate spacing - distribute cities evenly across the trip
+    const spacing = Math.floor(neededStops / availableDestinations.length);
+    const distributed: TripStop[] = [];
+    
+    for (let i = 0; i < neededStops; i++) {
+      const cityIndex = Math.floor(i / spacing);
+      const city = availableDestinations[Math.min(cityIndex, availableDestinations.length - 1)];
+      
+      // Avoid consecutive duplicates
+      if (distributed.length === 0 || distributed[distributed.length - 1].id !== city.id) {
+        distributed.push(city);
+      } else if (cityIndex + 1 < availableDestinations.length) {
+        // Use next city if available
+        distributed.push(availableDestinations[cityIndex + 1]);
+      } else {
+        // Create intermediate point
+        distributed.push(city); // For now, allow duplicate
+      }
+    }
+    
+    return distributed.slice(0, neededStops);
+  }
+
+  /**
+   * Create intermediate points when no destination cities are available
+   */
+  private static createIntermediatePoints(
+    startStop: TripStop,
+    endStop: TripStop,
+    neededStops: number
+  ): TripStop[] {
+    console.log(`🎯 Creating ${neededStops} intermediate points between ${startStop.name} and ${endStop.name}`);
+    
+    const intermediatePoints: TripStop[] = [];
+    
+    for (let i = 1; i <= neededStops; i++) {
+      const progress = i / (neededStops + 1);
+      
+      const lat = startStop.latitude + (endStop.latitude - startStop.latitude) * progress;
+      const lng = startStop.longitude + (endStop.longitude - startStop.longitude) * progress;
+      
+      const intermediatePoint: TripStop = {
+        id: `intermediate-${i}`,
+        name: `Day ${i} Stop`,
+        city_name: `Day ${i} Destination`,
+        state: startStop.state, // Use start state initially
+        latitude: lat,
+        longitude: lng,
+        category: 'destination',
+        description: `Intermediate stop for day ${i} of your Route 66 journey`
+      };
+      
+      intermediatePoints.push(intermediatePoint);
+    }
+    
+    return intermediatePoints;
+  }
+
+  /**
+   * Create a single daily segment
+   */
+  private static createSingleSegment(
+    startStop: TripStop,
+    endStop: TripStop,
+    day: number,
+    styleConfig: TripStyleConfig
+  ): DailySegment | null {
+    const segmentDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+    
+    const driveTimeHours = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
+    
+    // Validate drive time against style limits
+    const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
+      startStop,
+      endStop,
+      styleConfig
+    );
+    
+    // Only include destination cities as recommended stops with stopId
+    const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
+    const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
+      stopId: stop.id, // Add required stopId
+      id: stop.id,
+      name: stop.name,
+      description: stop.description,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      category: stop.category,
+      city_name: stop.city_name,
+      state: stop.state,
+      city: stop.city || stop.city_name || 'Unknown'
+    }));
+    
+    const segment: DailySegment = {
+      day,
+      title: `Day ${day}: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
+      startCity: CityDisplayService.getCityDisplayName(startStop),
+      endCity: CityDisplayService.getCityDisplayName(endStop),
+      distance: segmentDistance,
+      approximateMiles: Math.round(segmentDistance),
+      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+      destination: {
+        city: endStop.city_name || endStop.name,
+        state: endStop.state
+      },
+      recommendedStops,
+      attractions: recommendedStops.map(stop => ({
+        name: stop.name,
+        title: stop.name,
+        description: stop.description,
+        city: stop.city
+      })),
+      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
+      routeSection: TripPlanUtils.getRouteSection(day, 14) // Use total days for route section
+    };
+    
+    // Add drive-time validation warning if needed
+    if (!validation.isValid && validation.recommendation) {
+      segment.driveTimeWarning = validation.recommendation;
+    }
+    
+    return segment;
   }
 
   /**
