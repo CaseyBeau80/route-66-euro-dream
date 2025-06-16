@@ -1,4 +1,3 @@
-
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 
@@ -26,9 +25,11 @@ export class SupabaseDataService {
       longitude: stop.longitude || 0,
       image_url: stop.image_url, // This property now exists in mock data
       is_major_stop: stop.is_major_stop || true, // All destination cities are major stops
-      is_official_destination: stop.is_official_destination || false
+      is_official_destination: stop.is_official_destination || false,
+      sequence_order: stop.sequence_order // Include sequence_order from mock data
     }));
   }
+  
   
   static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
     // Only return destination cities regardless of requested category
@@ -66,6 +67,7 @@ export class SupabaseDataService {
 }
 
 // Mock data with enhanced Route 66 destination cities - REMOVED VICTORVILLE as it's a waypoint, not a destination city
+// Added sequence_order based on Route 66 progression from east to west
 const mockDestinationCitiesData = [
   {
     id: 'chicago-il',
@@ -77,7 +79,8 @@ const mockDestinationCitiesData = [
     longitude: -87.6298,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 1
   },
   {
     id: 'springfield-il',
@@ -89,7 +92,8 @@ const mockDestinationCitiesData = [
     longitude: -89.6501,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 2
   },
   {
     id: 'st-louis-mo',
@@ -101,7 +105,8 @@ const mockDestinationCitiesData = [
     longitude: -90.1994,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 3
   },
   {
     id: 'joplin-mo',
@@ -113,7 +118,8 @@ const mockDestinationCitiesData = [
     longitude: -94.5133,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 4
   },
   {
     id: 'tulsa-ok',
@@ -125,7 +131,8 @@ const mockDestinationCitiesData = [
     longitude: -95.9928,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 5
   },
   {
     id: 'oklahoma-city-ok',
@@ -137,139 +144,8 @@ const mockDestinationCitiesData = [
     longitude: -97.5164,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'amarillo-tx',
-    name: 'Amarillo, TX',
-    city_name: 'Amarillo',
-    state: 'Texas',
-    description: 'Home to the famous Cadillac Ranch and Big Texan Steak Ranch.',
-    latitude: 35.2220,
-    longitude: -101.8313,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'albuquerque-nm',
-    name: 'Albuquerque, NM',
-    city_name: 'Albuquerque',
-    state: 'New Mexico',
-    description: 'Largest city in New Mexico with rich Native American and Route 66 culture.',
-    latitude: 35.0844,
-    longitude: -106.6504,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'santa-fe-nm',
-    name: 'Santa Fe, NM',
-    city_name: 'Santa Fe',
-    state: 'New Mexico',
-    description: 'Historic state capital with distinctive southwestern architecture.',
-    latitude: 35.6870,
-    longitude: -105.9378,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'flagstaff-az',
-    name: 'Flagstaff, AZ',
-    city_name: 'Flagstaff',
-    state: 'Arizona',
-    description: 'Mountain town gateway to Grand Canyon and Route 66 hub.',
-    latitude: 35.1983,
-    longitude: -111.6513,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'williams-az',
-    name: 'Williams, AZ',
-    city_name: 'Williams',
-    state: 'Arizona',
-    description: 'Gateway to Grand Canyon and last Route 66 town to be bypassed.',
-    latitude: 35.2494,
-    longitude: -112.1901,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'kingman-az',
-    name: 'Kingman, AZ',
-    city_name: 'Kingman',
-    state: 'Arizona',
-    description: 'Heart of Route 66 in Arizona with excellent museums.',
-    latitude: 35.1895,
-    longitude: -114.0530,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'needles-ca',
-    name: 'Needles, CA',
-    city_name: 'Needles',
-    state: 'California',
-    description: 'Desert gateway to California on historic Route 66.',
-    latitude: 34.8481,
-    longitude: -114.6142,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'barstow-ca',
-    name: 'Barstow, CA',
-    city_name: 'Barstow',
-    state: 'California',
-    description: 'Historic railroad town and Route 66 crossroads in the Mojave Desert.',
-    latitude: 34.8958,
-    longitude: -117.0228,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'san-bernardino-ca',
-    name: 'San Bernardino, CA',
-    city_name: 'San Bernardino',
-    state: 'California',
-    description: 'Historic Route 66 city at the foot of the San Bernardino Mountains.',
-    latitude: 34.1083,
-    longitude: -117.2898,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'los-angeles-ca',
-    name: 'Los Angeles, CA',
-    city_name: 'Los Angeles',
-    state: 'California',
-    description: 'The City of Angels and major Route 66 destination.',
-    latitude: 34.0522,
-    longitude: -118.2437,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
-  },
-  {
-    id: 'santa-monica-ca',
-    name: 'Santa Monica, CA',
-    city_name: 'Santa Monica',
-    state: 'California',
-    description: 'Western terminus of Route 66 at the famous Santa Monica Pier.',
-    latitude: 34.0195,
-    longitude: -118.4912,
-    is_major_stop: true,
-    is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 6
   },
   {
     id: 'shamrock-tx',
@@ -281,7 +157,21 @@ const mockDestinationCitiesData = [
     longitude: -100.2437,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 7
+  },
+  {
+    id: 'amarillo-tx',
+    name: 'Amarillo, TX',
+    city_name: 'Amarillo',
+    state: 'Texas',
+    description: 'Home to the famous Cadillac Ranch and Big Texan Steak Ranch.',
+    latitude: 35.2220,
+    longitude: -101.8313,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 8
   },
   {
     id: 'tucumcari-nm',
@@ -293,7 +183,34 @@ const mockDestinationCitiesData = [
     longitude: -103.7250,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 9
+  },
+  {
+    id: 'santa-fe-nm',
+    name: 'Santa Fe, NM',
+    city_name: 'Santa Fe',
+    state: 'New Mexico',
+    description: 'Historic state capital with distinctive southwestern architecture.',
+    latitude: 35.6870,
+    longitude: -105.9378,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 10
+  },
+  {
+    id: 'albuquerque-nm',
+    name: 'Albuquerque, NM',
+    city_name: 'Albuquerque',
+    state: 'New Mexico',
+    description: 'Largest city in New Mexico with rich Native American and Route 66 culture.',
+    latitude: 35.0844,
+    longitude: -106.6504,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 11
   },
   {
     id: 'gallup-nm',
@@ -305,7 +222,8 @@ const mockDestinationCitiesData = [
     longitude: -108.7426,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 12
   },
   {
     id: 'holbrook-az',
@@ -317,7 +235,8 @@ const mockDestinationCitiesData = [
     longitude: -110.1618,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 13
   },
   {
     id: 'winslow-az',
@@ -329,7 +248,34 @@ const mockDestinationCitiesData = [
     longitude: -110.6974,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 14
+  },
+  {
+    id: 'flagstaff-az',
+    name: 'Flagstaff, AZ',
+    city_name: 'Flagstaff',
+    state: 'Arizona',
+    description: 'Mountain town gateway to Grand Canyon and Route 66 hub.',
+    latitude: 35.1983,
+    longitude: -111.6513,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 15
+  },
+  {
+    id: 'williams-az',
+    name: 'Williams, AZ',
+    city_name: 'Williams',
+    state: 'Arizona',
+    description: 'Gateway to Grand Canyon and last Route 66 town to be bypassed.',
+    latitude: 35.2494,
+    longitude: -112.1901,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 16
   },
   {
     id: 'seligman-az',
@@ -341,6 +287,85 @@ const mockDestinationCitiesData = [
     longitude: -112.8738,
     is_major_stop: true,
     is_official_destination: true,
-    image_url: undefined
+    image_url: undefined,
+    sequence_order: 17
+  },
+  {
+    id: 'kingman-az',
+    name: 'Kingman, AZ',
+    city_name: 'Kingman',
+    state: 'Arizona',
+    description: 'Heart of Route 66 in Arizona with excellent museums.',
+    latitude: 35.1895,
+    longitude: -114.0530,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 18
+  },
+  {
+    id: 'needles-ca',
+    name: 'Needles, CA',
+    city_name: 'Needles',
+    state: 'California',
+    description: 'Desert gateway to California on historic Route 66.',
+    latitude: 34.8481,
+    longitude: -114.6142,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 19
+  },
+  {
+    id: 'barstow-ca',
+    name: 'Barstow, CA',
+    city_name: 'Barstow',
+    state: 'California',
+    description: 'Historic railroad town and Route 66 crossroads in the Mojave Desert.',
+    latitude: 34.8958,
+    longitude: -117.0228,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 20
+  },
+  {
+    id: 'san-bernardino-ca',
+    name: 'San Bernardino, CA',
+    city_name: 'San Bernardino',
+    state: 'California',
+    description: 'Historic Route 66 city at the foot of the San Bernardino Mountains.',
+    latitude: 34.1083,
+    longitude: -117.2898,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 21
+  },
+  {
+    id: 'los-angeles-ca',
+    name: 'Los Angeles, CA',
+    city_name: 'Los Angeles',
+    state: 'California',
+    description: 'The City of Angels and major Route 66 destination.',
+    latitude: 34.0522,
+    longitude: -118.2437,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 22
+  },
+  {
+    id: 'santa-monica-ca',
+    name: 'Santa Monica, CA',
+    city_name: 'Santa Monica',
+    state: 'California',
+    description: 'Western terminus of Route 66 at the famous Santa Monica Pier.',
+    latitude: 34.0195,
+    longitude: -118.4912,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 23
   }
 ];
