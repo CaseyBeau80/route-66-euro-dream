@@ -1,5 +1,3 @@
-
-
 import { TripStop } from '../../types/TripStop';
 import { TripPlan, DailySegment, RecommendedStop } from './TripPlanTypes';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -54,8 +52,8 @@ export class BalancedTripPlanningService {
     // Calculate total distance (rough estimate based on Route 66 total distance)
     const totalDistance = this.calculateTotalDistance(startStop, endStop);
     
-    // Distribute stops across days
-    const segments = this.distributeStopsAcrossDays(routeStops, tripDays, totalDistance);
+    // Distribute stops across days - FIXED to use actual start/end
+    const segments = this.distributeStopsAcrossDays(routeStops, tripDays, totalDistance, startStop, endStop);
     
     return {
       id: `trip-${Date.now()}`, // Add required id
@@ -233,47 +231,80 @@ export class BalancedTripPlanningService {
   }
 
   /**
-   * Distribute stops across the specified number of days
+   * FIXED: Distribute stops across the specified number of days with proper start/end enforcement
    */
   private static distributeStopsAcrossDays(
     routeStops: TripStop[], 
     tripDays: number, 
-    totalDistance: number
+    totalDistance: number,
+    actualStartStop: TripStop,
+    actualEndStop: TripStop
   ): DailySegment[] {
     const segments: DailySegment[] = [];
-    const avgDistancePerDay = totalDistance / tripDays;
     
-    let currentDay = 1;
-    let currentStopIndex = 0;
+    console.log(`⚖️ FIXED BALANCED DISTRIBUTION: Ensuring trip starts at ${actualStartStop.name} and ends at ${actualEndStop.name}`);
     
-    while (currentDay <= tripDays && currentStopIndex < routeStops.length - 1) {
-      const startStop = routeStops[currentStopIndex];
+    if (tripDays === 1) {
+      // Single day trip - direct from start to end
+      const segmentDistance = this.calculateTotalDistance(actualStartStop, actualEndStop);
+      const driveTimeHours = segmentDistance / 50;
       
-      // Calculate how many stops to include for this day
-      let endStopIndex = currentStopIndex + 1;
-      if (currentDay < tripDays) {
-        // For all days except the last, try to distribute evenly
-        endStopIndex = Math.min(
-          currentStopIndex + Math.ceil((routeStops.length - currentStopIndex) / (tripDays - currentDay + 1)),
-          routeStops.length - 1
-        );
+      segments.push({
+        day: 1,
+        title: `Day 1: ${actualStartStop.name} to ${actualEndStop.name}`,
+        startCity: actualStartStop.name,
+        endCity: actualEndStop.name,
+        distance: segmentDistance,
+        driveTimeHours,
+        drivingTime: driveTimeHours,
+        approximateMiles: segmentDistance,
+        destination: {
+          city: actualEndStop.city_name || actualEndStop.city || actualEndStop.name,
+          state: actualEndStop.state
+        },
+        recommendedStops: this.convertTripStopsToRecommendedStops([actualEndStop]),
+        attractions: [],
+        notes: `Day 1: Direct route from ${actualStartStop.name} to ${actualEndStop.name}`,
+        recommendations: []
+      });
+      
+      return segments;
+    }
+    
+    // Multi-day trip - create balanced intermediate stops
+    let currentStop = actualStartStop;
+    
+    for (let day = 1; day <= tripDays; day++) {
+      let endStop: TripStop;
+      
+      if (day === tripDays) {
+        // Last day - must end at actual destination
+        endStop = actualEndStop;
       } else {
-        // Last day - go to the final destination
-        endStopIndex = routeStops.length - 1;
+        // Intermediate days - distribute evenly across available route stops
+        const progress = day / tripDays;
+        const targetIndex = Math.floor(progress * (routeStops.length - 1));
+        endStop = routeStops[Math.min(targetIndex, routeStops.length - 1)];
+        
+        // Ensure we're not going backwards or staying at same place
+        if (endStop === currentStop && routeStops.length > 1) {
+          const currentIndex = routeStops.indexOf(currentStop);
+          if (currentIndex >= 0 && currentIndex < routeStops.length - 1) {
+            endStop = routeStops[currentIndex + 1];
+          }
+        }
       }
       
-      const endStop = routeStops[endStopIndex];
-      const segmentDistance = this.calculateTotalDistance(startStop, endStop);
+      const segmentDistance = this.calculateTotalDistance(currentStop, endStop);
       const driveTimeHours = segmentDistance / 50; // Assume 50 mph average
       
       // Convert intermediate stops to RecommendedStop format
-      const intermediateStops = routeStops.slice(currentStopIndex + 1, endStopIndex);
-      const recommendedStops = this.convertTripStopsToRecommendedStops(intermediateStops);
+      const recommendedStops = this.convertTripStopsToRecommendedStops([endStop]);
       
       segments.push({
-        day: currentDay,
-        title: `Day ${currentDay}: ${startStop.name} to ${endStop.name}`,
-        startCity: startStop.name,
+        day,
+        title: `Day ${day}: ${currentStop.name} to ${endStop.name}`,
+        startCity: currentStop.name,
         endCity: endStop.name,
         distance: segmentDistance,
         driveTimeHours,
@@ -285,15 +316,14 @@ export class BalancedTripPlanningService {
         },
         recommendedStops,
         attractions: [],
-        notes: `Day ${currentDay}: Travel from ${startStop.name} to ${endStop.name}`,
+        notes: `Day ${day}: Travel from ${currentStop.name} to ${endStop.name}`,
         recommendations: []
       });
       
-      currentStopIndex = endStopIndex;
-      currentDay++;
+      currentStop = endStop;
     }
     
+    console.log(`✅ FIXED: Generated ${segments.length} segments from ${actualStartStop.name} to ${actualEndStop.name}`);
     return segments;
   }
 }
-
