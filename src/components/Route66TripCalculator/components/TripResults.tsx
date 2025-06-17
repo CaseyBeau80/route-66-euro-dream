@@ -37,7 +37,7 @@ const TripResults: React.FC<TripResultsProps> = ({
     totalCost: costEstimate?.breakdown?.totalCost,
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays,
-    shouldShowWarning: !!(completionAnalysis && originalRequestedDays && (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0))
+    shouldShowWarning: !!(completionAnalysis && originalRequestedDays && (completionAnalysis.isCompleted || (completionAnalysis.duplicateSegments && completionAnalysis.duplicateSegments.length > 0)))
   });
 
   if (!tripPlan) {
@@ -62,10 +62,10 @@ const TripResults: React.FC<TripResultsProps> = ({
     }).format(amount);
   };
 
-  // Determine if we should show the completion warning
+  // Determine if we should show the completion warning with proper null checks
   const shouldShowCompletionWarning = completionAnalysis && originalRequestedDays && 
-    (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0) &&
-    (originalRequestedDays > completionAnalysis.totalUsefulDays);
+    (completionAnalysis.isCompleted || (completionAnalysis.duplicateSegments && completionAnalysis.duplicateSegments.length > 0)) &&
+    (originalRequestedDays > (completionAnalysis.totalUsefulDays || 0));
 
   return (
     <div className="space-y-6 p-6">
