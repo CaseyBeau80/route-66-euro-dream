@@ -45,4 +45,28 @@ export class TripCompletionService {
       unusedDays: Math.max(0, originalDays - optimizedDays)
     };
   }
+
+  static calculateRouteProgression(
+    segmentNumber: number,
+    totalDistance: number,
+    cumulativeDistance: number
+  ): any {
+    const progressPercentage = (cumulativeDistance / totalDistance) * 100;
+    return {
+      segmentNumber,
+      progressPercentage: Math.round(progressPercentage),
+      cumulativeDistance: Math.round(cumulativeDistance),
+      totalDistance: Math.round(totalDistance)
+    };
+  }
+
+  static sanitizeSegment(segment: any, index: number): any {
+    return {
+      ...segment,
+      day: segment.day || index + 1,
+      distance: segment.distance || 0,
+      driveTimeHours: segment.driveTimeHours || 0,
+      approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0)
+    };
+  }
 }
