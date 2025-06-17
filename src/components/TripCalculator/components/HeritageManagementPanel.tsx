@@ -11,13 +11,40 @@ interface HeritageValidationStatus {
   totalCities: number;
   citiesWithScores: number;
   missingScores: string[];
+  columnsExist: boolean;
+  error?: string;
 }
 
 const HeritageManagementPanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationStatus, setValidationStatus] = useState<HeritageValidationStatus | null>(null);
   const [migrationResults, setMigrationResults] = useState<any>(null);
+  const [schemaCheckResults, setSchemaCheckResults] = useState<any>(null);
   const { toast } = useToast();
+
+  const handleCheckSchema = async () => {
+    setIsLoading(true);
+    try {
+      const results = await HeritageDatabaseMigration.checkHeritageColumnsExist();
+      setSchemaCheckResults(results);
+      
+      toast({
+        title: results.columnsExist ? "Schema Check: OK" : "Schema Check: Missing Columns",
+        description: results.columnsExist ? 
+          "All heritage columns exist in database" : 
+          `Missing: ${results.missingColumns.join(', ')}`,
+        variant: results.columnsExist ? "default" : "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Schema Check Failed",
+        description: "Error checking database schema",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleValidateScores = async () => {
     setIsLoading(true);
@@ -25,11 +52,19 @@ const HeritageManagementPanel: React.FC = () => {
       const status = await HeritageDatabaseMigration.validateHeritageScores();
       setValidationStatus(status);
       
-      toast({
-        title: "Validation Complete",
-        description: `Found ${status.citiesWithScores}/${status.totalCities} cities with heritage scores`,
-        variant: status.citiesWithScores === status.totalCities ? "default" : "destructive"
-      });
+      if (!status.columnsExist) {
+        toast({
+          title: "Validation Failed",
+          description: "Heritage columns do not exist in database",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Validation Complete",
+          description: `Found ${status.citiesWithScores}/${status.totalCities} cities with heritage scores`,
+          variant: status.citiesWithScores === status.totalCities ? "default" : "destructive"
+        });
+      }
     } catch (error) {
       toast({
         title: "Validation Failed",
@@ -53,7 +88,7 @@ const HeritageManagementPanel: React.FC = () => {
         variant: results.success ? "default" : "destructive"
       });
 
-      // Refresh validation status
+      // Refresh validation status if successful
       if (results.success) {
         await handleValidateScores();
       }
@@ -106,48 +141,101 @@ const HeritageManagementPanel: React.FC = () => {
           </div>
         </div>
 
+        {/* Schema Check Warning */}
+        {(schemaCheckResults && !schemaCheckResults.columnsExist) && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              <div className="space-y-2">
+                <div className="font-semibold">Database Schema Issue</div>
+                <div>Missing columns in destination_cities table: {schemaCheckResults.missingColumns.join(', ')}</div>
+                <div className="text-sm">
+                  Heritage features require these columns to be added to the database first.
+                  Please contact your database administrator to add the missing columns.
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Action Buttons */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
+          <Button 
+            onClick={handleCheckSchema} 
+            disabled={isLoading}
+            variant="outline"
+          >
+            🔍 Check Database Schema
+          </Button>
           <Button 
             onClick={handleValidateScores} 
             disabled={isLoading}
             variant="outline"
           >
-            🔍 Validate Current Scores
+            📊 Validate Current Scores
           </Button>
           <Button 
             onClick={handleApplyMigration} 
-            disabled={isLoading}
+            disabled={isLoading || (schemaCheckResults && !schemaCheckResults.columnsExist)}
             className="bg-blue-600 hover:bg-blue-700"
           >
             🚀 Apply Heritage Migration
           </Button>
         </div>
 
-        {/* Validation Status */}
-        {validationStatus && (
-          <Alert>
+        {/* Schema Check Results */}
+        {schemaCheckResults && (
+          <Alert variant={schemaCheckResults.columnsExist ? "default" : "destructive"}>
             <AlertDescription>
               <div className="space-y-2">
                 <div className="font-semibold">
-                  Heritage Score Status: {validationStatus.citiesWithScores}/{validationStatus.totalCities} cities have scores
+                  Database Schema: {schemaCheckResults.columnsExist ? '✅ OK' : '❌ Missing Columns'}
                 </div>
-                {validationStatus.missingScores.length > 0 && (
-                  <div>
-                    <div className="text-sm font-medium mb-1">Missing heritage scores:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {validationStatus.missingScores.slice(0, 10).map((city, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {city}
-                        </Badge>
-                      ))}
-                      {validationStatus.missingScores.length > 10 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{validationStatus.missingScores.length - 10} more
-                        </Badge>
-                      )}
+                {!schemaCheckResults.columnsExist && (
+                  <div>Missing: {schemaCheckResults.missingColumns.join(', ')}</div>
+                )}
+                {schemaCheckResults.error && (
+                  <div className="text-sm">{schemaCheckResults.error}</div>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Validation Status */}
+        {validationStatus && (
+          <Alert variant={validationStatus.columnsExist ? "default" : "destructive"}>
+            <AlertDescription>
+              <div className="space-y-2">
+                {validationStatus.columnsExist ? (
+                  <>
+                    <div className="font-semibold">
+                      Heritage Score Status: {validationStatus.citiesWithScores}/{validationStatus.totalCities} cities have scores
                     </div>
+                    {validationStatus.missingScores.length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium mb-1">Missing heritage scores:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {validationStatus.missingScores.slice(0, 10).map((city, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {city}
+                            </Badge>
+                          ))}
+                          {validationStatus.missingScores.length > 10 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{validationStatus.missingScores.length - 10} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="font-semibold">
+                    Cannot validate: Heritage columns do not exist in database
                   </div>
+                )}
+                {validationStatus.error && (
+                  <div className="text-sm text-red-600">{validationStatus.error}</div>
                 )}
               </div>
             </AlertDescription>

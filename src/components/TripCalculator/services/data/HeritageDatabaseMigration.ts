@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface HeritageCityData {
@@ -140,7 +139,62 @@ export class HeritageDatabaseMigration {
   ];
 
   /**
-   * Apply heritage scores to destination cities
+   * Check if heritage columns exist in the database
+   */
+  static async checkHeritageColumnsExist(): Promise<{
+    columnsExist: boolean;
+    missingColumns: string[];
+    error?: string;
+  }> {
+    try {
+      // Try to select heritage columns to check if they exist
+      const { data, error } = await supabase
+        .from('destination_cities')
+        .select('id, heritage_score, tourism_score, route66_importance')
+        .limit(1);
+
+      if (error) {
+        // Parse error to check for missing columns
+        const errorMessage = error.message.toLowerCase();
+        const missingColumns: string[] = [];
+        
+        if (errorMessage.includes('heritage_score')) {
+          missingColumns.push('heritage_score');
+        }
+        if (errorMessage.includes('tourism_score')) {
+          missingColumns.push('tourism_score');
+        }
+        if (errorMessage.includes('route66_importance')) {
+          missingColumns.push('route66_importance');
+        }
+
+        console.log('🔍 Heritage columns check - missing columns detected:', missingColumns);
+        
+        return {
+          columnsExist: missingColumns.length === 0,
+          missingColumns,
+          error: missingColumns.length > 0 ? `Missing columns: ${missingColumns.join(', ')}` : error.message
+        };
+      }
+
+      console.log('✅ Heritage columns exist in database');
+      return {
+        columnsExist: true,
+        missingColumns: []
+      };
+
+    } catch (error) {
+      console.error('💥 Error checking heritage columns:', error);
+      return {
+        columnsExist: false,
+        missingColumns: ['heritage_score', 'tourism_score', 'route66_importance'],
+        error: `Database error: ${error}`
+      };
+    }
+  }
+
+  /**
+   * Apply heritage scores to destination cities (only if columns exist)
    */
   static async applyHeritageScores(): Promise<{ success: boolean; message: string; errors: string[] }> {
     console.log('🏛️ Starting heritage score migration...');
@@ -149,6 +203,19 @@ export class HeritageDatabaseMigration {
     let successCount = 0;
 
     try {
+      // First, check if heritage columns exist
+      const columnCheck = await this.checkHeritageColumnsExist();
+      
+      if (!columnCheck.columnsExist) {
+        console.warn('⚠️ Heritage columns do not exist in database:', columnCheck.missingColumns);
+        return {
+          success: false,
+          message: `Heritage migration failed: Missing database columns (${columnCheck.missingColumns.join(', ')})`,
+          errors: [`Database schema missing columns: ${columnCheck.missingColumns.join(', ')}. Please add these columns to the destination_cities table first.`]
+        };
+      }
+
+      // Proceed with migration if columns exist
       for (const cityData of this.HERITAGE_CITY_DATA) {
         try {
           const { data, error } = await supabase
@@ -157,7 +224,7 @@ export class HeritageDatabaseMigration {
               heritage_score: cityData.heritage_score,
               tourism_score: cityData.tourism_score,
               route66_importance: cityData.route66_importance
-            })
+            } as any) // Use 'as any' to bypass TypeScript checking for now
             .or(`name.ilike.%${cityData.name}%,city_name.ilike.%${cityData.name}%`)
             .eq('state', cityData.state);
 
@@ -201,38 +268,76 @@ export class HeritageDatabaseMigration {
   }
 
   /**
-   * Validate heritage scores in database
+   * Validate heritage scores in database (only if columns exist)
    */
   static async validateHeritageScores(): Promise<{
     totalCities: number;
     citiesWithScores: number;
     missingScores: string[];
+    columnsExist: boolean;
+    error?: string;
   }> {
     try {
+      // First check if heritage columns exist
+      const columnCheck = await this.checkHeritageColumnsExist();
+      
+      if (!columnCheck.columnsExist) {
+        console.warn('⚠️ Cannot validate heritage scores - columns do not exist:', columnCheck.missingColumns);
+        
+        // Get basic city count without heritage columns
+        const { data: basicCities, error: basicError } = await supabase
+          .from('destination_cities')
+          .select('name, state');
+
+        const totalCities = basicCities?.length || 0;
+
+        return {
+          totalCities,
+          citiesWithScores: 0,
+          missingScores: basicCities?.map(city => `${city.name}, ${city.state}`) || [],
+          columnsExist: false,
+          error: columnCheck.error
+        };
+      }
+
+      // If columns exist, do full validation
       const { data: allCities, error } = await supabase
         .from('destination_cities')
-        .select('name, state, heritage_score, tourism_score');
+        .select('name, state, heritage_score, tourism_score') as any; // Use 'as any' to bypass TypeScript
 
       if (error) {
         console.error('Error validating heritage scores:', error);
-        return { totalCities: 0, citiesWithScores: 0, missingScores: [] };
+        return { 
+          totalCities: 0, 
+          citiesWithScores: 0, 
+          missingScores: [],
+          columnsExist: true,
+          error: error.message
+        };
       }
 
       const totalCities = allCities?.length || 0;
-      const citiesWithScores = allCities?.filter(city => city.heritage_score && city.tourism_score).length || 0;
-      const missingScores = allCities?.filter(city => !city.heritage_score || !city.tourism_score)
-        .map(city => `${city.name}, ${city.state}`) || [];
+      const citiesWithScores = allCities?.filter((city: any) => city.heritage_score && city.tourism_score).length || 0;
+      const missingScores = allCities?.filter((city: any) => !city.heritage_score || !city.tourism_score)
+        .map((city: any) => `${city.name}, ${city.state}`) || [];
 
       console.log(`📊 Heritage score validation: ${citiesWithScores}/${totalCities} cities have scores`);
 
       return {
         totalCities,
         citiesWithScores,
-        missingScores
+        missingScores,
+        columnsExist: true
       };
     } catch (error) {
       console.error('Error during heritage validation:', error);
-      return { totalCities: 0, citiesWithScores: 0, missingScores: [] };
+      return { 
+        totalCities: 0, 
+        citiesWithScores: 0, 
+        missingScores: [],
+        columnsExist: false,
+        error: `Validation error: ${error}`
+      };
     }
   }
 }
