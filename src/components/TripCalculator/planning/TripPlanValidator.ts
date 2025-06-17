@@ -1,20 +1,9 @@
-
 import { toast } from '@/hooks/use-toast';
 import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDataService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CityDisplayService } from '../services/utils/CityDisplayService';
 import { CityNameNormalizationService } from '../services/CityNameNormalizationService';
-
-interface TripStop {
-  id: string;
-  name: string;
-  city_name?: string;
-  city?: string;
-  state: string;
-  category: string;
-  latitude?: number;
-  longitude?: number;
-}
+import { TripStop } from '../types/TripStop';
 
 interface ValidationResult {
   startStop: TripStop;
