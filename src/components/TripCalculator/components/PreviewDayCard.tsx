@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { MapPin, Clock, Star, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { Clock } from 'lucide-react';
 import { UnifiedDateService } from '../services/UnifiedDateService';
 import EnhancedWeatherWidget from './weather/EnhancedWeatherWidget';
+import PreviewDayHeader from './preview/PreviewDayHeader';
+import PreviewDayDistance from './preview/PreviewDayDistance';
+import PreviewDayRoute from './preview/PreviewDayRoute';
+import PreviewDayAttractions from './preview/PreviewDayAttractions';
 
 interface PreviewDayCardProps {
   segment: DailySegment;
@@ -51,15 +54,6 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return calculatedDate;
   }, [tripStartDate, segment.day, dayIndex]);
 
-  const formatTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    if (minutes === 0) {
-      return `${wholeHours}h`;
-    }
-    return `${wholeHours}h ${minutes}m`;
-  };
-
   // V2 FIX: Trust the segment drive time - it's already been validated and enforced
   const driveTime = React.useMemo(() => {
     console.log(`✅ V2 UI: Using pre-validated drive time for Day ${segment.day}:`, {
@@ -88,64 +82,16 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
       <div className="relative z-10 p-8">
         {/* Header with day and date */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-lg">
-              {segment.day}
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-1">
-                Day {segment.day}
-              </h3>
-              {segmentDate && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span className="font-medium">
-                    {format(segmentDate, 'EEEE, MMMM do, yyyy')}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Distance and time info - V2: Show validated drive time */}
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600 mb-1">
-              {Math.round(segment.distance)} mi
-            </div>
-            <div className="text-sm text-gray-500">
-              {formatTime(driveTime)} drive time
-            </div>
-            {/* Show status based on drive time */}
-            {driveTime >= 8 && (
-              <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded">
-                ⚠️ Long Drive Day
-              </div>
-            )}
-            {driveTime > 6 && driveTime < 8 && (
-              <div className="text-xs text-blue-600 mt-1">
-                🚗 Extended Drive
-              </div>
-            )}
-            {driveTime <= 6 && (
-              <div className="text-xs text-green-600 mt-1">
-                ✅ Comfortable Drive
-              </div>
-            )}
-          </div>
+          <PreviewDayHeader day={segment.day} segmentDate={segmentDate} />
+          <PreviewDayDistance distance={segment.distance} driveTime={driveTime} />
         </div>
 
         {/* Route info */}
-        <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-xl">
-          <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
-          <div className="flex-1">
-            <div className="font-semibold text-gray-800">
-              {segment.startCity} → {segment.endCity}
-            </div>
-            <div className="text-sm text-gray-600">
-              Route 66 • {Math.round(segment.distance)} miles
-            </div>
-          </div>
-        </div>
+        <PreviewDayRoute 
+          startCity={segment.startCity} 
+          endCity={segment.endCity} 
+          distance={segment.distance} 
+        />
 
         {/* Drive time warning if present */}
         {segment.driveTimeWarning && (
@@ -176,42 +122,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
         )}
 
         {/* Attractions */}
-        {segment.attractions && segment.attractions.length > 0 && (
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              Must-See Attractions
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {segment.attractions.slice(0, 6).map((attraction, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <MapPin className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-800 truncate">
-                      {attraction.name}
-                    </div>
-                    {attraction.description && (
-                      <div className="text-sm text-gray-600 line-clamp-2">
-                        {attraction.description}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {segment.attractions.length > 6 && (
-              <div className="mt-3 text-center">
-                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  +{segment.attractions.length - 6} more attractions
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+        <PreviewDayAttractions segment={segment} />
 
         {/* Connecting line to next day */}
         {!isLast && (
