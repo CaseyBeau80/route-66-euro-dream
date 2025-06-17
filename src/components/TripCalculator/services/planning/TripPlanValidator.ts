@@ -24,6 +24,22 @@ export class TripPlanValidator {
       console.log(`  ${index + 1}. ID: "${stop.id}", Name: "${stop.name}", City: "${stop.city_name || stop.city}", State: "${stop.state}"`);
     });
     
+    // SPECIAL DEBUG: Check specifically for Chicago
+    console.log(`🔍 Services Planning CHICAGO DEBUG: Searching for "${startCityName}"`);
+    const chicagoMatches = allStops.filter(stop => {
+      const name = (stop.name || '').toLowerCase();
+      const cityName = (stop.city_name || stop.city || '').toLowerCase();
+      const searchTerm = startCityName.toLowerCase();
+      
+      console.log(`  Checking stop: name="${stop.name}", city_name="${stop.city_name}", city="${stop.city}", state="${stop.state}"`);
+      console.log(`  Name includes chicago: ${name.includes('chicago')}`);
+      console.log(`  City_name includes chicago: ${cityName.includes('chicago')}`);
+      console.log(`  Search term: ${searchTerm}`);
+      
+      return name.includes('chicago') || cityName.includes('chicago') || searchTerm.includes('chicago');
+    });
+    console.log(`🔍 Services Planning CHICAGO DEBUG: Found ${chicagoMatches.length} potential Chicago matches:`, chicagoMatches);
+    
     // Enhanced start stop finding with state disambiguation
     if (!startStop) {
       console.log(`🔍 Services Planning Enhanced search for start location: "${startCityName}"`);
@@ -73,17 +89,39 @@ export class TripPlanValidator {
     
     console.log(`🔍 Services Planning Parsed input: city="${searchCity}", state="${searchState}"`);
 
+    // SPECIAL DEBUG for Chicago
+    if (searchCity.toLowerCase().includes('chicago')) {
+      console.log(`🔍 Services Planning CHICAGO SPECIAL DEBUG: Processing Chicago search`);
+      console.log(`🔍 Services Planning Search city: "${searchCity}", Search state: "${searchState}"`);
+      
+      // Log every stop to see the data structure
+      allStops.forEach((stop, index) => {
+        if (stop.name && stop.name.toLowerCase().includes('chicago')) {
+          console.log(`🔍 Services Planning CHICAGO FOUND in stops[${index}]:`, {
+            id: stop.id,
+            name: stop.name,
+            city_name: stop.city_name,
+            city: stop.city,
+            state: stop.state,
+            category: stop.category
+          });
+        }
+      });
+    }
+
     // Strategy 1: Exact match with both city and state (highest priority)
     if (searchState) {
       console.log(`🔍 Services Planning Strategy 1: Looking for exact match with city="${searchCity}" and state="${searchState}"`);
       
       const exactMatches = allStops.filter(stop => {
-        const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
+        // Try multiple fields for city name
+        const stopCityName = stop.name || stop.city_name || stop.city || '';
+        const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stopCityName);
         const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
         const normalizedStopState = CityNameNormalizationService.normalizeSearchTerm(stop.state || '');
         const normalizedSearchState = CityNameNormalizationService.normalizeSearchTerm(searchState);
         
-        console.log(`    Services Planning Checking stop: "${stop.name}" (${stop.state}) vs search: "${searchCity}" (${searchState})`);
+        console.log(`    Services Planning Checking stop: "${stopCityName}" (${stop.state}) vs search: "${searchCity}" (${searchState})`);
         console.log(`    Services Planning Normalized: "${normalizedStopCity}" (${normalizedStopState}) vs "${normalizedSearchCity}" (${normalizedSearchState})`);
         
         const cityMatch = normalizedStopCity === normalizedSearchCity;
@@ -109,10 +147,12 @@ export class TripPlanValidator {
     console.log(`🔍 Services Planning Strategy 2: Looking for city-only match with "${searchCity}"`);
     
     const cityOnlyMatches = allStops.filter(stop => {
-      const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
+      // Try multiple fields for city name
+      const stopCityName = stop.name || stop.city_name || stop.city || '';
+      const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stopCityName);
       const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
       
-      console.log(`    Services Planning Checking city-only: "${stop.name}" normalized to "${normalizedStopCity}" vs "${normalizedSearchCity}"`);
+      console.log(`    Services Planning Checking city-only: "${stopCityName}" normalized to "${normalizedStopCity}" vs "${normalizedSearchCity}"`);
       
       const matches = normalizedStopCity === normalizedSearchCity;
       console.log(`    Services Planning City-only match: ${matches}`);
