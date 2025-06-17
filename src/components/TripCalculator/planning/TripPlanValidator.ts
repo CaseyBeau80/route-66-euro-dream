@@ -2,7 +2,6 @@ import { toast } from '@/hooks/use-toast';
 import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDataService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CityDisplayService } from '../services/utils/CityDisplayService';
-import { CityNameNormalizationService } from '../services/CityNameNormalizationService';
 import { TripStop } from '../types/TripStop';
 
 interface ValidationResult {
@@ -12,7 +11,7 @@ interface ValidationResult {
 
 export class TripPlanValidator {
   /**
-   * Enhanced validation with proper city-state disambiguation
+   * SIMPLIFIED validation with direct exact matching
    */
   static validateStops(
     startStop: TripStop | undefined,
@@ -22,7 +21,7 @@ export class TripPlanValidator {
     allStops: TripStop[]
   ): ValidationResult {
     
-    console.log(`🔍 PLANNING VALIDATOR: Enhanced validation for: "${startCityName}" → "${endCityName}"`);
+    console.log(`🔍 PLANNING VALIDATOR: SIMPLIFIED validation for: "${startCityName}" → "${endCityName}"`);
     console.log(`📊 PLANNING VALIDATOR: Available stops: ${allStops.length}`);
     
     // DEBUG: Log all available stops with their exact names
@@ -31,29 +30,41 @@ export class TripPlanValidator {
       console.log(`  ${index + 1}. ID: "${stop.id}", Name: "${stop.name}", City: "${stop.city_name || stop.city}", State: "${stop.state}"`);
     });
     
-    // Enhanced start stop finding
+    // SIMPLIFIED start stop finding
     if (!startStop) {
-      console.log(`🔍 PLANNING VALIDATOR: Enhanced search for start location: "${startCityName}"`);
+      console.log(`🔍 PLANNING VALIDATOR: Direct search for start location: "${startCityName}"`);
       
-      startStop = this.findStopWithEnhancedMatching(startCityName, allStops);
+      // Try direct exact match first
+      startStop = allStops.find(stop => {
+        const displayName = CityDisplayService.getCityDisplayName(stop);
+        const match = displayName === startCityName || stop.name === startCityName;
+        console.log(`    PLANNING VALIDATOR: Checking "${displayName}" vs "${startCityName}" = ${match}`);
+        return match;
+      });
       
       if (!startStop) {
         console.error(`❌ PLANNING VALIDATOR: Could not find start location: "${startCityName}"`);
-        this.logAvailableStopsForDebugging(allStops);
+        console.log(`🗂️ PLANNING VALIDATOR: Available city names:`, allStops.map(s => CityDisplayService.getCityDisplayName(s)));
         
         throw new Error(`Start location "${startCityName}" not found in Route 66 stops. Available cities include: ${this.getAvailableCityNames(allStops).slice(0, 5).join(', ')}`);
       }
     }
 
-    // Enhanced end stop finding
+    // SIMPLIFIED end stop finding
     if (!endStop) {
-      console.log(`🔍 PLANNING VALIDATOR: Enhanced search for end location: "${endCityName}"`);
+      console.log(`🔍 PLANNING VALIDATOR: Direct search for end location: "${endCityName}"`);
       
-      endStop = this.findStopWithEnhancedMatching(endCityName, allStops);
+      // Try direct exact match first
+      endStop = allStops.find(stop => {
+        const displayName = CityDisplayService.getCityDisplayName(stop);
+        const match = displayName === endCityName || stop.name === endCityName;
+        console.log(`    PLANNING VALIDATOR: Checking "${displayName}" vs "${endCityName}" = ${match}`);
+        return match;
+      });
       
       if (!endStop) {
         console.error(`❌ PLANNING VALIDATOR: Could not find end location: "${endCityName}"`);
-        this.logAvailableStopsForDebugging(allStops);
+        console.log(`🗂️ PLANNING VALIDATOR: Available city names:`, allStops.map(s => CityDisplayService.getCityDisplayName(s)));
         
         throw new Error(`End location "${endCityName}" not found in Route 66 stops. Available cities include: ${this.getAvailableCityNames(allStops).slice(0, 5).join(', ')}`);
       }
