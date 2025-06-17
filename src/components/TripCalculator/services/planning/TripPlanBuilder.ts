@@ -51,13 +51,26 @@ export interface WeatherData {
   source?: string;
 }
 
+export interface DriveTimeBalance {
+  isBalanced: boolean;
+  averageDriveTime: number;
+  variance: number;
+  driveTimeRange: { min: number; max: number };
+  balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
+  overallScore: number;
+  suggestions: string[];
+  reason: string;
+}
+
 export interface DailySegment {
   day: number;
   startCity: string;
   endCity: string;
   distance: number;
   driveTimeHours: number;
-  stops: TripStop[];
+  drivingTime?: number; // Add this missing property
+  stops: TripStop[]; // Add this required property
   driveTimeWarning?: string;
   title?: string;
   approximateMiles?: number;
@@ -79,6 +92,18 @@ export interface DailySegment {
 export interface SegmentTiming {
   startTime: string;
   endTime: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  distanceFromLastStop: number;
+  driveTimeHours: number;
+  fromStop: TripStop;
+  toStop: TripStop;
+  distance: number;
+  driveTime: number;
+  distanceMiles: number;
+  drivingTime: number;
 }
 
 export interface TripPlan {
@@ -87,11 +112,12 @@ export interface TripPlan {
   dailySegments?: DailySegment[];
   totalDays: number;
   totalDistance: number;
-  totalDrivingTime: number; // Keep this as the main property
-  totalDriveTime?: number; // Add as optional for backward compatibility
+  totalDrivingTime: number;
+  totalDriveTime?: number;
   totalMiles?: number;
   startCity?: string;
   endCity?: string;
+  startDate?: Date; // Add this missing property
   title?: string;
   startCityImage?: string;
   endCityImage?: string;
@@ -103,6 +129,7 @@ export interface TripPlan {
   };
   lastUpdated?: Date;
   exportTimestamp?: number;
+  driveTimeBalance?: DriveTimeBalance;
   summary?: {
     totalDays: number;
     totalDistance: number;
@@ -119,12 +146,47 @@ export const getDestinationCityName = (segment: DailySegment): string => {
 };
 
 export class TripPlanDataValidator {
-  static validateTripPlan(tripPlan: TripPlan): boolean {
-    return !!(tripPlan && tripPlan.segments && tripPlan.segments.length > 0);
+  static validateTripPlan(tripPlan: TripPlan): { isValid: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    if (!tripPlan) {
+      issues.push('Trip plan is null or undefined');
+      return { isValid: false, issues };
+    }
+    
+    if (!tripPlan.segments || tripPlan.segments.length === 0) {
+      issues.push('No segments found in trip plan');
+    }
+    
+    if (tripPlan.totalDays <= 0) {
+      issues.push('Invalid total days');
+    }
+    
+    return { isValid: issues.length === 0, issues };
   }
   
-  static validateDailySegment(segment: DailySegment): boolean {
-    return !!(segment && segment.day && segment.startCity && segment.endCity);
+  static validateDailySegment(segment: DailySegment, context?: string): boolean {
+    if (!segment) return false;
+    return !!(segment.day && segment.startCity && segment.endCity);
+  }
+
+  // Add the missing sanitizeTripPlan method
+  static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
+    const sanitized: TripPlan = {
+      ...tripPlan,
+      segments: (tripPlan.segments || []).map(segment => ({
+        ...segment,
+        stops: segment.stops || [], // Ensure stops property exists
+        drivingTime: segment.drivingTime || segment.driveTimeHours || 0,
+        distance: segment.distance || 0,
+        driveTimeHours: segment.driveTimeHours || 0
+      })),
+      totalDays: tripPlan.totalDays || 0,
+      totalDistance: tripPlan.totalDistance || 0,
+      totalDrivingTime: tripPlan.totalDrivingTime || 0
+    };
+
+    return sanitized;
   }
 }
 
@@ -159,7 +221,8 @@ export class TripPlanBuilder {
           endCity: nextStop.name,
           distance,
           driveTimeHours,
-          stops: [currentStop, nextStop],
+          drivingTime: driveTimeHours, // Add drivingTime property
+          stops: [currentStop, nextStop], // Add stops property
           approximateMiles: distance,
           title: `${currentCity} to ${nextStop.name}`,
           destination: {
@@ -183,7 +246,8 @@ export class TripPlanBuilder {
           endCity: endStop.name,
           distance,
           driveTimeHours,
-          stops: [currentStop, endStop],
+          drivingTime: driveTimeHours, // Add drivingTime property
+          stops: [currentStop, endStop], // Add stops property
           approximateMiles: distance,
           title: `${currentCity} to ${endStop.name}`,
           destination: {
@@ -213,6 +277,7 @@ export class TripPlanBuilder {
       totalMiles: totalDistance,
       startCity: startLocation,
       endCity: endLocation,
+      startDate: new Date(), // Add startDate
       title: `${startLocation} to ${endLocation} Adventure`,
       summary: {
         totalDays: travelDays,

@@ -21,6 +21,8 @@ export interface RecommendedStop {
 }
 
 export interface SegmentTiming {
+  startTime: string;
+  endTime: string;
   city: string;
   state: string;
   latitude: number;
@@ -113,7 +115,8 @@ export interface DailySegment {
   distance: number;
   approximateMiles: number;
   driveTimeHours: number;
-  drivingTime?: number;
+  drivingTime?: number; // Add this missing property
+  stops: TripStop[]; // Add this required property
   destination: {
     city: string;
     state: string;
