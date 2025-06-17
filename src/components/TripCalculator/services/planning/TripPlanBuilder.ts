@@ -1,9 +1,9 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment, RouteProgression } from './TripPlanTypes';
 import { SequenceOrderService } from './SequenceOrderService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
+import { TripStyleLogic, TripStyleConfig } from './TripStyleLogic';
 
 // Re-export types from the unified location
 export type { 
@@ -79,48 +79,57 @@ export class TripPlanBuilder {
     endLocation: string,
     tripStyle: string = 'balanced'
   ): any {
-    console.log(`🗺️ Creating sequence-aware trip plan: ${startLocation} → ${endLocation} (${travelDays} days)`);
+    console.log(`🗺️ Creating trip plan with style: ${tripStyle} - ${startLocation} → ${endLocation} (${travelDays} days)`);
+    
+    // Get trip style configuration
+    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle as 'balanced' | 'destination-focused');
+    console.log(`🎯 Trip style config:`, styleConfig);
     
     // Determine trip direction based on sequence order
     const direction = SequenceOrderService.getTripDirection(startStop, endStop);
     console.log(`🧭 Trip direction: ${direction}`);
     
-    // Filter destination cities only and remove start/end stops
+    // Filter destination cities and apply trip style filtering
     const destinationCities = allStops.filter(stop => 
       stop.category === 'destination_city' &&
       stop.id !== startStop.id &&
       stop.id !== endStop.id
     );
     
+    // Apply trip style filtering to available stops
+    const styleFilteredStops = TripStyleLogic.filterStopsByStyle(destinationCities, styleConfig);
+    console.log(`🎨 Style filtering: ${destinationCities.length} → ${styleFilteredStops.length} stops (${tripStyle})`);
+    
     // Filter stops that maintain proper sequence progression
     const validStops = SequenceOrderService.filterStopsInSequence(
       startStop, 
-      destinationCities, 
+      styleFilteredStops, 
       direction
     );
     
     // Sort by sequence order for the trip direction
     const sortedStops = SequenceOrderService.sortBySequence(validStops, direction);
     
-    console.log(`📍 Found ${sortedStops.length} valid destination cities in ${direction} direction`);
+    console.log(`📍 Found ${sortedStops.length} valid stops in ${direction} direction for ${tripStyle} style`);
     
-    // Calculate total trip distance and target daily distance
+    // Calculate total trip distance and style-aware metrics
     const totalDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude,
       endStop.latitude, endStop.longitude
     );
-    const targetDailyDistance = totalDistance / travelDays;
     
-    console.log(`📏 Total distance: ${totalDistance.toFixed(0)} miles, target per day: ${targetDailyDistance.toFixed(0)} miles`);
+    const styleMetrics = TripStyleLogic.calculateStyleMetrics(totalDistance, travelDays, styleConfig);
+    console.log(`📊 Style metrics:`, styleMetrics);
     
-    // Select intermediate destinations using sequence-aware logic
-    const selectedDestinations = this.selectSequenceAwareDestinations(
+    // Select intermediate destinations using style-aware logic
+    const selectedDestinations = this.selectStyleAwareDestinations(
       startStop,
       endStop,
       sortedStops,
       travelDays,
-      targetDailyDistance,
-      direction
+      styleMetrics.dailyDistanceTarget,
+      direction,
+      styleConfig
     );
     
     // Create segments with selected destinations
@@ -138,7 +147,7 @@ export class TripPlanBuilder {
     if (!sequenceValidation.isValid) {
       console.warn(`⚠️ Sequence violations detected:`, sequenceValidation.violations);
     } else {
-      console.log(`✅ Sequence progression validated for ${direction} travel`);
+      console.log(`✅ Sequence progression validated for ${direction} travel with ${tripStyle} style`);
     }
     
     // Calculate totals
@@ -155,7 +164,7 @@ export class TripPlanBuilder {
       startCity: startLocation,
       endCity: endLocation,
       startDate: new Date(),
-      title: `${startLocation} to ${endLocation} Adventure`,
+      title: `${startLocation} to ${endLocation} ${tripStyle.charAt(0).toUpperCase() + tripStyle.slice(1)} Adventure`,
       tripStyle,
       summary: {
         totalDays: travelDays,
@@ -169,15 +178,16 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Select destinations that maintain sequence order and distribute evenly
+   * Select destinations that maintain sequence order and follow trip style preferences
    */
-  private static selectSequenceAwareDestinations(
+  private static selectStyleAwareDestinations(
     startStop: TripStop,
     endStop: TripStop,
     sortedStops: TripStop[],
     travelDays: number,
     targetDailyDistance: number,
-    direction: 'eastbound' | 'westbound'
+    direction: 'eastbound' | 'westbound',
+    styleConfig: TripStyleConfig
   ): TripStop[] {
     const selectedDestinations: TripStop[] = [];
     const usedStopIds = new Set<string>();
@@ -186,7 +196,12 @@ export class TripPlanBuilder {
     // We need (travelDays - 1) intermediate destinations
     const neededDestinations = travelDays - 1;
     
-    console.log(`🎯 Selecting ${neededDestinations} intermediate destinations`);
+    console.log(`🎯 Selecting ${neededDestinations} destinations with ${styleConfig.style} style preferences`);
+    
+    // Apply style-specific selection logic
+    if (styleConfig.preferDestinationCities) {
+      console.log(`🏛️ Prioritizing destination cities for ${styleConfig.style} style`);
+    }
     
     for (let day = 1; day <= neededDestinations; day++) {
       const targetDistanceFromStart = targetDailyDistance * day;
@@ -201,13 +216,34 @@ export class TripPlanBuilder {
         break;
       }
       
-      // Select next stop in sequence that's closest to target distance
-      const nextStop = SequenceOrderService.selectNextInSequence(
-        currentStop,
-        availableStops,
-        direction,
-        targetDailyDistance
-      );
+      // Apply style-specific stop selection
+      let nextStop: TripStop | null = null;
+      
+      if (styleConfig.preferDestinationCities) {
+        // For destination-focused: prioritize heritage cities
+        const heritageCities = availableStops.filter(stop => 
+          stop.category === 'destination_city'
+        );
+        
+        if (heritageCities.length > 0) {
+          nextStop = SequenceOrderService.selectNextInSequence(
+            currentStop,
+            heritageCities,
+            direction,
+            targetDailyDistance
+          );
+        }
+      }
+      
+      // Fallback to general selection if no heritage city found
+      if (!nextStop) {
+        nextStop = SequenceOrderService.selectNextInSequence(
+          currentStop,
+          availableStops,
+          direction,
+          targetDailyDistance
+        );
+      }
       
       if (nextStop) {
         selectedDestinations.push(nextStop);
@@ -219,9 +255,9 @@ export class TripPlanBuilder {
           nextStop.latitude, nextStop.longitude
         );
         
-        console.log(`✅ Day ${day + 1}: Selected ${nextStop.name} (${actualDistance.toFixed(0)} miles from start)`);
+        console.log(`✅ Day ${day + 1}: Selected ${nextStop.name} (${actualDistance.toFixed(0)} miles from start, style: ${styleConfig.style})`);
       } else {
-        console.log(`⚠️ Could not find suitable destination for day ${day + 1}`);
+        console.log(`⚠️ Could not find suitable destination for day ${day + 1} with ${styleConfig.style} style`);
         break;
       }
     }

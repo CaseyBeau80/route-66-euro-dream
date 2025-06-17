@@ -26,6 +26,7 @@ interface TripCalculatorFormProps {
   isCalculating: boolean;
   tripPlan?: TripPlan;
   shareUrl?: string | null;
+  onTripStyleChange?: (style: 'balanced' | 'destination-focused') => void;
 }
 
 const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
@@ -36,7 +37,8 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
   isCalculateDisabled,
   isCalculating,
   tripPlan,
-  shareUrl
+  shareUrl,
+  onTripStyleChange
 }) => {
   const { isFormValid } = useFormValidation(formData);
 
@@ -65,6 +67,37 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
     }
   };
 
+  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+    console.log(`🎨 Trip style changed to: ${style}, triggering re-plan if trip exists`);
+    
+    // If we have a valid trip plan and the style actually changed, trigger re-planning
+    if (tripPlan && formData.tripStyle !== style && isFormValid) {
+      console.log(`🔄 Trip style changed from ${formData.tripStyle} to ${style}, re-planning...`);
+      
+      // Update form data first
+      setFormData({
+        ...formData,
+        tripStyle: style
+      });
+      
+      // Call external handler if provided
+      if (onTripStyleChange) {
+        onTripStyleChange(style);
+      }
+      
+      // Trigger recalculation after a short delay to ensure state update
+      setTimeout(() => {
+        onCalculate();
+      }, 100);
+    } else {
+      // Just update form data if no trip exists yet
+      setFormData({
+        ...formData,
+        tripStyle: style
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -89,10 +122,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         availableEndLocations={availableEndLocations}
       />
 
-      {/* Trip Style Selector - NEW */}
+      {/* Trip Style Selector with change handler */}
       <TripStyleSelector 
         formData={formData}
         setFormData={setFormData}
+        onTripStyleChange={handleTripStyleChange}
       />
 
       {/* Trip Duration - moved above Trip Start Date */}

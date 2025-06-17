@@ -10,17 +10,27 @@ import TripStyleHelperMessage from './TripStyleHelperMessage';
 interface TripStyleSelectorProps {
   formData: TripFormData;
   setFormData: (data: TripFormData) => void;
+  onTripStyleChange?: (style: 'balanced' | 'destination-focused') => void;
 }
 
 const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
   formData,
-  setFormData
+  setFormData,
+  onTripStyleChange
 }) => {
   const handleTripStyleChange = (value: 'balanced' | 'destination-focused') => {
+    console.log(`🎨 Trip style changed to: ${value}`);
+    
+    // Update form data
     setFormData({
       ...formData,
       tripStyle: value
     });
+    
+    // Trigger callback if provided (for re-planning)
+    if (onTripStyleChange) {
+      onTripStyleChange(value);
+    }
   };
 
   // Show helper message when we have enough information
@@ -38,6 +48,9 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
           <MapPin className="h-5 w-5 text-route66-primary" />
           Trip Style
         </CardTitle>
+        <p className="text-sm text-route66-text-secondary">
+          Choose how to balance driving time and destinations
+        </p>
       </CardHeader>
       <CardContent>
         <RadioGroup
@@ -51,11 +64,11 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
               <Label htmlFor="balanced" className="text-route66-text-primary font-medium cursor-pointer">
                 <div className="flex items-center gap-2 mb-1">
                   <Clock className="h-4 w-4 text-route66-primary" />
-                  Balanced
+                  Balanced Experience
                 </div>
               </Label>
               <p className="text-sm text-route66-text-secondary">
-                Evenly distributes driving time (max 6h/day). Uses all types of stops for variety.
+                Evenly distributes driving time (max 6h/day). Uses all types of stops for variety and exploration.
               </p>
             </div>
           </div>
@@ -70,7 +83,7 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
                 </div>
               </Label>
               <p className="text-sm text-route66-text-secondary">
-                Prioritizes major Route 66 heritage cities (max 8h/day). Fewer stops, but iconic destinations.
+                Prioritizes major Route 66 heritage cities (max 10h/day). Fewer stops, but iconic destinations.
               </p>
             </div>
           </div>

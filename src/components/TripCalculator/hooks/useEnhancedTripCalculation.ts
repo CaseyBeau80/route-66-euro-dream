@@ -166,6 +166,31 @@ export const useEnhancedTripCalculation = () => {
     }
   };
 
+  // Handle trip style changes
+  const handleTripStyleChange = async (style: 'balanced' | 'destination-focused') => {
+    console.log(`🎨 Trip style change handler called: ${style}`);
+    
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      tripStyle: style
+    }));
+    
+    // If we have a trip plan, automatically re-calculate with new style
+    if (tripPlan && validateFormData()) {
+      console.log(`🔄 Re-calculating trip with ${style} style...`);
+      
+      toast({
+        title: "Updating Trip Style",
+        description: `Switching to ${style} planning style...`,
+        variant: "default"
+      });
+      
+      // Trigger recalculation
+      await calculateTrip();
+    }
+  };
+
   // Calculate if form is ready (with enhanced validation)
   const isCalculateDisabled = (() => {
     if (!formData.startLocation || !formData.endLocation || !formData.tripStartDate) {
@@ -202,6 +227,7 @@ export const useEnhancedTripCalculation = () => {
     resetTrip,
     isCalculating,
     isCalculateDisabled,
-    loadingState
+    loadingState,
+    handleTripStyleChange
   };
 };
