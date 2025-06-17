@@ -5,7 +5,6 @@ import { MapPin, Clock, Star, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { UnifiedDateService } from '../services/UnifiedDateService';
 import EnhancedWeatherWidget from './weather/EnhancedWeatherWidget';
-import { calculateRealisticDriveTime } from '../utils/distanceCalculator';
 
 interface PreviewDayCardProps {
   segment: DailySegment;
@@ -61,28 +60,23 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // NUCLEAR OPTION: Absolutely recalculate drive time using bulletproof method
+  // V2 FIX: Trust the segment drive time - it's already been validated and enforced
   const driveTime = React.useMemo(() => {
-    console.log(`🚨 NUCLEAR UI: Recalculating drive time for Day ${segment.day}:`, {
+    console.log(`✅ V2 UI: Using pre-validated drive time for Day ${segment.day}:`, {
       segmentDriveTimeHours: segment.driveTimeHours,
       segmentDistance: segment.distance,
       segmentEndCity: segment.endCity,
-      nuclearRecalculation: true
+      alreadyValidated: true,
+      source: 'TripPlanningServiceV2 - Pre-validated'
     });
 
-    // NUCLEAR OPTION: Always recalculate using our bulletproof method
-    const recalculatedDriveTime = calculateRealisticDriveTime(segment.distance);
+    // Use the segment's drive time directly - it's already been validated
+    const validatedDriveTime = segment.driveTimeHours;
     
-    console.log(`🚨 NUCLEAR UI: Drive time recalculated for Day ${segment.day}:`, {
-      originalTime: segment.driveTimeHours?.toFixed(1) || 'undefined',
-      recalculatedTime: recalculatedDriveTime.toFixed(1),
-      distance: segment.distance.toFixed(1),
-      nuclearMethod: 'calculateRealisticDriveTime from utils',
-      guarantee: 'NEVER_EXCEEDS_8_HOURS'
-    });
+    console.log(`✅ V2 UI: Using validated drive time for Day ${segment.day}: ${validatedDriveTime.toFixed(1)}h`);
     
-    return recalculatedDriveTime;
-  }, [segment.distance, segment.day]);
+    return validatedDriveTime;
+  }, [segment.driveTimeHours, segment.day]);
 
   return (
     <div className={`group relative bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden ${!isLast ? 'mb-8' : ''}`}>
@@ -113,7 +107,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info - NUCLEAR OPTION: Only show absolutely validated drive time */}
+          {/* Distance and time info - V2: Show validated drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
@@ -121,16 +115,20 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             <div className="text-sm text-gray-500">
               {formatTime(driveTime)} drive time
             </div>
-            {/* NUCLEAR WARNING: Show if at reasonable limit */}
+            {/* Show status based on drive time */}
             {driveTime >= 8 && (
-              <div className="text-xs text-red-600 font-semibold mt-1 bg-red-50 px-2 py-1 rounded">
-                🚨 Maximum Limit (Capped)
+              <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded">
+                ⚠️ Long Drive Day
               </div>
             )}
-            {/* WARNING: Show if getting close to limit */}
             {driveTime > 6 && driveTime < 8 && (
-              <div className="text-xs text-orange-600 mt-1">
-                ⚠️ Long Drive Day
+              <div className="text-xs text-blue-600 mt-1">
+                🚗 Extended Drive
+              </div>
+            )}
+            {driveTime <= 6 && (
+              <div className="text-xs text-green-600 mt-1">
+                ✅ Comfortable Drive
               </div>
             )}
           </div>
