@@ -2,9 +2,9 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { UnifiedWeatherValidator } from './services/UnifiedWeatherValidator';
-import { UnifiedStylingService } from './services/UnifiedStylingService';
-import WeatherIcon from './WeatherIcon';
+import { WeatherUtilityService } from './services/WeatherUtilityService';
+import { DataStandardizationService } from '@/services/DataStandardizationService';
+import { useUnits } from '@/contexts/UnitContext';
 
 interface EnhancedWeatherDisplayProps {
   weather: ForecastWeatherData;
@@ -22,158 +22,144 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
   cityName,
   isSharedView = false,
   isPDFExport = false,
-  forceKey,
   showDebug = false
 }) => {
-  // PLAN IMPLEMENTATION: Use enhanced unified validation WITH segment date
-  const validation = UnifiedWeatherValidator.validateWeatherData(weather, segmentDate);
-  const styles = UnifiedStylingService.getWeatherStyles(validation.styleTheme);
+  const { preferences } = useUnits();
+  
+  // Standardize temperature data
+  const standardizedTemps = React.useMemo(() => {
+    const result: any = {};
+    
+    if (weather.temperature !== undefined) {
+      result.current = DataStandardizationService.standardizeTemperature(weather.temperature, preferences);
+    }
+    
+    if (weather.highTemp !== undefined) {
+      result.high = DataStandardizationService.standardizeTemperature(weather.highTemp, preferences);
+    }
+    
+    if (weather.lowTemp !== undefined) {
+      result.low = DataStandardizationService.standardizeTemperature(weather.lowTemp, preferences);
+    }
+    
+    // Handle nested temperature structures
+    if (weather.temp?.max !== undefined) {
+      result.high = DataStandardizationService.standardizeTemperature(weather.temp.max, preferences);
+    }
+    
+    if (weather.temp?.min !== undefined) {
+      result.low = DataStandardizationService.standardizeTemperature(weather.temp.min, preferences);
+    }
+    
+    if (weather.main?.temp_max !== undefined) {
+      result.high = DataStandardizationService.standardizeTemperature(weather.main.temp_max, preferences);
+    }
+    
+    if (weather.main?.temp_min !== undefined) {
+      result.low = DataStandardizationService.standardizeTemperature(weather.main.temp_min, preferences);
+    }
+    
+    return result;
+  }, [weather, preferences]);
 
-  console.log('🎨 PLAN: EnhancedWeatherDisplay using ENHANCED date-based validation:', {
+  const isLiveForecast = WeatherUtilityService.isLiveForecast(weather, segmentDate);
+  const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate);
+
+  console.log('🌡️ STANDARDIZED: EnhancedWeatherDisplay with unified temperatures:', {
     cityName,
-    segmentDate: segmentDate.toLocaleDateString(),
-    validation: validation.isLiveForecast ? 'LIVE' : 'HISTORICAL',
-    styleTheme: validation.styleTheme,
-    displayLabel: validation.displayLabel,
-    dateBasedDecision: validation.dateBasedDecision,
-    daysFromToday: validation.daysFromToday,
-    forecastRangeCheck: validation.forecastRangeCheck,
-    weatherData: {
-      source: weather.source,
-      isActualForecast: weather.isActualForecast,
+    originalWeather: {
       temperature: weather.temperature,
       highTemp: weather.highTemp,
       lowTemp: weather.lowTemp
     },
-    planImplementation: 'ENHANCED_DATE_BASED_VALIDATION',
-    forceKey
+    standardizedTemps,
+    preferences: preferences.temperature,
+    isLiveForecast,
+    daysFromToday
   });
 
-  const formatTime = (hours?: number): string => {
-    if (!hours) return 'N/A';
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
-  };
-
-  const getTemperatureDisplay = (): string => {
-    if (weather.temperature) {
-      return `${Math.round(weather.temperature)}°F`;
-    }
-    if (weather.highTemp && weather.lowTemp) {
-      return `${Math.round(weather.lowTemp)}° - ${Math.round(weather.highTemp)}°F`;
-    }
-    if (weather.highTemp) {
-      return `High: ${Math.round(weather.highTemp)}°F`;
-    }
-    return 'Temperature not available';
-  };
-
   return (
-    <div 
-      key={`enhanced-weather-${cityName}-${forceKey}`}
-      className={`rounded-lg border p-4 shadow-sm transition-all duration-200 ${styles.containerClasses}`}
-      style={{ backgroundColor: styles.backgroundColor, borderColor: styles.borderColor }}
-    >
-      {/* Weather Header */}
+    <div className="bg-gradient-to-br from-blue-50 to-sky-100 border border-blue-200 rounded-lg p-4">
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          {weather.icon && (
-            <WeatherIcon iconCode={weather.icon} className="w-10 h-10" />
-          )}
-          <div>
-            <h4 className="font-semibold text-lg" style={{ color: styles.textColor }}>
-              {weather.description || 'Weather Forecast'}
-            </h4>
-            <div className="text-sm opacity-75" style={{ color: styles.textColor }}>
-              {format(segmentDate, 'EEEE, MMMM d, yyyy')}
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-blue-600 text-lg">🌤️</span>
+          <h4 className="text-sm font-semibold text-blue-800">
+            {format(segmentDate, 'EEE, MMM d')}
+          </h4>
         </div>
-        
-        {/* PLAN IMPLEMENTATION: Enhanced Badge with date-based validation */}
-        <div className="flex flex-col items-end gap-1">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles.badgeClasses}`}>
-            {validation.badgeText}
-            {showDebug && validation.dateBasedDecision && (
-              <span className="ml-1 opacity-75">
-                ({validation.daysFromToday}d)
-              </span>
-            )}
+        <div className="flex items-center gap-1">
+          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+            isLiveForecast 
+              ? 'bg-green-100 text-green-700' 
+              : 'bg-amber-100 text-amber-700'
+          }`}>
+            {isLiveForecast ? '📡 Live' : '📊 Historical'}
           </span>
-          {showDebug && (
-            <div className="text-xs opacity-60" style={{ color: styles.textColor }}>
-              {validation.dateBasedDecision ? 'Date-based' : 'Object-based'}
-            </div>
-          )}
         </div>
       </div>
 
       {/* Temperature Display */}
-      <div className="mb-4">
-        <div className="text-3xl font-bold mb-1" style={{ color: styles.textColor }}>
-          {getTemperatureDisplay()}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {weather.icon && (
+            <img 
+              src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+              alt={weather.description || 'Weather'}
+              className="w-12 h-12"
+            />
+          )}
+          
+          <div>
+            {/* Current/Main Temperature */}
+            {standardizedTemps.current && (
+              <div className="text-2xl font-bold text-blue-900">
+                {standardizedTemps.current.formatted}
+              </div>
+            )}
+            
+            {/* High/Low Temperatures */}
+            {(standardizedTemps.high || standardizedTemps.low) && (
+              <div className="text-sm text-blue-700">
+                {standardizedTemps.high && standardizedTemps.low ? (
+                  <>H: {standardizedTemps.high.formatted} / L: {standardizedTemps.low.formatted}</>
+                ) : standardizedTemps.high ? (
+                  <>High: {standardizedTemps.high.formatted}</>
+                ) : standardizedTemps.low ? (
+                  <>Low: {standardizedTemps.low.formatted}</>
+                ) : null}
+              </div>
+            )}
+            
+            {/* Weather Description */}
+            {weather.description && (
+              <div className="text-xs text-blue-600 capitalize mt-1">
+                {weather.description}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="text-sm opacity-75" style={{ color: styles.textColor }}>
-          {weather.description || 'Conditions'}
-        </div>
-      </div>
 
-      {/* Weather Details Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        {weather.humidity !== undefined && (
-          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
-            <div className="font-semibold" style={{ color: styles.textColor }}>
-              {weather.humidity}%
-            </div>
-            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
-              Humidity
-            </div>
-          </div>
-        )}
-        
-        {weather.windSpeed !== undefined && (
-          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
-            <div className="font-semibold" style={{ color: styles.textColor }}>
-              {Math.round(weather.windSpeed)} mph
-            </div>
-            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
-              Wind Speed
-            </div>
-          </div>
-        )}
-        
-        {weather.precipitationChance !== undefined && (
-          <div className="text-center p-2 bg-white bg-opacity-50 rounded">
-            <div className="font-semibold" style={{ color: styles.textColor }}>
-              {weather.precipitationChance}%
-            </div>
-            <div className="text-xs opacity-75" style={{ color: styles.textColor }}>
-              Rain Chance
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* PLAN IMPLEMENTATION: Enhanced Source Information with debug details */}
-      <div className="pt-3 border-t border-white border-opacity-25">
-        <div className="flex items-center justify-between text-xs" style={{ color: styles.sourceColor }}>
-          <span>{validation.displayLabel}</span>
-          {showDebug && (
-            <div className="flex gap-2 font-mono opacity-75">
-              <span>{weather.source || 'unknown'}</span>
-              <span>|</span>
-              <span>{validation.confidence}</span>
-              {validation.dateBasedDecision && (
-                <>
-                  <span>|</span>
-                  <span>range: {validation.forecastRangeCheck ? 'YES' : 'NO'}</span>
-                </>
-              )}
-            </div>
+        {/* Additional Weather Info */}
+        <div className="text-right text-xs text-blue-600 space-y-1">
+          {weather.humidity !== undefined && (
+            <div>💧 {weather.humidity}%</div>
+          )}
+          {weather.windSpeed !== undefined && (
+            <div>💨 {Math.round(weather.windSpeed)} mph</div>
           )}
         </div>
       </div>
+
+      {/* Debug Info */}
+      {showDebug && !isPDFExport && (
+        <div className="mt-3 pt-2 border-t border-blue-200">
+          <div className="text-xs text-blue-600">
+            Source: {weather.source} | Days: {daysFromToday} | 
+            {isLiveForecast ? ' Live Forecast' : ' Historical Data'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

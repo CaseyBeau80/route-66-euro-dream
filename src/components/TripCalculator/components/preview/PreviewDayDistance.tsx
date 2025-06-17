@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { DataStandardizationService } from '@/services/DataStandardizationService';
+import { useUnits } from '@/contexts/UnitContext';
 
 interface PreviewDayDistanceProps {
   distance: number;
@@ -7,14 +9,11 @@ interface PreviewDayDistanceProps {
 }
 
 const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ distance, driveTime }) => {
-  const formatTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    if (minutes === 0) {
-      return `${wholeHours}h`;
-    }
-    return `${wholeHours}h ${minutes}m`;
-  };
+  const { preferences } = useUnits();
+  
+  // Standardize the data
+  const standardizedDistance = DataStandardizationService.standardizeDistance(distance, preferences);
+  const standardizedDriveTime = DataStandardizationService.standardizeDriveTime(driveTime);
 
   const getStatusBadge = () => {
     if (driveTime >= 8) {
@@ -38,13 +37,21 @@ const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ distance, drive
     );
   };
 
+  console.log('📏 STANDARDIZED: PreviewDayDistance using unified formatting:', {
+    originalDistance: distance,
+    originalDriveTime: driveTime,
+    standardizedDistance,
+    standardizedDriveTime,
+    preferences: preferences.distance
+  });
+
   return (
     <div className="text-right">
       <div className="text-2xl font-bold text-blue-600 mb-1">
-        {Math.round(distance)} mi
+        {standardizedDistance.formatted}
       </div>
       <div className="text-sm text-gray-500">
-        {formatTime(driveTime)} drive time
+        {standardizedDriveTime.formatted} drive time
       </div>
       {getStatusBadge()}
     </div>

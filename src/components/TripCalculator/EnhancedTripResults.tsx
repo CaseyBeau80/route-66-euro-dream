@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
 import { TripPlan } from './services/Route66TripPlannerService';
 import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
+import { DataStandardizationService } from '@/services/DataStandardizationService';
+import { useUnits } from '@/contexts/UnitContext';
 import PreviewDailyItinerary from './components/PreviewDailyItinerary';
 import TripCompletionCard from './components/TripCompletionCard';
 import TripPlanningDebugPanel from './components/TripPlanningDebugPanel';
@@ -29,14 +32,34 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   validationResults,
   warnings = []
 }) => {
+  const { preferences } = useUnits();
+
   const formatDate = (date: Date | undefined): string => {
     return date ? format(date, 'MMMM dd, yyyy') : 'Not specified';
   };
 
-  // Safe access to summary with fallbacks - fix totalDriveTime to totalDrivingTime
-  const startLocation = tripPlan.summary?.startLocation || 'Start Location';
-  const endLocation = tripPlan.summary?.endLocation || 'End Location';
-  const totalDriveTime = tripPlan.totalDrivingTime || tripPlan.summary?.totalDriveTime || 0;
+  // Standardize trip summary data
+  const standardizedSummary = React.useMemo(() => {
+    const totalDistance = tripPlan.totalDistance || tripPlan.totalMiles || 0;
+    const totalDriveTime = tripPlan.totalDrivingTime || tripPlan.summary?.totalDriveTime || 0;
+    
+    return {
+      distance: DataStandardizationService.standardizeDistance(totalDistance, preferences),
+      driveTime: DataStandardizationService.standardizeDriveTime(totalDriveTime),
+      startLocation: tripPlan.summary?.startLocation || 'Start Location',
+      endLocation: tripPlan.summary?.endLocation || 'End Location'
+    };
+  }, [tripPlan, preferences]);
+
+  console.log('📊 STANDARDIZED: EnhancedTripResults using unified formatting:', {
+    originalData: {
+      totalDistance: tripPlan.totalDistance,
+      totalMiles: tripPlan.totalMiles,
+      totalDrivingTime: tripPlan.totalDrivingTime
+    },
+    standardizedSummary,
+    preferences: preferences.distance
+  });
 
   return (
     <div className="space-y-6">
@@ -64,7 +87,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <MapPin className="w-5 h-5 text-route66-navy" />
               <div>
                 <div className="font-bold text-route66-vintage-brown">
-                  {startLocation}
+                  {standardizedSummary.startLocation}
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
                   Start Location
@@ -75,7 +98,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <MapPin className="w-5 h-5 text-route66-navy" />
               <div>
                 <div className="font-bold text-route66-vintage-brown">
-                  {endLocation}
+                  {standardizedSummary.endLocation}
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
                   End Location
@@ -99,43 +122,77 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <Clock className="w-5 h-5 text-route66-navy" />
               <div>
                 <div className="font-bold text-route66-vintage-brown">
-                  {Math.round(tripPlan.totalDistance)} Miles
+                  {standardizedSummary.distance.formatted}
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
-                  {totalDriveTime.toFixed(1)} hours
+                  {standardizedSummary.driveTime.formatted} total driving
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Trip Completion Analysis */}
+          {completionAnalysis && (
+            <TripCompletionCard 
+              analysis={completionAnalysis} 
+              originalRequestedDays={originalRequestedDays}
+            />
+          )}
+
+          {/* Trip Style Badge */}
+          {tripPlan.tripStyle && (
+            <div className="mt-4 text-center">
+              <span className="inline-block bg-route66-vintage-yellow text-route66-navy px-4 py-2 rounded-full font-travel font-bold text-sm">
+                {tripPlan.tripStyle === 'destination-focused' ? '🏛️ Heritage & Destinations' : '🛣️ Balanced Experience'}
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Enhanced Analysis Card */}
-      {completionAnalysis && (
-        <TripCompletionCard 
-          analysis={completionAnalysis} 
-          originalRequestedDays={originalRequestedDays}
-        />
-      )}
-
       {/* Daily Itinerary */}
-      <div>
-        <h3 className="text-2xl font-bold text-route66-vintage-brown mb-6 text-center">
-          Your Route 66 Adventure
-        </h3>
-        <PreviewDailyItinerary 
-          segments={tripPlan.segments} 
-          tripStartDate={tripStartDate}
-        />
-      </div>
+      <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
+        <CardHeader className="bg-gradient-to-r from-route66-vintage-red to-route66-vintage-brown text-white">
+          <CardTitle className="font-route66 text-xl text-center">
+            DAILY ITINERARY
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <PreviewDailyItinerary 
+            segments={tripPlan.segments || tripPlan.dailySegments || []} 
+            tripStartDate={tripStartDate}
+          />
+        </CardContent>
+      </Card>
 
-      {/* Shareable URL */}
+      {/* Share Section */}
       {shareUrl && (
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Share your trip: <a href={shareUrl} className="text-blue-500">{shareUrl}</a>
-          </p>
-        </div>
+        <Card className="border-2 border-green-500">
+          <CardHeader className="bg-green-500 text-white">
+            <CardTitle className="text-lg text-center">
+              🔗 Share Your Trip
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="bg-gray-100 p-3 rounded border">
+              <p className="text-sm text-gray-600 mb-2">Share this link:</p>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={shareUrl} 
+                  readOnly 
+                  className="flex-1 p-2 border rounded text-sm bg-white"
+                />
+                <button 
+                  onClick={() => navigator.clipboard.writeText(shareUrl)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

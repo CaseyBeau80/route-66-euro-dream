@@ -2,6 +2,8 @@
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { format } from 'date-fns';
+import { DataStandardizationService } from '@/services/DataStandardizationService';
+import { useUnits } from '@/contexts/UnitContext';
 import UnifiedWeatherWidget from '../weather/UnifiedWeatherWidget';
 
 interface SharedDailyItineraryProps {
@@ -13,17 +15,19 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🔥 UNIFIED SHARED: SharedDailyItinerary now using UnifiedWeatherWidget:', {
+  const { preferences } = useUnits();
+
+  console.log('🔥 STANDARDIZED: SharedDailyItinerary now using standardized formatting:', {
     segmentCount: segments.length,
     hasTripStartDate: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    unifiedComponent: true
+    preferences: preferences.distance
   });
 
   // Same trip start date logic as before
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate) {
-      console.log('🔥 UNIFIED SHARED: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('🔥 STANDARDIZED: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
 
@@ -36,7 +40,7 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         if (tripStartParam) {
           const parsedDate = new Date(tripStartParam);
           if (!isNaN(parsedDate.getTime())) {
-            console.log('🔥 UNIFIED SHARED: Extracted tripStartDate from URL:', {
+            console.log('🔥 STANDARDIZED: Extracted tripStartDate from URL:', {
               param: paramName,
               value: tripStartParam,
               parsedDate: parsedDate.toISOString()
@@ -46,20 +50,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
         }
       }
     } catch (error) {
-      console.warn('⚠️ UNIFIED SHARED: Failed to parse trip start date from URL:', error);
+      console.warn('⚠️ STANDARDIZED: Failed to parse trip start date from URL:', error);
     }
 
     const today = new Date();
-    console.log('🔥 UNIFIED SHARED: Using today as fallback tripStartDate:', today.toISOString());
+    console.log('🔥 STANDARDIZED: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);
-
-  const formatTime = (hours?: number): string => {
-    if (!hours) return 'N/A';
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
-  };
 
   return (
     <div className="space-y-4">
@@ -78,18 +75,19 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
       </div>
       
       {segments.map((segment, index) => {
-        const drivingTime = segment.drivingTime || segment.driveTimeHours || 0;
-        const distance = segment.distance || segment.approximateMiles || 0;
+        // Standardize segment data
+        const standardizedData = DataStandardizationService.standardizeSegmentData(segment, preferences);
 
-        console.log(`🔥 UNIFIED SHARED: Rendering segment ${segment.day} for ${segment.endCity}`, {
+        console.log(`🔥 STANDARDIZED: Rendering segment ${segment.day} for ${segment.endCity}`, {
           segmentDay: segment.day,
           endCity: segment.endCity,
-          hasEffectiveTripStartDate: !!effectiveTripStartDate,
-          usingUnifiedWeatherWidget: true
+          standardizedData,
+          originalDistance: segment.distance,
+          originalDriveTime: segment.driveTimeHours
         });
 
         return (
-          <div key={`unified-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <div key={`standardized-shared-day-${segment.day}-${segment.endCity}`} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
             {/* Day Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
               <div className="flex justify-between items-center">
@@ -110,18 +108,18 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
 
             {/* Day Content */}
             <div className="p-4 space-y-4">
-              {/* Stats Grid */}
+              {/* Stats Grid - Using Standardized Data */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div className="text-center p-3 bg-gray-50 rounded border">
                   <div className="text-lg font-bold text-blue-600">
-                    🗺️ {Math.round(distance)}
+                    🗺️ {standardizedData.distance.formatted}
                   </div>
-                  <div className="text-xs text-gray-600">Miles</div>
+                  <div className="text-xs text-gray-600">Distance</div>
                 </div>
                 
                 <div className="text-center p-3 bg-gray-50 rounded border">
                   <div className="text-lg font-bold text-purple-600">
-                    ⏱️ {formatTime(drivingTime)}
+                    ⏱️ {standardizedData.driveTime.formatted}
                   </div>
                   <div className="text-xs text-gray-600">Drive Time</div>
                 </div>
@@ -141,13 +139,13 @@ const SharedDailyItinerary: React.FC<SharedDailyItineraryProps> = ({
                 </div>
               </div>
 
-              {/* Weather section - NOW UNIFIED */}
+              {/* Weather section - NOW UNIFIED AND STANDARDIZED */}
               <div className="weather-section bg-gray-50 rounded-lg p-4 border">
                 <div className="mb-2">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     🌤️ Weather Forecast for {segment.endCity}
                   </h4>
-                  <p className="text-xs text-gray-500">Using UnifiedWeatherWidget (same as preview mode)</p>
+                  <p className="text-xs text-gray-500">Using standardized temperature formatting</p>
                 </div>
                 
                 <UnifiedWeatherWidget
