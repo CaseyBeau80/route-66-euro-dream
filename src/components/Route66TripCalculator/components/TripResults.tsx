@@ -36,7 +36,8 @@ const TripResults: React.FC<TripResultsProps> = ({
     hasCostEstimate: !!costEstimate,
     totalCost: costEstimate?.breakdown?.totalCost,
     hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays
+    originalRequestedDays,
+    shouldShowWarning: !!(completionAnalysis && originalRequestedDays && (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0))
   });
 
   if (!tripPlan) {
@@ -61,10 +62,15 @@ const TripResults: React.FC<TripResultsProps> = ({
     }).format(amount);
   };
 
+  // Determine if we should show the completion warning
+  const shouldShowCompletionWarning = completionAnalysis && originalRequestedDays && 
+    (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0) &&
+    (originalRequestedDays > completionAnalysis.totalUsefulDays);
+
   return (
     <div className="space-y-6 p-6">
-      {/* Trip Completion Warning - Show prominently at the top */}
-      {completionAnalysis && originalRequestedDays && (
+      {/* Trip Completion Warning - Show prominently at the top if optimization occurred */}
+      {shouldShowCompletionWarning && (
         <TripCompletionWarning
           analysis={completionAnalysis}
           originalRequestedDays={originalRequestedDays}

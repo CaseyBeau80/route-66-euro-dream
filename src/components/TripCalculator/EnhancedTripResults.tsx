@@ -61,7 +61,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     isPreLoading: loadingState?.isPreLoading,
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays,
-    finalDays: tripPlan.totalDays
+    finalDays: tripPlan.totalDays,
+    shouldShowWarning: !!(completionAnalysis && originalRequestedDays && (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0))
   });
 
   // Show pre-loader if loading
@@ -80,10 +81,25 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   const tripTitle = tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Adventure`;
 
+  // Determine if we should show the completion warning
+  const shouldShowCompletionWarning = completionAnalysis && originalRequestedDays && 
+    (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0) &&
+    (originalRequestedDays > completionAnalysis.totalUsefulDays);
+
+  console.log("🚨 COMPLETION WARNING CHECK:", {
+    hasAnalysis: !!completionAnalysis,
+    hasOriginalDays: !!originalRequestedDays,
+    isCompleted: completionAnalysis?.isCompleted,
+    duplicateSegments: completionAnalysis?.duplicateSegments?.length || 0,
+    originalDays: originalRequestedDays,
+    finalDays: completionAnalysis?.totalUsefulDays,
+    shouldShow: shouldShowCompletionWarning
+  });
+
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
-      {/* Trip Completion Warning - Show prominently at the top */}
-      {completionAnalysis && originalRequestedDays && (
+      {/* Trip Completion Warning - Show prominently at the top if optimization occurred */}
+      {shouldShowCompletionWarning && (
         <TripCompletionWarning
           analysis={completionAnalysis}
           originalRequestedDays={originalRequestedDays}
