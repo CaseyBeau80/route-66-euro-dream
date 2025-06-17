@@ -1,6 +1,6 @@
 
 import { TripPlan } from './TripPlanBuilder';
-import { TripPlanValidator } from './TripPlanValidator';
+import { TripPlanValidator } from '../../planning/TripPlanValidator';
 import { EnhancedSupabaseDataService } from '../data/EnhancedSupabaseDataService';
 import { HeritageEnforcedTripBuilder } from './HeritageEnforcedTripBuilder';
 import { DestinationFocusedPlanningService } from './DestinationFocusedPlanningService';

@@ -10,6 +10,7 @@ export interface TripStyleConfig {
   maxDailyDriveHours: number;
   style: TripStyle;
   preferDestinationCities: boolean;
+  enforcementLevel?: 'strict' | 'moderate' | 'relaxed';
 }
 
 export class TripStyleLogic {
@@ -25,7 +26,8 @@ export class TripStyleLogic {
           allowExtendedDays: false,
           maxDailyDriveHours: 12,
           style: tripStyle,
-          preferDestinationCities: true
+          preferDestinationCities: true,
+          enforcementLevel: 'strict'
         };
       case 'balanced':
         return {
@@ -34,7 +36,8 @@ export class TripStyleLogic {
           allowExtendedDays: true,
           maxDailyDriveHours: 10,
           style: tripStyle,
-          preferDestinationCities: false
+          preferDestinationCities: false,
+          enforcementLevel: 'moderate'
         };
       default:
         return {
@@ -43,7 +46,8 @@ export class TripStyleLogic {
           allowExtendedDays: false,
           maxDailyDriveHours: 8,
           style: 'balanced',
-          preferDestinationCities: false
+          preferDestinationCities: false,
+          enforcementLevel: 'moderate'
         };
     }
   }
