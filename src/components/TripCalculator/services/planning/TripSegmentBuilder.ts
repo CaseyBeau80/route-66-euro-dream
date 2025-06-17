@@ -11,7 +11,7 @@ import { TripCompletionService } from './TripCompletionService';
 
 export class TripSegmentBuilder {
   /**
-   * Build segments with destination cities only and drive-time enforcement (ENHANCED WITH COMPLETION DETECTION)
+   * ENHANCED: Build segments with destination cities and strict drive-time enforcement
    */
   static buildSegmentsWithDestinationCities(
     startStop: TripStop,
@@ -20,7 +20,7 @@ export class TripSegmentBuilder {
     tripDays: number,
     styleConfig: TripStyleConfig
   ): DailySegment[] {
-    console.log(`🏗️ ENHANCED SEGMENT BUILDING: ${tripDays} days, ${styleConfig.style} style`);
+    console.log(`🏗️ ENHANCED SEGMENT BUILDING WITH DRIVE TIME ENFORCEMENT: ${tripDays} days, ${styleConfig.style} style, max ${styleConfig.maxDailyDriveHours}h/day`);
     console.log(`🏗️ Available destination cities: ${destinationCities.length}`, destinationCities.map(c => c.name));
     
     // STEP 1: Create initial segments with proper validation
@@ -34,9 +34,18 @@ export class TripSegmentBuilder {
     
     console.log(`🏗️ Initial segments created: ${initialSegments.length}`);
     
-    // STEP 2: Analyze for completion and duplicates
-    const completionAnalysis = TripCompletionService.analyzeTripCompletion(
+    // STEP 2: ENHANCED - Apply drive time enforcement to all segments
+    const enforcedSegments = this.enforceSegmentDriveTimes(
       initialSegments,
+      destinationCities,
+      styleConfig
+    );
+    
+    console.log(`🚗 Drive time enforcement applied: ${enforcedSegments.length} final segments`);
+    
+    // STEP 3: Analyze for completion and duplicates
+    const completionAnalysis = TripCompletionService.analyzeTripCompletion(
+      enforcedSegments,
       tripDays,
       destinationCities
     );
@@ -48,21 +57,130 @@ export class TripSegmentBuilder {
       duplicateSegments: completionAnalysis.duplicateSegments.length
     });
     
-    // STEP 3: Clean up segments if needed
-    let finalSegments = initialSegments;
+    // STEP 4: Clean up segments if needed
+    let finalSegments = enforcedSegments;
     
     if (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0) {
       console.log(`🧹 CLEANING UP: Removing ${completionAnalysis.duplicateSegments.length} duplicate segments`);
-      finalSegments = TripCompletionService.cleanupSegments(initialSegments);
+      finalSegments = TripCompletionService.cleanupSegments(enforcedSegments);
     }
     
-    // STEP 4: Final validation
+    // STEP 5: Final validation
     console.log(`🏗️ FINAL SEGMENTS: ${finalSegments.length} segments created`);
     finalSegments.forEach((segment, index) => {
       console.log(`   Day ${segment.day}: ${segment.startCity} → ${segment.endCity} (${segment.distance.toFixed(1)}mi, ${segment.driveTimeHours.toFixed(1)}h)`);
     });
     
     return finalSegments;
+  }
+
+  /**
+   * ENHANCED: Enforce drive time limits on all segments
+   */
+  private static enforceSegmentDriveTimes(
+    segments: DailySegment[],
+    availableStops: TripStop[],
+    styleConfig: TripStyleConfig
+  ): DailySegment[] {
+    console.log(`🚗 ENFORCING DRIVE TIMES ON ${segments.length} SEGMENTS`);
+    
+    const enforcedSegments: DailySegment[] = [];
+    let currentDay = 1;
+    
+    for (const segment of segments) {
+      const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
+        this.segmentToTripStop(segment, 'start'),
+        this.segmentToTripStop(segment, 'end'),
+        styleConfig
+      );
+      
+      if (validation.isValid) {
+        // Segment is fine, just update day number and add to results
+        enforcedSegments.push({
+          ...segment,
+          day: currentDay
+        });
+        currentDay++;
+        console.log(`✅ SEGMENT OK: Day ${currentDay - 1} - ${segment.startCity} → ${segment.endCity} (${validation.actualDriveTime.toFixed(1)}h)`);
+      } else {
+        // Segment violates drive time, need to split
+        console.log(`❌ DRIVE TIME VIOLATION: ${segment.startCity} → ${segment.endCity} (${validation.actualDriveTime.toFixed(1)}h exceeds ${styleConfig.maxDailyDriveHours}h)`);
+        
+        const startStop = this.segmentToTripStop(segment, 'start');
+        const endStop = this.segmentToTripStop(segment, 'end');
+        
+        const enforcementResult = DriveTimeEnforcementService.enforceMaxDriveTimePerSegment(
+          startStop,
+          endStop,
+          availableStops,
+          styleConfig
+        );
+        
+        if (enforcementResult.isValid && enforcementResult.segments.length > 1) {
+          // Successfully split segment, create new daily segments
+          console.log(`🔧 SPLIT SUCCESS: Created ${enforcementResult.segments.length} segments from 1`);
+          
+          for (let i = 0; i < enforcementResult.segments.length; i++) {
+            const splitSegment = enforcementResult.segments[i];
+            const newSegment = this.createValidatedSegment(
+              splitSegment.startStop,
+              splitSegment.endStop,
+              currentDay,
+              styleConfig
+            );
+            
+            if (newSegment) {
+              enforcedSegments.push(newSegment);
+              currentDay++;
+              console.log(`✅ SPLIT SEGMENT: Day ${currentDay - 1} - ${newSegment.startCity} → ${newSegment.endCity} (${newSegment.driveTimeHours.toFixed(1)}h)`);
+            }
+          }
+        } else {
+          // Could not split, keep original but add warning
+          console.warn(`⚠️ COULD NOT SPLIT: Keeping original segment with warning`);
+          enforcedSegments.push({
+            ...segment,
+            day: currentDay,
+            driveTimeWarning: validation.recommendation || `${validation.actualDriveTime.toFixed(1)}h drive exceeds safe ${styleConfig.maxDailyDriveHours}h limit`
+          });
+          currentDay++;
+        }
+      }
+    }
+    
+    console.log(`🚗 DRIVE TIME ENFORCEMENT COMPLETE: ${segments.length} → ${enforcedSegments.length} segments`);
+    return enforcedSegments;
+  }
+
+  /**
+   * Convert segment to TripStop for drive time calculations
+   */
+  private static segmentToTripStop(segment: DailySegment, type: 'start' | 'end'): TripStop {
+    if (type === 'start') {
+      return {
+        id: `segment-start-${segment.day}`,
+        name: segment.startCity,
+        city_name: segment.startCity,
+        city: segment.startCity,
+        state: segment.destination?.state || 'Unknown',
+        latitude: 0, // Will be populated from recommended stops if available
+        longitude: 0,
+        category: 'destination_city',
+        description: `Start point for day ${segment.day}`
+      };
+    } else {
+      return {
+        id: `segment-end-${segment.day}`,
+        name: segment.endCity,
+        city_name: segment.endCity,
+        city: segment.endCity,
+        state: segment.destination?.state || 'Unknown',
+        latitude: 0, // Will be populated from recommended stops if available
+        longitude: 0,
+        category: 'destination_city',
+        description: `End point for day ${segment.day}`
+      };
+    }
   }
 
   /**
@@ -250,225 +368,6 @@ export class TripSegmentBuilder {
   }
 
   /**
-   * Distribute available destination cities across the required number of days
-   */
-  private static distributeDestinationsAcrossDays(
-    availableDestinations: TripStop[],
-    neededStops: number
-  ): TripStop[] {
-    if (availableDestinations.length >= neededStops) {
-      return availableDestinations.slice(0, neededStops);
-    }
-    
-    console.log(`🔄 Distributing ${availableDestinations.length} destinations across ${neededStops} stops`);
-    
-    // Calculate spacing - distribute cities evenly across the trip
-    const spacing = Math.floor(neededStops / availableDestinations.length);
-    const distributed: TripStop[] = [];
-    
-    for (let i = 0; i < neededStops; i++) {
-      const cityIndex = Math.floor(i / spacing);
-      const city = availableDestinations[Math.min(cityIndex, availableDestinations.length - 1)];
-      
-      // Avoid consecutive duplicates
-      if (distributed.length === 0 || distributed[distributed.length - 1].id !== city.id) {
-        distributed.push(city);
-      } else if (cityIndex + 1 < availableDestinations.length) {
-        // Use next city if available
-        distributed.push(availableDestinations[cityIndex + 1]);
-      } else {
-        // Create intermediate point
-        distributed.push(city); // For now, allow duplicate
-      }
-    }
-    
-    return distributed.slice(0, neededStops);
-  }
-
-  /**
-   * Create intermediate points when no destination cities are available
-   */
-  private static createIntermediatePoints(
-    startStop: TripStop,
-    endStop: TripStop,
-    neededStops: number
-  ): TripStop[] {
-    console.log(`🎯 Creating ${neededStops} intermediate points between ${startStop.name} and ${endStop.name}`);
-    
-    const intermediatePoints: TripStop[] = [];
-    
-    for (let i = 1; i <= neededStops; i++) {
-      const progress = i / (neededStops + 1);
-      
-      const lat = startStop.latitude + (endStop.latitude - startStop.latitude) * progress;
-      const lng = startStop.longitude + (endStop.longitude - startStop.longitude) * progress;
-      
-      const intermediatePoint: TripStop = {
-        id: `intermediate-${i}`,
-        name: `Day ${i} Stop`,
-        city_name: `Day ${i} Destination`,
-        city: `Day ${i} Destination`,
-        state: startStop.state,
-        latitude: lat,
-        longitude: lng,
-        category: 'destination',
-        description: `Intermediate stop for day ${i} of your Route 66 journey`
-      };
-      
-      intermediatePoints.push(intermediatePoint);
-    }
-    
-    return intermediatePoints;
-  }
-
-  /**
-   * Create a single daily segment
-   */
-  private static createSingleSegment(
-    startStop: TripStop,
-    endStop: TripStop,
-    day: number,
-    styleConfig: TripStyleConfig
-  ): DailySegment | null {
-    const segmentDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-    
-    const driveTimeHours = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
-    
-    // Validate drive time against style limits
-    const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
-      startStop,
-      endStop,
-      styleConfig
-    );
-    
-    // Only include destination cities as recommended stops with stopId
-    const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
-    const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
-      stopId: stop.id,
-      id: stop.id,
-      name: stop.name,
-      description: stop.description,
-      latitude: stop.latitude,
-      longitude: stop.longitude,
-      category: stop.category,
-      city_name: stop.city_name,
-      state: stop.state,
-      city: stop.city || stop.city_name || 'Unknown'
-    }));
-    
-    const segment: DailySegment = {
-      day,
-      title: `Day ${day}: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
-      startCity: CityDisplayService.getCityDisplayName(startStop),
-      endCity: CityDisplayService.getCityDisplayName(endStop),
-      distance: segmentDistance,
-      approximateMiles: Math.round(segmentDistance),
-      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
-      destination: {
-        city: endStop.city_name || endStop.name,
-        state: endStop.state
-      },
-      recommendedStops,
-      attractions: recommendedStops.map(stop => ({
-        name: stop.name,
-        title: stop.name,
-        description: stop.description,
-        city: stop.city
-      })),
-      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
-      routeSection: TripPlanUtils.getRouteSection(day, 14)
-    };
-    
-    // Add drive-time validation warning if needed
-    if (!validation.isValid && validation.recommendation) {
-      segment.driveTimeWarning = validation.recommendation;
-    }
-    
-    return segment;
-  }
-
-  /**
-   * Create daily segments from start/end stop pairs
-   */
-  private static createDailySegmentsFromPairs(
-    segmentPairs: Array<{ startStop: TripStop; endStop: TripStop }>,
-    styleConfig: TripStyleConfig
-  ): DailySegment[] {
-    const segments: DailySegment[] = [];
-    
-    segmentPairs.forEach((pair, index) => {
-      const day = index + 1;
-      const { startStop, endStop } = pair;
-      
-      const segmentDistance = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        endStop.latitude, endStop.longitude
-      );
-      
-      const driveTimeHours = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
-      
-      // Validate drive time against style limits
-      const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
-        startStop,
-        endStop,
-        styleConfig
-      );
-      
-      // Only include destination cities as recommended stops with stopId
-      const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
-      const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
-        stopId: stop.id,
-        id: stop.id,
-        name: stop.name,
-        description: stop.description,
-        latitude: stop.latitude,
-        longitude: stop.longitude,
-        category: stop.category,
-        city_name: stop.city_name,
-        state: stop.state,
-        city: stop.city || stop.city_name || 'Unknown'
-      }));
-      
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${startStop.city_name} to ${endStop.city_name}`,
-        startCity: CityDisplayService.getCityDisplayName(startStop),
-        endCity: CityDisplayService.getCityDisplayName(endStop),
-        distance: segmentDistance,
-        approximateMiles: Math.round(segmentDistance),
-        driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
-        destination: {
-          city: endStop.city_name,
-          state: endStop.state
-        },
-        recommendedStops,
-        attractions: recommendedStops.map(stop => ({
-          name: stop.name,
-          title: stop.name,
-          description: stop.description,
-          city: stop.city
-        })),
-        driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
-        routeSection: TripPlanUtils.getRouteSection(day, segmentPairs.length)
-      };
-      
-      // Add drive-time validation warning if needed
-      if (!validation.isValid && validation.recommendation) {
-        segment.driveTimeWarning = validation.recommendation;
-      }
-      
-      segments.push(segment);
-      
-      console.log(`📍 Day ${day}: ${startStop.name} → ${endStop.name} | ${segmentDistance.toFixed(1)}mi | ${driveTimeHours.toFixed(1)}h | Valid: ${validation.isValid}`);
-    });
-    
-    return segments;
-  }
-
-  /**
    * Legacy method for backward compatibility
    */
   static buildSegmentsWithDestinationCitiesLegacy(
@@ -483,7 +382,8 @@ export class TripSegmentBuilder {
       maxDailyDriveHours: 6,
       preferDestinationCities: false,
       allowFlexibleStops: true,
-      balancePriority: 'distance' as const
+      balancePriority: 'distance' as const,
+      enforcementLevel: 'strict' as const
     };
     
     return this.buildSegmentsWithDestinationCities(
