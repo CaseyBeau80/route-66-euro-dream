@@ -2,13 +2,18 @@
 import { toast } from '@/hooks/use-toast';
 import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDataService';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { CityDisplayService } from '../services/utils/CityDisplayService';
+import { CityNameNormalizationService } from '../services/CityNameNormalizationService';
 
 interface TripStop {
   id: string;
   name: string;
-  city_name: string;
+  city_name?: string;
+  city?: string;
   state: string;
   category: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface ValidationResult {
@@ -17,6 +22,9 @@ interface ValidationResult {
 }
 
 export class TripPlanValidator {
+  /**
+   * Enhanced validation with better city matching
+   */
   static validateStops(
     startStop: TripStop | undefined,
     endStop: TripStop | undefined,
@@ -25,31 +33,35 @@ export class TripPlanValidator {
     allStops: TripStop[]
   ): ValidationResult {
     
-    // Enhanced error messages with data source context
-    const dataSourceContext = EnhancedSupabaseDataService.isUsingFallback() 
-      ? ' (currently using offline data due to connectivity issues)'
-      : '';
+    console.log(`🔍 Enhanced validation for: "${startCityName}" → "${endCityName}"`);
+    console.log(`📊 Available stops: ${allStops.length}`);
     
+    // Enhanced start stop finding with multiple matching strategies
     if (!startStop) {
-      const availableStarts = this.findSimilarCities(startCityName, allStops);
-      const suggestionText = availableStarts.length > 0 
-        ? ` Did you mean: ${availableStarts.slice(0, 3).join(', ')}?`
-        : '';
+      console.log(`🔍 Enhanced search for start location: "${startCityName}"`);
       
-      throw new Error(
-        `Start location "${startCityName}" not found in Route 66 destinations${dataSourceContext}.${suggestionText} Please select from available Route 66 cities.`
-      );
+      startStop = this.findStopWithEnhancedMatching(startCityName, allStops);
+      
+      if (!startStop) {
+        console.error(`❌ Could not find start location: "${startCityName}"`);
+        this.logAvailableStopsForDebugging(allStops);
+        
+        throw new Error(`Start location "${startCityName}" not found in Route 66 stops. Available cities include: ${this.getAvailableCityNames(allStops).slice(0, 5).join(', ')}`);
+      }
     }
 
+    // Enhanced end stop finding with multiple matching strategies  
     if (!endStop) {
-      const availableEnds = this.findSimilarCities(endCityName, allStops);
-      const suggestionText = availableEnds.length > 0 
-        ? ` Did you mean: ${availableEnds.slice(0, 3).join(', ')}?`
-        : '';
+      console.log(`🔍 Enhanced search for end location: "${endCityName}"`);
       
-      throw new Error(
-        `End location "${endCityName}" not found in Route 66 destinations${dataSourceContext}.${suggestionText} Please select from available Route 66 cities.`
-      );
+      endStop = this.findStopWithEnhancedMatching(endCityName, allStops);
+      
+      if (!endStop) {
+        console.error(`❌ Could not find end location: "${endCityName}"`);
+        this.logAvailableStopsForDebugging(allStops);
+        
+        throw new Error(`End location "${endCityName}" not found in Route 66 stops. Available cities include: ${this.getAvailableCityNames(allStops).slice(0, 5).join(', ')}`);
+      }
     }
 
     if (startStop.id === endStop.id) {
@@ -69,7 +81,102 @@ export class TripPlanValidator {
       });
     }
 
+    console.log(`✅ Validated stops: ${startStop.name} → ${endStop.name}`);
     return { startStop, endStop };
+  }
+
+  /**
+   * Enhanced stop finding with multiple matching strategies
+   */
+  private static findStopWithEnhancedMatching(cityName: string, allStops: TripStop[]): TripStop | undefined {
+    if (!cityName || !allStops?.length) return undefined;
+
+    console.log(`🔍 Enhanced matching for: "${cityName}" among ${allStops.length} stops`);
+
+    // Strategy 1: Exact match with name field
+    for (const stop of allStops) {
+      if (stop.name === cityName) {
+        console.log(`✅ Strategy 1 - Exact name match: ${stop.name}`);
+        return stop;
+      }
+    }
+
+    // Strategy 2: Match city name without state (for "Chicago, IL" → "Chicago")
+    const searchCityOnly = cityName.split(',')[0].trim();
+    for (const stop of allStops) {
+      if (stop.name === searchCityOnly) {
+        console.log(`✅ Strategy 2 - City-only match: ${stop.name}`);
+        return stop;
+      }
+    }
+
+    // Strategy 3: Case-insensitive matching
+    const searchLower = searchCityOnly.toLowerCase();
+    for (const stop of allStops) {
+      if (stop.name?.toLowerCase() === searchLower) {
+        console.log(`✅ Strategy 3 - Case-insensitive match: ${stop.name}`);
+        return stop;
+      }
+    }
+
+    // Strategy 4: Check city_name field if available
+    for (const stop of allStops) {
+      const cityNameField = stop.city_name || stop.city;
+      if (cityNameField === searchCityOnly || cityNameField?.toLowerCase() === searchLower) {
+        console.log(`✅ Strategy 4 - city_name field match: ${cityNameField}`);
+        return stop;
+      }
+    }
+
+    // Strategy 5: Normalized matching using CityDisplayService
+    for (const stop of allStops) {
+      const displayName = CityDisplayService.getCityDisplayName(stop);
+      if (displayName === cityName) {
+        console.log(`✅ Strategy 5 - Display name match: ${displayName}`);
+        return stop;
+      }
+    }
+
+    // Strategy 6: Partial matching for variations
+    for (const stop of allStops) {
+      const stopName = stop.name?.toLowerCase() || '';
+      if (stopName.includes(searchLower) || searchLower.includes(stopName)) {
+        console.log(`✅ Strategy 6 - Partial match: ${stop.name}`);
+        return stop;
+      }
+    }
+
+    console.log(`❌ No match found for: "${cityName}"`);
+    return undefined;
+  }
+
+  /**
+   * Get available city names for error messages
+   */
+  private static getAvailableCityNames(allStops: TripStop[]): string[] {
+    return [...new Set(allStops.map(stop => stop.name || stop.city_name || stop.city || 'Unknown'))].sort();
+  }
+
+  /**
+   * Log available stops for debugging
+   */
+  private static logAvailableStopsForDebugging(allStops: TripStop[]): void {
+    console.log('🏙️ Available stops for debugging:');
+    allStops.forEach((stop, index) => {
+      console.log(`  ${index + 1}. ${stop.name} (city: "${stop.city_name || stop.city}", state: "${stop.state}")`);
+    });
+    
+    const majorCities = allStops.filter(stop => 
+      stop.name?.toLowerCase().includes('chicago') ||
+      stop.name?.toLowerCase().includes('st. louis') ||
+      stop.name?.toLowerCase().includes('oklahoma city') ||
+      stop.name?.toLowerCase().includes('amarillo') ||
+      stop.name?.toLowerCase().includes('albuquerque') ||
+      stop.name?.toLowerCase().includes('flagstaff') ||
+      stop.name?.toLowerCase().includes('santa monica')
+    );
+    
+    console.log('🏛️ Major cities found:', majorCities.map(city => city.name));
   }
 
   /**
@@ -148,7 +255,7 @@ export class TripPlanValidator {
     
     return destinationCities
       .filter(stop => {
-        const cityName = stop.city_name.toLowerCase();
+        const cityName = (stop.city_name || stop.name || '').toLowerCase();
         const stateName = stop.state.toLowerCase();
         
         // Look for partial matches
@@ -156,7 +263,7 @@ export class TripPlanValidator {
                searchLower.includes(cityName) ||
                `${cityName}, ${stateName}`.includes(searchLower);
       })
-      .map(stop => `${stop.city_name}, ${stop.state}`)
+      .map(stop => `${stop.city_name || stop.name}, ${stop.state}`)
       .slice(0, 5); // Limit suggestions
   }
 
