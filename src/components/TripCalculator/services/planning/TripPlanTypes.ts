@@ -80,6 +80,13 @@ export interface DriveTimeBalance {
   reason: string;
 }
 
+export interface RouteProgression {
+  segmentNumber: number;
+  progressPercentage: number;
+  cumulativeDistance: number;
+  totalDistance: number;
+}
+
 export interface TripPlan {
   id: string;
   startCity: string;
@@ -137,7 +144,7 @@ export interface DailySegment {
     city: string;
   }[];
   driveTimeCategory?: DriveTimeCategory;
-  routeSection?: string;
+  routeSection?: RouteProgression;
   driveTimeWarning?: string;
   subStopTimings?: SegmentTiming[];
   notes?: string;

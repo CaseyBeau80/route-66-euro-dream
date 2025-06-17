@@ -1,6 +1,6 @@
 
 import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './TripPlanTypes';
+import { DailySegment, RouteProgression } from './TripPlanTypes';
 import { SequenceOrderService } from './SequenceOrderService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -13,7 +13,8 @@ export type {
   DriveTimeBalance, 
   TripPlan, 
   DailySegment, 
-  SegmentTiming 
+  SegmentTiming,
+  RouteProgression
 } from './TripPlanTypes';
 
 // Add utility functions that components expect
@@ -229,7 +230,7 @@ export class TripPlanBuilder {
   }
 
   /**
-   * Create segments with proper sequence validation
+   * Create segments with proper sequence validation and route progression
    */
   private static createSequentialSegments(
     startStop: TripStop,
@@ -255,6 +256,14 @@ export class TripPlanBuilder {
       const cumulativeDistance = segments.reduce((sum, seg) => sum + seg.distance, 0) + distance;
       const progressPercentage = (cumulativeDistance / totalDistance) * 100;
       
+      // Create route progression object
+      const routeProgression: RouteProgression = {
+        segmentNumber: day,
+        progressPercentage: Math.round(progressPercentage),
+        cumulativeDistance: Math.round(cumulativeDistance),
+        totalDistance: Math.round(totalDistance)
+      };
+      
       segments.push({
         day,
         title: `Day ${day}: ${current.name} to ${next.name}`,
@@ -269,12 +278,7 @@ export class TripPlanBuilder {
         },
         recommendedStops: [],
         attractions: [],
-        routeSection: {
-          segmentNumber: day,
-          progressPercentage: Math.round(progressPercentage),
-          cumulativeDistance: Math.round(cumulativeDistance),
-          totalDistance: Math.round(totalDistance)
-        }
+        routeSection: routeProgression
       });
     }
     
