@@ -127,9 +127,9 @@ const CostEstimatorForm: React.FC<CostEstimatorFormProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="budget">Budget ($60-80/night)</SelectItem>
-            <SelectItem value="mid-range">Mid-Range ($80-120/night)</SelectItem>
-            <SelectItem value="luxury">Luxury ($120+/night)</SelectItem>
+            <SelectItem value="budget">Budget ($65-90/night)</SelectItem>
+            <SelectItem value="mid-range">Mid-Range ($90-135/night)</SelectItem>
+            <SelectItem value="luxury">Luxury ($135+/night)</SelectItem>
           </SelectContent>
         </Select>
       </div>

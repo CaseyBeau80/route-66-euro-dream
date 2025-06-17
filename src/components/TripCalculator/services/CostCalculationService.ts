@@ -4,11 +4,11 @@ import { CostEstimatorData, CostEstimate, CostBreakdown, DailyCosts } from '../t
 import { getDestinationCity } from '../utils/DestinationUtils';
 
 export class CostCalculationService {
-  // Base rates per day by budget level
+  // Base rates per day by budget level - increased by 10%
   private static readonly ACCOMMODATION_RATES = {
-    budget: 65,
-    'mid-range': 120,
-    luxury: 250
+    budget: 72,
+    'mid-range': 132,
+    luxury: 275
   };
 
   private static readonly MEAL_RATES = {
