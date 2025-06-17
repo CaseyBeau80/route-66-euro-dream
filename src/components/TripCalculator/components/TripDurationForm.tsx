@@ -78,15 +78,15 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           value={currentValue}
           onValueChange={handleDaysChange}
         >
-          <SelectTrigger className="w-full bg-white border-2">
+          <SelectTrigger className="w-full bg-white border-2 relative z-10">
             <SelectValue placeholder={`Select number of days (${MIN_DAYS}-${MAX_DAYS})`} />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-60">
+          <SelectContent className="bg-white border border-gray-200 shadow-lg relative z-[9999] max-h-60 overflow-y-auto">
             {dayOptions.map((days) => (
               <SelectItem 
                 key={days} 
                 value={days.toString()}
-                className="hover:bg-gray-50 cursor-pointer px-3 py-2"
+                className="hover:bg-gray-50 cursor-pointer px-3 py-2 relative z-[9999]"
               >
                 {days} {days === 1 ? 'day' : 'days'}
               </SelectItem>
@@ -96,7 +96,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         
         {/* FIXED: Clear validation feedback */}
         {formData.travelDays > 0 && (
-          <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none z-20">
             {isWithinBounds ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
             ) : (
