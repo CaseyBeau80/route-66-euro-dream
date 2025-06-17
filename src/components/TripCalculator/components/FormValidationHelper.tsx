@@ -45,8 +45,9 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     {
       id: 'travel-days',
       label: `Trip duration set (${MIN_DAYS}-${MAX_DAYS} days)`,
-      isValid: formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS,
-      value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not set',
+      // FIXED: Updated validation to treat 0 as invalid
+      isValid: formData.travelDays > 0 && formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS,
+      value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not selected',
       isBlocking: hasBlockingError
     },
     {

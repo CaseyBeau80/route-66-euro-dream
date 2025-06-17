@@ -38,10 +38,11 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
         </label>
         <input
           type="number"
-          value={travelDays}
+          value={travelDays || ''} // FIXED: Show empty when travelDays is 0
           onChange={(e) => onTravelDaysChange(parseInt(e.target.value) || 0)}
-          min="1"
+          min="2"
           max="14"
+          placeholder="Select 2-14 days"
           className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent"
         />
       </div>

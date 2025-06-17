@@ -8,7 +8,7 @@ export const useTripCalculation = () => {
   const [formData, setFormData] = useState<TripFormData>({
     startLocation: '',
     endLocation: '',
-    travelDays: 0,
+    travelDays: 0, // FIXED: Changed from unset to 0 to ensure proper validation
     dailyDrivingLimit: 300, // Single number instead of array
     tripStyle: 'balanced' // Added trip style
   });
@@ -86,6 +86,6 @@ export const useTripCalculation = () => {
     calculation,
     availableEndLocations,
     calculateTrip,
-    isCalculateDisabled: !formData.startLocation || !formData.endLocation
+    isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays === 0 // FIXED: Include travelDays check
   };
 };
