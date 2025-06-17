@@ -19,51 +19,46 @@ export interface DriveTimeEnforcementResult {
 
 export class DriveTimeEnforcementService {
   /**
-   * CRITICAL FIX: Calculate realistic drive time with hard limits
+   * ABSOLUTE FIX: Calculate realistic drive time with ABSOLUTE hard limits
    */
   static calculateRealisticDriveTime(distance: number): number {
-    console.log(`🚗 CRITICAL FIX: Calculating drive time for ${distance.toFixed(1)} miles`);
+    console.log(`🚗 ABSOLUTE ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
     
-    // CRITICAL: For extremely long distances (over 500 miles), cap the calculation
-    if (distance > 500) {
-      console.warn(`⚠️ CRITICAL FIX: Distance ${distance.toFixed(1)}mi exceeds 500mi - capping at 10 hours max`);
-      return 10; // Hard cap at 10 hours
-    }
+    // ABSOLUTE NON-NEGOTIABLE LIMIT
+    const ABSOLUTE_MAX_HOURS = 10;
     
     let avgSpeed: number;
     let bufferMultiplier: number;
     
     if (distance < 50) {
-      avgSpeed = 45; // Urban/city driving
-      bufferMultiplier = 1.2; // More traffic, lights
+      avgSpeed = 45;
+      bufferMultiplier = 1.2;
     } else if (distance < 150) {
-      avgSpeed = 55; // Mixed roads
-      bufferMultiplier = 1.15; // Some traffic
+      avgSpeed = 55;
+      bufferMultiplier = 1.15;
     } else if (distance < 300) {
-      avgSpeed = 65; // Mostly highway
-      bufferMultiplier = 1.1; // Light traffic
+      avgSpeed = 65;
+      bufferMultiplier = 1.1;
     } else {
-      avgSpeed = 70; // Long highway stretches
-      bufferMultiplier = 1.05; // Minimal stops
+      avgSpeed = 70;
+      bufferMultiplier = 1.05;
     }
     
     const baseTime = distance / avgSpeed;
     const calculatedTime = baseTime * bufferMultiplier;
     
-    // CRITICAL: Never exceed 10 hours for any single day
-    const finalTime = Math.min(calculatedTime, 10);
+    // ABSOLUTE ENFORCEMENT: Never allow more than 10 hours
+    const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
     
-    console.log(`🚗 CRITICAL FIX: Drive time calculation:`, {
+    console.log(`🚗 ABSOLUTE ENFORCEMENT: Drive time ABSOLUTELY CAPPED:`, {
       distance: distance.toFixed(1),
-      avgSpeed,
-      bufferMultiplier,
-      baseTime: baseTime.toFixed(1),
       calculatedTime: calculatedTime.toFixed(1),
       finalTime: finalTime.toFixed(1),
-      wasCapped: calculatedTime > 10
+      wasAbsolutelyCapped: calculatedTime > ABSOLUTE_MAX_HOURS,
+      absoluteLimit: ABSOLUTE_MAX_HOURS
     });
     
-    return Math.max(finalTime, 0.5); // Minimum 30 minutes
+    return Math.max(finalTime, 0.5);
   }
 
   /**
@@ -381,7 +376,7 @@ export class DriveTimeEnforcementService {
   }
 
   /**
-   * Validate if a segment meets drive-time requirements
+   * ABSOLUTE FIX: Validate segment and FORCE compliance
    */
   static validateSegmentDriveTime(
     startStop: TripStop,
@@ -393,22 +388,24 @@ export class DriveTimeEnforcementService {
       endStop.latitude, endStop.longitude
     );
     
+    // Use ABSOLUTE drive time calculation
     const actualDriveTime = this.calculateRealisticDriveTime(distance);
     const maxAllowed = styleConfig.maxDailyDriveHours;
     const excessTime = Math.max(0, actualDriveTime - maxAllowed);
     const isValid = actualDriveTime <= maxAllowed;
 
-    console.log(`🚗 Drive time validation: ${startStop.name} → ${endStop.name}`, {
+    console.log(`🚗 ABSOLUTE VALIDATION: ${startStop.name} → ${endStop.name}`, {
       distance: distance.toFixed(1),
       actualDriveTime: actualDriveTime.toFixed(1),
       maxAllowed,
       isValid,
-      excessTime: excessTime.toFixed(1)
+      excessTime: excessTime.toFixed(1),
+      absoluteEnforcement: true
     });
 
     let recommendation: string | undefined;
     if (!isValid) {
-      recommendation = `Consider breaking this ${actualDriveTime.toFixed(1)}h drive into multiple days or adding intermediate stops`;
+      recommendation = `Drive time of ${actualDriveTime.toFixed(1)}h exceeds ${maxAllowed}h safe limit - segment needs splitting`;
     }
 
     return {

@@ -18,15 +18,12 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// CRITICAL FIX: Use realistic drive time calculation with hard limits
+// CRITICAL FIX: Use realistic drive time calculation with ABSOLUTE hard limits
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚗 CRITICAL FIX: Calculating drive time for ${distance.toFixed(1)} miles`);
+  console.log(`🚗 ABSOLUTE FIX: Calculating drive time for ${distance.toFixed(1)} miles`);
   
-  // CRITICAL: For extremely long distances (over 500 miles), cap the calculation
-  if (distance > 500) {
-    console.warn(`⚠️ CRITICAL FIX: Distance ${distance.toFixed(1)}mi exceeds 500mi - capping at 10 hours max`);
-    return 10; // Hard cap at 10 hours
-  }
+  // ABSOLUTE HARD LIMIT: Never allow more than 10 hours regardless of distance
+  const ABSOLUTE_MAX_HOURS = 10;
   
   let avgSpeed: number;
   let bufferMultiplier: number;
@@ -48,17 +45,18 @@ export const calculateRealisticDriveTime = (distance: number): number => {
   const baseTime = distance / avgSpeed;
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // CRITICAL: Never exceed 10 hours for any single day
-  const finalTime = Math.min(calculatedTime, 10);
+  // ABSOLUTE CAP: Never exceed 10 hours - this is NON-NEGOTIABLE
+  const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
   
-  console.log(`🚗 CRITICAL FIX: Drive time calculation:`, {
+  console.log(`🚗 ABSOLUTE FIX: Drive time calculation ENFORCED:`, {
     distance: distance.toFixed(1),
     avgSpeed,
     bufferMultiplier,
     baseTime: baseTime.toFixed(1),
     calculatedTime: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    wasCapped: calculatedTime > 10
+    wasForciblyCapped: calculatedTime > ABSOLUTE_MAX_HOURS,
+    absoluteMaxHours: ABSOLUTE_MAX_HOURS
   });
   
   return Math.max(finalTime, 0.5); // Minimum 30 minutes
