@@ -3,6 +3,7 @@ import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDa
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CityDisplayService } from '../services/utils/CityDisplayService';
 import { CityNameNormalizationService } from '../services/CityNameNormalizationService';
+import { CityStateDisambiguationService } from '../services/utils/CityStateDisambiguationService';
 import { TripStop } from '../types/TripStop';
 
 interface ValidationResult {
@@ -12,7 +13,7 @@ interface ValidationResult {
 
 export class TripPlanValidator {
   /**
-   * Enhanced validation with better city matching
+   * Enhanced validation with proper city-state disambiguation
    */
   static validateStops(
     startStop: TripStop | undefined,
@@ -22,14 +23,14 @@ export class TripPlanValidator {
     allStops: TripStop[]
   ): ValidationResult {
     
-    console.log(`🔍 Enhanced validation for: "${startCityName}" → "${endCityName}"`);
+    console.log(`🔍 Enhanced validation with state disambiguation for: "${startCityName}" → "${endCityName}"`);
     console.log(`📊 Available stops: ${allStops.length}`);
     
-    // Enhanced start stop finding with multiple matching strategies
+    // Enhanced start stop finding with state disambiguation
     if (!startStop) {
       console.log(`🔍 Enhanced search for start location: "${startCityName}"`);
       
-      startStop = this.findStopWithEnhancedMatching(startCityName, allStops);
+      startStop = this.findStopWithStateDisambiguation(startCityName, allStops);
       
       if (!startStop) {
         console.error(`❌ Could not find start location: "${startCityName}"`);
@@ -39,11 +40,11 @@ export class TripPlanValidator {
       }
     }
 
-    // Enhanced end stop finding with multiple matching strategies  
+    // Enhanced end stop finding with state disambiguation  
     if (!endStop) {
       console.log(`🔍 Enhanced search for end location: "${endCityName}"`);
       
-      endStop = this.findStopWithEnhancedMatching(endCityName, allStops);
+      endStop = this.findStopWithStateDisambiguation(endCityName, allStops);
       
       if (!endStop) {
         console.error(`❌ Could not find end location: "${endCityName}"`);
@@ -75,62 +76,74 @@ export class TripPlanValidator {
   }
 
   /**
-   * Enhanced stop finding with multiple matching strategies
+   * Enhanced stop finding with state disambiguation for cities like Springfield
    */
-  private static findStopWithEnhancedMatching(cityName: string, allStops: TripStop[]): TripStop | undefined {
+  private static findStopWithStateDisambiguation(cityName: string, allStops: TripStop[]): TripStop | undefined {
     if (!cityName || !allStops?.length) return undefined;
 
-    console.log(`🔍 Enhanced matching for: "${cityName}" among ${allStops.length} stops`);
+    console.log(`🔍 State disambiguation matching for: "${cityName}" among ${allStops.length} stops`);
 
-    // Strategy 1: Exact match with name field
-    for (const stop of allStops) {
-      if (stop.name === cityName) {
-        console.log(`✅ Strategy 1 - Exact name match: ${stop.name}`);
-        return stop;
+    // Parse the input to separate city and state
+    const { city: searchCity, state: searchState } = CityStateDisambiguationService.parseCityState(cityName);
+    
+    console.log(`🔍 Parsed input: city="${searchCity}", state="${searchState}"`);
+
+    // Strategy 1: Exact match with both city and state (highest priority)
+    if (searchState) {
+      const exactMatches = CityStateDisambiguationService.findBestMatch(cityName, allStops);
+      if (exactMatches.length === 1) {
+        console.log(`✅ Strategy 1 - Exact city+state match: ${exactMatches[0].name}, ${exactMatches[0].state}`);
+        return exactMatches[0];
+      } else if (exactMatches.length > 1) {
+        console.log(`⚠️ Multiple exact matches found for ${cityName}:`, exactMatches.map(m => `${m.name}, ${m.state}`));
+        // Return first match but log the ambiguity
+        return exactMatches[0];
       }
     }
 
-    // Strategy 2: Match city name without state (for "Chicago, IL" → "Chicago")
-    const searchCityOnly = cityName.split(',')[0].trim();
-    for (const stop of allStops) {
-      if (stop.name === searchCityOnly) {
-        console.log(`✅ Strategy 2 - City-only match: ${stop.name}`);
-        return stop;
+    // Strategy 2: City-only search with disambiguation warnings
+    const cityOnlyMatches = allStops.filter(stop => {
+      const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
+      const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
+      return normalizedStopCity === normalizedSearchCity;
+    });
+
+    if (cityOnlyMatches.length === 1) {
+      console.log(`✅ Strategy 2 - Single city match: ${cityOnlyMatches[0].name}, ${cityOnlyMatches[0].state}`);
+      return cityOnlyMatches[0];
+    } else if (cityOnlyMatches.length > 1) {
+      console.log(`⚠️ AMBIGUOUS CITY: Found ${cityOnlyMatches.length} cities named "${searchCity}"`);
+      cityOnlyMatches.forEach(match => {
+        console.log(`   - ${match.name}, ${match.state}`);
+      });
+
+      // If no state specified, try Route 66 preference
+      if (!searchState) {
+        const route66Preference = CityStateDisambiguationService.getRoute66Preference(searchCity);
+        if (route66Preference) {
+          const preferredMatch = cityOnlyMatches.find(match => 
+            match.state.toUpperCase() === route66Preference.state.toUpperCase()
+          );
+          if (preferredMatch) {
+            console.log(`✅ Strategy 2b - Route 66 preference: ${preferredMatch.name}, ${preferredMatch.state}`);
+            return preferredMatch;
+          }
+        }
       }
+
+      // Return first match but warn about ambiguity
+      console.log(`⚠️ Using first match for ambiguous city: ${cityOnlyMatches[0].name}, ${cityOnlyMatches[0].state}`);
+      return cityOnlyMatches[0];
     }
 
-    // Strategy 3: Case-insensitive matching
-    const searchLower = searchCityOnly.toLowerCase();
-    for (const stop of allStops) {
-      if (stop.name?.toLowerCase() === searchLower) {
-        console.log(`✅ Strategy 3 - Case-insensitive match: ${stop.name}`);
-        return stop;
-      }
-    }
-
-    // Strategy 4: Check city_name field if available
-    for (const stop of allStops) {
-      const cityNameField = stop.city_name || stop.city;
-      if (cityNameField === searchCityOnly || cityNameField?.toLowerCase() === searchLower) {
-        console.log(`✅ Strategy 4 - city_name field match: ${cityNameField}`);
-        return stop;
-      }
-    }
-
-    // Strategy 5: Normalized matching using CityDisplayService
+    // Strategy 3: Fuzzy matching as last resort
     for (const stop of allStops) {
       const displayName = CityDisplayService.getCityDisplayName(stop);
-      if (displayName === cityName) {
-        console.log(`✅ Strategy 5 - Display name match: ${displayName}`);
-        return stop;
-      }
-    }
-
-    // Strategy 6: Partial matching for variations
-    for (const stop of allStops) {
-      const stopName = stop.name?.toLowerCase() || '';
-      if (stopName.includes(searchLower) || searchLower.includes(stopName)) {
-        console.log(`✅ Strategy 6 - Partial match: ${stop.name}`);
+      const normalizedDisplay = CityNameNormalizationService.normalizeSearchTerm(displayName);
+      const normalizedSearch = CityNameNormalizationService.normalizeSearchTerm(cityName);
+      
+      if (normalizedDisplay.includes(normalizedSearch) || normalizedSearch.includes(normalizedDisplay)) {
+        console.log(`✅ Strategy 3 - Fuzzy match: ${displayName}`);
         return stop;
       }
     }
@@ -140,32 +153,38 @@ export class TripPlanValidator {
   }
 
   /**
-   * Get available city names for error messages
+   * Get available city names for error messages (with state disambiguation)
    */
   private static getAvailableCityNames(allStops: TripStop[]): string[] {
-    return [...new Set(allStops.map(stop => stop.name || stop.city_name || stop.city || 'Unknown'))].sort();
+    return [...new Set(allStops.map(stop => CityDisplayService.getCityDisplayName(stop)))].sort();
   }
 
   /**
-   * Log available stops for debugging
+   * Log available stops for debugging with state information
    */
   private static logAvailableStopsForDebugging(allStops: TripStop[]): void {
-    console.log('🏙️ Available stops for debugging:');
+    console.log('🏙️ Available stops with state disambiguation:');
     allStops.forEach((stop, index) => {
-      console.log(`  ${index + 1}. ${stop.name} (city: "${stop.city_name || stop.city}", state: "${stop.state}")`);
+      console.log(`  ${index + 1}. ${stop.name}, ${stop.state} (city_name: "${stop.city_name || stop.city}")`);
     });
     
-    const majorCities = allStops.filter(stop => 
-      stop.name?.toLowerCase().includes('chicago') ||
-      stop.name?.toLowerCase().includes('st. louis') ||
-      stop.name?.toLowerCase().includes('oklahoma city') ||
-      stop.name?.toLowerCase().includes('amarillo') ||
-      stop.name?.toLowerCase().includes('albuquerque') ||
-      stop.name?.toLowerCase().includes('flagstaff') ||
-      stop.name?.toLowerCase().includes('santa monica')
-    );
-    
-    console.log('🏛️ Major cities found:', majorCities.map(city => city.name));
+    // Group cities by name to show ambiguous cities
+    const cityGroups = new Map<string, TripStop[]>();
+    allStops.forEach(stop => {
+      const cityName = stop.name || stop.city_name || stop.city || 'Unknown';
+      const normalizedName = CityNameNormalizationService.normalizeSearchTerm(cityName);
+      if (!cityGroups.has(normalizedName)) {
+        cityGroups.set(normalizedName, []);
+      }
+      cityGroups.get(normalizedName)!.push(stop);
+    });
+
+    console.log('🏛️ Cities with multiple state instances:');
+    cityGroups.forEach((stops, cityName) => {
+      if (stops.length > 1) {
+        console.log(`   ${cityName}: ${stops.map(s => s.state).join(', ')}`);
+      }
+    });
   }
 
   /**
