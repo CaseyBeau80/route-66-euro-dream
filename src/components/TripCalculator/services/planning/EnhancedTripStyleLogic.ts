@@ -9,6 +9,9 @@ export interface EnhancedTripStyleConfig extends TripStyleConfig {
   heritageMinimumTier: 'iconic' | 'major' | 'significant' | 'notable' | 'standard';
   prioritizeHeritageOverDistance: boolean;
   enforceHeritageSequence: boolean;
+  populationWeight: number;
+  populationThreshold: number;
+  enforcementLevel: 'strict' | 'moderate' | 'relaxed';
 }
 
 export class EnhancedTripStyleLogic extends TripStyleLogic {
@@ -26,9 +29,9 @@ export class EnhancedTripStyleLogic extends TripStyleLogic {
           heritageMinimumTier: 'significant', // Only significant+ heritage cities
           prioritizeHeritageOverDistance: true,
           enforceHeritageSequence: true,
-          maxDailyDriveHours: 12, // Allow longer drives for heritage cities
           populationWeight: 0.2, // Reduce population weight in favor of heritage
-          populationThreshold: 1000 // Lower population threshold for heritage focus
+          populationThreshold: 1000, // Lower population threshold for heritage focus
+          enforcementLevel: 'strict'
         };
       
       case 'balanced':
@@ -39,7 +42,8 @@ export class EnhancedTripStyleLogic extends TripStyleLogic {
           prioritizeHeritageOverDistance: false,
           enforceHeritageSequence: false,
           populationWeight: 0.3, // Keep balanced population consideration
-          populationThreshold: 1000
+          populationThreshold: 1000,
+          enforcementLevel: 'moderate'
         };
       
       default:
