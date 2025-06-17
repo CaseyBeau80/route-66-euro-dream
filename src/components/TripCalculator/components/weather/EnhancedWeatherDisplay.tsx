@@ -42,23 +42,6 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
       result.low = DataStandardizationService.standardizeTemperature(weather.lowTemp, preferences);
     }
     
-    // Handle nested temperature structures
-    if (weather.temp?.max !== undefined) {
-      result.high = DataStandardizationService.standardizeTemperature(weather.temp.max, preferences);
-    }
-    
-    if (weather.temp?.min !== undefined) {
-      result.low = DataStandardizationService.standardizeTemperature(weather.temp.min, preferences);
-    }
-    
-    if (weather.main?.temp_max !== undefined) {
-      result.high = DataStandardizationService.standardizeTemperature(weather.main.temp_max, preferences);
-    }
-    
-    if (weather.main?.temp_min !== undefined) {
-      result.low = DataStandardizationService.standardizeTemperature(weather.main.temp_min, preferences);
-    }
-    
     return result;
   }, [weather, preferences]);
 
