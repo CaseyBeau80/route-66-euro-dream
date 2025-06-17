@@ -1,435 +1,74 @@
 
-import { TripStop } from '../data/SupabaseDataService';
-import { TripStyleConfig } from './TripStyleLogic';
-import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
-
-export interface DriveTimeValidationResult {
-  isValid: boolean;
-  actualDriveTime: number;
-  maxAllowed: number;
-  excessTime: number;
-  recommendation?: string;
-}
-
-export interface DriveTimeEnforcementResult {
-  isValid: boolean;
-  segments: Array<{ startStop: TripStop; endStop: TripStop }>;
-  warnings: string[];
-  intermediateStopsAdded: number;
-}
-
 export class DriveTimeEnforcementService {
+  private static readonly MAX_DAILY_DRIVE_HOURS = 8;
+  private static readonly ABSOLUTE_MAX_HOURS = 10;
+  private static readonly AVG_SPEED_MPH = 50;
+
   /**
-   * NUCLEAR OPTION: Use the bulletproof drive time calculation from utils
+   * NUCLEAR OPTION: Calculate realistic drive time with ABSOLUTE limits
    */
   static calculateRealisticDriveTime(distance: number): number {
-    console.log(`🚨 NUCLEAR ENFORCEMENT SERVICE: Delegating to bulletproof calculator for ${distance.toFixed(1)} miles`);
+    console.log(`🚨 NUCLEAR DRIVE TIME: ${distance.toFixed(1)} miles`);
     
-    // Delegate to the nuclear-grade calculation in utils
-    const result = calculateRealisticDriveTime(distance);
-    
-    console.log(`🚨 NUCLEAR ENFORCEMENT: Received ${result.toFixed(1)}h from bulletproof calculator`);
-    
-    // Triple safety check - should never be needed but just in case
-    if (result > 8) {
-      console.error(`🚨 NUCLEAR EMERGENCY: Bulletproof calculator returned ${result}h > 8h - FORCING TO 8h`);
-      return 8;
+    // Handle edge cases
+    if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
+      console.log(`🚨 Invalid distance, returning 1h`);
+      return 1;
     }
     
-    return result;
+    // ABSOLUTE ENFORCEMENT: No drive time can exceed 8 hours
+    const maxDistance = this.MAX_DAILY_DRIVE_HOURS * this.AVG_SPEED_MPH; // 400 miles
+    
+    if (distance > maxDistance) {
+      console.warn(`🚨 DISTANCE EXCEEDS LIMIT: ${distance.toFixed(1)}mi > ${maxDistance}mi - CAPPING to ${this.MAX_DAILY_DRIVE_HOURS}h`);
+      return this.MAX_DAILY_DRIVE_HOURS;
+    }
+    
+    // Calculate realistic drive time
+    let avgSpeed: number;
+    if (distance < 100) {
+      avgSpeed = 45; // City driving, stops
+    } else if (distance < 200) {
+      avgSpeed = 50; // Mixed driving
+    } else {
+      avgSpeed = 55; // Highway driving
+    }
+    
+    const baseTime = distance / avgSpeed;
+    const timeWithBuffer = baseTime * 1.2; // Add 20% buffer for stops, traffic
+    
+    // ABSOLUTE CAP: Never exceed 8 hours
+    const finalTime = Math.min(timeWithBuffer, this.MAX_DAILY_DRIVE_HOURS);
+    
+    console.log(`✅ NUCLEAR CALC: ${distance.toFixed(1)}mi = ${finalTime.toFixed(1)}h (capped at ${this.MAX_DAILY_DRIVE_HOURS}h)`);
+    
+    return Math.max(finalTime, 1); // Minimum 1 hour
   }
 
   /**
-   * ENHANCED: Enforce maximum drive time per segment with automatic rebalancing
+   * Validate if a distance is acceptable for daily driving
    */
-  static enforceMaxDriveTimePerSegment(
-    startStop: TripStop,
-    endStop: TripStop,
-    availableStops: TripStop[],
-    styleConfig: TripStyleConfig
-  ): DriveTimeEnforcementResult {
-    console.log(`🚗 ENFORCING DRIVE TIME: ${startStop.name} → ${endStop.name}, max ${styleConfig.maxDailyDriveHours}h`);
-    
-    const validation = this.validateSegmentDriveTime(startStop, endStop, styleConfig);
-    
-    if (validation.isValid) {
-      console.log(`✅ DRIVE TIME OK: ${validation.actualDriveTime.toFixed(1)}h within ${styleConfig.maxDailyDriveHours}h limit`);
-      return {
-        isValid: true,
-        segments: [{ startStop, endStop }],
-        warnings: [],
-        intermediateStopsAdded: 0
-      };
-    }
-
-    console.log(`❌ DRIVE TIME VIOLATION: ${validation.actualDriveTime.toFixed(1)}h exceeds ${styleConfig.maxDailyDriveHours}h limit by ${validation.excessTime.toFixed(1)}h`);
-    
-    // CRITICAL: For extremely long segments, force split regardless of available stops
-    const distance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-    
-    if (distance > 400) {
-      console.log(`🚨 CRITICAL: Distance ${distance.toFixed(1)}mi exceeds 400mi - forcing artificial split`);
-      return this.forceSegmentSplit(startStop, endStop, styleConfig);
-    }
-    
-    // Try to split the segment with intermediate stops
-    const splitResult = this.splitLongSegment(startStop, endStop, availableStops, styleConfig);
-    
-    if (splitResult.success) {
-      console.log(`✅ SEGMENT SPLIT: Created ${splitResult.segments.length} segments with ${splitResult.intermediateStopsAdded} intermediate stops`);
-      return {
-        isValid: true,
-        segments: splitResult.segments,
-        warnings: splitResult.warnings,
-        intermediateStopsAdded: splitResult.intermediateStopsAdded
-      };
-    }
-
-    // Fallback: Create warning but allow segment with capped drive time
-    console.warn(`⚠️ DRIVE TIME FAILSAFE: Could not split segment, capping at 8h with warning`);
-    return {
-      isValid: false,
-      segments: [{ startStop, endStop }],
-      warnings: [
-        `Day with ${validation.actualDriveTime.toFixed(1)} hour drive exceeds ${styleConfig.maxDailyDriveHours}h safe limit - capped at 8h`,
-        'Consider extending trip duration or adding intermediate stops for safer drive times'
-      ],
-      intermediateStopsAdded: 0
-    };
-  }
-
-  /**
-   * CRITICAL: Force split extremely long segments using artificial waypoints
-   */
-  private static forceSegmentSplit(
-    startStop: TripStop,
-    endStop: TripStop,
-    styleConfig: TripStyleConfig
-  ): DriveTimeEnforcementResult {
-    const distance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-    
-    const maxSegmentDistance = styleConfig.maxDailyDriveHours * 60; // Conservative 60 mph average
-    const segmentsNeeded = Math.ceil(distance / maxSegmentDistance);
-    
-    console.log(`🔧 FORCE SPLIT: Creating ${segmentsNeeded} segments for ${distance.toFixed(1)}mi`);
-    
-    const artificialStops = this.createArtificialWaypoints(startStop, endStop, segmentsNeeded - 1);
-    const allStops = [startStop, ...artificialStops, endStop];
-    const segments = this.createSegmentsFromStops(allStops);
-    
-    return {
-      isValid: true,
-      segments,
-      warnings: [`Extremely long distance split into ${segments.length} manageable driving days`],
-      intermediateStopsAdded: artificialStops.length
-    };
-  }
-
-  /**
-   * Split a long segment into multiple segments using intermediate stops
-   */
-  private static splitLongSegment(
-    startStop: TripStop,
-    endStop: TripStop,
-    availableStops: TripStop[],
-    styleConfig: TripStyleConfig
-  ): {
-    success: boolean;
-    segments: Array<{ startStop: TripStop; endStop: TripStop }>;
-    warnings: string[];
-    intermediateStopsAdded: number;
+  static validateDailyDistance(distance: number): {
+    isValid: boolean;
+    driveTime: number;
+    recommendation: string;
   } {
-    const totalDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
+    const driveTime = this.calculateRealisticDriveTime(distance);
+    const isValid = driveTime <= this.MAX_DAILY_DRIVE_HOURS;
     
-    const totalDriveTime = this.calculateRealisticDriveTime(totalDistance);
-    const maxSegmentDistance = styleConfig.maxDailyDriveHours * 50; // Approximate miles per hour
-    
-    // Calculate how many segments we need
-    const segmentsNeeded = Math.ceil(totalDistance / maxSegmentDistance);
-    
-    if (segmentsNeeded <= 1) {
-      return { success: false, segments: [], warnings: [], intermediateStopsAdded: 0 };
-    }
-
-    console.log(`🔧 SPLITTING: Need ${segmentsNeeded} segments for ${totalDistance.toFixed(1)}mi (${totalDriveTime.toFixed(1)}h)`);
-    
-    // Find suitable intermediate stops
-    const intermediateStops = this.findIntermediateStops(
-      startStop,
-      endStop,
-      availableStops,
-      segmentsNeeded - 1,
-      maxSegmentDistance
-    );
-    
-    if (intermediateStops.length === 0) {
-      // Create artificial waypoints if no suitable stops found
-      const artificialStops = this.createArtificialWaypoints(
-        startStop,
-        endStop,
-        segmentsNeeded - 1
-      );
-      
-      const segments = this.createSegmentsFromStops(
-        [startStop, ...artificialStops, endStop]
-      );
-      
-      return {
-        success: true,
-        segments,
-        warnings: [`Created ${artificialStops.length} waypoints to manage drive time`],
-        intermediateStopsAdded: artificialStops.length
-      };
-    }
-    
-    // Create segments using found intermediate stops
-    const allStops = [startStop, ...intermediateStops, endStop];
-    const segments = this.createSegmentsFromStops(allStops);
-    
-    // Validate all segments meet drive time requirements
-    const invalidSegments = segments.filter(seg => {
-      const validation = this.validateSegmentDriveTime(seg.startStop, seg.endStop, styleConfig);
-      return !validation.isValid;
-    });
-    
-    if (invalidSegments.length > 0) {
-      console.warn(`⚠️ SPLIT VALIDATION: ${invalidSegments.length} segments still exceed limits`);
-      return { success: false, segments: [], warnings: [], intermediateStopsAdded: 0 };
-    }
-    
-    return {
-      success: true,
-      segments,
-      warnings: [`Split long drive into ${segments.length} manageable segments`],
-      intermediateStopsAdded: intermediateStops.length
-    };
-  }
-
-  /**
-   * Find suitable intermediate stops along the route
-   */
-  private static findIntermediateStops(
-    startStop: TripStop,
-    endStop: TripStop,
-    availableStops: TripStop[],
-    needed: number,
-    maxSegmentDistance: number
-  ): TripStop[] {
-    const routeDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-    
-    // Filter stops that are roughly along the route
-    const candidateStops = availableStops.filter(stop => {
-      const distFromStart = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        stop.latitude, stop.longitude
-      );
-      const distToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude, stop.longitude,
-        endStop.latitude, endStop.longitude
-      );
-      
-      // Stop should be reasonably along the route (not too much deviation)
-      const routeDeviation = (distFromStart + distToEnd) - routeDistance;
-      const isAlongRoute = routeDeviation < 50; // Within 50 miles of direct route
-      
-      // Stop should be at a reasonable distance for splitting
-      const isGoodDistance = distFromStart > 50 && distFromStart < routeDistance - 50;
-      
-      return isAlongRoute && isGoodDistance;
-    });
-    
-    // Sort by distance from start and select appropriate stops
-    candidateStops.sort((a, b) => {
-      const distA = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        a.latitude, a.longitude
-      );
-      const distB = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        b.latitude, b.longitude
-      );
-      return distA - distB;
-    });
-    
-    // Select stops that create reasonable segment lengths
-    const selectedStops: TripStop[] = [];
-    const targetIntervals = routeDistance / (needed + 1);
-    
-    for (let i = 1; i <= needed && candidateStops.length > 0; i++) {
-      const targetDistance = targetIntervals * i;
-      
-      // Find stop closest to target distance
-      const bestStop = candidateStops.reduce((best, stop) => {
-        const stopDist = DistanceCalculationService.calculateDistance(
-          startStop.latitude, startStop.longitude,
-          stop.latitude, stop.longitude
-        );
-        const bestDist = DistanceCalculationService.calculateDistance(
-          startStop.latitude, startStop.longitude,
-          best.latitude, best.longitude
-        );
-        
-        const stopError = Math.abs(stopDist - targetDistance);
-        const bestError = Math.abs(bestDist - targetDistance);
-        
-        return stopError < bestError ? stop : best;
-      });
-      
-      selectedStops.push(bestStop);
-      
-      // Remove selected stop and nearby stops to avoid clustering
-      const removeIndex = candidateStops.findIndex(s => s.id === bestStop.id);
-      if (removeIndex >= 0) {
-        candidateStops.splice(removeIndex, 1);
-      }
-    }
-    
-    console.log(`🎯 INTERMEDIATE STOPS: Found ${selectedStops.length}/${needed} suitable stops`);
-    return selectedStops.slice(0, needed);
-  }
-
-  /**
-   * Create artificial waypoints when no suitable stops are available
-   */
-  private static createArtificialWaypoints(
-    startStop: TripStop,
-    endStop: TripStop,
-    needed: number
-  ): TripStop[] {
-    const waypoints: TripStop[] = [];
-    
-    for (let i = 1; i <= needed; i++) {
-      const progress = i / (needed + 1);
-      
-      const lat = startStop.latitude + (endStop.latitude - startStop.latitude) * progress;
-      const lng = startStop.longitude + (endStop.longitude - startStop.longitude) * progress;
-      
-      const waypoint: TripStop = {
-        id: `waypoint-${Date.now()}-${i}`,
-        name: `Drive Break Point ${i}`,
-        city_name: `Waypoint ${i}`,
-        city: `Waypoint ${i}`,
-        state: startStop.state,
-        latitude: lat,
-        longitude: lng,
-        category: 'waypoint',
-        description: `Strategic waypoint to manage drive time on Route 66`
-      };
-      
-      waypoints.push(waypoint);
-    }
-    
-    console.log(`🛣️ ARTIFICIAL WAYPOINTS: Created ${waypoints.length} waypoints`);
-    return waypoints;
-  }
-
-  /**
-   * Create segments from a sequence of stops
-   */
-  private static createSegmentsFromStops(
-    stops: TripStop[]
-  ): Array<{ startStop: TripStop; endStop: TripStop }> {
-    const segments: Array<{ startStop: TripStop; endStop: TripStop }> = [];
-    
-    for (let i = 0; i < stops.length - 1; i++) {
-      segments.push({
-        startStop: stops[i],
-        endStop: stops[i + 1]
-      });
-    }
-    
-    return segments;
-  }
-
-  /**
-   * NUCLEAR VALIDATION: Validate segment and FORCE compliance
-   */
-  static validateSegmentDriveTime(
-    startStop: TripStop,
-    endStop: TripStop,
-    styleConfig: TripStyleConfig
-  ): DriveTimeValidationResult {
-    const distance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-    
-    // Use NUCLEAR drive time calculation
-    const actualDriveTime = this.calculateRealisticDriveTime(distance);
-    const maxAllowed = styleConfig.maxDailyDriveHours;
-    const excessTime = Math.max(0, actualDriveTime - maxAllowed);
-    const isValid = actualDriveTime <= maxAllowed;
-
-    console.log(`🚨 NUCLEAR VALIDATION: ${startStop.name} → ${endStop.name}`, {
-      distance: distance.toFixed(1),
-      actualDriveTime: actualDriveTime.toFixed(1),
-      maxAllowed,
-      isValid,
-      excessTime: excessTime.toFixed(1),
-      nuclearEnforcement: true
-    });
-
-    let recommendation: string | undefined;
+    let recommendation = '';
     if (!isValid) {
-      recommendation = `Drive time of ${actualDriveTime.toFixed(1)}h exceeds ${maxAllowed}h safe limit - segment needs splitting`;
+      recommendation = `Distance of ${distance.toFixed(0)}mi (${driveTime.toFixed(1)}h) exceeds daily limit. Split into multiple days.`;
+    } else if (driveTime > 6) {
+      recommendation = `Long drive day: ${driveTime.toFixed(1)}h. Consider breaks every 2 hours.`;
+    } else {
+      recommendation = `Comfortable drive time: ${driveTime.toFixed(1)}h`;
     }
-
+    
     return {
       isValid,
-      actualDriveTime,
-      maxAllowed,
-      excessTime,
+      driveTime,
       recommendation
     };
-  }
-
-  /**
-   * Get enforcement level based on trip style
-   */
-  static getEnforcementLevel(styleConfig: TripStyleConfig): 'strict' | 'moderate' | 'flexible' {
-    return styleConfig.enforcementLevel || 'strict';
-  }
-
-  /**
-   * Check if rebalancing is needed for trip segments
-   */
-  static requiresRebalancing(
-    segments: Array<{ startStop: TripStop; endStop: TripStop }>,
-    styleConfig: TripStyleConfig
-  ): boolean {
-    const enforcementLevel = this.getEnforcementLevel(styleConfig);
-    
-    if (enforcementLevel === 'flexible') {
-      return false;
-    }
-
-    // Check if any segment violates drive-time limits
-    for (const segment of segments) {
-      const validation = this.validateSegmentDriveTime(
-        segment.startStop,
-        segment.endStop,
-        styleConfig
-      );
-      
-      if (!validation.isValid) {
-        console.log(`⚠️ Rebalancing needed: ${segment.startStop.name} → ${segment.endStop.name} exceeds ${styleConfig.maxDailyDriveHours}h limit`);
-        return true;
-      }
-    }
-
-    return false;
   }
 }

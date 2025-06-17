@@ -1,60 +1,55 @@
 
-import { TripStop } from '../data/SupabaseDataService';
-
 export class CityDisplayService {
   /**
-   * Get consistent city display name
+   * Get standardized city display name with state abbreviation
    */
-  static getCityDisplayName(stop: TripStop): string {
-    if (!stop) return '';
-
-    // Use name if available, otherwise fall back to city
-    const cityName = stop.name || stop.city || stop.city_name || '';
+  static getCityDisplayName(stop: any): string {
+    if (!stop) return 'Unknown';
+    
+    // Use city_name if available, otherwise use name
+    const cityName = stop.city_name || stop.city || stop.name || 'Unknown';
     const state = stop.state || '';
-
-    if (cityName && state) {
-      // Handle cases where name already includes state
-      if (cityName.includes(',') && cityName.includes(state)) {
-        return cityName;
-      }
-      return `${cityName}, ${state}`;
-    }
-
-    return cityName;
-  }
-
-  /**
-   * Get city name without state
-   */
-  static getCityNameOnly(stop: TripStop): string {
-    if (!stop) return '';
     
-    const fullName = stop.name || stop.city || stop.city_name || '';
+    // Remove state from city name if it's already included
+    const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/i, '').trim();
     
-    // If it includes comma, take only the part before comma
-    if (fullName.includes(',')) {
-      return fullName.split(',')[0].trim();
-    }
-    
-    return fullName;
-  }
-
-  /**
-   * Format destination city for consistent display
-   */
-  static formatDestinationCity(cityName: string, state?: string): string {
-    if (!cityName) return '';
-    
-    // If already formatted with state, return as-is
-    if (cityName.includes(',') && cityName.includes(state || '')) {
-      return cityName;
-    }
-    
-    // Add state if provided
+    // Return format: "City, ST"
     if (state) {
-      return `${cityName}, ${state}`;
+      return `${cleanCityName}, ${state.toUpperCase()}`;
     }
     
-    return cityName;
+    return cleanCityName;
+  }
+
+  /**
+   * Parse city and state from input string
+   */
+  static parseCityStateInput(input: string): { city: string; state: string } {
+    if (!input) return { city: '', state: '' };
+    
+    const parts = input.split(',').map(part => part.trim());
+    
+    if (parts.length >= 2) {
+      return {
+        city: parts[0],
+        state: parts[1].toUpperCase()
+      };
+    }
+    
+    return {
+      city: input.trim(),
+      state: ''
+    };
+  }
+
+  /**
+   * Normalize city name for comparison
+   */
+  static normalizeCityName(cityName: string): string {
+    return cityName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, ' '); // Normalize spaces
   }
 }

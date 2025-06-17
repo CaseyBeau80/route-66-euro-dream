@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment } from './TripPlanTypes';
 
