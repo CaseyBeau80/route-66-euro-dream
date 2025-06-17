@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calculator, MapPin, Clock, DollarSign, Share2, Sparkles } from 'lucide-react';
 import { TripFormData } from '../TripCalculator/types/tripCalculator';
 import { TripPlan } from '../TripCalculator/services/planning/TripPlanBuilder';
+import { TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { useTripCalculation } from './hooks/useTripCalculation';
 import { useCostEstimator } from '../TripCalculator/hooks/useCostEstimator';
 import { toast } from '@/hooks/use-toast';
@@ -45,6 +46,8 @@ const Route66TripCalculator: React.FC = () => {
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [hasCostEstimate, setHasCostEstimate] = useState(false);
+  const [completionAnalysis, setCompletionAnalysis] = useState<TripCompletionAnalysis | undefined>();
+  const [originalRequestedDays, setOriginalRequestedDays] = useState<number | undefined>();
 
   useEffect(() => {
     console.log('✨ Route66TripCalculator: Component mounted');
@@ -52,6 +55,19 @@ const Route66TripCalculator: React.FC = () => {
       console.log('✨ Route66TripCalculator: Component unmounted');
     };
   }, []);
+
+  // Track completion analysis from planning result
+  useEffect(() => {
+    if (planningResult && 'completionAnalysis' in planningResult) {
+      setCompletionAnalysis(planningResult.completionAnalysis);
+      setOriginalRequestedDays(planningResult.originalRequestedDays);
+      console.log('📊 Route66TripCalculator: Completion analysis updated:', {
+        hasAnalysis: !!planningResult.completionAnalysis,
+        originalDays: planningResult.originalRequestedDays,
+        finalDays: tripPlan?.totalDays
+      });
+    }
+  }, [planningResult, tripPlan]);
 
   // Track if user has used the cost calculator
   useEffect(() => {
@@ -79,6 +95,8 @@ const Route66TripCalculator: React.FC = () => {
       return;
     }
 
+    // Store the original requested days before calculation
+    setOriginalRequestedDays(formData.travelDays);
     calculateTrip(formData);
   }, [formData, calculateTrip]);
 
@@ -86,6 +104,8 @@ const Route66TripCalculator: React.FC = () => {
     console.log('🔄 Reset trip requested');
     resetTrip();
     setHasCostEstimate(false);
+    setCompletionAnalysis(undefined);
+    setOriginalRequestedDays(undefined);
     // FIXED: Reset travel days to 0 to force dropdown selection
     setFormData(prev => ({
       ...prev,
@@ -182,6 +202,8 @@ const Route66TripCalculator: React.FC = () => {
               <TripResults 
                 tripPlan={tripPlan}
                 tripStartDate={formData.tripStartDate}
+                completionAnalysis={completionAnalysis}
+                originalRequestedDays={originalRequestedDays}
                 onShareTrip={handleShareTrip}
               />
               

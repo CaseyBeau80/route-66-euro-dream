@@ -2,47 +2,55 @@
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
-import { TripPlanningResult } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
-import { UnifiedTripPlanningService } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
+import { EnhancedTripPlanResult } from '../../TripCalculator/services/Route66TripPlannerService';
+import { Route66TripPlannerService } from '../../TripCalculator/services/Route66TripPlannerService';
 import { toast } from '@/hooks/use-toast';
 
 export const useTripCalculation = () => {
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [planningResult, setPlanningResult] = useState<TripPlanningResult | null>(null);
+  const [planningResult, setPlanningResult] = useState<EnhancedTripPlanResult | null>(null);
 
   const calculateTrip = useCallback(async (formData: TripFormData) => {
-    console.log('🚗 useTripCalculation: Starting trip calculation', { formData });
+    console.log('🚗 useTripCalculation: Starting enhanced trip calculation', { formData });
     
     setIsCalculating(true);
     setTripPlan(null);
     setPlanningResult(null);
 
     try {
-      // Use static method call instead of instance method
-      const result = await UnifiedTripPlanningService.planTrip(
+      // Use the enhanced trip planning service with completion analysis
+      const result = await Route66TripPlannerService.planTripWithAnalysis(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
         formData.tripStyle || 'balanced'
       );
 
-      console.log('✅ useTripCalculation: Trip planning completed', {
-        success: result.success,
-        segmentCount: result.tripPlan?.segments?.length
+      console.log('✅ useTripCalculation: Enhanced trip planning completed', {
+        success: !!result.tripPlan,
+        segmentCount: result.tripPlan?.segments?.length,
+        hasCompletionAnalysis: !!result.completionAnalysis,
+        originalDays: result.originalRequestedDays,
+        finalDays: result.tripPlan?.totalDays
       });
 
-      if (result.success && result.tripPlan) {
+      if (result.tripPlan) {
         setTripPlan(result.tripPlan);
         setPlanningResult(result);
         
+        // Enhanced success message
+        const optimizationMessage = result.completionAnalysis?.isCompleted
+          ? ` Trip optimized from ${result.originalRequestedDays} to ${result.tripPlan.totalDays} days.`
+          : '';
+        
         toast({
           title: "Trip Planned Successfully!",
-          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary from ${formData.startLocation} to ${formData.endLocation}`,
+          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary from ${formData.startLocation} to ${formData.endLocation}.${optimizationMessage}`,
           variant: "default"
         });
       } else {
-        throw new Error(result.error || 'Failed to plan trip');
+        throw new Error('Failed to plan trip - no trip plan returned');
       }
 
     } catch (error) {

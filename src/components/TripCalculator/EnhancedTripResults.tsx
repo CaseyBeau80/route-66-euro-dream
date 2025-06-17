@@ -1,15 +1,19 @@
 
 import React from 'react';
 import { TripPlan } from './services/planning/TripPlanBuilder';
+import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import TripResultsPreview from './components/TripResultsPreview';
 import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 import ItineraryPreLoader from './components/ItineraryPreLoader';
+import TripCompletionWarning from './components/TripCompletionWarning';
 import { useCostEstimator } from './hooks/useCostEstimator';
 
 interface EnhancedTripResultsProps {
   tripPlan: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
+  completionAnalysis?: TripCompletionAnalysis;
+  originalRequestedDays?: number;
   loadingState?: {
     isPreLoading: boolean;
     progress: number;
@@ -24,6 +28,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripPlan,
   shareUrl,
   tripStartDate,
+  completionAnalysis,
+  originalRequestedDays,
   loadingState
 }) => {
   // Add safety check for tripPlan
@@ -48,11 +54,14 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return undefined;
   }, [tripStartDate]);
 
-  console.log("🌤️ EnhancedTripResults: Rendering preview format:", {
+  console.log("🌤️ EnhancedTripResults: Rendering with completion analysis:", {
     segmentsCount: tripPlan.segments?.length || 0,
     hasStartDate: !!validTripStartDate,
     startDate: validTripStartDate?.toISOString(),
-    isPreLoading: loadingState?.isPreLoading
+    isPreLoading: loadingState?.isPreLoading,
+    hasCompletionAnalysis: !!completionAnalysis,
+    originalRequestedDays,
+    finalDays: tripPlan.totalDays
   });
 
   // Show pre-loader if loading
@@ -73,6 +82,14 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
 
   return (
     <div id="trip-results" className="space-y-6 trip-content" data-trip-content="true">
+      {/* Trip Completion Warning - Show prominently at the top */}
+      {completionAnalysis && originalRequestedDays && (
+        <TripCompletionWarning
+          analysis={completionAnalysis}
+          originalRequestedDays={originalRequestedDays}
+        />
+      )}
+
       {/* New Preview Format Results */}
       <TripResultsPreview
         tripPlan={tripPlan}

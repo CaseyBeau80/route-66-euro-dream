@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
 import { TripPlan } from './services/Route66TripPlannerService';
+import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
 
@@ -11,6 +12,8 @@ interface TripCalculatorResultsProps {
   tripPlan?: TripPlan;
   shareUrl?: string | null;
   tripStartDate?: Date;
+  completionAnalysis?: TripCompletionAnalysis;
+  originalRequestedDays?: number;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -102,24 +105,30 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   calculation, 
   tripPlan, 
   shareUrl, 
-  tripStartDate 
+  tripStartDate,
+  completionAnalysis,
+  originalRequestedDays
 }) => {
   console.log('🎯 TripCalculatorResults render:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
     shareUrl,
     tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateType: typeof tripStartDate
+    tripStartDateType: typeof tripStartDate,
+    hasCompletionAnalysis: !!completionAnalysis,
+    originalRequestedDays
   });
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with tripStartDate:', tripStartDate?.toISOString());
+    console.log('✨ Rendering Enhanced Trip Results with completion analysis');
     return (
       <EnhancedTripResults 
         tripPlan={tripPlan} 
         shareUrl={shareUrl} 
         tripStartDate={tripStartDate}
+        completionAnalysis={completionAnalysis}
+        originalRequestedDays={originalRequestedDays}
       />
     );
   }
