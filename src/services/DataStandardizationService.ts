@@ -1,4 +1,3 @@
-
 import { UnitConversionService } from './unitConversion';
 import { UnitPreferences } from '@/types/units';
 
@@ -108,12 +107,16 @@ export class DataStandardizationService {
   }
 
   /**
-   * Standardize a complete segment's data
+   * Standardize a complete segment's data with Google Maps integration
    */
   static standardizeSegmentData(
     segment: any,
     preferences?: UnitPreferences
-  ): StandardizedSegmentData {
+  ): StandardizedSegmentData & {
+    isGoogleMapsData?: boolean;
+    dataAccuracy?: string;
+    enhancedMetadata?: any;
+  } {
     const distance = this.standardizeDistance(
       segment.distance || segment.approximateMiles || 0,
       preferences
@@ -149,10 +152,21 @@ export class DataStandardizationService {
       }
     }
     
+    // Enhanced metadata for Google Maps integration
+    const enhancedMetadata = {
+      isGoogleMapsData: segment.isGoogleMapsData || false,
+      dataAccuracy: segment.dataAccuracy || 'estimated',
+      lastUpdated: segment.lastUpdated || new Date().toISOString(),
+      calculationMethod: segment.isGoogleMapsData ? 'Google Maps API' : 'Haversine Formula'
+    };
+    
     return {
       distance,
       driveTime,
-      temperatures
+      temperatures,
+      isGoogleMapsData: enhancedMetadata.isGoogleMapsData,
+      dataAccuracy: enhancedMetadata.dataAccuracy,
+      enhancedMetadata
     };
   }
 

@@ -6,9 +6,16 @@ import { useUnits } from '@/contexts/UnitContext';
 interface PreviewDayDistanceProps {
   distance: number;
   driveTime: number;
+  isGoogleMapsData?: boolean;
+  dataAccuracy?: string;
 }
 
-const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ distance, driveTime }) => {
+const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ 
+  distance, 
+  driveTime, 
+  isGoogleMapsData = false,
+  dataAccuracy = 'estimated'
+}) => {
   const { preferences } = useUnits();
   
   // Standardize the data
@@ -37,11 +44,28 @@ const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ distance, drive
     );
   };
 
-  console.log('📏 STANDARDIZED: PreviewDayDistance using unified formatting:', {
+  const getAccuracyBadge = () => {
+    if (isGoogleMapsData) {
+      return (
+        <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded mt-1">
+          🗺️ Google Maps
+        </div>
+      );
+    }
+    return (
+      <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded mt-1">
+        📐 Estimated
+      </div>
+    );
+  };
+
+  console.log('📏 ENHANCED: PreviewDayDistance with Google Maps integration:', {
     originalDistance: distance,
     originalDriveTime: driveTime,
     standardizedDistance,
     standardizedDriveTime,
+    isGoogleMapsData,
+    dataAccuracy,
     preferences: preferences.distance
   });
 
@@ -54,6 +78,7 @@ const PreviewDayDistance: React.FC<PreviewDayDistanceProps> = ({ distance, drive
         {standardizedDriveTime.formatted} drive time
       </div>
       {getStatusBadge()}
+      {getAccuracyBadge()}
     </div>
   );
 };
