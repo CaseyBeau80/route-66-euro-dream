@@ -1,5 +1,4 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { TripStyleConfig } from './TripStyleLogic';
 
 export interface DensityLimits {

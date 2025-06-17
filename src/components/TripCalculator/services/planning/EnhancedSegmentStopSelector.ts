@@ -1,5 +1,5 @@
 
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StopCurationConfig, CuratedStopSelection, DEFAULT_CURATION_CONFIG } from './StopCurationConfig';
 import { RouteCandidateFilter } from './RouteCandidateFilter';
