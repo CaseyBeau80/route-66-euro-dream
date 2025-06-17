@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { DriveTimeTarget } from './DriveTimeConstraints';
@@ -7,10 +6,13 @@ import { DistanceBasedDestinationService } from './DistanceBasedDestinationServi
 import { SequenceOrderService } from './SequenceOrderService';
 import { PopulationScoringService } from './PopulationScoringService';
 import { TripStyleLogic } from './TripStyleLogic';
+import { EnhancedDestinationPriorityService } from './EnhancedDestinationPriorityService';
+import { EnhancedTripStyleLogic } from './EnhancedTripStyleLogic';
+import { HeritageScoringService } from './HeritageScoringService';
 
 export class DestinationOptimizationService {
   /**
-   * Enhanced next day destination selection with population-aware sequence-order enforcement
+   * ENHANCED: Heritage-aware destination selection with sequence-order enforcement
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
@@ -18,16 +20,16 @@ export class DestinationOptimizationService {
     availableStops: TripStop[], 
     remainingDays: number,
     driveTimeTarget?: DriveTimeTarget,
-    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
   ): TripStop {
     if (availableStops.length === 0 || remainingDays <= 1) {
       return finalDestination;
     }
 
-    console.log(`🎯 Population-aware destination selection (${tripStyle} style, ${remainingDays} days remaining)`);
+    console.log(`🏛️ HERITAGE-ENHANCED destination selection (${tripStyle} style, ${remainingDays} days remaining)`);
 
-    // Get trip style configuration for population weighting
-    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+    // Get enhanced trip style configuration
+    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedStyleConfig(tripStyle);
 
     // Determine trip direction and filter by sequence
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
@@ -39,17 +41,16 @@ export class DestinationOptimizationService {
 
     console.log(`🧭 ${direction} travel: ${sequenceValidStops.length} sequence-valid stops from ${availableStops.length} total`);
 
-    // Apply population filtering based on trip style
-    const populationFilteredStops = PopulationScoringService.filterByPopulationThreshold(
+    // Apply enhanced heritage and population filtering
+    const qualifiedStops = EnhancedTripStyleLogic.filterStopsWithHeritageAndPopulation(
       sequenceValidStops.length > 0 ? sequenceValidStops : availableStops,
-      tripStyle,
-      styleConfig.enforcementLevel === 'strict'
+      enhancedConfig
     );
 
-    console.log(`📊 Population filter: ${sequenceValidStops.length} → ${populationFilteredStops.length} stops (${tripStyle} style)`);
+    console.log(`🏛️ Heritage + population filter: ${sequenceValidStops.length} → ${qualifiedStops.length} stops (${tripStyle} style)`);
 
-    if (populationFilteredStops.length === 0) {
-      console.warn(`⚠️ No population-valid stops found, using fallback selection`);
+    if (qualifiedStops.length === 0) {
+      console.warn(`⚠️ No qualified heritage stops found, using fallback selection`);
       return this.fallbackDestinationSelection(currentStop, finalDestination, availableStops, driveTimeTarget);
     }
 
@@ -60,36 +61,37 @@ export class DestinationOptimizationService {
     );
     const targetDailyDistance = totalRemainingDistance / remainingDays;
 
-    // Use population-enhanced sequence-aware selection
-    const selectedDestination = this.selectOptimalPopulationAwareDestination(
+    // Use heritage-enhanced sequence-aware selection
+    const selectedDestination = this.selectOptimalHeritageAwareDestination(
       currentStop,
       finalDestination,
-      populationFilteredStops,
+      qualifiedStops,
       targetDailyDistance,
-      styleConfig,
+      enhancedConfig,
       direction
     );
 
     if (selectedDestination) {
-      const popScore = PopulationScoringService.calculatePopulationScore(selectedDestination);
+      const heritageScore = HeritageScoringService.calculateHeritageScore(selectedDestination);
       const selectedOrder = SequenceOrderService.getSequenceOrder(selectedDestination);
       const currentOrder = SequenceOrderService.getSequenceOrder(currentStop);
       
-      console.log(`✅ Population-aware selection: ${selectedDestination.name} (${currentOrder} → ${selectedOrder}, pop: ${popScore.rawPopulation.toLocaleString()}, tier: ${popScore.tier})`);
+      console.log(`✅ Heritage-enhanced selection: ${selectedDestination.name} (${currentOrder} → ${selectedOrder}, heritage: ${heritageScore.heritageScore}/${heritageScore.heritageTier})`);
       return selectedDestination;
     }
 
-    // Fallback to priority-based selection within population-filtered stops
+    // Fallback to enhanced priority-based selection
     if (driveTimeTarget) {
-      const balancedDestination = DestinationPriorityService.selectDestinationWithPriority(
+      const heritageDestination = EnhancedDestinationPriorityService.selectDestinationWithHeritagePriority(
         currentStop,
-        populationFilteredStops,
-        driveTimeTarget
+        qualifiedStops,
+        driveTimeTarget,
+        tripStyle
       );
       
-      if (balancedDestination) {
-        console.log(`✅ Priority-based fallback: ${balancedDestination.name}`);
-        return balancedDestination;
+      if (heritageDestination) {
+        console.log(`✅ Heritage priority fallback: ${heritageDestination.name}`);
+        return heritageDestination;
       }
     }
 
@@ -97,20 +99,20 @@ export class DestinationOptimizationService {
     return DistanceBasedDestinationService.selectDestinationByDistance(
       currentStop, 
       finalDestination, 
-      populationFilteredStops, 
+      qualifiedStops, 
       targetDailyDistance
     );
   }
 
   /**
-   * Select optimal destination with population-aware scoring
+   * ENHANCED: Select optimal destination with heritage-aware scoring
    */
-  private static selectOptimalPopulationAwareDestination(
+  private static selectOptimalHeritageAwareDestination(
     currentStop: TripStop,
     finalDestination: TripStop,
     candidateStops: TripStop[],
     targetDistance: number,
-    styleConfig: any,
+    enhancedConfig: any,
     direction: 'eastbound' | 'westbound'
   ): TripStop | null {
     if (candidateStops.length === 0) return null;
@@ -118,7 +120,7 @@ export class DestinationOptimizationService {
     let bestDestination: TripStop | null = null;
     let bestScore = -1;
 
-    console.log(`🎯 Evaluating ${candidateStops.length} candidates with population weighting (${styleConfig.populationWeight})`);
+    console.log(`🏛️ Evaluating ${candidateStops.length} candidates with heritage prioritization (heritage weight: ${enhancedConfig.heritageWeight})`);
 
     for (const candidate of candidateStops) {
       // Calculate distance score (how close to target)
@@ -130,24 +132,30 @@ export class DestinationOptimizationService {
       const distanceScore = 100 - Math.abs(distanceFromCurrent - targetDistance) / targetDistance * 100;
       const clampedDistanceScore = Math.max(0, Math.min(100, distanceScore));
 
-      // Calculate population-enhanced score
-      const populationEnhancedScore = TripStyleLogic.calculateDestinationScore(
+      // Calculate heritage score
+      const heritageScore = HeritageScoringService.calculateHeritageScore(candidate);
+      
+      // Calculate heritage-enhanced score
+      const heritageEnhancedScore = HeritageScoringService.calculateHeritageEnhancedScore(
         candidate,
-        styleConfig,
-        clampedDistanceScore
+        clampedDistanceScore,
+        enhancedConfig.style
       );
 
       // Bonus for sequence order compliance
       const sequenceBonus = this.calculateSequenceBonus(currentStop, candidate, finalDestination, direction);
 
       // Bonus for destination city category
-      const categoryBonus = candidate.category === 'destination_city' ? 10 : 0;
+      const categoryBonus = candidate.category === 'destination_city' ? 15 : 0;
+
+      // Heritage tier bonus for destination-focused trips
+      const heritageTierBonus = enhancedConfig.style === 'destination-focused' ? 
+        this.getHeritageTierBonus(heritageScore.heritageTier) : 0;
 
       // Final combined score
-      const totalScore = populationEnhancedScore + sequenceBonus + categoryBonus;
+      const totalScore = heritageEnhancedScore + sequenceBonus + categoryBonus + heritageTierBonus;
 
-      const popScore = PopulationScoringService.calculatePopulationScore(candidate);
-      console.log(`   📊 ${candidate.name}: distance=${clampedDistanceScore.toFixed(1)}, population-enhanced=${populationEnhancedScore.toFixed(1)}, sequence=${sequenceBonus}, total=${totalScore.toFixed(1)} (pop: ${popScore.rawPopulation.toLocaleString()}, tier: ${popScore.tier})`);
+      console.log(`   🏛️ ${candidate.name}: distance=${clampedDistanceScore.toFixed(1)}, heritage=${heritageScore.heritageScore}(${heritageScore.heritageTier}), heritage-enhanced=${heritageEnhancedScore.toFixed(1)}, sequence=${sequenceBonus}, total=${totalScore.toFixed(1)}`);
 
       if (totalScore > bestScore) {
         bestScore = totalScore;
@@ -156,6 +164,20 @@ export class DestinationOptimizationService {
     }
 
     return bestDestination;
+  }
+
+  /**
+   * Get heritage tier bonus for destination-focused trips
+   */
+  private static getHeritageTierBonus(tier: string): number {
+    const bonuses = {
+      'iconic': 30,
+      'major': 20,
+      'significant': 15,
+      'notable': 8,
+      'standard': 0
+    };
+    return bonuses[tier as keyof typeof bonuses] || 0;
   }
 
   /**
@@ -220,7 +242,7 @@ export class DestinationOptimizationService {
   }
 
   /**
-   * Select optimal destination for a day with population-aware sequence validation
+   * ENHANCED: Select optimal destination for a day with heritage-aware sequence validation
    */
   static selectOptimalDayDestination(
     currentStop: TripStop,
@@ -228,13 +250,13 @@ export class DestinationOptimizationService {
     availableStops: TripStop[],
     targetDistance: number,
     driveTimeTarget?: DriveTimeTarget,
-    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
-    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedStyleConfig(tripStyle);
 
-    // Apply population and sequence filtering
+    // Apply heritage and sequence filtering
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
     const sequenceValidStops = SequenceOrderService.filterStopsInSequence(
       currentStop,
@@ -242,41 +264,41 @@ export class DestinationOptimizationService {
       direction
     );
 
-    const populationValidStops = PopulationScoringService.filterByPopulationThreshold(
+    const heritageValidStops = EnhancedTripStyleLogic.filterStopsWithHeritageAndPopulation(
       sequenceValidStops.length > 0 ? sequenceValidStops : availableStops,
-      tripStyle,
-      styleConfig.enforcementLevel === 'strict'
+      enhancedConfig
     );
 
-    const candidateStops = populationValidStops.length > 0 ? populationValidStops : availableStops;
+    const candidateStops = heritageValidStops.length > 0 ? heritageValidStops : availableStops;
 
-    // Try population-enhanced sequence-aware selection first
+    // Try heritage-enhanced sequence-aware selection first
     if (candidateStops.length > 0) {
-      const optimalSelection = this.selectOptimalPopulationAwareDestination(
+      const optimalSelection = this.selectOptimalHeritageAwareDestination(
         currentStop,
         finalDestination,
         candidateStops,
         targetDistance,
-        styleConfig,
+        enhancedConfig,
         direction
       );
 
       if (optimalSelection) {
-        console.log(`🎯 Optimal population-aware selection: ${optimalSelection.name}`);
+        console.log(`🏛️ Optimal heritage-aware selection: ${optimalSelection.name}`);
         return optimalSelection;
       }
     }
 
-    // Fallback to drive time balanced selection
+    // Fallback to enhanced heritage priority selection
     if (driveTimeTarget) {
-      const balancedDestination = DestinationPriorityService.selectDestinationWithPriority(
+      const heritageDestination = EnhancedDestinationPriorityService.selectDestinationWithHeritagePriority(
         currentStop,
         candidateStops,
-        driveTimeTarget
+        driveTimeTarget,
+        tripStyle
       );
       
-      if (balancedDestination) {
-        return balancedDestination;
+      if (heritageDestination) {
+        return heritageDestination;
       }
     }
 
