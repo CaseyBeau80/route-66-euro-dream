@@ -1,6 +1,5 @@
-
 import { TripPlan, DailySegment } from './TripPlanTypes';
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { EnhancedDestinationSelectorV2 } from './EnhancedDestinationSelectorV2';
 import { TripSegmentBuilderV2 } from './TripSegmentBuilderV2';

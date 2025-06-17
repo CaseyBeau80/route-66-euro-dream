@@ -1,5 +1,5 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripStop } from '../../types/TripStop';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { CityNameNormalizationService } from '../CityNameNormalizationService';
 

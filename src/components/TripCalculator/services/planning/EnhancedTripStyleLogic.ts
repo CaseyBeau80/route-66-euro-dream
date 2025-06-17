@@ -1,5 +1,5 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripPlan } from './TripPlanTypes';
+import { TripStop } from '../../types/TripStop';
 import { TripStyleLogic, TripStyleConfig } from './TripStyleLogic';
 import { HeritageScoringService } from './HeritageScoringService';
 import { PopulationScoringService } from './PopulationScoringService';

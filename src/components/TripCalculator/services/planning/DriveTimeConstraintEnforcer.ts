@@ -1,5 +1,4 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 

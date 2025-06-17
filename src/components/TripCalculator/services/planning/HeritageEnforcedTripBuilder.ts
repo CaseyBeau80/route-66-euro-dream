@@ -1,6 +1,5 @@
-
-import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './TripPlanTypes';
+import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripStop } from '../../types/TripStop';
 import { HeritageScoringService } from './HeritageScoringService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';

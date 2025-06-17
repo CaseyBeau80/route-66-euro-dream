@@ -1,4 +1,4 @@
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationPriorityService } from './DestinationPriorityService';
 import { HeritageScoringService } from './HeritageScoringService';

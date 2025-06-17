@@ -1,4 +1,4 @@
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DailySegment, RouteProgression } from './TripPlanTypes';
 import { SequenceOrderService } from './SequenceOrderService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';

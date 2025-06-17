@@ -1,5 +1,4 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { TripStyleConfig } from './TripStyleLogic';
 import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';

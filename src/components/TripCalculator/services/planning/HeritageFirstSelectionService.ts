@@ -1,5 +1,5 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeConstraints';
 import { HeritageScoringService } from './HeritageScoringService';
 import { PopulationScoringService } from './PopulationScoringService';

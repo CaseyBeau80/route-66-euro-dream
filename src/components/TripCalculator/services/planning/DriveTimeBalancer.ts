@@ -1,7 +1,6 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { DriveTimeTarget, DriveTimeConstraints } from './DriveTimeConstraints';
 
 export interface DriveTimeDistribution {
   dailyTargets: DriveTimeTarget[];

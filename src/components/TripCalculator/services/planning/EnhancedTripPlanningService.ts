@@ -1,4 +1,4 @@
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory } from './TripPlanTypes';
 import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';
 import { DriveTimeConstraintEnforcer, DriveTimeConstraint } from './DriveTimeConstraintEnforcer';

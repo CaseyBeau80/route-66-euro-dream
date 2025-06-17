@@ -1,7 +1,6 @@
-
-import { TripPlan } from './TripPlanBuilder';
-import { TripStop } from '../data/SupabaseDataService';
-import { HeritageScoringService } from './HeritageScoringService';
+import { TripPlan, DailySegment } from './TripPlanTypes';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { TripStop } from '../../types/TripStop';
 
 export interface HeritageValidationResult {
   isValid: boolean;

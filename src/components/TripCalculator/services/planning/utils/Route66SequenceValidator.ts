@@ -1,5 +1,5 @@
-
-import { TripStop } from '../../types/TripStop';
+import { DailySegment } from '../TripPlanTypes';
+import { TripStop } from '../../../types/TripStop';
 
 export interface SequenceValidationResult {
   isValid: boolean;
