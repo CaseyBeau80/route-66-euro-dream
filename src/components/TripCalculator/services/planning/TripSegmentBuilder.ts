@@ -1,3 +1,4 @@
+
 import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -149,6 +150,7 @@ export class TripSegmentBuilder {
         id: `intermediate-${i}`,
         name: `Day ${i} Stop`,
         city_name: `Day ${i} Destination`,
+        city: `Day ${i} Destination`, // FIX: Add required city property
         state: startStop.state, // Use start state initially
         latitude: lat,
         longitude: lng,
