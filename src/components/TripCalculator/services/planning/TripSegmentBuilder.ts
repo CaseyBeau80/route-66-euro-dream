@@ -20,14 +20,14 @@ export class TripSegmentBuilder {
     tripDays: number,
     styleConfig: TripStyleConfig
   ): DailySegment[] {
-    console.log(`🏗️ Building segments with drive-time enforcement: ${tripDays} days, ${styleConfig.style} style`);
-    console.log(`🏗️ Destination cities provided: ${destinationCities.length}`, destinationCities.map(c => c.name));
+    console.log(`🏗️ CRITICAL FIX: Building segments with drive-time enforcement: ${tripDays} days, ${styleConfig.style} style`);
+    console.log(`🏗️ CRITICAL FIX: Destination cities provided: ${destinationCities.length}`, destinationCities.map(c => c.name));
     
-    // CRITICAL FIX: Ensure we have the right number of stops for the trip days
-    // For a 14-day trip, we need 13 intermediate destinations (startStop -> 13 destinations -> endStop)
+    // CRITICAL FIX: For N days, we need N-1 intermediate stops
+    // This creates N daily segments: Day 1 -> Day 2 -> ... -> Day N
     const neededIntermediateStops = tripDays - 1;
     
-    console.log(`🏗️ CRITICAL: Need ${neededIntermediateStops} intermediate stops for ${tripDays} days`);
+    console.log(`🏗️ CRITICAL FIX: For ${tripDays} days, need exactly ${neededIntermediateStops} intermediate stops`);
     
     // If we don't have enough destination cities, we need to space them out properly
     let selectedDestinations: TripStop[];
@@ -50,27 +50,55 @@ export class TripSegmentBuilder {
       );
     }
     
-    console.log(`🏗️ FINAL SELECTED DESTINATIONS: ${selectedDestinations.length}`, selectedDestinations.map(c => c.name));
+    console.log(`🏗️ CRITICAL FIX: FINAL SELECTED DESTINATIONS: ${selectedDestinations.length}`, selectedDestinations.map(c => c.name));
     
-    // Create the complete trip stops array
+    // Create the complete trip stops array: start + intermediates + end
     const allTripStops = [startStop, ...selectedDestinations, endStop];
     
-    console.log(`🏗️ ALL TRIP STOPS (${allTripStops.length}):`, allTripStops.map(s => s.name));
+    console.log(`🏗️ CRITICAL FIX: ALL TRIP STOPS (${allTripStops.length}):`, allTripStops.map(s => s.name));
+    console.log(`🏗️ CRITICAL FIX: Expected ${tripDays + 1} total stops for ${tripDays} days`);
     
-    // Validate we have the right number of stops
+    // CRITICAL VALIDATION: Ensure we have exactly the right number of stops
     if (allTripStops.length !== tripDays + 1) {
-      console.error(`❌ MISMATCH: Expected ${tripDays + 1} stops, got ${allTripStops.length}`);
+      console.error(`❌ CRITICAL ERROR: Expected ${tripDays + 1} stops for ${tripDays} days, got ${allTripStops.length}`);
+      
+      // Emergency fix: adjust to correct number
+      if (allTripStops.length < tripDays + 1) {
+        // Add intermediate points if we're short
+        const missingStops = (tripDays + 1) - allTripStops.length;
+        const additionalIntermediates = this.createIntermediatePoints(
+          startStop,
+          endStop,
+          missingStops
+        );
+        allTripStops.splice(-1, 0, ...additionalIntermediates);
+      } else {
+        // Remove excess intermediate stops if we have too many
+        const excessStops = allTripStops.length - (tripDays + 1);
+        allTripStops.splice(1, excessStops);
+      }
+      
+      console.log(`🔧 EMERGENCY FIX: Adjusted to ${allTripStops.length} stops`);
     }
     
-    // Create segments for each day
+    // Create exactly tripDays segments
     const segments: DailySegment[] = [];
     
     for (let day = 1; day <= tripDays; day++) {
-      const currentStop = allTripStops[day - 1];
-      const nextStop = allTripStops[day];
+      const currentStopIndex = day - 1;
+      const nextStopIndex = day;
+      
+      const currentStop = allTripStops[currentStopIndex];
+      const nextStop = allTripStops[nextStopIndex];
       
       if (!currentStop || !nextStop) {
-        console.error(`❌ Missing stop for day ${day}: current=${currentStop?.name}, next=${nextStop?.name}`);
+        console.error(`❌ CRITICAL ERROR: Missing stop for day ${day}:`, { 
+          currentStop: currentStop?.name, 
+          nextStop: nextStop?.name,
+          currentStopIndex,
+          nextStopIndex,
+          totalStops: allTripStops.length
+        });
         continue;
       }
       
@@ -83,11 +111,18 @@ export class TripSegmentBuilder {
       
       if (segment) {
         segments.push(segment);
-        console.log(`✅ Created segment for Day ${day}: ${currentStop.name} → ${nextStop.name}`);
+        console.log(`✅ CRITICAL FIX: Created segment for Day ${day}: ${currentStop.name} → ${nextStop.name}`);
       }
     }
     
-    console.log(`🏗️ FINAL SEGMENTS COUNT: ${segments.length} (expected: ${tripDays})`);
+    console.log(`🏗️ CRITICAL FIX: FINAL SEGMENTS COUNT: ${segments.length} (MUST equal ${tripDays})`);
+    
+    // FINAL VALIDATION: Ensure we have exactly tripDays segments
+    if (segments.length !== tripDays) {
+      console.error(`❌ FINAL VALIDATION FAILED: Expected ${tripDays} segments, got ${segments.length}`);
+    } else {
+      console.log(`✅ FINAL VALIDATION PASSED: Created exactly ${tripDays} segments for ${tripDays} days`);
+    }
     
     return segments;
   }
@@ -150,8 +185,8 @@ export class TripSegmentBuilder {
         id: `intermediate-${i}`,
         name: `Day ${i} Stop`,
         city_name: `Day ${i} Destination`,
-        city: `Day ${i} Destination`, // FIX: Add required city property
-        state: startStop.state, // Use start state initially
+        city: `Day ${i} Destination`,
+        state: startStop.state,
         latitude: lat,
         longitude: lng,
         category: 'destination',
@@ -190,7 +225,7 @@ export class TripSegmentBuilder {
     // Only include destination cities as recommended stops with stopId
     const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
     const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
-      stopId: stop.id, // Add required stopId
+      stopId: stop.id,
       id: stop.id,
       name: stop.name,
       description: stop.description,
@@ -222,7 +257,7 @@ export class TripSegmentBuilder {
         city: stop.city
       })),
       driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
-      routeSection: TripPlanUtils.getRouteSection(day, 14) // Use total days for route section
+      routeSection: TripPlanUtils.getRouteSection(day, 14)
     };
     
     // Add drive-time validation warning if needed
@@ -263,7 +298,7 @@ export class TripSegmentBuilder {
       // Only include destination cities as recommended stops with stopId
       const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
       const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
-        stopId: stop.id, // Add required stopId
+        stopId: stop.id,
         id: stop.id,
         name: stop.name,
         description: stop.description,
