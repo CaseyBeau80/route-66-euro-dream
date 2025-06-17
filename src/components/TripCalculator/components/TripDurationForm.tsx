@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, CheckCircle, Clock } from 'lucide-react';
@@ -19,6 +19,19 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   const MAX_DAYS = 14;
   const MIN_DAYS = 2;
 
+  // Local input value state to control exactly what appears in the input
+  const [inputValue, setInputValue] = useState(
+    formData.travelDays > 0 ? formData.travelDays.toString() : ''
+  );
+
+  // Sync input value when formData changes from external sources
+  useEffect(() => {
+    const newValue = formData.travelDays > 0 ? formData.travelDays.toString() : '';
+    if (inputValue !== newValue) {
+      setInputValue(newValue);
+    }
+  }, [formData.travelDays]);
+
   const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
@@ -26,6 +39,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     
     // Allow empty input for better UX while typing
     if (value === '') {
+      setInputValue('');
       setFormData({ ...formData, travelDays: 0 });
       return;
     }
@@ -35,17 +49,19 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     // Block invalid numbers completely
     if (isNaN(days) || days < 0) {
       console.log('🚫 Invalid number blocked:', days);
-      return;
+      return; // Don't update input value
     }
     
     // CRITICAL FIX: Hard clamp at MAX_DAYS - never allow higher values
     const clampedDays = Math.min(days, MAX_DAYS);
+    const clampedValue = clampedDays.toString();
     
     if (days > MAX_DAYS) {
       console.log(`🚫 HARD CLAMP: ${days} days clamped to maximum of ${MAX_DAYS} days`);
     }
     
-    // Always update with the clamped value
+    // Update both input value and form data with clamped value
+    setInputValue(clampedValue);
     setFormData({ ...formData, travelDays: clampedDays });
     console.log(`✅ Updated travel days to ${clampedDays}`);
   };
@@ -106,7 +122,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           type="number"
           min={MIN_DAYS}
           max={MAX_DAYS}
-          value={formData.travelDays > 0 ? formData.travelDays : ''}
+          value={inputValue}
           onChange={handleDaysChange}
           onKeyPress={handleKeyPress}
           onPaste={handlePaste}
