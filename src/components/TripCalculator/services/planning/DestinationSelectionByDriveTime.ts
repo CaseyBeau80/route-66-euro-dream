@@ -1,5 +1,5 @@
 
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationScoring } from './DestinationScoring';
 import { GeographicProgression } from './GeographicProgression';
