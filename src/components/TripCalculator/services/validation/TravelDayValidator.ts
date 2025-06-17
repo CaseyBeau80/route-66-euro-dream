@@ -12,7 +12,7 @@ export interface DayValidationResult {
 }
 
 export class TravelDayValidator {
-  private static readonly ABSOLUTE_MIN_DAYS = 2;
+  private static readonly ABSOLUTE_MIN_DAYS = 1; // FIXED: Changed from 2 to 1
   private static readonly ABSOLUTE_MAX_DAYS = 14; // Hard limit enforced
   private static readonly MAX_DAILY_DRIVE_HOURS = 10; // Safety limit
   
@@ -30,7 +30,7 @@ export class TravelDayValidator {
     
     // CRITICAL: Hard enforcement of absolute bounds
     if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
-      issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} days required for any Route 66 trip`);
+      issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} day required for any Route 66 trip`);
     }
     
     if (requestedDays > this.ABSOLUTE_MAX_DAYS) {

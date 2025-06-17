@@ -13,7 +13,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   isFormValid
 }) => {
   const MAX_DAYS = 14;
-  const MIN_DAYS = 2;
+  const MIN_DAYS = 1; // FIXED: Changed from 2 to 1
   
   // Check for critical blocking errors
   const isOverLimit = formData.travelDays > MAX_DAYS;
@@ -45,7 +45,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     {
       id: 'travel-days',
       label: `Trip duration set (${MIN_DAYS}-${MAX_DAYS} days)`,
-      // FIXED: Updated validation to treat 0 as invalid
+      // FIXED: Updated validation to allow 1-14 range
       isValid: formData.travelDays > 0 && formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS,
       value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not selected',
       isBlocking: hasBlockingError
@@ -82,8 +82,8 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
             {isUnderLimit && (
               <div className="text-red-700 space-y-1">
                 <p className="font-semibold">Trip duration below minimum requirement</p>
-                <p>You entered <strong>{formData.travelDays} days</strong>, but Route 66 trips require at least <strong>{MIN_DAYS} days</strong>.</p>
-                <p className="text-sm">Please increase your trip duration to at least {MIN_DAYS} days.</p>
+                <p>You entered <strong>{formData.travelDays} days</strong>, but you must select at least <strong>{MIN_DAYS} day</strong>.</p>
+                <p className="text-sm">Please select at least {MIN_DAYS} day for your trip.</p>
               </div>
             )}
           </div>

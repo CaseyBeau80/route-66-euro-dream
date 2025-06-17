@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Calendar, Users } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TripDetailsSectionProps {
   tripStartDate?: Date;
@@ -15,6 +16,25 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
   onStartDateChange,
   onTravelDaysChange
 }) => {
+  const MIN_DAYS = 1;
+  const MAX_DAYS = 14;
+  
+  // Generate array of day options from 1 to 14
+  const dayOptions = Array.from({ length: MAX_DAYS - MIN_DAYS + 1 }, (_, i) => MIN_DAYS + i);
+
+  const handleDaysChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    console.log('📅 FIXED: Travel days dropdown selection:', { value, numValue, range: `${MIN_DAYS}-${MAX_DAYS}` });
+    
+    // Only allow values within the 1-14 range
+    if (!isNaN(numValue) && numValue >= MIN_DAYS && numValue <= MAX_DAYS) {
+      onTravelDaysChange(numValue);
+      console.log(`✅ FIXED: Successfully set travel days to: ${numValue}`);
+    } else {
+      console.log(`❌ FIXED: Invalid value rejected: ${numValue} (must be between ${MIN_DAYS}-${MAX_DAYS})`);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -34,17 +54,27 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
       <div className="space-y-2">
         <label className="block text-sm font-medium text-route66-text-primary">
           <Users className="inline w-4 h-4 mr-1" />
-          Travel Days
+          Travel Days ({MIN_DAYS}-{MAX_DAYS} days)
         </label>
-        <input
-          type="number"
-          value={travelDays || ''} // FIXED: Show empty when travelDays is 0
-          onChange={(e) => onTravelDaysChange(parseInt(e.target.value) || 0)}
-          min="2"
-          max="14"
-          placeholder="Select 2-14 days"
-          className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent"
-        />
+        <Select
+          value={travelDays > 0 ? travelDays.toString() : ""}
+          onValueChange={handleDaysChange}
+        >
+          <SelectTrigger className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent bg-white">
+            <SelectValue placeholder={`Select ${MIN_DAYS}-${MAX_DAYS} days`} />
+          </SelectTrigger>
+          <SelectContent className="bg-white border border-gray-200 shadow-lg z-[9999] max-h-60 overflow-y-auto">
+            {dayOptions.map((days) => (
+              <SelectItem 
+                key={days} 
+                value={days.toString()}
+                className="hover:bg-gray-50 cursor-pointer px-3 py-2"
+              >
+                {days} {days === 1 ? 'day' : 'days'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

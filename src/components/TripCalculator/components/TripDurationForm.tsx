@@ -17,16 +17,16 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   setFormData
 }) => {
   const MAX_DAYS = 14;
-  const MIN_DAYS = 2;
+  const MIN_DAYS = 1; // FIXED: Changed from 2 to 1
 
-  // Generate array of day options from 2 to 14
+  // Generate array of day options from 1 to 14
   const dayOptions = Array.from({ length: MAX_DAYS - MIN_DAYS + 1 }, (_, i) => MIN_DAYS + i);
 
   const handleDaysChange = (value: string) => {
     const numValue = parseInt(value, 10);
     console.log('📅 FIXED: Dropdown selection changed:', { value, numValue, maxDays: MAX_DAYS });
     
-    // STRICT validation - only allow values within the 2-14 range
+    // STRICT validation - only allow values within the 1-14 range
     if (!isNaN(numValue) && numValue >= MIN_DAYS && numValue <= MAX_DAYS) {
       setFormData({ ...formData, travelDays: numValue });
       console.log(`✅ FIXED: Successfully set travel days to: ${numValue} (within ${MIN_DAYS}-${MAX_DAYS} range)`);
@@ -121,7 +121,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       {/* Validation Feedback */}
       {hasRouteInfo && validation && isWithinBounds && (
         <div className="space-y-2">
-          {/* Show minimum days info */}
+          {/* Show minimum days info - updated for 1-day minimum */}
           <div className="text-xs text-blue-600 flex items-center gap-1">
             <Clock className="h-3 w-3" />
             <span>
@@ -154,7 +154,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         </div>
       )}
       
-      {/* Enhanced description with destination-focused context */}
+      {/* Enhanced description with updated range */}
       <div className="text-xs text-route66-text-secondary space-y-1">
         <p>How many days do you want to spend on your Route 66 adventure? Choose between {MIN_DAYS} and {MAX_DAYS} days for optimal trip planning.</p>
         {formData.tripStyle === 'destination-focused' && (
