@@ -116,12 +116,35 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     console.log(`✅ CHANGE EVENT: Updated travel days to ${days}`);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow control keys
+    const allowedKeys = [
+      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter',
+      'Home', 'End', 'Escape'
+    ];
+    
+    // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    if (e.ctrlKey || e.metaKey) {
+      return;
+    }
+    
     // Block non-numeric characters completely
-    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
     if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
       e.preventDefault();
-      console.log('🚫 KEY PRESS BLOCKED:', e.key);
+      console.log('🚫 KEY DOWN BLOCKED:', e.key);
+      return;
+    }
+    
+    // Special check: if user tries to type when input would exceed MAX_DAYS
+    const currentValue = (e.target as HTMLInputElement).value;
+    const newValue = currentValue + e.key;
+    
+    if (/^\d$/.test(e.key) && newValue.length > 0) {
+      const potentialNumber = parseInt(newValue, 10);
+      if (potentialNumber > MAX_DAYS) {
+        e.preventDefault();
+        console.log(`🚫 KEY DOWN BLOCK: Would create ${potentialNumber}, blocked`);
+      }
     }
   };
 
@@ -140,6 +163,12 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS || pastedNumber < 0) {
       e.preventDefault();
       console.log('🚫 PASTE BLOCKED: Invalid or over limit:', pastedText);
+      
+      // If it's a valid number but over limit, set to max
+      if (!isNaN(pastedNumber) && pastedNumber > MAX_DAYS) {
+        setInputValue(MAX_DAYS.toString());
+        setFormData({ ...formData, travelDays: MAX_DAYS });
+      }
     }
   };
 
@@ -198,7 +227,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           value={inputValue}
           onInput={handleInput}
           onChange={handleDaysChange}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           onWheel={handleWheel}
           onBlur={handleBlur}
@@ -206,6 +235,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           className={`w-full ${
             isInvalidValue ? 'border-red-500 focus:border-red-500 bg-red-50' : ''
           }`}
+          maxLength={2}
         />
         
         {/* Validation Icon */}
