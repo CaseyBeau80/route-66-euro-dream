@@ -31,7 +31,6 @@ export class SupabaseDataService {
     }));
   }
   
-  
   static async fetchStopsByCategory(category: string): Promise<UnifiedTripStop[]> {
     // Only return destination cities regardless of requested category
     if (category === 'destination_city') {
@@ -313,8 +312,7 @@ export class SupabaseDataService {
   }
 }
 
-// Mock data with enhanced Route 66 destination cities - REMOVED VICTORVILLE as it's a waypoint, not a destination city
-// Added sequence_order based on Route 66 progression from east to west
+// Enhanced mock data with all major Route 66 cities including missing ones like Joliet
 const mockDestinationCitiesData = [
   {
     id: 'chicago-il',
@@ -330,6 +328,45 @@ const mockDestinationCitiesData = [
     sequence_order: 1
   },
   {
+    id: 'joliet-il',
+    name: 'Joliet, IL',
+    city_name: 'Joliet',
+    state: 'Illinois',
+    description: 'Historic Route 66 city southwest of Chicago, known for its limestone heritage.',
+    latitude: 41.5250,
+    longitude: -88.0817,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 2
+  },
+  {
+    id: 'pontiac-il',
+    name: 'Pontiac, IL',
+    city_name: 'Pontiac',
+    state: 'Illinois',
+    description: 'Home to the Route 66 Hall of Fame and Museum.',
+    latitude: 40.8808,
+    longitude: -88.6298,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 3
+  },
+  {
+    id: 'bloomington-il',
+    name: 'Bloomington, IL',
+    city_name: 'Bloomington',
+    state: 'Illinois',
+    description: 'Twin city with Normal, featuring historic Route 66 attractions.',
+    latitude: 40.4842,
+    longitude: -88.9937,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 4
+  },
+  {
     id: 'springfield-il',
     name: 'Springfield, IL',
     city_name: 'Springfield',
@@ -340,7 +377,20 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 2
+    sequence_order: 5
+  },
+  {
+    id: 'litchfield-il',
+    name: 'Litchfield, IL',
+    city_name: 'Litchfield',
+    state: 'Illinois',
+    description: 'Historic Route 66 town with classic roadside attractions.',
+    latitude: 39.1753,
+    longitude: -89.6542,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 6
   },
   {
     id: 'st-louis-mo',
@@ -353,7 +403,46 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 3
+    sequence_order: 7
+  },
+  {
+    id: 'rolla-mo',
+    name: 'Rolla, MO',
+    city_name: 'Rolla',
+    state: 'Missouri',
+    description: 'Home to Missouri University of Science and Technology and Route 66 heritage.',
+    latitude: 37.9514,
+    longitude: -91.7732,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 8
+  },
+  {
+    id: 'lebanon-mo',
+    name: 'Lebanon, MO',
+    city_name: 'Lebanon',
+    state: 'Missouri',
+    description: 'Known as the Route 66 Birthplace and classic American town.',
+    latitude: 37.6806,
+    longitude: -92.6635,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 9
+  },
+  {
+    id: 'springfield-mo',
+    name: 'Springfield, MO',
+    city_name: 'Springfield',
+    state: 'Missouri',
+    description: 'Birthplace of Route 66 with excellent museums and attractions.',
+    latitude: 37.2153,
+    longitude: -93.2982,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 10
   },
   {
     id: 'joplin-mo',
@@ -366,7 +455,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 4
+    sequence_order: 11
   },
   {
     id: 'tulsa-ok',
@@ -379,7 +468,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 5
+    sequence_order: 12
   },
   {
     id: 'oklahoma-city-ok',
@@ -392,7 +481,20 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 6
+    sequence_order: 13
+  },
+  {
+    id: 'elk-city-ok',
+    name: 'Elk City, OK',
+    city_name: 'Elk City',
+    state: 'Oklahoma',
+    description: 'Historic Route 66 town with the National Route 66 & Transportation Museum.',
+    latitude: 35.4112,
+    longitude: -99.4043,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 14
   },
   {
     id: 'shamrock-tx',
@@ -405,7 +507,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 7
+    sequence_order: 15
   },
   {
     id: 'amarillo-tx',
@@ -418,7 +520,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 8
+    sequence_order: 16
   },
   {
     id: 'tucumcari-nm',
@@ -431,7 +533,20 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 9
+    sequence_order: 17
+  },
+  {
+    id: 'santa-rosa-nm',
+    name: 'Santa Rosa, NM',
+    city_name: 'Santa Rosa',
+    state: 'New Mexico',
+    description: 'The City of Natural Lakes along historic Route 66.',
+    latitude: 34.9398,
+    longitude: -104.6825,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 18
   },
   {
     id: 'santa-fe-nm',
@@ -444,7 +559,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 10
+    sequence_order: 19
   },
   {
     id: 'albuquerque-nm',
@@ -457,7 +572,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 11
+    sequence_order: 20
   },
   {
     id: 'gallup-nm',
@@ -470,7 +585,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 12
+    sequence_order: 21
   },
   {
     id: 'holbrook-az',
@@ -483,7 +598,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 13
+    sequence_order: 22
   },
   {
     id: 'winslow-az',
@@ -496,7 +611,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 14
+    sequence_order: 23
   },
   {
     id: 'flagstaff-az',
@@ -509,7 +624,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 15
+    sequence_order: 24
   },
   {
     id: 'williams-az',
@@ -522,7 +637,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 16
+    sequence_order: 25
   },
   {
     id: 'seligman-az',
@@ -535,7 +650,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 17
+    sequence_order: 26
   },
   {
     id: 'kingman-az',
@@ -548,7 +663,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 18
+    sequence_order: 27
   },
   {
     id: 'needles-ca',
@@ -561,7 +676,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 19
+    sequence_order: 28
   },
   {
     id: 'barstow-ca',
@@ -574,7 +689,20 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 20
+    sequence_order: 29
+  },
+  {
+    id: 'victorville-ca',
+    name: 'Victorville, CA',
+    city_name: 'Victorville',
+    state: 'California',
+    description: 'High Desert city along the historic Route 66 corridor.',
+    latitude: 34.5362,
+    longitude: -117.2911,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 30
   },
   {
     id: 'san-bernardino-ca',
@@ -587,7 +715,20 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 21
+    sequence_order: 31
+  },
+  {
+    id: 'pasadena-ca',
+    name: 'Pasadena, CA',
+    city_name: 'Pasadena',
+    state: 'California',
+    description: 'City of Roses and historic Route 66 destination near Los Angeles.',
+    latitude: 34.1478,
+    longitude: -118.1445,
+    is_major_stop: true,
+    is_official_destination: true,
+    image_url: undefined,
+    sequence_order: 32
   },
   {
     id: 'los-angeles-ca',
@@ -600,7 +741,7 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 22
+    sequence_order: 33
   },
   {
     id: 'santa-monica-ca',
@@ -613,6 +754,6 @@ const mockDestinationCitiesData = [
     is_major_stop: true,
     is_official_destination: true,
     image_url: undefined,
-    sequence_order: 23
+    sequence_order: 34
   }
 ];
