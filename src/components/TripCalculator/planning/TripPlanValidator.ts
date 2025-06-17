@@ -248,7 +248,7 @@ export class TripPlanValidator {
     const cityGroups = new Map<string, TripStop[]>();
     allStops.forEach(stop => {
       const cityName = stop.name || stop.city_name || stop.city || 'Unknown';
-      const normalizedName = CityNameNormalizationService.normalizeSearchTerm(cityName);
+      const normalizedName = cityName.toLowerCase().trim(); // Simplified normalization
       if (!cityGroups.has(normalizedName)) {
         cityGroups.set(normalizedName, []);
       }
