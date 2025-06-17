@@ -11,7 +11,7 @@ export interface EnhancedTripStyleConfig extends TripStyleConfig {
   enforceHeritageSequence: boolean;
   populationWeight: number;
   populationThreshold: number;
-  enforcementLevel: 'strict' | 'moderate' | 'relaxed';
+  enforcementLevel: 'strict' | 'moderate' | 'flexible';
 }
 
 export class EnhancedTripStyleLogic extends TripStyleLogic {
