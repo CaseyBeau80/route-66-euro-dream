@@ -4,6 +4,23 @@ import { TripStop as UnifiedTripStop } from "../../types/TripStop";
 // Re-export the TripStop type from the unified interface
 export type { UnifiedTripStop as TripStop };
 
+export interface TripStop {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  city_name: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  image_url?: string;
+  is_major_stop?: boolean;
+  is_official_destination?: boolean;
+  sequence_order?: number;
+  city: string;
+  population?: number; // NEW: Population data
+}
+
 export class SupabaseDataService {
   /**
    * Fetch only destination cities from database or mock data
@@ -63,6 +80,255 @@ export class SupabaseDataService {
   static async fetchOfficialDestinations(): Promise<UnifiedTripStop[]> {
     const allStops = await this.fetchAllStops();
     return allStops.filter(stop => stop.is_official_destination === true);
+  }
+
+  /**
+   * Fetch destination cities with population data
+   */
+  static async fetchDestinationCitiesWithPopulation(): Promise<TripStop[]> {
+    try {
+      console.log('🏙️ Fetching destination cities with population data...');
+      
+      const { data, error } = await supabase
+        .from('destination_cities')
+        .select(`
+          id,
+          name,
+          description,
+          category,
+          city_name,
+          state,
+          latitude,
+          longitude,
+          image_url,
+          is_major_stop,
+          is_official_destination,
+          sequence_order,
+          population
+        `)
+        .order('sequence_order', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching destination cities with population:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No destination cities found with population data');
+        return [];
+      }
+
+      // Convert and validate data with population fallbacks
+      const processedStops = data.map(stop => ({
+        ...stop,
+        city: stop.city_name || stop.name || 'Unknown',
+        population: this.validatePopulation(stop.population, stop.name)
+      })) as TripStop[];
+
+      console.log(`✅ Fetched ${processedStops.length} destination cities with population data`);
+      
+      // Log population statistics
+      this.logPopulationStatistics(processedStops);
+      
+      return processedStops;
+    } catch (error) {
+      console.error('❌ Failed to fetch destination cities with population:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch all stops with population data where available
+   */
+  static async fetchAllStopsWithPopulation(): Promise<TripStop[]> {
+    try {
+      console.log('📍 Fetching all stops with population data...');
+      
+      // Fetch destination cities with population
+      const destinationCities = await this.fetchDestinationCitiesWithPopulation();
+      
+      // Fetch other stops (they may not have population data)
+      const { data: otherStops, error } = await supabase
+        .from('route66_waypoints')
+        .select(`
+          id,
+          name,
+          description,
+          category,
+          city_name,
+          state,
+          latitude,
+          longitude,
+          image_url,
+          is_major_stop,
+          sequence_order
+        `)
+        .order('sequence_order', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching other stops:', error);
+        // Continue with just destination cities
+        return destinationCities;
+      }
+
+      // Convert other stops (without population data)
+      const processedOtherStops = (otherStops || []).map(stop => ({
+        ...stop,
+        city: stop.city_name || stop.name || 'Unknown',
+        is_official_destination: false,
+        population: undefined // No population data for waypoints
+      })) as TripStop[];
+
+      const allStops = [...destinationCities, ...processedOtherStops];
+      
+      console.log(`✅ Fetched ${allStops.length} total stops (${destinationCities.length} with population data)`);
+      
+      return allStops;
+    } catch (error) {
+      console.error('❌ Failed to fetch all stops with population:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Validate and provide fallback population values
+   */
+  private static validatePopulation(population: number | null | undefined, cityName: string): number | undefined {
+    if (population && population > 0) {
+      return population;
+    }
+    
+    // Provide fallback estimates for known Route 66 cities
+    const fallbackPopulations = this.getFallbackPopulations();
+    const normalizedName = cityName.toLowerCase().replace(/[^a-z]/g, '');
+    
+    for (const [key, value] of Object.entries(fallbackPopulations)) {
+      if (normalizedName.includes(key.toLowerCase().replace(/[^a-z]/g, ''))) {
+        console.log(`📊 Using fallback population for ${cityName}: ${value.toLocaleString()}`);
+        return value;
+      }
+    }
+    
+    return undefined; // No population data available
+  }
+
+  /**
+   * Get fallback population estimates for major Route 66 cities
+   */
+  private static getFallbackPopulations(): Record<string, number> {
+    return {
+      'Chicago': 2700000,
+      'Los Angeles': 4000000,
+      'Santa Monica': 93000,
+      'St. Louis': 300000,
+      'Oklahoma City': 700000,
+      'Tulsa': 415000,
+      'Amarillo': 200000,
+      'Albuquerque': 560000,
+      'Flagstaff': 76000,
+      'Las Vegas': 650000,
+      'Barstow': 25000,
+      'Needles': 5000,
+      'Kingman': 31000,
+      'Winslow': 9000,
+      'Gallup': 22000,
+      'Tucumcari': 5000,
+      'Santa Fe': 85000,
+      'Clinton': 9000,
+      'Elk City': 12000,
+      'Weatherford': 12000,
+      'El Reno': 19000,
+      'Yukon': 23000,
+      'Bethany': 20000,
+      'Joplin': 51000,
+      'Springfield': 170000,
+      'Lebanon': 14000,
+      'Rolla': 20000,
+      'Cuba': 3400,
+      'Sullivan': 7000,
+      'Eureka': 10000,
+      'Times Beach': 0, // Abandoned
+      'Fenton': 4000,
+      'Kirkwood': 28000,
+      'Webster Groves': 23000,
+      'Shrewsbury': 6000,
+      'Maplewood': 8000,
+      'Richmond Heights': 9000,
+      'Clayton': 16000,
+      'University City': 35000,
+      'Olivette': 8000,
+      'Creve Coeur': 18000,
+      'Maryland Heights': 27000,
+      'Bridgeton': 11000,
+      'Hazelwood': 25000,
+      'Florissant': 52000,
+      'Ferguson': 21000,
+      'Berkeley': 9000,
+      'Kinloch': 300,
+      'Edmundson': 800,
+      'Woodson Terrace': 4000,
+      'Bel-Ridge': 3000,
+      'Pagedale': 3000,
+      'Wellston': 2000,
+      'Pine Lawn': 3000,
+      'Normandy': 5000,
+      'Hanley Hills': 2000,
+      'Pasadena Hills': 1000,
+      'Bellerive': 300,
+      'Charlack': 1500,
+      'Northwoods': 4000,
+      'Country Club Hills': 1200,
+      'Riverview': 3000,
+      'St. John': 6500,
+      'Vinita Park': 2000,
+      'Cool Valley': 1200,
+      'Dellwood': 5000,
+      'Calverton Park': 1300,
+      'Bellefontaine Neighbors': 11000,
+      'Spanish Lake': 2000,
+      'Glasgow Village': 5000,
+      'Jennings': 14000,
+      'Beverly Hills': 600,
+      'Velda City': 1500,
+      'Uplands Park': 400,
+      'Velda Village Hills': 1000,
+      'Hillsdale': 1500,
+      'Northwoods': 4000,
+      'Greendale': 600,
+      'Pine Lawn': 3000,
+      'Pagedale': 3000,
+      'Wellston': 2000,
+      'Normandy': 5000,
+      'Hanley Hills': 2000,
+      'Pasadena Hills': 1000
+    };
+  }
+
+  /**
+   * Log population statistics for debugging
+   */
+  private static logPopulationStatistics(stops: TripStop[]): void {
+    const withPopulation = stops.filter(stop => stop.population !== undefined);
+    const withoutPopulation = stops.filter(stop => stop.population === undefined);
+    
+    console.log(`📊 Population Data Statistics:`);
+    console.log(`   • Cities with population data: ${withPopulation.length}`);
+    console.log(`   • Cities without population data: ${withoutPopulation.length}`);
+    
+    if (withPopulation.length > 0) {
+      const populations = withPopulation.map(stop => stop.population!);
+      const total = populations.reduce((sum, pop) => sum + pop, 0);
+      const average = total / populations.length;
+      const max = Math.max(...populations);
+      const min = Math.min(...populations);
+      
+      console.log(`   • Average population: ${Math.round(average).toLocaleString()}`);
+      console.log(`   • Population range: ${min.toLocaleString()} - ${max.toLocaleString()}`);
+    }
+    
+    if (withoutPopulation.length > 0) {
+      console.log(`   • Cities without population data:`, withoutPopulation.slice(0, 5).map(s => s.name));
+    }
   }
 }
 

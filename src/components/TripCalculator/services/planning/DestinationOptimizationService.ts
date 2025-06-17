@@ -5,21 +5,29 @@ import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationPriorityService } from './DestinationPriorityService';
 import { DistanceBasedDestinationService } from './DistanceBasedDestinationService';
 import { SequenceOrderService } from './SequenceOrderService';
+import { PopulationScoringService } from './PopulationScoringService';
+import { TripStyleLogic } from './TripStyleLogic';
 
 export class DestinationOptimizationService {
   /**
-   * Enhanced next day destination selection with sequence-order enforcement
+   * Enhanced next day destination selection with population-aware sequence-order enforcement
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
     finalDestination: TripStop, 
     availableStops: TripStop[], 
     remainingDays: number,
-    driveTimeTarget?: DriveTimeTarget
+    driveTimeTarget?: DriveTimeTarget,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): TripStop {
     if (availableStops.length === 0 || remainingDays <= 1) {
       return finalDestination;
     }
+
+    console.log(`🎯 Population-aware destination selection (${tripStyle} style, ${remainingDays} days remaining)`);
+
+    // Get trip style configuration for population weighting
+    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
 
     // Determine trip direction and filter by sequence
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
@@ -31,8 +39,17 @@ export class DestinationOptimizationService {
 
     console.log(`🧭 ${direction} travel: ${sequenceValidStops.length} sequence-valid stops from ${availableStops.length} total`);
 
-    if (sequenceValidStops.length === 0) {
-      console.warn(`⚠️ No sequence-valid stops found, using fallback selection`);
+    // Apply population filtering based on trip style
+    const populationFilteredStops = PopulationScoringService.filterByPopulationThreshold(
+      sequenceValidStops.length > 0 ? sequenceValidStops : availableStops,
+      tripStyle,
+      styleConfig.enforcementLevel === 'strict'
+    );
+
+    console.log(`📊 Population filter: ${sequenceValidStops.length} → ${populationFilteredStops.length} stops (${tripStyle} style)`);
+
+    if (populationFilteredStops.length === 0) {
+      console.warn(`⚠️ No population-valid stops found, using fallback selection`);
       return this.fallbackDestinationSelection(currentStop, finalDestination, availableStops, driveTimeTarget);
     }
 
@@ -43,26 +60,30 @@ export class DestinationOptimizationService {
     );
     const targetDailyDistance = totalRemainingDistance / remainingDays;
 
-    // Use sequence-aware selection
-    const selectedDestination = SequenceOrderService.selectNextInSequence(
+    // Use population-enhanced sequence-aware selection
+    const selectedDestination = this.selectOptimalPopulationAwareDestination(
       currentStop,
-      sequenceValidStops,
-      direction,
-      targetDailyDistance
+      finalDestination,
+      populationFilteredStops,
+      targetDailyDistance,
+      styleConfig,
+      direction
     );
 
     if (selectedDestination) {
+      const popScore = PopulationScoringService.calculatePopulationScore(selectedDestination);
       const selectedOrder = SequenceOrderService.getSequenceOrder(selectedDestination);
       const currentOrder = SequenceOrderService.getSequenceOrder(currentStop);
-      console.log(`✅ Sequence-aware selection: ${selectedDestination.name} (${currentOrder} → ${selectedOrder})`);
+      
+      console.log(`✅ Population-aware selection: ${selectedDestination.name} (${currentOrder} → ${selectedOrder}, pop: ${popScore.rawPopulation.toLocaleString()}, tier: ${popScore.tier})`);
       return selectedDestination;
     }
 
-    // Fallback to priority-based selection within sequence-valid stops
+    // Fallback to priority-based selection within population-filtered stops
     if (driveTimeTarget) {
       const balancedDestination = DestinationPriorityService.selectDestinationWithPriority(
         currentStop,
-        sequenceValidStops,
+        populationFilteredStops,
         driveTimeTarget
       );
       
@@ -76,13 +97,94 @@ export class DestinationOptimizationService {
     return DistanceBasedDestinationService.selectDestinationByDistance(
       currentStop, 
       finalDestination, 
-      sequenceValidStops, 
+      populationFilteredStops, 
       targetDailyDistance
     );
   }
 
   /**
-   * Fallback destination selection when sequence validation fails
+   * Select optimal destination with population-aware scoring
+   */
+  private static selectOptimalPopulationAwareDestination(
+    currentStop: TripStop,
+    finalDestination: TripStop,
+    candidateStops: TripStop[],
+    targetDistance: number,
+    styleConfig: any,
+    direction: 'eastbound' | 'westbound'
+  ): TripStop | null {
+    if (candidateStops.length === 0) return null;
+
+    let bestDestination: TripStop | null = null;
+    let bestScore = -1;
+
+    console.log(`🎯 Evaluating ${candidateStops.length} candidates with population weighting (${styleConfig.populationWeight})`);
+
+    for (const candidate of candidateStops) {
+      // Calculate distance score (how close to target)
+      const distanceFromCurrent = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        candidate.latitude, candidate.longitude
+      );
+
+      const distanceScore = 100 - Math.abs(distanceFromCurrent - targetDistance) / targetDistance * 100;
+      const clampedDistanceScore = Math.max(0, Math.min(100, distanceScore));
+
+      // Calculate population-enhanced score
+      const populationEnhancedScore = TripStyleLogic.calculateDestinationScore(
+        candidate,
+        styleConfig,
+        clampedDistanceScore
+      );
+
+      // Bonus for sequence order compliance
+      const sequenceBonus = this.calculateSequenceBonus(currentStop, candidate, finalDestination, direction);
+
+      // Bonus for destination city category
+      const categoryBonus = candidate.category === 'destination_city' ? 10 : 0;
+
+      // Final combined score
+      const totalScore = populationEnhancedScore + sequenceBonus + categoryBonus;
+
+      const popScore = PopulationScoringService.calculatePopulationScore(candidate);
+      console.log(`   📊 ${candidate.name}: distance=${clampedDistanceScore.toFixed(1)}, population-enhanced=${populationEnhancedScore.toFixed(1)}, sequence=${sequenceBonus}, total=${totalScore.toFixed(1)} (pop: ${popScore.rawPopulation.toLocaleString()}, tier: ${popScore.tier})`);
+
+      if (totalScore > bestScore) {
+        bestScore = totalScore;
+        bestDestination = candidate;
+      }
+    }
+
+    return bestDestination;
+  }
+
+  /**
+   * Calculate bonus for sequence order compliance
+   */
+  private static calculateSequenceBonus(
+    currentStop: TripStop,
+    candidate: TripStop,
+    finalDestination: TripStop,
+    direction: 'eastbound' | 'westbound'
+  ): number {
+    const currentOrder = SequenceOrderService.getSequenceOrder(currentStop);
+    const candidateOrder = SequenceOrderService.getSequenceOrder(candidate);
+    const finalOrder = SequenceOrderService.getSequenceOrder(finalDestination);
+
+    if (currentOrder === null || candidateOrder === null || finalOrder === null) {
+      return 0; // No sequence data
+    }
+
+    // Check if candidate maintains proper sequence direction
+    const properDirection = direction === 'eastbound' 
+      ? candidateOrder < currentOrder && candidateOrder > finalOrder
+      : candidateOrder > currentOrder && candidateOrder < finalOrder;
+
+    return properDirection ? 15 : -5; // Bonus for correct direction, penalty for wrong direction
+  }
+
+  /**
+   * Fallback destination selection when population/sequence validation fails
    */
   private static fallbackDestinationSelection(
     currentStop: TripStop,
@@ -90,9 +192,9 @@ export class DestinationOptimizationService {
     availableStops: TripStop[],
     driveTimeTarget?: DriveTimeTarget
   ): TripStop {
-    console.warn(`🚨 Using fallback destination selection (no sequence validation)`);
+    console.warn(`🚨 Using fallback destination selection (no population/sequence validation)`);
 
-    // Try to find destination cities first
+    // Try to find destination cities first, regardless of population
     const destinationCities = availableStops.filter(stop => 
       stop.category === 'destination_city'
     );
@@ -108,7 +210,7 @@ export class DestinationOptimizationService {
         currentStop,
         finalDestination,
         destinationCities,
-        totalRemainingDistance / 2 // Rough estimate for remaining journey
+        totalRemainingDistance / 2
       );
     }
 
@@ -118,18 +220,21 @@ export class DestinationOptimizationService {
   }
 
   /**
-   * Select optimal destination for a day with sequence validation
+   * Select optimal destination for a day with population-aware sequence validation
    */
   static selectOptimalDayDestination(
     currentStop: TripStop,
     finalDestination: TripStop,
     availableStops: TripStop[],
     targetDistance: number,
-    driveTimeTarget?: DriveTimeTarget
+    driveTimeTarget?: DriveTimeTarget,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
-    // First filter by sequence order
+    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+
+    // Apply population and sequence filtering
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
     const sequenceValidStops = SequenceOrderService.filterStopsInSequence(
       currentStop,
@@ -137,20 +242,28 @@ export class DestinationOptimizationService {
       direction
     );
 
-    const candidateStops = sequenceValidStops.length > 0 ? sequenceValidStops : availableStops;
+    const populationValidStops = PopulationScoringService.filterByPopulationThreshold(
+      sequenceValidStops.length > 0 ? sequenceValidStops : availableStops,
+      tripStyle,
+      styleConfig.enforcementLevel === 'strict'
+    );
 
-    // Try sequence-aware selection first
-    if (sequenceValidStops.length > 0) {
-      const sequenceSelection = SequenceOrderService.selectNextInSequence(
+    const candidateStops = populationValidStops.length > 0 ? populationValidStops : availableStops;
+
+    // Try population-enhanced sequence-aware selection first
+    if (candidateStops.length > 0) {
+      const optimalSelection = this.selectOptimalPopulationAwareDestination(
         currentStop,
-        sequenceValidStops,
-        direction,
-        targetDistance
+        finalDestination,
+        candidateStops,
+        targetDistance,
+        styleConfig,
+        direction
       );
 
-      if (sequenceSelection) {
-        console.log(`🎯 Optimal sequence selection: ${sequenceSelection.name}`);
-        return sequenceSelection;
+      if (optimalSelection) {
+        console.log(`🎯 Optimal population-aware selection: ${optimalSelection.name}`);
+        return optimalSelection;
       }
     }
 
