@@ -17,9 +17,9 @@ export class EvenPacingPlanningService {
   ): Promise<TripPlan> {
     console.log(`⚖️ EVEN PACING PLANNING: ${startCityName} to ${endCityName} in ${tripDays} days`);
     
-    // Find start and end stops
-    const startStop = this.findCityInStops(startCityName, allStops);
-    const endStop = this.findCityInStops(endCityName, allStops);
+    // Use enhanced city finding
+    const startStop = CityDisplayService.findCityInStops(startCityName, allStops);
+    const endStop = CityDisplayService.findCityInStops(endCityName, allStops);
     
     if (!startStop || !endStop) {
       throw new Error(`Could not find start (${startCityName}) or end (${endCityName}) locations`);
@@ -222,42 +222,6 @@ export class EvenPacingPlanningService {
     }
 
     return segments;
-  }
-
-  private static findCityInStops(searchTerm: string, allStops: TripStop[]): TripStop | undefined {
-    if (!searchTerm || !allStops?.length) return undefined;
-
-    console.log(`🔍 Looking for "${searchTerm}" among ${allStops.length} stops`);
-
-    // Strategy 1: Direct exact match on display name
-    for (const stop of allStops) {
-      const displayName = CityDisplayService.getCityDisplayName(stop);
-      if (displayName.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
-        console.log(`✅ Direct display name match: ${displayName}`);
-        return stop;
-      }
-    }
-
-    // Strategy 2: Parse and match components
-    const { city: searchCity, state: searchState } = CityDisplayService.parseCityStateInput(searchTerm);
-    
-    if (searchState) {
-      for (const stop of allStops) {
-        const stopCityName = stop.city_name || stop.city || stop.name || '';
-        const cleanStopCity = stopCityName.replace(/,\s*[A-Z]{2}$/, '').trim();
-        
-        const cityMatch = cleanStopCity.toLowerCase() === searchCity.toLowerCase();
-        const stateMatch = stop.state.toLowerCase() === searchState.toLowerCase();
-        
-        if (cityMatch && stateMatch) {
-          console.log(`✅ Component match: ${cleanStopCity}, ${stop.state}`);
-          return stop;
-        }
-      }
-    }
-
-    console.log(`❌ No match found for: "${searchTerm}"`);
-    return undefined;
   }
 
   private static calculateTotalDistance(startStop: TripStop, endStop: TripStop): number {
