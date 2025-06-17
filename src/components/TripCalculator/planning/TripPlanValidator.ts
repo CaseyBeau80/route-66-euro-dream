@@ -3,7 +3,6 @@ import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDa
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CityDisplayService } from '../services/utils/CityDisplayService';
 import { CityNameNormalizationService } from '../services/CityNameNormalizationService';
-import { CityStateDisambiguationService } from '../services/utils/CityStateDisambiguationService';
 import { TripStop } from '../types/TripStop';
 
 interface ValidationResult {
@@ -84,13 +83,21 @@ export class TripPlanValidator {
     console.log(`🔍 State disambiguation matching for: "${cityName}" among ${allStops.length} stops`);
 
     // Parse the input to separate city and state
-    const { city: searchCity, state: searchState } = CityStateDisambiguationService.parseCityState(cityName);
+    const { city: searchCity, state: searchState } = this.parseCityState(cityName);
     
     console.log(`🔍 Parsed input: city="${searchCity}", state="${searchState}"`);
 
     // Strategy 1: Exact match with both city and state (highest priority)
     if (searchState) {
-      const exactMatches = CityStateDisambiguationService.findBestMatch(cityName, allStops);
+      const exactMatches = allStops.filter(stop => {
+        const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
+        const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
+        const normalizedStopState = CityNameNormalizationService.normalizeSearchTerm(stop.state || '');
+        const normalizedSearchState = CityNameNormalizationService.normalizeSearchTerm(searchState);
+        
+        return normalizedStopCity === normalizedSearchCity && normalizedStopState === normalizedSearchState;
+      });
+      
       if (exactMatches.length === 1) {
         console.log(`✅ Strategy 1 - Exact city+state match: ${exactMatches[0].name}, ${exactMatches[0].state}`);
         return exactMatches[0];
@@ -119,7 +126,7 @@ export class TripPlanValidator {
 
       // If no state specified, try Route 66 preference
       if (!searchState) {
-        const route66Preference = CityStateDisambiguationService.getRoute66Preference(searchCity);
+        const route66Preference = this.getRoute66Preference(searchCity);
         if (route66Preference) {
           const preferredMatch = cityOnlyMatches.find(match => 
             match.state.toUpperCase() === route66Preference.state.toUpperCase()
@@ -150,6 +157,44 @@ export class TripPlanValidator {
 
     console.log(`❌ No match found for: "${cityName}"`);
     return undefined;
+  }
+
+  /**
+   * Parse city and state from input string
+   */
+  private static parseCityState(input: string): { city: string; state: string } {
+    if (!input) return { city: '', state: '' };
+    
+    const parts = input.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      return {
+        city: parts[0],
+        state: parts[1]
+      };
+    }
+    
+    return {
+      city: input.trim(),
+      state: ''
+    };
+  }
+
+  /**
+   * Get Route 66 preference for ambiguous cities
+   */
+  private static getRoute66Preference(cityName: string): { state: string } | null {
+    const preferences: Record<string, string> = {
+      'springfield': 'IL', // Route 66 historically starts in Springfield, IL
+      'oklahoma city': 'OK',
+      'amarillo': 'TX',
+      'albuquerque': 'NM',
+      'flagstaff': 'AZ'
+    };
+    
+    const normalizedCity = cityName.toLowerCase().trim();
+    const preferredState = preferences[normalizedCity];
+    
+    return preferredState ? { state: preferredState } : null;
   }
 
   /**
