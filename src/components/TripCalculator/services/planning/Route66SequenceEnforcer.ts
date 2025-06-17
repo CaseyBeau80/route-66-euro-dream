@@ -1,3 +1,4 @@
+
 import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment } from './TripPlanTypes';
 
@@ -8,6 +9,13 @@ export interface SequenceValidationResult {
   backtrackingSegments: number;
 }
 
+export interface SequenceEnforcementResult {
+  validStops: TripStop[];
+  direction: 'east-to-west' | 'west-to-east';
+  rejectedStops: Array<{ stop: TripStop; reason: string }>;
+  isValidRoute: boolean;
+}
+
 export class Route66SequenceEnforcer {
   /**
    * Enforce proper Route 66 sequence direction throughout the trip
@@ -16,11 +24,7 @@ export class Route66SequenceEnforcer {
     startStop: TripStop,
     endStop: TripStop,
     candidateStops: TripStop[]
-  ): {
-    validStops: TripStop[];
-    direction: 'east-to-west' | 'west-to-east';
-    rejectedStops: Array<{ stop: TripStop; reason: string }>;
-  } {
+  ): SequenceEnforcementResult {
     console.log(`🧭 ENFORCING SEQUENCE: ${startStop.name} → ${endStop.name}`);
     
     // Determine trip direction based on longitude
@@ -41,9 +45,60 @@ export class Route66SequenceEnforcer {
       }
     }
     
+    const isValidRoute = validStops.length > 0;
+    
     console.log(`✅ SEQUENCE ENFORCEMENT: ${validStops.length} valid, ${rejectedStops.length} rejected`);
     
-    return { validStops, direction, rejectedStops };
+    return { validStops, direction, rejectedStops, isValidRoute };
+  }
+
+  /**
+   * Select sequential destinations based on Route 66 order
+   */
+  static selectSequentialDestinations(
+    startStop: TripStop,
+    endStop: TripStop,
+    validStops: TripStop[],
+    numberOfDestinations: number
+  ): TripStop[] {
+    console.log(`🎯 SELECTING ${numberOfDestinations} sequential destinations from ${validStops.length} valid stops`);
+    
+    if (validStops.length === 0 || numberOfDestinations <= 0) {
+      return [];
+    }
+    
+    // Sort stops by their progression along Route 66
+    const direction = endStop.longitude < startStop.longitude ? 'east-to-west' : 'west-to-east';
+    
+    const sortedStops = validStops.sort((a, b) => {
+      if (direction === 'east-to-west') {
+        return b.longitude - a.longitude; // Descending longitude (west)
+      } else {
+        return a.longitude - b.longitude; // Ascending longitude (east)
+      }
+    });
+    
+    // Select evenly spaced destinations
+    const selectedDestinations: TripStop[] = [];
+    const totalStops = sortedStops.length;
+    
+    if (numberOfDestinations >= totalStops) {
+      return sortedStops;
+    }
+    
+    // Calculate spacing to distribute destinations evenly
+    const spacing = totalStops / (numberOfDestinations + 1);
+    
+    for (let i = 1; i <= numberOfDestinations; i++) {
+      const index = Math.round(spacing * i) - 1;
+      if (index >= 0 && index < totalStops) {
+        selectedDestinations.push(sortedStops[index]);
+      }
+    }
+    
+    console.log(`✅ SELECTED: ${selectedDestinations.map(d => d.name).join(', ')}`);
+    
+    return selectedDestinations;
   }
   
   /**

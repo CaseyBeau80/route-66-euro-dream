@@ -1,4 +1,11 @@
 
+export interface DriveTimeValidation {
+  isValid: boolean;
+  actualDriveTime: number;
+  maxAllowed: number;
+  recommendation: string;
+}
+
 export class DriveTimeEnforcementService {
   private static readonly MAX_DAILY_DRIVE_HOURS = 8;
   private static readonly ABSOLUTE_MAX_HOURS = 10;
@@ -70,5 +77,66 @@ export class DriveTimeEnforcementService {
       driveTime,
       recommendation
     };
+  }
+
+  /**
+   * Validate segment drive time against constraints
+   */
+  static validateSegmentDriveTime(
+    startStop: any,
+    endStop: any,
+    styleConfig: any
+  ): DriveTimeValidation {
+    // Calculate distance between stops
+    const distance = this.calculateDistance(
+      startStop.latitude, 
+      startStop.longitude, 
+      endStop.latitude, 
+      endStop.longitude
+    );
+    
+    const actualDriveTime = this.calculateRealisticDriveTime(distance);
+    const maxAllowed = styleConfig?.maxDailyDriveHours || this.MAX_DAILY_DRIVE_HOURS;
+    const isValid = actualDriveTime <= maxAllowed;
+    
+    let recommendation = '';
+    if (!isValid) {
+      recommendation = `Drive time of ${actualDriveTime.toFixed(1)}h exceeds ${maxAllowed}h limit. Consider splitting this segment.`;
+    } else if (actualDriveTime > maxAllowed * 0.8) {
+      recommendation = `Drive time of ${actualDriveTime.toFixed(1)}h is close to the ${maxAllowed}h limit. Monitor for fatigue.`;
+    } else {
+      recommendation = `Drive time of ${actualDriveTime.toFixed(1)}h is within acceptable limits.`;
+    }
+    
+    console.log(`🔍 SEGMENT VALIDATION: ${startStop.name} → ${endStop.name} = ${actualDriveTime.toFixed(1)}h (${isValid ? 'VALID' : 'INVALID'})`);
+    
+    return {
+      isValid,
+      actualDriveTime,
+      maxAllowed,
+      recommendation
+    };
+  }
+
+  /**
+   * Calculate distance between two points in miles
+   */
+  private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return distance;
+  }
+
+  private static toRad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 }
