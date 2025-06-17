@@ -31,17 +31,22 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       return;
     }
     
-    // Only update if it's a valid number
-    if (!isNaN(days) && days >= 0) {
-      // Clamp the value between MIN_DAYS and MAX_DAYS
-      const clampedDays = Math.min(Math.max(days, 0), MAX_DAYS);
-      setFormData({ ...formData, travelDays: clampedDays });
-      
-      // Log if value was clamped
-      if (days !== clampedDays) {
-        console.log(`🔒 Travel days clamped from ${days} to ${clampedDays}`);
-      }
+    // Block invalid numbers completely
+    if (isNaN(days) || days < 0) {
+      console.log('🚫 Invalid number blocked:', days);
+      return;
     }
+    
+    // HARD BLOCK: Do not allow values over MAX_DAYS
+    if (days > MAX_DAYS) {
+      console.log(`🚫 HARD BLOCK: ${days} days exceeds maximum of ${MAX_DAYS} days`);
+      // Show error but don't update the value
+      return;
+    }
+    
+    // Allow valid values
+    setFormData({ ...formData, travelDays: days });
+    console.log(`✅ Updated travel days to ${days}`);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -63,6 +68,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   // Check if current value exceeds maximum
   const isOverLimit = formData.travelDays > MAX_DAYS;
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
+  const isInvalidValue = isOverLimit || isUnderLimit;
 
   // Get validation info when we have route information
   const getValidationInfo = () => {
@@ -102,12 +108,12 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           onBlur={handleBlur}
           placeholder={`Enter number of days (${MIN_DAYS}-${MAX_DAYS})`}
           className={`w-full ${
-            !isValid || isOverLimit || isUnderLimit ? 'border-red-300 focus:border-red-500' : ''
+            isInvalidValue ? 'border-red-500 focus:border-red-500 bg-red-50' : ''
           }`}
         />
         
         {/* Validation Icon */}
-        {hasRouteInfo && validation && !isOverLimit && !isUnderLimit && (
+        {hasRouteInfo && validation && !isInvalidValue && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isValid ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -118,27 +124,37 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         )}
       </div>
 
-      {/* Hard limit validation messages */}
+      {/* CRITICAL ERROR: Hard limit validation messages */}
       {isOverLimit && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded text-xs">
-          <div className="text-red-700 flex items-start gap-1">
-            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-            <span>Maximum {MAX_DAYS} days supported. Value has been clamped to {MAX_DAYS} days.</span>
+        <div className="p-3 bg-red-100 border-2 border-red-500 rounded-lg">
+          <div className="text-red-800 font-semibold flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0 text-red-600" />
+            <div>
+              <div className="font-bold">⚠️ MAXIMUM LIMIT EXCEEDED</div>
+              <div className="mt-1">
+                Our trip planner supports a maximum of {MAX_DAYS} days. Please enter {MAX_DAYS} days or fewer to plan your Route 66 adventure.
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {isUnderLimit && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded text-xs">
-          <div className="text-red-700 flex items-start gap-1">
-            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-            <span>Minimum {MIN_DAYS} days required for Route 66 trips.</span>
+        <div className="p-3 bg-red-100 border-2 border-red-500 rounded-lg">
+          <div className="text-red-800 font-semibold flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0 text-red-600" />
+            <div>
+              <div className="font-bold">⚠️ MINIMUM REQUIREMENT NOT MET</div>
+              <div className="mt-1">
+                Minimum {MIN_DAYS} days required for Route 66 trips to ensure a quality experience.
+              </div>
+            </div>
           </div>
         </div>
       )}
       
-      {/* Validation Feedback */}
-      {hasRouteInfo && validation && !isOverLimit && !isUnderLimit && (
+      {/* Validation Feedback - only show if within valid range */}
+      {hasRouteInfo && validation && !isInvalidValue && (
         <div className="space-y-2">
           {/* Show minimum days info */}
           <div className="text-xs text-blue-600 flex items-center gap-1">

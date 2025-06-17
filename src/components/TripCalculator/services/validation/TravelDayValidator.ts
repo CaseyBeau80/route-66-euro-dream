@@ -13,7 +13,7 @@ export interface DayValidationResult {
 
 export class TravelDayValidator {
   private static readonly ABSOLUTE_MIN_DAYS = 2;
-  private static readonly ABSOLUTE_MAX_DAYS = 14; // Updated from 30 to 14 days
+  private static readonly ABSOLUTE_MAX_DAYS = 14; // Hard limit enforced
   private static readonly MAX_DAILY_DRIVE_HOURS = 10; // Safety limit
   
   /**
@@ -28,6 +28,15 @@ export class TravelDayValidator {
     const issues: string[] = [];
     const recommendations: string[] = [];
     
+    // CRITICAL: Hard enforcement of absolute bounds
+    if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
+      issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} days required for any Route 66 trip`);
+    }
+    
+    if (requestedDays > this.ABSOLUTE_MAX_DAYS) {
+      issues.push(`Maximum ${this.ABSOLUTE_MAX_DAYS} days supported by the planner - please reduce your trip duration`);
+    }
+
     // Get estimated distance
     const estimatedDistance = DistanceEstimationService.estimateDistance(
       startLocation,
@@ -53,34 +62,28 @@ export class TravelDayValidator {
     // Calculate maximum recommended days (capped at 14 days)
     const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
     
-    // Check absolute bounds
-    if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
-      issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} days required for any Route 66 trip`);
+    // Check style-specific requirements (only if within absolute bounds)
+    if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
+      if (requestedDays < minDaysRequired) {
+        issues.push(`Too few days for ${styleConfig.style} style (${minDaysRequired}+ days recommended)`);
+        recommendations.push(`Add ${minDaysRequired - requestedDays} more days for comfortable daily drives`);
+      }
+      
+      if (requestedDays < minDaysForSafety) {
+        issues.push(`Unsafe driving hours (${(estimatedDistance / requestedDays / 50).toFixed(1)}h/day average)`);
+        recommendations.push('Consider more days to stay under 10 hours of daily driving');
+      }
+      
+      // Check if too many days (updated for 14-day limit)
+      if (requestedDays > maxDaysRecommended) {
+        recommendations.push(`${requestedDays} days might be quite leisurely for this distance`);
+      }
     }
     
-    if (requestedDays > this.ABSOLUTE_MAX_DAYS) {
-      issues.push(`Maximum ${this.ABSOLUTE_MAX_DAYS} days supported by the planner`);
-    }
-    
-    // Check style-specific requirements
-    if (requestedDays < minDaysRequired) {
-      issues.push(`Too few days for ${styleConfig.style} style (${minDaysRequired}+ days recommended)`);
-      recommendations.push(`Add ${minDaysRequired - requestedDays} more days for comfortable daily drives`);
-    }
-    
-    if (requestedDays < minDaysForSafety) {
-      issues.push(`Unsafe driving hours (${(estimatedDistance / requestedDays / 50).toFixed(1)}h/day average)`);
-      recommendations.push('Consider more days to stay under 10 hours of daily driving');
-    }
-    
-    // Check if too many days (updated for 14-day limit)
-    if (requestedDays > maxDaysRecommended) {
-      recommendations.push(`${requestedDays} days might be quite leisurely for this distance`);
-    }
-    
-    const isValid = issues.length === 0 && 
-                   requestedDays >= this.ABSOLUTE_MIN_DAYS && 
-                   requestedDays <= this.ABSOLUTE_MAX_DAYS;
+    // CRITICAL: Form is only valid if within absolute bounds AND passes other checks
+    const isValid = requestedDays >= this.ABSOLUTE_MIN_DAYS && 
+                   requestedDays <= this.ABSOLUTE_MAX_DAYS && 
+                   issues.length === 0;
     
     return {
       isValid,
@@ -101,6 +104,11 @@ export class TravelDayValidator {
     requestedDays: number,
     styleConfig: TripStyleConfig
   ): boolean {
+    // Quick check: must be within absolute bounds
+    if (requestedDays < this.ABSOLUTE_MIN_DAYS || requestedDays > this.ABSOLUTE_MAX_DAYS) {
+      return false;
+    }
+    
     const result = this.validateTravelDays(startLocation, endLocation, requestedDays, styleConfig);
     return result.isValid;
   }
