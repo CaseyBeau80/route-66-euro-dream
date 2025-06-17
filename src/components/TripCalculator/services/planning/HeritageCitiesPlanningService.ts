@@ -61,13 +61,15 @@ export class HeritageCitiesPlanningService {
       throw new Error('Invalid Route 66 sequence');
     }
 
-    // Select heritage destinations (prioritizes heritage value over distance)
-    const intermediateDestinations = this.selectHeritageDestinations(
+    // 🔧 NEW: Use sequential destination selection for heritage cities too
+    const intermediateDestinations = Route66SequenceEnforcer.selectSequentialDestinations(
       startStop, endStop, sequenceResult.validStops, tripDays - 1
     );
 
+    console.log(`🏛️ SEQUENTIAL HERITAGE SELECTION: Selected ${intermediateDestinations.length} heritage destinations in proper Route 66 order`);
+
     // Build segments allowing longer drives for heritage cities
-    const segments = this.buildHeritageSegments(
+    const segments = this.buildHeritageSequentialSegments(
       startStop, endStop, intermediateDestinations, tripDays
     );
 
@@ -135,55 +137,67 @@ export class HeritageCitiesPlanningService {
   }
 
   /**
-   * Select heritage destinations prioritizing heritage value over distance
+   * 🔧 NEW: Build heritage segments with sequential flow validation
    */
-  private static selectHeritageDestinations(
+  private static buildHeritageSequentialSegments(
     startStop: TripStop,
     endStop: TripStop,
-    heritageCities: TripStop[],
-    neededDestinations: number
-  ): TripStop[] {
-    console.log(`🏛️ SELECTING HERITAGE DESTINATIONS: ${neededDestinations} from ${heritageCities.length} heritage cities`);
+    intermediateDestinations: TripStop[],
+    tripDays: number
+  ): DailySegment[] {
+    const segments: DailySegment[] = [];
+    const allStops = [startStop, ...intermediateDestinations, endStop];
     
-    if (heritageCities.length === 0) return [];
+    console.log(`🏗️ BUILDING HERITAGE SEQUENTIAL SEGMENTS: ${allStops.length} stops for ${tripDays} days`);
 
-    // Score all heritage cities by heritage value and route position
-    const scoredCities = heritageCities.map(city => {
-      const heritage = this.getHeritageInfo(city.name);
-      const heritageScore = heritage ? heritage.score : 50;
+    for (let i = 0; i < allStops.length - 1; i++) {
+      const currentStop = allStops[i];
+      const nextStop = allStops[i + 1];
+      const day = i + 1;
+
+      const distance = this.calculateTotalDistance(currentStop, nextStop);
+      // Allow longer drives for heritage cities, but cap at heritage max
+      const driveTimeHours = Math.min(distance / 50, this.MAX_HERITAGE_DRIVE_TIME);
       
-      // Calculate position score (prefer cities that are well-distributed along route)
-      const distanceFromStart = this.calculateTotalDistance(startStop, city);
-      const totalRouteDistance = this.calculateTotalDistance(startStop, endStop);
-      const positionScore = this.calculatePositionScore(distanceFromStart, totalRouteDistance, neededDestinations);
-      
-      // Heritage cities get priority, but position matters too
-      const totalScore = (heritageScore * 0.7) + (positionScore * 0.3);
-      
-      return {
-        city,
-        heritageScore,
-        positionScore,
-        totalScore,
-        tier: heritage?.tier || 'standard'
+      const heritage = this.getHeritageInfo(nextStop.name);
+      const heritageInfo = heritage ? ` (Heritage: ${heritage.score}/100, ${heritage.tier})` : '';
+
+      console.log(`🏛️ Day ${day}: ${currentStop.name} → ${nextStop.name} = ${distance.toFixed(0)}mi, ${driveTimeHours.toFixed(1)}h${heritageInfo} (sequential flow)`);
+
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(nextStop)}`,
+        startCity: CityDisplayService.getCityDisplayName(currentStop),
+        endCity: CityDisplayService.getCityDisplayName(nextStop),
+        distance,
+        driveTimeHours,
+        drivingTime: driveTimeHours,
+        approximateMiles: Math.round(distance),
+        destination: {
+          city: nextStop.city_name || nextStop.name,
+          state: nextStop.state
+        },
+        recommendedStops: [{
+          stopId: nextStop.id,
+          id: nextStop.id,
+          name: nextStop.name,
+          description: nextStop.description || `Visit ${nextStop.name}`,
+          latitude: nextStop.latitude,
+          longitude: nextStop.longitude,
+          category: nextStop.category,
+          city_name: nextStop.city_name,
+          state: nextStop.state,
+          city: nextStop.city || nextStop.city_name || nextStop.name
+        }],
+        attractions: [],
+        notes: `Day ${day}: Sequential heritage city drive from ${currentStop.name} to ${nextStop.name}${heritageInfo}`,
+        recommendations: []
       };
-    });
 
-    // Sort by total score and select top destinations
-    scoredCities.sort((a, b) => b.totalScore - a.totalScore);
-    
-    console.log(`🏛️ Top heritage candidates:`);
-    scoredCities.slice(0, Math.min(5, scoredCities.length)).forEach((candidate, index) => {
-      console.log(`   ${index + 1}. ${candidate.city.name}: heritage=${candidate.heritageScore} (${candidate.tier}), position=${candidate.positionScore.toFixed(1)}, total=${candidate.totalScore.toFixed(1)}`);
-    });
+      segments.push(segment);
+    }
 
-    // Select the best heritage destinations
-    const selectedDestinations = scoredCities
-      .slice(0, neededDestinations)
-      .map(scored => scored.city);
-
-    // Sort selected destinations by route order
-    return this.sortByRouteOrder(startStop, endStop, selectedDestinations);
+    return segments;
   }
 
   /**
@@ -231,69 +245,8 @@ export class HeritageCitiesPlanningService {
   }
 
   /**
-   * Build segments optimized for heritage cities (allows longer drives)
+   * Calculate total distance between two stops
    */
-  private static buildHeritageSegments(
-    startStop: TripStop,
-    endStop: TripStop,
-    intermediateDestinations: TripStop[],
-    tripDays: number
-  ): DailySegment[] {
-    const segments: DailySegment[] = [];
-    const allStops = [startStop, ...intermediateDestinations, endStop];
-    
-    console.log(`🏗️ BUILDING HERITAGE SEGMENTS: ${allStops.length} stops for ${tripDays} days`);
-
-    for (let i = 0; i < allStops.length - 1; i++) {
-      const currentStop = allStops[i];
-      const nextStop = allStops[i + 1];
-      const day = i + 1;
-
-      const distance = this.calculateTotalDistance(currentStop, nextStop);
-      // Allow longer drives for heritage cities, but cap at 10 hours
-      const driveTimeHours = Math.min(distance / 50, this.MAX_HERITAGE_DRIVE_TIME);
-      
-      const heritage = this.getHeritageInfo(nextStop.name);
-      const heritageInfo = heritage ? ` (Heritage: ${heritage.score}/100, ${heritage.tier})` : '';
-
-      console.log(`🏛️ Day ${day}: ${currentStop.name} → ${nextStop.name} = ${distance.toFixed(0)}mi, ${driveTimeHours.toFixed(1)}h${heritageInfo}`);
-
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(nextStop)}`,
-        startCity: CityDisplayService.getCityDisplayName(currentStop),
-        endCity: CityDisplayService.getCityDisplayName(nextStop),
-        distance,
-        driveTimeHours,
-        drivingTime: driveTimeHours,
-        approximateMiles: Math.round(distance),
-        destination: {
-          city: nextStop.city_name || nextStop.name,
-          state: nextStop.state
-        },
-        recommendedStops: [{
-          stopId: nextStop.id,
-          id: nextStop.id,
-          name: nextStop.name,
-          description: nextStop.description || `Visit ${nextStop.name}`,
-          latitude: nextStop.latitude,
-          longitude: nextStop.longitude,
-          category: nextStop.category,
-          city_name: nextStop.city_name,
-          state: nextStop.state,
-          city: nextStop.city || nextStop.city_name || nextStop.name
-        }],
-        attractions: [],
-        notes: `Day ${day}: Heritage city drive from ${currentStop.name} to ${nextStop.name}${heritageInfo}`,
-        recommendations: []
-      };
-
-      segments.push(segment);
-    }
-
-    return segments;
-  }
-
   private static calculateTotalDistance(startStop: TripStop, endStop: TripStop): number {
     const R = 3959; // Earth's radius in miles
     const dLat = this.toRad(endStop.latitude - startStop.latitude);

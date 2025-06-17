@@ -6,7 +6,7 @@ import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
 
 export class EvenPacingPlanningService {
   private static readonly TARGET_DRIVE_TIME = 5.5; // 5.5 hours target for even pacing
-  private static readonly MAX_DRIVE_TIME = 8; // Maximum for even pacing - REDUCED from 7
+  private static readonly MAX_DRIVE_TIME = 8; // Maximum for even pacing
   private static readonly MIN_DRIVE_TIME = 3; // Minimum for even pacing
 
   static async planEvenPacingTrip(
@@ -66,13 +66,15 @@ export class EvenPacingPlanningService {
       throw new Error('Invalid Route 66 sequence');
     }
 
-    // Select destinations for even pacing (prioritizes consistent distances)
-    const intermediateDestinations = this.selectEvenPacingDestinations(
-      startStop, endStop, sequenceResult.validStops, tripDays - 1, totalDistance / tripDays
+    // 🔧 NEW: Use sequential destination selection instead of greedy scoring
+    const intermediateDestinations = Route66SequenceEnforcer.selectSequentialDestinations(
+      startStop, endStop, sequenceResult.validStops, tripDays - 1
     );
 
-    // Build segments with EMERGENCY validation
-    const segments = this.buildEvenPacingSegments(
+    console.log(`🎯 SEQUENTIAL SELECTION: Selected ${intermediateDestinations.length} destinations in proper Route 66 order`);
+
+    // Build segments with EMERGENCY validation and sequential flow
+    const segments = this.buildSequentialSegments(
       startStop, endStop, intermediateDestinations, tripDays
     );
 
@@ -91,6 +93,78 @@ export class EvenPacingPlanningService {
       dailySegments: segments,
       lastUpdated: new Date()
     };
+  }
+
+  /**
+   * 🔧 NEW: Build segments with sequential flow validation
+   */
+  private static buildSequentialSegments(
+    startStop: TripStop,
+    endStop: TripStop,
+    intermediateDestinations: TripStop[],
+    tripDays: number
+  ): DailySegment[] {
+    const segments: DailySegment[] = [];
+    const allStops = [startStop, ...intermediateDestinations, endStop];
+    
+    console.log(`🏗️ BUILDING SEQUENTIAL SEGMENTS: ${allStops.length} stops for ${tripDays} days`);
+
+    for (let i = 0; i < allStops.length - 1; i++) {
+      const currentStop = allStops[i];
+      const nextStop = allStops[i + 1];
+      const day = i + 1;
+
+      const distance = this.calculateTotalDistance(currentStop, nextStop);
+      
+      // EMERGENCY VALIDATION: Check if this segment is realistic
+      const validation = DriveTimeEnforcementService.validateAndFixSegmentDistance(
+        currentStop, nextStop, this.MAX_DRIVE_TIME
+      );
+      
+      if (!validation.isValid) {
+        console.error(`🚨 EMERGENCY: Day ${day} segment is invalid! ${validation.actualDistance.toFixed(0)}mi, ${validation.actualDriveTime.toFixed(1)}h`);
+        // NOTE: With sequential selection, this should be much less likely to occur
+      }
+      
+      // Use the emergency-validated drive time
+      const driveTimeHours = validation.actualDriveTime;
+
+      console.log(`⚖️ Day ${day}: ${currentStop.name} → ${nextStop.name} = ${distance.toFixed(0)}mi, ${driveTimeHours.toFixed(1)}h (sequential flow)`);
+
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${CityDisplayService.getCityDisplayName(currentStop)} to ${CityDisplayService.getCityDisplayName(nextStop)}`,
+        startCity: CityDisplayService.getCityDisplayName(currentStop),
+        endCity: CityDisplayService.getCityDisplayName(nextStop),
+        distance,
+        driveTimeHours,
+        drivingTime: driveTimeHours,
+        approximateMiles: Math.round(distance),
+        destination: {
+          city: nextStop.city_name || nextStop.name,
+          state: nextStop.state
+        },
+        recommendedStops: [{
+          stopId: nextStop.id,
+          id: nextStop.id,
+          name: nextStop.name,
+          description: nextStop.description || `Visit ${nextStop.name}`,
+          latitude: nextStop.latitude,
+          longitude: nextStop.longitude,
+          category: nextStop.category,
+          city_name: nextStop.city_name,
+          state: nextStop.state,
+          city: nextStop.city || nextStop.city_name || nextStop.name
+        }],
+        attractions: [],
+        notes: `Day ${day}: Sequential Route 66 drive from ${currentStop.name} to ${nextStop.name}${validation.needsSplitting ? ' (Distance optimized for realistic driving)' : ''}`,
+        recommendations: validation.needsSplitting ? [`This segment was optimized to ensure realistic daily driving distances.`] : []
+      };
+
+      segments.push(segment);
+    }
+
+    return segments;
   }
 
   /**
