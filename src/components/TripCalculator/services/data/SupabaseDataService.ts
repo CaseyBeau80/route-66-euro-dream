@@ -41,7 +41,7 @@ export class SupabaseDataService {
         is_major_stop: true, // All destination cities are major stops
         is_official_destination: city.featured || false,
         population: city.population || 0, // Include population data
-        sequence_order: city.sequence_order // Include sequence order
+        // Note: sequence_order removed as it doesn't exist in database schema
       }));
 
       console.log(`✅ DESTINATION CITIES ONLY: Loaded ${tripStops.length} destination cities (NO waypoints)`);

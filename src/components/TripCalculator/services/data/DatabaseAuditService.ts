@@ -1,5 +1,6 @@
 
-import { SupabaseDataService, TripStop } from './SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
+import { SupabaseDataService } from './SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export class DatabaseAuditService {

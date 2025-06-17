@@ -1,5 +1,5 @@
-
-import { SupabaseDataService, TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
+import { SupabaseDataService } from '../data/SupabaseDataService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { AttractionSearchResult, AttractionSearchStatus } from './AttractionSearchResult';
 import { FallbackCoordinatesService } from './FallbackCoordinatesService';
@@ -347,163 +347,17 @@ export class GeographicAttractionService {
         return {
           status: attractions.length > 0 ? AttractionSearchStatus.SUCCESS : AttractionSearchStatus.NO_ATTRACTIONS,
           attractions,
-          message: attractions.length > 0 ? 
-            `Found ${attractions.length} attractions using fallback coordinates (recovered from timeout)` :
-            `No attractions found within ${maxDistance} miles using fallback coordinates`,
+          message: `Fallback search found ${attractions.length} attractions near ${cityName}`,
           citySearched: cityName,
           stateSearched: state
         };
-      } catch (fallbackError) {
-        console.error('❌ Fallback search failed:', fallbackError);
+      } catch (error) {
+        console.error('❌ Fallback search failed:', error);
         return null;
       }
     }
     
     return null;
-  }
-
-  private static async performAttractionSearch(
-    cityName: string,
-    state: string,
-    maxDistance: number,
-    searchId: string
-  ): Promise<AttractionSearchResult> {
-    const allStops = await TimeoutUtility.withTimeout(
-      SupabaseDataService.fetchAllStops(),
-      5000,
-      'Database fetch timeout'
-    );
-
-    AttractionSearchLogger.logAttractionSearch('database_fetch_complete', {
-      searchId,
-      totalStops: allStops.length
-    });
-
-    const destinationCity = this.findDestinationCity(allStops, cityName, state);
-    
-    if (!destinationCity) {
-      const fallbackCoords = FallbackCoordinatesService.getFallbackCoordinates(cityName, state);
-      
-      if (fallbackCoords) {
-        AttractionSearchLogger.logAttractionSearch('using_fallback_coordinates', {
-          searchId,
-          cityName,
-          state,
-          coordinates: fallbackCoords
-        }, 'warn');
-
-        const attractions = this.findAttractionsNearCoordinates(
-          fallbackCoords.latitude,
-          fallbackCoords.longitude,
-          allStops,
-          maxDistance,
-          cityName,
-          searchId
-        );
-
-        return {
-          status: attractions.length > 0 ? AttractionSearchStatus.SUCCESS : AttractionSearchStatus.NO_ATTRACTIONS,
-          attractions,
-          message: attractions.length > 0 ? 
-            `Found ${attractions.length} attractions using fallback coordinates` :
-            `No attractions found within ${maxDistance} miles using fallback coordinates`,
-          citySearched: cityName,
-          stateSearched: state
-        };
-      }
-
-      AttractionSearchLogger.logAttractionSearch('destination_city_not_found', {
-        searchId,
-        cityName,
-        state,
-        availableCities: allStops
-          .filter(stop => stop.category === 'destination_city')
-          .map(stop => `${stop.city_name}, ${stop.state}`)
-      }, 'warn');
-
-      return {
-        status: AttractionSearchStatus.CITY_NOT_FOUND,
-        attractions: [],
-        message: `City "${cityName}, ${state}" not found in database`,
-        citySearched: cityName,
-        stateSearched: state
-      };
-    }
-
-    const validation = AttractionValidationService.validateDestinationCity(destinationCity, cityName);
-    if (!validation.isValid) {
-      AttractionSearchLogger.logAttractionSearch('destination_city_invalid', {
-        searchId,
-        cityName,
-        state,
-        issues: validation.issues
-      }, 'error');
-      
-      return {
-        status: AttractionSearchStatus.ERROR,
-        attractions: [],
-        message: `Invalid data for ${cityName}: ${validation.issues.join(', ')}`,
-        citySearched: cityName,
-        stateSearched: state
-      };
-    }
-
-    AttractionSearchLogger.logAttractionSearch('destination_city_found', {
-      searchId,
-      city: destinationCity.name,
-      coordinates: {
-        lat: destinationCity.latitude,
-        lng: destinationCity.longitude
-      }
-    });
-
-    const attractions = this.findAttractionsNearCoordinates(
-      destinationCity.latitude,
-      destinationCity.longitude,
-      allStops,
-      maxDistance,
-      cityName,
-      searchId,
-      destinationCity.id
-    );
-
-    return {
-      status: attractions.length > 0 ? AttractionSearchStatus.SUCCESS : AttractionSearchStatus.NO_ATTRACTIONS,
-      attractions,
-      message: attractions.length > 0 ? 
-        `Found ${attractions.length} attractions near ${cityName}` :
-        `No attractions found within ${maxDistance} miles of ${cityName}`,
-      citySearched: cityName,
-      stateSearched: state
-    };
-  }
-
-  private static findDestinationCity(allStops: TripStop[], cityName: string, state: string): TripStop | undefined {
-    const normalizedCityName = cityName.toLowerCase().trim();
-    const normalizedState = state.toLowerCase().trim();
-
-    // Exact match first
-    let destinationCity = allStops.find(stop => 
-      stop.city_name?.toLowerCase() === normalizedCityName &&
-      stop.state?.toLowerCase() === normalizedState
-    );
-
-    if (destinationCity) return destinationCity;
-
-    // Partial match within same state
-    destinationCity = allStops.find(stop => 
-      stop.state?.toLowerCase() === normalizedState &&
-      (stop.city_name?.toLowerCase().includes(normalizedCityName) ||
-       normalizedCityName.includes(stop.city_name?.toLowerCase() || ''))
-    );
-
-    if (destinationCity) return destinationCity;
-
-    // Fallback to name-only match
-    return allStops.find(stop => 
-      stop.name?.toLowerCase() === normalizedCityName ||
-      stop.city_name?.toLowerCase() === normalizedCityName
-    );
   }
 
   private static findAttractionsNearCoordinates(
@@ -513,114 +367,77 @@ export class GeographicAttractionService {
     maxDistance: number,
     cityName: string,
     searchId: string,
-    excludeStopId?: string
+    excludeId?: string
   ): NearbyAttraction[] {
-    const nearbyAttractions: NearbyAttraction[] = [];
-    let validStopsCount = 0;
-    let invalidStopsCount = 0;
-
-    for (const stop of allStops) {
-      if (excludeStopId && stop.id === excludeStopId) continue;
-
-      const validation = AttractionValidationService.validateStopData(stop);
-      if (!validation.isValid) {
-        invalidStopsCount++;
-        continue;
-      }
-      validStopsCount++;
-
-      const distance = DistanceCalculationService.calculateDistance(
-        latitude,
-        longitude,
-        stop.latitude,
-        stop.longitude
-      );
-
-      if (distance <= maxDistance && this.isAttractionType(stop)) {
-        nearbyAttractions.push({
+    const attractions = allStops
+      .filter(stop => {
+        // Exclude the destination city itself
+        if (excludeId && stop.id === excludeId) return false;
+        
+        // Only include attraction types
+        return this.isAttractionType(stop);
+      })
+      .map(stop => {
+        const distance = DistanceCalculationService.calculateDistance(
+          latitude, longitude,
+          stop.latitude, stop.longitude
+        );
+        
+        return {
           ...stop,
           distanceFromCity: distance,
-          attractionType: this.categorizeAttraction(stop)
-        });
-      }
-    }
+          attractionType: this.getAttractionType(stop)
+        } as NearbyAttraction;
+      })
+      .filter(attraction => attraction.distanceFromCity <= maxDistance)
+      .sort((a, b) => a.distanceFromCity - b.distanceFromCity)
+      .slice(0, this.MAX_ATTRACTIONS);
 
-    console.log(`🎯 Attraction filtering complete for "${cityName}":`, {
-      searchId,
-      validStops: validStopsCount,
-      invalidStops: invalidStopsCount,
-      attractionsInRange: nearbyAttractions.length,
-      radius: maxDistance
-    });
-
-    AttractionSearchLogger.logAttractionSearch('attraction_filtering_complete', {
-      searchId,
-      validStops: validStopsCount,
-      invalidStops: invalidStopsCount,
-      attractionsInRange: nearbyAttractions.length,
-      cityName
-    });
-
-    const sortedAttractions = nearbyAttractions.sort((a, b) => {
-      const aScore = (a.is_major_stop ? -10 : 0) + a.distanceFromCity;
-      const bScore = (b.is_major_stop ? -10 : 0) + b.distanceFromCity;
-      return aScore - bScore;
-    });
-
-    const finalResult = sortedAttractions.slice(0, this.MAX_ATTRACTIONS);
-
-    AttractionSearchLogger.logAttractionSearch('attraction_search_complete', {
-      searchId,
-      finalCount: finalResult.length,
-      attractions: finalResult.map(a => ({ 
-        name: a.name, 
-        distance: a.distanceFromCity.toFixed(1),
-        type: a.attractionType 
-      }))
-    });
-
-    return finalResult;
+    console.log(`🎯 Found ${attractions.length} attractions within ${maxDistance} miles of coordinates (${latitude}, ${longitude})`);
+    return attractions;
   }
-  
+
   private static isAttractionType(stop: TripStop): boolean {
-    const attractionCategories = [
-      'attraction',
-      'historic_site',
-      'restaurant',
-      'lodging',
-      'museum',
-      'park',
-      'scenic_view',
-      'roadside_attraction',
-      'drive_in'
-    ];
-    
-    return attractionCategories.includes(stop.category);
+    const validCategories = ['attraction', 'hidden_gem', 'drive_in', 'route66_waypoint'];
+    return validCategories.includes(stop.category);
   }
-  
-  private static categorizeAttraction(stop: TripStop): 'attraction' | 'hidden_gem' | 'drive_in' | 'waypoint' {
-    if (stop.category === 'drive_in') return 'drive_in';
-    if (stop.category === 'roadside_attraction' || stop.is_major_stop) return 'attraction';
-    return 'hidden_gem';
+
+  private static getAttractionType(stop: TripStop): 'attraction' | 'hidden_gem' | 'drive_in' | 'waypoint' {
+    switch (stop.category) {
+      case 'hidden_gem':
+        return 'hidden_gem';
+      case 'drive_in':
+        return 'drive_in';
+      case 'route66_waypoint':
+        return 'waypoint';
+      default:
+        return 'attraction';
+    }
   }
-  
+
   static getAttractionIcon(attraction: NearbyAttraction): string {
     switch (attraction.attractionType) {
-      case 'drive_in': return '🎬';
-      case 'attraction': return '🏛️';
-      case 'hidden_gem': return '💎';
-      case 'waypoint': return '📍';
-      default: return '🎯';
+      case 'hidden_gem':
+        return '💎';
+      case 'drive_in':
+        return '🚗';
+      case 'waypoint':
+        return '📍';
+      default:
+        return '🎯';
     }
   }
-  
+
   static getAttractionTypeLabel(attraction: NearbyAttraction): string {
     switch (attraction.attractionType) {
-      case 'drive_in': return 'Drive-In Theater';
-      case 'attraction': return 'Major Attraction';
-      case 'hidden_gem': return 'Hidden Gem';
-      case 'waypoint': return 'Route 66 Waypoint';
-      default: return 'Attraction';
+      case 'hidden_gem':
+        return 'Hidden Gem';
+      case 'drive_in':
+        return 'Drive-In';
+      case 'waypoint':
+        return 'Route 66 Stop';
+      default:
+        return 'Attraction';
     }
   }
 
@@ -629,67 +446,17 @@ export class GeographicAttractionService {
       const allStops = await SupabaseDataService.fetchAllStops();
       const destinationCities = allStops.filter(stop => stop.category === 'destination_city');
       
-      const normalizedCityName = cityName.toLowerCase().trim();
-      const normalizedState = state.toLowerCase().trim();
-
-      const exactMatches = destinationCities.filter(city => 
-        city.city_name?.toLowerCase() === normalizedCityName &&
-        city.state?.toLowerCase() === normalizedState
-      );
-
-      const partialMatches = destinationCities.filter(city => 
-        city.state?.toLowerCase() === normalizedState &&
-        (city.city_name?.toLowerCase().includes(normalizedCityName) ||
-         normalizedCityName.includes(city.city_name?.toLowerCase() || ''))
-      );
-
-      const nameOnlyMatches = destinationCities.filter(city => 
-        city.name?.toLowerCase() === normalizedCityName ||
-        city.city_name?.toLowerCase() === normalizedCityName
-      );
-      
       return {
         searchTerm: `${cityName}, ${state}`,
-        normalizedSearch: `${normalizedCityName}, ${normalizedState}`,
         totalStops: allStops.length,
         destinationCities: destinationCities.length,
-        
-        matchingResults: {
-          exactMatches: exactMatches.map(city => ({
-            id: city.id,
-            name: city.name,
-            city_name: city.city_name,
-            state: city.state,
-            coordinates: { lat: city.latitude, lng: city.longitude }
-          })),
-          partialMatches: partialMatches.map(city => ({
-            id: city.id,
-            name: city.name,
-            city_name: city.city_name,
-            state: city.state,
-            coordinates: { lat: city.latitude, lng: city.longitude }
-          })),
-          nameOnlyMatches: nameOnlyMatches.map(city => ({
-            id: city.id,
-            name: city.name,
-            city_name: city.city_name,
-            state: city.state,
-            coordinates: { lat: city.latitude, lng: city.longitude }
-          }))
-        },
-        
-        fallbackCoordinates: FallbackCoordinatesService.getFallbackCoordinates(cityName, state),
-        
-        availableCitiesInState: destinationCities
-          .filter(city => city.state?.toLowerCase() === normalizedState)
-          .map(city => ({
-            name: city.name,
-            city_name: city.city_name,
-            state: city.state,
-            coordinates: { lat: city.latitude, lng: city.longitude }
-          })),
-          
-        allAvailableStates: [...new Set(destinationCities.map(city => city.state))].sort()
+        availableCities: destinationCities.map(city => ({
+          name: city.name,
+          city_name: city.city_name,
+          state: city.state,
+          coordinates: { lat: city.latitude, lng: city.longitude }
+        })).slice(0, 10),
+        fallbackCoordinates: FallbackCoordinatesService.getFallbackCoordinates(cityName, state)
       };
     } catch (error) {
       return {
