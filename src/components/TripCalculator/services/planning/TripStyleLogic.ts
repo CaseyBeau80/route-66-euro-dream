@@ -1,4 +1,3 @@
-
 import { StyleConfig } from './SegmentRebalancingService';
 
 export type TripStyle = 'balanced' | 'destination-focused';
@@ -10,7 +9,7 @@ export interface TripStyleConfig {
   maxDailyDriveHours: number;
   style: TripStyle;
   preferDestinationCities: boolean;
-  enforcementLevel?: 'strict' | 'moderate' | 'relaxed';
+  enforcementLevel?: 'strict' | 'moderate' | 'flexible';
 }
 
 export class TripStyleLogic {
