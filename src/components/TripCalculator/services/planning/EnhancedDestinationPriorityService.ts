@@ -135,7 +135,8 @@ export class EnhancedDestinationPriorityService extends DestinationPriorityServi
     driveTimeTarget: DriveTimeTarget,
     avgSpeedMph: number = 50
   ): number {
-    const distance = this.calculateDistance(
+    // Use the parent class's calculateDistance method instead of our own
+    const distance = super['calculateDistance'](
       currentStop.latitude, currentStop.longitude,
       candidateStop.latitude, candidateStop.longitude
     );
@@ -159,24 +160,6 @@ export class EnhancedDestinationPriorityService extends DestinationPriorityServi
     }
 
     return compatibilityScore;
-  }
-
-  /**
-   * Calculate distance between two points (haversine formula)
-   */
-  private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 3958.8; // Earth's radius in miles
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
   }
 
   /**
