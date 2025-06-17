@@ -36,6 +36,7 @@ export class GoogleMapsIntegrationService {
    */
   private static tripStopToDestination(stop: TripStop) {
     return {
+      id: stop.id,
       name: stop.name,
       state: stop.state || 'Unknown',
       latitude: stop.latitude,
