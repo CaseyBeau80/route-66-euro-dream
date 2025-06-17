@@ -2,21 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 
-export interface TripStop {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  city_name: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  image_url?: string;
-  is_major_stop?: boolean;
-  is_official_destination?: boolean;
-  city: string;
-}
-
 export class SupabaseDataService {
   /**
    * Fetch ONLY destination cities from Supabase - NO waypoints
@@ -54,7 +39,9 @@ export class SupabaseDataService {
         longitude: Number(city.longitude),
         image_url: city.image_url,
         is_major_stop: true, // All destination cities are major stops
-        is_official_destination: city.featured || false
+        is_official_destination: city.featured || false,
+        population: city.population || 0, // Include population data
+        sequence_order: city.sequence_order // Include sequence order
       }));
 
       console.log(`✅ DESTINATION CITIES ONLY: Loaded ${tripStops.length} destination cities (NO waypoints)`);
@@ -87,7 +74,9 @@ export class SupabaseDataService {
         latitude: 41.8781,
         longitude: -87.6298,
         is_major_stop: true,
-        is_official_destination: true
+        is_official_destination: true,
+        population: 2700000,
+        sequence_order: 1
       },
       {
         id: "joliet-il",
@@ -99,7 +88,9 @@ export class SupabaseDataService {
         state: "IL",
         latitude: 41.5250,
         longitude: -88.0817,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 150000,
+        sequence_order: 5
       },
       {
         id: "pontiac-il",
@@ -111,7 +102,9 @@ export class SupabaseDataService {
         state: "IL",
         latitude: 40.8808,
         longitude: -88.6298,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 11000,
+        sequence_order: 10
       },
       {
         id: "springfield-il",
@@ -123,7 +116,9 @@ export class SupabaseDataService {
         state: "IL",
         latitude: 39.7817,
         longitude: -89.6501,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 115000,
+        sequence_order: 15
       },
       
       // Missouri
@@ -137,7 +132,9 @@ export class SupabaseDataService {
         state: "MO",
         latitude: 38.6270,
         longitude: -90.1994,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 300000,
+        sequence_order: 20
       },
       {
         id: "springfield-mo",
@@ -150,7 +147,9 @@ export class SupabaseDataService {
         latitude: 37.2153,
         longitude: -93.2982,
         is_major_stop: true,
-        is_official_destination: true
+        is_official_destination: true,
+        population: 170000,
+        sequence_order: 25
       },
       {
         id: "joplin-mo",
@@ -162,7 +161,9 @@ export class SupabaseDataService {
         state: "MO",
         latitude: 37.0842,
         longitude: -94.5133,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 50000,
+        sequence_order: 30
       },
       
       // Oklahoma
@@ -176,7 +177,9 @@ export class SupabaseDataService {
         state: "OK",
         latitude: 36.1540,
         longitude: -95.9928,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 400000,
+        sequence_order: 35
       },
       {
         id: "oklahoma-city-ok",
@@ -188,7 +191,9 @@ export class SupabaseDataService {
         state: "OK",
         latitude: 35.4676,
         longitude: -97.5164,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 700000,
+        sequence_order: 40
       },
       {
         id: "elk-city-ok",
@@ -200,7 +205,9 @@ export class SupabaseDataService {
         state: "OK",
         latitude: 35.4112,
         longitude: -99.4043,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 12000,
+        sequence_order: 45
       },
       
       // Texas
@@ -214,7 +221,9 @@ export class SupabaseDataService {
         state: "TX",
         latitude: 35.2197,
         longitude: -100.2462,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 1800,
+        sequence_order: 50
       },
       {
         id: "amarillo-tx",
@@ -226,7 +235,9 @@ export class SupabaseDataService {
         state: "TX",
         latitude: 35.2220,
         longitude: -101.8313,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 200000,
+        sequence_order: 55
       },
       
       // New Mexico
@@ -240,7 +251,9 @@ export class SupabaseDataService {
         state: "NM",
         latitude: 35.1719,
         longitude: -103.7249,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 5000,
+        sequence_order: 60
       },
       {
         id: "santa-rosa-nm",
@@ -252,7 +265,9 @@ export class SupabaseDataService {
         state: "NM",
         latitude: 34.9394,
         longitude: -104.6819,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 2800,
+        sequence_order: 65
       },
       {
         id: "santa-fe-nm",
@@ -265,7 +280,9 @@ export class SupabaseDataService {
         latitude: 35.6870,
         longitude: -105.9378,
         is_major_stop: true,
-        is_official_destination: true
+        is_official_destination: true,
+        population: 85000,
+        sequence_order: 70
       },
       {
         id: "albuquerque-nm",
@@ -277,7 +294,9 @@ export class SupabaseDataService {
         state: "NM",
         latitude: 35.0844,
         longitude: -106.6504,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 560000,
+        sequence_order: 75
       },
       {
         id: "gallup-nm",
@@ -289,7 +308,9 @@ export class SupabaseDataService {
         state: "NM",
         latitude: 35.5281,
         longitude: -108.7426,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 22000,
+        sequence_order: 80
       },
       
       // Arizona
@@ -303,7 +324,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 34.9025,
         longitude: -110.1665,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 5000,
+        sequence_order: 85
       },
       {
         id: "winslow-az",
@@ -315,7 +338,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 35.0242,
         longitude: -110.6973,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 9000,
+        sequence_order: 90
       },
       {
         id: "flagstaff-az",
@@ -327,7 +352,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 35.1983,
         longitude: -111.6513,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 76000,
+        sequence_order: 95
       },
       {
         id: "williams-az",
@@ -339,7 +366,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 35.2494,
         longitude: -112.1901,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 3000,
+        sequence_order: 100
       },
       {
         id: "seligman-az",
@@ -351,7 +380,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 35.3258,
         longitude: -112.8738,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 456,
+        sequence_order: 105
       },
       {
         id: "kingman-az",
@@ -363,7 +394,9 @@ export class SupabaseDataService {
         state: "AZ",
         latitude: 35.1894,
         longitude: -114.0530,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 30000,
+        sequence_order: 110
       },
       
       // California
@@ -377,7 +410,9 @@ export class SupabaseDataService {
         state: "CA",
         latitude: 34.8483,
         longitude: -114.6144,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 5000,
+        sequence_order: 115
       },
       {
         id: "barstow-ca",
@@ -389,7 +424,9 @@ export class SupabaseDataService {
         state: "CA",
         latitude: 34.8958,
         longitude: -117.0228,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 25000,
+        sequence_order: 120
       },
       {
         id: "san-bernardino-ca",
@@ -401,7 +438,9 @@ export class SupabaseDataService {
         state: "CA",
         latitude: 34.1083,
         longitude: -117.2898,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 215000,
+        sequence_order: 125
       },
       {
         id: "los-angeles-ca",
@@ -413,7 +452,9 @@ export class SupabaseDataService {
         state: "CA",
         latitude: 34.0522,
         longitude: -118.2437,
-        is_major_stop: true
+        is_major_stop: true,
+        population: 4000000,
+        sequence_order: 130
       },
       {
         id: "santa-monica-ca",
@@ -426,7 +467,9 @@ export class SupabaseDataService {
         latitude: 34.0195,
         longitude: -118.4912,
         is_major_stop: true,
-        is_official_destination: true
+        is_official_destination: true,
+        population: 93000,
+        sequence_order: 135
       }
     ];
   }

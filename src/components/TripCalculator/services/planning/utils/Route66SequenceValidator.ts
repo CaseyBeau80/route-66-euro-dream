@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 
 export interface SequenceValidationResult {
   isValid: boolean;
