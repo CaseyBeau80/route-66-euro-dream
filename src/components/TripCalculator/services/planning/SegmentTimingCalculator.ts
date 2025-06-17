@@ -4,6 +4,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { SubStopTimingCalculator, SegmentTiming } from './SubStopTimingCalculator';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { DriveTimeCategory } from './TripPlanBuilder';
+import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
 
 export class SegmentTimingCalculator {
   /**
@@ -31,48 +32,34 @@ export class SegmentTimingCalculator {
       segmentStops
     );
     
-    // Calculate actual drive time from segment timings
+    // CRITICAL FIX: Always use DriveTimeEnforcementService for drive time calculation
     let totalSegmentDriveTime = 0;
     if (segmentTimings.length > 0) {
       totalSegmentDriveTime = segmentTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
     } else {
-      // Fallback to direct calculation if no timings - use realistic speed
-      totalSegmentDriveTime = this.calculateDirectDriveTime(segmentDistance);
+      // CRITICAL: Use DriveTimeEnforcementService instead of local calculation
+      totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
     }
 
-    // Validate drive time is reasonable (max 8 hours per day)
-    if (totalSegmentDriveTime > 8) {
-      console.warn(`⚠️ Excessive drive time ${totalSegmentDriveTime.toFixed(1)}h for ${segmentDistance}mi, using direct route`);
-      totalSegmentDriveTime = this.calculateDirectDriveTime(segmentDistance);
-    }
+    // CRITICAL: Ensure the total drive time is also enforced
+    totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
 
-    console.log(`🚗 Segment ${currentStop.name} → ${dayDestination.name}: ${segmentDistance.toFixed(0)}mi in ${totalSegmentDriveTime.toFixed(1)}h`);
+    console.log(`🚗 SEGMENT TIMING FIX: ${currentStop.name} → ${dayDestination.name}:`, {
+      segmentDistance: segmentDistance.toFixed(1),
+      enforcedDriveTime: totalSegmentDriveTime.toFixed(1),
+      usingEnforcementService: true,
+      absoluteMaxHours: 10
+    });
+
+    if (totalSegmentDriveTime > 10) {
+      console.error(`❌ CRITICAL ERROR: SegmentTimingCalculator still producing drive time > 10h: ${totalSegmentDriveTime.toFixed(1)}h`);
+    }
 
     return {
       segmentTimings,
       totalSegmentDriveTime,
       segmentDistance
     };
-  }
-
-  /**
-   * Calculate direct drive time using realistic speeds
-   */
-  private static calculateDirectDriveTime(distance: number): number {
-    let avgSpeed: number;
-    
-    if (distance < 50) {
-      avgSpeed = 45; // Urban/city driving
-    } else if (distance < 150) {
-      avgSpeed = 55; // Mixed roads
-    } else {
-      avgSpeed = 65; // Highway
-    }
-    
-    const baseTime = distance / avgSpeed;
-    const bufferMultiplier = distance < 100 ? 1.1 : 1.05;
-    
-    return Math.max(baseTime * bufferMultiplier, 0.5);
   }
 
   /**

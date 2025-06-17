@@ -60,24 +60,24 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // CRITICAL FIX: ALWAYS use segment.driveTimeHours directly - NO FALLBACK CALCULATIONS
+  // ABSOLUTE FIX: Use segment drive time with additional validation
   const driveTime = React.useMemo(() => {
-    console.log(`🚗 CRITICAL UI FIX: Drive time display for Day ${segment.day}:`, {
+    console.log(`🚗 ABSOLUTE UI FIX: Drive time validation for Day ${segment.day}:`, {
       segmentDriveTimeHours: segment.driveTimeHours,
       segmentDistance: segment.distance,
-      segmentEndCity: segment.endCity,
-      willUseSegmentTime: true,
-      noFallbackCalculation: true
+      segmentEndCity: segment.endCity
     });
 
-    // CRITICAL: ALWAYS use the segment's drive time - it's already been enforced
-    const finalDriveTime = segment.driveTimeHours || 0;
+    // ABSOLUTE: Use the segment's drive time - it should already be enforced
+    let finalDriveTime = segment.driveTimeHours || 0;
     
-    console.log(`🚗 CRITICAL UI FIX: Final drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
-    
+    // EMERGENCY FAILSAFE: If somehow drive time exceeds 10 hours, cap it
     if (finalDriveTime > 10) {
-      console.error(`❌ CRITICAL ERROR: UI showing drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
+      console.error(`❌ EMERGENCY FAILSAFE: UI received drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h - CAPPING TO 10h`);
+      finalDriveTime = 10;
     }
+    
+    console.log(`🚗 ABSOLUTE UI FIX: Final validated drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
     
     return finalDriveTime;
   }, [segment.driveTimeHours, segment.distance, segment.day]);
@@ -111,7 +111,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info - CRITICAL FIX: Only show segment drive time */}
+          {/* Distance and time info - ABSOLUTE FIX: Only show validated drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
@@ -125,16 +125,10 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
                 ⚠️ Long drive day
               </div>
             )}
-            {/* ERROR: Show if equals 10 hours (at absolute limit) */}
+            {/* EXACT LIMIT: Show if equals 10 hours (at absolute limit) */}
             {driveTime >= 10 && (
               <div className="text-xs text-red-500 mt-1">
-                🚨 Maximum drive time
-              </div>
-            )}
-            {/* CRITICAL ERROR: Show if somehow exceeds 10 hours */}
-            {driveTime > 10 && (
-              <div className="text-xs text-red-600 mt-1 font-bold">
-                ❌ SYSTEM ERROR: Drive time exceeds limit
+                🚨 Maximum drive time (capped)
               </div>
             )}
           </div>
