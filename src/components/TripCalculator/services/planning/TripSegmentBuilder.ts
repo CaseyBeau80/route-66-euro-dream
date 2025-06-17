@@ -3,6 +3,7 @@ import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment } from './TripPlanTypes';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
+import { SequenceOrderService } from './SequenceOrderService';
 
 export class TripCompletionService {
   static calculateRouteProgression(
@@ -109,6 +110,23 @@ export class TripSegmentBuilder {
     tripDays: number,
     styleConfig: any
   ): DailySegment[] {
+    console.log(`🏗️ Building segments with sequence-aware validation`);
+    
+    // Validate sequence progression before building segments
+    const allTripStops = [startStop, ...selectedDestinationCities, endStop];
+    const sequenceValidation = SequenceOrderService.validateSequenceProgression(allTripStops);
+    
+    if (!sequenceValidation.isValid) {
+      console.warn(`⚠️ Sequence violations detected before building segments:`, sequenceValidation.violations);
+      
+      // Attempt to fix sequence by re-sorting destinations
+      const direction = SequenceOrderService.getTripDirection(startStop, endStop);
+      const correctedDestinations = SequenceOrderService.sortBySequence(selectedDestinationCities, direction);
+      
+      console.log(`🔧 Attempting to fix sequence by re-sorting destinations`);
+      selectedDestinationCities = correctedDestinations;
+    }
+    
     const segments: DailySegment[] = [];
     let currentStop = startStop;
 
@@ -118,6 +136,23 @@ export class TripSegmentBuilder {
     // Create segments through selected destinations
     for (let i = 0; i < selectedDestinationCities.length; i++) {
       const nextStop = selectedDestinationCities[i];
+      
+      // Validate this specific segment maintains sequence
+      const direction = SequenceOrderService.getTripDirection(startStop, endStop);
+      const currentOrder = SequenceOrderService.getSequenceOrder(currentStop);
+      const nextOrder = SequenceOrderService.getSequenceOrder(nextStop);
+      
+      let isValidProgression = false;
+      if (direction === 'westbound') {
+        isValidProgression = nextOrder >= currentOrder;
+      } else {
+        isValidProgression = nextOrder <= currentOrder;
+      }
+      
+      if (!isValidProgression) {
+        console.warn(`⚠️ Sequence violation: ${currentStop.name} (${currentOrder}) → ${nextStop.name} (${nextOrder}) for ${direction} travel`);
+      }
+      
       const segment = this.buildSegment(currentStop, nextStop, segments, totalDistance);
       segments.push(segment);
       currentStop = nextStop;
@@ -127,6 +162,14 @@ export class TripSegmentBuilder {
     if (currentStop.id !== endStop.id) {
       const finalSegment = this.buildSegment(currentStop, endStop, segments, totalDistance);
       segments.push(finalSegment);
+    }
+
+    // Final validation of complete trip sequence
+    const finalValidation = SequenceOrderService.validateSequenceProgression(allTripStops);
+    if (finalValidation.isValid) {
+      console.log(`✅ Sequence-validated segments built successfully: ${segments.length} segments`);
+    } else {
+      console.warn(`⚠️ Final sequence validation failed:`, finalValidation.violations);
     }
 
     return segments;
