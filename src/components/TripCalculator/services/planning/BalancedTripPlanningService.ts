@@ -1,4 +1,5 @@
 
+
 import { TripStop } from '../../types/TripStop';
 import { TripPlan, DailySegment, RecommendedStop } from './TripPlanTypes';
 import { CityDisplayService } from '../utils/CityDisplayService';
@@ -72,7 +73,7 @@ export class BalancedTripPlanningService {
   }
 
   /**
-   * Enhanced city finding with multiple matching strategies
+   * FIXED: Simplified and robust city finding that matches other validators
    */
   private static findCityInStops(searchTerm: string, allStops: TripStop[]): TripStop | undefined {
     if (!searchTerm || !allStops?.length) return undefined;
@@ -82,6 +83,7 @@ export class BalancedTripPlanningService {
     // Strategy 1: Direct exact match on display name (City, State format)
     for (const stop of allStops) {
       const displayName = CityDisplayService.getCityDisplayName(stop);
+      console.log(`    BALANCED SERVICE: Checking display name: "${displayName}" vs "${searchTerm}"`);
       if (displayName.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
         console.log(`✅ BALANCED SERVICE: Direct display name match: ${displayName}`);
         return stop;
@@ -90,6 +92,7 @@ export class BalancedTripPlanningService {
 
     // Strategy 2: Direct exact match on stop name
     for (const stop of allStops) {
+      console.log(`    BALANCED SERVICE: Checking stop name: "${stop.name}" vs "${searchTerm}"`);
       if (stop.name.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
         console.log(`✅ BALANCED SERVICE: Direct stop name match: ${stop.name}`);
         return stop;
@@ -98,6 +101,7 @@ export class BalancedTripPlanningService {
 
     // Strategy 3: Parse city, state and match components
     const { city: searchCity, state: searchState } = this.parseCityState(searchTerm);
+    console.log(`🔍 BALANCED SERVICE: Parsed components - city: "${searchCity}", state: "${searchState}"`);
     
     if (searchState) {
       for (const stop of allStops) {
@@ -106,6 +110,8 @@ export class BalancedTripPlanningService {
         
         const cityMatch = cleanStopCity.toLowerCase() === searchCity.toLowerCase();
         const stateMatch = stop.state.toLowerCase() === searchState.toLowerCase();
+        
+        console.log(`    BALANCED SERVICE: Component check: "${cleanStopCity}" (${stop.state}) vs "${searchCity}" (${searchState}) - cityMatch: ${cityMatch}, stateMatch: ${stateMatch}`);
         
         if (cityMatch && stateMatch) {
           console.log(`✅ BALANCED SERVICE: Component match: ${cleanStopCity}, ${stop.state}`);
@@ -290,3 +296,4 @@ export class BalancedTripPlanningService {
     return segments;
   }
 }
+
