@@ -25,6 +25,12 @@ export class TripPlanValidator {
     console.log(`🔍 Enhanced validation with state disambiguation for: "${startCityName}" → "${endCityName}"`);
     console.log(`📊 Available stops: ${allStops.length}`);
     
+    // DEBUG: Log all available stops with their exact names
+    console.log('🗂️ DEBUG: All available stops:');
+    allStops.forEach((stop, index) => {
+      console.log(`  ${index + 1}. ID: "${stop.id}", Name: "${stop.name}", City: "${stop.city_name || stop.city}", State: "${stop.state}"`);
+    });
+    
     // Enhanced start stop finding with state disambiguation
     if (!startStop) {
       console.log(`🔍 Enhanced search for start location: "${startCityName}"`);
@@ -34,6 +40,15 @@ export class TripPlanValidator {
       if (!startStop) {
         console.error(`❌ Could not find start location: "${startCityName}"`);
         this.logAvailableStopsForDebugging(allStops);
+        
+        // Try a more aggressive search to see what might match
+        console.log('🔍 DEBUG: Attempting aggressive search for Chicago...');
+        const chicagoMatches = allStops.filter(stop => {
+          const name = (stop.name || '').toLowerCase();
+          const cityName = (stop.city_name || stop.city || '').toLowerCase();
+          return name.includes('chicago') || cityName.includes('chicago');
+        });
+        console.log('🔍 DEBUG: Chicago matches found:', chicagoMatches);
         
         throw new Error(`Start location "${startCityName}" not found in Route 66 stops. Available cities include: ${this.getAvailableCityNames(allStops).slice(0, 5).join(', ')}`);
       }
@@ -89,13 +104,23 @@ export class TripPlanValidator {
 
     // Strategy 1: Exact match with both city and state (highest priority)
     if (searchState) {
+      console.log(`🔍 Strategy 1: Looking for exact match with city="${searchCity}" and state="${searchState}"`);
+      
       const exactMatches = allStops.filter(stop => {
         const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
         const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
         const normalizedStopState = CityNameNormalizationService.normalizeSearchTerm(stop.state || '');
         const normalizedSearchState = CityNameNormalizationService.normalizeSearchTerm(searchState);
         
-        return normalizedStopCity === normalizedSearchCity && normalizedStopState === normalizedSearchState;
+        console.log(`    Checking stop: "${stop.name}" (${stop.state}) vs search: "${searchCity}" (${searchState})`);
+        console.log(`    Normalized: "${normalizedStopCity}" (${normalizedStopState}) vs "${normalizedSearchCity}" (${normalizedSearchState})`);
+        
+        const cityMatch = normalizedStopCity === normalizedSearchCity;
+        const stateMatch = normalizedStopState === normalizedSearchState;
+        
+        console.log(`    City match: ${cityMatch}, State match: ${stateMatch}`);
+        
+        return cityMatch && stateMatch;
       });
       
       if (exactMatches.length === 1) {
@@ -106,13 +131,23 @@ export class TripPlanValidator {
         // Return first match but log the ambiguity
         return exactMatches[0];
       }
+      
+      console.log(`🔍 Strategy 1 failed: No exact city+state match found`);
     }
 
     // Strategy 2: City-only search with disambiguation warnings
+    console.log(`🔍 Strategy 2: Looking for city-only match with "${searchCity}"`);
+    
     const cityOnlyMatches = allStops.filter(stop => {
       const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stop.name || stop.city_name || '');
       const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
-      return normalizedStopCity === normalizedSearchCity;
+      
+      console.log(`    Checking city-only: "${stop.name}" normalized to "${normalizedStopCity}" vs "${normalizedSearchCity}"`);
+      
+      const matches = normalizedStopCity === normalizedSearchCity;
+      console.log(`    City-only match: ${matches}`);
+      
+      return matches;
     });
 
     if (cityOnlyMatches.length === 1) {
@@ -143,11 +178,17 @@ export class TripPlanValidator {
       return cityOnlyMatches[0];
     }
 
+    console.log(`🔍 Strategy 2 failed: No city-only match found`);
+
     // Strategy 3: Fuzzy matching as last resort
+    console.log(`🔍 Strategy 3: Attempting fuzzy matching for "${cityName}"`);
+    
     for (const stop of allStops) {
       const displayName = CityDisplayService.getCityDisplayName(stop);
       const normalizedDisplay = CityNameNormalizationService.normalizeSearchTerm(displayName);
       const normalizedSearch = CityNameNormalizationService.normalizeSearchTerm(cityName);
+      
+      console.log(`    Fuzzy check: "${displayName}" normalized to "${normalizedDisplay}" vs "${normalizedSearch}"`);
       
       if (normalizedDisplay.includes(normalizedSearch) || normalizedSearch.includes(normalizedDisplay)) {
         console.log(`✅ Strategy 3 - Fuzzy match: ${displayName}`);
