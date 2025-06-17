@@ -1,4 +1,55 @@
+
 import { TripStop } from '../data/SupabaseDataService';
+
+export interface DriveTimeCategory {
+  category: string;
+  message: string;
+  color?: string;
+}
+
+export interface RecommendedStop {
+  stopId: string;
+  id: string;
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  category?: string;
+  city_name?: string;
+  state?: string;
+  city?: string;
+}
+
+export interface WeatherData {
+  temperature?: number;
+  highTemp?: number;
+  lowTemp?: number;
+  description?: string;
+  condition?: string;
+  humidity?: number;
+  windSpeed?: number;
+  precipitation?: number;
+  cloudCover?: number;
+  isActualForecast?: boolean;
+  main?: {
+    temp: number;
+    temp_min: number;
+    temp_max: number;
+    humidity: number;
+  };
+  temp?: {
+    day: number;
+    min: number;
+    max: number;
+  };
+  weather?: Array<{
+    description: string;
+    icon: string;
+    main: string;
+  }>;
+  icon?: string;
+  source?: string;
+}
 
 export interface DailySegment {
   day: number;
@@ -14,11 +65,15 @@ export interface DailySegment {
     city: string;
     state: string;
   };
-  recommendedStops?: TripStop[];
+  recommendedStops?: RecommendedStop[];
   attractions?: any[];
-  driveTimeCategory?: 'comfortable' | 'moderate' | 'extended';
+  driveTimeCategory?: DriveTimeCategory;
   routeSection?: string;
   subStopTimings?: any[];
+  notes?: string;
+  recommendations?: string[];
+  weather?: WeatherData;
+  weatherData?: WeatherData;
 }
 
 export interface SegmentTiming {
@@ -27,11 +82,27 @@ export interface SegmentTiming {
 }
 
 export interface TripPlan {
+  id?: string;
   segments: DailySegment[];
+  dailySegments?: DailySegment[];
   totalDays: number;
   totalDistance: number;
   totalDrivingTime: number; // Keep this as the main property
   totalDriveTime?: number; // Add as optional for backward compatibility
+  totalMiles?: number;
+  startCity?: string;
+  endCity?: string;
+  title?: string;
+  startCityImage?: string;
+  endCityImage?: string;
+  isEnriched?: boolean;
+  enrichmentStatus?: {
+    weatherData?: boolean;
+    stopsData?: boolean;
+    validationComplete?: boolean;
+  };
+  lastUpdated?: Date;
+  exportTimestamp?: number;
   summary?: {
     totalDays: number;
     totalDistance: number;
@@ -40,8 +111,21 @@ export interface TripPlan {
     endLocation: string;
     tripStyle?: string;
   };
-  startCity?: string;
-  endCity?: string;
+}
+
+// Add utility functions that components expect
+export const getDestinationCityName = (segment: DailySegment): string => {
+  return segment.endCity || segment.destination?.city || 'Unknown';
+};
+
+export class TripPlanDataValidator {
+  static validateTripPlan(tripPlan: TripPlan): boolean {
+    return !!(tripPlan && tripPlan.segments && tripPlan.segments.length > 0);
+  }
+  
+  static validateDailySegment(segment: DailySegment): boolean {
+    return !!(segment && segment.day && segment.startCity && segment.endCity);
+  }
 }
 
 export class TripPlanBuilder {
@@ -75,7 +159,15 @@ export class TripPlanBuilder {
           endCity: nextStop.name,
           distance,
           driveTimeHours,
-          stops: [currentStop, nextStop]
+          stops: [currentStop, nextStop],
+          approximateMiles: distance,
+          title: `${currentCity} to ${nextStop.name}`,
+          destination: {
+            city: nextStop.name,
+            state: nextStop.state || ''
+          },
+          recommendedStops: [],
+          attractions: []
         });
 
         currentCity = nextStop.name;
@@ -91,7 +183,15 @@ export class TripPlanBuilder {
           endCity: endStop.name,
           distance,
           driveTimeHours,
-          stops: [currentStop, endStop]
+          stops: [currentStop, endStop],
+          approximateMiles: distance,
+          title: `${currentCity} to ${endStop.name}`,
+          destination: {
+            city: endStop.name,
+            state: endStop.state || ''
+          },
+          recommendedStops: [],
+          attractions: []
         });
         break;
       }
@@ -104,10 +204,16 @@ export class TripPlanBuilder {
     const totalDrivingTime = segments.reduce((sum, segment) => sum + segment.driveTimeHours, 0);
 
     return {
+      id: `trip-${Date.now()}`,
       segments,
+      dailySegments: segments,
       totalDays: travelDays,
       totalDistance,
       totalDrivingTime,
+      totalMiles: totalDistance,
+      startCity: startLocation,
+      endCity: endLocation,
+      title: `${startLocation} to ${endLocation} Adventure`,
       summary: {
         totalDays: travelDays,
         totalDistance,

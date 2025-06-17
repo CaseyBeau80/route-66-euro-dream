@@ -12,6 +12,7 @@ export interface TripCompletionAnalysis {
     overallScore: number;
   };
   recommendations?: string[];
-  duplicateSegments?: any[]; // Add for compatibility
-  totalUsefulDays?: number; // Add for compatibility
+  duplicateSegments?: any[];
+  totalUsefulDays?: number;
+  unusedDays?: number; // Add this missing property
 }
