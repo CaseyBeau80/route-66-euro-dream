@@ -1,6 +1,6 @@
 
 import { TripStop } from '../../types/TripStop';
-import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripPlan, DailySegment, RecommendedStop } from './TripPlanTypes';
 import { CityDisplayService } from '../utils/CityDisplayService';
 
 export class BalancedTripPlanningService {
@@ -57,13 +57,16 @@ export class BalancedTripPlanningService {
     const segments = this.distributeStopsAcrossDays(routeStops, tripDays, totalDistance);
     
     return {
+      id: `trip-${Date.now()}`, // Add required id
       startCity: startCityName,
       endCity: endCityName,
+      startDate: new Date(), // Add required startDate
       totalDays: tripDays,
       totalDistance,
       totalMiles: Math.round(totalDistance),
       totalDrivingTime: segments.reduce((total, seg) => total + seg.driveTimeHours, 0),
       segments,
+      dailySegments: segments, // Add required dailySegments (copy of segments)
       lastUpdated: new Date()
     };
   }
@@ -206,6 +209,24 @@ export class BalancedTripPlanningService {
   }
 
   /**
+   * Convert TripStop[] to RecommendedStop[] format
+   */
+  private static convertTripStopsToRecommendedStops(tripStops: TripStop[]): RecommendedStop[] {
+    return tripStops.map(stop => ({
+      stopId: stop.id,
+      id: stop.id,
+      name: stop.name,
+      description: stop.description || `Explore ${stop.name} on your Route 66 journey`,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      category: stop.category,
+      city_name: stop.city_name,
+      state: stop.state,
+      city: stop.city
+    }));
+  }
+
+  /**
    * Distribute stops across the specified number of days
    */
   private static distributeStopsAcrossDays(
@@ -239,16 +260,24 @@ export class BalancedTripPlanningService {
       const segmentDistance = this.calculateTotalDistance(startStop, endStop);
       const driveTimeHours = segmentDistance / 50; // Assume 50 mph average
       
+      // Convert intermediate stops to RecommendedStop format
+      const intermediateStops = routeStops.slice(currentStopIndex + 1, endStopIndex);
+      const recommendedStops = this.convertTripStopsToRecommendedStops(intermediateStops);
+      
       segments.push({
         day: currentDay,
+        title: `Day ${currentDay}: ${startStop.name} to ${endStop.name}`,
         startCity: startStop.name,
         endCity: endStop.name,
         distance: segmentDistance,
         driveTimeHours,
         drivingTime: driveTimeHours,
         approximateMiles: segmentDistance,
-        destination: endStop,
-        recommendedStops: routeStops.slice(currentStopIndex + 1, endStopIndex),
+        destination: {
+          city: endStop.city_name || endStop.city || endStop.name,
+          state: endStop.state
+        },
+        recommendedStops,
         attractions: [],
         notes: `Day ${currentDay}: Travel from ${startStop.name} to ${endStop.name}`,
         recommendations: []
