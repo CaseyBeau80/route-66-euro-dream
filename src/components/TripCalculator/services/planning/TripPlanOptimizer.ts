@@ -1,6 +1,5 @@
-
 import { TripPlan, DailySegment } from './TripPlanTypes';
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 
 export interface OptimizationResult {
   optimizedPlan: TripPlan;

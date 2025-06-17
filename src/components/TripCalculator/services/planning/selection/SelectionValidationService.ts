@@ -1,5 +1,5 @@
 
-import { TripStop } from '../../data/SupabaseDataService';
+import { TripStop } from '../../../types/TripStop';
 import { DistanceValidationService } from '../DistanceValidationService';
 
 export class SelectionValidationService {

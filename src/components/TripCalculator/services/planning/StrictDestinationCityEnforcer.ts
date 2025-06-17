@@ -1,5 +1,4 @@
-
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 
 export class StrictDestinationCityEnforcer {
   /**

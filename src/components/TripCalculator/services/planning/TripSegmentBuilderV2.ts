@@ -1,6 +1,5 @@
-
 import { DailySegment } from './TripPlanTypes';
-import { TripStop } from '../data/SupabaseDataService';
+import { TripStop } from '../../types/TripStop';
 import { DistanceValidationService } from './DistanceValidationService';
 import { TripStyleConfig } from './TripStyleLogic';
 import { SegmentValidationService } from './validation/SegmentValidationService';

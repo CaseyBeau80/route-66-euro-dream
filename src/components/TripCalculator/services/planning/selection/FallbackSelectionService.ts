@@ -1,5 +1,4 @@
-
-import { TripStop } from '../../data/SupabaseDataService';
+import { TripStop } from '../../../types/TripStop';
 import { DistanceValidationService } from '../DistanceValidationService';
 import { CanonicalRoute66Cities } from '../CanonicalRoute66Cities';
 
