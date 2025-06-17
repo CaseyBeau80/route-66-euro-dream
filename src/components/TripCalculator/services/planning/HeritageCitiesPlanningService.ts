@@ -316,7 +316,7 @@ export class HeritageCitiesPlanningService {
         const stopCityName = stop.city_name || stop.city || stop.name || '';
         const cleanStopCity = stopCityName.replace(/,\s*[A-Z]{2}$/, '').trim();
         
-        const cityMatch = cleanStopStopCity.toLowerCase() === searchCity.toLowerCase();
+        const cityMatch = cleanStopCity.toLowerCase() === searchCity.toLowerCase();
         const stateMatch = stop.state.toLowerCase() === searchState.toLowerCase();
         
         if (cityMatch && stateMatch) {

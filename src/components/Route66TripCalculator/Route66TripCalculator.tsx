@@ -58,11 +58,13 @@ const Route66TripCalculator: React.FC = () => {
 
   // Track completion analysis from planning result
   useEffect(() => {
-    if (planningResult && 'completionAnalysis' in planningResult) {
-      setCompletionAnalysis(planningResult.completionAnalysis);
+    if (planningResult && planningResult.originalRequestedDays !== undefined) {
+      // Fix type casting for completion analysis
+      const analysis = planningResult.completionAnalysis as TripCompletionAnalysis | undefined;
+      setCompletionAnalysis(analysis);
       setOriginalRequestedDays(planningResult.originalRequestedDays);
       console.log('📊 Route66TripCalculator: Completion analysis updated:', {
-        hasAnalysis: !!planningResult.completionAnalysis,
+        hasAnalysis: !!analysis,
         originalDays: planningResult.originalRequestedDays,
         finalDays: tripPlan?.totalDays
       });

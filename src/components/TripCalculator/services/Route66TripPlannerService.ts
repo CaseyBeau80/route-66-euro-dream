@@ -4,11 +4,16 @@ import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService'
 import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
 import { SupabaseDataService } from './data/SupabaseDataService';
 
+// Export TripPlan type for external use
+export { TripPlan } from './planning/TripPlanTypes';
+
 export interface EnhancedTripPlanResult {
   tripPlan: TripPlan | null;
   debugInfo: any;
   validationResults: any;
   warnings: string[];
+  completionAnalysis?: any;
+  originalRequestedDays?: number;
 }
 
 export class Route66TripPlannerService {
@@ -33,8 +38,8 @@ export class Route66TripPlannerService {
     };
 
     try {
-      // Load all stops
-      const allStops = await SupabaseDataService.getAllStops();
+      // Load all stops - fix method name
+      const allStops = await SupabaseDataService.fetchAllStops();
       
       if (!allStops || allStops.length === 0) {
         throw new Error('No Route 66 stops available');
@@ -91,7 +96,8 @@ export class Route66TripPlannerService {
           totalDrivingTime: tripPlan.totalDrivingTime
         },
         validationResults,
-        warnings
+        warnings,
+        originalRequestedDays: travelDays
       };
 
     } catch (error) {
@@ -106,6 +112,40 @@ export class Route66TripPlannerService {
         validationResults: { isValid: false, violations: [error instanceof Error ? error.message : 'Unknown error'] },
         warnings: [error instanceof Error ? error.message : 'Trip planning failed']
       };
+    }
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   */
+  static async planTrip(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: string = 'balanced'
+  ): Promise<TripPlan | null> {
+    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
+    return result.tripPlan;
+  }
+
+  /**
+   * Debug methods for developer tools
+   */
+  static getDataSourceStatus(): string {
+    return 'Connected to Supabase';
+  }
+
+  static isUsingFallbackData(): boolean {
+    return false;
+  }
+
+  static async getDestinationCitiesCount(): Promise<number> {
+    try {
+      const stops = await SupabaseDataService.fetchAllStops();
+      return stops?.length || 0;
+    } catch (error) {
+      console.error('Error getting destination cities count:', error);
+      return 0;
     }
   }
 
