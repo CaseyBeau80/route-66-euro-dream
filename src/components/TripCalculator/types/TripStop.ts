@@ -15,6 +15,8 @@ export interface TripStop {
   sequence_order?: number; // Add sequence_order for Route 66 ordering
   // Add city property to satisfy destination interface
   city: string;
+  // NEW: Population data for scoring
+  population?: number;
 }
 
 // Type guard to validate TripStop objects
@@ -47,6 +49,7 @@ export const convertToTripStop = (obj: any): TripStop => {
     image_url: obj.image_url,
     is_major_stop: obj.is_major_stop,
     is_official_destination: obj.is_official_destination,
-    sequence_order: obj.sequence_order // Include sequence_order in conversion
+    sequence_order: obj.sequence_order, // Include sequence_order in conversion
+    population: obj.population // Include population in conversion
   };
 };
