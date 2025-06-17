@@ -20,6 +20,15 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const hasBlockingError = isOverLimit || isUnderLimit;
 
+  console.log('🔍 FIXED: FormValidationHelper check:', {
+    travelDays: formData.travelDays,
+    isOverLimit,
+    isUnderLimit,
+    hasBlockingError,
+    maxDays: MAX_DAYS,
+    minDays: MIN_DAYS
+  });
+
   const validationChecks = [
     {
       id: 'start-location',

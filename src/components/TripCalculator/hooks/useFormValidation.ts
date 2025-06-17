@@ -12,12 +12,13 @@ export const useFormValidation = (formData: TripFormData) => {
     const hasValidTravelDays = formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS;
     const hasStartDate = !!formData.tripStartDate;
 
-    console.log('🔍 Form validation check:', {
+    console.log('🔍 FIXED: Form validation check:', {
       hasStartLocation,
       hasEndLocation,
       hasValidTravelDays,
       travelDays: formData.travelDays,
       hasStartDate,
+      isWithinLimits: `${formData.travelDays} is between ${MIN_DAYS} and ${MAX_DAYS}`,
       isValid: hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate
     });
 
@@ -29,5 +30,23 @@ export const useFormValidation = (formData: TripFormData) => {
     formData.tripStartDate
   ]);
 
-  return { isFormValid };
+  const validationIssues = useMemo(() => {
+    const issues = [];
+    
+    if (!formData.startLocation) issues.push('Start location required');
+    if (!formData.endLocation) issues.push('End location required');
+    if (!formData.tripStartDate) issues.push('Start date required');
+    if (formData.travelDays < MIN_DAYS) issues.push(`Minimum ${MIN_DAYS} days required`);
+    if (formData.travelDays > MAX_DAYS) issues.push(`Maximum ${MAX_DAYS} days allowed`);
+    if (formData.travelDays === 0) issues.push('Travel days must be selected');
+
+    return issues;
+  }, [formData]);
+
+  return { 
+    isFormValid, 
+    validationIssues,
+    MIN_DAYS,
+    MAX_DAYS
+  };
 };

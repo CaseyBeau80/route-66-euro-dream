@@ -24,14 +24,14 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
 
   const handleDaysChange = (value: string) => {
     const numValue = parseInt(value, 10);
-    console.log('📅 Dropdown selection changed:', { value, numValue });
+    console.log('📅 FIXED: Dropdown selection changed:', { value, numValue, maxDays: MAX_DAYS });
     
-    // Ensure the value is within bounds and valid
+    // STRICT validation - only allow values within the 2-14 range
     if (!isNaN(numValue) && numValue >= MIN_DAYS && numValue <= MAX_DAYS) {
       setFormData({ ...formData, travelDays: numValue });
-      console.log(`✅ Set travel days to: ${numValue}`);
+      console.log(`✅ FIXED: Successfully set travel days to: ${numValue} (within ${MIN_DAYS}-${MAX_DAYS} range)`);
     } else {
-      console.log(`❌ Invalid value rejected: ${numValue}`);
+      console.log(`❌ FIXED: Invalid value rejected: ${numValue} (must be between ${MIN_DAYS}-${MAX_DAYS})`);
     }
   };
 
@@ -56,18 +56,21 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   const hasRouteInfo = !!(formData.startLocation && formData.endLocation);
   const isValid = validation?.isValid ?? true;
 
-  // Ensure we have a valid current value for the dropdown
+  // FIXED: Ensure we have a valid current value for the dropdown
   const currentValue = formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS 
     ? formData.travelDays.toString() 
     : "";
+
+  // FIXED: Show clear validation status
+  const isWithinBounds = formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS;
 
   return (
     <div className="space-y-3">
       <Label className="text-sm font-medium flex items-center gap-2">
         <Clock className="h-4 w-4 text-route66-primary" />
-        Trip Duration: {formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS 
+        Trip Duration: {isWithinBounds
           ? `${formData.travelDays} days` 
-          : 'Select days (2-14)'}
+          : `Select days (${MIN_DAYS}-${MAX_DAYS})`}
       </Label>
       
       <div className="relative">
@@ -75,8 +78,8 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           value={currentValue}
           onValueChange={handleDaysChange}
         >
-          <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="Select number of days (2-14)" />
+          <SelectTrigger className="w-full bg-white border-2">
+            <SelectValue placeholder={`Select number of days (${MIN_DAYS}-${MAX_DAYS})`} />
           </SelectTrigger>
           <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-60">
             {dayOptions.map((days) => (
@@ -91,10 +94,10 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           </SelectContent>
         </Select>
         
-        {/* Validation Icon */}
-        {hasRouteInfo && validation && (
+        {/* FIXED: Clear validation feedback */}
+        {formData.travelDays > 0 && (
           <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            {isValid ? (
+            {isWithinBounds ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
             ) : (
               <AlertCircle className="h-4 w-4 text-red-500" />
@@ -103,8 +106,20 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         )}
       </div>
       
+      {/* FIXED: Show validation status */}
+      {formData.travelDays > 0 && !isWithinBounds && (
+        <div className="p-2 bg-red-50 border border-red-200 rounded text-xs">
+          <div className="text-red-700 flex items-start gap-1">
+            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+            <span>
+              Invalid selection: {formData.travelDays} days. Please select between {MIN_DAYS} and {MAX_DAYS} days.
+            </span>
+          </div>
+        </div>
+      )}
+      
       {/* Validation Feedback */}
-      {hasRouteInfo && validation && (
+      {hasRouteInfo && validation && isWithinBounds && (
         <div className="space-y-2">
           {/* Show minimum days info */}
           <div className="text-xs text-blue-600 flex items-center gap-1">
@@ -147,6 +162,8 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
             <p className="text-amber-700">
               🏛️ <strong>Destination-Focused:</strong> Your trip will prioritize canonical Route 66 heritage cities 
               and major destinations. Longer trips allow for more comprehensive coverage of iconic Route 66 locations.
+              <br />
+              <strong>Maximum {MAX_DAYS} days supported.</strong>
             </p>
           </div>
         )}
