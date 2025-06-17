@@ -1,25 +1,9 @@
 // Import any required dependencies
 import { TripStop as UnifiedTripStop } from "../../types/TripStop";
+import { supabase } from "../../../../lib/supabase";
 
 // Re-export the TripStop type from the unified interface
 export type { UnifiedTripStop as TripStop };
-
-export interface TripStop {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  city_name: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  image_url?: string;
-  is_major_stop?: boolean;
-  is_official_destination?: boolean;
-  sequence_order?: number;
-  city: string;
-  population?: number; // NEW: Population data
-}
 
 export class SupabaseDataService {
   /**
@@ -85,7 +69,7 @@ export class SupabaseDataService {
   /**
    * Fetch destination cities with population data
    */
-  static async fetchDestinationCitiesWithPopulation(): Promise<TripStop[]> {
+  static async fetchDestinationCitiesWithPopulation(): Promise<UnifiedTripStop[]> {
     try {
       console.log('🏙️ Fetching destination cities with population data...');
       
@@ -123,7 +107,7 @@ export class SupabaseDataService {
         ...stop,
         city: stop.city_name || stop.name || 'Unknown',
         population: this.validatePopulation(stop.population, stop.name)
-      })) as TripStop[];
+      })) as UnifiedTripStop[];
 
       console.log(`✅ Fetched ${processedStops.length} destination cities with population data`);
       
@@ -140,7 +124,7 @@ export class SupabaseDataService {
   /**
    * Fetch all stops with population data where available
    */
-  static async fetchAllStopsWithPopulation(): Promise<TripStop[]> {
+  static async fetchAllStopsWithPopulation(): Promise<UnifiedTripStop[]> {
     try {
       console.log('📍 Fetching all stops with population data...');
       
@@ -177,7 +161,7 @@ export class SupabaseDataService {
         city: stop.city_name || stop.name || 'Unknown',
         is_official_destination: false,
         population: undefined // No population data for waypoints
-      })) as TripStop[];
+      })) as UnifiedTripStop[];
 
       const allStops = [...destinationCities, ...processedOtherStops];
       
@@ -247,7 +231,6 @@ export class SupabaseDataService {
       'Cuba': 3400,
       'Sullivan': 7000,
       'Eureka': 10000,
-      'Times Beach': 0, // Abandoned
       'Fenton': 4000,
       'Kirkwood': 28000,
       'Webster Groves': 23000,
@@ -293,21 +276,19 @@ export class SupabaseDataService {
       'Uplands Park': 400,
       'Velda Village Hills': 1000,
       'Hillsdale': 1500,
-      'Northwoods': 4000,
       'Greendale': 600,
-      'Pine Lawn': 3000,
-      'Pagedale': 3000,
-      'Wellston': 2000,
-      'Normandy': 5000,
-      'Hanley Hills': 2000,
-      'Pasadena Hills': 1000
+      'San Bernardino': 220000,
+      'Holbrook': 5000,
+      'Williams': 3000,
+      'Seligman': 456,
+      'Shamrock': 1900
     };
   }
 
   /**
    * Log population statistics for debugging
    */
-  private static logPopulationStatistics(stops: TripStop[]): void {
+  private static logPopulationStatistics(stops: UnifiedTripStop[]): void {
     const withPopulation = stops.filter(stop => stop.population !== undefined);
     const withoutPopulation = stops.filter(stop => stop.population === undefined);
     
