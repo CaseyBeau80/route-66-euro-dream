@@ -27,9 +27,9 @@ const TripStyleSection: React.FC<TripStyleSectionProps> = ({
               : 'border-route66-border hover:border-route66-primary/50'
           }`}
         >
-          <div className="font-medium">Balanced Experience</div>
+          <div className="font-medium">Even Pacing</div>
           <div className="text-sm text-route66-text-secondary mt-1">
-            Perfect mix of driving and sightseeing
+            Consistent drive times with diverse stops
           </div>
         </button>
         
@@ -42,9 +42,9 @@ const TripStyleSection: React.FC<TripStyleSectionProps> = ({
               : 'border-route66-border hover:border-route66-primary/50'
           }`}
         >
-          <div className="font-medium">Destination Focused</div>
+          <div className="font-medium">Heritage Cities</div>
           <div className="text-sm text-route66-text-secondary mt-1">
-            Prioritizes major heritage cities
+            Prioritizes iconic Route 66 heritage locations
           </div>
         </button>
       </div>

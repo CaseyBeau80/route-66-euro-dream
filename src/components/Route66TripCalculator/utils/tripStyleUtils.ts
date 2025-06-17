@@ -1,16 +1,16 @@
 
 export const getTripStyleDisplayName = (style: string): string => {
   switch (style) {
-    case 'balanced': return 'Balanced Experience';
-    case 'destination-focused': return 'Destination Focused';
+    case 'balanced': return 'Even Pacing';
+    case 'destination-focused': return 'Heritage Cities';
     default: return 'Custom Trip';
   }
 };
 
 export const getTripStyleDescription = (style: string): string => {
   switch (style) {
-    case 'balanced': return 'Perfect mix of driving time and sightseeing at each stop';
-    case 'destination-focused': return 'Prioritizes major heritage cities with strategic stops';
+    case 'balanced': return 'Consistent drive times with diverse stops and attractions';
+    case 'destination-focused': return 'Prioritizes iconic Route 66 heritage cities and landmarks';
     default: return 'Customized to your preferences';
   }
 };

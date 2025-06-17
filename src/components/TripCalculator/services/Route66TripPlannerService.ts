@@ -1,145 +1,171 @@
 
-import { EnhancedSupabaseDataService } from './data/EnhancedSupabaseDataService';
-import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
-import { TripPlanValidator } from './planning/TripPlanValidator';
-import { UnifiedTripPlanningService } from './planning/UnifiedTripPlanningService';
-import { CityDisplayService } from './utils/CityDisplayService';
-import { DistanceCalculationService } from './utils/DistanceCalculationService';
-import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
-import { CityStateDisambiguationService } from './utils/CityStateDisambiguationService';
-import { TripCompletionService, TripCompletionAnalysis } from './planning/TripCompletionService';
-
-// Re-export types for backward compatibility
-export type { DailySegment, TripPlan, SegmentTiming, TripCompletionAnalysis };
-export type TripStop = import('../types/TripStop').TripStop;
+import { TripPlan } from './planning/TripPlanTypes';
+import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
+import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
+import { SupabaseDataService } from './data/SupabaseDataService';
 
 export interface EnhancedTripPlanResult {
-  tripPlan: TripPlan;
-  completionAnalysis?: TripCompletionAnalysis;
-  originalRequestedDays: number;
-  optimizationSummary?: string;
-  debugInfo?: any;
-  validationResults?: any;
-  warnings?: string[];
+  tripPlan: TripPlan | null;
+  debugInfo: any;
+  validationResults: any;
+  warnings: string[];
 }
 
 export class Route66TripPlannerService {
   /**
-   * Enhanced trip planning with constraint enforcement and debug information
+   * Plan a Route 66 trip using the appropriate algorithm based on trip style
    */
   static async planTripWithAnalysis(
     startLocation: string,
     endLocation: string,
-    requestedDays: number,
-    tripStyle: string = 'balanced'
+    travelDays: number,
+    tripStyle: string
   ): Promise<EnhancedTripPlanResult> {
-    console.log(`🚀 ENHANCED TRIP PLANNING WITH ANALYSIS: ${startLocation} → ${endLocation}`);
+    console.log(`🚗 PLANNING TRIP: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle} style`);
     
+    const warnings: string[] = [];
+    const debugInfo = {
+      startLocation,
+      endLocation,
+      travelDays,
+      tripStyle,
+      timestamp: new Date().toISOString()
+    };
+
     try {
       // Load all stops
-      const allStops = await EnhancedSupabaseDataService.getAllStops();
+      const allStops = await SupabaseDataService.getAllStops();
       
-      // Use the unified planning service
-      const planningResult = await UnifiedTripPlanningService.planTrip(
-        startLocation,
-        endLocation,
-        requestedDays,
-        tripStyle as 'balanced' | 'destination-focused'
-      );
-      
-      if (!planningResult.success || !planningResult.tripPlan || planningResult.tripPlan.segments.length === 0) {
-        throw new Error(`Trip planning failed: ${planningResult.error || 'No segments generated'}`);
+      if (!allStops || allStops.length === 0) {
+        throw new Error('No Route 66 stops available');
       }
-      
-      // Create enhanced trip plan with summary and all required properties
-      const tripPlan: TripPlan = {
-        id: `trip-${Date.now()}`,
-        startCity: startLocation,
-        endCity: endLocation,
-        startDate: new Date(),
-        segments: planningResult.tripPlan.segments,
-        dailySegments: planningResult.tripPlan.segments, // Copy segments to dailySegments
-        totalDays: planningResult.tripPlan.totalDays,
-        totalDistance: planningResult.tripPlan.totalDistance,
-        totalDrivingTime: planningResult.tripPlan.totalDrivingTime || planningResult.tripPlan.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
-        summary: {
-          totalDays: planningResult.tripPlan.totalDays,
-          totalDistance: planningResult.tripPlan.totalDistance,
-          totalDriveTime: planningResult.tripPlan.totalDrivingTime || planningResult.tripPlan.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
+
+      console.log(`📍 Loaded ${allStops.length} Route 66 stops`);
+
+      let tripPlan: TripPlan;
+
+      // Use the appropriate planning service based on trip style
+      if (tripStyle === 'balanced') {
+        console.log(`⚖️ Using Even Pacing planning algorithm`);
+        tripPlan = await EvenPacingPlanningService.planEvenPacingTrip(
           startLocation,
           endLocation,
-          tripStyle
-        }
-      };
+          travelDays,
+          allStops
+        );
+      } else if (tripStyle === 'destination-focused') {
+        console.log(`🏛️ Using Heritage Cities planning algorithm`);
+        tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
+          startLocation,
+          endLocation,
+          travelDays,
+          allStops
+        );
+      } else {
+        // Default to Even Pacing for unknown styles
+        console.log(`⚖️ Unknown trip style '${tripStyle}', defaulting to Even Pacing`);
+        warnings.push(`Unknown trip style '${tripStyle}', using Even Pacing instead`);
+        tripPlan = await EvenPacingPlanningService.planEvenPacingTrip(
+          startLocation,
+          endLocation,
+          travelDays,
+          allStops
+        );
+      }
+
+      // Validate the trip plan
+      const validationResults = this.validateTripPlan(tripPlan, tripStyle);
       
-      // Create completion analysis
-      const completionAnalysis: TripCompletionAnalysis = {
-        isCompleted: planningResult.tripPlan.totalDays !== requestedDays,
-        originalDays: requestedDays,
-        optimizedDays: planningResult.tripPlan.totalDays,
-        adjustmentReason: planningResult.tripPlan.totalDays > requestedDays 
-          ? 'Extended for drive time safety' 
-          : 'Optimized for better pacing',
-        confidence: planningResult.success ? 0.95 : 0.7,
-        qualityMetrics: {
-          driveTimeBalance: planningResult.driveTimeValidation?.violations === 0 ? 'excellent' : 'good',
-          routeEfficiency: planningResult.warnings && planningResult.warnings.length === 0 ? 'excellent' : 'poor',
-          attractionCoverage: 'good',
-          overallScore: planningResult.success ? 0.9 : 0.6
-        },
-        recommendations: planningResult.warnings || []
-      };
-      
-      console.log(`✅ ENHANCED PLANNING SUCCESS: ${tripPlan.segments.length} segments, valid: ${planningResult.success}`);
-      
+      if (validationResults.warnings.length > 0) {
+        warnings.push(...validationResults.warnings);
+      }
+
+      console.log(`✅ Trip planning completed with ${tripPlan.segments?.length || 0} segments and ${warnings.length} warnings`);
+
       return {
         tripPlan,
-        completionAnalysis,
-        originalRequestedDays: requestedDays,
-        debugInfo: planningResult.validationInfo,
-        validationResults: planningResult.driveTimeValidation,
-        warnings: planningResult.warnings || []
+        debugInfo: {
+          ...debugInfo,
+          segmentCount: tripPlan.segments?.length || 0,
+          totalDistance: tripPlan.totalDistance,
+          totalDrivingTime: tripPlan.totalDrivingTime
+        },
+        validationResults,
+        warnings
       };
-      
+
     } catch (error) {
-      console.error('❌ Enhanced trip planning failed:', error);
-      throw error;
+      console.error('❌ Trip planning failed:', error);
+      
+      return {
+        tripPlan: null,
+        debugInfo: {
+          ...debugInfo,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        },
+        validationResults: { isValid: false, violations: [error instanceof Error ? error.message : 'Unknown error'] },
+        warnings: [error instanceof Error ? error.message : 'Trip planning failed']
+      };
     }
   }
 
   /**
-   * Enhanced trip planning with completion analysis
+   * Validate the generated trip plan
    */
-  static async planTrip(
-    startCityName: string, 
-    endCityName: string, 
-    tripDays: number,
-    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
-  ): Promise<TripPlan> {
-    const result = await this.planTripWithAnalysis(startCityName, endCityName, tripDays, tripStyle);
-    return result.tripPlan;
-  }
+  private static validateTripPlan(tripPlan: TripPlan, tripStyle: string): {
+    isValid: boolean;
+    warnings: string[];
+    driveTimeValidation: any;
+    sequenceValidation: any;
+  } {
+    const warnings: string[] = [];
+    
+    if (!tripPlan.segments || tripPlan.segments.length === 0) {
+      warnings.push('No trip segments generated');
+      return {
+        isValid: false,
+        warnings,
+        driveTimeValidation: { isValid: false },
+        sequenceValidation: { isValid: false }
+      };
+    }
 
-  /**
-   * Get data source status for debugging
-   */
-  static getDataSourceStatus(): string {
-    return EnhancedSupabaseDataService.getDataSourceMessage();
-  }
+    // Validate drive times based on trip style
+    let maxAllowedDriveTime = 8; // Default
+    if (tripStyle === 'balanced') {
+      maxAllowedDriveTime = 7; // Even pacing prefers shorter drives
+    } else if (tripStyle === 'destination-focused') {
+      maxAllowedDriveTime = 10; // Heritage cities allow longer drives
+    }
 
-  /**
-   * Check if using fallback data
-   */
-  static isUsingFallbackData(): boolean {
-    return EnhancedSupabaseDataService.isUsingFallback();
-  }
+    const longDriveDays = tripPlan.segments.filter(segment => 
+      segment.driveTimeHours > maxAllowedDriveTime
+    );
 
-  /**
-   * Get count of destination cities only
-   */
-  static async getDestinationCitiesCount(): Promise<number> {
-    const allStops = await EnhancedSupabaseDataService.fetchAllStops();
-    const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
-    return destinationCitiesOnly.length;
+    if (longDriveDays.length > 0) {
+      warnings.push(`${longDriveDays.length} days exceed ${maxAllowedDriveTime}h drive time limit for ${tripStyle} style`);
+    }
+
+    // Check for very short drives
+    const shortDriveDays = tripPlan.segments.filter(segment => 
+      segment.driveTimeHours < 2
+    );
+
+    if (shortDriveDays.length > 0) {
+      warnings.push(`${shortDriveDays.length} days have very short drive times (< 2h)`);
+    }
+
+    const isValid = warnings.length === 0;
+
+    return {
+      isValid,
+      warnings,
+      driveTimeValidation: { 
+        isValid: longDriveDays.length === 0,
+        maxDriveTime: Math.max(...tripPlan.segments.map(s => s.driveTimeHours)),
+        allowedLimit: maxAllowedDriveTime
+      },
+      sequenceValidation: { isValid: true } // Route sequence is enforced by the planning services
+    };
   }
 }
