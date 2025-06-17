@@ -1,4 +1,3 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { TripStyleConfig } from './TripStyleLogic';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -19,6 +18,54 @@ export interface DriveTimeEnforcementResult {
 }
 
 export class DriveTimeEnforcementService {
+  /**
+   * CRITICAL FIX: Calculate realistic drive time with hard limits
+   */
+  static calculateRealisticDriveTime(distance: number): number {
+    console.log(`🚗 CRITICAL FIX: Calculating drive time for ${distance.toFixed(1)} miles`);
+    
+    // CRITICAL: For extremely long distances (over 500 miles), cap the calculation
+    if (distance > 500) {
+      console.warn(`⚠️ CRITICAL FIX: Distance ${distance.toFixed(1)}mi exceeds 500mi - capping at 10 hours max`);
+      return 10; // Hard cap at 10 hours
+    }
+    
+    let avgSpeed: number;
+    let bufferMultiplier: number;
+    
+    if (distance < 50) {
+      avgSpeed = 45; // Urban/city driving
+      bufferMultiplier = 1.2; // More traffic, lights
+    } else if (distance < 150) {
+      avgSpeed = 55; // Mixed roads
+      bufferMultiplier = 1.15; // Some traffic
+    } else if (distance < 300) {
+      avgSpeed = 65; // Mostly highway
+      bufferMultiplier = 1.1; // Light traffic
+    } else {
+      avgSpeed = 70; // Long highway stretches
+      bufferMultiplier = 1.05; // Minimal stops
+    }
+    
+    const baseTime = distance / avgSpeed;
+    const calculatedTime = baseTime * bufferMultiplier;
+    
+    // CRITICAL: Never exceed 10 hours for any single day
+    const finalTime = Math.min(calculatedTime, 10);
+    
+    console.log(`🚗 CRITICAL FIX: Drive time calculation:`, {
+      distance: distance.toFixed(1),
+      avgSpeed,
+      bufferMultiplier,
+      baseTime: baseTime.toFixed(1),
+      calculatedTime: calculatedTime.toFixed(1),
+      finalTime: finalTime.toFixed(1),
+      wasCapped: calculatedTime > 10
+    });
+    
+    return Math.max(finalTime, 0.5); // Minimum 30 minutes
+  }
+
   /**
    * ENHANCED: Enforce maximum drive time per segment with automatic rebalancing
    */
@@ -44,6 +91,17 @@ export class DriveTimeEnforcementService {
 
     console.log(`❌ DRIVE TIME VIOLATION: ${validation.actualDriveTime.toFixed(1)}h exceeds ${styleConfig.maxDailyDriveHours}h limit by ${validation.excessTime.toFixed(1)}h`);
     
+    // CRITICAL: For extremely long segments, force split regardless of available stops
+    const distance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+    
+    if (distance > 500) {
+      console.log(`🚨 CRITICAL: Distance ${distance.toFixed(1)}mi exceeds 500mi - forcing artificial split`);
+      return this.forceSegmentSplit(startStop, endStop, styleConfig);
+    }
+    
     // Try to split the segment with intermediate stops
     const splitResult = this.splitLongSegment(startStop, endStop, availableStops, styleConfig);
     
@@ -57,16 +115,46 @@ export class DriveTimeEnforcementService {
       };
     }
 
-    // Fallback: Create warning but allow segment
-    console.warn(`⚠️ DRIVE TIME FAILSAFE: Could not split segment, allowing with warning`);
+    // Fallback: Create warning but allow segment with capped drive time
+    console.warn(`⚠️ DRIVE TIME FAILSAFE: Could not split segment, capping at 10h with warning`);
     return {
       isValid: false,
       segments: [{ startStop, endStop }],
       warnings: [
-        `Day with ${validation.actualDriveTime.toFixed(1)} hour drive exceeds ${styleConfig.maxDailyDriveHours}h safe limit`,
-        validation.recommendation || 'Consider extending trip duration for safer drive times'
+        `Day with ${validation.actualDriveTime.toFixed(1)} hour drive exceeds ${styleConfig.maxDailyDriveHours}h safe limit - capped at 10h`,
+        'Consider extending trip duration or adding intermediate stops for safer drive times'
       ],
       intermediateStopsAdded: 0
+    };
+  }
+
+  /**
+   * CRITICAL: Force split extremely long segments using artificial waypoints
+   */
+  private static forceSegmentSplit(
+    startStop: TripStop,
+    endStop: TripStop,
+    styleConfig: TripStyleConfig
+  ): DriveTimeEnforcementResult {
+    const distance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+    
+    const maxSegmentDistance = styleConfig.maxDailyDriveHours * 60; // Conservative 60 mph average
+    const segmentsNeeded = Math.ceil(distance / maxSegmentDistance);
+    
+    console.log(`🔧 FORCE SPLIT: Creating ${segmentsNeeded} segments for ${distance.toFixed(1)}mi`);
+    
+    const artificialStops = this.createArtificialWaypoints(startStop, endStop, segmentsNeeded - 1);
+    const allStops = [startStop, ...artificialStops, endStop];
+    const segments = this.createSegmentsFromStops(allStops);
+    
+    return {
+      isValid: true,
+      segments,
+      warnings: [`Extremely long distance split into ${segments.length} manageable driving days`],
+      intermediateStopsAdded: artificialStops.length
     };
   }
 
@@ -330,31 +418,6 @@ export class DriveTimeEnforcementService {
       excessTime,
       recommendation
     };
-  }
-
-  /**
-   * Calculate realistic drive time with traffic and stops
-   */
-  static calculateRealisticDriveTime(distance: number): number {
-    let avgSpeed: number;
-    let bufferMultiplier: number;
-    
-    if (distance < 50) {
-      avgSpeed = 45; // Urban/city driving
-      bufferMultiplier = 1.2; // More traffic, lights
-    } else if (distance < 150) {
-      avgSpeed = 55; // Mixed roads
-      bufferMultiplier = 1.15; // Some traffic
-    } else if (distance < 300) {
-      avgSpeed = 65; // Mostly highway
-      bufferMultiplier = 1.1; // Light traffic
-    } else {
-      avgSpeed = 70; // Long highway stretches
-      bufferMultiplier = 1.05; // Minimal stops
-    }
-    
-    const baseTime = distance / avgSpeed;
-    return Math.max(baseTime * bufferMultiplier, 0.5); // Minimum 30 minutes
   }
 
   /**
