@@ -263,6 +263,10 @@ export class TripPlanBuilder {
         cumulativeDistance: Math.round(cumulativeDistance),
         totalDistance: Math.round(totalDistance)
       };
+
+      // Determine route section string
+      const routeSection = day <= Math.ceil((allStops.length - 1) / 3) ? 'Early Route' : 
+                          day <= Math.ceil(2 * (allStops.length - 1) / 3) ? 'Mid Route' : 'Final Stretch';
       
       segments.push({
         day,
@@ -278,7 +282,8 @@ export class TripPlanBuilder {
         },
         recommendedStops: [],
         attractions: [],
-        routeSection: routeProgression
+        routeSection: routeSection,
+        routeProgression: routeProgression
       });
     }
     

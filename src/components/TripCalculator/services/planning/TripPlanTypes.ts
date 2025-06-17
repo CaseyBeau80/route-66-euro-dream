@@ -144,7 +144,8 @@ export interface DailySegment {
     city: string;
   }[];
   driveTimeCategory?: DriveTimeCategory;
-  routeSection?: RouteProgression;
+  routeSection?: string; // Keep this as string for display purposes
+  routeProgression?: RouteProgression; // Add separate property for progression data
   driveTimeWarning?: string;
   subStopTimings?: SegmentTiming[];
   notes?: string;
