@@ -26,9 +26,12 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     const numValue = parseInt(value, 10);
     console.log('📅 Dropdown selection changed:', { value, numValue });
     
+    // Ensure the value is within bounds and valid
     if (!isNaN(numValue) && numValue >= MIN_DAYS && numValue <= MAX_DAYS) {
       setFormData({ ...formData, travelDays: numValue });
       console.log(`✅ Set travel days to: ${numValue}`);
+    } else {
+      console.log(`❌ Invalid value rejected: ${numValue}`);
     }
   };
 
@@ -53,27 +56,34 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   const hasRouteInfo = !!(formData.startLocation && formData.endLocation);
   const isValid = validation?.isValid ?? true;
 
+  // Ensure we have a valid current value for the dropdown
+  const currentValue = formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS 
+    ? formData.travelDays.toString() 
+    : "";
+
   return (
     <div className="space-y-3">
       <Label className="text-sm font-medium flex items-center gap-2">
         <Clock className="h-4 w-4 text-route66-primary" />
-        Trip Duration: {formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not set'}
+        Trip Duration: {formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS 
+          ? `${formData.travelDays} days` 
+          : 'Select days (2-14)'}
       </Label>
       
       <div className="relative">
         <Select
-          value={formData.travelDays > 0 ? formData.travelDays.toString() : ""}
+          value={currentValue}
           onValueChange={handleDaysChange}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder="Select number of days (2-14)" />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+          <SelectContent className="bg-white border border-gray-200 shadow-lg z-50 max-h-60">
             {dayOptions.map((days) => (
               <SelectItem 
                 key={days} 
                 value={days.toString()}
-                className="hover:bg-gray-50 cursor-pointer"
+                className="hover:bg-gray-50 cursor-pointer px-3 py-2"
               >
                 {days} {days === 1 ? 'day' : 'days'}
               </SelectItem>
