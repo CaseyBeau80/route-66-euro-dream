@@ -3,33 +3,58 @@ import { TripStop } from '../data/SupabaseDataService';
 
 export class CityDisplayService {
   /**
-   * Get standardized city display string from a trip stop
+   * Get consistent city display name
    */
   static getCityDisplayName(stop: TripStop): string {
-    // Use the actual city_name and state from the matched stop
-    return `${stop.city_name}, ${stop.state}`;
+    if (!stop) return '';
+
+    // Use name if available, otherwise fall back to city
+    const cityName = stop.name || stop.city || stop.city_name || '';
+    const state = stop.state || '';
+
+    if (cityName && state) {
+      // Handle cases where name already includes state
+      if (cityName.includes(',') && cityName.includes(state)) {
+        return cityName;
+      }
+      return `${cityName}, ${state}`;
+    }
+
+    return cityName;
   }
 
   /**
-   * Get just the city name without state
+   * Get city name without state
    */
   static getCityNameOnly(stop: TripStop): string {
-    return stop.city_name;
+    if (!stop) return '';
+    
+    const fullName = stop.name || stop.city || stop.city_name || '';
+    
+    // If it includes comma, take only the part before comma
+    if (fullName.includes(',')) {
+      return fullName.split(',')[0].trim();
+    }
+    
+    return fullName;
   }
 
   /**
-   * Get just the state abbreviation
+   * Format destination city for consistent display
    */
-  static getStateOnly(stop: TripStop): string {
-    return stop.state;
-  }
-
-  /**
-   * Create a trip title using actual stop information
-   */
-  static createTripTitle(startStop: TripStop, endStop: TripStop): string {
-    const startCity = this.getCityDisplayName(startStop);
-    const endCity = this.getCityDisplayName(endStop);
-    return `Route 66 Trip: ${startCity} to ${endCity}`;
+  static formatDestinationCity(cityName: string, state?: string): string {
+    if (!cityName) return '';
+    
+    // If already formatted with state, return as-is
+    if (cityName.includes(',') && cityName.includes(state || '')) {
+      return cityName;
+    }
+    
+    // Add state if provided
+    if (state) {
+      return `${cityName}, ${state}`;
+    }
+    
+    return cityName;
   }
 }
