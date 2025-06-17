@@ -8,7 +8,7 @@ import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
 
 export class SegmentTimingCalculator {
   /**
-   * Calculate segment timings and drive time information
+   * FIXED: Calculate segment timings with ABSOLUTE drive time enforcement
    */
   static calculateSegmentTimings(
     currentStop: TripStop,
@@ -25,39 +25,33 @@ export class SegmentTimingCalculator {
       dayDestination.latitude, dayDestination.longitude
     );
 
-    // Calculate segment timings for route progression display
+    // ABSOLUTE FIX: ALWAYS use DriveTimeEnforcementService - no exceptions
+    const totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
+
+    console.log(`🚗 ABSOLUTE SEGMENT FIX: ${currentStop.name} → ${dayDestination.name}:`, {
+      segmentDistance: segmentDistance.toFixed(1),
+      absoluteEnforcedDriveTime: totalSegmentDriveTime.toFixed(1),
+      maxAllowed: 10,
+      isCompliant: totalSegmentDriveTime <= 10,
+      enforcementMethod: 'DriveTimeEnforcementService - ABSOLUTE'
+    });
+
+    // CRITICAL VALIDATION: Verify we never exceed 10 hours
+    if (totalSegmentDriveTime > 10) {
+      console.error(`❌ CRITICAL ERROR: SegmentTimingCalculator STILL producing drive time > 10h: ${totalSegmentDriveTime.toFixed(1)}h`);
+      console.error(`❌ This should be IMPOSSIBLE with DriveTimeEnforcementService!`);
+    }
+
+    // Calculate segment timings for route progression display (but don't use for total time)
     const segmentTimings = SubStopTimingCalculator.calculateSegmentTimings(
       currentStop, 
       dayDestination, 
       segmentStops
     );
-    
-    // CRITICAL FIX: Always use DriveTimeEnforcementService for drive time calculation
-    let totalSegmentDriveTime = 0;
-    if (segmentTimings.length > 0) {
-      totalSegmentDriveTime = segmentTimings.reduce((total, timing) => total + timing.driveTimeHours, 0);
-    } else {
-      // CRITICAL: Use DriveTimeEnforcementService instead of local calculation
-      totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
-    }
-
-    // CRITICAL: Ensure the total drive time is also enforced
-    totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
-
-    console.log(`🚗 SEGMENT TIMING FIX: ${currentStop.name} → ${dayDestination.name}:`, {
-      segmentDistance: segmentDistance.toFixed(1),
-      enforcedDriveTime: totalSegmentDriveTime.toFixed(1),
-      usingEnforcementService: true,
-      absoluteMaxHours: 10
-    });
-
-    if (totalSegmentDriveTime > 10) {
-      console.error(`❌ CRITICAL ERROR: SegmentTimingCalculator still producing drive time > 10h: ${totalSegmentDriveTime.toFixed(1)}h`);
-    }
 
     return {
       segmentTimings,
-      totalSegmentDriveTime,
+      totalSegmentDriveTime, // ALWAYS use the enforced time
       segmentDistance
     };
   }

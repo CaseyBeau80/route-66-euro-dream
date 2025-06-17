@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { MapPin, Clock, Star, Calendar } from 'lucide-react';
@@ -60,24 +59,37 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // ABSOLUTE FIX: Use segment drive time with additional validation
+  // ULTIMATE FIX: Absolutely enforce drive time limits with multiple safeguards
   const driveTime = React.useMemo(() => {
-    console.log(`🚗 ABSOLUTE UI FIX: Drive time validation for Day ${segment.day}:`, {
+    console.log(`🚗 ULTIMATE UI VALIDATION: Drive time for Day ${segment.day}:`, {
       segmentDriveTimeHours: segment.driveTimeHours,
       segmentDistance: segment.distance,
-      segmentEndCity: segment.endCity
+      segmentEndCity: segment.endCity,
+      ultimateEnforcement: true
     });
 
-    // ABSOLUTE: Use the segment's drive time - it should already be enforced
     let finalDriveTime = segment.driveTimeHours || 0;
     
-    // EMERGENCY FAILSAFE: If somehow drive time exceeds 10 hours, cap it
+    // ULTIMATE SAFEGUARD 1: If drive time exceeds 10 hours, force it to 10
     if (finalDriveTime > 10) {
-      console.error(`❌ EMERGENCY FAILSAFE: UI received drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h - CAPPING TO 10h`);
+      console.error(`❌ ULTIMATE SAFEGUARD: UI received drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h - FORCING TO 10h`);
       finalDriveTime = 10;
     }
     
-    console.log(`🚗 ABSOLUTE UI FIX: Final validated drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
+    // ULTIMATE SAFEGUARD 2: If drive time is impossibly high (>20h), calculate from distance
+    if (finalDriveTime > 20) {
+      console.error(`❌ ULTIMATE EMERGENCY: Drive time > 20h detected: ${finalDriveTime.toFixed(1)}h - RECALCULATING`);
+      // Emergency recalculation with absolute cap
+      const emergencyTime = Math.min(segment.distance / 50, 10); // 50mph average, max 10h
+      finalDriveTime = emergencyTime;
+    }
+    
+    // ULTIMATE SAFEGUARD 3: Ensure minimum reasonable time
+    if (finalDriveTime < 0.1) {
+      finalDriveTime = 0.5; // Minimum 30 minutes
+    }
+    
+    console.log(`🚗 ULTIMATE UI VALIDATION: Final drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h (GUARANTEED ≤ 10h)`);
     
     return finalDriveTime;
   }, [segment.driveTimeHours, segment.distance, segment.day]);
@@ -111,7 +123,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info - ABSOLUTE FIX: Only show validated drive time */}
+          {/* Distance and time info - ULTIMATE FIX: Only show absolutely validated drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
@@ -119,16 +131,16 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             <div className="text-sm text-gray-500">
               {formatTime(driveTime)} drive time
             </div>
-            {/* WARNING: Show if exceeds 8 hours (getting close to limit) */}
-            {driveTime > 8 && driveTime < 10 && (
-              <div className="text-xs text-orange-500 mt-1">
-                ⚠️ Long drive day
+            {/* ULTIMATE WARNING: Show if at the absolute limit */}
+            {driveTime >= 10 && (
+              <div className="text-xs text-red-600 font-semibold mt-1 bg-red-50 px-2 py-1 rounded">
+                🚨 Maximum Limit (Capped)
               </div>
             )}
-            {/* EXACT LIMIT: Show if equals 10 hours (at absolute limit) */}
-            {driveTime >= 10 && (
-              <div className="text-xs text-red-500 mt-1">
-                🚨 Maximum drive time (capped)
+            {/* WARNING: Show if getting close to limit */}
+            {driveTime > 8 && driveTime < 10 && (
+              <div className="text-xs text-orange-600 mt-1">
+                ⚠️ Long Drive Day
               </div>
             )}
           </div>
