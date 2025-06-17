@@ -105,6 +105,14 @@ export interface TripPlan {
   originalDays?: number;
   driveTimeBalance?: DriveTimeBalance;
   tripStyle?: 'balanced' | 'destination-focused';
+  summary?: {
+    totalDays: number;
+    totalDistance: number;
+    totalDriveTime: number;
+    startLocation: string;
+    endLocation: string;
+    tripStyle?: string;
+  };
 }
 
 export interface DailySegment {
@@ -115,8 +123,8 @@ export interface DailySegment {
   distance: number;
   approximateMiles: number;
   driveTimeHours: number;
-  drivingTime?: number; // Add this missing property
-  stops: TripStop[]; // Add this required property
+  drivingTime?: number;
+  stops?: TripStop[]; // Make this optional since many places don't provide it
   destination: {
     city: string;
     state: string;

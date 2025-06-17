@@ -141,8 +141,10 @@ export class SegmentCreationLoop {
       city: stop.city || stop.city_name || 'Unknown'
     }));
 
-    // Convert SubStopTiming[] to SegmentTiming[] to match TripPlanBuilder interface
-    const convertedSegmentTimings: SegmentTiming[] = segmentTimings.map(timing => ({
+    // Convert SubStopTiming[] to SegmentTiming[] with required startTime and endTime
+    const convertedSegmentTimings: SegmentTiming[] = segmentTimings.map((timing, index) => ({
+      startTime: `${8 + index}:00`, // Add sample start times
+      endTime: `${8 + index + 1}:00`, // Add sample end times
       city: timing.toStop.city_name || timing.toStop.name,
       state: timing.toStop.state,
       latitude: timing.toStop.latitude,
@@ -152,7 +154,7 @@ export class SegmentCreationLoop {
       fromStop: timing.fromStop,
       toStop: timing.toStop,
       distance: timing.distance,
-      driveTime: timing.drivingTime, // Map drivingTime to driveTime
+      driveTime: timing.drivingTime,
       distanceMiles: timing.distanceMiles,
       drivingTime: timing.drivingTime
     }));
@@ -166,6 +168,7 @@ export class SegmentCreationLoop {
       distance: segmentDistance,
       drivingTime: totalSegmentDriveTime,
       driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
+      stops: segmentStops, // Add the required stops property
       recommendedStops,
       attractions,
       subStopTimings: convertedSegmentTimings,

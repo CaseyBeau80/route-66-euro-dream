@@ -206,6 +206,7 @@ export class DailySegmentCreator {
       approximateMiles: Math.round(segmentDistance),
       drivingTime: driveTimeHours,
       driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+      stops: [startStop, endStop, ...segmentAttractions], // Add required stops property
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state

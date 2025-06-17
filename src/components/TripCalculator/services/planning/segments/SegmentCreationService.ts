@@ -52,6 +52,7 @@ export class SegmentCreationService {
       distance,
       approximateMiles: Math.round(distance),
       driveTimeHours: driveTime,
+      stops: [startStop, endStop], // Add required stops property
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state
@@ -100,6 +101,7 @@ export class SegmentCreationService {
       distance,
       approximateMiles: Math.round(distance),
       driveTimeHours: cappedDriveTime,
+      stops: [startStop, endStop], // Add required stops property
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state

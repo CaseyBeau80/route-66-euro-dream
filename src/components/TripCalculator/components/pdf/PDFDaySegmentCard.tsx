@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DailySegment, getDestinationCityName } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
@@ -27,8 +26,8 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     new Date(tripStartDate.getTime() + segmentIndex * 24 * 60 * 60 * 1000) : 
     undefined;
 
-  // Safely get destination city name
-  const destinationCity = segment.endCity || getDestinationCityName(segment.destination);
+  // Safely get destination city name - fix the function call
+  const destinationCity = segment.endCity || getDestinationCityName(segment);
 
   return (
     <div className="pdf-day-card no-page-break mb-6 bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden">
