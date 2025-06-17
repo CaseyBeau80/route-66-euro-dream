@@ -1,14 +1,14 @@
-
 import { TripStop } from '../data/SupabaseDataService';
 import { DriveTimeTarget } from './DriveTimeConstraints';
 import { DestinationPriorityService } from './DestinationPriorityService';
 import { HeritageScoringService } from './HeritageScoringService';
 import { EnhancedTripStyleLogic } from './EnhancedTripStyleLogic';
 import { DestinationCityValidator } from './DestinationCityValidator';
+import { HeritageFirstSelectionService, HeritageSelectionResult } from './HeritageFirstSelectionService';
 
 export class EnhancedDestinationPriorityService extends DestinationPriorityService {
   /**
-   * Enhanced destination selection with heritage-first prioritization
+   * Enhanced destination selection with heritage-first prioritization and smart fallbacks
    */
   static selectDestinationWithHeritagePriority(
     currentStop: TripStop,
@@ -20,53 +20,49 @@ export class EnhancedDestinationPriorityService extends DestinationPriorityServi
 
     const config = EnhancedTripStyleLogic.getEnhancedStyleConfig(tripStyle);
 
-    // Step 1: Filter for destination cities first
-    const destinationCities = availableStops.filter(stop => 
-      stop.category === 'destination_city'
-    );
-
-    const validatedDestinationCities = DestinationCityValidator.filterValidDestinationCities(destinationCities);
-
-    console.log(`🏙️ Found ${validatedDestinationCities.length} validated destination cities`);
-
-    // Step 2: For destination-focused trips, prioritize heritage cities
-    if (tripStyle === 'destination-focused' && validatedDestinationCities.length > 0) {
-      const heritageDestination = this.selectByHeritageAndDriveTime(
-        currentStop,
-        validatedDestinationCities,
-        driveTimeTarget,
-        config
-      );
-
-      if (heritageDestination) {
-        const heritageScore = HeritageScoringService.calculateHeritageScore(heritageDestination);
-        console.log(`✅ Heritage-first selection: ${heritageDestination.name} (heritage: ${heritageScore.heritageScore}, tier: ${heritageScore.heritageTier})`);
-        return heritageDestination;
-      }
-    }
-
-    // Step 3: Fallback to enhanced filtering with heritage consideration
-    const heritageFilteredStops = EnhancedTripStyleLogic.filterStopsWithHeritageAndPopulation(
+    // Use the new heritage-first selection service
+    const heritageResult: HeritageSelectionResult = HeritageFirstSelectionService.selectDestinationWithHeritagePriority(
+      currentStop,
       availableStops,
-      config
+      driveTimeTarget,
+      {
+        maxDriveTimeHours: config.maxDailyDriveHours,
+        allowFlexibleDriveTime: config.prioritizeHeritageOverDistance,
+        flexibilityBufferHours: tripStyle === 'destination-focused' ? 3 : 1,
+        minimumHeritageScore: tripStyle === 'destination-focused' ? 70 : 50,
+        preferredHeritageTiers: tripStyle === 'destination-focused' ? 
+          ['iconic', 'major', 'significant'] : 
+          ['iconic', 'major', 'significant', 'notable']
+      }
     );
 
-    if (heritageFilteredStops.length > 0) {
-      const enhancedDestination = this.selectByHeritageAndDriveTime(
-        currentStop,
-        heritageFilteredStops,
-        driveTimeTarget,
-        config
-      );
-
-      if (enhancedDestination) {
-        console.log(`✅ Enhanced heritage selection: ${enhancedDestination.name}`);
-        return enhancedDestination;
-      }
+    // Log selection details and warnings
+    if (heritageResult.warnings.length > 0) {
+      console.warn(`⚠️ Heritage selection warnings:`, heritageResult.warnings);
     }
 
-    // Step 4: Final fallback to parent class logic
-    console.warn(`⚠️ Heritage selection failed, using standard priority logic`);
+    if (heritageResult.selectedDestination) {
+      const reasonMap = {
+        'heritage-priority': '🏛️ Heritage Priority',
+        'population-fallback': '📊 Population Fallback',
+        'distance-fallback': '📏 Distance Fallback',
+        'no-valid-options': '❌ No Options'
+      };
+
+      const reason = reasonMap[heritageResult.selectionReason];
+      const compromise = heritageResult.isCompromise ? ' (compromise)' : '';
+      
+      console.log(`✅ ${reason}: ${heritageResult.selectedDestination.name}${compromise}`);
+      
+      if (heritageResult.heritageScore && heritageResult.heritageTier) {
+        console.log(`   Heritage: ${heritageResult.heritageScore}/100 (${heritageResult.heritageTier})`);
+      }
+
+      return heritageResult.selectedDestination;
+    }
+
+    // Final fallback to parent class logic if all else fails
+    console.warn(`⚠️ Heritage-first selection completely failed, using standard priority logic`);
     return super.selectDestinationWithPriority(
       currentStop,
       availableStops,
@@ -186,5 +182,44 @@ export class EnhancedDestinationPriorityService extends DestinationPriorityServi
       .join(', ');
 
     return `Selected ${selectedDestinations.length} destinations with ${tripStyle} style (heritage: ${heritageLevel} - avg ${avgHeritage}/100${topTiers ? `, includes ${topTiers}` : ''})`;
+  }
+
+  /**
+   * Get enhanced summary with heritage analysis and warnings
+   */
+  static getHeritageEnhancedPrioritySummaryWithWarnings(
+    selectedDestinations: TripStop[],
+    tripStyle: 'balanced' | 'destination-focused',
+    selectionWarnings: string[] = []
+  ): { summary: string; warnings: string[] } {
+    const baseSummary = this.getHeritageEnhancedPrioritySummary(selectedDestinations, tripStyle);
+    
+    let enhancedSummary = baseSummary;
+    const warnings: string[] = [...selectionWarnings];
+
+    // Add heritage quality assessment
+    if (selectedDestinations.length > 0) {
+      const heritageStats = HeritageScoringService.getHeritageStatistics(selectedDestinations);
+      
+      if (heritageStats.averageHeritageScore < 60 && tripStyle === 'destination-focused') {
+        warnings.push('Trip includes fewer heritage cities than optimal for destination-focused style');
+      }
+
+      const iconicCount = heritageStats.tierDistribution.iconic || 0;
+      const majorCount = heritageStats.tierDistribution.major || 0;
+      
+      if (iconicCount === 0 && tripStyle === 'destination-focused') {
+        warnings.push('No iconic heritage cities included - consider extending trip length');
+      }
+
+      if (iconicCount + majorCount < Math.ceil(selectedDestinations.length * 0.5) && tripStyle === 'destination-focused') {
+        warnings.push('Less than 50% of destinations are major heritage cities');
+      }
+    }
+
+    return {
+      summary: enhancedSummary,
+      warnings
+    };
   }
 }

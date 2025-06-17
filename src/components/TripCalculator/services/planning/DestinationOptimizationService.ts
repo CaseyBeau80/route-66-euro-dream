@@ -9,10 +9,11 @@ import { TripStyleLogic } from './TripStyleLogic';
 import { EnhancedDestinationPriorityService } from './EnhancedDestinationPriorityService';
 import { EnhancedTripStyleLogic } from './EnhancedTripStyleLogic';
 import { HeritageScoringService } from './HeritageScoringService';
+import { HeritageFirstSelectionService } from './HeritageFirstSelectionService';
 
 export class DestinationOptimizationService {
   /**
-   * ENHANCED: Heritage-aware destination selection with sequence-order enforcement
+   * ENHANCED: Heritage-aware destination selection with sequence-order enforcement and smart fallbacks
    */
   static selectNextDayDestination(
     currentStop: TripStop, 
@@ -41,50 +42,64 @@ export class DestinationOptimizationService {
 
     console.log(`🧭 ${direction} travel: ${sequenceValidStops.length} sequence-valid stops from ${availableStops.length} total`);
 
-    // Apply enhanced heritage and population filtering
-    const qualifiedStops = EnhancedTripStyleLogic.filterStopsWithHeritageAndPopulation(
-      sequenceValidStops.length > 0 ? sequenceValidStops : availableStops,
-      enhancedConfig
-    );
-
-    console.log(`🏛️ Heritage + population filter: ${sequenceValidStops.length} → ${qualifiedStops.length} stops (${tripStyle} style)`);
-
-    if (qualifiedStops.length === 0) {
-      console.warn(`⚠️ No qualified heritage stops found, using fallback selection`);
-      return this.fallbackDestinationSelection(currentStop, finalDestination, availableStops, driveTimeTarget);
-    }
-
-    // Calculate target distance for even distribution
+    // Create drive time target if not provided
     const totalRemainingDistance = DistanceCalculationService.calculateDistance(
       currentStop.latitude, currentStop.longitude,
       finalDestination.latitude, finalDestination.longitude
     );
     const targetDailyDistance = totalRemainingDistance / remainingDays;
+    const targetDriveTime = targetDailyDistance / 50; // 50 mph average
 
-    // Use heritage-enhanced sequence-aware selection
-    const selectedDestination = this.selectOptimalHeritageAwareDestination(
+    const effectiveDriveTimeTarget = driveTimeTarget || {
+      targetHours: targetDriveTime,
+      minHours: Math.max(2, targetDriveTime * 0.5),
+      maxHours: Math.min(enhancedConfig.maxDailyDriveHours, targetDriveTime * 1.5)
+    };
+
+    // Use heritage-first selection with smart fallbacks
+    const candidateStops = sequenceValidStops.length > 0 ? sequenceValidStops : availableStops;
+    
+    const heritageResult = HeritageFirstSelectionService.selectDestinationWithHeritagePriority(
       currentStop,
-      finalDestination,
-      qualifiedStops,
-      targetDailyDistance,
-      enhancedConfig,
-      direction
+      candidateStops,
+      effectiveDriveTimeTarget,
+      {
+        maxDriveTimeHours: enhancedConfig.maxDailyDriveHours,
+        allowFlexibleDriveTime: enhancedConfig.prioritizeHeritageOverDistance,
+        flexibilityBufferHours: tripStyle === 'destination-focused' ? 3 : 1,
+        minimumHeritageScore: tripStyle === 'destination-focused' ? 70 : 50,
+        preferredHeritageTiers: tripStyle === 'destination-focused' ? 
+          ['iconic', 'major', 'significant'] : 
+          ['iconic', 'major', 'significant', 'notable']
+      }
     );
 
-    if (selectedDestination) {
-      const heritageScore = HeritageScoringService.calculateHeritageScore(selectedDestination);
-      const selectedOrder = SequenceOrderService.getSequenceOrder(selectedDestination);
-      const currentOrder = SequenceOrderService.getSequenceOrder(currentStop);
+    if (heritageResult.selectedDestination) {
+      // Log heritage selection success
+      const reasonMap = {
+        'heritage-priority': '🏛️ Heritage Priority',
+        'population-fallback': '📊 Population Fallback', 
+        'distance-fallback': '📏 Distance Fallback',
+        'no-valid-options': '❌ No Options'
+      };
+
+      const reason = reasonMap[heritageResult.selectionReason];
+      const compromise = heritageResult.isCompromise ? ' (compromise)' : '';
       
-      console.log(`✅ Heritage-enhanced selection: ${selectedDestination.name} (${currentOrder} → ${selectedOrder}, heritage: ${heritageScore.heritageScore}/${heritageScore.heritageTier})`);
-      return selectedDestination;
+      console.log(`✅ ${reason}: ${heritageResult.selectedDestination.name}${compromise}`);
+      
+      if (heritageResult.warnings.length > 0) {
+        console.warn(`⚠️ Selection warnings:`, heritageResult.warnings);
+      }
+
+      return heritageResult.selectedDestination;
     }
 
     // Fallback to enhanced priority-based selection
     if (driveTimeTarget) {
       const heritageDestination = EnhancedDestinationPriorityService.selectDestinationWithHeritagePriority(
         currentStop,
-        qualifiedStops,
+        candidateStops,
         driveTimeTarget,
         tripStyle
       );
@@ -96,10 +111,11 @@ export class DestinationOptimizationService {
     }
 
     // Final fallback to distance-based selection
+    console.warn(`⚠️ All heritage selection methods failed, using distance-based fallback`);
     return DistanceBasedDestinationService.selectDestinationByDistance(
       currentStop, 
       finalDestination, 
-      qualifiedStops, 
+      candidateStops, 
       targetDailyDistance
     );
   }

@@ -1,100 +1,93 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Bug, Search, Database, MapPin } from 'lucide-react';
-import { GeographicAttractionService } from '../services/attractions/GeographicAttractionService';
-import { SupabaseDataService } from '../services/data/SupabaseDataService';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Route66TripPlannerService } from '../services/Route66TripPlannerService';
+import HeritageManagementPanel from './HeritageManagementPanel';
+
 const DeveloperDebugTools: React.FC = () => {
-  const [testCity, setTestCity] = useState('Springfield');
-  const [testState, setTestState] = useState('MO');
-  const [debugResults, setDebugResults] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [databaseStats, setDatabaseStats] = useState<any>(null);
-  const runCityDebug = async () => {
-    setIsLoading(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
+  const runDiagnostics = async () => {
     try {
-      const results = await GeographicAttractionService.debugCitySearch(testCity, testState);
-      setDebugResults(results);
-      console.log('🔍 City debug results:', results);
-    } catch (error) {
-      setDebugResults({
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const analyzeDatabaseStats = async () => {
-    setIsLoading(true);
-    try {
-      const allStops = await SupabaseDataService.fetchAllStops();
-      const stats = {
-        totalStops: allStops.length,
-        destinationCities: allStops.filter(s => s.category === 'destination_city').length,
-        attractions: allStops.filter(s => s.category === 'attraction').length,
-        restaurants: allStops.filter(s => s.category === 'restaurant').length,
-        lodging: allStops.filter(s => s.category === 'lodging').length,
-        historicSites: allStops.filter(s => s.category === 'historic_site').length,
-        stateBreakdown: allStops.reduce((acc, stop) => {
-          acc[stop.state] = (acc[stop.state] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
-        destinationCitiesByState: allStops.filter(s => s.category === 'destination_city').reduce((acc, stop) => {
-          if (!acc[stop.state]) acc[stop.state] = [];
-          acc[stop.state].push(stop.city_name);
-          return acc;
-        }, {} as Record<string, string[]>),
-        invalidData: allStops.filter(stop => !stop.latitude || !stop.longitude || stop.latitude === 0 || stop.longitude === 0).map(stop => ({
-          id: stop.id,
-          name: stop.name,
-          city: stop.city_name,
-          state: stop.state
-        }))
-      };
-      setDatabaseStats(stats);
-      console.log('📊 Database stats:', stats);
-    } catch (error) {
-      setDatabaseStats({
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const testAttractionSearch = async () => {
-    setIsLoading(true);
-    try {
-      const searchResult = await GeographicAttractionService.findAttractionsNearCity(testCity, testState, 50);
-      setDebugResults({
-        searchType: 'attraction_search',
-        cityName: testCity,
-        state: testState,
-        status: searchResult.status,
-        attractionsFound: searchResult.attractions.length,
-        attractions: searchResult.attractions.map(a => ({
-          name: a.name,
-          distance: a.distanceFromCity.toFixed(1),
-          type: a.attractionType,
-          category: a.category
-        }))
+      const dataStatus = Route66TripPlannerService.getDataSourceStatus();
+      const isUsingFallback = Route66TripPlannerService.isUsingFallbackData();
+      const destinationCount = await Route66TripPlannerService.getDestinationCitiesCount();
+
+      setDebugInfo({
+        dataStatus,
+        isUsingFallback,
+        destinationCount,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
-      setDebugResults({
-        error: error instanceof Error ? error.message : 'Unknown error'
+      console.error('Debug diagnostics failed:', error);
+      setDebugInfo({
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Only show in development mode
-  if (process.env.NODE_ENV === 'production') {
-    return null;
-  }
-  return <Card className="border-purple-200 bg-purple-50">
-      
-      
-    </Card>;
+  return (
+    <Card className="w-full mb-6 border-yellow-200 bg-yellow-50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          🔧 Developer Debug Tools
+          <Badge variant="outline" className="text-xs">
+            Development Only
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="diagnostics" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="diagnostics">System Diagnostics</TabsTrigger>
+            <TabsTrigger value="heritage">Heritage Management</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="diagnostics" className="space-y-4">
+            <div className="flex gap-4">
+              <Button onClick={runDiagnostics} variant="outline" size="sm">
+                🔍 Run Diagnostics
+              </Button>
+              <Button 
+                onClick={() => console.log('Manual debug point')} 
+                variant="outline" 
+                size="sm"
+              >
+                📝 Console Log
+              </Button>
+            </div>
+
+            {debugInfo && (
+              <div className="space-y-3">
+                <div className="text-sm font-mono bg-gray-100 p-3 rounded">
+                  <div className="font-semibold mb-2">System Status:</div>
+                  {debugInfo.error ? (
+                    <div className="text-red-600">❌ Error: {debugInfo.error}</div>
+                  ) : (
+                    <>
+                      <div>📊 Data Status: {debugInfo.dataStatus}</div>
+                      <div>🔄 Using Fallback: {debugInfo.isUsingFallback ? 'Yes' : 'No'}</div>
+                      <div>🏙️ Destination Cities: {debugInfo.destinationCount}</div>
+                      <div>⏰ Last Check: {new Date(debugInfo.timestamp).toLocaleTimeString()}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="heritage" className="space-y-4">
+            <HeritageManagementPanel />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
 };
+
 export default DeveloperDebugTools;
