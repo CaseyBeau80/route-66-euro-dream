@@ -27,7 +27,7 @@ export class TripPlanValidator {
     if (!startStop) {
       console.log(`🔍 Services Planning Enhanced search for start location: "${startCityName}"`);
       
-      startStop = this.findStopWithEnhancedMatching(startCityName, allStops);
+      startStop = this.findStopWithSimplifiedMatching(startCityName, allStops);
       
       if (!startStop) {
         console.error(`❌ Services Planning Could not find start location: "${startCityName}"`);
@@ -41,7 +41,7 @@ export class TripPlanValidator {
     if (!endStop) {
       console.log(`🔍 Services Planning Enhanced search for end location: "${endCityName}"`);
       
-      endStop = this.findStopWithEnhancedMatching(endCityName, allStops);
+      endStop = this.findStopWithSimplifiedMatching(endCityName, allStops);
       
       if (!endStop) {
         console.error(`❌ Services Planning Could not find end location: "${endCityName}"`);
@@ -60,97 +60,76 @@ export class TripPlanValidator {
   }
 
   /**
-   * Enhanced stop finding with multiple matching strategies
+   * Simplified stop finding with direct matching first
    */
-  private static findStopWithEnhancedMatching(searchTerm: string, allStops: TripStop[]): TripStop | undefined {
+  private static findStopWithSimplifiedMatching(searchTerm: string, allStops: TripStop[]): TripStop | undefined {
     if (!searchTerm || !allStops?.length) return undefined;
 
-    console.log(`🔍 Services Planning Enhanced matching for: "${searchTerm}" among ${allStops.length} stops`);
+    console.log(`🔍 Services Planning Simplified matching for: "${searchTerm}" among ${allStops.length} stops`);
 
-    // Strategy 1: Exact name match (highest priority)
-    console.log(`🔍 Services Planning Strategy 1: Looking for exact name match with "${searchTerm}"`);
+    // Strategy 1: Direct exact match (case-insensitive)
+    console.log(`🔍 Services Planning Strategy 1: Direct exact match for "${searchTerm}"`);
     
-    const exactNameMatches = allStops.filter(stop => {
+    for (const stop of allStops) {
       const stopName = stop.name || '';
-      const normalizedStopName = CityNameNormalizationService.normalizeSearchTerm(stopName);
-      const normalizedSearch = CityNameNormalizationService.normalizeSearchTerm(searchTerm);
+      console.log(`    Services Planning Checking direct match: "${stopName}" vs "${searchTerm}"`);
       
-      console.log(`    Services Planning Checking exact: "${stopName}" normalized to "${normalizedStopName}" vs "${normalizedSearch}"`);
-      
-      const matches = normalizedStopName === normalizedSearch;
-      console.log(`    Services Planning Exact match: ${matches}`);
-      
-      return matches;
-    });
-
-    if (exactNameMatches.length > 0) {
-      console.log(`✅ Services Planning Strategy 1 - Exact name match: ${exactNameMatches[0].name}`);
-      return exactNameMatches[0];
-    }
-
-    // Strategy 2: Parse city and state, then match
-    const { city: searchCity, state: searchState } = this.parseCityState(searchTerm);
-    console.log(`🔍 Services Planning Strategy 2: Parsed "${searchTerm}" to city="${searchCity}", state="${searchState}"`);
-
-    if (searchState) {
-      console.log(`🔍 Services Planning Strategy 2a: Looking for city+state match`);
-      
-      const cityStateMatches = allStops.filter(stop => {
-        const stopCityName = stop.city_name || stop.city || '';
-        const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stopCityName);
-        const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
-        const normalizedStopState = CityNameNormalizationService.normalizeSearchTerm(stop.state || '');
-        const normalizedSearchState = CityNameNormalizationService.normalizeSearchTerm(searchState);
-        
-        console.log(`    Services Planning Checking city+state: "${stopCityName}" (${stop.state}) vs "${searchCity}" (${searchState})`);
-        
-        const cityMatch = normalizedStopCity === normalizedSearchCity;
-        const stateMatch = normalizedStopState === normalizedSearchState;
-        
-        console.log(`    Services Planning City match: ${cityMatch}, State match: ${stateMatch}`);
-        
-        return cityMatch && stateMatch;
-      });
-      
-      if (cityStateMatches.length > 0) {
-        console.log(`✅ Services Planning Strategy 2a - City+state match: ${cityStateMatches[0].name}`);
-        return cityStateMatches[0];
+      if (stopName.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
+        console.log(`✅ Services Planning Strategy 1 - Direct exact match: ${stopName}`);
+        return stop;
       }
     }
 
-    // Strategy 3: City-only search
-    console.log(`🔍 Services Planning Strategy 3: Looking for city-only match with "${searchCity}"`);
+    // Strategy 2: Check city_name field as well
+    console.log(`🔍 Services Planning Strategy 2: City name field match for "${searchTerm}"`);
     
-    const cityOnlyMatches = allStops.filter(stop => {
-      const stopCityName = stop.city_name || stop.city || '';
-      const normalizedStopCity = CityNameNormalizationService.normalizeSearchTerm(stopCityName);
-      const normalizedSearchCity = CityNameNormalizationService.normalizeSearchTerm(searchCity);
+    for (const stop of allStops) {
+      const cityName = stop.city_name || stop.city || '';
+      const fullName = cityName && stop.state ? `${cityName}, ${stop.state}` : cityName;
       
-      console.log(`    Services Planning Checking city-only: "${stopCityName}" normalized to "${normalizedStopCity}" vs "${normalizedSearchCity}"`);
+      console.log(`    Services Planning Checking city field: "${fullName}" vs "${searchTerm}"`);
       
-      const matches = normalizedStopCity === normalizedSearchCity;
-      console.log(`    Services Planning City-only match: ${matches}`);
-      
-      return matches;
-    });
+      if (fullName.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
+        console.log(`✅ Services Planning Strategy 2 - City field match: ${fullName}`);
+        return stop;
+      }
+    }
 
-    if (cityOnlyMatches.length > 0) {
-      console.log(`✅ Services Planning Strategy 3 - City-only match: ${cityOnlyMatches[0].name}`);
-      return cityOnlyMatches[0];
+    // Strategy 3: Parse and match components
+    const { city: searchCity, state: searchState } = this.parseCityState(searchTerm);
+    console.log(`🔍 Services Planning Strategy 3: Component matching - city="${searchCity}", state="${searchState}"`);
+
+    if (searchState) {
+      for (const stop of allStops) {
+        const stopCityName = stop.city_name || stop.city || stop.name || '';
+        const stopState = stop.state || '';
+        
+        // Remove state from stop name if present
+        const cleanStopCity = stopCityName.replace(/,\s*[A-Z]{2}$/, '').trim();
+        
+        console.log(`    Services Planning Component check: "${cleanStopCity}" (${stopState}) vs "${searchCity}" (${searchState})`);
+        
+        const cityMatch = cleanStopCity.toLowerCase() === searchCity.toLowerCase();
+        const stateMatch = stopState.toLowerCase() === searchState.toLowerCase();
+        
+        if (cityMatch && stateMatch) {
+          console.log(`✅ Services Planning Strategy 3 - Component match: ${cleanStopCity}, ${stopState}`);
+          return stop;
+        }
+      }
     }
 
     // Strategy 4: Fuzzy matching as last resort
-    console.log(`🔍 Services Planning Strategy 4: Attempting fuzzy matching for "${searchTerm}"`);
+    console.log(`🔍 Services Planning Strategy 4: Fuzzy matching for "${searchTerm}"`);
     
+    const searchLower = searchTerm.toLowerCase().trim();
     for (const stop of allStops) {
-      const displayName = CityDisplayService.getCityDisplayName(stop);
-      const normalizedDisplay = CityNameNormalizationService.normalizeSearchTerm(displayName);
-      const normalizedSearch = CityNameNormalizationService.normalizeSearchTerm(searchTerm);
+      const stopName = (stop.name || '').toLowerCase().trim();
+      const cityName = (stop.city_name || stop.city || '').toLowerCase().trim();
       
-      console.log(`    Services Planning Fuzzy check: "${displayName}" normalized to "${normalizedDisplay}" vs "${normalizedSearch}"`);
-      
-      if (normalizedDisplay.includes(normalizedSearch) || normalizedSearch.includes(normalizedDisplay)) {
-        console.log(`✅ Services Planning Strategy 4 - Fuzzy match: ${displayName}`);
+      if (stopName.includes(searchLower) || searchLower.includes(stopName) ||
+          cityName.includes(searchLower) || searchLower.includes(cityName)) {
+        console.log(`✅ Services Planning Strategy 4 - Fuzzy match: ${stop.name}`);
         return stop;
       }
     }
