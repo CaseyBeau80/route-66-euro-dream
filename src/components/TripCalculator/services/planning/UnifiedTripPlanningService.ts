@@ -13,6 +13,7 @@ export interface UnifiedPlanningResult {
   warnings?: string[];
   driveTimeValidation?: any;
   validationInfo?: any;
+  tripStyle?: 'balanced' | 'destination-focused';
 }
 
 export class UnifiedTripPlanningService {
@@ -88,7 +89,8 @@ export class UnifiedTripPlanningService {
         return {
           success: false,
           error: 'No valid trip segments could be generated',
-          warnings
+          warnings,
+          tripStyle
         };
       }
 
@@ -129,7 +131,8 @@ export class UnifiedTripPlanningService {
         validationInfo: {
           ...validation,
           ...planningResult.validationResults
-        }
+        },
+        tripStyle
       };
 
     } catch (error) {
@@ -137,7 +140,8 @@ export class UnifiedTripPlanningService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown planning error',
-        warnings: ['Trip planning service encountered an error']
+        warnings: ['Trip planning service encountered an error'],
+        tripStyle
       };
     }
   }

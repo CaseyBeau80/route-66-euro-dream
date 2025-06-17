@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { TripPlanningResult } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
+import { UnifiedPlanningResult } from '../../TripCalculator/services/planning/UnifiedTripPlanningService';
 import { getTripStyleDisplayName, getTripStyleDescription } from '../utils/tripStyleUtils';
 
 interface TripStyleIndicatorProps {
-  planningResult: TripPlanningResult;
+  planningResult: UnifiedPlanningResult;
 }
 
 const TripStyleIndicator: React.FC<TripStyleIndicatorProps> = ({ planningResult }) => {

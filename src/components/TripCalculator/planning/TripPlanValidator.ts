@@ -1,6 +1,7 @@
 
 import { toast } from '@/hooks/use-toast';
 import { EnhancedSupabaseDataService } from '../services/data/EnhancedSupabaseDataService';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 interface TripStop {
   id: string;
@@ -69,6 +70,76 @@ export class TripPlanValidator {
     }
 
     return { startStop, endStop };
+  }
+
+  /**
+   * Validate a complete trip plan
+   */
+  static validateTripPlan(tripPlan: TripPlan) {
+    const driveTimeValidation = this.validateDriveTimes(tripPlan);
+    const routeValidation = this.validateRoute(tripPlan);
+    
+    return {
+      isValid: driveTimeValidation.isValid && routeValidation.isValid,
+      driveTimeValidation,
+      routeValidation,
+      warnings: [
+        ...driveTimeValidation.warnings,
+        ...routeValidation.warnings
+      ]
+    };
+  }
+
+  /**
+   * Validate drive times across segments
+   */
+  private static validateDriveTimes(tripPlan: TripPlan) {
+    const warnings: string[] = [];
+    const driveTimes = tripPlan.segments.map(seg => seg.driveTimeHours);
+    
+    const maxTime = Math.max(...driveTimes);
+    const avgTime = driveTimes.reduce((sum, time) => sum + time, 0) / driveTimes.length;
+    
+    let isValid = true;
+    
+    if (maxTime > 10) {
+      warnings.push(`Long drive day detected: ${maxTime.toFixed(1)} hours`);
+      isValid = false;
+    }
+    
+    if (maxTime > avgTime * 1.8) {
+      warnings.push('Significant drive time imbalance detected');
+    }
+    
+    return {
+      isValid,
+      warnings,
+      maxDriveTime: maxTime,
+      avgDriveTime: avgTime
+    };
+  }
+
+  /**
+   * Validate route sequence and logic
+   */
+  private static validateRoute(tripPlan: TripPlan) {
+    const warnings: string[] = [];
+    let isValid = true;
+    
+    if (tripPlan.segments.length === 0) {
+      warnings.push('No segments found in trip plan');
+      isValid = false;
+    }
+    
+    if (tripPlan.totalDistance <= 0) {
+      warnings.push('Invalid total distance');
+      isValid = false;
+    }
+    
+    return {
+      isValid,
+      warnings
+    };
   }
 
   private static findSimilarCities(searchTerm: string, allStops: TripStop[]): string[] {

@@ -72,18 +72,17 @@ const mockDestinationCities: TripStop[] = [
 console.log('🧪 Testing UnifiedTripPlanningService...');
 
 try {
-  const planningResult = UnifiedTripPlanningService.createTripPlan(
-    mockStartStop,
-    mockEndStop,
-    mockDestinationCities,
+  // Use the correct method name 'planTrip' instead of 'createTripPlan'
+  const planningResult = await UnifiedTripPlanningService.planTrip(
+    'Chicago',
+    'Los Angeles', 
     5,
-    'Chicago, IL',
-    'Los Angeles, CA'
+    'balanced'
   );
 
   console.log('✅ Test passed: Trip plan created successfully');
-  console.log(`📊 Trip details: ${planningResult.tripPlan.totalDays} days, ${planningResult.tripPlan.totalDistance} miles`);
-  console.log(`⚖️ Balance: ${planningResult.tripPlan.driveTimeBalance?.isBalanced ? 'BALANCED' : 'NEEDS WORK'}`);
+  console.log(`📊 Trip details: ${planningResult.tripPlan?.totalDays} days, ${planningResult.tripPlan?.totalDistance} miles`);
+  console.log(`⚖️ Success: ${planningResult.success ? 'YES' : 'NO'}`);
 } catch (error) {
   console.error('❌ Test failed:', error);
 }
