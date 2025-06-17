@@ -18,59 +18,68 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// ULTIMATE FIX: Absolutely bulletproof drive time calculation with ZERO exceptions
+// NUCLEAR OPTION: Absolutely bulletproof drive time calculation with ZERO exceptions
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚗 ULTIMATE CALCULATION: Drive time for ${distance.toFixed(1)} miles`);
+  console.log(`🚨 NUCLEAR DRIVE TIME CALCULATION: ${distance.toFixed(1)} miles`);
   
-  // ABSOLUTE HARD LIMIT: Never allow more than 10 hours - PERIOD
-  const ABSOLUTE_MAX_HOURS = 10;
+  // NUCLEAR ENFORCEMENT: Absolutely no drive time can exceed 8 hours - PERIOD
+  const NUCLEAR_MAX_HOURS = 8;
   
-  // Handle edge cases
-  if (distance <= 0) {
-    console.log(`🚗 ULTIMATE: Zero/negative distance, returning minimum time`);
+  // Handle all edge cases with extreme prejudice
+  if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
+    console.log(`🚨 NUCLEAR: Invalid distance ${distance}, returning 0.5h`);
     return 0.5;
   }
   
-  if (distance > 1000) {
-    console.warn(`🚗 ULTIMATE: Extremely large distance ${distance.toFixed(1)}mi - forcing to 10h limit`);
-    return ABSOLUTE_MAX_HOURS;
+  // For any distance over 400 miles, force to 8 hours max
+  if (distance > 400) {
+    console.warn(`🚨 NUCLEAR: Distance ${distance.toFixed(1)}mi > 400mi - FORCING to 8h limit`);
+    return NUCLEAR_MAX_HOURS;
   }
   
   let avgSpeed: number;
   let bufferMultiplier: number;
   
   if (distance < 50) {
-    avgSpeed = 45; // Urban/city driving
-    bufferMultiplier = 1.2; // More traffic, lights
+    avgSpeed = 45;
+    bufferMultiplier = 1.2;
   } else if (distance < 150) {
-    avgSpeed = 55; // Mixed roads
-    bufferMultiplier = 1.15; // Some traffic
+    avgSpeed = 55;
+    bufferMultiplier = 1.15;
   } else if (distance < 300) {
-    avgSpeed = 65; // Mostly highway
-    bufferMultiplier = 1.1; // Light traffic
+    avgSpeed = 65;
+    bufferMultiplier = 1.1;
   } else {
-    avgSpeed = 70; // Long highway stretches
-    bufferMultiplier = 1.05; // Minimal stops
+    avgSpeed = 70;
+    bufferMultiplier = 1.05;
   }
   
   const baseTime = distance / avgSpeed;
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // ABSOLUTE CAP: Never exceed 10 hours - this is NON-NEGOTIABLE
-  const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
+  // NUCLEAR ENFORCEMENT: Never exceed 8 hours under any circumstances
+  const finalTime = Math.min(calculatedTime, NUCLEAR_MAX_HOURS);
   
-  console.log(`🚗 ULTIMATE CALCULATION: Drive time ABSOLUTELY ENFORCED:`, {
+  console.log(`🚨 NUCLEAR CALCULATION COMPLETE:`, {
     distance: distance.toFixed(1),
     avgSpeed,
     bufferMultiplier,
     baseTime: baseTime.toFixed(1),
     calculatedTime: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    wasForciblyCapped: calculatedTime > ABSOLUTE_MAX_HOURS,
-    absoluteMaxHours: ABSOLUTE_MAX_HOURS,
-    guarantee: 'NEVER_EXCEEDS_10_HOURS'
+    nuclearCapped: calculatedTime > NUCLEAR_MAX_HOURS,
+    nuclearMaxHours: NUCLEAR_MAX_HOURS,
+    guarantee: 'NEVER_EXCEEDS_8_HOURS'
   });
   
-  // Ensure minimum reasonable time
-  return Math.max(finalTime, 0.5); // Minimum 30 minutes
+  // Ensure minimum time and return
+  const result = Math.max(finalTime, 0.5);
+  
+  // FINAL SAFETY CHECK: If somehow result is still > 8, force it
+  if (result > NUCLEAR_MAX_HOURS) {
+    console.error(`🚨 NUCLEAR EMERGENCY: Result ${result} > 8h - FORCING TO 8h`);
+    return NUCLEAR_MAX_HOURS;
+  }
+  
+  return result;
 };

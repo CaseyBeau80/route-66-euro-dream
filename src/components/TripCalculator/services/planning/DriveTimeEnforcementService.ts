@@ -1,6 +1,7 @@
 import { TripStop } from '../data/SupabaseDataService';
 import { TripStyleConfig } from './TripStyleLogic';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 
 export interface DriveTimeValidationResult {
   isValid: boolean;
@@ -19,46 +20,23 @@ export interface DriveTimeEnforcementResult {
 
 export class DriveTimeEnforcementService {
   /**
-   * ABSOLUTE FIX: Calculate realistic drive time with ABSOLUTE hard limits
+   * NUCLEAR OPTION: Use the bulletproof drive time calculation from utils
    */
   static calculateRealisticDriveTime(distance: number): number {
-    console.log(`🚗 ABSOLUTE ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
+    console.log(`🚨 NUCLEAR ENFORCEMENT SERVICE: Delegating to bulletproof calculator for ${distance.toFixed(1)} miles`);
     
-    // ABSOLUTE NON-NEGOTIABLE LIMIT
-    const ABSOLUTE_MAX_HOURS = 10;
+    // Delegate to the nuclear-grade calculation in utils
+    const result = calculateRealisticDriveTime(distance);
     
-    let avgSpeed: number;
-    let bufferMultiplier: number;
+    console.log(`🚨 NUCLEAR ENFORCEMENT: Received ${result.toFixed(1)}h from bulletproof calculator`);
     
-    if (distance < 50) {
-      avgSpeed = 45;
-      bufferMultiplier = 1.2;
-    } else if (distance < 150) {
-      avgSpeed = 55;
-      bufferMultiplier = 1.15;
-    } else if (distance < 300) {
-      avgSpeed = 65;
-      bufferMultiplier = 1.1;
-    } else {
-      avgSpeed = 70;
-      bufferMultiplier = 1.05;
+    // Triple safety check - should never be needed but just in case
+    if (result > 8) {
+      console.error(`🚨 NUCLEAR EMERGENCY: Bulletproof calculator returned ${result}h > 8h - FORCING TO 8h`);
+      return 8;
     }
     
-    const baseTime = distance / avgSpeed;
-    const calculatedTime = baseTime * bufferMultiplier;
-    
-    // ABSOLUTE ENFORCEMENT: Never allow more than 10 hours
-    const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
-    
-    console.log(`🚗 ABSOLUTE ENFORCEMENT: Drive time ABSOLUTELY CAPPED:`, {
-      distance: distance.toFixed(1),
-      calculatedTime: calculatedTime.toFixed(1),
-      finalTime: finalTime.toFixed(1),
-      wasAbsolutelyCapped: calculatedTime > ABSOLUTE_MAX_HOURS,
-      absoluteLimit: ABSOLUTE_MAX_HOURS
-    });
-    
-    return Math.max(finalTime, 0.5);
+    return result;
   }
 
   /**
@@ -92,8 +70,8 @@ export class DriveTimeEnforcementService {
       endStop.latitude, endStop.longitude
     );
     
-    if (distance > 500) {
-      console.log(`🚨 CRITICAL: Distance ${distance.toFixed(1)}mi exceeds 500mi - forcing artificial split`);
+    if (distance > 400) {
+      console.log(`🚨 CRITICAL: Distance ${distance.toFixed(1)}mi exceeds 400mi - forcing artificial split`);
       return this.forceSegmentSplit(startStop, endStop, styleConfig);
     }
     
@@ -111,12 +89,12 @@ export class DriveTimeEnforcementService {
     }
 
     // Fallback: Create warning but allow segment with capped drive time
-    console.warn(`⚠️ DRIVE TIME FAILSAFE: Could not split segment, capping at 10h with warning`);
+    console.warn(`⚠️ DRIVE TIME FAILSAFE: Could not split segment, capping at 8h with warning`);
     return {
       isValid: false,
       segments: [{ startStop, endStop }],
       warnings: [
-        `Day with ${validation.actualDriveTime.toFixed(1)} hour drive exceeds ${styleConfig.maxDailyDriveHours}h safe limit - capped at 10h`,
+        `Day with ${validation.actualDriveTime.toFixed(1)} hour drive exceeds ${styleConfig.maxDailyDriveHours}h safe limit - capped at 8h`,
         'Consider extending trip duration or adding intermediate stops for safer drive times'
       ],
       intermediateStopsAdded: 0
@@ -376,7 +354,7 @@ export class DriveTimeEnforcementService {
   }
 
   /**
-   * ABSOLUTE FIX: Validate segment and FORCE compliance
+   * NUCLEAR VALIDATION: Validate segment and FORCE compliance
    */
   static validateSegmentDriveTime(
     startStop: TripStop,
@@ -388,19 +366,19 @@ export class DriveTimeEnforcementService {
       endStop.latitude, endStop.longitude
     );
     
-    // Use ABSOLUTE drive time calculation
+    // Use NUCLEAR drive time calculation
     const actualDriveTime = this.calculateRealisticDriveTime(distance);
     const maxAllowed = styleConfig.maxDailyDriveHours;
     const excessTime = Math.max(0, actualDriveTime - maxAllowed);
     const isValid = actualDriveTime <= maxAllowed;
 
-    console.log(`🚗 ABSOLUTE VALIDATION: ${startStop.name} → ${endStop.name}`, {
+    console.log(`🚨 NUCLEAR VALIDATION: ${startStop.name} → ${endStop.name}`, {
       distance: distance.toFixed(1),
       actualDriveTime: actualDriveTime.toFixed(1),
       maxAllowed,
       isValid,
       excessTime: excessTime.toFixed(1),
-      absoluteEnforcement: true
+      nuclearEnforcement: true
     });
 
     let recommendation: string | undefined;

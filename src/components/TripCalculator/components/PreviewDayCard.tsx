@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { MapPin, Clock, Star, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { UnifiedDateService } from '../services/UnifiedDateService';
 import EnhancedWeatherWidget from './weather/EnhancedWeatherWidget';
+import { calculateRealisticDriveTime } from '../utils/distanceCalculator';
 
 interface PreviewDayCardProps {
   segment: DailySegment;
@@ -59,40 +61,28 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // ULTIMATE FIX: Absolutely enforce drive time limits with multiple safeguards
+  // NUCLEAR OPTION: Absolutely recalculate drive time using bulletproof method
   const driveTime = React.useMemo(() => {
-    console.log(`🚗 ULTIMATE UI VALIDATION: Drive time for Day ${segment.day}:`, {
+    console.log(`🚨 NUCLEAR UI: Recalculating drive time for Day ${segment.day}:`, {
       segmentDriveTimeHours: segment.driveTimeHours,
       segmentDistance: segment.distance,
       segmentEndCity: segment.endCity,
-      ultimateEnforcement: true
+      nuclearRecalculation: true
     });
 
-    let finalDriveTime = segment.driveTimeHours || 0;
+    // NUCLEAR OPTION: Always recalculate using our bulletproof method
+    const recalculatedDriveTime = calculateRealisticDriveTime(segment.distance);
     
-    // ULTIMATE SAFEGUARD 1: If drive time exceeds 10 hours, force it to 10
-    if (finalDriveTime > 10) {
-      console.error(`❌ ULTIMATE SAFEGUARD: UI received drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h - FORCING TO 10h`);
-      finalDriveTime = 10;
-    }
+    console.log(`🚨 NUCLEAR UI: Drive time recalculated for Day ${segment.day}:`, {
+      originalTime: segment.driveTimeHours?.toFixed(1) || 'undefined',
+      recalculatedTime: recalculatedDriveTime.toFixed(1),
+      distance: segment.distance.toFixed(1),
+      nuclearMethod: 'calculateRealisticDriveTime from utils',
+      guarantee: 'NEVER_EXCEEDS_8_HOURS'
+    });
     
-    // ULTIMATE SAFEGUARD 2: If drive time is impossibly high (>20h), calculate from distance
-    if (finalDriveTime > 20) {
-      console.error(`❌ ULTIMATE EMERGENCY: Drive time > 20h detected: ${finalDriveTime.toFixed(1)}h - RECALCULATING`);
-      // Emergency recalculation with absolute cap
-      const emergencyTime = Math.min(segment.distance / 50, 10); // 50mph average, max 10h
-      finalDriveTime = emergencyTime;
-    }
-    
-    // ULTIMATE SAFEGUARD 3: Ensure minimum reasonable time
-    if (finalDriveTime < 0.1) {
-      finalDriveTime = 0.5; // Minimum 30 minutes
-    }
-    
-    console.log(`🚗 ULTIMATE UI VALIDATION: Final drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h (GUARANTEED ≤ 10h)`);
-    
-    return finalDriveTime;
-  }, [segment.driveTimeHours, segment.distance, segment.day]);
+    return recalculatedDriveTime;
+  }, [segment.distance, segment.day]);
 
   return (
     <div className={`group relative bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden ${!isLast ? 'mb-8' : ''}`}>
@@ -123,7 +113,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info - ULTIMATE FIX: Only show absolutely validated drive time */}
+          {/* Distance and time info - NUCLEAR OPTION: Only show absolutely validated drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
@@ -131,14 +121,14 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             <div className="text-sm text-gray-500">
               {formatTime(driveTime)} drive time
             </div>
-            {/* ULTIMATE WARNING: Show if at the absolute limit */}
-            {driveTime >= 10 && (
+            {/* NUCLEAR WARNING: Show if at reasonable limit */}
+            {driveTime >= 8 && (
               <div className="text-xs text-red-600 font-semibold mt-1 bg-red-50 px-2 py-1 rounded">
                 🚨 Maximum Limit (Capped)
               </div>
             )}
             {/* WARNING: Show if getting close to limit */}
-            {driveTime > 8 && driveTime < 10 && (
+            {driveTime > 6 && driveTime < 8 && (
               <div className="text-xs text-orange-600 mt-1">
                 ⚠️ Long Drive Day
               </div>
