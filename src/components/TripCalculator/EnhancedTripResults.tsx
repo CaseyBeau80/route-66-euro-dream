@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
@@ -34,10 +33,10 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return date ? format(date, 'MMMM dd, yyyy') : 'Not specified';
   };
 
-  // Safe access to summary with fallbacks
+  // Safe access to summary with fallbacks - fix totalDriveTime to totalDrivingTime
   const startLocation = tripPlan.summary?.startLocation || 'Start Location';
   const endLocation = tripPlan.summary?.endLocation || 'End Location';
-  const totalDriveTime = tripPlan.totalDrivingTime || tripPlan.totalDriveTime || 0;
+  const totalDriveTime = tripPlan.totalDrivingTime || tripPlan.summary?.totalDriveTime || 0;
 
   return (
     <div className="space-y-6">

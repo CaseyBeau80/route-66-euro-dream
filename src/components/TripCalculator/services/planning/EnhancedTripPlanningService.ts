@@ -1,6 +1,5 @@
-
 import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './TripPlanTypes';
+import { DailySegment, DriveTimeCategory } from './TripPlanTypes';
 import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';
 import { DriveTimeConstraintEnforcer, DriveTimeConstraint } from './DriveTimeConstraintEnforcer';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -219,6 +218,13 @@ export class EnhancedTripPlanningService {
         distance / 60, // Conservative speed estimate
         constraints.maxDailyHours
       );
+
+      // Create proper DriveTimeCategory object instead of string
+      const driveTimeCategory: DriveTimeCategory = {
+        category: driveTime <= 6 ? 'comfortable' : driveTime <= 8 ? 'moderate' : 'extended',
+        message: driveTime <= 6 ? 'Comfortable drive' : driveTime <= 8 ? 'Moderate drive' : 'Extended drive',
+        color: driveTime <= 6 ? 'green' : driveTime <= 8 ? 'yellow' : 'red'
+      };
       
       const segment: DailySegment = {
         day,
@@ -245,7 +251,7 @@ export class EnhancedTripPlanningService {
           city: nextStop.city || nextStop.city_name || 'Unknown'
         }],
         attractions: [],
-        driveTimeCategory: driveTime <= 6 ? 'comfortable' : driveTime <= 8 ? 'moderate' : 'extended',
+        driveTimeCategory,
         routeSection: `Section ${Math.ceil(day / 3)}`
       };
       

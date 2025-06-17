@@ -1,5 +1,6 @@
 
 import { TripStop } from '../data/SupabaseDataService';
+import { DailySegment } from './TripPlanTypes'; // Add missing import
 
 // Re-export types from the unified location
 export type { 

@@ -51,9 +51,14 @@ export class Route66TripPlannerService {
         throw new Error(`Trip planning failed: ${planningResult.error || 'No segments generated'}`);
       }
       
-      // Create enhanced trip plan with summary
+      // Create enhanced trip plan with summary and all required properties
       const tripPlan: TripPlan = {
+        id: `trip-${Date.now()}`,
+        startCity: startLocation,
+        endCity: endLocation,
+        startDate: new Date(),
         segments: planningResult.tripPlan.segments,
+        dailySegments: planningResult.tripPlan.segments, // Copy segments to dailySegments
         totalDays: planningResult.tripPlan.totalDays,
         totalDistance: planningResult.tripPlan.totalDistance,
         totalDrivingTime: planningResult.tripPlan.totalDrivingTime || planningResult.tripPlan.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
