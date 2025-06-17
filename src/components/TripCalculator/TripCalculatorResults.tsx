@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -109,19 +108,18 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   completionAnalysis,
   originalRequestedDays
 }) => {
-  console.log('🎯 TripCalculatorResults render:', {
+  console.log('🎯 TripCalculatorResults render with debug info:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
     shareUrl,
     tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateType: typeof tripStartDate,
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays
   });
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with completion analysis');
+    console.log('✨ Rendering Enhanced Trip Results with debug panel and validation');
     return (
       <EnhancedTripResults 
         tripPlan={tripPlan} 

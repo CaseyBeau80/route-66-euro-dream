@@ -1,215 +1,143 @@
 
 import { TripStop } from '../data/SupabaseDataService';
 import { DailySegment } from './TripPlanTypes';
-import { Route66SequenceValidator } from './utils/Route66SequenceValidator';
-import { Route66SequenceUtils } from './utils/Route66SequenceUtils';
 
-export interface SequenceEnforcementResult {
+export interface SequenceValidationResult {
   isValid: boolean;
-  originalSegments: DailySegment[];
-  correctedSegments?: DailySegment[];
-  violations: Array<{
-    day: number;
-    from: string;
-    to: string;
-    violation: string;
-    correctionApplied?: string;
-  }>;
-  summary: string;
+  violations: string[];
+  direction: 'east-to-west' | 'west-to-east';
+  backtrackingSegments: number;
 }
 
 export class Route66SequenceEnforcer {
   /**
-   * Enforce Route 66 sequence order in trip segments
+   * Enforce proper Route 66 sequence direction throughout the trip
    */
-  static enforceSequenceOrder(segments: DailySegment[]): SequenceEnforcementResult {
-    console.log(`🔒 SEQUENCE ENFORCEMENT: Validating ${segments.length} segments`);
-
-    const violations: Array<{
-      day: number;
-      from: string;
-      to: string;
-      violation: string;
-      correctionApplied?: string;
-    }> = [];
-
-    // Extract stops from segments for validation
-    const allStops: TripStop[] = [];
-    
-    if (segments.length > 0) {
-      // Add start stop (reconstructed from first segment)
-      const firstSegment = segments[0];
-      allStops.push({
-        id: `start-${Math.random()}`,
-        name: firstSegment.startCity,
-        city_name: firstSegment.startCity,
-        state: 'Unknown', // We don't have state info in segments
-        latitude: 0, // We don't have coordinates in segments
-        longitude: 0,
-        category: 'destination_city'
-      } as TripStop);
-
-      // Add all destination stops
-      segments.forEach(segment => {
-        allStops.push({
-          id: `dest-${segment.day}`,
-          name: segment.endCity,
-          city_name: segment.endCity,
-          state: segment.destination?.state || 'Unknown',
-          latitude: 0, // We don't have coordinates in segments
-          longitude: 0,
-          category: 'destination_city'
-        } as TripStop);
-      });
-    }
-
-    // Validate sequence using the validator
-    const sequenceValidation = Route66SequenceValidator.validateTripSequence(allStops);
-
-    // Convert validation violations to our format
-    sequenceValidation.violations.forEach(violation => {
-      const fromStop = allStops[violation.fromIndex];
-      const toStop = allStops[violation.toIndex];
-      
-      violations.push({
-        day: violation.fromIndex + 1,
-        from: fromStop.name,
-        to: toStop.name,
-        violation: violation.reason,
-      });
-    });
-
-    const isValid = violations.length === 0;
-    
-    let summary: string;
-    if (isValid) {
-      summary = `✅ All ${segments.length} segments maintain proper Route 66 sequence order`;
-    } else {
-      summary = `❌ Found ${violations.length} sequence violations requiring attention`;
-    }
-
-    console.log(`🔒 ENFORCEMENT RESULT: ${summary}`);
-    violations.forEach(v => {
-      console.log(`   Day ${v.day}: ${v.from} → ${v.to} (${v.violation})`);
-    });
-
-    return {
-      isValid,
-      originalSegments: segments,
-      violations,
-      summary
-    };
-  }
-
-  /**
-   * Validate that a proposed trip maintains Route 66 sequence integrity
-   */
-  static validateTripSequenceIntegrity(
+  static enforceSequenceDirection(
     startStop: TripStop,
-    intermediateStops: TripStop[],
-    endStop: TripStop
+    endStop: TripStop,
+    candidateStops: TripStop[]
   ): {
-    isValid: boolean;
-    violations: string[];
-    recommendations: string[];
+    validStops: TripStop[];
+    direction: 'east-to-west' | 'west-to-east';
+    rejectedStops: Array<{ stop: TripStop; reason: string }>;
   } {
-    const allStops = [startStop, ...intermediateStops, endStop];
-    const violations: string[] = [];
-    const recommendations: string[] = [];
-
-    console.log(`🔍 INTEGRITY CHECK: Validating sequence for ${allStops.length} stops`);
-
-    // Check for sequence violations
-    const sequenceResult = Route66SequenceUtils.detectSequenceViolations(allStops);
+    console.log(`🧭 ENFORCING SEQUENCE: ${startStop.name} → ${endStop.name}`);
     
-    if (sequenceResult.hasViolations) {
-      sequenceResult.details.forEach(detail => {
-        violations.push(`${detail.from} → ${detail.to}: ${detail.violation}`);
-      });
-
-      if (sequenceResult.backtrackingCount > 0) {
-        recommendations.push(`Remove ${sequenceResult.backtrackingCount} backtracking segments`);
-      }
+    // Determine trip direction based on longitude
+    const direction = endStop.longitude < startStop.longitude ? 'east-to-west' : 'west-to-east';
+    console.log(`🧭 TRIP DIRECTION: ${direction}`);
+    
+    const validStops: TripStop[] = [];
+    const rejectedStops: Array<{ stop: TripStop; reason: string }> = [];
+    
+    for (const stop of candidateStops) {
+      const validation = this.validateStopSequence(startStop, stop, endStop, direction);
       
-      if (sequenceResult.overshootingCount > 0) {
-        recommendations.push(`Add intermediate stops to prevent overshooting`);
-      }
-    }
-
-    // Check for large sequence gaps
-    for (let i = 0; i < allStops.length - 1; i++) {
-      const current = allStops[i];
-      const next = allStops[i + 1];
-      
-      const currentInfo = Route66SequenceUtils.getSequenceInfo(current);
-      const nextInfo = Route66SequenceUtils.getSequenceInfo(next);
-      
-      if (currentInfo.order !== null && nextInfo.order !== null) {
-        const gap = Math.abs(nextInfo.order - currentInfo.order);
-        
-        if (gap > 150) { // Large sequence gap threshold
-          violations.push(`Large sequence gap between ${current.name} and ${next.name} (${gap} units)`);
-          recommendations.push(`Consider adding intermediate stop between ${current.name} and ${next.name}`);
-        }
+      if (validation.isValid) {
+        validStops.push(stop);
+      } else {
+        rejectedStops.push({ stop, reason: validation.reason });
+        console.log(`🚫 REJECTED: ${stop.name} - ${validation.reason}`);
       }
     }
-
+    
+    console.log(`✅ SEQUENCE ENFORCEMENT: ${validStops.length} valid, ${rejectedStops.length} rejected`);
+    
+    return { validStops, direction, rejectedStops };
+  }
+  
+  /**
+   * Validate that a stop maintains proper sequence
+   */
+  private static validateStopSequence(
+    startStop: TripStop,
+    candidateStop: TripStop,
+    endStop: TripStop,
+    direction: 'east-to-west' | 'west-to-east'
+  ): { isValid: boolean; reason: string } {
+    // Check longitude progression
+    if (direction === 'east-to-west') {
+      // Going west: longitude should decrease
+      if (candidateStop.longitude > startStop.longitude) {
+        return { isValid: false, reason: 'Backtracking eastward on westbound trip' };
+      }
+      if (candidateStop.longitude < endStop.longitude) {
+        return { isValid: false, reason: 'Overshooting destination westward' };
+      }
+    } else {
+      // Going east: longitude should increase
+      if (candidateStop.longitude < startStop.longitude) {
+        return { isValid: false, reason: 'Backtracking westward on eastbound trip' };
+      }
+      if (candidateStop.longitude > endStop.longitude) {
+        return { isValid: false, reason: 'Overshooting destination eastward' };
+      }
+    }
+    
+    return { isValid: true, reason: 'Valid sequence progression' };
+  }
+  
+  /**
+   * Validate final trip sequence for any violations
+   */
+  static validateTripSequence(segments: DailySegment[]): SequenceValidationResult {
+    const violations: string[] = [];
+    let backtrackingSegments = 0;
+    
+    if (segments.length < 2) {
+      return { isValid: true, violations: [], direction: 'west-to-east', backtrackingSegments: 0 };
+    }
+    
+    // Determine overall direction from first to last segment
+    const firstSegment = segments[0];
+    const lastSegment = segments[segments.length - 1];
+    const direction = lastSegment.endCity.includes('Los Angeles') || lastSegment.endCity.includes('Santa Monica') 
+      ? 'west-to-east' 
+      : 'east-to-west';
+    
+    // Check each segment transition
+    for (let i = 0; i < segments.length - 1; i++) {
+      const currentSegment = segments[i];
+      const nextSegment = segments[i + 1];
+      
+      // This is a simplified check - in a real implementation, we'd use actual coordinates
+      const isBacktracking = this.detectBacktracking(currentSegment.endCity, nextSegment.endCity, direction);
+      
+      if (isBacktracking) {
+        backtrackingSegments++;
+        violations.push(`Day ${currentSegment.day} → Day ${nextSegment.day}: Backtracking from ${currentSegment.endCity} to ${nextSegment.endCity}`);
+      }
+    }
+    
     const isValid = violations.length === 0;
     
-    console.log(`🔍 INTEGRITY RESULT: ${isValid ? 'Valid' : 'Invalid'} (${violations.length} violations)`);
+    console.log(`🔍 SEQUENCE VALIDATION: ${isValid ? 'VALID' : 'INVALID'} - ${violations.length} violations, ${backtrackingSegments} backtracking segments`);
     
-    return {
-      isValid,
-      violations,
-      recommendations
-    };
+    return { isValid, violations, direction, backtrackingSegments };
   }
-
+  
   /**
-   * Get sequence enforcement summary for trip planning
+   * Simple backtracking detection based on city names
    */
-  static getSequenceEnforcementSummary(
-    segments: DailySegment[]
-  ): {
-    totalSegments: number;
-    validSegments: number;
-    violatingSegments: number;
-    sequenceQuality: 'excellent' | 'good' | 'fair' | 'poor';
-    qualityReason: string;
-  } {
-    const enforcementResult = this.enforceSequenceOrder(segments);
+  private static detectBacktracking(fromCity: string, toCity: string, direction: 'east-to-west' | 'west-to-east'): boolean {
+    // Simplified Route 66 city order (west to east)
+    const route66Cities = [
+      'Santa Monica', 'Los Angeles', 'Barstow', 'Needles', 'Kingman', 'Flagstaff', 
+      'Winslow', 'Holbrook', 'Gallup', 'Albuquerque', 'Santa Fe', 'Tucumcari', 
+      'Amarillo', 'Oklahoma City', 'Tulsa', 'Joplin', 'Springfield', 'St. Louis', 'Chicago'
+    ];
     
-    const totalSegments = segments.length;
-    const violatingSegments = enforcementResult.violations.length;
-    const validSegments = totalSegments - violatingSegments;
+    const fromIndex = route66Cities.findIndex(city => fromCity.includes(city));
+    const toIndex = route66Cities.findIndex(city => toCity.includes(city));
     
-    let sequenceQuality: 'excellent' | 'good' | 'fair' | 'poor';
-    let qualityReason: string;
+    // If cities not found in our list, assume valid
+    if (fromIndex === -1 || toIndex === -1) return false;
     
-    const violationRate = violatingSegments / totalSegments;
-    
-    if (violationRate === 0) {
-      sequenceQuality = 'excellent';
-      qualityReason = 'Perfect Route 66 sequence adherence with no backtracking';
-    } else if (violationRate <= 0.1) {
-      sequenceQuality = 'good';
-      qualityReason = 'Minor sequence deviations that maintain overall Route 66 flow';
-    } else if (violationRate <= 0.3) {
-      sequenceQuality = 'fair';
-      qualityReason = 'Some sequence violations present, consider route adjustments';
+    if (direction === 'west-to-east') {
+      return toIndex < fromIndex; // Going backwards in the array
     } else {
-      sequenceQuality = 'poor';
-      qualityReason = 'Significant backtracking detected, route needs major revision';
+      return toIndex > fromIndex; // Going forwards when should go backwards
     }
-    
-    console.log(`📊 SEQUENCE QUALITY: ${sequenceQuality} (${validSegments}/${totalSegments} valid segments)`);
-    
-    return {
-      totalSegments,
-      validSegments,
-      violatingSegments,
-      sequenceQuality,
-      qualityReason
-    };
   }
 }

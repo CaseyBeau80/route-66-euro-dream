@@ -12,14 +12,14 @@ export const useTripCalculation = () => {
   const [planningResult, setPlanningResult] = useState<EnhancedTripPlanResult | null>(null);
 
   const calculateTrip = useCallback(async (formData: TripFormData) => {
-    console.log('🚗 useTripCalculation: Starting enhanced trip calculation', { formData });
+    console.log('🚗 useTripCalculation: Starting enhanced trip calculation with debug info', { formData });
     
     setIsCalculating(true);
     setTripPlan(null);
     setPlanningResult(null);
 
     try {
-      // Use the enhanced trip planning service with completion analysis
+      // Use the enhanced trip planning service with full debug information
       const result = await Route66TripPlannerService.planTripWithAnalysis(
         formData.startLocation,
         formData.endLocation,
@@ -27,27 +27,27 @@ export const useTripCalculation = () => {
         formData.tripStyle || 'balanced'
       );
 
-      console.log('✅ useTripCalculation: Enhanced trip planning completed', {
+      console.log('✅ useTripCalculation: Enhanced trip planning completed with debug info', {
         success: !!result.tripPlan,
         segmentCount: result.tripPlan?.segments?.length,
-        hasCompletionAnalysis: !!result.completionAnalysis,
-        originalDays: result.originalRequestedDays,
-        finalDays: result.tripPlan?.totalDays
+        hasDebugInfo: !!result.debugInfo,
+        hasValidationResults: !!result.validationResults,
+        warningCount: result.warnings?.length || 0
       });
 
       if (result.tripPlan) {
         setTripPlan(result.tripPlan);
         setPlanningResult(result);
         
-        // Enhanced success message
-        const optimizationMessage = result.completionAnalysis?.isCompleted
-          ? ` Trip optimized from ${result.originalRequestedDays} to ${result.tripPlan.totalDays} days.`
-          : '';
+        // Enhanced success message with validation status
+        const validationStatus = result.validationResults?.driveTimeValidation?.isValid && result.validationResults?.sequenceValidation?.isValid
+          ? 'All constraints validated ✅'
+          : `${result.warnings?.length || 0} constraint warnings ⚠️`;
         
         toast({
           title: "Trip Planned Successfully!",
-          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary from ${formData.startLocation} to ${formData.endLocation}.${optimizationMessage}`,
-          variant: "default"
+          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary. ${validationStatus}`,
+          variant: result.warnings?.length > 0 ? "default" : "default"
         });
       } else {
         throw new Error('Failed to plan trip - no trip plan returned');
