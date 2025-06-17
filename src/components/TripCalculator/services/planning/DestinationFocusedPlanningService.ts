@@ -1,179 +1,296 @@
-import { TripStop } from '../data/SupabaseDataService';
-import { DailySegment } from './TripPlanTypes';
-import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';
-import { DriveTimeConstraintEnforcer } from './DriveTimeConstraintEnforcer';
-import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
-import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+
+import { TripStop } from '../../types/TripStop';
+import { TripPlan, DailySegment, RecommendedStop } from './TripPlanTypes';
 import { CityDisplayService } from '../utils/CityDisplayService';
 
-export interface DestinationFocusedPlanResult {
-  segments: DailySegment[];
-  isValid: boolean;
-  warnings: string[];
-  validationResults: any;
-}
-
 export class DestinationFocusedPlanningService {
-  /**
-   * Plan a destination-focused Route 66 trip
-   */
   static async planDestinationFocusedTrip(
-    startLocation: string,
-    endLocation: string,
-    totalDays: number,
+    startCityName: string,
+    endCityName: string,
+    tripDays: number,
     allStops: TripStop[]
-  ): Promise<DestinationFocusedPlanResult> {
-    console.log(`🎯 DESTINATION-FOCUSED TRIP: ${startLocation} to ${endLocation} in ${totalDays} days`);
-
-    const warnings: string[] = [];
-
-    // 1. Find the start and end stops
-    const startStop = allStops.find(stop =>
-      stop.city_name?.toLowerCase().includes(startLocation.toLowerCase()) ||
-      stop.name.toLowerCase().includes(startLocation.toLowerCase())
-    );
-
-    const endStop = allStops.find(stop =>
-      stop.city_name?.toLowerCase().includes(endLocation.toLowerCase()) ||
-      stop.name.toLowerCase().includes(endLocation.toLowerCase())
-    );
-
+  ): Promise<TripPlan> {
+    console.log(`🎯 DESTINATION-FOCUSED PLANNING: ${startCityName} to ${endCityName} in ${tripDays} days`);
+    
+    // Enhanced city finding with multiple strategies
+    const startStop = this.findCityInStops(startCityName, allStops);
+    const endStop = this.findCityInStops(endCityName, allStops);
+    
     if (!startStop) {
-      throw new Error(`Start location "${startLocation}" not found in Route 66 stops`);
+      console.error(`❌ Start location "${startCityName}" not found in Route 66 stops`);
+      console.log('🏛️ Available cities:', allStops.map(stop => CityDisplayService.getCityDisplayName(stop)));
+      throw new Error(`Start location "${startCityName}" not found in Route 66 stops`);
     }
-
+    
     if (!endStop) {
-      throw new Error(`End location "${endLocation}" not found in Route 66 stops`);
+      console.error(`❌ End location "${endCityName}" not found in Route 66 stops`);
+      console.log('🏛️ Available cities:', allStops.map(stop => CityDisplayService.getCityDisplayName(stop)));
+      throw new Error(`End location "${endCityName}" not found in Route 66 stops`);
     }
 
-    console.log(`✅ Found start and end stops: ${startStop.name} to ${endStop.name}`);
+    console.log(`✅ Found stops: ${startStop.name} → ${endStop.name}`);
 
-    // 2. Filter to destination cities only
-    const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
-    console.log(`✅ Filtered to ${destinationCities.length} destination cities`);
+    // Get the sequence order for route planning
+    const startSequence = startStop.sequence_order || 0;
+    const endSequence = endStop.sequence_order || 0;
+    
+    // Filter stops between start and end, focusing on major destinations
+    const routeStops = allStops
+      .filter(stop => {
+        const sequence = stop.sequence_order || 0;
+        return sequence >= Math.min(startSequence, endSequence) && 
+               sequence <= Math.max(startSequence, endSequence) &&
+               stop.is_major_stop; // Focus on major destinations only
+      })
+      .sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
 
-    // 3. Enforce Route 66 sequence direction
-    const sequenceResult = Route66SequenceEnforcer.enforceSequenceDirection(
-      startStop,
-      endStop,
-      destinationCities
-    );
+    // If traveling westbound (higher sequence to lower), reverse the order
+    if (startSequence > endSequence) {
+      routeStops.reverse();
+    }
 
-    const validDestinations = sequenceResult.validStops;
-    console.log(`✅ Enforced sequence, ${validDestinations.length} valid destinations`);
+    console.log(`🛣️ Destination-focused route stops found: ${routeStops.length} major cities`);
 
-    // 4. Select top destinations based on distance from start
-    const sortedDestinations = validDestinations.sort((a, b) => {
-      const distA = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, a.latitude, a.longitude
-      );
-      const distB = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, b.latitude, b.longitude
-      );
-      return distA - distB;
+    // Calculate total distance
+    const totalDistance = this.calculateTotalDistance(startStop, endStop);
+    
+    // Distribute major destinations across days
+    const segments = this.distributeDestinationsAcrossDays(routeStops, tripDays, totalDistance);
+    
+    return {
+      id: `trip-${Date.now()}`,
+      startCity: startCityName,
+      endCity: endCityName,
+      startDate: new Date(),
+      totalDays: tripDays,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime: segments.reduce((total, seg) => total + seg.driveTimeHours, 0),
+      segments,
+      dailySegments: segments,
+      lastUpdated: new Date()
+    };
+  }
+
+  /**
+   * FIXED: Robust city finding that matches other validators
+   */
+  private static findCityInStops(searchTerm: string, allStops: TripStop[]): TripStop | undefined {
+    if (!searchTerm || !allStops?.length) return undefined;
+
+    console.log(`🔍 DESTINATION SERVICE: Looking for "${searchTerm}" among ${allStops.length} stops`);
+
+    // Strategy 1: Direct exact match on display name (City, State format)
+    for (const stop of allStops) {
+      const displayName = CityDisplayService.getCityDisplayName(stop);
+      console.log(`    DESTINATION SERVICE: Checking display name: "${displayName}" vs "${searchTerm}"`);
+      if (displayName.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
+        console.log(`✅ DESTINATION SERVICE: Direct display name match: ${displayName}`);
+        return stop;
+      }
+    }
+
+    // Strategy 2: Direct exact match on stop name
+    for (const stop of allStops) {
+      console.log(`    DESTINATION SERVICE: Checking stop name: "${stop.name}" vs "${searchTerm}"`);
+      if (stop.name.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
+        console.log(`✅ DESTINATION SERVICE: Direct stop name match: ${stop.name}`);
+        return stop;
+      }
+    }
+
+    // Strategy 3: Parse city, state and match components
+    const { city: searchCity, state: searchState } = this.parseCityState(searchTerm);
+    console.log(`🔍 DESTINATION SERVICE: Parsed components - city: "${searchCity}", state: "${searchState}"`);
+    
+    if (searchState) {
+      for (const stop of allStops) {
+        const stopCityName = stop.city_name || stop.city || stop.name || '';
+        const cleanStopCity = stopCityName.replace(/,\s*[A-Z]{2}$/, '').trim();
+        
+        const cityMatch = cleanStopCity.toLowerCase() === searchCity.toLowerCase();
+        const stateMatch = stop.state.toLowerCase() === searchState.toLowerCase();
+        
+        console.log(`    DESTINATION SERVICE: Component check: "${cleanStopCity}" (${stop.state}) vs "${searchCity}" (${searchState}) - cityMatch: ${cityMatch}, stateMatch: ${stateMatch}`);
+        
+        if (cityMatch && stateMatch) {
+          console.log(`✅ DESTINATION SERVICE: Component match: ${cleanStopCity}, ${stop.state}`);
+          return stop;
+        }
+      }
+    }
+
+    // Strategy 4: City-only match (for cases where state is omitted)
+    const cityOnlyMatches = allStops.filter(stop => {
+      const stopCityName = stop.city_name || stop.city || stop.name || '';
+      const cleanStopCity = stopCityName.replace(/,\s*[A-Z]{2}$/, '').trim();
+      return cleanStopCity.toLowerCase() === searchCity.toLowerCase();
     });
 
-    const selectedDestinations = sortedDestinations.slice(0, totalDays - 1);
-    console.log(`✅ Selected ${selectedDestinations.length} destinations`);
-
-    // 5. Build the trip segments
-    const segments: DailySegment[] = [];
-    let currentStop = startStop;
-
-    for (let i = 0; i < selectedDestinations.length; i++) {
-      const nextStop = selectedDestinations[i];
-      const day = i + 1;
-
-      const distance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        nextStop.latitude, nextStop.longitude
-      );
-
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${currentStop.name} to ${nextStop.name}`,
-        startCity: CityDisplayService.getCityDisplayName(currentStop),
-        endCity: CityDisplayService.getCityDisplayName(nextStop),
-        distance,
-        approximateMiles: Math.round(distance),
-        driveTimeHours: distance / 60, // Example calculation
-        destination: {
-          city: nextStop.city_name || nextStop.name,
-          state: nextStop.state
-        },
-        recommendedStops: [{
-          stopId: nextStop.id,
-          id: nextStop.id,
-          name: nextStop.name,
-          description: nextStop.description,
-          latitude: nextStop.latitude,
-          longitude: nextStop.longitude,
-          category: nextStop.category,
-          city_name: nextStop.city_name,
-          state: nextStop.state,
-          city: nextStop.city || nextStop.city_name || 'Unknown'
-        }],
-        attractions: [],
-        stops: []
-      };
-
-      segments.push(segment);
-      currentStop = nextStop;
-    }
-
-    // Add final segment to the end location
-    const lastDay = selectedDestinations.length + 1;
-    const lastDistance = DistanceCalculationService.calculateDistance(
-      currentStop.latitude, currentStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-
-    const lastSegment: DailySegment = {
-      day: lastDay,
-      title: `Day ${lastDay}: ${currentStop.name} to ${endStop.name}`,
-      startCity: CityDisplayService.getCityDisplayName(currentStop),
-      endCity: CityDisplayService.getCityDisplayName(endStop),
-      distance: lastDistance,
-      approximateMiles: Math.round(lastDistance),
-      driveTimeHours: lastDistance / 60, // Example calculation
-      destination: {
-        city: endStop.city_name || endStop.name,
-        state: endStop.state
-      },
-      recommendedStops: [{
-        stopId: endStop.id,
-        id: endStop.id,
-        name: endStop.name,
-        description: endStop.description,
-        latitude: endStop.latitude,
-        longitude: endStop.longitude,
-        category: endStop.category,
-        city_name: endStop.city_name,
-        state: endStop.state,
-        city: endStop.city || endStop.city_name || 'Unknown'
-      }],
-      attractions: [],
-      stops: []
-    };
-
-    segments.push(lastSegment);
-
-    // 6. Validate the trip sequence
-    const sequenceValidation = Route66SequenceEnforcer.validateTripSequence(segments);
-
-    if (!sequenceValidation.isValid) {
-      warnings.push(...sequenceValidation.violations);
-    }
-
-    console.log(`✅ Trip planning complete, ${segments.length} segments, ${warnings.length} warnings`);
-
-    return {
-      segments,
-      isValid: warnings.length === 0,
-      warnings,
-      validationResults: {
-        sequenceValidation
+    if (cityOnlyMatches.length === 1) {
+      console.log(`✅ DESTINATION SERVICE: Single city match: ${cityOnlyMatches[0].name}`);
+      return cityOnlyMatches[0];
+    } else if (cityOnlyMatches.length > 1) {
+      // Apply Route 66 preference for ambiguous cities
+      const route66Preference = this.getRoute66Preference(searchCity);
+      if (route66Preference) {
+        const preferredMatch = cityOnlyMatches.find(match => 
+          match.state.toUpperCase() === route66Preference.state.toUpperCase()
+        );
+        if (preferredMatch) {
+          console.log(`✅ DESTINATION SERVICE: Route 66 preference: ${preferredMatch.name}, ${preferredMatch.state}`);
+          return preferredMatch;
+        }
       }
+      
+      // Return first match if no preference found
+      console.log(`✅ DESTINATION SERVICE: First of multiple matches: ${cityOnlyMatches[0].name}`);
+      return cityOnlyMatches[0];
+    }
+
+    console.log(`❌ DESTINATION SERVICE: No match found for: "${searchTerm}"`);
+    return undefined;
+  }
+
+  /**
+   * Parse city and state from input string
+   */
+  private static parseCityState(input: string): { city: string; state: string } {
+    if (!input) return { city: '', state: '' };
+    
+    const parts = input.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      return {
+        city: parts[0],
+        state: parts[1]
+      };
+    }
+    
+    return {
+      city: input.trim(),
+      state: ''
     };
+  }
+
+  /**
+   * Get Route 66 preference for ambiguous cities
+   */
+  private static getRoute66Preference(cityName: string): { state: string } | null {
+    const preferences: Record<string, string> = {
+      'chicago': 'IL',
+      'springfield': 'IL',
+      'oklahoma city': 'OK',
+      'amarillo': 'TX',
+      'albuquerque': 'NM',
+      'flagstaff': 'AZ'
+    };
+    
+    const normalizedCity = cityName.toLowerCase().trim();
+    const preferredState = preferences[normalizedCity];
+    
+    return preferredState ? { state: preferredState } : null;
+  }
+
+  /**
+   * Calculate total distance between start and end points
+   */
+  private static calculateTotalDistance(startStop: TripStop, endStop: TripStop): number {
+    // Use Haversine formula for distance calculation
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRad(endStop.latitude - startStop.latitude);
+    const dLon = this.toRad(endStop.longitude - startStop.longitude);
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(this.toRad(startStop.latitude)) * Math.cos(this.toRad(endStop.latitude)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return Math.round(distance);
+  }
+
+  private static toRad(deg: number): number {
+    return deg * (Math.PI / 180);
+  }
+
+  /**
+   * Convert TripStop[] to RecommendedStop[] format
+   */
+  private static convertTripStopsToRecommendedStops(tripStops: TripStop[]): RecommendedStop[] {
+    return tripStops.map(stop => ({
+      stopId: stop.id,
+      id: stop.id,
+      name: stop.name,
+      description: stop.description || `Explore ${stop.name} on your Route 66 journey`,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      category: stop.category,
+      city_name: stop.city_name,
+      state: stop.state,
+      city: stop.city
+    }));
+  }
+
+  /**
+   * Distribute major destinations across days
+   */
+  private static distributeDestinationsAcrossDays(
+    routeStops: TripStop[], 
+    tripDays: number, 
+    totalDistance: number
+  ): DailySegment[] {
+    const segments: DailySegment[] = [];
+    
+    // For destination-focused trips, we want to spend more time at fewer destinations
+    const destinationsPerDay = Math.max(1, Math.floor(routeStops.length / tripDays));
+    
+    let currentDay = 1;
+    let currentStopIndex = 0;
+    
+    while (currentDay <= tripDays && currentStopIndex < routeStops.length - 1) {
+      const startStop = routeStops[currentStopIndex];
+      
+      // Calculate end stop for this day
+      let endStopIndex = currentStopIndex + destinationsPerDay;
+      if (currentDay === tripDays) {
+        // Last day - go to final destination
+        endStopIndex = routeStops.length - 1;
+      } else {
+        endStopIndex = Math.min(endStopIndex, routeStops.length - 1);
+      }
+      
+      const endStop = routeStops[endStopIndex];
+      const segmentDistance = this.calculateTotalDistance(startStop, endStop);
+      const driveTimeHours = segmentDistance / 50; // Assume 50 mph average
+      
+      // Include destinations we'll visit this day
+      const dayDestinations = routeStops.slice(currentStopIndex, endStopIndex + 1);
+      const recommendedStops = this.convertTripStopsToRecommendedStops(dayDestinations);
+      
+      segments.push({
+        day: currentDay,
+        title: `Day ${currentDay}: ${startStop.name} to ${endStop.name}`,
+        startCity: startStop.name,
+        endCity: endStop.name,
+        distance: segmentDistance,
+        driveTimeHours,
+        drivingTime: driveTimeHours,
+        approximateMiles: segmentDistance,
+        destination: {
+          city: endStop.city_name || endStop.city || endStop.name,
+          state: endStop.state
+        },
+        recommendedStops,
+        attractions: [],
+        notes: `Day ${currentDay}: Focus on exploring ${dayDestinations.map(d => d.name).join(', ')}`,
+        recommendations: []
+      });
+      
+      currentStopIndex = endStopIndex;
+      currentDay++;
+    }
+    
+    return segments;
   }
 }
