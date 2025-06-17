@@ -1,11 +1,10 @@
-
 import { TripPlan } from './planning/TripPlanTypes';
 import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
 import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
 import { SupabaseDataService } from './data/SupabaseDataService';
 
-// Export TripPlan type for external use
-export { TripPlan } from './planning/TripPlanTypes';
+// Export TripPlan type for external use - fix for isolatedModules
+export type { TripPlan } from './planning/TripPlanTypes';
 
 export interface EnhancedTripPlanResult {
   tripPlan: TripPlan | null;
