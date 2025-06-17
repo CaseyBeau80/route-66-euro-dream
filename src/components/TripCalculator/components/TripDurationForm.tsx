@@ -21,9 +21,8 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
 
   const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const days = value === '' ? 0 : parseInt(value, 10);
     
-    console.log('⏱️ Travel days input changed:', { value, days, isValid: !isNaN(days) });
+    console.log('⏱️ Travel days input changed:', { value, currentFormData: formData.travelDays });
     
     // Allow empty input for better UX while typing
     if (value === '') {
@@ -31,41 +30,45 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       return;
     }
     
+    const days = parseInt(value, 10);
+    
     // Block invalid numbers completely
     if (isNaN(days) || days < 0) {
       console.log('🚫 Invalid number blocked:', days);
       return;
     }
     
-    // HARD BLOCK: Do not allow values over MAX_DAYS
+    // CRITICAL FIX: Hard clamp at MAX_DAYS - never allow higher values
+    const clampedDays = Math.min(days, MAX_DAYS);
+    
     if (days > MAX_DAYS) {
-      console.log(`🚫 HARD BLOCK: ${days} days exceeds maximum of ${MAX_DAYS} days`);
-      // Show error but don't update the value
-      return;
+      console.log(`🚫 HARD CLAMP: ${days} days clamped to maximum of ${MAX_DAYS} days`);
     }
     
-    // Allow valid values
-    setFormData({ ...formData, travelDays: days });
-    console.log(`✅ Updated travel days to ${days}`);
+    // Always update with the clamped value
+    setFormData({ ...formData, travelDays: clampedDays });
+    console.log(`✅ Updated travel days to ${clampedDays}`);
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const days = value === '' ? 0 : parseInt(value, 10);
-    
-    // On blur, ensure we have a valid value within range
-    if (isNaN(days) || days < MIN_DAYS) {
-      // If invalid or too low, set to minimum
-      setFormData({ ...formData, travelDays: MIN_DAYS });
-      console.log(`🔒 Travel days set to minimum ${MIN_DAYS} on blur`);
-    } else if (days > MAX_DAYS) {
-      // If too high, clamp to maximum
-      setFormData({ ...formData, travelDays: MAX_DAYS });
-      console.log(`🔒 Travel days clamped to maximum ${MAX_DAYS} on blur`);
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Block non-numeric characters except backspace, delete, arrow keys, etc.
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
+      e.preventDefault();
     }
   };
 
-  // Check if current value exceeds maximum
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    const pastedNumber = parseInt(pastedText, 10);
+    
+    if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS) {
+      e.preventDefault();
+      console.log('🚫 Paste blocked - invalid or over limit:', pastedText);
+    }
+  };
+
+  // Check if current value exceeds maximum (should never happen with new logic)
   const isOverLimit = formData.travelDays > MAX_DAYS;
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const isInvalidValue = isOverLimit || isUnderLimit;
@@ -105,7 +108,8 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           max={MAX_DAYS}
           value={formData.travelDays > 0 ? formData.travelDays : ''}
           onChange={handleDaysChange}
-          onBlur={handleBlur}
+          onKeyPress={handleKeyPress}
+          onPaste={handlePaste}
           placeholder={`Enter number of days (${MIN_DAYS}-${MAX_DAYS})`}
           className={`w-full ${
             isInvalidValue ? 'border-red-500 focus:border-red-500 bg-red-50' : ''
