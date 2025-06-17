@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
@@ -33,6 +34,11 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return date ? format(date, 'MMMM dd, yyyy') : 'Not specified';
   };
 
+  // Safe access to summary with fallbacks
+  const startLocation = tripPlan.summary?.startLocation || 'Start Location';
+  const endLocation = tripPlan.summary?.endLocation || 'End Location';
+  const totalDriveTime = tripPlan.totalDrivingTime || tripPlan.totalDriveTime || 0;
+
   return (
     <div className="space-y-6">
       {/* Debug Panel - Show if there are warnings or validation issues */}
@@ -59,7 +65,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <MapPin className="w-5 h-5 text-route66-navy" />
               <div>
                 <div className="font-bold text-route66-vintage-brown">
-                  {tripPlan.summary.startLocation}
+                  {startLocation}
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
                   Start Location
@@ -70,7 +76,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
               <MapPin className="w-5 h-5 text-route66-navy" />
               <div>
                 <div className="font-bold text-route66-vintage-brown">
-                  {tripPlan.summary.endLocation}
+                  {endLocation}
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
                   End Location
@@ -97,7 +103,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
                   {Math.round(tripPlan.totalDistance)} Miles
                 </div>
                 <div className="text-sm text-route66-vintage-brown">
-                  {tripPlan.totalDriveTime.toFixed(1)} hours
+                  {totalDriveTime.toFixed(1)} hours
                 </div>
               </div>
             </div>

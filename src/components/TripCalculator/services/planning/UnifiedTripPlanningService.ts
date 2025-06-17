@@ -17,7 +17,13 @@ export interface TripPlanningResult {
   styleConfig?: TripStyleConfig;
   validationInfo?: any;
   tripStyle: 'balanced' | 'destination-focused';
-  driveTimeValidation?: any;
+  driveTimeValidation?: {
+    enforced: boolean;
+    violations: number;
+    warnings: string[];
+    averageDriveTime: number;
+    maxDriveTime: number;
+  };
 }
 
 export class UnifiedTripPlanningService {

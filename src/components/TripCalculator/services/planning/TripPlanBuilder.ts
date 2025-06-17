@@ -1,120 +1,123 @@
-
-import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
-import { TripPlanningServiceV2 } from './TripPlanningServiceV2';
-import { TripPlanUtils } from './TripPlanUtils';
-import { TripStyleLogic } from './TripStyleLogic';
 
-// Re-export types for backward compatibility
-export type { 
-  TripPlan, 
-  DailySegment, 
-  DriveTimeCategory, 
-  RecommendedStop, 
-  SegmentTiming,
-  DriveTimeBalance 
-} from './TripPlanTypes';
+export interface DailySegment {
+  day: number;
+  startCity: string;
+  endCity: string;
+  distance: number;
+  driveTimeHours: number;
+  stops: TripStop[];
+  driveTimeWarning?: string;
+}
 
-// Re-export helper functions
-export { getDestinationCityName, getDestinationCityWithState } from './TripPlanHelpers';
+export interface SegmentTiming {
+  startTime: string;
+  endTime: string;
+}
 
-// Re-export validator
-export { TripPlanDataValidator } from './TripPlanDataValidator';
+export interface TripPlan {
+  segments: DailySegment[];
+  totalDays: number;
+  totalDistance: number;
+  totalDrivingTime: number; // Keep this as the main property
+  totalDriveTime?: number; // Add as optional for backward compatibility
+  summary?: {
+    totalDays: number;
+    totalDistance: number;
+    totalDriveTime: number;
+    startLocation: string;
+    endLocation: string;
+    tripStyle?: string;
+  };
+}
 
 export class TripPlanBuilder {
-  private tripPlan: TripPlan;
-  private dailySegments: DailySegment[] = [];
-
-  constructor(
-    startCity: string,
-    endCity: string,
-    startDate: Date,
-    totalDays: number
-  ) {
-    this.tripPlan = {
-      id: TripPlanUtils.generateId(),
-      startCity,
-      endCity,
-      startDate,
-      totalDays,
-      totalDistance: 0,
-      segments: [],
-      dailySegments: [],
-    };
-  }
-
-  static create(
-    startCity: string,
-    endCity: string,
-    startDate: Date,
-    totalDays: number
-  ): TripPlanBuilder {
-    return new TripPlanBuilder(startCity, endCity, startDate, totalDays);
-  }
-
-  addSegment(segment: DailySegment): TripPlanBuilder {
-    this.dailySegments.push(segment);
-    return this;
-  }
-
-  withTotalDistance(totalDistance: number): TripPlanBuilder {
-    this.tripPlan.totalDistance = totalDistance;
-    return this;
-  }
-
-  withTitle(title: string): TripPlanBuilder {
-    this.tripPlan.title = title;
-    return this;
-  }
-
-  withTotalDrivingTime(totalDrivingTime: number): TripPlanBuilder {
-    this.tripPlan.totalDrivingTime = totalDrivingTime;
-    return this;
-  }
-
-  withStartCityImage(imageUrl: string): TripPlanBuilder {
-    this.tripPlan.startCityImage = imageUrl;
-    return this;
-  }
-
-  withEndCityImage(imageUrl: string): TripPlanBuilder {
-    this.tripPlan.endCityImage = imageUrl;
-    return this;
-  }
-
-  build(): TripPlan {
-    this.tripPlan.dailySegments = this.dailySegments;
-    this.tripPlan.segments = this.dailySegments; // Ensure both properties point to the same data
-    this.tripPlan.totalMiles = Math.round(this.tripPlan.totalDistance); // Set totalMiles as rounded totalDistance
-    return this.tripPlan;
-  }
-
-  /**
-   * Create trip plan using the V2 TripPlanningService with ABSOLUTE drive-time enforcement
-   */
   static createTripPlan(
     startStop: TripStop,
     endStop: TripStop,
     allStops: TripStop[],
-    tripDays: number,
-    startCityName: string,
-    endCityName: string,
-    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+    travelDays: number,
+    startLocation: string,
+    endLocation: string,
+    tripStyle: string = 'balanced'
   ): TripPlan {
-    console.log('🏗️ TripPlanBuilder.createTripPlan: Using V2 TripPlanningService with ABSOLUTE drive-time enforcement');
-    
-    // Get style configuration for enforcement
-    const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
-    console.log(`🎨 TripPlanBuilder: Using ${styleConfig.style} style with ABSOLUTE ${styleConfig.maxDailyDriveHours}h max daily drive`);
-    
-    return TripPlanningServiceV2.buildTripPlan(
-      startStop,
-      endStop,
-      allStops,
-      tripDays,
-      startCityName,
-      endCityName,
-      tripStyle
-    );
+    const segments: DailySegment[] = [];
+    let currentCity = startStop.name;
+    let currentStop = startStop;
+    let day = 1;
+
+    // Basic segment creation logic
+    while (day <= travelDays) {
+      // Find the next stop
+      const nextStop = allStops.find(stop => stop.name !== currentCity && stop.city_name !== endStop.city_name);
+
+      if (nextStop) {
+        // Create a segment
+        const distance = this.calculateDistance(currentStop.latitude, currentStop.longitude, nextStop.latitude, nextStop.longitude);
+        const driveTimeHours = distance / 60; // Example calculation
+
+        segments.push({
+          day,
+          startCity: currentCity,
+          endCity: nextStop.name,
+          distance,
+          driveTimeHours,
+          stops: [currentStop, nextStop]
+        });
+
+        currentCity = nextStop.name;
+        currentStop = nextStop;
+      } else {
+        // If no more stops, create a segment to the end city
+        const distance = this.calculateDistance(currentStop.latitude, currentStop.longitude, endStop.latitude, endStop.longitude);
+        const driveTimeHours = distance / 60; // Example calculation
+
+        segments.push({
+          day,
+          startCity: currentCity,
+          endCity: endStop.name,
+          distance,
+          driveTimeHours,
+          stops: [currentStop, endStop]
+        });
+        break;
+      }
+
+      day++;
+    }
+
+    // Calculate totals
+    const totalDistance = segments.reduce((sum, segment) => sum + segment.distance, 0);
+    const totalDrivingTime = segments.reduce((sum, segment) => sum + segment.driveTimeHours, 0);
+
+    return {
+      segments,
+      totalDays: travelDays,
+      totalDistance,
+      totalDrivingTime,
+      summary: {
+        totalDays: travelDays,
+        totalDistance,
+        totalDriveTime: totalDrivingTime,
+        startLocation,
+        endLocation,
+        tripStyle
+      }
+    };
+  }
+
+  private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 3958.8; // Radius of the earth in miles
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
   }
 }

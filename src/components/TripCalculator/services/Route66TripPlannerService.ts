@@ -1,3 +1,4 @@
+
 import { EnhancedSupabaseDataService } from './data/EnhancedSupabaseDataService';
 import { TripPlanBuilder, TripPlan, DailySegment, SegmentTiming } from './planning/TripPlanBuilder';
 import { TripPlanValidator } from './planning/TripPlanValidator';
@@ -17,6 +18,9 @@ export interface EnhancedTripPlanResult {
   completionAnalysis?: TripCompletionAnalysis;
   originalRequestedDays: number;
   optimizationSummary?: string;
+  debugInfo?: any;
+  validationResults?: any;
+  warnings?: string[];
 }
 
 export class Route66TripPlannerService {
@@ -33,64 +37,63 @@ export class Route66TripPlannerService {
     
     try {
       // Load all stops
-      const allStops = await SupabaseDataService.getAllStops();
+      const allStops = await EnhancedSupabaseDataService.getAllStops();
       
-      // Use the new enhanced planning service
-      const planningResult = EnhancedTripPlanningService.planTripWithConstraints(
+      // Use the unified planning service
+      const planningResult = await UnifiedTripPlanningService.planTrip(
         startLocation,
         endLocation,
         requestedDays,
-        tripStyle,
-        allStops
+        tripStyle as 'balanced' | 'destination-focused'
       );
       
-      if (!planningResult.isValid || planningResult.segments.length === 0) {
-        throw new Error(`Trip planning failed: ${planningResult.warnings.join(', ')}`);
+      if (!planningResult.success || !planningResult.tripPlan || planningResult.tripPlan.segments.length === 0) {
+        throw new Error(`Trip planning failed: ${planningResult.error || 'No segments generated'}`);
       }
       
-      // Create trip plan
+      // Create enhanced trip plan with summary
       const tripPlan: TripPlan = {
-        segments: planningResult.segments,
+        segments: planningResult.tripPlan.segments,
+        totalDays: planningResult.tripPlan.totalDays,
+        totalDistance: planningResult.tripPlan.totalDistance,
+        totalDrivingTime: planningResult.tripPlan.totalDrivingTime || planningResult.tripPlan.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
         summary: {
-          totalDays: planningResult.adjustedTripDays,
-          totalDistance: planningResult.segments.reduce((sum, seg) => sum + seg.distance, 0),
-          totalDriveTime: planningResult.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
+          totalDays: planningResult.tripPlan.totalDays,
+          totalDistance: planningResult.tripPlan.totalDistance,
+          totalDriveTime: planningResult.tripPlan.totalDrivingTime || planningResult.tripPlan.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0),
           startLocation,
           endLocation,
           tripStyle
-        },
-        totalDays: planningResult.adjustedTripDays,
-        totalDistance: planningResult.segments.reduce((sum, seg) => sum + seg.distance, 0),
-        totalDriveTime: planningResult.segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0)
+        }
       };
       
       // Create completion analysis
       const completionAnalysis: TripCompletionAnalysis = {
-        isCompleted: planningResult.adjustedTripDays !== requestedDays,
+        isCompleted: planningResult.tripPlan.totalDays !== requestedDays,
         originalDays: requestedDays,
-        optimizedDays: planningResult.adjustedTripDays,
-        adjustmentReason: planningResult.adjustedTripDays > requestedDays 
+        optimizedDays: planningResult.tripPlan.totalDays,
+        adjustmentReason: planningResult.tripPlan.totalDays > requestedDays 
           ? 'Extended for drive time safety' 
           : 'Optimized for better pacing',
-        confidence: planningResult.isValid ? 0.95 : 0.7,
+        confidence: planningResult.success ? 0.95 : 0.7,
         qualityMetrics: {
-          driveTimeBalance: planningResult.validationResults.driveTimeValidation.maxDailyDriveTime <= 8 ? 'excellent' : 'good',
-          routeEfficiency: planningResult.validationResults.sequenceValidation.backtrackingSegments === 0 ? 'excellent' : 'poor',
+          driveTimeBalance: planningResult.driveTimeValidation?.violations === 0 ? 'excellent' : 'good',
+          routeEfficiency: planningResult.warnings && planningResult.warnings.length === 0 ? 'excellent' : 'poor',
           attractionCoverage: 'good',
-          overallScore: planningResult.isValid ? 0.9 : 0.6
+          overallScore: planningResult.success ? 0.9 : 0.6
         },
-        recommendations: planningResult.warnings
+        recommendations: planningResult.warnings || []
       };
       
-      console.log(`✅ ENHANCED PLANNING SUCCESS: ${tripPlan.segments.length} segments, valid: ${planningResult.isValid}`);
+      console.log(`✅ ENHANCED PLANNING SUCCESS: ${tripPlan.segments.length} segments, valid: ${planningResult.success}`);
       
       return {
         tripPlan,
         completionAnalysis,
         originalRequestedDays: requestedDays,
-        debugInfo: planningResult.debugInfo,
-        validationResults: planningResult.validationResults,
-        warnings: planningResult.warnings
+        debugInfo: planningResult.validationInfo,
+        validationResults: planningResult.driveTimeValidation,
+        warnings: planningResult.warnings || []
       };
       
     } catch (error) {
