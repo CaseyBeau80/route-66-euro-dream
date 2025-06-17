@@ -32,11 +32,55 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     }
   }, [formData.travelDays]);
 
+  // CRITICAL: Handle input event for immediate validation as user types
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement;
+    let value = target.value;
+    
+    console.log('🔥 IMMEDIATE INPUT VALIDATION:', { value });
+    
+    // Allow empty input
+    if (value === '') {
+      setInputValue('');
+      setFormData({ ...formData, travelDays: 0 });
+      return;
+    }
+    
+    // Strip non-numeric characters immediately
+    value = value.replace(/\D/g, '');
+    
+    // If nothing left after stripping, make it empty
+    if (value === '') {
+      setInputValue('');
+      setFormData({ ...formData, travelDays: 0 });
+      return;
+    }
+    
+    const days = parseInt(value, 10);
+    
+    // ABSOLUTE ENFORCEMENT: Never allow more than MAX_DAYS to appear in input
+    if (days > MAX_DAYS) {
+      console.log(`🚫 IMMEDIATE BLOCK: ${days} blocked, setting to ${MAX_DAYS}`);
+      const maxValue = MAX_DAYS.toString();
+      setInputValue(maxValue);
+      setFormData({ ...formData, travelDays: MAX_DAYS });
+      // Force the input value to be MAX_DAYS
+      target.value = maxValue;
+      return;
+    }
+    
+    // Update with valid value
+    setInputValue(value);
+    setFormData({ ...formData, travelDays: days });
+    console.log(`✅ IMMEDIATE UPDATE: ${days} days`);
+  };
+
   const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    console.log('⏱️ STRICT CONTROL: Travel days input changed:', { value, currentFormData: formData.travelDays });
+    console.log('⏱️ CHANGE EVENT: Travel days input changed:', { value, currentFormData: formData.travelDays });
     
+    // This is a backup - the onInput handler should catch most cases
     // Allow empty input for better UX while typing
     if (value === '') {
       setInputValue('');
@@ -46,22 +90,21 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     
     // Only allow numeric characters
     if (!/^\d+$/.test(value)) {
-      console.log('🚫 STRICT CONTROL: Non-numeric input blocked:', value);
-      return; // Don't update input - completely block non-numeric
+      console.log('🚫 CHANGE EVENT: Non-numeric input blocked:', value);
+      return;
     }
     
     const days = parseInt(value, 10);
     
     // Block invalid numbers completely
     if (isNaN(days) || days < 0) {
-      console.log('🚫 STRICT CONTROL: Invalid number blocked:', days);
-      return; // Don't update input value
+      console.log('🚫 CHANGE EVENT: Invalid number blocked:', days);
+      return;
     }
     
     // ABSOLUTE MAXIMUM ENFORCEMENT: Never allow more than 14
     if (days > MAX_DAYS) {
-      console.log(`🚫 ABSOLUTE BLOCK: ${days} days blocked - maximum is ${MAX_DAYS} days`);
-      // Set to maximum and stop
+      console.log(`🚫 CHANGE EVENT BLOCK: ${days} days blocked - maximum is ${MAX_DAYS} days`);
       setInputValue(MAX_DAYS.toString());
       setFormData({ ...formData, travelDays: MAX_DAYS });
       return;
@@ -70,7 +113,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     // Update both input value and form data with the valid value
     setInputValue(value);
     setFormData({ ...formData, travelDays: days });
-    console.log(`✅ STRICT CONTROL: Updated travel days to ${days}`);
+    console.log(`✅ CHANGE EVENT: Updated travel days to ${days}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -78,7 +121,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
     if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
       e.preventDefault();
-      console.log('🚫 STRICT CONTROL: Key press blocked:', e.key);
+      console.log('🚫 KEY PRESS BLOCKED:', e.key);
     }
   };
 
@@ -88,7 +131,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     // Block non-numeric paste
     if (!/^\d+$/.test(pastedText)) {
       e.preventDefault();
-      console.log('🚫 STRICT CONTROL: Non-numeric paste blocked:', pastedText);
+      console.log('🚫 PASTE BLOCKED: Non-numeric:', pastedText);
       return;
     }
     
@@ -96,14 +139,14 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     
     if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS || pastedNumber < 0) {
       e.preventDefault();
-      console.log('🚫 STRICT CONTROL: Paste blocked - invalid or over limit:', pastedText);
+      console.log('🚫 PASTE BLOCKED: Invalid or over limit:', pastedText);
     }
   };
 
   // Prevent mouse wheel from changing values
   const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
     e.preventDefault();
-    console.log('🚫 STRICT CONTROL: Mouse wheel blocked');
+    console.log('🚫 MOUSE WHEEL BLOCKED');
   };
 
   // Handle blur to ensure we always have a valid state
@@ -153,6 +196,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           inputMode="numeric"
           pattern="[0-9]*"
           value={inputValue}
+          onInput={handleInput}
           onChange={handleDaysChange}
           onKeyPress={handleKeyPress}
           onPaste={handlePaste}
