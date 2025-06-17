@@ -35,7 +35,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    console.log('⏱️ Travel days input changed:', { value, currentFormData: formData.travelDays });
+    console.log('⏱️ STRICT CONTROL: Travel days input changed:', { value, currentFormData: formData.travelDays });
     
     // Allow empty input for better UX while typing
     if (value === '') {
@@ -44,43 +44,73 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       return;
     }
     
+    // Only allow numeric characters
+    if (!/^\d+$/.test(value)) {
+      console.log('🚫 STRICT CONTROL: Non-numeric input blocked:', value);
+      return; // Don't update input - completely block non-numeric
+    }
+    
     const days = parseInt(value, 10);
     
     // Block invalid numbers completely
     if (isNaN(days) || days < 0) {
-      console.log('🚫 Invalid number blocked:', days);
+      console.log('🚫 STRICT CONTROL: Invalid number blocked:', days);
       return; // Don't update input value
     }
     
-    // CRITICAL FIX: Hard clamp at MAX_DAYS - never allow higher values
-    const clampedDays = Math.min(days, MAX_DAYS);
-    const clampedValue = clampedDays.toString();
-    
+    // ABSOLUTE MAXIMUM ENFORCEMENT: Never allow more than 14
     if (days > MAX_DAYS) {
-      console.log(`🚫 HARD CLAMP: ${days} days clamped to maximum of ${MAX_DAYS} days`);
+      console.log(`🚫 ABSOLUTE BLOCK: ${days} days blocked - maximum is ${MAX_DAYS} days`);
+      // Set to maximum and stop
+      setInputValue(MAX_DAYS.toString());
+      setFormData({ ...formData, travelDays: MAX_DAYS });
+      return;
     }
     
-    // Update both input value and form data with clamped value
-    setInputValue(clampedValue);
-    setFormData({ ...formData, travelDays: clampedDays });
-    console.log(`✅ Updated travel days to ${clampedDays}`);
+    // Update both input value and form data with the valid value
+    setInputValue(value);
+    setFormData({ ...formData, travelDays: days });
+    console.log(`✅ STRICT CONTROL: Updated travel days to ${days}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Block non-numeric characters except backspace, delete, arrow keys, etc.
-    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    // Block non-numeric characters completely
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'];
     if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
       e.preventDefault();
+      console.log('🚫 STRICT CONTROL: Key press blocked:', e.key);
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
+    
+    // Block non-numeric paste
+    if (!/^\d+$/.test(pastedText)) {
+      e.preventDefault();
+      console.log('🚫 STRICT CONTROL: Non-numeric paste blocked:', pastedText);
+      return;
+    }
+    
     const pastedNumber = parseInt(pastedText, 10);
     
-    if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS) {
+    if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS || pastedNumber < 0) {
       e.preventDefault();
-      console.log('🚫 Paste blocked - invalid or over limit:', pastedText);
+      console.log('🚫 STRICT CONTROL: Paste blocked - invalid or over limit:', pastedText);
+    }
+  };
+
+  // Prevent mouse wheel from changing values
+  const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    console.log('🚫 STRICT CONTROL: Mouse wheel blocked');
+  };
+
+  // Handle blur to ensure we always have a valid state
+  const handleBlur = () => {
+    if (inputValue === '' || parseInt(inputValue) === 0) {
+      setInputValue('');
+      setFormData({ ...formData, travelDays: 0 });
     }
   };
 
@@ -119,13 +149,15 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       
       <div className="relative">
         <Input
-          type="number"
-          min={MIN_DAYS}
-          max={MAX_DAYS}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={inputValue}
           onChange={handleDaysChange}
           onKeyPress={handleKeyPress}
           onPaste={handlePaste}
+          onWheel={handleWheel}
+          onBlur={handleBlur}
           placeholder={`Enter number of days (${MIN_DAYS}-${MAX_DAYS})`}
           className={`w-full ${
             isInvalidValue ? 'border-red-500 focus:border-red-500 bg-red-50' : ''
