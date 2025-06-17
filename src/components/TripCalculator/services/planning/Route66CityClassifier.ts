@@ -1,3 +1,4 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 
@@ -154,5 +155,74 @@ export class Route66CityClassifier {
       minorCities,
       historicCities
     };
+  }
+
+  /**
+   * Get iconic pair bonus for consecutive cities
+   */
+  static getIconicPairBonus(city1: TripStop, city2: TripStop): number {
+    const iconicPairs = [
+      ['chicago', 'st. louis'],
+      ['st. louis', 'tulsa'],
+      ['tulsa', 'oklahoma city'],
+      ['oklahoma city', 'amarillo'],
+      ['amarillo', 'albuquerque'],
+      ['albuquerque', 'flagstaff'],
+      ['flagstaff', 'kingman'],
+      ['kingman', 'barstow'],
+      ['barstow', 'santa monica']
+    ];
+
+    const city1Name = city1.name.toLowerCase();
+    const city2Name = city2.name.toLowerCase();
+
+    for (const [first, second] of iconicPairs) {
+      if ((city1Name.includes(first) && city2Name.includes(second)) ||
+          (city1Name.includes(second) && city2Name.includes(first))) {
+        return 25; // High bonus for iconic pairs
+      }
+    }
+
+    return 0;
+  }
+
+  /**
+   * Check if route violates the "three minor towns in a row" rule
+   */
+  static violatesMinorTownRule(route: TripStop[]): boolean {
+    let consecutiveMinorCount = 0;
+
+    for (const stop of route) {
+      const classification = this.classifyCity(stop);
+      
+      if (classification.tier === 'minor') {
+        consecutiveMinorCount++;
+        if (consecutiveMinorCount >= 3) {
+          return true;
+        }
+      } else {
+        consecutiveMinorCount = 0;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Get state-specific rules for Route 66 planning
+   */
+  static getStateRules(state: string): { maxGapHours: number; preferredCities: string[] } {
+    const stateRules: Record<string, { maxGapHours: number; preferredCities: string[] }> = {
+      'Illinois': { maxGapHours: 6, preferredCities: ['Chicago', 'Springfield'] },
+      'Missouri': { maxGapHours: 7, preferredCities: ['St. Louis', 'Joplin'] },
+      'Kansas': { maxGapHours: 5, preferredCities: ['Galena'] },
+      'Oklahoma': { maxGapHours: 8, preferredCities: ['Tulsa', 'Oklahoma City'] },
+      'Texas': { maxGapHours: 9, preferredCities: ['Amarillo', 'Shamrock'] },
+      'New Mexico': { maxGapHours: 8, preferredCities: ['Tucumcari', 'Albuquerque', 'Santa Fe'] },
+      'Arizona': { maxGapHours: 8, preferredCities: ['Flagstaff', 'Kingman', 'Winslow'] },
+      'California': { maxGapHours: 7, preferredCities: ['Barstow', 'San Bernardino', 'Santa Monica'] }
+    };
+
+    return stateRules[state] || { maxGapHours: 8, preferredCities: [] };
   }
 }

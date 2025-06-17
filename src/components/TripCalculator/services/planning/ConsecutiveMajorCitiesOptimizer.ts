@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { Route66CityClassifier, CityClassification } from './Route66CityClassifier';
@@ -53,10 +52,10 @@ export class ConsecutiveMajorCitiesOptimizer {
 
     // Separate by tier
     const majorCities = classifiedStops.filter(s => s.classification.tier === 'major').map(s => s.stop);
-    const secondaryCities = classifiedStops.filter(s => s.classification.tier === 'secondary').map(s => s.stop);
+    const standardCities = classifiedStops.filter(s => s.classification.tier === 'standard').map(s => s.stop);
     const minorTowns = classifiedStops.filter(s => s.classification.tier === 'minor').map(s => s.stop);
 
-    console.log(`🏙️ Available: ${majorCities.length} major, ${secondaryCities.length} secondary, ${minorTowns.length} minor`);
+    console.log(`🏙️ Available: ${majorCities.length} major, ${standardCities.length} standard, ${minorTowns.length} minor`);
 
     // Find consecutive major city sequences
     const consecutiveSequences = this.findConsecutiveMajorSequences(
@@ -73,7 +72,7 @@ export class ConsecutiveMajorCitiesOptimizer {
       startStop,
       endStop,
       consecutiveSequences,
-      secondaryCities,
+      standardCities,
       minorTowns,
       targetDays
     );
@@ -165,7 +164,7 @@ export class ConsecutiveMajorCitiesOptimizer {
     startStop: TripStop,
     endStop: TripStop,
     consecutiveSequences: Array<{ cities: TripStop[], totalScore: number }>,
-    secondaryCities: TripStop[],
+    standardCities: TripStop[],
     minorTowns: TripStop[],
     targetDays: number
   ): OptimizationResult {
@@ -215,7 +214,7 @@ export class ConsecutiveMajorCitiesOptimizer {
       .sort((a, b) => a.distanceFromStart - b.distanceFromStart)
       .map(item => item.city);
 
-    // Fill gaps with secondary cities if needed
+    // Fill gaps with standard cities if needed
     let currentStop = startStop;
     const finalRoute: TripStop[] = [];
 
@@ -243,7 +242,7 @@ export class ConsecutiveMajorCitiesOptimizer {
         nextStop = this.findBestGapFiller(
           currentStop,
           endStop,
-          secondaryCities.concat(minorTowns),
+          standardCities.concat(minorTowns),
           usedCities,
           targetDistance
         );

@@ -1,6 +1,8 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { DriveTimeConstraints, DriveTimeTarget } from './DriveTimeConstraints';
 
 export interface DriveTimeDistribution {
   dailyTargets: DriveTimeTarget[];

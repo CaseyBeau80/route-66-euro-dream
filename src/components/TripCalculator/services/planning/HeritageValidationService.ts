@@ -1,6 +1,7 @@
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { TripStop } from '../../types/TripStop';
+import { HeritageScoringService } from './HeritageScoringService';
 
 export interface HeritageValidationResult {
   isValid: boolean;
