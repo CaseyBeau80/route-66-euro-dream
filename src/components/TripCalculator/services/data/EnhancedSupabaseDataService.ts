@@ -22,10 +22,10 @@ export class EnhancedSupabaseDataService {
   }
 
   /**
-   * Fetch only destination cities with enhanced error handling and fallback tracking
+   * Fetch ONLY destination cities - NO waypoints allowed
    */
   static async fetchAllStops(): Promise<UnifiedTripStop[]> {
-    console.log('🔍 Enhanced: Fetching Route 66 destination cities only (no waypoints)...');
+    console.log('🏛️ ENHANCED: Fetching ONLY destination cities (NO waypoints, NO route66_waypoints)...');
     
     // Check Supabase connection first
     const connectionStatus = await SupabaseConnectionService.getConnectionStatus();
@@ -34,10 +34,11 @@ export class EnhancedSupabaseDataService {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         
-        // Fetch only from destination_cities table (no waypoints or attractions)
+        // ONLY fetch from destination_cities table - NO other tables
         const { data: destinationCities, error } = await supabase
           .from('destination_cities')
-          .select('*');
+          .select('*')
+          .order('name');
 
         if (error) {
           throw new Error(`Supabase query failed: ${error.message}`);
@@ -48,7 +49,7 @@ export class EnhancedSupabaseDataService {
           id: city.id,
           name: city.name,
           description: city.description || `Discover ${city.name} along your Route 66 journey`,
-          category: 'destination_city' as const, // Always destination_city
+          category: 'destination_city' as const, // ALWAYS destination_city
           city_name: city.name,
           city: city.name,
           state: city.state,
@@ -59,59 +60,68 @@ export class EnhancedSupabaseDataService {
           is_official_destination: city.featured || false
         }));
 
+        // Double-check: filter out any non-destination cities
+        const validDestinationCities = allStops.filter(stop => {
+          const isValid = stop.category === 'destination_city';
+          if (!isValid) {
+            console.error(`🚨 INVALID STOP DETECTED: ${stop.name} (${stop.category}) - REMOVING`);
+          }
+          return isValid;
+        });
+
         // Track successful Supabase usage
         this.dataSourceInfo = {
           isUsingSupabase: true,
-          citiesAvailable: allStops.length,
+          citiesAvailable: validDestinationCities.length,
           lastUpdated: new Date()
         };
 
-        console.log(`✅ Enhanced: Loaded ${allStops.length} destination cities from Supabase (no waypoints)`);
+        console.log(`✅ ENHANCED: Loaded ${validDestinationCities.length} destination cities ONLY (NO waypoints)`);
         
         // Log specific cities for debugging
-        const destinationCityNames = allStops
+        const destinationCityNames = validDestinationCities
           .map(stop => `${stop.name}, ${stop.state}`)
           .sort();
         
-        console.log('🏛️ Enhanced: Available destination cities:', destinationCityNames);
+        console.log('🏛️ ENHANCED: Available destination cities ONLY:', destinationCityNames);
         
-        return allStops;
+        return validDestinationCities;
         
       } catch (error) {
-        console.error('❌ Enhanced: Supabase fetch failed, falling back to static data:', error);
+        console.error('❌ ENHANCED: Supabase fetch failed, falling back to static destination cities:', error);
         
         // Track fallback with reason
         this.dataSourceInfo = {
           isUsingSupabase: false,
           fallbackReason: `Supabase query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           connectionStatus: 'Query Error',
-          citiesAvailable: this.getStaticFallbackStops().length,
+          citiesAvailable: this.getStaticDestinationCitiesOnly().length,
           lastUpdated: new Date()
         };
         
-        return this.getStaticFallbackStops();
+        return this.getStaticDestinationCitiesOnly();
       }
     } else {
-      console.warn('⚠️ Enhanced: Supabase not available, using static fallback data');
+      console.warn('⚠️ ENHANCED: Supabase not available, using static destination cities only');
       
       // Track fallback with connection reason
       this.dataSourceInfo = {
         isUsingSupabase: false,
         fallbackReason: connectionStatus.error || 'Connection unavailable',
         connectionStatus: 'Disconnected',
-        citiesAvailable: this.getStaticFallbackStops().length,
+        citiesAvailable: this.getStaticDestinationCitiesOnly().length,
         lastUpdated: new Date()
       };
       
-      return this.getStaticFallbackStops();
+      return this.getStaticDestinationCitiesOnly();
     }
   }
 
   /**
-   * Get static fallback data with only destination cities (no waypoints like Victorville)
+   * Get static fallback data with ONLY destination cities (NO waypoints)
    */
-  private static getStaticFallbackStops(): UnifiedTripStop[] {
-    console.log('📋 Enhanced: Using static fallback data with destination cities only (Victorville removed)');
+  private static getStaticDestinationCitiesOnly(): UnifiedTripStop[] {
+    console.log('📋 ENHANCED: Using static fallback data with ONLY destination cities (NO waypoints)');
     
     return [
       {
