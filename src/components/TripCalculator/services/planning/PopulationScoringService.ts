@@ -150,19 +150,77 @@ export class PopulationScoringService {
   }
 
   /**
-   * Filter cities by minimum population threshold for trip style
+   * FIXED: Filter cities by minimum population threshold for trip style with graceful fallbacks
    */
   static filterByPopulationThreshold(
     cities: TripStop[],
     tripStyle: 'balanced' | 'destination-focused',
     strictMode: boolean = false
   ): TripStop[] {
+    console.log('🔍 POPULATION FILTER: Starting filter', {
+      totalCities: cities.length,
+      tripStyle,
+      strictMode,
+      citiesWithPopulation: cities.filter(c => c.population && c.population > 0).length
+    });
+
     const thresholds = this.getPopulationThresholds(tripStyle, strictMode);
     
-    return cities.filter(city => {
+    // First, try to filter by population threshold
+    const filteredCities = cities.filter(city => {
       const population = city.population || 0;
-      return population >= thresholds.minimum;
+      const meetsThreshold = population >= thresholds.minimum;
+      
+      if (!meetsThreshold && population > 0) {
+        console.log(`📊 POPULATION FILTER: ${city.name} excluded (${population} < ${thresholds.minimum})`);
+      }
+      
+      return meetsThreshold;
     });
+    
+    console.log('🔍 POPULATION FILTER: After threshold filtering', {
+      originalCount: cities.length,
+      filteredCount: filteredCities.length,
+      threshold: thresholds.minimum
+    });
+    
+    // GRACEFUL FALLBACK: If filtering removes too many cities, be more lenient
+    if (filteredCities.length < 3) {
+      console.warn('⚠️ POPULATION FILTER: Too few cities after filtering, applying graceful fallback');
+      
+      // Try with a lower threshold first
+      const lowerThreshold = Math.max(500, thresholds.minimum / 2);
+      const fallbackCities = cities.filter(city => {
+        const population = city.population || 0;
+        return population >= lowerThreshold;
+      });
+      
+      if (fallbackCities.length >= 3) {
+        console.log(`✅ POPULATION FILTER: Using lower threshold (${lowerThreshold})`, {
+          resultCount: fallbackCities.length
+        });
+        return fallbackCities;
+      }
+      
+      // If still too few, include cities without population data (assume they're valid)
+      const allValidCities = cities.filter(city => {
+        const population = city.population || 0;
+        return population >= lowerThreshold || !city.population; // Include cities without population data
+      });
+      
+      console.log('✅ POPULATION FILTER: Using fallback with missing data inclusion', {
+        resultCount: allValidCities.length,
+        explanation: 'Including cities without population data to ensure trip planning works'
+      });
+      
+      return allValidCities;
+    }
+    
+    console.log('✅ POPULATION FILTER: Normal filtering successful', {
+      resultCount: filteredCities.length
+    });
+    
+    return filteredCities;
   }
 
   /**
@@ -196,9 +254,6 @@ export class PopulationScoringService {
     return [...this.POPULATION_TIERS];
   }
 
-  /**
-   * Get population statistics for a set of cities
-   */
   static getPopulationStatistics(cities: TripStop[]): {
     total: number;
     average: number;
