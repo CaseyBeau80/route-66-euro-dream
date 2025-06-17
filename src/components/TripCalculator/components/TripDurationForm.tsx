@@ -32,88 +32,53 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     }
   }, [formData.travelDays]);
 
-  // CRITICAL: Handle input event for immediate validation as user types
-  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    let value = target.value;
+  // CRITICAL: Centralized value setting function that NEVER allows over MAX_DAYS
+  const setValidValue = (newValue: string) => {
+    console.log('🔒 setValidValue called with:', newValue);
     
-    console.log('🔥 IMMEDIATE INPUT VALIDATION:', { value });
-    
-    // Allow empty input
-    if (value === '') {
+    if (newValue === '') {
       setInputValue('');
       setFormData({ ...formData, travelDays: 0 });
       return;
     }
     
-    // Strip non-numeric characters immediately
-    value = value.replace(/\D/g, '');
+    // Strip non-numeric characters
+    const cleanValue = newValue.replace(/\D/g, '');
     
-    // If nothing left after stripping, make it empty
-    if (value === '') {
+    if (cleanValue === '') {
       setInputValue('');
       setFormData({ ...formData, travelDays: 0 });
       return;
     }
     
-    const days = parseInt(value, 10);
+    const numValue = parseInt(cleanValue, 10);
     
-    // ABSOLUTE ENFORCEMENT: Never allow more than MAX_DAYS to appear in input
-    if (days > MAX_DAYS) {
-      console.log(`🚫 IMMEDIATE BLOCK: ${days} blocked, setting to ${MAX_DAYS}`);
-      const maxValue = MAX_DAYS.toString();
-      setInputValue(maxValue);
-      setFormData({ ...formData, travelDays: MAX_DAYS });
-      // Force the input value to be MAX_DAYS
-      target.value = maxValue;
-      return;
-    }
-    
-    // Update with valid value
-    setInputValue(value);
-    setFormData({ ...formData, travelDays: days });
-    console.log(`✅ IMMEDIATE UPDATE: ${days} days`);
-  };
-
-  const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    console.log('⏱️ CHANGE EVENT: Travel days input changed:', { value, currentFormData: formData.travelDays });
-    
-    // This is a backup - the onInput handler should catch most cases
-    // Allow empty input for better UX while typing
-    if (value === '') {
-      setInputValue('');
-      setFormData({ ...formData, travelDays: 0 });
-      return;
-    }
-    
-    // Only allow numeric characters
-    if (!/^\d+$/.test(value)) {
-      console.log('🚫 CHANGE EVENT: Non-numeric input blocked:', value);
-      return;
-    }
-    
-    const days = parseInt(value, 10);
-    
-    // Block invalid numbers completely
-    if (isNaN(days) || days < 0) {
-      console.log('🚫 CHANGE EVENT: Invalid number blocked:', days);
-      return;
-    }
-    
-    // ABSOLUTE MAXIMUM ENFORCEMENT: Never allow more than 14
-    if (days > MAX_DAYS) {
-      console.log(`🚫 CHANGE EVENT BLOCK: ${days} days blocked - maximum is ${MAX_DAYS} days`);
+    // ABSOLUTE MAXIMUM ENFORCEMENT
+    if (numValue > MAX_DAYS) {
+      console.log(`🚫 setValidValue: ${numValue} exceeds max, clamping to ${MAX_DAYS}`);
       setInputValue(MAX_DAYS.toString());
       setFormData({ ...formData, travelDays: MAX_DAYS });
       return;
     }
     
-    // Update both input value and form data with the valid value
-    setInputValue(value);
-    setFormData({ ...formData, travelDays: days });
-    console.log(`✅ CHANGE EVENT: Updated travel days to ${days}`);
+    setInputValue(cleanValue);
+    setFormData({ ...formData, travelDays: numValue });
+    console.log(`✅ setValidValue: Set to ${numValue}`);
+  };
+
+  // CRITICAL: Handle input event for immediate validation as user types
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement;
+    const value = target.value;
+    
+    console.log('🔥 IMMEDIATE INPUT VALIDATION:', { value });
+    setValidValue(value);
+  };
+
+  const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('⏱️ CHANGE EVENT: Travel days input changed:', { value });
+    setValidValue(value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -135,15 +100,25 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       return;
     }
     
-    // Special check: if user tries to type when input would exceed MAX_DAYS
-    const currentValue = (e.target as HTMLInputElement).value;
-    const newValue = currentValue + e.key;
-    
-    if (/^\d$/.test(e.key) && newValue.length > 0) {
-      const potentialNumber = parseInt(newValue, 10);
-      if (potentialNumber > MAX_DAYS) {
-        e.preventDefault();
-        console.log(`🚫 KEY DOWN BLOCK: Would create ${potentialNumber}, blocked`);
+    // CRITICAL: For numeric keys, check if the resulting value would exceed MAX_DAYS
+    if (/^\d$/.test(e.key)) {
+      const currentValue = (e.target as HTMLInputElement).value;
+      const cursorPosition = (e.target as HTMLInputElement).selectionStart || 0;
+      const selectionEnd = (e.target as HTMLInputElement).selectionEnd || 0;
+      
+      // Build the potential new value by inserting the typed digit at cursor position
+      let potentialValue = currentValue.slice(0, cursorPosition) + e.key + currentValue.slice(selectionEnd);
+      
+      // Remove non-numeric characters
+      potentialValue = potentialValue.replace(/\D/g, '');
+      
+      if (potentialValue.length > 0) {
+        const potentialNumber = parseInt(potentialValue, 10);
+        if (potentialNumber > MAX_DAYS) {
+          e.preventDefault();
+          console.log(`🚫 KEY DOWN BLOCK: Would create ${potentialNumber}, blocked`);
+          return;
+        }
       }
     }
   };
@@ -151,25 +126,11 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
     
-    // Block non-numeric paste
-    if (!/^\d+$/.test(pastedText)) {
-      e.preventDefault();
-      console.log('🚫 PASTE BLOCKED: Non-numeric:', pastedText);
-      return;
-    }
+    console.log('📋 PASTE EVENT:', { pastedText });
     
-    const pastedNumber = parseInt(pastedText, 10);
-    
-    if (isNaN(pastedNumber) || pastedNumber > MAX_DAYS || pastedNumber < 0) {
-      e.preventDefault();
-      console.log('🚫 PASTE BLOCKED: Invalid or over limit:', pastedText);
-      
-      // If it's a valid number but over limit, set to max
-      if (!isNaN(pastedNumber) && pastedNumber > MAX_DAYS) {
-        setInputValue(MAX_DAYS.toString());
-        setFormData({ ...formData, travelDays: MAX_DAYS });
-      }
-    }
+    // Always prevent default paste and handle manually
+    e.preventDefault();
+    setValidValue(pastedText);
   };
 
   // Prevent mouse wheel from changing values
