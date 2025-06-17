@@ -32,11 +32,6 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     }
   };
 
-  // Check if current value is valid
-  const isOverLimit = formData.travelDays > MAX_DAYS;
-  const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
-  const isInvalidValue = isOverLimit || isUnderLimit;
-
   // Get validation info when we have route information
   const getValidationInfo = () => {
     if (!formData.startLocation || !formData.endLocation || !formData.tripStyle) {
@@ -70,9 +65,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           value={formData.travelDays > 0 ? formData.travelDays.toString() : ""}
           onValueChange={handleDaysChange}
         >
-          <SelectTrigger className={`w-full ${
-            isInvalidValue ? 'border-red-500 focus:border-red-500 bg-red-50' : ''
-          }`}>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select number of days (2-14)" />
           </SelectTrigger>
           <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
@@ -89,7 +82,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         </Select>
         
         {/* Validation Icon */}
-        {hasRouteInfo && validation && !isInvalidValue && (
+        {hasRouteInfo && validation && (
           <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
             {isValid ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -99,38 +92,9 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           </div>
         )}
       </div>
-
-      {/* CRITICAL ERROR: Hard limit validation messages */}
-      {isOverLimit && (
-        <div className="p-3 bg-red-100 border-2 border-red-500 rounded-lg">
-          <div className="text-red-800 font-semibold flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0 text-red-600" />
-            <div>
-              <div className="font-bold">⚠️ MAXIMUM LIMIT EXCEEDED</div>
-              <div className="mt-1">
-                Our trip planner supports a maximum of {MAX_DAYS} days. Please select {MAX_DAYS} days or fewer to plan your Route 66 adventure.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isUnderLimit && (
-        <div className="p-3 bg-red-100 border-2 border-red-500 rounded-lg">
-          <div className="text-red-800 font-semibold flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0 text-red-600" />
-            <div>
-              <div className="font-bold">⚠️ MINIMUM REQUIREMENT NOT MET</div>
-              <div className="mt-1">
-                Minimum {MIN_DAYS} days required for Route 66 trips to ensure a quality experience.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       
-      {/* Validation Feedback - only show if within valid range */}
-      {hasRouteInfo && validation && !isInvalidValue && (
+      {/* Validation Feedback */}
+      {hasRouteInfo && validation && (
         <div className="space-y-2">
           {/* Show minimum days info */}
           <div className="text-xs text-blue-600 flex items-center gap-1">
