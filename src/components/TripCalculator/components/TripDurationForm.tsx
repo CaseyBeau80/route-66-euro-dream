@@ -16,16 +16,53 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   formData,
   setFormData
 }) => {
+  const MAX_DAYS = 14;
+  const MIN_DAYS = 2;
+
   const handleDaysChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const days = value === '' ? 0 : parseInt(value, 10);
     
     console.log('⏱️ Travel days input changed:', { value, days, isValid: !isNaN(days) });
     
+    // Allow empty input for better UX while typing
+    if (value === '') {
+      setFormData({ ...formData, travelDays: 0 });
+      return;
+    }
+    
+    // Only update if it's a valid number
     if (!isNaN(days) && days >= 0) {
-      setFormData({ ...formData, travelDays: days });
+      // Clamp the value between MIN_DAYS and MAX_DAYS
+      const clampedDays = Math.min(Math.max(days, 0), MAX_DAYS);
+      setFormData({ ...formData, travelDays: clampedDays });
+      
+      // Log if value was clamped
+      if (days !== clampedDays) {
+        console.log(`🔒 Travel days clamped from ${days} to ${clampedDays}`);
+      }
     }
   };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const days = value === '' ? 0 : parseInt(value, 10);
+    
+    // On blur, ensure we have a valid value within range
+    if (isNaN(days) || days < MIN_DAYS) {
+      // If invalid or too low, set to minimum
+      setFormData({ ...formData, travelDays: MIN_DAYS });
+      console.log(`🔒 Travel days set to minimum ${MIN_DAYS} on blur`);
+    } else if (days > MAX_DAYS) {
+      // If too high, clamp to maximum
+      setFormData({ ...formData, travelDays: MAX_DAYS });
+      console.log(`🔒 Travel days clamped to maximum ${MAX_DAYS} on blur`);
+    }
+  };
+
+  // Check if current value exceeds maximum
+  const isOverLimit = formData.travelDays > MAX_DAYS;
+  const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
 
   // Get validation info when we have route information
   const getValidationInfo = () => {
@@ -58,18 +95,19 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       <div className="relative">
         <Input
           type="number"
-          min="2"
-          max="14"
+          min={MIN_DAYS}
+          max={MAX_DAYS}
           value={formData.travelDays > 0 ? formData.travelDays : ''}
           onChange={handleDaysChange}
-          placeholder="Enter number of days (2-14)"
+          onBlur={handleBlur}
+          placeholder={`Enter number of days (${MIN_DAYS}-${MAX_DAYS})`}
           className={`w-full ${
-            !isValid ? 'border-red-300 focus:border-red-500' : ''
+            !isValid || isOverLimit || isUnderLimit ? 'border-red-300 focus:border-red-500' : ''
           }`}
         />
         
         {/* Validation Icon */}
-        {hasRouteInfo && validation && (
+        {hasRouteInfo && validation && !isOverLimit && !isUnderLimit && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isValid ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -79,9 +117,28 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           </div>
         )}
       </div>
+
+      {/* Hard limit validation messages */}
+      {isOverLimit && (
+        <div className="p-2 bg-red-50 border border-red-200 rounded text-xs">
+          <div className="text-red-700 flex items-start gap-1">
+            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+            <span>Maximum {MAX_DAYS} days supported. Value has been clamped to {MAX_DAYS} days.</span>
+          </div>
+        </div>
+      )}
+
+      {isUnderLimit && (
+        <div className="p-2 bg-red-50 border border-red-200 rounded text-xs">
+          <div className="text-red-700 flex items-start gap-1">
+            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+            <span>Minimum {MIN_DAYS} days required for Route 66 trips.</span>
+          </div>
+        </div>
+      )}
       
       {/* Validation Feedback */}
-      {hasRouteInfo && validation && (
+      {hasRouteInfo && validation && !isOverLimit && !isUnderLimit && (
         <div className="space-y-2">
           {/* Show minimum days info */}
           <div className="text-xs text-blue-600 flex items-center gap-1">
@@ -118,7 +175,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
       
       {/* Enhanced description with destination-focused context */}
       <div className="text-xs text-route66-text-secondary space-y-1">
-        <p>How many days do you want to spend on your Route 66 adventure? Maximum 14 days supported for optimal trip planning.</p>
+        <p>How many days do you want to spend on your Route 66 adventure? Maximum {MAX_DAYS} days supported for optimal trip planning.</p>
         {formData.tripStyle === 'destination-focused' && (
           <div className="p-2 bg-amber-50 border border-amber-200 rounded">
             <p className="text-amber-700">
