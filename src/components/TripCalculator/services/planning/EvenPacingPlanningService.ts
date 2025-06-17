@@ -6,7 +6,7 @@ import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
 
 export class EvenPacingPlanningService {
   private static readonly TARGET_DRIVE_TIME = 5.5; // 5.5 hours target for even pacing
-  private static readonly MAX_DRIVE_TIME = 7; // Maximum for even pacing
+  private static readonly MAX_DRIVE_TIME = 8; // Maximum for even pacing - REDUCED from 7
   private static readonly MIN_DRIVE_TIME = 3; // Minimum for even pacing
 
   static async planEvenPacingTrip(
@@ -27,11 +27,30 @@ export class EvenPacingPlanningService {
 
     console.log(`✅ FOUND: ${startStop.name} → ${endStop.name}`);
 
+    // EMERGENCY CHECK: Validate the overall route isn't impossible
+    const routeValidation = DriveTimeEnforcementService.validateAndFixSegmentDistance(
+      startStop, endStop, this.MAX_DRIVE_TIME
+    );
+
+    if (routeValidation.needsSplitting && tripDays < routeValidation.recommendedSplits) {
+      console.error(`🚨 EMERGENCY: Route needs ${routeValidation.recommendedSplits} days but only ${tripDays} requested!`);
+      tripDays = Math.max(tripDays, routeValidation.recommendedSplits);
+      console.log(`🔧 EMERGENCY FIX: Adjusting to ${tripDays} days to prevent impossible drives`);
+    }
+
     // Calculate total distance and target daily distance
     const totalDistance = this.calculateTotalDistance(startStop, endStop);
     const targetDailyDistance = totalDistance / tripDays;
     
     console.log(`📏 Total distance: ${totalDistance.toFixed(0)}mi, Target daily: ${targetDailyDistance.toFixed(0)}mi`);
+
+    // EMERGENCY CHECK: If target daily distance is too high, increase days
+    if (targetDailyDistance > 400) {
+      const newDays = Math.ceil(totalDistance / 350); // Max 350 miles per day
+      console.error(`🚨 EMERGENCY: Target daily distance ${targetDailyDistance.toFixed(0)}mi too high!`);
+      console.log(`🔧 EMERGENCY FIX: Increasing from ${tripDays} to ${newDays} days`);
+      tripDays = newDays;
+    }
 
     // Include ALL stops for variety (not just major destinations)
     const allValidStops = allStops.filter(stop => 
@@ -49,10 +68,10 @@ export class EvenPacingPlanningService {
 
     // Select destinations for even pacing (prioritizes consistent distances)
     const intermediateDestinations = this.selectEvenPacingDestinations(
-      startStop, endStop, sequenceResult.validStops, tripDays - 1, targetDailyDistance
+      startStop, endStop, sequenceResult.validStops, tripDays - 1, totalDistance / tripDays
     );
 
-    // Build segments with even pacing constraints
+    // Build segments with EMERGENCY validation
     const segments = this.buildEvenPacingSegments(
       startStop, endStop, intermediateDestinations, tripDays
     );
@@ -75,7 +94,7 @@ export class EvenPacingPlanningService {
   }
 
   /**
-   * Select destinations prioritizing even spacing and consistent drive times
+   * Select destinations prioritizing even spacing and EMERGENCY validation
    */
   private static selectEvenPacingDestinations(
     startStop: TripStop,
@@ -98,15 +117,29 @@ export class EvenPacingPlanningService {
       
       console.log(`⚖️ Day ${day + 1}: Looking for ~${adjustedTargetDistance.toFixed(0)}mi from ${currentStop.name}`);
       
-      // Score each available stop for even pacing
+      // EMERGENCY: Cap the target distance to prevent impossible segments
+      const cappedTargetDistance = Math.min(adjustedTargetDistance, 400);
+      
+      // Score each available stop for even pacing with EMERGENCY checks
       const scoredStops = validStops
         .filter(stop => !selectedDestinations.some(selected => selected.id === stop.id))
         .map(stop => {
           const distance = this.calculateTotalDistance(currentStop, stop);
-          const driveTime = distance / 55; // 55 mph average
+          
+          // EMERGENCY CHECK: Skip stops that would create impossible drives
+          const validation = DriveTimeEnforcementService.validateAndFixSegmentDistance(
+            currentStop, stop, this.MAX_DRIVE_TIME
+          );
+          
+          if (!validation.isValid) {
+            console.log(`🚨 EMERGENCY: Skipping ${stop.name} - would create ${validation.actualDriveTime.toFixed(1)}h drive`);
+            return { stop, distance, driveTime: validation.actualDriveTime, totalScore: -1 };
+          }
+          
+          const driveTime = validation.actualDriveTime;
           
           // Score based on how close to target distance and ideal drive time
-          const distanceScore = this.calculateDistanceScore(distance, adjustedTargetDistance);
+          const distanceScore = this.calculateDistanceScore(distance, cappedTargetDistance);
           const driveTimeScore = this.calculateDriveTimeScore(driveTime);
           const varietyScore = this.calculateVarietyScore(stop, selectedDestinations);
           
@@ -114,6 +147,7 @@ export class EvenPacingPlanningService {
           
           return { stop, distance, driveTime, totalScore };
         })
+        .filter(scored => scored.totalScore > 0) // Remove invalid stops
         .sort((a, b) => b.totalScore - a.totalScore);
       
       if (scoredStops.length > 0) {
@@ -122,6 +156,9 @@ export class EvenPacingPlanningService {
         currentStop = bestStop.stop;
         
         console.log(`✅ Selected: ${bestStop.stop.name} (${bestStop.distance.toFixed(0)}mi, ${bestStop.driveTime.toFixed(1)}h, score: ${bestStop.totalScore.toFixed(1)})`);
+      } else {
+        console.error(`🚨 EMERGENCY: No valid destinations found for day ${day + 1}!`);
+        break;
       }
     }
     
@@ -164,7 +201,7 @@ export class EvenPacingPlanningService {
   }
 
   /**
-   * Build segments optimized for even pacing
+   * Build segments with EMERGENCY validation
    */
   private static buildEvenPacingSegments(
     startStop: TripStop,
@@ -183,10 +220,20 @@ export class EvenPacingPlanningService {
       const day = i + 1;
 
       const distance = this.calculateTotalDistance(currentStop, nextStop);
-      // Use conservative drive time calculation for even pacing
-      const driveTimeHours = Math.min(distance / 55, this.MAX_DRIVE_TIME);
+      
+      // EMERGENCY VALIDATION: Check if this segment is realistic
+      const validation = DriveTimeEnforcementService.validateAndFixSegmentDistance(
+        currentStop, nextStop, this.MAX_DRIVE_TIME
+      );
+      
+      if (!validation.isValid) {
+        console.error(`🚨 EMERGENCY: Day ${day} segment is invalid! ${validation.actualDistance.toFixed(0)}mi, ${validation.actualDriveTime.toFixed(1)}h`);
+      }
+      
+      // Use the emergency-validated drive time
+      const driveTimeHours = validation.actualDriveTime;
 
-      console.log(`⚖️ Day ${day}: ${currentStop.name} → ${nextStop.name} = ${distance.toFixed(0)}mi, ${driveTimeHours.toFixed(1)}h (even pacing)`);
+      console.log(`⚖️ Day ${day}: ${currentStop.name} → ${nextStop.name} = ${distance.toFixed(0)}mi, ${driveTimeHours.toFixed(1)}h (emergency validated)`);
 
       const segment: DailySegment = {
         day,
@@ -214,8 +261,8 @@ export class EvenPacingPlanningService {
           city: nextStop.city || nextStop.city_name || nextStop.name
         }],
         attractions: [],
-        notes: `Day ${day}: Even-paced drive from ${currentStop.name} to ${nextStop.name}`,
-        recommendations: []
+        notes: `Day ${day}: Even-paced drive from ${currentStop.name} to ${nextStop.name}${validation.needsSplitting ? ' (Distance optimized for realistic driving)' : ''}`,
+        recommendations: validation.needsSplitting ? [`This segment was optimized to ensure realistic daily driving distances.`] : []
       };
 
       segments.push(segment);
